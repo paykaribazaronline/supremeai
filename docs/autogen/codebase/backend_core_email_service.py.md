@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/email_service.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,806 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.965173
+**সাইজ:** 3,818 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.050105
 
 ---
 
@@ -33,7 +33,7 @@ class EmailService:
             return False
 
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=15.0) as client:
                 response = await client.post(
                     self.api_url,
                     headers={

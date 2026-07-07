@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/llm_gateway.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,141 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.970770
+**সাইজ:** 11,334 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.055424
 
 ---
 
@@ -171,6 +171,10 @@ class LLMGateway:
         for m in all_models:
             if m not in call_chain:
                 call_chain.append(m)
+
+        if not call_chain:
+            call_chain = ["gemini-1.5-flash", "gpt-3.5-turbo"]
+            logger.warning("Empty call chain detected in LLMGateway. Using default fallback models.")
 
         # বাংলা মন্তব্য: পেলোড নরমালাইজেশন — স্ট্রিং অথবা মেসেজ লিস্ট দুই ফরম্যাটই সাপোর্ট করে
         if isinstance(prompt, list):

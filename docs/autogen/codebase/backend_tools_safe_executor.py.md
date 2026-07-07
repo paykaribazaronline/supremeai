@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/safe_executor.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,255 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.038909
+**সাইজ:** 5,269 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.125376
 
 ---
 
@@ -177,7 +177,7 @@ def run_restricted(
 
         # Execute the sandboxed code. RestrictedPython will raise an exception if
         # the code attempts to use disallowed operations.
-        exec(byte_code, globals_, locals_)
+        exec(byte_code, globals_, locals_)  # noqa: S102
         return True, locals_
 
     except (ValueError, SyntaxError, NameError, TypeError) as e:

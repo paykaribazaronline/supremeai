@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/session_takeover.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,463 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.980894
+**সাইজ:** 3,917 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.065835
 
 ---
 
@@ -54,9 +54,20 @@ async def mock_screencast_emitter(websocket: WebSocket, session_id: str):
                 "data": MOCK_FRAME_B64
             })
     except asyncio.CancelledError:
-        pass
+        logger.warning("⚠️ Task execution was intentionally cancelled.")
+        raise
     except Exception as e:
-        logger.debug(f"Mock screencast emitter closed for session {session_id}: {e}")
+        logger.exception(f"❌ Critical task failure in session_takeover.py: {e}")
+        from core.event_bus import error_event_bus, ErrorEvent
+        await error_event_bus.emit_async(
+            ErrorEvent(
+                module="backend.api.routes.session_takeover",
+                error_type=type(e).__name__,
+                message=str(e),
+                severity="WARNING",
+                context={"session_id": session_id}
+            )
+        )
 
 @router.websocket("/ws/session/{session_id}/takeover")
 async def takeover_session_websocket(

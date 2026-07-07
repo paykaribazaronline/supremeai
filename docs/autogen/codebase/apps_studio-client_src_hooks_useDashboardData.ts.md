@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/hooks/useDashboardData.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 5,588 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.069819
+**সাইজ:** 5,874 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.156868
 
 ---
 
@@ -62,44 +62,44 @@ export interface ThreatScanResult {
 // বাংলা মন্তব্য: টোকেন চেক হেল্পার — টোকেন না থাকলে কোয়েরি enabled=false হবে, 401 স্টর্ম ঠেকাবে
 const hasToken = (): boolean => !!getAdminToken();
 
-// বাংলা মন্তব্য: রিফেচ ইন্টারভালগুলো আলাদা আলাদা সময়ে সেট করা হয়েছে যাতে সব কোয়েরি একসাথে ফায়ার না হয়
-export function useMetrics(intervalMs = 30000) {
+// বাংলা মন্তব্য: পোলিং বন্ধ করে SSE-এর মাধ্যমে ডেটা আপডেট করা হবে
+export function useMetrics() {
   return useQuery({
     queryKey: ['dashboard', 'metrics'],
     queryFn: () => apiClient.get<MetricsData>('/admin-api/metrics'),
-    refetchInterval: (query: any) => query.state.error ? false : intervalMs,
+    refetchInterval: false,
     enabled: hasToken(),
-    staleTime: 15_000,
+    staleTime: Infinity,
   });
 }
 
-export function useCostReport(intervalMs = 60000) {
+export function useCostReport() {
   return useQuery({
     queryKey: ['dashboard', 'costs'],
     queryFn: () => apiClient.get<CostReport>('/admin-api/costs'),
-    refetchInterval: (query: any) => query.state.error ? false : intervalMs,
+    refetchInterval: false,
     enabled: hasToken(),
-    staleTime: 30_000,
+    staleTime: Infinity,
   });
 }
 
-export function useHealthMap(intervalMs = 45000) {
+export function useHealthMap() {
   return useQuery({
     queryKey: ['dashboard', 'health'],
     queryFn: () => apiClient.get<HealthMapData>('/admin-api/health-map'),
-    refetchInterval: (query: any) => query.state.error ? false : intervalMs,
+    refetchInterval: false,
     enabled: hasToken(),
-    staleTime: 20_000,
+    staleTime: Infinity,
   });
 }
 
-export function useCIReports(limit = 5, intervalMs = 30000) {
+export function useCIReports(limit = 5) {
   return useQuery({
     queryKey: ['dashboard', 'ci-logs', limit],
     queryFn: () => apiClient.get<CIReport[]>(`/admin-api/ci-logs?limit=${limit}`),
-    refetchInterval: (query: any) => query.state.error ? false : intervalMs,
+    refetchInterval: false,
     enabled: hasToken(),
-    staleTime: 15_000,
+    staleTime: Infinity,
   });
 }
 
@@ -107,10 +107,10 @@ export function useThreatScan() {
   return useQuery({
     queryKey: ['dashboard', 'security-scan'],
     queryFn: () => apiClient.get<ThreatScanResult>('/admin-api/security-scan'),
-    // বাংলা মন্তব্য: সিকিউরিটি স্ক্যান কম ঘন ঘন চলবে — ১২০ সেকেন্ড ইন্টারভাল
-    refetchInterval: (query: any) => query.state.error ? false : 120000,
+    // বাংলা মন্তব্য: পোলিং বন্ধ করে SSE-এর মাধ্যমে ডেটা আপডেট করা হবে
+    refetchInterval: false,
     enabled: hasToken(),
-    staleTime: 60_000,
+    staleTime: Infinity,
   });
 }
 
@@ -148,13 +148,13 @@ export interface ReportDetail {
 }
 
 // বাংলা মন্তব্য: রিয়েল-টাইম ইভেন্ট ডেটা ফেচ করার জন্য রিয়্যাক্ট কোয়েরি হুক
-export function useDashboardEvents(limit = 50, intervalMs = 30000) {
+export function useDashboardEvents(limit = 50) {
   return useQuery({
     queryKey: ['dashboard', 'events', limit],
     queryFn: () => apiClient.get<DashboardEvent[]>(`/admin-api/events?limit=${limit}`),
-    refetchInterval: (query: any) => query.state.error ? false : intervalMs,
+    refetchInterval: false,
     enabled: hasToken(),
-    staleTime: 15_000,
+    staleTime: Infinity,
   });
 }
 
@@ -169,6 +169,37 @@ export function useDashboardReports(reportName?: string) {
     enabled: hasToken(),
     staleTime: 60_000,
   });
+}
+
+// SSE Listener Hook
+import { useEffect } from 'react';
+
+export function useDashboardSSE() {
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!hasToken()) return;
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const sse = new EventSource(`${backendUrl}/api/dashboard/stream`);
+
+    sse.addEventListener('dashboard_events', (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        qc.setQueryData(['dashboard', 'events', 50], data); // update cache directly
+      } catch (err) {}
+    });
+
+    sse.addEventListener('metrics_events', (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        qc.setQueryData(['dashboard', 'metrics'], data);
+      } catch (err) {}
+    });
+
+    return () => {
+      sse.close();
+    };
+  }, [qc]);
 }
 
 

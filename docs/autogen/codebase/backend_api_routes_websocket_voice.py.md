@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/websocket_voice.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,383 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.982743
+**সাইজ:** 6,395 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.067827
 
 ---
 
@@ -72,7 +72,7 @@ async def process_audio_with_groq(audio_bytes: bytes) -> str:
         "response_format": "json"
     }
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=10.0) as client:
         try:
             response = await client.post(url, headers=headers, files=files, data=data, timeout=10.0)
             response.raise_for_status()

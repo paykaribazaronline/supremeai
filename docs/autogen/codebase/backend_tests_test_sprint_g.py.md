@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_sprint_g.py
 
 **প্রকার:** .py  
-**সাইজ:** 18,130 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.015118
+**সাইজ:** 18,255 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.101446
 
 ---
 
@@ -418,9 +418,10 @@ class TestTenantAdminAPI:
             )
             try:
                 await create_tenant(payload)
-            except Exception:
+            except Exception as e:
                 # May fail on tier cache — check local store directly
-                pass
+                import logging
+                logging.warning(f"Tenant creation failed in test, checking local store fallback. Error: {e}")
 
         # Verify in local store
         tenants = _local_store.get("tenants", [])

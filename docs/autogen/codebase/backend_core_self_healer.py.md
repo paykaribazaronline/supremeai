@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/self_healer.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,709 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.960637
+**সাইজ:** 3,302 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.045694
 
 ---
 
@@ -15,6 +15,8 @@ from datetime import datetime
 from typing import Any
 
 from loguru import logger
+
+from core.event_bus import error_event_bus, ErrorEvent
 
 
 class SelfHealerService:
@@ -86,5 +88,17 @@ class SelfHealerService:
         # Here we would normally use the cloud_sandbox_orchestrator
         # For now, return True as a placeholder
         return True
+
+async def _self_healer_error_listener(event: ErrorEvent):
+    """
+    Listens to the centralized error event bus.
+    If an error meets the criteria, it can trigger the self healer's propose_fix logic.
+    """
+    logger.info(f"SelfHealer triggered by event from {event.module}: {event.error_type}")
+    # In a full implementation, this would instantiate SelfHealerService and call propose_fix
+    # based on the severity and context of the event.
+
+# Register the listener
+error_event_bus.register_listener(_self_healer_error_listener)
 
 ```

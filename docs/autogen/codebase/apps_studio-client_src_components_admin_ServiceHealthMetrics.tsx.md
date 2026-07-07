@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/ServiceHealthMetrics.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 6,357 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.064604
+**সাইজ:** 6,529 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.151149
 
 ---
 
@@ -26,10 +26,16 @@ export const ServiceHealthMetrics: React.FC = () => {
       const data = await fetchJavaWorkerHealth();
       setMetrics(data);
     };
-    
     loadMetrics();
-    const interval = setInterval(loadMetrics, 5000);
-    return () => clearInterval(interval);
+    
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const sse = new EventSource(`${backendUrl}/api/dashboard/stream`);
+    
+    sse.addEventListener('metrics_events', () => {
+      loadMetrics();
+    });
+
+    return () => sse.close();
   }, []);
 
   // বাংলা মন্তব্য: ১৮টি অ্যাডমিন ট্যাবের জন্য নেভিগেশন বাটন

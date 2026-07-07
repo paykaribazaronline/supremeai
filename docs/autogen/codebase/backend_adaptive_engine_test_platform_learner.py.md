@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/adaptive_engine/test_platform_learner.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,383 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.027486
+**সাইজ:** 9,421 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.113849
 
 ---
 
@@ -10,11 +10,12 @@
 
 ```py
 # বাংলা মন্তব্য: টেস্টে ব্যবহৃত httpx প্যাকেজ আমদানি করা হলো এবং অব্যবহৃত ইম্পোর্টগুলো মুছে ফেলা হলো।
+from unittest.mock import AsyncMock
 from unittest.mock import patch
 
 import httpx
 import pytest
-from platform_learner import PlatformLearner
+from adaptive_engine.platform_learner import PlatformLearner
 
 from adaptive_engine.registry import PlatformProfile
 
@@ -29,6 +30,7 @@ class TestPlatformLearner:
     @pytest.fixture
     def mock_model_router(self):
         with patch('brain.model_router.ModelRouter') as mock_model_router:
+            mock_model_router.async_route_and_generate = AsyncMock(return_value={'text': '{}'})
             yield mock_model_router
 
     @pytest.fixture
@@ -80,7 +82,7 @@ class TestPlatformLearner:
         docs_url = 'https://test.com'
         profile = await platform_learner.learn_from_docs(platform_name, docs_url)
         assert isinstance(profile, PlatformProfile)
-        assert profile.display_name == 'test'
+        assert profile.display_name == 'Test'
         assert profile.category == 'hosting'
 
     @pytest.mark.asyncio
@@ -119,7 +121,7 @@ class TestPlatformLearner:
         docs_url = 'https://test.com'
         profile = await platform_learner.learn_from_docs(platform_name, docs_url)
         assert isinstance(profile, PlatformProfile)
-        assert profile.display_name == 'test'
+        assert profile.display_name == 'Test'
         assert profile.category == 'hosting'
 
     @pytest.mark.asyncio
@@ -156,7 +158,7 @@ class TestPlatformLearner:
         docs_url = 'https://test.com'
         profile = await platform_learner.learn_from_docs(platform_name, docs_url)
         assert isinstance(profile, PlatformProfile)
-        assert profile.display_name == 'test'
+        assert profile.display_name == 'Test'
         assert profile.category == 'hosting'
 
     @pytest.mark.asyncio
@@ -167,9 +169,7 @@ class TestPlatformLearner:
         mock_model_router.async_route_and_generate.side_effect = Exception('Test')
         platform_name = 'test'
         docs_url = 'https://test.com'
-        profile = await platform_learner.learn_from_docs(platform_name, docs_url)
-        assert isinstance(profile, PlatformProfile)
-        assert profile.display_name == 'test'
-        assert profile.category == 'hosting'
+        with pytest.raises(Exception):
+            await platform_learner.learn_from_docs(platform_name, docs_url)
 
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/agents/research_assistant.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,094 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.993997
+**সাইজ:** 7,095 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.079140
 
 ---
 
@@ -50,7 +50,7 @@ class ResearchAssistant:
             return []
 
     def _parse_arxiv_xml(self, xml: str) -> list[dict[str, Any]]:
-        import xml.etree.ElementTree as ET
+        import defusedxml.ElementTree as ET
 
         ns = {
             "atom": "http://www.w3.org/2005/Atom",

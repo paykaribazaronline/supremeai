@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/coverage_auditor.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,042 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.028230
+**সাইজ:** 3,043 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.114639
 
 ---
 
@@ -11,7 +11,7 @@
 ```py
 import json
 import os
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 from dataclasses import dataclass
 
 from loguru import logger

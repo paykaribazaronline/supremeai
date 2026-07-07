@@ -2,7 +2,7 @@
 
 **প্রকার:** .py  
 **সাইজ:** 17,251 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.960936
+**আপডেট:** 2026-07-07T21:29:49.046023
 
 ---
 
@@ -103,7 +103,7 @@ def admin_verify(payload: AdminVerifyRequest):
 
     from jose import jwt
 
-    jwt_payload = {"uid": "admin", "role": "admin", "exp": int(time.time()) + 3600 * 24}
+    jwt_payload = {"sub": "admin", "role": "admin", "exp": int(time.time()) + 3600 * 24}
     jwt_secret = settings.jwt_secret
     token = jwt.encode(jwt_payload, jwt_secret, algorithm="HS256")
     return {"status": "success", "token": token}

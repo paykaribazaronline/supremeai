@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/browser_stealth.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,652 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.032902
+**সাইজ:** 7,685 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.119316
 
 ---
 
@@ -11,7 +11,8 @@
 ```py
 import asyncio
 import os
-import random
+import secrets
+random = secrets.SystemRandom()
 import string
 import time
 from pathlib import Path

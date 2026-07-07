@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_api_new_endpoints.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,996 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.013337
+**সাইজ:** 5,044 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.099707
 
 ---
 
@@ -31,6 +31,7 @@ import pytest
 def setup_token():
     os.environ["SUPREMEAI_API_TOKEN"] = "test-token"
     yield
+    os.environ.pop("SUPREMEAI_API_TOKEN", None)
 
 
 def test_api_email_endpoints():

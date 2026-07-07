@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/system_config.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,601 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.986100
+**সাইজ:** 2,602 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.071281
 
 ---
 
@@ -73,4 +73,5 @@ class SystemConfig(Base):
 
     def __repr__(self) -> str:
         return f"<SystemConfig key='{self.key}' category='{self.category}'>"
+
 ```

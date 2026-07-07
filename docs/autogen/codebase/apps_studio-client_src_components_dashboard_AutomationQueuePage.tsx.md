@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/dashboard/AutomationQueuePage.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 10,260 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.055573
+**সাইজ:** 10,431 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.142039
 
 ---
 
@@ -79,9 +79,15 @@ export function AutomationQueuePage() {
 
   useEffect(() => {
     refresh();
-    const interval = setInterval(refresh, 4000);
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const sse = new EventSource(`${backendUrl}/api/dashboard/stream`);
+    
+    sse.addEventListener('browser_tasks', () => {
+      refresh();
+    });
+
     return () => {
-      clearInterval(interval);
+      sse.close();
       setSujonState('idle');
     };
   }, [refresh]);

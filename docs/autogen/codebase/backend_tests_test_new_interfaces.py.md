@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_new_interfaces.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,095 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.006448
+**সাইজ:** 2,196 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.092254
 
 ---
 
@@ -81,6 +81,7 @@ def test_local_ocr_extractor():
             if os.path.exists(excel_path):
                 os.remove(excel_path)
     except ImportError:
-        pass
+        import logging
+        logging.warning("Optional dependencies not installed, skipping excel export test")
 
 ```

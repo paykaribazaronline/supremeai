@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/knowledge_base_indexer.py
 
 **প্রকার:** .py  
-**সাইজ:** 15,547 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.040118
+**সাইজ:** 15,593 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.126574
 
 ---
 
@@ -54,7 +54,7 @@ class KnowledgeBaseIndexer:
                 logging.warning(f"Exception suppressed: {e}")
             return docs
 
-        module_hash = hashlib.md5(source.encode("utf-8")).hexdigest()
+        module_hash = hashlib.md5(source.encode("utf-8"), usedforsecurity=False).hexdigest()
         self._indexed_hashes[path] = module_hash
 
         docs.append(
@@ -298,7 +298,7 @@ class KnowledgeBaseIndexer:
             metadata["source_type"] = metadata.get("source_type", "external")
 
             # Generate a unique ID based on the content or provided ID
-            item_id = item.get("id") or hashlib.md5(text.encode("utf-8")).hexdigest()
+            item_id = item.get("id") or hashlib.md5(text.encode("utf-8"), usedforsecurity=False).hexdigest()
 
             docs.append(
                 {

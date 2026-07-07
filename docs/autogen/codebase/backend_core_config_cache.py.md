@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/config_cache.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,438 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.965311
+**সাইজ:** 10,044 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.050248
 
 ---
 
@@ -32,8 +32,8 @@ SupremeAI 2.0-এর জন্য TTL-based config cache layer.
     await config_cache.set("cache_threshold_code", 0.90)
 """
 
-import time
 import threading
+import time
 from typing import Any
 
 from loguru import logger
@@ -98,16 +98,17 @@ class ConfigCache:
         configs = dict(DEFAULT_CONFIGS)  # Start with defaults
         try:
             # Try to load from SystemConfig table
-            from database.session import AsyncSessionLocal
-            from models.system_config import SystemConfig
-            from sqlalchemy import select
-            
             # Synchronous load for cache initialization
             import asyncio
+
+            from sqlalchemy import select
+
+            from database.session import AsyncSessionLocal
+            from models.system_config import SystemConfig
             
             async def _async_load():
                 async with AsyncSessionLocal() as session:
-                    stmt = select(SystemConfig).where(SystemConfig.is_active == True)
+                    stmt = select(SystemConfig).where(SystemConfig.is_active)
                     result = await session.execute(stmt)
                     rows = result.scalars().all()
                     for row in rows:
@@ -120,9 +121,18 @@ class ConfigCache:
                 configs = loop.run_until_complete(_async_load())
                 loop.close()
                 logger.info(f"ConfigCache: Loaded {len(configs)} configs from DB")
-            except RuntimeError:
-                # No event loop available (e.g., during testing)
-                pass
+            except RuntimeError as e:
+                logger.exception(f"❌ Critical task failure in config_cache.py: {e}")
+                from core.event_bus import error_event_bus, ErrorEvent
+                error_event_bus.emit(
+                    ErrorEvent(
+                        module="backend.core.config_cache",
+                        error_type=type(e).__name__,
+                        message=str(e),
+                        severity="WARNING",
+                        context={"action": "async_load_fallback"}
+                    )
+                )
                 
         except Exception as exc:
             logger.debug(f"ConfigCache: DB load failed, using defaults: {exc}")
@@ -130,13 +140,40 @@ class ConfigCache:
         return configs
     
     def refresh(self):
-        """ফোর্স রিফ্রেশ — ক্যাশ DB থেকে রিলোড করে।"""
+        """ফোর্স রিফ্রেশ — ক্যাশ DB থেকে রিলোড করে (সিঙ্ক্রোনাস)।"""
         with self._lock:
             self._cache = self._load_from_db()
             self._last_refresh = time.time()
             self._loaded = True
             logger.debug(f"ConfigCache: Refreshed {len(self._cache)} configs")
-    
+
+    async def refresh_async(self):
+        """Asynchronous refresh, mainly for startup."""
+        from sqlalchemy import select
+        from database.session import AsyncSessionLocal
+        from models.system_config import SystemConfig
+        
+        configs = dict(DEFAULT_CONFIGS)
+        try:
+            async with AsyncSessionLocal() as session:
+                stmt = select(SystemConfig).where(SystemConfig.is_active)
+                result = await session.execute(stmt)
+                rows = result.scalars().all()
+                for row in rows:
+                    configs[row.key] = row.value
+            
+            with self._lock:
+                self._cache = configs
+                self._last_refresh = time.time()
+                self._loaded = True
+            logger.info(f"ConfigCache: Async loaded {len(configs)} configs from DB")
+        except Exception as exc:
+            logger.debug(f"ConfigCache: DB load failed during startup, using defaults: {exc}")
+            with self._lock:
+                self._cache = configs
+                self._last_refresh = time.time()
+                self._loaded = True
+
     def get(self, key: str, default: Any = None) -> Any:
         """
         কনফিগ ভ্যালু রিটার্ন করে।
@@ -167,9 +204,10 @@ class ConfigCache:
         """
         কনফিগ ভ্যালু সেট করে — DB-তেও persist করে + cache update করে।
         """
+        from sqlalchemy import select
+
         from database.session import AsyncSessionLocal
         from models.system_config import SystemConfig
-        from sqlalchemy import select
         
         try:
             async with AsyncSessionLocal() as session:
@@ -219,4 +257,5 @@ class ConfigCache:
 
 # Global singleton
 config_cache = ConfigCache(ttl_seconds=60)
+
 ```

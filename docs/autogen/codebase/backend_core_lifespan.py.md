@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/lifespan.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,475 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.973699
+**সাইজ:** 6,837 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.058432
 
 ---
 
@@ -23,6 +23,7 @@ from core.orchestrator import Orchestrator
 from core.pgbouncer_pool import get_db_pool
 from core.pgbouncer_pool import init_db_pool
 from core.redis_manager import redis_manager
+from core.config_cache import config_cache
 
 
 async def _ensure_api_key_tables() -> None:
@@ -111,6 +112,13 @@ async def app_lifespan(app):
     except Exception as exc:
         logger.error(f"❌ Failed to initialize DB Pool: {exc}")
         raise exc
+        
+    try:
+        await config_cache.refresh_async()
+    except Exception as exc:
+        logger.critical(f"🚨 সিস্টেম স্টার্টআপ ব্লক করা হয়েছে - কনফিগারেশন অনুপস্থিত! {exc}")
+        import sys
+        sys.exit(1)
 
     try:
         await redis_manager.initialize()

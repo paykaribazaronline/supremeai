@@ -1,8 +1,8 @@
 # 📄 ফাইল: scripts/orchestrator/auto_budget_guardian.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,748 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.943619
+**সাইজ:** 8,364 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.028386
 
 ---
 
@@ -113,6 +113,7 @@ def check_and_protect_budgets() -> None:
     # Pause providers that are over threshold
     for provider in providers_to_pause:
         tracker._budgets[provider].pause(PAUSE_DURATION_SECONDS)
+        provider_status = status["providers"][provider]
         msg = (
             f"🚨 **{provider.upper()} PAUSED** due to high usage\n"
             f"• RPM: {provider_status['rpm_used']}/{provider_status['rpm_limit']} "
@@ -154,6 +155,23 @@ def check_and_protect_budgets() -> None:
 
 def run_budget_guardian_check() -> None:
     """Execute a single budget guard check - designed to be called by external schedulers."""
+    from core.config_cache import config_cache
+    import time
+    import asyncio
+    
+    now = int(time.time())
+    
+    # Idempotency check: skip if ran within the last 60 seconds
+    try:
+        last_run = config_cache.get("budget_guardian_last_run", 0)
+        if last_run and now - int(last_run) < 60:
+            logger.info("Budget guardian already ran in the last minute. Skipping duplicate execution.")
+            return
+            
+        asyncio.run(config_cache.set("budget_guardian_last_run", now))
+    except Exception as cache_err:
+        logger.warning(f"Failed to check/set idempotency via ConfigCache: {cache_err}")
+
     try:
         check_and_protect_budgets()
     except Exception as e:
@@ -168,33 +186,7 @@ def run_budget_guardian_check() -> None:
             except Exception as notify_err:
                 logger.error(f"Failed to send Discord error notification (non-blocking): {notify_err}")
 
-def main() -> None:
-    """Main monitoring loop."""
-    logger.info("Starting SupremeAI Budget Guardian...")
-    logger.info(f"Check interval: {CHECK_INTERVAL_SECONDS}s")
-    logger.info(f"Pause threshold: {THRESHOLD_PERCENT*100}%")
-    logger.info(f"Pause duration: {PAUSE_DURATION_SECONDS}s ({PAUSE_DURATION_SECONDS//3600}h)")
-    
-    if DISCORD_WEBHOOK_URL:
-        logger.info("Discord notifications: ENABLED")
-        send_discord_notification("🚨 **Budget Guardian Started**\nMonitoring free-tier usage across all providers.")
-    else:
-        logger.warning("Discord webhook not configured - notifications disabled")
-    
-    try:
-        while True:
-            check_and_protect_budgets()
-            time.sleep(CHECK_INTERVAL_SECONDS)
-    except KeyboardInterrupt:
-        logger.info("Budget Guardian stopped by user")
-        if DISCORD_WEBHOOK_URL:
-            send_discord_notification("🛑 **Budget Guardian Stopped**")
-    except Exception as e:
-        logger.exception(f"Unexpected error in Budget Guardian: {e}")
-        if DISCORD_WEBHOOK_URL:
-            send_discord_notification(f"💥 **Budget Guardian Crashed**\n```{str(e)}```")
-        raise
-
 if __name__ == "__main__":
-    main()
+    logger.info("Starting SupremeAI Stateless Budget Guardian Check...")
+    run_budget_guardian_check()
 ```

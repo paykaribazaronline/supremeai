@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/playwright_browser_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 24,707 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.030807
+**সাইজ:** 24,740 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.117277
 
 ---
 
@@ -14,7 +14,8 @@ from __future__ import annotations
 import contextlib
 import asyncio
 import json
-import random
+import secrets
+random = secrets.SystemRandom()
 import time
 import base64
 from collections.abc import Callable

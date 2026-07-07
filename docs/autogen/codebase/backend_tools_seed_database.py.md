@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/seed_database.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,792 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.033551
+**সাইজ:** 6,815 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.119894
 
 ---
 
@@ -121,7 +121,7 @@ def seed_all():
                                     doc_content += f"Solutions: {', '.join(item['solutions']) if isinstance(item['solutions'], list) else item['solutions']}\n"
 
                                 doc_id = hashlib.md5(
-                                    f"{module_name}_{key}".encode()
+                                    f"{module_name}_{key}".encode(), usedforsecurity=False
                                 ).hexdigest()
                                 ids.append(doc_id)
                                 documents.append(doc_content)

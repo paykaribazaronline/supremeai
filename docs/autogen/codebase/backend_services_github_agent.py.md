@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/services/github_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,582 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.023827
+**সাইজ:** 5,550 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.110130
 
 ---
 
@@ -18,7 +18,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.security_vault import decrypt_token
-from database.session import get_db_session
 from models.integration import Integration
 
 
@@ -85,7 +84,7 @@ async def create_autonomous_pr(
     branch_name = f"supremeai-auto-fix-{datetime.now().strftime('%Y%m%d%H%M%S')}"
     base_url = f"https://api.github.com/repos/{repo_name}"
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=15.0) as client:
         # Step A: Get Default Branch SHA (সাধারণত 'main' বা 'master')
         repo_info = await client.get(base_url, headers=headers)
         if repo_info.status_code != 200:

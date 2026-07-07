@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/pages/AgentWorkspace.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 14,794 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.068511
+**সাইজ:** 14,548 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.155549
 
 ---
 
@@ -15,6 +15,7 @@ import { Terminal } from 'xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebContainer } from '@webcontainer/api'; // 🟢 নতুন ইমপোর্ট
 import 'xterm/css/xterm.css'; // টার্মিনালের স্টাইল
+import { apiClient } from '../services/apiClient';
 
 // টাইপ ডেফিনিশন
 interface Message {
@@ -35,6 +36,7 @@ export const AgentWorkspace: React.FC = () => {
   const webcontainerRef = useRef<WebContainer | null>(null); // 🟢 WebContainer Ref
   const wsRef = useRef<WebSocket | null>(null);
   const shellWriterRef = useRef<WritableStreamDefaultWriter<string> | null>(null);
+  const fitAddonRef = useRef<FitAddon | null>(null);
 
   useEffect(() => {
     let term: Terminal;
@@ -53,6 +55,7 @@ export const AgentWorkspace: React.FC = () => {
         term.open(terminalRef.current);
         fitAddon.fit();
         xtermRef.current = term;
+        fitAddonRef.current = fitAddon;
 
         term.writeln('🚀 \x1b[1;34mSupremeAI Hybrid Engine\x1b[0m initializing...');
         term.writeln('⏳ Booting Zero-Cost Node.js environment in browser...');
@@ -87,7 +90,13 @@ export const AgentWorkspace: React.FC = () => {
           console.error(error);
         }
 
-        window.addEventListener('resize', () => fitAddon.fit());
+        const handleResize = () => {
+          if (fitAddonRef.current) fitAddonRef.current.fit();
+        };
+        window.addEventListener('resize', handleResize);
+        
+        // Save handleResize to window for cleanup if needed, but better to put it in effect scope
+        (window as any)._terminalResizeHandler = handleResize;
       }
     };
 
@@ -100,6 +109,10 @@ export const AgentWorkspace: React.FC = () => {
       if (webcontainerRef.current) {
         webcontainerRef.current.teardown();
         webcontainerRef.current = null;
+      }
+      if ((window as any)._terminalResizeHandler) {
+        window.removeEventListener('resize', (window as any)._terminalResizeHandler);
+        delete (window as any)._terminalResizeHandler;
       }
     };
   }, []);
@@ -115,18 +128,10 @@ export const AgentWorkspace: React.FC = () => {
 
     try {
       // ব্যাকএন্ড API কল (আপনার FastAPI সার্ভারের URL)
-      const response = await fetch('http://localhost:8000/api/v1/agent/execute', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: prompt,
-          project_id: 'proj_123'
-        }),
+      const data = await apiClient.post<any>('/agent/execute', {
+        prompt: prompt,
+        project_id: 'proj_123'
       });
-
-      const data = await response.json();
 
       if (data.status === 'success') {
         // এআই এর রেসপন্স এবং সোর্স (API নাকি Memory) অ্যাড করা
@@ -184,16 +189,10 @@ export const AgentWorkspace: React.FC = () => {
           term.writeln(`\r\n⚠️ \x1b[1;33m[Auto-Heal] Code failed with exit code ${exitCode}. Requesting AI fix...\x1b[0m`);
           
           // ব্যাকএন্ডে এরর মেসেজসহ ফিক্সের জন্য রিকোয়েস্ট পাঠানো
-          const fixResponse = await fetch('http://localhost:8000/api/v1/agent/execute', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              prompt: `I tried to run this code but got an error. \n\nCODE:\n${codeToRun}\n\nERROR:\n${processOutput}\n\nPlease fix the bug and return ONLY the full working code.`,
-              project_id: 'proj_123'
-            }),
+          const fixData = await apiClient.post<any>('/agent/execute', {
+            prompt: `I tried to run this code but got an error. \n\nCODE:\n${codeToRun}\n\nERROR:\n${processOutput}\n\nPlease fix the bug and return ONLY the full working code.`,
+            project_id: 'proj_123'
           });
-          
-          const fixData = await fixResponse.json();
           if (fixData.status === 'success') {
             const fixedCode = fixData.code;
             setGeneratedCode(fixedCode); // এডিটরে নতুন কোড বসবে
@@ -210,13 +209,9 @@ export const AgentWorkspace: React.FC = () => {
         term.writeln(`\r\n✅ \x1b[1;32m[Success] Execution flawless! Committing to Memory Vault...\x1b[0m`);
         
         // ব্যাকএন্ডকে কনফার্ম করা যে কোডটি কাজ করেছে, মেমোরিতে সেভ করো
-        await fetch('http://localhost:8000/api/v1/agent/learn', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            prompt: prompt, // অরিজিনাল প্রম্পট
-            working_code: codeToRun
-          }),
+        await apiClient.post('/agent/learn', {
+          prompt: prompt, // অরিজিনাল প্রম্পট
+          working_code: codeToRun
         });
         
         setMessages(prev => [...prev, { role: 'agent', content: `🎯 Execution verified! I have memorized this solution in the Zero-Cost Vault.`, source: 'memory' }]);
@@ -224,19 +219,13 @@ export const AgentWorkspace: React.FC = () => {
         // 🟢 ২. GitHub-এ Auto-PR তৈরি করা (The New Magic)
         term.writeln(`\r\n🐙 \x1b[1;34m[GitHub] Pushing verified code to repository as a PR...\x1b[0m`);
         
-        const prResponse = await fetch('http://localhost:8000/api/v1/agent/github/pr', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_id: 'admin_123', // সেশন থেকে নেবেন
-            repo_name: 'YOUR_GITHUB_USERNAME/YOUR_TEST_REPO', // আপনার টেস্ট রিপোর নাম দিন
-            file_path: 'src/auto_generated.js',
-            code: codeToRun,
-            prompt: prompt
-          }),
+        const prData = await apiClient.post<any>('/agent/github/pr', {
+          user_id: 'admin_123', // TODO: Fetch from session
+          repo_name: import.meta.env.VITE_GITHUB_REPO || 'supremeai/test_repo', 
+          file_path: 'src/auto_generated.js',
+          code: codeToRun,
+          prompt: prompt
         });
-
-        const prData = await prResponse.json();
         if (prData.status === 'success') {
           term.writeln(`\r\n🎉 \x1b[1;32m[GitHub] PR Created Successfully! Link: ${prData.pr_url}\x1b[0m`);
           setMessages(prev => [...prev, { role: 'agent', content: `🚀 I have autonomously created a Pull Request in your GitHub repo! Check it out: ${prData.pr_url}` }]);

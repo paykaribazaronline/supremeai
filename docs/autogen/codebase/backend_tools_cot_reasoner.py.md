@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/cot_reasoner.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,077 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.027789
+**সাইজ:** 14,110 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.114196
 
 ---
 
@@ -14,7 +14,8 @@ from __future__ import annotations
 import ast
 import contextlib
 import operator
-import random
+import secrets
+random = secrets.SystemRandom()
 from typing import Any
 
 from loguru import logger

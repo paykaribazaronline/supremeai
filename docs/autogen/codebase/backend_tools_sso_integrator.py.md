@@ -1,15 +1,15 @@
 # 📄 ফাইল: backend/tools/sso_integrator.py
 
 **প্রকার:** .py  
-**সাইজ:** 16,266 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.041749
+**সাইজ:** 16,279 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.128206
 
 ---
 
 ## কোড
 
 ```py
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 from typing import Any
 from urllib.parse import parse_qs
 from urllib.parse import urlparse
@@ -340,7 +340,7 @@ class SSOIntegrator:
                 "client_id": client_id,
                 "client_secret": client_secret,
             }
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=15.0) as client:
                 resp = await client.post(token_url, data=payload, timeout=10.0)
                 resp.raise_for_status()
                 tokens = resp.json()

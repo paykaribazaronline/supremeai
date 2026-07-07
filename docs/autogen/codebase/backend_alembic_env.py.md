@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/alembic/env.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,780 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.991757
+**সাইজ:** 2,825 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.076800
 
 ---
 
@@ -23,7 +23,7 @@ from sqlalchemy import pool
 from alembic import context
 from core.config import settings
 from models.base import Base
-
+from models.system_config import SystemConfig
 
 # Import all models to ensure they are registered with Base.metadata before autogenerate
 

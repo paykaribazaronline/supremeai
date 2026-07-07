@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_voice_stream.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,047 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.006332
+**সাইজ:** 1,103 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.092134
 
 ---
 
@@ -27,7 +27,8 @@ def test_app() -> FastAPI:
     try:
         base_app.include_router(voice_router, prefix="/api/voice")
     except ValueError:
-        pass # Router already added
+        import logging
+        logging.warning("Router already added in test_voice_stream")
     return base_app
 
 

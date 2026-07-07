@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/pyproject.toml
 
 **প্রকার:** .toml  
-**সাইজ:** 6,874 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.959389
+**সাইজ:** 6,935 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.044380
 
 ---
 
@@ -135,6 +135,7 @@ pylint = "^3.2.0"
 discord-py = "^2.3.0"
 matplotlib = "^3.8.0"
 pdfplumber = "^0.10.0"
+respx = "^0.21.0"
 
 
 [build-system]
@@ -147,7 +148,7 @@ target-version = "py311"
 
 [tool.ruff.lint]
 # Enable a curated rule set — customize per project needs
-select = ["E", "F", "W", "I", "UP", "B", "A", "C4", "SIM", "PL"]
+select = ["E", "F", "W", "I", "UP", "B", "A", "C4", "SIM", "PL", "T201", "BLE001"]
 ignore = ["B008", "C901", "PLR0913", "PLC0415", "PLR0912", "PLR0915", "PLR0911", "PLR2004", "PLW0603", "W291", "W293", "C414", "E731", "F811", "PLW2901", "PLW0108", "SIM103", "SIM108", "SIM117", "SIM112"]
 fixable = ["ALL"]
 
@@ -185,5 +186,6 @@ ignore_missing_imports = true
 addopts = "--cov=core --cov-report=term-missing --cov-report=json:coverage.json --cov-config=.coveragerc --cov-fail-under=25"
 testpaths = ["tests"]
 norecursedirs = [".venv", "venv", ".git", "build", "dist"]
+pythonpath = ["..", "."]
 
 ```

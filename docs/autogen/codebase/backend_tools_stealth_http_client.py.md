@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/stealth_http_client.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,470 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.035395
+**সাইজ:** 3,482 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.121807
 
 ---
 
@@ -68,7 +68,7 @@ class StealthHTTPClient:
                 logger.info(f"Stealth request without proxy (Attempt {attempt+1}/{retries})")
 
             try:
-                async with httpx.AsyncClient() as client:
+                async with httpx.AsyncClient(timeout=15.0) as client:
                     response = await client.request(method, url, **client_kwargs)
                     response.raise_for_status()
                     return response

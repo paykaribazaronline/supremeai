@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/model_trainer.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,205 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.039837
+**সাইজ:** 5,241 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.126293
 
 ---
 
@@ -66,7 +66,7 @@ class ModelTrainer:
                     },
                 }
             }
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=30.0) as client:
                 resp = await client.post(
                     f"https://api.runpod.ai/v2/{endpoint_id}/run",
                     json=payload,
@@ -89,7 +89,7 @@ class ModelTrainer:
                 "dataset_path": dataset_path,
                 "base_model": base_model,
             }
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=30.0) as client:
                 resp = await client.post(modal_url, json=payload, timeout=30.0)
                 if resp.status_code not in (200, 201):
                     raise RuntimeError(f"Modal execution failed: {resp.text}")
@@ -113,7 +113,7 @@ class ModelTrainer:
             endpoint_id = os.getenv("RUNPOD_ENDPOINT_ID", "unsloth-training")
             if api_key:
                 headers = {"Authorization": f"Bearer {api_key}"}
-                async with httpx.AsyncClient() as client:
+                async with httpx.AsyncClient(timeout=15.0) as client:
                     resp = await client.get(
                         f"https://api.runpod.ai/v2/{endpoint_id}/status/{job_id}",
                         headers=headers,

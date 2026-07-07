@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/app.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,737 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.966333
+**সাইজ:** 15,244 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.051250
 
 ---
 
@@ -12,6 +12,7 @@
 import logging
 import os
 import secrets
+import sentry_sdk
 
 from fastapi import Depends
 from fastapi import FastAPI
@@ -58,7 +59,7 @@ security = HTTPBasic()
 
 setup_tracing()
 
-import sentry_sdk
+
 
 
 if settings.sentry_dsn:
@@ -454,6 +455,20 @@ try:
 except Exception as _e:
     logger.warning(f"cloud_mesh router not loaded: {_e}")
 
+try:
+    from api.routes.events import router as events_router
+    app.include_router(events_router, prefix="/api")
+except Exception as _e:
+    logger.warning(f"events router not loaded: {_e}")
+
 app.router.lifespan_context = lifespan.app_lifespan
+
+def router_health_check(fastapi_app: FastAPI):
+    expected_count = 20
+    if len(fastapi_app.routes) < expected_count:
+        logger.critical(f"🔥 CRITICAL: Only {len(fastapi_app.routes)} routes loaded. Expected at least {expected_count}. Some routers failed to load silently!")
+
+router_health_check(app)
+
 
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/local_search_rag.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,106 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.031483
+**সাইজ:** 8,129 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.117915
 
 ---
 
@@ -196,7 +196,7 @@ class LocalSearchRAG:
             title, text = fields[0], fields[1] if len(fields) > 1 else ""
             if not text:
                 continue
-            doc_id = hashlib.md5(url.encode("utf-8")).hexdigest()
+            doc_id = hashlib.md5(url.encode("utf-8"), usedforsecurity=False).hexdigest()
             ids.append(doc_id)
             documents.append(text)
             metadatas.append({"url": url, "title": title, "query": query})

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_circuit_breaker.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,286 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.012124
+**সাইজ:** 2,269 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.098513
 
 ---
 
@@ -94,10 +94,8 @@ async def test_call_failure_trips():
         raise RuntimeError("boom")
 
     for _ in range(2):
-        try:
+        with pytest.raises(RuntimeError):
             await cb.call(fake_func)
-        except RuntimeError:
-            pass
     assert cb.state == "OPEN"
 
 

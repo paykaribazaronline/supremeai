@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/auth_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,708 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.961274
+**সাইজ:** 9,759 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.046354
 
 ---
 
@@ -66,9 +66,9 @@ class AuthMiddleware:
             # Allow supremeai-admin domain - exact domain check
             def _is_allowed_admin_domain(value: str) -> bool:
                 cleaned = value.lower().strip()
-                return cleaned == "https://supremeai-admin.com" or cleaned.startswith(
-                    "https://supremeai-admin.com/"
-                )
+                return cleaned == "https://supremeai-admin.web.app" or cleaned.startswith(
+                    "https://supremeai-admin.web.app/"
+                ) or cleaned.startswith("http://localhost:")
 
             is_admin_domain = (
                 _is_allowed_admin_domain(origin) or _is_allowed_admin_domain(referer)

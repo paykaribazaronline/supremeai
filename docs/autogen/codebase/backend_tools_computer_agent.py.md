@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/computer_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,747 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.038425
+**সাইজ:** 1,774 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.124887
 
 ---
 
@@ -10,6 +10,7 @@
 
 ```py
 import os
+import shlex
 import subprocess
 from typing import Any
 
@@ -36,8 +37,8 @@ class ComputerAgent:
 
         try:
             result = subprocess.run(
-                cmd,
-                shell=True,
+                shlex.split(cmd),
+                shell=False,
                 capture_output=True,
                 text=True,
                 timeout=15.0,

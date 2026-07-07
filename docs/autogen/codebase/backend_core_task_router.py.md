@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/task_router.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,750 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.973100
+**সাইজ:** 3,762 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.057860
 
 ---
 
@@ -92,7 +92,7 @@ class TaskRouter:
     async def trigger_external_skill(
         self, webhook_url: str, payload: dict[str, Any], retries: int = 3
     ) -> dict[str, Any]:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             for attempt in range(retries):
                 try:
                     response = await client.post(

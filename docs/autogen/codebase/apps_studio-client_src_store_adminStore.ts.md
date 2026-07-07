@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/store/adminStore.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 3,053 বাইট  
-**আপডেট:** 2026-07-07T20:32:01.069266
+**সাইজ:** 3,069 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.156412
 
 ---
 
@@ -93,7 +93,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       const API_BASE = getApiBaseUrl();
       await fetch(`${API_BASE}/api/admin/logout`, { method: 'POST', credentials: 'include' });
     } catch(e) {}
-    set({ adminAuthenticated: false, adminPassword: '', otpRequired: false, adminOtp: '' });
+    set({ adminAuthenticated: false, adminPassword: '', otpRequired: false, adminOtp: '', adminError: '' });
   },
 }));
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/secret_vault.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,799 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.968649
+**সাইজ:** 3,114 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.053468
 
 ---
 
@@ -71,6 +71,11 @@ class ProductionSecretVault:
             if self.env == "production":
                 raise RuntimeError(f"Failed to fetch {secret_id} in production: {e}") from e
             return ""
+
+    async def fetch_secret_async(self, secret_id: str) -> str:
+        """অ্যাসিঙ্ক ইভেন্ট লুপ ব্লক না করে সিক্রেট ফেচ করার মেথড"""
+        import asyncio
+        return await asyncio.to_thread(self.fetch_secret, secret_id)
 
 
 # Global Vault Singleton Instance

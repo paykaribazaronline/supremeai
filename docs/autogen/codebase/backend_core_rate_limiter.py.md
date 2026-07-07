@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/rate_limiter.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,398 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.964296
+**সাইজ:** 6,193 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.049215
 
 ---
 
@@ -146,13 +146,8 @@ class RateLimitMiddleware:
                     await response(scope, receive, send)
                     return
             except Exception as exc:
-                logger.error(f"Error checking tenant rate limit: {exc}")
-                response = JSONResponse(
-                    status_code=429,
-                    content={"detail": "Too many requests. Please try again later."},
-                )
-                await response(scope, receive, send)
-                return
+                logger.error(f"Error checking tenant rate limit: {exc}. Failing open to allow request.")
+                pass
         else:
             client = scope.get("client")
             

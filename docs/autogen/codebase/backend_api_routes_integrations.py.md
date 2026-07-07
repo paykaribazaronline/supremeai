@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/integrations.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,885 বাইট  
-**আপডেট:** 2026-07-07T20:32:00.983358
+**সাইজ:** 5,897 বাইট  
+**আপডেট:** 2026-07-07T21:29:49.068560
 
 ---
 
@@ -20,9 +20,9 @@ from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.dependencies import get_current_user_token
 from core.config import settings
 from core.security_vault import encrypt_token
-from api.dependencies import get_current_user_token
 from database.session import get_db_session
 from models.integration import Integration
 
@@ -85,7 +85,7 @@ async def github_callback(
     }
     headers = {"Accept": "application/json"}
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=15.0) as client:
         # ⏱️ FIX: explicit timeout — default timeout infinite হলে serverless function hang করে বিল বাড়ায়
         response = await client.post(
             token_url, json=payload, headers=headers, timeout=30.0
