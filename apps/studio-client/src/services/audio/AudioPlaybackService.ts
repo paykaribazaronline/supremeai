@@ -58,8 +58,9 @@ export class AudioPlaybackService {
       const gain = this.audioContext.createGain();
       gain.gain.value = 0; // Silent oscillator, only used for data
       
+      let intervalId: any;
       // Modulate oscillator frequency to make the waveform look like speech
-      setInterval(() => {
+      intervalId = setInterval(() => {
         if (osc) osc.frequency.value = 100 + Math.random() * 400;
       }, 50);
 
@@ -71,6 +72,7 @@ export class AudioPlaybackService {
 
     utterance.onend = () => {
       console.log('🛑 [AudioPlaybackService] SupremeAI finished speaking.');
+      if (intervalId) clearInterval(intervalId);
       if (osc) {
         osc.stop();
         osc.disconnect();

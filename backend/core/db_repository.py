@@ -15,6 +15,9 @@ _VALID_TABLE_PATTERN = re.compile(r"^[A-Za-z0-9_]+$")
 class PrimaryDatabaseDownException(Exception):
     pass
 
+class ServiceDegradedException(Exception):
+    pass
+
 
 class SmartDataRepository:
     def __init__(self, firebase_client: Any, supabase_client: Any):
@@ -96,4 +99,4 @@ class SmartDataRepository:
                 logging.critical(
                     f"💀 FATAL: Both databases are down! {str(backup_error)}"
                 )
-                return {"error": "Service degraded, please try again later."}
+                raise ServiceDegradedException("Both primary and fallback databases unavailable") from backup_error

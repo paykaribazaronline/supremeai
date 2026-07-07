@@ -24,6 +24,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage", // name of the item in localStorage (must be unique)
+      partialize: (state) => ({ isAuthenticated: state.isAuthenticated }),
     }
   )
 );

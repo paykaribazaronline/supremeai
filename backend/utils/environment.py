@@ -14,9 +14,12 @@ import sys
 def is_test_environment() -> bool:
     """বর্তমান প্রসেসটি টেস্ট এনভায়রনমেন্টে চলছে কিনা তা যাচাই করে।
 
-    pytest লোডেড থাকলে বা ENV ভ্যারিয়েবল 'test' হলে True রিটার্ন করে।
+    প্রোডাকশন বা স্টেজিং এনভায়রনমেন্ট হলে সরাসরি False রিটার্ন করবে।
+    অন্যথায় pytest লোডেড থাকলে True রিটার্ন করে।
     """
-    return "pytest" in sys.modules or os.getenv("ENV") == "test"
+    if os.getenv("ENV", "").lower() in {"production", "staging"}:
+        return False
+    return "pytest" in sys.modules
 
 
 def is_admin_authorized() -> bool:

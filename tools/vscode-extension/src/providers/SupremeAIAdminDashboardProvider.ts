@@ -193,14 +193,16 @@ export class SupremeAIAdminDashboardProvider implements vscode.WebviewViewProvid
 
   <script>
     const vscode = acquireVsCodeApi();
+    const abortController = new AbortController();
+    window.addEventListener("unload", () => abortController.abort());
     document.getElementById('analyzeBtn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'analyzeCodeFlow' });
+      vscode.postMessage({ type: 'analyzeCodeFlow' }, { signal: abortController.signal });
     });
     document.getElementById('securityAuditBtn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'runSecurityAudit' });
+      vscode.postMessage({ type: 'runSecurityAudit' }, { signal: abortController.signal });
     });
     document.getElementById('settingsBtn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'openSettings' });
+      vscode.postMessage({ type: 'openSettings' }, { signal: abortController.signal });
     });
   </script>
 </body>

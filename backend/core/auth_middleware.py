@@ -90,7 +90,7 @@ class AuthMiddleware:
             try:
                 jwt_secret = settings.jwt_secret
                 decoded = jwt.decode(token, jwt_secret, algorithms=["HS256"])
-                if decoded.get("role") != "admin":
+                if decoded.get("role") not in {"admin", "master_admin"}:
                     response = JSONResponse(
                         status_code=403,
                         content={"detail": "Forbidden: User does not have admin role."},
@@ -108,6 +108,8 @@ class AuthMiddleware:
 
         enabled = bool(os.getenv("SUPREMEAI_API_TOKEN"))
         if not enabled:
+            if settings.env == "production":
+                raise RuntimeError("SUPREMEAI_API_TOKEN must be set in production — fail-closed enforced.")
             await self.app(scope, receive, send)
             return
 

@@ -138,9 +138,6 @@ async function request<T>(
 }
 
 export const supremeApi = {
-  login: (token: string) => {
-    localStorage.setItem('jwt', token);
-  },
 
   sendMessage: async (message: string) => {
     return request<SendMessageResponse>(`${API_BASE}/api/chat`, {

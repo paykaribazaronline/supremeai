@@ -2,6 +2,7 @@ import json
 import os
 import tempfile
 from typing import Any
+from loguru import logger
 
 
 class UniversalRulesEngine:
@@ -26,9 +27,9 @@ class UniversalRulesEngine:
             try:
                 with open(self.rules_path, encoding="utf-8") as f:
                     return json.load(f)
-            except Exception:
+            except Exception as e:
                 # Fallback to default in case of corruption
-                pass
+                logger.error(f"⚠️ Rules file corrupted, falling back to defaults: {e}")
 
         # Default fallback rules (Admin definitions)
         default_rules = {

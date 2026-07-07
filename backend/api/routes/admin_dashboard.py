@@ -830,7 +830,16 @@ async def list_reports(report_name: str = None):
         return {"reports": []}
 
     if report_name:
-        file_path = os.path.join(reports_dir, f"{report_name}.md")
+        import re
+        if not re.fullmatch(r"[A-Za-z0-9_\-]+", report_name):
+            raise HTTPException(status_code=400, detail="Invalid report name.")
+            
+        file_path = os.path.join(reports_dir, f"{os.path.basename(report_name)}.md")
+        
+        # Verify resolved path is inside reports_dir (Defense in depth)
+        if not os.path.realpath(file_path).startswith(os.path.realpath(reports_dir)):
+            raise HTTPException(status_code=400, detail="Invalid path.")
+            
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="Report not found.")
         with open(file_path, encoding="utf-8") as f:

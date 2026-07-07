@@ -52,8 +52,10 @@ export class SupremeAIChatView {
 
   <script>
     const vscode = acquireVsCodeApi();
-    document.getElementById('loginBtn').addEventListener('click', () => { vscode.postMessage({ type: 'login' }); });
-    document.getElementById('guestBtn').addEventListener('click', () => { vscode.postMessage({ type: 'loginAsGuest' }); });
+    const abortController = new AbortController();
+    window.addEventListener("unload", () => abortController.abort());
+    document.getElementById('loginBtn').addEventListener('click', () => { vscode.postMessage({ type: 'login' }, { signal: abortController.signal }); });
+    document.getElementById('guestBtn').addEventListener('click', () => { vscode.postMessage({ type: 'loginAsGuest' }, { signal: abortController.signal }); });
   </script>
 </body>
 </html>`;
@@ -154,6 +156,8 @@ export class SupremeAIChatView {
   </div>
   <script>
     const vscode = acquireVsCodeApi();
+    const abortController = new AbortController();
+    window.addEventListener("unload", () => abortController.abort());
     const messagesDiv = document.getElementById('messages');
     let currentStreamingEl: HTMLElement | null = null;
     const escapeHtml = (value) => {
@@ -211,7 +215,7 @@ export class SupremeAIChatView {
           currentStreamingEl = null;
         }
       }
-    });
+    }, { signal: abortController.signal });
     function renderMessage(msg) {
       const time = new Date(msg.timestamp || Date.now()).toLocaleTimeString();
       const role = msg.role || 'assistant';

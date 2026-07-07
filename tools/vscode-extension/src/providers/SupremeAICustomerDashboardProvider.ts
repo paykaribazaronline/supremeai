@@ -197,11 +197,13 @@ export class SupremeAICustomerDashboardProvider implements vscode.WebviewViewPro
 
   <script>
     const vscode = acquireVsCodeApi();
+    const abortController = new AbortController();
+    window.addEventListener("unload", () => abortController.abort());
     document.getElementById('chatBtn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'newChat' });
+      vscode.postMessage({ type: 'newChat' }, { signal: abortController.signal });
     });
     document.getElementById('logoutBtn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'logout' });
+      vscode.postMessage({ type: 'logout' }, { signal: abortController.signal });
     });
   </script>
 </body>
