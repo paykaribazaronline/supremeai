@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/App.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 25,228 বাইট  
-**আপডেট:** 2026-07-07T21:29:49.135103
+**সাইজ:** 25,326 বাইট  
+**আপডেট:** 2026-07-07T21:54:36.186752
 
 ---
 
@@ -13,6 +13,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useStore } from "./store/useStore";
+import { getApiBaseUrl } from "./utils/api";
 
 // বাংলা মন্তব্য: 401/403/429 এরর হলে কোনো রিট্রাই করা হবে না — রেট লিমিট স্টর্ম ঠেকাতে
 const queryClient = new QueryClient({
@@ -348,6 +349,7 @@ export const App: React.FC = () => {
     };
 
     return () => {
+      console.log("🔌 Cleaning up SSE Stream...");
       eventSource.close();
     };
   }, [setServerStatus, fetchGateStatus]);

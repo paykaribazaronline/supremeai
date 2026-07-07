@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/redis_manager.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,601 বাইট  
-**আপডেট:** 2026-07-07T21:29:49.046826
+**সাইজ:** 7,499 বাইট  
+**আপডেট:** 2026-07-07T21:54:36.114346
 
 ---
 
@@ -152,5 +152,27 @@ async def release_idempotency_lock(key: str) -> None:
         await redis_manager.client.delete(f"idempotency:{key}")
     except Exception as e:
         logger.warning(f"[Idempotency] Redis lock release failed: {e}")
+
+async def cache_response_and_release_lock(key: str, response_data: str, ttl_seconds: int) -> bool:
+    """
+    Lua স্ক্রিপ্টের মাধ্যমে atomically cache write এবং lock release করে।
+    এটি ডেডলক (frozen lock) প্রতিরোধ করে।
+    """
+    if redis_manager.client is None:
+        return False
+    lua_script = """
+    redis.call("SET", KEYS[1], ARGV[1], "EX", ARGV[2])
+    redis.call("DEL", KEYS[2])
+    return 1
+    """
+    try:
+        cache_key = f"idempotency:response:{key}"
+        lock_key = f"idempotency:{key}"
+        script = redis_manager.client.register_script(lua_script)
+        await script(keys=[cache_key, lock_key], args=[response_data, ttl_seconds])
+        return True
+    except Exception as e:
+        logger.warning(f"[Idempotency] Atomic cache+release failed: {e}")
+        return False
 
 ```

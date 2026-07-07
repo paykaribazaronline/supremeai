@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T21:29:49.008656
+Generated at: 2026-07-07T21:54:36.080023
 
 
 ## File: `pnpm-lock.yaml`
@@ -22817,6 +22817,309 @@ output = "coverage.json"
 
 ```
 
+## File: `DFD-001-new-user-signup.md`
+
+```md
+# DFD-001: New Tenant Signup Data Flow
+
+**Date:** 2026-07-08
+
+**Status:** Draft
+
+This document describes the data flow for the new tenant setup process, as orchestrated by the `auto_tenant_setup.py` script.
+
+## Diagram
+
+The following diagram illustrates how data moves from user signup to the final provisioning of a new tenant environment.
+
+```mermaid
+graph TD
+    A[User Signs Up via Frontend] -->|Signup Request| B(Authentication Service);
+    B -->|Triggers Event (e.g., Pub/Sub)| C(auto_tenant_setup.py);
+    
+    subgraph Tenant Setup Process
+        C -->|Reads Tenant Info| C;
+        C -->|1. Create Tenant Document| D[Firestore Database];
+        C -->|2. Create Subcollections (users, config, limits)| D;
+        C -->|3. Assign Default Skills| D;
+        C -->|4. Send Welcome Email| E(SMTP Service);
+        C -->|5. Notify Admin| F(Admin Notification Channel);
+    end
+    
+    D -->|Tenant Data| G(SupremeAI Backend);
+    E -->|Welcome Email| H[New User's Email];
+    F -->|New Tenant Alert| I[Admin's Email/Slack];
+```
+
+## Flow Description
+
+1.  **User Signup:** A new user registers through a frontend application (e.g., `studio-client`).
+2.  **Authentication & Trigger:** An authentication service handles the registration and then triggers an event, invoking the `auto_tenant_setup.py` script with the new user's details (Tenant ID, Email, Name).
+3.  **Tenant Document Creation:** The script connects to Firestore and creates a primary document for the new tenant in the `tenants` collection.
+4.  **Subcollection Provisioning:** Based on the selected template ("starter", "professional", etc.), the script creates several subcollections under the tenant's document, such as `config`, `usage`, and `limits`, populating them with default values.
+5.  **Skill Assignment:** A set of default skills (e.g., "Text Generation") are assigned to the tenant by creating documents in the `skills` subcollection.
+6.  **Notifications:**
+    - A welcome email is sent to the new tenant via an SMTP service.
+    - A notification is sent to the system administrator to inform them of the new registration.
+7.  **System Access:** Once provisioned, the main SupremeAI backend can read the tenant's configuration and data from Firestore to provide services.
+```
+
+## File: `generate_push_summary.py`
+
+```py
+#!/usr/bin/env python
+"""
+generate_push_summary.py
+========================
+
+এই স্ক্রিপ্টটি দুটি Git কমিটের মধ্যেকার পরিবর্তনগুলোর একটি মার্কডাউন সারাংশ তৈরি করে।
+এটি প্রতিটি পরিবর্তিত ফাইলের জন্য পুরোনো এবং নতুন লাইনগুলো একটি টেবিল আকারে দেখায়।
+
+ব্যবহার:
+    python scripts/generate_push_summary.py <before_sha> <after_sha> <output_file.md> [options]
+
+উদাহরণ:
+    python scripts/generate_push_summary.py HEAD~1 HEAD push_summary.md
+
+CI/CD ইন্টিগ্রেশন:
+    GitHub Actions-এ এটি ব্যবহার করা যেতে পারে:
+    python scripts/generate_push_summary.py ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} summary.md \
+        --repo ${{ github.repository }} \
+        --pr-number ${{ github.event.pull_request.number }} \
+        --token ${{ secrets.GITHUB_TOKEN }}
+"""
+
+import subprocess
+import sys
+import re
+import os
+import argparse
+from datetime import datetime
+from typing import List, Dict, Any
+
+try:
+    import httpx
+except ImportError:
+    httpx = None
+
+def run_git_command(command: list[str]) -> str:
+    """একটি Git কমান্ড রান করে এবং আউটপুট রিটার্ন করে।"""
+    try:
+        result = subprocess.run(
+            ["git"] + command,
+            capture_output=True,
+            text=True,
+            check=True,
+            encoding='utf-8'
+        )
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        print(f"Git কমান্ড রান করতে সমস্যা হয়েছে: {e.stderr}", file=sys.stderr)
+        sys.exit(1)
+    except FileNotFoundError:
+        print("Git ইনস্টল করা নেই অথবা PATH-এ নেই।", file=sys.stderr)
+        sys.exit(1)
+
+def post_to_pr(repo: str, pr_number: int, token: str, summary: str):
+    """GitHub PR-এ একটি কমেন্ট হিসেবে সারাংশ পোস্ট করে।"""
+    if not httpx:
+        print("`httpx` is not installed. Cannot post comment. Run `pip install httpx`.", file=sys.stderr)
+        return
+    if not token:
+        print("GitHub token is missing. Cannot post comment.", file=sys.stderr)
+        return
+
+    url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+    payload = {"body": summary}
+
+    try:
+        with httpx.Client() as client:
+            response = client.post(url, json=payload, headers=headers, timeout=20.0)
+            response.raise_for_status()
+        print(f"✅ Successfully posted summary to PR #{pr_number}")
+    except httpx.HTTPStatusError as e:
+        print(f"❌ Failed to post comment to PR #{pr_number}. Status: {e.response.status_code}, Body: {e.response.text}", file=sys.stderr)
+    except Exception as e:
+        print(f"❌ An unexpected error occurred while posting to PR: {e}", file=sys.stderr)
+
+def get_commit_details(sha: str) -> Dict[str, str]:
+    """প্রো-টিপ: কমিটের বিস্তারিত তথ্য (অথর, মেসেজ) যোগ করা।"""
+    try:
+        # format-এর মাধ্যমে 원하는 তথ্য সহজেই নেওয়া যায়
+        details_str = run_git_command(["show", "-s", f"--format=%an%n%ae%n%s", sha])
+        author, email, subject = details_str.strip().split('\n', 2)
+        return {"author": author, "email": email, "subject": subject}
+    except Exception:
+        return {"author": "Unknown", "email": "", "subject": "N/A"}
+
+def parse_diff(diff_output: str) -> List[Dict[str, Any]]:
+    """git diff আউটপুটকে একটি স্ট্রাকচার্ড লিস্টে পার্স করে।"""
+    files = []
+    current_file_diff = None
+
+    for line in diff_output.splitlines():
+        if line.startswith("diff --git"):
+            if current_file_diff:
+                files.append(current_file_diff)
+            
+            # ফাইল পাথ বের করা
+            path_match = re.search(r'a/(.+) b/(.+)', line)
+            if path_match:
+                current_file_diff = {
+                    "old_path": path_match.group(1),
+                    "new_path": path_match.group(2),
+                    "status": "modified", # Default স্ট্যাটাস
+                    "changes": []
+                }
+
+        elif line.startswith("new file mode"):
+            if current_file_diff:
+                current_file_diff["status"] = "added"
+        elif line.startswith("deleted file mode"):
+            if current_file_diff:
+                current_file_diff["status"] = "deleted"
+        elif line.startswith("rename from"):
+            if current_file_diff:
+                current_file_diff["status"] = "renamed"
+        elif line.startswith("Binary files"):
+            if current_file_diff:
+                current_file_diff["status"] = "binary"
+        elif line.startswith(('--- a/', '+++ b/')):
+             continue # diff --git লাইন থেকে পাথ আগেই নেওয়া হয়েছে
+        elif current_file_diff:
+            current_file_diff["changes"].append(line)
+
+    if current_file_diff:
+        files.append(current_file_diff)
+        
+    return files
+
+def format_summary_markdown(files: List[Dict[str, Any]], before_sha: str, after_sha: str) -> str:
+    """পার্স করা ডেটা থেকে ফাইনাল মার্কডাউন তৈরি করে।"""
+    commit_details = get_commit_details(after_sha)
+
+    markdown_content = [
+        f"# Push Summary: `{after_sha[:7]}`",
+        f"**Changes between `{before_sha[:7]}` and `{after_sha[:7]}`**",
+        f"> **Commit:** {commit_details['subject']} - by *{commit_details['author']}*",
+        f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        "\n---"
+    ]
+
+    if not files:
+        markdown_content.append("\n**No changes detected.**")
+        return "\n".join(markdown_content)
+
+    for file_diff in files:
+        path = file_diff["new_path"]
+        status = file_diff["status"]
+
+        if status == "added":
+            markdown_content.append(f"\n### ➕ Added: `{path}`")
+        elif status == "deleted":
+            markdown_content.append(f"\n### ➖ Deleted: `{path}`")
+        elif status == "renamed":
+            markdown_content.append(f"\n### 🔄 Renamed: `{file_diff['old_path']}` → `{path}`")
+        elif status == "binary":
+            markdown_content.append(f"\n### 🖼️ Binary file changed: `{path}`")
+            continue # বাইনারি ফাইলের জন্য diff দেখানোর দরকার নেই
+        else:
+            markdown_content.append(f"\n### ✏️ Modified: `{path}`")
+
+        # প্রো-টিপ: পরিবর্তনগুলো diff কোড ব্লকে দেখানো হচ্ছে
+        if file_diff["changes"]:
+            markdown_content.append("```diff")
+            # শুধুমাত্র + এবং - দিয়ে শুরু হওয়া লাইনগুলো দেখানো হচ্ছে
+            for change in file_diff["changes"]:
+                if change.startswith('+') or change.startswith('-'):
+                    markdown_content.append(change)
+            markdown_content.append("```")
+
+    return "\n".join(markdown_content)
+
+def main():
+    """দুটি কমিটের মধ্যে পরিবর্তন নিয়ে একটি মার্কডাউন ফাইল তৈরি করে।"""
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("before_sha", help="The base commit SHA.")
+    parser.add_argument("after_sha", help="The head commit SHA.")
+    parser.add_argument("output_file", help="Path to the output markdown file.")
+    parser.add_argument("--repo", help="GitHub repository (e.g., 'owner/repo').")
+    parser.add_argument("--pr-number", type=int, help="Pull Request number to comment on.")
+    parser.add_argument("--token", help="GitHub token for posting comments.", default=os.getenv("GITHUB_TOKEN"))
+    args = parser.parse_args()
+
+    # --unified=0 এর বদলে স্ট্যান্ডার্ড diff আউটপুট ব্যবহার করা হচ্ছে
+    # --find-renames দিয়ে ফাইলের নাম পরিবর্তন সনাক্ত করা হচ্ছে
+    diff_output = run_git_command(["diff", "--find-renames", args.before_sha, args.after_sha])
+    
+    # ১. ডিফের আউটপুট পার্স করে একটি স্ট্রাকচার্ড লিস্ট তৈরি করা
+    parsed_files = parse_diff(diff_output)
+    
+    # ২. পার্স করা ডেটা থেকে ফাইনাল মার্কডাউন তৈরি করা
+    markdown_summary = format_summary_markdown(parsed_files, args.before_sha, args.after_sha)
+
+    with open(args.output_file, 'w', encoding='utf-8') as f:
+        f.write(markdown_summary)
+    
+    print(f"✅ Summary successfully generated at: {args.output_file}")
+
+    # যদি PR নম্বর এবং রিপোজিটরি দেওয়া থাকে, তাহলে কমেন্ট পোস্ট করা হবে
+    if args.repo and args.pr_number and args.token:
+        post_to_pr(args.repo, args.pr_number, args.token, markdown_summary)
+
+if __name__ == "__main__":
+    main()
+```
+
+## File: `test_saga.py`
+
+```py
+import sys
+import os
+import sqlite3
+
+# Add backend to path
+sys.path.insert(0, os.path.abspath('backend'))
+
+from core.evolution_engine import EvolutionEngine
+from unittest.mock import patch
+import database.supabase_client
+
+def test_saga():
+    db_path = 'test_evolution_saga.db'
+    if os.path.exists(db_path):
+        os.remove(db_path)
+        
+    engine = EvolutionEngine(db_path=db_path)
+    
+    print("--- Testing Supabase Failure Scenario ---")
+    
+    # Force db.client to be truthy so it enters the block
+    database.supabase_client.db.client = True 
+    
+    with patch('database.supabase_client.db.insert_task_history', side_effect=Exception('Simulated Supabase Failure')):
+        res = engine.learn_from_success('saga_test_task', 'test_approach', 'test_result')
+        print("Saga Response:", res)
+        
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM task_history WHERE task='saga_test_task'")
+        rows = cursor.fetchall()
+        print("SQLite Rows (Should be empty):", rows)
+        conn.close()
+        
+    if os.path.exists(db_path):
+        os.remove(db_path)
+
+if __name__ == '__main__':
+    test_saga()
+
+```
+
 ## File: `docker-compose.yml`
 
 ```yml
@@ -22954,6 +23257,178 @@ async def test_dry_run_pr():
 if __name__ == "__main__":
     asyncio.run(test_dry_run_pr())
 
+```
+
+## File: `ADR-001-firestore-for-tenancy.md`
+
+```md
+# ADR-001: Firestore for Tenant Data Management
+
+**Date:** 2026-07-08
+
+**Status:** Accepted
+
+## Context
+
+The SupremeAI 2.0 platform requires a multi-tenant architecture to support individual users or organizations. When a new user signs up, the system must automatically provision a dedicated set of resources, configurations, and data structures for them. The `auto_tenant_setup.py` script is responsible for this process. We needed to choose a database solution that is scalable, serverless, and integrates well with our existing Google Cloud ecosystem.
+
+The key requirements are:
+- Automatic scaling to handle a large number of tenants.
+- Isolation of data between tenants.
+- Real-time capabilities for future features.
+- Integration with Google Cloud Functions and other services.
+- A flexible schema to accommodate different tenant configurations and templates (e.g., "starter", "professional").
+
+## Decision
+
+We have decided to use **Google Cloud Firestore** as the primary database for storing all tenant-specific data.
+
+This includes:
+- The main `tenants` collection to store high-level information about each tenant.
+- Subcollections under each tenant document for `users`, `config`, `usage`, `limits`, and `skills`.
+
+The `auto_tenant_setup.py` script will interact directly with Firestore to create and configure these documents and subcollections upon new user registration.
+
+## Consequences
+
+### Positive Consequences
+
+- **Scalability:** Firestore scales automatically, so we don't need to manage database servers or worry about performance as the number of tenants grows.
+- **Serverless Integration:** It integrates seamlessly with our serverless architecture, especially with Firebase Functions and Google Cloud Run services.
+- **Data Model Flexibility:** Firestore's document-based structure allows us to easily store and modify complex, nested configurations for each tenant without rigid schemas.
+- **Real-time Features:** The real-time listeners can be used in the future for features like live dashboards or collaborative editing within the `studio-client`.
+- **Strong Security Rules:** We can enforce strict data isolation between tenants using Firestore Security Rules, ensuring one tenant cannot access another's data.
+
+### Negative Consequences
+
+- **Complex Queries:** Firestore is not a relational database, so complex queries, joins, and aggregations can be difficult or inefficient to perform. This might require us to denormalize data or use a separate analytics database (like BigQuery) in the future.
+- **Vendor Lock-in:** Deep integration with Firestore ties us more closely to the Google Cloud ecosystem, making a future migration to another cloud provider more complex.
+- **Cost Model:** The cost is based on reads, writes, and document storage. For highly active tenants, this could become more expensive than a provisioned-throughput model if not managed carefully. We will need to monitor usage closely.
+```
+
+## File: `API-swagger.yaml`
+
+```yaml
+openapi: 3.0.0
+info:
+  title: "SupremeAI 2.0 API"
+  description: "API for the SupremeAI 2.0 platform, including admin, chat, and webhook endpoints."
+  version: "2.0.0"
+servers:
+  - url: "https://supremeai-api-xxxx.a.run.app"
+    description: "Production Server (Google Cloud Run)"
+
+paths:
+  /telegram/webhook:
+    post:
+      summary: "Telegram Webhook"
+      description: "Endpoint for receiving updates from the Telegram Bot API."
+      tags:
+        - "telegram"
+      requestBody:
+        description: "Telegram update payload"
+        required: true
+        content:
+          application/json:
+            schema:
+              type: "object"
+              example:
+                update_id: 123456789
+                message:
+                  message_id: 123
+                  from: { id: 98765, is_bot: false, first_name: "John", last_name: "Doe" }
+                  chat: { id: 98765, first_name: "John", type: "private" }
+                  date: 1678886400
+                  text: "/start"
+      responses:
+        "200":
+          description: "Update received successfully"
+
+  /telegram/health:
+    get:
+      summary: "Telegram Bot Health Check"
+      description: "Verifies if the Telegram bot is configured and can connect to the Telegram API."
+      tags:
+        - "telegram"
+      responses:
+        "200":
+          description: "Health status of the bot"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  configured:
+                    type: "boolean"
+                  bot:
+                    type: "object"
+                    properties:
+                      id:
+                        type: "integer"
+                      is_bot:
+                        type: "boolean"
+                      first_name:
+                        type: "string"
+                      username:
+                        type: "string"
+```
+
+## File: `THREAT-MODEL-001-authentication.md`
+
+```md
+# THREAT-MODEL-001: Authentication System
+
+**Date:** 2026-07-08
+
+**System Component:** User & Admin Authentication
+
+**Analyst:** Gemini Code Assist
+
+## Overview
+
+This document outlines potential security threats to the SupremeAI 2.0 authentication system, which includes user login, admin login, and API token validation. We use the STRIDE methodology for threat modeling.
+
+## System Description
+
+- **Admin Auth:** Uses Firebase Authentication + Firestore record check + TOTP for Multi-Factor Authentication (MFA).
+- **User Auth:** Primarily handled by Firebase Auth.
+- **API Auth:** Uses JWTs with role claims (`admin`, `user`) and a Redis-based blacklist for token revocation. A legacy API token with constant-time comparison is used as a fallback.
+- **Service-to-Service Auth:** Internal webhooks (like Cloud Scheduler invoking the Orchestrator) are protected using Google Cloud IAM native OIDC token verification. Public traffic is strictly blocked on these routes.
+- **Fake Logins:** A `FAKE_USERS` dictionary exists for non-production environments.
+
+---
+
+## Threat Analysis (STRIDE)
+
+### 1. Spoofing (Pretending to be someone else)
+
+- **Threat:** An attacker impersonates a legitimate user or admin.
+- **Attack Vector:**
+  - Stealing credentials (password, JWT, API key).
+  - Bypassing authentication checks.
+  - Exploiting the `FAKE_USERS` system in a misconfigured production environment.
+- **Mitigation:**
+  - **Current:** Use of Firebase Auth handles password hashing and secure login. Admin access requires TOTP (MFA), which significantly reduces risk. JWTs have short expiry times. Internal endpoints (e.g., `/orchestrator/tick`) are bypassed by custom JWT logic and exclusively verified by Google Cloud IAM at the infrastructure layer.
+  - **Recommendation:** Ensure the check for `settings.env.lower() == "production"` is robust and cannot be easily bypassed by manipulating environment variables at runtime. Consider removing the `FAKE_USERS` code entirely and using a dedicated test database instead.
+
+### 2. Tampering (Modifying data)
+
+- **Threat:** An attacker modifies an authentication token to gain higher privileges.
+- **Attack Vector:** Modifying the payload of a JWT (e.g., changing `{"role": "user"}` to `{"role": "admin"}`) before it is signed, or if the signature validation is weak.
+- **Mitigation:**
+  - **Current:** JWTs are signed with a strong secret using the HS256 algorithm. The server validates the signature on every request, so any tampering with the payload will invalidate the token.
+  - **Recommendation:** The `jwt_secret` must be long, complex, and stored securely as an environment variable, never in code. The `core/config.py` file's validation for a secure JWT secret is a good practice and should be enforced everywhere.
+
+### 3. Information Disclosure (Exposing sensitive data)
+
+- **Threat:** The system leaks sensitive information like passwords, secrets, or session tokens.
+- **Attack Vector:**
+  - Hardcoded secrets in source code (e.g., old `test-token`).
+  - Leaking secrets through logs (e.g., old TOTP secret logging).
+  - Exposing secrets via API endpoints (e.g., old `/config` endpoint).
+- **Mitigation:**
+  - **Current:** The `supremeai-comprehensive-analysis.md` shows that many of these issues have been fixed. Secrets are loaded from environment variables, and the `/config` endpoint now masks sensitive values.
+  - **Recommendation:** Perform regular automated secret scanning on the codebase. Consolidate the two `config.py` files to ensure consistent security validation logic is applied across the entire application.
 ```
 
 ## File: `playwright.config.ts`
@@ -23148,6 +23623,66 @@ export default defineConfig({
 * **কাজ:** পাইপলাইনের সমস্ত সাকসেস/ফেইলরের সারাংশ নিয়ে একটি কমপ্লিট এবং রিডঅ্যাবল রিপোর্ট জেনারেট করে যা গিটহাব সামারিতে দেখা যায়।
 * **ডিপেন্ডেন্সি:** পূর্ববর্তী সকল ডেপ্লয়মেন্ট ও ডক্স জেনারেশন শেষ হওয়ার পর সবসময় (always) রান হয়।
 
+```
+
+## File: `SEQ-001-canary-deployment.md`
+
+```md
+# SEQ-001: Canary Deployment Process
+
+**Date:** 2026-07-08
+
+**Status:** Draft
+
+This sequence diagram illustrates the process of a canary deployment, which is a common strategy for rolling out new versions of an application with minimal risk. This is a hypothetical implementation based on best practices.
+
+## Diagram
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant GitHub
+    participant GitHubActions as GitHub Actions
+    participant CanaryScript as canary-deploy.py
+    participant GCR as Google Container Registry
+    participant CloudRun as Google Cloud Run
+
+    User->>GitHub: git push origin main
+    GitHub->>GitHubActions: Trigger Workflow on push
+    
+    GitHubActions->>CanaryScript: Run script
+    CanaryScript->>GCR: Build and Push new Docker image (v2)
+    GCR-->>CanaryScript: Image pushed successfully
+    
+    CanaryScript->>CloudRun: Deploy new revision (v2) without routing traffic
+    CloudRun-->>CanaryScript: Revision ready
+    
+    CanaryScript->>CloudRun: Split traffic: 95% to stable (v1), 5% to canary (v2)
+    
+    loop For 10 minutes
+        CanaryScript->>CloudRun: Monitor metrics (errors, latency)
+    end
+    
+    alt Metrics are healthy
+        CanaryScript->>CloudRun: Gradually increase traffic to 100% for v2
+        CanaryScript->>CloudRun: Mark v2 as the new 'stable' revision
+    else Metrics show errors
+        CanaryScript->>CloudRun: Rollback: Route 100% traffic back to v1
+        CanaryScript->>GitHubActions: Fail workflow and notify developers
+    end
+```
+
+## Process Description
+
+1.  **Trigger:** A developer pushes new code to the `main` branch on GitHub.
+2.  **CI/CD Pipeline Starts:** GitHub Actions triggers the CI/CD workflow.
+3.  **Build & Push:** The `canary-deploy.py` script (or a similar tool) builds a new Docker image for the application and pushes it to Google Container Registry (GCR).
+4.  **Deploy Canary Revision:** The script deploys the new image to Google Cloud Run as a new revision but does not yet send any user traffic to it.
+5.  **Traffic Splitting:** Once the new revision is ready, the script instructs Cloud Run to split incoming traffic. A small percentage (e.g., 5%) is directed to the new "canary" revision, while the majority (95%) continues to go to the existing "stable" revision.
+6.  **Monitoring:** The script enters a monitoring phase, observing key metrics like error rates and response times for the canary revision over a set period (e.g., 10 minutes).
+7.  **Decision:**
+    - **Success (Promote):** If the metrics for the canary revision are healthy and within acceptable thresholds, the script gradually shifts more traffic to it until it receives 100%. The new revision is then promoted to "stable".
+    - **Failure (Rollback):** If the canary revision shows a high error rate or other problems, the script immediately rolls back by routing 100% of the traffic back to the old stable revision. The workflow is marked as failed, and developers are notified.
 ```
 
 ## File: `package.json`
@@ -45225,6 +45760,8 @@ class AuthMiddleware:
             # Allow supremeai-admin domain - exact domain check
             def _is_allowed_admin_domain(value: str) -> bool:
                 cleaned = value.lower().strip()
+                if getattr(settings, "env", "local") == "production" and cleaned.startswith("http://localhost:"):
+                    return False
                 return cleaned == "https://supremeai-admin.web.app" or cleaned.startswith(
                     "https://supremeai-admin.web.app/"
                 ) or cleaned.startswith("http://localhost:")
@@ -45294,6 +45831,7 @@ class AuthMiddleware:
             "/api/admin/firebase-login",
             "/api/admin/firebase-totp-setup",
             "/api/admin/firebase-totp-verify",
+            "/orchestrator/tick",
         }
         if path in public_paths or path.startswith("/static"):
             await self.app(scope, receive, send)
@@ -45819,6 +46357,28 @@ async def release_idempotency_lock(key: str) -> None:
         await redis_manager.client.delete(f"idempotency:{key}")
     except Exception as e:
         logger.warning(f"[Idempotency] Redis lock release failed: {e}")
+
+async def cache_response_and_release_lock(key: str, response_data: str, ttl_seconds: int) -> bool:
+    """
+    Lua স্ক্রিপ্টের মাধ্যমে atomically cache write এবং lock release করে।
+    এটি ডেডলক (frozen lock) প্রতিরোধ করে।
+    """
+    if redis_manager.client is None:
+        return False
+    lua_script = """
+    redis.call("SET", KEYS[1], ARGV[1], "EX", ARGV[2])
+    redis.call("DEL", KEYS[2])
+    return 1
+    """
+    try:
+        cache_key = f"idempotency:response:{key}"
+        lock_key = f"idempotency:{key}"
+        script = redis_manager.client.register_script(lua_script)
+        await script(keys=[cache_key, lock_key], args=[response_data, ttl_seconds])
+        return True
+    except Exception as e:
+        logger.warning(f"[Idempotency] Atomic cache+release failed: {e}")
+        return False
 
 ```
 
@@ -46978,7 +47538,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from loguru import logger
-from pydantic import Field
+from pydantic import Field, PrivateAttr
 from pydantic import ValidationInfo
 from pydantic import computed_field
 from pydantic import field_validator
@@ -47039,51 +47599,58 @@ class Settings(BaseSettings):
         default=None, validation_alias="SUPREMEAI_JWT_SECRET"
     )
 
+    _cached_secrets: dict[str, str] = PrivateAttr(default_factory=dict)
+    
+    def _get_cached_secret(self, key: str) -> str:
+        if key not in self._cached_secrets:
+            self._cached_secrets[key] = secret_vault.fetch_secret(key)
+        return self._cached_secrets[key]
+
     # ⚡ ডাইনামিকলি সরাসরি ক্লাউড মেমরি থেকে সিক্রেট রিড করা হচ্ছে
     # ডিস্কে কোনো .env ফাইল না থাকলেও প্রোডাকশন এপিআই ১০০% স্মুথলি চলবে
     @computed_field
     def supabase_database_url(self) -> str:
-        return secret_vault.fetch_secret("SUPABASE_DATABASE_URL_POOLER")
+        return self._get_cached_secret("SUPABASE_DATABASE_URL_POOLER")
 
     @computed_field
     def redis_url(self) -> str:
-        return secret_vault.fetch_secret("REDIS_URL")
+        return self._get_cached_secret("REDIS_URL")
 
     @computed_field
     def openrouter_api_key(self) -> str:
-        return secret_vault.fetch_secret("OPENROUTER_API_KEY")
+        return self._get_cached_secret("OPENROUTER_API_KEY")
 
     @computed_field
     def hf_api_key(self) -> str:
-        return secret_vault.fetch_secret("HF_API_KEY")
+        return self._get_cached_secret("HF_API_KEY")
 
     @computed_field
     def gemini_api_key(self) -> str:
-        return secret_vault.fetch_secret("GEMINI_API_KEY")
+        return self._get_cached_secret("GEMINI_API_KEY")
 
     @computed_field
     def openai_api_key(self) -> str:
-        return secret_vault.fetch_secret("OPENAI_API_KEY")
+        return self._get_cached_secret("OPENAI_API_KEY")
 
     @computed_field
     def deepseek_api_key(self) -> str:
-        return secret_vault.fetch_secret("DEEPSEEK_API_KEY")
+        return self._get_cached_secret("DEEPSEEK_API_KEY")
 
     @computed_field
     def groq_api_key(self) -> str:
-        return secret_vault.fetch_secret("GROQ_API_KEY")
+        return self._get_cached_secret("GROQ_API_KEY")
 
     @computed_field
     def nvidia_api_key(self) -> str:
-        return secret_vault.fetch_secret("NVIDIA_API_KEY")
+        return self._get_cached_secret("NVIDIA_API_KEY")
 
     @computed_field
     def firecrawl_api_key(self) -> str:
-        return secret_vault.fetch_secret("FIRECRAWL_API_KEY")
+        return self._get_cached_secret("FIRECRAWL_API_KEY")
 
     @computed_field
     def discord_bot_token(self) -> str:
-        return secret_vault.fetch_secret("DISCORD_BOT_TOKEN")
+        return self._get_cached_secret("DISCORD_BOT_TOKEN")
 
     claude_openrouter_model: str = "anthropic/claude-3.5-haiku:free"
 
@@ -47118,12 +47685,17 @@ class Settings(BaseSettings):
     skill_registry_path: str = "data/skill_registry.json"
     
     # 🔗 Universal Integration Hub (OAuth)
-    github_client_id: str = secret_vault.fetch_secret("GITHUB_CLIENT_ID")
-    github_client_secret: str = secret_vault.fetch_secret("GITHUB_CLIENT_SECRET")
+    @computed_field
+    def github_client_id(self) -> str:
+        return self._get_cached_secret("GITHUB_CLIENT_ID")
+        
+    @computed_field
+    def github_client_secret(self) -> str:
+        return self._get_cached_secret("GITHUB_CLIENT_SECRET")
     
-    ci_webhook_secret: str = secret_vault.fetch_secret(
-        "CI_WEBHOOK_SECRET"
-    )
+    @computed_field
+    def ci_webhook_secret(self) -> str:
+        return self._get_cached_secret("CI_WEBHOOK_SECRET")
 
     @field_validator("env")
     @classmethod
@@ -47431,15 +48003,20 @@ class EvolutionEngine:
         self, task: str, approach: str, result: str
     ) -> dict[str, Any]:
         created_at = datetime.now(UTC).isoformat()
+        supabase_success = False
         try:
             from database.supabase_client import db
 
             if db.client:
                 db.insert_task_history(task, approach, result, True, created_at)
+                supabase_success = True
         except Exception as e:
             logger.warning(f"Failed to insert success to Supabase: {e}")
             if evolution_write_failures:
                 evolution_write_failures.inc()
+
+        if not supabase_success:
+            return {"stored": False, "error": "Supabase write failed. Saga rollback: skipping SQLite."}
 
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -47461,15 +48038,20 @@ class EvolutionEngine:
         self, task: str, approach: str, result: str
     ) -> dict[str, Any]:
         created_at = datetime.now(UTC).isoformat()
+        supabase_success = False
         try:
             from database.supabase_client import db
 
             if db.client:
                 db.insert_task_history(task, approach, result, False, created_at)
+                supabase_success = True
         except Exception as e:
             logger.warning(f"Failed to insert failure to Supabase: {e}")
             if evolution_write_failures:
                 evolution_write_failures.inc()
+                
+        if not supabase_success:
+            return {"stored": False, "error": "Supabase write failed. Saga rollback: skipping SQLite."}
 
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -48144,29 +48726,35 @@ class LocalFernetProvider(EncryptionProvider):
 
 class CloudKMSProvider(EncryptionProvider):
     def __init__(self):
-        # In a real scenario, initialize GCP KMS Client or Supabase Vault Client here
-        logger.info("Initializing CloudKMSProvider for envelope encryption.")
+        from google.cloud import kms
+        self.client = kms.KeyManagementServiceClient()
+        self.key_name = os.environ.get("GCP_KMS_KEY_NAME")
+        if not self.key_name:
+            logger.warning("GCP_KMS_KEY_NAME is not set. CloudKMSProvider might fail if called.")
+        logger.info("Initialized CloudKMSProvider for envelope encryption.")
 
     def encrypt(self, plaintext: str) -> tuple[str, str | None]:
-        # STUB for Production Cloud KMS
-        # Actually call the KMS API
-        logger.debug("CloudKMSProvider: encrypting payload...")
-        # For now, fallback to base64 mock
-        encoded = base64.b64encode(plaintext.encode()).decode()
-        return f"kms_enc_{encoded}", "gcp:kms:keyring123"
+        if not self.key_name:
+            raise ValueError("GCP_KMS_KEY_NAME must be set for Cloud KMS encryption.")
+        response = self.client.encrypt(
+            request={"name": self.key_name, "plaintext": plaintext.encode()}
+        )
+        import base64
+        return base64.b64encode(response.ciphertext).decode(), self.key_name
 
     def decrypt(self, ciphertext: str, key_ref: str | None) -> str:
-        # STUB for Production Cloud KMS
-        logger.debug(f"CloudKMSProvider: decrypting payload with key_ref {key_ref}...")
-        if ciphertext.startswith("kms_enc_"):
-            encoded = ciphertext.replace("kms_enc_", "")
-            return base64.b64decode(encoded.encode()).decode()
-        return ciphertext
+        if not self.key_name:
+            raise ValueError("GCP_KMS_KEY_NAME must be set for Cloud KMS decryption.")
+        import base64
+        response = self.client.decrypt(
+            request={"name": self.key_name, "ciphertext": base64.b64decode(ciphertext)}
+        )
+        return response.plaintext.decode()
 
 
 def get_encryption_provider() -> EncryptionProvider:
     # Use config environment to route to the correct provider
-    env = getattr(settings, "environment", "development")
+    env = getattr(settings, "env", "local")
     if env == "production":
         return CloudKMSProvider()
     return LocalFernetProvider()
@@ -48418,9 +49006,13 @@ class RateLimitMiddleware:
                     await response(scope, receive, send)
                     return
             except Exception as exc:
-                logger.error(f"Error checking tenant rate limit: {exc}. Failing open to allow request.")
-                pass
-        else:
+                logger.error(f"Error checking tenant rate limit: {exc}. Failing closed (503).")
+                response = JSONResponse(
+                    status_code=503,
+                    content={"detail": "Service Unavailable: Rate limit service is offline."},
+                )
+                await response(scope, receive, send)
+                return
             client = scope.get("client")
             
             x_forwarded_for = None
@@ -53045,6 +53637,13 @@ class TaskQueue:
             logger.info("Asyncio worker cancelled")
         except Exception as e:
             logger.error(f"Asyncio worker failed: {e}")
+            await asyncio.sleep(5)
+            logger.info("Restarting asyncio worker after crash...")
+            worker_task = asyncio.create_task(self._asyncio_worker())
+            if self.local_workers:
+                self.local_workers[0] = worker_task
+            else:
+                self.local_workers.append(worker_task)
 
     async def get_result(self, task_id: str, timeout: float = None) -> TaskResult:
         """
@@ -53121,33 +53720,39 @@ class TaskQueue:
 
 
 # Global task queue instance
-task_queue = TaskQueue()
+_task_queue = None
+
+def get_task_queue() -> TaskQueue:
+    global _task_queue
+    if _task_queue is None:
+        _task_queue = TaskQueue()
+    return _task_queue
 
 
 # Convenience functions
 async def submit_task(func: Callable, *args, **kwargs) -> str:
     """Submit a task to the default queue"""
-    return await task_queue.submit_task(func, *args, **kwargs)
+    return await get_task_queue().submit_task(func, *args, **kwargs)
 
 
 async def get_task_result(task_id: str, timeout: float = None) -> TaskResult:
     """Get the result of a task"""
-    return await task_queue.get_result(task_id, timeout)
+    return await get_task_queue().get_result(task_id, timeout)
 
 
 def get_task_status(task_id: str) -> str:
     """Get the status of a task"""
-    return task_queue.get_status(task_id)
+    return get_task_queue().get_status(task_id)
 
 
 def cancel_task(task_id: str) -> bool:
     """Cancel a task"""
-    return task_queue.cancel_task(task_id)
+    return get_task_queue().cancel_task(task_id)
 
 
 def get_queue_stats() -> dict[str, int]:
     """Get queue statistics"""
-    return task_queue.get_stats()
+    return get_task_queue().get_stats()
 
 
 # Example usage and decorators
@@ -53591,44 +54196,55 @@ class FreeTierTracker:
         limits = {**DEFAULT_LIMITS, **(custom_limits or {})}
         self.priority_list = list(FREE_PROVIDER_PRIORITY)
 
-        try:
-            from database.supabase_client import db
+        self._budgets: dict[str, ProviderBudget] = {
+            provider: ProviderBudget(provider, provider_limits)
+            for provider, provider_limits in limits.items()
+        }
 
-            if db.client:
-                db_configs = db.get_db_provider_configs()
-                if db_configs:
-                    db_limits = {}
-                    db_priority = []
-                    for row in db_configs:
-                        pname = row.get("provider_name")
-                        db_limits[pname] = {
-                            "rpm": row.get("rpm", 999999),
-                            "tpm": row.get("tpm", 999999),
-                            "rpd": row.get("rpd", 999999),
-                        }
-                        db_priority.append(pname)
-                    limits = {**limits, **db_limits}
-                    if db_priority:
-                        self.priority_list = db_priority
-                else:
-                    for idx, (pname, plimits) in enumerate(DEFAULT_LIMITS.items()):
-                        db.upsert_db_provider_config(
-                            {
+    async def load_from_db(self) -> None:
+        import asyncio
+        def _fetch():
+            try:
+                from database.supabase_client import db
+                if db.client:
+                    db_configs = db.get_db_provider_configs()
+                    if db_configs:
+                        db_limits = {}
+                        db_priority = []
+                        for row in db_configs:
+                            pname = row.get("provider_name")
+                            db_limits[pname] = {
+                                "rpm": row.get("rpm", 999999),
+                                "tpm": row.get("tpm", 999999),
+                                "rpd": row.get("rpd", 999999),
+                            }
+                            db_priority.append(pname)
+                        return db_limits, db_priority
+                    else:
+                        for idx, (pname, plimits) in enumerate(DEFAULT_LIMITS.items()):
+                            db.upsert_db_provider_config({
                                 "provider_name": pname,
                                 "rpm": plimits.get("rpm", 999999),
                                 "tpm": plimits.get("tpm", 999999),
                                 "rpd": plimits.get("rpd", 999999),
                                 "priority": idx,
                                 "is_active": True,
-                            }
-                        )
-        except Exception as e:
-            logger.debug(f"Failed to fetch provider configs from Supabase: {e}")
+                            })
+            except Exception as e:
+                logger.debug(f"Failed to fetch provider configs from Supabase: {e}")
+            return None, None
 
-        self._budgets: dict[str, ProviderBudget] = {
-            provider: ProviderBudget(provider, provider_limits)
-            for provider, provider_limits in limits.items()
-        }
+        db_limits, db_priority = await asyncio.to_thread(_fetch)
+        if db_limits:
+            for pname, plimits in db_limits.items():
+                if pname in self._budgets:
+                    self._budgets[pname].limits.update(plimits)
+                else:
+                    self._budgets[pname] = ProviderBudget(pname, plimits)
+            if db_priority:
+                self.priority_list = db_priority
+
+
 
     # ------------------------------------------------------------------
     # Core methods
@@ -54181,7 +54797,6 @@ POLICY_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 class LLMGateway:
     def __init__(self):
         self.routing_policy = self._load_routing_policy()
-        self._inject_secrets()
         self._setup_callbacks()
         
         # Configure litellm global settings
@@ -54205,21 +54820,16 @@ class LLMGateway:
         
         return {"complexity_rules": {}, "fallback_chain": []}
 
-    def _inject_secrets(self):
-        # Inject API keys from core settings dynamically into environment for LiteLLM
-        # বাংলা মন্তব্য: ডাইনামিক সিক্রেট ইনজেকশন — core settings থেকে কীসমূহ প্রোভাইড করা হচ্ছে
-        keys = {
-            "GROQ_API_KEY": getattr(settings, "groq_api_key", ""),
-            "GEMINI_API_KEY": getattr(settings, "gemini_api_key", ""),
-            "OPENAI_API_KEY": getattr(settings, "openai_api_key", ""),
-            "DEEPSEEK_API_KEY": getattr(settings, "deepseek_api_key", ""),
-            "OPENROUTER_API_KEY": getattr(settings, "openrouter_api_key", ""),
-            "HF_API_KEY": getattr(settings, "hf_api_key", "")
-        }
-        for env_name, key_val in keys.items():
-            if key_val:
-                os.environ[env_name] = key_val
-                logger.info(f"Loaded and injected key: {env_name}")
+    def _get_key_for_model(self, model: str) -> str | None:
+        if not model: return None
+        model_l = model.lower()
+        if "groq" in model_l: return getattr(settings, "groq_api_key", None)
+        if "gemini" in model_l: return getattr(settings, "gemini_api_key", None)
+        if "gpt" in model_l or "openai" in model_l: return getattr(settings, "openai_api_key", None)
+        if "deepseek" in model_l: return getattr(settings, "deepseek_api_key", None)
+        if "openrouter" in model_l: return getattr(settings, "openrouter_api_key", None)
+        if "hf" in model_l or "huggingface" in model_l: return getattr(settings, "hf_api_key", None)
+        return None
 
     def _setup_callbacks(self):
         # বাংলা মন্তব্য: লিঙ্কিং ও কস্ট ট্র্যাকিংয়ের জন্য কলব্যাক মেকানিজম যুক্ত করা হলো
@@ -54338,11 +54948,13 @@ class LLMGateway:
         for model in call_chain:
             try:
                 logger.info(f"Attempting completion with model: {model}")
+                api_key = self._get_key_for_model(model)
                 response = await litellm.acompletion(
                     model=model,
                     messages=messages,
                     timeout=timeout,
-                    stream=False
+                    stream=False,
+                    api_key=api_key
                 )
                 return {
                     "success": True,
@@ -54378,11 +54990,13 @@ class LLMGateway:
         for model in call_chain:
             try:
                 logger.info(f"Attempting streaming with model: {model}")
+                api_key = self._get_key_for_model(model)
                 response_stream = await litellm.acompletion(
                     model=model,
                     messages=messages,
                     timeout=timeout,
-                    stream=True
+                    stream=True,
+                    api_key=api_key
                 )
                 async for chunk in response_stream:
                     content = chunk.choices[0].delta.content
@@ -56500,6 +57114,12 @@ class TaskRouter:
     async def trigger_external_skill(
         self, webhook_url: str, payload: dict[str, Any], retries: int = 3
     ) -> dict[str, Any]:
+        from urllib.parse import urlparse
+        ALLOWED_WEBHOOK_DOMAINS = frozenset({"api.n8n.cloud", "hooks.zapier.com", "hooks.slack.com", "discord.com"})
+        parsed = urlparse(webhook_url)
+        if parsed.scheme not in ("https",) or parsed.hostname not in ALLOWED_WEBHOOK_DOMAINS:
+            logger.error(f"SSRF blocked: webhook_url={webhook_url} not in allowlist")
+            raise ValueError(f"Webhook domain '{parsed.hostname}' is not in the security allowlist.")
         async with httpx.AsyncClient(timeout=30.0) as client:
             for attempt in range(retries):
                 try:
@@ -56708,51 +57328,20 @@ class Orchestrator:
         except Exception as exc:
             logger.exception(f"Fitness scoring failed: {exc}")
 
-    async def _loop(self) -> None:
-        """Main background loop that runs scheduled tasks at ``self.interval`` seconds.
-        Uses asyncio.TaskGroup to concurrently schedule and execute generation/validation tasks.
+    async def tick(self) -> None:
+        """Main execution step that runs scheduled tasks.
+        Uses asyncio.TaskGroup to concurrently schedule and execute tasks.
         """
-        self._running = True
-        while self._running:
-            start = datetime.now(UTC)
-            logger.debug(f"Orchestrator loop tick at {start.isoformat()}")
-            try:
-                with tracer.start_as_current_span("orchestrator.tick"):
-                    async with asyncio.TaskGroup() as tg:
-                        for task_fn in self._tasks:
-                            # Schedule task execution concurrently inside the TaskGroup
-                            tg.create_task(task_fn())
-            except Exception as e:
-                logger.error(f"Error in orchestrator task group loop: {e}")
-            # Sleep until next interval, taking into account execution time.
-            elapsed = (datetime.now(UTC) - start).total_seconds()
-            try:
-                await asyncio.sleep(max(0, self.interval - elapsed))
-            except asyncio.CancelledError:
-                logger.info("Orchestrator loop sleep cancelled")
-                break
-
-    async def start(self) -> None:
-        """Create and schedule the background asyncio task."""
-        if self._task is None or self._task.done():
-            logger.info("Starting Orchestrator background task")
-            self._task = asyncio.create_task(self._loop())
-        else:
-            logger.warning("Orchestrator already running")
-
-    async def stop(self) -> None:
-        """Gracefully stop the background loop, cancelling the task to prevent zombie threads."""
-        logger.info("Stopping Orchestrator background task")
-        self._running = False
-        if self._task:
-            self._task.cancel()
-            try:
-                await self._task
-            except asyncio.CancelledError:
-                logger.info("Orchestrator background task successfully cancelled")
-            except Exception as e:
-                logger.error(f"Error during orchestrator task cancellation: {e}")
-            self._task = None
+        start = datetime.now(UTC)
+        logger.debug(f"Orchestrator tick at {start.isoformat()}")
+        try:
+            with tracer.start_as_current_span("orchestrator.tick"):
+                async with asyncio.TaskGroup() as tg:
+                    for task_fn in self._tasks:
+                        tg.create_task(task_fn())
+        except* Exception as eg:
+            for exc in eg.exceptions:
+                logger.error(f"Error in orchestrator task group loop: {exc}")
 
     def status(self) -> dict:
         return {"running": self._running, "next_interval_secs": self.interval}
@@ -56763,6 +57352,13 @@ class Orchestrator:
 async def get_status(request: Request):
     orchestrator: Orchestrator = request.app.state.orchestrator  # type: ignore[attr-defined]
     return JSONResponse(content=orchestrator.status())
+
+@router.post("/tick")
+async def trigger_tick(request: Request):
+    """Webhook for Google Cloud Scheduler to trigger the orchestrator periodically."""
+    orchestrator: Orchestrator = request.app.state.orchestrator
+    await orchestrator.tick()
+    return JSONResponse(content={"status": "tick_executed"})
 
 
 # skill_graph = SkillGraph()  # Deferred creation to avoid optional dependency
@@ -63563,12 +64159,13 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
 
         return decoded
     except Exception as e:
+        logger.warning(f"Admin token validation failed", exc_info=True)
         expected = os.getenv("SUPREMEAI_API_TOKEN") or ""
         if expected and secrets.compare_digest(token, expected):
             return {"uid": "admin", "role": "admin"}
         raise HTTPException(
-            status_code=401, detail=f"Invalid Admin Authorization Token: {str(e)}"
-        ) from e
+            status_code=401, detail="Authentication failed."
+        )
 
 
 def admin_rate_limit(request: Request):
@@ -65551,7 +66148,11 @@ class VoiceConnectionManager:
             return None
         try:
             return verify_token(token)
-        except Exception:
+        except Exception as e:
+            from jose import jwt
+            if isinstance(e, jwt.ExpiredSignatureError):
+                client_host = websocket.client.host if websocket.client else "unknown"
+                print(f"⚠️ [WS Auth] Expired token attempt from {client_host}")
             return None
 
 manager = VoiceConnectionManager()
@@ -65584,7 +66185,7 @@ async def process_audio_with_groq(audio_bytes: bytes) -> str:
             print(f"❌ [Groq STT Error]: {e}")
             return f"Error processing audio: {str(e)}"
 
-async def handle_intent(transcript: str, websocket: WebSocket, start_time: float):
+async def handle_intent(transcript: str, websocket: WebSocket, start_time: float, user_id: str):
     # Intent Router
     transcript_clean = transcript.strip()
     
@@ -65602,7 +66203,7 @@ async def handle_intent(transcript: str, websocket: WebSocket, start_time: float
     if db.client:
         latency_ms = int((time.time() - start_time) * 1000)
         log_entry = VoiceInteractionLog(
-            user_id="admin-01",
+            user_id=user_id,
             transcript=transcript_clean,
             supremeai_response=supremeai_response,
             latency_ms=latency_ms
@@ -65670,7 +66271,7 @@ async def websocket_voice_endpoint(
                         await websocket.send_json({"type": "transcript", "text": transcript})
 
                         # 2. Intent Router
-                        await handle_intent(transcript, websocket, start_time)
+                        await handle_intent(transcript, websocket, start_time, auth_payload.get("sub", "anonymous"))
                         start_time = time.time() # Reset timer
 
                     elif action == "text_chat":
@@ -65678,7 +66279,7 @@ async def websocket_voice_endpoint(
                         print(f"💬 [User Text]: {transcript}")
 
                         # Process text intent directly
-                        await handle_intent(transcript, websocket, start_time)
+                        await handle_intent(transcript, websocket, start_time, auth_payload.get("sub", "anonymous"))
                         start_time = time.time() # Reset timer
 
                 except json.JSONDecodeError:
@@ -65689,6 +66290,9 @@ async def websocket_voice_endpoint(
     except Exception as e:
         print(f"❌ [WS Voice Engine Error]: {e}")
         manager.disconnect(websocket)
+        import contextlib
+        with contextlib.suppress(Exception):
+            await websocket.close(code=status.WS_1011_INTERNAL_ERROR)
 
 ```
 
@@ -74383,7 +74987,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
 
         # বাংলা মন্তব্য: Redis lock অধিগ্রহণের চেষ্টা (SET NX — atomic)
         try:
-            from core.redis_manager import acquire_idempotency_lock, release_idempotency_lock, redis_manager
+            from core.redis_manager import acquire_idempotency_lock, release_idempotency_lock, cache_response_and_release_lock, redis_manager
         except ImportError:
             # Redis ইমপোর্ট ব্যর্থ হলে fail-open — request পাস করে দাও
             logger.warning("[Idempotency] Failed to import redis_manager — skipping check (fail-open)")
@@ -74435,13 +75039,15 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
 
                 try:
                     body_str = body_bytes.decode("utf-8")
-                    await redis_manager.client.set(
-                        f"idempotency:response:{idempotency_key}",
-                        json.dumps({"status_code": 200, "body": json.loads(body_str)}),
-                        ex=IDEMPOTENCY_TTL_SECONDS * 5,  # response cache TTL = 10 মিনিট
+                    cache_data = json.dumps({"status_code": 200, "body": json.loads(body_str)})
+                    await cache_response_and_release_lock(
+                        idempotency_key, 
+                        cache_data, 
+                        IDEMPOTENCY_TTL_SECONDS * 5
                     )
                 except Exception as cache_err:
                     logger.warning(f"[Idempotency] Response caching failed (non-blocking): {cache_err}")
+                    await release_idempotency_lock(idempotency_key)
             else:
                 # বাংলা মন্তব্য: ব্যর্থ রিকোয়েস্টে লক রিলিজ করা যাতে retry পারে
                 await release_idempotency_lock(idempotency_key)
@@ -121774,6 +122380,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useStore } from "./store/useStore";
+import { getApiBaseUrl } from "./utils/api";
 
 // বাংলা মন্তব্য: 401/403/429 এরর হলে কোনো রিট্রাই করা হবে না — রেট লিমিট স্টর্ম ঠেকাতে
 const queryClient = new QueryClient({
@@ -122109,6 +122716,7 @@ export const App: React.FC = () => {
     };
 
     return () => {
+      console.log("🔌 Cleaning up SSE Stream...");
       eventSource.close();
     };
   }, [setServerStatus, fetchGateStatus]);
@@ -170430,6 +171038,37 @@ jobs:
           fi
           echo "✅ PASS: All httpx clients have explicit timeouts" >> $GITHUB_STEP_SUMMARY
 
+  generate-pr-summary:
+    name: 📝 Generate PR Diff Summary
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # PR-এ কমেন্ট করার জন্য এই পারমিশন প্রয়োজন
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # সম্পূর্ণ গিট হিস্ট্রি ফেচ করার জন্য
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Dependencies
+        run: pip install httpx
+
+      - name: Generate and Post Summary
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/generate_push_summary.py \
+            ${{ github.event.pull_request.base.sha }} \
+            ${{ github.event.pull_request.head.sha }} \
+            pr_summary.md \
+            --repo ${{ github.repository }} \
+            --pr-number ${{ github.event.pull_request.number }} \
+            --token ${{ env.GITHUB_TOKEN }}
 
   production-readiness:
     name: 🚀 Production Readiness (Safety Guard, Multi-Model Validator, Codegraph)

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/llm_gateway.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,334 বাইট  
-**আপডেট:** 2026-07-07T21:29:49.055424
+**সাইজ:** 11,197 বাইট  
+**আপডেট:** 2026-07-07T21:54:36.121560
 
 ---
 
@@ -33,7 +33,6 @@ POLICY_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 class LLMGateway:
     def __init__(self):
         self.routing_policy = self._load_routing_policy()
-        self._inject_secrets()
         self._setup_callbacks()
         
         # Configure litellm global settings
@@ -57,21 +56,16 @@ class LLMGateway:
         
         return {"complexity_rules": {}, "fallback_chain": []}
 
-    def _inject_secrets(self):
-        # Inject API keys from core settings dynamically into environment for LiteLLM
-        # বাংলা মন্তব্য: ডাইনামিক সিক্রেট ইনজেকশন — core settings থেকে কীসমূহ প্রোভাইড করা হচ্ছে
-        keys = {
-            "GROQ_API_KEY": getattr(settings, "groq_api_key", ""),
-            "GEMINI_API_KEY": getattr(settings, "gemini_api_key", ""),
-            "OPENAI_API_KEY": getattr(settings, "openai_api_key", ""),
-            "DEEPSEEK_API_KEY": getattr(settings, "deepseek_api_key", ""),
-            "OPENROUTER_API_KEY": getattr(settings, "openrouter_api_key", ""),
-            "HF_API_KEY": getattr(settings, "hf_api_key", "")
-        }
-        for env_name, key_val in keys.items():
-            if key_val:
-                os.environ[env_name] = key_val
-                logger.info(f"Loaded and injected key: {env_name}")
+    def _get_key_for_model(self, model: str) -> str | None:
+        if not model: return None
+        model_l = model.lower()
+        if "groq" in model_l: return getattr(settings, "groq_api_key", None)
+        if "gemini" in model_l: return getattr(settings, "gemini_api_key", None)
+        if "gpt" in model_l or "openai" in model_l: return getattr(settings, "openai_api_key", None)
+        if "deepseek" in model_l: return getattr(settings, "deepseek_api_key", None)
+        if "openrouter" in model_l: return getattr(settings, "openrouter_api_key", None)
+        if "hf" in model_l or "huggingface" in model_l: return getattr(settings, "hf_api_key", None)
+        return None
 
     def _setup_callbacks(self):
         # বাংলা মন্তব্য: লিঙ্কিং ও কস্ট ট্র্যাকিংয়ের জন্য কলব্যাক মেকানিজম যুক্ত করা হলো
@@ -190,11 +184,13 @@ class LLMGateway:
         for model in call_chain:
             try:
                 logger.info(f"Attempting completion with model: {model}")
+                api_key = self._get_key_for_model(model)
                 response = await litellm.acompletion(
                     model=model,
                     messages=messages,
                     timeout=timeout,
-                    stream=False
+                    stream=False,
+                    api_key=api_key
                 )
                 return {
                     "success": True,
@@ -230,11 +226,13 @@ class LLMGateway:
         for model in call_chain:
             try:
                 logger.info(f"Attempting streaming with model: {model}")
+                api_key = self._get_key_for_model(model)
                 response_stream = await litellm.acompletion(
                     model=model,
                     messages=messages,
                     timeout=timeout,
-                    stream=True
+                    stream=True,
+                    api_key=api_key
                 )
                 async for chunk in response_stream:
                     content = chunk.choices[0].delta.content

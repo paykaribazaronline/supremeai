@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/free_tier_tracker.py
 
 **প্রকার:** .py  
-**সাইজ:** 13,711 বাইট  
-**আপডেট:** 2026-07-07T21:29:49.054644
+**সাইজ:** 14,184 বাইট  
+**আপডেট:** 2026-07-07T21:54:36.120847
 
 ---
 
@@ -247,44 +247,55 @@ class FreeTierTracker:
         limits = {**DEFAULT_LIMITS, **(custom_limits or {})}
         self.priority_list = list(FREE_PROVIDER_PRIORITY)
 
-        try:
-            from database.supabase_client import db
+        self._budgets: dict[str, ProviderBudget] = {
+            provider: ProviderBudget(provider, provider_limits)
+            for provider, provider_limits in limits.items()
+        }
 
-            if db.client:
-                db_configs = db.get_db_provider_configs()
-                if db_configs:
-                    db_limits = {}
-                    db_priority = []
-                    for row in db_configs:
-                        pname = row.get("provider_name")
-                        db_limits[pname] = {
-                            "rpm": row.get("rpm", 999999),
-                            "tpm": row.get("tpm", 999999),
-                            "rpd": row.get("rpd", 999999),
-                        }
-                        db_priority.append(pname)
-                    limits = {**limits, **db_limits}
-                    if db_priority:
-                        self.priority_list = db_priority
-                else:
-                    for idx, (pname, plimits) in enumerate(DEFAULT_LIMITS.items()):
-                        db.upsert_db_provider_config(
-                            {
+    async def load_from_db(self) -> None:
+        import asyncio
+        def _fetch():
+            try:
+                from database.supabase_client import db
+                if db.client:
+                    db_configs = db.get_db_provider_configs()
+                    if db_configs:
+                        db_limits = {}
+                        db_priority = []
+                        for row in db_configs:
+                            pname = row.get("provider_name")
+                            db_limits[pname] = {
+                                "rpm": row.get("rpm", 999999),
+                                "tpm": row.get("tpm", 999999),
+                                "rpd": row.get("rpd", 999999),
+                            }
+                            db_priority.append(pname)
+                        return db_limits, db_priority
+                    else:
+                        for idx, (pname, plimits) in enumerate(DEFAULT_LIMITS.items()):
+                            db.upsert_db_provider_config({
                                 "provider_name": pname,
                                 "rpm": plimits.get("rpm", 999999),
                                 "tpm": plimits.get("tpm", 999999),
                                 "rpd": plimits.get("rpd", 999999),
                                 "priority": idx,
                                 "is_active": True,
-                            }
-                        )
-        except Exception as e:
-            logger.debug(f"Failed to fetch provider configs from Supabase: {e}")
+                            })
+            except Exception as e:
+                logger.debug(f"Failed to fetch provider configs from Supabase: {e}")
+            return None, None
 
-        self._budgets: dict[str, ProviderBudget] = {
-            provider: ProviderBudget(provider, provider_limits)
-            for provider, provider_limits in limits.items()
-        }
+        db_limits, db_priority = await asyncio.to_thread(_fetch)
+        if db_limits:
+            for pname, plimits in db_limits.items():
+                if pname in self._budgets:
+                    self._budgets[pname].limits.update(plimits)
+                else:
+                    self._budgets[pname] = ProviderBudget(pname, plimits)
+            if db_priority:
+                self.priority_list = db_priority
+
+
 
     # ------------------------------------------------------------------
     # Core methods

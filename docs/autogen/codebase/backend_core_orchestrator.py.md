@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/orchestrator.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,597 বাইট  
-**আপডেট:** 2026-07-07T21:29:49.058023
+**সাইজ:** 8,401 বাইট  
+**আপডেট:** 2026-07-07T21:54:36.123802
 
 ---
 
@@ -192,51 +192,20 @@ class Orchestrator:
         except Exception as exc:
             logger.exception(f"Fitness scoring failed: {exc}")
 
-    async def _loop(self) -> None:
-        """Main background loop that runs scheduled tasks at ``self.interval`` seconds.
-        Uses asyncio.TaskGroup to concurrently schedule and execute generation/validation tasks.
+    async def tick(self) -> None:
+        """Main execution step that runs scheduled tasks.
+        Uses asyncio.TaskGroup to concurrently schedule and execute tasks.
         """
-        self._running = True
-        while self._running:
-            start = datetime.now(UTC)
-            logger.debug(f"Orchestrator loop tick at {start.isoformat()}")
-            try:
-                with tracer.start_as_current_span("orchestrator.tick"):
-                    async with asyncio.TaskGroup() as tg:
-                        for task_fn in self._tasks:
-                            # Schedule task execution concurrently inside the TaskGroup
-                            tg.create_task(task_fn())
-            except Exception as e:
-                logger.error(f"Error in orchestrator task group loop: {e}")
-            # Sleep until next interval, taking into account execution time.
-            elapsed = (datetime.now(UTC) - start).total_seconds()
-            try:
-                await asyncio.sleep(max(0, self.interval - elapsed))
-            except asyncio.CancelledError:
-                logger.info("Orchestrator loop sleep cancelled")
-                break
-
-    async def start(self) -> None:
-        """Create and schedule the background asyncio task."""
-        if self._task is None or self._task.done():
-            logger.info("Starting Orchestrator background task")
-            self._task = asyncio.create_task(self._loop())
-        else:
-            logger.warning("Orchestrator already running")
-
-    async def stop(self) -> None:
-        """Gracefully stop the background loop, cancelling the task to prevent zombie threads."""
-        logger.info("Stopping Orchestrator background task")
-        self._running = False
-        if self._task:
-            self._task.cancel()
-            try:
-                await self._task
-            except asyncio.CancelledError:
-                logger.info("Orchestrator background task successfully cancelled")
-            except Exception as e:
-                logger.error(f"Error during orchestrator task cancellation: {e}")
-            self._task = None
+        start = datetime.now(UTC)
+        logger.debug(f"Orchestrator tick at {start.isoformat()}")
+        try:
+            with tracer.start_as_current_span("orchestrator.tick"):
+                async with asyncio.TaskGroup() as tg:
+                    for task_fn in self._tasks:
+                        tg.create_task(task_fn())
+        except* Exception as eg:
+            for exc in eg.exceptions:
+                logger.error(f"Error in orchestrator task group loop: {exc}")
 
     def status(self) -> dict:
         return {"running": self._running, "next_interval_secs": self.interval}
@@ -247,6 +216,13 @@ class Orchestrator:
 async def get_status(request: Request):
     orchestrator: Orchestrator = request.app.state.orchestrator  # type: ignore[attr-defined]
     return JSONResponse(content=orchestrator.status())
+
+@router.post("/tick")
+async def trigger_tick(request: Request):
+    """Webhook for Google Cloud Scheduler to trigger the orchestrator periodically."""
+    orchestrator: Orchestrator = request.app.state.orchestrator
+    await orchestrator.tick()
+    return JSONResponse(content={"status": "tick_executed"})
 
 
 # skill_graph = SkillGraph()  # Deferred creation to avoid optional dependency

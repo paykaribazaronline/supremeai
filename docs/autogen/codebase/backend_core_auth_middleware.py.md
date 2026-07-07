@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/auth_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,759 বাইট  
-**আপডেট:** 2026-07-07T21:29:49.046354
+**সাইজ:** 9,940 বাইট  
+**আপডেট:** 2026-07-07T21:54:36.113912
 
 ---
 
@@ -66,6 +66,8 @@ class AuthMiddleware:
             # Allow supremeai-admin domain - exact domain check
             def _is_allowed_admin_domain(value: str) -> bool:
                 cleaned = value.lower().strip()
+                if getattr(settings, "env", "local") == "production" and cleaned.startswith("http://localhost:"):
+                    return False
                 return cleaned == "https://supremeai-admin.web.app" or cleaned.startswith(
                     "https://supremeai-admin.web.app/"
                 ) or cleaned.startswith("http://localhost:")
@@ -135,6 +137,7 @@ class AuthMiddleware:
             "/api/admin/firebase-login",
             "/api/admin/firebase-totp-setup",
             "/api/admin/firebase-totp-verify",
+            "/orchestrator/tick",
         }
         if path in public_paths or path.startswith("/static"):
             await self.app(scope, receive, send)

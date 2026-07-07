@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/task_router.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,762 বাইট  
-**আপডেট:** 2026-07-07T21:29:49.057860
+**সাইজ:** 4,242 বাইট  
+**আপডেট:** 2026-07-07T21:54:36.123688
 
 ---
 
@@ -92,6 +92,12 @@ class TaskRouter:
     async def trigger_external_skill(
         self, webhook_url: str, payload: dict[str, Any], retries: int = 3
     ) -> dict[str, Any]:
+        from urllib.parse import urlparse
+        ALLOWED_WEBHOOK_DOMAINS = frozenset({"api.n8n.cloud", "hooks.zapier.com", "hooks.slack.com", "discord.com"})
+        parsed = urlparse(webhook_url)
+        if parsed.scheme not in ("https",) or parsed.hostname not in ALLOWED_WEBHOOK_DOMAINS:
+            logger.error(f"SSRF blocked: webhook_url={webhook_url} not in allowlist")
+            raise ValueError(f"Webhook domain '{parsed.hostname}' is not in the security allowlist.")
         async with httpx.AsyncClient(timeout=30.0) as client:
             for attempt in range(retries):
                 try:

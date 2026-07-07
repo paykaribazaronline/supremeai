@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/secure_credential_store.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,176 বাইট  
-**আপডেট:** 2026-07-07T21:29:49.048922
+**সাইজ:** 5,392 বাইট  
+**আপডেট:** 2026-07-07T21:54:36.116089
 
 ---
 
@@ -84,29 +84,35 @@ class LocalFernetProvider(EncryptionProvider):
 
 class CloudKMSProvider(EncryptionProvider):
     def __init__(self):
-        # In a real scenario, initialize GCP KMS Client or Supabase Vault Client here
-        logger.info("Initializing CloudKMSProvider for envelope encryption.")
+        from google.cloud import kms
+        self.client = kms.KeyManagementServiceClient()
+        self.key_name = os.environ.get("GCP_KMS_KEY_NAME")
+        if not self.key_name:
+            logger.warning("GCP_KMS_KEY_NAME is not set. CloudKMSProvider might fail if called.")
+        logger.info("Initialized CloudKMSProvider for envelope encryption.")
 
     def encrypt(self, plaintext: str) -> tuple[str, str | None]:
-        # STUB for Production Cloud KMS
-        # Actually call the KMS API
-        logger.debug("CloudKMSProvider: encrypting payload...")
-        # For now, fallback to base64 mock
-        encoded = base64.b64encode(plaintext.encode()).decode()
-        return f"kms_enc_{encoded}", "gcp:kms:keyring123"
+        if not self.key_name:
+            raise ValueError("GCP_KMS_KEY_NAME must be set for Cloud KMS encryption.")
+        response = self.client.encrypt(
+            request={"name": self.key_name, "plaintext": plaintext.encode()}
+        )
+        import base64
+        return base64.b64encode(response.ciphertext).decode(), self.key_name
 
     def decrypt(self, ciphertext: str, key_ref: str | None) -> str:
-        # STUB for Production Cloud KMS
-        logger.debug(f"CloudKMSProvider: decrypting payload with key_ref {key_ref}...")
-        if ciphertext.startswith("kms_enc_"):
-            encoded = ciphertext.replace("kms_enc_", "")
-            return base64.b64decode(encoded.encode()).decode()
-        return ciphertext
+        if not self.key_name:
+            raise ValueError("GCP_KMS_KEY_NAME must be set for Cloud KMS decryption.")
+        import base64
+        response = self.client.decrypt(
+            request={"name": self.key_name, "ciphertext": base64.b64decode(ciphertext)}
+        )
+        return response.plaintext.decode()
 
 
 def get_encryption_provider() -> EncryptionProvider:
     # Use config environment to route to the correct provider
-    env = getattr(settings, "environment", "development")
+    env = getattr(settings, "env", "local")
     if env == "production":
         return CloudKMSProvider()
     return LocalFernetProvider()

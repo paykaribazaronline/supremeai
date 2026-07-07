@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/task_queue_enhanced.py
 
 **প্রকার:** .py  
-**সাইজ:** 20,047 বাইট  
-**আপডেট:** 2026-07-07T21:29:49.054075
+**সাইজ:** 20,548 বাইট  
+**আপডেট:** 2026-07-07T21:54:36.120363
 
 ---
 
@@ -441,6 +441,13 @@ class TaskQueue:
             logger.info("Asyncio worker cancelled")
         except Exception as e:
             logger.error(f"Asyncio worker failed: {e}")
+            await asyncio.sleep(5)
+            logger.info("Restarting asyncio worker after crash...")
+            worker_task = asyncio.create_task(self._asyncio_worker())
+            if self.local_workers:
+                self.local_workers[0] = worker_task
+            else:
+                self.local_workers.append(worker_task)
 
     async def get_result(self, task_id: str, timeout: float = None) -> TaskResult:
         """
@@ -517,33 +524,39 @@ class TaskQueue:
 
 
 # Global task queue instance
-task_queue = TaskQueue()
+_task_queue = None
+
+def get_task_queue() -> TaskQueue:
+    global _task_queue
+    if _task_queue is None:
+        _task_queue = TaskQueue()
+    return _task_queue
 
 
 # Convenience functions
 async def submit_task(func: Callable, *args, **kwargs) -> str:
     """Submit a task to the default queue"""
-    return await task_queue.submit_task(func, *args, **kwargs)
+    return await get_task_queue().submit_task(func, *args, **kwargs)
 
 
 async def get_task_result(task_id: str, timeout: float = None) -> TaskResult:
     """Get the result of a task"""
-    return await task_queue.get_result(task_id, timeout)
+    return await get_task_queue().get_result(task_id, timeout)
 
 
 def get_task_status(task_id: str) -> str:
     """Get the status of a task"""
-    return task_queue.get_status(task_id)
+    return get_task_queue().get_status(task_id)
 
 
 def cancel_task(task_id: str) -> bool:
     """Cancel a task"""
-    return task_queue.cancel_task(task_id)
+    return get_task_queue().cancel_task(task_id)
 
 
 def get_queue_stats() -> dict[str, int]:
     """Get queue statistics"""
-    return task_queue.get_stats()
+    return get_task_queue().get_stats()
 
 
 # Example usage and decorators

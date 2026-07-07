@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/config.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,640 বাইট  
-**আপডেট:** 2026-07-07T21:29:49.048276
+**সাইজ:** 10,043 বাইট  
+**আপডেট:** 2026-07-07T21:54:36.115513
 
 ---
 
@@ -15,7 +15,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from loguru import logger
-from pydantic import Field
+from pydantic import Field, PrivateAttr
 from pydantic import ValidationInfo
 from pydantic import computed_field
 from pydantic import field_validator
@@ -76,51 +76,58 @@ class Settings(BaseSettings):
         default=None, validation_alias="SUPREMEAI_JWT_SECRET"
     )
 
+    _cached_secrets: dict[str, str] = PrivateAttr(default_factory=dict)
+    
+    def _get_cached_secret(self, key: str) -> str:
+        if key not in self._cached_secrets:
+            self._cached_secrets[key] = secret_vault.fetch_secret(key)
+        return self._cached_secrets[key]
+
     # ⚡ ডাইনামিকলি সরাসরি ক্লাউড মেমরি থেকে সিক্রেট রিড করা হচ্ছে
     # ডিস্কে কোনো .env ফাইল না থাকলেও প্রোডাকশন এপিআই ১০০% স্মুথলি চলবে
     @computed_field
     def supabase_database_url(self) -> str:
-        return secret_vault.fetch_secret("SUPABASE_DATABASE_URL_POOLER")
+        return self._get_cached_secret("SUPABASE_DATABASE_URL_POOLER")
 
     @computed_field
     def redis_url(self) -> str:
-        return secret_vault.fetch_secret("REDIS_URL")
+        return self._get_cached_secret("REDIS_URL")
 
     @computed_field
     def openrouter_api_key(self) -> str:
-        return secret_vault.fetch_secret("OPENROUTER_API_KEY")
+        return self._get_cached_secret("OPENROUTER_API_KEY")
 
     @computed_field
     def hf_api_key(self) -> str:
-        return secret_vault.fetch_secret("HF_API_KEY")
+        return self._get_cached_secret("HF_API_KEY")
 
     @computed_field
     def gemini_api_key(self) -> str:
-        return secret_vault.fetch_secret("GEMINI_API_KEY")
+        return self._get_cached_secret("GEMINI_API_KEY")
 
     @computed_field
     def openai_api_key(self) -> str:
-        return secret_vault.fetch_secret("OPENAI_API_KEY")
+        return self._get_cached_secret("OPENAI_API_KEY")
 
     @computed_field
     def deepseek_api_key(self) -> str:
-        return secret_vault.fetch_secret("DEEPSEEK_API_KEY")
+        return self._get_cached_secret("DEEPSEEK_API_KEY")
 
     @computed_field
     def groq_api_key(self) -> str:
-        return secret_vault.fetch_secret("GROQ_API_KEY")
+        return self._get_cached_secret("GROQ_API_KEY")
 
     @computed_field
     def nvidia_api_key(self) -> str:
-        return secret_vault.fetch_secret("NVIDIA_API_KEY")
+        return self._get_cached_secret("NVIDIA_API_KEY")
 
     @computed_field
     def firecrawl_api_key(self) -> str:
-        return secret_vault.fetch_secret("FIRECRAWL_API_KEY")
+        return self._get_cached_secret("FIRECRAWL_API_KEY")
 
     @computed_field
     def discord_bot_token(self) -> str:
-        return secret_vault.fetch_secret("DISCORD_BOT_TOKEN")
+        return self._get_cached_secret("DISCORD_BOT_TOKEN")
 
     claude_openrouter_model: str = "anthropic/claude-3.5-haiku:free"
 
@@ -155,12 +162,17 @@ class Settings(BaseSettings):
     skill_registry_path: str = "data/skill_registry.json"
     
     # 🔗 Universal Integration Hub (OAuth)
-    github_client_id: str = secret_vault.fetch_secret("GITHUB_CLIENT_ID")
-    github_client_secret: str = secret_vault.fetch_secret("GITHUB_CLIENT_SECRET")
+    @computed_field
+    def github_client_id(self) -> str:
+        return self._get_cached_secret("GITHUB_CLIENT_ID")
+        
+    @computed_field
+    def github_client_secret(self) -> str:
+        return self._get_cached_secret("GITHUB_CLIENT_SECRET")
     
-    ci_webhook_secret: str = secret_vault.fetch_secret(
-        "CI_WEBHOOK_SECRET"
-    )
+    @computed_field
+    def ci_webhook_secret(self) -> str:
+        return self._get_cached_secret("CI_WEBHOOK_SECRET")
 
     @field_validator("env")
     @classmethod
