@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/byoc/container_orchestrator.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,860 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.142602
+**সাইজ:** 1,868 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.472738
 
 ---
 
@@ -27,7 +27,7 @@ class ContainerOrchestrator:
 
     async def deploy(self, user_id: str, skill: str) -> dict[str, Any]:
         logger.info(f"Deploying skill '{skill}' for user '{user_id}' on Google Cloud Run...")
-        
+
         # Simulating running terraform deploy internally
         tf_executable = shutil.which("terraform")
         if tf_executable:
@@ -37,7 +37,7 @@ class ContainerOrchestrator:
                 # subprocess.run(["terraform", "init"], cwd=self.tf_dir, check=True)
                 # subprocess.run(["terraform", "apply", "-auto-approve"], cwd=self.tf_dir, check=True, env=env)
                 logger.info("Terraform execution finished successfully.")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Terraform deployment failed: {e}")
                 return {"status": "failed", "error": str(e), "user_id": user_id, "skill": skill}
 

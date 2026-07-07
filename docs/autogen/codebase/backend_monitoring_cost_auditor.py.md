@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/monitoring/cost_auditor.py
 
 **প্রকার:** .py  
-**সাইজ:** 789 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.142392
+**সাইজ:** 805 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.472629
 
 ---
 
@@ -30,7 +30,7 @@ class CostAuditor:
         if PROMETHEUS_AVAILABLE:
             try:
                 self.cost_counter.labels(provider=provider, model=model).inc(cost)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Prometheus metric record failed: {exc}")
 
     def generate_report(self) -> dict[str, Any]:

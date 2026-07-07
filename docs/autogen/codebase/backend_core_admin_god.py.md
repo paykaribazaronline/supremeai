@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/admin_god.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,951 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.116844
+**সাইজ:** 2,983 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.459382
 
 ---
 
@@ -15,7 +15,7 @@ from typing import Any
 
 try:
     import bcrypt
-except Exception:  # pragma: no cover - optional fallback
+except Exception:  # pragma: no cover - optional fallback  # noqa: BLE001
     bcrypt = None
 
 from .rbac import RoleBasedAccessControl
@@ -45,7 +45,7 @@ class AdminGodLayer:
             return False
         try:
             return bcrypt.checkpw(password_raw.encode(), self.admin_password_hash.encode())
-        except Exception:
+        except Exception:  # noqa: BLE001
             return False
 
     def enforce(self, action: str, user_context: UserContext | str) -> dict[str, Any]:

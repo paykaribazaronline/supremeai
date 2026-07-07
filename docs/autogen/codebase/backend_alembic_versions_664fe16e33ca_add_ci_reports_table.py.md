@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/alembic/versions/664fe16e33ca_add_ci_reports_table.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,695 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.139342
+**সাইজ:** 1,709 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.471151
 
 ---
 
@@ -15,7 +15,7 @@ Revision ID: 664fe16e33ca
 Revises: 
 Create Date: 2026-06-29 02:10:12.661696
 
-"""
+"""  # noqa: W291
 
 from collections.abc import Sequence
 

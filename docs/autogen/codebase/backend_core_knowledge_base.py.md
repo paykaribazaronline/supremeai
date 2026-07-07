@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/knowledge_base.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,440 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.118195
+**সাইজ:** 1,446 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.460082
 
 ---
 
@@ -35,11 +35,11 @@ def save_to_memory(prompt: str, solution_code: str):
     """নতুন সমাধান শিখলে সেটি জিরো-কস্ট মেমোরিতে সেভ করে রাখবে"""
     with open(MEMORY_FILE_PATH) as f:
         memory = json.load(f)
-    
+
     memory[prompt] = solution_code
-    
+
     with open(MEMORY_FILE_PATH, "w") as f:
         json.dump(memory, f, indent=4)
-    print("🧠 [Auto-Didact] New skill learned and saved to memory vault!")
+    print("🧠 [Auto-Didact] New skill learned and saved to memory vault!")  # noqa: T201
 
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/markdown.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,102 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.131211
+**সাইজ:** 7,150 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.466839
 
 ---
 
@@ -78,12 +78,12 @@ async def run_export_task(job_id: str, payload: MarkdownExportRequest):
                         "timestamp": time.time(),
                     }
                 ).execute()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: history টবল এখনও তর হয়ন থাকল একসপর্ট বযর্থ কর যাব ন;
             # তব নরব সযলপ ন কর ডবগ লগ কর হল
             logger.debug(f"Failed to persist markdown export history for job {job_id}: {exc}")
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         # বল মনতবয: একসপর্ট টাস্ক বযর্থ হল job স্টটসর সঙ্গ এরর লগও কর হল
         logger.error(f"Markdown export task failed for job {job_id}: {e}")
         jobs_db[job_id]["status"] = "failed"
@@ -195,7 +195,7 @@ async def get_history():
             )
             if res.data:
                 return {"status": "success", "history": res.data}
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         # বল মনতবয: Supabase থক history আনত বযরথ হল ইন-মমর jobs_db ফলবযাক বযবহত হয়;
         # নরব সযলপ ন কর ডবগ লগ কর হল যত DB সমসয দশযমন থক
         logger.debug(f"Supabase markdown history fetch failed, using local fallback: {exc}")

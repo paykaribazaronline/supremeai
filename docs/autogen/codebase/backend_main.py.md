@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/main.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,025 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.112509
+**সাইজ:** 2,041 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.457122
 
 ---
 
@@ -73,7 +73,7 @@ def run_server() -> None:
 
     try:
         uvicorn.run("main:app", **uvicorn_kwargs)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.error(f"Server failed to start: {exc}")
         sys.exit(1)
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/agents/medical_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,242 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.141791
+**সাইজ:** 5,274 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.472318
 
 ---
 
@@ -18,7 +18,7 @@ try:
     from tools.domain_adapter import DomainAdapter
 
     _DOMAIN_ADAPTER_AVAILABLE = True
-except Exception:
+except Exception:  # noqa: BLE001
     _DOMAIN_ADAPTER_AVAILABLE = False
 
 
@@ -140,7 +140,7 @@ class MedicalAgent:
                     "provider": result.get("provider", "unknown"),
                     "disclaimer": result.get("disclaimer", self.SYSTEM_PROMPT),
                 }
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"MedicalAgent generation failed: {exc}")
         return {
             "action": action,

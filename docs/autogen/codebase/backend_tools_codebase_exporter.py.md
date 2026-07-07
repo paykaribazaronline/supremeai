@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/codebase_exporter.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,505 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.175355
+**সাইজ:** 8,569 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.489939
 
 ---
 
@@ -140,7 +140,7 @@ async def export_file_async(file_path: str, root_dir: str) -> str:
     try:
         loop = asyncio.get_running_loop()
         content = await loop.run_in_executor(None, _read_file, file_path)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         return f"### File: `{rel}` (read error: {exc})\n\n"
     parts = [f"### File: `{rel}`\n\n```{language}\n"]
     for idx, chunk in enumerate(_chunk_lines(content)):
@@ -181,7 +181,7 @@ def _get_git_changed_files(
             if line.strip()
         }
         return files
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Failed to fetch git changed files: {e}")
         return None
 
@@ -211,7 +211,7 @@ def _get_git_diff_summary(
         if len(commits) > 20:
             summary += f"\n- ... and {len(commits) - 20} more commits."
         return summary
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return f"Failed to retrieve git changes: {e}"
 
 
@@ -291,7 +291,7 @@ async def export_codebase_to_markdown(
             try:
                 shutil.rmtree(temp_dir)
                 logger.info(f"Cleaned up temp directory: {temp_dir}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to clean up temp dir {temp_dir}: {e}")
 
 ```

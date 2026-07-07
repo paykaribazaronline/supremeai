@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/gcp_cloud_functions.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,313 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.176890
+**সাইজ:** 4,361 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.490731
 
 ---
 
@@ -87,7 +87,7 @@ class GCPCloudFunctionClient:
                 "function_url": url,
                 "data": self._safe_json(response),
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"GCP Cloud Function trigger failed: {exc}")
             return {
                 "success": False,
@@ -128,11 +128,11 @@ class GCPCloudFunctionClient:
     def _safe_json(response: httpx.Response) -> Any:
         try:
             return response.json()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return {"text": response.text}

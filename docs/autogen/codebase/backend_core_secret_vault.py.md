@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/secret_vault.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,114 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.119869
+**সাইজ:** 3,130 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.460950
 
 ---
 
@@ -39,7 +39,7 @@ class ProductionSecretVault:
                 logger.info(
                     f"🔒 Production Secret Vault hooked into GCP Project: {self.project_id}"
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(
                     f"Failed to bind Secret Manager Service Client: {str(e)}. Falling back to raw env."
                 )

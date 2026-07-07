@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/event_bus.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,394 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.113178
+**সাইজ:** 2,402 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.457479
 
 ---
 
@@ -48,7 +48,7 @@ class ErrorEventBus:
         এটি সম্পূর্ণ অ-ব্লকিং (Non-blocking) উপায়ে ব্যাকগ্রাউন্ডে লিসেনারদের এক্সিকিউট করবে।
         """
         logger.warning(f"🚨 [EventBus] New Error Event emitted from {event.module} ({event.severity})")
-        
+
         # ব্যাকগ্রাউন্ড টাস্ক হিসেবে লিসেনারদের ফায়ার করা হচ্ছে যাতে মেইন থ্রেড ব্লক না হয়
         for listener in self._listeners:
             asyncio.create_task(self._safe_execute_listener(listener, event))
@@ -59,7 +59,7 @@ class ErrorEventBus:
                 await listener(event)
             else:
                 listener(event)
-        except Exception as listener_exc:
+        except Exception as listener_exc:  # noqa: BLE001
             logger.critical(f"🔥 EventBus Listener Failed: {listener_exc}")
 
 # Global Instance

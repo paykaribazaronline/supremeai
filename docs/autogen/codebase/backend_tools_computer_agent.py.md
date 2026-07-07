@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/computer_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,774 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.178190
+**সাইজ:** 1,806 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.491409
 
 ---
 
@@ -52,7 +52,7 @@ class ComputerAgent:
             }
         except subprocess.TimeoutExpired:
             return {"success": False, "error": "Command timeout expired"}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e)}
 
     def read_file(self, filepath: str) -> dict[str, Any]:
@@ -61,7 +61,7 @@ class ComputerAgent:
         try:
             with open(filepath, encoding="utf-8") as f:
                 return {"success": True, "content": f.read()}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e)}
 
 ```

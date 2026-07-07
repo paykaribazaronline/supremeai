@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/admin.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,425 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.128048
+**সাইজ:** 4,366 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.465232
 
 ---
 
@@ -56,8 +56,8 @@ async def update_constitutional_rule(payload: RuleUpdate):
 async def trigger_quick_action(action_type: str):
     """Trigger 1-click Quick Actions from Dashboard"""
     # Verify if admin actions are currently allowed by god.py
-    god_layer.enforce("admin_action") 
-    
+    god_layer.enforce("admin_action")
+
     if action_type == "rollback":
         # Add rollback logic here
         return {"status": "Rollback initiated"}
@@ -81,24 +81,24 @@ async def get_fixes(
     db = get_firestore_db()
     fixes_ref = db.collection("tenants").document(tenant_id).collection("fixes")
     query = fixes_ref.where("status", "==", status)
-    
+
     try:
         results = await query.get()
     except TypeError:
         # Fallback for sync mock
         results = query.get()
-        
+
     fixes = []
     for doc in results:
         fix_data = doc.to_dict()
         fix_data["id"] = doc.id
         fixes.append(fix_data)
-        
+
     return {"fixes": fixes}
 
 @router.post("/fixes/{fix_id}/approve")
 async def approve_fix(
-    fix_id: str, 
+    fix_id: str,
     tenant_id: str = "default",
     admin_user: dict = Depends(get_current_admin),
     healer: SelfHealerService = Depends(get_healer_service)
@@ -106,37 +106,37 @@ async def approve_fix(
     """Approve a pending fix."""
     admin_id = admin_user.get("sub", "unknown_admin")
     logger.info(f"Admin {admin_id} approving fix {fix_id} for tenant {tenant_id}")
-    
+
     success = await healer.apply_fix(tenant_id, fix_id, admin_id)
     if not success:
         raise HTTPException(status_code=400, detail="Failed to apply fix. It may not exist or is already processed.")
-        
+
     return {"status": "success", "fix_id": fix_id}
 
 @router.post("/fixes/{fix_id}/reject")
 async def reject_fix(
-    fix_id: str, 
+    fix_id: str,
     tenant_id: str = "default",
     admin_user: dict = Depends(get_current_admin)
 ):
     """Reject a pending fix."""
     admin_id = admin_user.get("sub", "unknown_admin")
     logger.info(f"Admin {admin_id} rejecting fix {fix_id} for tenant {tenant_id}")
-    
+
     db = get_firestore_db()
     doc_ref = db.collection("tenants").document(tenant_id).collection("fixes").document(fix_id)
-    
+
     update_data = {
         "status": "rejected",
         "reviewed_by": admin_id,
         "applied_at": datetime.now(UTC).isoformat()
     }
-    
+
     try:
         await doc_ref.update(update_data)
     except TypeError:
         doc_ref.update(update_data)
-        
+
     return {"status": "success", "fix_id": fix_id}
 
 ```

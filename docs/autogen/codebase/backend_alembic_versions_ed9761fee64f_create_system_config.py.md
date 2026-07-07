@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/alembic/versions/ed9761fee64f_create_system_config.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,914 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.139463
+**সাইজ:** 1,910 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.471202
 
 ---
 
@@ -48,7 +48,7 @@ def upgrade() -> None:
                type_=sa.DateTime(timezone=True),
                nullable=False,
                existing_server_default=sa.text('now()'))
-    
+
     op.execute("DROP INDEX IF EXISTS idx_system_config_category")
     op.create_index(op.f('ix_system_config_key'), 'system_config', ['key'], unique=True)
     op.execute("ALTER TABLE system_config DROP COLUMN IF EXISTS updated_by")

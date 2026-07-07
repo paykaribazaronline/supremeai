@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/proxy_manager.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,151 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.174477
+**সাইজ:** 2,167 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.489484
 
 ---
 
@@ -39,7 +39,7 @@ class ProxyManager:
                     data = json.load(f)
                     self.proxies = data.get("proxies", [])
                     logger.info(f"Loaded {len(self.proxies)} proxies from {self.config_path}.")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to read proxy config: {e}")
 
         # Fallback empty list

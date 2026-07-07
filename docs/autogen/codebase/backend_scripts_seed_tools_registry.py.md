@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/scripts/seed_tools_registry.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,326 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.124860
+**সাইজ:** 9,342 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.463515
 
 ---
 
@@ -376,7 +376,7 @@ def seed_tools():
         db.client.table("tools_registry").upsert(records).execute()
         logger.success(f"✅ Seeded {len(records)} tools successfully.")
         return True
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to seed tools: {e}")
         return False
 

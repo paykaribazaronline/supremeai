@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/repo_deep_indexer.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,800 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.169718
+**সাইজ:** 3,896 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.487051
 
 ---
 
@@ -44,7 +44,7 @@ class RepoDeepIndexer:
                     elif isinstance(node, ast.ImportFrom):
                         imports.append(node.module)
                 return {"classes": classes, "functions": functions, "imports": imports}
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.debug(f"AST parse failed for {file_path}: {e}")
         return {"classes": [], "functions": [], "imports": []}
 
@@ -65,11 +65,11 @@ class RepoDeepIndexer:
                     try:
                         with open(file_path, encoding="utf-8") as f:
                             snippet = f.read()[:200]
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         try:
                             import loguru
                             loguru.logger.error(f"Tool execution error: {e}")
-                        except Exception as e:
+                        except Exception as e:  # noqa: BLE001
                             import logging
                             logging.warning(f"Exception suppressed: {e}")
                         snippet = ""
@@ -84,7 +84,7 @@ class RepoDeepIndexer:
         if self.vector_db_client:
             try:
                 await self.vector_db_client.upsert(nodes)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.debug(f"Vector DB upsert skipped: {e}")
 
         logger.info(f"Successfully indexed {indexed_files} files.")
@@ -99,11 +99,11 @@ class RepoDeepIndexer:
         try:
             if self.vector_db_client:
                 return await self.vector_db_client.query(query, limit)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             pass

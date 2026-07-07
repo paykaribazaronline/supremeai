@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/run_roundtrip_tests.py
 
 **প্রকার:** .py  
-**সাইজ:** 693 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.112409
+**সাইজ:** 707 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.457068
 
 ---
 
@@ -29,7 +29,7 @@ args = ['-p', 'no:pytest_cov', 'backend/tests/test_gcp_integration.py::test_gcp_
         'backend/tests/test_gcp_integration.py::test_gcp_cloud_run_router_route', '-q']
 
 ret = pytest.main(args)
-print('pytest exit code:', ret)
+print('pytest exit code:', ret)  # noqa: T201
 sys.exit(ret)
 
 ```

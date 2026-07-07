@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/music_generator.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,423 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.170512
+**সাইজ:** 1,439 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.487466
 
 ---
 
@@ -38,7 +38,7 @@ class MusicGenerator:
                 "audio_url": "",
                 "note": "Real audio generation requires MusicGen/Jukebox integration.",
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Music generation failed: {exc}")
             return {
                 "status": "error",

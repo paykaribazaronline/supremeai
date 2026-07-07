@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/tools/test_auto_test_generator.py
 
 **প্রকার:** .py  
-**সাইজ:** 18,798 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.164778
+**সাইজ:** 18,862 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.484480
 
 ---
 
@@ -372,7 +372,7 @@ def client(generator):
         from backend.api import app as _app
 
         app = _app
-    except Exception:
+    except Exception:  # noqa: BLE001
         from backend.tools.auto_test_generator import router as test_router
         from fastapi import FastAPI
 
@@ -484,7 +484,7 @@ async def test_generate_endpoint_success(client):
         from backend.api import app as _app
 
         app = _app
-    except Exception:
+    except Exception:  # noqa: BLE001
         app = None
 
     if app is None:
@@ -527,7 +527,7 @@ async def test_generate_endpoint_error(client):
         from backend.api import app as _app
 
         app = _app
-    except Exception:
+    except Exception:  # noqa: BLE001
         app = None
 
     if app is None:
@@ -569,7 +569,7 @@ async def test_generate_file_endpoint(client, generator):
         from backend.api import app as _app
 
         app = _app
-    except Exception:
+    except Exception:  # noqa: BLE001
         app = None
 
     if app is None:

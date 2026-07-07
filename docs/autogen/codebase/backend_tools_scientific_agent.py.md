@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/scientific_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,565 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.180801
+**সাইজ:** 1,581 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.492758
 
 ---
 
@@ -32,7 +32,7 @@ class ScientificAgent:
                 "solution": str(solution),
                 "method": method,
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Equation solving failed: {exc}")
             return {
                 "status": "error",

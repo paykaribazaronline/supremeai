@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/task.py
 
 **প্রকার:** .py  
-**সাইজ:** 15,006 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.128207
+**সাইজ:** 15,022 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.465307
 
 ---
 
@@ -205,7 +205,7 @@ def format_chat_history(messages: list[dict]) -> str:
                 data = json.loads(content)
                 if isinstance(data, dict) and "content" in data:
                     content = data["content"]
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
         role_label = "User" if role == "user" else "Assistant"

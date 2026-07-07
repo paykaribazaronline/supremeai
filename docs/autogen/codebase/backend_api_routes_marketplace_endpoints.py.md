@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/marketplace_endpoints.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,054 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.128476
+**সাইজ:** 3,086 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.465436
 
 ---
 
@@ -39,13 +39,13 @@ def get_enabled_catalog_sources() -> list[str]:
 
     try:
         enabled = db.get_config("marketplace.resource_sources")
-    except Exception:
+    except Exception:  # noqa: BLE001
         enabled = None
 
     if isinstance(enabled, str):
         try:
             enabled = json.loads(enabled)
-        except Exception:
+        except Exception:  # noqa: BLE001
             enabled = [item.strip() for item in enabled.split(",") if item.strip()]
 
     if not isinstance(enabled, list):

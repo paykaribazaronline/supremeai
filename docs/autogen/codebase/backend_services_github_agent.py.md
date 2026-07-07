@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/services/github_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,550 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.165698
+**সাইজ:** 5,536 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.484955
 
 ---
 
@@ -29,7 +29,7 @@ async def get_user_github_token(user_id: str, db: AsyncSession) -> str | None:
     ⚠️ FIX: AsyncSession.get() শুধুমাত্র primary key নেয়, dict ফিল্টার নয়।
     আগে db.get(Integration, {"user_id": ..., "provider": ...}) দিয়ে ArgumentError 
     থ্রো করত। এখন select().where() ব্যবহার করা হচ্ছে।
-    """
+    """  # noqa: W291, W293
     stmt = select(Integration).where(
         Integration.user_id == user_id,
         Integration.provider == "github",
@@ -43,7 +43,7 @@ async def get_user_github_token(user_id: str, db: AsyncSession) -> str | None:
     try:
         access_token = decrypt_token(integration.encrypted_access_token)
         return access_token
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.error(f"Failed to decrypt GitHub token for user '{user_id}': {exc}")
         return None
 
@@ -61,26 +61,26 @@ async def create_autonomous_pr(
     repo_name ফরম্যাট হতে হবে: "username/repo"
     
     db_session বাধ্যতামূলক — না দিলে fail-fast করে, যাতে কেউ ভুলে placeholder দিয়ে ডিপ্লয় করতে না পারে।
-    """
+    """  # noqa: W293
     # ১. ডাটাবেস থেকে এনক্রিপ্টেড টোকেন নিয়ে ডিক্রিপ্ট করা
     if db is None:
         raise RuntimeError(
             "create_autonomous_pr: db_session is required. "
             "Call with an active AsyncSession to fetch the GitHub token from DB."
         )
-    
+
     access_token = await get_user_github_token(user_id, db)
     if access_token is None:
         raise RuntimeError(
             f"GitHub token not found or could not be decrypted for user '{user_id}'. "
             "Please connect GitHub via /integrations/github/link first."
         )
-    
+
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Accept": "application/vnd.github.v3+json"
     }
-    
+
     branch_name = f"supremeai-auto-fix-{datetime.now().strftime('%Y%m%d%H%M%S')}"
     base_url = f"https://api.github.com/repos/{repo_name}"
 
@@ -89,13 +89,13 @@ async def create_autonomous_pr(
         repo_info = await client.get(base_url, headers=headers)
         if repo_info.status_code != 200:
             raise Exception(f"Failed to fetch repo info: {repo_info.text}")
-            
+
         default_branch = repo_info.json().get("default_branch", "main")
-        
+
         ref_info = await client.get(f"{base_url}/git/refs/heads/{default_branch}", headers=headers)
         if ref_info.status_code != 200:
             raise Exception(f"Failed to fetch ref info: {ref_info.text}")
-            
+
         base_sha = ref_info.json()["object"]["sha"]
 
         # Step B: Create New Branch
@@ -136,10 +136,10 @@ async def create_autonomous_pr(
                 "base": default_branch
             }
         )
-        
+
         if pr_response.status_code != 201:
             raise Exception(f"Failed to create PR: {pr_response.text}")
-            
+
         return pr_response.json().get("html_url")
 
 ```

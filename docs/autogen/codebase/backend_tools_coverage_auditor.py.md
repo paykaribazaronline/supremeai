@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/coverage_auditor.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,043 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.169510
+**সাইজ:** 3,059 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.486929
 
 ---
 
@@ -40,7 +40,7 @@ class CoverageAuditor:
             else:
                 logger.warning(f"Unsupported coverage report format: {report_path}")
                 return []
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to parse coverage report {report_path}: {e}")
             return []
 

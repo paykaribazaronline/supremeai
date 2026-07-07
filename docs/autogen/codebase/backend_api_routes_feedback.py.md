@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/feedback.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,471 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.133808
+**সাইজ:** 2,487 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.468249
 
 ---
 
@@ -58,7 +58,7 @@ def _persist_feedback(event_type: str, payload: dict[str, Any]) -> None:
         )
         conn.commit()
         conn.close()
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.error(f"feedback persist failed: {exc}")
 
 

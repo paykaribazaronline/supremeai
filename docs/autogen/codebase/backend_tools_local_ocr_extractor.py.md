@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/local_ocr_extractor.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,363 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.176498
+**সাইজ:** 2,411 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.490527
 
 ---
 
@@ -30,7 +30,7 @@ class LocalOCRExtractor:
                 text_lines.append({"text": text, "confidence": confidence})
             full_text = "\n".join(item["text"] for item in text_lines)
             return {"success": True, "text": full_text, "lines": text_lines}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"OCR failed: {exc}")
             return {"success": False, "error": str(exc), "text": ""}
 
@@ -49,7 +49,7 @@ class LocalOCRExtractor:
                 else:
                     rows.append({"data": cells})
             return {"success": True, "rows": rows, "frame": None}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Table parsing failed: {exc}")
             return {"success": False, "error": str(exc), "rows": []}
 
@@ -66,7 +66,7 @@ class LocalOCRExtractor:
                     ws.append([row.get(key, "") for key in headers])
             wb.save(path)
             return {"success": True, "path": path}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Excel export failed: {exc}")
             return {"success": False, "error": str(exc)}
 

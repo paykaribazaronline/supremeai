@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/task_router.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,242 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.123688
+**সাইজ:** 4,258 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.462859
 
 ---
 
@@ -107,7 +107,7 @@ class TaskRouter:
                     response.raise_for_status()
                     logger.success(f"Skill triggered on attempt {attempt + 1}")
                     return response.json()
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     logger.warning(f"Attempt {attempt + 1} failed: {str(e)}")
                     if attempt == retries - 1:
                         logger.error("All retry attempts failed.")

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/trading_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,537 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.180336
+**সাইজ:** 1,553 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.492519
 
 ---
 
@@ -40,7 +40,7 @@ class TradingAgent:
                 "backtest_results": {},
                 "note": "Real trading requires backtesting framework and market data integration.",
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Trading strategy generation failed: {exc}")
             return {
                 "status": "error",

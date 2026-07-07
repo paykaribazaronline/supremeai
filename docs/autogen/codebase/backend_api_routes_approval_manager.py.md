@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/approval_manager.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,094 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.133045
+**সাইজ:** 3,106 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.467834
 
 ---
 
@@ -43,7 +43,7 @@ def approve_task(task_id: str, req: ApproveRequest):
     task = update_task_status(task_id, TaskStatus.APPROVED, req.resolved_by, req.reason)
     if not task:
         return {"status": "error", "detail": "not_found"}
-    
+
     # ── Execute Task Logic ──
     # বাংলা মন্তব্য: অনুমোদিত হওয়ার পর কাজটির ধরণ অনুযায়ী সংশ্লিষ্ট স্কিল বা অ্যাকশন এক্সিকিউট করা হচ্ছে
     if task.task_type == "SKILL_GENERATION":
@@ -61,7 +61,7 @@ def approve_task(task_id: str, req: ApproveRequest):
                 with open(path, "w", encoding="utf-8") as f:
                     f.write(code)
                 logger.info(f"✅ Approved skill '{skill_name}' successfully written to {path}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to execute approved skill generation: {e}")
             return {"status": "execution_failed", "detail": str(e), "task": task.model_dump()}
 

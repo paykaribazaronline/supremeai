@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/rollback_monitor.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,177 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.119967
+**সাইজ:** 6,193 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.461016
 
 ---
 
@@ -162,7 +162,7 @@ class RollbackMonitor:
                 }
             else:
                 logger.error("Could not find a previous revision to rollback to.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to execute gcloud rollback command: {e}")
 
         # Fallback response if gcloud tool is not installed or command failed

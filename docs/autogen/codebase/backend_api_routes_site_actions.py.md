@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/site_actions.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,456 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.130105
+**সাইজ:** 6,442 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.466286
 
 ---
 
@@ -46,7 +46,7 @@ def _conn() -> sqlite3.Connection:
         )
         """
     )
-    
+
     # Run migrations if columns don't exist
     cur = conn.cursor()
     cur.execute("PRAGMA table_info(site_actions)")
@@ -57,7 +57,7 @@ def _conn() -> sqlite3.Connection:
         conn.execute("ALTER TABLE site_actions ADD COLUMN selector_strategy TEXT DEFAULT 'exact'")
     if "health_score" not in columns:
         conn.execute("ALTER TABLE site_actions ADD COLUMN health_score INTEGER DEFAULT 100")
-        
+
     return conn
 
 class SiteActionIn(BaseModel):
@@ -108,7 +108,7 @@ def create_site_action(payload: SiteActionIn):
                 (site_name, url_pattern, action_name, selector, action_type, notes, enabled, 
                  fallback_selectors, selector_strategy, health_score, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
+            """,  # noqa: W291
             (
                 payload.site_name,
                 payload.url_pattern,
@@ -184,10 +184,10 @@ async def test_selector(req: TestSelectorRequest):
         row = conn.execute("SELECT selector FROM site_actions WHERE id = ?", (req.action_id,)).fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Action not found")
-            
+
     # Mock base64 1x1 transparent image for UI preview (in prod this is a real screenshot)
     mock_b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
-    
+
     # Simulate a hit
     return {
         "found": True,

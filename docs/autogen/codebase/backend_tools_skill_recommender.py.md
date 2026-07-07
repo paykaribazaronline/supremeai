@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/skill_recommender.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,946 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.179444
+**সাইজ:** 5,010 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.492065
 
 ---
 
@@ -41,7 +41,7 @@ class SkillRecommender:
                     .execute()
                 )
                 return res.data or []
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"History fetch from DB failed: {exc}")
         return self._local_history.get(user_id, [])
 
@@ -50,7 +50,7 @@ class SkillRecommender:
         if db.client:
             try:
                 db.client.table("task_history").insert(entry).execute()
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"History insert failed: {exc}")
         else:
             self._local_history.setdefault(user_id, []).append(entry)
@@ -108,11 +108,11 @@ class SkillRecommender:
                         enriched.append(
                             {**res.data[0], "match_score": round(item["score"], 3)}
                         )
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         import logging
                         logging.warning(f"Exception suppressed: {e}")
                     pass

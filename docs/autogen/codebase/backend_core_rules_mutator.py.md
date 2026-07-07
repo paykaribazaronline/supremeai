@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/rules_mutator.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,202 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.123490
+**সাইজ:** 2,250 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.462755
 
 ---
 
@@ -34,7 +34,7 @@ class RulesMutator:
                 val = services.redis_queue.get(redis_key)
                 if val is not None:
                     return val != "ok"
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Redis connection failed during is_ip_blocked: {e}")
         return False
 
@@ -53,7 +53,7 @@ class RulesMutator:
                     redis_key, f"blocked:{reason}", ex=self.cooldown_seconds
                 )
                 return True
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Redis connection failed during block_ip: {e}")
         return False
 
@@ -70,7 +70,7 @@ class RulesMutator:
             try:
                 services.redis_queue.set(redis_key, "", ex=1)
                 return True
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Redis connection failed during release_ip: {e}")
         return False
 

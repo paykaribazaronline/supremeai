@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/generation_monitor.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,552 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.115397
+**সাইজ:** 2,594 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.458627
 
 ---
 
@@ -78,9 +78,9 @@ class GenerationMonitor:
         }
 
     def track_agent_call(self, **kwargs):
-        print("--- AGENT CALL ---")
+        print("--- AGENT CALL ---")  # noqa: T201
         for key, value in kwargs.items():
-            print(f"{key}: {value}")
-        print("--------------------")
+            print(f"{key}: {value}")  # noqa: T201
+        print("--------------------")  # noqa: T201
 
 ```

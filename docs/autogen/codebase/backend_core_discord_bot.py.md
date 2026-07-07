@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/discord_bot.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,194 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.116221
+**সাইজ:** 2,210 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.459055
 
 ---
 
@@ -54,7 +54,7 @@ class SupremeDiscordBot(commands.Bot):
                         await message.channel.send(response[i : i + 2000])
                 else:
                     await message.channel.send(response)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Error handling Discord message: {e}")
                 await message.channel.send("Error executing request.")
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/__init__.py
 
 **প্রকার:** .py  
-**সাইজ:** 12,287 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.127523
+**সাইজ:** 12,911 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.464920
 
 ---
 
@@ -15,7 +15,7 @@ try:
     from .approval_manager import router as approval_manager_router
 
     _safe_imports["approval_manager_router"] = approval_manager_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -26,7 +26,7 @@ try:
     from .admin_dashboard import router as admin_dashboard_router
 
     _safe_imports["admin_dashboard_router"] = admin_dashboard_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -37,7 +37,7 @@ try:
     from .agent_tasks import agent_router
 
     _safe_imports["agent_router"] = agent_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -48,7 +48,7 @@ try:
     from .auth import router as auth_router
 
     _safe_imports["auth_router"] = auth_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -59,7 +59,7 @@ try:
     from .async_task_router import router as async_task_router
 
     _safe_imports["async_task_router"] = async_task_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -70,7 +70,7 @@ try:
     from .cdc_webhooks import router as cdc_router
 
     _safe_imports["cdc_router"] = cdc_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -81,7 +81,7 @@ try:
     from .browser import router as browser_router
 
     _safe_imports["browser_router"] = browser_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -92,7 +92,7 @@ try:
     from .codeflow import router as codeflow_router
 
     _safe_imports["codeflow_router"] = codeflow_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -103,7 +103,7 @@ try:
     from .feedback import router as feedback_router
 
     _safe_imports["feedback_router"] = feedback_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -114,7 +114,7 @@ try:
     from .knowledge import router as knowledge_router
 
     _safe_imports["knowledge_router"] = knowledge_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -125,7 +125,7 @@ try:
     from .marketplace_endpoints import router as marketplace_router
 
     _safe_imports["marketplace_router"] = marketplace_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -136,7 +136,7 @@ try:
     from .media import router as media_router
 
     _safe_imports["media_router"] = media_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -147,7 +147,7 @@ try:
     from .memory import router as memory_router
 
     _safe_imports["memory_router"] = memory_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -158,7 +158,7 @@ try:
     from .metrics import router as metrics_router
 
     _safe_imports["metrics_router"] = metrics_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -170,7 +170,7 @@ try:
     from .site_actions import router as site_actions_router
 
     _safe_imports["site_actions_router"] = site_actions_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -182,7 +182,7 @@ try:
     from .llm_gateway import router as llm_gateway_router
 
     _safe_imports["llm_gateway_router"] = llm_gateway_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -193,7 +193,7 @@ try:
     from .simulator import router as simulator_router
 
     _safe_imports["simulator_router"] = simulator_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -204,7 +204,7 @@ try:
     from .stream import router as stream_router
 
     _safe_imports["stream_router"] = stream_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -215,7 +215,7 @@ try:
     from .task import router as task_router
 
     _safe_imports["task_router"] = task_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -226,7 +226,7 @@ try:
     from .email import router as email_router
 
     _safe_imports["email_router"] = email_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -237,7 +237,7 @@ try:
     from .github import router as github_router
 
     _safe_imports["github_router"] = github_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -248,7 +248,7 @@ try:
     from .internal import router as internal_router
 
     _safe_imports["internal_router"] = internal_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -259,7 +259,7 @@ try:
     from .config import router as config_router
 
     _safe_imports["config_router"] = config_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -270,7 +270,7 @@ try:
     from .sso import router as sso_router
 
     _safe_imports["sso_router"] = sso_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -281,7 +281,7 @@ try:
     from .repos import router as repos_router
 
     _safe_imports["repos_router"] = repos_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -292,7 +292,7 @@ try:
     from .tools_ops import router as tools_ops_router
 
     _safe_imports["tools_ops_router"] = tools_ops_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -303,7 +303,7 @@ try:
     from .voice import router as voice_router
 
     _safe_imports["voice_router"] = voice_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -314,7 +314,7 @@ try:
     from .onboarding import router as onboarding_router
 
     _safe_imports["onboarding_router"] = onboarding_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -325,7 +325,7 @@ try:
     from .tools_registry import router as tools_registry_router
 
     _safe_imports["tools_registry_router"] = tools_registry_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -336,7 +336,7 @@ try:
     from .preferences import router as preferences_router
 
     _safe_imports["preferences_router"] = preferences_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -347,7 +347,7 @@ try:
     from .usage_metrics import router as usage_metrics_router
 
     _safe_imports["usage_metrics_router"] = usage_metrics_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -358,7 +358,7 @@ try:
     from .agents import router as agents_router
 
     _safe_imports["agents_router"] = agents_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -369,7 +369,7 @@ try:
     from .payments import router as payments_router
 
     _safe_imports["payments_router"] = payments_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -380,7 +380,7 @@ try:
     from .markdown import router as markdown_router
 
     _safe_imports["markdown_router"] = markdown_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -391,7 +391,7 @@ try:
     from .api_keys import router as api_keys_router
 
     _safe_imports["api_keys_router"] = api_keys_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -402,7 +402,7 @@ try:
     from .graph import router as graph_router
 
     _safe_imports["graph_router"] = graph_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -413,7 +413,7 @@ try:
     from .ci_webhooks import router as ci_webhooks_router
 
     _safe_imports["ci_webhooks_router"] = ci_webhooks_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -423,7 +423,7 @@ except Exception:
 try:
     from .websocket_voice import router as websocket_voice_router
     _safe_imports["websocket_voice_router"] = websocket_voice_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -433,7 +433,7 @@ except Exception:
 try:
     from .integrations import router as integrations_router
     _safe_imports["integrations_router"] = integrations_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger

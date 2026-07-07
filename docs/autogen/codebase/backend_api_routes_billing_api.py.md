@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/billing_api.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,507 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.129749
+**সাইজ:** 9,479 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.466102
 
 ---
 
@@ -103,10 +103,10 @@ async def get_transaction_history(session: AsyncSession = Depends(get_db_session
 async def add_funds(amount: float, session: AsyncSession = Depends(get_db_session)):
     if amount <= 0.0:
         raise HTTPException(status_code=400, detail="Topup amount must be greater than zero.")
-    
+
     user_id = "default_user_session"
     await _ensure_wallet(session, user_id)
-    
+
     checkout_id = str(uuid.uuid4())
     return {
         "status": "pending",
@@ -168,7 +168,7 @@ async def stripe_webhook(request: Request, session: AsyncSession = Depends(get_d
                     description=f"Stripe Top-up (Intent: {payment_intent['id']})"
                 )
                 session.add(entry)
-            
+
             logger.success(f"Successfully credited ${amount_received} to user {user_id}")
 
     except StaleDataError as e:
@@ -192,7 +192,7 @@ async def sslcommerz_webhook_listener(request: Request, session: AsyncSession = 
     try:
         payload = await request.json()
         status_val = payload.get("status")
-        
+
         if status_val == "VALID":
             user_id = payload.get("value_a", "default_user_session")
             amount_bdt = float(payload.get("amount", 0))

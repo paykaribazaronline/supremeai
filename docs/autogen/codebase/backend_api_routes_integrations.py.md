@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/integrations.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,897 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.132502
+**সাইজ:** 5,913 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.467549
 
 ---
 
@@ -123,7 +123,7 @@ async def github_callback(
             db.add(new_integration)
         await db.commit()
         logger.info(f"✅ GitHub integration saved for user '{user_id}'")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         await db.rollback()
         logger.error(f"Failed to save GitHub integration for user '{user_id}': {exc}")
         return RedirectResponse(

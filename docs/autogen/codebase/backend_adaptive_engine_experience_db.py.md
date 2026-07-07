@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/adaptive_engine/experience_db.py
 
 **প্রকার:** .py  
-**সাইজ:** 12,408 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.168269
+**সাইজ:** 12,460 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.486287
 
 ---
 
@@ -58,14 +58,14 @@ class ExperienceDatabase:
             try:
                 from sentence_transformers import SentenceTransformer
                 self.encoder = SentenceTransformer("all-MiniLM-L6-v2")
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 import loguru
                 loguru.logger.debug(f"SentenceTransformer init failed: {exc}")
         if HAS_CHROMADB:
             try:
                 import chromadb
                 self.chroma_collection = chromadb.EphemeralClient().get_or_create_collection("experience")
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 import loguru
                 loguru.logger.debug(f"ChromaDB init failed: {exc}")
         if HAS_QDRANT:
@@ -78,7 +78,7 @@ class ExperienceDatabase:
                     collection_name=self.qdrant_collection,
                     vectors_config=VectorParams(size=384, distance=Distance.COSINE),
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 import loguru
 
                 loguru.logger.debug(f"Qdrant init failed: {exc}")
@@ -118,7 +118,7 @@ class ExperienceDatabase:
         if self.encoder:
             try:
                 return self.encoder.encode(text).tolist()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 return None
         return None
 
@@ -127,10 +127,10 @@ class ExperienceDatabase:
         request_text = exp.request or ""
         embedding = self._embed(request_text)
         embedding_blob = json.dumps(embedding).encode() if embedding else None
-        
+
         # Determine the code or response text to save in vector metadata
         response_text = exp.generated_code or exp.action_taken or ""
-        
+
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -173,7 +173,7 @@ class ExperienceDatabase:
                     metadatas=[{"result": result, "response": response_text}],
                     documents=[text],
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
         try:
@@ -183,7 +183,7 @@ class ExperienceDatabase:
                     collection_name=self.qdrant_collection,
                     points=[PointStruct(id=exp_id, vector=embedding, payload={"result": result, "text": text, "response": response_text})],
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
 
@@ -236,7 +236,7 @@ class ExperienceDatabase:
                             "response": hit.payload.get("response", ""),
                             "text": hit.payload.get("text", "")
                         })
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
         return hits
@@ -287,21 +287,21 @@ class ExperienceDatabase:
             with open(self.db_path, 'rb') as f_in:
                 with gzip.open(gz_path, 'wb') as f_out:
                     shutil.copyfileobj(f_in, f_out)
-            
+
             client = storage.Client()
             bucket = client.bucket(bucket_name)
             blob = bucket.blob(blob_name)
-            
+
             # Set metadata to indicate it's a gzipped sqlite file
             blob.content_encoding = 'gzip'
             blob.upload_from_filename(str(gz_path), content_type='application/x-sqlite3')
-            
+
             loguru.logger.info(f"Successfully synced experience db to GCS: gs://{bucket_name}/{blob_name}")
-            
+
             # Clean up local compressed file
             gz_path.unlink(missing_ok=True)
-            
-        except Exception as e:
+
+        except Exception as e:  # noqa: BLE001
             loguru.logger.error(f"Failed to sync experience db to GCS: {e}")
 
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/database/storage_client.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,850 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.165949
+**সাইজ:** 2,866 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.485107
 
 ---
 
@@ -63,7 +63,7 @@ class StorageClient:
             elif self.provider == "s3" and self.s3_client:
                 self.s3_client.upload_file(local_path, self.bucket_name, remote_path)
                 return {"status": "success", "provider": "s3", "path": remote_path}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Upload failed: {e}")
             return {"status": "error", "error": str(e)}
 

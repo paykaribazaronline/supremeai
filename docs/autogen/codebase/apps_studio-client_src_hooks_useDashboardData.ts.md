@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/hooks/useDashboardData.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 5,874 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.204674
+**সাইজ:** 6,016 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.505291
 
 ---
 
@@ -186,14 +186,18 @@ export function useDashboardSSE() {
       try {
         const data = JSON.parse(e.data);
         qc.setQueryData(['dashboard', 'events', 50], data); // update cache directly
-      } catch (err) {}
+      } catch (err) {
+        console.error('Failed to parse dashboard_events:', err);
+      }
     });
 
     sse.addEventListener('metrics_events', (e) => {
       try {
         const data = JSON.parse(e.data);
         qc.setQueryData(['dashboard', 'metrics'], data);
-      } catch (err) {}
+      } catch (err) {
+        console.error('Failed to parse metrics_events:', err);
+      }
     });
 
     return () => {

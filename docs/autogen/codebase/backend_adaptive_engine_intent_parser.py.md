@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/adaptive_engine/intent_parser.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,579 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.168598
+**সাইজ:** 3,595 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.486463
 
 ---
 
@@ -91,7 +91,7 @@ Return ONLY a JSON object (no markdown blocks, no text around it) with the follo
                 deployment_target=data.get("deployment_target"),
                 clarification_question=data.get("clarification_question"),
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to parse JSON specification from: {text}. Error: {e}")
             # Fallback to basic spec
             return AppSpecification(

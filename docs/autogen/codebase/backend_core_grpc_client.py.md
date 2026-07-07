@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/grpc_client.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,302 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.117647
+**সাইজ:** 2,294 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.459784
 
 ---
 
@@ -26,7 +26,7 @@ class WorkerGrpcClient:
     def __init__(self, host: str = "localhost", port: int = 9090):
         self.channel = grpc.insecure_channel(f"{host}:{port}")
         self.stub = pb2_grpc.WorkerServiceStub(self.channel)
-        
+
     def submit_task(self, task_type: str, payload: dict[str, Any], requested_by: str = "fastapi-engine") -> str | None:
         try:
             req = pb2.TaskRequest(

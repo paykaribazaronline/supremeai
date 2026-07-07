@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/3d_model_generator.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,409 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.180429
+**সাইজ:** 1,425 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.492568
 
 ---
 
@@ -38,7 +38,7 @@ class Model3DGenerator:
                 "model_url": "",
                 "note": "Real 3D generation requires Shap-E/Point-E integration.",
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"3D model generation failed: {exc}")
             return {
                 "status": "error",

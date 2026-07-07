@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_e2e_media.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,271 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.152650
+**সাইজ:** 1,287 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.478048
 
 ---
 
@@ -28,7 +28,7 @@ def _skip_if_media_deps_missing():
     try:
         import tools.image_generator as _ig  # noqa: F401
         import tools.video_generator as _vg  # noqa: F401
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         pytest.skip(f"Media backend dependencies missing: {exc}")
 
 

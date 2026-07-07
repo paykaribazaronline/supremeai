@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/auto_pr_pipeline.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,923 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.175707
+**সাইজ:** 5,955 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.490131
 
 ---
 
@@ -100,7 +100,7 @@ class AutoPRPipeline:
                 "branch": branch,
             }
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Auto PR Pipeline failed: {e}")
             # Cleanup: checkout original branch and delete the new one
             logger.info("Cleaning up failed PR attempt...")
@@ -158,7 +158,7 @@ class AutoPRPipeline:
                 "pr_url": pr_result.get("pr_url"),
             }
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Auto PR Pipeline failed: {str(e)}")
             # Cleanup failed branch
             await self._run_git_command(["checkout", original_branch], cwd=repo_path)

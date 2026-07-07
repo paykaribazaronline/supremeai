@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/evolution/fitness_engine.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,276 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.140436
+**সাইজ:** 6,356 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.471639
 
 ---
 
@@ -55,7 +55,7 @@ class FitnessEngine:
             try:
                 with open(self.metrics_path, encoding="utf-8") as f:
                     return json.load(f)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
         return {}
@@ -65,7 +65,7 @@ class FitnessEngine:
         try:
             with open(self.metrics_path, "w", encoding="utf-8") as f:
                 json.dump(self.metrics, f, indent=4)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to save fitness metrics: {e}")
 
     def track_execution(
@@ -149,7 +149,7 @@ class FitnessEngine:
             try:
                 with open(self.registry.registry_path, "w", encoding="utf-8") as f:
                     json.dump(self.registry.skills, f, indent=4)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to update registry status: {e}")
 
         # 2. Update Firestore Status
@@ -158,7 +158,7 @@ class FitnessEngine:
                 self.db.collection("supreme_dynamic_skills").document(
                     skill_name
                 ).update({"status": "DEPRECATED"})
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(
                     f"Failed to update Firestore status for skill '{skill_name}': {e}"
                 )
@@ -176,7 +176,7 @@ class FitnessEngine:
                 logger.info(
                     f"📁 Soft pruned skill files moved to deprecated zone: {dest_dir}"
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to move files to deprecated zone: {e}")
 
         return True

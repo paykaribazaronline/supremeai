@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/session_stream.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,035 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.132942
+**সাইজ:** 1,947 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.467782
 
 ---
 
@@ -39,22 +39,22 @@ async def stream_session(
                 "event": "connected",
                 "data": json.dumps({"channel": "system", "data": "connected to stream"})
             }
-            
+
             while True:
                 if await request.is_disconnected():
                     break
-                    
+
                 try:
                     # Wait for log event or 15s heartbeat timeout
                     item = await asyncio.wait_for(queue.get(), timeout=15.0)
-                    
+
                     # Decide channel based on item schema
                     channel = "logs"
                     if item.get("log_type") == "state_change":
                         channel = "state"
                     elif item.get("log_type") in ("file_write", "file_delete"):
                         channel = "filetree"
-                        
+
                     yield {
                         "event": "message",
                         "data": json.dumps({"channel": channel, "data": item})
@@ -67,7 +67,7 @@ async def stream_session(
                     }
         finally:
             batcher.unsubscribe(session_id, queue)
-            
+
     return EventSourceResponse(event_generator())
 
 ```

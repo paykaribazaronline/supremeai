@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/agents/legal_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,097 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.142024
+**সাইজ:** 5,129 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.472449
 
 ---
 
@@ -19,7 +19,7 @@ try:
     from tools.domain_adapter import DomainAdapter
 
     _DOMAIN_ADAPTER_AVAILABLE = True
-except Exception:
+except Exception:  # noqa: BLE001
     _DOMAIN_ADAPTER_AVAILABLE = False
 
 
@@ -137,7 +137,7 @@ class LegalAgent:
             try:
                 result = self.domain_adapter.adapt_request("legal", summary_prompt)
                 return result.get("response", "")
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Legal LLM summary failed: {exc}")
         return (
             f"[Rule-based review] Document type: {doc_type}. "

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/vision_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,348 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.174795
+**সাইজ:** 5,396 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.489653
 
 ---
 
@@ -24,7 +24,7 @@ class VisionAgent:
     def analyze_image(self, image_path: str) -> dict[str, Any]:
         try:
             import easyocr  # type: ignore[import-untyped]
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"EasyOCR is not available: {exc}")
             return {"success": False, "error": str(exc), "text": "", "structured": {}}
 
@@ -43,7 +43,7 @@ class VisionAgent:
                 "lines": text_lines,
                 "structured": self._structure(text_lines),
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Vision image analysis failed: {exc}")
             return {"success": False, "error": str(exc), "text": "", "structured": {}}
 
@@ -59,7 +59,7 @@ class VisionAgent:
                 "summary": cover_text,
                 "structured": {"pages": len(text_pages)},
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Vision PDF analysis failed: {exc}")
             return {"success": False, "error": str(exc), "text": "", "structured": {}}
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/plan_sorter.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,676 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.182087
+**সাইজ:** 2,692 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.493443
 
 ---
 
@@ -69,7 +69,7 @@ class PlanSorter:
                     logger.info(
                         f"Organized plan '{filename}' as {category} -> {dest_subfolder}"
                     )
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     logger.error(f"Failed to process plan file '{filename}': {e}")
 
         return categorized

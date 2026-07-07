@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/posthog_client.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,229 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.120547
+**সাইজ:** 1,261 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.461313
 
 ---
 
@@ -26,7 +26,7 @@ class PostHogClient:
                 posthog.project_api_key = self.api_key
                 posthog.host = self.host
                 logger.info("Initialized PostHog Analytics Client")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to initialize PostHog: {e}")
                 self.enabled = False
         else:
@@ -38,7 +38,7 @@ class PostHogClient:
         if self.enabled:
             try:
                 posthog.capture(distinct_id, event, properties or {})
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"PostHog capture failed: {e}")
         else:
             logger.info(

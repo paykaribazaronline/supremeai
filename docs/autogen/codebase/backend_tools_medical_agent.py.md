@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/medical_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,518 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.172181
+**সাইজ:** 1,534 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.488282
 
 ---
 
@@ -39,7 +39,7 @@ class MedicalAgent:
                 "analysis": text or "Analysis unavailable.",
                 "disclaimer": "This is not medical advice. Consult a qualified healthcare provider.",
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Medical analysis failed: {exc}")
             return {
                 "status": "error",

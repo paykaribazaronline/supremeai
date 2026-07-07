@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/local_search_rag.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,129 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.172389
+**সাইজ:** 8,193 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.488383
 
 ---
 
@@ -73,11 +73,11 @@ class LocalSearchRAG:
                 self._index = json.loads(
                     self.embeddings_path.read_text(encoding="utf-8")
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 self._index = {}
@@ -150,7 +150,7 @@ class LocalSearchRAG:
                         }
                     )
                 return {"status": "ok", "query": query, "matches": matches}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             import loguru
 
             loguru.logger.warning(
@@ -206,7 +206,7 @@ class LocalSearchRAG:
                 self.collection.upsert(
                     ids=ids, documents=documents, metadatas=metadatas
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 import loguru
 
                 loguru.logger.error(f"ChromaDB upsert failed: {exc}")

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/pre_commit_ai.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,483 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.180534
+**সাইজ:** 11,649 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.492623
 
 ---
 
@@ -22,7 +22,7 @@ try:
     from tools.pr_reviewer import PRReviewer
 
     _PR_REVIEWER_AVAILABLE = True
-except Exception:
+except Exception:  # noqa: BLE001
     _PR_REVIEWER_AVAILABLE = False
     PRReviewer = None  # type: ignore[misc,assignment]
 
@@ -95,7 +95,7 @@ class PreCommitAI:
                 check=True,
             )
             return [f for f in result.stdout.splitlines() if f.strip()]
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to list staged files: {exc}")
             return []
 
@@ -110,11 +110,11 @@ class PreCommitAI:
             try:
                 with open(filepath, encoding="utf-8", errors="ignore") as f:
                     original_content = f.read()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 continue  # Skip binary files that can't be read
@@ -171,7 +171,7 @@ class PreCommitAI:
                     with open(filepath, "w", encoding="utf-8") as f:
                         f.write(new_content)
 
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Auto-fix failed for {filepath}: {exc}")
         return {"fixes": fixes_applied, "count": len(fixes_applied)}
 
@@ -187,7 +187,7 @@ class PreCommitAI:
         if self.reviewer is not None:
             try:
                 issues = await self.reviewer.analyze_diff(diff)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"AI analysis failed: {exc}")
                 return {"status": "error", "message": f"AI analysis failed: {exc}"}
         else:
@@ -299,19 +299,19 @@ if __name__ == "__main__":
     result = asyncio.run(hook.run_hook(auto_fix=not args.no_fix))
     status = result.get("status", "error")
     if status == "blocked":
-        print("❌ Commit blocked:", result.get("reason"))
+        print("❌ Commit blocked:", result.get("reason"))  # noqa: T201
         for issue in result.get("issues", []):
-            print(
+            print(  # noqa: T201
                 f"  - {issue.get('path', '?')}:{issue.get('line', '?')} -> {issue.get('body', '')}"
             )
         raise SystemExit(1)
     elif status == "fixed":
-        print("⚠️  Auto-fixed issues. Review and re-commit.")
+        print("⚠️  Auto-fixed issues. Review and re-commit.")  # noqa: T201
         raise SystemExit(1)
     elif status == "error":
-        print("❌ Error:", result.get("message"))
+        print("❌ Error:", result.get("message"))  # noqa: T201
         raise SystemExit(1)
     else:
-        print("✅ Pre-commit checks passed.")
+        print("✅ Pre-commit checks passed.")  # noqa: T201
 
 ```

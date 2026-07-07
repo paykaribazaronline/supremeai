@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/offline_mode.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,493 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.177929
+**সাইজ:** 3,525 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.491278
 
 ---
 
@@ -46,7 +46,7 @@ class OfflineModeManager:
                 )
                 res.raise_for_status()
                 return res.json().get("response", "No response from local model.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Ollama local fallback failed: {e}")
             return f"[Offline Error] Could not reach local Ollama instance: {str(e)}"
 
@@ -102,7 +102,7 @@ class OfflineModeManager:
             self.sync_queue.clear()
             logger.info(f"Successfully synced {synced_count} actions.")
             return {"status": "success", "synced": synced_count}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to sync offline queue: {e}")
             return {"status": "error", "error": str(e), "synced": 0}
         finally:

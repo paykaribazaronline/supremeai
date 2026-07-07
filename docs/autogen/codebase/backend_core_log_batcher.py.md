@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/log_batcher.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,275 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.115289
+**সাইজ:** 4,243 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.458571
 
 ---
 
@@ -53,7 +53,7 @@ class LogBatcherService:
         log_entry must be a dict matching ExecutionLog schema.
         """
         self.queue.put_nowait(log_entry)
-        
+
         # Publish to SSE subscribers
         session_id = str(log_entry.get("session_id"))
         if session_id in self._subscribers:
@@ -81,7 +81,7 @@ class LogBatcherService:
                 # Wait for at least one item, up to flush_interval
                 item = await asyncio.wait_for(self.queue.get(), timeout=self.flush_interval)
                 self.buffer.append(item)
-                
+
                 # Drain queue up to batch_size
                 while len(self.buffer) < self.batch_size:
                     try:
@@ -89,13 +89,13 @@ class LogBatcherService:
                         self.buffer.append(next_item)
                     except asyncio.QueueEmpty:
                         break
-                        
+
                 if len(self.buffer) >= self.batch_size:
                     await self._flush()
             except TimeoutError:
                 if self.buffer:
                     await self._flush()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Critical error in LogBatcherService: {e}")
                 # সেলফ-হিলিং: ডাটা লস রোধে বাফার রিকিউ করা হচ্ছে
                 while self.buffer:
@@ -105,10 +105,10 @@ class LogBatcherService:
     async def _flush(self):
         if not self.buffer:
             return
-        
+
         batch = list(self.buffer)
         self.buffer.clear()
-        
+
         try:
             # Execute DB insertion in a new isolated session
             async for session in get_db_session():
@@ -119,7 +119,7 @@ class LogBatcherService:
                 await session.commit()
                 break # Just run once
             logger.debug(f"Flushed {len(batch)} log entries to database.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to flush log entries to database: {e}")
             # Re-queue on failure (in a real system, might use a dead-letter queue)
             for item in batch:

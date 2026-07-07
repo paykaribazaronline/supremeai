@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/task_workspace.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,483 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.128586
+**সাইজ:** 3,477 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.465495
 
 ---
 
@@ -43,7 +43,7 @@ async def execute_task(payload: TaskPayload, background_tasks: BackgroundTasks):
     Integrates Redis rate limiting, RAM conversation history, and Supabase persistent storage.
     """
     _tenant_id = "default_user_session" # প্রোডাকশনে এটি JWT বা সেশন টোকেন থেকে আসবে
-    
+
     try:
         # বাংলা মন্তব্য: মেসেজ হিস্ট্রি এবং নতুন টাস্ক প্রম্পটকে গেটওয়ের উপযোগী মেসেজ লিস্ট স্কিমায় কনভার্ট করা হচ্ছে
         messages_payload = []
@@ -52,7 +52,7 @@ async def execute_task(payload: TaskPayload, background_tasks: BackgroundTasks):
                 "role": "user" if msg.role.lower() == "user" else "assistant",
                 "content": msg.content
             })
-        
+
         messages_payload.append({
             "role": "user",
             "content": f"Current Task ({payload.task_type}): {payload.task}"
@@ -71,13 +71,13 @@ async def execute_task(payload: TaskPayload, background_tasks: BackgroundTasks):
         # রেসপন্স যেন ফাস্ট হয়, তাই ডাটাবেসে সেভ করার কাজটি ব্যাকগ্রাউন্ডে দেওয়া হলো
         def save_to_supabase(task, result):
             pass # supabase.table("task_history").insert({"task": task, "result": result}).execute()
-        
+
         background_tasks.add_task(save_to_supabase, payload.task, result_text)
 
         return {"result": result_text, "status": "success"}
 
     except Exception as e:
-        print(f"❌ Neural Pipeline Error: {str(e)}")
+        print(f"❌ Neural Pipeline Error: {str(e)}")  # noqa: T201
         raise HTTPException(status_code=500, detail="Neural connection pipeline error.") from e
 
 # ==========================================

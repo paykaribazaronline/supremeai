@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/middleware/auth_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,261 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.142931
+**সাইজ:** 4,277 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.472912
 
 ---
 
@@ -98,7 +98,7 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
                     },
                 )
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             from fastapi.responses import JSONResponse
 
             logger.error(f"Token validation failed: {e}")

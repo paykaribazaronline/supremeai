@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/evolution/dynamic_injector.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,417 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.140587
+**সাইজ:** 4,349 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.471706
 
 ---
 
@@ -34,10 +34,10 @@ class DynamicSkillInjector:
         জিরো-গ্যাপ ভেরিফিকেশন সহ নতুন স্কিল ইনজেক্ট বা আপডেট করে।
         """
         logger.info(f"🚀 Attempting dynamic injection for skill: {skill_name}")
-        
+
         # স্যান্ডবক্স ভেরিফিকেশন
         sandbox_result = execute_secure_sandbox(code_content)
-        
+
         if sandbox_result["status"] != "SUCCESS":
             # ফেইল করলে কোয়ারেন্টাইনে মুভ করা (০% গ্যাপ পলিসি)
             self._quarantine_code(skill_name, code_content, sandbox_result.get("reason", "Unknown sandbox error"))
@@ -47,10 +47,10 @@ class DynamicSkillInjector:
         file_path = os.path.join(self.skills_dir, f"{skill_name}.py")
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(code_content)
-            
+
         # মডিউল লোড ও রি-লোড মেকানিজম (মেমোরি ক্যাশ ইনভ্যালিডেশন গ্যাপ ফিক্স)
         module_name = f"skills.dynamic.{skill_name}"
-        
+
         try:
             if module_name in sys.modules:
                 # মডিউল আগে থেকেই থাকলে রিলোড করা
@@ -64,10 +64,10 @@ class DynamicSkillInjector:
                 sys.modules[module_name] = module
                 spec.loader.exec_module(module)
                 logger.success(f"✅ Module {module_name} successfully injected into memory.")
-                
+
             return {"status": "SUCCESS", "module": module}
-            
-        except Exception as e:
+
+        except Exception as e:  # noqa: BLE001
             logger.critical(f"🔥 FATAL: Failed to load module {module_name} after injection -> {str(e)}")
             self._quarantine_code(skill_name, code_content, str(e))
             return {"status": "FAILED", "reason": str(e)}
@@ -79,11 +79,11 @@ class DynamicSkillInjector:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         safe_name = f"{skill_name}_{timestamp}_blocked.py"
         file_path = os.path.join(self.quarantine_dir, safe_name)
-        
+
         quarantine_content = f"# BLOCKED REASON: {reason}\n\n{code_content}"
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(quarantine_content)
-            
+
         logger.warning(f"🔒 Skill {skill_name} isolated to quarantine zone -> {safe_name}")
 
 dynamic_injector = DynamicSkillInjector()

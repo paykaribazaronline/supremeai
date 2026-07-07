@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/monthly_cost_reporter.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,169 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.181448
+**সাইজ:** 3,185 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.493102
 
 ---
 
@@ -85,7 +85,7 @@ class MonthlyCostReporter:
                 url, json={"chat_id": self.admin_chat_id, "text": text}, timeout=10
             )
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to send monthly cost report: {exc}")
             return False
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/security_vault.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,015 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.121117
+**সাইজ:** 1,045 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.461626
 
 ---
 
@@ -36,8 +36,8 @@ def decrypt_token(cipher_text: str) -> str:
     try:
         decrypted_bytes = fernet.decrypt(cipher_text.encode('utf-8'))
         return decrypted_bytes.decode('utf-8')
-    except Exception as e:
-        print(f"Error decrypting token: {e}")
+    except Exception as e:  # noqa: BLE001
+        print(f"Error decrypting token: {e}")  # noqa: T201
         return ""
 
 ```

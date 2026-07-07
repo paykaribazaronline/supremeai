@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/diagram_to_architecture.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,297 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.171626
+**সাইজ:** 7,329 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.488006
 
 ---
 
@@ -83,7 +83,7 @@ class DiagramToArchitecture:
         except ImportError:
             logger.warning("ModelRouter not available. Returning mock architecture.")
             return self._mock_output(provider, iac_tool)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Architecture generation failed: {str(e)}")
             return {"status": "error", "error": str(e)}
 
@@ -154,7 +154,7 @@ resource "{provider}_subnet" "public" {{
             )
             yaml_spec = result.get("text", "") if isinstance(result, dict) else ""
             return {"status": "success", "openapi_yaml": yaml_spec}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"status": "error", "error": str(e)}
 
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/task_queue.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,951 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.116452
+**সাইজ:** 1,967 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.459174
 
 ---
 
@@ -50,7 +50,7 @@ def process_requirement_async(project_id: str, description: str) -> dict[str, An
         try:
             task = _process_requirement_task.delay(project_id, description)
             return {"status": "queued", "task_id": task.id}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to queue task with Celery: {e}")
 
     # Fallback to synchronous execution for testing/dev

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/engine/model_dispatcher.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,943 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.125537
+**সাইজ:** 1,959 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.463856
 
 ---
 
@@ -64,7 +64,7 @@ if HAS_LANGSMITH:
                 fallbacks=get_fallback_chain(model),
             )
             return {"model": model, "text": response.choices[0].message.content}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Model dispatch failed: {exc}")
             return {"model": model, "text": "", "error": str(exc)}
 else:

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/free_tier_tracker.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,184 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.120847
+**সাইজ:** 14,200 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.461481
 
 ---
 
@@ -281,7 +281,7 @@ class FreeTierTracker:
                                 "priority": idx,
                                 "is_active": True,
                             })
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.debug(f"Failed to fetch provider configs from Supabase: {e}")
             return None, None
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/multi_account_rotator.py
 
 **প্রকার:** .py  
-**সাইজ:** 36,587 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.172597
+**সাইজ:** 36,803 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.488489
 
 ---
 
@@ -189,7 +189,7 @@ class MultiAccountRotator:
                     return data
 
                 await asyncio.sleep(1)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Firestore check failed, falling back to SQLite: {e}")
 
         # Fallback to SQLite
@@ -225,7 +225,7 @@ class MultiAccountRotator:
                             return data
                     conn.close()
                 await asyncio.sleep(1)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"SQLite fallback check failed: {e}")
 
         return None
@@ -302,7 +302,7 @@ class MultiAccountRotator:
                     await page.fill('input[id="confirm-password"]', password)
                     await page.click('button[id="signup-button"]')
                     logger.info(f"[SUPREME-AI] Submitted signup form for {new_email}")
-                except Exception as form_err:
+                except Exception as form_err:  # noqa: BLE001
                     logger.warning(
                         f"[SUPREME-AI] Form filling warning/error (continuing): {form_err}"
                     )
@@ -335,7 +335,7 @@ class MultiAccountRotator:
                             )
                             await page.goto(verification_link)
                             logger.info("[SUPREME-AI] Navigated to verification link.")
-                    except Exception as verify_err:
+                    except Exception as verify_err:  # noqa: BLE001
                         logger.warning(
                             f"[SUPREME-AI] Verification filling warning/error (continuing): {verify_err}"
                         )
@@ -387,7 +387,7 @@ class MultiAccountRotator:
                         f"[SUPREME-AI] No verification data received for {new_email} within timeout."
                     )
                     return False
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(
                     f"[SUPREME-AI] Playwright automation failed for {provider_name}: {e}"
                 )
@@ -403,7 +403,7 @@ class MultiAccountRotator:
                 with open(self.config_file) as f:
                     config = json.load(f)
                     self._load_providers_from_config(config)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to load config: {e}")
                 self._create_default_config()
         else:
@@ -594,7 +594,7 @@ class MultiAccountRotator:
                                 f"(length: {len(api_key)}) from selector '{selector}'"
                             )
                             return api_key
-                except Exception:
+                except Exception:  # noqa: BLE001
                     continue
 
             logger.warning(
@@ -602,7 +602,7 @@ class MultiAccountRotator:
                 "Admin must add it manually."
             )
             return None
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 f"[ROTATOR] API key extraction failed for {provider_name}: {exc}"
             )
@@ -769,7 +769,7 @@ class MultiAccountRotator:
                 "tokens_used": len(prompt.split()) * 1.5,  # Rough estimate
             }
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # Record failed request
             account.record_request(success=False)
             logger.error(f"Task execution failed: {e}")
@@ -824,7 +824,7 @@ class MultiAccountRotator:
                     "model": kwargs.get("model", provider.models[0]),
                 }
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 account.record_request(success=False)
                 logger.warning(f"Failover attempt failed for {provider.name}: {e}")
                 continue
@@ -899,16 +899,16 @@ async def main():
     for task_type, prompt in tasks:
         result = await rotator.execute_task(task_type, prompt)
         if result:
-            print(
+            print(  # noqa: T201
                 f"✅ {task_type.value}: {result['provider']} - {result['result'][:100]}..."
             )
         else:
-            print(f"❌ {task_type.value}: Failed to execute")
+            print(f"❌ {task_type.value}: Failed to execute")  # noqa: T201
 
     # Print system status
     status = rotator.get_system_status()
-    print(f"\n📊 System Status: {status['system_health']:.1f}% healthy")
-    print(f"Active accounts: {status['active_accounts']}/{status['total_accounts']}")
+    print(f"\n📊 System Status: {status['system_health']:.1f}% healthy")  # noqa: T201
+    print(f"Active accounts: {status['active_accounts']}/{status['total_accounts']}")  # noqa: T201
 
 
 if __name__ == "__main__":

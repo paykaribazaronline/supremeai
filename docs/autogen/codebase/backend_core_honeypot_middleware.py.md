@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/honeypot_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,615 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.114822
+**সাইজ:** 7,679 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.458336
 
 ---
 
@@ -75,7 +75,7 @@ class HoneypotMiddleware:
                     messages.append(message)
                     body_bytes += message.get("body", b"")
                     more_body = message.get("more_body", False)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 # বল মনতবয: রকয়সট বড রড বযরথ হল ডউনসটরম হযনডলর খল বড দখব;
                 # নরব সযলপর বদল ডবগ লগ কর হল যত করপট/আংশক বড শনকত কর যয়
                 logger.debug(f"Honeypot middleware failed to read request body: {exc}")
@@ -137,7 +137,7 @@ class HoneypotMiddleware:
                         RulesMutator().block_ip(
                             hacker_ip, reason="honeypot_threat_threshold_exceeded"
                         )
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     logger.error(f"Redis operation failed in HoneypotMiddleware: {e}")
 
             # হ্যাকারকে ফেক সাকসেস রেসপন্স দেওয়া
@@ -178,7 +178,7 @@ class HoneypotMiddleware:
             asyncio.ensure_future(task).add_done_callback(_on_done)
         except RuntimeError:
             self._persist_threat_intel(ip, payload, endpoint)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Failed to schedule threat intel persistence: {exc}")
 
     def _persist_threat_intel(self, ip: str, payload: str, endpoint: str):
@@ -197,7 +197,7 @@ class HoneypotMiddleware:
                     "timestamp": time.time(),
                 }
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Failed to persist threat intel to Firestore: {exc}")
 
 ```

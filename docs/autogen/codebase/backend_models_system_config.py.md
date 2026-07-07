@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/system_config.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,602 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.134757
+**সাইজ:** 2,622 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.468759
 
 ---
 
@@ -46,7 +46,7 @@ class SystemConfig(Base):
     TTL caching layer (ConfigCache) এই টেবিলের ওপর বসবে — 
     প্রতি request-এ DB hit না করে in-memory cache serve করবে,
     এবং change-event এলে cache invalidate হবে।
-    """
+    """  # noqa: W291, W293
     __tablename__ = "system_config"
 
     id: Mapped[uuid.UUID] = mapped_column(

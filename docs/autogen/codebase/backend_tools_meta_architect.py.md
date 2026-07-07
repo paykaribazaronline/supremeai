@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/meta_architect.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,736 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.175484
+**সাইজ:** 6,848 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.490013
 
 ---
 
@@ -54,11 +54,11 @@ class MetaArchitect:
                             metrics["languages"][lang] = metrics["languages"].get(
                                 lang, 0
                             ) + len(lines)
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         try:
                             import loguru
                             loguru.logger.error(f"Tool execution error: {e}")
-                        except Exception as e:
+                        except Exception as e:  # noqa: BLE001
                             import logging
                             logging.warning(f"Exception suppressed: {e}")
                         pass
@@ -77,7 +77,7 @@ class MetaArchitect:
                 suggestions.append(
                     "Consider adding type hints to Python files for better maintainability."
                 )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Codebase analysis failed: {exc}")
             issues.append(f"Analysis error: {exc}")
         return {
@@ -113,11 +113,11 @@ class MetaArchitect:
                 if cleaned.endswith("```"):
                     cleaned = "\n".join(cleaned.splitlines()[:-1])
                 plan = json.loads(cleaned)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 plan = {
@@ -129,7 +129,7 @@ class MetaArchitect:
                     "estimated_effort_days": 3,
                 }
             return {"status": "success", "plan": plan}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Refactor proposal failed: {exc}")
             return {"status": "error", "error": str(exc)}
 
@@ -165,7 +165,7 @@ class MetaArchitect:
                 "backup": backup_path,
                 "changes_applied": True,
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Refactor implementation failed: {exc}")
             return {"status": "error", "error": str(exc)}
 

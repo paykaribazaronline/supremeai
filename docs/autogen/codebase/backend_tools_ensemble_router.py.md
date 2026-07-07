@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/ensemble_router.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,783 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.174910
+**সাইজ:** 1,799 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.489712
 
 ---
 
@@ -51,7 +51,7 @@ class EnsembleRouter:
                 "best_response": best_response,
                 "all_responses": valid,
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Ensemble routing failed: {exc}")
             return {
                 "status": "error",

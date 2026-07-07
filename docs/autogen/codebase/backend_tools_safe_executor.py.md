@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/safe_executor.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,269 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.178579
+**সাইজ:** 5,285 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.491611
 
 ---
 
@@ -184,7 +184,7 @@ def run_restricted(
         error_message = f"Restricted execution failed: {type(e).__name__}: {e}"
         logger.error(error_message)
         return False, error_message
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         error_message = f"An unexpected error occurred during restricted execution: {e}"
         logger.error(error_message)
         return False, error_message

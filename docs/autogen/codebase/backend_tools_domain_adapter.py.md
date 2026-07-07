@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/domain_adapter.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,845 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.176250
+**সাইজ:** 6,941 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.490400
 
 ---
 
@@ -83,17 +83,17 @@ class DomainAdapter:
                 res = db.client.table("domain_profiles").select("*").execute()
                 for row in res.data or []:
                     self._profiles[row["domain"]] = row
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Domain profiles DB load failed: {exc}")
         try:
             with open(self._local_path(), encoding="utf-8") as f:
                 data = json.load(f)
             self._profiles.update(data)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             pass
@@ -107,13 +107,13 @@ class DomainAdapter:
                 db.client.table("domain_profiles").upsert(
                     {"domain": domain, **profile}
                 ).execute()
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Domain profile save failed: {exc}")
         try:
             os.makedirs(os.path.dirname(self._local_path()), exist_ok=True)
             with open(self._local_path(), "w", encoding="utf-8") as f:
                 json.dump(self._profiles, f, indent=2, default=str)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Local domain profile save failed: {exc}")
 
     def get_prompt(
@@ -156,7 +156,7 @@ class DomainAdapter:
                 "model": result.get("model", "unknown"),
                 "provider": result.get("provider", "unknown"),
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"DomainAdapter generation failed: {exc}")
             return {
                 "domain": domain,

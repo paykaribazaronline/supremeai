@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/observability_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,949 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.119502
+**সাইজ:** 4,981 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.460755
 
 ---
 
@@ -104,7 +104,7 @@ class ObservabilityMiddleware:
                         "duration": duration,
                     },
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 # বল মনতবয: PostHog টলমটর বযরথ হল রকয়সট হযনডলং থমন উচত নয়;
                 # তব নরব সযলপ ন কর ডবগ লগ কর হল যত টলমটর সমসয বঝ যয়
                 logger.debug(f"PostHog capture failed in observability middleware: {exc}")
@@ -126,7 +126,7 @@ class ObservabilityMiddleware:
                             },
                         }
                     )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 # বল মনতবয: ইভলউশন লগ Supabase-এ লখত বযরথ হল রকয়সট বযহত হয় ন;
                 # নরব সযলপর পরবরত ডবগ লগ যকত কর হল যত পরসসটনস বযরথত টর কর যয়
                 logger.debug(f"Evolution log persistence failed in observability middleware: {exc}")

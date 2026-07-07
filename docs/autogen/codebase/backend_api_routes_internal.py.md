@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/internal.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,105 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.127774
+**সাইজ:** 2,137 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.465074
 
 ---
 
@@ -64,14 +64,14 @@ async def run_daily_evolution(request: Request, payload: RunEvolutionRequest):
             db = getattr(fq, "client", None)
             if db:
                 db.collection("evolution_logs").add(report)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.debug(f"Failed to persist evolution log to Firestore: {exc}")
     try:
         from database.supabase_client import db as supabase_db
 
         if supabase_db.client:
             supabase_db.append_evolution_log(report)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.debug(f"Failed to persist evolution log to Supabase: {exc}")
     return report
 

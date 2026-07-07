@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/gcp_firestore.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,556 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.115940
+**সাইজ:** 11,588 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.458903
 
 ---
 
@@ -24,7 +24,7 @@ try:
     from google.cloud import firestore  # type: ignore[import-untyped]
 
     FIRESTORE_AVAILABLE = True
-except Exception:
+except Exception:  # noqa: BLE001
     FIRESTORE_AVAILABLE = False
 
 
@@ -64,7 +64,7 @@ class GCPFirestoreVerificationQueue:
                     self.client = firestore.Client(project=self.project_id)
                 self.mode = "gcp_firestore"
                 logger.info("Using GCP Firestore verification queue")
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.warning(f"Firestore unavailable, falling back to SQLite: {exc}")
 
         if self.mode == "local_sqlite":

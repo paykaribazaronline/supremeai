@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/circuit_breaker.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,404 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.121248
+**সাইজ:** 4,436 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.461679
 
 ---
 
@@ -58,7 +58,7 @@ class CircuitBreaker:
                 self.state = data.get("state", "CLOSED")
                 self.opened_at = data.get("opened_at")
                 self.last_failure_at = data.get("last_failure_at")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: রডস থক সটট রসটর বযরথ হল লকল ডফলট বযবহত হয়;
             # নরব সযলপ ন কর ডবগ লগ কর হল যত রডস সমসয দশযমন থক
             logger.debug(f"CircuitBreaker redis restore failed: {exc}")
@@ -74,7 +74,7 @@ class CircuitBreaker:
                 "last_failure_at": self.last_failure_at,
             }
             self.redis_queue.set(f"{self._key_prefix}:state", json.dumps(data), ex=600)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: রডস প রসসটনস বযরথ হল ইন-মমর সটটই বযবহত হয়;
             # সমসয টর করত পরর জনয নরব সযলপর বদল ডবগ লগ যকত কর হল
             logger.debug(f"CircuitBreaker redis persist failed: {exc}")

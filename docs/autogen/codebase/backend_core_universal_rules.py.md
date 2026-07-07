@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/universal_rules.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,191 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.117442
+**সাইজ:** 4,239 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.459676
 
 ---
 
@@ -39,7 +39,7 @@ class UniversalRulesEngine:
             try:
                 with open(self.rules_path, encoding="utf-8") as f:
                     return json.load(f)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 # Fallback to default in case of corruption
                 logger.error(f"⚠️ Rules file corrupted, falling back to defaults: {e}")
 
@@ -73,7 +73,7 @@ class UniversalRulesEngine:
             os.makedirs(os.path.dirname(self.rules_path), exist_ok=True)
             with open(self.rules_path, "w", encoding="utf-8") as f:
                 json.dump(default_rules, f, indent=4)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
 
@@ -92,7 +92,7 @@ class UniversalRulesEngine:
 
             os.replace(temp_path, self.rules_path)
             return True
-        except Exception:
+        except Exception:  # noqa: BLE001
             return False
 
     def apply(self, decision_context: dict[str, Any]) -> dict[str, Any]:

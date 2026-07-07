@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/cloud_sandbox_orchestrator.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,963 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.176733
+**সাইজ:** 15,107 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.490651
 
 ---
 
@@ -86,7 +86,7 @@ class CloudSandboxOrchestrator:
         try:
             import docker
             client = docker.from_env()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # বাংলা মন্তব্য: প্রোডাকশন মোডে লোকাল ওএস-এ ফ্যালব্যাক এড়াতে কড়া সিকিউরিটি গার্ডরেল প্রয়োগ করা হয়েছে।
             from core.config import settings
             if settings.env == "production":
@@ -122,7 +122,7 @@ class CloudSandboxOrchestrator:
                     "stderr": "Execution Timeout: Code execution exceeded 5 seconds limit.",
                     "exit_code": -1
                 }
-            except Exception as ex:
+            except Exception as ex:  # noqa: BLE001
                 return {
                     "success": False,
                     "stdout": "",
@@ -161,11 +161,11 @@ class CloudSandboxOrchestrator:
                 logger.error("Sandbox container execution timed out! Force-killing container...")
                 try:
                     container.kill()
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         import logging
                         logging.warning(f"Exception suppressed: {e}")
                     pass
@@ -187,7 +187,7 @@ class CloudSandboxOrchestrator:
                 "exit_code": exit_code
             }
             
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Docker sandbox exception: {e}")
             return {
                 "success": False,
@@ -199,11 +199,11 @@ class CloudSandboxOrchestrator:
             if container:
                 try:
                     container.remove(force=True)
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         import logging
                         logging.warning(f"Exception suppressed: {e}")
                     pass
@@ -234,7 +234,7 @@ class CloudSandboxOrchestrator:
             logger.error(
                 f"Failed to create sandbox. Status: {e.response.status_code}, Body: {e.response.text}"
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"An unexpected error occurred during sandbox creation: {e}")
 
         return None
@@ -346,7 +346,7 @@ class CloudSandboxOrchestrator:
                 "🚨 Freebuff CLI not found. Please ensure it is installed globally (npm install -g freebuff)."
             )
             return {"status": "error", "error": "Freebuff CLI not installed."}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"⚠️ Unexpected error running Freebuff: {e}")
             return {"status": "error", "error": str(e)}
 

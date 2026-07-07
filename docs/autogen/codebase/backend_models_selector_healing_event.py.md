@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/selector_healing_event.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,279 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.136303
+**সাইজ:** 1,263 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.469589
 
 ---
 
@@ -27,16 +27,16 @@ class SelectorHealingEvent(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     # Ideally this would be a ForeignKey to site_actions_registry, but we assume it's created or will be linked later
     action_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True, nullable=False)
-    
+
     old_selector: Mapped[str] = mapped_column(String(500), nullable=False)
     new_selector: Mapped[str] = mapped_column(String(500), nullable=False)
-    
+
     confidence_score: Mapped[float] = mapped_column(Numeric(3, 2), nullable=False)
     auto_applied: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    
+
     screenshot_before_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     screenshot_after_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
-    
+
     reviewed_by_user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
 
 

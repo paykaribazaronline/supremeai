@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/resource_catalog.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,817 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.181653
+**সাইজ:** 8,881 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.493217
 
 ---
 
@@ -99,7 +99,7 @@ class ResourceCatalog:
             return self._parse_awesome_markdown(
                 response.text, query, limit, source_name="awesome-selfhosted"
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 f"ResourceCatalog: failed to search awesome-selfhosted for '{query}': {exc}"
             )
@@ -114,7 +114,7 @@ class ResourceCatalog:
             return self._parse_awesome_markdown(
                 response.text, query, limit, source_name="awesome-python"
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 f"ResourceCatalog: failed to search awesome-python for '{query}': {exc}"
             )
@@ -155,7 +155,7 @@ class ResourceCatalog:
                     }
                 )
             return results
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 f"ResourceCatalog: failed to search ossinsight for '{query}': {exc}"
             )
@@ -199,7 +199,7 @@ class ResourceCatalog:
                     }
                 )
             return results
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 f"ResourceCatalog: failed to search libraries.io for '{query}': {exc}"
             )

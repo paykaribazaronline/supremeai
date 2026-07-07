@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/gcp_pubsub_queue.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,619 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.114681
+**সাইজ:** 8,651 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.458262
 
 ---
 
@@ -24,7 +24,7 @@ try:
     from google.cloud import pubsub_v1  # type: ignore[import-untyped]
 
     PUBSUB_AVAILABLE = True
-except Exception:
+except Exception:  # noqa: BLE001
     PUBSUB_AVAILABLE = False
 
 
@@ -67,7 +67,7 @@ class GCPPubSubQueue:
                 )
                 self.mode = "gcp_pubsub"
                 logger.info("Using GCP Pub/Sub task queue")
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.warning(f"Pub/Sub unavailable, falling back to SQLite: {exc}")
 
         if self.mode == "local_sqlite":

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/evolution.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,830 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.129274
+**সাইজ:** 8,862 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.465839
 
 ---
 
@@ -72,7 +72,7 @@ async def get_evolution_logs(admin: dict = Depends(require_admin_token)):
         if db.client:
             logs = db.get_evolution_logs(limit=500)
             return {"logs": logs}
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         # বল মনতবয: Supabase থক লগ আনত বযরথ হল লকল JSONL ফলবযক বযবহত হয়;
         # নরব সযলপ ন কর ডবগ লগ কর হল যত DB সমসয দশযমন থক
         logger.debug(f"Supabase evolution logs fetch failed, using local fallback: {exc}")
@@ -170,7 +170,7 @@ async def quarantine_skill(
                         "created_at": datetime.now(UTC).isoformat(),
                     }
                 )
-        except Exception as db_err:
+        except Exception as db_err:  # noqa: BLE001
             logger.warning(f"Failed to log quarantine action to Supabase: {db_err}")
 
         try:
@@ -187,7 +187,7 @@ async def quarantine_skill(
                     )
                     + "\n"
                 )
-        except Exception as log_err:
+        except Exception as log_err:  # noqa: BLE001
             logger.warning(f"Failed to append quarantine log: {log_err}")
         return {"success": True, "skill_name": skill_name, "new_status": "QUARANTINED"}
     except HTTPException:
@@ -246,10 +246,10 @@ async def approve_proposal(
         proposal = result.scalars().first()
         if not proposal:
             raise HTTPException(status_code=404, detail="Proposal not found")
-        
+
         proposal.status = "approved"
         # এখানে ভবিষ্যতে আমাদের অটোনোমাস মার্জ লজিক বা GitOps ট্রিগার কল হবে।
-        
+
     return {"status": "success", "message": f"Proposal {proposal_id} approved."}
 
 ```

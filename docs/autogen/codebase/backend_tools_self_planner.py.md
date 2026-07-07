@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/self_planner.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,766 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.171392
+**সাইজ:** 8,830 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.487918
 
 ---
 
@@ -65,16 +65,16 @@ class SelfPlanner:
                 plan = json.loads(text)
                 if not isinstance(plan, list):
                     plan = []
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 logger.warning("LLM returned non-JSON plan. Using fallback.")
                 plan = self._mock_plan(objective)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"LLM planner failed: {e}. Using fallback.")
             plan = self._mock_plan(objective)
 
@@ -230,7 +230,7 @@ async def create_plan(request: PlanRequest):
             "execution_batches": batches,
             "tasks": nodes,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Planner failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -2,7 +2,7 @@
 
 **প্রকার:** .py  
 **সাইজ:** 12,815 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.139822
+**আপডেট:** 2026-07-07T21:58:43.471375
 
 ---
 
@@ -45,7 +45,7 @@ class AutoSkillCreator:
                 client = get_firestore_client()
                 if client is not None:
                     self.skills_ref = client.collection("supreme_dynamic_skills")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             if self.skills_ref is None:
@@ -190,7 +190,7 @@ class AutoSkillCreator:
             # ৪. USS Pydantic Schema Validation
             try:
                 uss = UniversalSkillSchema(**schema_dict)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"❌ USS Validation failed: {e}")
                 return {
                     "success": False,
@@ -218,7 +218,7 @@ class AutoSkillCreator:
                 logger.info(
                     f"Running validation test case {idx + 1}/{len(uss.validation.tests)} inside the secure sandbox..."
                 )
-                
+
                 # Construct executable script to evaluate inputs and output results to stdout as JSON
                 sandbox_script = f"""
 {code_block}
@@ -238,14 +238,14 @@ asyncio.run(run())
                     raise ValueError(
                         f"Validation test {idx + 1} crashed or timed out in sandbox. Error: {run_res['stderr']}"
                     )
-                
+
                 # Parse stdout logs for output result
                 output_line = [line for line in run_res["stdout"].splitlines() if line.startswith("RESULT:")]
                 if not output_line:
                     raise ValueError(
                         f"Validation test {idx + 1} did not produce executable result in sandbox. Stdout: {run_res['stdout']}"
                     )
-                
+
                 res_val = json.loads(output_line[0][7:])
                 if res_val != test.expected_output:
                     raise ValueError(
@@ -299,7 +299,7 @@ asyncio.run(run())
                 "message": "Autonomous evolution loop successfully completed. Skill is live.",
             }
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"❌ Self-Evolution loop crashed: {str(e)}")
             latency = time.time() - start_time
             self.fitness_engine.track_execution(

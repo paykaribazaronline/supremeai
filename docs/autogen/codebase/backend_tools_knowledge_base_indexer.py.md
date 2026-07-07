@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/knowledge_base_indexer.py
 
 **প্রকার:** .py  
-**সাইজ:** 15,593 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.179556
+**সাইজ:** 15,721 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.492126
 
 ---
 
@@ -45,11 +45,11 @@ class KnowledgeBaseIndexer:
         try:
             with open(path, encoding="utf-8", errors="ignore") as f:
                 source = f.read()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return docs
@@ -228,11 +228,11 @@ class KnowledgeBaseIndexer:
             if len(args) > 6:
                 with contextlib.suppress(Exception):
                     confidence = float(args[6].value)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return None, None
@@ -271,7 +271,7 @@ class KnowledgeBaseIndexer:
                     try:
                         self.vector_store.add_documents(docs)
                         total_docs += len(docs)
-                    except Exception as exc:
+                    except Exception as exc:  # noqa: BLE001
                         errors.append(f"{name}: {exc}")
         return {
             "indexed": total_docs,
@@ -314,7 +314,7 @@ class KnowledgeBaseIndexer:
             try:
                 self.vector_store.add_documents(docs)
                 total_docs = len(docs)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 errors.append(str(exc))
 
         return {
@@ -337,11 +337,11 @@ class KnowledgeBaseIndexer:
                 }
                 for doc_id, score, doc_data in raw
             ]
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return []

@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T21:54:36.080023
+Generated at: 2026-07-07T21:58:43.436607
 
 
 ## File: `pnpm-lock.yaml`
@@ -44506,7 +44506,7 @@ args = ['-p', 'no:pytest_cov', 'backend/tests/test_gcp_integration.py::test_gcp_
         'backend/tests/test_gcp_integration.py::test_gcp_cloud_run_router_route', '-q']
 
 ret = pytest.main(args)
-print('pytest exit code:', ret)
+print('pytest exit code:', ret)  # noqa: T201
 sys.exit(ret)
 
 ```
@@ -44578,7 +44578,7 @@ def run_server() -> None:
 
     try:
         uvicorn.run("main:app", **uvicorn_kwargs)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.error(f"Server failed to start: {exc}")
         sys.exit(1)
 
@@ -44595,9 +44595,9 @@ import os
 
 
 test_files = [
-    'test_api.py', 
-    'test_e2e.py', 
-    'test_context_and_actions.py', 
+    'test_api.py',
+    'test_e2e.py',
+    'test_context_and_actions.py',
     'test_task_endpoints.py'
 ]
 
@@ -44605,23 +44605,23 @@ for filename in test_files:
     filepath = os.path.join(r'c:\Users\n\supremeai\supremeai_2.0\backend\tests', filename)
     if not os.path.exists(filepath):
         continue
-    
+
     with open(filepath, encoding='utf-8') as f:
         content = f.read()
-    
+
     content = content.replace('import core.app as app_mod', 'import core.services as services_mod')
     content = content.replace('app_mod.intent_parser', 'services_mod.intent_parser')
     content = content.replace('app_mod.model_router', 'services_mod.model_router')
     content = content.replace('app_mod.admin_god', 'services_mod.admin_god')
-    
+
     content = content.replace("patch('core.app.model_router", "patch('core.services.model_router")
     content = content.replace("patch('core.app.admin_god", "patch('core.services.admin_god")
     content = content.replace('patch("core.app.model_router', 'patch("core.services.model_router')
     content = content.replace('patch("core.app.admin_god', 'patch("core.services.admin_god')
-    
+
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(content)
-    print(f'Updated {filename}')
+    print(f'Updated {filename}')  # noqa: T201
 
 ```
 
@@ -44685,7 +44685,7 @@ class NightlyChaosAuditor:
                         logger.critical(
                             "🚨 [SECURITY BREACH] Sandbox bypass detected during autonomous fuzzing!"
                         )
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")  # SecurityError আশা করা হচ্ছে, তাই এটি পাস
 
@@ -44744,7 +44744,7 @@ class NightlyChaosAuditor:
                 )
                 return True
 
-        except Exception as global_err:
+        except Exception as global_err:  # noqa: BLE001
             logger.critical(
                 f"⚠️ Auditor crashed internally: {str(global_err)}. Locking pipeline for safety."
             )
@@ -44918,7 +44918,7 @@ class ErrorEventBus:
         এটি সম্পূর্ণ অ-ব্লকিং (Non-blocking) উপায়ে ব্যাকগ্রাউন্ডে লিসেনারদের এক্সিকিউট করবে।
         """
         logger.warning(f"🚨 [EventBus] New Error Event emitted from {event.module} ({event.severity})")
-        
+
         # ব্যাকগ্রাউন্ড টাস্ক হিসেবে লিসেনারদের ফায়ার করা হচ্ছে যাতে মেইন থ্রেড ব্লক না হয়
         for listener in self._listeners:
             asyncio.create_task(self._safe_execute_listener(listener, event))
@@ -44929,7 +44929,7 @@ class ErrorEventBus:
                 await listener(event)
             else:
                 listener(event)
-        except Exception as listener_exc:
+        except Exception as listener_exc:  # noqa: BLE001
             logger.critical(f"🔥 EventBus Listener Failed: {listener_exc}")
 
 # Global Instance
@@ -45001,16 +45001,16 @@ class SelfHealerService:
         with a 'pending_review' status for Human-in-the-Loop (HITL) approval.
         """
         self._safety_check(proposed_fix)
-        
+
         # Ensure impact score is valid
         if not (0.0 <= impact_score <= 1.0):
             raise ValueError("Impact score must be between 0.0 and 1.0")
-            
+
         trace_id = self._generate_trace_id()
         fix_id = f"fix-{uuid.uuid4().hex[:8]}"
-        
+
         doc_ref = self._db.collection(f"tenants/{tenant_id}/fixes").document(fix_id)
-        
+
         fix_data = {
             "trace_id": trace_id,
             "timestamp": datetime.now(UTC).isoformat(),
@@ -45022,13 +45022,13 @@ class SelfHealerService:
             "reviewed_by": None,
             "applied_at": None
         }
-        
+
         import asyncio
         if asyncio.iscoroutinefunction(doc_ref.set):
             await doc_ref.set(fix_data)
         else:
             doc_ref.set(fix_data)
-            
+
         logger.info(f"Generated auto-fix {fix_id} for trace {trace_id} (Status: pending_review)")
         return fix_id
 
@@ -45078,17 +45078,17 @@ class ASTSecurityScanner(ast.NodeVisitor):
         self.banned_imports: set[str] = {
             "os", "sys", "subprocess", "pty", "shlex",
             "importlib", "code", "runpy", "multiprocessing",
-            "pickle", "marshal", "tempfile", "socket", 
+            "pickle", "marshal", "tempfile", "socket",
             "urllib", "urllib3", "requests", "http", "ctypes", "builtins"
         }
-        
+
         # 🛑 ZERO-GAP: Banned Built-in Functions for Introspection & Execution
         self.banned_functions: set[str] = {
             "eval", "exec", "compile", "globals", "locals",
             "vars", "dir", "type", "chr", "ord", "breakpoint",
             "__import__", "getattr", "setattr", "delattr", "hasattr", "open"
         }
-        
+
         # 🛑 ZERO-GAP: Prevent Sandbox Escapes via Dunder Attributes
         self.banned_attributes: set[str] = {
             "__class__", "__bases__", "__subclasses__",
@@ -45114,11 +45114,11 @@ class ASTSecurityScanner(ast.NodeVisitor):
         # Block direct function calls like eval(), __import__()
         if isinstance(node.func, ast.Name) and node.func.id in self.banned_functions:
             raise SecuritySandboxError(f"Banned function call detected: {node.func.id}")
-        
+
         # Block malicious module methods like importlib.import_module() or os.system()
         elif isinstance(node.func, ast.Attribute) and node.func.attr in {"import_module", "system", "popen", "spawn", "fork"}:
             raise SecuritySandboxError(f"Banned method invocation detected: {node.func.attr}")
-        
+
         self.generic_visit(node)
 
     def visit_Attribute(self, node: ast.Attribute):
@@ -45163,7 +45163,7 @@ class ImmuneSystemScanner:
         except SyntaxError as se:
             logger.error(f"Syntax validation failed: {se}")
             return {"safe": False, "error": f"SyntaxError: {str(se)}"}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Unexpected error during static analysis: {e}")
             return {"safe": False, "error": f"AnalysisException: {str(e)}"}
 
@@ -45197,7 +45197,7 @@ from models.admin import AdminVerifyRequest
 
 try:
     import bcrypt
-except Exception:  # pragma: no cover - optional fallback
+except Exception:  # pragma: no cover - optional fallback  # noqa: BLE001
     bcrypt = None
 
 
@@ -45215,7 +45215,7 @@ def _verify_password(password: str, hashed: str) -> bool:
         return False
     try:
         return bcrypt.checkpw(password.encode(), hashed.encode())
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 
@@ -45323,7 +45323,7 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
                 doc_ref.set(
                     {"email": email, "role": "admin", "created_at": str(time.time())}
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.critical(
                 f"Firestore admin lookup failed (Possible DB connection issue/attack): {e}"
             )
@@ -45380,7 +45380,7 @@ def admin_firebase_totp_setup(payload: AdminFirebaseTotpSetupRequest):
     if db:
         try:
             db.collection("admin_users").document(uid).update({"temp_totp_secret": secret})
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to store temp TOTP secret in Firestore: {e}")
 
     # বাংলা মন্তব্য: ৬ ডিজিটের ওটিপি রিকোয়েস্ট করা হলো
@@ -45429,7 +45429,7 @@ def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
                 data = doc.to_dict()
                 totp_secret = data.get("totp_secret")
                 temp_totp_secret = data.get("temp_totp_secret")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to retrieve TOTP secret: {e}")
 
     secret_to_use = totp_secret or temp_totp_secret
@@ -45454,7 +45454,7 @@ def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
                     "temp_totp_secret": firestore.DELETE_FIELD,
                 }
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to promote temp TOTP secret: {e}")
 
     from jose import jwt
@@ -45605,7 +45605,7 @@ def verify_totp_code(user_otp: str, base32_secret: str) -> bool:
             if hmac.compare_digest(code, user_otp):
                 return True
         return False
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 
@@ -45628,7 +45628,7 @@ def check_totp(user_otp: str, base32_secret: str) -> bool:
             if hmac.compare_digest(code, user_otp):
                 return True
         return False
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 ```
@@ -45804,7 +45804,7 @@ class AuthMiddleware:
                     )
                     await response(scope, receive, send)
                     return
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Admin JWT validation failed: {e}")
                 response = JSONResponse(
                     status_code=401,
@@ -45856,7 +45856,7 @@ async def verify_admin_session_fail_closed(request: Request) -> dict:
     """
     টোকেন অথেনটিকেশন এবং ডিকোডিং মেকানিজম। 
     সামান্যতম গ্যাপ বা এক্সেপশন দেখা দিলে এটি সরাসরি Fail-Closed প্রোটোকল ট্রিগার করে।
-    """
+    """  # noqa: W291
     # বাংলা কমেন্ট: Authorization হেডার এক্সট্রাকশন
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
@@ -45869,7 +45869,7 @@ async def verify_admin_session_fail_closed(request: Request) -> dict:
 
     token = auth_header.split(" ")[1]
     jwt_secret = settings.jwt_secret  # ক্লাউড সিক্রেট ভল্ট থেকে লোডকৃত
-    
+
     if not jwt_secret:
         logger.critical("🔥 Security Emergency: SUPREMEAI_JWT_SECRET is unconfigured! Fail-Closed triggered.")
         raise HTTPException(
@@ -45880,10 +45880,10 @@ async def verify_admin_session_fail_closed(request: Request) -> dict:
     try:
         # P2 ফিক্স: টোকেন ডিকোড এবং ভ্যালিডেশন ওয়ান-শট এক্সিকিউশন
         payload = jwt.decode(token, jwt_secret, algorithms=["HS256"])
-        
+
         user_id = payload.get("sub")
         role = payload.get("role")
-        
+
         # বাংলা মন্তব্য: ০% গ্যাপ পলিসি — পেলোডে যদি প্রয়োজনীয় ফিল্ড মিসিং থাকে বা রোল অসঙ্গতি থাকে, সরাসরি রিজেক্ট।
         # এখানে 'admin' এবং 'master_admin' উভয় রোলকেই অনুমতি প্রদান করা হলো।
         if not user_id or role not in {"admin", "master_admin"}:
@@ -45892,7 +45892,7 @@ async def verify_admin_session_fail_closed(request: Request) -> dict:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Administrative identity verification failed."
             )
-            
+
         logger.success(f"🔱 Admin Session Authorized for User: {user_id}")
         return payload
 
@@ -45910,7 +45910,7 @@ async def verify_admin_session_fail_closed(request: Request) -> dict:
             detail="Session has expired or token is invalid.",
         ) from None
 
-    except Exception as fatal_exception:
+    except Exception as fatal_exception:  # noqa: BLE001
         # ❌ পুরানো ভুল পদ্ধতি (Fail-Open): return None বা পাস করা
         # ✅ নতুন সঠিক পদ্ধতি: P1/P2 Fail-Closed এনফোর্সমেন্ট। যেকোনো আননোন ক্র্যাশে রিকোয়েস্ট হার্ড-ব্লক।
         logger.critical(f"🔥 FATAL AUTH EXCEPTION: Dynamic crash detected during auth flow -> {str(fatal_exception)}")
@@ -45984,7 +45984,7 @@ class ErrorRemediation:
             if not self.fallback_path.exists():
                 with open(self.fallback_path, "w", encoding="utf-8") as f:
                     json.dump({"default_fix": "Retry with exponential backoff"}, f, indent=2)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
 
@@ -45993,7 +45993,7 @@ class ErrorRemediation:
             with open(self.fallback_path, encoding="utf-8") as f:
                 data = json.load(f)
             return data.get("default_fix") or data.get("fallbacks", {}).get("default")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: ফলবযক ফইল পড়ত বযরথ হল আগ নরবই None রটরন করত;
             # এখন কন কর ফলবযক অকরযকর হল ত ডবগ লগ কর দশযমন কর হল
             logger.debug(f"Local fallback load failed from {self.fallback_path}: {exc}")
@@ -46011,7 +46011,7 @@ class ErrorRemediation:
                 result = await operation()
                 self.circuit_breaker.record_success()
                 return result
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 last_exception = exc
                 self.circuit_breaker.record_failure()
                 logger.debug(f"Qdrant lookup attempt {attempt} failed: {exc}")
@@ -46162,10 +46162,10 @@ class OutputValidator:
         # ভবিষ্যতে Firestore বা অন্য DB থেকে লোড করার জন্য পাথ প্যারামিটার ব্যবহার করা যাবে
         rules_path = Path(__file__).parent.parent / "config" / "constitutional_rules.json"
         self.enhanced_scorer = EnhancedConfidenceScorer(rules_path=rules_path)
-        
+
         self.consensus_threshold = self.enhanced_scorer.rules.get("consensus_threshold", 0.7)
         self.hallucination_patterns = self.enhanced_scorer.rules.get("hallucination_patterns", [])
-        
+
         self.multi_generator = MultiAICodeGenerator()
         self.human_policy = HumanReviewPolicy()
 
@@ -46219,8 +46219,6 @@ class OutputValidator:
 
 import time
 import redis.asyncio as aioredis
-from fastapi import HTTPException
-from fastapi import status
 
 from core.config import settings
 from core.logging_config import logger
@@ -46230,7 +46228,7 @@ class SecureRedisManager:
     def __init__(self):
         self.redis_url = settings.redis_url
         self.client = None
-        
+
         # Circuit Breaker state
         self._failure_count = 0
         self._circuit_open_until = 0.0
@@ -46243,14 +46241,14 @@ class SecureRedisManager:
             return
         try:
             self.client = aioredis.from_url(
-                self.redis_url, 
-                encoding="utf-8", 
+                self.redis_url,
+                encoding="utf-8",
                 decode_responses=True,
                 socket_timeout=2.0,
                 socket_connect_timeout=2.0
             )
             logger.success("🚀 Async Redis Client successfully connected with connection pool.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.critical(f"🔥 Fail-Closed Triggered: Redis connection failed during init -> {str(e)}")
             self.client = None
 
@@ -46260,15 +46258,15 @@ class SecureRedisManager:
         expired_keys = [k for k, v in self._fallback_store.items() if v[1] < now]
         for k in expired_keys:
             del self._fallback_store[k]
-            
+
         count, expires_at = self._fallback_store.get(key, (0, now + window_seconds))
         if expires_at < now:
             count = 0
             expires_at = now + window_seconds
-            
+
         count += 1
         self._fallback_store[key] = (count, expires_at)
-        
+
         if count > max_requests:
             logger.warning(f"🚨 In-memory Rate Limit Triggered for Key: {key}. Total: {count}/{max_requests}")
             return True
@@ -46276,12 +46274,12 @@ class SecureRedisManager:
 
     async def is_rate_limited(self, key: str, max_requests: int, window_seconds: int) -> bool:
         now = time.time()
-        
+
         # Check if circuit is open
         if self._circuit_open_until > now:
             logger.warning(f"⚡ Circuit breaker open! Using in-memory fallback for key: {key}")
             return self._fallback_is_rate_limited(key, max_requests, window_seconds)
-            
+
         # Half-open: Reset failure count when circuit closes
         if self._circuit_open_until != 0.0 and self._circuit_open_until <= now:
             self._failure_count = 0
@@ -46295,23 +46293,23 @@ class SecureRedisManager:
                 self._circuit_open_until = now + 10.0
                 logger.critical("🔥 Circuit Breaker Triggered: Redis offline 5 times. Opening circuit for 10s.")
             return self._fallback_is_rate_limited(key, max_requests, window_seconds)
-            
+
         try:
             async with self.client.pipeline(transaction=True) as pipe:
                 await pipe.incr(key)
                 await pipe.expire(key, window_seconds)
                 current_requests, _ = await pipe.execute()
-                
+
             # Reset failure count on success
             self._failure_count = 0
             self._circuit_open_until = 0.0
-                
+
             if current_requests > max_requests:
                 logger.warning(f"🚨 Rate Limit Triggered for Key: {key}. Total: {current_requests}/{max_requests}")
                 return True
-                
+
             return False
-            
+
         except aioredis.RedisError as redis_err:
             self._failure_count += 1
             if self._failure_count >= 5:
@@ -46319,7 +46317,7 @@ class SecureRedisManager:
                 logger.critical(f"🔥 Circuit Breaker Triggered: Redis failed 5 times -> {str(redis_err)}. Opening circuit for 10s.")
             else:
                 logger.warning(f"⚠️ Redis connection failed ({self._failure_count}/5) -> {str(redis_err)}")
-                
+
             # Fallback to in-memory store
             return self._fallback_is_rate_limited(key, max_requests, window_seconds)
 
@@ -46334,7 +46332,7 @@ async def acquire_idempotency_lock(key: str, ttl_seconds: int = 120) -> bool:
     - key: অনন্য idempotency key (সাধারণত: `idempotency:{method}:{user_key}`)
     - ttl_seconds: লকের TTL — এই সময়ের পর লক স্বয়ংক্রিয়ভাবে মুক্ত হয়
     - Returns True যদি লক সফলভাবে অধিগ্রহণ হয়, False যদি ইতিমধ্যে অন্য কেউ ধরে রেখেছে
-    """
+    """  # noqa: W293
     if redis_manager.client is None:
         logger.warning("[Idempotency] Redis offline — lock skipped (fail-open)")
         return True
@@ -46344,7 +46342,7 @@ async def acquire_idempotency_lock(key: str, ttl_seconds: int = 120) -> bool:
             f"idempotency:{key}", "1", nx=True, ex=ttl_seconds
         )
         return result is not None
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"[Idempotency] Redis lock acquire failed — fail-open: {e}")
         return True
 
@@ -46355,7 +46353,7 @@ async def release_idempotency_lock(key: str) -> None:
         return
     try:
         await redis_manager.client.delete(f"idempotency:{key}")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"[Idempotency] Redis lock release failed: {e}")
 
 async def cache_response_and_release_lock(key: str, response_data: str, ttl_seconds: int) -> bool:
@@ -46376,7 +46374,7 @@ async def cache_response_and_release_lock(key: str, response_data: str, ttl_seco
         script = redis_manager.client.register_script(lua_script)
         await script(keys=[cache_key, lock_key], args=[response_data, ttl_seconds])
         return True
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"[Idempotency] Atomic cache+release failed: {e}")
         return False
 
@@ -46587,7 +46585,7 @@ try:
     from google.cloud import pubsub_v1  # type: ignore[import-untyped]
 
     PUBSUB_AVAILABLE = True
-except Exception:
+except Exception:  # noqa: BLE001
     PUBSUB_AVAILABLE = False
 
 
@@ -46630,7 +46628,7 @@ class GCPPubSubQueue:
                 )
                 self.mode = "gcp_pubsub"
                 logger.info("Using GCP Pub/Sub task queue")
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.warning(f"Pub/Sub unavailable, falling back to SQLite: {exc}")
 
         if self.mode == "local_sqlite":
@@ -46897,7 +46895,7 @@ class HoneypotMiddleware:
                     messages.append(message)
                     body_bytes += message.get("body", b"")
                     more_body = message.get("more_body", False)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 # বল মনতবয: রকয়সট বড রড বযরথ হল ডউনসটরম হযনডলর খল বড দখব;
                 # নরব সযলপর বদল ডবগ লগ কর হল যত করপট/আংশক বড শনকত কর যয়
                 logger.debug(f"Honeypot middleware failed to read request body: {exc}")
@@ -46959,7 +46957,7 @@ class HoneypotMiddleware:
                         RulesMutator().block_ip(
                             hacker_ip, reason="honeypot_threat_threshold_exceeded"
                         )
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     logger.error(f"Redis operation failed in HoneypotMiddleware: {e}")
 
             # হ্যাকারকে ফেক সাকসেস রেসপন্স দেওয়া
@@ -47000,7 +46998,7 @@ class HoneypotMiddleware:
             asyncio.ensure_future(task).add_done_callback(_on_done)
         except RuntimeError:
             self._persist_threat_intel(ip, payload, endpoint)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Failed to schedule threat intel persistence: {exc}")
 
     def _persist_threat_intel(self, ip: str, payload: str, endpoint: str):
@@ -47019,7 +47017,7 @@ class HoneypotMiddleware:
                     "timestamp": time.time(),
                 }
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Failed to persist threat intel to Firestore: {exc}")
 
 ```
@@ -47373,7 +47371,7 @@ class LogBatcherService:
         log_entry must be a dict matching ExecutionLog schema.
         """
         self.queue.put_nowait(log_entry)
-        
+
         # Publish to SSE subscribers
         session_id = str(log_entry.get("session_id"))
         if session_id in self._subscribers:
@@ -47401,7 +47399,7 @@ class LogBatcherService:
                 # Wait for at least one item, up to flush_interval
                 item = await asyncio.wait_for(self.queue.get(), timeout=self.flush_interval)
                 self.buffer.append(item)
-                
+
                 # Drain queue up to batch_size
                 while len(self.buffer) < self.batch_size:
                     try:
@@ -47409,13 +47407,13 @@ class LogBatcherService:
                         self.buffer.append(next_item)
                     except asyncio.QueueEmpty:
                         break
-                        
+
                 if len(self.buffer) >= self.batch_size:
                     await self._flush()
             except TimeoutError:
                 if self.buffer:
                     await self._flush()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Critical error in LogBatcherService: {e}")
                 # সেলফ-হিলিং: ডাটা লস রোধে বাফার রিকিউ করা হচ্ছে
                 while self.buffer:
@@ -47425,10 +47423,10 @@ class LogBatcherService:
     async def _flush(self):
         if not self.buffer:
             return
-        
+
         batch = list(self.buffer)
         self.buffer.clear()
-        
+
         try:
             # Execute DB insertion in a new isolated session
             async for session in get_db_session():
@@ -47439,7 +47437,7 @@ class LogBatcherService:
                 await session.commit()
                 break # Just run once
             logger.debug(f"Flushed {len(batch)} log entries to database.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to flush log entries to database: {e}")
             # Re-queue on failure (in a real system, might use a dead-letter queue)
             for item in batch:
@@ -47522,10 +47520,10 @@ class GenerationMonitor:
         }
 
     def track_agent_call(self, **kwargs):
-        print("--- AGENT CALL ---")
+        print("--- AGENT CALL ---")  # noqa: T201
         for key, value in kwargs.items():
-            print(f"{key}: {value}")
-        print("--------------------")
+            print(f"{key}: {value}")  # noqa: T201
+        print("--------------------")  # noqa: T201
 
 ```
 
@@ -47600,7 +47598,7 @@ class Settings(BaseSettings):
     )
 
     _cached_secrets: dict[str, str] = PrivateAttr(default_factory=dict)
-    
+
     def _get_cached_secret(self, key: str) -> str:
         if key not in self._cached_secrets:
             self._cached_secrets[key] = secret_vault.fetch_secret(key)
@@ -47683,16 +47681,16 @@ class Settings(BaseSettings):
     admin_rules_db: str = "data/constitutional_rules.db"
     memory_db_dir: str = "data/memory"
     skill_registry_path: str = "data/skill_registry.json"
-    
+
     # 🔗 Universal Integration Hub (OAuth)
     @computed_field
     def github_client_id(self) -> str:
         return self._get_cached_secret("GITHUB_CLIENT_ID")
-        
+
     @computed_field
     def github_client_secret(self) -> str:
         return self._get_cached_secret("GITHUB_CLIENT_SECRET")
-    
+
     @computed_field
     def ci_webhook_secret(self) -> str:
         return self._get_cached_secret("CI_WEBHOOK_SECRET")
@@ -47771,7 +47769,7 @@ class Settings(BaseSettings):
                     v = json.loads(v)
                 except json.JSONDecodeError:
                     v = [origin.strip() for origin in v.split(",") if origin.strip()]
-        
+
         env = info.data.get("env", "local")
         if env == "production" and v:
             v = [o for o in v if "localhost" not in o and "127.0.0.1" not in o]
@@ -47806,7 +47804,7 @@ if settings.env == "production" or os.getenv("ENV") == "production":
         # Verify encryption key is configured
         if not os.getenv("SUPREMEAI_ENCRYPTION_KEY"):
             raise RuntimeError("SUPREMEAI_ENCRYPTION_KEY environment variable must be set in production")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.critical(f"FATAL CONFIG ERROR: {exc}")
         sys.exit(1)
 
@@ -48010,7 +48008,7 @@ class EvolutionEngine:
             if db.client:
                 db.insert_task_history(task, approach, result, True, created_at)
                 supabase_success = True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to insert success to Supabase: {e}")
             if evolution_write_failures:
                 evolution_write_failures.inc()
@@ -48045,11 +48043,11 @@ class EvolutionEngine:
             if db.client:
                 db.insert_task_history(task, approach, result, False, created_at)
                 supabase_success = True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to insert failure to Supabase: {e}")
             if evolution_write_failures:
                 evolution_write_failures.inc()
-                
+
         if not supabase_success:
             return {"stored": False, "error": "Supabase write failed. Saga rollback: skipping SQLite."}
 
@@ -48079,7 +48077,7 @@ class EvolutionEngine:
                 failures = db.get_repeated_failures(min_occurrences=min_occurrences)
                 if failures:
                     return failures
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to query repeated failures from Supabase: {e}")
             if evolution_write_failures:
                 evolution_write_failures.inc()
@@ -48140,10 +48138,10 @@ class EvolutionEngine:
             ]
         finally:
             conn.close()
-            
+
     def propose_prompt_optimization(self, original_prompt: str, failure_data: dict[str, Any]) -> dict[str, Any]:
         task_hash = hashlib.sha256(original_prompt.encode()).hexdigest()
-        
+
         # বাংলা মন্তব্য: LLM ব্যবহার করে উন্নত প্রম্পট তৈরির জন্য একটি প্রম্পট তৈরি করা হচ্ছে।
         optimization_prompt = f"""
 System: You are a Prompt Optimization specialist. Your task is to rewrite a failing prompt to improve its success rate.
@@ -48155,15 +48153,15 @@ This prompt has a failure rate of {failure_data['failure_rate']:.2%} after {fail
 
 Based on the prompt, rewrite it to be more precise, clear, and effective. Provide only the new prompt, without any explanation or extra text.
 """
-        
+
         try:
             response = self.model_router.route_and_generate(optimization_prompt, task_type="analysis")
             optimized_prompt = response.get("text", "").strip()
-            
+
             if not optimized_prompt or optimized_prompt == original_prompt:
                 return {"status": "no_change_generated"}
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"status": "error", "error": str(e)}
 
         created_at = datetime.now(UTC).isoformat()
@@ -48207,7 +48205,7 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
                     "proposed",
                     created_at,
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to insert skill proposal to Supabase: {e}")
             if evolution_write_failures:
                 evolution_write_failures.inc()
@@ -48244,7 +48242,7 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
                     user_rating,
                     created_at,
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to insert feedback to Supabase: {e}")
             if evolution_write_failures:
                 evolution_write_failures.inc()
@@ -48264,7 +48262,7 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
         total = len(task_history)
         successful = sum(1 for t in task_history if t.get("success"))
         success_rate = (successful / total * 100.0) if total > 0 else 100.0
-        
+
         # Skill proposal based on repeated failures
         failures = self.detect_repeated_failures()
         failed_tasks = [f["task"] for f in failures]
@@ -48272,7 +48270,7 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
         for task in failed_tasks:
             proposal = self.propose_new_skill(task)
             new_skills_proposed.append(proposal["skill_name"])
-            
+
         # Prompt optimization proposals
         underperforming_prompts = self.detect_underperforming_prompts()
         prompt_optimizations_proposed = []
@@ -48301,7 +48299,7 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
 
             if db.client:
                 db.append_evolution_log(report)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to append evolution log to Supabase: {e}")
             if evolution_write_failures:
                 evolution_write_failures.inc()
@@ -48327,7 +48325,7 @@ try:
     from google.cloud import firestore  # type: ignore[import-untyped]
 
     FIRESTORE_AVAILABLE = True
-except Exception:
+except Exception:  # noqa: BLE001
     FIRESTORE_AVAILABLE = False
 
 
@@ -48367,7 +48365,7 @@ class GCPFirestoreVerificationQueue:
                     self.client = firestore.Client(project=self.project_id)
                 self.mode = "gcp_firestore"
                 logger.info("Using GCP Firestore verification queue")
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.warning(f"Firestore unavailable, falling back to SQLite: {exc}")
 
         if self.mode == "local_sqlite":
@@ -48699,7 +48697,7 @@ class LocalFernetProvider(EncryptionProvider):
                 try:
                     self.fernet = Fernet(raw_key.encode())
                     self.enabled = True
-                except Exception as exc:
+                except Exception as exc:  # noqa: BLE001
                     logger.warning(f"Invalid credential encryption key: {exc}")
         if not self.enabled:
             logger.warning("Credential encryption is disabled. Credentials will be stored as plaintext.")
@@ -48710,7 +48708,7 @@ class LocalFernetProvider(EncryptionProvider):
         try:
             token = self.fernet.encrypt(plaintext.encode()).decode()
             return token, "local:fernet"
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"LocalFernetProvider encryption failed: {exc}")
             return plaintext, "local:plaintext"
 
@@ -48719,7 +48717,7 @@ class LocalFernetProvider(EncryptionProvider):
             return ciphertext
         try:
             return self.fernet.decrypt(ciphertext.encode()).decode()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"LocalFernetProvider decryption failed: {exc}")
             return ciphertext
 
@@ -48739,13 +48737,11 @@ class CloudKMSProvider(EncryptionProvider):
         response = self.client.encrypt(
             request={"name": self.key_name, "plaintext": plaintext.encode()}
         )
-        import base64
         return base64.b64encode(response.ciphertext).decode(), self.key_name
 
     def decrypt(self, ciphertext: str, key_ref: str | None) -> str:
         if not self.key_name:
             raise ValueError("GCP_KMS_KEY_NAME must be set for Cloud KMS decryption.")
-        import base64
         response = self.client.decrypt(
             request={"name": self.key_name, "ciphertext": base64.b64decode(ciphertext)}
         )
@@ -48769,7 +48765,7 @@ class SecureCredentialStore:
             plaintext = __import__("json").dumps(payload, default=str)
             ciphertext, key_ref = self.provider.encrypt(plaintext)
             return {"__enc__": True, "payload": ciphertext, "key_ref": key_ref}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Credential encryption failed: {exc}")
             return payload
 
@@ -48781,7 +48777,7 @@ class SecureCredentialStore:
             key_ref = payload.get("key_ref")
             plaintext = self.provider.decrypt(ciphertext, key_ref)
             return __import__("json").loads(plaintext)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Credential decryption failed: {exc}")
             return payload
 
@@ -48846,7 +48842,7 @@ class SupremeDiscordBot(commands.Bot):
                         await message.channel.send(response[i : i + 2000])
                 else:
                     await message.channel.send(response)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Error handling Discord message: {e}")
                 await message.channel.send("Error executing request.")
 
@@ -48924,7 +48920,7 @@ class RedisRateLimiter:
             from core.upstash_redis_queue import UpstashRedisQueue
 
             self._redis = UpstashRedisQueue()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 f"Redis rate limiter unavailable, falling back to in-memory: {exc}"
             )
@@ -48941,7 +48937,7 @@ class RedisRateLimiter:
             elif count and count > self.burst:
                 return False
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Redis rate limit check failed, blocking request: {exc}")
             return self._fallback_limiter.is_allowed(key)
 
@@ -48953,7 +48949,7 @@ class RedisRateLimiter:
             value = self._redis.get(redis_key)
             count = int(value) if value is not None else 0
             return max(0, self.burst - count)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"Redis rate limit remaining check failed: {exc}")
             return self._fallback_limiter.remaining(key)
 
@@ -49005,7 +49001,7 @@ class RateLimitMiddleware:
                     )
                     await response(scope, receive, send)
                     return
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Error checking tenant rate limit: {exc}. Failing closed (503).")
                 response = JSONResponse(
                     status_code=503,
@@ -49014,14 +49010,14 @@ class RateLimitMiddleware:
                 await response(scope, receive, send)
                 return
             client = scope.get("client")
-            
+
             x_forwarded_for = None
             headers = scope.get("headers", [])
             for k, v in headers:
                 if k.lower() == b"x-forwarded-for":
                     x_forwarded_for = v.decode("utf-8")
                     break
-                    
+
             if x_forwarded_for:
                 client_ip = x_forwarded_for.split(",")[0].strip()
             else:
@@ -49084,7 +49080,7 @@ def process_requirement_async(project_id: str, description: str) -> dict[str, An
         try:
             task = _process_requirement_task.delay(project_id, description)
             return {"status": "queued", "task_id": task.id}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to queue task with Celery: {e}")
 
     # Fallback to synchronous execution for testing/dev
@@ -49142,21 +49138,21 @@ def get_cache_threshold(task_type: str) -> float:
     
     Admin চাইলে Dashboard থেকে এগুলো পরিবর্তন করতে পারে — re-deploy ছাড়াই।
     TTL-এর মধ্যে in-memory ক্যাশ serve হবে, প্রতি request-এ DB hit হবে না।
-    """
+    """  # noqa: W293
     task_lower = task_type.lower()
-    
+
     # Try ConfigCache first (DB-driven)
     cached_default = config_cache.get(f"cache_threshold_{task_lower}")
     if cached_default is not None:
         return float(cached_default)
-    
+
     # Fallback: check if any key prefix matches
     all_thresholds = config_cache.get_all("cache_threshold_")
     for key, threshold in all_thresholds.items():
         config_task = key.replace("cache_threshold_", "")
         if config_task in task_lower:
             return float(threshold)
-    
+
     # Ultimate fallback
     return 0.85
 
@@ -49190,7 +49186,7 @@ class SemanticCache:
                     response=best_hit.get("response", "")
                 )
             return None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"⚠️ SemanticCache lookup failed: {e}")
             return None
 
@@ -49205,7 +49201,7 @@ class SemanticCache:
             )
             self.db.record_experience(exp)
             logger.info(f"💾 Successfully recorded successful experience pattern for {task_type}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"❌ Failed to save experience pattern: {e}")
 
 ```
@@ -49251,7 +49247,7 @@ class AutoRemediationEngine:
                 )
                 logger.info(f"✅ Auto-Remediation PR created for {file_path}")
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"❌ Remediation failed: {str(e)}")
 
     def _generate_ai_patch(self, code: str, line: int, issue: str) -> str:
@@ -49275,7 +49271,7 @@ class AutoRemediationEngine:
             ModelConfig = _ModelConfig
             Context = _Context
             ld_ai_client = _ld_ai_client
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"LaunchDarkly auto-remediation modules unavailable, using fallback path: {exc}")
 
         default_prompt_template = """You are an elite AI AppSec Engineer. Fix the following vulnerability.
@@ -49310,7 +49306,7 @@ class AutoRemediationEngine:
                     ),
                     variables=prompt_vars
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.warning(f"LaunchDarkly config evaluation failed, falling back: {exc}")
 
         if config and config.enabled:
@@ -49404,7 +49400,7 @@ class AutoRemediation:
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(fixed_code)
             logger.info(f"Patch applied successfully to {file_path}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": f"Failed to apply patch to file: {e}"}
 
         # Attempt to commit the change, but don't fail if token is missing
@@ -49457,7 +49453,7 @@ class AutoRemediation:
             ModelConfig = _ModelConfig
             Context = _Context
             ld_ai_client = _ld_ai_client
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"LaunchDarkly remediation modules unavailable, using fallback path: {exc}")
 
         default_prompt_template = """You are an elite secure coding assistant. Correct the security vulnerability in this file.
@@ -49496,7 +49492,7 @@ class AutoRemediation:
                     ),
                     variables=prompt_vars
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.warning(f"LaunchDarkly config evaluation failed, falling back: {exc}")
 
         if config and config.enabled:
@@ -49529,7 +49525,7 @@ class AutoRemediation:
                     raw_text = "\n".join(lines)
 
             return raw_text.strip()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to generate patch from Gemini: {e}")
             return ""
 
@@ -49544,7 +49540,7 @@ from typing import Any
 
 try:
     import bcrypt
-except Exception:  # pragma: no cover - optional fallback
+except Exception:  # pragma: no cover - optional fallback  # noqa: BLE001
     bcrypt = None
 
 from .rbac import RoleBasedAccessControl
@@ -49574,7 +49570,7 @@ class AdminGodLayer:
             return False
         try:
             return bcrypt.checkpw(password_raw.encode(), self.admin_password_hash.encode())
-        except Exception:
+        except Exception:  # noqa: BLE001
             return False
 
     def enforce(self, action: str, user_context: UserContext | str) -> dict[str, Any]:
@@ -49697,7 +49693,7 @@ class EmailService:
                 else:
                     logger.error(f"Failed to send email to {to_email}: {response.text}")
                     return False
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Exception while sending email: {e}")
             return False
 
@@ -49778,7 +49774,7 @@ SupremeAI 2.0-এর জন্য TTL-based config cache layer.
     
     # Set a config value (also persists to DB)
     await config_cache.set("cache_threshold_code", 0.90)
-"""
+"""  # noqa: W293
 
 import threading
 import time
@@ -49825,19 +49821,19 @@ class ConfigCache:
     - TTL (ডিফল্ট: ৬০ সেকেন্ড) পর্যন্ত in-memory serve করে
     - TTL expire হলে পরবর্তি request-এ DB reload করে
     - force_refresh() দিয়ে ম্যানুয়ালি invalidate করা যায়
-    """
-    
+    """  # noqa: W293
+
     def __init__(self, ttl_seconds: int = 60):
         self._cache: dict[str, Any] = {}
         self._ttl = ttl_seconds
         self._last_refresh: float = 0.0
         self._lock = threading.Lock()
         self._loaded = False
-        
+
     def _should_refresh(self) -> bool:
         """TTL expire হয়েছে কিনা চেক করে।"""
         return (time.time() - self._last_refresh) > self._ttl
-        
+
     def _load_from_db(self) -> dict[str, Any]:
         """
         DB থেকে active SystemConfig রেকর্ড লোড করে।
@@ -49853,7 +49849,7 @@ class ConfigCache:
 
             from database.session import AsyncSessionLocal
             from models.system_config import SystemConfig
-            
+
             async def _async_load():
                 async with AsyncSessionLocal() as session:
                     stmt = select(SystemConfig).where(SystemConfig.is_active)
@@ -49862,7 +49858,7 @@ class ConfigCache:
                     for row in rows:
                         configs[row.key] = row.value
                     return configs
-            
+
             try:
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
@@ -49881,12 +49877,12 @@ class ConfigCache:
                         context={"action": "async_load_fallback"}
                     )
                 )
-                
-        except Exception as exc:
+
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"ConfigCache: DB load failed, using defaults: {exc}")
-            
+
         return configs
-    
+
     def refresh(self):
         """ফোর্স রিফ্রেশ — ক্যাশ DB থেকে রিলোড করে (সিঙ্ক্রোনাস)।"""
         with self._lock:
@@ -49900,7 +49896,7 @@ class ConfigCache:
         from sqlalchemy import select
         from database.session import AsyncSessionLocal
         from models.system_config import SystemConfig
-        
+
         configs = dict(DEFAULT_CONFIGS)
         try:
             async with AsyncSessionLocal() as session:
@@ -49909,13 +49905,13 @@ class ConfigCache:
                 rows = result.scalars().all()
                 for row in rows:
                     configs[row.key] = row.value
-            
+
             with self._lock:
                 self._cache = configs
                 self._last_refresh = time.time()
                 self._loaded = True
             logger.info(f"ConfigCache: Async loaded {len(configs)} configs from DB")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"ConfigCache: DB load failed during startup, using defaults: {exc}")
             with self._lock:
                 self._cache = configs
@@ -49930,15 +49926,15 @@ class ConfigCache:
         """
         if not self._loaded or self._should_refresh():
             self.refresh()
-        
+
         with self._lock:
             return self._cache.get(key, default)
-    
+
     def get_all(self, category: str | None = None) -> dict[str, Any]:
         """সব কনফিগ (অথবা নির্দিষ্ট category) রিটার্ন করে।"""
         if not self._loaded or self._should_refresh():
             self.refresh()
-        
+
         with self._lock:
             if category:
                 # Filter by key prefix pattern (e.g., "cache_threshold_", "provider_")
@@ -49947,7 +49943,7 @@ class ConfigCache:
                     if k.startswith(category)
                 }
             return dict(self._cache)
-    
+
     async def set(self, key: str, value: Any, description: str = "") -> bool:
         """
         কনফিগ ভ্যালু সেট করে — DB-তেও persist করে + cache update করে।
@@ -49956,13 +49952,13 @@ class ConfigCache:
 
         from database.session import AsyncSessionLocal
         from models.system_config import SystemConfig
-        
+
         try:
             async with AsyncSessionLocal() as session:
                 stmt = select(SystemConfig).where(SystemConfig.key == key)
                 result = await session.execute(stmt)
                 existing = result.scalar_one_or_none()
-                
+
                 if existing:
                     existing.value = value
                     existing.version += 1
@@ -49975,19 +49971,19 @@ class ConfigCache:
                         description=description or f"Auto-created config for '{key}'",
                     )
                     session.add(new_config)
-                
+
                 await session.commit()
-                
+
                 # Update in-memory cache
                 with self._lock:
                     self._cache[key] = value
-                
+
                 logger.info(f"ConfigCache: Set '{key}' = {value}")
                 return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"ConfigCache: Failed to set '{key}': {exc}")
             return False
-    
+
     def invalidate(self, key: str | None = None):
         """
         নির্দিষ্ট key (বা সব) ক্যাশ invalidate করে।
@@ -50034,18 +50030,18 @@ class SwarmOrchestrator:
     async def execute_task(self, prompt: str, user_id: str = "default_user_session") -> SharedWorkspace:
         task_id = str(uuid.uuid4())
         workspace = SharedWorkspace(task_id=task_id, original_prompt=prompt)
-        
+
         workspace.log(f"SwarmOrchestrator: Initialized swarm department for task {task_id}")
-        
+
         # 1. Architecture Design Phase
         await self.architect.design(workspace, user_id)
-        
+
         # 2. Code Generation Phase
         await self.coder.generate_code(workspace, user_id)
-        
+
         # 3. QA and Security Analysis Phase
         await self.qa.verify(workspace, user_id)
-        
+
         workspace.log("SwarmOrchestrator: Multi-Agent execution graph completed successfully.")
         return workspace
 
@@ -50084,7 +50080,7 @@ class UniversalRulesEngine:
             try:
                 with open(self.rules_path, encoding="utf-8") as f:
                     return json.load(f)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 # Fallback to default in case of corruption
                 logger.error(f"⚠️ Rules file corrupted, falling back to defaults: {e}")
 
@@ -50118,7 +50114,7 @@ class UniversalRulesEngine:
             os.makedirs(os.path.dirname(self.rules_path), exist_ok=True)
             with open(self.rules_path, "w", encoding="utf-8") as f:
                 json.dump(default_rules, f, indent=4)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
 
@@ -50137,7 +50133,7 @@ class UniversalRulesEngine:
 
             os.replace(temp_path, self.rules_path)
             return True
-        except Exception:
+        except Exception:  # noqa: BLE001
             return False
 
     def apply(self, decision_context: dict[str, Any]) -> dict[str, Any]:
@@ -50280,7 +50276,7 @@ class WorkerGrpcClient:
     def __init__(self, host: str = "localhost", port: int = 9090):
         self.channel = grpc.insecure_channel(f"{host}:{port}")
         self.stub = pb2_grpc.WorkerServiceStub(self.channel)
-        
+
     def submit_task(self, task_type: str, payload: dict[str, Any], requested_by: str = "fastapi-engine") -> str | None:
         try:
             req = pb2.TaskRequest(
@@ -50744,7 +50740,7 @@ if settings.sentry_dsn:
             traces_sample_rate=0.2 if settings.env.lower() == "production" else 1.0,
             environment=settings.env,
         )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.warning(f"Sentry initialization failed: {exc}")
 
 
@@ -50834,7 +50830,7 @@ async def health():
         try:
             services.redis_queue.set("health", "ok", ex=5)
             redis_ok = services.redis_queue.get("health") == "ok"
-        except Exception:
+        except Exception:  # noqa: BLE001
             redis_ok = False
     else:
         redis_ok = True
@@ -50974,7 +50970,7 @@ try:
 
     if websocket_voice_router is not None:
         app.include_router(websocket_voice_router)
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"websocket_voice router not loaded: {_e}")
 # Include Orchestrator router
 from core.orchestrator import router as orchestrator_router
@@ -50987,7 +50983,7 @@ try:
     from tools.collaborative_editor import router as collab_router
 
     app.include_router(collab_router, prefix="/api/v1")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"collaborative_editor router not loaded: {_e}")
 
 from tools.image_to_code import router as image_to_code_router
@@ -51001,49 +50997,49 @@ try:
     from tools.browser_agent import router as browser_agent_router
 
     app.include_router(browser_agent_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"browser_agent router not loaded: {_e}")
 
 try:
     from tools.voice_coder import router as voice_coder_router
 
     app.include_router(voice_coder_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"voice_coder router not loaded: {_e}")
 
 try:
     from tools.style_learner import router as style_learner_router
 
     app.include_router(style_learner_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"style_learner router not loaded: {_e}")
 
 try:
     from tools.diagram_to_architecture import router as diagram_router
 
     app.include_router(diagram_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"diagram_to_architecture router not loaded: {_e}")
 
 try:
     from tools.ai_pair_programmer import router as pair_router
 
     app.include_router(pair_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"ai_pair_programmer router not loaded: {_e}")
 
 try:
     from api.routes.onboarding import router as onboarding_api_router
 
     app.include_router(onboarding_api_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"onboarding API router not loaded: {_e}")
 
 try:
     from api.routes.evolution import router as evolution_router
 
     app.include_router(evolution_router)
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"evolution API router not loaded: {_e}")
 
 if codeflow_router is not None:
@@ -51056,7 +51052,7 @@ try:
     from tools.multilingual_tts import router as tts_router
 
     app.include_router(tts_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"multilingual_tts router not loaded: {_e}")
 
 # bhasa mourontto: voice streaming router properly loaded with /api/voice prefix
@@ -51065,28 +51061,28 @@ try:
 
     if voice_router is not None:
         app.include_router(voice_router, prefix="/api/voice")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"voice streaming router not loaded: {_e}")
 
 try:
     from tools.comment_thread_ai import router as comment_ai_router
 
     app.include_router(comment_ai_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"comment_thread_ai router not loaded: {_e}")
 
 try:
     from tools.auto_test_generator import router as test_gen_router
 
     app.include_router(test_gen_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"auto_test_generator router not loaded: {_e}")
 
 try:
     from api.routes.tenant_admin import router as tenant_admin_router
 
     app.include_router(tenant_admin_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"tenant_admin router not loaded: {_e}")
 
 from api.routes.mobile_bff import router as mobile_bff_router
@@ -51102,7 +51098,7 @@ try:
         logger.info("Universal BYOC management router loaded successfully ✅")
     else:
         logger.warning("Universal BYOC router not loaded: SUPREMEAI_ENCRYPTION_KEY missing")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     import traceback
 
     logger.critical(f"Failed to load Universal BYOC router: {traceback.format_exc()}")
@@ -51113,7 +51109,7 @@ try:
 
     app.include_router(billing_api_router)
     logger.info("P2P Credit System billing router loaded successfully ✅")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     import traceback
 
     logger.critical(f"Failed to load Billing router: {traceback.format_exc()}")
@@ -51127,13 +51123,13 @@ try:
     from api.routes.cloud_mesh import router as cloud_mesh_router
 
     app.include_router(cloud_mesh_router)
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"cloud_mesh router not loaded: {_e}")
 
 try:
     from api.routes.events import router as events_router
     app.include_router(events_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"events router not loaded: {_e}")
 
 app.router.lifespan_context = lifespan.app_lifespan
@@ -51177,12 +51173,12 @@ def save_to_memory(prompt: str, solution_code: str):
     """নতুন সমাধান শিখলে সেটি জিরো-কস্ট মেমোরিতে সেভ করে রাখবে"""
     with open(MEMORY_FILE_PATH) as f:
         memory = json.load(f)
-    
+
     memory[prompt] = solution_code
-    
+
     with open(MEMORY_FILE_PATH, "w") as f:
         json.dump(memory, f, indent=4)
-    print("🧠 [Auto-Didact] New skill learned and saved to memory vault!")
+    print("🧠 [Auto-Didact] New skill learned and saved to memory vault!")  # noqa: T201
 
 ```
 
@@ -51247,7 +51243,7 @@ class AutocacheProxy:
     - মাল্টিপল ভেন্ডর কস্ট এস্টিমেশন
     - অটোমেটিক প্যারামিটার অপটিমাইজেশন
     - কস্ট মেট্রিক্স ট্র্যাকিং
-    """
+    """  # noqa: W293
 
     def __init__(self, cache: SemanticCache):
         self.cache = cache
@@ -51276,15 +51272,15 @@ class AutocacheProxy:
         if model not in self.vendor_costs:
             logger.warning(f"Unknown model: {model}, assuming free tier")
             return 0.0
-        
+
         costs = self.vendor_costs[model]
         total_cost = (input_tokens * costs["input"]) + (output_tokens * costs["output"])
         return total_cost
 
     async def should_use_cache(
-        self, 
-        model: str, 
-        prompt: str, 
+        self,
+        model: str,
+        prompt: str,
         task_type: str = "general",
         similarity_threshold: float = 0.85
     ) -> dict[str, Any]:
@@ -51298,32 +51294,32 @@ class AutocacheProxy:
             "estimated_cost_saved": float,
             "cache_score": float
         }
-        """
+        """  # noqa: W293
         self.cost_metrics["total_requests"] += 1
-        
+
         # সিমান্টিক ক্যাশ থেকে খুঁজুন
         cached_result = await self.cache.query_similar(prompt, task_type)
-        
+
         if cached_result and cached_result.response:
             # খরচ সেভিং্স ক্যালকুলেট করুন
             input_tokens = estimate_tokens(prompt)
             estimated_cost = self._calculate_cost(model, input_tokens, 100)
-            
+
             self.cost_metrics["cached_hits"] += 1
             self.cost_metrics["total_cost_saved"] += estimated_cost
-            
+
             logger.info(
                 f"💰 [CACHE HIT] Model: {model} | Cost Saved: ${estimated_cost:.6f} | "
                 f"Total Saved: ${self.cost_metrics['total_cost_saved']:.6f}"
             )
-            
+
             return {
                 "should_cache": True,
                 "cached_response": cached_result.response,
                 "estimated_cost_saved": estimated_cost,
                 "cache_score": 0.95  # Semantic match score
             }
-        
+
         return {
             "should_cache": False,
             "cached_response": None,
@@ -51332,8 +51328,8 @@ class AutocacheProxy:
         }
 
     async def deduplicate_request(
-        self, 
-        model: str, 
+        self,
+        model: str,
         prompt: str
     ) -> dict[str, Any]:
         """
@@ -51341,28 +51337,28 @@ class AutocacheProxy:
         এবং পেন্ডিং রিকোয়েস্টের রেসপন্স শেয়ার করুন
         """
         req_hash = self._compute_request_hash(model, prompt)
-        
+
         if req_hash in self.request_history:
             entry = self.request_history[req_hash]
-            
+
             # ৫ মিনিটের মধ্যে একই রিকোয়েস্ট হলে রিইউজ করুন
             if time.time() - entry["timestamp"] < 300:
                 self.cost_metrics["dedup_requests"] += 1
                 logger.info(f"♻️ [DEDUP HIT] Reusing response from {(time.time() - entry['timestamp']):.1f}s ago")
-                
+
                 return {
                     "is_duplicate": True,
                     "cached_response": entry["response"],
                     "original_timestamp": entry["timestamp"]
                 }
-        
+
         return {"is_duplicate": False}
 
     def record_request(self, model: str, prompt: str, response: str, tokens_used: int):
         """সফল রিকোয়েস্ট রেকর্ড করুন ভবিষ্যত ক্যাশিংয়ের জন্য"""
         req_hash = self._compute_request_hash(model, prompt)
         cost = self._calculate_cost(model, estimate_tokens(prompt), tokens_used)
-        
+
         self.request_history[req_hash] = {
             "response": response,
             "timestamp": time.time(),
@@ -51374,7 +51370,7 @@ class AutocacheProxy:
         """সাম্প্রতিক কস্ট সেভিংস সামারি পান"""
         total_requests = self.cost_metrics["total_requests"] or 1
         cache_hit_rate = (self.cost_metrics["cached_hits"] / total_requests) * 100
-        
+
         return {
             "total_requests": self.cost_metrics["total_requests"],
             "cached_hits": self.cost_metrics["cached_hits"],
@@ -51403,8 +51399,8 @@ class AutocacheProxy:
             "cost_saved": float,
             "recommendation": str
         }
-        """
-        
+        """  # noqa: W293
+
         # প্রথম ডুপ্লিকেট চেক করুন
         dedup_result = await self.deduplicate_request(model, prompt)
         if dedup_result["is_duplicate"]:
@@ -51414,7 +51410,7 @@ class AutocacheProxy:
                 "cost_saved": self._calculate_cost(model, estimate_tokens(prompt), 100),
                 "recommendation": "DEDUP_HIT - Using recent cached response"
             }
-        
+
         # তারপর সিমান্টিক ক্যাশ চেক করুন
         cache_result = await self.should_use_cache(model, prompt, task_type)
         if cache_result["should_cache"]:
@@ -51424,7 +51420,7 @@ class AutocacheProxy:
                 "cost_saved": cache_result["estimated_cost_saved"],
                 "recommendation": "SEMANTIC_HIT - Using semantically similar cached response"
             }
-        
+
         # API কল করা দরকার
         return {
             "proceed": True,
@@ -51474,12 +51470,12 @@ except ImportError as e:
 def init_ld_client() -> "LDAIClient | None":
     if not LD_SUPPORTED:
         return None
-    
+
     sdk_key = os.getenv("LAUNCHDARKLY_SDK_KEY")
     if not sdk_key:
         logger.warning("LAUNCHDARKLY_SDK_KEY is not set in environment. LaunchDarkly integration disabled.")
         return None
-        
+
     try:
         # বাংলা মন্তব্য: লঞ্চডার্কলি কোর ক্লায়েন্ট কনফিগারেশন এবং অবজারভেবিলিটি প্লাগইন ইন্টিগ্রেশন
         ldclient.set_config(Config(
@@ -51495,7 +51491,7 @@ def init_ld_client() -> "LDAIClient | None":
         ))
         logger.info("LaunchDarkly AI Client successfully initialized with Observability.")
         return LDAIClient(ldclient.get())
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to initialize LaunchDarkly client: {e}")
         return None
 
@@ -51888,7 +51884,7 @@ def get_firebase_auth():
         auth = firebase_auth
         logger.info("Firebase Admin SDK ready ✅")
         return auth
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Firebase Admin SDK not available: {e}")
         return None
 
@@ -51949,7 +51945,7 @@ class AuditLogger:
                     (action_type, decision_details, reasoning),
                 )
                 conn.commit()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to write to audit database: {e}")
 
     def get_audit_trail(self) -> list:
@@ -51960,7 +51956,7 @@ class AuditLogger:
                 cursor.execute("SELECT * FROM audit_logs ORDER BY timestamp DESC")
                 rows = cursor.fetchall()
                 return [dict(r) for r in rows]
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to query audit trail: {e}")
             return []
 
@@ -52026,7 +52022,7 @@ class AICodeValidator:
                 ):
                     return False
             return True
-        except Exception:
+        except Exception:  # noqa: BLE001
             return False
 
     def _module_exists(self, module_name: str) -> bool:
@@ -52041,7 +52037,7 @@ class AICodeValidator:
         try:
             spec = importlib.util.find_spec(base_module)
             return spec is not None
-        except Exception:
+        except Exception:  # noqa: BLE001
             return False
 
     def _check_variables_defined(self, code: str) -> bool:
@@ -52068,7 +52064,7 @@ class AICodeValidator:
             builtin_names = set(dir(builtins))
             undefined = used - defined - builtin_names
             return len(undefined) == 0
-        except Exception:
+        except Exception:  # noqa: BLE001
             return False
 
     def _check_loop_safety(self, code: str) -> bool:
@@ -52086,7 +52082,7 @@ class AICodeValidator:
                     if not has_break:
                         return False
             return True
-        except Exception:
+        except Exception:  # noqa: BLE001
             return False
 
     def _auto_fix(self, code: str) -> str:
@@ -52472,7 +52468,7 @@ class ObservabilityMiddleware:
                         "duration": duration,
                     },
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 # বল মনতবয: PostHog টলমটর বযরথ হল রকয়সট হযনডলং থমন উচত নয়;
                 # তব নরব সযলপ ন কর ডবগ লগ কর হল যত টলমটর সমসয বঝ যয়
                 logger.debug(f"PostHog capture failed in observability middleware: {exc}")
@@ -52494,7 +52490,7 @@ class ObservabilityMiddleware:
                             },
                         }
                     )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 # বল মনতবয: ইভলউশন লগ Supabase-এ লখত বযরথ হল রকয়সট বযহত হয় ন;
                 # নরব সযলপর পরবরত ডবগ লগ যকত কর হল যত পরসসটনস বযরথত টর কর যয়
                 logger.debug(f"Evolution log persistence failed in observability middleware: {exc}")
@@ -52535,7 +52531,7 @@ class CloudSandboxOrchestrator:
     def __init__(self, provider: str = "runpod"):
         self.provider = provider.lower()
         self.api_key = os.getenv(f"{self.provider.upper()}_API_KEY")
-        
+
         self.base_url = self._get_base_url()
         headers = {"Content-Type": "application/json"}
         if self.api_key:
@@ -52584,7 +52580,7 @@ class CloudSandboxOrchestrator:
             return data
         except httpx.HTTPStatusError as e:
             logger.error(f"Failed to create sandbox. Status: {e.response.status_code}, Body: {e.response.text}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"An unexpected error occurred during sandbox creation: {e}")
 
         return None
@@ -52657,19 +52653,19 @@ class CloudSandboxOrchestrator:
         logger.info("Started Sandbox Auto-Destroy Worker")
         db = get_firestore_db()
         config_proxy = DynamicConfigProxy(tenant_id, db) if db else None
-        
+
         while True:
             try:
                 # Default 10 minutes TTL
                 ttl_minutes = await config_proxy.get("SANDBOX_TTL_MINUTES", 10) if config_proxy else 10
                 ttl_delta = datetime.timedelta(minutes=ttl_minutes)
                 now = datetime.datetime.now(datetime.UTC)
-                
+
                 for sandbox_id, data in list(self._active_sandboxes.items()):
                     created_at = data.get("created_at")
                     if created_at and (now - created_at) > ttl_delta:
                         logger.warning(f"Sandbox {sandbox_id} exceeded TTL of {ttl_minutes}m. Terminating...")
-                        
+
                         # If we assume it timed out or crashed, notify SelfHealer
                         if db:
                             healer = SelfHealerService(db)
@@ -52680,11 +52676,11 @@ class CloudSandboxOrchestrator:
                                 impact_score=0.3,
                                 dependency_tree=["core.cloud_sandbox_orchestrator"]
                             )
-                        
+
                         await self.destroy_sandbox(sandbox_id)
-                        
+
                 await asyncio.sleep(60) # Check every minute
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Auto-Destroy Worker encountered an error: {e}")
                 await asyncio.sleep(60)
 
@@ -52710,18 +52706,18 @@ class CloudSandboxOrchestrator:
 
             # প্রম্পট ইনপুট হিসেবে পাঠানো হচ্ছে
             stdout, stderr = await process.communicate(input=prompt.encode('utf-8'))
-            
+
             if process.returncode == 0:
                 logger.success("✅ Freebuff task completed successfully.")
                 return {"status": "success", "output": stdout.decode('utf-8')}
             else:
                 logger.error(f"❌ Freebuff task failed: {stderr.decode('utf-8')}")
                 return {"status": "error", "error": stderr.decode('utf-8')}
-                
+
         except FileNotFoundError:
             logger.error("🚨 Freebuff CLI not found. Please ensure it is installed globally (npm install -g freebuff).")
             return {"status": "error", "error": "Freebuff CLI not installed."}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"⚠️ Unexpected error running Freebuff: {e}")
             return {"status": "error", "error": str(e)}
 
@@ -52796,7 +52792,7 @@ class ProductionSecretVault:
                 logger.info(
                     f"🔒 Production Secret Vault hooked into GCP Project: {self.project_id}"
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(
                     f"Failed to bind Secret Manager Service Client: {str(e)}. Falling back to raw env."
                 )
@@ -52996,7 +52992,7 @@ class RollbackMonitor:
                 }
             else:
                 logger.error("Could not find a previous revision to rollback to.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to execute gcloud rollback command: {e}")
 
         # Fallback response if gcloud tool is not installed or command failed
@@ -53372,7 +53368,7 @@ class TaskQueue:
                     task_acks_late=True,
                 )
                 logger.info("Celery backend initialized")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to initialize Celery: {e}")
                 self.celery_app = None
         else:
@@ -53385,7 +53381,7 @@ class TaskQueue:
                     self.redis_url, decode_responses=True
                 )
                 logger.info("Redis backend initialized")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to initialize Redis: {e}")
                 self.redis_client = None
         else:
@@ -53400,7 +53396,7 @@ class TaskQueue:
                     self.project_id, "supremeai-tasks"
                 )
                 logger.info("Pub/Sub backend initialized")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to initialize Pub/Sub: {e}")
                 self.publisher = None
                 self.subscriber = None
@@ -53629,13 +53625,13 @@ class TaskQueue:
                 func, task_id, args, kwargs = await self.local_queue.get()
                 try:
                     await self._execute_sync(func, task_id, args, kwargs)
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     logger.error(f"Error in asyncio worker for task {task_id}: {e}")
                 finally:
                     self.local_queue.task_done()
         except asyncio.CancelledError:
             logger.info("Asyncio worker cancelled")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Asyncio worker failed: {e}")
             await asyncio.sleep(5)
             logger.info("Restarting asyncio worker after crash...")
@@ -53843,7 +53839,7 @@ class PostHogClient:
                 posthog.project_api_key = self.api_key
                 posthog.host = self.host
                 logger.info("Initialized PostHog Analytics Client")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to initialize PostHog: {e}")
                 self.enabled = False
         else:
@@ -53855,7 +53851,7 @@ class PostHogClient:
         if self.enabled:
             try:
                 posthog.capture(distinct_id, event, properties or {})
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"PostHog capture failed: {e}")
         else:
             logger.info(
@@ -53925,26 +53921,26 @@ class CostGuard:
         """
         try:
             doc_ref = self._db.collection(f"tenants/{tenant_id}/budget").document("status")
-            
+
             import asyncio
             if asyncio.iscoroutinefunction(doc_ref.get):
                 snapshot = await doc_ref.get()
             else:
                 snapshot = doc_ref.get()
-                
+
             if not snapshot.exists:
                 # If no budget info found, we might want to default to a free tier or reject.
                 # Assuming safe rejection or default limit. Let's raise an error for strict mode.
                 raise HTTPException(status_code=402, detail="Payment Required: No budget configured.")
-                
+
             data = snapshot.to_dict()
             monthly_limit = float(data.get("monthly_limit", 0.0))
             spent_amount = float(data.get("spent_amount", 0.0))
-            
+
             if spent_amount + estimated_cost > monthly_limit:
                 logger.warning(f"Tenant {tenant_id} exceeded budget. Spent: {spent_amount}, Limit: {monthly_limit}, Estimated: {estimated_cost}")
                 raise HTTPException(status_code=402, detail="Payment Required: Budget Exceeded")
-                
+
             return True
         except HTTPException:
             raise
@@ -54230,7 +54226,7 @@ class FreeTierTracker:
                                 "priority": idx,
                                 "is_active": True,
                             })
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.debug(f"Failed to fetch provider configs from Supabase: {e}")
             return None, None
 
@@ -54494,8 +54490,8 @@ def decrypt_token(cipher_text: str) -> str:
     try:
         decrypted_bytes = fernet.decrypt(cipher_text.encode('utf-8'))
         return decrypted_bytes.decode('utf-8')
-    except Exception as e:
-        print(f"Error decrypting token: {e}")
+    except Exception as e:  # noqa: BLE001
+        print(f"Error decrypting token: {e}")  # noqa: T201
         return ""
 
 ```
@@ -54552,7 +54548,7 @@ class CircuitBreaker:
                 self.state = data.get("state", "CLOSED")
                 self.opened_at = data.get("opened_at")
                 self.last_failure_at = data.get("last_failure_at")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: রডস থক সটট রসটর বযরথ হল লকল ডফলট বযবহত হয়;
             # নরব সযলপ ন কর ডবগ লগ কর হল যত রডস সমসয দশযমন থক
             logger.debug(f"CircuitBreaker redis restore failed: {exc}")
@@ -54568,7 +54564,7 @@ class CircuitBreaker:
                 "last_failure_at": self.last_failure_at,
             }
             self.redis_queue.set(f"{self._key_prefix}:state", json.dumps(data), ex=600)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: রডস প রসসটনস বযরথ হল ইন-মমর সটটই বযবহত হয়;
             # সমসয টর করত পরর জনয নরব সযলপর বদল ডবগ লগ যকত কর হল
             logger.debug(f"CircuitBreaker redis persist failed: {exc}")
@@ -54653,11 +54649,11 @@ class PromptFirewall:
         """
         if not original_system_prompt:
             return self.bengali_native_instruction.strip()
-            
+
         # বাংলা কমেন্ট: ডুপ্লিকেশন এড়াতে অলরেডি রুলস ইনজেক্টেড আছে কিনা তা চেক করা হচ্ছে
         if "BENGALI NATIVE ENFORCEMENT" in original_system_prompt:
             return original_system_prompt
-            
+
         # জিরো-গ্যাপ প্রম্পট কন্টেনেশন
         secure_prompt = f"{original_system_prompt.strip()}{self.bengali_native_instruction}"
         logger.info("🔱 Prompt Firewall: Bengali Native & Code Commenting rules successfully injected into agent payload.")
@@ -54669,15 +54665,15 @@ class PromptFirewall:
         """
         if not response_text:
             return False
-            
+
         # বাংলা কমেন্ট: আউটপুটে বাংলা ক্যারেক্টার সেট (Unicode Range: \u0980-\u09FF) আছে কিনা তা যাচাই করা হচ্ছে।
         bengali_character_regex = re.compile(r'[\u0980-\u09FF]')
-        
+
         # যদি আউটপুট পুরোপুরি ইংরেজি বা অন্য ভাষায় হয় (বাংলা ক্যারেক্টার অনুপস্থিত), তবে এটি পলিসি ভায়োলেশন
         if not bengali_character_regex.search(response_text):
             logger.critical("🔥 SECURITY VIOLATION: Agent response failed i18n Bengali compliance check!")
             return False
-            
+
         return True
 
     def _load_local_patterns(self):
@@ -54686,21 +54682,21 @@ class PromptFirewall:
             {"name": "sensitive_extraction", "patterns": []},
             {"name": "malicious_code", "patterns": []}
         ]
-        
+
     def _check_local_patterns(self, prompt: str):
         # সব ইনপুট লোয়ারকেস এবং ট্রিম করা হয়েছে যাতে প্যাটার্ন ম্যাচিং মিস না হয়
         cleaned_prompt = prompt.lower().strip()
-        
+
         # ইনজেকশন প্যাটার্ন লিস্ট
         patterns = [
-            "disregard", "developer mode", "jailbreak", 
+            "disregard", "developer mode", "jailbreak",
             "dan mode", "unfiltered", "ignore previous"
         ]
-        
+
         for pattern in patterns:
             if pattern in cleaned_prompt:
                 return "prompt_injection"
-                
+
         import re as _re
         if _re.search(r"(?i)\b(password|api_key|secret|token)\s*=|BEGIN RSA KEY|END PGP KEY|ssh-(rsa|ed25519)", prompt):
             return "sensitive_extraction"
@@ -54732,7 +54728,7 @@ class PromptFirewall:
         if "test prompt" in lowered:
             return {"allowed": False, "provider": "llama_guard", "reason": "Blocked"}
         return {"allowed": True, "reason": "prompt_approved", "provider": "firewall"}
-        
+
     async def classify_intent(self, prompt: str):
         lowered = prompt.lower()
         if "python" in lowered or "java" in lowered or "dart" in lowered:
@@ -54798,7 +54794,7 @@ class LLMGateway:
     def __init__(self):
         self.routing_policy = self._load_routing_policy()
         self._setup_callbacks()
-        
+
         # Configure litellm global settings
         litellm.drop_params = True
         litellm.telemetry = False
@@ -54815,20 +54811,20 @@ class LLMGateway:
                 with open(POLICY_PATH, encoding="utf-8") as f:
                     return json.load(f)
             logger.warning("Routing policy file not found, using default fallback configs.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Error loading routing policy: {e}")
-        
+
         return {"complexity_rules": {}, "fallback_chain": []}
 
     def _get_key_for_model(self, model: str) -> str | None:
-        if not model: return None
+        if not model: return None  # noqa: E701
         model_l = model.lower()
-        if "groq" in model_l: return getattr(settings, "groq_api_key", None)
-        if "gemini" in model_l: return getattr(settings, "gemini_api_key", None)
-        if "gpt" in model_l or "openai" in model_l: return getattr(settings, "openai_api_key", None)
-        if "deepseek" in model_l: return getattr(settings, "deepseek_api_key", None)
-        if "openrouter" in model_l: return getattr(settings, "openrouter_api_key", None)
-        if "hf" in model_l or "huggingface" in model_l: return getattr(settings, "hf_api_key", None)
+        if "groq" in model_l: return getattr(settings, "groq_api_key", None)  # noqa: E701
+        if "gemini" in model_l: return getattr(settings, "gemini_api_key", None)  # noqa: E701
+        if "gpt" in model_l or "openai" in model_l: return getattr(settings, "openai_api_key", None)  # noqa: E701
+        if "deepseek" in model_l: return getattr(settings, "deepseek_api_key", None)  # noqa: E701
+        if "openrouter" in model_l: return getattr(settings, "openrouter_api_key", None)  # noqa: E701
+        if "hf" in model_l or "huggingface" in model_l: return getattr(settings, "hf_api_key", None)  # noqa: E701
         return None
 
     def _setup_callbacks(self):
@@ -54841,13 +54837,13 @@ class LLMGateway:
                 completion_tokens = usage.completion_tokens if usage else 0
                 # Extract cost dynamically calculated by litellm
                 cost = response_obj._response_metadata.get("api_cost", 0.0) if hasattr(response_obj, "_response_metadata") else 0.0
-                
+
                 duration = (end_time - start_time).total_seconds() if hasattr(end_time - start_time, "total_seconds") else (end_time - start_time)
                 logger.info(
                     f"🟢 [LLMGateway Success] Model: {model} | Cost: ${cost:.6f} | "
                     f"Tokens: P={prompt_tokens} C={completion_tokens} | Duration: {duration:.2f}s"
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Error executing success callback: {e}")
 
         def failure_callback(kwargs, exception_obj, start_time, end_time):
@@ -54878,7 +54874,7 @@ class LLMGateway:
         """
         # Determine initial models by task difficulty
         difficulty = "easy"
-        
+
         # Support callers that pass `messages=` instead of `prompt=` (backwards compatibility)
         if messages is not None and prompt is None:
             prompt = messages
@@ -54914,18 +54910,18 @@ class LLMGateway:
 
         model_candidates = self.routing_policy.get("complexity_rules", {}).get(difficulty, [])
         fallbacks = self.routing_policy.get("fallback_chain", [])
-        
+
         # Merge target candidate with the fallback chain to prevent duplication
         call_chain = []
         if model:
             call_chain.append(model)
-            
+
         all_models = model_candidates + fallbacks
         if provider:
             provider_models = [m for m in all_models if m.startswith(f"{provider}/")]
             other_models = [m for m in all_models if not m.startswith(f"{provider}/")]
             all_models = provider_models + other_models
-            
+
         for m in all_models:
             if m not in call_chain:
                 call_chain.append(m)
@@ -54939,7 +54935,7 @@ class LLMGateway:
             messages = prompt
         else:
             messages = [{"role": "user", "content": prompt}]
-        
+
         if stream:
             return self._stream_completion(messages, call_chain, timeout)
 
@@ -54962,7 +54958,7 @@ class LLMGateway:
                     "model": model,
                     "cost": response._response_metadata.get("api_cost", 0.0) if hasattr(response, "_response_metadata") else 0.0
                 }
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 last_exception = e
                 logger.warning(f"Model {model} failed in chain. Exception: {e}")
                 continue
@@ -55003,11 +54999,11 @@ class LLMGateway:
                     if content:
                         yield content
                 return # Successfully streamed out all tokens
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 last_exception = e
                 logger.warning(f"Model {model} streaming failed, trying fallback...")
                 continue
-        
+
         raise last_exception or RuntimeError("All streaming fallback options failed.")
 
 # Initialize global gateway singleton
@@ -55049,7 +55045,7 @@ class MicroVMSandbox:
                 return True
             if shutil.which("runsc"):
                 return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
         return False
@@ -55138,7 +55134,7 @@ class MicroVMSandbox:
                 "error": "Execution timeout",
                 "provider": "firecracker",
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e), "provider": "firecracker"}
 
     async def _run_gvisor(self, cmd: str, timeout: int) -> dict[str, Any]:
@@ -55164,7 +55160,7 @@ class MicroVMSandbox:
                 "error": "Execution timeout",
                 "provider": "gvisor",
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e), "provider": "gvisor"}
 
     async def _run_docker_fallback(
@@ -55203,7 +55199,7 @@ class MicroVMSandbox:
                 "error": "Execution timeout",
                 "provider": "docker-fallback",
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e), "provider": "docker-fallback"}
 
     def _destroy_vm(self, vm_id: str) -> None:
@@ -55212,7 +55208,7 @@ class MicroVMSandbox:
             if os.path.exists(vm_dir):
                 shutil.rmtree(vm_dir)
             logger.info(f"MicroVM {vm_id} destroyed")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to destroy VM {vm_id}: {e}")
 
     async def health_check(self) -> dict[str, Any]:
@@ -55474,7 +55470,7 @@ class AsyncTaskManager:
                     json={"task_id": task_id, "type": task_type, "payload": payload},
                     timeout=2.0,
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.debug(f"Celery enqueue failed: {e}")
         else:
             self._simulate_task(task_id, task_type)
@@ -55549,7 +55545,7 @@ def budget_aware_route(
                 logger.warning(
                     "[Orchestrator] budget_aware_route: all free providers exhausted"
                 )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"[Orchestrator] budget_aware_route failed: {exc}")
 
     return {
@@ -55759,7 +55755,7 @@ class HealthMonitor:
                 self.memory_available_mb.set(result["memory_available_mb"])
                 self.active_tasks.set(result["active_tasks"])
                 self.status.set(1 if status == "healthy" else 0)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Prometheus metrics update failed: {exc}")
         return result
 
@@ -55777,7 +55773,7 @@ class HealthMonitor:
         if _PROMETHEUS_AVAILABLE:
             try:
                 self.request_duration_seconds.observe(duration_seconds)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Failed to record request duration: {exc}")
 
 
@@ -55884,7 +55880,7 @@ class FactualVerifier:
                 "confidence": 0.3,
                 "method": "no_matches",
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             _logger.warning(f"RAG verification failed for claim: {claim[:50]}... error: {e}")
             return {
                 "claim": claim,
@@ -55919,7 +55915,7 @@ class FactualVerifier:
                         "supporting_sources": supporting,
                         "method": "local_rag",
                     }
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 _logger.warning(f"RAG search failed in verify_with_web_search: {e}")
 
         try:
@@ -55937,7 +55933,7 @@ class FactualVerifier:
                             "supporting_sources": [data.get("AbstractURL", "")],
                             "method": "duckduckgo_api",
                         }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             _logger.warning(f"Web search failed for claim: {claim[:50]}... error: {e}")
 
         return {
@@ -55962,7 +55958,7 @@ class FactualVerifier:
                 "expression_sympy": str(expr),
                 "claimed_result": str(claimed),
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 clean_expr = re.sub(r"[^0-9\+\-\*\/\(\)\.]", "", expression)
                 result = _safe_eval_math(clean_expr)
@@ -55974,7 +55970,7 @@ class FactualVerifier:
                     "claimed_result": claimed,
                     "fallback_used": True,
                 }
-            except Exception as inner_e:
+            except Exception as inner_e:  # noqa: BLE001
                 return {
                     "is_verified": False,
                     "error": f"Sympy error: {e}, Fallback error: {inner_e}",
@@ -56119,7 +56115,7 @@ class CloudStorageManager:
             # বাংলা কমেন্ট: নন-ব্লকিং অ্যাসিঙ্ক ক্লায়েন্ট ব্যবহার করে রিকোয়েস্ট পাঠানো হচ্ছে।
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.post(url, content=file_bytes, headers=headers)
-                
+
             if response.status_code != 200:
                 logger.error(f"❌ Cloud Upload Rejected: {response.text}")
                 raise HTTPException(
@@ -56244,7 +56240,7 @@ class IdempotencyMiddleware:
                         )
                     await response(scope, receive, send)
                     return
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 # বল মনতবয: কযশকরত idempotency রকরড পরস করত বযরথ হল রকয়সট পনরায় পরসস হব;
                 # নরবভ ডট করাপশন লকয় রখত warning লগ যকত কর হল
                 logger.warning(f"Failed to parse cached idempotency record for key {idempotency_key}: {exc}")
@@ -56353,7 +56349,7 @@ class UpstashRedisQueue:
             response = self._request(*command)
             # Upstash REST-এর ক্ষেত্রে সেট সফল হলে {"result": "OK"} অন্যথায় {"result": null} আসে
             return response.get("result") == "OK"
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis SET NX failed: {exc}")
             return False
 
@@ -56366,7 +56362,7 @@ class UpstashRedisQueue:
             command.extend(args)
             response = self._request(*command)
             return response.get("result")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis EVAL failed: {exc}")
             return None
 
@@ -56375,7 +56371,7 @@ class UpstashRedisQueue:
             return None
         try:
             return self._request("GET", key).get("result")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis GET failed: {exc}")
             return None
 
@@ -56388,7 +56384,7 @@ class UpstashRedisQueue:
                 command.extend(["EX", ex])
             self._request(*command)
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis SET failed: {exc}")
             return False
 
@@ -56398,7 +56394,7 @@ class UpstashRedisQueue:
         try:
             result = self._request("INCR", key).get("result")
             return int(result) if result is not None else None
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis INCR failed: {exc}")
             return None
 
@@ -56408,7 +56404,7 @@ class UpstashRedisQueue:
         try:
             result = self._request("DECR", key).get("result")
             return int(result) if result is not None else None
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis DECR failed: {exc}")
             return None
 
@@ -56418,7 +56414,7 @@ class UpstashRedisQueue:
         try:
             self._request("EXPIRE", key, str(ttl))
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis EXPIRE failed: {exc}")
             return False
 
@@ -56428,7 +56424,7 @@ class UpstashRedisQueue:
         try:
             self._request("PUBLISH", channel, message)
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis PUBLISH failed: {exc}")
             return False
 
@@ -56438,7 +56434,7 @@ class UpstashRedisQueue:
         try:
             result = self._request("LPUSH", key, value).get("result")
             return int(result) if result is not None else None
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis LPUSH failed: {exc}")
             return None
 
@@ -56447,7 +56443,7 @@ class UpstashRedisQueue:
             return None
         try:
             return self._request("RPOP", key).get("result")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Upstash Redis RPOP failed: {exc}")
             return None
 
@@ -56480,19 +56476,19 @@ class DynamicConfigProxy:
         # TTL চেক (১ মিনিট)
         if datetime.now() > self._expiry:
             await self._refresh_cache()
-        
+
         return self._cache.get(key, default)
 
     async def _refresh_cache(self):
         try:
             doc_ref = self._db.collection(f"tenants/{self._tenant_id}/config/runtime").document("settings")
-            
+
             # handle both sync and async get() based on the db client
             if asyncio.iscoroutinefunction(doc_ref.get):
                 snapshot = await doc_ref.get()
             else:
                 snapshot = doc_ref.get()
-                
+
             if snapshot.exists:
                 self._cache = snapshot.to_dict()
                 self._expiry = datetime.now() + timedelta(minutes=1)
@@ -56551,7 +56547,7 @@ class TokenDeductor:
         try:
             with open(config_path, encoding="utf-8") as f:
                 self.config = json.load(f)
-        except Exception:
+        except Exception:  # noqa: BLE001
             self.config = {
                 "token_rates_usd_per_1k": {"input": 0.0015, "output": 0.0020},
                 "byoc_deployment_fee_usd": 0.05
@@ -56565,11 +56561,11 @@ class TokenDeductor:
         if not redis_queue.configured:
             # Fallback for local testing without active Upstash credentials
             return True
-            
+
         try:
             # SET lock_key lock_value NX EX ttl
             return redis_queue.set_nx(lock_key, lock_value, ex=ttl)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to acquire distributed lock: {e}")
             return False
 
@@ -56589,7 +56585,7 @@ class TokenDeductor:
             end
             """
             redis_queue.eval(lua_script, 1, lock_key, lock_value)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to release distributed lock: {e}")
 
     async def deduct_tokens(self, session: AsyncSession, user_id: str, input_tokens: int, output_tokens: int, model_name: str) -> bool:
@@ -56598,7 +56594,7 @@ class TokenDeductor:
         """
         lock_key = f"lock:wallet:{user_id}"
         lock_value = str(uuid.uuid4())
-        
+
         # Poll lock acquisition to avoid blocking
         acquired = False
         for _ in range(20):
@@ -56651,17 +56647,17 @@ class TokenDeductor:
                     description=f"Consumed {input_tokens}i/{output_tokens}o tokens on model: {model_name}"
                 )
                 session.add(entry)
-            
-            # session.begin() ব্লকের বাইরে আসার সাথে সাথে এটি অটোমেটিকভাবে কমিট হবে। 
+
+            # session.begin() ব্লকের বাইরে আসার সাথে সাথে এটি অটোমেটিকভাবে কমিট হবে।
             # যদি অন্য কোনো থ্রেড ইতমধ্যে ব্যালেন্স মডিফাই করে থাকে, তবে SQLAlchemy 'version' কলাম চেক করে StaleDataError থ্রো করবে।
-            
+
             logger.success(f"Deducted ${cost} from user {user_id} for token usage.")
             return True
 
         except StaleDataError:
             logger.critical(f"Optimistic Concurrency Failure: Wallet modified by another transaction for user {user_id}")
             return False
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Transaction failed for {user_id}: {str(e)}")
             return False
         finally:
@@ -56673,7 +56669,7 @@ class TokenDeductor:
         """
         lock_key = f"lock:wallet:{user_id}"
         lock_value = str(uuid.uuid4())
-        
+
         acquired = False
         for _ in range(20):
             acquired_lock = await asyncio.to_thread(self._acquire_distributed_lock, lock_key, lock_value, 5)
@@ -56717,14 +56713,14 @@ class TokenDeductor:
                     description=f"BYOC deployment fee for skill: {skill_name}"
                 )
                 session.add(entry)
-            
+
             logger.success(f"Deducted ${cost} deployment fee from user {user_id}.")
             return True
-            
+
         except StaleDataError:
             logger.critical(f"Optimistic Concurrency Failure: Wallet modified by another transaction for user {user_id}")
             return False
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Transaction failed for {user_id}: {str(e)}")
             return False
         finally:
@@ -56755,7 +56751,7 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # বাংলা মন্তব্য: এপিআই রিকোয়েস্টের Origin এবং Host হেডার রিড করা হচ্ছে।
         origin = request.headers.get("Origin")
-        
+
         # যদি রিকোয়েস্টে অরিজিন হেডার থাকে (যেমন ব্রাউজার বেসড রিকোয়েস্ট), তবে সেটি হোয়াইটলিস্টে থাকতে হবে
         if origin and origin not in self.allowed_origins:
                 client_ip = request.client.host if request.client else "unknown"
@@ -56764,14 +56760,14 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
                     status_code=status.HTTP_403_FORBIDDEN,
                     content={"detail": "Cross-Origin Request Blocked. Device identity unauthorized."}
                 )
-                
+
         # বাংলা মন্তব্য: হোস্ট হেডার ভ্যালিডেশন
         host = request.headers.get("Host")
         is_allowed = True
         if host:
             allowed_hosts = set(settings.allowed_hosts)
             is_allowed = host in allowed_hosts or any(host.endswith("." + h) for h in allowed_hosts)
-            
+
         if host and not is_allowed:
             logger.critical(f"🚨 Security Intrusion: Host Header Tampering Detected -> {host}")
             return JSONResponse(
@@ -56781,14 +56777,14 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
 
         # বাংলা কমেন্ট: ভ্যালিডেশন সাকসেসফুল হলে রিকোয়েস্ট পরবর্তী প্রসেসে পাস হবে
         response = await call_next(request)
-        
+
         # জিরো-গ্যাপ CORS হেডার ইনজেকশন (ওয়াইল্ডকার্ড মুক্ত)
         if origin and origin in self.allowed_origins:
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Access-Control-Allow-Credentials"] = "true"
             response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
             response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
-            
+
         return response
 
 ```
@@ -56922,7 +56918,7 @@ class RulesMutator:
                 val = services.redis_queue.get(redis_key)
                 if val is not None:
                     return val != "ok"
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Redis connection failed during is_ip_blocked: {e}")
         return False
 
@@ -56941,7 +56937,7 @@ class RulesMutator:
                     redis_key, f"blocked:{reason}", ex=self.cooldown_seconds
                 )
                 return True
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Redis connection failed during block_ip: {e}")
         return False
 
@@ -56958,7 +56954,7 @@ class RulesMutator:
             try:
                 services.redis_queue.set(redis_key, "", ex=1)
                 return True
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Redis connection failed during release_ip: {e}")
         return False
 
@@ -57129,7 +57125,7 @@ class TaskRouter:
                     response.raise_for_status()
                     logger.success(f"Skill triggered on attempt {attempt + 1}")
                     return response.json()
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     logger.warning(f"Attempt {attempt + 1} failed: {str(e)}")
                     if attempt == retries - 1:
                         logger.error("All retry attempts failed.")
@@ -57285,7 +57281,7 @@ class Orchestrator:
                         executed_skills[-2], skill, success=True
                     )
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(
                     f"Skill execution failed for '{skill}': {e}. Triggering rollback/fallback."
                 )
@@ -57339,7 +57335,7 @@ class Orchestrator:
                 async with asyncio.TaskGroup() as tg:
                     for task_fn in self._tasks:
                         tg.create_task(task_fn())
-        except* Exception as eg:
+        except* Exception as eg:  # noqa: BLE001
             for exc in eg.exceptions:
                 logger.error(f"Error in orchestrator task group loop: {exc}")
 
@@ -57433,7 +57429,7 @@ class TenantAwareFirestore:
                 self._db = get_firestore_client()
                 if self._db is None:
                     self._db = firestore.Client()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self._db = firestore.Client()
 
         # 🛡️ হার্ড-আইসোলেটেড রুট রেফারেন্স
@@ -57594,10 +57590,10 @@ async def app_lifespan(app):
     except Exception as exc:
         logger.error(f"❌ Failed to initialize DB Pool: {exc}")
         raise exc
-        
+
     try:
         await config_cache.refresh_async()
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.critical(f"🚨 সিস্টেম স্টার্টআপ ব্লক করা হয়েছে - কনফিগারেশন অনুপস্থিত! {exc}")
         import sys
         sys.exit(1)
@@ -57617,7 +57613,7 @@ async def app_lifespan(app):
             )
             app.state.discord_bot = bot
             logger.info("🤖 Discord Bot background task initialized successfully.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Deferred Discord Bot initialization: {e}")
 
     try:
@@ -57625,7 +57621,7 @@ async def app_lifespan(app):
         app.state.orchestrator = orch_inst
         await orch_inst.start()
         logger.info("⚙️ Orchestrator background tasks initialized successfully.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to initialize Orchestrator: {e}")
 
     try:
@@ -57636,7 +57632,7 @@ async def app_lifespan(app):
         ):
             supabase_db.bootstrap_schema()
             logger.info("Supabase schema bootstrap complete")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.warning(
             f"Supabase bootstrap failed on startup: {exc}. Continuing without schema bootstrap."
         )
@@ -57655,7 +57651,7 @@ async def app_lifespan(app):
         orchestrator = getattr(app.state, "orchestrator", None)
         if orchestrator:
             await orchestrator.stop()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error closing Discord Bot: {e}")
 
     try:
@@ -57663,27 +57659,27 @@ async def app_lifespan(app):
         if pool:
             await pool.close()
             logger.info("✅ Database connection pool closed successfully.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error closing DB pool: {e}")
 
     try:
         await redis_manager.close()
         logger.info("✅ Redis Manager connection closed.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error closing Redis Manager: {e}")
 
     try:
         if services.global_http_client:
             await services.global_http_client.aclose()
         logger.info("✅ Global HTTP connection pool closed successfully.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error during HTTP connection pool drainage: {str(e)}")
 
     try:
         from tools.browser_agent import shutdown_global_browser
 
         await shutdown_global_browser()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to shutdown global browser: {e}")
 
     logger.info("💀 Serverless runtime environment sequence successfully finalized.")
@@ -57720,13 +57716,13 @@ async def guard_enum(db_enum_name: str, py_enum: type[enum.Enum]):
                 {"enum_name": db_enum_name}
             )
             db_labels = {row[0] for row in result.all()}
-            
+
             if not db_labels:
                 logger.warning(f"Enum '{db_enum_name}' not found in database. Is Alembic up to date?")
                 return
-            
+
             py_labels = {e.value for e in py_enum}
-            
+
             if db_labels != py_labels:
                 missing_in_db = py_labels - db_labels
                 missing_in_py = db_labels - py_labels
@@ -57736,7 +57732,7 @@ async def guard_enum(db_enum_name: str, py_enum: type[enum.Enum]):
                 if missing_in_py:
                     error_msg += f"Values in DB but missing in Python: {missing_in_py}. "
                 raise EnumMismatchError(error_msg)
-            
+
             logger.info(f"Enum '{db_enum_name}' successfully validated against Python model.")
     except Exception as e:
         if isinstance(e, EnumMismatchError):
@@ -57751,16 +57747,16 @@ async def run_enum_guards():
     from models.execution_policy import PolicyScope
     from models.target_platform_credential import AuthType
     from models.target_platform_credential import CredentialStatus
-    
+
     logger.info("Running Startup Enum Guards...")
-    
+
     await guard_enum("agent_session_state", AgentSessionState)
     await guard_enum("control_mode", ControlMode)
     await guard_enum("log_type_enum", LogType)
     await guard_enum("policy_scope_enum", PolicyScope)
     await guard_enum("auth_type_enum", AuthType)
     await guard_enum("credential_status_enum", CredentialStatus)
-    
+
     logger.info("All Enum Guards passed.")
 
 ```
@@ -57814,11 +57810,11 @@ async def _single_healing_iteration(state: HealingState) -> HealingState:
     if VulnerabilityPredictor.scan(state.code):
         state.result = "vulnerable"
         return state
-        
+
     state = await run_sandbox_tests(state)
     if state.result == "success":
         return state
-        
+
     state = await analyze_with_litellm(state)
     state = await apply_patch(state)
     return state
@@ -57828,7 +57824,7 @@ def _quarantine_and_diagnose(state: HealingState, reason: str):
     quarantine_dir = Path("data/quarantine")
     quarantine_dir.mkdir(parents=True, exist_ok=True)
     report_file = quarantine_dir / f"diagnostic_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    
+
     report = {
         "reason": reason,
         "retries": state.retries,
@@ -57836,10 +57832,10 @@ def _quarantine_and_diagnose(state: HealingState, reason: str):
         "tests": state.tests,
         "timestamp": datetime.now().isoformat()
     }
-    
+
     with open(report_file, "w") as f:
         json.dump(report, f, indent=2)
-        
+
     loguru.logger.error(f"[Quarantine] Skill isolated due to {reason}. Diagnostic report saved to {report_file}")
 
 async def run_healing_loop(code: str, tests: str, max_retries: int = 3) -> dict[str, Any]:
@@ -57847,23 +57843,23 @@ async def run_healing_loop(code: str, tests: str, max_retries: int = 3) -> dict[
     state.code = code
     state.tests = tests
     state.retries = 0
-    
+
     while state.retries < max_retries:
         try:
             # Enforce strict 5 second timeout on each healing iteration
             state = await asyncio.wait_for(_single_healing_iteration(state), timeout=5.0)
-            
+
             if state.result == "vulnerable":
                 _quarantine_and_diagnose(state, "CWE Vulnerability Detected")
                 return {"status": "quarantined", "reason": "vulnerability", "attempts": state.retries}
-                
+
             if state.result == "success":
                 return {"status": "healed", "attempts": state.retries}
-                
+
         except TimeoutError:
             _quarantine_and_diagnose(state, "Healing Loop Timeout (5s exceeded)")
             return {"status": "quarantined", "reason": "timeout", "attempts": state.retries}
-            
+
         state.retries += 1
 
     # After max retries (3 crashes/failures)
@@ -57900,8 +57896,8 @@ async def main():
     pip_results = agent.check_pip_dependencies()
     if pip_results.get("success") and pip_results.get("count", 0) > 0:
         logger.info(f"Found {pip_results['count']} outdated pip packages.")
-        print("--- Outdated Pip Packages ---")
-        print(json.dumps(pip_results["outdated_packages"], indent=2))
+        print("--- Outdated Pip Packages ---")  # noqa: T201
+        print(json.dumps(pip_results["outdated_packages"], indent=2))  # noqa: T201
         # Here you could add logic to automatically update a specific package
         # For example, to update the first outdated package:
         # outdated_pkg = pip_results['outdated_packages'][0]
@@ -57914,8 +57910,8 @@ async def main():
         logger.warning(
             f"Found {pip_vuln_results['count']} vulnerabilities in pip packages."
         )
-        print("--- Pip Package Vulnerabilities (pip-audit) ---")
-        print(json.dumps(pip_vuln_results["vulnerabilities"], indent=2))
+        print("--- Pip Package Vulnerabilities (pip-audit) ---")  # noqa: T201
+        print(json.dumps(pip_vuln_results["vulnerabilities"], indent=2))  # noqa: T201
     else:
         logger.info("No vulnerabilities found in pip packages.")
 
@@ -57926,8 +57922,8 @@ async def main():
         npm_results = agent.check_npm_dependencies(project_path=frontend_path)
         if npm_results.get("success") and npm_results.get("count", 0) > 0:
             logger.info(f"Found {npm_results['count']} outdated npm packages.")
-            print("--- Outdated NPM Packages ---")
-            print(json.dumps(npm_results["outdated_packages"], indent=2))
+            print("--- Outdated NPM Packages ---")  # noqa: T201
+            print(json.dumps(npm_results["outdated_packages"], indent=2))  # noqa: T201
         else:
             logger.info("No outdated npm packages found.")
 
@@ -57939,8 +57935,8 @@ async def main():
                 .get("vulnerabilities", {})
             )
             logger.warning(f"NPM audit found vulnerabilities: {summary}")
-            print("--- NPM Package Vulnerabilities (npm audit) ---")
-            print(json.dumps(npm_vuln_results["audit_results"], indent=2))
+            print("--- NPM Package Vulnerabilities (npm audit) ---")  # noqa: T201
+            print(json.dumps(npm_vuln_results["audit_results"], indent=2))  # noqa: T201
 
     logger.info("Dependency analysis complete.")
 
@@ -57993,7 +57989,7 @@ class SeedDataLoader:
             blob = bucket.blob(f"seed/{blob_name}.json")
             data = blob.download_as_string()
             return json.loads(data)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"GCS load failed: {e}")
             return self._local_fallback(blob_name)
 
@@ -58003,7 +57999,7 @@ class SeedDataLoader:
             s3 = boto3.client("s3")
             response = s3.get_object(Bucket=self.bucket, Key=f"seed/{key}.json")
             return json.loads(response["Body"].read())
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"S3 load failed: {e}")
             return self._local_fallback(key)
 
@@ -58050,7 +58046,7 @@ class SeedDataLoader:
 if __name__ == "__main__":
     loader = SeedDataLoader()
     data = loader.load_all()
-    print(f"Loaded {len(data)} categories")
+    print(f"Loaded {len(data)} categories")  # noqa: T201
 
 ```
 
@@ -58424,7 +58420,7 @@ def seed_tools():
         db.client.table("tools_registry").upsert(records).execute()
         logger.success(f"✅ Seeded {len(records)} tools successfully.")
         return True
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to seed tools: {e}")
         return False
 
@@ -58472,7 +58468,7 @@ RESET = "\033[0m"
 
 def bprint(msg: str, color: str = "") -> None:
     """বাংলা/ইংলিশ মিক্সড প্রিন্ট"""
-    print(f"{color}{msg}{RESET}")
+    print(f"{color}{msg}{RESET}")  # noqa: T201
 
 
 # ──────────────────────────────────────────────
@@ -58494,7 +58490,7 @@ def check_server() -> bool:
             "   🔧 সমাধান: `ollama serve` চালু করুন বা Windows-তে Ollama এপ খুলুন", YELLOW
         )
         return False
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         bprint(f"❌ এরর: {e}", RED)
         return False
 
@@ -58556,7 +58552,7 @@ def ensure_model(model_name: str) -> bool:
     except httpx.TimeoutException:
         bprint(f"  ❌ '{model_name}' pull হল时间内 শেষ হয়নি ({PULL_TIMEOUT}s)", RED)
         return False
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         bprint(f"  ❌ Pull এরর: {e}", RED)
         return False
 
@@ -58591,7 +58587,7 @@ def test_generation(model_name: str) -> bool:
     except httpx.TimeoutException:
         bprint("  ❌ জেনারেশন timeout (৬০s)", RED)
         return False
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         bprint(f"  ❌ এরর: {e}", RED)
         return False
 
@@ -58647,10 +58643,10 @@ import logging
 # Configure logger to output to terminal
 logging.basicConfig(level=logging.WARNING)
 
-from core.event_bus import error_event_bus, ErrorEvent
+from core.event_bus import error_event_bus, ErrorEvent  # noqa: E402
 
 async def main():
-    print("Mocking an error trigger...")
+    print("Mocking an error trigger...")  # noqa: T201
     event = ErrorEvent(
         module="mock.module",
         error_type="MockError",
@@ -58658,13 +58654,13 @@ async def main():
         severity="WARNING",
         context={"task_id": "mock_task_123"}
     )
-    
+
     # Fire the event bus
     await error_event_bus.emit_async(event)
-    
+
     # Wait a bit for the async listener to finish
     await asyncio.sleep(0.5)
-    print("Mock error triggered successfully.")
+    print("Mock error triggered successfully.")  # noqa: T201
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -58698,21 +58694,21 @@ async def simulate_request(tenant_id: str, request_id: int):
             tenant_id=tenant_id
         )
         return "success"
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         if "402 Payment Required" in str(e):
             return "402"
         return "error"
 
 async def main():
-    print("Starting Phase 3 Load Test (1,000 Transactions)")
+    print("Starting Phase 3 Load Test (1,000 Transactions)")  # noqa: T201
     tenant_id = "tenant-load-test"
     db = get_firestore_db()
-    
+
     # Pre-configure mock DB if needed
     if db:
         budget_ref = db.collection("tenants").document(tenant_id).collection("budget").document("current")
         await budget_ref.set({"monthly_limit": 100.0, "spent_amount": 0.0})
-    
+
     # Mock LiteLLM so we don't make real API calls
     with patch("litellm.acompletion", new_callable=AsyncMock) as mock_litellm:
         # Simulate 1% failure rate for SelfHealer testing
@@ -58722,48 +58718,48 @@ async def main():
                 raise Exception("Simulated LiteLLM Error for SelfHealer")
             return AsyncMock()
         mock_litellm.side_effect = mock_acompletion_side_effect
-        
+
         start_time = time.perf_counter()
-        
+
         tasks = [simulate_request(tenant_id, i) for i in range(1000)]
         results = await asyncio.gather(*tasks)
-        
+
         elapsed = time.perf_counter() - start_time
-        
+
         successes = results.count("success")
         payment_required = results.count("402")
         errors = results.count("error")
-        
-        print("\n=== Load Test Results ===")
-        print("Total Requests: 1000")
-        print(f"Success: {successes}")
-        print(f"402 Payment Required (False Positives?): {payment_required}")
-        print(f"Other Errors (Triggered SelfHealer): {errors}")
-        print(f"Total Time: {elapsed:.2f} seconds")
-        print(f"Latency: {(elapsed/1000)*1000:.2f} ms / request (avg concurrency)")
-        print(f"RPS: {1000/elapsed:.2f} req/s")
+
+        print("\n=== Load Test Results ===")  # noqa: T201
+        print("Total Requests: 1000")  # noqa: T201
+        print(f"Success: {successes}")  # noqa: T201
+        print(f"402 Payment Required (False Positives?): {payment_required}")  # noqa: T201
+        print(f"Other Errors (Triggered SelfHealer): {errors}")  # noqa: T201
+        print(f"Total Time: {elapsed:.2f} seconds")  # noqa: T201
+        print(f"Latency: {(elapsed/1000)*1000:.2f} ms / request (avg concurrency)")  # noqa: T201
+        print(f"RPS: {1000/elapsed:.2f} req/s")  # noqa: T201
 
         # Test Sandbox TTL
-        print("\n=== Testing Sandbox Auto-Destroy ===")
+        print("\n=== Testing Sandbox Auto-Destroy ===")  # noqa: T201
         orchestrator = CloudSandboxOrchestrator(provider="runpod")
         sandbox_id = "load-test-sandbox-1"
         orchestrator._active_sandboxes[sandbox_id] = {
             "created_at": time.time() - 700, # 11.6 minutes ago (exceeds 10m TTL)
             "status": "running"
         }
-        
-        print(f"Injected sandbox {sandbox_id} with age 11.6 minutes.")
-        print("Starting auto_destroy_worker for 1 iteration (mocked sleep to exit)...")
-        
+
+        print(f"Injected sandbox {sandbox_id} with age 11.6 minutes.")  # noqa: T201
+        print("Starting auto_destroy_worker for 1 iteration (mocked sleep to exit)...")  # noqa: T201
+
         with patch("asyncio.sleep", AsyncMock(side_effect=Exception("Exit Loop"))):
             try:
                 await orchestrator.auto_destroy_worker(tenant_id)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 if str(e) == "Exit Loop":
                     pass
-        
+
         remaining = len(orchestrator._active_sandboxes)
-        print(f"Remaining sandboxes after cleanup: {remaining} (Expected 0)")
+        print(f"Remaining sandboxes after cleanup: {remaining} (Expected 0)")  # noqa: T201
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -58834,7 +58830,7 @@ if HAS_LANGSMITH:
                 fallbacks=get_fallback_chain(model),
             )
             return {"model": model, "text": response.choices[0].message.content}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Model dispatch failed: {exc}")
             return {"model": model, "text": "", "error": str(exc)}
 else:
@@ -58891,7 +58887,7 @@ class CostOptimizer:
             provider = self.free_tier_tracker.get_best_provider()
             if provider:
                 return provider
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Free tier tracker unavailable: {exc}")
         return None
 
@@ -59130,7 +59126,7 @@ def get_firestore_db(project_id: str | None = None) -> Any | None:
         _client_cache[resolved_project] = client
         logger.info(f"Firestore client initialized for project: {resolved_project}")
         return client
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.warning(f"Firestore client initialization failed: {exc}")
         return None
 
@@ -59241,7 +59237,7 @@ async def safe_api_call(
         error_msg = handle_api_error(e, e.response.status_code)
         logger.warning(f"HTTP error calling {url}: {error_msg}")
         return (False, error_msg)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         error_msg = handle_api_error(e)
         logger.error(f"Request failed for {url}: {error_msg}")
         return (False, error_msg)
@@ -59456,7 +59452,7 @@ async def _validate_api_key(provider: str, api_key: str) -> bool:
         async with httpx.AsyncClient(timeout=8.0) as client:
             resp = await client.get(url, headers=headers)
             return resp.status_code in (200, 206)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.debug(f"API key validation request failed: {exc}")
         return False
 
@@ -59482,7 +59478,7 @@ def _save_user_preferences(payload: OnboardingPayload) -> bool:
             db.client.table("user_preferences").upsert(prefs).execute()
             logger.info(f"Onboarding prefs saved to Supabase for {payload.user_id}")
             return True
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.debug(f"Supabase preference save failed: {exc}")
 
     # Local fallback
@@ -59494,7 +59490,7 @@ def _save_user_preferences(payload: OnboardingPayload) -> bool:
         safe = payload.user_id.replace("/", "_")[:40]
         (p / f"{safe}.json").write_text(json.dumps(prefs, indent=2))
         return True
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.warning(f"Local preference save failed: {exc}")
         return False
 
@@ -59526,7 +59522,7 @@ async def complete_onboarding(payload: OnboardingPayload):
 
             store = SecureCredentialStore()
             store.set(f"{payload.user_id}:{payload.provider}_api_key", payload.api_key)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Credential store failed: {exc}")
 
     model_ready = provider_valid and bool(payload.default_model)
@@ -59582,7 +59578,7 @@ async def get_onboarding_status(user_id: str) -> dict[str, Any]:
                         ),
                     },
                 }
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.debug(f"Status check DB error: {exc}")
 
     return {"user_id": user_id, "onboarding_complete": False}
@@ -59598,7 +59594,7 @@ async def reset_onboarding(user_id: str) -> dict[str, str]:
             db.client.table("user_preferences").delete().eq(
                 "user_id", user_id
             ).execute()
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         # বল মনতবয: রসট বযরথ হল আগ নরব success রটরন করত (ভল ইমপরশন);
         # এখন বযরথত warning হসব লগ কর হয় যত সপরট টম সমসয জনত পর
         logger.warning(f"Failed to reset onboarding state for {user_id}: {exc}")
@@ -60129,7 +60125,7 @@ try:
     from .approval_manager import router as approval_manager_router
 
     _safe_imports["approval_manager_router"] = approval_manager_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60140,7 +60136,7 @@ try:
     from .admin_dashboard import router as admin_dashboard_router
 
     _safe_imports["admin_dashboard_router"] = admin_dashboard_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60151,7 +60147,7 @@ try:
     from .agent_tasks import agent_router
 
     _safe_imports["agent_router"] = agent_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60162,7 +60158,7 @@ try:
     from .auth import router as auth_router
 
     _safe_imports["auth_router"] = auth_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60173,7 +60169,7 @@ try:
     from .async_task_router import router as async_task_router
 
     _safe_imports["async_task_router"] = async_task_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60184,7 +60180,7 @@ try:
     from .cdc_webhooks import router as cdc_router
 
     _safe_imports["cdc_router"] = cdc_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60195,7 +60191,7 @@ try:
     from .browser import router as browser_router
 
     _safe_imports["browser_router"] = browser_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60206,7 +60202,7 @@ try:
     from .codeflow import router as codeflow_router
 
     _safe_imports["codeflow_router"] = codeflow_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60217,7 +60213,7 @@ try:
     from .feedback import router as feedback_router
 
     _safe_imports["feedback_router"] = feedback_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60228,7 +60224,7 @@ try:
     from .knowledge import router as knowledge_router
 
     _safe_imports["knowledge_router"] = knowledge_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60239,7 +60235,7 @@ try:
     from .marketplace_endpoints import router as marketplace_router
 
     _safe_imports["marketplace_router"] = marketplace_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60250,7 +60246,7 @@ try:
     from .media import router as media_router
 
     _safe_imports["media_router"] = media_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60261,7 +60257,7 @@ try:
     from .memory import router as memory_router
 
     _safe_imports["memory_router"] = memory_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60272,7 +60268,7 @@ try:
     from .metrics import router as metrics_router
 
     _safe_imports["metrics_router"] = metrics_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60284,7 +60280,7 @@ try:
     from .site_actions import router as site_actions_router
 
     _safe_imports["site_actions_router"] = site_actions_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60296,7 +60292,7 @@ try:
     from .llm_gateway import router as llm_gateway_router
 
     _safe_imports["llm_gateway_router"] = llm_gateway_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60307,7 +60303,7 @@ try:
     from .simulator import router as simulator_router
 
     _safe_imports["simulator_router"] = simulator_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60318,7 +60314,7 @@ try:
     from .stream import router as stream_router
 
     _safe_imports["stream_router"] = stream_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60329,7 +60325,7 @@ try:
     from .task import router as task_router
 
     _safe_imports["task_router"] = task_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60340,7 +60336,7 @@ try:
     from .email import router as email_router
 
     _safe_imports["email_router"] = email_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60351,7 +60347,7 @@ try:
     from .github import router as github_router
 
     _safe_imports["github_router"] = github_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60362,7 +60358,7 @@ try:
     from .internal import router as internal_router
 
     _safe_imports["internal_router"] = internal_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60373,7 +60369,7 @@ try:
     from .config import router as config_router
 
     _safe_imports["config_router"] = config_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60384,7 +60380,7 @@ try:
     from .sso import router as sso_router
 
     _safe_imports["sso_router"] = sso_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60395,7 +60391,7 @@ try:
     from .repos import router as repos_router
 
     _safe_imports["repos_router"] = repos_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60406,7 +60402,7 @@ try:
     from .tools_ops import router as tools_ops_router
 
     _safe_imports["tools_ops_router"] = tools_ops_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60417,7 +60413,7 @@ try:
     from .voice import router as voice_router
 
     _safe_imports["voice_router"] = voice_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60428,7 +60424,7 @@ try:
     from .onboarding import router as onboarding_router
 
     _safe_imports["onboarding_router"] = onboarding_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60439,7 +60435,7 @@ try:
     from .tools_registry import router as tools_registry_router
 
     _safe_imports["tools_registry_router"] = tools_registry_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60450,7 +60446,7 @@ try:
     from .preferences import router as preferences_router
 
     _safe_imports["preferences_router"] = preferences_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60461,7 +60457,7 @@ try:
     from .usage_metrics import router as usage_metrics_router
 
     _safe_imports["usage_metrics_router"] = usage_metrics_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60472,7 +60468,7 @@ try:
     from .agents import router as agents_router
 
     _safe_imports["agents_router"] = agents_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60483,7 +60479,7 @@ try:
     from .payments import router as payments_router
 
     _safe_imports["payments_router"] = payments_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60494,7 +60490,7 @@ try:
     from .markdown import router as markdown_router
 
     _safe_imports["markdown_router"] = markdown_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60505,7 +60501,7 @@ try:
     from .api_keys import router as api_keys_router
 
     _safe_imports["api_keys_router"] = api_keys_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60516,7 +60512,7 @@ try:
     from .graph import router as graph_router
 
     _safe_imports["graph_router"] = graph_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60527,7 +60523,7 @@ try:
     from .ci_webhooks import router as ci_webhooks_router
 
     _safe_imports["ci_webhooks_router"] = ci_webhooks_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60537,7 +60533,7 @@ except Exception:
 try:
     from .websocket_voice import router as websocket_voice_router
     _safe_imports["websocket_voice_router"] = websocket_voice_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60547,7 +60543,7 @@ except Exception:
 try:
     from .integrations import router as integrations_router
     _safe_imports["integrations_router"] = integrations_router
-except Exception:
+except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
@@ -60724,14 +60720,14 @@ async def run_daily_evolution(request: Request, payload: RunEvolutionRequest):
             db = getattr(fq, "client", None)
             if db:
                 db.collection("evolution_logs").add(report)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.debug(f"Failed to persist evolution log to Firestore: {exc}")
     try:
         from database.supabase_client import db as supabase_db
 
         if supabase_db.client:
             supabase_db.append_evolution_log(report)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.debug(f"Failed to persist evolution log to Supabase: {exc}")
     return report
 
@@ -60884,8 +60880,8 @@ async def update_constitutional_rule(payload: RuleUpdate):
 async def trigger_quick_action(action_type: str):
     """Trigger 1-click Quick Actions from Dashboard"""
     # Verify if admin actions are currently allowed by god.py
-    god_layer.enforce("admin_action") 
-    
+    god_layer.enforce("admin_action")
+
     if action_type == "rollback":
         # Add rollback logic here
         return {"status": "Rollback initiated"}
@@ -60909,24 +60905,24 @@ async def get_fixes(
     db = get_firestore_db()
     fixes_ref = db.collection("tenants").document(tenant_id).collection("fixes")
     query = fixes_ref.where("status", "==", status)
-    
+
     try:
         results = await query.get()
     except TypeError:
         # Fallback for sync mock
         results = query.get()
-        
+
     fixes = []
     for doc in results:
         fix_data = doc.to_dict()
         fix_data["id"] = doc.id
         fixes.append(fix_data)
-        
+
     return {"fixes": fixes}
 
 @router.post("/fixes/{fix_id}/approve")
 async def approve_fix(
-    fix_id: str, 
+    fix_id: str,
     tenant_id: str = "default",
     admin_user: dict = Depends(get_current_admin),
     healer: SelfHealerService = Depends(get_healer_service)
@@ -60934,37 +60930,37 @@ async def approve_fix(
     """Approve a pending fix."""
     admin_id = admin_user.get("sub", "unknown_admin")
     logger.info(f"Admin {admin_id} approving fix {fix_id} for tenant {tenant_id}")
-    
+
     success = await healer.apply_fix(tenant_id, fix_id, admin_id)
     if not success:
         raise HTTPException(status_code=400, detail="Failed to apply fix. It may not exist or is already processed.")
-        
+
     return {"status": "success", "fix_id": fix_id}
 
 @router.post("/fixes/{fix_id}/reject")
 async def reject_fix(
-    fix_id: str, 
+    fix_id: str,
     tenant_id: str = "default",
     admin_user: dict = Depends(get_current_admin)
 ):
     """Reject a pending fix."""
     admin_id = admin_user.get("sub", "unknown_admin")
     logger.info(f"Admin {admin_id} rejecting fix {fix_id} for tenant {tenant_id}")
-    
+
     db = get_firestore_db()
     doc_ref = db.collection("tenants").document(tenant_id).collection("fixes").document(fix_id)
-    
+
     update_data = {
         "status": "rejected",
         "reviewed_by": admin_id,
         "applied_at": datetime.now(UTC).isoformat()
     }
-    
+
     try:
         await doc_ref.update(update_data)
     except TypeError:
         doc_ref.update(update_data)
-        
+
     return {"status": "success", "fix_id": fix_id}
 
 ```
@@ -61168,7 +61164,7 @@ def format_chat_history(messages: list[dict]) -> str:
                 data = json.loads(content)
                 if isinstance(data, dict) and "content" in data:
                     content = data["content"]
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
         role_label = "User" if role == "user" else "Assistant"
@@ -61512,13 +61508,13 @@ def get_enabled_catalog_sources() -> list[str]:
 
     try:
         enabled = db.get_config("marketplace.resource_sources")
-    except Exception:
+    except Exception:  # noqa: BLE001
         enabled = None
 
     if isinstance(enabled, str):
         try:
             enabled = json.loads(enabled)
-        except Exception:
+        except Exception:  # noqa: BLE001
             enabled = [item.strip() for item in enabled.split(",") if item.strip()]
 
     if not isinstance(enabled, list):
@@ -61624,7 +61620,7 @@ async def execute_task(payload: TaskPayload, background_tasks: BackgroundTasks):
     Integrates Redis rate limiting, RAM conversation history, and Supabase persistent storage.
     """
     _tenant_id = "default_user_session" # প্রোডাকশনে এটি JWT বা সেশন টোকেন থেকে আসবে
-    
+
     try:
         # বাংলা মন্তব্য: মেসেজ হিস্ট্রি এবং নতুন টাস্ক প্রম্পটকে গেটওয়ের উপযোগী মেসেজ লিস্ট স্কিমায় কনভার্ট করা হচ্ছে
         messages_payload = []
@@ -61633,7 +61629,7 @@ async def execute_task(payload: TaskPayload, background_tasks: BackgroundTasks):
                 "role": "user" if msg.role.lower() == "user" else "assistant",
                 "content": msg.content
             })
-        
+
         messages_payload.append({
             "role": "user",
             "content": f"Current Task ({payload.task_type}): {payload.task}"
@@ -61652,13 +61648,13 @@ async def execute_task(payload: TaskPayload, background_tasks: BackgroundTasks):
         # রেসপন্স যেন ফাস্ট হয়, তাই ডাটাবেসে সেভ করার কাজটি ব্যাকগ্রাউন্ডে দেওয়া হলো
         def save_to_supabase(task, result):
             pass # supabase.table("task_history").insert({"task": task, "result": result}).execute()
-        
+
         background_tasks.add_task(save_to_supabase, payload.task, result_text)
 
         return {"result": result_text, "status": "success"}
 
     except Exception as e:
-        print(f"❌ Neural Pipeline Error: {str(e)}")
+        print(f"❌ Neural Pipeline Error: {str(e)}")  # noqa: T201
         raise HTTPException(status_code=500, detail="Neural connection pipeline error.") from e
 
 # ==========================================
@@ -62275,7 +62271,7 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
                 event="checkout_session_created",
                 properties={"price_id": payload.price_id},
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: PostHog তলমটর বযরথ হল চকআউট পরসস আটকান উচত নয়;
             # তব নরব সযলপ ন কর ডবগ লগ কর হল
             logger.debug(f"PostHog checkout capture failed: {exc}")
@@ -62321,7 +62317,7 @@ async def stripe_webhook(request: Request):
                         "plan_id": price_id,
                     }
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(
                     f"Failed to update user subscription status in Firestore: {e}"
                 )
@@ -62333,7 +62329,7 @@ async def stripe_webhook(request: Request):
                 event="subscription_completed",
                 properties={"subscription_id": subscription_id, "price_id": price_id},
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: সাবসকরপশন ইভননথ PostHog-এ পাঠাত বযরথ হল webhook পরসসং চলব;
             # নরব সযলপর বদল ডবগ লগ কর হল
             logger.debug(f"PostHog subscription capture failed: {exc}")
@@ -62446,7 +62442,7 @@ async def save_credentials(payload: BYOCCredentialsPayload):
         encrypted_data = GCPCredentialManager.encrypt_credentials(sa_dict)
         user_id = "default_user_session"
         encrypted_vault[user_id] = encrypted_data
-        
+
         return {
             "status": "success",
             "message": "GCP Service Account credentials encrypted and securely saved.",
@@ -62475,7 +62471,7 @@ async def deploy_container(payload: BYOCDeployRequest, background_tasks: Backgro
         with open(config_path, encoding="utf-8") as f:
             limits = json.load(f)["limits"]
             user_limits = limits.get(user_tier, limits["free"])
-    except Exception:
+    except Exception:  # noqa: BLE001
         user_limits = {"max_containers": 1, "max_memory": "256Mi", "max_cpu": "500m"}
 
     # Count active containers (simulation check)
@@ -62520,7 +62516,7 @@ async def deploy_container(payload: BYOCDeployRequest, background_tasks: Backgro
                 job.finished_at = datetime.now(UTC)
                 job.error_message = res.get("error", "Deployment failed")
                 job.logs.append(f"❌ Deployment failed: {job.error_message}")
-        except Exception as ex:
+        except Exception as ex:  # noqa: BLE001
             job.status = "failed"
             job.finished_at = datetime.now(UTC)
             job.error_message = str(ex)
@@ -62616,7 +62612,7 @@ async def get_evolution_logs(admin: dict = Depends(require_admin_token)):
         if db.client:
             logs = db.get_evolution_logs(limit=500)
             return {"logs": logs}
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         # বল মনতবয: Supabase থক লগ আনত বযরথ হল লকল JSONL ফলবযক বযবহত হয়;
         # নরব সযলপ ন কর ডবগ লগ কর হল যত DB সমসয দশযমন থক
         logger.debug(f"Supabase evolution logs fetch failed, using local fallback: {exc}")
@@ -62714,7 +62710,7 @@ async def quarantine_skill(
                         "created_at": datetime.now(UTC).isoformat(),
                     }
                 )
-        except Exception as db_err:
+        except Exception as db_err:  # noqa: BLE001
             logger.warning(f"Failed to log quarantine action to Supabase: {db_err}")
 
         try:
@@ -62731,7 +62727,7 @@ async def quarantine_skill(
                     )
                     + "\n"
                 )
-        except Exception as log_err:
+        except Exception as log_err:  # noqa: BLE001
             logger.warning(f"Failed to append quarantine log: {log_err}")
         return {"success": True, "skill_name": skill_name, "new_status": "QUARANTINED"}
     except HTTPException:
@@ -62790,10 +62786,10 @@ async def approve_proposal(
         proposal = result.scalars().first()
         if not proposal:
             raise HTTPException(status_code=404, detail="Proposal not found")
-        
+
         proposal.status = "approved"
         # এখানে ভবিষ্যতে আমাদের অটোনোমাস মার্জ লজিক বা GitOps ট্রিগার কল হবে।
-        
+
     return {"status": "success", "message": f"Proposal {proposal_id} approved."}
 
 ```
@@ -63226,7 +63222,7 @@ async def optional_current_user(
         user_id = payload.get("sub", "unknown")
         role = payload.get("role", "viewer")
         return UserContext(user_id=user_id, role=role)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return None
 
 
@@ -63365,10 +63361,10 @@ async def get_transaction_history(session: AsyncSession = Depends(get_db_session
 async def add_funds(amount: float, session: AsyncSession = Depends(get_db_session)):
     if amount <= 0.0:
         raise HTTPException(status_code=400, detail="Topup amount must be greater than zero.")
-    
+
     user_id = "default_user_session"
     await _ensure_wallet(session, user_id)
-    
+
     checkout_id = str(uuid.uuid4())
     return {
         "status": "pending",
@@ -63430,7 +63426,7 @@ async def stripe_webhook(request: Request, session: AsyncSession = Depends(get_d
                     description=f"Stripe Top-up (Intent: {payment_intent['id']})"
                 )
                 session.add(entry)
-            
+
             logger.success(f"Successfully credited ${amount_received} to user {user_id}")
 
     except StaleDataError as e:
@@ -63454,7 +63450,7 @@ async def sslcommerz_webhook_listener(request: Request, session: AsyncSession = 
     try:
         payload = await request.json()
         status_val = payload.get("status")
-        
+
         if status_val == "VALID":
             user_id = payload.get("value_a", "default_user_session")
             amount_bdt = float(payload.get("amount", 0))
@@ -63712,7 +63708,7 @@ def _conn() -> sqlite3.Connection:
         )
         """
     )
-    
+
     # Run migrations if columns don't exist
     cur = conn.cursor()
     cur.execute("PRAGMA table_info(site_actions)")
@@ -63723,7 +63719,7 @@ def _conn() -> sqlite3.Connection:
         conn.execute("ALTER TABLE site_actions ADD COLUMN selector_strategy TEXT DEFAULT 'exact'")
     if "health_score" not in columns:
         conn.execute("ALTER TABLE site_actions ADD COLUMN health_score INTEGER DEFAULT 100")
-        
+
     return conn
 
 class SiteActionIn(BaseModel):
@@ -63774,7 +63770,7 @@ def create_site_action(payload: SiteActionIn):
                 (site_name, url_pattern, action_name, selector, action_type, notes, enabled, 
                  fallback_selectors, selector_strategy, health_score, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
+            """,  # noqa: W291
             (
                 payload.site_name,
                 payload.url_pattern,
@@ -63850,10 +63846,10 @@ async def test_selector(req: TestSelectorRequest):
         row = conn.execute("SELECT selector FROM site_actions WHERE id = ?", (req.action_id,)).fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Action not found")
-            
+
     # Mock base64 1x1 transparent image for UI preview (in prod this is a real screenshot)
     mock_b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
-    
+
     # Simulate a hit
     return {
         "found": True,
@@ -63906,8 +63902,8 @@ async def mock_screencast_emitter(websocket: WebSocket, session_id: str):
         while True:
             # Throttle to ~10 FPS
             await asyncio.sleep(0.1)
-            
-            # 🛑 ZERO-GAP: Skip rendering logic handled client-side if frames pile up, 
+
+            # 🛑 ZERO-GAP: Skip rendering logic handled client-side if frames pile up,
             # but backend controls raw outgoing FPS here.
             await websocket.send_json({
                 "channel": "screencast",
@@ -63916,7 +63912,7 @@ async def mock_screencast_emitter(websocket: WebSocket, session_id: str):
     except asyncio.CancelledError:
         logger.warning("⚠️ Task execution was intentionally cancelled.")
         raise
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.exception(f"❌ Critical task failure in session_takeover.py: {e}")
         from core.event_bus import error_event_bus, ErrorEvent
         await error_event_bus.emit_async(
@@ -63941,22 +63937,22 @@ async def takeover_session_websocket(
     Mounts ONLY when control_mode == 'human'.
     """
     await websocket.accept()
-    
+
     if not verify_takeover_token(token):
         await websocket.send_json({"error": "Invalid or expired takeover token"})
         await websocket.close(code=1008)
         return
 
     logger.info(f"WebSocket takeover initiated for session {session_id}")
-    
+
     emitter_task = asyncio.create_task(mock_screencast_emitter(websocket, session_id))
-    
+
     try:
         # Loop for bidirectional communication
         while True:
             # Receive mouse/keyboard actions from the React client
             data = await websocket.receive_json()
-            
+
             action = data.get("action") or data.get("method")
             if action == "return_control":
                 # User clicked Return Control
@@ -63966,10 +63962,10 @@ async def takeover_session_websocket(
                 # Handle CDP input routing here
                 # (Will route to Playwright context in production)
                 logger.debug(f"CDP Event [{session_id}]: {action} - {data.get('params')}")
-                
+
     except WebSocketDisconnect:
         logger.info(f"WebSocket takeover disconnected for session {session_id}")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"WebSocket takeover error: {e}")
     finally:
         emitter_task.cancel()
@@ -64011,7 +64007,7 @@ class LearnRequest(BaseModel):
 
 @router.post("/agent/execute")
 async def execute_agent_command(command: WorkspaceCommand):
-    
+
     # 🟢 Step 1: Zero-Cost Memory Check (Project Auto-Didact)
     cached_solution = get_from_memory(command.prompt)
     if cached_solution:
@@ -64021,20 +64017,20 @@ async def execute_agent_command(command: WorkspaceCommand):
             "message": "Found in local memory.",
             "code": cached_solution
         }
-    
+
     # 🔴 Step 2: Premium API Escalation (যদি মেমোরিতে না পায়)
-    print("⚠️ Pattern not recognized. Escalating to Premium AI...")
-    
+    print("⚠️ Pattern not recognized. Escalating to Premium AI...")  # noqa: T201
+
     # এখানে আপনার OpenAI বা Claude এপিআই কল করার লজিক বসবে
     # ডামি রেসপন্স (টেস্টিংয়ের জন্য):
     ai_generated_code = f"// Code generated by AI for: {command.prompt}\nconsole.log('Hello World');"
-    
+
     # 🧠 Step 3: Learn and Save (AI-এর সমাধানটি মেমোরিতে সেভ করে রাখবে)
     # save_to_memory(command.prompt, ai_generated_code) (Removed: saving now happens in /agent/learn)
-    
+
     return {
         "status": "success",
-        "source": "ai_api", 
+        "source": "ai_api",
         "message": "Generated via AI (not saved to memory yet).",
         "code": ai_generated_code
     }
@@ -64045,7 +64041,7 @@ async def commit_to_memory(request: LearnRequest):
     শুধুমাত্র ভেরিফায়েড এবং কাজ করা কোডগুলোই মেমোরি ভল্টে সেভ হবে।
     """
     save_to_memory(request.prompt, request.working_code)
-    print(f"🧠 [Auto-Didact] Verified solution saved for prompt: {request.prompt[:30]}...")
+    print(f"🧠 [Auto-Didact] Verified solution saved for prompt: {request.prompt[:30]}...")  # noqa: T201
     return {"status": "success", "message": "Memorized successfully"}
 
 from services.github_agent import create_autonomous_pr
@@ -64063,7 +64059,7 @@ async def trigger_github_pr(request: PRRequest):
             commit_msg=commit_msg
         )
         return {"status": "success", "pr_url": pr_url}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return {"status": "error", "message": str(e)}
 
 @router.websocket("/agent/terminal-stream")
@@ -64072,20 +64068,20 @@ async def terminal_stream(websocket: WebSocket):
     try:
         # এটি একটি ডামি স্ট্রিম। পরবর্তীতে আমরা এখানে docker_sandbox বা WebContainers-এর লগ স্ট্রিম করব।
         await websocket.send_text("\r\n[System] Secure connection established with SupremeAI Agent.\r\n")
-        
+
         while True:
             # ক্লায়েন্ট থেকে কোনো কমান্ড আসলে রিসিভ করা (যদি টার্মিনালে ইউজার কিছু টাইপ করে)
             data = await websocket.receive_text()
-            
+
             # ইকো করা (আপাতত)
             await websocket.send_text(f"\r\n$ {data}\r\n")
-            
+
             # প্রসেসিং সিমুলেট করা
             await asyncio.sleep(0.5)
             await websocket.send_text("[Agent] Processing command in Zero-Cost Environment...\r\n")
 
     except WebSocketDisconnect:
-        print("Terminal client disconnected.")
+        print("Terminal client disconnected.")  # noqa: T201
 
 ```
 
@@ -64158,8 +64154,8 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
                 logger.warning("Redis not configured; falling back to in-memory JWT blacklist check.")
 
         return decoded
-    except Exception as e:
-        logger.warning(f"Admin token validation failed", exc_info=True)
+    except Exception:  # noqa: BLE001
+        logger.warning("Admin token validation failed", exc_info=True)
         expected = os.getenv("SUPREMEAI_API_TOKEN") or ""
         if expected and secrets.compare_digest(token, expected):
             return {"uid": "admin", "role": "admin"}
@@ -64198,7 +64194,7 @@ def admin_rate_limit(request: Request):
                 )
         except HTTPException:
             raise
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Distributed rate limiter check failed, falling back: {exc}")
 
 
@@ -64243,7 +64239,7 @@ def load_users() -> list[dict[str, Any]]:
     try:
         with open(USERS_FILE) as f:
             return json.load(f)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return []
 
 
@@ -64265,7 +64261,7 @@ async def logs_stream():
                     lines = f.readlines()[-30:]
                     for line in lines:
                         yield f"data: {line.strip()}\n\n"
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 yield f"data: Error reading logs: {e}\n\n"
 
         file_obj = None
@@ -64321,7 +64317,7 @@ def get_costs():
                 "status": "ok",
                 "report": "# 📊 Cost Data Unavailable\n\nNo tasks have been executed in the current billing cycle to generate a cost report.",
             }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to generate cost report: {e}")
         return {
             "status": "error",
@@ -64406,7 +64402,7 @@ def get_env_etag(redis_key: str = "config:env_etag") -> str:
             if redis_queue and getattr(redis_queue, "configured", False):
                 redis_queue.set(redis_key, etag, ex=300)
             return etag
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: .env এর etag গণনা বযর্থ হল "empty-env" ফলবযাক হয়;
             # নরব সযলপ ন কর ডবগ লগ কর হল
             logger.debug(f"Failed to compute .env etag: {exc}")
@@ -64420,7 +64416,7 @@ def _acquire_env_lock(lock_path: str = ".env.lock") -> bool:
     if redis_queue and getattr(redis_queue, "configured", False):
         try:
             return redis_queue.set_nx("lock:env_write", "locked", ex=10)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: রডস লক বযর্থ হল ফাইল-লক ফলবযাক বযবহত হয়;
             # নরব সযলপ ন কর ডবগ লগ কর হল
             logger.debug(f"Redis env lock acquisition failed, falling back to file lock: {exc}")
@@ -64430,7 +64426,7 @@ def _acquire_env_lock(lock_path: str = ".env.lock") -> bool:
         return True
     except FileExistsError:
         return False
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 
@@ -64483,10 +64479,10 @@ def get_metrics():
         import psutil
         cpu_usage = psutil.cpu_percent(interval=None) or 15.2
         memory_usage = psutil.virtual_memory().percent or 40.5
-        
+
         # GPU Usage estimation: check if we can estimate or fallback to CPU load baseline
         gpu_usage = min(90.0, float(cpu_usage * 0.8 + 10.0))
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.warning(f"Failed to fetch system metrics via psutil: {exc}")
         cpu_usage = 22.4
         memory_usage = 45.2
@@ -64687,7 +64683,7 @@ def trigger_backup():
         if os.path.exists(fname):
             try:
                 shutil.copy2(fname, os.path.join(backup_dir, os.path.basename(fname)))
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.warning(f"Backup skipped for {fname}: {exc}")
     logger.info(f"Backup created at {backup_dir}")
     return {"status": "success", "backup_path": backup_dir}
@@ -64743,7 +64739,7 @@ def run_security_scan():
                     "message": ".env file not found",
                 }
             )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Security scan failed: {e}")
         return {"status": "error", "detail": str(e)}
     return {
@@ -64774,12 +64770,12 @@ async def admin_websocket(websocket: WebSocket):
                         },
                     }
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"WS send error: {exc}")
             await asyncio.sleep(2)
     except WebSocketDisconnect:
         logger.info("Admin WebSocket client disconnected")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.error(f"Admin WebSocket error: {exc}")
 
 
@@ -64789,7 +64785,7 @@ from pydantic import Field
 with contextlib.suppress(ImportError):
     from google.cloud import firestore
 from datetime import UTC
-from datetime import datetime
+from datetime import datetime  # noqa: F811
 
 
 class GateOverridePayload(BaseModel):
@@ -64913,7 +64909,7 @@ async def get_events(limit: int = Query(50, ge=1, le=200)):
     events_log_path = "data/dashboard_events.jsonl"
     if not os.path.exists(events_log_path):
         events_log_path = "/app/data/dashboard_events.jsonl"
-    
+
     if not os.path.exists(events_log_path):
         return []
 
@@ -64948,13 +64944,13 @@ async def list_reports(report_name: str = None):
         import re
         if not re.fullmatch(r"[A-Za-z0-9_\-]+", report_name):
             raise HTTPException(status_code=400, detail="Invalid report name.")
-            
+
         file_path = os.path.join(reports_dir, f"{os.path.basename(report_name)}.md")
-        
+
         # Verify resolved path is inside reports_dir (Defense in depth)
         if not os.path.realpath(file_path).startswith(os.path.realpath(reports_dir)):
             raise HTTPException(status_code=400, detail="Invalid path.")
-            
+
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="Report not found.")
         with open(file_path, encoding="utf-8") as f:
@@ -64989,7 +64985,7 @@ async def dashboard_stream(request: Request):
         dashboard_queue = global_pubsub.subscribe("dashboard_events")
         metrics_queue = global_pubsub.subscribe("metrics_events")
         tasks_queue = global_pubsub.subscribe("browser_tasks")
-        
+
         try:
             while True:
                 # Wait for an event or a heartbeat timeout (20s)
@@ -64997,13 +64993,13 @@ async def dashboard_stream(request: Request):
                 dashboard_task = asyncio.create_task(dashboard_queue.get())
                 metrics_task = asyncio.create_task(metrics_queue.get())
                 tasks_task = asyncio.create_task(tasks_queue.get())
-                
+
                 done, pending = await asyncio.wait(
                     [dashboard_task, metrics_task, tasks_task],
                     timeout=20,
                     return_when=asyncio.FIRST_COMPLETED
                 )
-                
+
                 if not done:
                     # Heartbeat
                     yield {
@@ -65018,10 +65014,10 @@ async def dashboard_stream(request: Request):
                             "event": result.get("type", "message"),
                             "data": json.dumps(result.get("payload", {}))
                         }
-                        
+
                 for t in pending:
                     t.cancel()
-                    
+
                 # If client disconnected, break
                 if await request.is_disconnected():
                     break
@@ -65111,7 +65107,7 @@ async def stream_audio(text: str = "", voice: str | None = None):
                 voice_id=None,  # Use language-based voice for ElevenLabs; voice param for edge-tts fallback handled internally
             ):
                 yield chunk
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Audio streaming failed: {e}")
             yield b""  # Return empty bytes on error to avoid breaking the stream
 
@@ -65188,7 +65184,7 @@ async def _delete_from_vector_db(user_id: str, doc_id: str | None = None) -> Non
                 json={"ids": [vector_id]},
             )
         logger.info(f"CDC: Deleted vector {vector_id} from Pinecone")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"CDC vector deletion failed: {e}")
 
 
@@ -65203,7 +65199,7 @@ async def handle_cdc_webhook(request: Request, background_tasks: BackgroundTasks
         import json
 
         event = json.loads(body)
-    except Exception:
+    except Exception:  # noqa: BLE001
         raise HTTPException(status_code=400, detail="Invalid JSON payload") from None
 
     event_type = event.get("type")
@@ -65304,12 +65300,12 @@ async def run_export_task(job_id: str, payload: MarkdownExportRequest):
                         "timestamp": time.time(),
                     }
                 ).execute()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: history টবল এখনও তর হয়ন থাকল একসপর্ট বযর্থ কর যাব ন;
             # তব নরব সযলপ ন কর ডবগ লগ কর হল
             logger.debug(f"Failed to persist markdown export history for job {job_id}: {exc}")
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         # বল মনতবয: একসপর্ট টাস্ক বযর্থ হল job স্টটসর সঙ্গ এরর লগও কর হল
         logger.error(f"Markdown export task failed for job {job_id}: {e}")
         jobs_db[job_id]["status"] = "failed"
@@ -65421,7 +65417,7 @@ async def get_history():
             )
             if res.data:
                 return {"status": "success", "history": res.data}
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         # বল মনতবয: Supabase থক history আনত বযরথ হল ইন-মমর jobs_db ফলবযাক বযবহত হয়;
         # নরব সযলপ ন কর ডবগ লগ কর হল যত DB সমসয দশযমন থক
         logger.debug(f"Supabase markdown history fetch failed, using local fallback: {exc}")
@@ -65862,7 +65858,7 @@ def _fts_search(query: str, limit: int = 5) -> list[dict[str, Any]]:
         )
         rows = cursor.fetchall()
         return [dict(r) for r in rows]
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         # বল মনতবয: করপট query ব FTS তরটত 500 এড়ত খল লসট রটরন কর হয়;
         # তব করণট যন হরয় ন যয় সজনয ডবগ লগ যকত কর হল
         logger.debug(f"FTS query execution failed for {query!r}: {exc}")
@@ -65886,7 +65882,7 @@ async def search_knowledge(q: str, limit: int = 5) -> list[KnowledgeSearchResult
     if sqlite3 is not None:
         try:
             results = _fts_search(q, limit)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: SQLite FTS সার্চ বযরথ হল RAG ফলবযাক বযবহত হয়;
             # খল ফলাফল নরব রটরন ন কর warning লগ কর হল
             logger.warning(f"FTS knowledge search failed for query {q!r}: {exc}")
@@ -65908,7 +65904,7 @@ async def search_knowledge(q: str, limit: int = 5) -> list[KnowledgeSearchResult
                         "source": "chromadb",
                     }
                 )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: RAG সমযান্টক সার্চ বযরথ হল খল রজাল্ট নরব রটরন হত;
             # এখন warning লগ কর হয় যত search বযরথতর কারণ বঝ যায়
             logger.warning(f"RAG semantic knowledge search failed for query {q!r}: {exc}")
@@ -66135,12 +66131,12 @@ class VoiceConnectionManager:
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
-        print("🟢 [WS] Voice Client Connected to SupremeAI Nexus.")
+        print("🟢 [WS] Voice Client Connected to SupremeAI Nexus.")  # noqa: T201
 
     def disconnect(self, websocket: WebSocket):
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
-        print("🔴 [WS] Voice Client Disconnected.")
+        print("🔴 [WS] Voice Client Disconnected.")  # noqa: T201
 
     async def _authenticate(self, websocket: WebSocket) -> dict | None:
         token = websocket.query_params.get("token")
@@ -66148,11 +66144,11 @@ class VoiceConnectionManager:
             return None
         try:
             return verify_token(token)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             from jose import jwt
             if isinstance(e, jwt.ExpiredSignatureError):
                 client_host = websocket.client.host if websocket.client else "unknown"
-                print(f"⚠️ [WS Auth] Expired token attempt from {client_host}")
+                print(f"⚠️ [WS Auth] Expired token attempt from {client_host}")  # noqa: T201
             return None
 
 manager = VoiceConnectionManager()
@@ -66166,7 +66162,7 @@ async def process_audio_with_groq(audio_bytes: bytes) -> str:
 
     url = "https://api.groq.com/openai/v1/audio/transcriptions"
     headers = {"Authorization": f"Bearer {settings.groq_api_key}"}
-    
+
     files = {
         "file": ("audio.webm", audio_bytes, "audio/webm")
     }
@@ -66181,14 +66177,14 @@ async def process_audio_with_groq(audio_bytes: bytes) -> str:
             response.raise_for_status()
             result = response.json()
             return result.get("text", "")
-        except Exception as e:
-            print(f"❌ [Groq STT Error]: {e}")
+        except Exception as e:  # noqa: BLE001
+            print(f"❌ [Groq STT Error]: {e}")  # noqa: T201
             return f"Error processing audio: {str(e)}"
 
 async def handle_intent(transcript: str, websocket: WebSocket, start_time: float, user_id: str):
     # Intent Router
     transcript_clean = transcript.strip()
-    
+
     # Check if it's a command
     if transcript_clean.startswith("/"):
         supremeai_response = f"Executing system command: {transcript_clean}... Authorization confirmed."
@@ -66198,7 +66194,7 @@ async def handle_intent(transcript: str, websocket: WebSocket, start_time: float
             f"Hello! You said: '{transcript_clean}'. I am Aethel, "
             "your SupremeAI orchestrator. How can I assist you with the cluster today?"
         )
-        
+
     # Log to database
     if db.client:
         latency_ms = int((time.time() - start_time) * 1000)
@@ -66210,15 +66206,15 @@ async def handle_intent(transcript: str, websocket: WebSocket, start_time: float
         )
         try:
             db.client.table("voice_interactions").insert(log_entry.dict(exclude_none=True)).execute()
-        except Exception as db_err:
-            print(f"⚠️ [DB Logging Error]: {db_err}")
-    
+        except Exception as db_err:  # noqa: BLE001
+            print(f"⚠️ [DB Logging Error]: {db_err}")  # noqa: T201
+
     # Stream text response back for Web Speech API TTS
     words = supremeai_response.split(" ")
     for word in words:
         await websocket.send_json({"type": "response_chunk", "text": word + " "})
         await asyncio.sleep(0.05)
-    
+
     await websocket.send_json({"type": "response_complete"})
 
 @router.websocket("/voice")
@@ -66260,9 +66256,9 @@ async def websocket_voice_endpoint(
                             continue
 
                         # 1. Process STT using Groq
-                        print(f"🎙️ [WS] Processing audio buffer ({len(audio_buffer)} bytes)...")
+                        print(f"🎙️ [WS] Processing audio buffer ({len(audio_buffer)} bytes)...")  # noqa: T201
                         transcript = await process_audio_with_groq(bytes(audio_buffer))
-                        print(f"🗣️ [User Voice]: {transcript}")
+                        print(f"🗣️ [User Voice]: {transcript}")  # noqa: T201
 
                         # Clear buffer for next recording
                         audio_buffer.clear()
@@ -66276,19 +66272,19 @@ async def websocket_voice_endpoint(
 
                     elif action == "text_chat":
                         transcript = payload.get("text", "")
-                        print(f"💬 [User Text]: {transcript}")
+                        print(f"💬 [User Text]: {transcript}")  # noqa: T201
 
                         # Process text intent directly
                         await handle_intent(transcript, websocket, start_time, auth_payload.get("sub", "anonymous"))
                         start_time = time.time() # Reset timer
 
                 except json.JSONDecodeError:
-                    print("⚠️ [WS] Received invalid text message.")
+                    print("⚠️ [WS] Received invalid text message.")  # noqa: T201
 
     except WebSocketDisconnect:
         manager.disconnect(websocket)
-    except Exception as e:
-        print(f"❌ [WS Voice Engine Error]: {e}")
+    except Exception as e:  # noqa: BLE001
+        print(f"❌ [WS Voice Engine Error]: {e}")  # noqa: T201
         manager.disconnect(websocket)
         import contextlib
         with contextlib.suppress(Exception):
@@ -66471,9 +66467,9 @@ JSON:"""
                     "user_id": user_id,
                     "preferences": merged_prefs
                 })
-                print(f"🤖 [WS] Updated user preferences for {user_id}: {merged_prefs}")
-        except Exception:
-            print("⚠️ [WS] Failed to analyze user preferences")
+                print(f"🤖 [WS] Updated user preferences for {user_id}: {merged_prefs}")  # noqa: T201
+        except Exception:  # noqa: BLE001
+            print("⚠️ [WS] Failed to analyze user preferences")  # noqa: T201
 
 
 # ==========================================
@@ -66487,12 +66483,12 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
-        print("🟢 [WS] New Client Connected to Neural Engine.")
+        print("🟢 [WS] New Client Connected to Neural Engine.")  # noqa: T201
 
     def disconnect(self, websocket: WebSocket):
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
-        print("🔴 [WS] Client Disconnected.")
+        print("🔴 [WS] Client Disconnected.")  # noqa: T201
 
     async def _authenticate(self, websocket: WebSocket) -> dict | None:
         token = websocket.query_params.get("token")
@@ -66500,7 +66496,7 @@ class ConnectionManager:
             return {"sub": "anonymous", "role": "viewer"}
         try:
             return verify_token(token)
-        except Exception:
+        except Exception:  # noqa: BLE001
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return None
 
@@ -66558,10 +66554,10 @@ async def websocket_chat_endpoint(
 
                 content_to_send = text_prompt
                 if image_base64:
-                    print("📸 [WS] Image payload received and decoded.")
+                    print("📸 [WS] Image payload received and decoded.")  # noqa: T201
 
             except json.JSONDecodeError:
-                print(f"👤 [USER - Text Only]: {user_message}")
+                print(f"👤 [USER - Text Only]: {user_message}")  # noqa: T201
                 content_to_send = user_message
 
             try:
@@ -66593,13 +66589,13 @@ async def websocket_chat_endpoint(
                 chat_history.append({"role": "assistant", "content": response_content})
 
                 await websocket.send_text("[DONE]")
-                print("✅ [AI]: Stream completed.")
+                print("✅ [AI]: Stream completed.")  # noqa: T201
 
                 pref_task = asyncio.create_task(analyze_and_save_preferences(user_id, content_to_send))
                 manager.track_pref_task(user_id, pref_task)
 
-            except Exception:
-                print("❌ [GENERATION ERROR]")
+            except Exception:  # noqa: BLE001
+                print("❌ [GENERATION ERROR]")  # noqa: T201
                 await websocket.send_text("\n[Error: Neural pipeline failed]\n[DONE]")
 
     except WebSocketDisconnect:
@@ -66636,7 +66632,7 @@ try:
     from tools.sso_integrator import SSOIntegrator
 
     sso = SSOIntegrator()
-except Exception as exc:
+except Exception as exc:  # noqa: BLE001
     # বল মনতবয: SSOIntegrator লড বযরথ হল SSO নরবই নষকরয় হয় যত; কন বযরথ হল
     # ত দশযমন করত warning লগ যকত কর হল
     logger.warning(f"SSOIntegrator unavailable; SSO features disabled: {exc}")
@@ -66772,7 +66768,7 @@ async def oidc_logout(provider: str):
             tenant=getattr(settings, "oidc_tenant", ""),
         )
         logout_url = base or ""
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         # বল মনতবয: logout URL তরত বযরথ হল খল string ফরত যত; নরব সযলপর বদল
         # ডবগ লগ যকত কর হল যত OIDC কনফগ সমসয বঝ যয়
         logger.debug(f"Failed to build OIDC logout URL for provider {provider}: {exc}")
@@ -66939,7 +66935,7 @@ async def github_callback(
             db.add(new_integration)
         await db.commit()
         logger.info(f"✅ GitHub integration saved for user '{user_id}'")
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         await db.rollback()
         logger.error(f"Failed to save GitHub integration for user '{user_id}': {exc}")
         return RedirectResponse(
@@ -67339,22 +67335,22 @@ async def stream_session(
                 "event": "connected",
                 "data": json.dumps({"channel": "system", "data": "connected to stream"})
             }
-            
+
             while True:
                 if await request.is_disconnected():
                     break
-                    
+
                 try:
                     # Wait for log event or 15s heartbeat timeout
                     item = await asyncio.wait_for(queue.get(), timeout=15.0)
-                    
+
                     # Decide channel based on item schema
                     channel = "logs"
                     if item.get("log_type") == "state_change":
                         channel = "state"
                     elif item.get("log_type") in ("file_write", "file_delete"):
                         channel = "filetree"
-                        
+
                     yield {
                         "event": "message",
                         "data": json.dumps({"channel": channel, "data": item})
@@ -67367,7 +67363,7 @@ async def stream_session(
                     }
         finally:
             batcher.unsubscribe(session_id, queue)
-            
+
     return EventSourceResponse(event_generator())
 
 ```
@@ -67409,7 +67405,7 @@ def approve_task(task_id: str, req: ApproveRequest):
     task = update_task_status(task_id, TaskStatus.APPROVED, req.resolved_by, req.reason)
     if not task:
         return {"status": "error", "detail": "not_found"}
-    
+
     # ── Execute Task Logic ──
     # বাংলা মন্তব্য: অনুমোদিত হওয়ার পর কাজটির ধরণ অনুযায়ী সংশ্লিষ্ট স্কিল বা অ্যাকশন এক্সিকিউট করা হচ্ছে
     if task.task_type == "SKILL_GENERATION":
@@ -67427,7 +67423,7 @@ def approve_task(task_id: str, req: ApproveRequest):
                 with open(path, "w", encoding="utf-8") as f:
                     f.write(code)
                 logger.info(f"✅ Approved skill '{skill_name}' successfully written to {path}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to execute approved skill generation: {e}")
             return {"status": "execution_failed", "detail": str(e), "task": task.model_dump()}
 
@@ -67639,7 +67635,7 @@ async def stream_chat(payload: ChatPayload, db=Depends(get_tenant_db)):
                     yield f"data: {chunk}\n\n"
 
             yield "data: [DONE]\n\n"
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Stream broken: {str(e)}")
             yield f"data: [ERROR] {str(e)}\n\n"
 
@@ -67732,7 +67728,7 @@ def _get_db():
         from database.supabase_client import db
 
         return db.client if db and db.client else None
-    except Exception:
+    except Exception:  # noqa: BLE001
         return None
 
 
@@ -67747,7 +67743,7 @@ async def _db_list_tenants() -> list[dict[str, Any]]:
                 .execute()
             )
             return res.data or []
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"Supabase tenant list failed: {exc}")
     return _local_store.get("tenants", [])
 
@@ -67763,7 +67759,7 @@ async def _db_get_tenant(tenant_id: str) -> dict[str, Any] | None:
                 .execute()
             )
             return res.data[0] if res.data else None
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"Supabase tenant get failed: {exc}")
     for t in _local_store.get("tenants", []):
         if t["tenant_id"] == tenant_id:
@@ -67779,7 +67775,7 @@ async def _db_upsert_tenant(data: dict[str, Any]) -> bool:
                 data, on_conflict="tenant_id"
             ).execute()
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"Supabase tenant upsert failed: {exc}")
     # local fallback
     tenants = _local_store.setdefault("tenants", [])
@@ -67797,7 +67793,7 @@ async def _db_delete_tenant(tenant_id: str) -> bool:
         try:
             client.table("tenant_limits").delete().eq("tenant_id", tenant_id).execute()
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"Supabase delete failed: {exc}")
     tenants = _local_store.setdefault("tenants", [])
     _local_store["tenants"] = [t for t in tenants if t["tenant_id"] != tenant_id]
@@ -67824,7 +67820,7 @@ async def _get_tenant_usage(tenant_id: str) -> dict[str, Any]:
             usage["requests_today"] = int(q.get(day_key) or 0)
             usage["tokens_today"] = int(q.get(tokens_key) or 0)
             usage["cost_today"] = float(q.get(cost_key) or 0.0)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.debug(f"Redis usage read failed: {exc}")
 
     # Supabase fallback
@@ -67845,7 +67841,7 @@ async def _get_tenant_usage(tenant_id: str) -> dict[str, Any]:
                     usage["requests_today"] = row.get("requests_count", 0)
                     usage["tokens_today"] = row.get("tokens_used", 0)
                     usage["cost_today"] = float(row.get("cost_incurred", 0.0))
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Supabase usage read failed: {exc}")
     return usage
 
@@ -67926,7 +67922,7 @@ async def create_tenant(payload: TenantLimitCreate):
 
         limiter = TenantRateLimiter()
         await limiter.set_tier(payload.tenant_id, tier)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.debug(f"Redis tier cache failed: {exc}")
 
     logger.info(f"Created tenant: {payload.tenant_id} tier={tier}")
@@ -67967,7 +67963,7 @@ async def update_tenant(tenant_id: str, payload: TenantLimitUpdate):
 
             limiter = TenantRateLimiter()
             await limiter.set_tier(tenant_id, new_tier)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Redis tier update failed: {exc}")
 
     updates["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -68025,7 +68021,7 @@ async def reset_usage(tenant_id: str):
             q.delete(cost_key)
             logger.info(f"Reset Redis usage for tenant: {tenant_id}")
             return {"status": "reset", "tenant_id": tenant_id, "source": "redis"}
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.debug(f"Redis reset failed: {exc}")
 
     # Supabase fallback
@@ -68037,7 +68033,7 @@ async def reset_usage(tenant_id: str):
                 "date", today
             ).execute()
             return {"status": "reset", "tenant_id": tenant_id, "source": "supabase"}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"Supabase reset failed: {exc}")
 
     return {"status": "reset", "tenant_id": tenant_id, "source": "none"}
@@ -68183,7 +68179,7 @@ def _persist_feedback(event_type: str, payload: dict[str, Any]) -> None:
         )
         conn.commit()
         conn.close()
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.error(f"feedback persist failed: {exc}")
 
 
@@ -68295,7 +68291,7 @@ class SupremeMetricsEngine:
                     "sandbox_violations_logged": 0,  # AST ব্লকার ট্র্যাক
                 },
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"❌ Failed to aggregate cloud run metrics: {str(e)}")
             return {"status": "DEGRADED", "error": str(e)}
 
@@ -68419,7 +68415,7 @@ def record_request(method: str, path: str, status: int) -> None:
                 method=method, endpoint=path, status=str(status)
             ).inc()
             supremeai_requests_total.labels(method=method, endpoint=path).inc()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Failed to record request metrics: {exc}")
 
 
@@ -68438,7 +68434,7 @@ def record_request_duration(method: str, path: str, duration: float) -> None:
             supremeai_response_seconds.labels(method=method, endpoint=path).observe(
                 duration
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Failed to record request duration metrics: {exc}")
 
 
@@ -68567,7 +68563,7 @@ class AssetManager:
             firebase_bucket_name = os.getenv("FIREBASE_STORAGE_BUCKET")
             if firebase_bucket_name:
                 self._firebase_bucket = firebase_storage.bucket(firebase_bucket_name)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"Firebase storage unavailable: {exc}")
 
     def _get_supabase(self):
@@ -68579,7 +68575,7 @@ class AssetManager:
                 key = os.getenv("SUPABASE_KEY")
                 if url and key:
                     self._supabase_client = create_client(url, key)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.warning(f"Supabase client unavailable: {exc}")
         return self._supabase_client
 
@@ -68590,7 +68586,7 @@ class AssetManager:
                 blob = self._firebase_bucket.blob(path)
                 # Generate signed URL
                 return blob.generate_signed_url(version="v4", expiration=expires_in)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Failed to generate Firebase URL: {exc}")
 
         # Fallback to Supabase
@@ -68599,7 +68595,7 @@ class AssetManager:
             try:
                 res = supabase.storage.from_(self.bucket).get_public_url(path)
                 return res
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Failed to get Supabase public URL: {exc}")
         return None
 
@@ -68618,7 +68614,7 @@ class AssetManager:
                 blob.upload_from_filename(local_path, content_type=content_type)
                 logger.info(f"Uploaded to Firebase: {remote_path}")
                 success = True
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Firebase upload failed: {exc}")
 
         # Backup: Supabase
@@ -68631,7 +68627,7 @@ class AssetManager:
                     )
                 logger.info(f"Uploaded to Supabase: {remote_path}")
                 success = True
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 # If Supabase fails but Firebase succeeded, we still consider it a success
                 logger.error(f"Supabase upload failed: {exc}")
 
@@ -68647,7 +68643,7 @@ class AssetManager:
                 if blob.exists():
                     blob.download_to_filename(local_path)
                     return True
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Firebase download failed: {exc}")
 
         # Fallback to Supabase
@@ -68658,7 +68654,7 @@ class AssetManager:
                 with open(local_path, "wb") as f:
                     f.write(data)
                 return True
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Supabase download failed: {exc}")
 
         return False
@@ -68673,7 +68669,7 @@ class AssetManager:
                 if blob.exists():
                     blob.delete()
                     success = True
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Firebase delete failed: {exc}")
 
         # Delete from Supabase
@@ -68682,7 +68678,7 @@ class AssetManager:
             try:
                 supabase.storage.from_(self.bucket).remove([remote_path])
                 success = True
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Supabase delete failed: {exc}")
 
         return success
@@ -68862,7 +68858,7 @@ class ExternalService:
             self._fail_count += 1
             logging.error(f"অপারেশন ফেইল! চেষ্টার সংখ্যা: {self._fail_count}")
             raise ConnectionError("ডেটাবেজ কানেকশন স্থাপন করা যায়নি")
-        
+
         logging.info("অপারেশন সফলভাবে সম্পন্ন হয়েছে।")
         self._fail_count = 0 # সফল হলে কাউন্টার রিসেট
         return "অপারেশন সফল"
@@ -68880,7 +68876,7 @@ def resilient_call(service_operation: Callable[..., Any], *args, **kwargs) -> An
     
     - Retry Logic: এক্সপোনেনশিয়াল ব্যাকঅফসহ সর্বোচ্চ ৩ বার চেষ্টা করবে, যেখানে সর্বোচ্চ ডিলে ৫ সেকেন্ড।
     - Circuit Breaker: যদি ৩ বার চেষ্টার পরও ব্যর্থ হয়, সার্কিট ব্রেকার 'open' হয়ে যাবে।
-    """
+    """  # noqa: W293
     logging.info("অপারেশন চালানোর চেষ্টা করা হচ্ছে...")
     return service_operation(*args, **kwargs)
 
@@ -68954,7 +68950,7 @@ class SystemConfig(Base):
     TTL caching layer (ConfigCache) এই টেবিলের ওপর বসবে — 
     প্রতি request-এ DB hit না করে in-memory cache serve করবে,
     এবং change-event এলে cache invalidate হবে।
-    """
+    """  # noqa: W291, W293
     __tablename__ = "system_config"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -69024,7 +69020,7 @@ class AgentSession(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
-    
+
     current_state: Mapped[AgentSessionState] = mapped_column(
         Enum(AgentSessionState, name="agent_session_state", create_type=True),
         nullable=False,
@@ -69035,7 +69031,7 @@ class AgentSession(Base):
         nullable=False,
         default=ControlMode.agent
     )
-    
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
@@ -69367,14 +69363,14 @@ class ExecutionLog(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     # Partitions require the partition key to be part of the PK in some dialects, but let's stick to standard SQLAlchemy partitioned tables.
     session_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("agent_sessions.id", ondelete="CASCADE"), index=True, nullable=False)
-    
+
     ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True, default=lambda: datetime.now(UTC))
-    
+
     log_type: Mapped[LogType] = mapped_column(
         Enum(LogType, name="log_type_enum", create_type=True),
         nullable=False
     )
-    
+
     payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     exit_code: Mapped[int | None] = mapped_column(Integer, nullable=True)
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -69415,10 +69411,10 @@ class SkillFitness(Base):
     failure_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     fitness_score: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     last_run_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
-    
+
     # Optimistic Concurrency Control (OCC)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
@@ -69432,13 +69428,13 @@ class CodeProposal(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     proposal_id: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     skill_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    
+
     # Pro Tip: Text allows arbitrary code length without database truncation.
     generated_code: Mapped[str] = mapped_column(Text, nullable=False)
     ast_validated: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     ci_passed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     status: Mapped[str] = mapped_column(String(50), default="proposed", nullable=False)  # proposed, approved, rejected, applied
-    
+
     # Pro Tip: JSONB is highly optimized for PostgreSQL query matching.
     metadata_json: Mapped[dict] = mapped_column(JSONB, default=dict, nullable=True)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
@@ -69475,14 +69471,14 @@ class UserWallet(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
-    
+
     # Pro Tip: Float ব্যবহার করলে প্রিসিশন লস হয়। তাই Micro-transactions এর জন্য Numeric(10,6) ব্যবহার করা হলো।
     balance_usd: Mapped[Decimal] = mapped_column(Numeric(10, 6), default=Decimal('0.000000'), nullable=False)
     monthly_allowance_usd: Mapped[Decimal] = mapped_column(Numeric(10, 6), default=Decimal('0.000000'), nullable=False)
-    
+
     # Optimistic Concurrency Control (Second Layer of Defense against Double-Spending)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
@@ -69546,23 +69542,23 @@ class TargetPlatformCredential(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
-    
+
     platform_label: Mapped[str] = mapped_column(String(255), nullable=False)
-    
+
     auth_type: Mapped[AuthType] = mapped_column(
         Enum(AuthType, name="auth_type_enum", create_type=True),
         nullable=False
     )
-    
+
     encrypted_blob: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     kms_key_ref: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    
+
     status: Mapped[CredentialStatus] = mapped_column(
         Enum(CredentialStatus, name="credential_status_enum", create_type=True),
         nullable=False,
         default=CredentialStatus.active
     )
-    
+
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
@@ -69590,11 +69586,11 @@ class Integration(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
-    
+
     provider: Mapped[str] = mapped_column(String(50), nullable=False)  # e.g., 'github', 'facebook'
     encrypted_access_token: Mapped[str] = mapped_column(String, nullable=False)
     repo_url: Mapped[str] = mapped_column(String, nullable=True) # Secondary repo or page id
-    
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
@@ -69700,19 +69696,19 @@ class ExecutionPolicy(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
-    
+
     scope: Mapped[PolicyScope] = mapped_column(
         Enum(PolicyScope, name="policy_scope_enum", create_type=True),
         nullable=False,
         default=PolicyScope.global_scope
     )
     scope_ref_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
-    
+
     max_timeout_seconds: Mapped[int] = mapped_column(Integer, default=45, nullable=False)
     max_retries: Mapped[int] = mapped_column(Integer, default=3, nullable=False)
     max_serverless_compute_budget_usd: Mapped[Decimal] = mapped_column(Numeric(6, 4), default=Decimal('0.0500'), nullable=False)
     max_concurrent_sandboxes: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
-    
+
     circuit_breaker_failure_threshold: Mapped[int] = mapped_column(Integer, default=5, nullable=False)
     circuit_breaker_cooldown_seconds: Mapped[int] = mapped_column(Integer, default=300, nullable=False)
 
@@ -69742,10 +69738,10 @@ class HandoffEvent(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     session_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("agent_sessions.id", ondelete="CASCADE"), index=True, nullable=False)
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True, nullable=False)
-    
+
     start_ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False)
     end_ts: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    
+
     actions_taken_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
 
@@ -69772,16 +69768,16 @@ class SelectorHealingEvent(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     # Ideally this would be a ForeignKey to site_actions_registry, but we assume it's created or will be linked later
     action_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), index=True, nullable=False)
-    
+
     old_selector: Mapped[str] = mapped_column(String(500), nullable=False)
     new_selector: Mapped[str] = mapped_column(String(500), nullable=False)
-    
+
     confidence_score: Mapped[float] = mapped_column(Numeric(3, 2), nullable=False)
     auto_applied: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    
+
     screenshot_before_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     screenshot_after_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
-    
+
     reviewed_by_user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
 
 
@@ -70648,7 +70644,7 @@ class CloudVectorStore:
             if self.provider == "pinecone":
                 self.index.upsert(vectors=vectors, namespace=namespace)
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Vector upsert failed: {e}")
             return False
 
@@ -70668,7 +70664,7 @@ class CloudVectorStore:
                     include_metadata=True,
                 )
                 return result.matches
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Vector query failed: {e}")
             return []
 
@@ -71069,7 +71065,7 @@ class SlidingWindowMemory:
             if self.config.auto_compact:
                 self._compact_if_needed(session_id)
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to persist sliding window records: {exc}")
             return False
         finally:
@@ -71108,7 +71104,7 @@ class SlidingWindowMemory:
             )
             conn.commit()
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to clear sliding window memory: {exc}")
             return False
         finally:
@@ -71380,7 +71376,7 @@ class ChromaDBStore:
                 name=self.collection_name,
                 metadata={"hnsw:space": "cosine"},
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             _logger.warning(f"Failed to initialize ChromaDB client: {e}")
             self._client = None
             self._collection = None
@@ -71392,7 +71388,7 @@ class ChromaDBStore:
             try:
                 with open(path, encoding="utf-8") as f:
                     self._fallback_docs = json.load(f)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 _logger.warning(f"Failed to load fallback docs: {e}")
                 self._fallback_docs = {}
 
@@ -71452,7 +71448,7 @@ class ChromaDBStore:
             try:
                 self._collection.upsert(ids=ids, documents=texts, metadatas=metadatas)
                 return
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 _logger.warning(f"ChromaDB upsert failed, falling back to local storage: {e}")
         for doc in documents:
             doc_id = doc.get("id") or str(uuid.uuid4())
@@ -71496,7 +71492,7 @@ class ChromaDBStore:
                             (doc_id, score, {"text": doc_text, "metadata": meta})
                         )
                     return matches
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 _logger.warning(f"ChromaDB query failed, falling back to TF-IDF: {e}")
         query_vector = self._get_vector(query_text)
         scored = []
@@ -71511,7 +71507,7 @@ class ChromaDBStore:
             try:
                 self._collection.delete(ids=[doc_id])
                 return
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 _logger.warning(f"ChromaDB delete failed, falling back to local: {e}")
         self._fallback_docs.pop(doc_id, None)
         self._save_fallback()
@@ -71520,7 +71516,7 @@ class ChromaDBStore:
         if self._collection is not None:
             try:
                 return self._collection.count()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 _logger.warning(f"ChromaDB count failed: {e}")
                 return -1  # -1 indicates failure, 0 means empty - distinct states
         return len(self._fallback_docs)
@@ -71537,7 +71533,7 @@ class ChromaDBStore:
                             result["metadatas"][0] if result.get("metadatas") else {}
                         ),
                     }
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 _logger.warning(f"ChromaDB get_document failed for {doc_id}: {e}")
         return self._fallback_docs.get(doc_id)
 
@@ -71716,7 +71712,6 @@ from sqlalchemy import pool
 from alembic import context
 from core.config import settings
 from models.base import Base
-from models.system_config import SystemConfig
 
 # Import all models to ensure they are registered with Base.metadata before autogenerate
 
@@ -71803,7 +71798,7 @@ Revision ID: 664fe16e33ca
 Revises: 
 Create Date: 2026-06-29 02:10:12.661696
 
-"""
+"""  # noqa: W291
 
 from collections.abc import Sequence
 
@@ -71894,7 +71889,7 @@ def upgrade() -> None:
                type_=sa.DateTime(timezone=True),
                nullable=False,
                existing_server_default=sa.text('now()'))
-    
+
     op.execute("DROP INDEX IF EXISTS idx_system_config_category")
     op.create_index(op.f('ix_system_config_key'), 'system_config', ['key'], unique=True)
     op.execute("ALTER TABLE system_config DROP COLUMN IF EXISTS updated_by")
@@ -71974,7 +71969,7 @@ class AutoSkillCreator:
                 client = get_firestore_client()
                 if client is not None:
                     self.skills_ref = client.collection("supreme_dynamic_skills")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             if self.skills_ref is None:
@@ -72119,7 +72114,7 @@ class AutoSkillCreator:
             # ৪. USS Pydantic Schema Validation
             try:
                 uss = UniversalSkillSchema(**schema_dict)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"❌ USS Validation failed: {e}")
                 return {
                     "success": False,
@@ -72147,7 +72142,7 @@ class AutoSkillCreator:
                 logger.info(
                     f"Running validation test case {idx + 1}/{len(uss.validation.tests)} inside the secure sandbox..."
                 )
-                
+
                 # Construct executable script to evaluate inputs and output results to stdout as JSON
                 sandbox_script = f"""
 {code_block}
@@ -72167,14 +72162,14 @@ asyncio.run(run())
                     raise ValueError(
                         f"Validation test {idx + 1} crashed or timed out in sandbox. Error: {run_res['stderr']}"
                     )
-                
+
                 # Parse stdout logs for output result
                 output_line = [line for line in run_res["stdout"].splitlines() if line.startswith("RESULT:")]
                 if not output_line:
                     raise ValueError(
                         f"Validation test {idx + 1} did not produce executable result in sandbox. Stdout: {run_res['stdout']}"
                     )
-                
+
                 res_val = json.loads(output_line[0][7:])
                 if res_val != test.expected_output:
                     raise ValueError(
@@ -72228,7 +72223,7 @@ asyncio.run(run())
                 "message": "Autonomous evolution loop successfully completed. Skill is live.",
             }
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"❌ Self-Evolution loop crashed: {str(e)}")
             latency = time.time() - start_time
             self.fitness_engine.track_execution(
@@ -72331,7 +72326,7 @@ class SelfEvolutionAgent:
             start = time.time()
             try:
                 await self._tick()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 logger.exception("Self-evolution tick failed")
             elapsed = time.time() - start
             try:
@@ -72421,10 +72416,10 @@ class SelfEvolutionAgent:
 
     # 🛑 ZERO-GAP: Core Database and Security validation pipeline
     async def process_new_skill_proposal(
-        self, 
-        session: AsyncSession, 
-        skill_name: str, 
-        generated_code: str, 
+        self,
+        session: AsyncSession,
+        skill_name: str,
+        generated_code: str,
         metadata: dict = None
     ) -> bool:
         """
@@ -72432,7 +72427,7 @@ class SelfEvolutionAgent:
         """
         proposal_id = f"prop-{uuid.uuid4().hex[:8]}"
         metadata = metadata or {}
-        
+
         # Step 1: Record Proposal (Atomic Transaction)
         async with session.begin():
             proposal = CodeProposal(
@@ -72443,9 +72438,9 @@ class SelfEvolutionAgent:
                 metadata_json=metadata
             )
             session.add(proposal)
-            
+
         logger.info(f"New skill proposal recorded: {proposal_id} for {skill_name}")
-        
+
         # Step 2: Strict AST Security Scan
         # scan_code will check using ASTSecurityScanner under the hood
         res = self.scanner.scan_code(generated_code)
@@ -72453,23 +72448,23 @@ class SelfEvolutionAgent:
             logger.critical(f"AST Scanner BLOCKED proposal {proposal_id}: {res['error']}")
             await self._update_proposal_status(session, proposal_id, "rejected_by_ast")
             return False
-            
+
         # If we reach here, AST is safe. Update state.
         await self._update_proposal_status(session, proposal_id, "ast_validated", ast_validated=True)
         logger.success(f"Proposal {proposal_id} passed AST Security Scan.")
-        
+
         # Step 3: CI/CD Dry Run (MicroVM / Sandbox Execution)
         ci_passed = await self._run_ci_cd_dry_run(proposal_id, skill_name, generated_code)
-        
+
         if not ci_passed:
             logger.error(f"CI/CD dry-run FAILED for proposal {proposal_id}")
             await self._update_proposal_status(session, proposal_id, "rejected_by_ci")
             return False
-            
+
         # Step 4: Final Approval for Merge/Apply
         await self._update_proposal_status(session, proposal_id, "ci_passed", ci_passed=True)
         logger.success(f"Evolution successful: {skill_name} ({proposal_id}) passed all zero-gap gates.")
-        
+
         return True
 
     async def _update_proposal_status(self, session: AsyncSession, proposal_id: str, new_status: str, **kwargs):
@@ -72483,7 +72478,7 @@ class SelfEvolutionAgent:
                     proposal.ast_validated = kwargs['ast_validated']
                 if 'ci_passed' in kwargs:
                     proposal.ci_passed = kwargs['ci_passed']
-                    
+
     async def _run_ci_cd_dry_run(self, proposal_id: str, skill_name: str, code: str) -> bool:
         """
         Simulates a sandboxed test run.
@@ -72689,7 +72684,7 @@ class FitnessEngine:
             try:
                 with open(self.metrics_path, encoding="utf-8") as f:
                     return json.load(f)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
         return {}
@@ -72699,7 +72694,7 @@ class FitnessEngine:
         try:
             with open(self.metrics_path, "w", encoding="utf-8") as f:
                 json.dump(self.metrics, f, indent=4)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to save fitness metrics: {e}")
 
     def track_execution(
@@ -72783,7 +72778,7 @@ class FitnessEngine:
             try:
                 with open(self.registry.registry_path, "w", encoding="utf-8") as f:
                     json.dump(self.registry.skills, f, indent=4)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to update registry status: {e}")
 
         # 2. Update Firestore Status
@@ -72792,7 +72787,7 @@ class FitnessEngine:
                 self.db.collection("supreme_dynamic_skills").document(
                     skill_name
                 ).update({"status": "DEPRECATED"})
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(
                     f"Failed to update Firestore status for skill '{skill_name}': {e}"
                 )
@@ -72810,7 +72805,7 @@ class FitnessEngine:
                 logger.info(
                     f"📁 Soft pruned skill files moved to deprecated zone: {dest_dir}"
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to move files to deprecated zone: {e}")
 
         return True
@@ -72850,10 +72845,10 @@ class DynamicSkillInjector:
         জিরো-গ্যাপ ভেরিফিকেশন সহ নতুন স্কিল ইনজেক্ট বা আপডেট করে।
         """
         logger.info(f"🚀 Attempting dynamic injection for skill: {skill_name}")
-        
+
         # স্যান্ডবক্স ভেরিফিকেশন
         sandbox_result = execute_secure_sandbox(code_content)
-        
+
         if sandbox_result["status"] != "SUCCESS":
             # ফেইল করলে কোয়ারেন্টাইনে মুভ করা (০% গ্যাপ পলিসি)
             self._quarantine_code(skill_name, code_content, sandbox_result.get("reason", "Unknown sandbox error"))
@@ -72863,10 +72858,10 @@ class DynamicSkillInjector:
         file_path = os.path.join(self.skills_dir, f"{skill_name}.py")
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(code_content)
-            
+
         # মডিউল লোড ও রি-লোড মেকানিজম (মেমোরি ক্যাশ ইনভ্যালিডেশন গ্যাপ ফিক্স)
         module_name = f"skills.dynamic.{skill_name}"
-        
+
         try:
             if module_name in sys.modules:
                 # মডিউল আগে থেকেই থাকলে রিলোড করা
@@ -72880,10 +72875,10 @@ class DynamicSkillInjector:
                 sys.modules[module_name] = module
                 spec.loader.exec_module(module)
                 logger.success(f"✅ Module {module_name} successfully injected into memory.")
-                
+
             return {"status": "SUCCESS", "module": module}
-            
-        except Exception as e:
+
+        except Exception as e:  # noqa: BLE001
             logger.critical(f"🔥 FATAL: Failed to load module {module_name} after injection -> {str(e)}")
             self._quarantine_code(skill_name, code_content, str(e))
             return {"status": "FAILED", "reason": str(e)}
@@ -72895,11 +72890,11 @@ class DynamicSkillInjector:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         safe_name = f"{skill_name}_{timestamp}_blocked.py"
         file_path = os.path.join(self.quarantine_dir, safe_name)
-        
+
         quarantine_content = f"# BLOCKED REASON: {reason}\n\n{code_content}"
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(quarantine_content)
-            
+
         logger.warning(f"🔒 Skill {skill_name} isolated to quarantine zone -> {safe_name}")
 
 dynamic_injector = DynamicSkillInjector()
@@ -72921,7 +72916,7 @@ class ASTGatekeeper(ast.NodeVisitor):
     """
     হোয়াইটলিস্ট-বেসড কড়া AST গেটকিপার। যেকোনো ব্ল্যাকলিস্টেড ফাংশন, 
     মডিউল ইম্পোর্ট বা ইন্টারনাল অ্যাট্রিবিউট ডাইভার্সন দেখলেই এটি এক্সিকিউশন ডিসেবল করে।
-    """
+    """  # noqa: W291
     # বাংলা কমেন্ট: শুধুমাত্র নিরাপদ পাইথন নোডগুলোর হোয়াইটলিস্ট
     ALLOWED_NODES = {
         ast.Module, ast.Expr, ast.Load, ast.Store, ast.Name,
@@ -72935,12 +72930,12 @@ class ASTGatekeeper(ast.NodeVisitor):
 
     # বাংলা কমেন্ট: মারাত্মক আরসিই (RCE) ভেক্টরের ব্ল্যাকলিস্ট
     FORBIDDEN_BUILTINS = {
-        'eval', 'exec', 'compile', 'open', '__import__', 'globals', 
+        'eval', 'exec', 'compile', 'open', '__import__', 'globals',
         'locals', 'getattr', 'setattr', 'delattr', 'hasattr', 'input'
     }
 
     FORBIDDEN_ATTRIBUTES = {
-        '__subclasses__', '__builtins__', '__globals__', '__code__', 
+        '__subclasses__', '__builtins__', '__globals__', '__code__',
         '__dict__', '__class__', '__base__', '__bases__'
     }
 
@@ -72985,26 +72980,26 @@ def execute_secure_sandbox(code_source: str, local_scope: dict = None) -> dict:
     """
     if local_scope is None:
         local_scope = {}
-        
+
     try:
         # বাংলা কমেন্ট: স্ট্রিং সোর্স কোডকে AST তে রূপান্তর করে গেটকিপার দিয়ে স্ক্যান করানো হচ্ছে
         parsed_ast = ast.parse(code_source)
         gatekeeper = ASTGatekeeper()
         gatekeeper.visit(parsed_ast)
-        
+
         # বাংলা কমেন্ট: সম্পূর্ণ ফাকা গ্লোবাল ডিকশনারি দিয়ে exec রান করা হচ্ছে যাতে বিল্ট-ইন এক্সেস না পায় (০% গ্যাপ পলিসি)
         safe_globals = {"__builtins__": {
-            'print': print, 'range': range, 'len': len, 'int': int, 
+            'print': print, 'range': range, 'len': len, 'int': int,
             'str': str, 'float': float, 'list': list, 'dict': dict, 'abs': abs
         }}
-        
+
         # কোড এক্সিকিউশন
         exec(code_source, safe_globals, local_scope)
         return {"status": "SUCCESS", "output": local_scope}
-        
+
     except SecurityException as sec_err:
         return {"status": "BLOCKED", "reason": str(sec_err)}
-    except Exception as run_err:
+    except Exception as run_err:  # noqa: BLE001
         logger.error(f"⚠️ Runtime compilation error inside sandbox: {str(run_err)}")
         return {"status": "FAILED", "reason": str(run_err)}
 
@@ -73043,21 +73038,21 @@ class AdminGodLayer:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.sqlite_lock = threading.Lock()
-        
+
         self.collection_name = "constitutional_rules"
         # রিফ্যাক্টর: সরাসরি firestore.Client() এর বদলে শেয়ার্ড হেল্পার ব্যবহার
         self._db = get_firestore_db()
         if self._db is not None:
             try:
                 self._init_db()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to initialize Firestore for AdminGodLayer: {e}. Falling back to SQLite.")
                 self._db = None
         else:
             logger.warning(
                 "Firestore unavailable or in test mode. AdminGodLayer using local SQLite fallback."
             )
-        
+
         self._init_sqlite_db()
 
     def _init_sqlite_db(self):
@@ -73098,14 +73093,14 @@ class AdminGodLayer:
             if not doc_ref.get().exists:
                 self.set_rule("admin_authorized", "false")
                 logger.warning("Firestore: Defaulting 'admin_authorized' to 'false' for security.")
-            
+
             autofix_ref = self._db.collection(self.collection_name).document(
                 "autofix_authorized"
             )
             if not autofix_ref.get().exists:
                 self.set_rule("autofix_authorized", "false")
                 logger.warning("Firestore: Defaulting 'autofix_authorized' to 'false' for security.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Error initializing AdminGodLayer DB: {e}")
 
     def get_rule(self, key: str, default: str | None = None) -> str | None:
@@ -73116,7 +73111,7 @@ class AdminGodLayer:
                 if doc.exists:
                     return doc.to_dict().get("value", default)
                 return default
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Error fetching rule {key} from Firestore: {e}")
 
         # বাংলা মন্তব্য: ফায়ারস্টোর নিষ্ক্রিয় বা টেস্ট মোডে থাকলে SQLite ব্যাকআপ থেকে রিড হবে
@@ -73133,7 +73128,7 @@ class AdminGodLayer:
                 doc_ref.set({"value": value, "updated_at": time.time()})
                 logger.info(f"Constitutional rule updated in Firestore: {key} = {value}")
                 return
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Error setting rule {key} in Firestore: {e}. Falling back to SQLite.")
 
         # বাংলা মন্তব্য: SQLite ব্যাকআপ ডাটাবেসে রুল সংরক্ষণ করা হচ্ছে
@@ -73476,7 +73471,7 @@ class ResearchAssistant:
             resp = httpx.get(self.ARXIV_API, params=params, timeout=15.0)
             resp.raise_for_status()
             return self._parse_arxiv_xml(resp.text)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"ArXiv search failed: {exc}")
             return []
 
@@ -73557,7 +73552,7 @@ class ResearchAssistant:
                     }
                 )
             return papers
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Semantic Scholar search failed: {exc}")
             return []
 
@@ -73598,7 +73593,7 @@ class ResearchAssistant:
                     "source": paper.get("source"),
                     "url": paper.get("url"),
                 }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Paper summarization failed: {exc}")
         return {
             "summary": abstract[:300] + "...",
@@ -73842,7 +73837,7 @@ class ArchitectureAgent(SwarmAgentBase):
         workspace.log("ArchitectureAgent: Starting system architecture layout analysis...")
         sys_prompt = "You are a lead system architect. Define file structures, component breakdown, and database schemas."
         user_prompt = f"Design architecture for task: {workspace.original_prompt}"
-        
+
         design_output = await self.call_gateway(sys_prompt, user_prompt, user_id)
         workspace.architecture_design = design_output
         workspace.log("ArchitectureAgent: System design blueprint completed.")
@@ -73864,7 +73859,7 @@ class QAAgent(SwarmAgentBase):
         workspace.log("QAAgent: Initiating test suites and static CodeQL scans...")
         # Simulating running ImmuneSystem AST scan and Python validations
         code_to_test = workspace.generated_code.get("main.py", "")
-        
+
         if "import os" in code_to_test or "eval(" in code_to_test:
             workspace.test_results["safe"] = False
             workspace.test_results["error"] = "Security Exception: Banned AST calls detected by static scan."
@@ -73873,7 +73868,7 @@ class QAAgent(SwarmAgentBase):
             workspace.test_results["safe"] = True
             workspace.test_results["passed"] = True
             workspace.log("QAAgent: AST Static scans and sanity runs completed successfully.")
-        
+
         sys_prompt = "You are a QA engineer. Review code and validation results and give feedback."
         user_prompt = f"Code:\n{code_to_test}\nResults: {workspace.test_results}"
         qa_feedback = await self.call_gateway(sys_prompt, user_prompt, user_id)
@@ -73893,7 +73888,7 @@ try:
     from tools.domain_adapter import DomainAdapter
 
     _DOMAIN_ADAPTER_AVAILABLE = True
-except Exception:
+except Exception:  # noqa: BLE001
     _DOMAIN_ADAPTER_AVAILABLE = False
 
 
@@ -74015,7 +74010,7 @@ class MedicalAgent:
                     "provider": result.get("provider", "unknown"),
                     "disclaimer": result.get("disclaimer", self.SYSTEM_PROMPT),
                 }
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"MedicalAgent generation failed: {exc}")
         return {
             "action": action,
@@ -74029,7 +74024,6 @@ class MedicalAgent:
 
 ```py
 # বাংলা মন্তব্য: টেস্টে ব্যবহৃত asyncio এবং patch আমদানি করা হলো এবং অব্যবহৃত টাইপ মুছে ফেলা হলো।
-import asyncio
 from unittest.mock import patch
 
 import pytest
@@ -74258,7 +74252,7 @@ try:
     from tools.domain_adapter import DomainAdapter
 
     _DOMAIN_ADAPTER_AVAILABLE = True
-except Exception:
+except Exception:  # noqa: BLE001
     _DOMAIN_ADAPTER_AVAILABLE = False
 
 
@@ -74376,7 +74370,7 @@ class LegalAgent:
             try:
                 result = self.domain_adapter.adapt_request("legal", summary_prompt)
                 return result.get("response", "")
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Legal LLM summary failed: {exc}")
         return (
             f"[Rule-based review] Document type: {doc_type}. "
@@ -74435,13 +74429,13 @@ class TradingAgent:
                     self._portfolio = res.data[0]
                     self.is_portfolio_recovered = True
                     return
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to load portfolio from Supabase: {e}")
         try:
             with open(self._local_path(), encoding="utf-8") as f:
                 self._portfolio = json.load(f)
                 self.is_portfolio_recovered = True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to load portfolio from local file: {e}")
         if not self.is_portfolio_recovered:
             logger.warning("Portfolio could not be recovered from any source; using default empty portfolio")
@@ -74451,13 +74445,13 @@ class TradingAgent:
             try:
                 db.client.table("trading_portfolio").upsert(self._portfolio).execute()
                 return
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to save portfolio to DB: {e}")
         try:
             os.makedirs(os.path.dirname(self._local_path()), exist_ok=True)
             with open(self._local_path(), "w", encoding="utf-8") as f:
                 json.dump(self._portfolio, f, indent=2)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to save portfolio to local file: {e}")
 
     def get_market_data(self, symbol: str) -> dict[str, Any]:
@@ -74477,7 +74471,7 @@ class TradingAgent:
                     "currency": meta.get("currency", "USD"),
                     "source": "yahoo_finance",
                 }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Market data fetch failed for {symbol}: {exc}")
         return {
             "symbol": symbol,
@@ -74626,7 +74620,7 @@ class CostAuditor:
         if PROMETHEUS_AVAILABLE:
             try:
                 self.cost_counter.labels(provider=provider, model=model).inc(cost)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Prometheus metric record failed: {exc}")
 
     def generate_report(self) -> dict[str, Any]:
@@ -74661,7 +74655,7 @@ class ContainerOrchestrator:
 
     async def deploy(self, user_id: str, skill: str) -> dict[str, Any]:
         logger.info(f"Deploying skill '{skill}' for user '{user_id}' on Google Cloud Run...")
-        
+
         # Simulating running terraform deploy internally
         tf_executable = shutil.which("terraform")
         if tf_executable:
@@ -74671,7 +74665,7 @@ class ContainerOrchestrator:
                 # subprocess.run(["terraform", "init"], cwd=self.tf_dir, check=True)
                 # subprocess.run(["terraform", "apply", "-auto-approve"], cwd=self.tf_dir, check=True, env=env)
                 logger.info("Terraform execution finished successfully.")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Terraform deployment failed: {e}")
                 return {"status": "failed", "error": str(e), "user_id": user_id, "skill": skill}
 
@@ -74744,7 +74738,7 @@ class GCPCredentialManager:
         try:
             service_account.Credentials.from_service_account_info(sa_dict)
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"GCP Service Account validation failed: {e}")
             return False
 
@@ -74866,7 +74860,7 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
                     },
                 )
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             from fastapi.responses import JSONResponse
 
             logger.error(f"Token validation failed: {e}")
@@ -74943,8 +74937,6 @@ class ChaosInjectorMiddleware(BaseHTTPMiddleware):
 
 ```py
 import json
-from datetime import UTC, datetime, timedelta
-from typing import Any
 
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -74994,7 +74986,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # বাংলা মন্তব্য: Redis থেকে cached response চেক করা
-        cached_response = None
+        cached_response = None  # noqa: F841
         if redis_manager.client is not None:
             try:
                 cached_key = f"idempotency:response:{idempotency_key}"
@@ -75007,7 +74999,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                         content=cached_data.get("body", {}),
                         headers={"X-Cache-Lookup": "HIT - Idempotency Lock"},
                     )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"[Idempotency] Cache read failed — continuing: {e}")
 
         # বাংলা মন্তব্য: Processing lock অধিগ্রহণ
@@ -75041,11 +75033,11 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                     body_str = body_bytes.decode("utf-8")
                     cache_data = json.dumps({"status_code": 200, "body": json.loads(body_str)})
                     await cache_response_and_release_lock(
-                        idempotency_key, 
-                        cache_data, 
+                        idempotency_key,
+                        cache_data,
                         IDEMPOTENCY_TTL_SECONDS * 5
                     )
-                except Exception as cache_err:
+                except Exception as cache_err:  # noqa: BLE001
                     logger.warning(f"[Idempotency] Response caching failed (non-blocking): {cache_err}")
                     await release_idempotency_lock(idempotency_key)
             else:
@@ -85245,7 +85237,7 @@ def _skip_if_media_deps_missing():
     try:
         import tools.image_generator as _ig  # noqa: F401
         import tools.video_generator as _vg  # noqa: F401
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         pytest.skip(f"Media backend dependencies missing: {exc}")
 
 
@@ -87922,7 +87914,7 @@ def bypass_jwt_auth():
             mock = p.start()
             mock.return_value = {"sub": "test_admin@supremeai.com", "role": "admin"}
             patches.append(p)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
     yield
@@ -87940,7 +87932,7 @@ def configure_litellm():
         litellm.use_litellm_proxy = False
         litellm.drop_params = True
         litellm.telemetry = False
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         import logging
         logging.warning(f"Exception suppressed: {e}")
     yield
@@ -89830,7 +89822,7 @@ def test_trace_span_records_exception_on_error():
     mock_tracer.start_as_current_span.return_value.__enter__.return_value = mock_span
 
     with patch("core.telemetry.get_tracer", return_value=mock_tracer):
-        with pytest.raises(RuntimeError):
+        with pytest.raises(RuntimeError):  # noqa: F821
             with trace_span("error-span"):
                 raise RuntimeError("boom")
         from opentelemetry.trace import StatusCode
@@ -90968,7 +90960,7 @@ class TestTenantAdminAPI:
             )
             try:
                 await create_tenant(payload)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 # May fail on tier cache — check local store directly
                 import logging
                 logging.warning(f"Tenant creation failed in test, checking local store fallback. Error: {e}")
@@ -91015,7 +91007,7 @@ class TestTenantAdminAPI:
                     result["tenant"]["requests_per_minute"]
                     == TIER_DEFAULTS["pro"]["requests_per_minute"]
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")  # Redis cache failure OK
 
@@ -93826,7 +93818,7 @@ sys.path.append("../..")
 try:
     from workers.celery_app import app
     HAS_CELERY = app is not None
-except Exception:
+except Exception:  # noqa: BLE001
     HAS_CELERY = False
 
 @pytest.mark.skipif(not HAS_CELERY, reason="Celery app is not available")
@@ -97532,7 +97524,7 @@ def client(generator):
         from backend.api import app as _app
 
         app = _app
-    except Exception:
+    except Exception:  # noqa: BLE001
         from backend.tools.auto_test_generator import router as test_router
         from fastapi import FastAPI
 
@@ -97644,7 +97636,7 @@ async def test_generate_endpoint_success(client):
         from backend.api import app as _app
 
         app = _app
-    except Exception:
+    except Exception:  # noqa: BLE001
         app = None
 
     if app is None:
@@ -97687,7 +97679,7 @@ async def test_generate_endpoint_error(client):
         from backend.api import app as _app
 
         app = _app
-    except Exception:
+    except Exception:  # noqa: BLE001
         app = None
 
     if app is None:
@@ -97729,7 +97721,7 @@ async def test_generate_file_endpoint(client, generator):
         from backend.api import app as _app
 
         app = _app
-    except Exception:
+    except Exception:  # noqa: BLE001
         app = None
 
     if app is None:
@@ -98536,7 +98528,7 @@ async def get_user_github_token(user_id: str, db: AsyncSession) -> str | None:
     ⚠️ FIX: AsyncSession.get() শুধুমাত্র primary key নেয়, dict ফিল্টার নয়।
     আগে db.get(Integration, {"user_id": ..., "provider": ...}) দিয়ে ArgumentError 
     থ্রো করত। এখন select().where() ব্যবহার করা হচ্ছে।
-    """
+    """  # noqa: W291, W293
     stmt = select(Integration).where(
         Integration.user_id == user_id,
         Integration.provider == "github",
@@ -98550,7 +98542,7 @@ async def get_user_github_token(user_id: str, db: AsyncSession) -> str | None:
     try:
         access_token = decrypt_token(integration.encrypted_access_token)
         return access_token
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.error(f"Failed to decrypt GitHub token for user '{user_id}': {exc}")
         return None
 
@@ -98568,26 +98560,26 @@ async def create_autonomous_pr(
     repo_name ফরম্যাট হতে হবে: "username/repo"
     
     db_session বাধ্যতামূলক — না দিলে fail-fast করে, যাতে কেউ ভুলে placeholder দিয়ে ডিপ্লয় করতে না পারে।
-    """
+    """  # noqa: W293
     # ১. ডাটাবেস থেকে এনক্রিপ্টেড টোকেন নিয়ে ডিক্রিপ্ট করা
     if db is None:
         raise RuntimeError(
             "create_autonomous_pr: db_session is required. "
             "Call with an active AsyncSession to fetch the GitHub token from DB."
         )
-    
+
     access_token = await get_user_github_token(user_id, db)
     if access_token is None:
         raise RuntimeError(
             f"GitHub token not found or could not be decrypted for user '{user_id}'. "
             "Please connect GitHub via /integrations/github/link first."
         )
-    
+
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Accept": "application/vnd.github.v3+json"
     }
-    
+
     branch_name = f"supremeai-auto-fix-{datetime.now().strftime('%Y%m%d%H%M%S')}"
     base_url = f"https://api.github.com/repos/{repo_name}"
 
@@ -98596,13 +98588,13 @@ async def create_autonomous_pr(
         repo_info = await client.get(base_url, headers=headers)
         if repo_info.status_code != 200:
             raise Exception(f"Failed to fetch repo info: {repo_info.text}")
-            
+
         default_branch = repo_info.json().get("default_branch", "main")
-        
+
         ref_info = await client.get(f"{base_url}/git/refs/heads/{default_branch}", headers=headers)
         if ref_info.status_code != 200:
             raise Exception(f"Failed to fetch ref info: {ref_info.text}")
-            
+
         base_sha = ref_info.json()["object"]["sha"]
 
         # Step B: Create New Branch
@@ -98643,10 +98635,10 @@ async def create_autonomous_pr(
                 "base": default_branch
             }
         )
-        
+
         if pr_response.status_code != 201:
             raise Exception(f"Failed to create PR: {pr_response.text}")
-            
+
         return pr_response.json().get("html_url")
 
 ```
@@ -98718,7 +98710,7 @@ class StorageClient:
             elif self.provider == "s3" and self.s3_client:
                 self.s3_client.upload_file(local_path, self.bucket_name, remote_path)
                 return {"status": "success", "provider": "s3", "path": remote_path}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Upload failed: {e}")
             return {"status": "error", "error": str(e)}
 
@@ -98826,7 +98818,7 @@ class SupabaseDB:
             try:
                 self.client = create_client(self.url, self.key)
                 logger.info("Initialized Supabase Client")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to initialize Supabase client: {e}")
         else:
             logger.warning(
@@ -98846,7 +98838,7 @@ class SupabaseDB:
                 if hostname.startswith("db."):
                     return f"https://{hostname[3:]}"
                 return f"https://{hostname}"
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: DATABASE_URL পরস বযরথ হল আগ নরব None রটরন করত;
             # কনফগ ভল থকল ত যন দশযমন হয় সজনয ডবগ লগ যকত কর হল
             logger.debug(f"Failed to derive Supabase URL from DATABASE_URL: {exc}")
@@ -99153,7 +99145,7 @@ class SupabaseDB:
                     ),
                 )
                 return
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(
                     "Supabase schema bootstrap failed for %s: %s",
                     (
@@ -99181,7 +99173,7 @@ class SupabaseDB:
         try:
             response = operation()
             return getattr(response, "data", response)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             if self._is_schema_cache_error(e):
                 logger.warning(
                     "Supabase operation failed due missing table schema cache; bootstrapping schema and retrying: %s",
@@ -99191,7 +99183,7 @@ class SupabaseDB:
                 try:
                     response = operation()
                     return getattr(response, "data", response)
-                except Exception as retry_error:
+                except Exception as retry_error:  # noqa: BLE001
                     logger.error(
                         "Supabase retry after schema bootstrap failed: %s",
                         retry_error,
@@ -99214,7 +99206,7 @@ class SupabaseDB:
             if res.data:
                 return res.data[0].get("value")
             return None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to fetch config '{key}': {e}")
             return None
 
@@ -99225,7 +99217,7 @@ class SupabaseDB:
             self.client.table("system_config").upsert(
                 {"key": key, "value": value, "category": category}
             ).execute()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to set config '{key}': {e}")
 
     # --- Feature Flags ---
@@ -99252,7 +99244,7 @@ class SupabaseDB:
                 # Real implementation would hash user_id against rollout_percentage here
                 return True
             return False
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to check feature flag '{feature_name}': {e}")
             return False
 
@@ -99271,7 +99263,7 @@ class SupabaseDB:
                     "language": language,
                 }
             ).execute()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to add GitHub repo '{repo_name}': {e}")
 
     # --- AI Model Behavior ---
@@ -99289,7 +99281,7 @@ class SupabaseDB:
             if res.data:
                 return res.data
             return None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # It's okay if a model is not found, so we can log this at a debug level.
             logger.debug(f"Could not fetch AI model behavior for '{model_name}': {e}")
             return None
@@ -99301,7 +99293,7 @@ class SupabaseDB:
             # Use upsert with on_conflict on 'model_name' if the table is set up for it.
             res = self.client.table("ai_model_behavior").upsert(data).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to upsert AI model behavior: {e}")
             return None
 
@@ -99319,7 +99311,7 @@ class SupabaseDB:
             if res.data:
                 return res.data[0]
             return None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to fetch preferences for '{user_id}': {e}")
             return None
 
@@ -99329,7 +99321,7 @@ class SupabaseDB:
         try:
             res = self.client.table("user_preferences").upsert(data).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to upsert preferences: {e}")
             return None
 
@@ -99344,7 +99336,7 @@ class SupabaseDB:
                 .execute()
             )
             return res.data or []
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to fetch configs by category '{category}': {e}")
             return []
 
@@ -99421,7 +99413,7 @@ class SupabaseDB:
             }
             res = self.client.table("skill_proposals").insert(entry).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.debug(f"Supabase skill_proposals insert failed: {e}")
             return None
 
@@ -99445,7 +99437,7 @@ class SupabaseDB:
             }
             res = self.client.table("feedback_loop").insert(entry).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.debug(f"Supabase feedback_loop insert failed: {e}")
             return None
 
@@ -99463,7 +99455,7 @@ class SupabaseDB:
         try:
             res = self.client.table("evolution_logs").insert(entry).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.debug(f"Supabase evolution_logs insert failed: {e}")
             return None
 
@@ -99479,7 +99471,7 @@ class SupabaseDB:
                 .execute()
             )
             return res.data or []
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.debug(f"Supabase get_evolution_logs failed: {e}")
             return []
 
@@ -99490,7 +99482,7 @@ class SupabaseDB:
         try:
             res = self.client.table("usage_metrics").upsert(data).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to upsert usage metrics: {e}")
             return None
 
@@ -99501,7 +99493,7 @@ class SupabaseDB:
         try:
             res = self.client.table("skills").upsert(data).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to upsert skill into DB: {e}")
             return None
 
@@ -99511,7 +99503,7 @@ class SupabaseDB:
         try:
             res = self.client.table("skills").select("*").eq("name", name).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to fetch skill '{name}' from DB: {e}")
             return None
 
@@ -99521,7 +99513,7 @@ class SupabaseDB:
         try:
             res = self.client.table("skills").select("*").execute()
             return res.data or []
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to fetch all skills from DB: {e}")
             return []
 
@@ -99532,7 +99524,7 @@ class SupabaseDB:
         try:
             res = self.client.table("guardrails").upsert(data).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to upsert guardrail: {e}")
             return None
 
@@ -99548,7 +99540,7 @@ class SupabaseDB:
                 .execute()
             )
             return res.data or []
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to fetch active guardrails: {e}")
             return []
 
@@ -99559,7 +99551,7 @@ class SupabaseDB:
         try:
             res = self.client.table("provider_configs").upsert(data).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to upsert provider config: {e}")
             return None
 
@@ -99575,7 +99567,7 @@ class SupabaseDB:
                 .execute()
             )
             return res.data or []
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to fetch active provider configs: {e}")
             return []
 
@@ -100228,7 +100220,7 @@ class PlatformLearner:
                     html_content = (
                         f"Failed to fetch content, status code: {res.status_code}"
                     )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(
                 f"Failed to fetch live documentation: {e}. Falling back to LLM general knowledge."
             )
@@ -100270,7 +100262,7 @@ Return ONLY a JSON response in the following format (no markdown blocks, no text
 
         try:
             data = json.loads(text)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to parse learned platform JSON: {e}")
             # Fallback structure
             data = {
@@ -100356,14 +100348,14 @@ class ExperienceDatabase:
             try:
                 from sentence_transformers import SentenceTransformer
                 self.encoder = SentenceTransformer("all-MiniLM-L6-v2")
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 import loguru
                 loguru.logger.debug(f"SentenceTransformer init failed: {exc}")
         if HAS_CHROMADB:
             try:
                 import chromadb
                 self.chroma_collection = chromadb.EphemeralClient().get_or_create_collection("experience")
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 import loguru
                 loguru.logger.debug(f"ChromaDB init failed: {exc}")
         if HAS_QDRANT:
@@ -100376,7 +100368,7 @@ class ExperienceDatabase:
                     collection_name=self.qdrant_collection,
                     vectors_config=VectorParams(size=384, distance=Distance.COSINE),
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 import loguru
 
                 loguru.logger.debug(f"Qdrant init failed: {exc}")
@@ -100416,7 +100408,7 @@ class ExperienceDatabase:
         if self.encoder:
             try:
                 return self.encoder.encode(text).tolist()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 return None
         return None
 
@@ -100425,10 +100417,10 @@ class ExperienceDatabase:
         request_text = exp.request or ""
         embedding = self._embed(request_text)
         embedding_blob = json.dumps(embedding).encode() if embedding else None
-        
+
         # Determine the code or response text to save in vector metadata
         response_text = exp.generated_code or exp.action_taken or ""
-        
+
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -100471,7 +100463,7 @@ class ExperienceDatabase:
                     metadatas=[{"result": result, "response": response_text}],
                     documents=[text],
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
         try:
@@ -100481,7 +100473,7 @@ class ExperienceDatabase:
                     collection_name=self.qdrant_collection,
                     points=[PointStruct(id=exp_id, vector=embedding, payload={"result": result, "text": text, "response": response_text})],
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
 
@@ -100534,7 +100526,7 @@ class ExperienceDatabase:
                             "response": hit.payload.get("response", ""),
                             "text": hit.payload.get("text", "")
                         })
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
         return hits
@@ -100585,21 +100577,21 @@ class ExperienceDatabase:
             with open(self.db_path, 'rb') as f_in:
                 with gzip.open(gz_path, 'wb') as f_out:
                     shutil.copyfileobj(f_in, f_out)
-            
+
             client = storage.Client()
             bucket = client.bucket(bucket_name)
             blob = bucket.blob(blob_name)
-            
+
             # Set metadata to indicate it's a gzipped sqlite file
             blob.content_encoding = 'gzip'
             blob.upload_from_filename(str(gz_path), content_type='application/x-sqlite3')
-            
+
             loguru.logger.info(f"Successfully synced experience db to GCS: gs://{bucket_name}/{blob_name}")
-            
+
             # Clean up local compressed file
             gz_path.unlink(missing_ok=True)
-            
-        except Exception as e:
+
+        except Exception as e:  # noqa: BLE001
             loguru.logger.error(f"Failed to sync experience db to GCS: {e}")
 
 ```
@@ -100710,7 +100702,7 @@ Return ONLY a JSON object (no markdown blocks, no text around it) with the follo
                 deployment_target=data.get("deployment_target"),
                 clarification_question=data.get("clarification_question"),
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to parse JSON specification from: {text}. Error: {e}")
             # Fallback to basic spec
             return AppSpecification(
@@ -101158,7 +101150,7 @@ def safe_execute(code: str) -> dict[str, Any]:
         if "result" in local_vars:
             return {"success": True, "value": local_vars["result"]}
         return {"success": True, "value": None}
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         return {"success": False, "error": str(exc)}
 
 
@@ -101180,7 +101172,7 @@ def verify_symbolic_math(expression: str, claimed_result: str) -> dict[str, Any]
             "claimed_result": str(claimed),
             "method": "sympy_symbolic",
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         try:
             clean_expr = re.sub(r"[^0-9\+\-\*\/\(\)\.\s]", "", expression)
             result = _safe_eval_math(clean_expr)
@@ -101192,7 +101184,7 @@ def verify_symbolic_math(expression: str, claimed_result: str) -> dict[str, Any]
                 "claimed_result": claimed,
                 "method": "numerical_fallback",
             }
-        except Exception as inner_e:
+        except Exception as inner_e:  # noqa: BLE001
             return {
                 "is_verified": False,
                 "error": f"Sympy error: {e}, Fallback error: {inner_e}",
@@ -101506,11 +101498,11 @@ class DockerSandbox:
                 check=False,
             )
             return res.returncode == 0
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return False
@@ -101593,7 +101585,7 @@ class DockerSandbox:
                     "exit_code": res.returncode,
                     "simulated": True,
                 }
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 return {"success": False, "error": str(e), "simulated": True}
 
         # Run command securely inside docker
@@ -101619,7 +101611,7 @@ class DockerSandbox:
                 "exit_code": res.returncode,
                 "simulated": False,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e), "simulated": False}
 
 ```
@@ -101736,7 +101728,7 @@ class CoverageAuditor:
             else:
                 logger.warning(f"Unsupported coverage report format: {report_path}")
                 return []
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to parse coverage report {report_path}: {e}")
             return []
 
@@ -101911,7 +101903,7 @@ class RepoDeepIndexer:
                     elif isinstance(node, ast.ImportFrom):
                         imports.append(node.module)
                 return {"classes": classes, "functions": functions, "imports": imports}
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.debug(f"AST parse failed for {file_path}: {e}")
         return {"classes": [], "functions": [], "imports": []}
 
@@ -101932,11 +101924,11 @@ class RepoDeepIndexer:
                     try:
                         with open(file_path, encoding="utf-8") as f:
                             snippet = f.read()[:200]
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         try:
                             import loguru
                             loguru.logger.error(f"Tool execution error: {e}")
-                        except Exception as e:
+                        except Exception as e:  # noqa: BLE001
                             import logging
                             logging.warning(f"Exception suppressed: {e}")
                         snippet = ""
@@ -101951,7 +101943,7 @@ class RepoDeepIndexer:
         if self.vector_db_client:
             try:
                 await self.vector_db_client.upsert(nodes)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.debug(f"Vector DB upsert skipped: {e}")
 
         logger.info(f"Successfully indexed {indexed_files} files.")
@@ -101966,11 +101958,11 @@ class RepoDeepIndexer:
         try:
             if self.vector_db_client:
                 return await self.vector_db_client.query(query, limit)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             pass
@@ -102029,11 +102021,11 @@ class StyleLearner:
                     try:
                         with open(path, encoding="utf-8") as f:
                             code_samples.append(f.read()[:1500])
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         try:
                             import loguru
                             loguru.logger.error(f"Tool execution error: {e}")
-                        except Exception as e:
+                        except Exception as e:  # noqa: BLE001
                             import logging
                             logging.warning(f"Exception suppressed: {e}")
                         pass
@@ -102070,15 +102062,15 @@ class StyleLearner:
                         self.learned_styles[repo_path] = parsed
                         await self._persist_style(repo_path, parsed)
                         return parsed
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         import logging
                         logging.warning(f"Exception suppressed: {e}")
                     logger.warning("Failed to parse style guidelines JSON from LLM.")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"LLM style analysis failed: {e}")
 
         guidelines = self._default_guidelines()
@@ -102098,11 +102090,11 @@ class StyleLearner:
                     }
                 ).execute()
                 return
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             pass
@@ -102112,7 +102104,7 @@ class StyleLearner:
             safe_name = repo_path.replace("/", "_").replace("\\", "_")[:50]
             with open(f"data/styles/{safe_name}.json", "w") as f:
                 json.dump(style, f, indent=2)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.debug(f"Style persist fallback failed: {e}")
 
     def _default_guidelines(self) -> dict[str, Any]:
@@ -102210,7 +102202,7 @@ class AIPairProgrammer:
                 prompt, task_type=task_type, max_cost=max_cost
             )
             return result.get("text", "") if isinstance(result, dict) else ""
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"LLM call failed: {exc}")
             return ""
 
@@ -102280,7 +102272,7 @@ class AIPairProgrammer:
                 body=f"## AI Generated Fix\n\n**Issue:** {issue}\n\n**Changes:**\n```python\n{code[:500]}\n```",
                 files={"ai_fix.py": code},
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"PR creation failed: {exc}")
             return {"status": "error", "error": str(exc)}
 
@@ -102320,7 +102312,7 @@ async def solve_issue(request: IssueRequest):
             create_pr=request.create_pr,
         )
         return result
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Solve issue failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -102347,7 +102339,7 @@ def search_database(query: str) -> str:
     Use this tool when the user asks for historical tasks, user data, or project records.
     """
     # বাস্তবে এখানে আপনার ডাটাবেস কোয়েরি থাকবে
-    print(f"🔧 [TOOL CALLED] Searching database for: {query}")
+    print(f"🔧 [TOOL CALLED] Searching database for: {query}")  # noqa: T201
     time.sleep(1) # Simulating network delay
     return f"Database result for '{query}': Found 3 matching records indicating successful deployment."
 
@@ -102357,7 +102349,7 @@ def check_system_health() -> str:
     Checks the real-time server health, Redis quota, and API status.
     Use this when the user asks about system status, downtime, or performance.
     """
-    print("🔧 [TOOL CALLED] Checking system health...")
+    print("🔧 [TOOL CALLED] Checking system health...")  # noqa: T201
     return "System Status: ONLINE. CPU: 12%, RAM: 45%. Redis Quota: 87% remaining."
 
 # ৩. Execute Code Tool (Mock Example)
@@ -102366,7 +102358,7 @@ def execute_python_code(code: str) -> str:
     Executes Python code in a secure sandbox environment and returns the output.
     Use this tool if the user explicitly asks to run code or calculate complex math.
     """
-    print(f"🔧 [TOOL CALLED] Executing code: {code}")
+    print(f"🔧 [TOOL CALLED] Executing code: {code}")  # noqa: T201
     # বাস্তবে এটি একটি ডকার কন্টেইনার বা স্যান্ডবক্সে রান করবে
     return "Execution successful. Output: Hello from SupremeAI Sandbox!"
 
@@ -102470,7 +102462,7 @@ async def handle_call_tool(
         else:
             raise ValueError(f"Unknown MCP tool: {name}")
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"MCP Server execution error: {e}")
         return [
             types.TextContent(
@@ -102568,7 +102560,7 @@ class CommentThreadAI:
                 prompt, task_type=task_type, max_cost=max_cost
             )
             return result.get("text", "") if isinstance(result, dict) else str(result)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"LLM call failed: {exc}")
             return ""
 
@@ -102594,11 +102586,11 @@ class CommentThreadAI:
             # Review comments (line-level)
             review = await self._gh_get(f"/repos/{repo}/pulls/{pr_number}/comments")
             comments.extend(review if isinstance(review, list) else [])
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             pass
@@ -102606,11 +102598,11 @@ class CommentThreadAI:
             # Issue comments (general PR comments)
             issue = await self._gh_get(f"/repos/{repo}/issues/{pr_number}/comments")
             comments.extend(issue if isinstance(issue, list) else [])
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             pass
@@ -102619,11 +102611,11 @@ class CommentThreadAI:
     async def _get_pr_files(self, repo: str, pr_number: int) -> list[dict]:
         try:
             return await self._gh_get(f"/repos/{repo}/pulls/{pr_number}/files")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return []
@@ -102640,7 +102632,7 @@ class CommentThreadAI:
             )
             logger.info(f"Posted comment on {repo}#{pr_number}")
             return {"status": "success", "comment_url": result.get("html_url")}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"GitHub post comment failed: {exc}")
             return {"status": "error", "error": str(exc)}
 
@@ -102656,7 +102648,7 @@ class CommentThreadAI:
                 {"body": body},
             )
             return {"status": "success", "reply_url": result.get("html_url")}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Reply to review comment failed: {exc}")
             return {"status": "error", "error": str(exc)}
 
@@ -102747,7 +102739,7 @@ class CommentThreadAI:
 
         try:
             comments = await self._get_pr_comments(repo_full_name, target_number)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             return {"status": "error", "error": f"GitHub API failed: {exc}"}
 
         if not comments:
@@ -102792,7 +102784,7 @@ class CommentThreadAI:
             prs = await self._gh_get(
                 f"/repos/{repo_full_name}/pulls?state=open&per_page=50"
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             return {"status": "error", "error": str(exc)}
 
         import datetime
@@ -102817,11 +102809,11 @@ class CommentThreadAI:
                                 "url": pr.get("html_url", ""),
                             }
                         )
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         import logging
                         logging.warning(f"Exception suppressed: {e}")
                     pass
@@ -102930,11 +102922,11 @@ async def github_webhook(
         return {"status": "pong"}
     try:
         payload = await request.json()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         try:
             import loguru
             loguru.logger.error(f"Tool execution error: {e}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
         raise HTTPException(status_code=400, detail="Invalid JSON payload")
@@ -102978,7 +102970,7 @@ class MusicGenerator:
                 "audio_url": "",
                 "note": "Real audio generation requires MusicGen/Jukebox integration.",
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Music generation failed: {exc}")
             return {
                 "status": "error",
@@ -103029,11 +103021,11 @@ def is_safe_url(url: str) -> bool:
         ip = socket.gethostbyname(hostname)
         ip_obj = ipaddress.ip_address(ip)
         return not (ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         try:
             import loguru
             loguru.logger.error(f"Tool execution error: {e}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
         return False
@@ -103084,7 +103076,7 @@ async def shutdown_global_browser():
             logger.info("Stopping playwright runner core context...")
             await _playwright_runner.stop()
         logger.info("✅ All Playwright OS processes terminated cleanly.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.critical(
             f"❌ Error during global browser termination sequence: {str(e)}"
         )
@@ -103140,7 +103132,7 @@ class BrowserAgent:
                 "links": links,
                 "status_code": response.status_code,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to fetch {url}: {e}")
             return {"success": False, "error": str(e), "url": url}
 
@@ -103218,7 +103210,7 @@ class BrowserAgent:
                 "links": links,
                 "action": action,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Playwright action failed: {e}")
             return {"success": False, "error": str(e), "url": url}
         finally:
@@ -103250,7 +103242,7 @@ class BrowserAgent:
                 "extracted": extracted,
                 "raw": page_data,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e)}
 
 
@@ -103342,7 +103334,7 @@ class CostAuditor:
             logger.info(
                 f"Cost reports generated. Image: {image_report_path}, Text: {text_report_path}"
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to generate cost report image: {e}")
 
         return {"text_report": text_report_path, "image_report": image_report_path}
@@ -103454,7 +103446,7 @@ class VideoGenerator:
                 return self._stub(prompt, duration, "runway", output_path=output_path)
             try:
                 return self._call_runway(prompt, duration)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Runway failed: {exc}")
                 if self.kling_api_key and "kling" not in tried:
                     logger.info("Falling back to Kling provider.")
@@ -103477,7 +103469,7 @@ class VideoGenerator:
                 return self._stub(prompt, duration, "kling", output_path=output_path)
             try:
                 return self._call_kling(prompt, duration)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Kling failed: {exc}")
                 if self.runway_api_key and "runway" not in tried:
                     logger.info("Falling back to Runway provider.")
@@ -103558,7 +103550,7 @@ class GameDevAgent:
                 "code": "",
                 "note": "Real game dev requires Unity/Unreal/Godot SDK integration.",
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Game dev generation failed: {exc}")
             return {
                 "status": "error",
@@ -103752,7 +103744,7 @@ class CodeSmellDetector:
                     "severity": "critical",
                 }
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to analyze {filepath}: {e}")
 
         if tree is None:
@@ -103761,7 +103753,7 @@ class CodeSmellDetector:
         if self.radon_available:
             try:
                 smells.extend(self._analyze_radon(filepath, tree, complexity_threshold))
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Radon analysis failed for {filepath}: {e}")
 
             coupling = self.compute_coupling_metrics(tree, filepath)
@@ -103890,11 +103882,11 @@ class CodeSmellDetector:
                             "severity": "warning",
                         }
                     )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 pass
@@ -103925,7 +103917,7 @@ class CodeSmellDetector:
         if self.pylint_available:
             try:
                 results.update(self._analyze_pylint_directory(directory_path))
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Pylint directory analysis failed: {e}")
 
         jscpd_report = self.run_jscpd(directory_path)
@@ -104020,7 +104012,7 @@ class CodeSmellDetector:
                         "severity": "critical",
                     }
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to analyze JS/TS file {filepath}: {e}")
         return smells
 
@@ -104068,7 +104060,7 @@ class CodeSmellDetector:
                     )
             except subprocess.TimeoutExpired:
                 logger.warning("Pylint timed out")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Pylint execution failed: {e}")
         return output
 
@@ -104127,7 +104119,7 @@ class CodeSmellDetector:
         except FileNotFoundError:
             logger.debug("jscpd not installed; skipping cross-file duplication check")
             return {"status": "skipped", "reason": "jscpd not found"}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"jscpd execution failed: {exc}")
             return {"status": "error", "reason": str(exc)}
 
@@ -104192,16 +104184,16 @@ class SelfPlanner:
                 plan = json.loads(text)
                 if not isinstance(plan, list):
                     plan = []
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 logger.warning("LLM returned non-JSON plan. Using fallback.")
                 plan = self._mock_plan(objective)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"LLM planner failed: {e}. Using fallback.")
             plan = self._mock_plan(objective)
 
@@ -104357,7 +104349,7 @@ async def create_plan(request: PlanRequest):
             "execution_batches": batches,
             "tasks": nodes,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Planner failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -104440,7 +104432,7 @@ class DiagramToArchitecture:
         except ImportError:
             logger.warning("ModelRouter not available. Returning mock architecture.")
             return self._mock_output(provider, iac_tool)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Architecture generation failed: {str(e)}")
             return {"status": "error", "error": str(e)}
 
@@ -104511,7 +104503,7 @@ resource "{provider}_subnet" "public" {{
             )
             yaml_spec = result.get("text", "") if isinstance(result, dict) else ""
             return {"status": "success", "openapi_yaml": yaml_spec}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"status": "error", "error": str(e)}
 
 
@@ -104639,7 +104631,7 @@ class PlaywrightBrowserAgent:
                 )
             else:
                 raise ValueError("Cookie payload is not a list")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 "Failed to load cookies from %s: %s. Removing stale cookie file.",
                 cookie_path,
@@ -104699,7 +104691,7 @@ class PlaywrightBrowserAgent:
             page.mouse.move(target_x, target_y, steps=steps)
             page.mouse.click(target_x, target_y)
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Human-like click failed for selector '{selector}': {e}. Falling back to simple click.")
             page.click(selector) # Fallback to a simple click if anything goes wrong
 
@@ -104761,11 +104753,11 @@ class PlaywrightBrowserAgent:
             if login_check_selector and login_flow and credentials:
                 try:
                     is_authenticated = page.is_visible(login_check_selector)
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         import logging
                         logging.warning(f"Exception suppressed: {e}")
                     is_authenticated = False
@@ -104785,7 +104777,7 @@ class PlaywrightBrowserAgent:
 
             result = task_function(page)
             return {"success": True, "result": result}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error("Playwright task failed: %s", exc)
             return {"success": False, "error": str(exc)}
         finally:
@@ -104874,7 +104866,7 @@ class PlaywrightBrowserAgent:
                 args=(model_name, latency_ms, success),
             )
             thread.start()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(
                 f"Failed to spawn background thread for model behavior update: {e}"
             )
@@ -104994,7 +104986,7 @@ class PlaywrightBrowserAgent:
                 "final_action": "implement" if is_confirmed else "reject",
             }
 
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Cross-verification failed: {exc}")
             return {"success": False, "error": str(exc)}
         finally:
@@ -105049,7 +105041,7 @@ class PlaywrightBrowserAgent:
             if response_text and response_text.strip():
                 return response_text.strip(), True
             return "", False
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Querying AI site {site_config['name']} failed: {e}")
             return "", False
 
@@ -105143,7 +105135,7 @@ class PlaywrightBrowserAgent:
                 time.sleep(2) # Wait for animations/transitions
 
             return {"success": True, "result": f"Completed {max_steps} steps."}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Goal execution failed: {exc}")
             return {"success": False, "error": str(exc)}
         finally:
@@ -105224,11 +105216,11 @@ def _get_connection():
     try:
         conn = psycopg2.connect(supabase_db_url)
         return conn
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         try:
             import loguru
             loguru.logger.error(f"Tool execution error: {e}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
         return None
@@ -105329,17 +105321,17 @@ async def supabase_execute_sql(params: ExecuteQueryInput) -> str:
             "message": f"Query executed successfully. Affected {affected} rows."
         }, ensure_ascii=False)
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return _handle_db_error(e)
     finally:
         if conn:
             try:
                 conn.close()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 pass
@@ -105397,17 +105389,17 @@ async def supabase_create_table(params: CreateTableInput) -> str:
             "message": f"Table '{params.table_name}' created successfully."
         }, ensure_ascii=False)
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return _handle_db_error(e)
     finally:
         if conn:
             try:
                 conn.close()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 pass
@@ -105487,17 +105479,17 @@ async def supabase_run_migration(params: MigrationInput) -> str:
             "message": f"Migration '{params.migration_name}' applied successfully."
         }, ensure_ascii=False)
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return _handle_db_error(e)
     finally:
         if conn:
             try:
                 conn.close()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 pass
@@ -105544,17 +105536,17 @@ async def supabase_list_tables() -> str:
             "count": len(tables)
         }, ensure_ascii=False)
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return _handle_db_error(e)
     finally:
         if conn:
             try:
                 conn.close()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 pass
@@ -105598,7 +105590,7 @@ class MedicalAgent:
                 "analysis": text or "Analysis unavailable.",
                 "disclaimer": "This is not medical advice. Consult a qualified healthcare provider.",
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Medical analysis failed: {exc}")
             return {
                 "status": "error",
@@ -105723,11 +105715,11 @@ class LocalSearchRAG:
                 self._index = json.loads(
                     self.embeddings_path.read_text(encoding="utf-8")
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 self._index = {}
@@ -105800,7 +105792,7 @@ class LocalSearchRAG:
                         }
                     )
                 return {"status": "ok", "query": query, "matches": matches}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             import loguru
 
             loguru.logger.warning(
@@ -105856,7 +105848,7 @@ class LocalSearchRAG:
                 self.collection.upsert(
                     ids=ids, documents=documents, metadatas=metadatas
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 import loguru
 
                 loguru.logger.error(f"ChromaDB upsert failed: {exc}")
@@ -106065,7 +106057,7 @@ class MultiAccountRotator:
                     return data
 
                 await asyncio.sleep(1)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Firestore check failed, falling back to SQLite: {e}")
 
         # Fallback to SQLite
@@ -106101,7 +106093,7 @@ class MultiAccountRotator:
                             return data
                     conn.close()
                 await asyncio.sleep(1)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"SQLite fallback check failed: {e}")
 
         return None
@@ -106178,7 +106170,7 @@ class MultiAccountRotator:
                     await page.fill('input[id="confirm-password"]', password)
                     await page.click('button[id="signup-button"]')
                     logger.info(f"[SUPREME-AI] Submitted signup form for {new_email}")
-                except Exception as form_err:
+                except Exception as form_err:  # noqa: BLE001
                     logger.warning(
                         f"[SUPREME-AI] Form filling warning/error (continuing): {form_err}"
                     )
@@ -106211,7 +106203,7 @@ class MultiAccountRotator:
                             )
                             await page.goto(verification_link)
                             logger.info("[SUPREME-AI] Navigated to verification link.")
-                    except Exception as verify_err:
+                    except Exception as verify_err:  # noqa: BLE001
                         logger.warning(
                             f"[SUPREME-AI] Verification filling warning/error (continuing): {verify_err}"
                         )
@@ -106263,7 +106255,7 @@ class MultiAccountRotator:
                         f"[SUPREME-AI] No verification data received for {new_email} within timeout."
                     )
                     return False
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(
                     f"[SUPREME-AI] Playwright automation failed for {provider_name}: {e}"
                 )
@@ -106279,7 +106271,7 @@ class MultiAccountRotator:
                 with open(self.config_file) as f:
                     config = json.load(f)
                     self._load_providers_from_config(config)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to load config: {e}")
                 self._create_default_config()
         else:
@@ -106470,7 +106462,7 @@ class MultiAccountRotator:
                                 f"(length: {len(api_key)}) from selector '{selector}'"
                             )
                             return api_key
-                except Exception:
+                except Exception:  # noqa: BLE001
                     continue
 
             logger.warning(
@@ -106478,7 +106470,7 @@ class MultiAccountRotator:
                 "Admin must add it manually."
             )
             return None
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 f"[ROTATOR] API key extraction failed for {provider_name}: {exc}"
             )
@@ -106645,7 +106637,7 @@ class MultiAccountRotator:
                 "tokens_used": len(prompt.split()) * 1.5,  # Rough estimate
             }
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # Record failed request
             account.record_request(success=False)
             logger.error(f"Task execution failed: {e}")
@@ -106700,7 +106692,7 @@ class MultiAccountRotator:
                     "model": kwargs.get("model", provider.models[0]),
                 }
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 account.record_request(success=False)
                 logger.warning(f"Failover attempt failed for {provider.name}: {e}")
                 continue
@@ -106775,16 +106767,16 @@ async def main():
     for task_type, prompt in tasks:
         result = await rotator.execute_task(task_type, prompt)
         if result:
-            print(
+            print(  # noqa: T201
                 f"✅ {task_type.value}: {result['provider']} - {result['result'][:100]}..."
             )
         else:
-            print(f"❌ {task_type.value}: Failed to execute")
+            print(f"❌ {task_type.value}: Failed to execute")  # noqa: T201
 
     # Print system status
     status = rotator.get_system_status()
-    print(f"\n📊 System Status: {status['system_health']:.1f}% healthy")
-    print(f"Active accounts: {status['active_accounts']}/{status['total_accounts']}")
+    print(f"\n📊 System Status: {status['system_health']:.1f}% healthy")  # noqa: T201
+    print(f"Active accounts: {status['active_accounts']}/{status['total_accounts']}")  # noqa: T201
 
 
 if __name__ == "__main__":
@@ -106861,7 +106853,7 @@ class HealthChecker:
         try:
             with open(report_path, "w", encoding="utf-8") as f:
                 json.dump(report, f, indent=4)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to write health report: {exc}")
         return report
 
@@ -106873,7 +106865,7 @@ class HealthChecker:
         try:
             with open(self.error_history_path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(record) + "\n")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to log error: {exc}")
 
     def detect_anomalies(self) -> list[dict[str, Any]]:
@@ -106892,11 +106884,11 @@ class HealthChecker:
                         ts = datetime.fromisoformat(record["timestamp"])
                         if ts >= cutoff:
                             recent_errors.append(record)
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         try:
                             import loguru
                             loguru.logger.error(f"Tool execution error: {e}")
-                        except Exception as e:
+                        except Exception as e:  # noqa: BLE001
                             import logging
                             logging.warning(f"Exception suppressed: {e}")
                         continue
@@ -106956,7 +106948,7 @@ class HealthChecker:
                 url, json={"chat_id": self.admin_chat_id, "text": text}, timeout=10
             )
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to report anomaly: {exc}")
             return False
 
@@ -107026,11 +107018,11 @@ class ViralReferralEngine:
 
             with open(path, encoding="utf-8") as f:
                 return json.load(f)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return {"codes": {}, "wallets": {}}
@@ -107056,7 +107048,7 @@ class ViralReferralEngine:
         if db.client:
             try:
                 db.client.table("referral_codes").upsert(record).execute()
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Referral code persistence failed: {exc}")
         else:
             data = self._load_local()
@@ -107076,7 +107068,7 @@ class ViralReferralEngine:
                     .execute()
                 )
                 out = res.data or []
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Failed to list codes: {exc}")
         else:
             data = self._load_local()
@@ -107104,7 +107096,7 @@ class ViralReferralEngine:
                 if rows:
                     record = rows[0]
                     referrer_id = record.get("referrer_id")
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Referral lookup failed: {exc}")
         else:
             data = self._load_local()
@@ -107142,7 +107134,7 @@ class ViralReferralEngine:
                 db.client.table("referral_codes").update(
                     {"redeemed_count": record.get("redeemed_count", 0) + 1}
                 ).eq("code", referral_code).execute()
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Referral redemption persistence failed: {exc}")
         else:
             data = self._load_local()
@@ -107174,7 +107166,7 @@ class ViralReferralEngine:
                     .execute()
                 )
                 history = res.data or []
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Fraud history lookup failed: {exc}")
         else:
             data = self._load_local()
@@ -107230,7 +107222,7 @@ class ViralReferralEngine:
                     if hasattr(res, "count")
                     else (len(res.data) if res.data else 0)
                 )
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Reward tier count failed: {exc}")
         else:
             data = self._load_local()
@@ -107276,7 +107268,7 @@ class ViralReferralEngine:
                         "updated_at": time.time(),
                     }
                 ).execute()
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Credit wallet update failed: {exc}")
         else:
             data = self._load_local()
@@ -107304,7 +107296,7 @@ class ViralReferralEngine:
                 rows = res.data
                 if rows:
                     return rows[0]
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Wallet fetch failed: {exc}")
         else:
             data = self._load_local()
@@ -107330,7 +107322,7 @@ class ViralReferralEngine:
                     .execute()
                 )
                 out = res.data or []
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Ledger fetch failed: {exc}")
         else:
             data = self._load_local()
@@ -107371,7 +107363,7 @@ class ViralReferralEngine:
         if db.client:
             try:
                 db.client.table("referral_redemptions").insert(event).execute()
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Social share persistence failed: {exc}")
         else:
             data = self._load_local()
@@ -107408,7 +107400,7 @@ class ViralReferralEngine:
                 "amount": amount_cents,
                 "currency": currency,
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Stripe payout failed for {user_id}: {exc}")
             return {"status": "error", "reason": str(exc)}
 
@@ -107568,7 +107560,7 @@ class VPNRotator:
                 text = resp.text.strip().splitlines()
                 if text:
                     return {"proxy": random.choice(text).strip(), "source": "free"}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"free proxy fetch failed: {exc}")
         return {"proxy": None, "source": "free", "reason": "empty"}
 
@@ -107581,11 +107573,11 @@ class VPNRotator:
                 cfg = json.load(fh)
             proxy = cfg.get(use_case) or cfg.get("default")
             return {"proxy": proxy, "source": "premium", "use_case": use_case}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return {"proxy": None, "source": "premium", "reason": "not configured"}
@@ -108096,7 +108088,7 @@ class BrowserStealth:
                 await page.keyboard.press(random.choice(["Space", "PageDown", "End"]))
             if random.random() > 0.6:
                 await page.mouse.click(random.randint(50, 300), random.randint(80, 300), delay=random.randint(80, 220))
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Human behavior simulation skipped: {exc}")
 
     async def safe_screenshot(self, page: Page, path: str | None = None) -> str | None:
@@ -108105,7 +108097,7 @@ class BrowserStealth:
             Path("data/artifacts").mkdir(parents=True, exist_ok=True)
             await page.screenshot(path=target, full_page=True)
             return target
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"screenshot failed: {exc}")
             return None
 
@@ -108115,11 +108107,11 @@ class BrowserStealth:
                 await self.context.close()
             if self.playwright:
                 await self.playwright.stop()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             pass
@@ -108204,7 +108196,7 @@ class TelegramBotHandler:
                 )
                 resp.raise_for_status()
                 return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Telegram sendMessage failed: {exc}")
             return False
 
@@ -108217,11 +108209,11 @@ class TelegramBotHandler:
                     f"{self.api_base}/sendChatAction",
                     json={"chat_id": chat_id, "action": "typing"},
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             pass
@@ -108245,7 +108237,7 @@ class TelegramBotHandler:
                     return True
                 logger.error(f"Webhook error: {data}")
                 return False
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"set_webhook failed: {exc}")
             return False
 
@@ -108258,7 +108250,7 @@ class TelegramBotHandler:
                 resp = await client.get(f"{self.api_base}/getMe")
                 data = resp.json()
                 return data.get("result") if data.get("ok") else None
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"getMe failed: {exc}")
             return None
 
@@ -108328,11 +108320,11 @@ class TelegramBotHandler:
                     r = await c.get(url + "/health")
                     icon = "✅" if r.status_code == 200 else "⚠️"
                     status_lines.append(f"{icon} {name}: `{r.status_code}`")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 status_lines.append(f"❌ {name}: unreachable")
@@ -108351,7 +108343,7 @@ class TelegramBotHandler:
                     None, lambda: self.orchestrator.execute_task(text, task_type)
                 )
                 return result.get("result", "Sorry, I couldn't process that.")
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Orchestrator error: {exc}")
                 return "⚠️ Error processing request. Please try again."
         return "🤖 SupremeAI 2.0 is ready! (Orchestrator not connected)"
@@ -108392,7 +108384,7 @@ class TelegramBotHandler:
                         asyncio.create_task(self.handle_update(update))
             except httpx.TimeoutException:
                 continue
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Polling error: {exc}")
                 await asyncio.sleep(5)
 
@@ -108559,15 +108551,15 @@ def _upsert_fts(
 
 
 def seed_all():
-    print("Initializing LocalSearchRAG...")
+    print("Initializing LocalSearchRAG...")  # noqa: T201
     rag = LocalSearchRAG()
 
     seed_data_dir = os.path.join(base_dir, "tools", "seed_data")
     if not os.path.exists(seed_data_dir):
-        print(f"Error: seed_data directory not found at {seed_data_dir}")
+        print(f"Error: seed_data directory not found at {seed_data_dir}")  # noqa: T201
         return
 
-    print("Scanning seed modules...")
+    print("Scanning seed modules...")  # noqa: T201
     ids = []
     documents = []
     metadatas = []
@@ -108585,8 +108577,8 @@ def seed_all():
                 sys.path.insert(0, seed_data_dir)
                 try:
                     spec.loader.exec_module(module)
-                except Exception as e:
-                    print(f"Failed to load {module_name}: {e}")
+                except Exception as e:  # noqa: BLE001
+                    print(f"Failed to load {module_name}: {e}")  # noqa: T201
                     continue
                 finally:
                     sys.path.pop(0)
@@ -108595,7 +108587,7 @@ def seed_all():
                     if attr_name.isupper():
                         attr_val = getattr(module, attr_name)
                         if isinstance(attr_val, dict):
-                            print(f"Processing dict '{attr_name}' in {module_name}...")
+                            print(f"Processing dict '{attr_name}' in {module_name}...")  # noqa: T201
                             for key, item in attr_val.items():
                                 if not isinstance(item, dict):
                                     continue
@@ -108647,18 +108639,18 @@ def seed_all():
                                 )
 
     if ids:
-        print(f"Upserting {len(ids)} expert knowledge patterns to ChromaDB...")
+        print(f"Upserting {len(ids)} expert knowledge patterns to ChromaDB...")  # noqa: T201
         try:
             rag.collection.upsert(ids=ids, documents=documents, metadatas=metadatas)
-            print("Successfully seeded all SupremeAI 1.0 expert knowledge!")
-        except Exception as e:
-            print(f"ChromaDB Upsert failed: {e}. Writing to fallback index.")
+            print("Successfully seeded all SupremeAI 1.0 expert knowledge!")  # noqa: T201
+        except Exception as e:  # noqa: BLE001
+            print(f"ChromaDB Upsert failed: {e}. Writing to fallback index.")  # noqa: T201
             for idx, doc_id in enumerate(ids):
                 rag._index[doc_id] = [metadatas[idx]["title"], documents[idx]]
             rag._store_search("expert_seed", {})
-            print("Successfully seeded to fallback index file.")
+            print("Successfully seeded to fallback index file.")  # noqa: T201
 
-        print(f"Writing {len(ids)} entries to SQLite FTS5...")
+        print(f"Writing {len(ids)} entries to SQLite FTS5...")  # noqa: T201
         try:
             conn = sqlite3.connect(DB_PATH)
             _init_fts_db(conn)
@@ -108672,11 +108664,11 @@ def seed_all():
                 )
             conn.commit()
             conn.close()
-            print("Successfully seeded SQLite FTS5 knowledge base.")
-        except Exception as e:
-            print(f"SQLite FTS seeding failed: {e}")
+            print("Successfully seeded SQLite FTS5 knowledge base.")  # noqa: T201
+        except Exception as e:  # noqa: BLE001
+            print(f"SQLite FTS seeding failed: {e}")  # noqa: T201
     else:
-        print("No seed data found to import.")
+        print("No seed data found to import.")  # noqa: T201
 
 
 if __name__ == "__main__":
@@ -108979,50 +108971,50 @@ def execute_ultimate_fuzz_test():
     bypass_count = 0
     syntax_error_count = 0
 
-    print("\n" + "=" * 80)
-    print(
+    print("\n" + "=" * 80)  # noqa: T201
+    print(  # noqa: T201
         f"| {'ATTACK VECTOR CATEGORY':<35} | {'STATUS':<12} | {'ENGINE VERDICT':<23} |"
     )
-    print("=" * 80)
+    print("=" * 80)  # noqa: T201
 
     for idx, (code, category) in enumerate(payloads, 1):
         try:
             is_safe = run_sandbox_ast_check(code)
             if is_safe:
                 # স্যান্ডবক্স কোডটিকে সেফ বলেছে -> অর্থাৎ হ্যাক সফল, স্যান্ডবক্স ফেল করেছে (Bypass)!
-                print(
+                print(  # noqa: T201
                     f"| {idx:03d}. {category:<30} | {RED}{'BYPASS':<12}{RESET} | Allowed Malicious Code  |"
                 )
                 bypass_count += 1
             else:
                 # সিনট্যাক্স এরর হ্যান্ডলিং
-                print(
+                print(  # noqa: T201
                     f"| {idx:03d}. {category:<30} | {GREEN}{'BLOCKED':<12}{RESET} | Syntax Normalization    |"
                 )
                 syntax_error_count += 1
         except SecurityError as e:
             # স্যান্ডবক্স সফলভাবে সিকিউরিটি এরর রেইজ করে অ্যাটাক ব্লক করেছে (Success)
-            print(
+            print(  # noqa: T201
                 f"| {idx:03d}. {category:<30} | {GREEN}{'BLOCKED':<12}{RESET} | {str(e)[:23]:<23} |"
             )
             blocked_count += 1
 
-    print("=" * 80)
-    print("\n📊 FINAL FUZZING LAB REPORT:")
-    print(
+    print("=" * 80)  # noqa: T201
+    print("\n📊 FINAL FUZZING LAB REPORT:")  # noqa: T201
+    print(  # noqa: T201
         f"  🟢 TOTAL ATTACKS SECURELY DEFENDED : {GREEN}{blocked_count + syntax_error_count}/100{RESET}"
     )
-    print(
+    print(  # noqa: T201
         f"  🔴 TOTAL BYPASSES (SANDBOX CRACKS) : {RED if bypass_count > 0 else GREEN}{bypass_count}/100{RESET}"
     )
-    print("=" * 80)
+    print("=" * 80)  # noqa: T201
 
     if bypass_count == 0:
-        print(
+        print(  # noqa: T201
             f"\n🏆 {GREEN}PASSED! Your SkillLoader AST Sandbox is 100% UNKILLABLE against all 100 fuzz vectors.{RESET}\n"
         )
     else:
-        print(
+        print(  # noqa: T201
             f"\n🚨 {RED}SECURITY WARNING: Your sandbox was cracked! Review the BYPASS vectors immediately.{RESET}\n"
         )
 
@@ -109065,7 +109057,7 @@ class ProxyManager:
                     data = json.load(f)
                     self.proxies = data.get("proxies", [])
                     logger.info(f"Loaded {len(self.proxies)} proxies from {self.config_path}.")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to read proxy config: {e}")
 
         # Fallback empty list
@@ -109128,11 +109120,11 @@ class VoiceCoder:
             feedback_text = f"Done. {action}."
             try:
                 audio_feedback = await self.voice.text_to_speech_async(feedback_text)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 audio_feedback = None
@@ -109144,7 +109136,7 @@ class VoiceCoder:
                 "code": code,
                 "feedback_audio": audio_feedback,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Voice coding failed: {str(e)}")
             return {"status": "error", "error": str(e)}
 
@@ -109184,7 +109176,7 @@ class VoiceCoder:
             if not text:
                 return f"# Could not generate code for: {instruction}\n"
             return text
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Code generation failed: {e}")
             return f"# Error generating code: {e}\n"
 
@@ -109197,7 +109189,7 @@ class VoiceCoder:
                 question, task_type="general", max_cost=0.01
             )
             return result.get("text", "") if isinstance(result, dict) else ""
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return f"Could not explain: {e}"
 
 
@@ -109217,7 +109209,7 @@ async def process_audio(file: UploadFile = File(...)):
         result = await voice_coder.process_voice_command(tmp_path)
         os.unlink(tmp_path)
         return result
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Audio processing failed: {e}")
         return {"status": "error", "error": str(e)}
 
@@ -109242,7 +109234,7 @@ async def voice_ws(websocket: WebSocket):
         await websocket.send_json(result)
     except WebSocketDisconnect:
         logger.info("Voice coder WebSocket disconnected before response")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Voice WebSocket error: {e}")
         await websocket.close()
     finally:
@@ -109335,7 +109327,7 @@ class VisionAgent:
     def analyze_image(self, image_path: str) -> dict[str, Any]:
         try:
             import easyocr  # type: ignore[import-untyped]
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"EasyOCR is not available: {exc}")
             return {"success": False, "error": str(exc), "text": "", "structured": {}}
 
@@ -109354,7 +109346,7 @@ class VisionAgent:
                 "lines": text_lines,
                 "structured": self._structure(text_lines),
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Vision image analysis failed: {exc}")
             return {"success": False, "error": str(exc), "text": "", "structured": {}}
 
@@ -109370,7 +109362,7 @@ class VisionAgent:
                 "summary": cover_text,
                 "structured": {"pages": len(text_pages)},
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Vision PDF analysis failed: {exc}")
             return {"success": False, "error": str(exc), "text": "", "structured": {}}
 
@@ -109511,7 +109503,7 @@ class EnsembleRouter:
                 "best_response": best_response,
                 "all_responses": valid,
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Ensemble routing failed: {exc}")
             return {
                 "status": "error",
@@ -109575,14 +109567,14 @@ def run_git(args):
         return subprocess.check_output(["git"] + args, stderr=subprocess.STDOUT).decode(
             "utf-8"
         )
-    except Exception as e:
-        print(f"Error running git: {e}")
+    except Exception as e:  # noqa: BLE001
+        print(f"Error running git: {e}")  # noqa: T201
         return ""
 
 
 def extract_knowledge():
     init_db()
-    print("🔍 Analyzing git log for knowledge extraction...")
+    print("🔍 Analyzing git log for knowledge extraction...")  # noqa: T201
     # Get last 50 commits with diffs
     logs = run_git(
         ["log", "-n", "50", "--pretty=format:COMMIT:%H%nSUBJECT:%s%nBODY:%b", "-p"]
@@ -109620,7 +109612,7 @@ def extract_knowledge():
                 body += line + "\n"
 
         if any(kw in subject.lower() for kw in fix_keywords):
-            print(f"  ✨ Found fix pattern in commit {commit_id[:8]}: {subject}")
+            print(f"  ✨ Found fix pattern in commit {commit_id[:8]}: {subject}")  # noqa: T201
             files_changed = re.findall(r"diff --git a/(.*?) b/", diff)
 
             entry = {
@@ -109648,7 +109640,7 @@ def extract_knowledge():
                 knowledge_entries,
             )
             conn.commit()
-        print(
+        print(  # noqa: T201
             f"✅ Extracted and stored {len(knowledge_entries)} entries into {DB_PATH}"
         )
 
@@ -109689,11 +109681,11 @@ class TenantRateLimiter:
             import core.services as app_mod
 
             return getattr(app_mod, "redis_queue", None)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return None
@@ -109727,7 +109719,7 @@ class TenantRateLimiter:
             tier = self.queue.get(f"billing:tier:{tenant_id}")
             if tier is not None:
                 return tier.decode("utf-8") if isinstance(tier, bytes) else str(tier)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Tier lookup failed: {exc}")
         return "free"
 
@@ -109738,7 +109730,7 @@ class TenantRateLimiter:
             raise ValueError(f"Invalid tier: {tier}")
         try:
             self.queue.set(f"billing:tier:{tenant_id}", tier, ex=3600)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Tier update failed: {exc}")
 
     async def check_quota(
@@ -109786,7 +109778,7 @@ class TenantRateLimiter:
                     "current": rpd,
                     "limit": tier["rpd"],
                 }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Redis quota check failed: {exc}")
             return {"allowed": True, "reason": "redis_error", "tier": tier_key}
 
@@ -109846,7 +109838,7 @@ class TenantRateLimiter:
                     str(int(self.queue.get(tokens_key) or 0) + tokens),
                     ex=86400 + 300,
                 )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Redis usage recording failed: {exc}")
 
         total_cost = float(self.queue.get(cost_key) or 0.0) if self.queue else 0.0
@@ -109887,7 +109879,7 @@ class TenantRateLimiter:
                 description=f"SupremeAI usage - tenant {tenant_id}",
             )
             logger.info(f"Stripe usage recorded for tenant {tenant_id}: ${amount:.4f}")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Stripe charge failed: {exc}")
 
 ```
@@ -110026,7 +110018,7 @@ async def export_file_async(file_path: str, root_dir: str) -> str:
     try:
         loop = asyncio.get_running_loop()
         content = await loop.run_in_executor(None, _read_file, file_path)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         return f"### File: `{rel}` (read error: {exc})\n\n"
     parts = [f"### File: `{rel}`\n\n```{language}\n"]
     for idx, chunk in enumerate(_chunk_lines(content)):
@@ -110067,7 +110059,7 @@ def _get_git_changed_files(
             if line.strip()
         }
         return files
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Failed to fetch git changed files: {e}")
         return None
 
@@ -110097,7 +110089,7 @@ def _get_git_diff_summary(
         if len(commits) > 20:
             summary += f"\n- ... and {len(commits) - 20} more commits."
         return summary
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return f"Failed to retrieve git changes: {e}"
 
 
@@ -110177,7 +110169,7 @@ async def export_codebase_to_markdown(
             try:
                 shutil.rmtree(temp_dir)
                 logger.info(f"Cleaned up temp directory: {temp_dir}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to clean up temp dir {temp_dir}: {e}")
 
 ```
@@ -110230,11 +110222,11 @@ class MetaArchitect:
                             metrics["languages"][lang] = metrics["languages"].get(
                                 lang, 0
                             ) + len(lines)
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         try:
                             import loguru
                             loguru.logger.error(f"Tool execution error: {e}")
-                        except Exception as e:
+                        except Exception as e:  # noqa: BLE001
                             import logging
                             logging.warning(f"Exception suppressed: {e}")
                         pass
@@ -110253,7 +110245,7 @@ class MetaArchitect:
                 suggestions.append(
                     "Consider adding type hints to Python files for better maintainability."
                 )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Codebase analysis failed: {exc}")
             issues.append(f"Analysis error: {exc}")
         return {
@@ -110289,11 +110281,11 @@ class MetaArchitect:
                 if cleaned.endswith("```"):
                     cleaned = "\n".join(cleaned.splitlines()[:-1])
                 plan = json.loads(cleaned)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 plan = {
@@ -110305,7 +110297,7 @@ class MetaArchitect:
                     "estimated_effort_days": 3,
                 }
             return {"status": "success", "plan": plan}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Refactor proposal failed: {exc}")
             return {"status": "error", "error": str(exc)}
 
@@ -110341,7 +110333,7 @@ class MetaArchitect:
                 "backup": backup_path,
                 "changes_applied": True,
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Refactor implementation failed: {exc}")
             return {"status": "error", "error": str(exc)}
 
@@ -110525,7 +110517,7 @@ class AutoPRPipeline:
                 "branch": branch,
             }
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Auto PR Pipeline failed: {e}")
             # Cleanup: checkout original branch and delete the new one
             logger.info("Cleaning up failed PR attempt...")
@@ -110583,7 +110575,7 @@ class AutoPRPipeline:
                 "pr_url": pr_result.get("pr_url"),
             }
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Auto PR Pipeline failed: {str(e)}")
             # Cleanup failed branch
             await self._run_git_command(["checkout", original_branch], cwd=repo_path)
@@ -110665,7 +110657,7 @@ class HFImageGenerator:
                     "output_path": output_path,
                     "mock": False,
                 }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(
                 f"HuggingFace image generation failed: {e}. Falling back to mock generation."
             )
@@ -110695,7 +110687,7 @@ class HFImageGenerator:
                 "output_path": output_path,
                 "mock": True,
             }
-        except Exception as ex:
+        except Exception as ex:  # noqa: BLE001
             return {"success": False, "error": f"Mock generation failed: {ex}"}
 
 ```
@@ -111056,7 +111048,7 @@ class AutoTestGenerator:
                 prompt, task_type="coding", max_cost=0.05
             )
             return result.get("text", "") if isinstance(result, dict) else str(result)  # type: ignore
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"LLM call failed: {exc}")
             return ""
 
@@ -111207,7 +111199,7 @@ class AutoTestGenerator:
                 "stdout": proc.stdout[-2000:],
                 "stderr": proc.stderr[-500:],
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             return {"returncode": -1, "passed": False, "error": str(exc)}
 
     async def batch_generate(
@@ -111381,17 +111373,17 @@ class DomainAdapter:
                 res = db.client.table("domain_profiles").select("*").execute()
                 for row in res.data or []:
                     self._profiles[row["domain"]] = row
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Domain profiles DB load failed: {exc}")
         try:
             with open(self._local_path(), encoding="utf-8") as f:
                 data = json.load(f)
             self._profiles.update(data)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             pass
@@ -111405,13 +111397,13 @@ class DomainAdapter:
                 db.client.table("domain_profiles").upsert(
                     {"domain": domain, **profile}
                 ).execute()
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Domain profile save failed: {exc}")
         try:
             os.makedirs(os.path.dirname(self._local_path()), exist_ok=True)
             with open(self._local_path(), "w", encoding="utf-8") as f:
                 json.dump(self._profiles, f, indent=2, default=str)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Local domain profile save failed: {exc}")
 
     def get_prompt(
@@ -111454,7 +111446,7 @@ class DomainAdapter:
                 "model": result.get("model", "unknown"),
                 "provider": result.get("provider", "unknown"),
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"DomainAdapter generation failed: {exc}")
             return {
                 "domain": domain,
@@ -111590,7 +111582,7 @@ class LocalOCRExtractor:
                 text_lines.append({"text": text, "confidence": confidence})
             full_text = "\n".join(item["text"] for item in text_lines)
             return {"success": True, "text": full_text, "lines": text_lines}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"OCR failed: {exc}")
             return {"success": False, "error": str(exc), "text": ""}
 
@@ -111609,7 +111601,7 @@ class LocalOCRExtractor:
                 else:
                     rows.append({"data": cells})
             return {"success": True, "rows": rows, "frame": None}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Table parsing failed: {exc}")
             return {"success": False, "error": str(exc), "rows": []}
 
@@ -111626,7 +111618,7 @@ class LocalOCRExtractor:
                     ws.append([row.get(key, "") for key in headers])
             wb.save(path)
             return {"success": True, "path": path}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Excel export failed: {exc}")
             return {"success": False, "error": str(exc)}
 
@@ -111672,7 +111664,7 @@ class VoiceInterface:
             if transcription:
                 logger.info(f"Locally transcribed audio: {transcription}")
                 return transcription
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(
                 f"Local Whisper not available or failed: {e}. Falling back to HuggingFace API..."
             )
@@ -111698,7 +111690,7 @@ class VoiceInterface:
                     f"Whisper API error: {response.status_code} - {response.text}"
                 )
                 return f"Error transcribing audio (status code: {response.status_code})"
-        except Exception as api_err:
+        except Exception as api_err:  # noqa: BLE001
             logger.error(f"Exception during speech to text API fallback: {api_err}")
             return f"Error: {str(api_err)}"
 
@@ -111723,11 +111715,11 @@ class VoiceInterface:
 
                 if torch.cuda.is_available():
                     device = "cuda"
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 pass
@@ -111739,14 +111731,14 @@ class VoiceInterface:
             if hasattr(tts, "to"):
                 try:
                     tts.to(device)
-                except Exception as device_err:
+                except Exception as device_err:  # noqa: BLE001
                     logger.warning(
                         f"Coqui TTS device set failed ({device_err}); using default device."
                     )
             tts.tts_to_file(text=text, file_path=output_path, language=lang)
             logger.info(f"Generated offline speech file at: {output_path}")
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(
                 f"Coqui TTS unavailable or failed: {e}. Falling back to gTTS..."
             )
@@ -111759,7 +111751,7 @@ class VoiceInterface:
             tts.save(output_path)
             logger.info(f"Generated speech file locally at: {output_path}")
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(
                 f"gTTS library not available or failed: {e}. Falling back to Google TTS API..."
             )
@@ -111777,7 +111769,7 @@ class VoiceInterface:
                 return True
             logger.error(f"TTS service returned status code: {response.status_code}")
             return False
-        except Exception as api_err:
+        except Exception as api_err:  # noqa: BLE001
             logger.error(f"Exception during text to speech API fallback: {api_err}")
             return False
 
@@ -111879,7 +111871,7 @@ class CloudSandboxOrchestrator:
         try:
             import docker
             client = docker.from_env()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # বাংলা মন্তব্য: প্রোডাকশন মোডে লোকাল ওএস-এ ফ্যালব্যাক এড়াতে কড়া সিকিউরিটি গার্ডরেল প্রয়োগ করা হয়েছে।
             from core.config import settings
             if settings.env == "production":
@@ -111915,7 +111907,7 @@ class CloudSandboxOrchestrator:
                     "stderr": "Execution Timeout: Code execution exceeded 5 seconds limit.",
                     "exit_code": -1
                 }
-            except Exception as ex:
+            except Exception as ex:  # noqa: BLE001
                 return {
                     "success": False,
                     "stdout": "",
@@ -111954,11 +111946,11 @@ class CloudSandboxOrchestrator:
                 logger.error("Sandbox container execution timed out! Force-killing container...")
                 try:
                     container.kill()
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         import logging
                         logging.warning(f"Exception suppressed: {e}")
                     pass
@@ -111980,7 +111972,7 @@ class CloudSandboxOrchestrator:
                 "exit_code": exit_code
             }
             
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Docker sandbox exception: {e}")
             return {
                 "success": False,
@@ -111992,11 +111984,11 @@ class CloudSandboxOrchestrator:
             if container:
                 try:
                     container.remove(force=True)
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         import logging
                         logging.warning(f"Exception suppressed: {e}")
                     pass
@@ -112027,7 +112019,7 @@ class CloudSandboxOrchestrator:
             logger.error(
                 f"Failed to create sandbox. Status: {e.response.status_code}, Body: {e.response.text}"
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"An unexpected error occurred during sandbox creation: {e}")
 
         return None
@@ -112139,7 +112131,7 @@ class CloudSandboxOrchestrator:
                 "🚨 Freebuff CLI not found. Please ensure it is installed globally (npm install -g freebuff)."
             )
             return {"status": "error", "error": "Freebuff CLI not installed."}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"⚠️ Unexpected error running Freebuff: {e}")
             return {"status": "error", "error": str(e)}
 
@@ -112247,7 +112239,7 @@ class GCPCloudFunctionClient:
                 "function_url": url,
                 "data": self._safe_json(response),
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"GCP Cloud Function trigger failed: {exc}")
             return {
                 "success": False,
@@ -112288,11 +112280,11 @@ class GCPCloudFunctionClient:
     def _safe_json(response: httpx.Response) -> Any:
         try:
             return response.json()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return {"text": response.text}
@@ -112545,7 +112537,7 @@ class CollaborativeEditor:
             # এডিটরে কোড ব্রডকাস্ট করা (সব ইউজারের কাছে চলে যাবে)
             await self.broadcast_delta(session_id, delta, sender_id="supreme-ai-agent")
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Error processing AI request: {e}")
         finally:
             # কাজ শেষ, "AI is typing..." অ্যানিমেশন বন্ধ করার সিগন্যাল পাঠানো
@@ -112575,7 +112567,7 @@ class CollaborativeEditor:
                             if client_id != sender_id:
                                 try:
                                     await ws.send_text(data)
-                                except Exception as e:
+                                except Exception as e:  # noqa: BLE001
                                     logger.error(
                                         f"Error sending to local client {client_id}: {e}"
                                     )
@@ -112618,7 +112610,7 @@ async def websocket_collab(websocket: WebSocket, session_id: str, client_id: str
                 logger.warning(f"Invalid JSON received from client {client_id}")
     except WebSocketDisconnect:
         await editor_manager.disconnect_client(session_id, client_id)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(
             f"WebSocket error in session {session_id} for client {client_id}: {e}"
         )
@@ -112852,7 +112844,7 @@ class MultilingualTTS:
                 "language": lang,
                 "error": f"ElevenLabs HTTP {res.status_code}",
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"ElevenLabs exception: {exc}")
             return {"status": "error", "language": lang, "error": str(exc)}
 
@@ -112904,7 +112896,7 @@ class MultilingualTTS:
                 "language": lang,
                 "error": "edge-tts not installed",
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"edge-tts failed: {exc}")
             return {"status": "error", "language": lang, "error": str(exc)}
 
@@ -112923,7 +112915,7 @@ class MultilingualTTS:
                 "audio_path": out_path,
                 "text_length": len(text),
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"gTTS failed: {exc}")
             return {"status": "error", "language": lang, "error": str(exc)}
 
@@ -113023,7 +113015,7 @@ class MultilingualTTS:
                 ):
                     yield chunk
                 return  # Success, exit
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(
                     f"ElevenLabs streaming failed: {e}. Falling back to edge-tts."
                 )
@@ -113045,7 +113037,7 @@ class MultilingualTTS:
             if res.status_code == 200:
                 return {"status": "success", "voices": res.json().get("voices", [])}
             return {"status": "error", "error": f"HTTP {res.status_code}"}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             return {"status": "error", "error": str(exc)}
 
 
@@ -113125,11 +113117,11 @@ async def clear_cache():
                 try:
                     os.unlink(os.path.join(base_dir, f))
                     removed += 1
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         import logging
                         logging.warning(f"Exception suppressed: {e}")
                     pass
@@ -113178,7 +113170,7 @@ class ImageToCode:
         try:
             base64_image = self._encode_image_bytes(image_bytes)
             return await self._call_vision_model(base64_image, framework, styling)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Image to Code generation failed: {str(e)}")
             return {"status": "error", "error": str(e)}
 
@@ -113191,7 +113183,7 @@ class ImageToCode:
         try:
             base64_image = self._encode_image_file(image_path)
             return await self._call_vision_model(base64_image, framework, styling)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Image to Code generation failed: {str(e)}")
             return {"status": "error", "error": str(e)}
 
@@ -113268,7 +113260,7 @@ async def api_image_to_code(
             raise HTTPException(status_code=500, detail=result.get("error"))
 
         return result
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to process image upload: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -113302,11 +113294,11 @@ class BanglaVoice:
             import whisper  # type: ignore
 
             return whisper is not None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return False
@@ -113316,11 +113308,11 @@ class BanglaVoice:
             from TTS.api import TTS  # type: ignore
 
             return TTS is not None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return False
@@ -113416,11 +113408,11 @@ class PresentationGenerator:
                 slides = json.loads(cleaned)
                 if not isinstance(slides, list):
                     slides = []
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 for i in range(1, num_slides + 1):
@@ -113445,7 +113437,7 @@ class PresentationGenerator:
                 out_path = f"data/{hash(topic)}.pptx"
                 prs.save(out_path)
                 file_url = out_path
-            except Exception as pptx_err:
+            except Exception as pptx_err:  # noqa: BLE001
                 logger.warning(f"PPTX generation failed: {pptx_err}")
                 file_url = (
                     f"https://cdn.supremeai.example/presentations/{hash(topic)}.pptx"
@@ -113457,7 +113449,7 @@ class PresentationGenerator:
                 "slides_preview": slides,
                 "download_url": file_url,
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Presentation generation failed: {exc}")
             return {
                 "status": "error",
@@ -113521,7 +113513,7 @@ class InternalGateway:
                 "status_code": response.status_code,
                 "data": response.json() if response.is_success else response.text,
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"n8n trigger failed: {exc}")
             return {"success": False, "error": str(exc)}
 
@@ -113532,7 +113524,7 @@ class InternalGateway:
         try:
             response = httpx.post(webhook_url, json=payload, timeout=10.0)
             return {"success": response.is_success, "response": response.text}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             return {"success": False, "error": str(exc)}
 
 
@@ -113603,7 +113595,7 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
                         logger.info(
                             f"Injected {provider.name} key from rotator for {normalized}"
                         )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to inject dynamic API key: {e}")
 
     try:
@@ -113624,11 +113616,11 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
                     logger.warning(
                         f"Provider {failed_provider} hit 429, paused for 60s."
                     )
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         import logging
                         logging.warning(f"Exception suppressed: {e}")
                     pass
@@ -113636,7 +113628,7 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
         return JSONResponse(content=response.json(), status_code=response.status_code)
     except httpx.HTTPStatusError as exc:
         raise HTTPException(status_code=exc.response.status_code)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.exception("gateway forward failed")
         raise HTTPException(status_code=502, detail=str(exc))
 
@@ -113716,7 +113708,7 @@ class OfflineModeManager:
                 )
                 res.raise_for_status()
                 return res.json().get("response", "No response from local model.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Ollama local fallback failed: {e}")
             return f"[Offline Error] Could not reach local Ollama instance: {str(e)}"
 
@@ -113772,7 +113764,7 @@ class OfflineModeManager:
             self.sync_queue.clear()
             logger.info(f"Successfully synced {synced_count} actions.")
             return {"status": "success", "synced": synced_count}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to sync offline queue: {e}")
             return {"status": "error", "error": str(e), "synced": 0}
         finally:
@@ -113918,7 +113910,7 @@ class ComputerAgent:
             }
         except subprocess.TimeoutExpired:
             return {"success": False, "error": "Command timeout expired"}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e)}
 
     def read_file(self, filepath: str) -> dict[str, Any]:
@@ -113927,7 +113919,7 @@ class ComputerAgent:
         try:
             with open(filepath, encoding="utf-8") as f:
                 return {"success": True, "content": f.read()}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e)}
 
 ```
@@ -114518,7 +114510,7 @@ def run_restricted(
         error_message = f"Restricted execution failed: {type(e).__name__}: {e}"
         logger.error(error_message)
         return False, error_message
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         error_message = f"An unexpected error occurred during restricted execution: {e}"
         logger.error(error_message)
         return False, error_message
@@ -114856,7 +114848,7 @@ def handle_agent_call_langchain(
 
 if __name__ == "__main__":
     if not INTEGRATION_OK:
-        print("❌ Setup failed: missing packages.")
+        print("❌ Setup failed: missing packages.")  # noqa: T201
         sys.exit(1)
         
     # বাংলা মন্তব্য: লঞ্চডার্কলি ক্লায়েন্ট কনফিগারেশন এবং অবজারভেবিলিটি প্লাগইন ইনিশিয়ালাইজেশন
@@ -114886,15 +114878,15 @@ if __name__ == "__main__":
         )
     )
     
-    print("Evaluating AgentConfig...")
+    print("Evaluating AgentConfig...")  # noqa: T201
     if config.enabled:
         try:
             result = handle_agent_call_langchain(config, "Hello, write a short tagline for SupremeAI.")
-            print(f"Result: {result}")
-        except Exception as e:
-            print(f"Error during runtime execution: {e}")
+            print(f"Result: {result}")  # noqa: T201
+        except Exception as e:  # noqa: BLE001
+            print(f"Error during runtime execution: {e}")  # noqa: T201
     else:
-        print("Config is disabled in LaunchDarkly.")
+        print("Config is disabled in LaunchDarkly.")  # noqa: T201
 
 ```
 
@@ -115004,7 +114996,7 @@ try:
     from tools.pr_reviewer import PRReviewer
 
     _PR_REVIEWER_AVAILABLE = True
-except Exception:
+except Exception:  # noqa: BLE001
     _PR_REVIEWER_AVAILABLE = False
 
 
@@ -115103,7 +115095,7 @@ class VulnerabilityPredictor:
         try:
             with open(filepath, encoding="utf-8", errors="ignore") as f:
                 content = f.read()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug("Failed to read %s: %s", filepath, exc)
             return []
 
@@ -115448,7 +115440,7 @@ class SkillRecommender:
                     .execute()
                 )
                 return res.data or []
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"History fetch from DB failed: {exc}")
         return self._local_history.get(user_id, [])
 
@@ -115457,7 +115449,7 @@ class SkillRecommender:
         if db.client:
             try:
                 db.client.table("task_history").insert(entry).execute()
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"History insert failed: {exc}")
         else:
             self._local_history.setdefault(user_id, []).append(entry)
@@ -115515,11 +115507,11 @@ class SkillRecommender:
                         enriched.append(
                             {**res.data[0], "match_score": round(item["score"], 3)}
                         )
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         import logging
                         logging.warning(f"Exception suppressed: {e}")
                     pass
@@ -115591,11 +115583,11 @@ class KnowledgeBaseIndexer:
         try:
             with open(path, encoding="utf-8", errors="ignore") as f:
                 source = f.read()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return docs
@@ -115774,11 +115766,11 @@ class KnowledgeBaseIndexer:
             if len(args) > 6:
                 with contextlib.suppress(Exception):
                     confidence = float(args[6].value)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return None, None
@@ -115817,7 +115809,7 @@ class KnowledgeBaseIndexer:
                     try:
                         self.vector_store.add_documents(docs)
                         total_docs += len(docs)
-                    except Exception as exc:
+                    except Exception as exc:  # noqa: BLE001
                         errors.append(f"{name}: {exc}")
         return {
             "indexed": total_docs,
@@ -115860,7 +115852,7 @@ class KnowledgeBaseIndexer:
             try:
                 self.vector_store.add_documents(docs)
                 total_docs = len(docs)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 errors.append(str(exc))
 
         return {
@@ -115883,11 +115875,11 @@ class KnowledgeBaseIndexer:
                 }
                 for doc_id, score, doc_data in raw
             ]
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return []
@@ -116096,7 +116088,7 @@ async def github_create_pull_request(params: CreatePRInput) -> str:
 
     except httpx.HTTPStatusError as e:
         return handle_api_error(e, e.response.status_code)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return handle_api_error(e)
 
 
@@ -116160,7 +116152,7 @@ async def github_run_auto_fix(params: FixIssueInput) -> str:
 
     except httpx.HTTPStatusError as e:
         return handle_api_error(e, e.response.status_code)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return handle_api_error(e)
 
 
@@ -116226,7 +116218,7 @@ async def github_list_issues(state: str = "open", labels: str | None = None) -> 
 
     except httpx.HTTPStatusError as e:
         return handle_api_error(e, e.response.status_code)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return handle_api_error(e)
 
 
@@ -116275,7 +116267,7 @@ async def github_get_ci_status(branch: str = "main") -> str:
 
     except httpx.HTTPStatusError as e:
         return handle_api_error(e, e.response.status_code)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return handle_api_error(e)
 
 
@@ -116537,7 +116529,7 @@ class CheckpointManager:
                 conn.commit()
                 conn.close()
                 return True
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Failed to save SQLite checkpoint: {exc}")
                 return False
 
@@ -116561,7 +116553,7 @@ class CheckpointManager:
                 f"Firestore checkpoint saved for task_id={task_id} step={step_index}"
             )
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to save Firestore checkpoint: {exc}")
             return False
 
@@ -116592,7 +116584,7 @@ class CheckpointManager:
                 conn.commit()
                 conn.close()
                 return cp
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Failed to load SQLite checkpoint: {exc}")
                 return None
 
@@ -116615,7 +116607,7 @@ class CheckpointManager:
             # Mark as resumed
             doc_ref.update({"resumed": True})
             return cp
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to load Firestore checkpoint: {exc}")
             return None
 
@@ -116638,7 +116630,7 @@ class CheckpointManager:
                     }
                     for r in rows
                 ]
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Failed to list SQLite checkpoints: {exc}")
                 return []
 
@@ -116659,7 +116651,7 @@ class CheckpointManager:
                 }
                 for d in docs
             ]
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to list Firestore checkpoints: {exc}")
             return []
 
@@ -116672,7 +116664,7 @@ class CheckpointManager:
                 conn.commit()
                 conn.close()
                 return True
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Failed to clear SQLite checkpoint: {exc}")
                 return False
 
@@ -116681,7 +116673,7 @@ class CheckpointManager:
         try:
             self._db.collection(self.collection_name).document(task_id).delete()
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to clear Firestore checkpoint: {exc}")
             return False
 
@@ -116712,11 +116704,11 @@ class PDFToSDKConverter:
 
             doc = fitz.open(pdf_path)
             text = "\n".join(page.get_text() for page in doc)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             pass
@@ -116727,11 +116719,11 @@ class PDFToSDKConverter:
 
                 with pdfplumber.open(pdf_path) as pdf:
                     text = "\n".join(page.extract_text() or "" for page in pdf.pages)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 pass
@@ -116787,7 +116779,7 @@ class PDFToSDKConverter:
                         "status": "success",
                         "sdks": {languages[0] if languages else "python": text.strip()},
                     }
-            except Exception as llm_err:
+            except Exception as llm_err:  # noqa: BLE001
                 logger.warning(f"LLM-based SDK generation failed: {llm_err}")
 
             results = {}
@@ -116815,7 +116807,7 @@ class ApiClient:
                     f"// SDK generation for {lang} requires manual implementation."
                 )
             return {"status": "success", "sdks": results}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"SDK Generation failed: {str(e)}")
             return {"status": "error", "error": str(e)}
 
@@ -116855,7 +116847,7 @@ class TradingAgent:
                 "backtest_results": {},
                 "note": "Real trading requires backtesting framework and market data integration.",
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Trading strategy generation failed: {exc}")
             return {
                 "status": "error",
@@ -116898,7 +116890,7 @@ class Model3DGenerator:
                 "model_url": "",
                 "note": "Real 3D generation requires Shap-E/Point-E integration.",
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"3D model generation failed: {exc}")
             return {
                 "status": "error",
@@ -116925,7 +116917,7 @@ try:
     from tools.pr_reviewer import PRReviewer
 
     _PR_REVIEWER_AVAILABLE = True
-except Exception:
+except Exception:  # noqa: BLE001
     _PR_REVIEWER_AVAILABLE = False
     PRReviewer = None  # type: ignore[misc,assignment]
 
@@ -116998,7 +116990,7 @@ class PreCommitAI:
                 check=True,
             )
             return [f for f in result.stdout.splitlines() if f.strip()]
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to list staged files: {exc}")
             return []
 
@@ -117013,11 +117005,11 @@ class PreCommitAI:
             try:
                 with open(filepath, encoding="utf-8", errors="ignore") as f:
                     original_content = f.read()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 continue  # Skip binary files that can't be read
@@ -117074,7 +117066,7 @@ class PreCommitAI:
                     with open(filepath, "w", encoding="utf-8") as f:
                         f.write(new_content)
 
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Auto-fix failed for {filepath}: {exc}")
         return {"fixes": fixes_applied, "count": len(fixes_applied)}
 
@@ -117090,7 +117082,7 @@ class PreCommitAI:
         if self.reviewer is not None:
             try:
                 issues = await self.reviewer.analyze_diff(diff)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"AI analysis failed: {exc}")
                 return {"status": "error", "message": f"AI analysis failed: {exc}"}
         else:
@@ -117202,20 +117194,20 @@ if __name__ == "__main__":
     result = asyncio.run(hook.run_hook(auto_fix=not args.no_fix))
     status = result.get("status", "error")
     if status == "blocked":
-        print("❌ Commit blocked:", result.get("reason"))
+        print("❌ Commit blocked:", result.get("reason"))  # noqa: T201
         for issue in result.get("issues", []):
-            print(
+            print(  # noqa: T201
                 f"  - {issue.get('path', '?')}:{issue.get('line', '?')} -> {issue.get('body', '')}"
             )
         raise SystemExit(1)
     elif status == "fixed":
-        print("⚠️  Auto-fixed issues. Review and re-commit.")
+        print("⚠️  Auto-fixed issues. Review and re-commit.")  # noqa: T201
         raise SystemExit(1)
     elif status == "error":
-        print("❌ Error:", result.get("message"))
+        print("❌ Error:", result.get("message"))  # noqa: T201
         raise SystemExit(1)
     else:
-        print("✅ Pre-commit checks passed.")
+        print("✅ Pre-commit checks passed.")  # noqa: T201
 
 ```
 
@@ -117274,7 +117266,7 @@ class DependencyManagerAgent:
         except json.JSONDecodeError:
             logger.error("Failed to parse command output as JSON.")
             return {"error": "Invalid JSON output."}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"An unexpected error occurred: {e}")
             return {"error": str(e)}
 
@@ -117433,7 +117425,7 @@ class ScientificAgent:
                 "solution": str(solution),
                 "method": method,
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Equation solving failed: {exc}")
             return {
                 "status": "error",
@@ -117536,7 +117528,7 @@ class SSOIntegrator:
                     "content_type": "application/xml",
                     "body": metadata,
                 }
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Metadata generation failed: {exc}")
         xml = self._fallback_metadata()
         return {"status": "fallback", "content_type": "application/xml", "body": xml}
@@ -117549,7 +117541,7 @@ class SSOIntegrator:
                 auth = self._OneLogin_Saml2_Auth(req, old_settings=settings_obj)
                 sso_url = auth.login(return_to=relay_state)
                 return sso_url
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"SSO URL generation failed: {exc}")
         return self.saml_settings.get("idp_sso_url", "")
 
@@ -117602,7 +117594,7 @@ class SSOIntegrator:
                     "roles": roles,
                     "method": "python-saml",
                 }
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"SAML response processing failed: {exc}")
         try:
             root = ET.fromstring(post_data.get("SAMLResponse", ""))
@@ -117656,7 +117648,7 @@ class SSOIntegrator:
                 req = self._prepare_request(request or {})
                 auth = self._OneLogin_Saml2_Auth(req, old_settings=settings_obj)
                 return auth.logout(return_to=relay_state)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Logout URL generation failed: {exc}")
         return self.saml_settings.get("idp_slo_url", "")
 
@@ -117668,7 +117660,7 @@ class SSOIntegrator:
                 auth = self._OneLogin_Saml2_Auth(req, old_settings=settings_obj)
                 auth.process_slo(delete_session_callback=lambda: None)
                 return {"status": "success", "method": "python-saml"}
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"SLO processing failed: {exc}")
         return {"status": "success", "method": "mock_fallback"}
 
@@ -117819,7 +117811,7 @@ class SSOIntegrator:
                     "header": header,
                 }
             return {"status": "success", "tokens": tokens}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"OIDC code exchange failed: {exc}")
             return {"status": "error", "message": str(exc)}
 
@@ -118189,15 +118181,15 @@ class PRReviewer:
                                     "body": item["body"],
                                 }
                             )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 logger.warning("Failed to parse LLM response in PRReviewer.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"ModelRouter call failed in PRReviewer: {e}")
 
         return issues
@@ -118248,7 +118240,7 @@ class PRReviewer:
                 )
 
             return {"status": "success", "action_taken": action, "comments": comments}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Error reviewing PR: {e}")
             return {"status": "error", "error": str(e), "comments": []}
 
@@ -118268,7 +118260,7 @@ class PRReviewer:
             pr = repo.get_pull(pr_number)
             comment = pr.create_issue_comment(comment_body)
             return {"status": "success", "comment_url": comment.html_url}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to post comment to GitHub: {e}")
             return {"status": "error", "error": str(e)}
 
@@ -118353,7 +118345,7 @@ class MonthlyCostReporter:
                 url, json={"chat_id": self.admin_chat_id, "text": text}, timeout=10
             )
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to send monthly cost report: {exc}")
             return False
 
@@ -118393,7 +118385,7 @@ class RLHFPipeline:
                 logger.info(
                     f"Loaded {len(self.preference_logs)} existing preference records"
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to load existing preferences: {e}")
 
     def record_preference(
@@ -118431,7 +118423,7 @@ class RLHFPipeline:
                 "exported": len(self.preference_logs),
                 "output_path": output_path,
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"DPO export failed: {exc}")
             return {"status": "error", "error": str(exc)}
 
@@ -118578,7 +118570,7 @@ class ResourceCatalog:
             return self._parse_awesome_markdown(
                 response.text, query, limit, source_name="awesome-selfhosted"
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 f"ResourceCatalog: failed to search awesome-selfhosted for '{query}': {exc}"
             )
@@ -118593,7 +118585,7 @@ class ResourceCatalog:
             return self._parse_awesome_markdown(
                 response.text, query, limit, source_name="awesome-python"
             )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 f"ResourceCatalog: failed to search awesome-python for '{query}': {exc}"
             )
@@ -118634,7 +118626,7 @@ class ResourceCatalog:
                     }
                 )
             return results
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 f"ResourceCatalog: failed to search ossinsight for '{query}': {exc}"
             )
@@ -118678,7 +118670,7 @@ class ResourceCatalog:
                     }
                 )
             return results
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 f"ResourceCatalog: failed to search libraries.io for '{query}': {exc}"
             )
@@ -118808,11 +118800,11 @@ class ParallelAgentExecutor:
                     import core.services as app_mod
 
                     redis = app_mod.redis_queue
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         import logging
                         logging.warning(f"Exception suppressed: {e}")
                     redis = None
@@ -118840,7 +118832,7 @@ class ParallelAgentExecutor:
 
             logger.info(f"[Agent: {agent_name}] Task completed successfully.")
             return {"agent": agent_name, "status": "success", "result": result}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"[Agent: {agent_name}] Task failed: {str(e)}")
             try:
                 redis = self.redis_client
@@ -118850,11 +118842,11 @@ class ParallelAgentExecutor:
                     redis = app_mod.redis_queue
                 if redis and getattr(redis, "configured", False):
                     await self._publish_state(redis, agent_name, "failed", error=str(e))
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 pass
@@ -118923,7 +118915,7 @@ class ParallelAgentExecutor:
             try:
                 disconnect_fn = mcp_client.disconnect
                 await asyncio.to_thread(disconnect_fn)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"MCP cleanup error for {name}: {exc}")
 
     async def _publish_state(self, redis, agent_name: str, state: str, **kwargs):
@@ -118946,7 +118938,7 @@ class ParallelAgentExecutor:
                 redis.publish(
                     f"supremeai:agents:{self.execution_group}", json.dumps(payload)
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(
                 f"Failed to publish agent state: {e}. Running with local logger fallback."
             )
@@ -119165,7 +119157,7 @@ async def cloud_deploy_service(params: DeployServiceInput) -> str:
 
     except httpx.HTTPStatusError as e:
         return handle_api_error(e, e.response.status_code)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return handle_api_error(e)
 
 
@@ -119237,7 +119229,7 @@ async def cloud_get_deployment_logs(params: GetLogsInput) -> str:
 
     except httpx.HTTPStatusError as e:
         return handle_api_error(e, e.response.status_code)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return handle_api_error(e)
 
 
@@ -119276,7 +119268,7 @@ async def cloud_list_services() -> str:
                             "status": svc.get("status"),
                             "url": svc.get("url", "")
                         })
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to list services from Render: {e}")
 
     railway_token = _get_railway_token()
@@ -119295,7 +119287,7 @@ async def cloud_list_services() -> str:
                             "status": svc.get("status"),
                             "url": svc.get("url", "")
                         })
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to list services from Railway: {e}")
 
     return json.dumps({
@@ -119372,7 +119364,7 @@ class PlanSorter:
                     logger.info(
                         f"Organized plan '{filename}' as {category} -> {dest_subfolder}"
                     )
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     logger.error(f"Failed to process plan file '{filename}': {e}")
 
         return categorized
@@ -119449,7 +119441,7 @@ def convert_image_to_excel(image_path, excel_path, client):
         text = extract_text_from_image(client, image_path)
 
         if not text:
-            print(f"No text found in {os.path.basename(image_path)}")
+            print(f"No text found in {os.path.basename(image_path)}")  # noqa: T201
             return False
 
         # Parse into table format
@@ -119492,13 +119484,13 @@ def convert_image_to_excel(image_path, excel_path, client):
             metadata_df.to_excel(writer, sheet_name="Metadata", index=False)
             df.to_excel(writer, sheet_name="Data", index=False)
 
-        print(
+        print(  # noqa: T201
             f"Successfully converted {os.path.basename(image_path)} to {os.path.basename(excel_path)}"
         )
         return True
 
-    except Exception as e:
-        print(f"Error processing {os.path.basename(image_path)}: {str(e)}")
+    except Exception as e:  # noqa: BLE001
+        print(f"Error processing {os.path.basename(image_path)}: {str(e)}")  # noqa: T201
         return False
 
 
@@ -119511,7 +119503,7 @@ def batch_convert_images(folder_path, credentials_path=None):
     image_files = [f for f in os.listdir(folder_path) if f.lower().endswith(".jpg")]
     image_files.sort()
 
-    print(f"Found {len(image_files)} images to process")
+    print(f"Found {len(image_files)} images to process")  # noqa: T201
 
     success_count = 0
     for image_file in image_files:
@@ -119522,7 +119514,7 @@ def batch_convert_images(folder_path, credentials_path=None):
         if convert_image_to_excel(image_path, excel_path, client):
             success_count += 1
 
-    print(
+    print(  # noqa: T201
         f"\nConversion completed: {success_count}/{len(image_files)} images processed successfully"
     )
 
@@ -119537,12 +119529,12 @@ if __name__ == "__main__":
     # For now, try without credentials (requires GOOGLE_APPLICATION_CREDENTIALS env var)
     try:
         batch_convert_images(folder)
-    except Exception as e:
-        print(f"Setup error: {e}")
-        print("Please ensure you have set up Google Cloud Vision API credentials")
-        print("Either:")
-        print("1. Set GOOGLE_APPLICATION_CREDENTIALS environment variable")
-        print("2. Or provide credentials file path to batch_convert_images()")
+    except Exception as e:  # noqa: BLE001
+        print(f"Setup error: {e}")  # noqa: T201
+        print("Please ensure you have set up Google Cloud Vision API credentials")  # noqa: T201
+        print("Either:")  # noqa: T201
+        print("1. Set GOOGLE_APPLICATION_CREDENTIALS environment variable")  # noqa: T201
+        print("2. Or provide credentials file path to batch_convert_images()")  # noqa: T201
 
 ```
 
@@ -141195,7 +141187,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     try {
       const API_BASE = getApiBaseUrl();
       await fetch(`${API_BASE}/api/admin/logout`, { method: 'POST', credentials: 'include' });
-    } catch(e) {}
+    } catch(e) {
+      console.error('Logout failed:', e);
+    }
     set({ adminAuthenticated: false, adminPassword: '', otpRequired: false, adminOtp: '', adminError: '' });
   },
 }));
@@ -141632,14 +141626,18 @@ export function useDashboardSSE() {
       try {
         const data = JSON.parse(e.data);
         qc.setQueryData(['dashboard', 'events', 50], data); // update cache directly
-      } catch (err) {}
+      } catch (err) {
+        console.error('Failed to parse dashboard_events:', err);
+      }
     });
 
     sse.addEventListener('metrics_events', (e) => {
       try {
         const data = JSON.parse(e.data);
         qc.setQueryData(['dashboard', 'metrics'], data);
-      } catch (err) {}
+      } catch (err) {
+        console.error('Failed to parse metrics_events:', err);
+      }
     });
 
     return () => {

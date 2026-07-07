@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/voice.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,818 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.130985
+**সাইজ:** 1,834 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.466729
 
 ---
 
@@ -40,7 +40,7 @@ async def stream_audio(text: str = "", voice: str | None = None):
                 voice_id=None,  # Use language-based voice for ElevenLabs; voice param for edge-tts fallback handled internally
             ):
                 yield chunk
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Audio streaming failed: {e}")
             yield b""  # Return empty bytes on error to avoid breaking the stream
 

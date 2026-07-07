@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/browser_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,135 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.170717
+**সাইজ:** 10,231 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.487572
 
 ---
 
@@ -39,11 +39,11 @@ def is_safe_url(url: str) -> bool:
         ip = socket.gethostbyname(hostname)
         ip_obj = ipaddress.ip_address(ip)
         return not (ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         try:
             import loguru
             loguru.logger.error(f"Tool execution error: {e}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
         return False
@@ -94,7 +94,7 @@ async def shutdown_global_browser():
             logger.info("Stopping playwright runner core context...")
             await _playwright_runner.stop()
         logger.info("✅ All Playwright OS processes terminated cleanly.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.critical(
             f"❌ Error during global browser termination sequence: {str(e)}"
         )
@@ -150,7 +150,7 @@ class BrowserAgent:
                 "links": links,
                 "status_code": response.status_code,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to fetch {url}: {e}")
             return {"success": False, "error": str(e), "url": url}
 
@@ -228,7 +228,7 @@ class BrowserAgent:
                 "links": links,
                 "action": action,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Playwright action failed: {e}")
             return {"success": False, "error": str(e), "url": url}
         finally:
@@ -260,7 +260,7 @@ class BrowserAgent:
                 "extracted": extracted,
                 "raw": page_data,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e)}
 
 

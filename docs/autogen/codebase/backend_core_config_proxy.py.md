@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/config_proxy.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,911 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.123003
+**সাইজ:** 1,875 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.462518
 
 ---
 
@@ -28,19 +28,19 @@ class DynamicConfigProxy:
         # TTL চেক (১ মিনিট)
         if datetime.now() > self._expiry:
             await self._refresh_cache()
-        
+
         return self._cache.get(key, default)
 
     async def _refresh_cache(self):
         try:
             doc_ref = self._db.collection(f"tenants/{self._tenant_id}/config/runtime").document("settings")
-            
+
             # handle both sync and async get() based on the db client
             if asyncio.iscoroutinefunction(doc_ref.get):
                 snapshot = await doc_ref.get()
             else:
                 snapshot = doc_ref.get()
-                
+
             if snapshot.exists:
                 self._cache = snapshot.to_dict()
                 self._expiry = datetime.now() + timedelta(minutes=1)

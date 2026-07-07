@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/evolution_engine.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,890 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.115765
+**সাইজ:** 14,926 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.458818
 
 ---
 
@@ -102,7 +102,7 @@ class EvolutionEngine:
             if db.client:
                 db.insert_task_history(task, approach, result, True, created_at)
                 supabase_success = True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to insert success to Supabase: {e}")
             if evolution_write_failures:
                 evolution_write_failures.inc()
@@ -137,11 +137,11 @@ class EvolutionEngine:
             if db.client:
                 db.insert_task_history(task, approach, result, False, created_at)
                 supabase_success = True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to insert failure to Supabase: {e}")
             if evolution_write_failures:
                 evolution_write_failures.inc()
-                
+
         if not supabase_success:
             return {"stored": False, "error": "Supabase write failed. Saga rollback: skipping SQLite."}
 
@@ -171,7 +171,7 @@ class EvolutionEngine:
                 failures = db.get_repeated_failures(min_occurrences=min_occurrences)
                 if failures:
                     return failures
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to query repeated failures from Supabase: {e}")
             if evolution_write_failures:
                 evolution_write_failures.inc()
@@ -232,10 +232,10 @@ class EvolutionEngine:
             ]
         finally:
             conn.close()
-            
+
     def propose_prompt_optimization(self, original_prompt: str, failure_data: dict[str, Any]) -> dict[str, Any]:
         task_hash = hashlib.sha256(original_prompt.encode()).hexdigest()
-        
+
         # বাংলা মন্তব্য: LLM ব্যবহার করে উন্নত প্রম্পট তৈরির জন্য একটি প্রম্পট তৈরি করা হচ্ছে।
         optimization_prompt = f"""
 System: You are a Prompt Optimization specialist. Your task is to rewrite a failing prompt to improve its success rate.
@@ -247,15 +247,15 @@ This prompt has a failure rate of {failure_data['failure_rate']:.2%} after {fail
 
 Based on the prompt, rewrite it to be more precise, clear, and effective. Provide only the new prompt, without any explanation or extra text.
 """
-        
+
         try:
             response = self.model_router.route_and_generate(optimization_prompt, task_type="analysis")
             optimized_prompt = response.get("text", "").strip()
-            
+
             if not optimized_prompt or optimized_prompt == original_prompt:
                 return {"status": "no_change_generated"}
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"status": "error", "error": str(e)}
 
         created_at = datetime.now(UTC).isoformat()
@@ -299,7 +299,7 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
                     "proposed",
                     created_at,
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to insert skill proposal to Supabase: {e}")
             if evolution_write_failures:
                 evolution_write_failures.inc()
@@ -336,7 +336,7 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
                     user_rating,
                     created_at,
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to insert feedback to Supabase: {e}")
             if evolution_write_failures:
                 evolution_write_failures.inc()
@@ -356,7 +356,7 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
         total = len(task_history)
         successful = sum(1 for t in task_history if t.get("success"))
         success_rate = (successful / total * 100.0) if total > 0 else 100.0
-        
+
         # Skill proposal based on repeated failures
         failures = self.detect_repeated_failures()
         failed_tasks = [f["task"] for f in failures]
@@ -364,7 +364,7 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
         for task in failed_tasks:
             proposal = self.propose_new_skill(task)
             new_skills_proposed.append(proposal["skill_name"])
-            
+
         # Prompt optimization proposals
         underperforming_prompts = self.detect_underperforming_prompts()
         prompt_optimizations_proposed = []
@@ -393,7 +393,7 @@ Based on the prompt, rewrite it to be more precise, clear, and effective. Provid
 
             if db.client:
                 db.append_evolution_log(report)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to append evolution log to Supabase: {e}")
             if evolution_write_failures:
                 evolution_write_failures.inc()

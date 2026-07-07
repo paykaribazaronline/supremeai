@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/error_remediation.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,139 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.114063
+**সাইজ:** 5,187 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.457929
 
 ---
 
@@ -69,7 +69,7 @@ class ErrorRemediation:
             if not self.fallback_path.exists():
                 with open(self.fallback_path, "w", encoding="utf-8") as f:
                     json.dump({"default_fix": "Retry with exponential backoff"}, f, indent=2)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
 
@@ -78,7 +78,7 @@ class ErrorRemediation:
             with open(self.fallback_path, encoding="utf-8") as f:
                 data = json.load(f)
             return data.get("default_fix") or data.get("fallbacks", {}).get("default")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: ফলবযক ফইল পড়ত বযরথ হল আগ নরবই None রটরন করত;
             # এখন কন কর ফলবযক অকরযকর হল ত ডবগ লগ কর দশযমন কর হল
             logger.debug(f"Local fallback load failed from {self.fallback_path}: {exc}")
@@ -96,7 +96,7 @@ class ErrorRemediation:
                 result = await operation()
                 self.circuit_breaker.record_success()
                 return result
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 last_exception = exc
                 self.circuit_breaker.record_failure()
                 logger.debug(f"Qdrant lookup attempt {attempt} failed: {exc}")

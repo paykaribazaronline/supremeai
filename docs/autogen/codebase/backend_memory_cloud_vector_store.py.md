@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/memory/cloud_vector_store.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,674 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.137810
+**সাইজ:** 2,706 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.470394
 
 ---
 
@@ -60,7 +60,7 @@ class CloudVectorStore:
             if self.provider == "pinecone":
                 self.index.upsert(vectors=vectors, namespace=namespace)
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Vector upsert failed: {e}")
             return False
 
@@ -80,7 +80,7 @@ class CloudVectorStore:
                     include_metadata=True,
                 )
                 return result.matches
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Vector query failed: {e}")
             return []
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/events.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,029 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.118872
+**সাইজ:** 3,045 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.460430
 
 ---
 
@@ -78,7 +78,7 @@ def get_firebase_auth():
         auth = firebase_auth
         logger.info("Firebase Admin SDK ready ✅")
         return auth
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.warning(f"Firebase Admin SDK not available: {e}")
         return None
 

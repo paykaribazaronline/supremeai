@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/cloud_sandbox_orchestrator.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,025 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.119637
+**সাইজ:** 10,941 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.460824
 
 ---
 
@@ -40,7 +40,7 @@ class CloudSandboxOrchestrator:
     def __init__(self, provider: str = "runpod"):
         self.provider = provider.lower()
         self.api_key = os.getenv(f"{self.provider.upper()}_API_KEY")
-        
+
         self.base_url = self._get_base_url()
         headers = {"Content-Type": "application/json"}
         if self.api_key:
@@ -89,7 +89,7 @@ class CloudSandboxOrchestrator:
             return data
         except httpx.HTTPStatusError as e:
             logger.error(f"Failed to create sandbox. Status: {e.response.status_code}, Body: {e.response.text}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"An unexpected error occurred during sandbox creation: {e}")
 
         return None
@@ -162,19 +162,19 @@ class CloudSandboxOrchestrator:
         logger.info("Started Sandbox Auto-Destroy Worker")
         db = get_firestore_db()
         config_proxy = DynamicConfigProxy(tenant_id, db) if db else None
-        
+
         while True:
             try:
                 # Default 10 minutes TTL
                 ttl_minutes = await config_proxy.get("SANDBOX_TTL_MINUTES", 10) if config_proxy else 10
                 ttl_delta = datetime.timedelta(minutes=ttl_minutes)
                 now = datetime.datetime.now(datetime.UTC)
-                
+
                 for sandbox_id, data in list(self._active_sandboxes.items()):
                     created_at = data.get("created_at")
                     if created_at and (now - created_at) > ttl_delta:
                         logger.warning(f"Sandbox {sandbox_id} exceeded TTL of {ttl_minutes}m. Terminating...")
-                        
+
                         # If we assume it timed out or crashed, notify SelfHealer
                         if db:
                             healer = SelfHealerService(db)
@@ -185,11 +185,11 @@ class CloudSandboxOrchestrator:
                                 impact_score=0.3,
                                 dependency_tree=["core.cloud_sandbox_orchestrator"]
                             )
-                        
+
                         await self.destroy_sandbox(sandbox_id)
-                        
+
                 await asyncio.sleep(60) # Check every minute
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Auto-Destroy Worker encountered an error: {e}")
                 await asyncio.sleep(60)
 
@@ -215,18 +215,18 @@ class CloudSandboxOrchestrator:
 
             # প্রম্পট ইনপুট হিসেবে পাঠানো হচ্ছে
             stdout, stderr = await process.communicate(input=prompt.encode('utf-8'))
-            
+
             if process.returncode == 0:
                 logger.success("✅ Freebuff task completed successfully.")
                 return {"status": "success", "output": stdout.decode('utf-8')}
             else:
                 logger.error(f"❌ Freebuff task failed: {stderr.decode('utf-8')}")
                 return {"status": "error", "error": stderr.decode('utf-8')}
-                
+
         except FileNotFoundError:
             logger.error("🚨 Freebuff CLI not found. Please ensure it is installed globally (npm install -g freebuff).")
             return {"status": "error", "error": "Freebuff CLI not installed."}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"⚠️ Unexpected error running Freebuff: {e}")
             return {"status": "error", "error": str(e)}
 

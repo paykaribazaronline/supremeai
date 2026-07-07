@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/auto_test_generator.py
 
 **প্রকার:** .py  
-**সাইজ:** 17,795 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.176046
+**সাইজ:** 17,827 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.490312
 
 ---
 
@@ -264,7 +264,7 @@ class AutoTestGenerator:
                 prompt, task_type="coding", max_cost=0.05
             )
             return result.get("text", "") if isinstance(result, dict) else str(result)  # type: ignore
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"LLM call failed: {exc}")
             return ""
 
@@ -415,7 +415,7 @@ class AutoTestGenerator:
                 "stdout": proc.stdout[-2000:],
                 "stderr": proc.stderr[-500:],
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             return {"returncode": -1, "passed": False, "error": str(exc)}
 
     async def batch_generate(

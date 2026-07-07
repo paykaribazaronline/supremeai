@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/health_monitor.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,817 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.122327
+**সাইজ:** 3,849 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.462160
 
 ---
 
@@ -93,7 +93,7 @@ class HealthMonitor:
                 self.memory_available_mb.set(result["memory_available_mb"])
                 self.active_tasks.set(result["active_tasks"])
                 self.status.set(1 if status == "healthy" else 0)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Prometheus metrics update failed: {exc}")
         return result
 
@@ -111,7 +111,7 @@ class HealthMonitor:
         if _PROMETHEUS_AVAILABLE:
             try:
                 self.request_duration_seconds.observe(duration_seconds)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Failed to record request duration: {exc}")
 
 

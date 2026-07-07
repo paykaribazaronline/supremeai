@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/utils/http_client.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,584 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.126306
+**সাইজ:** 4,600 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.464278
 
 ---
 
@@ -106,7 +106,7 @@ async def safe_api_call(
         error_msg = handle_api_error(e, e.response.status_code)
         logger.warning(f"HTTP error calling {url}: {error_msg}")
         return (False, error_msg)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         error_msg = handle_api_error(e)
         logger.error(f"Request failed for {url}: {error_msg}")
         return (False, error_msg)

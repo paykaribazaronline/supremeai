@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/secure_credential_store.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,392 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.116089
+**সাইজ:** 5,428 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.458989
 
 ---
 
@@ -57,7 +57,7 @@ class LocalFernetProvider(EncryptionProvider):
                 try:
                     self.fernet = Fernet(raw_key.encode())
                     self.enabled = True
-                except Exception as exc:
+                except Exception as exc:  # noqa: BLE001
                     logger.warning(f"Invalid credential encryption key: {exc}")
         if not self.enabled:
             logger.warning("Credential encryption is disabled. Credentials will be stored as plaintext.")
@@ -68,7 +68,7 @@ class LocalFernetProvider(EncryptionProvider):
         try:
             token = self.fernet.encrypt(plaintext.encode()).decode()
             return token, "local:fernet"
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"LocalFernetProvider encryption failed: {exc}")
             return plaintext, "local:plaintext"
 
@@ -77,7 +77,7 @@ class LocalFernetProvider(EncryptionProvider):
             return ciphertext
         try:
             return self.fernet.decrypt(ciphertext.encode()).decode()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"LocalFernetProvider decryption failed: {exc}")
             return ciphertext
 
@@ -97,13 +97,11 @@ class CloudKMSProvider(EncryptionProvider):
         response = self.client.encrypt(
             request={"name": self.key_name, "plaintext": plaintext.encode()}
         )
-        import base64
         return base64.b64encode(response.ciphertext).decode(), self.key_name
 
     def decrypt(self, ciphertext: str, key_ref: str | None) -> str:
         if not self.key_name:
             raise ValueError("GCP_KMS_KEY_NAME must be set for Cloud KMS decryption.")
-        import base64
         response = self.client.decrypt(
             request={"name": self.key_name, "ciphertext": base64.b64decode(ciphertext)}
         )
@@ -127,7 +125,7 @@ class SecureCredentialStore:
             plaintext = __import__("json").dumps(payload, default=str)
             ciphertext, key_ref = self.provider.encrypt(plaintext)
             return {"__enc__": True, "payload": ciphertext, "key_ref": key_ref}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Credential encryption failed: {exc}")
             return payload
 
@@ -139,7 +137,7 @@ class SecureCredentialStore:
             key_ref = payload.get("key_ref")
             plaintext = self.provider.decrypt(ciphertext, key_ref)
             return __import__("json").loads(plaintext)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Credential decryption failed: {exc}")
             return payload
 

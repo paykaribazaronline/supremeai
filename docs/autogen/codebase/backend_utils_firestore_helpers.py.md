@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/utils/firestore_helpers.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,493 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.126182
+**সাইজ:** 3,509 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.464213
 
 ---
 
@@ -75,7 +75,7 @@ def get_firestore_db(project_id: str | None = None) -> Any | None:
         _client_cache[resolved_project] = client
         logger.info(f"Firestore client initialized for project: {resolved_project}")
         return client
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.warning(f"Firestore client initialization failed: {exc}")
         return None
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/playwright_browser_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 24,740 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.171788
+**সাইজ:** 24,884 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.488078
 
 ---
 
@@ -85,7 +85,7 @@ class PlaywrightBrowserAgent:
                 )
             else:
                 raise ValueError("Cookie payload is not a list")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(
                 "Failed to load cookies from %s: %s. Removing stale cookie file.",
                 cookie_path,
@@ -145,7 +145,7 @@ class PlaywrightBrowserAgent:
             page.mouse.move(target_x, target_y, steps=steps)
             page.mouse.click(target_x, target_y)
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Human-like click failed for selector '{selector}': {e}. Falling back to simple click.")
             page.click(selector) # Fallback to a simple click if anything goes wrong
 
@@ -207,11 +207,11 @@ class PlaywrightBrowserAgent:
             if login_check_selector and login_flow and credentials:
                 try:
                     is_authenticated = page.is_visible(login_check_selector)
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         import logging
                         logging.warning(f"Exception suppressed: {e}")
                     is_authenticated = False
@@ -231,7 +231,7 @@ class PlaywrightBrowserAgent:
 
             result = task_function(page)
             return {"success": True, "result": result}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error("Playwright task failed: %s", exc)
             return {"success": False, "error": str(exc)}
         finally:
@@ -320,7 +320,7 @@ class PlaywrightBrowserAgent:
                 args=(model_name, latency_ms, success),
             )
             thread.start()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(
                 f"Failed to spawn background thread for model behavior update: {e}"
             )
@@ -440,7 +440,7 @@ class PlaywrightBrowserAgent:
                 "final_action": "implement" if is_confirmed else "reject",
             }
 
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Cross-verification failed: {exc}")
             return {"success": False, "error": str(exc)}
         finally:
@@ -495,7 +495,7 @@ class PlaywrightBrowserAgent:
             if response_text and response_text.strip():
                 return response_text.strip(), True
             return "", False
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Querying AI site {site_config['name']} failed: {e}")
             return "", False
 
@@ -589,7 +589,7 @@ class PlaywrightBrowserAgent:
                 time.sleep(2) # Wait for animations/transitions
 
             return {"success": True, "result": f"Completed {max_steps} steps."}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Goal execution failed: {exc}")
             return {"success": False, "error": str(exc)}
         finally:

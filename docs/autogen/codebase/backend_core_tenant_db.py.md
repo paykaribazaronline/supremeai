@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/tenant_db.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,830 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.123936
+**সাইজ:** 2,846 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.463005
 
 ---
 
@@ -74,7 +74,7 @@ class TenantAwareFirestore:
                 self._db = get_firestore_client()
                 if self._db is None:
                     self._db = firestore.Client()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self._db = firestore.Client()
 
         # 🛡️ হার্ড-আইসোলেটেড রুট রেফারেন্স

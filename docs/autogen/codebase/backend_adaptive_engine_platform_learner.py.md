@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/adaptive_engine/platform_learner.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,461 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.168120
+**সাইজ:** 4,493 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.486222
 
 ---
 
@@ -45,7 +45,7 @@ class PlatformLearner:
                     html_content = (
                         f"Failed to fetch content, status code: {res.status_code}"
                     )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(
                 f"Failed to fetch live documentation: {e}. Falling back to LLM general knowledge."
             )
@@ -87,7 +87,7 @@ Return ONLY a JSON response in the following format (no markdown blocks, no text
 
         try:
             data = json.loads(text)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to parse learned platform JSON: {e}")
             # Fallback structure
             data = {

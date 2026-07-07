@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/mcp_supabase.py
 
 **প্রকার:** .py  
-**সাইজ:** 15,087 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.172004
+**সাইজ:** 15,311 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.488198
 
 ---
 
@@ -77,11 +77,11 @@ def _get_connection():
     try:
         conn = psycopg2.connect(supabase_db_url)
         return conn
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         try:
             import loguru
             loguru.logger.error(f"Tool execution error: {e}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
         return None
@@ -182,17 +182,17 @@ async def supabase_execute_sql(params: ExecuteQueryInput) -> str:
             "message": f"Query executed successfully. Affected {affected} rows."
         }, ensure_ascii=False)
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return _handle_db_error(e)
     finally:
         if conn:
             try:
                 conn.close()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 pass
@@ -250,17 +250,17 @@ async def supabase_create_table(params: CreateTableInput) -> str:
             "message": f"Table '{params.table_name}' created successfully."
         }, ensure_ascii=False)
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return _handle_db_error(e)
     finally:
         if conn:
             try:
                 conn.close()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 pass
@@ -340,17 +340,17 @@ async def supabase_run_migration(params: MigrationInput) -> str:
             "message": f"Migration '{params.migration_name}' applied successfully."
         }, ensure_ascii=False)
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return _handle_db_error(e)
     finally:
         if conn:
             try:
                 conn.close()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 pass
@@ -397,17 +397,17 @@ async def supabase_list_tables() -> str:
             "count": len(tables)
         }, ensure_ascii=False)
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         return _handle_db_error(e)
     finally:
         if conn:
             try:
                 conn.close()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 pass

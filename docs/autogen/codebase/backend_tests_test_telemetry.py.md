@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_telemetry.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,373 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.157488
+**সাইজ:** 6,387 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.480646
 
 ---
 
@@ -125,7 +125,7 @@ def test_trace_span_records_exception_on_error():
     mock_tracer.start_as_current_span.return_value.__enter__.return_value = mock_span
 
     with patch("core.telemetry.get_tracer", return_value=mock_tracer):
-        with pytest.raises(RuntimeError):
+        with pytest.raises(RuntimeError):  # noqa: F821
             with trace_span("error-span"):
                 raise RuntimeError("boom")
         from opentelemetry.trace import StatusCode

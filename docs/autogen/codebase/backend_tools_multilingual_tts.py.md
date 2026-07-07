@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/multilingual_tts.py
 
 **প্রকার:** .py  
-**সাইজ:** 19,648 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.177317
+**সাইজ:** 19,760 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.490943
 
 ---
 
@@ -232,7 +232,7 @@ class MultilingualTTS:
                 "language": lang,
                 "error": f"ElevenLabs HTTP {res.status_code}",
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"ElevenLabs exception: {exc}")
             return {"status": "error", "language": lang, "error": str(exc)}
 
@@ -284,7 +284,7 @@ class MultilingualTTS:
                 "language": lang,
                 "error": "edge-tts not installed",
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"edge-tts failed: {exc}")
             return {"status": "error", "language": lang, "error": str(exc)}
 
@@ -303,7 +303,7 @@ class MultilingualTTS:
                 "audio_path": out_path,
                 "text_length": len(text),
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"gTTS failed: {exc}")
             return {"status": "error", "language": lang, "error": str(exc)}
 
@@ -403,7 +403,7 @@ class MultilingualTTS:
                 ):
                     yield chunk
                 return  # Success, exit
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(
                     f"ElevenLabs streaming failed: {e}. Falling back to edge-tts."
                 )
@@ -425,7 +425,7 @@ class MultilingualTTS:
             if res.status_code == 200:
                 return {"status": "success", "voices": res.json().get("voices", [])}
             return {"status": "error", "error": f"HTTP {res.status_code}"}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             return {"status": "error", "error": str(exc)}
 
 
@@ -505,11 +505,11 @@ async def clear_cache():
                 try:
                     os.unlink(os.path.join(base_dir, f))
                     removed += 1
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
                         loguru.logger.error(f"Tool execution error: {e}")
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         import logging
                         logging.warning(f"Exception suppressed: {e}")
                     pass

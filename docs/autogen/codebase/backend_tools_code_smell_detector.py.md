@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/code_smell_detector.py
 
 **প্রকার:** .py  
-**সাইজ:** 22,559 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.171187
+**সাইজ:** 22,687 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.487811
 
 ---
 
@@ -189,7 +189,7 @@ class CodeSmellDetector:
                     "severity": "critical",
                 }
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to analyze {filepath}: {e}")
 
         if tree is None:
@@ -198,7 +198,7 @@ class CodeSmellDetector:
         if self.radon_available:
             try:
                 smells.extend(self._analyze_radon(filepath, tree, complexity_threshold))
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Radon analysis failed for {filepath}: {e}")
 
             coupling = self.compute_coupling_metrics(tree, filepath)
@@ -327,11 +327,11 @@ class CodeSmellDetector:
                             "severity": "warning",
                         }
                     )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
                     loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     import logging
                     logging.warning(f"Exception suppressed: {e}")
                 pass
@@ -362,7 +362,7 @@ class CodeSmellDetector:
         if self.pylint_available:
             try:
                 results.update(self._analyze_pylint_directory(directory_path))
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Pylint directory analysis failed: {e}")
 
         jscpd_report = self.run_jscpd(directory_path)
@@ -457,7 +457,7 @@ class CodeSmellDetector:
                         "severity": "critical",
                     }
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to analyze JS/TS file {filepath}: {e}")
         return smells
 
@@ -505,7 +505,7 @@ class CodeSmellDetector:
                     )
             except subprocess.TimeoutExpired:
                 logger.warning("Pylint timed out")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Pylint execution failed: {e}")
         return output
 
@@ -564,7 +564,7 @@ class CodeSmellDetector:
         except FileNotFoundError:
             logger.debug("jscpd not installed; skipping cross-file duplication check")
             return {"status": "skipped", "reason": "jscpd not found"}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"jscpd execution failed: {exc}")
             return {"status": "error", "reason": str(exc)}
 

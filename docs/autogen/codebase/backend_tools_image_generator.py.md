@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/image_generator.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,619 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.175819
+**সাইজ:** 3,651 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.490190
 
 ---
 
@@ -79,7 +79,7 @@ class HFImageGenerator:
                     "output_path": output_path,
                     "mock": False,
                 }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(
                 f"HuggingFace image generation failed: {e}. Falling back to mock generation."
             )
@@ -109,7 +109,7 @@ class HFImageGenerator:
                 "output_path": output_path,
                 "mock": True,
             }
-        except Exception as ex:
+        except Exception as ex:  # noqa: BLE001
             return {"success": False, "error": f"Mock generation failed: {ex}"}
 
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/tenant_admin.py
 
 **প্রকার:** .py  
-**সাইজ:** 13,560 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.133415
+**সাইজ:** 13,736 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.468029
 
 ---
 
@@ -90,7 +90,7 @@ def _get_db():
         from database.supabase_client import db
 
         return db.client if db and db.client else None
-    except Exception:
+    except Exception:  # noqa: BLE001
         return None
 
 
@@ -105,7 +105,7 @@ async def _db_list_tenants() -> list[dict[str, Any]]:
                 .execute()
             )
             return res.data or []
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"Supabase tenant list failed: {exc}")
     return _local_store.get("tenants", [])
 
@@ -121,7 +121,7 @@ async def _db_get_tenant(tenant_id: str) -> dict[str, Any] | None:
                 .execute()
             )
             return res.data[0] if res.data else None
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"Supabase tenant get failed: {exc}")
     for t in _local_store.get("tenants", []):
         if t["tenant_id"] == tenant_id:
@@ -137,7 +137,7 @@ async def _db_upsert_tenant(data: dict[str, Any]) -> bool:
                 data, on_conflict="tenant_id"
             ).execute()
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"Supabase tenant upsert failed: {exc}")
     # local fallback
     tenants = _local_store.setdefault("tenants", [])
@@ -155,7 +155,7 @@ async def _db_delete_tenant(tenant_id: str) -> bool:
         try:
             client.table("tenant_limits").delete().eq("tenant_id", tenant_id).execute()
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"Supabase delete failed: {exc}")
     tenants = _local_store.setdefault("tenants", [])
     _local_store["tenants"] = [t for t in tenants if t["tenant_id"] != tenant_id]
@@ -182,7 +182,7 @@ async def _get_tenant_usage(tenant_id: str) -> dict[str, Any]:
             usage["requests_today"] = int(q.get(day_key) or 0)
             usage["tokens_today"] = int(q.get(tokens_key) or 0)
             usage["cost_today"] = float(q.get(cost_key) or 0.0)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.debug(f"Redis usage read failed: {exc}")
 
     # Supabase fallback
@@ -203,7 +203,7 @@ async def _get_tenant_usage(tenant_id: str) -> dict[str, Any]:
                     usage["requests_today"] = row.get("requests_count", 0)
                     usage["tokens_today"] = row.get("tokens_used", 0)
                     usage["cost_today"] = float(row.get("cost_incurred", 0.0))
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Supabase usage read failed: {exc}")
     return usage
 
@@ -284,7 +284,7 @@ async def create_tenant(payload: TenantLimitCreate):
 
         limiter = TenantRateLimiter()
         await limiter.set_tier(payload.tenant_id, tier)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.debug(f"Redis tier cache failed: {exc}")
 
     logger.info(f"Created tenant: {payload.tenant_id} tier={tier}")
@@ -325,7 +325,7 @@ async def update_tenant(tenant_id: str, payload: TenantLimitUpdate):
 
             limiter = TenantRateLimiter()
             await limiter.set_tier(tenant_id, new_tier)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Redis tier update failed: {exc}")
 
     updates["updated_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
@@ -383,7 +383,7 @@ async def reset_usage(tenant_id: str):
             q.delete(cost_key)
             logger.info(f"Reset Redis usage for tenant: {tenant_id}")
             return {"status": "reset", "tenant_id": tenant_id, "source": "redis"}
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.debug(f"Redis reset failed: {exc}")
 
     # Supabase fallback
@@ -395,7 +395,7 @@ async def reset_usage(tenant_id: str):
                 "date", today
             ).execute()
             return {"status": "reset", "tenant_id": tenant_id, "source": "supabase"}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.warning(f"Supabase reset failed: {exc}")
 
     return {"status": "reset", "tenant_id": tenant_id, "source": "none"}

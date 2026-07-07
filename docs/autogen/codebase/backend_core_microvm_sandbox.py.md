@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/microvm_sandbox.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,244 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.121780
+**সাইজ:** 7,324 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.461893
 
 ---
 
@@ -40,7 +40,7 @@ class MicroVMSandbox:
                 return True
             if shutil.which("runsc"):
                 return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             import logging
             logging.warning(f"Exception suppressed: {e}")
         return False
@@ -129,7 +129,7 @@ class MicroVMSandbox:
                 "error": "Execution timeout",
                 "provider": "firecracker",
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e), "provider": "firecracker"}
 
     async def _run_gvisor(self, cmd: str, timeout: int) -> dict[str, Any]:
@@ -155,7 +155,7 @@ class MicroVMSandbox:
                 "error": "Execution timeout",
                 "provider": "gvisor",
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e), "provider": "gvisor"}
 
     async def _run_docker_fallback(
@@ -194,7 +194,7 @@ class MicroVMSandbox:
                 "error": "Execution timeout",
                 "provider": "docker-fallback",
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e), "provider": "docker-fallback"}
 
     def _destroy_vm(self, vm_id: str) -> None:
@@ -203,7 +203,7 @@ class MicroVMSandbox:
             if os.path.exists(vm_dir):
                 shutil.rmtree(vm_dir)
             logger.info(f"MicroVM {vm_id} destroyed")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to destroy VM {vm_id}: {e}")
 
     async def health_check(self) -> dict[str, Any]:

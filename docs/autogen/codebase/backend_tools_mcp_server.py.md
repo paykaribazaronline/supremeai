@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/mcp_server.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,428 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.170188
+**সাইজ:** 4,444 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.487308
 
 ---
 
@@ -101,7 +101,7 @@ async def handle_call_tool(
         else:
             raise ValueError(f"Unknown MCP tool: {name}")
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"MCP Server execution error: {e}")
         return [
             types.TextContent(

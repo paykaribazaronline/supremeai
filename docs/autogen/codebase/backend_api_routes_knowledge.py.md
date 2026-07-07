@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/knowledge.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,753 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.131661
+**সাইজ:** 4,801 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.467099
 
 ---
 
@@ -75,7 +75,7 @@ def _fts_search(query: str, limit: int = 5) -> list[dict[str, Any]]:
         )
         rows = cursor.fetchall()
         return [dict(r) for r in rows]
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         # বল মনতবয: করপট query ব FTS তরটত 500 এড়ত খল লসট রটরন কর হয়;
         # তব করণট যন হরয় ন যয় সজনয ডবগ লগ যকত কর হল
         logger.debug(f"FTS query execution failed for {query!r}: {exc}")
@@ -99,7 +99,7 @@ async def search_knowledge(q: str, limit: int = 5) -> list[KnowledgeSearchResult
     if sqlite3 is not None:
         try:
             results = _fts_search(q, limit)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: SQLite FTS সার্চ বযরথ হল RAG ফলবযাক বযবহত হয়;
             # খল ফলাফল নরব রটরন ন কর warning লগ কর হল
             logger.warning(f"FTS knowledge search failed for query {q!r}: {exc}")
@@ -121,7 +121,7 @@ async def search_knowledge(q: str, limit: int = 5) -> list[KnowledgeSearchResult
                         "source": "chromadb",
                     }
                 )
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: RAG সমযান্টক সার্চ বযরথ হল খল রজাল্ট নরব রটরন হত;
             # এখন warning লগ কর হয় যত search বযরথতর কারণ বঝ যায়
             logger.warning(f"RAG semantic knowledge search failed for query {q!r}: {exc}")

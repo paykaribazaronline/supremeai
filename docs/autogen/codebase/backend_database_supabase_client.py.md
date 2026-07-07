@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/database/supabase_client.py
 
 **প্রকার:** .py  
-**সাইজ:** 30,836 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.166278
+**সাইজ:** 31,252 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.485265
 
 ---
 
@@ -36,7 +36,7 @@ class SupabaseDB:
             try:
                 self.client = create_client(self.url, self.key)
                 logger.info("Initialized Supabase Client")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to initialize Supabase client: {e}")
         else:
             logger.warning(
@@ -56,7 +56,7 @@ class SupabaseDB:
                 if hostname.startswith("db."):
                     return f"https://{hostname[3:]}"
                 return f"https://{hostname}"
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # বল মনতবয: DATABASE_URL পরস বযরথ হল আগ নরব None রটরন করত;
             # কনফগ ভল থকল ত যন দশযমন হয় সজনয ডবগ লগ যকত কর হল
             logger.debug(f"Failed to derive Supabase URL from DATABASE_URL: {exc}")
@@ -363,7 +363,7 @@ class SupabaseDB:
                     ),
                 )
                 return
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(
                     "Supabase schema bootstrap failed for %s: %s",
                     (
@@ -391,7 +391,7 @@ class SupabaseDB:
         try:
             response = operation()
             return getattr(response, "data", response)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             if self._is_schema_cache_error(e):
                 logger.warning(
                     "Supabase operation failed due missing table schema cache; bootstrapping schema and retrying: %s",
@@ -401,7 +401,7 @@ class SupabaseDB:
                 try:
                     response = operation()
                     return getattr(response, "data", response)
-                except Exception as retry_error:
+                except Exception as retry_error:  # noqa: BLE001
                     logger.error(
                         "Supabase retry after schema bootstrap failed: %s",
                         retry_error,
@@ -424,7 +424,7 @@ class SupabaseDB:
             if res.data:
                 return res.data[0].get("value")
             return None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to fetch config '{key}': {e}")
             return None
 
@@ -435,7 +435,7 @@ class SupabaseDB:
             self.client.table("system_config").upsert(
                 {"key": key, "value": value, "category": category}
             ).execute()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to set config '{key}': {e}")
 
     # --- Feature Flags ---
@@ -462,7 +462,7 @@ class SupabaseDB:
                 # Real implementation would hash user_id against rollout_percentage here
                 return True
             return False
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to check feature flag '{feature_name}': {e}")
             return False
 
@@ -481,7 +481,7 @@ class SupabaseDB:
                     "language": language,
                 }
             ).execute()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to add GitHub repo '{repo_name}': {e}")
 
     # --- AI Model Behavior ---
@@ -499,7 +499,7 @@ class SupabaseDB:
             if res.data:
                 return res.data
             return None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # It's okay if a model is not found, so we can log this at a debug level.
             logger.debug(f"Could not fetch AI model behavior for '{model_name}': {e}")
             return None
@@ -511,7 +511,7 @@ class SupabaseDB:
             # Use upsert with on_conflict on 'model_name' if the table is set up for it.
             res = self.client.table("ai_model_behavior").upsert(data).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to upsert AI model behavior: {e}")
             return None
 
@@ -529,7 +529,7 @@ class SupabaseDB:
             if res.data:
                 return res.data[0]
             return None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to fetch preferences for '{user_id}': {e}")
             return None
 
@@ -539,7 +539,7 @@ class SupabaseDB:
         try:
             res = self.client.table("user_preferences").upsert(data).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to upsert preferences: {e}")
             return None
 
@@ -554,7 +554,7 @@ class SupabaseDB:
                 .execute()
             )
             return res.data or []
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to fetch configs by category '{category}': {e}")
             return []
 
@@ -631,7 +631,7 @@ class SupabaseDB:
             }
             res = self.client.table("skill_proposals").insert(entry).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.debug(f"Supabase skill_proposals insert failed: {e}")
             return None
 
@@ -655,7 +655,7 @@ class SupabaseDB:
             }
             res = self.client.table("feedback_loop").insert(entry).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.debug(f"Supabase feedback_loop insert failed: {e}")
             return None
 
@@ -673,7 +673,7 @@ class SupabaseDB:
         try:
             res = self.client.table("evolution_logs").insert(entry).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.debug(f"Supabase evolution_logs insert failed: {e}")
             return None
 
@@ -689,7 +689,7 @@ class SupabaseDB:
                 .execute()
             )
             return res.data or []
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.debug(f"Supabase get_evolution_logs failed: {e}")
             return []
 
@@ -700,7 +700,7 @@ class SupabaseDB:
         try:
             res = self.client.table("usage_metrics").upsert(data).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to upsert usage metrics: {e}")
             return None
 
@@ -711,7 +711,7 @@ class SupabaseDB:
         try:
             res = self.client.table("skills").upsert(data).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to upsert skill into DB: {e}")
             return None
 
@@ -721,7 +721,7 @@ class SupabaseDB:
         try:
             res = self.client.table("skills").select("*").eq("name", name).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to fetch skill '{name}' from DB: {e}")
             return None
 
@@ -731,7 +731,7 @@ class SupabaseDB:
         try:
             res = self.client.table("skills").select("*").execute()
             return res.data or []
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to fetch all skills from DB: {e}")
             return []
 
@@ -742,7 +742,7 @@ class SupabaseDB:
         try:
             res = self.client.table("guardrails").upsert(data).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to upsert guardrail: {e}")
             return None
 
@@ -758,7 +758,7 @@ class SupabaseDB:
                 .execute()
             )
             return res.data or []
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to fetch active guardrails: {e}")
             return []
 
@@ -769,7 +769,7 @@ class SupabaseDB:
         try:
             res = self.client.table("provider_configs").upsert(data).execute()
             return res.data[0] if res.data else None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to upsert provider config: {e}")
             return None
 
@@ -785,7 +785,7 @@ class SupabaseDB:
                 .execute()
             )
             return res.data or []
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to fetch active provider configs: {e}")
             return []
 

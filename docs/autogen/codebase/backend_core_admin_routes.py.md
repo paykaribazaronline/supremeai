@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/admin_routes.py
 
 **প্রকার:** .py  
-**সাইজ:** 17,251 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.113629
+**সাইজ:** 17,379 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.457703
 
 ---
 
@@ -34,7 +34,7 @@ from models.admin import AdminVerifyRequest
 
 try:
     import bcrypt
-except Exception:  # pragma: no cover - optional fallback
+except Exception:  # pragma: no cover - optional fallback  # noqa: BLE001
     bcrypt = None
 
 
@@ -52,7 +52,7 @@ def _verify_password(password: str, hashed: str) -> bool:
         return False
     try:
         return bcrypt.checkpw(password.encode(), hashed.encode())
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 
@@ -160,7 +160,7 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
                 doc_ref.set(
                     {"email": email, "role": "admin", "created_at": str(time.time())}
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.critical(
                 f"Firestore admin lookup failed (Possible DB connection issue/attack): {e}"
             )
@@ -217,7 +217,7 @@ def admin_firebase_totp_setup(payload: AdminFirebaseTotpSetupRequest):
     if db:
         try:
             db.collection("admin_users").document(uid).update({"temp_totp_secret": secret})
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to store temp TOTP secret in Firestore: {e}")
 
     # বাংলা মন্তব্য: ৬ ডিজিটের ওটিপি রিকোয়েস্ট করা হলো
@@ -266,7 +266,7 @@ def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
                 data = doc.to_dict()
                 totp_secret = data.get("totp_secret")
                 temp_totp_secret = data.get("temp_totp_secret")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to retrieve TOTP secret: {e}")
 
     secret_to_use = totp_secret or temp_totp_secret
@@ -291,7 +291,7 @@ def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
                     "temp_totp_secret": firestore.DELETE_FIELD,
                 }
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to promote temp TOTP secret: {e}")
 
     from jose import jwt
@@ -442,7 +442,7 @@ def verify_totp_code(user_otp: str, base32_secret: str) -> bool:
             if hmac.compare_digest(code, user_otp):
                 return True
         return False
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 
@@ -465,7 +465,7 @@ def check_totp(user_otp: str, base32_secret: str) -> bool:
             if hmac.compare_digest(code, user_otp):
                 return True
         return False
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/checkpoint_manager.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,554 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.180073
+**সাইজ:** 8,682 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.492393
 
 ---
 
@@ -102,7 +102,7 @@ class CheckpointManager:
                 conn.commit()
                 conn.close()
                 return True
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Failed to save SQLite checkpoint: {exc}")
                 return False
 
@@ -126,7 +126,7 @@ class CheckpointManager:
                 f"Firestore checkpoint saved for task_id={task_id} step={step_index}"
             )
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to save Firestore checkpoint: {exc}")
             return False
 
@@ -157,7 +157,7 @@ class CheckpointManager:
                 conn.commit()
                 conn.close()
                 return cp
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Failed to load SQLite checkpoint: {exc}")
                 return None
 
@@ -180,7 +180,7 @@ class CheckpointManager:
             # Mark as resumed
             doc_ref.update({"resumed": True})
             return cp
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to load Firestore checkpoint: {exc}")
             return None
 
@@ -203,7 +203,7 @@ class CheckpointManager:
                     }
                     for r in rows
                 ]
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Failed to list SQLite checkpoints: {exc}")
                 return []
 
@@ -224,7 +224,7 @@ class CheckpointManager:
                 }
                 for d in docs
             ]
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to list Firestore checkpoints: {exc}")
             return []
 
@@ -237,7 +237,7 @@ class CheckpointManager:
                 conn.commit()
                 conn.close()
                 return True
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.error(f"Failed to clear SQLite checkpoint: {exc}")
                 return False
 
@@ -246,7 +246,7 @@ class CheckpointManager:
         try:
             self._db.collection(self.collection_name).document(task_id).delete()
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to clear Firestore checkpoint: {exc}")
             return False
 

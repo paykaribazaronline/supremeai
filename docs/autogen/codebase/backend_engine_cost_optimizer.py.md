@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/engine/cost_optimizer.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,153 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.125637
+**সাইজ:** 2,169 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.463907
 
 ---
 
@@ -53,7 +53,7 @@ class CostOptimizer:
             provider = self.free_tier_tracker.get_best_provider()
             if provider:
                 return provider
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"Free tier tracker unavailable: {exc}")
         return None
 

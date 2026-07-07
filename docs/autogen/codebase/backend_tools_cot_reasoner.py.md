@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/cot_reasoner.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,110 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.169100
+**সাইজ:** 14,158 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.486733
 
 ---
 
@@ -77,7 +77,7 @@ def safe_execute(code: str) -> dict[str, Any]:
         if "result" in local_vars:
             return {"success": True, "value": local_vars["result"]}
         return {"success": True, "value": None}
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         return {"success": False, "error": str(exc)}
 
 
@@ -99,7 +99,7 @@ def verify_symbolic_math(expression: str, claimed_result: str) -> dict[str, Any]
             "claimed_result": str(claimed),
             "method": "sympy_symbolic",
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         try:
             clean_expr = re.sub(r"[^0-9\+\-\*\/\(\)\.\s]", "", expression)
             result = _safe_eval_math(clean_expr)
@@ -111,7 +111,7 @@ def verify_symbolic_math(expression: str, claimed_result: str) -> dict[str, Any]
                 "claimed_result": claimed,
                 "method": "numerical_fallback",
             }
-        except Exception as inner_e:
+        except Exception as inner_e:  # noqa: BLE001
             return {
                 "is_verified": False,
                 "error": f"Sympy error: {e}, Fallback error: {inner_e}",

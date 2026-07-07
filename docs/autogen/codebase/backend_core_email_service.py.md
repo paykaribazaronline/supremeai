@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/email_service.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,818 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.117037
+**সাইজ:** 3,834 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.459484
 
 ---
 
@@ -53,7 +53,7 @@ class EmailService:
                 else:
                     logger.error(f"Failed to send email to {to_email}: {response.text}")
                     return False
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Exception while sending email: {e}")
             return False
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/bengali_ocr_converter.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,204 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.182201
+**সাইজ:** 5,376 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.493495
 
 ---
 
@@ -76,7 +76,7 @@ def convert_image_to_excel(image_path, excel_path, client):
         text = extract_text_from_image(client, image_path)
 
         if not text:
-            print(f"No text found in {os.path.basename(image_path)}")
+            print(f"No text found in {os.path.basename(image_path)}")  # noqa: T201
             return False
 
         # Parse into table format
@@ -119,13 +119,13 @@ def convert_image_to_excel(image_path, excel_path, client):
             metadata_df.to_excel(writer, sheet_name="Metadata", index=False)
             df.to_excel(writer, sheet_name="Data", index=False)
 
-        print(
+        print(  # noqa: T201
             f"Successfully converted {os.path.basename(image_path)} to {os.path.basename(excel_path)}"
         )
         return True
 
-    except Exception as e:
-        print(f"Error processing {os.path.basename(image_path)}: {str(e)}")
+    except Exception as e:  # noqa: BLE001
+        print(f"Error processing {os.path.basename(image_path)}: {str(e)}")  # noqa: T201
         return False
 
 
@@ -138,7 +138,7 @@ def batch_convert_images(folder_path, credentials_path=None):
     image_files = [f for f in os.listdir(folder_path) if f.lower().endswith(".jpg")]
     image_files.sort()
 
-    print(f"Found {len(image_files)} images to process")
+    print(f"Found {len(image_files)} images to process")  # noqa: T201
 
     success_count = 0
     for image_file in image_files:
@@ -149,7 +149,7 @@ def batch_convert_images(folder_path, credentials_path=None):
         if convert_image_to_excel(image_path, excel_path, client):
             success_count += 1
 
-    print(
+    print(  # noqa: T201
         f"\nConversion completed: {success_count}/{len(image_files)} images processed successfully"
     )
 
@@ -164,11 +164,11 @@ if __name__ == "__main__":
     # For now, try without credentials (requires GOOGLE_APPLICATION_CREDENTIALS env var)
     try:
         batch_convert_images(folder)
-    except Exception as e:
-        print(f"Setup error: {e}")
-        print("Please ensure you have set up Google Cloud Vision API credentials")
-        print("Either:")
-        print("1. Set GOOGLE_APPLICATION_CREDENTIALS environment variable")
-        print("2. Or provide credentials file path to batch_convert_images()")
+    except Exception as e:  # noqa: BLE001
+        print(f"Setup error: {e}")  # noqa: T201
+        print("Please ensure you have set up Google Cloud Vision API credentials")  # noqa: T201
+        print("Either:")  # noqa: T201
+        print("1. Set GOOGLE_APPLICATION_CREDENTIALS environment variable")  # noqa: T201
+        print("2. Or provide credentials file path to batch_convert_images()")  # noqa: T201
 
 ```

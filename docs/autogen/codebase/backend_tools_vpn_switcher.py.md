@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/vpn_switcher.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,699 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.173223
+**সাইজ:** 5,747 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.488820
 
 ---
 
@@ -136,7 +136,7 @@ class VPNRotator:
                 text = resp.text.strip().splitlines()
                 if text:
                     return {"proxy": random.choice(text).strip(), "source": "free"}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.debug(f"free proxy fetch failed: {exc}")
         return {"proxy": None, "source": "free", "reason": "empty"}
 
@@ -149,11 +149,11 @@ class VPNRotator:
                 cfg = json.load(fh)
             proxy = cfg.get(use_case) or cfg.get("default")
             return {"proxy": proxy, "source": "premium", "use_case": use_case}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 import loguru
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 import logging
                 logging.warning(f"Exception suppressed: {e}")
             return {"proxy": None, "source": "premium", "reason": "not configured"}

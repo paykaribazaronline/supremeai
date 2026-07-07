@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/byoc/cloud_connector.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,029 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.142706
+**সাইজ:** 3,045 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.472793
 
 ---
 
@@ -67,7 +67,7 @@ class GCPCredentialManager:
         try:
             service_account.Credentials.from_service_account_info(sa_dict)
             return True
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"GCP Service Account validation failed: {e}")
             return False
 

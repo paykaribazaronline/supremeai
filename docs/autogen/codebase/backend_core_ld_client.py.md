@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/ld_client.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,165 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.118543
+**সাইজ:** 2,169 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.460260
 
 ---
 
@@ -32,12 +32,12 @@ except ImportError as e:
 def init_ld_client() -> "LDAIClient | None":
     if not LD_SUPPORTED:
         return None
-    
+
     sdk_key = os.getenv("LAUNCHDARKLY_SDK_KEY")
     if not sdk_key:
         logger.warning("LAUNCHDARKLY_SDK_KEY is not set in environment. LaunchDarkly integration disabled.")
         return None
-        
+
     try:
         # বাংলা মন্তব্য: লঞ্চডার্কলি কোর ক্লায়েন্ট কনফিগারেশন এবং অবজারভেবিলিটি প্লাগইন ইন্টিগ্রেশন
         ldclient.set_config(Config(
@@ -53,7 +53,7 @@ def init_ld_client() -> "LDAIClient | None":
         ))
         logger.info("LaunchDarkly AI Client successfully initialized with Observability.")
         return LDAIClient(ldclient.get())
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to initialize LaunchDarkly client: {e}")
         return None
 

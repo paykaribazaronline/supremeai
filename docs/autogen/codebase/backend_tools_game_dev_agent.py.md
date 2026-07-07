@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/game_dev_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,462 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.171072
+**সাইজ:** 1,478 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.487759
 
 ---
 
@@ -40,7 +40,7 @@ class GameDevAgent:
                 "code": "",
                 "note": "Real game dev requires Unity/Unreal/Godot SDK integration.",
             }
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Game dev generation failed: {exc}")
             return {
                 "status": "error",

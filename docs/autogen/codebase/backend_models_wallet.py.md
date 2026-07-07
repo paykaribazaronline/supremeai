@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/wallet.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,566 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.135644
+**সাইজ:** 2,554 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.469247
 
 ---
 
@@ -31,14 +31,14 @@ class UserWallet(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
-    
+
     # Pro Tip: Float ব্যবহার করলে প্রিসিশন লস হয়। তাই Micro-transactions এর জন্য Numeric(10,6) ব্যবহার করা হলো।
     balance_usd: Mapped[Decimal] = mapped_column(Numeric(10, 6), default=Decimal('0.000000'), nullable=False)
     monthly_allowance_usd: Mapped[Decimal] = mapped_column(Numeric(10, 6), default=Decimal('0.000000'), nullable=False)
-    
+
     # Optimistic Concurrency Control (Second Layer of Defense against Double-Spending)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 

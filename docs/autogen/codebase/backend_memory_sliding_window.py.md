@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/memory/sliding_window.py
 
 **প্রকার:** .py  
-**সাইজ:** 12,697 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.138144
+**সাইজ:** 12,729 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.470577
 
 ---
 
@@ -147,7 +147,7 @@ class SlidingWindowMemory:
             if self.config.auto_compact:
                 self._compact_if_needed(session_id)
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to persist sliding window records: {exc}")
             return False
         finally:
@@ -186,7 +186,7 @@ class SlidingWindowMemory:
             )
             conn.commit()
             return True
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to clear sliding window memory: {exc}")
             return False
         finally:

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/langchain_agent_example.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,990 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.178854
+**সাইজ:** 6,076 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.491760
 
 ---
 
@@ -90,7 +90,7 @@ def handle_agent_call_langchain(
 
 if __name__ == "__main__":
     if not INTEGRATION_OK:
-        print("❌ Setup failed: missing packages.")
+        print("❌ Setup failed: missing packages.")  # noqa: T201
         sys.exit(1)
         
     # বাংলা মন্তব্য: লঞ্চডার্কলি ক্লায়েন্ট কনফিগারেশন এবং অবজারভেবিলিটি প্লাগইন ইনিশিয়ালাইজেশন
@@ -120,14 +120,14 @@ if __name__ == "__main__":
         )
     )
     
-    print("Evaluating AgentConfig...")
+    print("Evaluating AgentConfig...")  # noqa: T201
     if config.enabled:
         try:
             result = handle_agent_call_langchain(config, "Hello, write a short tagline for SupremeAI.")
-            print(f"Result: {result}")
-        except Exception as e:
-            print(f"Error during runtime execution: {e}")
+            print(f"Result: {result}")  # noqa: T201
+        except Exception as e:  # noqa: BLE001
+            print(f"Error during runtime execution: {e}")  # noqa: T201
     else:
-        print("Config is disabled in LaunchDarkly.")
+        print("Config is disabled in LaunchDarkly.")  # noqa: T201
 
 ```

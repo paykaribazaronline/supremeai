@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/app.py
 
 **প্রকার:** .py  
-**সাইজ:** 15,244 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.118019
+**সাইজ:** 15,564 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.459991
 
 ---
 
@@ -69,7 +69,7 @@ if settings.sentry_dsn:
             traces_sample_rate=0.2 if settings.env.lower() == "production" else 1.0,
             environment=settings.env,
         )
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.warning(f"Sentry initialization failed: {exc}")
 
 
@@ -159,7 +159,7 @@ async def health():
         try:
             services.redis_queue.set("health", "ok", ex=5)
             redis_ok = services.redis_queue.get("health") == "ok"
-        except Exception:
+        except Exception:  # noqa: BLE001
             redis_ok = False
     else:
         redis_ok = True
@@ -299,7 +299,7 @@ try:
 
     if websocket_voice_router is not None:
         app.include_router(websocket_voice_router)
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"websocket_voice router not loaded: {_e}")
 # Include Orchestrator router
 from core.orchestrator import router as orchestrator_router
@@ -312,7 +312,7 @@ try:
     from tools.collaborative_editor import router as collab_router
 
     app.include_router(collab_router, prefix="/api/v1")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"collaborative_editor router not loaded: {_e}")
 
 from tools.image_to_code import router as image_to_code_router
@@ -326,49 +326,49 @@ try:
     from tools.browser_agent import router as browser_agent_router
 
     app.include_router(browser_agent_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"browser_agent router not loaded: {_e}")
 
 try:
     from tools.voice_coder import router as voice_coder_router
 
     app.include_router(voice_coder_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"voice_coder router not loaded: {_e}")
 
 try:
     from tools.style_learner import router as style_learner_router
 
     app.include_router(style_learner_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"style_learner router not loaded: {_e}")
 
 try:
     from tools.diagram_to_architecture import router as diagram_router
 
     app.include_router(diagram_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"diagram_to_architecture router not loaded: {_e}")
 
 try:
     from tools.ai_pair_programmer import router as pair_router
 
     app.include_router(pair_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"ai_pair_programmer router not loaded: {_e}")
 
 try:
     from api.routes.onboarding import router as onboarding_api_router
 
     app.include_router(onboarding_api_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"onboarding API router not loaded: {_e}")
 
 try:
     from api.routes.evolution import router as evolution_router
 
     app.include_router(evolution_router)
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"evolution API router not loaded: {_e}")
 
 if codeflow_router is not None:
@@ -381,7 +381,7 @@ try:
     from tools.multilingual_tts import router as tts_router
 
     app.include_router(tts_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"multilingual_tts router not loaded: {_e}")
 
 # bhasa mourontto: voice streaming router properly loaded with /api/voice prefix
@@ -390,28 +390,28 @@ try:
 
     if voice_router is not None:
         app.include_router(voice_router, prefix="/api/voice")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"voice streaming router not loaded: {_e}")
 
 try:
     from tools.comment_thread_ai import router as comment_ai_router
 
     app.include_router(comment_ai_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"comment_thread_ai router not loaded: {_e}")
 
 try:
     from tools.auto_test_generator import router as test_gen_router
 
     app.include_router(test_gen_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"auto_test_generator router not loaded: {_e}")
 
 try:
     from api.routes.tenant_admin import router as tenant_admin_router
 
     app.include_router(tenant_admin_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"tenant_admin router not loaded: {_e}")
 
 from api.routes.mobile_bff import router as mobile_bff_router
@@ -427,7 +427,7 @@ try:
         logger.info("Universal BYOC management router loaded successfully ✅")
     else:
         logger.warning("Universal BYOC router not loaded: SUPREMEAI_ENCRYPTION_KEY missing")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     import traceback
 
     logger.critical(f"Failed to load Universal BYOC router: {traceback.format_exc()}")
@@ -438,7 +438,7 @@ try:
 
     app.include_router(billing_api_router)
     logger.info("P2P Credit System billing router loaded successfully ✅")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     import traceback
 
     logger.critical(f"Failed to load Billing router: {traceback.format_exc()}")
@@ -452,13 +452,13 @@ try:
     from api.routes.cloud_mesh import router as cloud_mesh_router
 
     app.include_router(cloud_mesh_router)
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"cloud_mesh router not loaded: {_e}")
 
 try:
     from api.routes.events import router as events_router
     app.include_router(events_router, prefix="/api")
-except Exception as _e:
+except Exception as _e:  # noqa: BLE001
     logger.warning(f"events router not loaded: {_e}")
 
 app.router.lifespan_context = lifespan.app_lifespan

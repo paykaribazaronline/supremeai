@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/autocache_proxy.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,458 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.118408
+**সাইজ:** 9,343 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.460191
 
 ---
 
@@ -31,7 +31,7 @@ class AutocacheProxy:
     - মাল্টিপল ভেন্ডর কস্ট এস্টিমেশন
     - অটোমেটিক প্যারামিটার অপটিমাইজেশন
     - কস্ট মেট্রিক্স ট্র্যাকিং
-    """
+    """  # noqa: W293
 
     def __init__(self, cache: SemanticCache):
         self.cache = cache
@@ -60,15 +60,15 @@ class AutocacheProxy:
         if model not in self.vendor_costs:
             logger.warning(f"Unknown model: {model}, assuming free tier")
             return 0.0
-        
+
         costs = self.vendor_costs[model]
         total_cost = (input_tokens * costs["input"]) + (output_tokens * costs["output"])
         return total_cost
 
     async def should_use_cache(
-        self, 
-        model: str, 
-        prompt: str, 
+        self,
+        model: str,
+        prompt: str,
         task_type: str = "general",
         similarity_threshold: float = 0.85
     ) -> dict[str, Any]:
@@ -82,32 +82,32 @@ class AutocacheProxy:
             "estimated_cost_saved": float,
             "cache_score": float
         }
-        """
+        """  # noqa: W293
         self.cost_metrics["total_requests"] += 1
-        
+
         # সিমান্টিক ক্যাশ থেকে খুঁজুন
         cached_result = await self.cache.query_similar(prompt, task_type)
-        
+
         if cached_result and cached_result.response:
             # খরচ সেভিং্স ক্যালকুলেট করুন
             input_tokens = estimate_tokens(prompt)
             estimated_cost = self._calculate_cost(model, input_tokens, 100)
-            
+
             self.cost_metrics["cached_hits"] += 1
             self.cost_metrics["total_cost_saved"] += estimated_cost
-            
+
             logger.info(
                 f"💰 [CACHE HIT] Model: {model} | Cost Saved: ${estimated_cost:.6f} | "
                 f"Total Saved: ${self.cost_metrics['total_cost_saved']:.6f}"
             )
-            
+
             return {
                 "should_cache": True,
                 "cached_response": cached_result.response,
                 "estimated_cost_saved": estimated_cost,
                 "cache_score": 0.95  # Semantic match score
             }
-        
+
         return {
             "should_cache": False,
             "cached_response": None,
@@ -116,8 +116,8 @@ class AutocacheProxy:
         }
 
     async def deduplicate_request(
-        self, 
-        model: str, 
+        self,
+        model: str,
         prompt: str
     ) -> dict[str, Any]:
         """
@@ -125,28 +125,28 @@ class AutocacheProxy:
         এবং পেন্ডিং রিকোয়েস্টের রেসপন্স শেয়ার করুন
         """
         req_hash = self._compute_request_hash(model, prompt)
-        
+
         if req_hash in self.request_history:
             entry = self.request_history[req_hash]
-            
+
             # ৫ মিনিটের মধ্যে একই রিকোয়েস্ট হলে রিইউজ করুন
             if time.time() - entry["timestamp"] < 300:
                 self.cost_metrics["dedup_requests"] += 1
                 logger.info(f"♻️ [DEDUP HIT] Reusing response from {(time.time() - entry['timestamp']):.1f}s ago")
-                
+
                 return {
                     "is_duplicate": True,
                     "cached_response": entry["response"],
                     "original_timestamp": entry["timestamp"]
                 }
-        
+
         return {"is_duplicate": False}
 
     def record_request(self, model: str, prompt: str, response: str, tokens_used: int):
         """সফল রিকোয়েস্ট রেকর্ড করুন ভবিষ্যত ক্যাশিংয়ের জন্য"""
         req_hash = self._compute_request_hash(model, prompt)
         cost = self._calculate_cost(model, estimate_tokens(prompt), tokens_used)
-        
+
         self.request_history[req_hash] = {
             "response": response,
             "timestamp": time.time(),
@@ -158,7 +158,7 @@ class AutocacheProxy:
         """সাম্প্রতিক কস্ট সেভিংস সামারি পান"""
         total_requests = self.cost_metrics["total_requests"] or 1
         cache_hit_rate = (self.cost_metrics["cached_hits"] / total_requests) * 100
-        
+
         return {
             "total_requests": self.cost_metrics["total_requests"],
             "cached_hits": self.cost_metrics["cached_hits"],
@@ -187,8 +187,8 @@ class AutocacheProxy:
             "cost_saved": float,
             "recommendation": str
         }
-        """
-        
+        """  # noqa: W293
+
         # প্রথম ডুপ্লিকেট চেক করুন
         dedup_result = await self.deduplicate_request(model, prompt)
         if dedup_result["is_duplicate"]:
@@ -198,7 +198,7 @@ class AutocacheProxy:
                 "cost_saved": self._calculate_cost(model, estimate_tokens(prompt), 100),
                 "recommendation": "DEDUP_HIT - Using recent cached response"
             }
-        
+
         # তারপর সিমান্টিক ক্যাশ চেক করুন
         cache_result = await self.should_use_cache(model, prompt, task_type)
         if cache_result["should_cache"]:
@@ -208,7 +208,7 @@ class AutocacheProxy:
                 "cost_saved": cache_result["estimated_cost_saved"],
                 "recommendation": "SEMANTIC_HIT - Using semantically similar cached response"
             }
-        
+
         # API কল করা দরকার
         return {
             "proceed": True,

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/websocket_voice.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,889 বাইট  
-**আপডেট:** 2026-07-07T21:54:36.131898
+**সাইজ:** 7,069 বাইট  
+**আপডেট:** 2026-07-07T21:58:43.467220
 
 ---
 
@@ -36,12 +36,12 @@ class VoiceConnectionManager:
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
-        print("🟢 [WS] Voice Client Connected to SupremeAI Nexus.")
+        print("🟢 [WS] Voice Client Connected to SupremeAI Nexus.")  # noqa: T201
 
     def disconnect(self, websocket: WebSocket):
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
-        print("🔴 [WS] Voice Client Disconnected.")
+        print("🔴 [WS] Voice Client Disconnected.")  # noqa: T201
 
     async def _authenticate(self, websocket: WebSocket) -> dict | None:
         token = websocket.query_params.get("token")
@@ -49,11 +49,11 @@ class VoiceConnectionManager:
             return None
         try:
             return verify_token(token)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             from jose import jwt
             if isinstance(e, jwt.ExpiredSignatureError):
                 client_host = websocket.client.host if websocket.client else "unknown"
-                print(f"⚠️ [WS Auth] Expired token attempt from {client_host}")
+                print(f"⚠️ [WS Auth] Expired token attempt from {client_host}")  # noqa: T201
             return None
 
 manager = VoiceConnectionManager()
@@ -67,7 +67,7 @@ async def process_audio_with_groq(audio_bytes: bytes) -> str:
 
     url = "https://api.groq.com/openai/v1/audio/transcriptions"
     headers = {"Authorization": f"Bearer {settings.groq_api_key}"}
-    
+
     files = {
         "file": ("audio.webm", audio_bytes, "audio/webm")
     }
@@ -82,14 +82,14 @@ async def process_audio_with_groq(audio_bytes: bytes) -> str:
             response.raise_for_status()
             result = response.json()
             return result.get("text", "")
-        except Exception as e:
-            print(f"❌ [Groq STT Error]: {e}")
+        except Exception as e:  # noqa: BLE001
+            print(f"❌ [Groq STT Error]: {e}")  # noqa: T201
             return f"Error processing audio: {str(e)}"
 
 async def handle_intent(transcript: str, websocket: WebSocket, start_time: float, user_id: str):
     # Intent Router
     transcript_clean = transcript.strip()
-    
+
     # Check if it's a command
     if transcript_clean.startswith("/"):
         supremeai_response = f"Executing system command: {transcript_clean}... Authorization confirmed."
@@ -99,7 +99,7 @@ async def handle_intent(transcript: str, websocket: WebSocket, start_time: float
             f"Hello! You said: '{transcript_clean}'. I am Aethel, "
             "your SupremeAI orchestrator. How can I assist you with the cluster today?"
         )
-        
+
     # Log to database
     if db.client:
         latency_ms = int((time.time() - start_time) * 1000)
@@ -111,15 +111,15 @@ async def handle_intent(transcript: str, websocket: WebSocket, start_time: float
         )
         try:
             db.client.table("voice_interactions").insert(log_entry.dict(exclude_none=True)).execute()
-        except Exception as db_err:
-            print(f"⚠️ [DB Logging Error]: {db_err}")
-    
+        except Exception as db_err:  # noqa: BLE001
+            print(f"⚠️ [DB Logging Error]: {db_err}")  # noqa: T201
+
     # Stream text response back for Web Speech API TTS
     words = supremeai_response.split(" ")
     for word in words:
         await websocket.send_json({"type": "response_chunk", "text": word + " "})
         await asyncio.sleep(0.05)
-    
+
     await websocket.send_json({"type": "response_complete"})
 
 @router.websocket("/voice")
@@ -161,9 +161,9 @@ async def websocket_voice_endpoint(
                             continue
 
                         # 1. Process STT using Groq
-                        print(f"🎙️ [WS] Processing audio buffer ({len(audio_buffer)} bytes)...")
+                        print(f"🎙️ [WS] Processing audio buffer ({len(audio_buffer)} bytes)...")  # noqa: T201
                         transcript = await process_audio_with_groq(bytes(audio_buffer))
-                        print(f"🗣️ [User Voice]: {transcript}")
+                        print(f"🗣️ [User Voice]: {transcript}")  # noqa: T201
 
                         # Clear buffer for next recording
                         audio_buffer.clear()
@@ -177,19 +177,19 @@ async def websocket_voice_endpoint(
 
                     elif action == "text_chat":
                         transcript = payload.get("text", "")
-                        print(f"💬 [User Text]: {transcript}")
+                        print(f"💬 [User Text]: {transcript}")  # noqa: T201
 
                         # Process text intent directly
                         await handle_intent(transcript, websocket, start_time, auth_payload.get("sub", "anonymous"))
                         start_time = time.time() # Reset timer
 
                 except json.JSONDecodeError:
-                    print("⚠️ [WS] Received invalid text message.")
+                    print("⚠️ [WS] Received invalid text message.")  # noqa: T201
 
     except WebSocketDisconnect:
         manager.disconnect(websocket)
-    except Exception as e:
-        print(f"❌ [WS Voice Engine Error]: {e}")
+    except Exception as e:  # noqa: BLE001
+        print(f"❌ [WS Voice Engine Error]: {e}")  # noqa: T201
         manager.disconnect(websocket)
         import contextlib
         with contextlib.suppress(Exception):
