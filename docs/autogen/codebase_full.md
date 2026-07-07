@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T15:23:41.033034
+Generated at: 2026-07-07T15:42:20.797028
 
 
 ## File: `pnpm-lock.yaml`
@@ -163822,7 +163822,9 @@ else:
 # 🚀 2. DEPLOY NEW IMAGE
 # ==========================================
 print("🚀 Deploying new image to Cloud Run...")
-deploy_cmd = f"gcloud run deploy {SERVICE_NAME} --image {IMAGE} --region {REGION} --quiet"
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
+env_args = f"--set-env-vars ENCRYPTION_KEY='{ENCRYPTION_KEY}'" if ENCRYPTION_KEY else ""
+deploy_cmd = f"gcloud run deploy {SERVICE_NAME} --image {IMAGE} --region {REGION} {env_args} --quiet"
 result = run_cmd(deploy_cmd)
 
 if result.exit_code != 0:
@@ -166983,6 +166985,7 @@ jobs:
         env:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           GCP_REGION: ${{ vars.GCP_REGION || 'us-central1' }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
         run: python .github/scripts/deploy-backend.py
 
 
