@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/App.test.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 4,349 বাইট  
-**আপডেট:** 2026-07-07T06:42:45.687610
+**সাইজ:** 4,665 বাইট  
+**আপডেট:** 2026-07-07T06:57:02.479473
 
 ---
 
@@ -11,6 +11,7 @@
 ```tsx
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 
 vi.mock('./services/chatService', () => ({
   getAethelResponse: vi.fn().mockResolvedValue('Mock Aethel backend response'),
@@ -89,7 +90,11 @@ describe('App component', () => {
 
   // বাংলা মন্তব্য: UI টেক্সট পরিবর্তন হওয়া সত্ত্বেও টেস্ট যাতে স্ট্যাবল থাকে সে জন্য data-testid ব্যবহার করা হলো
   it('renders header, title, and health status', () => {
-    render(<App />);
+    render(
+      <MemoryRouter initialEntries={['/workspace']}>
+        <App />
+      </MemoryRouter>
+    );
 
     expect(screen.getByTestId('header-title')).toBeInTheDocument();
     expect(screen.getByTestId('core-status')).toBeInTheDocument();
@@ -97,7 +102,11 @@ describe('App component', () => {
 
   // বাংলা মন্তব্য: চ্যাট ট্যাব সক্রিয় করে চ্যাট কনসোল রেন্ডারিং চেক করা হচ্ছে
   it('renders chat console when chat tab is active', () => {
-    render(<App />);
+    render(
+      <MemoryRouter initialEntries={['/workspace']}>
+        <App />
+      </MemoryRouter>
+    );
 
     // চ্যাট ট্যাবে ক্লিক করা হচ্ছে
     fireEvent.click(screen.getByTestId('tab-chat'));
@@ -107,7 +116,11 @@ describe('App component', () => {
 
   // বাংলা মন্তব্য: চ্যাট প্যানেলে মেসেজ টাইপ ও সাবমিট করে প্রসেসিং সফলভাবে হচ্ছে কিনা টেস্ট করা হচ্ছে
   it('allows user to send messages in the chat console', async () => {
-    render(<App />);
+    render(
+      <MemoryRouter initialEntries={['/workspace']}>
+        <App />
+      </MemoryRouter>
+    );
 
     // চ্যাট ট্যাবে ক্লিক করা হচ্ছে
     fireEvent.click(screen.getByTestId('tab-chat'));
