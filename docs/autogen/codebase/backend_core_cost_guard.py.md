@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/cost_guard.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,903 বাইট  
-**আপডেট:** 2026-07-07T17:46:01.267412
+**সাইজ:** 1,912 বাইট  
+**আপডেট:** 2026-07-07T17:56:40.927277
 
 ---
 
@@ -10,8 +10,10 @@
 
 ```py
 from typing import Any
+
 from fastapi import HTTPException
 from loguru import logger
+
 
 class CostGuard:
     def __init__(self, db: Any):
@@ -51,6 +53,6 @@ class CostGuard:
         except Exception as e:
             logger.error(f"CostGuard DB Error: {e}")
             # Failsafe: if DB is down, maybe reject or accept? Zero-Gap means strict.
-            raise RuntimeError(f"CostGuard failed to verify budget: {e}")
+            raise RuntimeError(f"CostGuard failed to verify budget: {e}") from e
 
 ```

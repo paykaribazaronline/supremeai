@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/cloud_sandbox_orchestrator.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,053 বাইট  
-**আপডেট:** 2026-07-07T17:46:01.266324
+**সাইজ:** 11,025 বাইট  
+**আপডেট:** 2026-07-07T17:56:40.926126
 
 ---
 
@@ -20,16 +20,16 @@ Integrates 'Freebuff CLI' as a zero-cost headless AI worker.
 """
 
 import asyncio
+import datetime
 import os
 from typing import Any
 
 import httpx
 from loguru import logger
-import datetime
 
-from utils.firestore_helpers import get_firestore_db
-from core.self_healer import SelfHealerService
 from core.config_proxy import DynamicConfigProxy
+from core.self_healer import SelfHealerService
+from utils.firestore_helpers import get_firestore_db
 
 
 class CloudSandboxOrchestrator:
@@ -66,7 +66,7 @@ class CloudSandboxOrchestrator:
         if not self.api_key:
             logger.warning("Cannot create sandbox: API key is missing. Running in mock/dry-run mode.")
             mock_id = f"mock-sandbox-id-{os.urandom(4).hex()}"
-            self._active_sandboxes[mock_id] = {"created_at": datetime.datetime.now(datetime.timezone.utc), "status": "running"}
+            self._active_sandboxes[mock_id] = {"created_at": datetime.datetime.now(datetime.UTC), "status": "running"}
             return {
                 "id": mock_id,
                 "status": "running",
@@ -84,7 +84,7 @@ class CloudSandboxOrchestrator:
             data = response.json()
             sandbox_id = data.get('id')
             if sandbox_id:
-                self._active_sandboxes[sandbox_id] = {"created_at": datetime.datetime.now(datetime.timezone.utc), "status": "running"}
+                self._active_sandboxes[sandbox_id] = {"created_at": datetime.datetime.now(datetime.UTC), "status": "running"}
             logger.success(f"Successfully created sandbox with ID: {sandbox_id}")
             return data
         except httpx.HTTPStatusError as e:
@@ -168,7 +168,7 @@ class CloudSandboxOrchestrator:
                 # Default 10 minutes TTL
                 ttl_minutes = await config_proxy.get("SANDBOX_TTL_MINUTES", 10) if config_proxy else 10
                 ttl_delta = datetime.timedelta(minutes=ttl_minutes)
-                now = datetime.datetime.now(datetime.timezone.utc)
+                now = datetime.datetime.now(datetime.UTC)
                 
                 for sandbox_id, data in list(self._active_sandboxes.items()):
                     created_at = data.get("created_at")
@@ -181,7 +181,7 @@ class CloudSandboxOrchestrator:
                             await healer.propose_fix(
                                 tenant_id=tenant_id,
                                 error_pattern=f"SandboxTimeout: Sandbox {sandbox_id} was active for > {ttl_minutes}m",
-                                proposed_fix=f"# Recommend analyzing sandbox logs or increasing TTL for task.",
+                                proposed_fix="# Recommend analyzing sandbox logs or increasing TTL for task.",
                                 impact_score=0.3,
                                 dependency_tree=["core.cloud_sandbox_orchestrator"]
                             )

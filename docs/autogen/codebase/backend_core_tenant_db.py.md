@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/tenant_db.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,849 বাইট  
-**আপডেট:** 2026-07-07T17:46:01.270282
+**সাইজ:** 2,830 বাইট  
+**আপডেট:** 2026-07-07T17:56:40.930441
 
 ---
 
@@ -39,7 +39,6 @@ class TenantAwareFirestore:
         self.tenant_id = tenant_id
         # Use existing configured firestore client if available, fallback to default
         import os
-        import sys
 
         if os.getenv("ENV") == "test":
 

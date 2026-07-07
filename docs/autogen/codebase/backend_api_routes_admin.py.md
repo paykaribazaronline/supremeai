@@ -1,19 +1,22 @@
 # 📄 ফাইল: backend/api/routes/admin.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,408 বাইট  
-**আপডেট:** 2026-07-07T17:46:01.274159
+**সাইজ:** 4,425 বাইট  
+**আপডেট:** 2026-07-07T17:56:40.935245
 
 ---
 
 ## কোড
 
 ```py
+from datetime import UTC
+from datetime import datetime
+
 from fastapi import APIRouter
-from fastapi import HTTPException, Depends, Request
-from pydantic import BaseModel
+from fastapi import Depends
+from fastapi import HTTPException
 from loguru import logger
-from datetime import datetime, timezone
+from pydantic import BaseModel
 
 from admin.god import AdminGodLayer  # Your existing god.py
 from api.dependencies import get_current_user_token
@@ -126,7 +129,7 @@ async def reject_fix(
     update_data = {
         "status": "rejected",
         "reviewed_by": admin_id,
-        "applied_at": datetime.now(timezone.utc).isoformat()
+        "applied_at": datetime.now(UTC).isoformat()
     }
     
     try:

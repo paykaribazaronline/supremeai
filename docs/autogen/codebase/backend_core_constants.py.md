@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/constants.py
 
 **প্রকার:** .py  
-**সাইজ:** 376 বাইট  
-**আপডেট:** 2026-07-07T17:46:01.265901
+**সাইজ:** 377 বাইট  
+**আপডেট:** 2026-07-07T17:56:40.925676
 
 ---
 
@@ -14,6 +14,7 @@ Refactored constants using DynamicConfigProxy
 """
 
 from core.config_proxy import DynamicConfigProxy
+
 
 async def get_default_code_smell_thresholds(proxy: DynamicConfigProxy) -> dict:
     return await proxy.get("DEFAULT_CODE_SMELL_THRESHOLDS")

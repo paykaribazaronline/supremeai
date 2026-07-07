@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T17:46:01.226857
+Generated at: 2026-07-07T17:56:40.884559
 
 
 ## File: `pnpm-lock.yaml`
@@ -43150,10 +43150,10 @@ import uvicorn
 from loguru import logger
 
 from api.routes import websocket_agent
+from api.routes.admin import router as admin_router
 from api.routes.agent_workspace import router as agent_router
 from api.routes.integrations import router as integrations_router
 from api.routes.task_workspace import router as workspace_task_router
-from api.routes.admin import router as admin_router
 from core.app import app  # noqa: F401
 from core.config import settings
 from core.logging_config import setup_logging
@@ -43528,9 +43528,12 @@ def format_unified_chat_prompt(
 
 ```py
 import uuid
-from datetime import datetime, timezone
-from typing import Any, List, Optional
+from datetime import UTC
+from datetime import datetime
+from typing import Any
+
 from loguru import logger
+
 
 class SelfHealerService:
     def __init__(self, db: Any):
@@ -43554,7 +43557,7 @@ class SelfHealerService:
         error_pattern: str,
         proposed_fix: str,
         impact_score: float,
-        dependency_tree: List[str]
+        dependency_tree: list[str]
     ) -> str:
         """
         Generates and stores an automatic fix for an error in the Firestore database
@@ -43573,7 +43576,7 @@ class SelfHealerService:
         
         fix_data = {
             "trace_id": trace_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "error_pattern": error_pattern,
             "proposed_fix": proposed_fix,
             "impact_score": impact_score,
@@ -50272,6 +50275,7 @@ Refactored constants using DynamicConfigProxy
 
 from core.config_proxy import DynamicConfigProxy
 
+
 async def get_default_code_smell_thresholds(proxy: DynamicConfigProxy) -> dict:
     return await proxy.get("DEFAULT_CODE_SMELL_THRESHOLDS")
 
@@ -50606,16 +50610,16 @@ Integrates 'Freebuff CLI' as a zero-cost headless AI worker.
 """
 
 import asyncio
+import datetime
 import os
 from typing import Any
 
 import httpx
 from loguru import logger
-import datetime
 
-from utils.firestore_helpers import get_firestore_db
-from core.self_healer import SelfHealerService
 from core.config_proxy import DynamicConfigProxy
+from core.self_healer import SelfHealerService
+from utils.firestore_helpers import get_firestore_db
 
 
 class CloudSandboxOrchestrator:
@@ -50652,7 +50656,7 @@ class CloudSandboxOrchestrator:
         if not self.api_key:
             logger.warning("Cannot create sandbox: API key is missing. Running in mock/dry-run mode.")
             mock_id = f"mock-sandbox-id-{os.urandom(4).hex()}"
-            self._active_sandboxes[mock_id] = {"created_at": datetime.datetime.now(datetime.timezone.utc), "status": "running"}
+            self._active_sandboxes[mock_id] = {"created_at": datetime.datetime.now(datetime.UTC), "status": "running"}
             return {
                 "id": mock_id,
                 "status": "running",
@@ -50670,7 +50674,7 @@ class CloudSandboxOrchestrator:
             data = response.json()
             sandbox_id = data.get('id')
             if sandbox_id:
-                self._active_sandboxes[sandbox_id] = {"created_at": datetime.datetime.now(datetime.timezone.utc), "status": "running"}
+                self._active_sandboxes[sandbox_id] = {"created_at": datetime.datetime.now(datetime.UTC), "status": "running"}
             logger.success(f"Successfully created sandbox with ID: {sandbox_id}")
             return data
         except httpx.HTTPStatusError as e:
@@ -50754,7 +50758,7 @@ class CloudSandboxOrchestrator:
                 # Default 10 minutes TTL
                 ttl_minutes = await config_proxy.get("SANDBOX_TTL_MINUTES", 10) if config_proxy else 10
                 ttl_delta = datetime.timedelta(minutes=ttl_minutes)
-                now = datetime.datetime.now(datetime.timezone.utc)
+                now = datetime.datetime.now(datetime.UTC)
                 
                 for sandbox_id, data in list(self._active_sandboxes.items()):
                     created_at = data.get("created_at")
@@ -50767,7 +50771,7 @@ class CloudSandboxOrchestrator:
                             await healer.propose_fix(
                                 tenant_id=tenant_id,
                                 error_pattern=f"SandboxTimeout: Sandbox {sandbox_id} was active for > {ttl_minutes}m",
-                                proposed_fix=f"# Recommend analyzing sandbox logs or increasing TTL for task.",
+                                proposed_fix="# Recommend analyzing sandbox logs or increasing TTL for task.",
                                 impact_score=0.3,
                                 dependency_tree=["core.cloud_sandbox_orchestrator"]
                             )
@@ -50917,7 +50921,7 @@ class ProductionSecretVault:
         except Exception as e:
             logger.error(f"❌ Failed to fetch secret [{secret_id}] from GSM: {str(e)}")
             if self.env == "production":
-                raise RuntimeError(f"Failed to fetch {secret_id} in production: {e}")
+                raise RuntimeError(f"Failed to fetch {secret_id} in production: {e}") from e
             return ""
 
 
@@ -51981,8 +51985,10 @@ class UserProfiler:
 
 ```py
 from typing import Any
+
 from fastapi import HTTPException
 from loguru import logger
+
 
 class CostGuard:
     def __init__(self, db: Any):
@@ -52022,7 +52028,7 @@ class CostGuard:
         except Exception as e:
             logger.error(f"CostGuard DB Error: {e}")
             # Failsafe: if DB is down, maybe reject or accept? Zero-Gap means strict.
-            raise RuntimeError(f"CostGuard failed to verify budget: {e}")
+            raise RuntimeError(f"CostGuard failed to verify budget: {e}") from e
 
 ```
 
@@ -52844,12 +52850,11 @@ from typing import Any
 import litellm
 from loguru import logger
 
-from utils.firestore_helpers import get_firestore_db
-from core.cost_guard import CostGuard
-from core.self_healer import SelfHealerService
-
 from core.config import settings
+from core.cost_guard import CostGuard
 from core.prompt_handler import normalize_prompt
+from core.self_healer import SelfHealerService
+from utils.firestore_helpers import get_firestore_db
 
 
 # Load routing policy configuration
@@ -54488,9 +54493,12 @@ class UpstashRedisQueue:
 
 ```py
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 from typing import Any
+
 from loguru import logger
+
 
 class DynamicConfigProxy:
     def __init__(self, tenant_id: str, db: Any):
@@ -54533,7 +54541,7 @@ class DynamicConfigProxy:
                 self._expiry = datetime.now() + timedelta(minutes=1)
         except Exception as e:
             logger.error(f"Failed to refresh config from DB: {e}")
-            raise RuntimeError(f"Failed to refresh config from DB: {e}")
+            raise RuntimeError(f"Failed to refresh config from DB: {e}") from e
 
 ```
 
@@ -55439,7 +55447,6 @@ class TenantAwareFirestore:
         self.tenant_id = tenant_id
         # Use existing configured firestore client if available, fallback to default
         import os
-        import sys
 
         if os.getenv("ENV") == "test":
 
@@ -56676,13 +56683,17 @@ if __name__ == "__main__":
 
 ```py
 import asyncio
-import time
-from unittest.mock import patch, AsyncMock, MagicMock
-from core.llm_gateway import llm_gateway
-from core.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
-from utils.firestore_helpers import get_firestore_db
-from loguru import logger
 import sys
+import time
+from unittest.mock import AsyncMock
+from unittest.mock import patch
+
+from loguru import logger
+
+from core.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
+from core.llm_gateway import llm_gateway
+from utils.firestore_helpers import get_firestore_db
+
 
 logger.remove()
 logger.add(sys.stdout, level="INFO")
@@ -56732,7 +56743,7 @@ async def main():
         errors = results.count("error")
         
         print("\n=== Load Test Results ===")
-        print(f"Total Requests: 1000")
+        print("Total Requests: 1000")
         print(f"Success: {successes}")
         print(f"402 Payment Required (False Positives?): {payment_required}")
         print(f"Other Errors (Triggered SelfHealer): {errors}")
@@ -58801,11 +58812,14 @@ async def get_configs_by_category(category: str):
 ## File: `backend/api/routes/admin.py`
 
 ```py
+from datetime import UTC
+from datetime import datetime
+
 from fastapi import APIRouter
-from fastapi import HTTPException, Depends, Request
-from pydantic import BaseModel
+from fastapi import Depends
+from fastapi import HTTPException
 from loguru import logger
-from datetime import datetime, timezone
+from pydantic import BaseModel
 
 from admin.god import AdminGodLayer  # Your existing god.py
 from api.dependencies import get_current_user_token
@@ -58918,7 +58932,7 @@ async def reject_fix(
     update_data = {
         "status": "rejected",
         "reviewed_by": admin_id,
-        "applied_at": datetime.now(timezone.utc).isoformat()
+        "applied_at": datetime.now(UTC).isoformat()
     }
     
     try:
@@ -92170,6 +92184,7 @@ def test_memory_file_is_overwritten_completely(temp_memory_file):
     with open(temp_memory_file) as f:
         data = json.load(f)
     assert data == {"test": "final"}  # Changed from "valid" to "final" to match actual behavior
+
 ```
 
 ## File: `backend/tests/core/test_enum_guard.py`

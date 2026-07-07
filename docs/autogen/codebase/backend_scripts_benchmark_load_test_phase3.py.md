@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/scripts/benchmark/load_test_phase3.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,438 বাইট  
-**আপডেট:** 2026-07-07T17:46:01.271534
+**সাইজ:** 3,454 বাইট  
+**আপডেট:** 2026-07-07T17:56:40.931828
 
 ---
 
@@ -10,13 +10,17 @@
 
 ```py
 import asyncio
-import time
-from unittest.mock import patch, AsyncMock, MagicMock
-from core.llm_gateway import llm_gateway
-from core.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
-from utils.firestore_helpers import get_firestore_db
-from loguru import logger
 import sys
+import time
+from unittest.mock import AsyncMock
+from unittest.mock import patch
+
+from loguru import logger
+
+from core.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
+from core.llm_gateway import llm_gateway
+from utils.firestore_helpers import get_firestore_db
+
 
 logger.remove()
 logger.add(sys.stdout, level="INFO")
@@ -66,7 +70,7 @@ async def main():
         errors = results.count("error")
         
         print("\n=== Load Test Results ===")
-        print(f"Total Requests: 1000")
+        print("Total Requests: 1000")
         print(f"Success: {successes}")
         print(f"402 Payment Required (False Positives?): {payment_required}")
         print(f"Other Errors (Triggered SelfHealer): {errors}")

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/core/test_knowledge_base.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,399 বাইট  
-**আপডেট:** 2026-07-07T17:46:01.307298
+**সাইজ:** 3,400 বাইট  
+**আপডেট:** 2026-07-07T17:56:40.969840
 
 ---
 
@@ -116,4 +116,5 @@ def test_memory_file_is_overwritten_completely(temp_memory_file):
     with open(temp_memory_file) as f:
         data = json.load(f)
     assert data == {"test": "final"}  # Changed from "valid" to "final" to match actual behavior
+
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/self_healer.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,717 বাইট  
-**আপডেট:** 2026-07-07T17:46:01.260169
+**সাইজ:** 2,709 বাইট  
+**আপডেট:** 2026-07-07T17:56:40.919823
 
 ---
 
@@ -10,9 +10,12 @@
 
 ```py
 import uuid
-from datetime import datetime, timezone
-from typing import Any, List, Optional
+from datetime import UTC
+from datetime import datetime
+from typing import Any
+
 from loguru import logger
+
 
 class SelfHealerService:
     def __init__(self, db: Any):
@@ -36,7 +39,7 @@ class SelfHealerService:
         error_pattern: str,
         proposed_fix: str,
         impact_score: float,
-        dependency_tree: List[str]
+        dependency_tree: list[str]
     ) -> str:
         """
         Generates and stores an automatic fix for an error in the Firestore database
@@ -55,7 +58,7 @@ class SelfHealerService:
         
         fix_data = {
             "trace_id": trace_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "error_pattern": error_pattern,
             "proposed_fix": proposed_fix,
             "impact_score": impact_score,
