@@ -383,7 +383,7 @@ jobs:
 
       - name: Upload Trivy Python SARIF
         uses: github/codeql-action/upload-sarif@v4
-        if: always()
+        if: ${{ always() && hashFiles('trivy-python.sarif') != '' }}
         with:
           sarif_file: 'trivy-python.sarif'
           category: 'trivy-python'
@@ -391,7 +391,7 @@ jobs:
 
       - name: Upload Trivy Node.js SARIF
         uses: github/codeql-action/upload-sarif@v4
-        if: always()
+        if: ${{ always() && hashFiles('trivy-nodejs.sarif') != '' }}
         with:
           sarif_file: 'trivy-nodejs.sarif'
           category: 'trivy-nodejs'
