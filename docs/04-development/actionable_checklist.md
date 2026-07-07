@@ -162,8 +162,14 @@ This checklist converts the high-level plan into executable, verifiable items. E
 - [x] DONE: Reasoning Orchestrator in `brain/reasoning_orchestrator.py`
 - [x] DONE: Autonomous Agent in `brain/autonomous_agent.py`
 
-## Self-Evolution (Phase 3)
+## Self-Evolution & Control (Phase 3)
 - [x] DONE: `core/evolution_engine.py` — basic scaffold
+- [x] DONE: Implemented `CostGuard` for budget enforcement (Zero Operating Cost)
+- [x] DONE: Implemented `SelfHealerService` for automatic error detection and HITL review
+- [x] DONE: Implemented `CloudSandboxOrchestrator` `auto_destroy_worker` for TTL-based sandbox termination
+- [x] DONE: Built `Architectural Control Tower` UI in `apps/studio-client` (`ArchitectTower.tsx`)
+- [x] DONE: Built `FixPreviewModal` for self-healing code diff previews
+- [x] DONE: Backend Admin APIs secured with JWT admin-role checks
 - [ ] TODO: Full self-learning logic in `core/evolution_engine.py`
 - [ ] TODO: `evolution/auto_skill_creator.py` — auto skill generation from demand patterns
 
