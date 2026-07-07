@@ -1,18 +1,20 @@
 # 📄 ফাইল: backend/services/github_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,523 বাইট  
-**আপডেট:** 2026-07-07T15:17:41.611079
+**সাইজ:** 3,566 বাইট  
+**আপডেট:** 2026-07-07T15:23:41.132449
 
 ---
 
 ## কোড
 
 ```py
-import httpx
 import base64
 from datetime import datetime
-from core.security_vault import decrypt_token
+
+import httpx
+
+
 # from backend.models.integration import get_user_github_token # Will implement DB fetch later
 
 async def create_autonomous_pr(user_id: str, repo_name: str, file_path: str, code_content: str, commit_msg: str):
@@ -78,7 +80,11 @@ async def create_autonomous_pr(user_id: str, repo_name: str, file_path: str, cod
             headers=headers,
             json={
                 "title": f"🚀 SupremeAI Auto-Fix: {commit_msg}",
-                "body": "This PR was autonomously generated and verified in the SupremeAI Zero-Cost Sandbox.\n\n- ✅ Execution Verified\n- 🧠 Saved to Memory Vault",
+                "body": (
+                    "This PR was autonomously generated and verified in the SupremeAI Zero-Cost Sandbox.\n\n"
+                    "- ✅ Execution Verified\n"
+                    "- 🧠 Saved to Memory Vault"
+                ),
                 "head": branch_name,
                 "base": default_branch
             }

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/memory/chromadb_store.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,469 বাইট  
-**আপডেট:** 2026-07-07T15:17:41.600496
+**সাইজ:** 8,470 বাইট  
+**আপডেট:** 2026-07-07T15:23:41.100114
 
 ---
 
@@ -222,4 +222,5 @@ class ChromaDBStore:
             except Exception as e:
                 _logger.warning(f"ChromaDB get_document failed for {doc_id}: {e}")
         return self._fallback_docs.get(doc_id)
+
 ```

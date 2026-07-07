@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/security_vault.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,027 বাইট  
-**আপডেট:** 2026-07-07T15:17:41.593978
+**সাইজ:** 1,015 বাইট  
+**আপডেট:** 2026-07-07T15:23:41.080060
 
 ---
 
@@ -10,8 +10,9 @@
 
 ```py
 import os
-import base64
+
 from cryptography.fernet import Fernet
+
 
 # The key should be a 32-url-safe-base64-encoded bytes (Fernet key)
 # In production, this must be set in environment variables!

@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T15:17:41.574064
+Generated at: 2026-07-07T15:23:41.033034
 
 
 ## File: `pnpm-lock.yaml`
@@ -43132,9 +43132,9 @@ import uvicorn
 from loguru import logger
 
 from api.routes import websocket_agent
-from api.routes.task_workspace import router as workspace_task_router
 from api.routes.agent_workspace import router as agent_router
 from api.routes.integrations import router as integrations_router
+from api.routes.task_workspace import router as workspace_task_router
 from core.app import app  # noqa: F401
 from core.config import settings
 from core.logging_config import setup_logging
@@ -46217,16 +46217,17 @@ def mask_api_key(key: str) -> str:
 
 ```py
 from __future__ import annotations
-from __future__ import annotations
 
 import hashlib
+import logging
 import os
 import sqlite3
 from datetime import UTC
 from datetime import datetime
 from typing import Any
-import logging
+
 from brain.model_router import ModelRouter
+
 
 logger = logging.getLogger(__name__)
 
@@ -47153,7 +47154,6 @@ if __name__ == "__main__":
 ```py
 from __future__ import annotations
 
-import os
 import threading
 import time
 
@@ -47253,7 +47253,6 @@ class RateLimitMiddleware:
             await self.app(scope, receive, send)
             return
 
-        from core.config import settings
         from utils.environment import is_test_environment
 
         if is_test_environment():
@@ -47878,6 +47877,7 @@ class AdminGodLayer:
 ```py
 from typing import Any
 
+
 def normalize_prompt(prompt: str | list[dict[str, Any]]) -> str:
     """
     Extracts the textual representation of a prompt for hashing, token estimation,
@@ -48052,6 +48052,7 @@ import json
 import os
 import tempfile
 from typing import Any
+
 from loguru import logger
 
 
@@ -49132,6 +49133,7 @@ app.router.lifespan_context = lifespan.app_lifespan
 import json
 import os
 
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 MEMORY_FILE_PATH = os.path.join(DATA_DIR, "memory_vault.json")
@@ -49145,21 +49147,21 @@ if not os.path.exists(MEMORY_FILE_PATH):
 
 def get_from_memory(prompt: str):
     """ইউজারের প্রম্পটটি আগে সমাধান করা হয়েছে কি না, তা চেক করবে"""
-    with open(MEMORY_FILE_PATH, "r") as f:
+    with open(MEMORY_FILE_PATH) as f:
         memory = json.load(f)
         # সিম্পল কি-ওয়ার্ড বা হ্যাশ ম্যাচিং (পরবর্তীতে আমরা ভেক্টর ডাটাবেস অ্যাড করব)
         return memory.get(prompt, None)
 
 def save_to_memory(prompt: str, solution_code: str):
     """নতুন সমাধান শিখলে সেটি জিরো-কস্ট মেমোরিতে সেভ করে রাখবে"""
-    with open(MEMORY_FILE_PATH, "r") as f:
+    with open(MEMORY_FILE_PATH) as f:
         memory = json.load(f)
     
     memory[prompt] = solution_code
     
     with open(MEMORY_FILE_PATH, "w") as f:
         json.dump(memory, f, indent=4)
-    print(f"🧠 [Auto-Didact] New skill learned and saved to memory vault!")
+    print("🧠 [Auto-Didact] New skill learned and saved to memory vault!")
 
 ```
 
@@ -49211,8 +49213,8 @@ from typing import Any
 
 from loguru import logger
 
-from core.semantic_cache import SemanticCache
 from core.prompt_handler import estimate_tokens
+from core.semantic_cache import SemanticCache
 
 
 class AutocacheProxy:
@@ -52313,8 +52315,9 @@ class SmartDataRepository:
 
 ```py
 import os
-import base64
+
 from cryptography.fernet import Fernet
+
 
 # The key should be a 32-url-safe-base64-encoded bytes (Fernet key)
 # In production, this must be set in environment variables!
@@ -53579,6 +53582,7 @@ import re
 
 import httpx
 
+
 _logger = logging.getLogger(__name__)
 
 _ALLOWED_OPERATORS = {
@@ -53773,6 +53777,7 @@ class FactualVerifier:
                     "reason": f"Math error: {expr} != {claimed}",
                 }
         return {"is_verified": True}
+
 ```
 
 ## File: `backend/core/docker-compose.yml`
@@ -61363,6 +61368,7 @@ router = APIRouter()
 
 import os
 
+
 # Note: In production, tokens would be verified against Redis/DB
 def verify_takeover_token(token: str) -> bool:
     if os.environ.get("SUPREMEAI_ENV") == "production":
@@ -61450,10 +61456,16 @@ async def takeover_session_websocket(
 ## File: `backend/api/routes/agent_workspace.py`
 
 ```py
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import asyncio
+
+from fastapi import APIRouter
+from fastapi import WebSocket
+from fastapi import WebSocketDisconnect
 from pydantic import BaseModel
-from core.knowledge_base import get_from_memory, save_to_memory
+
+from core.knowledge_base import get_from_memory
+from core.knowledge_base import save_to_memory
+
 
 router = APIRouter()
 
@@ -61512,6 +61524,7 @@ async def commit_to_memory(request: LearnRequest):
     return {"status": "success", "message": "Memorized successfully"}
 
 from services.github_agent import create_autonomous_pr
+
 
 @router.post("/agent/github/pr")
 async def trigger_github_pr(request: PRRequest):
@@ -64191,14 +64204,17 @@ async def sso_metadata():
 ## File: `backend/api/routes/integrations.py`
 
 ```py
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import RedirectResponse
-import httpx
 from urllib.parse import urlencode
+
+import httpx
+from fastapi import APIRouter
+from fastapi import Request
+from fastapi.responses import RedirectResponse
 
 from core.config import settings
 from core.security_vault import encrypt_token
-from database.session import get_db
+
+
 # Assuming we will use a database session/dependency to save the token. 
 # For now, we stub the DB save and print it.
 
@@ -64240,7 +64256,7 @@ async def github_callback(code: str, request: Request):
         return {"status": "error", "message": "Failed to get access token from GitHub."}
     
     # Encrypt the token using our AES-256 (Fernet) vault
-    encrypted_token = encrypt_token(access_token)
+    _encrypted_token = encrypt_token(access_token)
     
     # TODO: In a real app, extract user_id from the session/JWT
     user_id = "test_user_id" 
@@ -66819,6 +66835,7 @@ from sqlalchemy.orm import mapped_column
 
 from models.base import Base
 
+
 class Integration(Base):
     __tablename__ = "integrations"
 
@@ -68774,6 +68791,7 @@ class ChromaDBStore:
             except Exception as e:
                 _logger.warning(f"ChromaDB get_document failed for {doc_id}: {e}")
         return self._fallback_docs.get(doc_id)
+
 ```
 
 ## File: `backend/memory/rag_pipeline.py`
@@ -90993,7 +91011,7 @@ async def test_log_batcher_service_run(batcher_service):
         if call_count == 1:
             return {"session_id": "123", "message": "test"}
         else:
-            raise asyncio.TimeoutError()
+            raise TimeoutError()
     
     with patch('asyncio.wait_for', side_effect=mock_wait_for):
         with patch.object(batcher_service, '_flush', new_callable=AsyncMock) as mock_flush:
@@ -91004,6 +91022,7 @@ async def test_log_batcher_service_run(batcher_service):
 # Test the global batcher instance
 def test_global_batcher_instance():
     assert isinstance(batcher, LogBatcherService)
+
 ```
 
 ## File: `backend/tests/core/test_enum_guard.py`
@@ -91056,6 +91075,7 @@ async def test_run_enum_guards():
         await run_enum_guards()
         # Ensure guard_enum was called for each enum
         assert mock_guard.call_count == 6  # Because there are 6 enums in run_enum_guards
+
 ```
 
 ## File: `backend/tests/engine/test_cost_optimizer.py`
@@ -94836,10 +94856,12 @@ class OptimizationEngine:
 ## File: `backend/services/github_agent.py`
 
 ```py
-import httpx
 import base64
 from datetime import datetime
-from core.security_vault import decrypt_token
+
+import httpx
+
+
 # from backend.models.integration import get_user_github_token # Will implement DB fetch later
 
 async def create_autonomous_pr(user_id: str, repo_name: str, file_path: str, code_content: str, commit_msg: str):
@@ -94905,7 +94927,11 @@ async def create_autonomous_pr(user_id: str, repo_name: str, file_path: str, cod
             headers=headers,
             json={
                 "title": f"🚀 SupremeAI Auto-Fix: {commit_msg}",
-                "body": "This PR was autonomously generated and verified in the SupremeAI Zero-Cost Sandbox.\n\n- ✅ Execution Verified\n- 🧠 Saved to Memory Vault",
+                "body": (
+                    "This PR was autonomously generated and verified in the SupremeAI Zero-Cost Sandbox.\n\n"
+                    "- ✅ Execution Verified\n"
+                    "- 🧠 Saved to Memory Vault"
+                ),
                 "head": branch_name,
                 "base": default_branch
             }

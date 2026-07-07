@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/rate_limiter.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,449 বাইট  
-**আপডেট:** 2026-07-07T15:17:41.592256
+**সাইজ:** 6,398 বাইট  
+**আপডেট:** 2026-07-07T15:23:41.074498
 
 ---
 
@@ -11,7 +11,6 @@
 ```py
 from __future__ import annotations
 
-import os
 import threading
 import time
 
@@ -111,7 +110,6 @@ class RateLimitMiddleware:
             await self.app(scope, receive, send)
             return
 
-        from core.config import settings
         from utils.environment import is_test_environment
 
         if is_test_environment():

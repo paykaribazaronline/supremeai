@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/core/test_log_batcher.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,117 বাইট  
-**আপডেট:** 2026-07-07T15:17:41.609621
+**সাইজ:** 4,110 বাইট  
+**আপডেট:** 2026-07-07T15:23:41.127776
 
 ---
 
@@ -107,7 +107,7 @@ async def test_log_batcher_service_run(batcher_service):
         if call_count == 1:
             return {"session_id": "123", "message": "test"}
         else:
-            raise asyncio.TimeoutError()
+            raise TimeoutError()
     
     with patch('asyncio.wait_for', side_effect=mock_wait_for):
         with patch.object(batcher_service, '_flush', new_callable=AsyncMock) as mock_flush:
@@ -118,4 +118,5 @@ async def test_log_batcher_service_run(batcher_service):
 # Test the global batcher instance
 def test_global_batcher_instance():
     assert isinstance(batcher, LogBatcherService)
+
 ```

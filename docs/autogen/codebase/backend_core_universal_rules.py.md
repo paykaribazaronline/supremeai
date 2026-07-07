@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/universal_rules.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,190 বাইট  
-**আপডেট:** 2026-07-07T15:17:41.592591
+**সাইজ:** 4,191 বাইট  
+**আপডেট:** 2026-07-07T15:23:41.075667
 
 ---
 
@@ -13,6 +13,7 @@ import json
 import os
 import tempfile
 from typing import Any
+
 from loguru import logger
 
 

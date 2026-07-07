@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/factual_verifier.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,443 বাইট  
-**আপডেট:** 2026-07-07T15:17:41.594365
+**সাইজ:** 7,445 বাইট  
+**আপডেট:** 2026-07-07T15:23:41.081309
 
 ---
 
@@ -16,6 +16,7 @@ import operator
 import re
 
 import httpx
+
 
 _logger = logging.getLogger(__name__)
 
@@ -211,4 +212,5 @@ class FactualVerifier:
                     "reason": f"Math error: {expr} != {claimed}",
                 }
         return {"is_verified": True}
+
 ```

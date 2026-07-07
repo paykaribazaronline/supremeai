@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/core/test_enum_guard.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,816 বাইট  
-**আপডেট:** 2026-07-07T15:17:41.609664
+**সাইজ:** 1,817 বাইট  
+**আপডেট:** 2026-07-07T15:23:41.127910
 
 ---
 
@@ -56,4 +56,5 @@ async def test_run_enum_guards():
         await run_enum_guards()
         # Ensure guard_enum was called for each enum
         assert mock_guard.call_count == 6  # Because there are 6 enums in run_enum_guards
+
 ```

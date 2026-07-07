@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/integration.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,064 বাইট  
-**আপডেট:** 2026-07-07T15:17:41.599463
+**সাইজ:** 1,065 বাইট  
+**আপডেট:** 2026-07-07T15:23:41.096689
 
 ---
 
@@ -20,6 +20,7 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
 from models.base import Base
+
 
 class Integration(Base):
     __tablename__ = "integrations"

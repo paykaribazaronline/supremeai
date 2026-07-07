@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/prompt_handler.py
 
 **প্রকার:** .py  
-**সাইজ:** 632 বাইট  
-**আপডেট:** 2026-07-07T15:17:41.592482
+**সাইজ:** 633 বাইট  
+**আপডেট:** 2026-07-07T15:23:41.075260
 
 ---
 
@@ -10,6 +10,7 @@
 
 ```py
 from typing import Any
+
 
 def normalize_prompt(prompt: str | list[dict[str, Any]]) -> str:
     """
