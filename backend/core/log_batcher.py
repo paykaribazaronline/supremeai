@@ -85,7 +85,11 @@ class LogBatcherService:
                 if self.buffer:
                     await self._flush()
             except Exception as e:
-                logger.error(f"Error in LogBatcherService loop: {e}")
+                logger.error(f"Critical error in LogBatcherService: {e}")
+                # সেলফ-হিলিং: ডাটা লস রোধে বাফার রিকিউ করা হচ্ছে
+                while self.buffer:
+                    item = self.buffer.popleft()
+                    self.queue.put_nowait(item)
 
     async def _flush(self):
         if not self.buffer:
