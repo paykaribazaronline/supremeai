@@ -1,8 +1,8 @@
 # 📄 ফাইল: tools/vscode-extension/src/providers/SupremeAIAdminDashboardProvider.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 6,486 বাইট  
-**আপডেট:** 2026-07-07T12:54:09.864872
+**সাইজ:** 6,715 বাইট  
+**আপডেট:** 2026-07-07T13:28:54.258313
 
 ---
 
@@ -204,14 +204,16 @@ export class SupremeAIAdminDashboardProvider implements vscode.WebviewViewProvid
 
   <script>
     const vscode = acquireVsCodeApi();
+    const abortController = new AbortController();
+    window.addEventListener("unload", () => abortController.abort());
     document.getElementById('analyzeBtn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'analyzeCodeFlow' });
+      vscode.postMessage({ type: 'analyzeCodeFlow' }, { signal: abortController.signal });
     });
     document.getElementById('securityAuditBtn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'runSecurityAudit' });
+      vscode.postMessage({ type: 'runSecurityAudit' }, { signal: abortController.signal });
     });
     document.getElementById('settingsBtn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'openSettings' });
+      vscode.postMessage({ type: 'openSettings' }, { signal: abortController.signal });
     });
   </script>
 </body>

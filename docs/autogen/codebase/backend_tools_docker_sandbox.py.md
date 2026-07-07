@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/docker_sandbox.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,230 বাইট  
-**আপডেট:** 2026-07-07T12:54:09.807720
+**সাইজ:** 4,399 বাইট  
+**আপডেট:** 2026-07-07T13:28:54.190374
 
 ---
 
@@ -11,6 +11,7 @@
 ```py
 import os
 import subprocess
+import shlex
 from typing import Any
 
 from loguru import logger
@@ -88,7 +89,10 @@ class DockerSandbox:
             }
 
         if not self.docker_available:
-            if os.getenv("ALLOW_LOCAL_SANDBOX_FALLBACK") != "true":
+            env_name = os.getenv("ENV", "").lower()
+            allow_fallback = os.getenv("ALLOW_LOCAL_SANDBOX_FALLBACK") == "true"
+
+            if env_name in {"production", "staging"} or not allow_fallback:
                 logger.error(
                     "Docker is not available and local execution fallback is disabled."
                 )
@@ -102,8 +106,8 @@ class DockerSandbox:
             )
             try:
                 res = subprocess.run(
-                    cmd,
-                    shell=True,
+                    shlex.split(cmd),
+                    shell=False,
                     capture_output=True,
                     text=True,
                     timeout=5,

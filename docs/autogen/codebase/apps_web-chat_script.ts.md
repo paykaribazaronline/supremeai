@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/web-chat/script.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 4,789 বাইট  
-**আপডেট:** 2026-07-07T12:54:09.844749
+**সাইজ:** 4,975 বাইট  
+**আপডেট:** 2026-07-07T13:28:54.233714
 
 ---
 
@@ -12,6 +12,9 @@
 import DOMPurify from 'dompurify';
 
 // WebSocket Setup
+const abortController = new AbortController();
+window.addEventListener("unload", () => abortController.abort());
+
 const isProd = window.location.hostname !== '127.0.0.1' && window.location.hostname !== 'localhost';
 const PROTOCOL = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
 const HOST = isProd ? window.location.host : '127.0.0.1:8000';
@@ -50,7 +53,7 @@ if (imageUpload) {
     });
 }
 
-if (btnRemoveImage) btnRemoveImage.addEventListener('click', clearImageAttachment);
+if (btnRemoveImage) btnRemoveImage.addEventListener('click', clearImageAttachment, { signal: abortController.signal });
 
 function clearImageAttachment() {
     currentImageBase64 = null;
@@ -130,7 +133,7 @@ function handleSend() {
     clearImageAttachment();
 }
 
-if (btnSend) btnSend.addEventListener('click', handleSend);
+if (btnSend) btnSend.addEventListener('click', handleSend, { signal: abortController.signal });
 if (chatInput) {
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleSend();

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/db_repository.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,842 বাইট  
-**আপডেট:** 2026-07-07T12:54:09.763283
+**সাইজ:** 3,933 বাইট  
+**আপডেট:** 2026-07-07T13:28:54.136683
 
 ---
 
@@ -24,6 +24,9 @@ _VALID_TABLE_PATTERN = re.compile(r"^[A-Za-z0-9_]+$")
 
 # Custom Exception for Circuit Breaking
 class PrimaryDatabaseDownException(Exception):
+    pass
+
+class ServiceDegradedException(Exception):
     pass
 
 
@@ -107,6 +110,6 @@ class SmartDataRepository:
                 logging.critical(
                     f"💀 FATAL: Both databases are down! {str(backup_error)}"
                 )
-                return {"error": "Service degraded, please try again later."}
+                raise ServiceDegradedException("Both primary and fallback databases unavailable") from backup_error
 
 ```

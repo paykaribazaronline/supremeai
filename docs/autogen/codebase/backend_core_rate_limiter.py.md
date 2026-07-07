@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/rate_limiter.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,039 বাইট  
-**আপডেট:** 2026-07-07T12:54:09.759108
+**সাইজ:** 6,449 বাইট  
+**আপডেট:** 2026-07-07T13:28:54.131670
 
 ---
 
@@ -112,8 +112,9 @@ class RateLimitMiddleware:
             return
 
         from core.config import settings
+        from utils.environment import is_test_environment
 
-        if os.getenv("ENV", "").lower() == "test" or settings.env.lower() == "test":
+        if is_test_environment():
             await self.app(scope, receive, send)
             return
 
@@ -156,7 +157,18 @@ class RateLimitMiddleware:
                 return
         else:
             client = scope.get("client")
-            client_ip = client[0] if client else "unknown"
+            
+            x_forwarded_for = None
+            headers = scope.get("headers", [])
+            for k, v in headers:
+                if k.lower() == b"x-forwarded-for":
+                    x_forwarded_for = v.decode("utf-8")
+                    break
+                    
+            if x_forwarded_for:
+                client_ip = x_forwarded_for.split(",")[0].strip()
+            else:
+                client_ip = client[0] if client else "unknown"
 
             if not self.limiter.is_allowed(client_ip):
                 logger.warning(f"Rate limit exceeded for {client_ip}")

@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/desktop/src-ui/src/services/api.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 4,491 বাইট  
-**আপডেট:** 2026-07-07T12:54:09.846823
+**সাইজ:** 4,416 বাইট  
+**আপডেট:** 2026-07-07T13:28:54.236526
 
 ---
 
@@ -149,9 +149,6 @@ async function request<T>(
 }
 
 export const supremeApi = {
-  login: (token: string) => {
-    localStorage.setItem('jwt', token);
-  },
 
   sendMessage: async (message: string) => {
     return request<SendMessageResponse>(`${API_BASE}/api/chat`, {

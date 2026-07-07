@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/desktop/src-ui/src/pages/LoginPage.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 1,512 বাইট  
-**আপডেট:** 2026-07-07T12:54:09.846367
+**সাইজ:** 1,536 বাইট  
+**আপডেট:** 2026-07-07T13:28:54.235750
 
 ---
 
@@ -11,7 +11,7 @@
 ```tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supremeApi } from '../services/api';
+import { supremeApi, setToken as setApiToken } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
 
 const LoginPage: React.FC = () => {
@@ -28,7 +28,7 @@ const LoginPage: React.FC = () => {
     }
 
     try {
-      supremeApi.login(token.trim());
+      setApiToken(token.trim());
       login(token.trim());
       setError(null);
       navigate('/');
@@ -46,7 +46,7 @@ const LoginPage: React.FC = () => {
         <form onSubmit={handleSubmit}>
           <div className="input-group">
             <input
-              type="text"
+              type="password"
               value={token}
               onChange={(e) => setToken(e.target.value)}
               placeholder="Enter API token"

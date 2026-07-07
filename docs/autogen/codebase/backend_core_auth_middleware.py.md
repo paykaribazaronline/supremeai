@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/auth_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,531 বাইট  
-**আপডেট:** 2026-07-07T12:54:09.756757
+**সাইজ:** 9,708 বাইট  
+**আপডেট:** 2026-07-07T13:28:54.128777
 
 ---
 
@@ -101,7 +101,7 @@ class AuthMiddleware:
             try:
                 jwt_secret = settings.jwt_secret
                 decoded = jwt.decode(token, jwt_secret, algorithms=["HS256"])
-                if decoded.get("role") != "admin":
+                if decoded.get("role") not in {"admin", "master_admin"}:
                     response = JSONResponse(
                         status_code=403,
                         content={"detail": "Forbidden: User does not have admin role."},
@@ -119,6 +119,8 @@ class AuthMiddleware:
 
         enabled = bool(os.getenv("SUPREMEAI_API_TOKEN"))
         if not enabled:
+            if settings.env == "production":
+                raise RuntimeError("SUPREMEAI_API_TOKEN must be set in production — fail-closed enforced.")
             await self.app(scope, receive, send)
             return
 

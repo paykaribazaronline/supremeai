@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T12:54:09.724196
+Generated at: 2026-07-07T13:28:54.090525
 
 
 ## File: `pnpm-lock.yaml`
@@ -44160,7 +44160,7 @@ class AuthMiddleware:
             try:
                 jwt_secret = settings.jwt_secret
                 decoded = jwt.decode(token, jwt_secret, algorithms=["HS256"])
-                if decoded.get("role") != "admin":
+                if decoded.get("role") not in {"admin", "master_admin"}:
                     response = JSONResponse(
                         status_code=403,
                         content={"detail": "Forbidden: User does not have admin role."},
@@ -44178,6 +44178,8 @@ class AuthMiddleware:
 
         enabled = bool(os.getenv("SUPREMEAI_API_TOKEN"))
         if not enabled:
+            if settings.env == "production":
+                raise RuntimeError("SUPREMEAI_API_TOKEN must be set in production — fail-closed enforced.")
             await self.app(scope, receive, send)
             return
 
@@ -45849,7 +45851,7 @@ class Settings(BaseSettings):
 
     # বাংলা মন্তব্য: এডমিন ইমেইল লিস্ট সরাসরি .env ফাইল থেকে লোড করা হবে
     admin_emails: list[str] = Field(
-        default=["niloyjoy7@gmail.com"], validation_alias="ADMIN_EMAILS"
+        default=[], validation_alias="ADMIN_EMAILS"
     )
 
     # বাংলা মন্তব্য: অনুমোদিত হোস্ট লিস্ট সরাসরি .env ফাইল থেকে লোড করা হবে
@@ -45912,7 +45914,7 @@ class Settings(BaseSettings):
     memory_db_dir: str = "data/memory"
     skill_registry_path: str = "data/skill_registry.json"
     ci_webhook_secret: str = secret_vault.fetch_secret(
-        "CI_WEBHOOK_SECRET", "supreme-ci-secret-2026"
+        "CI_WEBHOOK_SECRET", ""
     )
 
     @field_validator("env")
@@ -45961,7 +45963,7 @@ class Settings(BaseSettings):
     @classmethod
     def debug_must_be_false_in_production(cls, v: bool, info: ValidationInfo) -> bool:
         env = info.data.get("env", "local")
-        if env == "production" and v:
+        if env in {"production", "staging"} and v:
             return False
         return v
 
@@ -45996,12 +45998,15 @@ class Settings(BaseSettings):
                 logger.warning("Sentry DSN is not configured (strongly recommended)")
             if not self.jwt_secret:
                 missing.append("secure JWT_SECRET")
-            if not self.ci_webhook_secret or self.ci_webhook_secret == "supreme-ci-secret-2026":
+            if not self.ci_webhook_secret:
                 missing.append("secure CI_WEBHOOK_SECRET")
             if missing:
                 raise RuntimeError(
                     f"Missing required configurations for production: {', '.join(missing)}"
                 )
+        if self.env.lower() in {"production", "staging"}:
+            if not self.ci_webhook_secret:
+                raise RuntimeError("Missing required configuration for staging/production: secure CI_WEBHOOK_SECRET")
 
 
 settings = Settings()
@@ -47161,8 +47166,9 @@ class RateLimitMiddleware:
             return
 
         from core.config import settings
+        from utils.environment import is_test_environment
 
-        if os.getenv("ENV", "").lower() == "test" or settings.env.lower() == "test":
+        if is_test_environment():
             await self.app(scope, receive, send)
             return
 
@@ -47205,7 +47211,18 @@ class RateLimitMiddleware:
                 return
         else:
             client = scope.get("client")
-            client_ip = client[0] if client else "unknown"
+            
+            x_forwarded_for = None
+            headers = scope.get("headers", [])
+            for k, v in headers:
+                if k.lower() == b"x-forwarded-for":
+                    x_forwarded_for = v.decode("utf-8")
+                    break
+                    
+            if x_forwarded_for:
+                client_ip = x_forwarded_for.split(",")[0].strip()
+            else:
+                client_ip = client[0] if client else "unknown"
 
             if not self.limiter.is_allowed(client_ip):
                 logger.warning(f"Rate limit exceeded for {client_ip}")
@@ -47922,6 +47939,7 @@ import json
 import os
 import tempfile
 from typing import Any
+from loguru import logger
 
 
 class UniversalRulesEngine:
@@ -47946,9 +47964,9 @@ class UniversalRulesEngine:
             try:
                 with open(self.rules_path, encoding="utf-8") as f:
                     return json.load(f)
-            except Exception:
+            except Exception as e:
                 # Fallback to default in case of corruption
-                pass
+                logger.error(f"⚠️ Rules file corrupted, falling back to defaults: {e}")
 
         # Default fallback rules (Admin definitions)
         default_rules = {
@@ -52057,6 +52075,9 @@ _VALID_TABLE_PATTERN = re.compile(r"^[A-Za-z0-9_]+$")
 class PrimaryDatabaseDownException(Exception):
     pass
 
+class ServiceDegradedException(Exception):
+    pass
+
 
 class SmartDataRepository:
     def __init__(self, firebase_client: Any, supabase_client: Any):
@@ -52138,7 +52159,7 @@ class SmartDataRepository:
                 logging.critical(
                     f"💀 FATAL: Both databases are down! {str(backup_error)}"
                 )
-                return {"error": "Service degraded, please try again later."}
+                raise ServiceDegradedException("Both primary and fallback databases unavailable") from backup_error
 
 ```
 
@@ -56437,9 +56458,12 @@ import sys
 def is_test_environment() -> bool:
     """বর্তমান প্রসেসটি টেস্ট এনভায়রনমেন্টে চলছে কিনা তা যাচাই করে।
 
-    pytest লোডেড থাকলে বা ENV ভ্যারিয়েবল 'test' হলে True রিটার্ন করে।
+    প্রোডাকশন বা স্টেজিং এনভায়রনমেন্ট হলে সরাসরি False রিটার্ন করবে।
+    অন্যথায় pytest লোডেড থাকলে True রিটার্ন করে।
     """
-    return "pytest" in sys.modules or os.getenv("ENV") == "test"
+    if os.getenv("ENV", "").lower() in {"production", "staging"}:
+        return False
+    return "pytest" in sys.modules
 
 
 def is_admin_authorized() -> bool:
@@ -62065,7 +62089,16 @@ async def list_reports(report_name: str = None):
         return {"reports": []}
 
     if report_name:
-        file_path = os.path.join(reports_dir, f"{report_name}.md")
+        import re
+        if not re.fullmatch(r"[A-Za-z0-9_\-]+", report_name):
+            raise HTTPException(status_code=400, detail="Invalid report name.")
+            
+        file_path = os.path.join(reports_dir, f"{os.path.basename(report_name)}.md")
+        
+        # Verify resolved path is inside reports_dir (Defense in depth)
+        if not os.path.realpath(file_path).startswith(os.path.realpath(reports_dir)):
+            raise HTTPException(status_code=400, detail="Invalid path.")
+            
         if not os.path.exists(file_path):
             raise HTTPException(status_code=404, detail="Report not found.")
         with open(file_path, encoding="utf-8") as f:
@@ -97037,6 +97070,7 @@ class DeepReasoningChain:
 ```py
 import os
 import subprocess
+import shlex
 from typing import Any
 
 from loguru import logger
@@ -97114,7 +97148,10 @@ class DockerSandbox:
             }
 
         if not self.docker_available:
-            if os.getenv("ALLOW_LOCAL_SANDBOX_FALLBACK") != "true":
+            env_name = os.getenv("ENV", "").lower()
+            allow_fallback = os.getenv("ALLOW_LOCAL_SANDBOX_FALLBACK") == "true"
+
+            if env_name in {"production", "staging"} or not allow_fallback:
                 logger.error(
                     "Docker is not available and local execution fallback is disabled."
                 )
@@ -97128,8 +97165,8 @@ class DockerSandbox:
             )
             try:
                 res = subprocess.run(
-                    cmd,
-                    shell=True,
+                    shlex.split(cmd),
+                    shell=False,
                     capture_output=True,
                     text=True,
                     timeout=5,
@@ -137491,8 +137528,9 @@ export class AudioPlaybackService {
       const gain = this.audioContext.createGain();
       gain.gain.value = 0; // Silent oscillator, only used for data
       
+      let intervalId: any;
       // Modulate oscillator frequency to make the waveform look like speech
-      setInterval(() => {
+      intervalId = setInterval(() => {
         if (osc) osc.frequency.value = 100 + Math.random() * 400;
       }, 50);
 
@@ -137504,6 +137542,7 @@ export class AudioPlaybackService {
 
     utterance.onend = () => {
       console.log('🛑 [AudioPlaybackService] SupremeAI finished speaking.');
+      if (intervalId) clearInterval(intervalId);
       if (osc) {
         osc.stop();
         osc.disconnect();
@@ -137893,6 +137932,9 @@ export const api = {
 import DOMPurify from 'dompurify';
 
 // WebSocket Setup
+const abortController = new AbortController();
+window.addEventListener("unload", () => abortController.abort());
+
 const isProd = window.location.hostname !== '127.0.0.1' && window.location.hostname !== 'localhost';
 const PROTOCOL = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
 const HOST = isProd ? window.location.host : '127.0.0.1:8000';
@@ -137931,7 +137973,7 @@ if (imageUpload) {
     });
 }
 
-if (btnRemoveImage) btnRemoveImage.addEventListener('click', clearImageAttachment);
+if (btnRemoveImage) btnRemoveImage.addEventListener('click', clearImageAttachment, { signal: abortController.signal });
 
 function clearImageAttachment() {
     currentImageBase64 = null;
@@ -138011,7 +138053,7 @@ function handleSend() {
     clearImageAttachment();
 }
 
-if (btnSend) btnSend.addEventListener('click', handleSend);
+if (btnSend) btnSend.addEventListener('click', handleSend, { signal: abortController.signal });
 if (chatInput) {
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleSend();
@@ -138540,7 +138582,7 @@ export default ChatPage;
 ```tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supremeApi } from '../services/api';
+import { supremeApi, setToken as setApiToken } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
 
 const LoginPage: React.FC = () => {
@@ -138557,7 +138599,7 @@ const LoginPage: React.FC = () => {
     }
 
     try {
-      supremeApi.login(token.trim());
+      setApiToken(token.trim());
       login(token.trim());
       setError(null);
       navigate('/');
@@ -138575,7 +138617,7 @@ const LoginPage: React.FC = () => {
         <form onSubmit={handleSubmit}>
           <div className="input-group">
             <input
-              type="text"
+              type="password"
               value={token}
               onChange={(e) => setToken(e.target.value)}
               placeholder="Enter API token"
@@ -138840,9 +138882,6 @@ async function request<T>(
 }
 
 export const supremeApi = {
-  login: (token: string) => {
-    localStorage.setItem('jwt', token);
-  },
 
   sendMessage: async (message: string) => {
     return request<SendMessageResponse>(`${API_BASE}/api/chat`, {
@@ -138916,6 +138955,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage", // name of the item in localStorage (must be unique)
+      partialize: (state) => ({ isAuthenticated: state.isAuthenticated }),
     }
   )
 );
@@ -155279,14 +155319,16 @@ export class SupremeAIAdminDashboardProvider implements vscode.WebviewViewProvid
 
   <script>
     const vscode = acquireVsCodeApi();
+    const abortController = new AbortController();
+    window.addEventListener("unload", () => abortController.abort());
     document.getElementById('analyzeBtn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'analyzeCodeFlow' });
+      vscode.postMessage({ type: 'analyzeCodeFlow' }, { signal: abortController.signal });
     });
     document.getElementById('securityAuditBtn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'runSecurityAudit' });
+      vscode.postMessage({ type: 'runSecurityAudit' }, { signal: abortController.signal });
     });
     document.getElementById('settingsBtn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'openSettings' });
+      vscode.postMessage({ type: 'openSettings' }, { signal: abortController.signal });
     });
   </script>
 </body>
@@ -155469,8 +155511,10 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
 
   <script>
     const vscode = acquireVsCodeApi();
+    const abortController = new AbortController();
+    window.addEventListener("unload", () => abortController.abort());
     document.getElementById('loginBtn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'login' });
+      vscode.postMessage({ type: 'login' }, { signal: abortController.signal });
     });
   </script>
 </body>
@@ -155633,21 +155677,23 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
 
   <script>
     const vscode = acquireVsCodeApi();
+    const abortController = new AbortController();
+    window.addEventListener("unload", () => abortController.abort());
 
     document.getElementById('forceLearn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'forceLearn' });
+      vscode.postMessage({ type: 'forceLearn' }, { signal: abortController.signal });
     });
 
     document.getElementById('reportError').addEventListener('click', () => {
-      vscode.postMessage({ type: 'reportError' });
+      vscode.postMessage({ type: 'reportError' }, { signal: abortController.signal });
     });
 
     document.getElementById('sendFeedback').addEventListener('click', () => {
-      vscode.postMessage({ type: 'sendFeedback' });
+      vscode.postMessage({ type: 'sendFeedback' }, { signal: abortController.signal });
     });
 
     document.getElementById('openSettings').addEventListener('click', () => {
-      vscode.postMessage({ type: 'openSettings' });
+      vscode.postMessage({ type: 'openSettings' }, { signal: abortController.signal });
     });
   </script>
 </body>
@@ -155957,11 +156003,13 @@ export class SupremeAICustomerDashboardProvider implements vscode.WebviewViewPro
 
   <script>
     const vscode = acquireVsCodeApi();
+    const abortController = new AbortController();
+    window.addEventListener("unload", () => abortController.abort());
     document.getElementById('chatBtn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'newChat' });
+      vscode.postMessage({ type: 'newChat' }, { signal: abortController.signal });
     });
     document.getElementById('logoutBtn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'logout' });
+      vscode.postMessage({ type: 'logout' }, { signal: abortController.signal });
     });
   </script>
 </body>
@@ -156585,8 +156633,10 @@ export class SupremeAIChatView {
 
   <script>
     const vscode = acquireVsCodeApi();
-    document.getElementById('loginBtn').addEventListener('click', () => { vscode.postMessage({ type: 'login' }); });
-    document.getElementById('guestBtn').addEventListener('click', () => { vscode.postMessage({ type: 'loginAsGuest' }); });
+    const abortController = new AbortController();
+    window.addEventListener("unload", () => abortController.abort());
+    document.getElementById('loginBtn').addEventListener('click', () => { vscode.postMessage({ type: 'login' }, { signal: abortController.signal }); });
+    document.getElementById('guestBtn').addEventListener('click', () => { vscode.postMessage({ type: 'loginAsGuest' }, { signal: abortController.signal }); });
   </script>
 </body>
 </html>`;
@@ -156687,6 +156737,8 @@ export class SupremeAIChatView {
   </div>
   <script>
     const vscode = acquireVsCodeApi();
+    const abortController = new AbortController();
+    window.addEventListener("unload", () => abortController.abort());
     const messagesDiv = document.getElementById('messages');
     let currentStreamingEl: HTMLElement | null = null;
     const escapeHtml = (value) => {
@@ -156744,7 +156796,7 @@ export class SupremeAIChatView {
           currentStreamingEl = null;
         }
       }
-    });
+    }, { signal: abortController.signal });
     function renderMessage(msg) {
       const time = new Date(msg.timestamp || Date.now()).toLocaleTimeString();
       const role = msg.role || 'assistant';

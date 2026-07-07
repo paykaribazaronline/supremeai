@@ -1,8 +1,8 @@
 # 📄 ফাইল: tools/vscode-extension/src/providers/SupremeAISidebarProvider.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 11,971 বাইট  
-**আপডেট:** 2026-07-07T12:54:09.865013
+**সাইজ:** 12,393 বাইট  
+**আপডেট:** 2026-07-07T13:28:54.258477
 
 ---
 
@@ -179,8 +179,10 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
 
   <script>
     const vscode = acquireVsCodeApi();
+    const abortController = new AbortController();
+    window.addEventListener("unload", () => abortController.abort());
     document.getElementById('loginBtn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'login' });
+      vscode.postMessage({ type: 'login' }, { signal: abortController.signal });
     });
   </script>
 </body>
@@ -343,21 +345,23 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
 
   <script>
     const vscode = acquireVsCodeApi();
+    const abortController = new AbortController();
+    window.addEventListener("unload", () => abortController.abort());
 
     document.getElementById('forceLearn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'forceLearn' });
+      vscode.postMessage({ type: 'forceLearn' }, { signal: abortController.signal });
     });
 
     document.getElementById('reportError').addEventListener('click', () => {
-      vscode.postMessage({ type: 'reportError' });
+      vscode.postMessage({ type: 'reportError' }, { signal: abortController.signal });
     });
 
     document.getElementById('sendFeedback').addEventListener('click', () => {
-      vscode.postMessage({ type: 'sendFeedback' });
+      vscode.postMessage({ type: 'sendFeedback' }, { signal: abortController.signal });
     });
 
     document.getElementById('openSettings').addEventListener('click', () => {
-      vscode.postMessage({ type: 'openSettings' });
+      vscode.postMessage({ type: 'openSettings' }, { signal: abortController.signal });
     });
   </script>
 </body>

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/config.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,511 বাইট  
-**আপডেট:** 2026-07-07T12:54:09.758320
+**সাইজ:** 8,646 বাইট  
+**আপডেট:** 2026-07-07T13:28:54.130715
 
 ---
 
@@ -62,7 +62,7 @@ class Settings(BaseSettings):
 
     # বাংলা মন্তব্য: এডমিন ইমেইল লিস্ট সরাসরি .env ফাইল থেকে লোড করা হবে
     admin_emails: list[str] = Field(
-        default=["niloyjoy7@gmail.com"], validation_alias="ADMIN_EMAILS"
+        default=[], validation_alias="ADMIN_EMAILS"
     )
 
     # বাংলা মন্তব্য: অনুমোদিত হোস্ট লিস্ট সরাসরি .env ফাইল থেকে লোড করা হবে
@@ -125,7 +125,7 @@ class Settings(BaseSettings):
     memory_db_dir: str = "data/memory"
     skill_registry_path: str = "data/skill_registry.json"
     ci_webhook_secret: str = secret_vault.fetch_secret(
-        "CI_WEBHOOK_SECRET", "supreme-ci-secret-2026"
+        "CI_WEBHOOK_SECRET", ""
     )
 
     @field_validator("env")
@@ -174,7 +174,7 @@ class Settings(BaseSettings):
     @classmethod
     def debug_must_be_false_in_production(cls, v: bool, info: ValidationInfo) -> bool:
         env = info.data.get("env", "local")
-        if env == "production" and v:
+        if env in {"production", "staging"} and v:
             return False
         return v
 
@@ -209,12 +209,15 @@ class Settings(BaseSettings):
                 logger.warning("Sentry DSN is not configured (strongly recommended)")
             if not self.jwt_secret:
                 missing.append("secure JWT_SECRET")
-            if not self.ci_webhook_secret or self.ci_webhook_secret == "supreme-ci-secret-2026":
+            if not self.ci_webhook_secret:
                 missing.append("secure CI_WEBHOOK_SECRET")
             if missing:
                 raise RuntimeError(
                     f"Missing required configurations for production: {', '.join(missing)}"
                 )
+        if self.env.lower() in {"production", "staging"}:
+            if not self.ci_webhook_secret:
+                raise RuntimeError("Missing required configuration for staging/production: secure CI_WEBHOOK_SECRET")
 
 
 settings = Settings()

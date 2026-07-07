@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/desktop/src-ui/src/stores/authStore.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 705 বাইট  
-**আপডেট:** 2026-07-07T12:54:09.846962
+**সাইজ:** 780 বাইট  
+**আপডেট:** 2026-07-07T13:28:54.236753
 
 ---
 
@@ -35,6 +35,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage", // name of the item in localStorage (must be unique)
+      partialize: (state) => ({ isAuthenticated: state.isAuthenticated }),
     }
   )
 );

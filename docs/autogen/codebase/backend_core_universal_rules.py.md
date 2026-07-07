@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/universal_rules.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,088 বাইট  
-**আপডেট:** 2026-07-07T12:54:09.759954
+**সাইজ:** 4,190 বাইট  
+**আপডেট:** 2026-07-07T13:28:54.132670
 
 ---
 
@@ -13,6 +13,7 @@ import json
 import os
 import tempfile
 from typing import Any
+from loguru import logger
 
 
 class UniversalRulesEngine:
@@ -37,9 +38,9 @@ class UniversalRulesEngine:
             try:
                 with open(self.rules_path, encoding="utf-8") as f:
                     return json.load(f)
-            except Exception:
+            except Exception as e:
                 # Fallback to default in case of corruption
-                pass
+                logger.error(f"⚠️ Rules file corrupted, falling back to defaults: {e}")
 
         # Default fallback rules (Admin definitions)
         default_rules = {

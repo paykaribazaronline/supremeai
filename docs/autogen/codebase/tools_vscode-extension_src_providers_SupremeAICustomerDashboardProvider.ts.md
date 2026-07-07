@@ -1,8 +1,8 @@
 # 📄 ফাইল: tools/vscode-extension/src/providers/SupremeAICustomerDashboardProvider.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 6,110 বাইট  
-**আপডেট:** 2026-07-07T12:54:09.865264
+**সাইজ:** 6,303 বাইট  
+**আপডেট:** 2026-07-07T13:28:54.258767
 
 ---
 
@@ -208,11 +208,13 @@ export class SupremeAICustomerDashboardProvider implements vscode.WebviewViewPro
 
   <script>
     const vscode = acquireVsCodeApi();
+    const abortController = new AbortController();
+    window.addEventListener("unload", () => abortController.abort());
     document.getElementById('chatBtn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'newChat' });
+      vscode.postMessage({ type: 'newChat' }, { signal: abortController.signal });
     });
     document.getElementById('logoutBtn').addEventListener('click', () => {
-      vscode.postMessage({ type: 'logout' });
+      vscode.postMessage({ type: 'logout' }, { signal: abortController.signal });
     });
   </script>
 </body>
