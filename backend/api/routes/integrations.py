@@ -22,6 +22,7 @@ from models.integration import Integration
 
 router = APIRouter()
 
+
 def _build_github_redirect_uri() -> str:
     """
     ডায়নামিক রিডাইরেক্ট URI তৈরি করে — প্রোডাকশনে settings.frontend_base_url ব্যবহার করবে,
@@ -29,6 +30,7 @@ def _build_github_redirect_uri() -> str:
     """
     base = getattr(settings, "frontend_base_url", "http://localhost:8000")
     return f"{base}/api/v1/integrations/github/callback"
+
 
 @router.get("/integrations/github/link")
 async def link_github():
@@ -44,6 +46,7 @@ async def link_github():
     }
     github_auth_url = f"https://github.com/login/oauth/authorize?{urlencode(params)}"
     return RedirectResponse(url=github_auth_url)
+
 
 @router.get("/integrations/github/callback")
 async def github_callback(
@@ -76,9 +79,7 @@ async def github_callback(
 
     async with httpx.AsyncClient(timeout=15.0) as client:
         # ⏱️ FIX: explicit timeout — default timeout infinite হলে serverless function hang করে বিল বাড়ায়
-        response = await client.post(
-            token_url, json=payload, headers=headers, timeout=30.0
-        )
+        response = await client.post(token_url, json=payload, headers=headers, timeout=30.0)
         data = response.json()
 
     access_token = data.get("access_token")

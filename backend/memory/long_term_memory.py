@@ -8,9 +8,11 @@ from loguru import logger
 try:
     from brain.model_router import ModelRouter
     from database.supabase_client import db
+
     _DEPENDENCIES_AVAILABLE = True
 except ImportError:
     _DEPENDENCIES_AVAILABLE = False
+
 
 class MemoryManager:
     """
@@ -37,12 +39,11 @@ class MemoryManager:
         embedding = embedding_response["embedding"]
 
         # 2. Store in Supabase 'agent_memories' table
-        await self.db_client.table("agent_memories").insert({
-            "content": learning,
-            "embedding": embedding,
-            "source_url": url,
-            "metadata": metadata or {}
-        }).execute()
+        await (
+            self.db_client.table("agent_memories")
+            .insert({"content": learning, "embedding": embedding, "source_url": url, "metadata": metadata or {}})
+            .execute()
+        )
 
     async def retrieve_relevant_memories(self, query: str, top_k: int = 3) -> list[str]:
         """
@@ -57,15 +58,14 @@ class MemoryManager:
         query_embedding = embedding_response["embedding"]
 
         # 2. Call a Supabase RPC function to perform vector similarity search
-        result = await self.db_client.rpc('match_memories', {
-            'query_embedding': query_embedding,
-            'match_threshold': 0.75,
-            'match_count': top_k
-        }).execute()
+        result = await self.db_client.rpc(
+            "match_memories", {"query_embedding": query_embedding, "match_threshold": 0.75, "match_count": top_k}
+        ).execute()
 
-        memories = [item['content'] for item in result.data] if result.data else []
+        memories = [item["content"] for item in result.data] if result.data else []
         logger.info(f"Retrieved {len(memories)} relevant memories.")
         return memories
+
 
 class LongTermMemory:
     def __init__(self, db_path: str = ":memory:", session_id: str = "default"):

@@ -75,4 +75,5 @@ class DynamicSkillInjector:
 
         logger.warning(f"🔒 Skill {skill_name} isolated to quarantine zone -> {safe_name}")
 
+
 dynamic_injector = DynamicSkillInjector()

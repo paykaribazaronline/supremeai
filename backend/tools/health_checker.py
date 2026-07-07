@@ -91,9 +91,11 @@ class HealthChecker:
                     except Exception as e:  # noqa: BLE001
                         try:
                             import loguru
+
                             loguru.logger.error(f"Tool execution error: {e}")
                         except Exception as e:  # noqa: BLE001
                             import logging
+
                             logging.warning(f"Exception suppressed: {e}")
                         continue
             error_count = len(recent_errors)
@@ -130,27 +132,16 @@ class HealthChecker:
             return False
         lines = ["Anomaly Detection Alert"]
         for anomaly in anomalies:
-            lines.append(
-                "["
-                + anomaly["severity"]
-                + "] "
-                + anomaly["type"]
-                + ": "
-                + anomaly["details"]
-            )
+            lines.append("[" + anomaly["severity"] + "] " + anomaly["type"] + ": " + anomaly["details"])
         text = "\n".join(lines)
         if not self.telegram_bot_token or not self.admin_chat_id:
-            logger.warning(
-                "Telegram credentials not configured; anomaly report not sent"
-            )
+            logger.warning("Telegram credentials not configured; anomaly report not sent")
             return False
         try:
             import requests
 
             url = f"https://api.telegram.org/bot{self.telegram_bot_token}/sendMessage"
-            requests.post(
-                url, json={"chat_id": self.admin_chat_id, "text": text}, timeout=10
-            )
+            requests.post(url, json={"chat_id": self.admin_chat_id, "text": text}, timeout=10)
             return True
         except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to report anomaly: {exc}")

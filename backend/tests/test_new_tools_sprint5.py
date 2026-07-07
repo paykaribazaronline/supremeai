@@ -85,7 +85,6 @@ class TestTenantRateLimiter:
         limiter = TenantRateLimiter(redis_client=None)
         assert limiter.billing_tiers["free"]["rpm"] == 60
 
-
         from tools.tenant_rate_limiter import TenantRateLimiter
 
         limiter = TenantRateLimiter(redis_client=None)

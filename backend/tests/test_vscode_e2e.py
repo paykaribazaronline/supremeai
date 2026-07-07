@@ -122,9 +122,7 @@ class FakeSupremeAIService:
         self.checkpoints: dict[str, dict[str, Any]] = {}
         self.memory_windows: dict[str, list[dict[str, Any]]] = {}
 
-    async def saveCheckpoint(
-        self, task_id: str, step_index: int, state: dict[str, Any]
-    ) -> bool:
+    async def saveCheckpoint(self, task_id: str, step_index: int, state: dict[str, Any]) -> bool:
         self.checkpoints[task_id] = {
             "step_index": step_index,
             "state": state,
@@ -139,15 +137,11 @@ class FakeSupremeAIService:
         checkpoint["resumed"] = True
         return {"task_id": task_id, **checkpoint}
 
-    async def buildMemoryContext(
-        self, documents: list[str], query: str, sessionId: str, budget: int = 4000
-    ) -> str:
+    async def buildMemoryContext(self, documents: list[str], query: str, sessionId: str, budget: int = 4000) -> str:
         self.memory_windows.setdefault(sessionId, [])
         for doc in documents:
             text = doc if len(doc.split()) <= budget else " ".join(doc.split()[:budget])
-            self.memory_windows[sessionId].append(
-                {"text": text, "sessionId": sessionId}
-            )
+            self.memory_windows[sessionId].append({"text": text, "sessionId": sessionId})
         return "\n---\n".join(w["text"] for w in self.memory_windows.get(sessionId, []))
 
 
@@ -260,17 +254,13 @@ def test_vscode_e2e_full_flow():
     assert auth.retrieve_jwt(session.id) == "jwt-token-123"
 
     window.show_information_message("Full flow complete")
-    assert any(
-        n["type"] == "info" and "complete" in n["text"] for n in window._notifications
-    )
+    assert any(n["type"] == "info" and "complete" in n["text"] for n in window._notifications)
 
 
 def test_vscode_checkpoint_save_and_load():
     service = FakeSupremeAIService()
 
-    saved = __import__("asyncio").run(
-        service.saveCheckpoint("task-1", 1, {"step": "done"})
-    )
+    saved = __import__("asyncio").run(service.saveCheckpoint("task-1", 1, {"step": "done"}))
     assert saved is True
 
     loaded = __import__("asyncio").run(service.loadCheckpoint("task-1"))
@@ -290,7 +280,5 @@ def test_vscode_memory_context_building():
         "first doc remembers the start",
         "second doc expands the idea further beyond the original context",
     ]
-    context = __import__("asyncio").run(
-        service.buildMemoryContext(docs, "", "session-1", budget=20)
-    )
+    context = __import__("asyncio").run(service.buildMemoryContext(docs, "", "session-1", budget=20))
     assert "first doc remembers the start" in context or "second doc" in context

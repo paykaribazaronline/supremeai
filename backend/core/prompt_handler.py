@@ -12,6 +12,7 @@ def normalize_prompt(prompt: str | list[dict[str, Any]]) -> str:
         return str(prompt[-1].get("content", ""))
     return ""
 
+
 def estimate_tokens(text: str | list[dict[str, Any]]) -> int:
     """
     Estimates the number of tokens in a prompt (rough estimate: 4 chars = 1 token).

@@ -1,8 +1,10 @@
 import os
+
 os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno="
 os.environ["ENCRYPTION_KEY"] = "9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno="
 import sys
 import matplotlib
+
 matplotlib.use("Agg")
 
 
@@ -114,6 +116,7 @@ def bypass_jwt_auth():
             patches.append(p)
         except Exception as e:  # noqa: BLE001
             import logging
+
             logging.warning(f"Exception suppressed: {e}")
     yield
     for p in patches:
@@ -127,11 +130,12 @@ def configure_litellm():
     # বাংলা মন্তব্য: লিটেলএলএম প্রক্সি এবং টেলিমেট্রি সেটিংস নিশ্চিত করা
     try:
         import litellm
+
         litellm.use_litellm_proxy = False
         litellm.drop_params = True
         litellm.telemetry = False
     except Exception as e:  # noqa: BLE001
         import logging
+
         logging.warning(f"Exception suppressed: {e}")
     yield
-

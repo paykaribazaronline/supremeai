@@ -69,9 +69,7 @@ class CheckpointManager:
             try:
                 conn = sqlite3.connect(self.db_path)
                 cursor = conn.cursor()
-                cursor.execute(
-                    "SELECT resumed FROM checkpoints WHERE task_id = ?", (task_id,)
-                )
+                cursor.execute("SELECT resumed FROM checkpoints WHERE task_id = ?", (task_id,))
                 row = cursor.fetchone()
                 resumed = row[0] if row else 0
 
@@ -111,9 +109,7 @@ class CheckpointManager:
                     "resumed": resumed,
                 }
             )
-            logger.info(
-                f"Firestore checkpoint saved for task_id={task_id} step={step_index}"
-            )
+            logger.info(f"Firestore checkpoint saved for task_id={task_id} step={step_index}")
             return True
         except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to save Firestore checkpoint: {exc}")
@@ -140,9 +136,7 @@ class CheckpointManager:
                     created_at=row[3],
                     resumed=bool(row[4]),
                 )
-                cursor.execute(
-                    "UPDATE checkpoints SET resumed = 1 WHERE task_id = ?", (task_id,)
-                )
+                cursor.execute("UPDATE checkpoints SET resumed = 1 WHERE task_id = ?", (task_id,))
                 conn.commit()
                 conn.close()
                 return cp
@@ -178,9 +172,7 @@ class CheckpointManager:
             try:
                 conn = sqlite3.connect(self.db_path)
                 cursor = conn.cursor()
-                cursor.execute(
-                    "SELECT task_id, step_index, created_at, resumed FROM checkpoints ORDER BY created_at DESC"
-                )
+                cursor.execute("SELECT task_id, step_index, created_at, resumed FROM checkpoints ORDER BY created_at DESC")
                 rows = cursor.fetchall()
                 conn.close()
                 return [
@@ -199,11 +191,7 @@ class CheckpointManager:
         if not self._db:
             return []
         try:
-            docs = (
-                self._db.collection(self.collection_name)
-                .order_by("created_at", direction=firestore.Query.DESCENDING)
-                .stream()
-            )
+            docs = self._db.collection(self.collection_name).order_by("created_at", direction=firestore.Query.DESCENDING).stream()
             return [
                 {
                     "task_id": d.id,

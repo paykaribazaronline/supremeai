@@ -37,16 +37,11 @@ class AgentSession(Base):
     user_id: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
 
     current_state: Mapped[AgentSessionState] = mapped_column(
-        Enum(AgentSessionState, name="agent_session_state", create_type=True),
-        nullable=False,
-        default=AgentSessionState.Idle
+        Enum(AgentSessionState, name="agent_session_state", create_type=True), nullable=False, default=AgentSessionState.Idle
     )
     control_mode: Mapped[ControlMode] = mapped_column(
-        Enum(ControlMode, name="control_mode", create_type=True),
-        nullable=False,
-        default=ControlMode.agent
+        Enum(ControlMode, name="control_mode", create_type=True), nullable=False, default=ControlMode.agent
     )
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
-

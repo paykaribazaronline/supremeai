@@ -42,7 +42,7 @@ class PromptFirewall:
             return False
 
         # বাংলা কমেন্ট: আউটপুটে বাংলা ক্যারেক্টার সেট (Unicode Range: \u0980-\u09FF) আছে কিনা তা যাচাই করা হচ্ছে।
-        bengali_character_regex = re.compile(r'[\u0980-\u09FF]')
+        bengali_character_regex = re.compile(r"[\u0980-\u09FF]")
 
         # যদি আউটপুট পুরোপুরি ইংরেজি বা অন্য ভাষায় হয় (বাংলা ক্যারেক্টার অনুপস্থিত), তবে এটি পলিসি ভায়োলেশন
         if not bengali_character_regex.search(response_text):
@@ -55,7 +55,7 @@ class PromptFirewall:
         return [
             {"name": "prompt_injection", "patterns": []},
             {"name": "sensitive_extraction", "patterns": []},
-            {"name": "malicious_code", "patterns": []}
+            {"name": "malicious_code", "patterns": []},
         ]
 
     def _check_local_patterns(self, prompt: str):
@@ -63,16 +63,14 @@ class PromptFirewall:
         cleaned_prompt = prompt.lower().strip()
 
         # ইনজেকশন প্যাটার্ন লিস্ট
-        patterns = [
-            "disregard", "developer mode", "jailbreak",
-            "dan mode", "unfiltered", "ignore previous"
-        ]
+        patterns = ["disregard", "developer mode", "jailbreak", "dan mode", "unfiltered", "ignore previous"]
 
         for pattern in patterns:
             if pattern in cleaned_prompt:
                 return "prompt_injection"
 
         import re as _re
+
         if _re.search(r"(?i)\b(password|api_key|secret|token)\s*=|BEGIN RSA KEY|END PGP KEY|ssh-(rsa|ed25519)", prompt):
             return "sensitive_extraction"
         if _re.search(r"(?i)(rm\s+-rf|/bin/sh|chmod\s+\d|curl\s+.*\|\s*bash|wget\s+.*\|\s*sh|base64\s+-d\s+.*\|\s*python)", prompt):
@@ -82,9 +80,20 @@ class PromptFirewall:
     async def scan_with_llama_guard(self, prompt: str):
         lowered = prompt.lower()
         banned = [
-            "violent", "harm", "kill", "attack", "weapon",
-            "bomb", "terror", "murder", "abuse", "exploit",
-            "hack", "malware", "ransomware", "phishing",
+            "violent",
+            "harm",
+            "kill",
+            "attack",
+            "weapon",
+            "bomb",
+            "terror",
+            "murder",
+            "abuse",
+            "exploit",
+            "hack",
+            "malware",
+            "ransomware",
+            "phishing",
         ]
         for token in banned:
             if token in lowered:
@@ -94,8 +103,12 @@ class PromptFirewall:
     async def pre_flight_check(self, prompt: str):
         lowered = prompt.lower().strip()
         blocked = [
-            "disregard", "developer mode", "jailbreak",
-            "dan mode", "unfiltered", "ignore previous",
+            "disregard",
+            "developer mode",
+            "jailbreak",
+            "dan mode",
+            "unfiltered",
+            "ignore previous",
         ]
         for token in blocked:
             if token in lowered:
@@ -114,11 +127,16 @@ class PromptFirewall:
             return {"intent": "vision", "requires_expensive_model": False}
         return {"intent": "simple", "requires_expensive_model": False}
 
+
 async def pre_flight_scan(prompt: str):
     lowered = prompt.lower().strip()
     blocked = [
-        "disregard", "developer mode", "jailbreak",
-        "dan mode", "unfiltered", "ignore previous",
+        "disregard",
+        "developer mode",
+        "jailbreak",
+        "dan mode",
+        "unfiltered",
+        "ignore previous",
     ]
     for token in blocked:
         if token in lowered:
@@ -135,6 +153,7 @@ async def classify_intent(prompt: str):
     if "image" in lowered or "photo" in lowered:
         return {"intent": "vision", "requires_expensive_model": False}
     return {"intent": "simple", "requires_expensive_model": False}
+
 
 # গ্লোবাল সিঙ্গেলটন ইনস্ট্যান্স জেনারেশন
 prompt_firewall = PromptFirewall()
