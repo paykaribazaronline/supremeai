@@ -32,6 +32,7 @@ class LogBatcherService:
             import contextlib
             with contextlib.suppress(asyncio.CancelledError):
                 await self.task
+            self.task = None
         await self._flush()
         logger.info("LogBatcherService stopped.")
 

@@ -130,7 +130,7 @@ def test_validate_config_raises_when_production_keys_missing():
         gemini_api_key="",
         sentry_dsn="",
         jwt_secret="",
-        ci_webhook_secret="supreme-ci-secret-2026",
+        ci_webhook_secret="",
     )
     with pytest.raises(RuntimeError) as exc:
         s.validate_config()
