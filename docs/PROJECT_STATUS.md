@@ -28,6 +28,10 @@ SupremeAI 2.0 প্রজেক্টের সর্বশেষ অগ্র�
 | **Zero-Cost Optimizer** | ✅ Completed | Automated memory and docker cache scraping script. |
 | **Prompt Firewall (Bengali Native)** | ✅ Completed | Strict `BENGALI NATIVE ENFORCEMENT` payload injection for i18n tuning. |
 | **GCP Cloud Run Deployment** | ✅ Completed | Final Production Release with 1 min-instance and Secret Manager integration. |
+| **CostGuard** | ✅ Completed | Pre-flight budget enforcement to ensure zero operating cost. |
+| **SelfHealerService** | ✅ Completed | Automatic error detection (e.g., 429 Rate Limits) with HITL review. |
+| **CloudSandboxOrchestrator** | ✅ Completed | TTL-based `auto_destroy_worker` for automated idle sandbox termination. |
+| **Architectural Control Tower** | ✅ Completed | React dashboard for HITL validation of self-healing fixes. |
 
 ## 🚀 লাইভ ডিপ্লয়মেন্ট URLs
 
