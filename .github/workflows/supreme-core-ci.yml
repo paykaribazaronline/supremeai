@@ -98,6 +98,38 @@ jobs:
           fi
           echo "✅ PASS: All httpx clients have explicit timeouts" >> $GITHUB_STEP_SUMMARY
 
+  ai-architecture-generation:
+    name: 🤖 AI Architecture Documentation
+    needs: [pre-merge-gate]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dependencies
+        run: pip install litellm pyyaml httpx
+      - name: Generate AI Docs
+        env:
+          SUPREMEAI_API_KEY: ${{ secrets.SUPREMEAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python scripts/generate_openapi.py
+          python scripts/auto_generate_architecture_docs.py
+      - name: Auto-Commit Docs
+        run: |
+          git config user.name "SupremeAI-DocBot"
+          git config user.email "docbot@supremeai.dev"
+          git add ADR-*.md DIAGRAM-*.md THREAT-MODEL-*.md API-swagger.yaml || true
+          git commit -m "docs: [auto-docs] Automated ADR/DFD/Threat Model updates [skip ci]" || exit 0
+          git push
+
   generate-pr-summary:
     name: 📝 Generate PR Diff Summary
     if: github.event_name == 'pull_request'
