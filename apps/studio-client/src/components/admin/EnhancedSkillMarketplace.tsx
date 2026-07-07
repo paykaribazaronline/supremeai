@@ -3,11 +3,12 @@ import { Badge, Skeleton } from '../ui';
 import { Star, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import SkillGraph from '../graph/SkillGraph';
+import { apiClient } from '../../services/apiClient';
 
 export function EnhancedSkillMarketplace() {
   const { data: skills, isLoading } = useQuery({
     queryKey: ['skills', 'marketplace'],
-    queryFn: () => fetch('/api/skills/search').then(r => r.json()),
+    queryFn: () => apiClient.get('/api/skills/search'),
   });
 
   const [filter, setFilter] = useState<'all' | 'installed' | 'available'>('all');
