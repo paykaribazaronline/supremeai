@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T14:00:40.909066
+Generated at: 2026-07-07T14:29:43.551766
 
 
 ## File: `pnpm-lock.yaml`
@@ -16,6 +16,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@webcontainer/api':
+        specifier: ^1.6.4
+        version: 1.6.4
     devDependencies:
       '@axe-core/playwright':
         specifier: ^4.12.1
@@ -157,6 +161,12 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.101.0
         version: 5.101.0(react@19.2.7)
+      '@webcontainer/api':
+        specifier: ^1.6.4
+        version: 1.6.4
+      '@xterm/addon-fit':
+        specifier: ^0.11.0
+        version: 0.11.0
       firebase:
         specifier: ^10.8.0
         version: 10.14.1
@@ -190,6 +200,9 @@ importers:
       tailwindcss:
         specifier: ^4.2.4
         version: 4.3.1
+      xterm:
+        specifier: ^5.3.0
+        version: 5.3.0
       zustand:
         specifier: ^5.0.14
         version: 5.0.14(@types/react@19.2.17)(immer@11.1.8)(react@19.2.7)(use-sync-external-store@1.6.0(react@19.2.7))
@@ -3928,9 +3941,15 @@ packages:
   '@webassemblyjs/wast-printer@1.14.1':
     resolution: {integrity: sha512-kPSSXE6De1XOR820C90RIo2ogvZG+c3KiHzqUoO/F34Y2shGzesfqv7o57xrxovZJH/MetF5UjroJ/R/3isoiw==}
 
+  '@webcontainer/api@1.6.4':
+    resolution: {integrity: sha512-r9sHCXg1FcC1AMgppGwAc0vYWaQhqvg282cnsuPbJEzYnWifAdCVvg+8ngJUEHyHcomhJJp+/zuytite4ITHLw==}
+
   '@xmldom/xmldom@0.9.10':
     resolution: {integrity: sha512-A9gOqLdi6cV4ibazAjcQufGj0B1y/vDqYrcuP6d/6x8P27gRS8643Dj9o1dEKtB6O7fwxb2FgBmJS2mX7gpvdw==}
     engines: {node: '>=14.6'}
+
+  '@xterm/addon-fit@0.11.0':
+    resolution: {integrity: sha512-jYcgT6xtVYhnhgxh3QgYDnnNMYTcf8ElbxxFzX0IZo+vabQqSPAjC3c1wJrKB5E19VwQei89QCiZZP86DCPF7g==}
 
   '@xtuc/ieee754@1.2.0':
     resolution: {integrity: sha512-DX8nKgqcGwsc0eJSqYt5lwP4DH5FlHnmuWWBRy7X0NcaGR0ZtuyeESgMwTYVEtxmsNGY+qit4QYT/MIYTOTPeA==}
@@ -9350,6 +9369,10 @@ packages:
   xmlchars@2.2.0:
     resolution: {integrity: sha512-JZnDKK8B0RCDw84FNdDAIpZK+JuJw+s7Lz8nksI7SIuU3UXJJslUthsi+uWBUYOwPFwW7W7PRLRfUKpxjtjFCw==}
 
+  xterm@5.3.0:
+    resolution: {integrity: sha512-8QqjlekLUFTrU6x7xck1MsPzPA571K5zNqWm0M0oroYEWVOptZ0+ubQSkQ3uxIEhcIHRujJy6emDWX4A7qyFzg==}
+    deprecated: This package is now deprecated. Move to @xterm/xterm instead.
+
   y18n@5.0.8:
     resolution: {integrity: sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==}
     engines: {node: '>=10'}
@@ -14493,7 +14516,11 @@ snapshots:
       '@webassemblyjs/ast': 1.14.1
       '@xtuc/long': 4.2.2
 
+  '@webcontainer/api@1.6.4': {}
+
   '@xmldom/xmldom@0.9.10': {}
+
+  '@xterm/addon-fit@0.11.0': {}
 
   '@xtuc/ieee754@1.2.0': {}
 
@@ -16327,10 +16354,6 @@ snapshots:
   faye-websocket@0.11.4:
     dependencies:
       websocket-driver: 0.7.5
-
-  fdir@6.5.0(picomatch@4.0.4):
-    optionalDependencies:
-      picomatch: 4.0.4
 
   fdir@6.5.0(picomatch@4.0.5):
     optionalDependencies:
@@ -20631,8 +20654,8 @@ snapshots:
   vite@7.3.5(@types/node@24.13.2)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@1.10.3):
     dependencies:
       esbuild: 0.27.7
-      fdir: 6.5.0(picomatch@4.0.4)
-      picomatch: 4.0.4
+      fdir: 6.5.0(picomatch@4.0.5)
+      picomatch: 4.0.5
       postcss: 8.5.15
       rollup: 4.62.2
       tinyglobby: 0.2.17
@@ -21067,6 +21090,8 @@ snapshots:
   xmlbuilder@15.1.1: {}
 
   xmlchars@2.2.0: {}
+
+  xterm@5.3.0: {}
 
   y18n@5.0.8: {}
 
@@ -23093,6 +23118,9 @@ export default defineConfig({
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
+  },
+  "dependencies": {
+    "@webcontainer/api": "^1.6.4"
   }
 }
 
@@ -43054,6 +43082,7 @@ from loguru import logger
 
 from api.routes import websocket_agent
 from api.routes.task_workspace import router as workspace_task_router
+from api.routes.agent_workspace import router as agent_router
 from core.app import app  # noqa: F401
 from core.config import settings
 from core.logging_config import setup_logging
@@ -43061,6 +43090,7 @@ from core.logging_config import setup_logging
 
 app.include_router(workspace_task_router)
 app.include_router(websocket_agent.router)
+app.include_router(agent_router, prefix="/api/v1")
 
 setup_logging()
 
@@ -49010,6 +49040,43 @@ except Exception as _e:
     logger.warning(f"cloud_mesh router not loaded: {_e}")
 
 app.router.lifespan_context = lifespan.app_lifespan
+
+```
+
+## File: `backend/core/knowledge_base.py`
+
+```py
+import json
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(BASE_DIR, "data")
+MEMORY_FILE_PATH = os.path.join(DATA_DIR, "memory_vault.json")
+
+# ফাইল না থাকলে তৈরি করে নিবে
+if not os.path.exists(DATA_DIR):
+    os.makedirs(DATA_DIR)
+if not os.path.exists(MEMORY_FILE_PATH):
+    with open(MEMORY_FILE_PATH, "w") as f:
+        json.dump({}, f)
+
+def get_from_memory(prompt: str):
+    """ইউজারের প্রম্পটটি আগে সমাধান করা হয়েছে কি না, তা চেক করবে"""
+    with open(MEMORY_FILE_PATH, "r") as f:
+        memory = json.load(f)
+        # সিম্পল কি-ওয়ার্ড বা হ্যাশ ম্যাচিং (পরবর্তীতে আমরা ভেক্টর ডাটাবেস অ্যাড করব)
+        return memory.get(prompt, None)
+
+def save_to_memory(prompt: str, solution_code: str):
+    """নতুন সমাধান শিখলে সেটি জিরো-কস্ট মেমোরিতে সেভ করে রাখবে"""
+    with open(MEMORY_FILE_PATH, "r") as f:
+        memory = json.load(f)
+    
+    memory[prompt] = solution_code
+    
+    with open(MEMORY_FILE_PATH, "w") as f:
+        json.dump(memory, f, indent=4)
+    print(f"🧠 [Auto-Didact] New skill learned and saved to memory vault!")
 
 ```
 
@@ -61255,6 +61322,73 @@ async def takeover_session_websocket(
         emitter_task.cancel()
         if websocket.client_state.name != "DISCONNECTED":
             await websocket.close()
+
+```
+
+## File: `backend/api/routes/agent_workspace.py`
+
+```py
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+import asyncio
+from pydantic import BaseModel
+from core.knowledge_base import get_from_memory, save_to_memory
+
+router = APIRouter()
+
+class WorkspaceCommand(BaseModel):
+    prompt: str
+    project_id: str
+
+@router.post("/agent/execute")
+async def execute_agent_command(command: WorkspaceCommand):
+    
+    # 🟢 Step 1: Zero-Cost Memory Check (Project Auto-Didact)
+    cached_solution = get_from_memory(command.prompt)
+    if cached_solution:
+        return {
+            "status": "success",
+            "source": "memory", # মেমোরি থেকে আসায় এপিআই খরচ ০!
+            "message": "Found in local memory.",
+            "code": cached_solution
+        }
+    
+    # 🔴 Step 2: Premium API Escalation (যদি মেমোরিতে না পায়)
+    print("⚠️ Pattern not recognized. Escalating to Premium AI...")
+    
+    # এখানে আপনার OpenAI বা Claude এপিআই কল করার লজিক বসবে
+    # ডামি রেসপন্স (টেস্টিংয়ের জন্য):
+    ai_generated_code = f"// Code generated by AI for: {command.prompt}\nconsole.log('Hello World');"
+    
+    # 🧠 Step 3: Learn and Save (AI-এর সমাধানটি মেমোরিতে সেভ করে রাখবে)
+    save_to_memory(command.prompt, ai_generated_code)
+    
+    return {
+        "status": "success",
+        "source": "ai_api", 
+        "message": "Generated via AI and saved to memory.",
+        "code": ai_generated_code
+    }
+
+@router.websocket("/agent/terminal-stream")
+async def terminal_stream(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        # এটি একটি ডামি স্ট্রিম। পরবর্তীতে আমরা এখানে docker_sandbox বা WebContainers-এর লগ স্ট্রিম করব।
+        await websocket.send_text("\r\n[System] Secure connection established with SupremeAI Agent.\r\n")
+        
+        while True:
+            # ক্লায়েন্ট থেকে কোনো কমান্ড আসলে রিসিভ করা (যদি টার্মিনালে ইউজার কিছু টাইপ করে)
+            data = await websocket.receive_text()
+            
+            # ইকো করা (আপাতত)
+            await websocket.send_text(f"\r\n$ {data}\r\n")
+            
+            # প্রসেসিং সিমুলেট করা
+            await asyncio.sleep(0.5)
+            await websocket.send_text("[Agent] Processing command in Zero-Cost Environment...\r\n")
+
+    except WebSocketDisconnect:
+        print("Terminal client disconnected.")
 
 ```
 
@@ -117932,6 +118066,10 @@ export default defineConfig({
     dedupe: ['react', 'react-dom', '@tanstack/react-query']
   },
   server: {
+    headers: {
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+    },
     proxy: {
       '/api': {
         target: process.env.VITE_API_URL || 'http://127.0.0.1:8000',
@@ -118002,6 +118140,8 @@ export default defineConfig({
     "@supremeai/ui-components": "workspace:*",
     "@tailwindcss/vite": "^4.2.4",
     "@tanstack/react-query": "^5.101.0",
+    "@webcontainer/api": "^1.6.4",
+    "@xterm/addon-fit": "^0.11.0",
     "firebase": "^10.8.0",
     "framer-motion": "^12.42.0",
     "i18next": "^23.4.0",
@@ -118013,6 +118153,7 @@ export default defineConfig({
     "reactflow": "^11.11.4",
     "recharts": "^3.8.1",
     "tailwindcss": "^4.2.4",
+    "xterm": "^5.3.0",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
@@ -118116,6 +118257,7 @@ import './components/admin/AethelCoreStyles.css';
 import AethelNode from './components/admin/AethelNode';
 import RedesignedDashboardMockup from './components/admin/RedesignedDashboardMockup';
 import ErrorBoundary from './components/admin/DashboardErrorBoundary';
+import { AgentWorkspace } from './pages/AgentWorkspace';
 
 function AdminShell() {
   const {
@@ -118560,6 +118702,7 @@ export const App: React.FC = () => {
             ========================================= */
             <>
               <Route path="/" element={legacyWorkspace} />
+              <Route path="/workspace/agent" element={<AgentWorkspace />} />
               <Route path="/workspace/*" element={
                 <DashboardShell
                   theme={theme}
@@ -135578,6 +135721,267 @@ export default function SkillGraph() {
     </div>
   );
 }
+
+```
+
+## File: `apps/studio-client/src/pages/AgentWorkspace.tsx`
+
+```tsx
+import React, { useState, useEffect, useRef } from 'react';
+import Editor from '@monaco-editor/react';
+import { Terminal } from 'xterm';
+import { FitAddon } from '@xterm/addon-fit';
+import { WebContainer } from '@webcontainer/api'; // 🟢 নতুন ইমপোর্ট
+import 'xterm/css/xterm.css'; // টার্মিনালের স্টাইল
+
+// টাইপ ডেফিনিশন
+interface Message {
+  role: 'user' | 'agent';
+  content: string;
+  source?: 'ai_api' | 'memory';
+}
+
+export const AgentWorkspace: React.FC = () => {
+  const [prompt, setPrompt] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [generatedCode, setGeneratedCode] = useState<string>('// SupremeAI Agent Ready.\n// Type a prompt on the left to generate code...');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const terminalRef = useRef<HTMLDivElement>(null);
+  const xtermRef = useRef<Terminal | null>(null);
+  const webcontainerRef = useRef<WebContainer | null>(null); // 🟢 WebContainer Ref
+  const wsRef = useRef<WebSocket | null>(null);
+  const shellWriterRef = useRef<WritableStreamDefaultWriter<string> | null>(null);
+
+  useEffect(() => {
+    let term: Terminal;
+
+    const initTerminalAndWebContainer = async () => {
+      if (terminalRef.current && !xtermRef.current) {
+        // ১. টার্মিনাল সেটআপ
+        term = new Terminal({
+          theme: { background: '#1e1e1e', foreground: '#d4d4d4' },
+          fontFamily: '"Fira Code", monospace',
+          fontSize: 13,
+          cursorBlink: true,
+        });
+        const fitAddon = new FitAddon();
+        term.loadAddon(fitAddon);
+        term.open(terminalRef.current);
+        fitAddon.fit();
+        xtermRef.current = term;
+
+        term.writeln('🚀 \x1b[1;34mSupremeAI Hybrid Engine\x1b[0m initializing...');
+        term.writeln('⏳ Booting Zero-Cost Node.js environment in browser...');
+
+        try {
+          // ২. WebContainer বুট করা (Zero-Cost Environment)
+          const webcontainerInstance = await WebContainer.boot();
+          webcontainerRef.current = webcontainerInstance;
+          term.writeln('✅ \x1b[1;32mWebContainer Booted Successfully!\x1b[0m\r\n');
+
+          // ৩. WebContainer-এ একটি Shell (jsh) স্টার্ট করা
+          const shellProcess = await webcontainerInstance.spawn('jsh');
+
+          // ৪. Shell এর আউটপুট টার্মিনালে দেখানো
+          shellProcess.output.pipeTo(
+            new WritableStream({
+              write(data) {
+                term.write(data);
+              },
+            })
+          );
+
+          // ৫. ইউজারের টাইপ করা ইনপুট Shell-এ পাঠানো
+          const input = shellProcess.input.getWriter();
+          shellWriterRef.current = input; // 🟢 এটি নতুন লাইন
+          term.onData((data) => {
+            input.write(data);
+          });
+
+        } catch (error) {
+          term.writeln('\r\n❌ \x1b[1;31mFailed to boot WebContainer. Please check Vite COOP/COEP headers.\x1b[0m');
+          console.error(error);
+        }
+
+        window.addEventListener('resize', () => fitAddon.fit());
+      }
+    };
+
+    initTerminalAndWebContainer();
+
+    return () => {
+      xtermRef.current?.dispose();
+      xtermRef.current = null;
+      // WebContainer cleanup (অটোমেটিক্যালি হয়, তবে সতর্কতার জন্য)
+      if (webcontainerRef.current) {
+        webcontainerRef.current.teardown();
+        webcontainerRef.current = null;
+      }
+    };
+  }, []);
+
+  const handleExecute = async () => {
+    if (!prompt.trim()) return;
+
+    // ইউজারের মেসেজ অ্যাড করা
+    const newMessages = [...messages, { role: 'user', content: prompt } as Message];
+    setMessages(newMessages);
+    setPrompt('');
+    setIsLoading(true);
+
+    try {
+      // ব্যাকএন্ড API কল (আপনার FastAPI সার্ভারের URL)
+      const response = await fetch('http://localhost:8000/api/v1/agent/execute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: prompt,
+          project_id: 'proj_123'
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        // এআই এর রেসপন্স এবং সোর্স (API নাকি Memory) অ্যাড করা
+        setMessages([
+          ...newMessages, 
+          { 
+            role: 'agent', 
+            content: data.message,
+            source: data.source 
+          }
+        ]);
+        // Monaco Editor এ কোড আপডেট করা
+        setGeneratedCode(data.code);
+      }
+    } catch (error) {
+      console.error("Error executing agent command:", error);
+      setMessages([...newMessages, { role: 'agent', content: '⚠️ Connection error to SupremeAI Backend.' }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRunCode = async () => {
+    if (!webcontainerRef.current || !shellWriterRef.current) {
+      console.warn("⚠️ Sandbox is not fully loaded yet.");
+      return;
+    }
+
+    try {
+      // ১. Monaco Editor-এর কোড WebContainer-এর ভার্চুয়াল ফাইলে সেভ করা
+      await webcontainerRef.current.fs.writeFile('/index.js', generatedCode);
+      
+      // ২. টার্মিনালকে কমান্ড পাঠানো (node index.js রান করতে বলা)
+      // \r মানে হলো Enter প্রেস করা
+      await shellWriterRef.current.write('node index.js\r');
+      
+    } catch (error) {
+      console.error("Failed to execute code in sandbox:", error);
+    }
+  };
+
+  return (
+    <div className="flex h-screen w-full bg-gray-900 text-white overflow-hidden">
+      {/* 🟢 LEFT PANEL: Chat & Planner */}
+      <div className="w-1/3 border-r border-gray-700 flex flex-col bg-gray-800">
+        <div className="p-4 border-b border-gray-700 bg-gray-900 font-bold text-lg text-blue-400">
+          🧠 SupremeAI Agent
+        </div>
+        
+        {/* Chat History */}
+        <div className="flex-1 p-4 overflow-y-auto space-y-4">
+          {messages.map((msg, idx) => (
+            <div key={idx} className={`p-3 rounded-lg max-w-[90%] ${msg.role === 'user' ? 'bg-blue-600 ml-auto' : 'bg-gray-700 mr-auto'}`}>
+              <p className="text-sm">{msg.content}</p>
+              {msg.source && (
+                <span className={`text-xs mt-2 block px-2 py-1 rounded inline-block ${msg.source === 'memory' ? 'bg-green-500/20 text-green-300' : 'bg-purple-500/20 text-purple-300'}`}>
+                  ⚡ Source: {msg.source === 'memory' ? 'Zero-Cost Memory' : 'Premium AI'}
+                </span>
+              )}
+            </div>
+          ))}
+          {isLoading && (
+            <div className="p-3 rounded-lg bg-gray-700 w-32 text-center text-sm animate-pulse">
+              Agent is thinking...
+            </div>
+          )}
+        </div>
+
+        {/* Input Area */}
+        <div className="p-4 border-t border-gray-700 bg-gray-900">
+          <textarea
+            className="w-full bg-gray-800 border border-gray-700 rounded p-3 text-white focus:outline-none focus:border-blue-500 resize-none"
+            rows={3}
+            placeholder="E.g., Create a responsive login form in React..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleExecute();
+              }
+            }}
+          />
+          <button 
+            onClick={handleExecute}
+            disabled={isLoading || !prompt.trim()}
+            className="mt-2 w-full bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 text-white font-bold py-2 px-4 rounded transition-colors"
+          >
+            Execute Command
+          </button>
+        </div>
+      </div>
+      
+      {/* 🔴 RIGHT PANEL: Live Code Editor & Terminal */}
+      <div className="w-2/3 h-full flex flex-col bg-[#1e1e1e]">
+        
+        {/* Top 70%: Code Editor */}
+        <div className="flex-1 flex flex-col min-h-0 border-b border-gray-700">
+          <div className="p-2 text-sm text-gray-400 bg-[#252526] flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span>📄 index.js</span>
+              <span className="text-xs bg-gray-700 px-2 py-1 rounded">JavaScript</span>
+            </div>
+            
+            {/* 🟢 নতুন Run Button */}
+            <button 
+              onClick={handleRunCode}
+              className="bg-green-600 hover:bg-green-500 text-white text-xs font-bold py-1 px-3 rounded flex items-center transition-colors"
+            >
+              ▶ Run Code
+            </button>
+
+          </div>
+          <div className="flex-1">
+            <Editor
+              height="100%"
+              theme="vs-dark"
+              defaultLanguage="javascript" // 🟢 typescript থেকে javascript করে দিন টেস্টিংয়ের সুবিধার জন্য
+              value={generatedCode}
+              onChange={(value) => setGeneratedCode(value || '')} // 🟢 ইউজার ম্যানুয়ালি কোড এডিট করলে স্টেট আপডেট হবে
+              options={{ minimap: { enabled: false } }}
+            />
+          </div>
+        </div>
+
+        {/* Bottom 30%: Live Terminal */}
+        <div className="h-72 flex flex-col bg-[#1e1e1e]">
+          <div className="p-2 text-sm text-gray-400 bg-[#252526] flex items-center shadow-md z-10">
+            <span>🖥️ Execution Terminal (Hybrid Mode)</span>
+          </div>
+          {/* xterm.js ক্যানভাস এখানে মাউন্ট হবে */}
+          <div ref={terminalRef} className="flex-1 p-2 overflow-hidden bg-[#1e1e1e]" />
+        </div>
+
+      </div>
+    </div>
+  );
+};
 
 ```
 

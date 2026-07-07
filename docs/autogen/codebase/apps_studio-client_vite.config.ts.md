@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/vite.config.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 1,365 বাইট  
-**আপডেট:** 2026-07-07T14:00:41.030263
+**সাইজ:** 1,492 বাইট  
+**আপডেট:** 2026-07-07T14:29:43.675173
 
 ---
 
@@ -27,6 +27,10 @@ export default defineConfig({
     dedupe: ['react', 'react-dom', '@tanstack/react-query']
   },
   server: {
+    headers: {
+      'Cross-Origin-Embedder-Policy': 'require-corp',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+    },
     proxy: {
       '/api': {
         target: process.env.VITE_API_URL || 'http://127.0.0.1:8000',

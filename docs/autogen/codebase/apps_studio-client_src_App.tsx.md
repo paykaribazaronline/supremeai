@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/App.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 24,157 বাইট  
-**আপডেট:** 2026-07-07T14:00:41.030683
+**সাইজ:** 24,291 বাইট  
+**আপডেট:** 2026-07-07T14:29:43.675620
 
 ---
 
@@ -52,6 +52,7 @@ import './components/admin/AethelCoreStyles.css';
 import AethelNode from './components/admin/AethelNode';
 import RedesignedDashboardMockup from './components/admin/RedesignedDashboardMockup';
 import ErrorBoundary from './components/admin/DashboardErrorBoundary';
+import { AgentWorkspace } from './pages/AgentWorkspace';
 
 function AdminShell() {
   const {
@@ -496,6 +497,7 @@ export const App: React.FC = () => {
             ========================================= */
             <>
               <Route path="/" element={legacyWorkspace} />
+              <Route path="/workspace/agent" element={<AgentWorkspace />} />
               <Route path="/workspace/*" element={
                 <DashboardShell
                   theme={theme}
