@@ -56,6 +56,7 @@ async def feedback_lifespan(router: APIRouter):
     _ensure_db()
     yield
 
+
 router = APIRouter(prefix="/api/feedback", tags=["feedback"], lifespan=feedback_lifespan)
 
 
@@ -68,6 +69,7 @@ class FeedbackResponse(BaseModel):
     success: bool
     event_id: int | None = None
 
+
 @router.post("/ingest", response_model=FeedbackResponse)
 async def ingest(event: FeedbackEvent) -> FeedbackResponse:
     try:
@@ -76,9 +78,7 @@ async def ingest(event: FeedbackEvent) -> FeedbackResponse:
         if handled.get("stored"):
             _persist_feedback(event.event_type, payload)
             return FeedbackResponse(success=True)
-        raise HTTPException(
-            status_code=400, detail=handled.get("reason", "Unsupported feedback type")
-        )
+        raise HTTPException(status_code=400, detail=handled.get("reason", "Unsupported feedback type"))
     except HTTPException:
         raise
     except Exception as exc:

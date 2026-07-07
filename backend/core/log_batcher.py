@@ -30,6 +30,7 @@ class LogBatcherService:
         if self.task:
             self.task.cancel()
             import contextlib
+
             with contextlib.suppress(asyncio.CancelledError):
                 await self.task
             self.task = None
@@ -59,6 +60,7 @@ class LogBatcherService:
     def unsubscribe(self, session_id: str, q: asyncio.Queue):
         if session_id in self._subscribers:
             import contextlib
+
             with contextlib.suppress(ValueError):
                 self._subscribers[session_id].remove(q)
             if not self._subscribers[session_id]:
@@ -101,18 +103,16 @@ class LogBatcherService:
         try:
             # Execute DB insertion in a new isolated session
             async for session in get_db_session():
-                await session.execute(
-                    insert(ExecutionLog),
-                    batch
-                )
+                await session.execute(insert(ExecutionLog), batch)
                 await session.commit()
-                break # Just run once
+                break  # Just run once
             logger.debug(f"Flushed {len(batch)} log entries to database.")
         except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to flush log entries to database: {e}")
             # Re-queue on failure (in a real system, might use a dead-letter queue)
             for item in batch:
                 self.queue.put_nowait(item)
+
 
 # Global instance
 batcher = LogBatcherService()

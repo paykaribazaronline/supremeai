@@ -20,16 +20,12 @@ class AIPairProgrammer:
     def __init__(self):
         logger.info("Initialized AIPairProgrammer")
 
-    async def _call_llm(
-        self, prompt: str, task_type: str = "reasoning", max_cost: float = 0.03
-    ) -> str:
+    async def _call_llm(self, prompt: str, task_type: str = "reasoning", max_cost: float = 0.03) -> str:
         try:
             from brain.model_router import ModelRouter
 
             router = ModelRouter()
-            result = await router.async_route_and_generate(
-                prompt, task_type=task_type, max_cost=max_cost
-            )
+            result = await router.async_route_and_generate(prompt, task_type=task_type, max_cost=max_cost)
             return result.get("text", "") if isinstance(result, dict) else ""
         except Exception as exc:  # noqa: BLE001
             logger.error(f"LLM call failed: {exc}")
@@ -72,9 +68,7 @@ class AIPairProgrammer:
         # Step 4: Optionally create PR
         pr_result = None
         if create_pr and repo:
-            pr_result = await self._create_github_pr(
-                repo, branch, issue_description, code
-            )
+            pr_result = await self._create_github_pr(repo, branch, issue_description, code)
 
         return {
             "status": "success",
@@ -86,9 +80,7 @@ class AIPairProgrammer:
             "pr": pr_result,
         }
 
-    async def _create_github_pr(
-        self, repo: str, branch: str, issue: str, code: str
-    ) -> dict[str, Any]:
+    async def _create_github_pr(self, repo: str, branch: str, issue: str, code: str) -> dict[str, Any]:
         """Delegate PR creation to the auto_pr_pipeline."""
         try:
             from tools.auto_pr_pipeline import AutoPRPipeline
@@ -105,9 +97,7 @@ class AIPairProgrammer:
             logger.error(f"PR creation failed: {exc}")
             return {"status": "error", "error": str(exc)}
 
-    async def review_code(
-        self, code: str, context: str | None = None
-    ) -> dict[str, Any]:
+    async def review_code(self, code: str, context: str | None = None) -> dict[str, Any]:
         """Perform AI code review."""
         prompt = (
             "You are a senior code reviewer. Analyze the following code and provide:\n"

@@ -5,9 +5,7 @@ import textwrap
 
 
 def _run(code: str) -> subprocess.CompletedProcess:
-    project_root = os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    )
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     backend_root = os.path.join(project_root, "backend")
     env = os.environ.copy()
     env["PYTHONPATH"] = os.pathsep.join([project_root, backend_root])
@@ -109,4 +107,3 @@ def test_docs_disabled_in_production():
     )
     result = _run(code)
     assert result.returncode == 0, result.stdout + result.stderr
-

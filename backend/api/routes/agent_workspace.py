@@ -11,32 +11,35 @@ from core.knowledge_base import save_to_memory
 
 router = APIRouter()
 
+
 class WorkspaceCommand(BaseModel):
     prompt: str
     project_id: str
 
+
 class PRRequest(BaseModel):
     user_id: str
-    repo_name: str # e.g., "paykaribazaronline/supremeai"
+    repo_name: str  # e.g., "paykaribazaronline/supremeai"
     file_path: str
     code: str
     prompt: str
+
 
 class LearnRequest(BaseModel):
     prompt: str
     working_code: str
 
+
 @router.post("/agent/execute")
 async def execute_agent_command(command: WorkspaceCommand):
-
     # 🟢 Step 1: Zero-Cost Memory Check (Project Auto-Didact)
     cached_solution = get_from_memory(command.prompt)
     if cached_solution:
         return {
             "status": "success",
-            "source": "memory", # মেমোরি থেকে আসায় এপিআই খরচ ০!
+            "source": "memory",  # মেমোরি থেকে আসায় এপিআই খরচ ০!
             "message": "Found in local memory.",
-            "code": cached_solution
+            "code": cached_solution,
         }
 
     # 🔴 Step 2: Premium API Escalation (যদি মেমোরিতে না পায়)
@@ -49,12 +52,8 @@ async def execute_agent_command(command: WorkspaceCommand):
     # 🧠 Step 3: Learn and Save (AI-এর সমাধানটি মেমোরিতে সেভ করে রাখবে)
     # save_to_memory(command.prompt, ai_generated_code) (Removed: saving now happens in /agent/learn)
 
-    return {
-        "status": "success",
-        "source": "ai_api",
-        "message": "Generated via AI (not saved to memory yet).",
-        "code": ai_generated_code
-    }
+    return {"status": "success", "source": "ai_api", "message": "Generated via AI (not saved to memory yet).", "code": ai_generated_code}
+
 
 @router.post("/agent/learn")
 async def commit_to_memory(request: LearnRequest):
@@ -65,6 +64,7 @@ async def commit_to_memory(request: LearnRequest):
     print(f"🧠 [Auto-Didact] Verified solution saved for prompt: {request.prompt[:30]}...")  # noqa: T201
     return {"status": "success", "message": "Memorized successfully"}
 
+
 from services.github_agent import create_autonomous_pr
 
 
@@ -73,15 +73,12 @@ async def trigger_github_pr(request: PRRequest):
     try:
         commit_msg = f"Implemented: {request.prompt[:50]}..."
         pr_url = await create_autonomous_pr(
-            user_id=request.user_id,
-            repo_name=request.repo_name,
-            file_path=request.file_path,
-            code_content=request.code,
-            commit_msg=commit_msg
+            user_id=request.user_id, repo_name=request.repo_name, file_path=request.file_path, code_content=request.code, commit_msg=commit_msg
         )
         return {"status": "success", "pr_url": pr_url}
     except Exception as e:  # noqa: BLE001
         return {"status": "error", "message": str(e)}
+
 
 @router.websocket("/agent/terminal-stream")
 async def terminal_stream(websocket: WebSocket):
