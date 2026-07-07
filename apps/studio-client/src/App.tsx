@@ -43,6 +43,7 @@ import RedesignedDashboardMockup from './components/admin/RedesignedDashboardMoc
 import ErrorBoundary from './components/admin/DashboardErrorBoundary';
 import { AgentWorkspace } from './pages/AgentWorkspace';
 import { IntegrationsManager } from './pages/IntegrationsManager';
+import { ArchitectTower } from './pages/ArchitectTower';
 
 function AdminShell() {
   const {
@@ -489,6 +490,7 @@ export const App: React.FC = () => {
               <Route path="/" element={legacyWorkspace} />
               <Route path="/workspace/agent" element={<AgentWorkspace />} />
               <Route path="/integrations" element={<IntegrationsManager />} />
+              <Route path="/architect-tower" element={<ArchitectTower />} />
               <Route path="/workspace/*" element={
                 <DashboardShell
                   theme={theme}

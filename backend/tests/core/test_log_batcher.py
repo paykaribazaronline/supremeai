@@ -104,6 +104,100 @@ async def test_log_batcher_service_run(batcher_service):
             # We expect _flush to be called at least once (from the timeout after the first item)
             assert mock_flush.await_count >= 1
 
+# Startup when already running
+@pytest.mark.anyio
+async def test_log_batcher_service_start_idempotent(batcher_service):
+    batcher_service.start()
+    first_task = batcher_service.task
+    batcher_service.start()
+    assert batcher_service.task is first_task
+    await batcher_service.stop()
+
+
+@pytest.mark.anyio
+async def test_log_batcher_service_stop_without_task(batcher_service):
+    await batcher_service.stop()
+    assert batcher_service.running is False
+    assert batcher_service.task is None
+
+
+@pytest.mark.anyio
+async def test_log_batcher_service_emit_publishes_to_subscribers():
+    batcher_service = LogBatcherService(flush_interval=0.1, batch_size=2)
+    session_id = "123"
+    queue = batcher_service.subscribe(session_id)
+    log_entry = {"session_id": session_id, "message": "test"}
+    batcher_service.emit(log_entry)
+    assert not queue.empty()
+    item = await queue.get()
+    assert item == log_entry
+    batcher_service.unsubscribe(session_id, queue)
+
+
+@pytest.mark.anyio
+async def test_log_batcher_service_subscribe_new_session():
+    batcher_service = LogBatcherService()
+    session_id = "new"
+    queue = batcher_service.subscribe(session_id)
+    assert session_id in batcher_service._subscribers
+    assert queue in batcher_service._subscribers[session_id]
+
+
+@pytest.mark.anyio
+async def test_log_batcher_service_unsubscribe_last_queue():
+    batcher_service = LogBatcherService()
+    session_id = "only"
+    queue = batcher_service.subscribe(session_id)
+    batcher_service.unsubscribe(session_id, queue)
+    assert session_id not in batcher_service._subscribers
+
+
+@pytest.mark.anyio
+async def test_log_batcher_service_flush_empty_buffer(batcher_service):
+    assert len(batcher_service.buffer) == 0
+    await batcher_service._flush()
+    assert len(batcher_service.buffer) == 0
+
+
+@pytest.mark.anyio
+async def test_log_batcher_service_run_flush_on_exception(batcher_service):
+    batcher_service.running = True
+    call_count = 0
+    async def mock_wait_for(coro, timeout):
+        nonlocal call_count
+        call_count += 1
+        if call_count >= 2:
+            batcher_service.running = False
+        return {"session_id": "123", "message": "test"}
+
+    with patch('asyncio.wait_for', side_effect=mock_wait_for):
+        with patch.object(batcher_service, '_flush', new_callable=AsyncMock) as mock_flush:
+            mock_flush.side_effect = Exception("DB error")
+            await batcher_service._run()
+            assert mock_flush.await_count >= 1
+            # After exception, items should be re-queued
+            assert not batcher_service.queue.empty()
+
+
+@pytest.mark.anyio
+async def test_log_batcher_service_flush_db_failure_requeue(batcher_service):
+    mock_session = AsyncMock()
+    mock_session.execute.side_effect = Exception("DB error")
+    mock_session.commit.return_value = None
+
+    async def mock_get_db_session():
+        yield mock_session
+
+    with patch('core.log_batcher.get_db_session', return_value=mock_get_db_session()):
+        batcher_service.buffer.append({"session_id": "123", "message": "test1"})
+        batcher_service.buffer.append({"session_id": "123", "message": "test2"})
+
+        await batcher_service._flush()
+
+        assert len(batcher_service.buffer) == 0
+        assert batcher_service.queue.qsize() == 2
+
+
 # Test the global batcher instance
 def test_global_batcher_instance():
     assert isinstance(batcher, LogBatcherService)
