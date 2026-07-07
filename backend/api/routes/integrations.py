@@ -74,7 +74,7 @@ async def github_callback(
     }
     headers = {"Accept": "application/json"}
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=15.0) as client:
         # ⏱️ FIX: explicit timeout — default timeout infinite হলে serverless function hang করে বিল বাড়ায়
         response = await client.post(
             token_url, json=payload, headers=headers, timeout=30.0

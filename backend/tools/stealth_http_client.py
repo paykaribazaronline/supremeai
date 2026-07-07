@@ -57,7 +57,7 @@ class StealthHTTPClient:
                 logger.info(f"Stealth request without proxy (Attempt {attempt+1}/{retries})")
 
             try:
-                async with httpx.AsyncClient() as client:
+                async with httpx.AsyncClient(timeout=15.0) as client:
                     response = await client.request(method, url, **client_kwargs)
                     response.raise_for_status()
                     return response

@@ -61,7 +61,7 @@ async def process_audio_with_groq(audio_bytes: bytes) -> str:
         "response_format": "json"
     }
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=10.0) as client:
         try:
             response = await client.post(url, headers=headers, files=files, data=data, timeout=10.0)
             response.raise_for_status()

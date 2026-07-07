@@ -1,105 +1,87 @@
 import json
-from datetime import UTC
-from datetime import datetime
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
-from fastapi import HTTPException
-from fastapi import Request
+from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from utils.environment import is_test_environment
+# বাংলা মন্তব্য: Redis-based Distributed Idempotency Middleware
+# পূর্বে Firestore (Firebase) ব্যবহার করা হতো, যা Serverless-এ ব্যয়বহুল এবং ধীর ছিল।
+# এখন Redis SET NX (atomic, sub-millisecond) ব্যবহার করা হচ্ছে — fail-open মোডে।
 
-# শেয়ার্ড ইউটিলিটি — Firestore ইনিশিয়ালাইজেশন ও টেস্ট ডিটেকশন কেন্দ্রীভূত
-from utils.firestore_helpers import get_firestore_db
+IDEMPOTENCY_TTL_SECONDS = 120  # ২ মিনিট লক — নেটওয়ার্ক retry-র জন্য যথেষ্ট
+
+# বাংলা মন্তব্য: যে endpoint-গুলোতে Idempotency চেক প্রযোজ্য
+IDEMPOTENCY_PATHS = (
+    "/api/task",
+    "/api/github",
+    "/api/auth/callback",
+    "/api/pr",
+    "/api/agent",
+)
 
 
 class IdempotencyMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app):
-        super().__init__(app)
-        self.collection_name = "idempotency_locks"
-        # রিফ্যাক্টর: সরাসরি firestore.Client() এর বদলে শেয়ার্ড হেল্পার ব্যবহার
-        import os
-        is_local_or_prod = os.getenv("ENV") in ("local", "production")
-        if is_test_environment() or is_local_or_prod:
-            self.db = None
-        else:
-            self.db = get_firestore_db()
-
     async def dispatch(self, request: Request, call_next):
-        # শুধুমাত্র POST রিকোয়েস্ট এবং জেনারেশন এন্ডপয়েন্টের জন্য চেক করবে
-        if (
-            request.method != "POST"
-            or "/api/task" not in request.url.path
-            or not self.db
-        ):
+        # শুধুমাত্র POST রিকোয়েস্ট এবং নির্দিষ্ট critical path-এর জন্য চেক করবে
+        path = request.url.path
+        if request.method != "POST" or not any(path.startswith(p) for p in IDEMPOTENCY_PATHS):
             return await call_next(request)
 
         idempotency_key = request.headers.get("Idempotency-Key")
         if not idempotency_key:
-            # ক্রিটিক্যাল এআই জেনারেশন রিকোয়েস্টে কি (Key) না থাকলে রিজেক্ট
+            # বাংলা মন্তব্য: ক্রিটিক্যাল POST রিকোয়েস্টে key না থাকলে reject করা হবে
             return JSONResponse(
                 status_code=400,
                 content={
-                    "error": "Bad Request: 'Idempotency-Key' header is strictly required for mutating tasks."
+                    "error": "Bad Request: 'Idempotency-Key' header is required for mutating operations.",
+                    "hint": "Provide a unique UUID as 'Idempotency-Key' header."
                 },
             )
 
-        lock_ref = self.db.collection(self.collection_name).document(idempotency_key)
-        lock_doc = lock_ref.get()
+        # বাংলা মন্তব্য: Redis lock অধিগ্রহণের চেষ্টা (SET NX — atomic)
+        try:
+            from core.redis_manager import acquire_idempotency_lock, release_idempotency_lock, redis_manager
+        except ImportError:
+            # Redis ইমপোর্ট ব্যর্থ হলে fail-open — request পাস করে দাও
+            logger.warning("[Idempotency] Failed to import redis_manager — skipping check (fail-open)")
+            return await call_next(request)
 
-        now = datetime.now(UTC)
+        # বাংলা মন্তব্য: Redis থেকে cached response চেক করা
+        cached_response = None
+        if redis_manager.client is not None:
+            try:
+                cached_key = f"idempotency:response:{idempotency_key}"
+                cached = await redis_manager.client.get(cached_key)
+                if cached:
+                    logger.info(f"⚡ Idempotency Hit: serving cached response for key {idempotency_key}")
+                    cached_data = json.loads(cached)
+                    return JSONResponse(
+                        status_code=cached_data.get("status_code", 200),
+                        content=cached_data.get("body", {}),
+                        headers={"X-Cache-Lookup": "HIT - Idempotency Lock"},
+                    )
+            except Exception as e:
+                logger.warning(f"[Idempotency] Cache read failed — continuing: {e}")
 
-        if lock_doc.exists:
-            lock_data = lock_doc.to_dict()
-            status = lock_data.get("status")
-            expires_at = lock_data.get("expires_at")
-            # Parse expires_at if it's a string (from Firestore)
-            if isinstance(expires_at, str):
-                expires_at = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
-            # লক এক্সপায়ার হয়ে গেছে কি না চেক
-            if expires_at and now > expires_at:
-                # এক্সপায়ারড লক ডিলিট করে নতুন ট্রাইয়ের সুযোগ দেওয়া
-                lock_ref.delete()
-            elif status == "processing":
-                logger.warning(
-                    f"🛡️ Idempotency Block: Request {idempotency_key} is already being processed. Dropping concurrent call."
-                )
-                raise HTTPException(
-                    status_code=409,
-                    detail="Conflict: Request is already being processed. Duplicate execution blocked.",
-                )
-
-            elif status == "completed":
-                logger.info(
-                    f"⚡ Idempotency Hit: Serving cached response for key {idempotency_key} directly from state."
-                )
-                return JSONResponse(
-                    status_code=200,
-                    content=json.loads(lock_data.get("response_body", "{}")),
-                    headers={"X-Cache-Lookup": "HIT - Idempotency Lock"},
-                )
-
-        # ১. রিকোয়েস্ট প্রসেস শুরুর আগে "processing" লক বসানো (Race Condition Prevention)
-        lock_ref.set(
-            {
-                "status": "processing",
-                "created_at": now,
-                "expires_at": now + timedelta(hours=2),  # ২ ঘণ্টার সেফটি উইন্ডো
-            }
-        )
+        # বাংলা মন্তব্য: Processing lock অধিগ্রহণ
+        acquired = await acquire_idempotency_lock(idempotency_key, IDEMPOTENCY_TTL_SECONDS)
+        if not acquired:
+            logger.warning(f"🛡️ Idempotency Block: {idempotency_key} is already being processed.")
+            raise HTTPException(
+                status_code=409,
+                detail="Conflict: Request is already being processed. Duplicate execution blocked.",
+            )
 
         try:
-            # রিকোয়েস্ট এক্সিকিউট করা
             response = await call_next(request)
 
-            # ২. রেসপন্স সফল হলে স্ট্যাটাস "completed" করে সেভ রাখা
-            if response.status_code == 200:
+            # বাংলা মন্তব্য: সফল রেসপন্স Redis-এ cache করা
+            if response.status_code == 200 and redis_manager.client is not None:
                 if hasattr(response, "body_iterator"):
-                    response_body = [
-                        section async for section in response.body_iterator
-                    ]
+                    response_body = [section async for section in response.body_iterator]
                     from starlette.responses import Response
                     body_bytes = b"".join(response_body)
                     response = Response(
@@ -109,25 +91,25 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                         media_type=response.media_type
                     )
                 else:
-                    response_body = [response.body]
-                body_str = b"".join(response_body).decode("utf-8")
+                    body_bytes = response.body if hasattr(response, "body") else b"{}"
 
-                lock_ref.update(
-                    {
-                        "status": "completed",
-                        "response_body": body_str,
-                        "completed_at": datetime.now(UTC),
-                    }
-                )
+                try:
+                    body_str = body_bytes.decode("utf-8")
+                    await redis_manager.client.set(
+                        f"idempotency:response:{idempotency_key}",
+                        json.dumps({"status_code": 200, "body": json.loads(body_str)}),
+                        ex=IDEMPOTENCY_TTL_SECONDS * 5,  # response cache TTL = 10 মিনিট
+                    )
+                except Exception as cache_err:
+                    logger.warning(f"[Idempotency] Response caching failed (non-blocking): {cache_err}")
             else:
-                # রিকোয়েস্ট ফেইল করলে লক রিমুভ করা যাতে ইউজার আবার ট্রাই করতে পারে
-                lock_ref.delete()
+                # বাংলা মন্তব্য: ব্যর্থ রিকোয়েস্টে লক রিলিজ করা যাতে retry পারে
+                await release_idempotency_lock(idempotency_key)
 
             return response
 
         except Exception as e:
-            # ইন্টারনাল এরর হলে লক ডিলিট করা
-            lock_ref.delete()
+            # বাংলা মন্তব্য: Exception হলে লক রিলিজ করা
+            await release_idempotency_lock(idempotency_key)
             logger.error(f"❌ Execution failed inside Idempotency block: {str(e)}")
             raise e
-

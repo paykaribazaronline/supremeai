@@ -73,7 +73,7 @@ async def create_autonomous_pr(
     branch_name = f"supremeai-auto-fix-{datetime.now().strftime('%Y%m%d%H%M%S')}"
     base_url = f"https://api.github.com/repos/{repo_name}"
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=15.0) as client:
         # Step A: Get Default Branch SHA (সাধারণত 'main' বা 'master')
         repo_info = await client.get(base_url, headers=headers)
         if repo_info.status_code != 200:

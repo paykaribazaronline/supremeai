@@ -329,7 +329,7 @@ class SSOIntegrator:
                 "client_id": client_id,
                 "client_secret": client_secret,
             }
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=15.0) as client:
                 resp = await client.post(token_url, data=payload, timeout=10.0)
                 resp.raise_for_status()
                 tokens = resp.json()

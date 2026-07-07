@@ -109,3 +109,35 @@ class SecureRedisManager:
 
 # গ্লোবাল সিঙ্গেলটন ইনস্ট্যান্স জেনারেশন
 redis_manager = SecureRedisManager()
+
+
+async def acquire_idempotency_lock(key: str, ttl_seconds: int = 120) -> bool:
+    """
+    Distributed idempotency lock অধিগ্রহণ করে (Redis SET NX pattern)।
+    
+    - key: অনন্য idempotency key (সাধারণত: `idempotency:{method}:{user_key}`)
+    - ttl_seconds: লকের TTL — এই সময়ের পর লক স্বয়ংক্রিয়ভাবে মুক্ত হয়
+    - Returns True যদি লক সফলভাবে অধিগ্রহণ হয়, False যদি ইতিমধ্যে অন্য কেউ ধরে রেখেছে
+    """
+    if redis_manager.client is None:
+        logger.warning("[Idempotency] Redis offline — lock skipped (fail-open)")
+        return True
+    try:
+        # SET NX EX: atomic, only set if not exists
+        result = await redis_manager.client.set(
+            f"idempotency:{key}", "1", nx=True, ex=ttl_seconds
+        )
+        return result is not None
+    except Exception as e:
+        logger.warning(f"[Idempotency] Redis lock acquire failed — fail-open: {e}")
+        return True
+
+
+async def release_idempotency_lock(key: str) -> None:
+    """Idempotency লক রিলিজ করে (ব্যর্থ রিকোয়েস্টের পর retry allow করতে)।"""
+    if redis_manager.client is None:
+        return
+    try:
+        await redis_manager.client.delete(f"idempotency:{key}")
+    except Exception as e:
+        logger.warning(f"[Idempotency] Redis lock release failed: {e}")
