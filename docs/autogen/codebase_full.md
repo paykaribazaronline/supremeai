@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T08:19:29.989024
+Generated at: 2026-07-07T08:28:38.799570
 
 
 ## File: `pnpm-lock.yaml`
@@ -165599,7 +165599,6 @@ jobs:
   performance-e2e-test:
     name: 🧪 Human Simulation & Load Tests
     needs: [backend-core, frontend-core]
-    if: always()
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -165617,8 +165616,18 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
-          path: apps
+          path: .
         continue-on-error: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      - name: Install Backend Dependencies & Start Server
+        working-directory: backend
+        run: |
+          pip install poetry
+          poetry install --sync --with dev --without ml
+          poetry run uvicorn main:app --port 8000 &
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
       - name: Start Frontend Preview Server
