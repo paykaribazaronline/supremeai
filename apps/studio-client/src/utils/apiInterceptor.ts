@@ -1,9 +1,35 @@
+import { getAdminToken } from '../services/adminTokenStore';
+import { getApiBaseUrl } from './api';
+
 export function setupGlobalFetchInterceptor() {
   if (typeof window === 'undefined') return;
 
   const originalFetch = window.fetch;
 
   window.fetch = async function (...args) {
+    let [url, options] = args;
+    const apiBase = getApiBaseUrl();
+
+    if (typeof url === 'string' && url.startsWith(apiBase)) {
+      const token = getAdminToken();
+      
+      if (url.includes('/admin-api/')) {
+        if (!token) {
+           console.warn("Blocked unauthorized API request to prevent storm:", url);
+           return Promise.reject(new Error("No token found"));
+        }
+      }
+
+      if (token) {
+        options = options || {};
+        options.headers = {
+          ...options.headers,
+          'Authorization': `Bearer ${token}`
+        };
+        args[1] = options;
+      }
+    }
+
     try {
       const response = await originalFetch.apply(this, args);
       
