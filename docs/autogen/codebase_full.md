@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T07:10:31.641749
+Generated at: 2026-07-07T07:19:28.198498
 
 
 ## File: `pnpm-lock.yaml`
@@ -129990,74 +129990,58 @@ interface SubTabContentProps {
   handleTriggerDeploy: () => void;
 }
 
+const MODULE_MAP: Record<string, React.FC<any>> = {
+  'dashboard': RedesignedDashboardMockup,
+  'command-center': CommandCenter,
+  'sandbox': SandboxView,
+  'logs': LiveLogs,
+  'costs': CostAuditor,
+  'health': HealthMap,
+  'users': UserManager,
+  'config': ConfigEditor,
+  'model-router': ModelRouter,
+  'skills': EnhancedSkillMarketplace,
+  'memory': MemoryBrowser,
+  'cloud': CloudOrchestrator,
+  'observability': ObservabilityDashboard,
+  'threats': ThreatDetection,
+  'rules': VisualRulesBuilder,
+  'cicd': CICDVisualizer,
+  'github': GithubIntegration,
+  'backups': BackupRestore,
+  'rate-limits': RateLimitManager,
+  'security-dashboard': SecurityDashboard,
+  'interactive-chat': InteractiveChatTab,
+};
+
 export function SubTabContent(props: SubTabContentProps) {
-  const { adminSubTab, setAdminSubTab, adminMessages, loading, adminInput, setAdminInput, handleSendAdmin, rulesJson, setRulesJson, saveStatus, handleSaveRules } = props;
+  const { adminSubTab, setAdminSubTab } = props;
   
-  const isOverlayOpen = adminSubTab !== 'dashboard' && adminSubTab !== 'command-center';
+  const SelectedModule = MODULE_MAP[adminSubTab] || RedesignedDashboardMockup;
+  const isDashboardOrCanvas = adminSubTab === 'dashboard' || adminSubTab === 'command-center';
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg-main)] relative transition-colors duration-500">
-      {/* Background Canvas or Dashboard Home always rendered */}
-      {/* বাংলা মন্তব্য: লেগ্যাসি ড্যাশবোর্ড হোমের পরিবর্তে নতুন রিডিজাইনকৃত মকআপ রেন্ডার করা হচ্ছে */}
-      <div className={`absolute inset-0 transition-opacity duration-300 ${isOverlayOpen ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
-        {adminSubTab === 'command-center' ? <CommandCenter /> : <RedesignedDashboardMockup />}
-      </div>
-
-      {/* Glassmorphic Modal Overlay for other modules */}
-      {isOverlayOpen && (
-        <div className="absolute inset-4 z-50 flex flex-col bg-[var(--bg-panel)] border border-[var(--border-accent)] shadow-2xl backdrop-blur-xl rounded-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 transition-colors">
-          
-          <div className="flex justify-between items-center p-4 border-b border-[var(--border-accent)] bg-[var(--bg-cell)] transition-colors duration-500">
-            <span className="text-sm font-bold tracking-widest text-[var(--accent-primary)] uppercase flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[var(--accent-secondary)] animate-pulse"></span>
-              MODULE: {adminSubTab.replace('-', ' ')}
-            </span>
-            <button 
-              onClick={() => setAdminSubTab('command-center')}
-              className="p-1.5 hover:opacity-80 rounded-lg transition-colors group"
-              title="Close Module & Return to Canvas"
-            >
-              <X size={18} className="text-[var(--text-secondary)] group-hover:text-red-500" />
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-auto relative">
-            {adminSubTab === 'sandbox' && (
-              <SandboxView
-                adminMessages={adminMessages}
-                loading={loading}
-                adminInput={adminInput}
-                setAdminInput={setAdminInput}
-                handleSendAdmin={handleSendAdmin}
-                rulesJson={rulesJson}
-                setRulesJson={setRulesJson}
-                saveStatus={saveStatus}
-                handleSaveRules={handleSaveRules}
-              />
-            )}
-            
-            {adminSubTab === 'logs' && <LiveLogs liveLogs={props.liveLogs} setLiveLogs={props.setLiveLogs} />}
-            {adminSubTab === 'costs' && <CostAuditor costReport={props.costReport} />}
-            {adminSubTab === 'health' && <HealthMap healthMap={props.healthMap} />}
-            {adminSubTab === 'users' && <UserManager {...props} />}
-            {adminSubTab === 'config' && <ConfigEditor envConfig={props.envConfig} setEnvConfig={props.setEnvConfig} handleSaveConfig={props.handleSaveConfig} />}
-            {adminSubTab === 'model-router' && <ModelRouter />}
-            {adminSubTab === 'skills' && <EnhancedSkillMarketplace />}
-            {adminSubTab === 'memory' && <MemoryBrowser />}
-            {adminSubTab === 'cloud' && <CloudOrchestrator />}
-            {adminSubTab === 'observability' && <ObservabilityDashboard />}
-            {adminSubTab === 'threats' && <ThreatDetection />}
-            {adminSubTab === 'rules' && <VisualRulesBuilder />}
-            {adminSubTab === 'cicd' && <CICDVisualizer />}
-            {adminSubTab === 'github' && <GithubIntegration />}
-            {adminSubTab === 'backups' && <BackupRestore />}
-            {adminSubTab === 'rate-limits' && <RateLimitManager />}
-            {adminSubTab === 'security-dashboard' && <SecurityDashboard />}
-            {/* বাংলা মন্তব্য: ইন্টারেক্টিভ চ্যাট ট্যাব অ্যাডমিন প্যানেলে রেন্ডার করা হলো */}
-            {adminSubTab === 'interactive-chat' && <InteractiveChatTab />}
-          </div>
+      {!isDashboardOrCanvas && (
+        <div className="flex justify-between items-center p-4 border-b border-[var(--border-accent)] bg-[var(--bg-cell)] transition-colors duration-500 z-50">
+          <span className="text-sm font-bold tracking-widest text-[var(--accent-primary)] uppercase flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[var(--accent-secondary)] animate-pulse"></span>
+            MODULE: {adminSubTab.replace('-', ' ')}
+          </span>
+          <button 
+            onClick={() => setAdminSubTab('command-center')}
+            className="p-1.5 hover:opacity-80 rounded-lg transition-colors group"
+            title="Close Module & Return to Canvas"
+          >
+            <X size={18} className="text-[var(--text-secondary)] group-hover:text-red-500" />
+          </button>
         </div>
       )}
+
+      <div className="flex-1 overflow-auto relative z-10 flex flex-col">
+        {/* বাংলা মন্তব্য: শুধুমাত্র নির্বাচিত মডিউলটি মাউন্ট হবে, আগেরগুলো আনমাউন্ট হয়ে যাবে */}
+        <SelectedModule {...props} />
+      </div>
     </div>
   );
 }
