@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/MemoryBrowser.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 5,735 বাইট  
-**আপডেট:** 2026-07-05T20:27:26.471238
+**সাইজ:** 5,773 বাইট  
+**আপডেট:** 2026-07-07T06:42:45.698400
 
 ---
 
@@ -22,7 +22,7 @@ export function MemoryBrowser() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedConv, setSelectedConv] = useState<any | null>(null);
 
-  const filtered = conversations?.filter((c: any) =>
+  const filtered = (Array.isArray(conversations) ? conversations : [])?.filter((c: any) =>
     c.topic?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.summary?.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];

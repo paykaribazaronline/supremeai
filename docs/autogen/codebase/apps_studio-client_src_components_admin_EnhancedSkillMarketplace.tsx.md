@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/EnhancedSkillMarketplace.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 5,141 বাইট  
-**আপডেট:** 2026-07-05T20:27:26.472606
+**সাইজ:** 5,172 বাইট  
+**আপডেট:** 2026-07-07T06:42:45.699768
 
 ---
 
@@ -23,7 +23,7 @@ export function EnhancedSkillMarketplace() {
 
   const [filter, setFilter] = useState<'all' | 'installed' | 'available'>('all');
 
-  const filtered = skills?.filter((s: any) => {
+  const filtered = (Array.isArray(skills) ? skills : [])?.filter((s: any) => {
     if (filter === 'installed') return s.installed;
     if (filter === 'available') return !s.installed;
     return true;

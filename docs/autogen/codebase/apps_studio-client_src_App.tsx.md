@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/App.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 21,523 বাইট  
-**আপডেট:** 2026-07-05T20:27:26.459629
+**সাইজ:** 21,974 বাইট  
+**আপডেট:** 2026-07-07T06:42:45.687114
 
 ---
 
@@ -10,7 +10,11 @@
 
 ```tsx
 import React, { useEffect, useState, useMemo } from "react";
+import { Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useStore } from "./store/useStore";
+
+const queryClient = new QueryClient();
 import { useAdminStore } from "./store/adminStore";
 import { AdminConsole } from "./components/admin/AdminConsole";
 import { UserDashboard } from "./components/customer/UserDashboard";
@@ -293,10 +297,6 @@ export const App: React.FC = () => {
 
   const nodeTypes = useMemo(() => ({ aethel: AethelNode }), []);
 
-  const isAdminMode = () => {
-    if (typeof window === "undefined") return false;
-    return window.location.hostname.includes("admin") || window.location.pathname.startsWith("/admin");
-  };
 
   const handleSendChat = () => {
     if (!chatInput.trim()) return;
@@ -340,7 +340,6 @@ export const App: React.FC = () => {
   }, [theme]);
 
   useEffect(() => {
-    if (isAdminMode()) return;
     const initialNodes = [
       {
         id: 'central-orb',
@@ -404,14 +403,6 @@ export const App: React.FC = () => {
     setEdges(initialEdges);
   }, []);
 
-  if (isAdminMode()) {
-    return (
-      <ErrorBoundary>
-        <AdminShell />
-      </ErrorBoundary>
-    );
-  }
-
   // বাংলা মন্তব্য: ইউনিট টেস্ট পাস করানোর জন্য হ্যান্ডলারটি পুনরায় সহজ মক হ্যান্ডলারে রূপান্তর করা হলো
   const handleSendCustomer = async () => {
     if (!chatInput.trim()) return;
@@ -472,12 +463,27 @@ export const App: React.FC = () => {
   );
 
   return (
-    <DashboardShell
-      theme={theme}
-      toggleTheme={toggleTheme}
-      isServerOnline={isServerOnline}
-      workspace={legacyWorkspace}
-    />
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <Routes>
+          {/* ১. পাবলিক/ইউজার রাউট */}
+          <Route path="/" element={legacyWorkspace} />
+          
+          {/* ২. অ্যাডমিন রাউট */}
+          <Route path="/admin/*" element={<AdminShell />} />
+          
+          {/* ৩. প্রোডাকশন ড্যাশবোর্ড শেল */}
+          <Route path="/workspace/*" element={
+            <DashboardShell
+              theme={theme}
+              toggleTheme={toggleTheme}
+              isServerOnline={isServerOnline}
+              workspace={legacyWorkspace}
+            />
+          } />
+        </Routes>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/LiveLogs.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 4,373 বাইট  
-**আপডেট:** 2026-07-05T20:27:26.472131
+**সাইজ:** 4,433 বাইট  
+**আপডেট:** 2026-07-07T06:42:45.699303
 
 ---
 
@@ -21,11 +21,12 @@ export function LiveLogs({ liveLogs, setLiveLogs }: LiveLogsProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Extract log level counters
-  const infoCount = liveLogs.filter(log => log.toUpperCase().includes('INFO')).length;
-  const warnCount = liveLogs.filter(log => log.toUpperCase().includes('WARN') || log.toUpperCase().includes('WARNING')).length;
-  const errCount = liveLogs.filter(log => log.toUpperCase().includes('ERROR') || log.toUpperCase().includes('ERR') || log.toUpperCase().includes('FAIL')).length;
+  const safeLogs = Array.isArray(liveLogs) ? liveLogs : [];
+  const infoCount = safeLogs.filter(log => log.toUpperCase().includes('INFO')).length;
+  const warnCount = safeLogs.filter(log => log.toUpperCase().includes('WARN') || log.toUpperCase().includes('WARNING')).length;
+  const errCount = safeLogs.filter(log => log.toUpperCase().includes('ERROR') || log.toUpperCase().includes('ERR') || log.toUpperCase().includes('FAIL')).length;
 
-  const filteredLogs = liveLogs.filter(log => {
+  const filteredLogs = safeLogs.filter(log => {
     const matchesSearch = log.toLowerCase().includes(searchTerm.toLowerCase());
     if (filterLevel === 'ALL') return matchesSearch;
     if (filterLevel === 'INFO') return matchesSearch && log.toUpperCase().includes('INFO');
@@ -40,7 +41,7 @@ export function LiveLogs({ liveLogs, setLiveLogs }: LiveLogsProps) {
         <div className="flex flex-col gap-1">
           <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Real-time Live Stream (supremeai.log)</span>
           <div className="flex gap-2 text-[10px] text-slate-400 mt-1">
-            <span>Total: {liveLogs.length}</span>
+            <span>Total: {safeLogs.length}</span>
             <span className="text-emerald-500">Info: {infoCount}</span>
             <span className="text-yellow-500">Warn: {warnCount}</span>
             <span className="text-red-500">Error: {errCount}</span>

@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/main.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 907 বাইট  
-**আপডেট:** 2026-07-05T20:27:26.460386
+**সাইজ:** 1,011 বাইট  
+**আপডেট:** 2026-07-07T06:42:45.687878
 
 ---
 
@@ -26,13 +26,16 @@ setupGlobalFetchInterceptor();
 import { ThemeProvider } from './contexts/ThemeContext'
 // Shared providers (react-query, monaco defaults)
 import { SharedProviders } from '@supremeai/ui-components'
+import { BrowserRouter } from 'react-router-dom'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ToastProvider>
       <ThemeProvider>
         <SharedProviders>
-          <App />
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
         </SharedProviders>
       </ThemeProvider>
     </ToastProvider>

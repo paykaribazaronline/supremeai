@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-05T20:27:26.341483
+Generated at: 2026-07-07T06:42:45.568410
 
 
 ## File: `pnpm-lock.yaml`
@@ -178,6 +178,9 @@ importers:
       react-i18next:
         specifier: ^15.4.1
         version: 15.7.4(i18next@23.16.8)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
+      react-router-dom:
+        specifier: ^6.4.0
+        version: 6.30.4(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       reactflow:
         specifier: ^11.11.4
         version: 11.11.4(@types/react@19.2.17)(immer@11.1.8)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -20612,8 +20615,8 @@ snapshots:
   vite@7.3.5(@types/node@18.19.130)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@1.10.3):
     dependencies:
       esbuild: 0.27.7
-      fdir: 6.5.0(picomatch@4.0.4)
-      picomatch: 4.0.4
+      fdir: 6.5.0(picomatch@4.0.5)
+      picomatch: 4.0.5
       postcss: 8.5.15
       rollup: 4.62.2
       tinyglobby: 0.2.17
@@ -117814,8 +117817,8 @@ export default defineConfig({
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
-    "@supremeai/ui-components": "workspace:*",
     "@monaco-editor/react": "^4.7.0",
+    "@supremeai/ui-components": "workspace:*",
     "@tailwindcss/vite": "^4.2.4",
     "@tanstack/react-query": "^5.101.0",
     "firebase": "^10.8.0",
@@ -117825,6 +117828,7 @@ export default defineConfig({
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-i18next": "^15.4.1",
+    "react-router-dom": "^6.4.0",
     "reactflow": "^11.11.4",
     "recharts": "^3.8.1",
     "tailwindcss": "^4.2.4",
@@ -117882,7 +117886,6 @@ export default defineConfig({
     }
   }
 }
- 
 
 ```
 
@@ -117890,7 +117893,11 @@ export default defineConfig({
 
 ```tsx
 import React, { useEffect, useState, useMemo } from "react";
+import { Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useStore } from "./store/useStore";
+
+const queryClient = new QueryClient();
 import { useAdminStore } from "./store/adminStore";
 import { AdminConsole } from "./components/admin/AdminConsole";
 import { UserDashboard } from "./components/customer/UserDashboard";
@@ -118173,10 +118180,6 @@ export const App: React.FC = () => {
 
   const nodeTypes = useMemo(() => ({ aethel: AethelNode }), []);
 
-  const isAdminMode = () => {
-    if (typeof window === "undefined") return false;
-    return window.location.hostname.includes("admin") || window.location.pathname.startsWith("/admin");
-  };
 
   const handleSendChat = () => {
     if (!chatInput.trim()) return;
@@ -118220,7 +118223,6 @@ export const App: React.FC = () => {
   }, [theme]);
 
   useEffect(() => {
-    if (isAdminMode()) return;
     const initialNodes = [
       {
         id: 'central-orb',
@@ -118284,14 +118286,6 @@ export const App: React.FC = () => {
     setEdges(initialEdges);
   }, []);
 
-  if (isAdminMode()) {
-    return (
-      <ErrorBoundary>
-        <AdminShell />
-      </ErrorBoundary>
-    );
-  }
-
   // বাংলা মন্তব্য: ইউনিট টেস্ট পাস করানোর জন্য হ্যান্ডলারটি পুনরায় সহজ মক হ্যান্ডলারে রূপান্তর করা হলো
   const handleSendCustomer = async () => {
     if (!chatInput.trim()) return;
@@ -118352,12 +118346,27 @@ export const App: React.FC = () => {
   );
 
   return (
-    <DashboardShell
-      theme={theme}
-      toggleTheme={toggleTheme}
-      isServerOnline={isServerOnline}
-      workspace={legacyWorkspace}
-    />
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <Routes>
+          {/* ১. পাবলিক/ইউজার রাউট */}
+          <Route path="/" element={legacyWorkspace} />
+          
+          {/* ২. অ্যাডমিন রাউট */}
+          <Route path="/admin/*" element={<AdminShell />} />
+          
+          {/* ৩. প্রোডাকশন ড্যাশবোর্ড শেল */}
+          <Route path="/workspace/*" element={
+            <DashboardShell
+              theme={theme}
+              toggleTheme={toggleTheme}
+              isServerOnline={isServerOnline}
+              workspace={legacyWorkspace}
+            />
+          } />
+        </Routes>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 
@@ -118730,13 +118739,16 @@ setupGlobalFetchInterceptor();
 import { ThemeProvider } from './contexts/ThemeContext'
 // Shared providers (react-query, monaco defaults)
 import { SharedProviders } from '@supremeai/ui-components'
+import { BrowserRouter } from 'react-router-dom'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ToastProvider>
       <ThemeProvider>
         <SharedProviders>
-          <App />
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
         </SharedProviders>
       </ThemeProvider>
     </ToastProvider>
@@ -128115,7 +128127,7 @@ export function MemoryBrowser() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedConv, setSelectedConv] = useState<any | null>(null);
 
-  const filtered = conversations?.filter((c: any) =>
+  const filtered = (Array.isArray(conversations) ? conversations : [])?.filter((c: any) =>
     c.topic?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.summary?.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
@@ -129049,11 +129061,12 @@ export function LiveLogs({ liveLogs, setLiveLogs }: LiveLogsProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Extract log level counters
-  const infoCount = liveLogs.filter(log => log.toUpperCase().includes('INFO')).length;
-  const warnCount = liveLogs.filter(log => log.toUpperCase().includes('WARN') || log.toUpperCase().includes('WARNING')).length;
-  const errCount = liveLogs.filter(log => log.toUpperCase().includes('ERROR') || log.toUpperCase().includes('ERR') || log.toUpperCase().includes('FAIL')).length;
+  const safeLogs = Array.isArray(liveLogs) ? liveLogs : [];
+  const infoCount = safeLogs.filter(log => log.toUpperCase().includes('INFO')).length;
+  const warnCount = safeLogs.filter(log => log.toUpperCase().includes('WARN') || log.toUpperCase().includes('WARNING')).length;
+  const errCount = safeLogs.filter(log => log.toUpperCase().includes('ERROR') || log.toUpperCase().includes('ERR') || log.toUpperCase().includes('FAIL')).length;
 
-  const filteredLogs = liveLogs.filter(log => {
+  const filteredLogs = safeLogs.filter(log => {
     const matchesSearch = log.toLowerCase().includes(searchTerm.toLowerCase());
     if (filterLevel === 'ALL') return matchesSearch;
     if (filterLevel === 'INFO') return matchesSearch && log.toUpperCase().includes('INFO');
@@ -129068,7 +129081,7 @@ export function LiveLogs({ liveLogs, setLiveLogs }: LiveLogsProps) {
         <div className="flex flex-col gap-1">
           <span className="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Real-time Live Stream (supremeai.log)</span>
           <div className="flex gap-2 text-[10px] text-slate-400 mt-1">
-            <span>Total: {liveLogs.length}</span>
+            <span>Total: {safeLogs.length}</span>
             <span className="text-emerald-500">Info: {infoCount}</span>
             <span className="text-yellow-500">Warn: {warnCount}</span>
             <span className="text-red-500">Error: {errCount}</span>
@@ -129542,7 +129555,7 @@ export function EnhancedSkillMarketplace() {
 
   const [filter, setFilter] = useState<'all' | 'installed' | 'available'>('all');
 
-  const filtered = skills?.filter((s: any) => {
+  const filtered = (Array.isArray(skills) ? skills : [])?.filter((s: any) => {
     if (filter === 'installed') return s.installed;
     if (filter === 'available') return !s.installed;
     return true;

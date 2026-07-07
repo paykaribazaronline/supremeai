@@ -1,8 +1,8 @@
 # 📄 ফাইল: pnpm-lock.yaml
 
 **প্রকার:** .yaml  
-**সাইজ:** 738,732 বাইট  
-**আপডেট:** 2026-07-05T20:27:26.342783
+**সাইজ:** 738,852 বাইট  
+**আপডেট:** 2026-07-07T06:42:45.569737
 
 ---
 
@@ -180,6 +180,9 @@ importers:
       react-i18next:
         specifier: ^15.4.1
         version: 15.7.4(i18next@23.16.8)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
+      react-router-dom:
+        specifier: ^6.4.0
+        version: 6.30.4(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       reactflow:
         specifier: ^11.11.4
         version: 11.11.4(@types/react@19.2.17)(immer@11.1.8)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -20614,8 +20617,8 @@ snapshots:
   vite@7.3.5(@types/node@18.19.130)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(yaml@1.10.3):
     dependencies:
       esbuild: 0.27.7
-      fdir: 6.5.0(picomatch@4.0.4)
-      picomatch: 4.0.4
+      fdir: 6.5.0(picomatch@4.0.5)
+      picomatch: 4.0.5
       postcss: 8.5.15
       rollup: 4.62.2
       tinyglobby: 0.2.17

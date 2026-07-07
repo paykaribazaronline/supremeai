@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/package.json
 
 **প্রকার:** .json  
-**সাইজ:** 2,576 বাইট  
-**আপডেট:** 2026-07-05T20:27:26.459356
+**সাইজ:** 2,608 বাইট  
+**আপডেট:** 2026-07-07T06:42:45.686808
 
 ---
 
@@ -31,8 +31,8 @@
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
-    "@supremeai/ui-components": "workspace:*",
     "@monaco-editor/react": "^4.7.0",
+    "@supremeai/ui-components": "workspace:*",
     "@tailwindcss/vite": "^4.2.4",
     "@tanstack/react-query": "^5.101.0",
     "firebase": "^10.8.0",
@@ -42,6 +42,7 @@
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-i18next": "^15.4.1",
+    "react-router-dom": "^6.4.0",
     "reactflow": "^11.11.4",
     "recharts": "^3.8.1",
     "tailwindcss": "^4.2.4",
@@ -99,6 +100,5 @@
     }
   }
 }
- 
 
 ```
