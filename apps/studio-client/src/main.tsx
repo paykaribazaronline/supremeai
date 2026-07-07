@@ -15,13 +15,16 @@ setupGlobalFetchInterceptor();
 import { ThemeProvider } from './contexts/ThemeContext'
 // Shared providers (react-query, monaco defaults)
 import { SharedProviders } from '@supremeai/ui-components'
+import { BrowserRouter } from 'react-router-dom'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ToastProvider>
       <ThemeProvider>
         <SharedProviders>
-          <App />
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
         </SharedProviders>
       </ThemeProvider>
     </ToastProvider>
