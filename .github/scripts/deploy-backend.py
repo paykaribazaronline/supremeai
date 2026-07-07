@@ -52,7 +52,9 @@ else:
 # 🚀 2. DEPLOY NEW IMAGE
 # ==========================================
 print("🚀 Deploying new image to Cloud Run...")
-deploy_cmd = f"gcloud run deploy {SERVICE_NAME} --image {IMAGE} --region {REGION} --quiet"
+ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
+env_args = f"--set-env-vars ENCRYPTION_KEY='{ENCRYPTION_KEY}'" if ENCRYPTION_KEY else ""
+deploy_cmd = f"gcloud run deploy {SERVICE_NAME} --image {IMAGE} --region {REGION} {env_args} --quiet"
 result = run_cmd(deploy_cmd)
 
 if result.exit_code != 0:
