@@ -23,11 +23,13 @@ def test_parse_cors_origins_local_env_keeps_localhost():
     origins = ["http://127.0.0.1:3000", "https://example.com"]
     assert Settings.parse_cors_origins(list(origins), _info(env="local")) == origins
 
+
 def test_parse_cors_origins_production_strips_localhost():
     # বাংলা মন্তব্য: _env_context প্রোডাকশন হলে localhost অরিজিন বাদ যাবে
     origins = ["http://127.0.0.1:3000", "http://localhost:5173", "https://example.com"]
     result = Settings.parse_cors_origins(list(origins), _info(env="production"))
     assert result == ["https://example.com"]
+
 
 # ── parse_cors_origins ─────────────────────────────────────────────────
 def test_parse_cors_origins_empty_string():

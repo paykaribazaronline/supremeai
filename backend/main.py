@@ -9,8 +9,8 @@ from api.routes import websocket_agent
 from api.routes.admin import router as admin_router
 from api.routes.agent_workspace import router as agent_router
 from api.routes.integrations import router as integrations_router
-from api.routes.task_workspace import router as workspace_task_router
 from api.routes.public_config import router as public_config_router
+from api.routes.task_workspace import router as workspace_task_router
 from core.app import app  # noqa: F401
 from core.config import settings
 from core.logging_config import setup_logging

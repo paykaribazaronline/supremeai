@@ -8,9 +8,7 @@ from memory.sliding_window import SlidingWindowMemory
 @pytest.fixture()
 def window_store(tmp_path):
     db_path = str(tmp_path / "sliding_window.db")
-    store = SlidingWindowMemory(
-        config=SlidingWindowConfig(max_tokens=20, overlap_ratio=0.2), db_path=db_path
-    )
+    store = SlidingWindowMemory(config=SlidingWindowConfig(max_tokens=20, overlap_ratio=0.2), db_path=db_path)
     yield store
 
 
@@ -24,9 +22,7 @@ def test_chunk_persists_records(window_store):
 
 
 def test_recall_returns_latest_first(window_store):
-    window_store.chunk(
-        "first long text one two three four five six seven eight", session_id="s1"
-    )
+    window_store.chunk("first long text one two three four five six seven eight", session_id="s1")
     window_store.chunk(
         "second long text alpha beta gamma delta epsilon zeta eta theta iota",
         session_id="s1",
@@ -55,9 +51,7 @@ def test_build_context_respects_budget(window_store):
 def test_build_context_merges_recalled_chunks(window_store):
     window_store.chunk("two three four five six", session_id="s3")
     window_store.chunk("new document seven eight nine ten", session_id="s3")
-    context = window_store.build_context(
-        ["new document seven eight nine ten"], "", session_id="s3", budget=50
-    )
+    context = window_store.build_context(["new document seven eight nine ten"], "", session_id="s3", budget=50)
     assert "two three four five six" in context
 
 

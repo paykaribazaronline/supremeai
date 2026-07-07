@@ -5,6 +5,7 @@ os.environ.setdefault("OPENROUTER_API_KEY", "")
 os.environ.setdefault("HF_API_KEY", "")
 os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
 
+
 class TestSecureCredentialStoreDisable:
     def test_plaintext_when_no_key(self):
         from core.secure_credential_store import SecureCredentialStore
@@ -23,9 +24,7 @@ class TestSecureCredentialStoreDisable:
         from core.secure_credential_store import SecureCredentialStore
 
         store = SecureCredentialStore()
-        masked = store.mask(
-            {"username": "u", "password": "passwords", "token": "tokentokentoken", "other": "v"}
-        )
+        masked = store.mask({"username": "u", "password": "passwords", "token": "tokentokentoken", "other": "v"})
         assert masked["password"] == "••••••••••ords"
         assert masked["token"] == "••••••••••oken"
         assert masked["username"] == "u"
@@ -39,10 +38,7 @@ class TestSecureCredentialStoreDisable:
 
 
 @pytest.mark.skipif(
-    __import__(
-        "core.secure_credential_store", fromlist=["CRYPTO_AVAILABLE"]
-    ).CRYPTO_AVAILABLE
-    is False,
+    __import__("core.secure_credential_store", fromlist=["CRYPTO_AVAILABLE"]).CRYPTO_AVAILABLE is False,
     reason="cryptography not installed",
 )
 class TestSecureCredentialStoreEncrypted:

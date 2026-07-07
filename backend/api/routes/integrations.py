@@ -8,9 +8,9 @@ from fastapi.responses import RedirectResponse
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.dependencies import get_current_user_token
 from core.config import settings
 from core.security_vault import encrypt_token
-from api.dependencies import get_current_user_token
 from database.session import get_db_session
 from models.integration import Integration
 
@@ -21,6 +21,7 @@ from models.integration import Integration
 
 router = APIRouter()
 
+
 def _build_github_redirect_uri() -> str:
     """
     ডায়নামিক রিডাইরেক্ট URI তৈরি করে — প্রোডাকশনে settings.frontend_base_url ব্যবহার করবে,
@@ -28,6 +29,7 @@ def _build_github_redirect_uri() -> str:
     """
     base = getattr(settings, "frontend_base_url", "http://localhost:8000")
     return f"{base}/api/v1/integrations/github/callback"
+
 
 @router.get("/integrations/github/link")
 async def link_github():
@@ -43,6 +45,7 @@ async def link_github():
     }
     github_auth_url = f"https://github.com/login/oauth/authorize?{urlencode(params)}"
     return RedirectResponse(url=github_auth_url)
+
 
 @router.get("/integrations/github/callback")
 async def github_callback(

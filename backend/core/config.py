@@ -48,11 +48,8 @@ class Settings(BaseSettings):
         "https://supremeai-admin.firebaseapp.com",
     ]
 
-
     # বাংলা মন্তব্য: এডমিন ইমেইল লিস্ট সরাসরি .env ফাইল থেকে লোড করা হবে
-    admin_emails: list[str] = Field(
-        default=[], validation_alias="ADMIN_EMAILS"
-    )
+    admin_emails: list[str] = Field(default=[], validation_alias="ADMIN_EMAILS")
 
     # বাংলা মন্তব্য: অনুমোদিত হোস্ট লিস্ট সরাসরি .env ফাইল থেকে লোড করা হবে
     allowed_hosts: list[str] = Field(
@@ -60,15 +57,11 @@ class Settings(BaseSettings):
         validation_alias="ALLOWED_HOSTS",
     )
 
-    jwt_secret: str | None = Field(
-        default=None, validation_alias="SUPREMEAI_JWT_SECRET"
-    )
+    jwt_secret: str | None = Field(default=None, validation_alias="SUPREMEAI_JWT_SECRET")
 
     # ⚡ ডাইনামিকলি সরাসরি ক্লাউড মেমরি থেকে সিক্রেট রিড করা হচ্ছে
     # ডিস্কে কোনো .env ফাইল না থাকলেও প্রোডাকশন এপিআই ১০০% স্মুথলি চলবে
-    supabase_database_url: str = secret_vault.fetch_secret(
-        "SUPABASE_DATABASE_URL_POOLER"
-    )
+    supabase_database_url: str = secret_vault.fetch_secret("SUPABASE_DATABASE_URL_POOLER")
     redis_url: str = secret_vault.fetch_secret("REDIS_URL")
 
     openrouter_api_key: str = secret_vault.fetch_secret("OPENROUTER_API_KEY")
@@ -112,14 +105,12 @@ class Settings(BaseSettings):
     admin_rules_db: str = "data/constitutional_rules.db"
     memory_db_dir: str = "data/memory"
     skill_registry_path: str = "data/skill_registry.json"
-    
+
     # 🔗 Universal Integration Hub (OAuth)
     github_client_id: str = secret_vault.fetch_secret("GITHUB_CLIENT_ID")
     github_client_secret: str = secret_vault.fetch_secret("GITHUB_CLIENT_SECRET")
-    
-    ci_webhook_secret: str = secret_vault.fetch_secret(
-        "CI_WEBHOOK_SECRET"
-    )
+
+    ci_webhook_secret: str = secret_vault.fetch_secret("CI_WEBHOOK_SECRET")
 
     @field_validator("env")
     @classmethod
@@ -157,9 +148,7 @@ class Settings(BaseSettings):
         env = info.data.get("env", "local")
         if not v:
             if env == "production":
-                raise ValueError(
-                    "SUPREMEAI_JWT_SECRET environment variable must be set in production"
-                )
+                raise ValueError("SUPREMEAI_JWT_SECRET environment variable must be set in production")
             return "test-secret-placeholder"
         return v
 
@@ -168,9 +157,7 @@ class Settings(BaseSettings):
     def validate_admin_hash(cls, v: str | None, info: ValidationInfo) -> str | None:
         env = info.data.get("env", "local")
         if not v and env == "production":
-            raise ValueError(
-                "supremeai_admin_password_hash must be set in production"
-            )
+            raise ValueError("supremeai_admin_password_hash must be set in production")
         return v
 
     @field_validator("debug")
@@ -195,7 +182,7 @@ class Settings(BaseSettings):
                     v = json.loads(v)
                 except json.JSONDecodeError:
                     v = [origin.strip() for origin in v.split(",") if origin.strip()]
-        
+
         env = info.data.get("env", "local")
         if env == "production" and v:
             v = [o for o in v if "localhost" not in o and "127.0.0.1" not in o]
@@ -215,9 +202,7 @@ class Settings(BaseSettings):
             if not self.ci_webhook_secret:
                 missing.append("secure CI_WEBHOOK_SECRET")
             if missing:
-                raise RuntimeError(
-                    f"Missing required configurations for production: {', '.join(missing)}"
-                )
+                raise RuntimeError(f"Missing required configurations for production: {', '.join(missing)}")
         elif self.env.lower() == "staging" and not self.ci_webhook_secret:
             raise RuntimeError("Missing required configuration for staging/production: secure CI_WEBHOOK_SECRET")
 
@@ -233,4 +218,3 @@ if settings.env == "production" or os.getenv("ENV") == "production":
     except Exception as exc:
         logger.critical(f"FATAL CONFIG ERROR: {exc}")
         sys.exit(1)
-
