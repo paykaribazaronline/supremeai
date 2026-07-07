@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/App.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 24,437 বাইট  
-**আপডেট:** 2026-07-07T17:30:18.435658
+**সাইজ:** 24,571 বাইট  
+**আপডেট:** 2026-07-07T17:46:01.331915
 
 ---
 
@@ -54,6 +54,7 @@ import RedesignedDashboardMockup from './components/admin/RedesignedDashboardMoc
 import ErrorBoundary from './components/admin/DashboardErrorBoundary';
 import { AgentWorkspace } from './pages/AgentWorkspace';
 import { IntegrationsManager } from './pages/IntegrationsManager';
+import { ArchitectTower } from './pages/ArchitectTower';
 
 function AdminShell() {
   const {
@@ -500,6 +501,7 @@ export const App: React.FC = () => {
               <Route path="/" element={legacyWorkspace} />
               <Route path="/workspace/agent" element={<AgentWorkspace />} />
               <Route path="/integrations" element={<IntegrationsManager />} />
+              <Route path="/architect-tower" element={<ArchitectTower />} />
               <Route path="/workspace/*" element={
                 <DashboardShell
                   theme={theme}

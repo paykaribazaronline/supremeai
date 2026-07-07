@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/main.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,816 বাইট  
-**আপডেট:** 2026-07-07T17:30:18.347792
+**সাইজ:** 1,901 বাইট  
+**আপডেট:** 2026-07-07T17:46:01.259415
 
 ---
 
@@ -20,6 +20,7 @@ from api.routes import websocket_agent
 from api.routes.agent_workspace import router as agent_router
 from api.routes.integrations import router as integrations_router
 from api.routes.task_workspace import router as workspace_task_router
+from api.routes.admin import router as admin_router
 from core.app import app  # noqa: F401
 from core.config import settings
 from core.logging_config import setup_logging
@@ -29,6 +30,7 @@ app.include_router(workspace_task_router)
 app.include_router(websocket_agent.router)
 app.include_router(agent_router, prefix="/api/v1")
 app.include_router(integrations_router, prefix="/api/v1")
+app.include_router(admin_router)
 
 setup_logging()
 

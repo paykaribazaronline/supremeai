@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/pyproject.toml
 
 **প্রকার:** .toml  
-**সাইজ:** 6,764 বাইট  
-**আপডেট:** 2026-07-07T17:30:18.347514
+**সাইজ:** 6,874 বাইট  
+**আপডেট:** 2026-07-07T17:46:01.259197
 
 ---
 
@@ -62,7 +62,6 @@ alembic = "^1.13.0"
 psycopg2-binary = "^2.9.9"
 opentelemetry-api = "^1.25.0"
 opentelemetry-sdk = "^1.25.0"
-discord-py = "^2.3.0"
 setuptools = "<82.0.0"
 # বাংলা মন্তব্য: গ্রাফ ডাটাবেস এবং মডেল কনটেক্সট প্রোটোকল ব্যবহারের জন্য ডিপেন্ডেন্সি যুক্ত করা হলো
 neo4j = "^5.14.0"
@@ -73,6 +72,7 @@ launchdarkly-server-sdk = "^9.8.0"
 launchdarkly-server-sdk-ai = "^1.0.0"
 launchdarkly-observability = "^1.0.0"
 redis = ">=5,<9"
+boto3 = "^1.34.0"
 
 [tool.poetry.group.ml.dependencies]
 # ── ML/AI: torch, OCR, whisper, embeddings (~3 GB) ──
@@ -91,9 +91,13 @@ qdrant-client = "^1.9.0"
 langgraph = "^0.2.0"
 crewai = "^0.80.0"
 
+[tool.poetry.group.tools]
+optional = true
+
 [tool.poetry.group.tools.dependencies]
 # ── Optional tools: browser, cloud, analytics (~500 MB) ──
 # Install with: poetry install --with tools
+discord-py = "^2.3.0"
 playwright = "^1.60.0"
 playwright-stealth = "^1.0.0"
 pandas = "^2.2.0"
@@ -103,7 +107,6 @@ pdfplumber = "^0.10.0"
 python-pptx = "^0.6.23"
 gtts = "^2.5.1"
 edge-tts = "^6.1.9"
-boto3 = "^1.34.0"
 docker = "^7.0.0"
 celery = "^5.4.0"
 radon = "^6.0.0"
@@ -129,6 +132,9 @@ pytest-xdist = "^3.6.1"
 # বাংলা মন্তব্য: টেস্ট রান করার সময় সমান্তরাল জটিলতায় ডেডলক এড়াতে pytest-timeout যুক্ত করা হলো
 pytest-timeout = "^2.2.0"
 pylint = "^3.2.0"
+discord-py = "^2.3.0"
+matplotlib = "^3.8.0"
+pdfplumber = "^0.10.0"
 
 
 [build-system]
