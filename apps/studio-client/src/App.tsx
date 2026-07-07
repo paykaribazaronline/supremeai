@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useStore } from "./store/useStore";
+import { getApiBaseUrl } from "./utils/api";
 
 // বাংলা মন্তব্য: 401/403/429 এরর হলে কোনো রিট্রাই করা হবে না — রেট লিমিট স্টর্ম ঠেকাতে
 const queryClient = new QueryClient({
@@ -337,6 +338,7 @@ export const App: React.FC = () => {
     };
 
     return () => {
+      console.log("🔌 Cleaning up SSE Stream...");
       eventSource.close();
     };
   }, [setServerStatus, fetchGateStatus]);

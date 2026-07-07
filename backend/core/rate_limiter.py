@@ -135,9 +135,13 @@ class RateLimitMiddleware:
                     await response(scope, receive, send)
                     return
             except Exception as exc:
-                logger.error(f"Error checking tenant rate limit: {exc}. Failing open to allow request.")
-                pass
-        else:
+                logger.error(f"Error checking tenant rate limit: {exc}. Failing closed (503).")
+                response = JSONResponse(
+                    status_code=503,
+                    content={"detail": "Service Unavailable: Rate limit service is offline."},
+                )
+                await response(scope, receive, send)
+                return
             client = scope.get("client")
             
             x_forwarded_for = None

@@ -43,7 +43,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
 
         # বাংলা মন্তব্য: Redis lock অধিগ্রহণের চেষ্টা (SET NX — atomic)
         try:
-            from core.redis_manager import acquire_idempotency_lock, release_idempotency_lock, redis_manager
+            from core.redis_manager import acquire_idempotency_lock, release_idempotency_lock, cache_response_and_release_lock, redis_manager
         except ImportError:
             # Redis ইমপোর্ট ব্যর্থ হলে fail-open — request পাস করে দাও
             logger.warning("[Idempotency] Failed to import redis_manager — skipping check (fail-open)")
@@ -95,13 +95,15 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
 
                 try:
                     body_str = body_bytes.decode("utf-8")
-                    await redis_manager.client.set(
-                        f"idempotency:response:{idempotency_key}",
-                        json.dumps({"status_code": 200, "body": json.loads(body_str)}),
-                        ex=IDEMPOTENCY_TTL_SECONDS * 5,  # response cache TTL = 10 মিনিট
+                    cache_data = json.dumps({"status_code": 200, "body": json.loads(body_str)})
+                    await cache_response_and_release_lock(
+                        idempotency_key, 
+                        cache_data, 
+                        IDEMPOTENCY_TTL_SECONDS * 5
                     )
                 except Exception as cache_err:
                     logger.warning(f"[Idempotency] Response caching failed (non-blocking): {cache_err}")
+                    await release_idempotency_lock(idempotency_key)
             else:
                 # বাংলা মন্তব্য: ব্যর্থ রিকোয়েস্টে লক রিলিজ করা যাতে retry পারে
                 await release_idempotency_lock(idempotency_key)

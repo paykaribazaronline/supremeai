@@ -84,15 +84,20 @@ class EvolutionEngine:
         self, task: str, approach: str, result: str
     ) -> dict[str, Any]:
         created_at = datetime.now(UTC).isoformat()
+        supabase_success = False
         try:
             from database.supabase_client import db
 
             if db.client:
                 db.insert_task_history(task, approach, result, True, created_at)
+                supabase_success = True
         except Exception as e:
             logger.warning(f"Failed to insert success to Supabase: {e}")
             if evolution_write_failures:
                 evolution_write_failures.inc()
+
+        if not supabase_success:
+            return {"stored": False, "error": "Supabase write failed. Saga rollback: skipping SQLite."}
 
         conn = sqlite3.connect(str(self.db_path))
         try:
@@ -114,15 +119,20 @@ class EvolutionEngine:
         self, task: str, approach: str, result: str
     ) -> dict[str, Any]:
         created_at = datetime.now(UTC).isoformat()
+        supabase_success = False
         try:
             from database.supabase_client import db
 
             if db.client:
                 db.insert_task_history(task, approach, result, False, created_at)
+                supabase_success = True
         except Exception as e:
             logger.warning(f"Failed to insert failure to Supabase: {e}")
             if evolution_write_failures:
                 evolution_write_failures.inc()
+                
+        if not supabase_success:
+            return {"stored": False, "error": "Supabase write failed. Saga rollback: skipping SQLite."}
 
         conn = sqlite3.connect(str(self.db_path))
         try:

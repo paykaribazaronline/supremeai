@@ -65,12 +65,13 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
 
         return decoded
     except Exception as e:
+        logger.warning(f"Admin token validation failed", exc_info=True)
         expected = os.getenv("SUPREMEAI_API_TOKEN") or ""
         if expected and secrets.compare_digest(token, expected):
             return {"uid": "admin", "role": "admin"}
         raise HTTPException(
-            status_code=401, detail=f"Invalid Admin Authorization Token: {str(e)}"
-        ) from e
+            status_code=401, detail="Authentication failed."
+        )
 
 
 def admin_rate_limit(request: Request):

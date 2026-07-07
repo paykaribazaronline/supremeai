@@ -38,7 +38,11 @@ class VoiceConnectionManager:
             return None
         try:
             return verify_token(token)
-        except Exception:
+        except Exception as e:
+            from jose import jwt
+            if isinstance(e, jwt.ExpiredSignatureError):
+                client_host = websocket.client.host if websocket.client else "unknown"
+                print(f"⚠️ [WS Auth] Expired token attempt from {client_host}")
             return None
 
 manager = VoiceConnectionManager()
@@ -71,7 +75,7 @@ async def process_audio_with_groq(audio_bytes: bytes) -> str:
             print(f"❌ [Groq STT Error]: {e}")
             return f"Error processing audio: {str(e)}"
 
-async def handle_intent(transcript: str, websocket: WebSocket, start_time: float):
+async def handle_intent(transcript: str, websocket: WebSocket, start_time: float, user_id: str):
     # Intent Router
     transcript_clean = transcript.strip()
     
@@ -89,7 +93,7 @@ async def handle_intent(transcript: str, websocket: WebSocket, start_time: float
     if db.client:
         latency_ms = int((time.time() - start_time) * 1000)
         log_entry = VoiceInteractionLog(
-            user_id="admin-01",
+            user_id=user_id,
             transcript=transcript_clean,
             supremeai_response=supremeai_response,
             latency_ms=latency_ms
@@ -157,7 +161,7 @@ async def websocket_voice_endpoint(
                         await websocket.send_json({"type": "transcript", "text": transcript})
 
                         # 2. Intent Router
-                        await handle_intent(transcript, websocket, start_time)
+                        await handle_intent(transcript, websocket, start_time, auth_payload.get("sub", "anonymous"))
                         start_time = time.time() # Reset timer
 
                     elif action == "text_chat":
@@ -165,7 +169,7 @@ async def websocket_voice_endpoint(
                         print(f"💬 [User Text]: {transcript}")
 
                         # Process text intent directly
-                        await handle_intent(transcript, websocket, start_time)
+                        await handle_intent(transcript, websocket, start_time, auth_payload.get("sub", "anonymous"))
                         start_time = time.time() # Reset timer
 
                 except json.JSONDecodeError:
@@ -176,3 +180,6 @@ async def websocket_voice_endpoint(
     except Exception as e:
         print(f"❌ [WS Voice Engine Error]: {e}")
         manager.disconnect(websocket)
+        import contextlib
+        with contextlib.suppress(Exception):
+            await websocket.close(code=status.WS_1011_INTERNAL_ERROR)

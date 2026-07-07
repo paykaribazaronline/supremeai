@@ -24,6 +24,8 @@ The system has been successfully audited for **Zero-Operating Cost** and **Produ
 - **Resource Usage at Idle:** 
   - Compute: 0vCPU, 0MB RAM
   - Cost Run Rate: $0.00 / hour
+- **Cloud Scheduler Orchestrator (Wave 3):** Background loops have been entirely eliminated. The `Orchestrator` is now triggered strictly via HTTP REST endpoints by GCP Cloud Scheduler, allowing instances to sleep securely without ghost-thread overhead.
+- **Lazy Secret Loading:** `_cached_secrets` ensures GCP Secret Manager is queried only once per lifecycle, eliminating continuous API polling costs.
 - **Cold Start Recovery:** Subsequent wake-up requests triggered the initialization sequence cleanly. The `GlobalConfigInitializer` displayed the Spinner UI while fetching configuration, ensuring seamless UX even during cold starts.
 
 ## 5. Conclusion
