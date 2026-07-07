@@ -5,9 +5,7 @@ from loguru import logger
 
 
 class MultiAICodeGenerator:
-    def generate_with_consensus(
-        self, task: str, code_kimi: str, code_gpt: str, code_claude: str
-    ) -> dict:
+    def generate_with_consensus(self, task: str, code_kimi: str, code_gpt: str, code_claude: str) -> dict:
         # Compare and find common lines
         lines_kimi = set(code_kimi.splitlines())
         lines_gpt = set(code_gpt.splitlines())
@@ -40,7 +38,7 @@ class EnhancedConfidenceScorer:
         """ডাইনামিকালি ডাটাবেজ বা JSON থেকে রুলস লোড করে।"""
         if rules_path and rules_path.exists():
             try:
-                with open(rules_path, encoding='utf-8') as f:
+                with open(rules_path, encoding="utf-8") as f:
                     return json.load(f)
             except (OSError, json.JSONDecodeError) as e:
                 # বল মনতবয: আগ `logger` ইমপরট কর হয়ন, ফল এই except বলক নজই
@@ -112,10 +110,10 @@ class OutputValidator:
         # ভবিষ্যতে Firestore বা অন্য DB থেকে লোড করার জন্য পাথ প্যারামিটার ব্যবহার করা যাবে
         rules_path = Path(__file__).parent.parent / "config" / "constitutional_rules.json"
         self.enhanced_scorer = EnhancedConfidenceScorer(rules_path=rules_path)
-        
+
         self.consensus_threshold = self.enhanced_scorer.rules.get("consensus_threshold", 0.7)
         self.hallucination_patterns = self.enhanced_scorer.rules.get("hallucination_patterns", [])
-        
+
         self.multi_generator = MultiAICodeGenerator()
         self.human_policy = HumanReviewPolicy()
 
@@ -124,9 +122,7 @@ class OutputValidator:
         disagreements = []
         if any(p in output.lower() for p in self.hallucination_patterns):
             score = 0.1
-            disagreements.append(
-                "Incorrect GitHub repository path detected (hallucinated)."
-            )
+            disagreements.append("Incorrect GitHub repository path detected (hallucinated).")
         return {
             "consensus_score": score,
             "disagreements": disagreements,
