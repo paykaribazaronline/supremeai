@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_secret_vault.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,847 বাইট  
-**আপডেট:** 2026-07-07T18:25:59.868349
+**সাইজ:** 2,767 বাইট  
+**আপডেট:** 2026-07-07T18:37:32.344027
 
 ---
 
@@ -52,14 +52,14 @@ def test_fetch_secret_from_env(vault_local):
 
 
 def test_fetch_secret_env_fallback(vault_local):
-    result = vault_local.fetch_secret("MISSING_SECRET", default_fallback="default")
-    assert result == "default"
+    result = vault_local.fetch_secret("MISSING_SECRET")
+    assert result == ""
 
 
 def test_fetch_secret_env_empty(vault_local):
     with patch.dict(os.environ, {"MISSING_SECRET": ""}, clear=False):
-        result = vault_local.fetch_secret("MISSING_SECRET", default_fallback="default")
-        assert result == "default"
+        result = vault_local.fetch_secret("MISSING_SECRET")
+        assert result == ""
 
 
 def test_production_mode_fetch_secret(vault_production):
@@ -79,8 +79,9 @@ def test_production_mode_fetch_secret(vault_production):
 def test_production_mode_fetch_secret_error(vault_production):
     vault_production.client.access_secret_version.side_effect = Exception("GCP error")
     with patch.dict(os.environ, {"SECRET_ID": ""}, clear=False):
-        result = vault_production.fetch_secret("SECRET_ID", default_fallback="fallback")
-    assert result == "fallback"
+        import pytest
+        with pytest.raises(RuntimeError):
+            vault_production.fetch_secret("SECRET_ID")
 
 
 def test_production_mode_missing_client_and_project(vault_production):
@@ -88,7 +89,8 @@ def test_production_mode_missing_client_and_project(vault_production):
     v.env = "production"
     v.client = None
     v.project_id = None
-    result = v.fetch_secret("SECRET_ID", default_fallback="default")
-    assert result == "default"
+    import pytest
+    with pytest.raises(RuntimeError):
+        v.fetch_secret("SECRET_ID")
 
 ```

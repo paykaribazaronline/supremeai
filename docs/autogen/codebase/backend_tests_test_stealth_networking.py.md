@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_stealth_networking.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,953 বাইট  
-**আপডেট:** 2026-07-07T18:25:59.871907
+**সাইজ:** 2,090 বাইট  
+**আপডেট:** 2026-07-07T18:37:32.347366
 
 ---
 
@@ -23,8 +23,12 @@ def test_production_sandbox_fails_without_docker():
     settings.env = "production"
     
     orchestrator = CloudSandboxOrchestrator()
+    import sys
+    from unittest.mock import MagicMock
     # Mock docker to fail
-    with patch("docker.from_env", side_effect=Exception("Docker daemon down")):
+    mock_docker = MagicMock()
+    mock_docker.from_env.side_effect = Exception("Docker daemon down")
+    with patch.dict('sys.modules', {'docker': mock_docker}):
         res = orchestrator.run_code("print('hello')")
         
     assert res["success"] is False

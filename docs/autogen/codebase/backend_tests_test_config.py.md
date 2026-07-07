@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_config.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,095 বাইট  
-**আপডেট:** 2026-07-07T18:25:59.864488
+**সাইজ:** 4,170 বাইট  
+**আপডেট:** 2026-07-07T18:37:32.340241
 
 ---
 
@@ -115,7 +115,8 @@ def test_parse_allowed_hosts_empty_string():
     {
         "env": "production", 
         "cors_origins": '["http://127.0.0.1:3000", "https://example.com"]',
-        "SUPREMEAI_JWT_SECRET": "mock-jwt-secret-for-production"
+        "SUPREMEAI_JWT_SECRET": "mock-jwt-secret-for-production",
+        "SUPREMEAI_ADMIN_PASSWORD_HASH": "mock_hash_for_production_test",
     },
     clear=False,
 )

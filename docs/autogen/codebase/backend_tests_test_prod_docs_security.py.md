@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_prod_docs_security.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,957 বাইট  
-**আপডেট:** 2026-07-07T18:25:59.864232
+**সাইজ:** 4,097 বাইট  
+**আপডেট:** 2026-07-07T18:37:32.339986
 
 ---
 
@@ -100,7 +100,9 @@ def test_docs_disabled_in_production():
         os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_32_chars_long_test"
         os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "CwE60g_bA67m-mock-encryption-key-padded-len="
         os.environ["CI_WEBHOOK_SECRET"] = "secure-ci-webhook-secret-for-testing-2026"
+        os.environ["SUPREMEAI_ADMIN_PASSWORD_HASH"] = "mock_hash_for_production_test"
         os.environ["docs_auth_enabled"] = "false"
+        os.environ["REDIS_URL"] = "redis://mock:6379"
         import core.app as app_mod
         import core.services as services
 

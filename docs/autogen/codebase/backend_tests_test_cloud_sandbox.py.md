@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_cloud_sandbox.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,599 বাইট  
-**আপডেট:** 2026-07-07T18:25:59.869915
+**সাইজ:** 10,603 বাইট  
+**আপডেট:** 2026-07-07T18:37:32.345460
 
 ---
 
@@ -52,7 +52,7 @@ class TestCloudSandboxOrchestrator:
 
         result = await orchestrator.create_sandbox(spec={"imageName": "ubuntu"})
         assert result is not None
-        assert result["id"] == "mock-sandbox-id-12345"
+        assert result["id"].startswith("mock-sandbox-id-")
         assert result["status"] == "running"
         assert result["mock"] is True
 

@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-07T18:25:59.784953
+Generated at: 2026-07-07T18:37:32.260735
 
 
 ## File: `pnpm-lock.yaml`
@@ -75759,7 +75759,9 @@ def test_docs_disabled_in_production():
         os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_32_chars_long_test"
         os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "CwE60g_bA67m-mock-encryption-key-padded-len="
         os.environ["CI_WEBHOOK_SECRET"] = "secure-ci-webhook-secret-for-testing-2026"
+        os.environ["SUPREMEAI_ADMIN_PASSWORD_HASH"] = "mock_hash_for_production_test"
         os.environ["docs_auth_enabled"] = "false"
+        os.environ["REDIS_URL"] = "redis://mock:6379"
         import core.app as app_mod
         import core.services as services
 
@@ -75939,7 +75941,8 @@ def test_parse_allowed_hosts_empty_string():
     {
         "env": "production", 
         "cors_origins": '["http://127.0.0.1:3000", "https://example.com"]',
-        "SUPREMEAI_JWT_SECRET": "mock-jwt-secret-for-production"
+        "SUPREMEAI_JWT_SECRET": "mock-jwt-secret-for-production",
+        "SUPREMEAI_ADMIN_PASSWORD_HASH": "mock_hash_for_production_test",
     },
     clear=False,
 )
@@ -80191,14 +80194,14 @@ def test_fetch_secret_from_env(vault_local):
 
 
 def test_fetch_secret_env_fallback(vault_local):
-    result = vault_local.fetch_secret("MISSING_SECRET", default_fallback="default")
-    assert result == "default"
+    result = vault_local.fetch_secret("MISSING_SECRET")
+    assert result == ""
 
 
 def test_fetch_secret_env_empty(vault_local):
     with patch.dict(os.environ, {"MISSING_SECRET": ""}, clear=False):
-        result = vault_local.fetch_secret("MISSING_SECRET", default_fallback="default")
-        assert result == "default"
+        result = vault_local.fetch_secret("MISSING_SECRET")
+        assert result == ""
 
 
 def test_production_mode_fetch_secret(vault_production):
@@ -80218,8 +80221,9 @@ def test_production_mode_fetch_secret(vault_production):
 def test_production_mode_fetch_secret_error(vault_production):
     vault_production.client.access_secret_version.side_effect = Exception("GCP error")
     with patch.dict(os.environ, {"SECRET_ID": ""}, clear=False):
-        result = vault_production.fetch_secret("SECRET_ID", default_fallback="fallback")
-    assert result == "fallback"
+        import pytest
+        with pytest.raises(RuntimeError):
+            vault_production.fetch_secret("SECRET_ID")
 
 
 def test_production_mode_missing_client_and_project(vault_production):
@@ -80227,8 +80231,9 @@ def test_production_mode_missing_client_and_project(vault_production):
     v.env = "production"
     v.client = None
     v.project_id = None
-    result = v.fetch_secret("SECRET_ID", default_fallback="default")
-    assert result == "default"
+    import pytest
+    with pytest.raises(RuntimeError):
+        v.fetch_secret("SECRET_ID")
 
 ```
 
@@ -81114,7 +81119,7 @@ class TestCloudSandboxOrchestrator:
 
         result = await orchestrator.create_sandbox(spec={"imageName": "ubuntu"})
         assert result is not None
-        assert result["id"] == "mock-sandbox-id-12345"
+        assert result["id"].startswith("mock-sandbox-id-")
         assert result["status"] == "running"
         assert result["mock"] is True
 
@@ -82913,8 +82918,12 @@ def test_production_sandbox_fails_without_docker():
     settings.env = "production"
     
     orchestrator = CloudSandboxOrchestrator()
+    import sys
+    from unittest.mock import MagicMock
     # Mock docker to fail
-    with patch("docker.from_env", side_effect=Exception("Docker daemon down")):
+    mock_docker = MagicMock()
+    mock_docker.from_env.side_effect = Exception("Docker daemon down")
+    with patch.dict('sys.modules', {'docker': mock_docker}):
         res = orchestrator.run_code("print('hello')")
         
     assert res["success"] is False
