@@ -1,9 +1,11 @@
 import json
 
-from fastapi import HTTPException, Request
+from fastapi import HTTPException
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
+
 
 # বাংলা মন্তব্য: Redis-based Distributed Idempotency Middleware
 # পূর্বে Firestore (Firebase) ব্যবহার করা হতো, যা Serverless-এ ব্যয়বহুল এবং ধীর ছিল।
@@ -41,7 +43,10 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
 
         # বাংলা মন্তব্য: Redis lock অধিগ্রহণের চেষ্টা (SET NX — atomic)
         try:
-            from core.redis_manager import acquire_idempotency_lock, release_idempotency_lock, cache_response_and_release_lock, redis_manager
+            from core.redis_manager import acquire_idempotency_lock
+            from core.redis_manager import cache_response_and_release_lock
+            from core.redis_manager import redis_manager
+            from core.redis_manager import release_idempotency_lock
         except ImportError:
             # Redis ইমপোর্ট ব্যর্থ হলে fail-open — request পাস করে দাও
             logger.warning("[Idempotency] Failed to import redis_manager — skipping check (fail-open)")

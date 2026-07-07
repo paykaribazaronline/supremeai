@@ -13,6 +13,7 @@ from alembic import context
 from core.config import settings
 from models.base import Base
 
+
 # Import all models to ensure they are registered with Base.metadata before autogenerate
 
 

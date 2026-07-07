@@ -64,14 +64,14 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
                 logger.warning("Redis not configured; falling back to in-memory JWT blacklist check.")
 
         return decoded
-    except Exception:  # noqa: BLE001
+    except Exception as err:  # noqa: BLE001
         logger.warning("Admin token validation failed", exc_info=True)
         expected = os.getenv("SUPREMEAI_API_TOKEN") or ""
         if expected and secrets.compare_digest(token, expected):
             return {"uid": "admin", "role": "admin"}
         raise HTTPException(
             status_code=401, detail="Authentication failed."
-        )
+        ) from err
 
 
 def admin_rate_limit(request: Request):

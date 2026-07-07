@@ -1,9 +1,9 @@
 import asyncio
-from typing import Dict, Set
+
 
 class PubSub:
     def __init__(self):
-        self.subscribers: Dict[str, Set[asyncio.Queue]] = {}
+        self.subscribers: dict[str, set[asyncio.Queue]] = {}
 
     def subscribe(self, channel: str) -> asyncio.Queue:
         if channel not in self.subscribers:

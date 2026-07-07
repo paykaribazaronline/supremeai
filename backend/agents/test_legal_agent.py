@@ -2,6 +2,7 @@
 from unittest.mock import patch
 
 import pytest
+
 from agents.legal_agent import LegalAgent
 
 

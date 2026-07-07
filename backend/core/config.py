@@ -4,7 +4,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from loguru import logger
-from pydantic import Field, PrivateAttr
+from pydantic import Field
+from pydantic import PrivateAttr
 from pydantic import ValidationInfo
 from pydantic import computed_field
 from pydantic import field_validator

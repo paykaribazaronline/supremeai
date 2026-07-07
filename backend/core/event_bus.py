@@ -1,7 +1,10 @@
 import asyncio
 import logging
+from collections.abc import Callable
+from typing import Any
+
 from pydantic import BaseModel
-from typing import Dict, Any, Callable, List
+
 
 logger = logging.getLogger("supremeai.event_bus")
 
@@ -10,11 +13,11 @@ class ErrorEvent(BaseModel):
     error_type: str
     message: str
     severity: str  # CRITICAL, WARNING, INFO
-    context: Dict[str, Any]
+    context: dict[str, Any]
 
 class ErrorEventBus:
     def __init__(self):
-        self._listeners: List[Callable[[ErrorEvent], asyncio.Future]] = []
+        self._listeners: list[Callable[[ErrorEvent], asyncio.Future]] = []
 
     def register_listener(self, listener: Callable[[ErrorEvent], asyncio.Future]):
         self._listeners.append(listener)
