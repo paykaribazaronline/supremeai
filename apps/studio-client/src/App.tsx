@@ -28,12 +28,13 @@ const queryClient = new QueryClient({
 import { useAdminStore } from "./store/adminStore";
 import { AdminConsole } from "./components/admin/AdminConsole";
 import { UserDashboard } from "./components/customer/UserDashboard";
+import { GlobalConfigInitializer } from "./components/core/GlobalConfigInitializer";
 // বাংলা মন্তব্য: Devin-স্টাইল ড্যাশবোর্ড শেল ইম্পোর্ট — সেশন, নলেজ, সিক্রেট, ইউসেজ ও সেটিংস পেজসহ
 import { DashboardShell } from "./components/dashboard/DashboardShell";
 import { getAethelResponse } from "./services/chatService";
 import type { ChatMessage } from "./services/chatService";
-import { getApiBaseUrl } from "./utils/api";
 import { getAdminToken } from './services/adminTokenStore';
+import { useBudgetCheck } from './hooks/useBudgetCheck';
 import { Cpu, Send } from 'lucide-react';
 import ReactFlow, { Background, useNodesState, useEdgesState } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -60,10 +61,12 @@ function AdminShell() {
     setActionStatus,
   } = useAdminStore();
 
-  // বাংলা মন্তব্য: হার্ডকোড ভ্যালু বাদ দিয়ে এনভায়রনমেন্ট ভ্যারিয়েবল থেকে ডাইনামিকলি লোড করা হচ্ছে
-  const [adminEmail, setAdminEmail] = useState(import.meta.env.VITE_ADMIN_EMAIL || "admin@supremeai.dev");
+  // বাংলা মন্তব্য: হার্ডকোড ভ্যালু বাদ দিয়ে গ্লোবাল কনফিগ থেকে ভ্যালু নেওয়া হচ্ছে
+  const { systemConfig } = useStore();
+  const [adminEmail, setAdminEmail] = useState(systemConfig.adminEmail);
   const [totpSetupRequired] = useState(false);
-  const [totpSecret] = useState(import.meta.env.VITE_SUPREMEAI_ADMIN_TOTP_SECRET || "JBSWY3DPEHPK3PXP");
+  // Security fix: totpSecret is not hardcoded here, but if needed for setup, fetch from backend via secure API
+  const [totpSecret] = useState("");
   const [provisioningUri] = useState("");
   const [adminSubTab, setAdminSubTab] = useState<any>("dashboard");
   const [skillQuery, setSkillQuery] = useState("");
@@ -472,38 +475,40 @@ export const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <Routes>
-          {PORTAL_TYPE === 'admin' ? (
-            /* =========================================
-               ADMIN PORTAL (supremeai-admin.web.app)
-            ========================================= */
-            <>
-              <Route path="/" element={<Navigate to="/admin" replace />} />
-              <Route path="/admin/*" element={<AdminShell />} />
-              <Route path="*" element={<Navigate to="/admin" replace />} />
-            </>
-          ) : (
-            /* =========================================
-               USER PORTAL (supremeai-lac.vercel.app)
-            ========================================= */
-            <>
-              <Route path="/" element={legacyWorkspace} />
-              <Route path="/workspace/agent" element={<AgentWorkspace />} />
-              <Route path="/integrations" element={<IntegrationsManager />} />
-              <Route path="/architect-tower" element={<ArchitectTower />} />
-              <Route path="/workspace/*" element={
-                <DashboardShell
-                  theme={theme}
-                  toggleTheme={toggleTheme}
-                  isServerOnline={isServerOnline}
-                  workspace={legacyWorkspace}
-                />
-              } />
-              {/* ইউজাররা /admin এ যাওয়ার চেষ্টা করলে হোমপেজে পাঠিয়ে দেবে */}
-              <Route path="/admin/*" element={<Navigate to="/" replace />} />
-            </>
-          )}
-        </Routes>
+        <GlobalConfigInitializer>
+          <Routes>
+            {PORTAL_TYPE === 'admin' ? (
+              /* =========================================
+                 ADMIN PORTAL (supremeai-admin.web.app)
+              ========================================= */
+              <>
+                <Route path="/" element={<Navigate to="/admin" replace />} />
+                <Route path="/admin/*" element={<AdminShell />} />
+                <Route path="*" element={<Navigate to="/admin" replace />} />
+              </>
+            ) : (
+              /* =========================================
+                 USER PORTAL (supremeai-lac.vercel.app)
+              ========================================= */
+              <>
+                <Route path="/" element={legacyWorkspace} />
+                <Route path="/workspace/agent" element={<AgentWorkspace />} />
+                <Route path="/integrations" element={<IntegrationsManager />} />
+                <Route path="/architect-tower" element={<ArchitectTower />} />
+                <Route path="/workspace/*" element={
+                  <DashboardShell
+                    theme={theme}
+                    toggleTheme={toggleTheme}
+                    isServerOnline={isServerOnline}
+                    workspace={legacyWorkspace}
+                  />
+                } />
+                {/* ইউজাররা /admin এ যাওয়ার চেষ্টা করলে হোমপেজে পাঠিয়ে দেবে */}
+                <Route path="/admin/*" element={<Navigate to="/" replace />} />
+              </>
+            )}
+          </Routes>
+        </GlobalConfigInitializer>
       </QueryClientProvider>
     </ErrorBoundary>
   );
@@ -512,13 +517,18 @@ export const App: React.FC = () => {
 // --- Evolution Forge Component ---
 export const EvolutionForgeWidget: React.FC = () => {
   const { isForging, forgeFeedback, forgeSuccessCode, forgeNewSkill } = useStore();
+  const { checkBudget, isChecking, budgetError } = useBudgetCheck();
   const [skillName, setSkillName] = useState("");
   const [userDemand, setUserDemand] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!skillName || !userDemand) return;
     
+    // Pre-flight cost check (estimated cost: 0.05 for generating a skill)
+    const hasBudget = await checkBudget(0.05);
+    if (!hasBudget) return;
+
     const formattedName = skillName.replace(/[^a-zA-Z0-9]/g, "");
     forgeNewSkill(formattedName, userDemand);
   };
@@ -573,7 +583,15 @@ export const EvolutionForgeWidget: React.FC = () => {
         </button>
       </form>
 
-      {forgeFeedback && (
+      {budgetError && (
+        <div className="mt-4 p-3 bg-red-950/20 border border-red-900 rounded-xl">
+          <p className="text-xs font-mono text-red-400 text-center">
+            {budgetError}
+          </p>
+        </div>
+      )}
+
+      {forgeFeedback && !budgetError && (
         <div className="mt-4 p-3 bg-slate-950 border border-slate-900 rounded-xl">
           <p className="text-xs font-mono text-slate-300 animate-fade-in text-center">
             {forgeFeedback}

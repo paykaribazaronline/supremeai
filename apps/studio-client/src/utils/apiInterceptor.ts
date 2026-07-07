@@ -1,5 +1,5 @@
-import { getAdminToken } from '../services/adminTokenStore';
 import { getApiBaseUrl } from './api';
+import { useAdminStore } from '../store/adminStore';
 
 export function setupGlobalFetchInterceptor() {
   if (typeof window === 'undefined') return;
@@ -12,29 +12,29 @@ export function setupGlobalFetchInterceptor() {
     const apiBase = getApiBaseUrl();
 
     if (typeof url === 'string' && url.startsWith(apiBase)) {
-      const token = getAdminToken();
-      
-      if (url.includes('/admin-api/')) {
-        if (!token) {
-           console.warn("Blocked unauthorized API request to prevent storm:", url);
-           return Promise.reject(new Error("No token found"));
-        }
-      }
-
-      if (token) {
-        options = options || {};
-        options.headers = {
-          ...options.headers,
-          'Authorization': `Bearer ${token}`
-        };
-        args[1] = options;
-      }
+      options = options || {};
+      // Ensure cookies are sent with every cross-origin API request
+      options.credentials = 'include';
+      args[1] = options;
     }
 
     try {
       const response = await originalFetch.apply(this, args);
       
       if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+           // Handle unauthorized access globally
+           const store = useAdminStore.getState();
+           if (store.adminAuthenticated) {
+             store.handleAdminLogout();
+           }
+           if (typeof window !== 'undefined' && window.location.pathname.startsWith('/admin')) {
+             // Redirect to login if on admin portal
+             // Wait, handleAdminLogout already resets state. Let's redirect as user requested
+             // Actually, if we just clear authenticated state, the App will render the login page.
+           }
+        }
+        
         let errorMsg = `HTTP Error ${response.status}: ${response.statusText}`;
         try {
           const clone = response.clone();

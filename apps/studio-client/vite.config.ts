@@ -11,6 +11,7 @@ export default defineConfig({
   ],
   esbuild: {
     jsx: 'automatic',
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
   },
   resolve: {
     dedupe: ['react', 'react-dom', '@tanstack/react-query']

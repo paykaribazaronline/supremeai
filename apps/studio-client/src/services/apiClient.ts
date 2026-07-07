@@ -2,7 +2,7 @@
 // বাংলা মন্তব্য: এটি অ্যাপ্লিকেশনের সেন্ট্রাল এপিআই ক্লায়েন্ট যা হেডার, টোকেন এবং সিকিউর রেট লিমিট (429) / ভ্যালিডেশন এরর ইন্টারসেপ্ট করে।
 
 import { getApiBaseUrl } from '../utils/api';
-import { getAdminToken } from './adminTokenStore';
+import PQueue from 'p-queue';
 
 // বাংলা মন্তব্য: কাস্টম এরর ক্লাস — status প্রপার্টি দিয়ে React Query retry ফাংশন সঠিকভাবে 401/403/429 চিহ্নিত করতে পারে
 export class ApiError extends Error {
@@ -14,37 +14,17 @@ export class ApiError extends Error {
   }
 }
 
-// বাংলা মন্তব্য: কনকারেন্সি লিমিটার — একসাথে সর্বোচ্চ MAX_CONCURRENT টি রিকোয়েস্ট যাবে, বাকিগুলো কিউতে থাকবে
-const MAX_CONCURRENT = 3;
-let activeRequests = 0;
-const requestQueue: Array<() => void> = [];
+// Dynamic concurrency queue
+export const requestQueue = new PQueue({ concurrency: 3 }); // Default to 3, can be updated via config
 
-function enqueue(): Promise<void> {
-  if (activeRequests < MAX_CONCURRENT) {
-    activeRequests++;
-    return Promise.resolve();
-  }
-  return new Promise<void>((resolve) => {
-    requestQueue.push(() => {
-      activeRequests++;
-      resolve();
-    });
-  });
-}
-
-function dequeue(): void {
-  activeRequests--;
-  if (requestQueue.length > 0) {
-    const next = requestQueue.shift();
-    next?.();
-  }
-}
+export const setApiConcurrency = (concurrency: number) => {
+  requestQueue.concurrency = concurrency;
+};
 
 export const getAuthHeaders = (): Record<string, string> => {
-  const token = getAdminToken();
   return {
-    'Content-Type': 'application/json',
-    'Authorization': token ? `Bearer ${token}` : '',
+    'Content-Type': 'application/json'
+    // Authorization header removed as per httpOnly cookie setup
   };
 };
 
@@ -63,6 +43,10 @@ const handleResponse = async (res: Response) => {
       console.warn("Rate limit exceeded (429). Throttling client requests.");
       throw new ApiError(`Rate limit exceeded: ${errMsg}. Please wait before retrying.`, 429);
     }
+    if (res.status === 402) {
+      console.warn("Payment/Budget Required (402). CostGuard rejected the request.");
+      throw new ApiError(`Budget Limit Exceeded: ${errMsg}`, 402);
+    }
     if (res.status === 422) {
       console.error("Validation error (422) detected in payload schema.");
       throw new ApiError(`Validation Error: ${errMsg}`, 422);
@@ -76,14 +60,18 @@ const handleResponse = async (res: Response) => {
   return res.json();
 };
 
-// বাংলা মন্তব্য: throttledFetch — কিউ দিয়ে একসাথে অতিরিক্ত রিকোয়েস্ট না যাওয়ার নিশ্চয়তা
+// বাংলা মন্তব্য: throttledFetch — p-queue দিয়ে একসাথে অতিরিক্ত রিকোয়েস্ট না যাওয়ার নিশ্চয়তা
 const throttledFetch = async (url: string, options: RequestInit): Promise<Response> => {
-  await enqueue();
-  try {
-    return await fetch(url, options);
-  } finally {
-    dequeue();
-  }
+  return requestQueue.add(async () => {
+    try {
+      // credentials already set in interceptor, but we can enforce it here too
+      options.credentials = 'include';
+      return await fetch(url, options);
+    } catch (e) {
+      console.error(`[Queue Interceptor] Network failure for ${url}:`, e);
+      throw e; // throw so the caller knows it failed, queue will proceed to next item
+    }
+  }) as Promise<Response>;
 };
 
 export const apiClient = {
