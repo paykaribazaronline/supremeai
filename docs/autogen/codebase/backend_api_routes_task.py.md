@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/task.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,915 বাইট  
-**আপডেট:** 2026-07-07T19:14:31.162030
+**সাইজ:** 15,006 বাইট  
+**আপডেট:** 2026-07-07T19:34:31.400078
 
 ---
 
@@ -23,6 +23,7 @@ from fastapi import BackgroundTasks
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.responses import StreamingResponse
+from loguru import logger
 from pydantic import BaseModel
 
 # --- Local Imports ---
@@ -418,7 +419,7 @@ async def task_stream():
                 yield f"data: {json.dumps({'status': 'alive', 'timestamp': datetime.datetime.now(datetime.UTC).isoformat()})}\n\n"
                 await asyncio.sleep(15)
         except asyncio.CancelledError:
-            pass
+            logger.debug("Task stream keepalive cancelled (client disconnected)")
 
     return StreamingResponse(
         keepalive(),

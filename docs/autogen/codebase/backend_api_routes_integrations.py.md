@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/integrations.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,369 বাইট  
-**আপডেট:** 2026-07-07T19:14:31.166870
+**সাইজ:** 5,229 বাইট  
+**আপডেট:** 2026-07-07T19:34:31.404973
 
 ---
 
@@ -13,67 +13,114 @@ from urllib.parse import urlencode
 
 import httpx
 from fastapi import APIRouter
+from fastapi import Depends
 from fastapi import Request
 from fastapi.responses import RedirectResponse
+from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
 from core.security_vault import encrypt_token
+from api.dependencies import get_current_user_token
+from database.session import get_db_session
+from models.integration import Integration
 
 
-# Assuming we will use a database session/dependency to save the token. 
-# For now, we stub the DB save and print it.
+# বাংলা মন্তব্য: GitHub OAuth — রিয়েল ইউজার আইডি ও DB পার্সিস্টেন্স সহ সম্পূর্ণ ফ্লো
+# আগের ভার্সনে user_id = "test_user_id" হার্ডকোডেড ছিল এবং টোকেন DB-তে সেভ হতো না।
+# এখন JWT থেকে প্রকৃত user_id নেওয়া হচ্ছে এবং encrypted token DB-তে সংরক্ষিত হচ্ছে।
 
 router = APIRouter()
+
+def _build_github_redirect_uri() -> str:
+    """
+    ডায়নামিক রিডাইরেক্ট URI তৈরি করে — প্রোডাকশনে settings.frontend_base_url ব্যবহার করবে,
+    লোকালে ডিফল্ট localhost:8000।
+    """
+    base = getattr(settings, "frontend_base_url", "http://localhost:8000")
+    return f"{base}/api/v1/integrations/github/callback"
 
 @router.get("/integrations/github/link")
 async def link_github():
     """
-    Redirects the user to GitHub's OAuth login page.
+    ইউজারকে GitHub OAuth লগইন পেইজে রিডাইরেক্ট করে।
+    redirect_uri এখন ডায়নামিক — settings.frontend_base_url থেকে নেওয়া হয়।
     """
+    redirect_uri = _build_github_redirect_uri()
     params = {
         "client_id": settings.github_client_id,
         "scope": "repo user",
-        "redirect_uri": "http://localhost:8000/api/v1/integrations/github/callback"
+        "redirect_uri": redirect_uri,
     }
     github_auth_url = f"https://github.com/login/oauth/authorize?{urlencode(params)}"
     return RedirectResponse(url=github_auth_url)
 
 @router.get("/integrations/github/callback")
-async def github_callback(code: str, request: Request):
+async def github_callback(
+    code: str,
+    request: Request,
+    token_payload: dict = Depends(get_current_user_token),
+    db: AsyncSession = Depends(get_db_session),
+):
     """
-    Handles the callback from GitHub, exchanges code for token, and saves it.
+    GitHub OAuth কলব্যাক হ্যান্ডলার।
+    কোড এক্সচেঞ্জ করে access_token নেয়, এনক্রিপ্ট করে, এবং DB-তে সংরক্ষণ করে।
     """
+    # ১. JWT থেকে প্রকৃত user_id বের করা
+    user_id = token_payload.get("sub")
+    if not user_id:
+        logger.error("GitHub OAuth callback: Token payload missing 'sub' claim.")
+        return RedirectResponse(
+            url=f"{getattr(settings, 'frontend_base_url', 'http://localhost:5173')}/integrations?status=error&message=Invalid token"
+        )
+
+    redirect_uri = _build_github_redirect_uri()
     token_url = "https://github.com/login/oauth/access_token"
     payload = {
         "client_id": settings.github_client_id,
         "client_secret": settings.github_client_secret,
         "code": code,
-        "redirect_uri": "http://localhost:8000/api/v1/integrations/github/callback"
+        "redirect_uri": redirect_uri,
     }
     headers = {"Accept": "application/json"}
-    
+
     async with httpx.AsyncClient() as client:
         response = await client.post(token_url, json=payload, headers=headers)
         data = response.json()
-        
+
     access_token = data.get("access_token")
     if not access_token:
-        return {"status": "error", "message": "Failed to get access token from GitHub."}
-    
-    # Encrypt the token using our AES-256 (Fernet) vault
-    _encrypted_token = encrypt_token(access_token)
-    
-    # TODO: In a real app, extract user_id from the session/JWT
-    user_id = "test_user_id" 
-    
-    # Simulate saving to database
-    # new_integration = Integration(user_id=user_id, provider="github", encrypted_access_token=encrypted_token)
-    # db.add(new_integration)
-    # db.commit()
-    
-    print(f"🔗 [Universal Integration Hub] GitHub connected for user '{user_id}'. Token encrypted successfully.")
-    
-    # Redirect back to the frontend Integrations page
-    return RedirectResponse(url="http://localhost:5173/integrations?status=success")
+        logger.warning(f"GitHub OAuth failed for user {user_id}: no access_token in response")
+        return RedirectResponse(
+            url=f"{getattr(settings, 'frontend_base_url', 'http://localhost:5173')}/integrations?status=error&message=Failed to get access token"
+        )
+
+    # ২. টোকেন এনক্রিপ্ট করা (AES-256 Fernet)
+    encrypted_token = encrypt_token(access_token)
+
+    # ৩. DB-তে ইন্টিগ্রেশন সেভ করা (upsert — একই user_id + provider-এ আপডেট)
+    try:
+        existing = await db.get(Integration, {"user_id": user_id, "provider": "github"})
+        if existing:
+            existing.encrypted_access_token = encrypted_token
+        else:
+            new_integration = Integration(
+                user_id=user_id,
+                provider="github",
+                encrypted_access_token=encrypted_token,
+            )
+            db.add(new_integration)
+        await db.commit()
+        logger.info(f"✅ GitHub integration saved for user '{user_id}'")
+    except Exception as exc:
+        await db.rollback()
+        logger.error(f"Failed to save GitHub integration for user '{user_id}': {exc}")
+        return RedirectResponse(
+            url=f"{getattr(settings, 'frontend_base_url', 'http://localhost:5173')}/integrations?status=error&message=Database error"
+        )
+
+    # ৪. ফ্রন্টএন্ডে রিডাইরেক্ট — ডায়নামিক URL
+    frontend_base = getattr(settings, "frontend_base_url", "http://localhost:5173")
+    return RedirectResponse(url=f"{frontend_base}/integrations?status=success")
 
 ```
