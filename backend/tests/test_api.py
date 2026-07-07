@@ -20,11 +20,15 @@ client = TestClient(app)
 
 
 def test_health_returns_ok():
-    resp = client.get("/health")
-    assert resp.status_code == 200
-    body = resp.json()
-    assert body["status"] == "ok"
-    assert body["orchestrator"] == "online"
+    from core.config import settings
+    settings._cached_secrets.clear()
+    from unittest.mock import patch, PropertyMock
+    with patch("core.services.redis_queue.__class__.configured", new_callable=PropertyMock, return_value=False):
+        resp = client.get("/health")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["status"] == "ok"
+        assert body["orchestrator"] == "online"
 
 
 def test_task_execute_enforces_admin_block():

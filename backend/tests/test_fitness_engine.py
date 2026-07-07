@@ -5,7 +5,8 @@ from evolution.fitness_engine import FitnessEngine
 
 
 @pytest.fixture
-def temp_fitness_env(tmp_path):
+def temp_fitness_env(tmp_path, monkeypatch):
+    monkeypatch.setenv("ENV", "local")
     metrics_path = tmp_path / "metrics.json"
     registry_path = tmp_path / "registry.json"
     skills_dir = tmp_path / "dynamic"

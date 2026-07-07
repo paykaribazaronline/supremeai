@@ -126,10 +126,30 @@ def configure_litellm():
     """টেস্টের জন্য litellm সেটিংস কনফিগার করুন"""
     # বাংলা মন্তব্য: লিটেলএলএম প্রক্সি এবং টেলিমেট্রি সেটিংস নিশ্চিত করা
     try:
-        import litellm
-        litellm.use_litellm_proxy = False
-        litellm.drop_params = True
-        litellm.telemetry = False
+        import threading
+
+        result = {}
+        def _import():
+            try:
+                import litellm
+                result["module"] = litellm
+            except Exception as e:  # noqa: BLE001
+                result["error"] = e
+
+        t = threading.Thread(target=_import, daemon=True)
+        t.start()
+        t.join(timeout=8)
+        if t.is_alive():
+            import logging
+            logging.warning("litellm import timed out; skipping configuration")
+        elif "error" in result:
+            import logging
+            logging.warning(f"Exception suppressed: {result['error']}")
+        else:
+            litellm = result["module"]
+            litellm.use_litellm_proxy = False
+            litellm.drop_params = True
+            litellm.telemetry = False
     except Exception as e:  # noqa: BLE001
         import logging
         logging.warning(f"Exception suppressed: {e}")

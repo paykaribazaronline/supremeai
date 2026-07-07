@@ -17,6 +17,8 @@ from __future__ import annotations
 import time
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from core.free_tier_tracker import FreeTierTracker
 from core.free_tier_tracker import ProviderBudget
 from core.free_tier_tracker import _DayWindow
@@ -286,7 +288,8 @@ class TestTokenBudgetManager:
         assert m1 is m2
 
 
-def test_free_tier_tracker_database_loading():
+@pytest.mark.anyio
+async def test_free_tier_tracker_database_loading():
     mock_db = MagicMock()
     mock_db.client = MagicMock()
     mock_db.get_db_provider_configs.return_value = [
@@ -303,6 +306,7 @@ def test_free_tier_tracker_database_loading():
         "core.free_tier_tracker.FREE_PROVIDER_PRIORITY", ["custom_provider"]
     ):
         tracker = FreeTierTracker()
+        await tracker.load_from_db()
         assert tracker.priority_list == ["custom_provider"]
         assert tracker._budgets["custom_provider"].limits["rpm"] == 5
         assert tracker._budgets["custom_provider"].limits["tpm"] == 500

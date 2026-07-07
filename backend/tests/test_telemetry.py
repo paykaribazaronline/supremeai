@@ -2,6 +2,8 @@ import sys
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
+import pytest
+
 
 # Conditional mock for opentelemetry exporter when running in environments
 # without ml dependencies (e.g. CI)

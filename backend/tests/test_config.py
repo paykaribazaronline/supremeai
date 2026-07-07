@@ -52,7 +52,8 @@ def test_defaults():
     },
     clear=False,
 )
-def test_env_override():
+@patch('core.config.secret_vault.fetch_secret', side_effect=lambda k: os.environ.get(k) or os.environ.get(k.lower()))
+def test_env_override(mock_fetch):
     s = Settings()
     assert s.PROJECT_NAME == "TestApp"
     assert s.env == "production"
