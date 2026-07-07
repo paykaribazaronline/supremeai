@@ -41,7 +41,7 @@ const DeploymentModal: React.FC<DeploymentModalProps> = ({
   const { data: ciLogs, refetch: refetchCILogs } = useQuery({
     queryKey: ['deployment-logs'],
     queryFn: () => apiClient.get('/admin-api/ci-logs?limit=10'),
-    refetchInterval: 15000,
+    refetchInterval: (query: any) => query.state.error ? false : 15000,
     enabled: isDeploymentModalOpen,
   });
 

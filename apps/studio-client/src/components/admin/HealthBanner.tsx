@@ -6,7 +6,7 @@ const HealthBanner: React.FC = () => {
   const { data: health } = useQuery({
     queryKey: ['dashboard', 'health'],
     queryFn: () => apiClient.get<{ gcp: { status: string }; railway: { status: string }; render: { status: string } }>('/admin-api/health-map'),
-    refetchInterval: 30000,
+    refetchInterval: (query: any) => query.state.error ? false : 30000,
   });
 
   const isDegraded = (health?.gcp && health.gcp.status === 'degraded') || (health?.railway && health.railway.status === 'degraded') || (health?.render && health.render.status === 'degraded');
