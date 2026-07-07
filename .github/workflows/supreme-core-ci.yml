@@ -405,6 +405,17 @@ jobs:
           name: frontend-dist
           path: .
         continue-on-error: true
+      # বাংলা মন্তব্য: আর্টিফ্যাক্ট ডাউনলোড ব্যর্থ হলে বা dist না থাকলে ফলব্যাক হিসেবে বিল্ড চালানো হবে
+      - name: Fallback Build Frontend (if dist missing)
+        run: |
+          if [ ! -d "apps/studio-client/dist" ]; then
+            echo "⚠️ dist/ not found — building frontend as fallback..."
+            pnpm --dir apps/studio-client exec vite build
+          else
+            echo "✅ dist/ found from artifact download."
+          fi
+        env:
+          CI: true
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}

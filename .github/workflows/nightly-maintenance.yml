@@ -296,6 +296,11 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
+      # বাংলা মন্তব্য: vite preview চালানোর আগে dist বিল্ড করা দরকার
+      - name: Build Frontend for Preview
+        run: pnpm --dir apps/studio-client exec vite build
+        env:
+          CI: true
       - name: Start Frontend Preview Server
         run: |
           cd apps/studio-client && pnpm exec vite preview --port 5173 &

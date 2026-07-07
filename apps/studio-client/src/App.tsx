@@ -3,15 +3,25 @@ import { Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useStore } from "./store/useStore";
 
+// বাংলা মন্তব্য: 401/403/429 এরর হলে কোনো রিট্রাই করা হবে না — রেট লিমিট স্টর্ম ঠেকাতে
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error: any) => {
-        if (error?.status === 401 || error?.status === 403) return false;
-        return failureCount < 1;
+        // 401/403 = auth ভুল, 429 = rate limit — রিট্রাই করলে পরিস্থিতি আরও খারাপ হবে
+        const msg = error?.message || '';
+        if (
+          error?.status === 401 || error?.status === 403 || error?.status === 429 ||
+          msg.includes('401') || msg.includes('403') || msg.includes('429') ||
+          msg.includes('Rate limit') || msg.includes('Unauthorized')
+        ) return false;
+        return failureCount < 2;
       },
-      retryDelay: 5000,
+      // বাংলা মন্তব্য: এক্সপোনেন্সিয়াল ব্যাকঅফ + জিটার — সার্ভার চাপ কমাতে
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex + Math.random() * 500, 15000),
       refetchOnWindowFocus: false,
+      // বাংলা মন্তব্য: staleTime বাড়ানো হলো যাতে মাউন্টে ডুপ্লিকেট রিকোয়েস্ট না যায়
+      staleTime: 30_000,
     },
   },
 });
