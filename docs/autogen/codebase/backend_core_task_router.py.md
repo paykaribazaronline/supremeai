@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/task_router.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,543 বাইট  
-**আপডেট:** 2026-07-08T04:03:20.300029
+**সাইজ:** 11,196 বাইট  
+**আপডেট:** 2026-07-08T04:09:02.107523
 
 ---
 
@@ -158,6 +158,9 @@ class TaskRouter:
                     }
                 raise Exception("Economy models failed execution.")
                 
+            # CRITICAL FIX (Ruff Linting): 
+            # পাইথনে সরাসরি `except Exception` লিখলে Ruff 'BLE001 (blind exception)' এরর দেয়। 
+            # তাই এখানে `# noqa: BLE001` ফ্ল্যাগ দিয়ে স্পেসিফিকভাবে এই ওয়ার্নিংটি বাইপাস করা হয়েছে।
             except Exception as l3_exception:  # noqa: BLE001
                 logger.error(f"[Router] Layer 3 Breached: {str(l3_exception)}. Escalating to Critical Layer 4.")
                 
@@ -190,7 +193,9 @@ class TaskRouter:
                     logger.error(f"Browser automation interrupted: {str(e)}")
                     raise e
                 finally:
+                    # CRITICAL FIX (Playwright Memory Leak): 
                     # এই ব্লকটি নিশ্চিত করবে যে asyncio.wait_for টাইমআউট দিলেও ব্রাউজার ক্লোজ হবেই হবে!
+                    # এটি না দিলে ব্রাউজারগুলো Orphan Process হিসেবে মেমোরিতে (RAM) জমতে থাকবে।
                     await page.close()
                     await context.close()
                     await browser.close()

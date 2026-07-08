@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-08T04:03:20.243182
+Generated at: 2026-07-08T04:09:02.034305
 
 
 ## File: `pnpm-lock.yaml`
@@ -69574,6 +69574,102 @@ def get_firestore_client(project_id: str | None = None):
 
 ```
 
+## File: `backend/core/skill_manager.py`
+
+```py
+# backend/core/skill_manager.py
+import json
+
+from loguru import logger
+
+from core.llm_gateway import llm_gateway  # আপনার কোডের এক্সিস্টিং গেটওয়ে
+
+
+class DynamicSkillManager:
+    def __init__(self, chroma_client=None):
+        # এখানে আপনার ক্রোমাডিবি বা লোকাল ভেক্টর ডিবি ক্লায়েন্ট ইনজেক্ট হবে
+        self.db = chroma_client 
+        self._temporary_memory_registry = {}
+
+    async def get_or_create_skill(self, task_description: str) -> dict:
+        """লোকাল রেজিস্ট্রি চেক করবে, মিস হলে প্রিমিয়াম এআই দিয়ে ১ বার নতুন স্কিল জেনারেট করবে।"""
+        
+        # ১. লোকাল স্কিল ডাটাবেজে সিমান্টিক সার্চ (MOCK - আপনার ডিবি অনুযায়ী কানেক্ট করবেন)
+        existing_skill = await self._search_local_registry(task_description)
+        if existing_skill:
+            logger.info(f"🎯 Local Skill Hit! Using existing tool recipe for: '{task_description}'")
+            return existing_skill
+
+        # ২. লোকাল ডাটাবেজে না থাকলে (Registry Miss) -> প্রিমিয়াম এআই দিয়ে ১ বার স্কিল জেনারেট
+        logger.warning("🚀 New unique task detected. Generating a reusable skill via Premium LLM...")
+        
+        system_prompt = (
+            "You are SupremeAI's Skill Architect. Your sole job is to generate a reusable, structural "
+            "step-by-step automation blueprint for a Playwright browser agent based on user request. "
+            "You must return ONLY a raw valid JSON object. No conversation, no markdown codeblocks."
+        )
+        
+        prompt = f"""
+        Create a functional automation extraction schema for the following task: '{task_description}'.
+        The output format must strictly be JSON matching this shape:
+        {{
+            "skill_name": "UniqueCamelCaseName",
+            "description": "Detailed summary of what this skill does for future semantic lookup",
+            "execution_steps": [
+                {{"action": "navigate", "url": "target_url"}},
+                {{"action": "type", "selector": "#input-id", "value": "context_data"}},
+                {{"action": "click", "selector": ".submit-btn"}},
+                {{"action": "extract", "selector": "table.results"}}
+            ]
+        }}
+        """
+        
+        response = await llm_gateway.acompletion(
+            prompt=prompt,
+            system_prompt=system_prompt,
+            model_filters=["claude-3-5-sonnet"]
+        )
+        
+        try:
+            raw_text = response.get("text", "{}").strip()
+
+            # CRITICAL FIX (LLM Markdown Trap):
+            # ক্লড (Claude) বা জিপিটি অনেক সময় উত্তরের শুরুতে/শেষে ```json জুড়ে দেয়।
+            # সরাসরি json.loads() করলে এটি ক্র্যাশ করবে, তাই পার্স করার আগে স্ট্রিংটি ক্লিন করা বাধ্যতামূলক।
+            if raw_text.startswith("```"):
+                lines = raw_text.splitlines()
+                if lines[0].startswith("```"):
+                    lines = lines[1:]
+                if lines and lines[-1].startswith("```"):
+                    lines = lines[:-1]
+                raw_text = "\n".join(lines).strip()
+
+            new_skill = json.loads(raw_text)
+            # ৩. ভবিষ্যতের জন্য এই নতুন স্কিল বা টুলটি সেভ করে রাখা (০ কস্ট লেয়ার সক্রিয় করা)
+            await self._save_skill_to_registry(new_skill)
+            logger.success(f"💾 Successfully registered new skill: {new_skill.get('skill_name')} to Zero-Cost Pool.")
+            return new_skill
+        except json.JSONDecodeError as je:
+            logger.error(f"LLM returned invalid JSON string: {raw_text}")
+            raise ValueError("Failed to parse AI generated skill due to formatting.") from je
+        except Exception as e:  # noqa: BLE001
+            logger.error(f"Failed to parse or register dynamic skill: {str(e)}")
+            raise ValueError("Invalid configuration returned from Skill Factory.") from e
+
+    async def _search_local_registry(self, description: str):
+        # টাস্কের ডেসক্রিপশন যদি আগে তৈরি করা কোনো স্কিলের ডেসক্রিপশনের সাথে মিলে যায়
+        for _, data in self._temporary_memory_registry.items():
+            if data.get("description", "").lower() in description.lower() or description.lower() in data.get("description", "").lower():
+                return data
+        return None
+
+    async def _save_skill_to_registry(self, skill_data: dict):
+        # ইন-মেমোরি ডিকশনারিতে সেভ করে রাখা
+        name = skill_data.get("skill_name", "UnknownSkill")
+        self._temporary_memory_registry[name] = skill_data
+
+```
+
 ## File: `backend/core/secure_credential_store.py`
 
 ```py
@@ -75059,8 +75155,10 @@ class CostGuard:
             
         return True
 
-# 🔥 গ্লোবাল সিঙ্গেলটন অবজেক্ট (Singleton Instance) তৈরি করা হলো
+# CRITICAL FIX (Import Error & Backward Compatibility):
+# গ্লোবাল সিঙ্গেলটন অবজেক্ট (Singleton Instance) তৈরি করা হলো।
 # এটি করার কারণে task_router.py এখন সরাসরি `from core.cost_guard import cost_guard` ইম্পোর্ট করতে পারবে।
+# পাশাপাশি __init__ এ db=None রাখায় পুরনো কোডগুলো (যারা db পাঠাতো) ক্র্যাশ করবে না।
 cost_guard = CostGuard()
 
 ```
@@ -78457,6 +78555,9 @@ class TaskRouter:
                     }
                 raise Exception("Economy models failed execution.")
                 
+            # CRITICAL FIX (Ruff Linting): 
+            # পাইথনে সরাসরি `except Exception` লিখলে Ruff 'BLE001 (blind exception)' এরর দেয়। 
+            # তাই এখানে `# noqa: BLE001` ফ্ল্যাগ দিয়ে স্পেসিফিকভাবে এই ওয়ার্নিংটি বাইপাস করা হয়েছে।
             except Exception as l3_exception:  # noqa: BLE001
                 logger.error(f"[Router] Layer 3 Breached: {str(l3_exception)}. Escalating to Critical Layer 4.")
                 
@@ -78489,7 +78590,9 @@ class TaskRouter:
                     logger.error(f"Browser automation interrupted: {str(e)}")
                     raise e
                 finally:
+                    # CRITICAL FIX (Playwright Memory Leak): 
                     # এই ব্লকটি নিশ্চিত করবে যে asyncio.wait_for টাইমআউট দিলেও ব্রাউজার ক্লোজ হবেই হবে!
+                    # এটি না দিলে ব্রাউজারগুলো Orphan Process হিসেবে মেমোরিতে (RAM) জমতে থাকবে।
                     await page.close()
                     await context.close()
                     await browser.close()
