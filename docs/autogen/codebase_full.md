@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-08T02:14:38.508588
+Generated at: 2026-07-08T02:25:07.919111
 
 
 ## File: `pnpm-lock.yaml`
@@ -24185,18 +24185,21 @@ class BulletproofASTSandbox(ast.NodeVisitor):
     def visit_Constant(self, node):
         # Python 3.8+ কনস্ট্যান্ট নোড স্ক্যানিং (যা স্ট্রিং লিটারেল কাভার করে)
         if isinstance(node.value, str):
-            val_clean = node.value.replace(" ", "").lower()
+            import re
+            # বাংলা মন্তব্য: word boundary split করে exact banned token checking
+            words = set(re.findall(r'[a-zA-Z_][a-zA-Z0-9_]*', node.value.lower()))
             for banned in self.banned_tokens:
-                if banned in val_clean:
+                if banned in words:
                     self._flag_violation(node, f"Obfuscation payload detected in string literal: '{node.value}'")
                     return
         self.generic_visit(node)
 
     def visit_Str(self, node):
-        # লেগ্যাসি পাইথন সাপোর্টের জন্য ব্যাকআপ ভিজিটর
-        val_clean = node.s.replace(" ", "").lower()
+        # legacy python version compatible scanning
+        import re
+        words = set(re.findall(r'[a-zA-Z_][a-zA-Z0-9_]*', node.s.lower()))
         for banned in self.banned_tokens:
-            if banned in val_clean:
+            if banned in words:
                 self._flag_violation(node, f"Obfuscated legacy payload detected in string: '{node.s}'")
                 return
         self.generic_visit(node)
@@ -38244,7 +38247,7 @@ async function handleRequest(request) {
   }
 
   // বাংলা মন্তব্য: P1 Fix — Cloudflare KV থেকে সার্কিট স্টেট রিড করা হচ্ছে রেস কন্ডিশন ও স্টেট ড্রিফট এড়াতে।
-  const kv = typeof SUPREMEAI_KV !== 'undefined' ? SUPREMEAI_KV : (typeof env !== 'undefined' && env.SUPREMEAI_KV ? env.SUPREMEAI_KV : null);
+  const kv = typeof SUPREMEAI_KV !== 'undefined' ? SUPREMEAI_KV : null;
   let localState = { ...circuitBreakerState };
   if (kv) {
     try {
@@ -38316,7 +38319,7 @@ async function forwardRequest(request, backend, originalUrl) {
 
 async function getHealthyBackendsFromKV(backends) {
   try {
-    const kv = typeof SUPREMEAI_KV !== 'undefined' ? SUPREMEAI_KV : (typeof env !== 'undefined' && env.SUPREMEAI_KV ? env.SUPREMEAI_KV : null);
+    const kv = typeof SUPREMEAI_KV !== 'undefined' ? SUPREMEAI_KV : null;
     if (kv) {
       const cached = await kv.get('healthy_backends');
       if (cached) {
@@ -38373,7 +38376,7 @@ async function checkHealthAndStore() {
   const healthyBackends = await getHealthyBackends(backends)
   const healthyNames = healthyBackends.map(b => b.name)
 
-  const kv = typeof SUPREMEAI_KV !== 'undefined' ? SUPREMEAI_KV : (typeof env !== 'undefined' && env.SUPREMEAI_KV ? env.SUPREMEAI_KV : null);
+  const kv = typeof SUPREMEAI_KV !== 'undefined' ? SUPREMEAI_KV : null;
   if (kv) {
     // আর্কিটেকচারাল ফিক্স #2: Add a TTL to prevent using stale data if the cron fails
     await kv.put('healthy_backends', JSON.stringify(healthyNames), {
@@ -67715,9 +67718,9 @@ class AuthMiddleware:
 
         if is_test:
             # বাংলা মন্তব্য: টেস্ট মোডে মিডলওয়্যার যাতে ইন্টিগ্রেশন টেস্টগুলোকে ব্লক না করে সেজন্য bypass।
-            # তবে যদি টেস্টে explicitly incorrect token বা empty token (যেখানে API key env-এ সেট আছে) টেস্ট করা হয়, তবে enforce করুন।
+            # তবে যদি টেস্টে explicitly incorrect token বা empty token পাঠানো হয়, তবে auth enforce করব।
             expected_token = os.getenv("SUPREMEAI_API_TOKEN")
-            if expected_token and (not token or token == "wrong-token"):
+            if expected_token and token != expected_token:
                 pass
             else:
                 await self.app(scope, receive, send)

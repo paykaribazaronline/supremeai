@@ -1,8 +1,8 @@
 # 📄 ফাইল: scripts/skill_loader.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,343 বাইট  
-**আপডেট:** 2026-07-08T02:14:38.521368
+**সাইজ:** 7,451 বাইট  
+**আপডেট:** 2026-07-08T02:25:07.925948
 
 ---
 
@@ -54,18 +54,21 @@ class BulletproofASTSandbox(ast.NodeVisitor):
     def visit_Constant(self, node):
         # Python 3.8+ কনস্ট্যান্ট নোড স্ক্যানিং (যা স্ট্রিং লিটারেল কাভার করে)
         if isinstance(node.value, str):
-            val_clean = node.value.replace(" ", "").lower()
+            import re
+            # বাংলা মন্তব্য: word boundary split করে exact banned token checking
+            words = set(re.findall(r'[a-zA-Z_][a-zA-Z0-9_]*', node.value.lower()))
             for banned in self.banned_tokens:
-                if banned in val_clean:
+                if banned in words:
                     self._flag_violation(node, f"Obfuscation payload detected in string literal: '{node.value}'")
                     return
         self.generic_visit(node)
 
     def visit_Str(self, node):
-        # লেগ্যাসি পাইথন সাপোর্টের জন্য ব্যাকআপ ভিজিটর
-        val_clean = node.s.replace(" ", "").lower()
+        # legacy python version compatible scanning
+        import re
+        words = set(re.findall(r'[a-zA-Z_][a-zA-Z0-9_]*', node.s.lower()))
         for banned in self.banned_tokens:
-            if banned in val_clean:
+            if banned in words:
                 self._flag_violation(node, f"Obfuscated legacy payload detected in string: '{node.s}'")
                 return
         self.generic_visit(node)
