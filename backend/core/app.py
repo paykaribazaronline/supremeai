@@ -19,7 +19,8 @@ from core import services
 from core.admin_routes import router as admin_router
 from core.api_key_middleware import APIKeyAuthMiddleware
 from core.config import settings
-from core.event_bus import error_event_bus
+# বাংলা মন্তব্য: P1 Fix — F821 Undefined name 'ErrorEvent' ফিক্স করার জন্য ErrorEvent কেও ইম্পোর্ট করা হলো।
+from core.event_bus import ErrorEvent, error_event_bus
 from core.honeypot_middleware import HoneypotMiddleware
 from core.observability_middleware import ObservabilityMiddleware
 from core.rate_limiter import RateLimitMiddleware
