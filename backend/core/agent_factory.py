@@ -11,6 +11,7 @@ class DynamicAgentFactory:
     """
     এজেন্ট ফ্যাক্টরি যা রিকোয়েস্ট অনুযায়ী ডাইনামিকালি কাস্টম এজেন্ট কনফিগারেশন তৈরি ও ডাটাবেজে রেজিস্ট্রি করে (অ্যাসিনক্রোনাস)।
     """
+
     def __init__(self, db_session: AsyncSession):
         self.db = db_session
 
@@ -31,7 +32,7 @@ class DynamicAgentFactory:
         response = await llm_gateway.acompletion(
             prompt=f"Create a custom browser extraction script for: {task_description}",
             system_prompt=system_prompt,
-            model_filters=["claude-3-5-sonnet"]
+            model_filters=["claude-3-5-sonnet"],
         )
 
         try:
@@ -39,17 +40,18 @@ class DynamicAgentFactory:
         except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to parse AI generated agent configuration JSON: {e}")
             import time
+
             agent_config = {
                 "agent_name": f"AutoAgent_{int(time.time())}",
                 "description": task_description,
-                "execution_steps": [{"action": "navigate", "value": "contextual_url"}]
+                "execution_steps": [{"action": "navigate", "value": "contextual_url"}],
             }
 
         # ডাটাবেজে আজীবনের জন্য সেভ করে রাখা
         await self._save_agent_to_registry(
             name=agent_config.get("agent_name"),
             description=agent_config.get("description", task_description),
-            steps=agent_config.get("execution_steps", [])
+            steps=agent_config.get("execution_steps", []),
         )
 
         return agent_config
@@ -57,6 +59,7 @@ class DynamicAgentFactory:
     async def _save_agent_to_registry(self, name: str, description: str, steps: list):
         try:
             from sqlalchemy import select
+
             stmt = select(DynamicAgent).where(DynamicAgent.name == name)
             result = await self.db.execute(stmt)
             existing = result.scalars().first()
@@ -64,11 +67,7 @@ class DynamicAgentFactory:
                 existing.execution_steps = steps
                 existing.description = description
             else:
-                new_agent = DynamicAgent(
-                    name=name,
-                    description=description,
-                    execution_steps=steps
-                )
+                new_agent = DynamicAgent(name=name, description=description, execution_steps=steps)
                 self.db.add(new_agent)
             await self.db.commit()
             logger.success(f"🧠 [AgentFactory] New skill learned and registered: '{name}'")

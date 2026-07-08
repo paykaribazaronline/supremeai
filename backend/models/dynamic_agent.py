@@ -14,6 +14,7 @@ class DynamicAgent(Base):
     ডাইনামিক এজেন্ট রেজিস্ট্রি মডেল।
     এআই দ্বারা জেনারেট করা ফ্রি লোকাল এজেন্টগুলোর কনফিগারেশন আজীবনের জন্য এখানে সেভ করা থাকবে।
     """
+
     __tablename__ = "dynamic_agents"
 
     id = Column(Integer, primary_key=True, index=True)

@@ -13,6 +13,7 @@ from backend.tools.multi_account_rotator import (
     TaskType,
 )
 
+
 # বাংলা মন্তব্য: rotator ইনস্ট্যান্স তৈরি করার জন্য ফিক্সচার
 @pytest.fixture
 def rotator(tmp_path):
@@ -200,9 +201,7 @@ class TestProvider:
 
     def test_add_account_appends_to_list(self, sample_provider):
         """add_account নতুন অ্যাকাউন্ট লিস্টে যোগ করে."""
-        new_acc = Account(
-            id="acc-3", provider="groq", email="new@example.com"
-        )
+        new_acc = Account(id="acc-3", provider="groq", email="new@example.com")
         sample_provider.add_account(new_acc)
         assert len(sample_provider.accounts) == 3
         assert new_acc in sample_provider.accounts
@@ -337,9 +336,7 @@ class TestMultiAccountRotator:
             models=["llama3-70b-8192"],
             rate_limit_rpm=60,
             rate_limit_tpm=1000000,
-            accounts=[
-                Account(id="a1", provider="groq", email="a@b.com", status=ProviderStatus.ACTIVE)
-            ],
+            accounts=[Account(id="a1", provider="groq", email="a@b.com", status=ProviderStatus.ACTIVE)],
         )
         rotator.task_preferences = {"coding": ["groq"]}
         result = rotator.get_best_provider_for_task(TaskType.CODING, {})
@@ -418,8 +415,6 @@ class TestMultiAccountRotator:
         """কনফিগ ফাইল মিসিং থাকলে _create_default_config কল হয়।"""
         config_file = str(tmp_path / "missing.json")
         assert not os.path.exists(config_file)
-        with patch.object(
-            MultiAccountRotator, "_create_default_config"
-        ) as mock_default:
+        with patch.object(MultiAccountRotator, "_create_default_config") as mock_default:
             rotator = MultiAccountRotator(config_file=config_file)
             mock_default.assert_called_once()

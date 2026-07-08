@@ -35,12 +35,7 @@ async def _ensure_wallet(session: AsyncSession, user_id: str) -> UserWallet:
     result = await session.execute(select(UserWallet).where(UserWallet.user_id == user_id))
     wallet = result.scalars().first()
     if not wallet:
-        wallet = UserWallet(
-            user_id=user_id,
-            balance_usd=Decimal("5.000000"),
-            monthly_allowance_usd=Decimal("0.000000"),
-            version=1
-        )
+        wallet = UserWallet(user_id=user_id, balance_usd=Decimal("5.000000"), monthly_allowance_usd=Decimal("0.000000"), version=1)
         session.add(wallet)
         await session.commit()
     return wallet
@@ -53,11 +48,7 @@ async def _ensure_wallet(session: AsyncSession, user_id: str) -> UserWallet:
 async def get_wallet_balance(session: AsyncSession = Depends(get_db_session)):
     user_id = "default_user_session"
     wallet = await _ensure_wallet(session, user_id)
-    return {
-        "user_id": wallet.user_id,
-        "balance_usd": float(wallet.balance_usd),
-        "monthly_allowance_usd": float(wallet.monthly_allowance_usd)
-    }
+    return {"user_id": wallet.user_id, "balance_usd": float(wallet.balance_usd), "monthly_allowance_usd": float(wallet.monthly_allowance_usd)}
 
 
 # ==========================================
@@ -67,9 +58,7 @@ async def get_wallet_balance(session: AsyncSession = Depends(get_db_session)):
 async def get_transaction_history(session: AsyncSession = Depends(get_db_session)):
     user_id = "default_user_session"
     result = await session.execute(
-        select(TransactionLedgerEntry)
-        .where(TransactionLedgerEntry.user_id == user_id)
-        .order_by(TransactionLedgerEntry.timestamp.desc())
+        select(TransactionLedgerEntry).where(TransactionLedgerEntry.user_id == user_id).order_by(TransactionLedgerEntry.timestamp.desc())
     )
     entries = result.scalars().all()
     return [
@@ -79,7 +68,7 @@ async def get_transaction_history(session: AsyncSession = Depends(get_db_session
             "amount_usd": float(entry.amount_usd),
             "transaction_type": entry.transaction_type,
             "description": entry.description,
-            "timestamp": entry.timestamp.isoformat() if entry.timestamp else None
+            "timestamp": entry.timestamp.isoformat() if entry.timestamp else None,
         }
         for entry in entries
     ]
@@ -101,7 +90,7 @@ async def add_funds(amount: float, session: AsyncSession = Depends(get_db_sessio
         "status": "pending",
         "checkout_id": checkout_id,
         "checkout_url": f"https://checkout.supremeai.test/pay/{checkout_id}?amount={amount}",
-        "message": "Checkout session generated. Complete transaction using checkout_url."
+        "message": "Checkout session generated. Complete transaction using checkout_url.",
     }
 
 
@@ -154,7 +143,7 @@ async def stripe_webhook(request: Request, session: AsyncSession = Depends(get_d
                     user_id=user_id,
                     amount_usd=amount_received,
                     transaction_type="stripe_topup",
-                    description=f"Stripe Top-up (Intent: {payment_intent['id']})"
+                    description=f"Stripe Top-up (Intent: {payment_intent['id']})",
                 )
                 session.add(entry)
 
@@ -203,7 +192,7 @@ async def sslcommerz_webhook_listener(request: Request, session: AsyncSession = 
                     user_id=user_id,
                     amount_usd=amount_usd,
                     transaction_type="topup",
-                    description=f"Fund deposit via SSLCommerz (Tk.{amount_bdt} MFS)"
+                    description=f"Fund deposit via SSLCommerz (Tk.{amount_bdt} MFS)",
                 )
                 session.add(entry)
             return {"status": "processed", "message": f"Successfully credited ${amount_usd} (BDT {amount_bdt}) via SSLCommerz."}

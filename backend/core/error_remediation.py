@@ -9,6 +9,7 @@ from loguru import logger
 
 try:
     from qdrant_client import QdrantClient
+
     HAS_QDRANT = True
 except ImportError:
     HAS_QDRANT = False
@@ -60,6 +61,7 @@ class ErrorRemediation:
                     json.dump({"default_fix": "Retry with exponential backoff"}, f, indent=2)
         except Exception as e:  # noqa: BLE001
             import logging
+
             logging.warning(f"Exception suppressed: {e}")
 
     def _load_local_fallback(self) -> str | None:
@@ -94,10 +96,7 @@ class ErrorRemediation:
         # বল মনতবয: সব রটর শষ হওয়র পর last_exception কখনই বযবহত হত ন (নরব সযলপ);
         # এখন চডনত বযরথতর করণ warning হসব লগ কর হয় যত ডবগ কর সহজ হয়
         if last_exception is not None:
-            logger.warning(
-                f"Qdrant lookup exhausted {max_attempts} attempts; "
-                f"falling back. Last error: {last_exception}"
-            )
+            logger.warning(f"Qdrant lookup exhausted {max_attempts} attempts; " f"falling back. Last error: {last_exception}")
         return None
 
     async def lookup_fix(self, error_sig: str) -> str | None:

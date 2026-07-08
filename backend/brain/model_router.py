@@ -12,6 +12,7 @@ from core.llm_gateway import llm_gateway
 
 def run_async_as_sync(coro):
     from concurrent.futures import ThreadPoolExecutor
+
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
@@ -24,10 +25,12 @@ def run_async_as_sync(coro):
     else:
         return asyncio.run(coro)
 
+
 class ModelRouter:
     """
     Thin wrapper over LLMGateway for backward compatibility.
     """
+
     def __init__(self):
         logger.info("Initializing refactored ModelRouter (LiteLLM Wrapper)")
         # বাংলা মন্তব্য: ব্যাকওয়ার্ড কমপ্যাটিবিলিটি ও মকিংয়ের জন্য cot_reasoner মক অবজেক্ট যুক্ত করা হলো
@@ -41,18 +44,14 @@ class ModelRouter:
         # বাংলা মন্তব্য: প্রতিটি টাস্ক টাইপের জন্য গ্লোবাল রেডিস-ব্যাকড সার্কিট ব্রেকার তৈরি
         from core.circuit_breaker import CircuitBreaker
         from core.services import redis_queue
+
         if task_type not in self._breakers:
             self._breakers[task_type] = CircuitBreaker(
-                name=f"router_task_{task_type}",
-                failure_threshold=5,
-                recovery_timeout=30.0,
-                redis_queue=redis_queue
+                name=f"router_task_{task_type}", failure_threshold=5, recovery_timeout=30.0, redis_queue=redis_queue
             )
         return self._breakers[task_type]
 
-    def route_and_generate_with_cot(
-        self, prompt: str, task_type: str = "general", max_cost: float = 0.01
-    ) -> dict[str, Any]:
+    def route_and_generate_with_cot(self, prompt: str, task_type: str = "general", max_cost: float = 0.01) -> dict[str, Any]:
         # বাংলা মন্তব্য: CoT সাপোর্টের জন্য cot_reasoner এর মকিং প্রপার্টিসমূহ রিটার্ন করা হলো
         res = self.route_and_generate(prompt, task_type, max_cost)
 
@@ -77,46 +76,45 @@ class ModelRouter:
             "text": res.get("text", ""),
             "cost": res.get("cost", 0.0),
             "reasoning": reasoning_res,
-            "cot_verification": verification_res
+            "cot_verification": verification_res,
         }
 
-    def route_and_generate(
-        self, prompt: str, task_type: str = "general", max_cost: float = 0.01
-    ) -> dict[str, Any]:
+    def route_and_generate(self, prompt: str, task_type: str = "general", max_cost: float = 0.01) -> dict[str, Any]:
         # বাংলা মন্তব্য: টেস্টে যদি async_route_and_generate কে mock করা হয়, তবে সেটিকেও সাপোর্ট করার জন্য ডাইনামিক কলিং
         res = None
         async_func = getattr(self, "async_route_and_generate", None)
-        if (async_func and
-            async_func != ModelRouter.async_route_and_generate and
-            (inspect.iscoroutinefunction(async_func) or hasattr(async_func, "assert_called_with") or type(async_func).__name__ == "AsyncMock")):
+        if (
+            async_func
+            and async_func != ModelRouter.async_route_and_generate
+            and (inspect.iscoroutinefunction(async_func) or hasattr(async_func, "assert_called_with") or type(async_func).__name__ == "AsyncMock")
+        ):
             res = run_async_as_sync(async_func(prompt, task_type, max_cost))
 
         if res is None:
-            res = run_async_as_sync(
-                self.async_route_and_generate(prompt, task_type, max_cost)
-            )
+            res = run_async_as_sync(self.async_route_and_generate(prompt, task_type, max_cost))
 
         if res is None:
             import json
+
             res = {
                 "success": True,
                 "model": "local_mock_fallback",
-                "text": json.dumps({
-                    "app_type": "portfolio",
-                    "features": ["gallery", "contact"],
-                    "tech_stack": {"frontend": "react", "backend": "fastapi", "database": "sqlite"},
-                    "pages": ["home", "about"],
-                    "integrations": [],
-                    "deployment_target": None,
-                    "clarification_question": None
-                }),
-                "cost": 0.0
+                "text": json.dumps(
+                    {
+                        "app_type": "portfolio",
+                        "features": ["gallery", "contact"],
+                        "tech_stack": {"frontend": "react", "backend": "fastapi", "database": "sqlite"},
+                        "pages": ["home", "about"],
+                        "integrations": [],
+                        "deployment_target": None,
+                        "clarification_question": None,
+                    }
+                ),
+                "cost": 0.0,
             }
         return res
 
-    async def async_route_and_generate(
-        self, prompt: Any, task_type: str = "general", max_cost: float = 0.01
-    ) -> dict[str, Any]:
+    async def async_route_and_generate(self, prompt: Any, task_type: str = "general", max_cost: float = 0.01) -> dict[str, Any]:
         logger.info(f"[ModelRouter] Forwarding task_type='{task_type}' to LLMGateway")
 
         # বাংলা মন্তব্য: টেস্ট কেসে যদি monkeypatch করা মেথডসমূহ থাকে, তবে ফলব্যাক রান করানো হচ্ছে
@@ -137,21 +135,25 @@ class ModelRouter:
         import sys
 
         from core.config import settings
+
         if "pytest" in sys.modules or settings.env == "test" or (not settings.gemini_api_key and not settings.openrouter_api_key):
             import json
+
             return {
                 "success": True,
                 "model": "local_mock_fallback",
-                "text": json.dumps({
-                    "app_type": "portfolio",
-                    "features": ["gallery", "contact"],
-                    "tech_stack": {"frontend": "react", "backend": "fastapi", "database": "sqlite"},
-                    "pages": ["home", "about"],
-                    "integrations": [],
-                    "deployment_target": None,
-                    "clarification_question": None
-                }),
-                "cost": 0.0
+                "text": json.dumps(
+                    {
+                        "app_type": "portfolio",
+                        "features": ["gallery", "contact"],
+                        "tech_stack": {"frontend": "react", "backend": "fastapi", "database": "sqlite"},
+                        "pages": ["home", "about"],
+                        "integrations": [],
+                        "deployment_target": None,
+                        "clarification_question": None,
+                    }
+                ),
+                "cost": 0.0,
             }
 
         try:
@@ -163,8 +165,7 @@ class ModelRouter:
             elif isinstance(prompt, list):
                 # If it's a messages list, verify structure
                 normalized_prompt = [
-                    {"role": item.get("role", "user"), "content": str(item.get("content", ""))}
-                    for item in prompt if isinstance(item, dict)
+                    {"role": item.get("role", "user"), "content": str(item.get("content", ""))} for item in prompt if isinstance(item, dict)
                 ]
             elif isinstance(prompt, dict):
                 # Extract prompt text or list from dictionary
@@ -178,57 +179,42 @@ class ModelRouter:
             breaker = self._get_breaker(task_type)
             if not breaker.allow_request():
                 logger.warning(f"[ModelRouter] Circuit Breaker OPEN for task_type='{task_type}'. Blocking request.")
-                return {
-                    "success": False,
-                    "text": "{}",
-                    "error": f"Circuit breaker open for {task_type}"
-                }
+                return {"success": False, "text": "{}", "error": f"Circuit breaker open for {task_type}"}
 
             from core.free_tier_tracker import get_tracker
+
             tracker = get_tracker()
             best_provider = tracker.get_best_provider(["gemini", "groq", "openrouter"])
 
             if not best_provider:
                 logger.warning("[ModelRouter] All free tiers exhausted! Degrading to Eco-Mode (Local/Mock).")
                 import json
+
                 return {
                     "success": True,
                     "model": "eco_mode_offline",
                     "eco_mode": True,  # Flag to be converted to X-SupremeAI-Status: Eco-Mode header
                     "text": json.dumps({"response": "System is running in Eco-Mode. Minimal response generated."}),
-                    "cost": 0.0
+                    "cost": 0.0,
                 }
 
             # Delegate directly to our new LiteLLM universal gateway
             try:
-                response = await llm_gateway.acompletion(
-                    prompt=normalized_prompt,
-                    task_type=task_type,
-                    provider=best_provider,
-                    stream=False
-                )
+                response = await llm_gateway.acompletion(prompt=normalized_prompt, task_type=task_type, provider=best_provider, stream=False)
                 if response and response.get("success"):
                     breaker.mark_success()
                 else:
                     breaker.mark_failure()
 
                 if response is None:
-                    return {
-                        "success": False,
-                        "text": "{}",
-                        "error": "LLM Gateway returned None"
-                    }
+                    return {"success": False, "text": "{}", "error": "LLM Gateway returned None"}
                 return response
             except Exception as exc:
                 breaker.mark_failure()
                 raise exc
         except Exception as e:  # noqa: BLE001
             logger.error(f"[ModelRouter] Gateway completion failed: {e}")
-            return {
-                "success": False,
-                "text": "{}",
-                "error": str(e)
-            }
+            return {"success": False, "text": "{}", "error": str(e)}
 
     def query_local_rag(self, query: str) -> dict[str, Any]:
         # বাংলা মন্তব্য: RAG কোয়েরি মেথড ব্যাকওয়ার্ড কমপ্যাটিবিলিটির জন্য যুক্ত করা হলো

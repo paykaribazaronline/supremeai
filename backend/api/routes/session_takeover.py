@@ -15,16 +15,13 @@ import os
 # Note: In production, tokens would be verified against Redis/DB
 def verify_takeover_token(token: str) -> bool:
     if os.environ.get("SUPREMEAI_ENV") == "production":
-        raise NotImplementedError(
-            "Production token verification not implemented! "
-            "Must validate tokens against Redis/DB before deployment."
-        )
+        raise NotImplementedError("Production token verification not implemented! " "Must validate tokens against Redis/DB before deployment.")
     return token.startswith("tok_")
 
+
 # A 1x1 black JPEG pixel encoded in base64
-MOCK_FRAME_B64 = (
-    "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA="
-)
+MOCK_FRAME_B64 = "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA="  # noqa: E501
+
 
 async def mock_screencast_emitter(websocket: WebSocket, session_id: str):
     """
@@ -38,10 +35,7 @@ async def mock_screencast_emitter(websocket: WebSocket, session_id: str):
 
             # 🛑 ZERO-GAP: Skip rendering logic handled client-side if frames pile up,
             # but backend controls raw outgoing FPS here.
-            await websocket.send_json({
-                "channel": "screencast",
-                "data": MOCK_FRAME_B64
-            })
+            await websocket.send_json({"channel": "screencast", "data": MOCK_FRAME_B64})
     except asyncio.CancelledError:
         logger.warning("⚠️ Task execution was intentionally cancelled.")
         raise
@@ -49,22 +43,20 @@ async def mock_screencast_emitter(websocket: WebSocket, session_id: str):
         logger.exception(f"❌ Critical task failure in session_takeover.py: {e}")
         from core.event_bus import ErrorEvent
         from core.event_bus import error_event_bus
+
         await error_event_bus.emit_async(
             ErrorEvent(
                 module="backend.api.routes.session_takeover",
                 error_type=type(e).__name__,
                 message=str(e),
                 severity="WARNING",
-                context={"session_id": session_id}
+                context={"session_id": session_id},
             )
         )
 
+
 @router.websocket("/ws/session/{session_id}/takeover")
-async def takeover_session_websocket(
-    websocket: WebSocket,
-    session_id: str,
-    token: str = Query(...)
-):
+async def takeover_session_websocket(websocket: WebSocket, session_id: str, token: str = Query(...)):
     """
     Ephemeral WebSocket gateway for Sandbox Viewport takeover.
     Validates token, streams CDP frames to client, and receives mouse/keyboard events.

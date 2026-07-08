@@ -31,9 +31,11 @@ def is_safe_url(url: str) -> bool:
     except Exception as e:  # noqa: BLE001
         try:
             import loguru
+
             loguru.logger.error(f"Tool execution error: {e}")
         except Exception as e:  # noqa: BLE001
             import logging
+
             logging.warning(f"Exception suppressed: {e}")
         return False
 
@@ -84,9 +86,7 @@ async def shutdown_global_browser():
             await _playwright_runner.stop()
         logger.info("✅ All Playwright OS processes terminated cleanly.")
     except Exception as e:  # noqa: BLE001
-        logger.critical(
-            f"❌ Error during global browser termination sequence: {str(e)}"
-        )
+        logger.critical(f"❌ Error during global browser termination sequence: {str(e)}")
     finally:
         _global_browser = None
         _playwright_runner = None
@@ -116,21 +116,20 @@ class BrowserAgent:
             return {"status": "failed", "error": "Playwright is not installed"}
 
         logger.info(f"🎬 Initializing Dynamic Recipe Interpreter with {len(steps)} steps.")
-        
+
         extracted_data = {}
-        
+
         async with async_playwright() as p:
             # কন্টেইনার সেফ স্যান্ডবক্স মোডে ক্রমিয়াম লঞ্চ করা
             browser = await p.chromium.launch(
-                headless=self.headless,
-                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-blink-features=AutomationControlled"]
+                headless=self.headless, args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-blink-features=AutomationControlled"]
             )
             context = await browser.new_context(
                 viewport={"width": 1280, "height": 1080},
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
             )
             page = await context.new_page()
-            
+
             try:
                 # যদি ইনিশিয়াল কোনো ইউআরএল দেওয়া থাকে, প্রথমে সেখানে নেভিগেট করবে
                 if initial_url:
@@ -142,15 +141,15 @@ class BrowserAgent:
                     action = step.get("action", "").lower()
                     selector = step.get("selector")
                     value = step.get("value")
-                    
+
                     logger.debug(f"Processing Recipe Step [{index + 1}]: Action='{action}'")
 
                     if action == "navigate":
                         await page.goto(step["url"], wait_until="networkidle", timeout=30000)
-                        
+
                     elif action == "click":
                         await HumanBehaviorSimulators.natural_mouse_move_and_click(page, selector)
-                        
+
                     elif action == "type":
                         # স্মার্ট ক্ল্যাম্পিং: বড় টেক্সট হলে ডিরেক্ট পেস্ট/ফিল করবে, ছোট হলে হিউম্যান টাইপিং
                         if len(str(value)) > 50:
@@ -158,17 +157,17 @@ class BrowserAgent:
                             await page.fill(selector, str(value))
                         else:
                             await HumanBehaviorSimulators.natural_type(page, selector, str(value))
-                            
+
                     elif action == "wait":
                         # যদি ভ্যালু সংখ্যা হয় তবে সেকেন্ড স্লিপ করবে, টেক্সট হলে সিলেক্টর visible হওয়া পর্যন্ত ওয়েট করবে
                         if str(value).isdigit():
                             await asyncio.sleep(float(value))
                         else:
                             await page.wait_for_selector(str(value), state="visible", timeout=15000)
-                            
+
                     elif action == "extract":
                         await page.wait_for_selector(selector, state="visible", timeout=10000)
-                        
+
                         # যদি টেবিল ডেটা বা মাল্টিপল এলিমেন্ট স্ক্র্যাপ করতে বলা হয়
                         if step.get("type") == "list":
                             elements = await page.query_selector_all(selector)
@@ -176,16 +175,16 @@ class BrowserAgent:
                         else:
                             # ডিফল্ট সিঙ্গেল এলিমেন্ট টেক্সট এক্সট্রাকশন
                             extracted_data[selector] = await page.inner_text(selector)
-                            
+
                         logger.success(f"Successfully extracted target data node from: {selector}")
 
                 # সমস্ত স্টেপ সফলভাবে শেষ হলে
                 return {"status": "success", "data": extracted_data}
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"❌ Recipe Interpreter crashed mid-execution: {str(e)}")
                 return {"status": "failed", "error": str(e)}
-                
+
             finally:
                 # প্লে-রাইট মেমোরি লিক এবং অরফ্যান প্রসেস রুখতে কড়া ক্লিনআপ
                 await page.close()
@@ -204,12 +203,8 @@ class BrowserAgent:
                 "url": url,
             }
         try:
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-            }
-            response = httpx.get(
-                url, headers=headers, timeout=15.0, follow_redirects=True
-            )
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+            response = httpx.get(url, headers=headers, timeout=15.0, follow_redirects=True)
             response.raise_for_status()
             soup = BeautifulSoup(response.text, "html.parser")
             title = soup.title.string.strip() if soup.title else "No Title"
@@ -325,9 +320,7 @@ class BrowserAgent:
                 f"Content: {page_data.get('content', '')[:2000]}\n\n"
                 "Return a clean JSON object with the extracted data."
             )
-            result = await router.async_route_and_generate(
-                prompt, task_type="reasoning", max_cost=0.02
-            )
+            result = await router.async_route_and_generate(prompt, task_type="reasoning", max_cost=0.02)
             extracted = result.get("text", "") if isinstance(result, dict) else ""
             return {
                 "success": True,

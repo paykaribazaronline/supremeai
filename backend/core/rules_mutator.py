@@ -13,11 +13,7 @@ class RulesMutator:
     def is_ip_blocked(self, ip_address: str) -> bool:
         from core import services
 
-        if (
-            hasattr(services, "redis_queue")
-            and services.redis_queue
-            and services.redis_queue.configured
-        ):
+        if hasattr(services, "redis_queue") and services.redis_queue and services.redis_queue.configured:
             redis_key = f"blocklist:ip:{ip_address}"
             try:
                 val = services.redis_queue.get(redis_key)
@@ -31,16 +27,10 @@ class RulesMutator:
         logger.warning(f"RulesMutator: Blocking IP {ip_address} due to {reason}.")
         from core import services
 
-        if (
-            hasattr(services, "redis_queue")
-            and services.redis_queue
-            and services.redis_queue.configured
-        ):
+        if hasattr(services, "redis_queue") and services.redis_queue and services.redis_queue.configured:
             redis_key = f"blocklist:ip:{ip_address}"
             try:
-                services.redis_queue.set(
-                    redis_key, f"blocked:{reason}", ex=self.cooldown_seconds
-                )
+                services.redis_queue.set(redis_key, f"blocked:{reason}", ex=self.cooldown_seconds)
                 return True
             except Exception as e:  # noqa: BLE001
                 logger.error(f"Redis connection failed during block_ip: {e}")
@@ -50,11 +40,7 @@ class RulesMutator:
         logger.info(f"RulesMutator: Releasing block on IP {ip_address}.")
         from core import services
 
-        if (
-            hasattr(services, "redis_queue")
-            and services.redis_queue
-            and services.redis_queue.configured
-        ):
+        if hasattr(services, "redis_queue") and services.redis_queue and services.redis_queue.configured:
             redis_key = f"blocklist:ip:{ip_address}"
             try:
                 services.redis_queue.set(redis_key, "", ex=1)

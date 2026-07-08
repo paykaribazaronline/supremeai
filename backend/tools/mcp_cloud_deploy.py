@@ -50,6 +50,7 @@ def _get_oracle_region() -> str:
 
 class CloudProvider(str, Enum):
     """সমর্থিত ক্লাউড প্রোভাইডার।"""
+
     RENDER = "render"
     RAILWAY = "railway"
     ORACLE = "oracle"
@@ -57,36 +58,28 @@ class CloudProvider(str, Enum):
 
 class ResponseFormat(str, Enum):
     """আউটপুট ফরম্যাট।"""
+
     MARKDOWN = "markdown"
     JSON = "json"
 
 
 class DeployServiceInput(BaseModel):
     """সার্ভিস ডিপ্লয়ের জন্য ইনপুট।"""
+
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
     provider: CloudProvider = Field(..., description="ডিপ্লয় করার ক্লাউড প্রোভাইডার")
-    service_name: str = Field(
-        ..., 
-        description="সার্ভিসের নাম", 
-        min_length=1, 
-        max_length=100, 
-        pattern=r"^[a-zA-Z0-9\-_]+$"
-    )
+    service_name: str = Field(..., description="সার্ভিসের নাম", min_length=1, max_length=100, pattern=r"^[a-zA-Z0-9\-_]+$")
     branch: str | None = Field(default="main", description="ডিপ্লয় ব্রাঞ্চ", pattern=r"^[^\s;]+$")
 
 
 class GetLogsInput(BaseModel):
     """লগ রিট্রিভালের জন্য ইনপুট।"""
+
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
     provider: CloudProvider = Field(..., description="ক্লাউড প্রোভাইডার")
-    service_name: str = Field(
-        ..., 
-        description="সার্ভিসের নাম", 
-        min_length=1, 
-        pattern=r"^[a-zA-Z0-9\-_]+$"
-    )
+    service_name: str = Field(..., description="সার্ভিসের নাম", min_length=1, pattern=r"^[a-zA-Z0-9\-_]+$")
     lines: int = Field(default=100, description="রিট্রিভ করার লাইন সংখ্যা", ge=1, le=1000)
 
 
@@ -108,7 +101,7 @@ def _handle_api_error(exc: Exception, status_code: int | None = None) -> str:
         "destructiveHint": False,
         "idempotentHint": False,
         "openWorldHint": True,
-    }
+    },
 )
 async def cloud_deploy_service(params: DeployServiceInput) -> str:
     """
@@ -127,10 +120,9 @@ async def cloud_deploy_service(params: DeployServiceInput) -> str:
         str: ডিপ্লয় স্ট্যাটাস ও ইনফরমেশন
     """
     if not is_admin_authorized():
-        return json.dumps({
-            "error": "Admin authorization required for deployments",
-            "message": "Set ADMIN_AUTHORIZED=true in environment"
-        }, ensure_ascii=False)
+        return json.dumps(
+            {"error": "Admin authorization required for deployments", "message": "Set ADMIN_AUTHORIZED=true in environment"}, ensure_ascii=False
+        )
 
     headers = {}
     api_url = ""
@@ -158,22 +150,21 @@ async def cloud_deploy_service(params: DeployServiceInput) -> str:
 
     try:
         async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(
-                api_url,
-                headers=headers,
-                json={"serviceName": params.service_name, "branch": params.branch}
-            )
+            response = await client.post(api_url, headers=headers, json={"serviceName": params.service_name, "branch": params.branch})
             response.raise_for_status()
             data = response.json()
 
-            return json.dumps({
-                "success": True,
-                "provider": params.provider.value,
-                "service": params.service_name,
-                "status": data.get("status", "deploying"),
-                "url": data.get("url", ""),
-                "message": f"Deployment initiated for '{params.service_name}' on {params.provider.value}"
-            }, ensure_ascii=False)
+            return json.dumps(
+                {
+                    "success": True,
+                    "provider": params.provider.value,
+                    "service": params.service_name,
+                    "status": data.get("status", "deploying"),
+                    "url": data.get("url", ""),
+                    "message": f"Deployment initiated for '{params.service_name}' on {params.provider.value}",
+                },
+                ensure_ascii=False,
+            )
 
     except httpx.HTTPStatusError as e:
         return handle_api_error(e, e.response.status_code)
@@ -189,7 +180,7 @@ async def cloud_deploy_service(params: DeployServiceInput) -> str:
         "destructiveHint": False,
         "idempotentHint": True,
         "openWorldHint": True,
-    }
+    },
 )
 async def cloud_get_deployment_logs(params: GetLogsInput) -> str:
     """
@@ -230,22 +221,16 @@ async def cloud_get_deployment_logs(params: GetLogsInput) -> str:
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.get(
-                api_url,
-                headers=headers,
-                params={"lines": params.lines}
-            )
+            response = await client.get(api_url, headers=headers, params={"lines": params.lines})
             response.raise_for_status()
             data = response.json()
 
             logs = data.get("logs", []) if isinstance(data, dict) else data
 
-            return json.dumps({
-                "provider": params.provider.value,
-                "service": params.service_name,
-                "logs": logs[:params.lines],
-                "total_lines": len(logs)
-            }, ensure_ascii=False)
+            return json.dumps(
+                {"provider": params.provider.value, "service": params.service_name, "logs": logs[: params.lines], "total_lines": len(logs)},
+                ensure_ascii=False,
+            )
 
     except httpx.HTTPStatusError as e:
         return handle_api_error(e, e.response.status_code)
@@ -261,7 +246,7 @@ async def cloud_get_deployment_logs(params: GetLogsInput) -> str:
         "destructiveHint": False,
         "idempotentHint": True,
         "openWorldHint": True,
-    }
+    },
 )
 async def cloud_list_services() -> str:
     """
@@ -276,18 +261,12 @@ async def cloud_list_services() -> str:
     if render_api_key:
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.get(
-                    "https://api.render.com/v1/services",
-                    headers={"Authorization": f"Bearer {render_api_key}"}
-                )
+                response = await client.get("https://api.render.com/v1/services", headers={"Authorization": f"Bearer {render_api_key}"})
                 if response.status_code == 200:
                     for svc in response.json():
-                        services.append({
-                            "provider": "render",
-                            "name": svc.get("serviceName"),
-                            "status": svc.get("status"),
-                            "url": svc.get("url", "")
-                        })
+                        services.append(
+                            {"provider": "render", "name": svc.get("serviceName"), "status": svc.get("status"), "url": svc.get("url", "")}
+                        )
         except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to list services from Render: {e}")
 
@@ -295,25 +274,14 @@ async def cloud_list_services() -> str:
     if railway_token:
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.get(
-                    "https://back-end.railway.app/v2/services",
-                    headers={"Authorization": f"Bearer {railway_token}"}
-                )
+                response = await client.get("https://back-end.railway.app/v2/services", headers={"Authorization": f"Bearer {railway_token}"})
                 if response.status_code == 200:
                     for svc in response.json():
-                        services.append({
-                            "provider": "railway",
-                            "name": svc.get("name"),
-                            "status": svc.get("status"),
-                            "url": svc.get("url", "")
-                        })
+                        services.append({"provider": "railway", "name": svc.get("name"), "status": svc.get("status"), "url": svc.get("url", "")})
         except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to list services from Railway: {e}")
 
-    return json.dumps({
-        "services": services,
-        "count": len(services)
-    }, ensure_ascii=False)
+    return json.dumps({"services": services, "count": len(services)}, ensure_ascii=False)
 
 
 if __name__ == "__main__":

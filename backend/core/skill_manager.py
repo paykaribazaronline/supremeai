@@ -1,18 +1,22 @@
 # backend/core/skill_manager.py
 import json
+
 from loguru import logger
+
 from core.llm_gateway import llm_gateway
+
 # আমাদের প্রডাকশন ডাটাবেজ বা সুপাবেস ক্লায়েন্ট ইম্পোর্ট করো
 from database.supabase_client import db
+
 
 class DynamicSkillManager:
     def __init__(self):
         # ইন-মেমোরি ক্যাশ বাতিল, এখন সরাসরি সুপাবেস ক্লায়েন্ট কাজ করবে
-        self.db = db.client 
+        self.db = db.client
 
     async def get_or_create_skill(self, task_description: str) -> dict:
         """লোকাল সুপাবেস ডিবি চেক করবে, মিস হলে ১ বার প্রিমিয়াম এআই দিয়ে স্কিল জেনারেট করবে।"""
-        
+
         # ১. লোকাল ডাটাবেজে সেমান্টিক বা টেক্সট সার্চ (Layer 1.5)
         existing_skill = await self._search_local_registry(task_description)
         if existing_skill:
@@ -21,13 +25,13 @@ class DynamicSkillManager:
 
         # ২. ডাটাবেজে না থাকলে (Registry Miss) -> প্রিমিয়াম এলএলএম কল
         logger.warning("🚀 [DB Miss] Unique task scenario. Escalating to Claude-3.5-Sonnet for Skill Generation...")
-        
+
         system_prompt = (
             "You are SupremeAI's Skill Architect. Your sole job is to generate a reusable, structural "
             "step-by-step automation blueprint for a Playwright browser agent based on user request. "
             "You must return ONLY a raw valid JSON object. No conversation, no markdown codeblocks."
         )
-        
+
         prompt = f"""
         Create a functional automation extraction schema for the following task: '{task_description}'.
         The output format must strictly be JSON matching this shape:
@@ -40,13 +44,9 @@ class DynamicSkillManager:
             ]
         }}
         """
-        
-        response = await llm_gateway.acompletion(
-            prompt=prompt,
-            system_prompt=system_prompt,
-            model_filters=["claude-3-5-sonnet"]
-        )
-        
+
+        response = await llm_gateway.acompletion(prompt=prompt, system_prompt=system_prompt, model_filters=["claude-3-5-sonnet"])
+
         # এলএলএম মার্কডাউন কোডব্লক ট্র্যাপ ক্লিনআপ (সাইলেন্ট এরর ফিক্স)
         raw_text = response.get("text", "{}").strip()
         if raw_text.startswith("```"):
@@ -62,9 +62,9 @@ class DynamicSkillManager:
             # ৩. ডাটাবেজে আজীবনের জন্য পারসিস্ট (Save) করা হচ্ছে
             await self._save_skill_to_registry(new_skill)
             return new_skill
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to parse or register dynamic skill: {str(e)}")
-            raise ValueError("Invalid JSON configuration from Skill Factory.")
+            raise ValueError("Invalid JSON configuration from Skill Factory.")  # noqa: B904
 
     async def _search_local_registry(self, description: str):
         """Supabase থেকে ডেসক্রিপশন ম্যাচ করে কাস্টম স্কিল রেসিপি খুঁজবে।"""
@@ -73,17 +73,17 @@ class DynamicSkillManager:
                 return None
             # প্রডাকশন রানিং কোয়েরি: টেক্সট ম্যাচিং (ভবিষ্যতে ক্রোমাডিবি ভেক্টরে আপগ্রেড হবে)
             response = self.db.table("tools_registry").select("*").ilike("description", f"%{description}%").execute()
-            
+
             if response.data and len(response.data) > 0:
                 # প্রথম ম্যাচিং স্কিলটি রিটার্ন করা হচ্ছে
                 skill = response.data[0]
                 return {
                     "skill_name": skill["skill_name"],
                     "description": skill["description"],
-                    "execution_steps": skill["execution_steps"] # PostgreSQL অটো JSON ডিকোড করবে
+                    "execution_steps": skill["execution_steps"],  # PostgreSQL অটো JSON ডিকোড করবে
                 }
             return None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Supabase read error in Skill Manager: {str(e)}")
             return None
 
@@ -95,9 +95,9 @@ class DynamicSkillManager:
             payload = {
                 "skill_name": skill_data.get("skill_name"),
                 "description": skill_data.get("description"),
-                "execution_steps": skill_data.get("execution_steps") # JSONB ফিল্ডে সরাসরি ম্যাপ হবে
+                "execution_steps": skill_data.get("execution_steps"),  # JSONB ফিল্ডে সরাসরি ম্যাপ হবে
             }
             self.db.table("tools_registry").insert(payload).execute()
             logger.success(f"💾 [Supabase Persisted] Registered '{payload['skill_name']}' to global tools pool.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Supabase write error in Skill Manager: {str(e)}")

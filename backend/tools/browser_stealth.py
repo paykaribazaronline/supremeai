@@ -1,6 +1,7 @@
 import asyncio
 import os
 import secrets
+
 random = secrets.SystemRandom()
 import string
 import time
@@ -20,7 +21,7 @@ REALISTIC_USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
 ]
 
 
@@ -44,9 +45,10 @@ class BrowserStealth:
             "--disable-popup-blocking",
         ]
         from tools.proxy_manager import ProxyManager
+
         proxy_mgr = ProxyManager()
         next_proxy = proxy_mgr.get_next_proxy()
-        
+
         context_kwargs = {
             "user_agent": random.choice(REALISTIC_USER_AGENTS),
             "locale": "en-US",
@@ -58,12 +60,12 @@ class BrowserStealth:
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                 "Accept-Language": "en-US,en;q=0.9",
                 "Upgrade-Insecure-Requests": "1",
-            }
+            },
         }
         if next_proxy:
             context_kwargs["proxy"] = {"server": next_proxy}
             logger.info(f"Playwright stealth browser launching via proxy: {next_proxy}")
-            
+
         self.context = await browser.new_context(**context_kwargs)
         await self.context.route("**/*.{png,jpg,jpeg,gif,svg,woff,woff2}", lambda route: route.abort())
         await self.context.add_init_script(
@@ -138,7 +140,9 @@ class BrowserStealth:
 
     async def safe_screenshot(self, page: Page, path: str | None = None) -> str | None:
         try:
-            target = path or f"data/artifacts/screenshot_{int(time.time())}_{''.join(random.choices(string.ascii_lowercase + string.digits, k=6))}.png"
+            target = (
+                path or f"data/artifacts/screenshot_{int(time.time())}_{''.join(random.choices(string.ascii_lowercase + string.digits, k=6))}.png"
+            )
             Path("data/artifacts").mkdir(parents=True, exist_ok=True)
             await page.screenshot(path=target, full_page=True)
             return target
@@ -155,8 +159,10 @@ class BrowserStealth:
         except Exception as e:  # noqa: BLE001
             try:
                 import loguru
+
                 loguru.logger.error(f"Tool execution error: {e}")
             except Exception as e:  # noqa: BLE001
                 import logging
+
                 logging.warning(f"Exception suppressed: {e}")
             pass
