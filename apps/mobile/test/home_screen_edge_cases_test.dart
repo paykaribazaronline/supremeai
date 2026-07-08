@@ -111,6 +111,15 @@ class MockOrchestrationProvider extends ChangeNotifier implements OrchestrationP
     _error = null;
     notifyListeners();
   }
+
+  @override
+  Map<String, dynamic> get activeAgentMetrics => {};
+
+  @override
+  set activeAgentMetrics(Map<String, dynamic> val) {}
+
+  @override
+  void initRealTimeTaskStream(String taskId, String token) {}
 }
 
 class MockSettingsProvider extends ChangeNotifier implements SettingsProvider {
@@ -184,6 +193,15 @@ class FakeOrch extends OrchestrationProvider {
     _error = null;
     notifyListeners();
   }
+
+  @override
+  Map<String, dynamic> get activeAgentMetrics => {};
+
+  @override
+  set activeAgentMetrics(Map<String, dynamic> val) {}
+
+  @override
+  void initRealTimeTaskStream(String taskId, String token) {}
 }
 
 class FakeSettings extends SettingsProvider {

@@ -133,6 +133,15 @@ class MockOrchestrationProvider extends ChangeNotifier implements OrchestrationP
     _errorMessage = null;
     notifyListeners();
   }
+
+  @override
+  Map<String, dynamic> get activeAgentMetrics => {};
+
+  @override
+  set activeAgentMetrics(Map<String, dynamic> val) {}
+
+  @override
+  void initRealTimeTaskStream(String taskId, String token) {}
 }
 
 class MockSettingsProvider extends ChangeNotifier implements SettingsProvider {
