@@ -1,10 +1,10 @@
-# SupremeAI Push Summary (8e3162b86)
+# SupremeAI Push Summary (e2c063157)
 
 ### Push Summary
 Failed to generate summary via LLM: litellm.RateLimitError: litellm.RateLimitError: geminiException - {
   "error": {
     "code": 429,
-    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.5-pro\nPlease retry in 13.241643424s.",
+    "message": "You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.5-pro\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.5-pro\nPlease retry in 3.165411742s.",
     "status": "RESOURCE_EXHAUSTED",
     "details": [
       {
@@ -20,8 +20,8 @@ Failed to generate summary via LLM: litellm.RateLimitError: litellm.RateLimitErr
         "@type": "type.googleapis.com/google.rpc.QuotaFailure",
         "violations": [
           {
-            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count",
-            "quotaId": "GenerateContentInputTokensPerModelPerMinute-FreeTier",
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
+            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
             "quotaDimensions": {
               "location": "global",
               "model": "gemini-2.5-pro"
@@ -36,26 +36,26 @@ Failed to generate summary via LLM: litellm.RateLimitError: litellm.RateLimitErr
             }
           },
           {
-            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_requests",
-            "quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier",
+            "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count",
+            "quotaId": "GenerateContentInputTokensPerModelPerMinute-FreeTier",
             "quotaDimensions": {
-              "model": "gemini-2.5-pro",
-              "location": "global"
+              "location": "global",
+              "model": "gemini-2.5-pro"
             }
           },
           {
             "quotaMetric": "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count",
             "quotaId": "GenerateContentInputTokensPerModelPerDay-FreeTier",
             "quotaDimensions": {
-              "location": "global",
-              "model": "gemini-2.5-pro"
+              "model": "gemini-2.5-pro",
+              "location": "global"
             }
           }
         ]
       },
       {
         "@type": "type.googleapis.com/google.rpc.RetryInfo",
-        "retryDelay": "13s"
+        "retryDelay": "3s"
       }
     ]
   }
