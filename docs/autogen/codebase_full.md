@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-08T10:24:21.679905
+Generated at: 2026-07-08T10:38:47.122438
 
 
 ## File: `pnpm-lock.yaml`
@@ -191931,9 +191931,17 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-      - name: Install Dependencies
+      - name: Load Cached Virtualenv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: backend/.venv
+          key: venv-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
+      - name: Install Dependencies (Only on Cache Miss)
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: |
           pip install poetry
+          cd backend && poetry config virtualenvs.in-project true
           cd backend && poetry install --with dev --without ml
       - name: Auto-Generate Missing Tests
         env:
@@ -192157,9 +192165,17 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-      - name: Install Python Dependencies
+      - name: Load Cached Virtualenv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: backend/.venv
+          key: venv-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
+      - name: Install Python Dependencies (Only on Cache Miss)
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: |
           pip install poetry
+          cd backend && poetry config virtualenvs.in-project true
           cd backend && poetry install --with dev --without ml
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
@@ -192203,14 +192219,24 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Load Cached Virtualenv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: backend/.venv
+          key: venv-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
+      - name: Install Dependencies (Only on Cache Miss)
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        working-directory: backend
+        run: |
+          pip install poetry
+          poetry config virtualenvs.in-project true
+          poetry install --sync --without ml
       - name: Start Backend for Testing
         working-directory: backend
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
-          pip install poetry
-          poetry config virtualenvs.in-project true
-          poetry install --sync --without ml
           
           # Create credentials file for Google Cloud/Firestore
           echo "$GCP_SA_KEY" > $HOME/gcp_key.json
@@ -192358,16 +192384,14 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
 
-      - name: Cache Poetry
+      - name: Load Cached Virtualenv
+        id: cached-poetry-dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-${{ env.PYTHON_VERSION }}-
-            ${{ runner.os }}-poetry-
-
-      - name: Install Dependencies
+          path: backend/.venv
+          key: venv-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
+      - name: Install Dependencies (Only on Cache Miss)
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         working-directory: backend
         run: |
           pip install poetry
@@ -192445,16 +192469,14 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
       
-      - name: Cache Poetry
+      - name: Load Cached Virtualenv
+        id: cached-poetry-dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-${{ env.PYTHON_VERSION }}-
-            ${{ runner.os }}-poetry-
-
-      - name: Install Dependencies
+          path: backend/.venv
+          key: venv-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
+      - name: Install Dependencies (Only on Cache Miss)
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         working-directory: backend
         run: |
           pip install poetry
@@ -192741,14 +192763,12 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-      - name: Cache Poetry
+      - name: Load Cached Virtualenv
+        id: cached-poetry-dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-${{ env.PYTHON_VERSION }}-
-            ${{ runner.os }}-poetry-
+          path: backend/.venv
+          key: venv-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
       - name: Install Backend Dependencies & Start Server
         working-directory: backend
         env:
