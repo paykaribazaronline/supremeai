@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-08T01:36:41.215374
+Generated at: 2026-07-08T01:44:17.558678
 
 
 ## File: `pnpm-lock.yaml`
@@ -24141,6 +24141,7 @@ if __name__ == "__main__":
 
 ```py
 import os
+import ast
 from pathlib import Path
 import importlib.util
 from typing import Dict, Any, List
@@ -24148,6 +24149,79 @@ from loguru import logger
 from skills.registry import SkillRegistry
 from skills.installer import SkillInstaller
 from skills.marketplace import SkillMarketplace
+
+class SecurityError(Exception):
+    """Custom exception raised for AST sandbox validation failures."""
+    pass
+
+class BulletproofASTSandbox(ast.NodeVisitor):
+    def __init__(self, filename: str):
+        self.filename = filename
+        self.is_secure = True
+        self.violation_reason = None
+        
+        # ব্ল্যাকলিস্টেড মডিউল, অ্যাট্রিবিউটস এবং অবজেক্ট প্যারামিটার্স
+        self.banned_tokens = {
+            "__class__", "__subclasses__", "__globals__", "__code__",
+            "__import__", "__builtins__", "eval", "exec", "os", "sys",
+            "subprocess", "importlib", "shutil", "socket", "getattr", "setattr"
+        }
+
+    def _flag_violation(self, node, reason):
+        self.is_secure = False
+        self.violation_reason = f"Line {node.lineno}: {reason}"
+        logger.warning(f"AST Sandbox Violation in '{self.filename}'! Details: {self.violation_reason}")
+
+    def visit_Name(self, node):
+        if node.id in self.banned_tokens:
+            self._flag_violation(node, f"Direct usage of banned name/function '{node.id}'")
+        self.generic_visit(node)
+
+    def visit_Attribute(self, node):
+        if node.attr in self.banned_tokens:
+            self._flag_violation(node, f"Dangerous attribute access attempt: '{node.attr}'")
+        self.generic_visit(node)
+
+    def visit_Constant(self, node):
+        # Python 3.8+ কনস্ট্যান্ট নোড স্ক্যানিং (যা স্ট্রিং লিটারেল কাভার করে)
+        if isinstance(node.value, str):
+            val_clean = node.value.replace(" ", "").lower()
+            for banned in self.banned_tokens:
+                if banned in val_clean:
+                    self._flag_violation(node, f"Obfuscation payload detected in string literal: '{node.value}'")
+                    return
+        self.generic_visit(node)
+
+    def visit_Str(self, node):
+        # লেগ্যাসি পাইথন সাপোর্টের জন্য ব্যাকআপ ভিজিটর
+        val_clean = node.s.replace(" ", "").lower()
+        for banned in self.banned_tokens:
+            if banned in val_clean:
+                self._flag_violation(node, f"Obfuscated legacy payload detected in string: '{node.s}'")
+                return
+        self.generic_visit(node)
+
+    def visit_Call(self, node):
+        # ডাইনামিক কোড রান করার ফাংশন ডাইরেক্ট ব্লক করা
+        if isinstance(node.func, ast.Name):
+            if node.func.id in {"eval", "exec", "__import__", "open"}:
+                self._flag_violation(node, f"Prohibited dynamic call: '{node.func.id}'")
+        self.generic_visit(node)
+
+def secure_sandbox_ast_check(code_string: str, filename: str) -> bool:
+    """
+    Parses and audits a given Python code snippet before compilation or execution.
+    Returns True if fully compliant with SupremeAI sandbox criteria, False otherwise.
+    """
+    try:
+        parsed_tree = ast.parse(code_string)
+    except SyntaxError as e:
+        logger.error(f"Syntax error during sandboxed parsing sequence: {e}")
+        return False
+
+    validator = BulletproofASTSandbox(filename)
+    validator.visit(parsed_tree)
+    return validator.is_secure
 
 class SkillLoader:
     # Centralize security configuration for clarity and reusability.
@@ -24159,10 +24233,9 @@ class SkillLoader:
         self.registry = registry or SkillRegistry()
         self.installer = installer or SkillInstaller(self.registry)
         self.marketplace = SkillMarketplace()
-        self._loaded: Dict[str, Any] = {}
-        # মাত্র এক লাইনে গ্লোবাল পাথ ডিক্লেয়ারেশন
         self.skills_dir = Path(__file__).resolve().parent / "skills" / "dynamic"
         self.skills_dir.mkdir(parents=True, exist_ok=True)
+        self._loaded: Dict[str, Any] = {}
 
     def discover_local(self) -> List[str]:
         found = []
@@ -24171,33 +24244,6 @@ class SkillLoader:
                 if entry.is_dir() and (entry / "main.py").exists():
                     found.append(entry.name)
         return found
-
-    def _sandbox_ast_check(self, code: str, filename: str):
-        """
-        Performs AST-based security checks to prevent RCE and other malicious activities.
-        Raises SecurityError if a banned pattern is detected.
-        """
-        import ast
-        try:
-            tree = ast.parse(code, filename=filename)
-        except SyntaxError as e:
-            raise ValueError(f"Syntax error in skill code: {filename}") from e
-
-        for node in ast.walk(tree):
-            # 1. Import Blocker: Prevents importing dangerous modules.
-            if isinstance(node, (ast.Import, ast.ImportFrom)):
-                modules = [alias.name for alias in node.names] if isinstance(node, ast.Import) else [node.module]
-                for mod_name in modules:
-                    if mod_name and mod_name.split('.')[0] in self.BANNED_IMPORTS:
-                        raise SecurityError(f"🛡️ Banned import '{mod_name}' blocked in skill '{filename}'.")
-
-            # 2. Attribute Access Blocker: Prevents access to dunder methods and sensitive attributes.
-            elif isinstance(node, ast.Attribute) and (node.attr.startswith('__') or node.attr in self.BANNED_BUILTINS):
-                raise SecurityError(f"🛡️ Malicious attribute access '{node.attr}' blocked in skill '{filename}'.")
-
-            # 3. Function Call Blocker: Prevents direct calls to banned built-in functions.
-            elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in self.BANNED_BUILTINS:
-                raise SecurityError(f"🛡️ Call to banned function '{node.func.id}' blocked in skill '{filename}'.")
 
     def load(self, name: str) -> Any:
         if name in self._loaded:
@@ -24218,7 +24264,8 @@ class SkillLoader:
                 logger.warning(f"USS validation failed for loaded skill '{name}': {e}")
 
         code = candidate.read_text(encoding="utf-8")
-        self._sandbox_ast_check(code, str(candidate))
+        if not secure_sandbox_ast_check(code, str(candidate)):
+            raise SecurityError(f"🛡️ AST Sandbox validation failed for skill '{name}'.")
 
         spec = importlib.util.spec_from_file_location(f"skills.dynamic.{name}", candidate)
         mod = importlib.util.module_from_spec(spec)
@@ -24248,12 +24295,9 @@ class SkillLoader:
         skill = results[0]
         ok = self.installer.install_skill_from_source(
             name=skill["name"],
-            code=skill.get("code", ""),
-            version=skill.get("version", "1.0.0"),
-            description=skill.get("description", ""),
-            dependencies=skill.get("dependencies", []),
+            source_url=skill["download_url"],
+            target_dir=str(self.skills_dir)
         )
-        logger.info(f"Skill install for '{skill['name']}': {'ok' if ok else 'failed'}")
         return ok
 
 ```
@@ -27389,6 +27433,8 @@ jobs:
 ## File: `scripts/create_test_admin.py`
 
 ```py
+import os
+import sys
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
 
@@ -27396,8 +27442,21 @@ cred = credentials.Certificate("backend/service-account.json")
 firebase_admin.initialize_app(cred)
 
 db = firestore.client()
-email = "testadmin@supremeai.com"
-password = "SecurePassword123!"
+
+# বাংলা মন্তব্য: P0 Fix — হার্ডকোডেড সুপার-অ্যাডমিন পাসওয়ার্ড ও ইমেইল দূর করা হলো।
+app_env = os.getenv("APP_ENV", "development").lower()
+email = os.getenv("TEST_ADMIN_EMAIL")
+password = os.getenv("TEST_ADMIN_PASSWORD")
+
+if app_env == "production":
+    if not email or not password:
+        print("CRITICAL CONFIGURATION ERROR: Production admin creation requires "
+              "both TEST_ADMIN_EMAIL and TEST_ADMIN_PASSWORD env vars explicitly set.")
+        sys.exit(1)
+else:
+    # লোকাল ডেভ এনভায়রনমেন্ট বা কন্টেইনারে সিম্পল সিড টেস্টের জন্য নিরাপদ ডিফল্ট
+    email = email or "admin@supremeai.local"
+    password = password or "DefaultLocalDevPassword123!"
 
 try:
     # 1. Firebase Auth-এ ইউজার ক্রিয়েট বা গেট করা
@@ -27446,6 +27505,7 @@ print('বাংলা টেস্ট')
 ## File: `scripts/locustfile.py`
 
 ```py
+import os
 import uuid
 import random
 import time
@@ -27459,11 +27519,27 @@ class SupremeAILoadTester(HttpUser):
     wait_time = between(0.1, 0.5)
 
     def on_start(self):
-        """ভার্চুয়াল ইউজার বুট হওয়ার সময় ইউনিক সেশন আইডি জেনারেট করবে"""
+        """
+        Executes on virtual user initialization. Retrieves secure authentication tokens
+        from environment context instead of static hardcoded strings.
+        """
         self.session_id = f"test-session-{uuid.uuid4()}"
+        api_token = os.getenv("SUPREMEAI_API_TOKEN")
+        app_env = os.getenv("APP_ENV", "development").lower()
+
+        if not api_token:
+            if app_env == "production":
+                # বাংলা মন্তব্য: প্রোডাকশনে কোনোভাবেই ফলব্যাক টোকেন চলতে পারে না!
+                logger.critical("CRITICAL: SUPREMEAI_API_TOKEN env var is missing in production environment!")
+                raise ValueError("SUPREMEAI_API_TOKEN environment variable is mandatory for production load tests.")
+            
+            # লোকাল এনভায়রনমেন্টে নন-সেন্সিটিভ টেস্টিংয়ের জন্য ফলব্যাক
+            api_token = "test-token-secure-bypass"
+            logger.warning(f"Using development fallback token. Current environment context: {app_env}")
+
         self.auth_headers = {
             "Content-Type": "application/json",
-            "Authorization": "Bearer test-token-secure-bypass" # অ্যাডমিন বাইপাস টোকেন
+            "Authorization": f"Bearer {api_token}"
         }
 
     @tag('stream_stress')
@@ -38167,11 +38243,23 @@ async function handleRequest(request) {
     return new Response('No backends configured', { status: 503 })
   }
 
-  // Architectural Fix: Implement Circuit Breaker logic
-  if (Date.now() < circuitBreakerState.brokenUntil) {
+  // বাংলা মন্তব্য: P1 Fix — Cloudflare KV থেকে সার্কিট স্টেট রিড করা হচ্ছে রেস কন্ডিশন ও স্টেট ড্রিফট এড়াতে।
+  const kv = typeof SUPREMEAI_KV !== 'undefined' ? SUPREMEAI_KV : (typeof env !== 'undefined' && env.SUPREMEAI_KV ? env.SUPREMEAI_KV : null);
+  let localState = { ...circuitBreakerState };
+  if (kv) {
+    try {
+      const cached = await kv.get('SUPREMEAI_CIRCUIT_BREAKER_V2', { type: 'json' });
+      if (cached) {
+        localState = cached;
+      }
+    } catch (e) {
+      console.error("KV read error for circuit breaker:", e);
+    }
+  }
+
+  if (Date.now() < localState.brokenUntil) {
     // Circuit is open, return emergency response without hitting KV or origin
     console.error('Circuit Breaker is open. Returning emergency fallback response.');
-    // This can be a static page from R2, a simple message, or a data-driven response
     return new Response('Service temporarily unavailable. Please try again shortly.', { status: 503, headers: { 'Content-Type': 'text/plain' } });
   }
 
@@ -38246,13 +38334,33 @@ async function getHealthyBackendsFromKV(backends) {
   const directlyChecked = await getHealthyBackends(backends);
   if (directlyChecked.length === 0 && backends.length > 0) {
     // All backends are unhealthy, trip the circuit breaker
-    circuitBreakerState.failureCount++;
-    circuitBreakerState.lastFailureTime = Date.now();
+    let localState = { ...circuitBreakerState };
+    if (kv) {
+      try {
+        const cached = await kv.get('SUPREMEAI_CIRCUIT_BREAKER_V2', { type: 'json' });
+        if (cached) {
+          localState = cached;
+        }
+      } catch (e) {
+        console.error("KV read error during state mutation:", e);
+      }
+    }
+    localState.failureCount++;
+    localState.lastFailureTime = Date.now();
     // If it fails 3 times in a row, open the circuit for 1 minute
-    if (circuitBreakerState.failureCount >= 3) {
+    if (localState.failureCount >= 3) {
       console.error('All backends unhealthy after direct check. Tripping circuit breaker for 60 seconds.');
-      circuitBreakerState.brokenUntil = Date.now() + 60000; // Open for 60 seconds
-      circuitBreakerState.failureCount = 0; // Reset count
+      localState.brokenUntil = Date.now() + 60000; // Open for 60 seconds
+      localState.failureCount = 0; // Reset count
+    }
+    Object.assign(circuitBreakerState, localState);
+    if (kv) {
+      try {
+        // বাংলা মন্তব্য: P1 Fix — অন্যান্য Isolates-এর সাথে ব্রেকার স্টেট সিঙ্ক করতে KV-তে লিখা হচ্ছে।
+        await kv.put('SUPREMEAI_CIRCUIT_BREAKER_V2', JSON.stringify(localState), { expirationTtl: 300 });
+      } catch (e) {
+        console.error("KV write error during state mutation:", e);
+      }
     }
   }
   return directlyChecked;
