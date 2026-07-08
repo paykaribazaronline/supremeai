@@ -42,7 +42,7 @@ async function handleRequest(request) {
   }
 
   // বাংলা মন্তব্য: P1 Fix — Cloudflare KV থেকে সার্কিট স্টেট রিড করা হচ্ছে রেস কন্ডিশন ও স্টেট ড্রিফট এড়াতে।
-  const kv = typeof SUPREMEAI_KV !== 'undefined' ? SUPREMEAI_KV : (typeof env !== 'undefined' && env.SUPREMEAI_KV ? env.SUPREMEAI_KV : null);
+  const kv = typeof SUPREMEAI_KV !== 'undefined' ? SUPREMEAI_KV : null;
   let localState = { ...circuitBreakerState };
   if (kv) {
     try {
@@ -114,7 +114,7 @@ async function forwardRequest(request, backend, originalUrl) {
 
 async function getHealthyBackendsFromKV(backends) {
   try {
-    const kv = typeof SUPREMEAI_KV !== 'undefined' ? SUPREMEAI_KV : (typeof env !== 'undefined' && env.SUPREMEAI_KV ? env.SUPREMEAI_KV : null);
+    const kv = typeof SUPREMEAI_KV !== 'undefined' ? SUPREMEAI_KV : null;
     if (kv) {
       const cached = await kv.get('healthy_backends');
       if (cached) {
@@ -171,7 +171,7 @@ async function checkHealthAndStore() {
   const healthyBackends = await getHealthyBackends(backends)
   const healthyNames = healthyBackends.map(b => b.name)
 
-  const kv = typeof SUPREMEAI_KV !== 'undefined' ? SUPREMEAI_KV : (typeof env !== 'undefined' && env.SUPREMEAI_KV ? env.SUPREMEAI_KV : null);
+  const kv = typeof SUPREMEAI_KV !== 'undefined' ? SUPREMEAI_KV : null;
   if (kv) {
     // আর্কিটেকচারাল ফিক্স #2: Add a TTL to prevent using stale data if the cron fails
     await kv.put('healthy_backends', JSON.stringify(healthyNames), {

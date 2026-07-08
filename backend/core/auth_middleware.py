@@ -165,9 +165,9 @@ class AuthMiddleware:
 
         if is_test:
             # বাংলা মন্তব্য: টেস্ট মোডে মিডলওয়্যার যাতে ইন্টিগ্রেশন টেস্টগুলোকে ব্লক না করে সেজন্য bypass।
-            # তবে যদি টেস্টে explicitly incorrect token বা empty token (যেখানে API key env-এ সেট আছে) টেস্ট করা হয়, তবে enforce করুন।
+            # তবে যদি টেস্টে explicitly incorrect token বা empty token পাঠানো হয়, তবে auth enforce করব।
             expected_token = os.getenv("SUPREMEAI_API_TOKEN")
-            if expected_token and (not token or token == "wrong-token"):
+            if expected_token and token != expected_token:
                 pass
             else:
                 await self.app(scope, receive, send)
