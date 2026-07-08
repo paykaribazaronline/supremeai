@@ -54,7 +54,7 @@ else:
 print("🚀 Deploying new image to Cloud Run...")
 ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
 env_args = f"--set-env-vars ENCRYPTION_KEY='{ENCRYPTION_KEY}'" if ENCRYPTION_KEY else ""
-deploy_cmd = f"gcloud run deploy {SERVICE_NAME} --image {IMAGE} --region {REGION} {env_args} --port 8080 --timeout 300s --quiet"
+deploy_cmd = f"gcloud run deploy {SERVICE_NAME} --image {IMAGE} --region {REGION} {env_args} --port 8080 --memory 2048Mi --cpu 2 --timeout 300s --quiet"
 result = run_cmd(deploy_cmd)
 
 if result.exit_code != 0:
