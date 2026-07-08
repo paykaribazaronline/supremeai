@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/git_knowledge_extractor.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,710 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.544989
+**সাইজ:** 3,674 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.587464
 
 ---
 
@@ -56,9 +56,7 @@ def init_db():
 
 def run_git(args):
     try:
-        return subprocess.check_output(["git"] + args, stderr=subprocess.STDOUT).decode(
-            "utf-8"
-        )
+        return subprocess.check_output(["git"] + args, stderr=subprocess.STDOUT).decode("utf-8")
     except Exception as e:  # noqa: BLE001
         print(f"Error running git: {e}")  # noqa: T201
         return ""
@@ -68,9 +66,7 @@ def extract_knowledge():
     init_db()
     print("🔍 Analyzing git log for knowledge extraction...")  # noqa: T201
     # Get last 50 commits with diffs
-    logs = run_git(
-        ["log", "-n", "50", "--pretty=format:COMMIT:%H%nSUBJECT:%s%nBODY:%b", "-p"]
-    )
+    logs = run_git(["log", "-n", "50", "--pretty=format:COMMIT:%H%nSUBJECT:%s%nBODY:%b", "-p"])
 
     knowledge_entries = []
     commits = logs.split("COMMIT:")

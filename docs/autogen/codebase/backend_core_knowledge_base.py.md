@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/knowledge_base.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,765 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.475741
+**সাইজ:** 1,767 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.546204
 
 ---
 
@@ -25,12 +25,14 @@ if not os.path.exists(MEMORY_FILE_PATH):
     with open(MEMORY_FILE_PATH, "w") as f:
         json.dump({}, f)
 
+
 def get_from_memory(prompt: str):
     """ইউজারের প্রম্পটটি আগে সমাধান করা হয়েছে কি না, তা চেক করবে"""
     with open(MEMORY_FILE_PATH) as f:
         memory = json.load(f)
         # সিম্পল কি-ওয়ার্ড বা হ্যাশ ম্যাচিং (পরবর্তীতে আমরা ভেক্টর ডাটাবেস অ্যাড করব)
         return memory.get(prompt, None)
+
 
 def save_to_memory(prompt: str, solution_code: str):
     """নতুন সমাধান শিখলে সেটি জিরো-কস্ট মেমোরিতে সেভ করে রাখবে"""

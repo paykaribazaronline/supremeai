@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/voice_coder.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,473 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.544449
+**সাইজ:** 6,385 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.587117
 
 ---
 
@@ -51,9 +51,11 @@ class VoiceCoder:
             except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
+
                     loguru.logger.error(f"Tool execution error: {e}")
                 except Exception as e:  # noqa: BLE001
                     import logging
+
                     logging.warning(f"Exception suppressed: {e}")
                 audio_feedback = None
 
@@ -79,9 +81,7 @@ class VoiceCoder:
             explanation = await self._explain(transcript)
             return "explanation", explanation
         elif any(w in lower for w in ["fix", "debug", "error"]):
-            code = await self._generate_code_from_instruction(
-                f"Fix the following: {transcript}"
-            )
+            code = await self._generate_code_from_instruction(f"Fix the following: {transcript}")
             return "fix_code", code
         else:
             code = await self._generate_code_from_instruction(transcript)
@@ -97,9 +97,7 @@ class VoiceCoder:
                 "following request. Return only the code, no explanations.\n\n"
                 f"Request: {instruction}"
             )
-            result = await router.async_route_and_generate(
-                prompt, task_type="coding", max_cost=0.03
-            )
+            result = await router.async_route_and_generate(prompt, task_type="coding", max_cost=0.03)
             text = result.get("text", "") if isinstance(result, dict) else ""
             if not text:
                 return f"# Could not generate code for: {instruction}\n"
@@ -113,9 +111,7 @@ class VoiceCoder:
             from brain.model_router import ModelRouter
 
             router = ModelRouter()
-            result = await router.async_route_and_generate(
-                question, task_type="general", max_cost=0.01
-            )
+            result = await router.async_route_and_generate(question, task_type="general", max_cost=0.01)
             return result.get("text", "") if isinstance(result, dict) else ""
         except Exception as e:  # noqa: BLE001
             return f"Could not explain: {e}"

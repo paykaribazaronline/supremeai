@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_style_learner.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,577 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.524944
+**সাইজ:** 2,563 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.575255
 
 ---
 
@@ -37,9 +37,7 @@ async def test_default_style_guidelines():
 async def test_extract_style_guidelines():
     # বাংলা মন্তব্য: মক এলএলএম রেসপন্স ব্যবহার করে স্টাইল গাইডলাইন এক্সট্র্যাক্ট করার টেস্ট।
     # বাংলা মন্তব্য: রিয়েল মডেল রাউটার কল বন্ধ করতে patch.object ব্যবহার করে ক্লাস মেথডটি মক করা হলো
-    with patch.object(
-        ModelRouter, "async_route_and_generate", new_callable=AsyncMock
-    ) as mock_generate:
+    with patch.object(ModelRouter, "async_route_and_generate", new_callable=AsyncMock) as mock_generate:
         mock_generate.return_value = {
             "text": '{"python": {"naming_convention": "snake_case"}, "typescript": {"quotes": "single"}, "general_patterns": ["Test pattern"]}'
         }

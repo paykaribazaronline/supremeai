@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/monthly_cost_reporter.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,185 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.552508
+**সাইজ:** 3,107 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.592374
 
 ---
 
@@ -58,11 +58,7 @@ class MonthlyCostReporter:
         }
 
     def _month_range(self, month: str) -> tuple[datetime, datetime]:
-        start = (
-            datetime.strptime(month, "%Y-%m")
-            if "-" in month
-            else datetime.strptime(month, "%Y%m")
-        )
+        start = datetime.strptime(month, "%Y-%m") if "-" in month else datetime.strptime(month, "%Y%m")
         next_month = (start.replace(day=28) + timedelta(days=4)).replace(day=1)
         end = next_month
         return start, end
@@ -81,9 +77,7 @@ class MonthlyCostReporter:
             import requests
 
             url = f"https://api.telegram.org/bot{self.telegram_bot_token}/sendMessage"
-            requests.post(
-                url, json={"chat_id": self.admin_chat_id, "text": text}, timeout=10
-            )
+            requests.post(url, json={"chat_id": self.admin_chat_id, "text": text}, timeout=10)
             return True
         except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to send monthly cost report: {exc}")

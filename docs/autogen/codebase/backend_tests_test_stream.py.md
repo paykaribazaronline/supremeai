@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_stream.py
 
 **প্রকার:** .py  
-**সাইজ:** 988 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.509963
+**সাইজ:** 974 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.566505
 
 ---
 
@@ -28,9 +28,7 @@ def stream_app() -> FastAPI:
 
 def test_stream_endpoint_requires_auth(stream_app: FastAPI):
     client = TestClient(stream_app)
-    resp = client.post(
-        "/api/stream/chat", json={"prompt": "hi", "task_type": "general"}
-    )
+    resp = client.post("/api/stream/chat", json={"prompt": "hi", "task_type": "general"})
     assert resp.status_code == 401
     os.environ.pop("SUPREMEAI_API_TOKEN", None)
 

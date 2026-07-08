@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/pubsub.py
 
 **প্রকার:** .py  
-**সাইজ:** 846 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.480662
+**সাইজ:** 847 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.549188
 
 ---
 
@@ -33,6 +33,7 @@ class PubSub:
         if channel in self.subscribers:
             for queue in self.subscribers[channel]:
                 await queue.put(message)
+
 
 # Global Instance
 global_pubsub = PubSub()

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/storage/asset_manager.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,195 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.495314
+**সাইজ:** 5,149 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.557919
 
 ---
 
@@ -91,9 +91,7 @@ class AssetManager:
         if supabase:
             try:
                 with open(local_path, "rb") as f:
-                    supabase.storage.from_(self.bucket).upload(
-                        remote_path, f, {"content-type": content_type}
-                    )
+                    supabase.storage.from_(self.bucket).upload(remote_path, f, {"content-type": content_type})
                 logger.info(f"Uploaded to Supabase: {remote_path}")
                 success = True
             except Exception as exc:  # noqa: BLE001

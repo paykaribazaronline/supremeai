@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_task_endpoints.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,831 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.509256
+**সাইজ:** 4,827 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.566099
 
 ---
 
@@ -25,7 +25,6 @@ client = TestClient(app)
 def mock_dependencies():
     import core.services as services_mod
     from core import services
-
 
     previous_admin = services.admin_god
     previous_router = services_mod.model_router
@@ -61,7 +60,6 @@ def mock_dependencies():
 def mock_session():
     import core.services as services_mod
     from core import services
-
 
     previous_admin = services.admin_god
     previous_router = services_mod.model_router
@@ -134,7 +132,6 @@ def test_task_execute_with_session_id(mock_session):
 def test_task_execute_upstream_failure(mock_session):
     import core.services as services_mod
 
-
     previous_router = services_mod.model_router
     fake_router = MagicMock()
     fake_router.async_route_and_generate = AsyncMock(
@@ -160,7 +157,6 @@ def test_task_execute_upstream_failure(mock_session):
 
 def test_chat_completion_streaming():
     import core.services as services_mod
-
 
     previous_router = services_mod.model_router
     fake_router = MagicMock()

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/diagram_to_architecture.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,329 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.540953
+**সাইজ:** 7,257 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.584903
 
 ---
 
@@ -38,12 +38,8 @@ class DiagramToArchitecture:
         with open(image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode("utf-8")
 
-    async def generate_infrastructure(
-        self, diagram_path: str, provider: str = "aws", iac_tool: str = "terraform"
-    ) -> dict[str, Any]:
-        logger.info(
-            f"Generating {iac_tool} for {provider} from diagram: {diagram_path}"
-        )
+    async def generate_infrastructure(self, diagram_path: str, provider: str = "aws", iac_tool: str = "terraform") -> dict[str, Any]:
+        logger.info(f"Generating {iac_tool} for {provider} from diagram: {diagram_path}")
         try:
             base64_image = self._encode_image(diagram_path)
             ext = os.path.splitext(diagram_path)[1].lower().lstrip(".")
@@ -114,9 +110,7 @@ resource "{provider}_subnet" "public" {{
             "code": mock_code,
         }
 
-    def _parse_components_from_code(
-        self, code: str, iac_tool: str
-    ) -> list[dict[str, str]]:
+    def _parse_components_from_code(self, code: str, iac_tool: str) -> list[dict[str, str]]:
         components: list[dict[str, str]] = []
         for line in code.splitlines():
             line_stripped = line.strip()
@@ -178,9 +172,7 @@ async def generate_from_diagram(
         tmp_path = tmp.name
 
     try:
-        result = await _converter.generate_infrastructure(
-            tmp_path, provider=provider, iac_tool=iac_tool
-        )
+        result = await _converter.generate_infrastructure(tmp_path, provider=provider, iac_tool=iac_tool)
     finally:
         os.unlink(tmp_path)
 

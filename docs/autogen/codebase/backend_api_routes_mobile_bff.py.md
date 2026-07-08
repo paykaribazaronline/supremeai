@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/mobile_bff.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,074 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.491959
+**সাইজ:** 2,030 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.555934
 
 ---
 
@@ -35,9 +35,7 @@ async def proxy_mobile_ai_request(request: Request, payload: MobileChatRequest):
 
     model_router = app_mod.model_router
 
-    logger.info(
-        f"📱 Mobile BFF intercepting request. Preferred Model: {payload.model_preference}"
-    )
+    logger.info(f"📱 Mobile BFF intercepting request. Preferred Model: {payload.model_preference}")
 
     from core.prompt_helpers import format_unified_chat_prompt
 
@@ -53,9 +51,7 @@ async def proxy_mobile_ai_request(request: Request, payload: MobileChatRequest):
 
         if not raw_response.get("success"):
             logger.error(f"Upstream AI core failed: {raw_response.get('error')}")
-            raise HTTPException(
-                status_code=502, detail="Upstream AI Provider connection failure."
-            )
+            raise HTTPException(status_code=502, detail="Upstream AI Provider connection failure.")
 
         return {
             "success": True,

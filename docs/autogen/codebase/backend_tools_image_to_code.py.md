@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/image_to_code.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,284 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.547835
+**সাইজ:** 5,168 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.589195
 
 ---
 
@@ -40,9 +40,7 @@ class ImageToCode:
         with open(image_path, "rb") as image_file:
             return self._encode_image_bytes(image_file.read())
 
-    async def generate_code_from_bytes(
-        self, image_bytes: bytes, framework: str = "react", styling: str = "tailwind"
-    ) -> dict[str, Any]:
+    async def generate_code_from_bytes(self, image_bytes: bytes, framework: str = "react", styling: str = "tailwind") -> dict[str, Any]:
         logger.info(f"Generating {framework} code with {styling} for uploaded image")
         try:
             base64_image = self._encode_image_bytes(image_bytes)
@@ -51,12 +49,8 @@ class ImageToCode:
             logger.error(f"Image to Code generation failed: {str(e)}")
             return {"status": "error", "error": str(e)}
 
-    async def generate_code(
-        self, image_path: str, framework: str = "react", styling: str = "tailwind"
-    ) -> dict[str, Any]:
-        logger.info(
-            f"Generating {framework} code with {styling} for image: {image_path}"
-        )
+    async def generate_code(self, image_path: str, framework: str = "react", styling: str = "tailwind") -> dict[str, Any]:
+        logger.info(f"Generating {framework} code with {styling} for image: {image_path}")
         try:
             base64_image = self._encode_image_file(image_path)
             return await self._call_vision_model(base64_image, framework, styling)
@@ -64,9 +58,7 @@ class ImageToCode:
             logger.error(f"Image to Code generation failed: {str(e)}")
             return {"status": "error", "error": str(e)}
 
-    async def _call_vision_model(
-        self, base64_image: str, framework: str, styling: str
-    ) -> dict[str, Any]:
+    async def _call_vision_model(self, base64_image: str, framework: str, styling: str) -> dict[str, Any]:
         try:
             from brain.model_router import ModelRouter
 
@@ -80,9 +72,7 @@ class ImageToCode:
                 f"\n\n[IMAGE_DATA:{base64_image[:50]}...]"  # Vision input logic handled by ModelRouter's vision_agent if configured
             )
             # In our system, ModelRouter handles VISION tasks
-            result = await router.async_route_and_generate(
-                prompt, task_type="vision", max_cost=0.05
-            )
+            result = await router.async_route_and_generate(prompt, task_type="vision", max_cost=0.05)
             code = result.get("text", "") if isinstance(result, dict) else ""
             if not code:
                 return {"status": "error", "error": "LLM returned empty response."}
@@ -130,9 +120,7 @@ async def api_image_to_code(
         if not contents:
             raise HTTPException(status_code=400, detail="Empty file provided")
 
-        result = await image_to_code_tool.generate_code_from_bytes(
-            contents, framework=framework, styling=styling
-        )
+        result = await image_to_code_tool.generate_code_from_bytes(contents, framework=framework, styling=styling)
         if result.get("status") == "error":
             raise HTTPException(status_code=500, detail=result.get("error"))
 

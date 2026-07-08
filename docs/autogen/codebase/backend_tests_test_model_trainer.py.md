@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_model_trainer.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,375 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.517166
+**সাইজ:** 1,353 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.570798
 
 ---
 
@@ -40,9 +40,7 @@ async def test_trigger_lora_finetune_runpod(mock_post):
 
     with patch.dict(os.environ, {"RUNPOD_API_KEY": "test-key"}):
         trainer = ModelTrainer(provider="runpod")
-        res = await trainer.trigger_lora_finetune(
-            "tests/mock_dataset.jsonl", "llama3-8b"
-        )
+        res = await trainer.trigger_lora_finetune("tests/mock_dataset.jsonl", "llama3-8b")
         assert res["status"] == "success"
         assert res["job_id"] == "runpod-job-123"
         assert res["provider"] == "runpod"

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/universal_rules.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,239 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.474839
+**সাইজ:** 4,200 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.545648
 
 ---
 
@@ -75,6 +75,7 @@ class UniversalRulesEngine:
                 json.dump(default_rules, f, indent=4)
         except Exception as e:  # noqa: BLE001
             import logging
+
             logging.warning(f"Exception suppressed: {e}")
 
         return default_rules
@@ -115,9 +116,7 @@ class UniversalRulesEngine:
 
             if decision_context["cost"] > max_cost:
                 decision_context["blocked"] = True
-                decision_context["reason"] = (
-                    f"Exceeds Universal Rule: Max cost per task ({max_cost})"
-                )
+                decision_context["reason"] = f"Exceeds Universal Rule: Max cost per task ({max_cost})"
 
         return decision_context
 

@@ -1,15 +1,14 @@
 # 📄 ফাইল: backend/tests/test_agents_crew_departments.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,565 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.514202
+**সাইজ:** 2,564 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.569078
 
 ---
 
 ## কোড
 
 ```py
-
 import pytest
 
 from agents.crew_departments import ArchitectureAgent, CodeGeneratorAgent, QAAgent

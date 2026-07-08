@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/scripts/check_ollama.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,612 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.484272
+**সাইজ:** 8,574 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.551333
 
 ---
 
@@ -61,9 +61,7 @@ def check_server() -> bool:
             return False
     except httpx.ConnectError:
         bprint(f"❌ সার্ভারে কানেক্ট করা যাচ্ছে না! — {OLLAMA_URL}", RED)
-        bprint(
-            "   🔧 সমাধান: `ollama serve` চালু করুন বা Windows-তে Ollama এপ খুলুন", YELLOW
-        )
+        bprint("   🔧 সমাধান: `ollama serve` চালু করুন বা Windows-তে Ollama এপ খুলুন", YELLOW)
         return False
     except Exception as e:  # noqa: BLE001
         bprint(f"❌ এরর: {e}", RED)
@@ -193,9 +191,7 @@ def main() -> int:
 
     # Step 4: Generation Test (সব মডেলের mixin এ কম/common model দ=strategy)
     bprint("\n🧪 [ধাপ 4] টেক্সট জেনারেশন চেক...", CYAN)
-    test_model = (
-        "qwen2.5:0.5b" if "qwen2.5:0.5b" in list_models() else MODELS_TO_CHECK[0]
-    )
+    test_model = "qwen2.5:0.5b" if "qwen2.5:0.5b" in list_models() else MODELS_TO_CHECK[0]
     if test_generation(test_model):
         bprint("\n🎉 সবকিছু ঠিক আছে! Ollama এই জবটি করতে পারবে।", GREEN)
         return 0

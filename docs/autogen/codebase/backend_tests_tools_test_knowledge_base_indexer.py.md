@@ -2,7 +2,7 @@
 
 **প্রকার:** .py  
 **সাইজ:** 10,497 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.532130
+**আপডেট:** 2026-07-08T19:31:06.579533
 
 ---
 
@@ -74,11 +74,11 @@ class TestKnowledgeBaseIndexer:
         assert len(indexer._indexed_hashes[str(py_file)]) == 32
 
     def test_extract_documents_no_docstring_method(self, indexer, tmp_path):
-        code = '''
+        code = """
 class NoDoc:
     def method_without_doc(self):
         pass
-'''
+"""
         py_file = tmp_path / "nodoc.py"
         py_file.write_text(code, encoding="utf-8")
         docs = indexer._extract_documents_from_file(str(py_file))

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_security_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,739 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.523547
+**সাইজ:** 1,725 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.574432
 
 ---
 
@@ -68,9 +68,7 @@ def test_auth_middleware_allows_with_valid_token():
 
     app.add_middleware(AuthMiddleware)
     client = TestClient(app)
-    resp = client.get(
-        "/api/task/execute", headers={"Authorization": "Bearer test-token"}
-    )
+    resp = client.get("/api/task/execute", headers={"Authorization": "Bearer test-token"})
     assert resp.status_code == 200
     del os.environ["SUPREMEAI_API_TOKEN"]
 

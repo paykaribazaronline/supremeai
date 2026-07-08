@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/engine/cost_optimizer.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,169 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.484955
+**সাইজ:** 2,170 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.551745
 
 ---
 
@@ -49,6 +49,7 @@ class CostOptimizer:
     def _get_best_free_provider(self) -> str | None:
         try:
             from core.free_tier_tracker import get_tracker
+
             self.free_tier_tracker = get_tracker()
             provider = self.free_tier_tracker.get_best_provider()
             if provider:

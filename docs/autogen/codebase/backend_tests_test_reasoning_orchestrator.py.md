@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_reasoning_orchestrator.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,665 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.508994
+**সাইজ:** 1,651 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.565950
 
 ---
 
@@ -50,9 +50,7 @@ def test_reasoning_orchestrator_route():
     mock_cot.monte_carlo_search.return_value = {"trace": "mcts trace"}
     mock_cot.build_prompt.return_value = "enriched prompt with cot"
 
-    orchestrator = ReasoningOrchestrator(
-        long_term_memory=mock_ltm, cot_reasoner=mock_cot, episodic_memory=mock_episodic
-    )
+    orchestrator = ReasoningOrchestrator(long_term_memory=mock_ltm, cot_reasoner=mock_cot, episodic_memory=mock_episodic)
 
     res = orchestrator.route("solve math problem using monte carlo")
     assert res["use_cot"] is True

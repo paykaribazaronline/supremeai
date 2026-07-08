@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/admin_routes.py
 
 **প্রকার:** .py  
-**সাইজ:** 17,379 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.470126
+**সাইজ:** 16,810 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.542724
 
 ---
 
@@ -59,9 +59,7 @@ def _verify_password(password: str, hashed: str) -> bool:
 def _get_admin_credentials():
     expected_hash = os.getenv("SUPREMEAI_ADMIN_PASSWORD_HASH")
     if not expected_hash:
-        raise HTTPException(
-            status_code=500, detail="Admin password hash is not configured on server"
-        )
+        raise HTTPException(status_code=500, detail="Admin password hash is not configured on server")
     return expected_hash
 
 
@@ -77,9 +75,7 @@ def admin_login(payload: AdminLoginRequest):
 
     totp_secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
     if not totp_secret:
-        raise HTTPException(
-            status_code=500, detail="TOTP secret not configured on server"
-        )
+        raise HTTPException(status_code=500, detail="TOTP secret not configured on server")
     return {"status": "otp_required", "message": "Google Authenticator code required."}
 
 
@@ -94,9 +90,7 @@ def admin_verify(payload: AdminVerifyRequest):
 
     totp_secret = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
     if not totp_secret:
-        raise HTTPException(
-            status_code=500, detail="TOTP secret not configured on server"
-        )
+        raise HTTPException(status_code=500, detail="TOTP secret not configured on server")
 
     if not otp or not verify_totp_code(otp.strip(), totp_secret):
         raise HTTPException(status_code=401, detail="Invalid Google Authenticator code")
@@ -107,6 +101,7 @@ def admin_verify(payload: AdminVerifyRequest):
     jwt_secret = settings.jwt_secret
     token = jwt.encode(jwt_payload, jwt_secret, algorithm="HS256")
     return {"status": "success", "token": token}
+
 
 # বাংলা মন্তব্য: শুধুমাত্র স্ট্যান্ডার্ড ২-স্টেপ পাসওয়ার্ড + TOTP ফ্লো এবং ৭-ডিজিট ফায়ারবেস অথেনটিকেশন ফ্লোটি সক্রিয় রাখা হয়েছে।
 
@@ -119,14 +114,10 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
     try:
         if id_token.startswith("mock-"):
             if is_production:
-                raise HTTPException(
-                    status_code=403, detail="Mock tokens are strictly forbidden in production."
-                )
+                raise HTTPException(status_code=403, detail="Mock tokens are strictly forbidden in production.")
             uid = "mock-admin-uid"
             email = settings.admin_emails[0] if settings.admin_emails else "admin@example.com"
-            logger.warning(
-                f"Bypassing verification using mock token mode. Token: {id_token[:20]}..."
-            )
+            logger.warning(f"Bypassing verification using mock token mode. Token: {id_token[:20]}...")
         elif auth:
             decoded_token = auth.verify_id_token(id_token)
             uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
@@ -134,9 +125,7 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
             logger.info(f"Verified Firebase token for email: {email}")
         else:
             # Always enforce signature verification; offline verification bypass removed
-            raise HTTPException(
-                status_code=401, detail="Firebase Admin SDK is unavailable. Cannot authenticate."
-            )
+            raise HTTPException(status_code=401, detail="Firebase Admin SDK is unavailable. Cannot authenticate.")
     except HTTPException:
         raise
     except Exception as e:
@@ -157,13 +146,9 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
                 totp_secret = data.get("totp_secret")
             elif email.lower() in [e.lower() for e in settings.admin_emails]:
                 role = "admin"
-                doc_ref.set(
-                    {"email": email, "role": "admin", "created_at": str(time.time())}
-                )
+                doc_ref.set({"email": email, "role": "admin", "created_at": str(time.time())})
         except Exception as e:  # noqa: BLE001
-            logger.critical(
-                f"Firestore admin lookup failed (Possible DB connection issue/attack): {e}"
-            )
+            logger.critical(f"Firestore admin lookup failed (Possible DB connection issue/attack): {e}")
             role = "user"
     elif email.lower() in [e.lower() for e in settings.admin_emails]:
         role = "admin"
@@ -172,9 +157,7 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
 
     if role != "admin":
         logger.warning(f"Unauthorized admin access attempt by UID: {uid}, Email: {email}")
-        raise HTTPException(
-            status_code=403, detail="Forbidden: Not authorized as an admin role user"
-        )
+        raise HTTPException(status_code=403, detail="Forbidden: Not authorized as an admin role user")
 
     if not totp_secret:
         return {"status": "totp_setup_required", "uid": uid, "email": email}
@@ -191,9 +174,7 @@ def admin_firebase_totp_setup(payload: AdminFirebaseTotpSetupRequest):
         if id_token.startswith("mock-"):
             # বাংলা মন্তব্য: প্রোডাকশনে mock টোকেন দিয়ে TOTP সেটআপ বাইপাস কঠোরভাবে নিষিদ্ধ
             if is_production:
-                raise HTTPException(
-                    status_code=403, detail="Mock tokens are strictly forbidden in production."
-                )
+                raise HTTPException(status_code=403, detail="Mock tokens are strictly forbidden in production.")
             uid = "mock-admin-uid"
             email = settings.admin_emails[0] if settings.admin_emails else "admin@example.com"
         elif auth:
@@ -201,15 +182,11 @@ def admin_firebase_totp_setup(payload: AdminFirebaseTotpSetupRequest):
             uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
             email = decoded_token.get("email", "")
         else:
-            raise HTTPException(
-                status_code=401, detail="Firebase Admin SDK is unavailable. Cannot authenticate."
-            )
+            raise HTTPException(status_code=401, detail="Firebase Admin SDK is unavailable. Cannot authenticate.")
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=401, detail=f"Token decoding failed: {str(e)}"
-        ) from e
+        raise HTTPException(status_code=401, detail=f"Token decoding failed: {str(e)}") from e
 
     secret = base64.b32encode(os.urandom(10)).decode("utf-8")
 
@@ -221,9 +198,7 @@ def admin_firebase_totp_setup(payload: AdminFirebaseTotpSetupRequest):
             logger.error(f"Failed to store temp TOTP secret in Firestore: {e}")
 
     # বাংলা মন্তব্য: ৬ ডিজিটের ওটিপি রিকোয়েস্ট করা হলো
-    provisioning_uri = (
-        f"otpauth://totp/SupremeAI:{email}?secret={secret}&issuer=SupremeAI&digits=6"
-    )
+    provisioning_uri = f"otpauth://totp/SupremeAI:{email}?secret={secret}&issuer=SupremeAI&digits=6"
     return {"secret": secret, "provisioning_uri": provisioning_uri}
 
 
@@ -237,23 +212,17 @@ def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
         if id_token.startswith("mock-"):
             # বাংলা মন্তব্য: প্রোডাকশনে mock টোকেন দিয়ে TOTP ভেরিফিকেশন বাইপাস কঠোরভাবে নিষিদ্ধ
             if is_production:
-                raise HTTPException(
-                    status_code=403, detail="Mock tokens are strictly forbidden in production."
-                )
+                raise HTTPException(status_code=403, detail="Mock tokens are strictly forbidden in production.")
             uid = "mock-admin-uid"
         elif auth:
             decoded_token = auth.verify_id_token(id_token)
             uid = decoded_token.get("uid", decoded_token.get("sub", "mock-admin-uid"))
         else:
-            raise HTTPException(
-                status_code=401, detail="Firebase Admin SDK is unavailable. Cannot authenticate."
-            )
+            raise HTTPException(status_code=401, detail="Firebase Admin SDK is unavailable. Cannot authenticate.")
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=401, detail=f"Token decoding failed: {str(e)}"
-        ) from e
+        raise HTTPException(status_code=401, detail=f"Token decoding failed: {str(e)}") from e
 
     db = get_firestore_client()
     totp_secret = None
@@ -273,9 +242,7 @@ def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
     if not secret_to_use:
         secret_to_use = os.getenv("SUPREMEAI_ADMIN_TOTP_SECRET")
         if not secret_to_use:
-            raise HTTPException(
-                status_code=500, detail="TOTP secret not configured on server"
-            )
+            raise HTTPException(status_code=500, detail="TOTP secret not configured on server")
 
     # বাংলা মন্তব্য: ৭ ডিজিটের কোড ভেরিফিকেশন করা হবে check_totp মেথডের মাধ্যমে
     if not check_totp(otp.strip(), secret_to_use):
@@ -307,14 +274,8 @@ def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
 def cloud_distribution():
     return {
         "distribution": services.parallel_router.get_distribution_stats(),
-        "total_requests": sum(
-            p["current_requests"] for p in services.parallel_router.PROVIDERS.values()
-        ),
-        "active_providers": sum(
-            1
-            for p in services.parallel_router.PROVIDERS.values()
-            if p["status"] == "active"
-        ),
+        "total_requests": sum(p["current_requests"] for p in services.parallel_router.PROVIDERS.values()),
+        "active_providers": sum(1 for p in services.parallel_router.PROVIDERS.values() if p["status"] == "active"),
         "strategy": "parallel_active_active",
         "rebalance_interval": "1 hour",
     }
@@ -337,9 +298,7 @@ def free_tier_provider_status(provider: str):
     tracker = get_tracker()
     status = tracker.get_provider_status(provider)
     if status is None:
-        raise HTTPException(
-            status_code=404, detail=f"Provider '{provider}' not tracked"
-        )
+        raise HTTPException(status_code=404, detail=f"Provider '{provider}' not tracked")
     return status
 
 

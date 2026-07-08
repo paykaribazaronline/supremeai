@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_mcp_allowlist.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,503 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.525592
+**সাইজ:** 1,489 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.575599
 
 ---
 
@@ -38,9 +38,7 @@ def test_validate_server_denied():
 
 
 def test_allowed_tools_all_granted():
-    result = MCPAllowlist.allowed_tools(
-        "github", ["search_repositories", "get_file_contents"]
-    )
+    result = MCPAllowlist.allowed_tools("github", ["search_repositories", "get_file_contents"])
     assert result["allowed"] is True
     assert result["denied"] == []
 

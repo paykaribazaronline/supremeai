@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/telegram_bot.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,614 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.543420
+**সাইজ:** 11,416 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.586520
 
 ---
 
@@ -71,9 +71,7 @@ class TelegramBotHandler:
 
     # ── Telegram API helpers ──────────────────────────────────────
 
-    async def send_message(
-        self, chat_id: int | str, text: str, parse_mode: str = "Markdown"
-    ) -> bool:
+    async def send_message(self, chat_id: int | str, text: str, parse_mode: str = "Markdown") -> bool:
         if not self.configured:
             return False
         try:
@@ -100,9 +98,11 @@ class TelegramBotHandler:
         except Exception as e:  # noqa: BLE001
             try:
                 import loguru
+
                 loguru.logger.error(f"Tool execution error: {e}")
             except Exception as e:  # noqa: BLE001
                 import logging
+
                 logging.warning(f"Exception suppressed: {e}")
             pass
 
@@ -148,9 +148,7 @@ class TelegramBotHandler:
 
     def handle_message(self, text: str, user_id: str = "user") -> str:
         """Synchronous message handler used by tests and scripts."""
-        command = (
-            text.strip().split()[0].lower() if text.strip().startswith("/") else None
-        )
+        command = text.strip().split()[0].lower() if text.strip().startswith("/") else None
         if command and command in self.COMMANDS:
             return self.COMMANDS[command]
         try:
@@ -211,9 +209,11 @@ class TelegramBotHandler:
             except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
+
                     loguru.logger.error(f"Tool execution error: {e}")
                 except Exception as e:  # noqa: BLE001
                     import logging
+
                     logging.warning(f"Exception suppressed: {e}")
                 status_lines.append(f"❌ {name}: unreachable")
         await self.send_message(chat_id, "\n".join(status_lines))
@@ -221,15 +221,9 @@ class TelegramBotHandler:
     async def _ai_response(self, text: str, user_id: str) -> str:
         if self.orchestrator:
             try:
-                task_type = (
-                    "coding"
-                    if any(k in text.lower() for k in ["code", "function", "script"])
-                    else "general"
-                )
+                task_type = "coding" if any(k in text.lower() for k in ["code", "function", "script"]) else "general"
                 loop = asyncio.get_event_loop()
-                result = await loop.run_in_executor(
-                    None, lambda: self.orchestrator.execute_task(text, task_type)
-                )
+                result = await loop.run_in_executor(None, lambda: self.orchestrator.execute_task(text, task_type))
                 return result.get("result", "Sorry, I couldn't process that.")
             except Exception as exc:  # noqa: BLE001
                 logger.error(f"Orchestrator error: {exc}")
@@ -261,9 +255,7 @@ class TelegramBotHandler:
                     }
                     if offset is not None:
                         params["offset"] = offset
-                    resp = await client.get(
-                        f"{self.api_base}/getUpdates", params=params
-                    )
+                    resp = await client.get(f"{self.api_base}/getUpdates", params=params)
                     data = resp.json()
 
                 if data.get("ok"):

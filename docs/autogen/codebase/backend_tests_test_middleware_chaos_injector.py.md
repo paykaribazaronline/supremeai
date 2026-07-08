@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_middleware_chaos_injector.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,552 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.519173
+**সাইজ:** 2,554 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.571934
 
 ---
 
@@ -57,8 +57,10 @@ async def test_dispatch_injects_delay_and_drop_when_enabled(monkeypatch):
     monkeypatch.setattr("middleware.chaos_injector.asyncio.sleep", fake_sleep)
 
     values = [0.1, 0.1]
+
     def fake_random():
         return values.pop(0)
+
     monkeypatch.setattr("middleware.chaos_injector.random.random", fake_random)
 
     request = Request({"type": "http", "path": "/api/test", "headers": {}})

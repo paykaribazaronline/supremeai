@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/handoff_event.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,037 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.497608
+**সাইজ:** 1,036 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.559264
 
 ---
 
@@ -34,6 +34,5 @@ class HandoffEvent(Base):
     end_ts: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     actions_taken_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-
 
 ```

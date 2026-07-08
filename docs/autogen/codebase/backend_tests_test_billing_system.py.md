@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_billing_system.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,976 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.522529
+**সাইজ:** 4,863 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.573844
 
 ---
 
@@ -28,14 +28,12 @@ from database.session import get_db_session
 
 client = TestClient(app)
 
+
 # Mock DB Session for testing billing
 class MockAsyncSession:
     def __init__(self):
         self._wallet = UserWallet(
-            user_id="default_user_session",
-            balance_usd=Decimal("5.000000"),
-            monthly_allowance_usd=Decimal("0.000000"),
-            version=1
+            user_id="default_user_session", balance_usd=Decimal("5.000000"), monthly_allowance_usd=Decimal("0.000000"), version=1
         )
         self.added = []
 
@@ -43,15 +41,20 @@ class MockAsyncSession:
         class MockResult:
             def __init__(self, val):
                 self.val = val
+
             def scalars(self):
                 class MockScalars:
                     def __init__(self, val):
                         self.val = val
+
                     def first(self):
                         return self.val
+
                     def all(self):
                         return [self.val]
+
                 return MockScalars(self.val)
+
         return MockResult(self._wallet)
 
     def add(self, obj):
@@ -123,18 +126,14 @@ def test_stripe_webhook_adds_credit(mock_db_session):
                 "object": {
                     "id": "pi_test_12345",
                     "amount_received": 1000,  # 1000 cents = $10.00
-                    "metadata": {
-                        "user_id": "default_user_session"
-                    }
+                    "metadata": {"user_id": "default_user_session"},
                 }
-            }
+            },
         }
         with patch("stripe.api_key", "sk_test_key"):
             with patch("api.routes.billing_api.STRIPE_WEBHOOK_SECRET", "whsec_test"):
                 resp = client.post(
-                    "/api/billing/webhook/stripe",
-                    json={"type": "payment_intent.succeeded"},
-                    headers={"Stripe-Signature": "t=123,v1=abc"}
+                    "/api/billing/webhook/stripe", json={"type": "payment_intent.succeeded"}, headers={"Stripe-Signature": "t=123,v1=abc"}
                 )
                 assert resp.status_code == 200
                 assert resp.json() == {"status": "success"}
@@ -145,7 +144,7 @@ def test_sslcommerz_webhook_adds_credit(mock_db_session):
     ssl_payload = {
         "status": "VALID",
         "amount": 1000.0,  # 1000 BDT * 0.0085 = $8.50
-        "value_a": "default_user_session"
+        "value_a": "default_user_session",
     }
 
     resp = client.post("/api/billing/webhook/sslcommerz", json=ssl_payload)

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/evolution/fitness_engine.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,356 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.502632
+**সাইজ:** 6,127 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.562187
 
 ---
 
@@ -31,16 +31,10 @@ class FitnessEngine:
         deprecated_dir: str | None = None,
         db: Any | None = None,
     ):
-        base_dir = os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        )
-        self.metrics_path = metrics_path or os.path.join(
-            base_dir, "backend", "data", "skills_fitness_metrics.json"
-        )
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        self.metrics_path = metrics_path or os.path.join(base_dir, "backend", "data", "skills_fitness_metrics.json")
         self.skills_dir = skills_dir or os.path.join(base_dir, "skills", "dynamic")
-        self.deprecated_dir = deprecated_dir or os.path.join(
-            base_dir, "skills", "deprecated"
-        )
+        self.deprecated_dir = deprecated_dir or os.path.join(base_dir, "skills", "deprecated")
         self.db = db
 
         # Initialize SkillRegistry
@@ -57,6 +51,7 @@ class FitnessEngine:
                     return json.load(f)
             except Exception as e:  # noqa: BLE001
                 import logging
+
                 logging.warning(f"Exception suppressed: {e}")
         return {}
 
@@ -68,9 +63,7 @@ class FitnessEngine:
         except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to save fitness metrics: {e}")
 
-    def track_execution(
-        self, skill_name: str, success: bool, latency: float, token_cost: float = 0.0
-    ):
+    def track_execution(self, skill_name: str, success: bool, latency: float, token_cost: float = 0.0):
         """Record telemetry metrics for a skill execution."""
         if skill_name not in self.metrics:
             self.metrics[skill_name] = {
@@ -118,9 +111,7 @@ class FitnessEngine:
         score = (success_rate * 0.7) + ((1.0 - latency_penalty) * 0.3)
         return float(score)
 
-    def evaluate_and_prune(
-        self, skill_name: str, threshold: float = 0.5, min_runs: int = 5
-    ) -> bool:
+    def evaluate_and_prune(self, skill_name: str, threshold: float = 0.5, min_runs: int = 5) -> bool:
         """
         Evaluate the skill and soft prune it if its score is below threshold after min_runs.
         Returns True if pruned/deprecated, False otherwise.
@@ -137,9 +128,7 @@ class FitnessEngine:
         if score >= threshold:
             return False
 
-        logger.warning(
-            f"⚠️ Skill '{skill_name}' failed fitness evaluation! Score: {score:.2f} (Threshold: {threshold}). Initiating soft pruning..."
-        )
+        logger.warning(f"⚠️ Skill '{skill_name}' failed fitness evaluation! Score: {score:.2f} (Threshold: {threshold}). Initiating soft pruning...")
 
         # 1. Update Registry status to DEPRECATED
         skill_data = self.registry.get_skill(skill_name)
@@ -155,13 +144,9 @@ class FitnessEngine:
         # 2. Update Firestore Status
         if self.db is not None:
             try:
-                self.db.collection("supreme_dynamic_skills").document(
-                    skill_name
-                ).update({"status": "DEPRECATED"})
+                self.db.collection("supreme_dynamic_skills").document(skill_name).update({"status": "DEPRECATED"})
             except Exception as e:  # noqa: BLE001
-                logger.error(
-                    f"Failed to update Firestore status for skill '{skill_name}': {e}"
-                )
+                logger.error(f"Failed to update Firestore status for skill '{skill_name}': {e}")
 
         # 3. Soft Prune: Move files from skills/dynamic/<skill_name> to skills/deprecated/<skill_name>
         src_dir = os.path.join(self.skills_dir, skill_name)
@@ -173,9 +158,7 @@ class FitnessEngine:
                 if os.path.exists(dest_dir):
                     shutil.rmtree(dest_dir)
                 shutil.move(src_dir, dest_dir)
-                logger.info(
-                    f"📁 Soft pruned skill files moved to deprecated zone: {dest_dir}"
-                )
+                logger.info(f"📁 Soft pruned skill files moved to deprecated zone: {dest_dir}")
             except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to move files to deprecated zone: {e}")
 

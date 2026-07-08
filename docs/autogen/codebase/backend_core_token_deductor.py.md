@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/token_deductor.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,983 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.481889
+**সাইজ:** 9,940 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.549903
 
 ---
 
@@ -36,6 +36,7 @@ class TokenDeductor:
     Safely deducts credits from a user's wallet based on token consumption.
     Features Distributed Redis Locking to prevent double-spending race conditions.
     """
+
     def __init__(self):
         # Load token price config
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -44,10 +45,7 @@ class TokenDeductor:
             with open(config_path, encoding="utf-8") as f:
                 self.config = json.load(f)
         except Exception:  # noqa: BLE001
-            self.config = {
-                "token_rates_usd_per_1k": {"input": 0.0015, "output": 0.0020},
-                "byoc_deployment_fee_usd": 0.05
-            }
+            self.config = {"token_rates_usd_per_1k": {"input": 0.0015, "output": 0.0020}, "byoc_deployment_fee_usd": 0.05}
 
     def _acquire_distributed_lock(self, lock_key: str, lock_value: str, ttl: int = 10) -> bool:
         """
@@ -130,7 +128,7 @@ class TokenDeductor:
                     wallet.monthly_allowance_usd -= cost
                 else:
                     remaining = cost - wallet.monthly_allowance_usd
-                    wallet.monthly_allowance_usd = Decimal('0.000000')
+                    wallet.monthly_allowance_usd = Decimal("0.000000")
                     wallet.balance_usd -= remaining
 
                 # Record in Ledger
@@ -140,7 +138,7 @@ class TokenDeductor:
                     user_id=user_id,
                     amount_usd=-cost,
                     transaction_type="token_usage",
-                    description=f"Consumed {input_tokens}i/{output_tokens}o tokens on model: {model_name}"
+                    description=f"Consumed {input_tokens}i/{output_tokens}o tokens on model: {model_name}",
                 )
                 session.add(entry)
 
@@ -197,7 +195,7 @@ class TokenDeductor:
                     wallet.monthly_allowance_usd -= cost
                 else:
                     remaining = cost - wallet.monthly_allowance_usd
-                    wallet.monthly_allowance_usd = Decimal('0.000000')
+                    wallet.monthly_allowance_usd = Decimal("0.000000")
                     wallet.balance_usd -= remaining
 
                 tx_id = str(uuid.uuid4())
@@ -206,7 +204,7 @@ class TokenDeductor:
                     user_id=user_id,
                     amount_usd=-cost,
                     transaction_type="byoc_deployment",
-                    description=f"BYOC deployment fee for skill: {skill_name}"
+                    description=f"BYOC deployment fee for skill: {skill_name}",
                 )
                 session.add(entry)
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_cloud_storage.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,376 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.515654
+**সাইজ:** 5,339 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.569908
 
 ---
 
@@ -10,6 +10,7 @@
 
 ```py
 """Cloud storage manager tests for SupremeAI 2.0."""
+
 import pytest
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -117,9 +118,7 @@ class TestCloudStorageManager:
                 mock_client = AsyncMock()
                 mock_client.__aenter__ = AsyncMock(return_value=mock_client)
                 mock_client.__aexit__ = AsyncMock(return_value=None)
-                mock_client.post = AsyncMock(
-                    side_effect=httpx.HTTPError("Network error")
-                )
+                mock_client.post = AsyncMock(side_effect=httpx.HTTPError("Network error"))
                 mock_client_class.return_value = mock_client
 
                 with pytest.raises(HTTPException) as exc_info:

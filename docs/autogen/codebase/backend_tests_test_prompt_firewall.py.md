@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_prompt_firewall.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,985 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.519022
+**সাইজ:** 1,986 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.571867
 
 ---
 
@@ -10,6 +10,7 @@
 
 ```py
 """Tests for core.prompt_firewall.PromptFirewall and module-level helpers."""
+
 import pytest
 
 from core.prompt_firewall import PromptFirewall, pre_flight_scan, classify_intent

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/events.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,430 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.491136
+**সাইজ:** 2,202 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.555445
 
 ---
 
@@ -21,6 +21,7 @@ from core.pubsub import global_pubsub
 
 router = APIRouter(tags=["Events"])
 
+
 @router.get("/dashboard/stream")
 async def dashboard_stream(request: Request):
     """
@@ -28,6 +29,7 @@ async def dashboard_stream(request: Request):
     Yields data when published to 'dashboard_events' channel.
     Maintains connection with a 20s heartbeat.
     """
+
     async def event_generator():
         # Subscribe to the required channels
         dashboard_queue = global_pubsub.subscribe("dashboard_events")
@@ -42,26 +44,16 @@ async def dashboard_stream(request: Request):
                 metrics_task = asyncio.create_task(metrics_queue.get())
                 tasks_task = asyncio.create_task(tasks_queue.get())
 
-                done, pending = await asyncio.wait(
-                    [dashboard_task, metrics_task, tasks_task],
-                    timeout=20,
-                    return_when=asyncio.FIRST_COMPLETED
-                )
+                done, pending = await asyncio.wait([dashboard_task, metrics_task, tasks_task], timeout=20, return_when=asyncio.FIRST_COMPLETED)
 
                 if not done:
                     # Heartbeat
-                    yield {
-                        "event": "ping",
-                        "data": ""
-                    }
+                    yield {"event": "ping", "data": ""}
                 else:
                     for task in done:
                         result = task.result()
                         # Assuming the result is a dict with 'type' and 'payload'
-                        yield {
-                            "event": result.get("type", "message"),
-                            "data": json.dumps(result.get("payload", {}))
-                        }
+                        yield {"event": result.get("type", "message"), "data": json.dumps(result.get("payload", {}))}
 
                 for t in pending:
                     t.cancel()

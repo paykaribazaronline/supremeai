@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/utils/environment.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,357 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.485511
+**সাইজ:** 2,325 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.552069
 
 ---
 
@@ -30,11 +30,7 @@ def is_test_environment() -> bool:
     """
     if os.getenv("ENV", "").lower() in {"production", "staging"}:
         return False
-    return (
-        "pytest" in sys.modules
-        or os.getenv("CI") == "true"
-        or os.getenv("GITHUB_ACTIONS") == "true"
-    )
+    return "pytest" in sys.modules or os.getenv("CI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"
 
 
 def is_admin_authorized() -> bool:

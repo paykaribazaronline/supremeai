@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/task_queue.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,967 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.473645
+**সাইজ:** 1,953 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.544924
 
 ---
 
@@ -38,9 +38,7 @@ if CELERY_AVAILABLE:
     )
 else:
     celery_app = None
-    logger.warning(
-        "Celery is not installed. Task queue running in synchronous fallback mode."
-    )
+    logger.warning("Celery is not installed. Task queue running in synchronous fallback mode.")
 
 
 # Task definitions

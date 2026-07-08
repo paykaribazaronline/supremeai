@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/ci_webhooks.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,469 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.494581
+**সাইজ:** 1,447 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.557486
 
 ---
 
@@ -31,9 +31,7 @@ async def ci_webhook(
     # বাংলা মন্তব্য: সিক্রেট কি ভ্যালিডেশন করে সিআই রিপোর্ট ডাটাবেসে স্টোর করার জন্য ওয়েবহুক এন্ডপয়েন্ট
     # বাংলা মন্তব্য: কনফিগারেশন সেটিংস থেকে ci_webhook_secret নিয়ে হেডার ভ্যালুর সাথে তুলনা করা হচ্ছে
     if not settings.ci_webhook_secret:
-        raise HTTPException(
-            status_code=500, detail="CI Webhook Secret not configured on server"
-        )
+        raise HTTPException(status_code=500, detail="CI Webhook Secret not configured on server")
 
     if not hmac.compare_digest(x_ci_webhook_secret, settings.ci_webhook_secret):
         raise HTTPException(status_code=401, detail="Unauthorized webhook request")

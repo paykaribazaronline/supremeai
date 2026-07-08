@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/bangla_nlp.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,388 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.538675
+**সাইজ:** 2,324 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.583488
 
 ---
 
@@ -61,11 +61,7 @@ class BengaliNLP:
             score = 0.5
         else:
             score = pos / total
-            label = (
-                "positive"
-                if score >= 0.6
-                else "negative" if score <= 0.4 else "neutral"
-            )
+            label = "positive" if score >= 0.6 else "negative" if score <= 0.4 else "neutral"
         return {
             "label": label,
             "score": round(score, 3),

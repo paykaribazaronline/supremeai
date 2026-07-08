@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/admin_dashboard.py
 
 **প্রকার:** .py  
-**সাইজ:** 31,245 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.490871
+**সাইজ:** 30,826 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.555272
 
 ---
 
@@ -52,9 +52,7 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
         jwt_secret = settings.jwt_secret
         decoded = jwt.decode(token, jwt_secret, algorithms=["HS256"])
         if decoded.get("role") != "admin":
-            raise HTTPException(
-                status_code=403, detail="Forbidden: User does not have admin role."
-            )
+            raise HTTPException(status_code=403, detail="Forbidden: User does not have admin role.")
 
         jti = decoded.get("jti")
         if jti:
@@ -64,14 +62,10 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
             if redis_queue and getattr(redis_queue, "configured", False):
                 blocked = redis_queue.get(f"jwt_blacklist:{jti}")
                 if blocked is not None:
-                    raise HTTPException(
-                        status_code=401, detail="Token has been revoked."
-                    )
+                    raise HTTPException(status_code=401, detail="Token has been revoked.")
             else:
                 if jti in _in_memory_jwt_blacklist:
-                    raise HTTPException(
-                        status_code=401, detail="Token has been revoked."
-                    )
+                    raise HTTPException(status_code=401, detail="Token has been revoked.")
                 logger.warning("Redis not configured; falling back to in-memory JWT blacklist check.")
 
         return decoded
@@ -80,9 +74,7 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
         expected = os.getenv("SUPREMEAI_API_TOKEN") or ""
         if expected and secrets.compare_digest(token, expected):
             return {"uid": "admin", "role": "admin"}
-        raise HTTPException(
-            status_code=401, detail="Authentication failed."
-        ) from err
+        raise HTTPException(status_code=401, detail="Authentication failed.") from err
 
 
 def admin_rate_limit(request: Request):
@@ -286,9 +278,7 @@ def create_user(user: UserUpdate):
             save_users(users)
             return {"status": "success", "message": f"User {user.username} updated"}
 
-    users.append(
-        {"username": user.username, "role": user.role, "permissions": user.permissions}
-    )
+    users.append({"username": user.username, "role": user.role, "permissions": user.permissions})
     save_users(users)
     return {"status": "success", "message": f"User {user.username} created"}
 
@@ -317,9 +307,7 @@ def get_env_etag(redis_key: str = "config:env_etag") -> str:
     if os.path.exists(".env"):
         try:
             with open(".env", "rb") as f:
-                etag = hashlib.md5(
-                    f.read(), usedforsecurity=False
-                ).hexdigest()  # nosec B324
+                etag = hashlib.md5(f.read(), usedforsecurity=False).hexdigest()  # nosec B324
             if redis_queue and getattr(redis_queue, "configured", False):
                 redis_queue.set(redis_key, etag, ex=300)
             return etag
@@ -333,6 +321,7 @@ def get_env_etag(redis_key: str = "config:env_etag") -> str:
 # বাংলা মন্তব্য: মাল্টি-ইনস্ট্যান্স রেস কন্ডিশন এড়ানোর জন্য রেডিস-ব্যাকড লক ও ফাইল-লকের ফিজিবল কম্বিনেশন
 def _acquire_env_lock(lock_path: str = ".env.lock") -> bool:
     import core.services as app_mod
+
     redis_queue = getattr(app_mod, "redis_queue", None)
     if redis_queue and getattr(redis_queue, "configured", False):
         try:
@@ -353,6 +342,7 @@ def _acquire_env_lock(lock_path: str = ".env.lock") -> bool:
 
 def _release_env_lock(lock_path: str = ".env.lock"):
     import core.services as app_mod
+
     redis_queue = getattr(app_mod, "redis_queue", None)
     if redis_queue and getattr(redis_queue, "configured", False):
         with contextlib.suppress(Exception):
@@ -398,6 +388,7 @@ def get_metrics():
     gpu_usage = 0.0
     try:
         import psutil
+
         cpu_usage = psutil.cpu_percent(interval=None) or 15.2
         memory_usage = psutil.virtual_memory().percent or 40.5
 
@@ -504,9 +495,7 @@ class RouterOverrideRequest(BaseModel):
 
 @router.post("/model-router/override")
 def set_router_override(payload: RouterOverrideRequest):
-    logger.info(
-        f"Router override set: {payload.provider}/{payload.model} for {payload.remaining_requests} requests"
-    )
+    logger.info(f"Router override set: {payload.provider}/{payload.model} for {payload.remaining_requests} requests")
     return {
         "status": "success",
         "override": {
@@ -562,9 +551,7 @@ def update_cost_caps(payload: dict[str, Any]):
 
 
 @router.post("/users/impersonate/{username}")
-async def impersonate_user(
-    username: str, current_admin: dict = Depends(require_admin_token)
-):
+async def impersonate_user(username: str, current_admin: dict = Depends(require_admin_token)):
     users = load_users()
     target = next((u for u in users if u["username"] == username), None)
     if not target:
@@ -633,10 +620,7 @@ def get_full_data_export():
 def run_security_scan():
     findings = []
     try:
-        if (
-            not settings.jwt_secret
-            or settings.jwt_secret == "np97Qpdqi9VdRyiANqjfKZn8/u7s/WCjtG8UsjbhhS0="
-        ):
+        if not settings.jwt_secret or settings.jwt_secret == "np97Qpdqi9VdRyiANqjfKZn8/u7s/WCjtG8UsjbhhS0=":
             findings.append(
                 {
                     "item": "jwt_secret",
@@ -711,12 +695,8 @@ from datetime import datetime  # noqa: F811
 
 class GateOverridePayload(BaseModel):
     target_status: str = Field(..., description="Must be 'UNLOCKED' or 'LOCKED'")
-    reason: str = Field(
-        ..., min_length=10, description="Detailed justification for manual bypass"
-    )
-    admin_secret: str = Field(
-        ..., description="Master JWT/Vault secret key for authentication"
-    )
+    reason: str = Field(..., min_length=10, description="Detailed justification for manual bypass")
+    admin_secret: str = Field(..., description="Master JWT/Vault secret key for authentication")
 
 
 @router.post("/gate/override")
@@ -728,9 +708,7 @@ async def execute_manual_gate_override(payload: GateOverridePayload):
     """
     # 🛡️ ১. স্ট্রিক্ট সিকিউরিটি গেটকিপার (Master Token Cross-Matching)
     if payload.admin_secret != settings.jwt_secret:
-        logger.critical(
-            "🚨 [SECURITY BREACH ATTEMPT] Unauthorized attempt to access God-Mode Override Endpoint!"
-        )
+        logger.critical("🚨 [SECURITY BREACH ATTEMPT] Unauthorized attempt to access God-Mode Override Endpoint!")
         raise HTTPException(
             status_code=401,
             detail="Access Denied: Invalid Administrative Secret Key Key.",
@@ -759,9 +737,7 @@ async def execute_manual_gate_override(payload: GateOverridePayload):
         # ট্রানজেকশনাল রাইট ট্রিগার
         gate_ref.set(override_context)
 
-        logger.warning(
-            f"🔱 [GOD-MODE OVERRIDE] Admin has manually forced deploy_gate status to {requested_status}."
-        )
+        logger.warning(f"🔱 [GOD-MODE OVERRIDE] Admin has manually forced deploy_gate status to {requested_status}.")
 
         return {
             "success": True,
@@ -771,12 +747,8 @@ async def execute_manual_gate_override(payload: GateOverridePayload):
         }
 
     except Exception as e:
-        logger.error(
-            f"❌ Failed to commit manual gate override to Cloud Firestore: {str(e)}"
-        )
-        raise HTTPException(
-            status_code=500, detail=f"Infrastructure Sync Failure: {str(e)}"
-        ) from e
+        logger.error(f"❌ Failed to commit manual gate override to Cloud Firestore: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Infrastructure Sync Failure: {str(e)}") from e
 
 
 @router.get("/ci-logs")
@@ -789,9 +761,7 @@ async def get_ci_logs(limit: int = 20):
         return reports
     except Exception as e:
         logger.error(f"❌ Failed to fetch CI logs: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail=f"Database query failure: {str(e)}"
-        ) from e
+        raise HTTPException(status_code=500, detail=f"Database query failure: {str(e)}") from e
 
 
 @router.post("/ci-report")
@@ -802,16 +772,14 @@ async def receive_ci_report(report: CIReportPayload, request: Request):
     """
     # Constitutional Gatekeeper for this endpoint
     from core import services
+
     if not services.god.get_rule("autofix_reporting_authorized", "false") == "true":
-        raise HTTPException(
-            status_code=403,
-            detail="Forbidden: CI/CD reporting is disabled by constitutional rule."
-        )
+        raise HTTPException(status_code=403, detail="Forbidden: CI/CD reporting is disabled by constitutional rule.")
 
     # Optional: Verify the request is coming from GitHub Actions
     # This could be improved with a shared secret or webhook signature validation
     if "github.com" not in request.headers.get("host", "") and "localhost" not in request.headers.get("host", ""):
-         logger.warning(f"CI Report received from non-GitHub host: {request.headers.get('host')}")
+        logger.warning(f"CI Report received from non-GitHub host: {request.headers.get('host')}")
 
     try:
         # বাংলা মন্তব্য: নতুন CI রিপোর্ট ডাটাবেসে ইনসার্ট বা আপডেট করা হচ্ছে
@@ -863,6 +831,7 @@ async def list_reports(report_name: str = None):
 
     if report_name:
         import re
+
         if not re.fullmatch(r"[A-Za-z0-9_\-]+", report_name):
             raise HTTPException(status_code=400, detail="Invalid report name.")
 
@@ -878,7 +847,8 @@ async def list_reports(report_name: str = None):
             return {"name": report_name, "content": f.read()}
     else:
         import glob
+
         report_files = glob.glob(f"{reports_dir}/*.md")
-        return {"reports": [os.path.basename(f).replace('.md', '') for f in report_files]}
+        return {"reports": [os.path.basename(f).replace(".md", "") for f in report_files]}
 
 ```

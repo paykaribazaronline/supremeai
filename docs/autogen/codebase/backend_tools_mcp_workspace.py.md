@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/mcp_workspace.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,072 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.548795
+**সাইজ:** 14,015 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.589739
 
 ---
 
@@ -41,6 +41,7 @@ WORKSPACE_CONFIG_FILE = _workspace_root / ".kilo" / "workspace" / "config.json"
 
 class WorkspaceType(str, Enum):
     """ওয়ার্কস্পেসের ধরন।"""
+
     ECOMMERCE_BACKEND = "ecommerce_backend"
     ECOMMERCE_FRONTEND = "ecommerce_frontend"
     MOBILE_FLUTTER = "mobile_flutter"
@@ -51,6 +52,7 @@ class WorkspaceType(str, Enum):
 
 class WorkspaceContextInput(BaseModel):
     """ওয়ার্কস্পেস কনটেক্সট সেটআপের জন্য ইনপুট।"""
+
     model_config = ConfigDict(
         str_strip_whitespace=True,
         validate_assignment=True,
@@ -62,6 +64,7 @@ class WorkspaceContextInput(BaseModel):
 
 class ScopedFilePathInput(BaseModel):
     """স্কোপযুক্ত ফাইল পাথ জার্জ্যাঙ্করনের জন্য।"""
+
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
     relative_path: str = Field(..., description="কাজ করা ফাইলের রিলেটিভ পাথ")
@@ -138,6 +141,7 @@ def _session_file_lock(lock_path: Path):
             except OSError as exc:
                 logger.debug(f"Could not remove lock directory {lock_dir}: {exc}")
 
+
 def _save_workspace_session(project_type: WorkspaceType, tenant_id: str | None = None):
     """ওয়ার্কস্পেস সেশন সংরক্ষণ করে।"""
     _ensure_session_dir()
@@ -147,11 +151,11 @@ def _save_workspace_session(project_type: WorkspaceType, tenant_id: str | None =
         "workspace_path": str(_get_workspace_path(project_type)),
     }
     session_path = Path(WORKSPACE_SESSION_FILE)
-    
+
     with _session_file_lock(session_path):
         temp_fd, temp_path = tempfile.mkstemp(dir=str(session_path.parent), prefix=session_path.name + ".tmp")
         try:
-            with os.fdopen(temp_fd, 'w', encoding='utf-8') as f:
+            with os.fdopen(temp_fd, "w", encoding="utf-8") as f:
                 f.write(json.dumps(session, indent=2, ensure_ascii=False))
             os.replace(temp_path, str(session_path))
         except Exception as e:
@@ -170,7 +174,7 @@ def _save_workspace_session(project_type: WorkspaceType, tenant_id: str | None =
         "destructiveHint": False,
         "idempotentHint": True,
         "openWorldHint": False,
-    }
+    },
 )
 async def workspace_set_context(params: WorkspaceContextInput) -> str:
     """
@@ -189,20 +193,26 @@ async def workspace_set_context(params: WorkspaceContextInput) -> str:
     """
     admin_authorized = os.getenv("ADMIN_AUTHORIZED", "false").lower() == "true"
     if not admin_authorized and params.project_type == WorkspaceType.ADMIN_PANEL:
-        return json.dumps({
-            "error": "Admin authorization required for admin panel workspace",
-            "message": "Set ADMIN_AUTHORIZED=true in environment to access admin workspace"
-        }, ensure_ascii=False)
+        return json.dumps(
+            {
+                "error": "Admin authorization required for admin panel workspace",
+                "message": "Set ADMIN_AUTHORIZED=true in environment to access admin workspace",
+            },
+            ensure_ascii=False,
+        )
 
     _save_workspace_session(params.project_type, params.tenant_id)
 
-    return json.dumps({
-        "success": True,
-        "workspace_path": str(_get_workspace_path(params.project_type)),
-        "project_type": params.project_type.value,
-        "tenant_id": params.tenant_id,
-        "message": f"Workspace context set to {params.project_type.value}"
-    }, ensure_ascii=False)
+    return json.dumps(
+        {
+            "success": True,
+            "workspace_path": str(_get_workspace_path(params.project_type)),
+            "project_type": params.project_type.value,
+            "tenant_id": params.tenant_id,
+            "message": f"Workspace context set to {params.project_type.value}",
+        },
+        ensure_ascii=False,
+    )
 
 
 @mcp.tool(
@@ -213,7 +223,7 @@ async def workspace_set_context(params: WorkspaceContextInput) -> str:
         "destructiveHint": False,
         "idempotentHint": True,
         "openWorldHint": False,
-    }
+    },
 )
 async def workspace_get_scoped_path(params: ScopedFilePathInput) -> str:
     """
@@ -232,7 +242,7 @@ async def workspace_get_scoped_path(params: ScopedFilePathInput) -> str:
     """
     workspace_path = Path("backend")
     session_file = Path(WORKSPACE_SESSION_FILE)
-    
+
     if session_file.exists():
         try:
             session = json.loads(session_file.read_text(encoding="utf-8"))
@@ -245,41 +255,32 @@ async def workspace_get_scoped_path(params: ScopedFilePathInput) -> str:
 
     # বাংলা মন্তব্য: পাথ ট্রাভার্সাল প্রতিরোধ এবং সিমলিংক আক্রমণ পরীক্ষা
     if "\\" in params.relative_path:
-        return json.dumps({
-            "error": "Invalid path",
-            "message": "Path traversal not allowed - path must be a relative path within the workspace"
-        }, ensure_ascii=False)
+        return json.dumps(
+            {"error": "Invalid path", "message": "Path traversal not allowed - path must be a relative path within the workspace"}, ensure_ascii=False
+        )
 
     ref_path = Path(params.relative_path)
     if ref_path.is_absolute() or ".." in ref_path.parts:
-        return json.dumps({
-            "error": "Invalid path",
-            "message": "Path traversal not allowed - path must be a relative path within the workspace"
-        }, ensure_ascii=False)
+        return json.dumps(
+            {"error": "Invalid path", "message": "Path traversal not allowed - path must be a relative path within the workspace"}, ensure_ascii=False
+        )
 
     scoped_path = workspace_path / ref_path
 
     try:
         resolved_scoped = scoped_path.resolve()
         resolved_workspace = workspace_path.resolve()
-        
+
         # সিমলিংক যদি ওয়ার্কস্পেসের বাইরে ফাইল নির্দেশ করে তবে তা ব্লক করা হলো
         if scoped_path.is_symlink():
             real_target = Path(os.readlink(scoped_path)).resolve()
             real_target.relative_to(resolved_workspace)
-            
+
         resolved_scoped.relative_to(resolved_workspace)
     except ValueError:
-        return json.dumps({
-            "error": "Invalid path",
-            "message": "Path traversal not allowed - path must be within workspace"
-        }, ensure_ascii=False)
+        return json.dumps({"error": "Invalid path", "message": "Path traversal not allowed - path must be within workspace"}, ensure_ascii=False)
 
-    return json.dumps({
-        "scoped_path": str(scoped_path),
-        "exists": scoped_path.exists(),
-        "workspace_root": str(workspace_path)
-    }, ensure_ascii=False)
+    return json.dumps({"scoped_path": str(scoped_path), "exists": scoped_path.exists(), "workspace_root": str(workspace_path)}, ensure_ascii=False)
 
 
 @mcp.tool(
@@ -290,7 +291,7 @@ async def workspace_get_scoped_path(params: ScopedFilePathInput) -> str:
         "destructiveHint": False,
         "idempotentHint": True,
         "openWorldHint": False,
-    }
+    },
 )
 async def workspace_list_projects() -> str:
     """
@@ -301,10 +302,7 @@ async def workspace_list_projects() -> str:
     """
     config = _load_workspace_config()
 
-    projects = [
-        {"type": ws_type.value, "path": config.get(ws_type.value, "default")}
-        for ws_type in WorkspaceType
-    ]
+    projects = [{"type": ws_type.value, "path": config.get(ws_type.value, "default")} for ws_type in WorkspaceType]
 
     session_file = Path(WORKSPACE_SESSION_FILE)
     current_session = None
@@ -314,10 +312,7 @@ async def workspace_list_projects() -> str:
         except (json.JSONDecodeError, OSError):
             current_session = None
 
-    return json.dumps({
-        "projects": projects,
-        "current_session": current_session
-    }, ensure_ascii=False)
+    return json.dumps({"projects": projects, "current_session": current_session}, ensure_ascii=False)
 
 
 if __name__ == "__main__":

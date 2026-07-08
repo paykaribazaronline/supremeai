@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_core_smoke.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,494 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.518312
+**সাইজ:** 1,490 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.571469
 
 ---
 
@@ -53,7 +53,7 @@ async def test_llm_gateway_acompletion_monkeypatched(monkeypatch, tmp_path):
         return FakeResponse("mocked-response")
 
     from core.llm_gateway import LLMGateway
-    
+
     with patch("core.llm_gateway.litellm.acompletion", new=fake_acompletion):
         with patch("core.semantic_cache.SemanticCache.query_similar", new=AsyncMock(return_value=None)):
             gateway = LLMGateway()

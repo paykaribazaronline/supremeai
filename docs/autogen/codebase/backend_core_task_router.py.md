@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/task_router.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,803 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.482596
+**সাইজ:** 11,233 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.550327
 
 ---
 
@@ -124,17 +124,10 @@ class TaskRouter:
 
             # আপনার tools/browser_agent.py এর সাথে কানেক্ট করে steps গুলো এক্সিকিউট করা
             # এখানে strict timeout (35s) দেওয়া হয়েছে যাতে বট ব্লকিং লুপে ইউজার আটকে না থাকে
-            browser_result = await asyncio.wait_for(
-                self._execute_local_playwright_recipe(steps, contextual_url),
-                timeout=self.browser_timeout
-            )
+            browser_result = await asyncio.wait_for(self._execute_local_playwright_recipe(steps, contextual_url), timeout=self.browser_timeout)
 
             if browser_result and browser_result.get("status") == "success":
-                return {
-                    "status": "success",
-                    "execution_tier": "Layer 2 (Zero-Cost Local Browser)",
-                    "data": browser_result.get("data")
-                }
+                return {"status": "success", "execution_tier": "Layer 2 (Zero-Cost Local Browser)", "data": browser_result.get("data")}
             raise Exception("Local Browser Agent execution triggered anti-bot or came up empty.")
 
         except (TimeoutError, Exception) as l2_exception:  # noqa
@@ -145,17 +138,9 @@ class TaskRouter:
                 if not cost_guard.validate_budget(tier="economy"):
                     raise ValueError("Economy quota breached.")
 
-                economy_payload = await llm_gateway.acompletion(
-                    prompt=task_prompt,
-                    model_filters=["deepseek-v3", "gpt-4o-mini"],
-                    temperature=0.1
-                )
+                economy_payload = await llm_gateway.acompletion(prompt=task_prompt, model_filters=["deepseek-v3", "gpt-4o-mini"], temperature=0.1)
                 if economy_payload.get("success"):
-                    return {
-                        "status": "success",
-                        "execution_tier": "Layer 3 (Economy Low-Cost API Fallback)",
-                        "data": economy_payload.get("text")
-                    }
+                    return {"status": "success", "execution_tier": "Layer 3 (Economy Low-Cost API Fallback)", "data": economy_payload.get("text")}
                 raise Exception("Economy models failed execution.")
 
             # CRITICAL FIX (Ruff Linting):
@@ -165,21 +150,14 @@ class TaskRouter:
                 logger.error(f"[Router] Layer 3 Breached: {str(l3_exception)}. Escalating to Critical Layer 4.")
 
                 # --- LAYER 4: PREMIUM CRITICAL FALLBACK (5% Domain) ---
-                premium_payload = await llm_gateway.acompletion(
-                    prompt=task_prompt,
-                    model_filters=["claude-3-5-sonnet"],
-                    temperature=0.3
-                )
-                return {
-                    "status": "success",
-                    "execution_tier": "Layer 4 (Premium Claude API Forced Fallback)",
-                    "data": premium_payload.get("text")
-                }
+                premium_payload = await llm_gateway.acompletion(prompt=task_prompt, model_filters=["claude-3-5-sonnet"], temperature=0.3)
+                return {"status": "success", "execution_tier": "Layer 4 (Premium Claude API Forced Fallback)", "data": premium_payload.get("text")}
 
     async def _run_browser_automation(self, prompt: str, url: str, steps: list = None) -> dict:
         """Playwright কন্টেক্সট স্ট্রিম রান করার হেল্পার মেথড।"""
         try:
             from playwright.async_api import async_playwright
+
             async with async_playwright() as p:
                 browser = await p.chromium.launch(headless=True)
                 context = await browser.new_context()
@@ -210,24 +188,21 @@ class TaskRouter:
         লোকাল প্লে-রাইট ড্রাইভারকে ডাইনামিক স্টেপস ফিড করার আসল প্রডাকশন ইন্টারফেস।
         """
         logger.info("[Router] Launching authentic Playwright Interpreter Sandbox...")
-        
+
         try:
             from tools.browser_agent import BrowserAgent
-            
+
             # প্রডাকশন কন্টেইনারে headless=True তেই রান হবে
             agent = BrowserAgent(headless=True)
-            
+
             # ডাইনামিক রেসিপি এক্সিকিউট করা হচ্ছে
             result = await agent.execute_recipe(steps, initial_url=url)
-            
+
             if result.get("status") == "success":
-                return {
-                    "status": "success", 
-                    "data": result.get("data")
-                }
+                return {"status": "success", "data": result.get("data")}
             else:
                 raise Exception(result.get("error", "Unknown automation execution error"))
-                
+
         except Exception as error:
             logger.error(f"[Router] Playwright Sandbox Bridge Failed: {str(error)}")
             raise error

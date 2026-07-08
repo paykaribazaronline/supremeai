@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/agents.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,668 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.492375
+**সাইজ:** 4,624 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.556179
 
 ---
 
@@ -71,9 +71,7 @@ async def medical_symptoms(payload: SymptomRequest):
         from agents.medical_agent import MedicalAgent
 
         agent = MedicalAgent()
-        result = agent.symptom_analysis(
-            payload.symptoms, age=payload.age, medical_history=payload.medical_history
-        )
+        result = agent.symptom_analysis(payload.symptoms, age=payload.age, medical_history=payload.medical_history)
         return result
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
@@ -141,9 +139,7 @@ async def research_search(payload: ResearchRequest):
         from agents.research_assistant import ResearchAssistant
 
         assistant = ResearchAssistant()
-        results = assistant.search(
-            payload.query, source=payload.source, max_results=payload.max_results
-        )
+        results = assistant.search(payload.query, source=payload.source, max_results=payload.max_results)
         return {
             "query": payload.query,
             "source": payload.source,

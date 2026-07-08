@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/api_keys.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,894 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.489505
+**সাইজ:** 8,834 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.554438
 
 ---
 
@@ -55,9 +55,7 @@ class CreateAPIKeyRequest(BaseModel):
     user_id: str = Field(..., min_length=1, description="Owner user ID (email or uid)")
     name: str = Field(..., min_length=1, max_length=255)
     rate_limit_rps: int = Field(default=6, ge=1, le=1000)
-    expires_in_days: int | None = Field(
-        default=None, ge=1, description="Expires in N days, null = no expiry"
-    )
+    expires_in_days: int | None = Field(default=None, ge=1, description="Expires in N days, null = no expiry")
 
     @field_validator("user_id", "name", mode="before")
     @classmethod
@@ -207,9 +205,7 @@ async def rotate_key(key_id: int, req: RotateAPIKeyRequest, request: Request):
     if not updated:
         raise HTTPException(status_code=500, detail="Failed to rotate key")
 
-    await record_api_key_event(
-        key_id, "rotated", f"Grace period: {req.grace_period_hours}h"
-    )
+    await record_api_key_event(key_id, "rotated", f"Grace period: {req.grace_period_hours}h")
     logger.info(f"API key rotated: {key_id}")
     return {
         "status": "rotated",
@@ -256,11 +252,7 @@ async def record_usage_hook(key_id: int, request: Request, payload: dict):
 
 @router.get("/{key_id}/admin/quota-alert")
 async def quota_alert(key_id: int):
-    _ = (
-        _get_current_user.__wrapped__
-        if hasattr(_get_current_user, "__wrapped__")
-        else None
-    )
+    _ = _get_current_user.__wrapped__ if hasattr(_get_current_user, "__wrapped__") else None
     alert = await get_api_key_usage_stats(key_id)
     rpm_used = alert.get("total_requests", 0)
     return {

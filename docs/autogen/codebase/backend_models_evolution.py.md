@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/evolution.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,201 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.496703
+**সাইজ:** 3,188 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.558738
 
 ---
 
@@ -50,6 +50,7 @@ class SkillFitness(Base):
         "version_id_col": version  # SQLAlchemy অটোমেটিকভাবে ভার্সন ট্র্যাকিং এবং রেস-কন্ডিশন ব্লক করবে
     }
 
+
 class CodeProposal(Base):
     __tablename__ = "code_proposals"
 
@@ -68,8 +69,6 @@ class CodeProposal(Base):
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
-    __mapper_args__ = {
-        "version_id_col": version
-    }
+    __mapper_args__ = {"version_id_col": version}
 
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_advanced.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,308 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.509521
+**সাইজ:** 5,284 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.566248
 
 ---
 
@@ -80,9 +80,7 @@ def test_browser_agent():
     agent = BrowserAgent()
     with patch("httpx.get") as mock_get:
         mock_resp = MagicMock()
-        mock_resp.text = (
-            "<html><title>Sample Site</title><body>Hello world</body></html>"
-        )
+        mock_resp.text = "<html><title>Sample Site</title><body>Hello world</body></html>"
         mock_resp.is_success = True
         mock_get.return_value = mock_resp
 

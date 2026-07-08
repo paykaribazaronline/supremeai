@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/honeypot_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,356 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.471574
+**সাইজ:** 8,025 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.543650
 
 ---
 
@@ -38,9 +38,7 @@ class HoneypotMiddleware:
         import sys
 
         env = os.getenv("ENV", "").lower()
-        if env == "test" or (
-            "pytest" in sys.modules and env not in {"production", "prod"}
-        ):
+        if env == "test" or ("pytest" in sys.modules and env not in {"production", "prod"}):
             await self.app(scope, receive, send)
             return
 
@@ -51,14 +49,10 @@ class HoneypotMiddleware:
         from core.rules_mutator import RulesMutator
 
         if RulesMutator().is_ip_blocked(hacker_ip):
-            logger.warning(
-                f"Honeypot: Blocked request from blacklisted IP: {hacker_ip}"
-            )
+            logger.warning(f"Honeypot: Blocked request from blacklisted IP: {hacker_ip}")
             response = JSONResponse(
                 status_code=403,
-                content={
-                    "detail": "Forbidden: Access denied due to security policy violations."
-                },
+                content={"detail": "Forbidden: Access denied due to security policy violations."},
             )
             await response(scope, receive, send)
             return
@@ -90,30 +84,19 @@ class HoneypotMiddleware:
         query_str = scope.get("query_string", b"").decode("utf-8", errors="ignore")
 
         # Check query string and body for malicious signatures
-        is_malicious = any(
-            sig.search(body_str) or sig.search(query_str)
-            for sig in self.attack_signatures
-        )
+        is_malicious = any(sig.search(body_str) or sig.search(query_str) for sig in self.attack_signatures)
 
         if is_malicious:
             # 🚨 হ্যাকার ডিটেক্টেড! তাকে ব্লক না করে Honeypot-এ রাউট করা হচ্ছে
-            logger.warning(
-                f"🕷️ Malicious payload from {hacker_ip}. Routing to Honeypot..."
-            )
+            logger.warning(f"🕷️ Malicious payload from {hacker_ip}. Routing to Honeypot...")
 
             # ডেটাবেসে হ্যাকারের প্যাটার্ন স্টাডি করার জন্য সেভ করা (Async Task)
-            self._log_threat_intelligence(
-                hacker_ip, body_str or query_str, scope.get("path", "")
-            )
+            self._log_threat_intelligence(hacker_ip, body_str or query_str, scope.get("path", ""))
 
             # Increment threat level & block if threshold reached
             import core.services as app_mod
 
-            if (
-                hasattr(app_mod, "redis_queue")
-                and app_mod.redis_queue
-                and app_mod.redis_queue.configured
-            ):
+            if hasattr(app_mod, "redis_queue") and app_mod.redis_queue and app_mod.redis_queue.configured:
                 try:
                     # Log attacker payload
                     log_entry = {
@@ -134,9 +117,7 @@ class HoneypotMiddleware:
                         app_mod.redis_queue.expire(threat_key, 300)
                     elif hits and hits >= 3:
                         # Dynamically block IP using RulesMutator
-                        RulesMutator().block_ip(
-                            hacker_ip, reason="honeypot_threat_threshold_exceeded"
-                        )
+                        RulesMutator().block_ip(hacker_ip, reason="honeypot_threat_threshold_exceeded")
                 except Exception as e:  # noqa: BLE001
                     logger.error(f"Redis operation failed in HoneypotMiddleware: {e}")
 
@@ -145,6 +126,7 @@ class HoneypotMiddleware:
             # attacker-কে platform identity confirm করা হতো এবং honeypot detect সহজ হতো।
             # এখন: Generic, neutral response — কোনো system-specific information প্রকাশ পাচ্ছে না।
             import uuid
+
             response = JSONResponse(
                 status_code=200,
                 content={
@@ -170,9 +152,7 @@ class HoneypotMiddleware:
             loop = asyncio.get_running_loop()
             # বাংলা মন্তব্য: P1 Fix — run_in_executor নিজেই Future রিটার্ন করে।
             # asyncio.ensure_future() দিয়ে double-wrap করা নিষিদ্ধ — Python 3.10+ DeprecationWarning দেয়।
-            future = loop.run_in_executor(
-                None, self._persist_threat_intel, ip, payload, endpoint
-            )
+            future = loop.run_in_executor(None, self._persist_threat_intel, ip, payload, endpoint)
 
             def _on_done(fut):
                 exc = fut.exception()

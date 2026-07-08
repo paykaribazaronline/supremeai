@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/byoc/cloud_connector.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,045 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.505313
+**সাইজ:** 3,046 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.563780
 
 ---
 
@@ -49,6 +49,7 @@ class GCPCredentialManager:
     """
     Encrypts, decrypts, and validates Google Cloud Service Account JSON credentials.
     """
+
     @staticmethod
     def encrypt_credentials(sa_dict: dict) -> bytes:
         # বাংলা মন্তব্য: সার্ভিস অ্যাকাউন্ট ডিকশনারি এনক্রিপ্ট করে সিকিউরড বাইটসে কনভার্ট করা হচ্ছে

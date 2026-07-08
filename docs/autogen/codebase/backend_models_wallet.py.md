@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/wallet.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,554 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.496827
+**সাইজ:** 2,541 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.558810
 
 ---
 
@@ -33,8 +33,8 @@ class UserWallet(Base):
     user_id: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
 
     # Pro Tip: Float ব্যবহার করলে প্রিসিশন লস হয়। তাই Micro-transactions এর জন্য Numeric(10,6) ব্যবহার করা হলো।
-    balance_usd: Mapped[Decimal] = mapped_column(Numeric(10, 6), default=Decimal('0.000000'), nullable=False)
-    monthly_allowance_usd: Mapped[Decimal] = mapped_column(Numeric(10, 6), default=Decimal('0.000000'), nullable=False)
+    balance_usd: Mapped[Decimal] = mapped_column(Numeric(10, 6), default=Decimal("0.000000"), nullable=False)
+    monthly_allowance_usd: Mapped[Decimal] = mapped_column(Numeric(10, 6), default=Decimal("0.000000"), nullable=False)
 
     # Optimistic Concurrency Control (Second Layer of Defense against Double-Spending)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
@@ -45,6 +45,7 @@ class UserWallet(Base):
     __mapper_args__ = {
         "version_id_col": version  # SQLAlchemy অটোমেটিকভাবে ভার্সন ট্র্যাকিং এবং রেস-কন্ডিশন ব্লক করবে
     }
+
 
 class TransactionLedgerEntry(Base):
     __tablename__ = "transaction_ledger"
@@ -58,8 +59,6 @@ class TransactionLedgerEntry(Base):
     timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
     # Pro Tip: Composite Index
-    __table_args__ = (
-        Index('idx_user_time', 'user_id', 'timestamp'),
-    )
+    __table_args__ = (Index("idx_user_time", "user_id", "timestamp"),)
 
 ```

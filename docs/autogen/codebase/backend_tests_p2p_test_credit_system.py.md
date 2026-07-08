@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/p2p/test_credit_system.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,465 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.531462
+**সাইজ:** 1,464 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.579135
 
 ---
 
@@ -45,7 +45,6 @@ class TestCreditLedger:
     async def test_opt_in(self):
         ledger = CreditLedger()
         await ledger.opt_in("user1")
-
 
     @pytest.mark.asyncio
     async def test_opt_out(self):

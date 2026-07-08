@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/memory/sliding_window.py
 
 **প্রকার:** .py  
-**সাইজ:** 12,729 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.500220
+**সাইজ:** 12,667 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.560724
 
 ---
 
@@ -54,9 +54,7 @@ class SlidingWindowMemory:
     def _connect(self) -> sqlite3.Connection:
         if self.db_path == ":memory:":
             if self._memory_conn is None:
-                self._memory_conn = sqlite3.connect(
-                    self.db_path, check_same_thread=False
-                )
+                self._memory_conn = sqlite3.connect(self.db_path, check_same_thread=False)
             return self._memory_conn
         return sqlite3.connect(self.db_path, check_same_thread=False)
 
@@ -116,9 +114,7 @@ class SlidingWindowMemory:
         if not text:
             return ""
         first_sentence_end = text.find(". ")
-        snippet = (
-            text[: first_sentence_end + 2] if first_sentence_end != -1 else text[:120]
-        )
+        snippet = text[: first_sentence_end + 2] if first_sentence_end != -1 else text[:120]
         return snippet.replace("\n", " ").strip()
 
     # ------------------------------------------------------------------

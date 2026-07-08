@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/tenant_rate_limiter.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,465 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.545157
+**সাইজ:** 8,333 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.587568
 
 ---
 
@@ -40,9 +40,11 @@ class TenantRateLimiter:
         except Exception as e:  # noqa: BLE001
             try:
                 import loguru
+
                 loguru.logger.error(f"Tool execution error: {e}")
             except Exception as e:  # noqa: BLE001
                 import logging
+
                 logging.warning(f"Exception suppressed: {e}")
             return None
 
@@ -181,9 +183,7 @@ class TenantRateLimiter:
                 self.queue.incr(minute_key, 1)
                 self.queue.set(minute_key, str(self.queue.get(minute_key) or 1), ex=90)
                 self.queue.incr(day_key, 1)
-                self.queue.set(
-                    day_key, str(self.queue.get(day_key) or 1), ex=86400 + 300
-                )
+                self.queue.set(day_key, str(self.queue.get(day_key) or 1), ex=86400 + 300)
                 self.queue.set(
                     cost_key,
                     str(float(self.queue.get(cost_key) or 0.0) + cost),
@@ -217,17 +217,11 @@ class TenantRateLimiter:
             import stripe
 
             stripe.api_key = settings.stripe_api_key
-            customer_id = (
-                self.queue.get(f"stripe:customer:{tenant_id}") if self.queue else None
-            )
+            customer_id = self.queue.get(f"stripe:customer:{tenant_id}") if self.queue else None
             if not customer_id:
                 logger.debug(f"No Stripe customer for tenant {tenant_id}")
                 return
-            customer_id = (
-                customer_id.decode("utf-8")
-                if isinstance(customer_id, bytes)
-                else str(customer_id)
-            )
+            customer_id = customer_id.decode("utf-8") if isinstance(customer_id, bytes) else str(customer_id)
             stripe.InvoiceItem.create(
                 customer=customer_id,
                 amount=int(amount * 100),

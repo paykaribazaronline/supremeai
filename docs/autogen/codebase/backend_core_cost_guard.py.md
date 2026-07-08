@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/cost_guard.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,908 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.478977
+**সাইজ:** 3,910 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.548206
 
 ---
 
@@ -22,7 +22,7 @@ class CostGuard:
         self.tier_limits = {
             "free": 0.0,
             "economy": 0.02,  # প্রতি টাস্কে সর্বোচ্চ খরচ ২ সেন্ট
-            "premium": 0.50   # প্রিমিয়াম মডেলের বাজেট গেট
+            "premium": 0.50,  # প্রিমিয়াম মডেলের বাজেট গেট
         }
 
     async def check_budget(self, tenant_id: str, estimated_cost: float) -> bool:
@@ -39,6 +39,7 @@ class CostGuard:
             doc_ref = self._db.collection(f"tenants/{tenant_id}/budget").document("status")
 
             import asyncio
+
             if asyncio.iscoroutinefunction(doc_ref.get):
                 snapshot = await doc_ref.get()
             else:
@@ -75,6 +76,7 @@ class CostGuard:
             return True
 
         return True
+
 
 # CRITICAL FIX (Import Error & Backward Compatibility):
 # গ্লোবাল সিঙ্গেলটন অবজেক্ট (Singleton Instance) তৈরি করা হলো।

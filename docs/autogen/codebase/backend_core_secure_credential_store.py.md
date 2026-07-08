@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/secure_credential_store.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,428 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.473244
+**সাইজ:** 5,385 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.544686
 
 ---
 
@@ -24,6 +24,7 @@ from core.config import settings
 
 try:
     from cryptography.fernet import Fernet
+
     CRYPTO_AVAILABLE = True
 except ImportError:  # pragma: no cover
     CRYPTO_AVAILABLE = False
@@ -85,6 +86,7 @@ class LocalFernetProvider(EncryptionProvider):
 class CloudKMSProvider(EncryptionProvider):
     def __init__(self):
         from google.cloud import kms
+
         self.client = kms.KeyManagementServiceClient()
         self.key_name = os.environ.get("GCP_KMS_KEY_NAME")
         if not self.key_name:
@@ -94,17 +96,13 @@ class CloudKMSProvider(EncryptionProvider):
     def encrypt(self, plaintext: str) -> tuple[str, str | None]:
         if not self.key_name:
             raise ValueError("GCP_KMS_KEY_NAME must be set for Cloud KMS encryption.")
-        response = self.client.encrypt(
-            request={"name": self.key_name, "plaintext": plaintext.encode()}
-        )
+        response = self.client.encrypt(request={"name": self.key_name, "plaintext": plaintext.encode()})
         return base64.b64encode(response.ciphertext).decode(), self.key_name
 
     def decrypt(self, ciphertext: str, key_ref: str | None) -> str:
         if not self.key_name:
             raise ValueError("GCP_KMS_KEY_NAME must be set for Cloud KMS decryption.")
-        response = self.client.decrypt(
-            request={"name": self.key_name, "ciphertext": base64.b64decode(ciphertext)}
-        )
+        response = self.client.decrypt(request={"name": self.key_name, "ciphertext": base64.b64decode(ciphertext)})
         return response.plaintext.decode()
 
 
@@ -150,6 +148,5 @@ class SecureCredentialStore:
                 last_4 = val_str[-4:] if len(val_str) >= 4 else val_str
                 masked[field] = f"••••••••••{last_4}"
         return masked
-
 
 ```

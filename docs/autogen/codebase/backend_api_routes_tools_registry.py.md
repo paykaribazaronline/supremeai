@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/tools_registry.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,453 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.493963
+**সাইজ:** 2,439 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.557144
 
 ---
 
@@ -81,9 +81,7 @@ async def update_tool(tool_id: str, payload: ToolUpdate):
 async def delete_tool(tool_id: str):
     if not db.client:
         raise HTTPException(status_code=503, detail="Database not configured")
-    db.client.table("tools_registry").update({"status": "archived"}).eq(
-        "id", tool_id
-    ).execute()
+    db.client.table("tools_registry").update({"status": "archived"}).eq("id", tool_id).execute()
     return {"status": "success", "message": "Tool archived"}
 
 ```

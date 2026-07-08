@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/marketplace_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,652 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.548518
+**সাইজ:** 2,550 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.589577
 
 ---
 
@@ -16,12 +16,8 @@ class MarketplaceAgent:
     def __init__(self):
         logger.info("MarketplaceAgent initialized.")
 
-    def search_marketplaces(
-        self, query: str, categories: list = None, filters: dict = None
-    ) -> list:
-        logger.info(
-            f"Searching marketplaces for '{query}' under categories {categories}"
-        )
+    def search_marketplaces(self, query: str, categories: list = None, filters: dict = None) -> list:
+        logger.info(f"Searching marketplaces for '{query}' under categories {categories}")
 
         # Mock results from various registries
         all_results = [
@@ -64,18 +60,12 @@ class MarketplaceAgent:
 
         return filtered
 
-    def install_tool(
-        self, tool_id: str, target_environment: str, sandbox: bool = True
-    ) -> dict:
-        logger.info(
-            f"Installing {tool_id} into {target_environment} (sandbox={sandbox})"
-        )
+    def install_tool(self, tool_id: str, target_environment: str, sandbox: bool = True) -> dict:
+        logger.info(f"Installing {tool_id} into {target_environment} (sandbox={sandbox})")
 
         # If sandbox testing is enabled, check docker execution or local subprocess
         if sandbox:
-            logger.info(
-                "Setting up isolated sandbox container for tool verification..."
-            )
+            logger.info("Setting up isolated sandbox container for tool verification...")
             # For verification, we can do a mock run/verification
             return {
                 "success": True,

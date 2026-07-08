@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/immune_system.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,221 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.469934
+**সাইজ:** 5,658 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.542624
 
 ---
 
@@ -19,6 +19,7 @@ from loguru import logger
 
 class SecuritySandboxError(Exception):
     """Exception thrown when code violates AST security constraints."""
+
     pass
 
 
@@ -26,36 +27,72 @@ class ASTSecurityScanner(ast.NodeVisitor):
     def __init__(self):
         # 🛑 ZERO-GAP: Extended Banned Imports
         self.banned_imports: set[str] = {
-            "os", "sys", "subprocess", "pty", "shlex",
-            "importlib", "code", "runpy", "multiprocessing",
-            "pickle", "marshal", "tempfile", "socket",
-            "urllib", "urllib3", "requests", "http", "ctypes", "builtins"
+            "os",
+            "sys",
+            "subprocess",
+            "pty",
+            "shlex",
+            "importlib",
+            "code",
+            "runpy",
+            "multiprocessing",
+            "pickle",
+            "marshal",
+            "tempfile",
+            "socket",
+            "urllib",
+            "urllib3",
+            "requests",
+            "http",
+            "ctypes",
+            "builtins",
         }
 
         # 🛑 ZERO-GAP: Banned Built-in Functions for Introspection & Execution
         self.banned_functions: set[str] = {
-            "eval", "exec", "compile", "globals", "locals",
-            "vars", "dir", "type", "chr", "ord", "breakpoint",
-            "__import__", "getattr", "setattr", "delattr", "hasattr", "open"
+            "eval",
+            "exec",
+            "compile",
+            "globals",
+            "locals",
+            "vars",
+            "dir",
+            "type",
+            "chr",
+            "ord",
+            "breakpoint",
+            "__import__",
+            "getattr",
+            "setattr",
+            "delattr",
+            "hasattr",
+            "open",
         }
 
         # 🛑 ZERO-GAP: Prevent Sandbox Escapes via Dunder Attributes
         self.banned_attributes: set[str] = {
-            "__class__", "__bases__", "__subclasses__",
-            "__globals__", "__builtins__", "__dict__", "__mro__",
-            "__code__", "__closure__", "__func__"
+            "__class__",
+            "__bases__",
+            "__subclasses__",
+            "__globals__",
+            "__builtins__",
+            "__dict__",
+            "__mro__",
+            "__code__",
+            "__closure__",
+            "__func__",
         }
 
     def visit_Import(self, node: ast.Import):
         for alias in node.names:
-            base_module = alias.name.split('.')[0]
+            base_module = alias.name.split(".")[0]
             if base_module in self.banned_imports:
                 raise SecuritySandboxError(f"Banned import detected: {alias.name}")
         self.generic_visit(node)
 
     def visit_ImportFrom(self, node: ast.ImportFrom):
         if node.module:
-            base_module = node.module.split('.')[0]
+            base_module = node.module.split(".")[0]
             if base_module in self.banned_imports:
                 raise SecuritySandboxError(f"Banned import detected: {node.module}")
         self.generic_visit(node)
@@ -82,6 +119,7 @@ class ImmuneSystemScanner:
     """
     Scans generated python code using AST parser to block execution of unsafe or malicious code before execution.
     """
+
     def __init__(self):
         # Preserve public interface configs if needed by test suite or other modules
         self.scanner = ASTSecurityScanner()

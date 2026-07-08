@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/evolution/dynamic_injector.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,349 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.502779
+**সাইজ:** 4,350 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.562277
 
 ---
 
@@ -85,6 +85,7 @@ class DynamicSkillInjector:
             f.write(quarantine_content)
 
         logger.warning(f"🔒 Skill {skill_name} isolated to quarantine zone -> {safe_name}")
+
 
 dynamic_injector = DynamicSkillInjector()
 

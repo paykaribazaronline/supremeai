@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/dependency_manager_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,967 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.551621
+**সাইজ:** 6,917 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.591799
 
 ---
 
@@ -34,9 +34,7 @@ class DependencyManagerAgent:
         except ImportError:
             self.pr_pipeline = None
 
-    def _run_command(
-        self, command: list[str], check_exit_code: bool = True
-    ) -> dict[str, Any]:
+    def _run_command(self, command: list[str], check_exit_code: bool = True) -> dict[str, Any]:
         """Runs a command and returns its JSON output."""
         try:
             result = subprocess.run(
@@ -140,17 +138,13 @@ class DependencyManagerAgent:
         # The summary is in the 'metadata' or 'summary' field
         return {"success": True, "audit_results": vuln_data}
 
-    async def auto_update_and_pr(
-        self, repo_path: str, package_name: str, package_manager: str = "pip"
-    ):
+    async def auto_update_and_pr(self, repo_path: str, package_name: str, package_manager: str = "pip"):
         """Automates updating a dependency and creating a PR."""
         if not self.pr_pipeline:
             logger.error("AutoPRPipeline is not available. Cannot create PR.")
             return {"status": "error", "message": "AutoPRPipeline not found."}
 
-        logger.info(
-            f"Attempting to auto-update '{package_name}' using {package_manager} in {repo_path}"
-        )
+        logger.info(f"Attempting to auto-update '{package_name}' using {package_manager} in {repo_path}")
 
         # Define update command
         if package_manager == "pip":

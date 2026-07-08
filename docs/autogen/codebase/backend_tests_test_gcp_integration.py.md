@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_gcp_integration.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,105 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.522373
+**সাইজ:** 9,047 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.573746
 
 ---
 
@@ -26,9 +26,7 @@ from core.gcp_pubsub_queue import GCPPubSubQueue
 from tools.gcp_cloud_functions import GCPCloudFunctionClient
 
 
-pytestmark = pytest.mark.skipif(
-    not HAS_FIREBASE_DEPS, reason="firebase/google deps not installed"
-)
+pytestmark = pytest.mark.skipif(not HAS_FIREBASE_DEPS, reason="firebase/google deps not installed")
 
 
 class FakeElapsed:
@@ -138,9 +136,7 @@ class FakeFirestoreQueue:
         return {"enqueued": True, "task_id": task_id}
 
     def dequeue(self):
-        for item in sorted(
-            self._store.values(), key=lambda x: x["priority"], reverse=True
-        ):
+        for item in sorted(self._store.values(), key=lambda x: x["priority"], reverse=True):
             return item
         return None
 
@@ -174,9 +170,7 @@ class FakeSubscriber:
     def pull(self, max_messages: int = 1):
         messages = []
         for message in self._messages[:max_messages]:
-            msg_obj = type(
-                "FakeMessage", (), {"data": message, "ack_id": id(message)}
-            )()
+            msg_obj = type("FakeMessage", (), {"data": message, "ack_id": id(message)})()
             callback = getattr(self, "_callback", None)
             if callback:
                 callback(msg_obj)

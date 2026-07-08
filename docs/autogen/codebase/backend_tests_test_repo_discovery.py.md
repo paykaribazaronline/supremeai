@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_repo_discovery.py
 
 **প্রকার:** .py  
-**সাইজ:** 723 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.518547
+**সাইজ:** 709 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.571596
 
 ---
 
@@ -28,9 +28,7 @@ def test_analyze_compatibility():
 
 def test_implement_repo():
     agent = RepoDiscoveryAgent()
-    res = agent.implement_repo(
-        "https://github.com/TanStack/table", "npm", "customer-app"
-    )
+    res = agent.implement_repo("https://github.com/TanStack/table", "npm", "customer-app")
     assert res["status"] == "success"
     assert "npm" in res["method"]
 

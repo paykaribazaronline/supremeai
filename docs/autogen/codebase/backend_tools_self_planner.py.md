@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/self_planner.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,830 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.540794
+**সাইজ:** 8,734 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.584802
 
 ---
 
@@ -47,9 +47,7 @@ class SelfPlanner:
                 "Return ONLY a valid JSON array without markdown wrapping or explanations.\n\n"
                 f"Objective: {objective}"
             )
-            result = await model_router.async_route_and_generate(
-                prompt, task_type="reasoning", max_cost=0.05
-            )
+            result = await model_router.async_route_and_generate(prompt, task_type="reasoning", max_cost=0.05)
             text = result.get("text", "") if isinstance(result, dict) else ""
 
             # Clean up JSON if it contains markdown blocks
@@ -68,9 +66,11 @@ class SelfPlanner:
             except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
+
                     loguru.logger.error(f"Tool execution error: {e}")
                 except Exception as e:  # noqa: BLE001
                     import logging
+
                     logging.warning(f"Exception suppressed: {e}")
                 logger.warning("LLM returned non-JSON plan. Using fallback.")
                 plan = self._mock_plan(objective)
@@ -125,9 +125,7 @@ class SelfPlanner:
         while in_degrees:
             current_batch = [node for node, degree in in_degrees.items() if degree == 0]
             if not current_batch:
-                raise RuntimeError(
-                    "Circular dependency detected during execution ordering"
-                )
+                raise RuntimeError("Circular dependency detected during execution ordering")
 
             batches.append(current_batch)
             for node in current_batch:
@@ -172,9 +170,7 @@ class SelfPlanner:
         # After all batches are complete, log the summary and return.
         # 🛑 ZERO-GAP: Removed recursive self-generating planning logic to avoid OOM loop leaks.
         final_summary = "Completed all tasks. " + json.dumps(execution_results)
-        logger.info(
-            f"Plan execution finished for objective. Summary: {final_summary[:200]}"
-        )
+        logger.info(f"Plan execution finished for objective. Summary: {final_summary[:200]}")
 
         return {
             "status": "completed",
@@ -192,7 +188,7 @@ class SelfPlanner:
         for task in list(self.active_tasks):
             if not task.done():
                 task.cancel()
-        
+
         # Wait for all tasks to finalize cancellations safely
         await asyncio.gather(*self.active_tasks, return_exceptions=True)
         self.active_tasks.clear()

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/blockchain_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,376 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.550636
+**সাইজ:** 2,362 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.591208
 
 ---
 
@@ -15,9 +15,7 @@ from loguru import logger
 
 
 class BlockchainAgent:
-    async def generate_contract(
-        self, description: str, language: str = "solidity"
-    ) -> dict[str, Any]:
+    async def generate_contract(self, description: str, language: str = "solidity") -> dict[str, Any]:
         logger.info(f"Generating {language} contract for: {description}")
         contract = """
 // SPDX-License-Identifier: MIT

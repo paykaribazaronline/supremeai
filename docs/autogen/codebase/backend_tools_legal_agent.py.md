@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/legal_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,293 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.547307
+**সাইজ:** 2,279 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.588823
 
 ---
 
@@ -15,9 +15,7 @@ from loguru import logger
 
 
 class LegalAgent:
-    async def generate_document(
-        self, doc_type: str, context: dict[str, str]
-    ) -> dict[str, Any]:
+    async def generate_document(self, doc_type: str, context: dict[str, str]) -> dict[str, Any]:
         logger.info(f"Generating legal document: {doc_type}")
         company = context.get("company_name", "[Company Name]")
         effective_date = context.get("effective_date", "[Date]")

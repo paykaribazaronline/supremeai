@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_security_regression.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,643 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.521368
+**সাইজ:** 1,593 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.573190
 
 ---
 
@@ -31,9 +31,7 @@ async def test_production_jwt_secret_required():
             openrouter_api_key="valid",
             gemini_api_key="valid",
         )
-    assert "SUPREMEAI_JWT_SECRET environment variable must be set in production" in str(
-        excinfo.value
-    )
+    assert "SUPREMEAI_JWT_SECRET environment variable must be set in production" in str(excinfo.value)
 
 
 def test_auth_middleware_rejects_invalid_api_token():
@@ -52,12 +50,8 @@ def test_auth_middleware_rejects_invalid_api_token():
     client = TestClient(app)
 
     # Setup expected API token env var and test that an invalid token (like 'test-token') gets 401
-    with patch.dict(
-        os.environ, {"SUPREMEAI_API_TOKEN": "super-secure-production-api-token"}
-    ):
-        resp = client.get(
-            "/api/task/execute", headers={"Authorization": "Bearer test-token"}
-        )
+    with patch.dict(os.environ, {"SUPREMEAI_API_TOKEN": "super-secure-production-api-token"}):
+        resp = client.get("/api/task/execute", headers={"Authorization": "Bearer test-token"})
         assert resp.status_code == 401
         assert resp.json()["detail"] == "Invalid or missing API token."
 

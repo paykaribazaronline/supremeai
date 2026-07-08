@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/cli.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,945 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.550759
+**সাইজ:** 1,873 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.591282
 
 ---
 
@@ -32,14 +32,10 @@ console = Console()
 @cli_app.command()
 def ask(
     task: str = typer.Option(..., "--task", "-t", help="Task prompt for the agent"),
-    task_type: str = typer.Option(
-        "general", "--type", "-y", help="Task type (coding, image_generation, etc.)"
-    ),
+    task_type: str = typer.Option("general", "--type", "-y", help="Task type (coding, image_generation, etc.)"),
 ):
     """Asks SupremeAI 2.0 to solve a task."""
-    console.print(
-        f"[bold blue]Submitting task to SupremeAI Master Orchestrator:[/bold blue] {task}"
-    )
+    console.print(f"[bold blue]Submitting task to SupremeAI Master Orchestrator:[/bold blue] {task}")
 
     rules = UniversalRulesEngine()
     admin = AdminGodLayer(rules)
@@ -48,15 +44,11 @@ def ask(
     response = orchestrator.execute_task(task, task_type)
 
     if "Blocked" in response.get("result", ""):
-        console.print(
-            f"[bold red]EXECUTION BLOCKED:[/bold red] {response.get('result')}"
-        )
+        console.print(f"[bold red]EXECUTION BLOCKED:[/bold red] {response.get('result')}")
     else:
         console.print("[bold green]Response Result:[/bold green]")
         console.print(response.get("result", "No response output."))
-        console.print(
-            f"[yellow]Cost accumulated: ${response.get('cost', 0.0)}[/yellow]"
-        )
+        console.print(f"[yellow]Cost accumulated: ${response.get('cost', 0.0)}[/yellow]")
 
 
 @cli_app.command()

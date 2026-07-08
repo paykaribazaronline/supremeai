@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/bengali_ocr_converter.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,376 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.553404
+**সাইজ:** 5,354 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.592912
 
 ---
 
@@ -19,9 +19,7 @@ from google.oauth2 import service_account
 def setup_google_vision(credentials_path=None):
     """Setup Google Cloud Vision client"""
     if credentials_path:
-        credentials = service_account.Credentials.from_service_account_file(
-            credentials_path
-        )
+        credentials = service_account.Credentials.from_service_account_file(credentials_path)
         client = vision.ImageAnnotatorClient(credentials=credentials)
     else:
         # Try to use default credentials

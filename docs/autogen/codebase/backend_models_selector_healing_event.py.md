@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/selector_healing_event.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,263 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.497723
+**সাইজ:** 1,262 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.559328
 
 ---
 
@@ -38,6 +38,5 @@ class SelectorHealingEvent(Base):
     screenshot_after_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
 
     reviewed_by_user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
-
 
 ```

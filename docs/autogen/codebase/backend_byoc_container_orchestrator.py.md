@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/byoc/container_orchestrator.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,868 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.505180
+**সাইজ:** 1,869 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.563707
 
 ---
 
@@ -22,6 +22,7 @@ class ContainerOrchestrator:
     """
     Deploys AI skill Docker containers to Google Cloud Run utilizing Terraform or GCP APIs.
     """
+
     def __init__(self, tf_dir: str = "infrastructure/terraform/byoc_gcp"):
         self.tf_dir = tf_dir
 

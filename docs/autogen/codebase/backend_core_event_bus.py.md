@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/event_bus.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,419 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.469568
+**সাইজ:** 2,422 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.542411
 
 ---
 
@@ -19,12 +19,14 @@ from pydantic import BaseModel
 
 logger = logging.getLogger("supremeai.event_bus")
 
+
 class ErrorEvent(BaseModel):
     module: str
     error_type: str
     message: str
     severity: str  # CRITICAL, WARNING, INFO
     context: dict[str, Any]
+
 
 class ErrorEventBus:
     def __init__(self):
@@ -64,6 +66,7 @@ class ErrorEventBus:
                 listener(event)
         except Exception as listener_exc:  # noqa: BLE001
             logger.critical(f"🔥 EventBus Listener Failed: {listener_exc}")
+
 
 # Global Instance
 error_event_bus = ErrorEventBus()

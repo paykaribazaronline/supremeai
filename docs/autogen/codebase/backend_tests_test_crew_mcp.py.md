@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_crew_mcp.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,084 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.527402
+**সাইজ:** 3,056 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.576742
 
 ---
 
@@ -86,12 +86,8 @@ def test_swarm_orchestrator():
     mock_router = MagicMock()
     mock_router.route_and_generate.return_value = {"text": "swarm response"}
 
-    agent1 = CrewAgent(
-        role="Agent1", goal="Goal1", backstory="Back1", model_router=mock_router
-    )
-    agent2 = CrewAgent(
-        role="Agent2", goal="Goal2", backstory="Back2", model_router=mock_router
-    )
+    agent1 = CrewAgent(role="Agent1", goal="Goal1", backstory="Back1", model_router=mock_router)
+    agent2 = CrewAgent(role="Agent2", goal="Goal2", backstory="Back2", model_router=mock_router)
 
     task1 = CrewTask("Task 1 description", agent1)
     task2 = CrewTask("Task 2 description", agent2)

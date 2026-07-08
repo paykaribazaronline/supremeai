@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/error_remediation.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,771 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.495672
+**সাইজ:** 5,773 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.558165
 
 ---
 
@@ -21,17 +21,19 @@ from tenacity import stop_after_attempt
 from tenacity import wait_exponential
 
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # --- সার্কিট ব্রেকার কনফিগারেশন ---
 # কোনো ফাংশন ৩ বার ব্যর্থ হলে সার্কিট "open" হবে এবং পরবর্তী ৩০ সেকেন্ডের জন্য সেই ফাংশনে কোনো কল যেতে দেবে না।
 # এটি ক্লাউড ফাংশনের মতো রিসোর্সের ಅನවශ්‍ය রানিং কস্ট কমায়।
 db_breaker = CircuitBreaker(fail_max=3, reset_timeout=30)
 
+
 class ExternalService:
     """
     একটি কাল্পনিক এক্সটার্নাল সার্ভিস বা ডেটাবেজ কানেকশন যা মাঝে মাঝে ফেইল করতে পারে।
     """
+
     def __init__(self):
         self._fail_count = 0
 
@@ -45,27 +47,29 @@ class ExternalService:
             raise ConnectionError("ডেটাবেজ কানেকশন স্থাপন করা যায়নি")
 
         logging.info("অপারেশন সফলভাবে সম্পন্ন হয়েছে।")
-        self._fail_count = 0 # সফল হলে কাউন্টার রিসেট
+        self._fail_count = 0  # সফল হলে কাউন্টার রিসেট
         return "অপারেশন সফল"
+
 
 @db_breaker
 @retry(
     # এক্সপোনেনশিয়াল ব্যাকঅফ: প্রথমবার ১ সেকেন্ড, এরপর ২, ৪ সেকেন্ড অপেক্ষা করবে।
     wait=wait_exponential(multiplier=1, min=1, max=5),
     # সর্বোচ্চ ৩ বার চেষ্টা করবে।
-    stop=stop_after_attempt(3)
+    stop=stop_after_attempt(3),
 )
 def resilient_call(service_operation: Callable[..., Any], *args, **kwargs) -> Any:
     """
     এক্সপোনেনশিয়াল ব্যাকঅফ এবং সার্কিট ব্রেকার দিয়ে একটি ফাংশনকে কল করার র‍্যাপার।
-    
+
     - Retry Logic: এক্সপোনেনশিয়াল ব্যাকঅফসহ সর্বোচ্চ ৩ বার চেষ্টা করবে, যেখানে সর্বোচ্চ ডিলে ৫ সেকেন্ড।
     - Circuit Breaker: যদি ৩ বার চেষ্টার পরও ব্যর্থ হয়, সার্কিট ব্রেকার 'open' হয়ে যাবে।
     """  # noqa: W293
     logging.info("অপারেশন চালানোর চেষ্টা করা হচ্ছে...")
     return service_operation(*args, **kwargs)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     service = ExternalService()
 
     logging.info("\n--- পরিস্থিতি ১: সার্ভিস সফলভাবে কাজ করছে ---")

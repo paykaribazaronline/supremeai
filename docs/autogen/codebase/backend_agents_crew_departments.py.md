@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/agents/crew_departments.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,713 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.504031
+**সাইজ:** 3,633 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.563048
 
 ---
 
@@ -19,15 +19,8 @@ from models.shared_workspace import SharedWorkspace
 class SwarmAgentBase:
     async def call_gateway(self, system_prompt: str, user_prompt: str, user_id: str = "default_user") -> str:
         # বাংলা মন্তব্য: প্রতিটি এজেন্ট কল গেটওয়ের মাধ্যমে রাউট করা হচ্ছে যাতে কস্ট ট্র্যাকিং এনাবেল থাকে।
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ]
-        resp = await llm_gateway.acompletion(
-            model="gemini/gemini-1.5-flash",
-            messages=messages,
-            user_id=user_id
-        )
+        messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]
+        resp = await llm_gateway.acompletion(model="gemini/gemini-1.5-flash", messages=messages, user_id=user_id)
         return resp.get("choices", [{}])[0].get("message", {}).get("content", "")
 
 

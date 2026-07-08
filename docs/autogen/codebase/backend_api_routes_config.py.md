@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/config.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,637 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.487651
+**সাইজ:** 1,621 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.553350
 
 ---
 
@@ -63,9 +63,7 @@ async def update_config(
 async def get_configs_by_category(category: str):
     if not db.client:
         raise HTTPException(status_code=503, detail="Database not configured")
-    res = (
-        db.client.table("system_config").select("*").eq("category", category).execute()
-    )
+    res = db.client.table("system_config").select("*").eq("category", category).execute()
     return {"items": res.data or [], "total": len(res.data or [])}
 
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/audit_logger.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,375 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.476830
+**সাইজ:** 2,353 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.546840
 
 ---
 
@@ -51,9 +51,7 @@ class AuditLogger:
 
     def log_decision(self, action_type: str, decision_details: str, reasoning: str):
         """Logs an autonomous decision or rotation details to the tamper-proof audit trail."""
-        logger.info(
-            f"[AUDIT LOG] {action_type} - Details: {decision_details} - Reason: {reasoning}"
-        )
+        logger.info(f"[AUDIT LOG] {action_type} - Details: {decision_details} - Reason: {reasoning}")
         try:
             with self._get_conn() as conn:
                 conn.execute(

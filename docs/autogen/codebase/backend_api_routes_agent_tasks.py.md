@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/agent_tasks.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,263 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.487414
+**সাইজ:** 3,227 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.553214
 
 ---
 
@@ -75,9 +75,7 @@ async def execute_agent(request: Request, body: AgentExecuteRequest):
 
     if body.department:
         result = agent_department.execute(body.department, body.task, body.task_type)
-        monitor.track_agent_call(
-            prompt=body.task, provider=result.get("provider", "unknown")
-        )
+        monitor.track_agent_call(prompt=body.task, provider=result.get("provider", "unknown"))
         return AgentExecuteResponse(
             success=result.get("success", False),
             output=result.get("output"),
@@ -88,9 +86,7 @@ async def execute_agent(request: Request, body: AgentExecuteRequest):
         )
 
     result = orchestrator.execute_task(body.task, body.task_type)
-    monitor.track_agent_call(
-        prompt=body.task, provider=result.get("provider", "unknown")
-    )
+    monitor.track_agent_call(prompt=body.task, provider=result.get("provider", "unknown"))
     return AgentExecuteResponse(
         success=result.get("success", False),
         output=result.get("result"),

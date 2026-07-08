@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_pgbouncer_pool.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,013 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.521245
+**সাইজ:** 2,040 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.573118
 
 ---
 
@@ -15,6 +15,7 @@ import pytest
 
 from core.pgbouncer_pool import PgBouncerConnectionPool
 
+
 @pytest.mark.asyncio
 async def test_singleton_pattern():
     from core.pgbouncer_pool import get_db_pool, init_db_pool, PgBouncerConnectionPool
@@ -25,6 +26,7 @@ async def test_singleton_pattern():
         pool2 = await get_db_pool()
         assert pool1 is pool2
 
+
 @pytest.mark.asyncio
 async def test_connect():
     pool = PgBouncerConnectionPool("test_dsn")
@@ -32,14 +34,18 @@ async def test_connect():
         mock_pool = MagicMock()
         mock_create_pool.return_value = mock_pool
         await pool.connect()
-        mock_create_pool.assert_called_once_with(dsn="test_dsn", min_size=5, max_size=30, max_inactive_connection_lifetime=300, statement_cache_size=0, command_timeout=30)
+        mock_create_pool.assert_called_once_with(
+            dsn="test_dsn", min_size=5, max_size=30, max_inactive_connection_lifetime=300, statement_cache_size=0, command_timeout=30
+        )
         assert pool._pool is mock_pool
+
 
 @pytest.mark.asyncio
 async def test_acquire_without_initialization():
     pool = PgBouncerConnectionPool("test_dsn")
     with pytest.raises(RuntimeError, match="Connection pool not initialized"):
         await pool.acquire()
+
 
 @pytest.mark.asyncio
 async def test_acquire_and_release():
@@ -55,6 +61,7 @@ async def test_acquire_and_release():
 
     await pool.release(conn)
     mock_pool.release.assert_called_once_with("mock_connection")
+
 
 @pytest.mark.asyncio
 async def test_close_resets_pool():

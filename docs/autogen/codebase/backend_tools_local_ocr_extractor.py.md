@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/local_ocr_extractor.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,411 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.546699
+**সাইজ:** 2,359 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.588466
 
 ---
 
@@ -34,15 +34,11 @@ class LocalOCRExtractor:
             logger.error(f"OCR failed: {exc}")
             return {"success": False, "error": str(exc), "text": ""}
 
-    def parse_to_rows(
-        self, text: str, columns: list[str] | None = None
-    ) -> dict[str, Any]:
+    def parse_to_rows(self, text: str, columns: list[str] | None = None) -> dict[str, Any]:
         try:
             rows: list[dict[str, Any]] = []
             for raw_line in text.splitlines():
-                cells = [
-                    cell.strip() for cell in raw_line.strip().strip("|").split("|")
-                ]
+                cells = [cell.strip() for cell in raw_line.strip().strip("|").split("|")]
                 if columns:
                     if len(cells) == len(columns):
                         rows.append(dict(zip(columns, cells, strict=False)))

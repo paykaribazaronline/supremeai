@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/events.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,045 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.476705
+**সাইজ:** 2,961 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.546769
 
 ---
 
@@ -61,9 +61,7 @@ def get_firebase_auth():
                     raise RuntimeError(f"Service account file not found: {_sa_path}")
                 elif _gac and os.path.exists(_gac):
                     firebase_admin.initialize_app()
-                    logger.info(
-                        "Firebase Admin initialized via GOOGLE_APPLICATION_CREDENTIALS"
-                    )
+                    logger.info("Firebase Admin initialized via GOOGLE_APPLICATION_CREDENTIALS")
                 else:
                     logger.warning("Firebase Admin SDK: No credentials found.")
                     raise RuntimeError("No Firebase credentials configured")
@@ -71,9 +69,7 @@ def get_firebase_auth():
                 firebase_admin.initialize_app()
                 logger.info("Firebase Admin initialized via GOOGLE_APPLICATION_CREDENTIALS")
             else:
-                logger.warning(
-                    "Firebase Admin SDK: No credentials found. Set FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_PATH in .env"
-                )
+                logger.warning("Firebase Admin SDK: No credentials found. Set FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_PATH in .env")
                 raise RuntimeError("No Firebase credentials configured")
         auth = firebase_auth
         logger.info("Firebase Admin SDK ready ✅")

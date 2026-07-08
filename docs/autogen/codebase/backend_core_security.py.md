@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/security.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,039 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.472577
+**সাইজ:** 2,981 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.544278
 
 ---
 
@@ -33,9 +33,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60
 ADMIN_WHITELIST = settings.admin_emails
 
 if not SECRET_KEY:
-    logger.critical(
-        "🚨 FATAL: JWT Secret is missing! Halting boot process to prevent vulnerabilities."
-    )
+    logger.critical("🚨 FATAL: JWT Secret is missing! Halting boot process to prevent vulnerabilities.")
     raise RuntimeError("Security misconfiguration: Missing JWT Secret.")
 
 # API Key settings
@@ -61,13 +59,9 @@ def verify_token(token: str) -> dict:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
     except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired"
-        ) from None
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired") from None
     except jwt.PyJWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
-        ) from None
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials") from None
 
 
 # ── API Key Crypto ────────────────────────────────────────────────────────

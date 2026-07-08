@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/lifespan.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,868 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.483208
+**সাইজ:** 7,708 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.550673
 
 ---
 
@@ -71,12 +71,8 @@ async def _ensure_api_key_tables() -> None:
         )
         """
     )
-    await pool.execute(
-        "CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash)"
-    )
-    await pool.execute(
-        "CREATE INDEX IF NOT EXISTS idx_api_key_usage_key ON api_key_usage(api_key_id, created_at DESC)"
-    )
+    await pool.execute("CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash)")
+    await pool.execute("CREATE INDEX IF NOT EXISTS idx_api_key_usage_key ON api_key_usage(api_key_id, created_at DESC)")
     logger.info("✅ API key tables ensured")
 
 
@@ -90,6 +86,7 @@ async def app_lifespan(app):
 
     try:
         from core.telemetry import setup_tracing
+
         # বাংলা মন্তব্য: P2 Fix — startup latency এবং cold start freeze এড়াতে tracing initialization thread-এ offload করা হলো।
         await asyncio.to_thread(setup_tracing)
         logger.info("✅ OpenTelemetry tracing provider successfully initialized.")
@@ -108,10 +105,7 @@ async def app_lifespan(app):
     try:
         db_url = settings.supabase_database_url
         if "sqlite" in db_url:
-            logger.info(
-                "💾 SQLite Memory Database Detected for Agent Telemetry. "
-                "Skipping PostgreSQL asyncpg pool initialization."
-            )
+            logger.info("💾 SQLite Memory Database Detected for Agent Telemetry. " "Skipping PostgreSQL asyncpg pool initialization.")
             app.state.db_pool = None
         else:
             await init_db_pool(db_url)
@@ -128,6 +122,7 @@ async def app_lifespan(app):
         # প্রোডাকশনে ডাটাবেজ সাময়িক ডাউন থাকলেও সার্ভার যেন বুট হতে পারে
         logger.warning(f"⚠️ Async config load failed, falling back to local DEFAULT_CONFIGS: {exc}")
         from core.config_cache import DEFAULT_CONFIGS
+
         config_cache._cache = dict(DEFAULT_CONFIGS)
         # sys.exit(1) রিমুভ করা হলো যাতে ক্লাউড রান হেলথ চেক পাস করতে পারে
 
@@ -141,9 +136,7 @@ async def app_lifespan(app):
     try:
         if settings.discord_bot_token and settings.discord_bot_token != "mock_token":
             bot = SupremeDiscordBot()
-            app.state.discord_bot_task = asyncio.create_task(
-                bot.start(settings.discord_bot_token)
-            )
+            app.state.discord_bot_task = asyncio.create_task(bot.start(settings.discord_bot_token))
             app.state.discord_bot = bot
             logger.info("🤖 Discord Bot background task initialized successfully.")
     except Exception as e:  # noqa: BLE001
@@ -160,21 +153,15 @@ async def app_lifespan(app):
     try:
         from database import db as supabase_db
 
-        if os.environ.get("SUPABASE_DATABASE_URL") or os.environ.get(
-            "SUPABASE_DATABASE_URL_POOLER"
-        ):
+        if os.environ.get("SUPABASE_DATABASE_URL") or os.environ.get("SUPABASE_DATABASE_URL_POOLER"):
             supabase_db.bootstrap_schema()
             logger.info("Supabase schema bootstrap complete")
     except Exception as exc:  # noqa: BLE001
-        logger.warning(
-            f"Supabase bootstrap failed on startup: {exc}. Continuing without schema bootstrap."
-        )
+        logger.warning(f"Supabase bootstrap failed on startup: {exc}. Continuing without schema bootstrap.")
 
     yield  # এখানে অ্যাপ্লিকেশন ট্রাফিক রিসিভ করবে
 
-    logger.critical(
-        "🚨 Graceful Shutdown Sequence triggered via Cloud Run Orchestrator."
-    )
+    logger.critical("🚨 Graceful Shutdown Sequence triggered via Cloud Run Orchestrator.")
 
     try:
         bot = getattr(app.state, "discord_bot", None)

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/gcp_cloud_functions.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,361 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.547172
+**সাইজ:** 4,279 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.588744
 
 ---
 
@@ -30,16 +30,10 @@ class GCPCloudFunctionClient:
         bearer_token: str | None = None,
         timeout: float = 30.0,
     ):
-        self.project_id = (
-            project_id
-            or os.getenv("GCP_PROJECT_ID")
-            or os.getenv("GOOGLE_CLOUD_PROJECT")
-        )
+        self.project_id = project_id or os.getenv("GCP_PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT")
         self.region = region or os.getenv("GCP_REGION", "us-central1")
         self.function_name = function_name or os.getenv("GCP_CLOUD_FUNCTION_NAME")
-        self.base_url = (base_url or os.getenv("GCP_CLOUD_FUNCTION_URL", "")).rstrip(
-            "/"
-        )
+        self.base_url = (base_url or os.getenv("GCP_CLOUD_FUNCTION_URL", "")).rstrip("/")
         self.bearer_token = bearer_token or os.getenv("GCP_CLOUD_FUNCTION_BEARER_TOKEN")
         self.timeout = timeout
 
@@ -96,9 +90,7 @@ class GCPCloudFunctionClient:
                 "error": str(exc),
             }
 
-    def trigger_ocr(
-        self, image_urls, project_id: str, user_id: str, languages=None
-    ) -> dict[str, Any]:
+    def trigger_ocr(self, image_urls, project_id: str, user_id: str, languages=None) -> dict[str, Any]:
         payload = {
             "imageUrls": image_urls,
             "projectId": project_id,
@@ -131,9 +123,11 @@ class GCPCloudFunctionClient:
         except Exception as e:  # noqa: BLE001
             try:
                 import loguru
+
                 loguru.logger.error(f"Tool execution error: {e}")
             except Exception as e:  # noqa: BLE001
                 import logging
+
                 logging.warning(f"Exception suppressed: {e}")
             return {"text": response.text}
 

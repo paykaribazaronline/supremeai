@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_telegram_bot.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,567 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.526492
+**সাইজ:** 7,568 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.576232
 
 ---
 
@@ -19,6 +19,7 @@ from tools.telegram_bot import TelegramBotHandler
 
 
 from unittest.mock import AsyncMock
+
 
 @pytest.fixture
 def handler():

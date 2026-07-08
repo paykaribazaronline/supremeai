@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/offline_mode.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,525 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.548395
+**সাইজ:** 3,489 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.589508
 
 ---
 
@@ -29,9 +29,7 @@ class OfflineModeManager:
         self.ollama_url = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
         self.sync_queue: list[dict[str, Any]] = []
         self._is_syncing = False
-        logger.info(
-            f"Initialized OfflineModeManager with local model {self.local_model_id}"
-        )
+        logger.info(f"Initialized OfflineModeManager with local model {self.local_model_id}")
 
     async def _call_ollama(self, prompt: str) -> str:
         try:
@@ -50,9 +48,7 @@ class OfflineModeManager:
             logger.error(f"Ollama local fallback failed: {e}")
             return f"[Offline Error] Could not reach local Ollama instance: {str(e)}"
 
-    async def execute_task(
-        self, prompt: str, task_type: str = "general"
-    ) -> dict[str, Any]:
+    async def execute_task(self, prompt: str, task_type: str = "general") -> dict[str, Any]:
         logger.info(f"Executing task offline via Ollama: {prompt}")
 
         local_response = await self._call_ollama(prompt)

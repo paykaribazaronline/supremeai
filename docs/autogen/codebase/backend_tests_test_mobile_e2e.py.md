@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_mobile_e2e.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,643 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.509661
+**সাইজ:** 8,579 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.566331
 
 ---
 
@@ -48,9 +48,7 @@ class FakeChatGateway:
             raise RuntimeError("ChatGateway not connected")
         self._messages.append(message)
         self._history.append({"role": "user", "content": message})
-        self._history.append(
-            {"role": "assistant", "content": f"acknowledged: {message}"}
-        )
+        self._history.append({"role": "assistant", "content": f"acknowledged: {message}"})
         return "ack"
 
     def disconnect(self):
@@ -132,9 +130,7 @@ class FakeSlidingWindowMemory:
             }
         ]
 
-    def build_context(
-        self, documents: list[str], query: str = "", budget: int = 20
-    ) -> str:
+    def build_context(self, documents: list[str], query: str = "", budget: int = 20) -> str:
         chunks: list[str] = []
         for doc in documents:
             chunks.extend(item["text"] for item in self.chunk(doc))
@@ -249,9 +245,7 @@ def test_mobile_chat_history_accumulates():
 
 def test_mobile_sliding_window_for_long_chat():
     memory = FakeSlidingWindowMemory(max_tokens=5)
-    summary = memory.build_context(
-        ["alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu"]
-    )
+    summary = memory.build_context(["alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu"])
     assert "\n---\n" in summary or len(summary.split()) <= 30
 
 
@@ -264,9 +258,7 @@ def test_mobile_e2e_full_flow():
 
     login_result = auth.authenticate("user@example.com", "password")
     assert login_result["token"] == FakeAuthGateway.VALID_TOKEN
-    project.push(
-        "/home", {"token": login_result["token"], "user": login_result["user"]}
-    )
+    project.push("/home", {"token": login_result["token"], "user": login_result["user"]})
 
     project.push("/dashboard", {"widgets": FAKE_DASHBOARD_WIDGETS})
     assert project.current_route == "/dashboard"

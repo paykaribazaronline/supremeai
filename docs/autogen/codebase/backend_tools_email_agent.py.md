@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/email_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,731 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.552219
+**সাইজ:** 1,717 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.592192
 
 ---
 
@@ -26,9 +26,7 @@ class EmailAgent:
         self.connected = True
         return True
 
-    def connect_imap(
-        self, host: str, port: int, username: str, app_password: str
-    ) -> bool:
+    def connect_imap(self, host: str, port: int, username: str, app_password: str) -> bool:
         logger.info(f"Connecting to IMAP {host}:{port} for user {username}")
         self.auth_method = "imap"
         self.connected = True

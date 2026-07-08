@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/benchmark_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,312 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.546050
+**সাইজ:** 3,282 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.588083
 
 ---
 
@@ -48,9 +48,7 @@ class BenchmarkAgent:
 
     def __init__(self):
         if not _DEPENDENCIES_AVAILABLE:
-            raise ImportError(
-                "BenchmarkAgent requires ModelRouter and Supabase client."
-            )
+            raise ImportError("BenchmarkAgent requires ModelRouter and Supabase client.")
         self.model_router = ModelRouter()
         self.db_client = db.client
         logger.info("Initialized BenchmarkAgent")

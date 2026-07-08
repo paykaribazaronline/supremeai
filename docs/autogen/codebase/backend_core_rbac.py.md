@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/rbac.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,811 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.470314
+**সাইজ:** 1,761 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.542842
 
 ---
 
@@ -31,9 +31,7 @@ class UserContext:
 
 
 ROLE_MATRIX: dict[str, RBAC] = {
-    "owner": RBAC(
-        role="owner", permissions=("read", "write", "admin", "audit", "manage_users")
-    ),
+    "owner": RBAC(role="owner", permissions=("read", "write", "admin", "audit", "manage_users")),
     "admin": RBAC(role="admin", permissions=("read", "write", "admin", "audit")),
     "operator": RBAC(role="operator", permissions=("read", "write")),
     "viewer": RBAC(role="viewer", permissions=("read",)),
@@ -54,10 +52,7 @@ class RoleBasedAccessControl:
         return action
 
     def check(self, context: UserContext, action: str) -> bool:
-        if (
-            getattr(context, "expires_at", None)
-            and str(context.expires_at) < datetime.datetime.now().isoformat()
-        ):
+        if getattr(context, "expires_at", None) and str(context.expires_at) < datetime.datetime.now().isoformat():
             return False
         return self.has_permission(context.role, action)
 

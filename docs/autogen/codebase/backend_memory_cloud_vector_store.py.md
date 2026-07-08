@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/memory/cloud_vector_store.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,706 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.499788
+**সাইজ:** 2,692 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.560488
 
 ---
 
@@ -64,9 +64,7 @@ class CloudVectorStore:
             logger.error(f"Vector upsert failed: {e}")
             return False
 
-    def query(
-        self, vector: list[float], top_k: int = 5, namespace: str = "default"
-    ) -> list[dict]:
+    def query(self, vector: list[float], top_k: int = 5, namespace: str = "default") -> list[dict]:
         """Query similar vectors."""
         if not self.index:
             return []

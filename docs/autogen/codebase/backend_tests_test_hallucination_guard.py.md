@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_hallucination_guard.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,357 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.507666
+**সাইজ:** 4,303 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.565203
 
 ---
 
@@ -37,9 +37,7 @@ def test_input_sanitizer():
     assert res2["is_ambiguous"] is True
 
     # Test PII Stripping
-    cleaned = sanitizer.strip_pii(
-        "Contact me at test@example.com or call +1-555-123-4567. My server is 192.168.1.1."
-    )
+    cleaned = sanitizer.strip_pii("Contact me at test@example.com or call +1-555-123-4567. My server is 192.168.1.1.")
     assert "[EMAIL]" in cleaned
     assert "[PHONE_NUMBER]" in cleaned
     assert "[IP_ADDRESS]" in cleaned
@@ -110,13 +108,8 @@ def test_output_validator():
     assert "foo" in consensus_res["code"]
 
     # HumanReviewPolicy test
-    assert (
-        validator.human_policy.requires_human_review("python_code", {"overall": 0.9})
-        is True
-    )
-    assert (
-        validator.human_policy.requires_human_review("text", {"overall": 0.6}) is True
-    )
+    assert validator.human_policy.requires_human_review("python_code", {"overall": 0.9}) is True
+    assert validator.human_policy.requires_human_review("text", {"overall": 0.6}) is True
 
 
 def test_error_pattern_db():

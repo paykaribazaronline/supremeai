@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/music_generator.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,439 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.539719
+**সাইজ:** 1,409 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.584157
 
 ---
 
@@ -26,9 +26,7 @@ class MusicGenerator:
                 "Include genre, mood, instruments, tempo, and structure. "
                 "Return only the prompt text."
             )
-            result = router.async_route_and_generate(
-                llm_prompt, task_type="general", max_cost=0.01
-            )
+            result = router.async_route_and_generate(llm_prompt, task_type="general", max_cost=0.01)
             text = result.get("text", "") if isinstance(result, dict) else ""
             return {
                 "status": "success",

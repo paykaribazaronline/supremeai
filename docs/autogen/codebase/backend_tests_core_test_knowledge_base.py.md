@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/core/test_knowledge_base.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,400 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.529043
+**সাইজ:** 3,396 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.577698
 
 ---
 
@@ -50,7 +50,7 @@ def test_save_to_memory_creates_file_if_not_exists(temp_memory_file):
     # Ensure file exists
     with open(temp_memory_file, "w") as f:
         json.dump({}, f)
-    
+
     save_to_memory("new prompt", "new solution")
     result = get_from_memory("new prompt")
     assert result == "new solution"

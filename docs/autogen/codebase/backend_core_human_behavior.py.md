@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/human_behavior.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,880 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.476301
+**সাইজ:** 4,911 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.546530
 
 ---
 
@@ -23,6 +23,7 @@ except ImportError:
     # বাংলা মন্তব্য: মেইন ব্যাকএন্ড কন্টেইনারে playwright না থাকলে fallback setup
     Page = Any
     ElementHandle = Any
+
 
 class HumanBehaviorSimulators:
     """
@@ -46,8 +47,8 @@ class HumanBehaviorSimulators:
         for i in range(steps):
             t = i / float(steps - 1)
             # Cubic Bezier ফর্মুলা
-            x = (1-t)**3 * x1 + 3*(1-t)**2 * t * control1_x + 3*(1-t) * t**2 * control2_x + t**3 * x2
-            y = (1-t)**3 * y1 + 3*(1-t)**2 * t * control1_y + 3*(1-t) * t**2 * control2_y + t**3 * y2
+            x = (1 - t) ** 3 * x1 + 3 * (1 - t) ** 2 * t * control1_x + 3 * (1 - t) * t**2 * control2_x + t**3 * x2
+            y = (1 - t) ** 3 * y1 + 3 * (1 - t) ** 2 * t * control1_y + 3 * (1 - t) * t**2 * control2_y + t**3 * y2
             points.append((x, y))
         return points
 
@@ -72,9 +73,9 @@ class HumanBehaviorSimulators:
 
             for x, y in path:
                 await page.mouse.move(x, y)
-                await asyncio.sleep(random.uniform(0.005, 0.015)) # মাইক্রো ডিলে
+                await asyncio.sleep(random.uniform(0.005, 0.015))  # মাইক্রো ডিলে
 
-            await asyncio.sleep(random.uniform(0.1, 0.25)) # ক্লিকের আগে সামান্য থামা
+            await asyncio.sleep(random.uniform(0.1, 0.25))  # ক্লিকের আগে সামান্য থামা
             await page.mouse.click(target_x, target_y)
             logger.debug(f"Simulated natural human click on selector: {selector}")
         except Exception as e:

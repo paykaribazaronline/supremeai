@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/scout/knowledge_extractor.py
 
 **প্রকার:** .py  
-**সাইজ:** 487 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.536525
+**সাইজ:** 488 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.582195
 
 ---
 
@@ -14,6 +14,7 @@ from typing import Any
 
 try:
     from sentence_transformers import SentenceTransformer
+
     HAS_ST = True
 except ImportError:
     HAS_ST = False

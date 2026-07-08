@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/marketplace.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,104 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.486819
+**সাইজ:** 5,044 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.552849
 
 ---
 
@@ -28,11 +28,7 @@ DB_PATH = os.environ.get("SUPREMEAI_MARKETPLACE_DB", "data/marketplace.db")
 
 
 def _get_conn() -> sqlite3.Connection:
-    (
-        os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-        if os.path.dirname(DB_PATH)
-        else None
-    )
+    (os.makedirs(os.path.dirname(DB_PATH), exist_ok=True) if os.path.dirname(DB_PATH) else None)
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute(
@@ -162,9 +158,7 @@ async def install_skill(req: InstallRequest) -> dict[str, Any]:
             (req.tool_id,),
         ).fetchone()
         if not row:
-            raise HTTPException(
-                status_code=404, detail=f"Skill '{req.tool_id}' not found."
-            )
+            raise HTTPException(status_code=404, detail=f"Skill '{req.tool_id}' not found.")
         if row["installed"]:
             return {
                 "success": True,

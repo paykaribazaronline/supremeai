@@ -1,17 +1,15 @@
 # 📄 ফাইল: backend/core/prompt_helpers.py
 
 **প্রকার:** .py  
-**সাইজ:** 574 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.469688
+**সাইজ:** 568 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.542480
 
 ---
 
 ## কোড
 
 ```py
-def format_unified_chat_prompt(
-    message: str, history: list[dict[str, str]] = None
-) -> str:
+def format_unified_chat_prompt(message: str, history: list[dict[str, str]] = None) -> str:
     """
     Centralized prompt builder for unifying chat history with the current task.
     Prevents context loss and DRY violations across multiple routers.

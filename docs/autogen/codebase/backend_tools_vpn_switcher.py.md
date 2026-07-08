@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/vpn_switcher.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,747 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.542753
+**সাইজ:** 5,749 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.586114
 
 ---
 
@@ -152,9 +152,11 @@ class VPNRotator:
         except Exception as e:  # noqa: BLE001
             try:
                 import loguru
+
                 loguru.logger.error(f"Tool execution error: {e}")
             except Exception as e:  # noqa: BLE001
                 import logging
+
                 logging.warning(f"Exception suppressed: {e}")
             return {"proxy": None, "source": "premium", "reason": "not configured"}
 

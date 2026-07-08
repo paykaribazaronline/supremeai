@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/posthog_client.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,261 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.478740
+**সাইজ:** 1,201 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.548066
 
 ---
 
@@ -30,9 +30,7 @@ class PostHogClient:
                 logger.error(f"Failed to initialize PostHog: {e}")
                 self.enabled = False
         else:
-            logger.warning(
-                "POSTHOG_API_KEY not set. PostHog analytics running in mock/log mode."
-            )
+            logger.warning("POSTHOG_API_KEY not set. PostHog analytics running in mock/log mode.")
 
     def capture(self, distinct_id: str, event: str, properties: dict = None):
         if self.enabled:
@@ -41,9 +39,7 @@ class PostHogClient:
             except Exception as e:  # noqa: BLE001
                 logger.error(f"PostHog capture failed: {e}")
         else:
-            logger.info(
-                f"[Mock Analytics] User: {distinct_id} | Event: {event} | Props: {properties}"
-            )
+            logger.info(f"[Mock Analytics] User: {distinct_id} | Event: {event} | Props: {properties}")
 
 
 posthog_client = PostHogClient()

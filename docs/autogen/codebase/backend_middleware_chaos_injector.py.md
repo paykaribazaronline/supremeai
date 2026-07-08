@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/middleware/chaos_injector.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,785 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.505734
+**সাইজ:** 2,689 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.564049
 
 ---
 
@@ -30,10 +30,7 @@ class ChaosInjectorMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         from core.config import settings
 
-        self.chaos_enabled = (
-            os.getenv("LOCAL_CHAOS_MODE", "false").lower() == "true"
-            and settings.env.lower() != "production"
-        )
+        self.chaos_enabled = os.getenv("LOCAL_CHAOS_MODE", "false").lower() == "true" and settings.env.lower() != "production"
         # ক্যাওস প্যারামিটারস (প্রোডাকশন গ্রেড ফল্ট সিমুলেশন)
         self.packet_drop_rate = 0.20  # ২০% চান্স যে রিকোয়েস্ট মাঝপথে ড্রপ/ফেইল করবে
         self.max_latency_spike = 3.5  # সর্বোচ্চ ৩.৫ সেকেন্ড পর্যন্ত কৃত্রিম ডিলে
@@ -45,16 +42,12 @@ class ChaosInjectorMiddleware(BaseHTTPMiddleware):
         # ১. কৃত্রিম ল্যাটেন্সি স্পাইক সিমুলেশন (Slow Network/API Gateway Latency)
         if random.random() < 0.30:  # ৩০% রিকোয়েস্টে নেটওয়ার্ক ল্যাগ তৈরি হবে
             delay = random.uniform(0.5, self.max_latency_spike)
-            logger.warning(
-                f"🔌 [CHAOS ENGINE] Injecting artificial network lag: {delay:.2f}s on {request.url.path}"
-            )
+            logger.warning(f"🔌 [CHAOS ENGINE] Injecting artificial network lag: {delay:.2f}s on {request.url.path}")
             await asyncio.sleep(delay)
 
         # ২. কৃত্রিম প্যাকেট ড্রপ/কানেকশন ফেইলর সিমুলেশন (Packet Loss / Upstream Outage)
         if random.random() < self.packet_drop_rate:
-            logger.critical(
-                f"💥 [CHAOS ENGINE] Simulated Packet Drop! Severing connection for {request.url.path}"
-            )
+            logger.critical(f"💥 [CHAOS ENGINE] Simulated Packet Drop! Severing connection for {request.url.path}")
             return JSONResponse(
                 status_code=504,
                 content={

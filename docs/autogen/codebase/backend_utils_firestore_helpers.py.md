@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/utils/firestore_helpers.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,509 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.485637
+**সাইজ:** 3,469 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.552148
 
 ---
 
@@ -59,12 +59,7 @@ def get_firestore_db(project_id: str | None = None) -> Any | None:
     if not FIRESTORE_AVAILABLE:
         return None
 
-    resolved_project = (
-        project_id
-        or os.getenv("GCP_PROJECT_ID")
-        or os.getenv("GOOGLE_CLOUD_PROJECT")
-        or "supremeai-a"
-    )
+    resolved_project = project_id or os.getenv("GCP_PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT") or "supremeai-a"
 
     # ক্যাশ চেক — আগেই তৈরি থাকলে সেটাই রিটার্ন
     if resolved_project in _client_cache:

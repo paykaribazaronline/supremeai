@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/internal.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,137 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.487535
+**সাইজ:** 2,083 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.553285
 
 ---
 
@@ -28,15 +28,9 @@ router = APIRouter()
 
 def _require_admin(request: Request):
     secret = request.headers.get("X-Admin-Secret")
-    expected = (
-        os.getenv("SUPREMEAI_ADMIN_SECRET", "")
-        or getattr(settings, "docs_password", "")
-        or ""
-    )
+    expected = os.getenv("SUPREMEAI_ADMIN_SECRET", "") or getattr(settings, "docs_password", "") or ""
     if not expected:
-        raise HTTPException(
-            status_code=500, detail="Admin secret not configured on server."
-        )
+        raise HTTPException(status_code=500, detail="Admin secret not configured on server.")
     if not secrets.compare_digest(secret or "", expected):
         raise HTTPException(status_code=403, detail="Forbidden: Invalid admin secret.")
 

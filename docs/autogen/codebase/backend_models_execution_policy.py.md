@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/execution_policy.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,599 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.497489
+**সাইজ:** 1,582 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.559198
 
 ---
 
@@ -37,19 +37,16 @@ class ExecutionPolicy(Base):
     user_id: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
 
     scope: Mapped[PolicyScope] = mapped_column(
-        Enum(PolicyScope, name="policy_scope_enum", create_type=True),
-        nullable=False,
-        default=PolicyScope.global_scope
+        Enum(PolicyScope, name="policy_scope_enum", create_type=True), nullable=False, default=PolicyScope.global_scope
     )
     scope_ref_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
 
     max_timeout_seconds: Mapped[int] = mapped_column(Integer, default=45, nullable=False)
     max_retries: Mapped[int] = mapped_column(Integer, default=3, nullable=False)
-    max_serverless_compute_budget_usd: Mapped[Decimal] = mapped_column(Numeric(6, 4), default=Decimal('0.0500'), nullable=False)
+    max_serverless_compute_budget_usd: Mapped[Decimal] = mapped_column(Numeric(6, 4), default=Decimal("0.0500"), nullable=False)
     max_concurrent_sandboxes: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
 
     circuit_breaker_failure_threshold: Mapped[int] = mapped_column(Integer, default=5, nullable=False)
     circuit_breaker_cooldown_seconds: Mapped[int] = mapped_column(Integer, default=300, nullable=False)
-
 
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/byoc/test_cloud_connector.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,803 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.531193
+**সাইজ:** 1,776 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.578966
 
 ---
 
@@ -13,6 +13,7 @@ import sys
 import json
 
 import os
+
 os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno="
 
 sys.path.append("../..")
@@ -22,6 +23,7 @@ from byoc.cloud_connector import CloudStatus, list_resources, ping
 class TestCloudConnector:
     def test_ping(self):
         import asyncio
+
         result = asyncio.run(ping())
         assert isinstance(result, CloudStatus)
         assert result.provider == "gcp"
@@ -29,31 +31,33 @@ class TestCloudConnector:
 
     def test_list_resources(self):
         import asyncio
+
         result = asyncio.run(list_resources())
         assert isinstance(result, list)
         assert len(result) == 0
 
     def test_credential_encryption_and_decryption(self):
         from byoc.cloud_connector import GCPCredentialManager
-        
+
         sa_data = {
             "type": "service_account",
             "project_id": "test-project-123",
             "private_key_id": "abcd123",
             "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC3\n-----END PRIVATE KEY-----\n",
-            "client_email": "test-sa@test-project-123.iam.gserviceaccount.com"
+            "client_email": "test-sa@test-project-123.iam.gserviceaccount.com",
         }
-        
+
         encrypted = GCPCredentialManager.encrypt_credentials(sa_data)
         assert isinstance(encrypted, bytes)
         assert encrypted != json.dumps(sa_data).encode()
-        
+
         decrypted = GCPCredentialManager.decrypt_credentials(encrypted)
         assert decrypted["project_id"] == "test-project-123"
         assert decrypted["private_key_id"] == "abcd123"
-        
+
     def test_credential_validation_returns_false_for_malformed(self):
         from byoc.cloud_connector import GCPCredentialManager
+
         sa_data = {"invalid": "data"}
         is_valid = GCPCredentialManager.validate_service_account(sa_data)
         assert is_valid is False

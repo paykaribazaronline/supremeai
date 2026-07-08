@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_grpc_client.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,955 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.516484
+**সাইজ:** 5,804 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.570377
 
 ---
 
@@ -10,6 +10,7 @@
 
 ```py
 """gRPC client tests for SupremeAI 2.0."""
+
 import json
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -49,9 +50,7 @@ class TestWorkerGrpcClient:
                 client.channel = mock_channel.return_value
                 client.stub = mock_stub
 
-                result = client.submit_task(
-                    "test_task", {"key": "value"}, "user-123"
-                )
+                result = client.submit_task("test_task", {"key": "value"}, "user-123")
                 assert result == "task-123"
 
     def test_submit_task_failure(self):
@@ -66,9 +65,7 @@ class TestWorkerGrpcClient:
                 client.channel = MagicMock()
                 client.stub = mock_stub
 
-                result = client.submit_task(
-                    "test_task", {"key": "value"}, "user-123"
-                )
+                result = client.submit_task("test_task", {"key": "value"}, "user-123")
                 assert result is None
 
     def test_get_task_status_success(self):
@@ -125,9 +122,7 @@ class TestWorkerGrpcClient:
                 client.channel = MagicMock()
                 client.stub = mock_stub
 
-                result = client.log_audit_event(
-                    "user_login", "user-123", "auth", {"ip": "127.0.0.1"}
-                )
+                result = client.log_audit_event("user_login", "user-123", "auth", {"ip": "127.0.0.1"})
                 assert result is True
 
     def test_log_audit_event_failure(self):
@@ -142,9 +137,7 @@ class TestWorkerGrpcClient:
                 client.channel = MagicMock()
                 client.stub = mock_stub
 
-                result = client.log_audit_event(
-                    "user_login", "user-123", "auth", {"ip": "127.0.0.1"}
-                )
+                result = client.log_audit_event("user_login", "user-123", "auth", {"ip": "127.0.0.1"})
                 assert result is False
 
 ```

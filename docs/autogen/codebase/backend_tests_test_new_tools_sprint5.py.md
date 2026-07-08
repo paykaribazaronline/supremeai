@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_new_tools_sprint5.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,011 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.523665
+**সাইজ:** 3,010 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.574496
 
 ---
 
@@ -95,7 +95,6 @@ class TestTenantRateLimiter:
 
         limiter = TenantRateLimiter(redis_client=None)
         assert limiter.billing_tiers["free"]["rpm"] == 60
-
 
         from tools.tenant_rate_limiter import TenantRateLimiter
 

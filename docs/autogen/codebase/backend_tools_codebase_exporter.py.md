@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/codebase_exporter.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,569 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.545321
+**সাইজ:** 8,407 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.587668
 
 ---
 
@@ -94,9 +94,7 @@ def get_language(file_name: str) -> str:
 def _collect_files(root_dir: str, changed_files: set[str] | None = None) -> list[str]:
     files = []
     for dirpath, dirnames, filenames in os.walk(root_dir, followlinks=False):
-        dirnames[:] = [
-            d for d in dirnames if d not in IGNORE_DIRS and not d.startswith(".")
-        ]
+        dirnames[:] = [d for d in dirnames if d not in IGNORE_DIRS and not d.startswith(".")]
         for file in filenames:
             if file in IGNORE_FILES or file.startswith("."):
                 continue
@@ -158,9 +156,7 @@ def _read_file(path: str) -> str:
         return f.read()
 
 
-def _get_git_changed_files(
-    root_dir: str, since: str | None = None, until: str | None = None
-) -> set[str] | None:
+def _get_git_changed_files(root_dir: str, since: str | None = None, until: str | None = None) -> set[str] | None:
     """Gets the list of files changed in Git within the specified time range."""
     if not os.path.exists(os.path.join(root_dir, ".git")):
         return None
@@ -172,23 +168,15 @@ def _get_git_changed_files(
         cmd.append(f"--until={until}")
 
     try:
-        output = subprocess.check_output(
-            cmd, cwd=root_dir, stderr=subprocess.DEVNULL
-        ).decode("utf-8", errors="ignore")
-        files = {
-            line.strip().replace("\\", "/")
-            for line in output.split("\n")
-            if line.strip()
-        }
+        output = subprocess.check_output(cmd, cwd=root_dir, stderr=subprocess.DEVNULL).decode("utf-8", errors="ignore")
+        files = {line.strip().replace("\\", "/") for line in output.split("\n") if line.strip()}
         return files
     except Exception as e:  # noqa: BLE001
         logger.warning(f"Failed to fetch git changed files: {e}")
         return None
 
 
-def _get_git_diff_summary(
-    root_dir: str, since: str | None = None, until: str | None = None
-) -> str:
+def _get_git_diff_summary(root_dir: str, since: str | None = None, until: str | None = None) -> str:
     """Generates a summary of changes from Git logs."""
     if not os.path.exists(os.path.join(root_dir, ".git")):
         return "No Git repository detected."
@@ -200,9 +188,7 @@ def _get_git_diff_summary(
         cmd.append(f"--until={until}")
 
     try:
-        output = subprocess.check_output(
-            cmd, cwd=root_dir, stderr=subprocess.DEVNULL
-        ).decode("utf-8", errors="ignore")
+        output = subprocess.check_output(cmd, cwd=root_dir, stderr=subprocess.DEVNULL).decode("utf-8", errors="ignore")
         if not output.strip():
             return "No changes recorded in this time range."
         commits = output.strip().split("\n")
@@ -244,9 +230,7 @@ async def export_codebase_to_markdown(
             )
             stdout, stderr = await process.communicate()
             if process.returncode != 0:
-                raise RuntimeError(
-                    f"Git clone failed: {stderr.decode('utf-8', errors='ignore')}"
-                )
+                raise RuntimeError(f"Git clone failed: {stderr.decode('utf-8', errors='ignore')}")
             export_dir = temp_dir
         else:
             export_dir = os.path.abspath(root_dir)

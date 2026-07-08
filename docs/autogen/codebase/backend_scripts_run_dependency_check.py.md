@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/scripts/run_dependency_check.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,074 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.483678
+**সাইজ:** 2,986 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.550971
 
 ---
 
@@ -45,9 +45,7 @@ async def main():
 
     pip_vuln_results = agent.check_pip_vulnerabilities()
     if pip_vuln_results.get("success") and pip_vuln_results.get("count", 0) > 0:
-        logger.warning(
-            f"Found {pip_vuln_results['count']} vulnerabilities in pip packages."
-        )
+        logger.warning(f"Found {pip_vuln_results['count']} vulnerabilities in pip packages.")
         print("--- Pip Package Vulnerabilities (pip-audit) ---")  # noqa: T201
         print(json.dumps(pip_vuln_results["vulnerabilities"], indent=2))  # noqa: T201
     else:
@@ -67,11 +65,7 @@ async def main():
 
         npm_vuln_results = agent.check_npm_vulnerabilities(project_path=frontend_path)
         if npm_vuln_results.get("success") and npm_vuln_results.get("audit_results"):
-            summary = (
-                npm_vuln_results["audit_results"]
-                .get("metadata", {})
-                .get("vulnerabilities", {})
-            )
+            summary = npm_vuln_results["audit_results"].get("metadata", {}).get("vulnerabilities", {})
             logger.warning(f"NPM audit found vulnerabilities: {summary}")
             print("--- NPM Package Vulnerabilities (npm audit) ---")  # noqa: T201
             print(json.dumps(npm_vuln_results["audit_results"], indent=2))  # noqa: T201

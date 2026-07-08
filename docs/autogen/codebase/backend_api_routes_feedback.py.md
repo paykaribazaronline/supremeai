@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/feedback.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,487 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.494698
+**সাইজ:** 2,467 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.557550
 
 ---
 
@@ -67,6 +67,7 @@ async def feedback_lifespan(router: APIRouter):
     _ensure_db()
     yield
 
+
 router = APIRouter(prefix="/api/feedback", tags=["feedback"], lifespan=feedback_lifespan)
 
 
@@ -79,6 +80,7 @@ class FeedbackResponse(BaseModel):
     success: bool
     event_id: int | None = None
 
+
 @router.post("/ingest", response_model=FeedbackResponse)
 async def ingest(event: FeedbackEvent) -> FeedbackResponse:
     try:
@@ -87,9 +89,7 @@ async def ingest(event: FeedbackEvent) -> FeedbackResponse:
         if handled.get("stored"):
             _persist_feedback(event.event_type, payload)
             return FeedbackResponse(success=True)
-        raise HTTPException(
-            status_code=400, detail=handled.get("reason", "Unsupported feedback type")
-        )
+        raise HTTPException(status_code=400, detail=handled.get("reason", "Unsupported feedback type"))
     except HTTPException:
         raise
     except Exception as exc:

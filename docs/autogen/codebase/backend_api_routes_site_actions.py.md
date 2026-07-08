@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/site_actions.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,442 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.490350
+**সাইজ:** 6,321 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.554921
 
 ---
 
@@ -24,6 +24,7 @@ router = APIRouter(prefix="/api/admin/site-actions", tags=["Site Actions Registr
 
 DB_PATH = os.getenv("SITE_ACTIONS_DB", "data/site_actions.db")
 _lock = threading.Lock()
+
 
 def _conn() -> sqlite3.Connection:
     os.makedirs(os.path.dirname(DB_PATH) or ".", exist_ok=True)
@@ -60,6 +61,7 @@ def _conn() -> sqlite3.Connection:
 
     return conn
 
+
 class SiteActionIn(BaseModel):
     site_name: str
     url_pattern: str
@@ -72,8 +74,10 @@ class SiteActionIn(BaseModel):
     selector_strategy: str = "exact"
     health_score: int = 100
 
+
 class TestSelectorRequest(BaseModel):
     action_id: int
+
 
 def _row_to_dict(row: tuple) -> dict:
     return {
@@ -91,13 +95,13 @@ def _row_to_dict(row: tuple) -> dict:
         "updated_at": row[11] if len(row) > 11 else time.time(),
     }
 
+
 @router.get("/")
 def list_site_actions():
     with _lock, _conn() as conn:
-        rows = conn.execute(
-            "SELECT * FROM site_actions ORDER BY updated_at DESC"
-        ).fetchall()
+        rows = conn.execute("SELECT * FROM site_actions ORDER BY updated_at DESC").fetchall()
     return {"items": [_row_to_dict(r) for r in rows], "total": len(rows)}
+
 
 @router.post("/")
 def create_site_action(payload: SiteActionIn):
@@ -125,10 +129,9 @@ def create_site_action(payload: SiteActionIn):
         )
         conn.commit()
         new_id = cur.lastrowid
-        row = conn.execute(
-            "SELECT * FROM site_actions WHERE id = ?", (new_id,)
-        ).fetchone()
+        row = conn.execute("SELECT * FROM site_actions WHERE id = ?", (new_id,)).fetchone()
     return _row_to_dict(row)
+
 
 @router.put("/{action_id}")
 def update_site_action(action_id: int, payload: SiteActionIn):
@@ -159,10 +162,9 @@ def update_site_action(action_id: int, payload: SiteActionIn):
         conn.commit()
         if cur.rowcount == 0:
             raise HTTPException(status_code=404, detail="Site action not found")
-        row = conn.execute(
-            "SELECT * FROM site_actions WHERE id = ?", (action_id,)
-        ).fetchone()
+        row = conn.execute("SELECT * FROM site_actions WHERE id = ?", (action_id,)).fetchone()
     return _row_to_dict(row)
+
 
 @router.delete("/{action_id}")
 def delete_site_action(action_id: int):
@@ -172,6 +174,7 @@ def delete_site_action(action_id: int):
         if cur.rowcount == 0:
             raise HTTPException(status_code=404, detail="Site action not found")
     return {"success": True}
+
 
 @router.post("/test")
 async def test_selector(req: TestSelectorRequest):
@@ -189,13 +192,6 @@ async def test_selector(req: TestSelectorRequest):
     mock_b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
 
     # Simulate a hit
-    return {
-        "found": True,
-        "screenshot_base64": mock_b64,
-        "metrics": {
-            "time_to_find_ms": 142,
-            "strategy_used": "exact"
-        }
-    }
+    return {"found": True, "screenshot_base64": mock_b64, "metrics": {"time_to_find_ms": 142, "strategy_used": "exact"}}
 
 ```

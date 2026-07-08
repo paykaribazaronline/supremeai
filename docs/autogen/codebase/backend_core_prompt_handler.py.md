@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/prompt_handler.py
 
 **প্রকার:** .py  
-**সাইজ:** 633 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.474279
+**সাইজ:** 634 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.545322
 
 ---
 
@@ -22,6 +22,7 @@ def normalize_prompt(prompt: str | list[dict[str, Any]]) -> str:
     elif isinstance(prompt, list) and len(prompt) > 0:
         return str(prompt[-1].get("content", ""))
     return ""
+
 
 def estimate_tokens(text: str | list[dict[str, Any]]) -> int:
     """

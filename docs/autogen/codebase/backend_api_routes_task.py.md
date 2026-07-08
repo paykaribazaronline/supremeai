@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/task.py
 
 **প্রকার:** .py  
-**সাইজ:** 15,022 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.488064
+**সাইজ:** 14,762 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.553596
 
 ---
 
@@ -188,9 +188,7 @@ class ProblemDetailsResponse(JSONResponse):
             "instance": instance or "",
         }
         content.update(kwargs)
-        super().__init__(
-            status_code=status, content=content, media_type="application/problem+json"
-        )
+        super().__init__(status_code=status, content=content, media_type="application/problem+json")
 
 
 # --- Action Cards Helpers ---
@@ -207,6 +205,7 @@ def format_chat_history(messages: list[dict]) -> str:
                     content = data["content"]
             except Exception as e:  # noqa: BLE001
                 import logging
+
                 logging.warning(f"Exception suppressed: {e}")
         role_label = "User" if role == "user" else "Assistant"
         lines.append(f"{role_label}: {content}")
@@ -238,11 +237,7 @@ def format_response(text: str, task_type: str) -> str:
                 "content": extract_code(text),
                 "metadata": {
                     "language": detect_language(text),
-                    "filename": (
-                        "index.html"
-                        if "html" in detect_language(text)
-                        else "component.tsx"
-                    ),
+                    "filename": ("index.html" if "html" in detect_language(text) else "component.tsx"),
                     "actions": [
                         {"id": "preview", "label": "👁️ Preview", "type": "preview"},
                         {"id": "save", "label": "💾 Save to Project", "type": "save"},
@@ -307,18 +302,12 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
     prompt_action: PromptAction = intent_router.route(req.task)
 
     # Offload heavy CPU-bound Intent classification to background thread pool
-    app_spec = await anyio.to_thread.run_sync(
-        app_mod.intent_parser.parse_intent, req.task, req.messages
-    )
+    app_spec = await anyio.to_thread.run_sync(app_mod.intent_parser.parse_intent, req.task, req.messages)
     intent = await anyio.to_thread.run_sync(intent_clf.classify, req.task)
 
     task_type = req.task_type
     if intent.task_type != "general" and req.task_type == "general":
-        task_type = (
-            intent.task_type.value
-            if hasattr(intent.task_type, "value")
-            else str(intent.task_type)
-        )
+        task_type = intent.task_type.value if hasattr(intent.task_type, "value") else str(intent.task_type)
 
     # Build prompt context if chat messages are provided
     prompt = format_unified_chat_prompt(req.task, req.messages)
@@ -326,9 +315,7 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
     # --- True Vector Semantic Caching ---
     raw = None
     if semantic_cache:
-        cached_text = await semantic_cache.get_cached_inference(
-            prompt=prompt, model_name=task_type
-        )
+        cached_text = await semantic_cache.get_cached_inference(prompt=prompt, model_name=task_type)
         if cached_text:
             raw = {
                 "success": True,
@@ -345,9 +332,7 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
         )
         if raw.get("success") and semantic_cache:
             with contextlib.suppress(Exception):
-                await semantic_cache.set_cache_inference(
-                    prompt=prompt, model_name=task_type, response_text=raw.get("text")
-                )
+                await semantic_cache.set_cache_inference(prompt=prompt, model_name=task_type, response_text=raw.get("text"))
 
     # Log to ExperienceDatabase in the background to improve user-perceived latency.
     exp = Experience(
@@ -369,9 +354,7 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
         error_message=raw.get("error"),
         generated_code=raw.get("text") if ("```" in raw.get("text", "")) else None,
         what_worked=["Intent parsed successfully"] if raw.get("success") else [],
-        what_failed=(
-            [] if raw.get("success") else [str(raw.get("error", "Unknown error"))]
-        ),
+        what_failed=([] if raw.get("success") else [str(raw.get("error", "Unknown error"))]),
     )
     background_tasks.add_task(app_mod.experience_db.record_experience, exp)
 
@@ -390,30 +373,31 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
     formatted_result = format_response(raw.get("text", ""), task_type)
 
     return TaskResponse(
-            success=True,
-            result=formatted_result,
-            provider=raw.get("provider"),
-            cost=raw.get("cost", 0.0),
-            action={
-                "type": prompt_action.action_type,
-                "target": prompt_action.target_module,
-                "label": prompt_action.label,
-                "icon": prompt_action.icon,
-                "confidence": prompt_action.confidence,
-                "requires_confirmation": prompt_action.requires_confirmation,
-                "payload": prompt_action.payload,
-            },
-            intent={
-                "task_type": intent.task_type.value if hasattr(intent.task_type, "value") else str(intent.task_type),
-                "confidence": intent.confidence,
-            },
-        )
+        success=True,
+        result=formatted_result,
+        provider=raw.get("provider"),
+        cost=raw.get("cost", 0.0),
+        action={
+            "type": prompt_action.action_type,
+            "target": prompt_action.target_module,
+            "label": prompt_action.label,
+            "icon": prompt_action.icon,
+            "confidence": prompt_action.confidence,
+            "requires_confirmation": prompt_action.requires_confirmation,
+            "payload": prompt_action.payload,
+        },
+        intent={
+            "task_type": intent.task_type.value if hasattr(intent.task_type, "value") else str(intent.task_type),
+            "confidence": intent.confidence,
+        },
+    )
 
 
 @router.get("/api/task/stream")
 async def task_stream():
     async def keepalive():
         import asyncio
+
         try:
             while True:
                 yield f"data: {json.dumps({'status': 'alive', 'timestamp': datetime.datetime.now(datetime.UTC).isoformat()})}\n\n"
@@ -441,20 +425,22 @@ async def prompt_action(req: ActionStreamRequest):
     intent_clf = IntentClassifier()
     intent = intent_clf.classify(req.message)
 
-    return JSONResponse({
-        "action": {
-            "type": action.action_type,
-            "target": action.target_module,
-            "label": action.label,
-            "icon": action.icon,
-            "confidence": action.confidence,
-            "requires_confirmation": action.requires_confirmation,
-            "payload": action.payload,
-        },
-        "intent": {
-            "task_type": intent.task_type.value,
-            "confidence": intent.confidence,
-        },
-    })
+    return JSONResponse(
+        {
+            "action": {
+                "type": action.action_type,
+                "target": action.target_module,
+                "label": action.label,
+                "icon": action.icon,
+                "confidence": action.confidence,
+                "requires_confirmation": action.requires_confirmation,
+                "payload": action.payload,
+            },
+            "intent": {
+                "task_type": intent.task_type.value,
+                "confidence": intent.confidence,
+            },
+        }
+    )
 
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_agent_orchestrator.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,468 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.525876
+**সাইজ:** 9,454 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.575842
 
 ---
 
@@ -231,9 +231,7 @@ def test_async_task_manager_simulate_image():
 
 
 def test_smart_semantic_router_model():
-    router = SmartSemanticRouter(
-        intent="test_intent", requires_expensive=True, tier=2, reasoning="test"
-    )
+    router = SmartSemanticRouter(intent="test_intent", requires_expensive=True, tier=2, reasoning="test")
     assert router.intent == "test_intent"
     assert router.requires_expensive is True
     assert router.tier == 2

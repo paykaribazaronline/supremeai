@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/scripts/trigger_mock_error.py
 
 **প্রকার:** .py  
-**সাইজ:** 797 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.484420
+**সাইজ:** 799 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.551421
 
 ---
 
@@ -27,7 +27,7 @@ async def main():
         error_type="MockError",
         message="This is a mock error to verify EventBus routing",
         severity="WARNING",
-        context={"task_id": "mock_task_123"}
+        context={"task_id": "mock_task_123"},
     )
 
     # Fire the event bus
@@ -36,6 +36,7 @@ async def main():
     # Wait a bit for the async listener to finish
     await asyncio.sleep(0.5)
     print("Mock error triggered successfully.")  # noqa: T201
+
 
 if __name__ == "__main__":
     asyncio.run(main())

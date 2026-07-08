@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/browser.py
 
 **প্রকার:** .py  
-**সাইজ:** 13,421 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.488660
+**সাইজ:** 13,361 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.553952
 
 ---
 
@@ -160,21 +160,13 @@ def get_paused_state():
 
 @router.get("/urls/allowed")
 def get_allowed_urls(userId: str = "default"):
-    allowed = [
-        u
-        for u in URL_PERMISSIONS
-        if u.get("type") == "allowed" and u.get("userId") == userId
-    ]
+    allowed = [u for u in URL_PERMISSIONS if u.get("type") == "allowed" and u.get("userId") == userId]
     return {"urls": allowed}
 
 
 @router.get("/urls/denied")
 def get_denied_urls(userId: str = "default"):
-    denied = [
-        u
-        for u in URL_PERMISSIONS
-        if u.get("type") == "denied" and u.get("userId") == userId
-    ]
+    denied = [u for u in URL_PERMISSIONS if u.get("type") == "denied" and u.get("userId") == userId]
     return {"urls": denied}
 
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/safe_executor.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,285 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.549120
+**সাইজ:** 5,135 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.589924
 
 ---
 
@@ -112,9 +112,7 @@ def validate_ast(source: str) -> None:
     for node in ast.walk(tree):
         # 1. Check node type
         if type(node) not in ALLOWED_NODE_TYPES:
-            raise ValueError(
-                f"Security error: AST node type {type(node).__name__} is not allowed"
-            )
+            raise ValueError(f"Security error: AST node type {type(node).__name__} is not allowed")
 
         # 2. Prevent import statements entirely (Imports are not in ALLOWED_NODE_TYPES, but check as safety net)
         if isinstance(node, (ast.Import, ast.ImportFrom)):
@@ -122,27 +120,19 @@ def validate_ast(source: str) -> None:
 
         # 3. Restrict attribute access to prevent double underscore tricks (e.g. __class__)
         if isinstance(node, ast.Attribute) and node.attr.startswith("__"):
-            raise ValueError(
-                "Security error: Access to private/dunder attributes is forbidden"
-            )
+            raise ValueError("Security error: Access to private/dunder attributes is forbidden")
 
         # 4. Restrict Calls to only SAFE_BUILTINS
         if isinstance(node, ast.Call):
             if isinstance(node.func, ast.Name):
                 func_name = node.func.id
                 if func_name not in SAFE_BUILTINS:
-                    raise ValueError(
-                        f"Security error: Function call '{func_name}' is not in the allowed list"
-                    )
+                    raise ValueError(f"Security error: Function call '{func_name}' is not in the allowed list")
             else:
-                raise ValueError(
-                    "Security error: Non-name function calls are not allowed"
-                )
+                raise ValueError("Security error: Non-name function calls are not allowed")
 
 
-def run_restricted(
-    source: str, locals_: dict[str, Any] | None = None
-) -> tuple[bool, dict[str, Any] | str]:
+def run_restricted(source: str, locals_: dict[str, Any] | None = None) -> tuple[bool, dict[str, Any] | str]:
     """Execute *source* in a RestrictedPython sandbox after AST validation.
 
     Parameters

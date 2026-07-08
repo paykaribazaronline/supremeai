@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_health.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,384 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.525346
+**সাইজ:** 2,387 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.575464
 
 ---
 
@@ -42,6 +42,7 @@ def healthy_app(monkeypatch: pytest.MonkeyPatch):
     queue = _FakeRedisQueue()
     monkeypatch.setattr(services, "redis_queue", queue, raising=True)
     import core.app
+
     return core.app
 
 
@@ -53,6 +54,7 @@ def down_app(monkeypatch: pytest.MonkeyPatch):
     queue = _DownRedisQueue()
     monkeypatch.setattr(services, "redis_queue", queue, raising=True)
     import core.app
+
     return core.app
 
 
@@ -65,6 +67,7 @@ def unconfigured_app(monkeypatch: pytest.MonkeyPatch):
     queue.configured = False
     monkeypatch.setattr(services, "redis_queue", queue, raising=True)
     import core.app
+
     return core.app
 
 

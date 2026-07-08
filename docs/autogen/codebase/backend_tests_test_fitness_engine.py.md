@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_fitness_engine.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,673 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.519923
+**সাইজ:** 5,651 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.572392
 
 ---
 
@@ -33,9 +33,7 @@ def temp_fitness_env(tmp_path, monkeypatch):
     with open(dummy_skill_dir / "main.py", "w") as f:
         f.write("class DummySkill:\n    pass\n")
     with open(dummy_skill_dir / "schema.json", "w") as f:
-        f.write(
-            '{"metadata": {"name": "DummySkill", "version": "1.0.0", "description": "test"}}'
-        )
+        f.write('{"metadata": {"name": "DummySkill", "version": "1.0.0", "description": "test"}}')
 
     registry = SkillRegistry(registry_path=str(registry_path))
     registry.register_skill(

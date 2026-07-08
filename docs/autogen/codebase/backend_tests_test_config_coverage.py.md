@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_config_coverage.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,776 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.525725
+**সাইজ:** 7,778 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.575677
 
 ---
 
@@ -34,11 +34,13 @@ def test_parse_cors_origins_local_env_keeps_localhost():
     origins = ["http://127.0.0.1:3000", "https://example.com"]
     assert Settings.parse_cors_origins(list(origins), _info(env="local")) == origins
 
+
 def test_parse_cors_origins_production_strips_localhost():
     # বাংলা মন্তব্য: _env_context প্রোডাকশন হলে localhost অরিজিন বাদ যাবে
     origins = ["http://127.0.0.1:3000", "http://localhost:5173", "https://example.com"]
     result = Settings.parse_cors_origins(list(origins), _info(env="production"))
     assert result == ["https://example.com"]
+
 
 # ── parse_cors_origins ─────────────────────────────────────────────────
 def test_parse_cors_origins_empty_string():

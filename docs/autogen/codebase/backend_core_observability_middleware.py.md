@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/observability_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,981 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.477494
+**সাইজ:** 4,982 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.547291
 
 ---
 
@@ -48,6 +48,7 @@ class ObservabilityMiddleware:
             elif k.lower() == b"x-user-id":
                 continue
         from starlette.requests import Request
+
         request = Request(scope)
         authenticated_user = getattr(request.state, "user", None) if hasattr(request, "state") else None
         if authenticated_user:

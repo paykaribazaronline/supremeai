@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_immune_system_scanner.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,495 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.526226
+**সাইজ:** 1,499 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.576070
 
 ---
 
@@ -10,6 +10,7 @@
 
 ```py
 from core.immune_system import ImmuneSystemScanner
+
 
 def test_immune_system_passes_safe_code():
     scanner = ImmuneSystemScanner()
@@ -22,6 +23,7 @@ class DataFormatter:
     res = scanner.scan_code(code)
     assert res["safe"] is True
     assert res["error"] is None
+
 
 def test_immune_system_blocks_banned_imports():
     scanner = ImmuneSystemScanner()
@@ -36,6 +38,7 @@ class MaliciousSkill:
     assert res["safe"] is False
     assert "Banned root import" in res["error"]
 
+
 def test_immune_system_blocks_eval_functions():
     scanner = ImmuneSystemScanner()
     code = """
@@ -47,6 +50,7 @@ class ExploitSkill:
     res = scanner.scan_code(code)
     assert res["safe"] is False
     assert "banned security identifier" in res["error"]
+
 
 def test_immune_system_blocks_dunder_reflection():
     scanner = ImmuneSystemScanner()

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/game_dev_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,478 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.540453
+**সাইজ:** 1,434 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.584586
 
 ---
 
@@ -15,9 +15,7 @@ from loguru import logger
 
 
 class GameDevAgent:
-    async def generate_asset(
-        self, prompt: str, engine: str = "unity"
-    ) -> dict[str, Any]:
+    async def generate_asset(self, prompt: str, engine: str = "unity") -> dict[str, Any]:
         logger.info(f"Generating game asset for: {prompt} ({engine})")
         try:
             from brain.model_router import ModelRouter
@@ -28,9 +26,7 @@ class GameDevAgent:
                 f"Target engine: {engine}. Include code structure, assets, and implementation steps. "
                 "Return only the prompt text."
             )
-            result = router.async_route_and_generate(
-                llm_prompt, task_type="general", max_cost=0.01
-            )
+            result = router.async_route_and_generate(llm_prompt, task_type="general", max_cost=0.01)
             text = result.get("text", "") if isinstance(result, dict) else ""
             return {
                 "status": "success",

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/self_healer.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,272 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.469803
+**সাইজ:** 3,222 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.542544
 
 ---
 
@@ -36,14 +36,7 @@ class SelfHealerService:
             if keyword in proposed_fix:
                 raise ValueError(f"Dangerous keyword '{keyword}' detected in proposed fix. Rejected by Safety Filter.")
 
-    async def propose_fix(
-        self,
-        tenant_id: str,
-        error_pattern: str,
-        proposed_fix: str,
-        impact_score: float,
-        dependency_tree: list[str]
-    ) -> str:
+    async def propose_fix(self, tenant_id: str, error_pattern: str, proposed_fix: str, impact_score: float, dependency_tree: list[str]) -> str:
         """
         Generates and stores an automatic fix for an error in the Firestore database
         with a 'pending_review' status for Human-in-the-Loop (HITL) approval.
@@ -68,10 +61,11 @@ class SelfHealerService:
             "dependency_tree": dependency_tree,
             "status": "pending_review",
             "reviewed_by": None,
-            "applied_at": None
+            "applied_at": None,
         }
 
         import asyncio
+
         if asyncio.iscoroutinefunction(doc_ref.set):
             await doc_ref.set(fix_data)
         else:
@@ -90,6 +84,7 @@ class SelfHealerService:
         # For now, return True as a placeholder
         return True
 
+
 async def _self_healer_error_listener(event: ErrorEvent):
     """
     Listens to the centralized error event bus.
@@ -98,6 +93,7 @@ async def _self_healer_error_listener(event: ErrorEvent):
     logger.info(f"SelfHealer triggered by event from {event.module}: {event.error_type}")
     # In a full implementation, this would instantiate SelfHealerService and call propose_fix
     # based on the severity and context of the event.
+
 
 # Register the listener
 error_event_bus.register_listener(_self_healer_error_listener)

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_cloud_sandbox.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,603 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.515492
+**সাইজ:** 10,396 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.569805
 
 ---
 
@@ -90,20 +90,14 @@ class TestCloudSandboxOrchestrator:
         with patch.dict(os.environ, {"RUNPOD_API_KEY": "test-api-key"}, clear=False):
             orchestrator = CloudSandboxOrchestrator(provider="runpod")
 
-            with patch.object(
-                orchestrator, "_get_endpoint", return_value="/"
-            ):
+            with patch.object(orchestrator, "_get_endpoint", return_value="/"):
                 mock_response = MagicMock()
                 mock_response.status_code = 200
                 mock_response.json.return_value = {"id": "pod-12345", "status": "created"}
                 mock_response.raise_for_status = MagicMock()
 
-                with patch.object(
-                    orchestrator.client, "post", new_callable=AsyncMock, return_value=mock_response
-                ):
-                    with patch.object(
-                        orchestrator, "_prepare_creation_payload", return_value={"pod": {"imageName": "ubuntu"}}
-                    ):
+                with patch.object(orchestrator.client, "post", new_callable=AsyncMock, return_value=mock_response):
+                    with patch.object(orchestrator, "_prepare_creation_payload", return_value={"pod": {"imageName": "ubuntu"}}):
                         result = await orchestrator.create_sandbox(spec={"imageName": "ubuntu"})
                         assert result is not None
                         assert result["id"] == "pod-12345"
@@ -119,9 +113,7 @@ class TestCloudSandboxOrchestrator:
             mock_response.json.return_value = {"status": "COMPLETED", "exitCode": 0, "stdout": "output"}
             mock_response.raise_for_status = MagicMock()
 
-            with patch.object(
-                orchestrator.client, "post", new_callable=AsyncMock, return_value=mock_response
-            ):
+            with patch.object(orchestrator.client, "post", new_callable=AsyncMock, return_value=mock_response):
                 with patch.object(orchestrator, "_get_endpoint", return_value="/pod-12345/run"):
                     result = await orchestrator.run_command("pod-12345", "echo hello")
                     assert result is not None
@@ -138,13 +130,9 @@ class TestCloudSandboxOrchestrator:
             mock_response = MagicMock()
             mock_response.status_code = 500
             mock_response.text = "Internal Server Error"
-            mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
-                "Error", request=MagicMock(), response=mock_response
-            )
+            mock_response.raise_for_status.side_effect = httpx.HTTPStatusError("Error", request=MagicMock(), response=mock_response)
 
-            with patch.object(
-                orchestrator.client, "post", new_callable=AsyncMock, return_value=mock_response
-            ):
+            with patch.object(orchestrator.client, "post", new_callable=AsyncMock, return_value=mock_response):
                 with patch.object(orchestrator, "_get_endpoint", return_value="/pod-12345/run"):
                     result = await orchestrator.run_command("pod-12345", "echo hello")
                     assert result is None
@@ -208,7 +196,6 @@ class TestTOTPVerification:
 
         assert verify_totp_code(valid_code, secret) is True
 
-
         """TOTP কোড প্রসੂসিং এ এক্সেপশন হলে False রিটার্ন করে।"""
         from core.admin_routes import verify_totp_code
 
@@ -232,7 +219,5 @@ class TestTOTPVerification:
         valid_code = f"{h_num % 1000000:06d}"
 
         assert check_totp(valid_code, secret) is True
-
-
 
 ```

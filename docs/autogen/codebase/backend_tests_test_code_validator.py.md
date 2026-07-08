@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_code_validator.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,406 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.522907
+**সাইজ:** 3,384 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.574080
 
 ---
 
@@ -105,9 +105,7 @@ class TestCodeValidator:
 
     @patch("core.code_validator.re.findall")
     def test_validate_text_with_blocked_url(self, mock_find, validator):
-        mock_find.side_effect = lambda p, t, f=None: (
-            ["https://github.com/nadim9/supremeai"] if "https?://" in p else []
-        )
+        mock_find.side_effect = lambda p, t, f=None: (["https://github.com/nadim9/supremeai"] if "https?://" in p else [])
         res = validator.validate("see https://github.com/nadim9/supremeai")
         assert res["is_valid"] is False
 

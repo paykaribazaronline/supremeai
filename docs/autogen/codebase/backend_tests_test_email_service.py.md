@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_email_service.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,081 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.508068
+**সাইজ:** 5,878 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.565432
 
 ---
 
@@ -10,6 +10,7 @@
 
 ```py
 """Email service tests for SupremeAI 2.0."""
+
 import os
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -56,9 +57,7 @@ class TestEmailService:
         """API কি ছাড়াই ইমেল সেন্ড মক হিসেবে সফল হয়।"""
         with patch.dict(os.environ, {}, clear=True):
             service = EmailService()
-            result = await service._send_email(
-                "test@example.com", "Test Subject", "<p>Test Body</p>"
-            )
+            result = await service._send_email("test@example.com", "Test Subject", "<p>Test Body</p>")
             assert result is False
 
     @pytest.mark.anyio
@@ -77,9 +76,7 @@ class TestEmailService:
                 mock_client.post = AsyncMock(return_value=mock_response)
                 mock_client_class.return_value = mock_client
 
-                result = await service._send_email(
-                    "test@example.com", "Test Subject", "<p>Test Body</p>"
-                )
+                result = await service._send_email("test@example.com", "Test Subject", "<p>Test Body</p>")
                 assert result is True
 
     @pytest.mark.anyio
@@ -99,9 +96,7 @@ class TestEmailService:
                 mock_client.post = AsyncMock(return_value=mock_response)
                 mock_client_class.return_value = mock_client
 
-                result = await service._send_email(
-                    "test@example.com", "Test Subject", "<p>Test Body</p>"
-                )
+                result = await service._send_email("test@example.com", "Test Subject", "<p>Test Body</p>")
                 assert result is False
 
     @pytest.mark.anyio
@@ -117,9 +112,7 @@ class TestEmailService:
                 mock_client.post = AsyncMock(side_effect=Exception("Network error"))
                 mock_client_class.return_value = mock_client
 
-                result = await service._send_email(
-                    "test@example.com", "Test Subject", "<p>Test Body</p>"
-                )
+                result = await service._send_email("test@example.com", "Test Subject", "<p>Test Body</p>")
                 assert result is False
 
     @pytest.mark.anyio
@@ -135,9 +128,7 @@ class TestEmailService:
         """পাসওয়ার্ড রিসেট ইমেল সেন্ড করা হচ্ছে।"""
         with patch.dict(os.environ, {}, clear=True):
             service = EmailService()
-            result = await service.send_password_reset(
-                "test@example.com", "https://example.com/reset"
-            )
+            result = await service.send_password_reset("test@example.com", "https://example.com/reset")
             assert result is False
 
     @pytest.mark.anyio
@@ -145,9 +136,7 @@ class TestEmailService:
         """বিলিং নটিফিকেশন ইমেল সেন্ড করা হচ্ছে।"""
         with patch.dict(os.environ, {}, clear=True):
             service = EmailService()
-            result = await service.send_billing_notification(
-                "test@example.com", 10.50, "image_generation"
-            )
+            result = await service.send_billing_notification("test@example.com", 10.50, "image_generation")
             assert result is False
 
 ```

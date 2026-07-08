@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/integration.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,057 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.497091
+**সাইজ:** 1,058 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.558946
 
 ---
 
@@ -30,7 +30,7 @@ class Integration(Base):
 
     provider: Mapped[str] = mapped_column(String(50), nullable=False)  # e.g., 'github', 'facebook'
     encrypted_access_token: Mapped[str] = mapped_column(String, nullable=False)
-    repo_url: Mapped[str] = mapped_column(String, nullable=True) # Secondary repo or page id
+    repo_url: Mapped[str] = mapped_column(String, nullable=True)  # Secondary repo or page id
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))

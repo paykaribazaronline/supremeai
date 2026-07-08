@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_vision_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,578 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.510733
+**সাইজ:** 2,556 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.566925
 
 ---
 
@@ -56,9 +56,7 @@ def test_vision_agent_pdf_extraction():
         mock_pdf.pages = [mock_page]
 
         mock_plumber = MagicMock()
-        mock_plumber.open.return_value = MagicMock(
-            __enter__=MagicMock(return_value=mock_pdf)
-        )
+        mock_plumber.open.return_value = MagicMock(__enter__=MagicMock(return_value=mock_pdf))
 
         with patch.dict("sys.modules", {"pdfplumber": mock_plumber, "fitz": None}):
             agent = VisionAgent()

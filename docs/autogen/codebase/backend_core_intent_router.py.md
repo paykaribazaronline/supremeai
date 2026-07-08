@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/intent_router.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,732 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.471975
+**সাইজ:** 6,596 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.543895
 
 ---
 
@@ -29,10 +29,29 @@ class PromptAction:
 ACTION_PATTERNS = {
     "code_generate": {
         "keywords": [
-            "write", "create", "generate", "build", "make", "implement",
-            "function", "component", "script", "program", "code", "api",
-            "class", "method", "algorithm", "cli", "tool", "bot",
-            "python", "javascript", "typescript", "react", "node",
+            "write",
+            "create",
+            "generate",
+            "build",
+            "make",
+            "implement",
+            "function",
+            "component",
+            "script",
+            "program",
+            "code",
+            "api",
+            "class",
+            "method",
+            "algorithm",
+            "cli",
+            "tool",
+            "bot",
+            "python",
+            "javascript",
+            "typescript",
+            "react",
+            "node",
         ],
         "target": "ide",
         "icon": "💻",
@@ -41,9 +60,16 @@ ACTION_PATTERNS = {
     },
     "ide_open": {
         "keywords": [
-            "open ide", "switch to code", "show editor", "full editor",
-            "open editor", "edit code", "start coding", "write code",
-            "new file", "open project",
+            "open ide",
+            "switch to code",
+            "show editor",
+            "full editor",
+            "open editor",
+            "edit code",
+            "start coding",
+            "write code",
+            "new file",
+            "open project",
         ],
         "target": "ide",
         "icon": "🖥️",
@@ -52,8 +78,17 @@ ACTION_PATTERNS = {
     },
     "video_edit": {
         "keywords": [
-            "video", "edit", "trim", "cut", "merge", "timeline", "clip",
-            "frame", "audio", "background music", "transition",
+            "video",
+            "edit",
+            "trim",
+            "cut",
+            "merge",
+            "timeline",
+            "clip",
+            "frame",
+            "audio",
+            "background music",
+            "transition",
         ],
         "target": "video_editor",
         "icon": "🎬",
@@ -62,9 +97,18 @@ ACTION_PATTERNS = {
     },
     "research": {
         "keywords": [
-            "search", "research", "find", "look up", "google",
-            "investigate", "explain", "what is", "who is",
-            "summarize", "analyze data", "report",
+            "search",
+            "research",
+            "find",
+            "look up",
+            "google",
+            "investigate",
+            "explain",
+            "what is",
+            "who is",
+            "summarize",
+            "analyze data",
+            "report",
         ],
         "target": "research",
         "icon": "🔍",
@@ -73,8 +117,13 @@ ACTION_PATTERNS = {
     },
     "deploy": {
         "keywords": [
-            "deploy", "publish", "push to production",
-            "go live", "release", "host", "ship it",
+            "deploy",
+            "publish",
+            "push to production",
+            "go live",
+            "release",
+            "host",
+            "ship it",
         ],
         "target": "deploy",
         "icon": "🚀",
@@ -83,8 +132,14 @@ ACTION_PATTERNS = {
     },
     "settings_change": {
         "keywords": [
-            "settings", "preferences", "config", "theme", "model",
-            "provider", "temperature", "max tokens",
+            "settings",
+            "preferences",
+            "config",
+            "theme",
+            "model",
+            "provider",
+            "temperature",
+            "max tokens",
         ],
         "target": "settings",
         "icon": "⚙️",
@@ -143,10 +198,21 @@ class IntentRouter:
 
     def _detect_language(self, text: str) -> str:
         lang_map = {
-            "python": "python", "javascript": "javascript", "typescript": "typescript",
-            "react": "jsx", "node": "javascript", "java": "java", "c++": "cpp",
-            "cpp": "cpp", "rust": "rust", "go": "go", "html": "html",
-            "css": "css", "sql": "sql", "shell": "bash", "bash": "bash",
+            "python": "python",
+            "javascript": "javascript",
+            "typescript": "typescript",
+            "react": "jsx",
+            "node": "javascript",
+            "java": "java",
+            "c++": "cpp",
+            "cpp": "cpp",
+            "rust": "rust",
+            "go": "go",
+            "html": "html",
+            "css": "css",
+            "sql": "sql",
+            "shell": "bash",
+            "bash": "bash",
         }
         for lang, code in lang_map.items():
             if re.search(r"(^|\W)" + re.escape(lang) + r"(\W|$)", text):
@@ -155,9 +221,15 @@ class IntentRouter:
 
     def _guess_filename(self, language: str) -> str:
         defaults = {
-            "python": "main.py", "javascript": "index.js", "typescript": "index.ts",
-            "jsx": "App.jsx", "tsx": "App.tsx", "html": "index.html",
-            "java": "Main.java", "rust": "main.rs", "go": "main.go",
+            "python": "main.py",
+            "javascript": "index.js",
+            "typescript": "index.ts",
+            "jsx": "App.jsx",
+            "tsx": "App.tsx",
+            "html": "index.html",
+            "java": "Main.java",
+            "rust": "main.rs",
+            "go": "main.go",
         }
         return defaults.get(language, "component.tsx")
 

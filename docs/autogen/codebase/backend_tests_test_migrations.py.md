@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_migrations.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,658 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.520971
+**সাইজ:** 3,524 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.572951
 
 ---
 
@@ -18,27 +18,19 @@ MIGRATIONS_DIR = os.path.join(os.path.dirname(__file__), "..", "database", "migr
 
 def test_migrations_are_numbered_sequentially():
     # বাংলা মন্তব্য: সব সংখ্যার মাইগ্রেশন ফাইল চেক করার জন্য f[0].isdigit() ব্যবহার করা হলো এবং কনফ্লিক্ট রিনেমের পর বাইপাসটি বাদ দেওয়া হলো
-    files = [
-        f for f in os.listdir(MIGRATIONS_DIR) if f.endswith(".sql") and f[0].isdigit()
-    ]
+    files = [f for f in os.listdir(MIGRATIONS_DIR) if f.endswith(".sql") and f[0].isdigit()]
     numbers = sorted(re.match(r"(\d+)", f).group(1) for f in files)
     assert numbers[0] == "01"
     for i in range(len(numbers) - 1):
         current = int(numbers[i])
         next_n = int(numbers[i + 1])
-        assert (
-            next_n == current + 1
-        ), f"Migration gap between {numbers[i]} and {numbers[i + 1]}"
+        assert next_n == current + 1, f"Migration gap between {numbers[i]} and {numbers[i + 1]}"
 
 
 def test_migrations_contain_required_tables():
     # বাংলা মন্তব্য: ১০ নম্বর মাইগ্রেশন ফাইল সহ সকল ফাইল পড়ার জন্য f[0].isdigit() ব্যবহার করা হলো
-    files = sorted(
-        f for f in os.listdir(MIGRATIONS_DIR) if f.endswith(".sql") and f[0].isdigit()
-    )
-    all_sql = "\n".join(
-        open(os.path.join(MIGRATIONS_DIR, f), encoding="utf-8").read() for f in files
-    )
+    files = sorted(f for f in os.listdir(MIGRATIONS_DIR) if f.endswith(".sql") and f[0].isdigit())
+    all_sql = "\n".join(open(os.path.join(MIGRATIONS_DIR, f), encoding="utf-8").read() for f in files)
     required_tables = [
         "referral_codes",
         "credit_wallets",
@@ -48,9 +40,7 @@ def test_migrations_contain_required_tables():
         "offline_sync_logs",
     ]
     for table in required_tables:
-        assert (
-            "CREATE TABLE" in all_sql and table in all_sql
-        ), f"Required table '{table}' missing from migrations"
+        assert "CREATE TABLE" in all_sql and table in all_sql, f"Required table '{table}' missing from migrations"
 
 
 def test_referral_system_constraints():
@@ -86,13 +76,9 @@ def test_offline_sync_logs_constraints():
 
 
 def test_sw_registers_service_worker():
-    index_path = os.path.join(
-        os.path.dirname(__file__), "..", "..", "apps", "studio-client", "index.html"
-    )
+    index_path = os.path.join(os.path.dirname(__file__), "..", "..", "apps", "studio-client", "index.html")
     html = open(index_path, encoding="utf-8").read()
-    assert (
-        "register('/sw.js')" in html
-    ), "Service Worker must be registered in index.html"
+    assert "register('/sw.js')" in html, "Service Worker must be registered in index.html"
 
 
 def test_pwa_manifest_exists():
@@ -105,9 +91,7 @@ def test_pwa_manifest_exists():
         "public",
         "manifest.json",
     )
-    assert os.path.isfile(
-        manifest_path
-    ), "manifest.json must exist for PWA installability"
+    assert os.path.isfile(manifest_path), "manifest.json must exist for PWA installability"
     import json
 
     manifest = json.load(open(manifest_path, encoding="utf-8"))

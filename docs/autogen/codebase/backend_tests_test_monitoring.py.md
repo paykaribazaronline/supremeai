@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_monitoring.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,186 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.521980
+**সাইজ:** 3,187 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.573526
 
 ---
 
@@ -60,6 +60,7 @@ def test_cost_auditor_generation():
             assert os.path.exists(report["image_report"])
         except ImportError:
             import logging
+
             logging.warning("matplotlib not installed, skipping image report check in test_monitoring")
 
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/parallel_agent_executor.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,473 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.552921
+**সাইজ:** 10,033 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.592632
 
 ---
 
@@ -38,22 +38,16 @@ class ParallelAgentExecutor:
         self.max_concurrent_tasks = max_concurrent_tasks
         self.active_tasks_count = 0
         self.mcp_registry = mcp_registry or {}
-        logger.info(
-            f"Initialized ParallelAgentExecutor (Group: {self.execution_group}, Max Tasks: {self.max_concurrent_tasks})"
-        )
+        logger.info(f"Initialized ParallelAgentExecutor (Group: {self.execution_group}, Max Tasks: {self.max_concurrent_tasks})")
 
-    async def _execute_agent_task(
-        self, agent_name: str, task_def, *args, **kwargs
-    ) -> dict[str, Any]:
+    async def _execute_agent_task(self, agent_name: str, task_def, *args, **kwargs) -> dict[str, Any]:
         """Wrapper to execute an individual agent's task with optional MCP context."""
         if callable(task_def):
             task_func = task_def
             mcp_servers = []
         else:
             task_func = task_def.get("task") if isinstance(task_def, dict) else None
-            mcp_servers = (
-                task_def.get("mcp_servers", []) if isinstance(task_def, dict) else []
-            )
+            mcp_servers = task_def.get("mcp_servers", []) if isinstance(task_def, dict) else []
 
         if task_func is None:
             return {
@@ -63,9 +57,7 @@ class ParallelAgentExecutor:
             }
 
         if self.active_tasks_count >= self.max_concurrent_tasks:
-            logger.error(
-                f"[Agent: {agent_name}] Task skipped: Concurrent task limit reached ({self.max_concurrent_tasks})."
-            )
+            logger.error(f"[Agent: {agent_name}] Task skipped: Concurrent task limit reached ({self.max_concurrent_tasks}).")
             return {
                 "agent": agent_name,
                 "status": "error",
@@ -73,9 +65,7 @@ class ParallelAgentExecutor:
             }
 
         self.active_tasks_count += 1
-        logger.info(
-            f"[Agent: {agent_name}] Starting task... (Active tasks: {self.active_tasks_count})"
-        )
+        logger.info(f"[Agent: {agent_name}] Starting task... (Active tasks: {self.active_tasks_count})")
 
         mcp_clients = {}
         try:
@@ -88,16 +78,16 @@ class ParallelAgentExecutor:
                 except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
+
                         loguru.logger.error(f"Tool execution error: {e}")
                     except Exception as e:  # noqa: BLE001
                         import logging
+
                         logging.warning(f"Exception suppressed: {e}")
                     redis = None
 
             if mcp_servers:
-                mcp_clients = await self._initialize_mcp_clients(
-                    agent_name, mcp_servers
-                )
+                mcp_clients = await self._initialize_mcp_clients(agent_name, mcp_servers)
 
             if redis and getattr(redis, "configured", False):
                 await self._publish_state(redis, agent_name, "started")
@@ -130,9 +120,11 @@ class ParallelAgentExecutor:
             except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
+
                     loguru.logger.error(f"Tool execution error: {e}")
                 except Exception as e:  # noqa: BLE001
                     import logging
+
                     logging.warning(f"Exception suppressed: {e}")
                 pass
             return {"agent": agent_name, "status": "error", "error": str(e)}
@@ -140,17 +132,13 @@ class ParallelAgentExecutor:
             await self._cleanup_mcp_clients(mcp_clients)
             self.active_tasks_count -= 1
 
-    async def _initialize_mcp_clients(
-        self, agent_name: str, mcp_servers: list[str]
-    ) -> dict[str, Any]:
+    async def _initialize_mcp_clients(self, agent_name: str, mcp_servers: list[str]) -> dict[str, Any]:
         """বাংলা মন্তব্য: এজেন্টের জন্য নির্দিষ্ট MCP সার্ভারগুলোর ক্লায়েন্ট সংযোগ স্থাপন করে।"""
         clients = {}
         for server_name in mcp_servers:
             config = self.mcp_registry.get(server_name)
             if not config:
-                logger.warning(
-                    f"[Agent: {agent_name}] Unknown MCP server: {server_name}"
-                )
+                logger.warning(f"[Agent: {agent_name}] Unknown MCP server: {server_name}")
                 continue
 
             try:
@@ -177,20 +165,14 @@ class ParallelAgentExecutor:
             try:
                 connected = await asyncio.to_thread(_connect)
             except RuntimeError as exc:
-                logger.error(
-                    f"[Agent: {agent_name}] MCP server '{server_name}' connection failed: {exc}"
-                )
+                logger.error(f"[Agent: {agent_name}] MCP server '{server_name}' connection failed: {exc}")
                 connected = False
 
             if connected:
                 clients[server_name] = client
-                logger.info(
-                    f"[Agent: {agent_name}] Connected to MCP server: {server_name}"
-                )
+                logger.info(f"[Agent: {agent_name}] Connected to MCP server: {server_name}")
             else:
-                logger.warning(
-                    f"[Agent: {agent_name}] Failed to connect to MCP server: {server_name}"
-                )
+                logger.warning(f"[Agent: {agent_name}] Failed to connect to MCP server: {server_name}")
 
         return clients
 
@@ -216,21 +198,13 @@ class ParallelAgentExecutor:
             import inspect
 
             if inspect.iscoroutinefunction(redis.publish):
-                await redis.publish(
-                    f"supremeai:agents:{self.execution_group}", json.dumps(payload)
-                )
+                await redis.publish(f"supremeai:agents:{self.execution_group}", json.dumps(payload))
             else:
-                redis.publish(
-                    f"supremeai:agents:{self.execution_group}", json.dumps(payload)
-                )
+                redis.publish(f"supremeai:agents:{self.execution_group}", json.dumps(payload))
         except Exception as e:  # noqa: BLE001
-            logger.warning(
-                f"Failed to publish agent state: {e}. Running with local logger fallback."
-            )
+            logger.warning(f"Failed to publish agent state: {e}. Running with local logger fallback.")
 
-    async def run_parallel(
-        self, agent_tasks: dict[str, Callable | dict[str, Any]]
-    ) -> dict[str, Any]:
+    async def run_parallel(self, agent_tasks: dict[str, Callable | dict[str, Any]]) -> dict[str, Any]:
         """
         Executes a dictionary of agent tasks in parallel.
         Supports both simple callables and task definitions with MCP servers.

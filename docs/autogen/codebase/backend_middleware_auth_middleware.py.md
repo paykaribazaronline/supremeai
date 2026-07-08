@@ -1,16 +1,14 @@
 # 📄 ফাইল: backend/middleware/auth_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,600 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.505597
+**সাইজ:** 4,430 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.563948
 
 ---
 
 ## কোড
 
 ```py
-
-
 from fastapi import Request
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -43,10 +41,7 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
         if request.method == "OPTIONS":
             return await call_next(request)
 
-        matched = (
-            request.url.path in public_paths
-            or any(request.url.path.startswith(p + "/") for p in public_paths)
-        )
+        matched = request.url.path in public_paths or any(request.url.path.startswith(p + "/") for p in public_paths)
         if matched:
             return await call_next(request)
 
@@ -84,20 +79,13 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
             # প্রয়োগ করা হলো — নয়তো সাধারণ ইউজার টোকেন দিয়ে admin_routes.py এর
             # /admin/rules, /admin/free-tier-override ইত্যাদি অ্যাক্সেস করা যেত (privilege escalation)।
             admin_prefixes = ("/api/admin", "/admin/", "/admin-api", "/gcp/")
-            if (
-                any(request.url.path.startswith(p) for p in admin_prefixes)
-                and payload.get("role") != "admin"
-            ):
-                logger.critical(
-                    f"🔒 Privilege Escalation Blocked for user: {payload.get('sub')}"
-                )
+            if any(request.url.path.startswith(p) for p in admin_prefixes) and payload.get("role") != "admin":
+                logger.critical(f"🔒 Privilege Escalation Blocked for user: {payload.get('sub')}")
                 from fastapi.responses import JSONResponse
 
                 return JSONResponse(
                     status_code=403,
-                    content={
-                        "detail": "Insufficient privileges. Admin access required."
-                    },
+                    content={"detail": "Insufficient privileges. Admin access required."},
                 )
 
         except Exception as e:  # noqa: BLE001

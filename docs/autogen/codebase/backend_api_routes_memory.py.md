@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/memory.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,028 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.486687
+**সাইজ:** 4,000 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.552770
 
 ---
 
@@ -118,9 +118,7 @@ def clear_checkpoint(task_id: str):
 
 @router.post("/chunk", response_model=ChunkResponse)
 def chunk_text(payload: ChunkRequest):
-    config = SlidingWindowConfig(
-        max_tokens=payload.max_tokens, overlap_ratio=payload.overlap_ratio
-    )
+    config = SlidingWindowConfig(max_tokens=payload.max_tokens, overlap_ratio=payload.overlap_ratio)
     memory = SlidingWindowMemory(config=config)
     windows = memory.chunk(payload.text, session_id=payload.session_id)
     return ChunkResponse(session_id=payload.session_id, windows=windows)
@@ -131,9 +129,7 @@ def build_context(payload: ContextRequest):
     config = SlidingWindowConfig()
     memory = SlidingWindowMemory(config=config)
     budget = payload.budget or config.max_tokens
-    context = memory.build_context(
-        payload.documents, payload.query, payload.session_id, budget
-    )
+    context = memory.build_context(payload.documents, payload.query, payload.session_id, budget)
     return ContextResponse(session_id=payload.session_id, context=context)
 
 

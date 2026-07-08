@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/tools/test_multilingual_tts.py
 
 **প্রকার:** .py  
-**সাইজ:** 12,880 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.532308
+**সাইজ:** 12,783 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.579649
 
 ---
 
@@ -72,8 +72,10 @@ class TestMultilingualTTS:
         assert self.tts._detect_language("Hello world") == "en"
 
     def test_output_path(self, tmp_path):
-        with patch("tools.multilingual_tts.os.path.join", side_effect=lambda *args: "/".join(args)), \
-             patch("tools.multilingual_tts.hashlib.sha256") as mock_hash:
+        with (
+            patch("tools.multilingual_tts.os.path.join", side_effect=lambda *args: "/".join(args)),
+            patch("tools.multilingual_tts.hashlib.sha256") as mock_hash,
+        ):
             mock_hash.return_value.hexdigest.return_value = "abcd1234"
             path = self.tts._output_path("hello", "en", "mp3")
         assert "en" in path
@@ -163,9 +165,7 @@ class TestMultilingualTTS:
         mock_aenter.post.return_value = mock_response
         mock_client.__aenter__.return_value = mock_aenter
 
-        with patch("httpx.AsyncClient", return_value=mock_client), \
-             patch("os.makedirs"), \
-             patch("builtins.open", MagicMock()):
+        with patch("httpx.AsyncClient", return_value=mock_client), patch("os.makedirs"), patch("builtins.open", MagicMock()):
             result = await self.tts._elevenlabs("Hello", "/tmp/out.mp3", "en", None, 0.5, 0.75)
         assert result["status"] == "success"
         assert result["provider"] == "elevenlabs"
@@ -203,16 +203,14 @@ class TestMultilingualTTS:
         mock_edge = MagicMock()
         mock_edge.Communicate.return_value = mock_communicate
 
-        with patch.dict("sys.modules", {"edge_tts": mock_edge}), \
-             patch("os.makedirs"):
+        with patch.dict("sys.modules", {"edge_tts": mock_edge}), patch("os.makedirs"):
             result = await self.tts._edge_tts("Hello", "/tmp/out.wav", "en")
         assert result["status"] == "success"
         assert result["provider"] == "edge-tts"
 
     @pytest.mark.asyncio
     async def test_edge_tts_import_error(self):
-        with patch.dict("sys.modules", {"edge_tts": None}), \
-             patch("os.makedirs"):
+        with patch.dict("sys.modules", {"edge_tts": None}), patch("os.makedirs"):
             result = await self.tts._edge_tts("Hello", "/tmp/out.wav", "en")
         assert result["status"] == "error"
         assert "not installed" in result["error"]
@@ -222,8 +220,7 @@ class TestMultilingualTTS:
         mock_edge = MagicMock()
         mock_edge.Communicate.side_effect = Exception("edge error")
 
-        with patch.dict("sys.modules", {"edge_tts": mock_edge}), \
-             patch("os.makedirs"):
+        with patch.dict("sys.modules", {"edge_tts": mock_edge}), patch("os.makedirs"):
             result = await self.tts._edge_tts("Hello", "/tmp/out.wav", "en")
         assert result["status"] == "error"
 
@@ -233,8 +230,7 @@ class TestMultilingualTTS:
         mock_tts = MagicMock()
         mock_gtts.gTTS.return_value = mock_tts
 
-        with patch.dict("sys.modules", {"gtts": mock_gtts}), \
-             patch.dict("sys.modules", {"edge_tts": MagicMock()}):
+        with patch.dict("sys.modules", {"gtts": mock_gtts}), patch.dict("sys.modules", {"edge_tts": MagicMock()}):
             result = await self.tts._gtts("Hello", "/tmp/out.mp3", "en")
         assert result["status"] == "success"
         assert result["provider"] == "gtts"
@@ -266,8 +262,7 @@ class TestMultilingualTTS:
         mock_edge = MagicMock()
         mock_edge.Communicate.return_value = mock_communicate
 
-        with patch.dict("sys.modules", {"edge_tts": mock_edge}), \
-             patch.object(self.tts, "api_key", ""):
+        with patch.dict("sys.modules", {"edge_tts": mock_edge}), patch.object(self.tts, "api_key", ""):
             chunks = []
             async for chunk in self.tts.synthesize_stream("Hello"):
                 chunks.append(chunk)
@@ -276,6 +271,7 @@ class TestMultilingualTTS:
     @pytest.mark.asyncio
     async def test_synthesize_stream_elevenlabs_error_fallback(self):
         self.tts.api_key = "test_key"
+
         async def mock_edge_stream():
             yield {"type": "audio", "data": b"edge"}
 
@@ -284,8 +280,7 @@ class TestMultilingualTTS:
         mock_edge = MagicMock()
         mock_edge.Communicate.return_value = mock_communicate
 
-        with patch.object(self.tts, "_elevenlabs_stream", side_effect=Exception("eleven error")), \
-             patch.dict("sys.modules", {"edge_tts": mock_edge}):
+        with patch.object(self.tts, "_elevenlabs_stream", side_effect=Exception("eleven error")), patch.dict("sys.modules", {"edge_tts": mock_edge}):
             chunks = []
             async for chunk in self.tts.synthesize_stream("Hello"):
                 chunks.append(chunk)

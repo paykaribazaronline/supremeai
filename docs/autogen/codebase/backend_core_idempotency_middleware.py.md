@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/idempotency_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,908 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.481469
+**সাইজ:** 5,706 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.549651
 
 ---
 
@@ -54,9 +54,7 @@ class IdempotencyMiddleware:
             if "/api/orchestrate/generate" in path or "/api/markdown/export" in path:
                 response = JSONResponse(
                     status_code=400,
-                    content={
-                        "error": "Idempotency-Key header is required for this action."
-                    },
+                    content={"error": "Idempotency-Key header is required for this action."},
                 )
                 await response(scope, receive, send)
                 return
@@ -65,11 +63,7 @@ class IdempotencyMiddleware:
 
         import core.services as app_mod
 
-        if (
-            not hasattr(app_mod, "redis_queue")
-            or not app_mod.redis_queue
-            or not app_mod.redis_queue.configured
-        ):
+        if not hasattr(app_mod, "redis_queue") or not app_mod.redis_queue or not app_mod.redis_queue.configured:
             await self.app(scope, receive, send)
             return
 
@@ -84,9 +78,7 @@ class IdempotencyMiddleware:
                 if data.get("status") == "processing":
                     response = JSONResponse(
                         status_code=409,
-                        content={
-                            "detail": "Conflict: Request is already being processed. Please wait."
-                        },
+                        content={"detail": "Conflict: Request is already being processed. Please wait."},
                     )
                     await response(scope, receive, send)
                     return
@@ -96,9 +88,7 @@ class IdempotencyMiddleware:
 
                     body = data.get("body")
                     if isinstance(body, dict):
-                        response = JSONResponse(
-                            content=body, status_code=data.get("status_code")
-                        )
+                        response = JSONResponse(content=body, status_code=data.get("status_code"))
                     else:
                         response = Response(
                             content=body,

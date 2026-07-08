@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/config_cache.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,312 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.474556
+**সাইজ:** 10,240 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.545478
 
 ---
 
@@ -21,13 +21,13 @@ SupremeAI 2.0-এর জন্য TTL-based config cache layer.
 
 ব্যবহার:
     from core.config_cache import config_cache
-    
+
     # Get a config value (cached with TTL)
     threshold = config_cache.get("cache_threshold_code", default=0.95)
-    
+
     # Force refresh
     config_cache.refresh()
-    
+
     # Set a config value (also persists to DB)
     await config_cache.set("cache_threshold_code", 0.90)
 """  # noqa: W293
@@ -72,7 +72,7 @@ DEFAULT_CONFIGS: dict[str, Any] = {
 class ConfigCache:
     """
     TTL-based in-memory config cache.
-    
+
     - App startup-এ DB থেকে config load করে
     - TTL (ডিফল্ট: ৬০ সেকেন্ড) পর্যন্ত in-memory serve করে
     - TTL expire হলে পরবর্তি request-এ DB reload করে
@@ -125,13 +125,14 @@ class ConfigCache:
                 logger.exception(f"❌ Critical task failure in config_cache.py: {e}")
                 from core.event_bus import ErrorEvent
                 from core.event_bus import error_event_bus
+
                 error_event_bus.emit(
                     ErrorEvent(
                         module="backend.core.config_cache",
                         error_type=type(e).__name__,
                         message=str(e),
                         severity="WARNING",
-                        context={"action": "async_load_fallback"}
+                        context={"action": "async_load_fallback"},
                     )
                 )
 
@@ -201,10 +202,7 @@ class ConfigCache:
         with self._lock:
             if category:
                 # Filter by key prefix pattern (e.g., "cache_threshold_", "provider_")
-                return {
-                    k: v for k, v in self._cache.items()
-                    if k.startswith(category)
-                }
+                return {k: v for k, v in self._cache.items() if k.startswith(category)}
             return dict(self._cache)
 
     async def set(self, key: str, value: Any, description: str = "") -> bool:

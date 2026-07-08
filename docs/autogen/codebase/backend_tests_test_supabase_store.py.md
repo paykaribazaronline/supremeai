@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_supabase_store.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,568 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.510368
+**সাইজ:** 1,554 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.566715
 
 ---
 
@@ -42,9 +42,7 @@ def test_supabase_store_cloud_upsert():
     mock_supabase_mod = MagicMock()
     mock_supabase_mod.create_client.return_value = mock_client
 
-    with patch.dict("sys.modules", {"supabase": mock_supabase_mod}), patch.dict(
-        os.environ, {"SUPABASE_KEY": "my-key"}
-    ):
+    with patch.dict("sys.modules", {"supabase": mock_supabase_mod}), patch.dict(os.environ, {"SUPABASE_KEY": "my-key"}):
         store = SupabaseStore(
             database_url="postgresql://db.supabase.co:5432/postgres",
             local_path=":memory:",

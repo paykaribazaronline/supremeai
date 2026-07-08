@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_payments.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,679 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.524040
+**সাইজ:** 1,673 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.574705
 
 ---
 
@@ -20,9 +20,7 @@ from core.config import settings
 
 client = TestClient(app)
 
-mock_token = jwt.encode(
-    {"user_id": "test-user-id", "role": "admin"}, settings.jwt_secret, algorithm="HS256"
-)
+mock_token = jwt.encode({"user_id": "test-user-id", "role": "admin"}, settings.jwt_secret, algorithm="HS256")
 auth_headers = {"Authorization": f"Bearer {mock_token}"}
 
 

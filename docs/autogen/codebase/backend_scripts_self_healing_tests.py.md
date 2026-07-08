@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/scripts/self_healing_tests.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,365 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.483543
+**সাইজ:** 3,323 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.550890
 
 ---
 
@@ -51,6 +51,7 @@ class VulnerabilityPredictor:
         dangerous_patterns = ["os.system", "subprocess.call", "DROP TABLE", "eval("]
         return any(pattern in code for pattern in dangerous_patterns)
 
+
 async def _single_healing_iteration(state: HealingState) -> HealingState:
     if VulnerabilityPredictor.scan(state.code):
         state.result = "vulnerable"
@@ -64,24 +65,21 @@ async def _single_healing_iteration(state: HealingState) -> HealingState:
     state = await apply_patch(state)
     return state
 
+
 def _quarantine_and_diagnose(state: HealingState, reason: str):
     import loguru
+
     quarantine_dir = Path("data/quarantine")
     quarantine_dir.mkdir(parents=True, exist_ok=True)
     report_file = quarantine_dir / f"diagnostic_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
 
-    report = {
-        "reason": reason,
-        "retries": state.retries,
-        "code": state.code,
-        "tests": state.tests,
-        "timestamp": datetime.now().isoformat()
-    }
+    report = {"reason": reason, "retries": state.retries, "code": state.code, "tests": state.tests, "timestamp": datetime.now().isoformat()}
 
     with open(report_file, "w") as f:
         json.dump(report, f, indent=2)
 
     loguru.logger.error(f"[Quarantine] Skill isolated due to {reason}. Diagnostic report saved to {report_file}")
+
 
 async def run_healing_loop(code: str, tests: str, max_retries: int = 3) -> dict[str, Any]:
     state = HealingState()

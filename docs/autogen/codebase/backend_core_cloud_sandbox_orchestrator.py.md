@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/cloud_sandbox_orchestrator.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,941 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.477652
+**সাইজ:** 10,725 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.547392
 
 ---
 
@@ -67,12 +67,7 @@ class CloudSandboxOrchestrator:
             logger.warning("Cannot create sandbox: API key is missing. Running in mock/dry-run mode.")
             mock_id = f"mock-sandbox-id-{os.urandom(4).hex()}"
             self._active_sandboxes[mock_id] = {"created_at": datetime.datetime.now(datetime.UTC), "status": "running"}
-            return {
-                "id": mock_id,
-                "status": "running",
-                "provider": self.provider,
-                "mock": True
-            }
+            return {"id": mock_id, "status": "running", "provider": self.provider, "mock": True}
 
         endpoint = self._get_endpoint("create")
         payload = self._prepare_creation_payload(spec)
@@ -82,7 +77,7 @@ class CloudSandboxOrchestrator:
             response = await self.client.post(endpoint, json=payload)
             response.raise_for_status()
             data = response.json()
-            sandbox_id = data.get('id')
+            sandbox_id = data.get("id")
             if sandbox_id:
                 self._active_sandboxes[sandbox_id] = {"created_at": datetime.datetime.now(datetime.UTC), "status": "running"}
             logger.success(f"Successfully created sandbox with ID: {sandbox_id}")
@@ -97,12 +92,7 @@ class CloudSandboxOrchestrator:
     async def get_sandbox_status(self, sandbox_id: str) -> dict[str, Any] | None:
         if not self.api_key:
             logger.info(f"Dry-run: Fetching status for sandbox {sandbox_id}")
-            return {
-                "id": sandbox_id,
-                "status": "running",
-                "provider": self.provider,
-                "mock": True
-            }
+            return {"id": sandbox_id, "status": "running", "provider": self.provider, "mock": True}
 
         endpoint = self._get_endpoint("status", sandbox_id)
         try:
@@ -116,13 +106,7 @@ class CloudSandboxOrchestrator:
     async def run_command(self, sandbox_id: str, command: str, timeout: int = 300) -> dict[str, Any] | None:
         if not self.api_key:
             logger.info(f"Dry-run: Running command '{command}' in sandbox {sandbox_id}")
-            return {
-                "status": "COMPLETED",
-                "exitCode": 0,
-                "stdout": f"Mock output for execution of: {command}",
-                "stderr": "",
-                "mock": True
-            }
+            return {"status": "COMPLETED", "exitCode": 0, "stdout": f"Mock output for execution of: {command}", "stderr": "", "mock": True}
 
         endpoint = self._get_endpoint("run", sandbox_id)
         payload = {"input": {"command": command, "timeout": timeout}}
@@ -183,12 +167,12 @@ class CloudSandboxOrchestrator:
                                 error_pattern=f"SandboxTimeout: Sandbox {sandbox_id} was active for > {ttl_minutes}m",
                                 proposed_fix="# Recommend analyzing sandbox logs or increasing TTL for task.",
                                 impact_score=0.3,
-                                dependency_tree=["core.cloud_sandbox_orchestrator"]
+                                dependency_tree=["core.cloud_sandbox_orchestrator"],
                             )
 
                         await self.destroy_sandbox(sandbox_id)
 
-                await asyncio.sleep(60) # Check every minute
+                await asyncio.sleep(60)  # Check every minute
             except Exception as e:  # noqa: BLE001
                 logger.error(f"Auto-Destroy Worker encountered an error: {e}")
                 await asyncio.sleep(60)
@@ -207,21 +191,23 @@ class CloudSandboxOrchestrator:
             # উইন্ডোজের জন্য .cmd সাফিক্স হ্যান্ডলিং করা হয়েছে
             cmd = "freebuff.cmd" if os.name == "nt" else "freebuff"
             process = await asyncio.create_subprocess_exec(
-                cmd, "--cwd", working_dir,
+                cmd,
+                "--cwd",
+                working_dir,
                 stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
 
             # প্রম্পট ইনপুট হিসেবে পাঠানো হচ্ছে
-            stdout, stderr = await process.communicate(input=prompt.encode('utf-8'))
+            stdout, stderr = await process.communicate(input=prompt.encode("utf-8"))
 
             if process.returncode == 0:
                 logger.success("✅ Freebuff task completed successfully.")
-                return {"status": "success", "output": stdout.decode('utf-8')}
+                return {"status": "success", "output": stdout.decode("utf-8")}
             else:
                 logger.error(f"❌ Freebuff task failed: {stderr.decode('utf-8')}")
-                return {"status": "error", "error": stderr.decode('utf-8')}
+                return {"status": "error", "error": stderr.decode("utf-8")}
 
         except FileNotFoundError:
             logger.error("🚨 Freebuff CLI not found. Please ensure it is installed globally (npm install -g freebuff).")

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/byoc_api.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,601 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.489197
+**সাইজ:** 6,447 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.554249
 
 ---
 
@@ -49,10 +49,7 @@ async def save_credentials(payload: BYOCCredentialsPayload):
     sa_dict = payload.gcp_credentials.model_dump()
     is_valid = GCPCredentialManager.validate_service_account(sa_dict)
     if not is_valid:
-        raise HTTPException(
-            status_code=400,
-            detail="GCP Service Account validation failed: Key is invalid or malformed."
-        )
+        raise HTTPException(status_code=400, detail="GCP Service Account validation failed: Key is invalid or malformed.")
 
     # বাংলা মন্তব্য: প্লেইন-টেক্সট সেভ না করে Fernet কী দিয়ে এনক্রিপ্ট করে সিকিউরড ভোল্ট-এ রাখা হচ্ছে
     try:
@@ -60,11 +57,7 @@ async def save_credentials(payload: BYOCCredentialsPayload):
         user_id = "default_user_session"
         encrypted_vault[user_id] = encrypted_data
 
-        return {
-            "status": "success",
-            "message": "GCP Service Account credentials encrypted and securely saved.",
-            "provider": payload.provider
-        }
+        return {"status": "success", "message": "GCP Service Account credentials encrypted and securely saved.", "provider": payload.provider}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to encrypt credentials: {str(e)}") from e
 
@@ -78,7 +71,7 @@ async def deploy_container(payload: BYOCDeployRequest, background_tasks: Backgro
     Checks user tier quota limits and starts background container deployment.
     """
     user_id = "default_user_session"
-    user_tier = "free" # প্রোডাকশনে সেশন ও সাবস্ক্রিপশন টিয়ার থেকে আসবে
+    user_tier = "free"  # প্রোডাকশনে সেশন ও সাবস্ক্রিপশন টিয়ার থেকে আসবে
 
     # Load quota limits
     # বাংলা মন্তব্য: রাউট লেভেলেই কোটা চেক করে রিকোয়েস্ট ফিল্টার করা হচ্ছে যাতে ওভারফ্লো না হয়
@@ -95,16 +88,12 @@ async def deploy_container(payload: BYOCDeployRequest, background_tasks: Backgro
     current_active = sum(1 for job in active_jobs.values() if job.user_id == user_id and job.status == "success")
     if current_active >= user_limits["max_containers"]:
         raise HTTPException(
-            status_code=403,
-            detail=f"Deployment blocked: Account tier limit reached ({user_limits['max_containers']} active containers max)."
+            status_code=403, detail=f"Deployment blocked: Account tier limit reached ({user_limits['max_containers']} active containers max)."
         )
 
     # Check if credentials exist in secure vault
     if user_id not in encrypted_vault:
-        raise HTTPException(
-            status_code=400,
-            detail="GCP Service Account credentials not found. Please upload credentials first."
-        )
+        raise HTTPException(status_code=400, detail="GCP Service Account credentials not found. Please upload credentials first.")
 
     # Initiate background job deployment
     job_id = str(uuid.uuid4())
@@ -115,7 +104,7 @@ async def deploy_container(payload: BYOCDeployRequest, background_tasks: Backgro
         provider=payload.provider,
         status="deploying",
         started_at=datetime.now(UTC),
-        logs=["Initializing Terraform build pipeline...", "Spinning up GCP Cloud Run service context..."]
+        logs=["Initializing Terraform build pipeline...", "Spinning up GCP Cloud Run service context..."],
     )
     active_jobs[job_id] = job
 
@@ -141,11 +130,7 @@ async def deploy_container(payload: BYOCDeployRequest, background_tasks: Backgro
 
     background_tasks.add_task(run_deployment)
 
-    return {
-        "status": "pending",
-        "job_id": job_id,
-        "message": f"Deployment pipeline initialized for skill '{payload.skill_name}'."
-    }
+    return {"status": "pending", "job_id": job_id, "message": f"Deployment pipeline initialized for skill '{payload.skill_name}'."}
 
 
 # ==========================================

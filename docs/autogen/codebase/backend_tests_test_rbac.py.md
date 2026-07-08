@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_rbac.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,106 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.509393
+**সাইজ:** 2,070 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.566174
 
 ---
 
@@ -72,11 +72,7 @@ def test_require_denied(rbac):
 
 
 def test_custom_role_matrix():
-    custom = {
-        "custom": type(
-            "RBAC", (), {"role": "custom", "permissions": ("read", "custom_action")}
-        )()
-    }
+    custom = {"custom": type("RBAC", (), {"role": "custom", "permissions": ("read", "custom_action")})()}
     rbac = RoleBasedAccessControl(role_matrix=custom)
     assert rbac.has_permission("custom", "custom_action") is True
     assert rbac.has_permission("custom", "admin") is False

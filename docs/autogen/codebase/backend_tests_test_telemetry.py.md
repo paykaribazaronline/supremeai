@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_telemetry.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,402 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.523286
+**সাইজ:** 6,314 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.574283
 
 ---
 
@@ -48,9 +48,7 @@ def test_setup_tracing_noop():
 
 def test_setup_tracing_with_endpoint():
     with (
-        patch(
-            "opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter"
-        ) as mock_exporter,
+        patch("opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter") as mock_exporter,
         patch("core.telemetry.BatchSpanProcessor") as mock_processor,
         patch("core.telemetry.TracerProvider") as mock_provider_class,
     ):
@@ -59,20 +57,14 @@ def test_setup_tracing_with_endpoint():
 
         setup_tracing("test-service", "http://127.0.0.1:4317")
 
-        mock_exporter.assert_called_once_with(
-            endpoint="http://127.0.0.1:4317", insecure=True
-        )
+        mock_exporter.assert_called_once_with(endpoint="http://127.0.0.1:4317", insecure=True)
         mock_processor.assert_called_once_with(mock_exporter.return_value)
-        mock_provider.add_span_processor.assert_called_once_with(
-            mock_processor.return_value
-        )
+        mock_provider.add_span_processor.assert_called_once_with(mock_processor.return_value)
 
 
 def test_setup_tracing_without_endpoint_no_exporter():
     with (
-        patch(
-            "opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter"
-        ) as mock_exporter,
+        patch("opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter") as mock_exporter,
         patch("core.telemetry.TracerProvider") as mock_provider_class,
     ):
         mock_provider = MagicMock()

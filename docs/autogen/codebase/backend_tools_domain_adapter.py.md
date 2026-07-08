@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/domain_adapter.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,941 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.546412
+**সাইজ:** 6,803 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.588295
 
 ---
 
@@ -69,9 +69,7 @@ class DomainAdapter:
     def __init__(self):
         self._profiles: dict[str, dict[str, Any]] = {}
         self._load_profiles()
-        logger.info(
-            f"Initialized DomainAdapter with {len(self._profiles)} domain profiles"
-        )
+        logger.info(f"Initialized DomainAdapter with {len(self._profiles)} domain profiles")
 
     def _local_path(self) -> str:
         base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -92,9 +90,11 @@ class DomainAdapter:
         except Exception as e:  # noqa: BLE001
             try:
                 import loguru
+
                 loguru.logger.error(f"Tool execution error: {e}")
             except Exception as e:  # noqa: BLE001
                 import logging
+
                 logging.warning(f"Exception suppressed: {e}")
             pass
         for domain, defaults in self.DOMAINS.items():
@@ -104,9 +104,7 @@ class DomainAdapter:
         self._profiles[domain] = profile
         if db.client:
             try:
-                db.client.table("domain_profiles").upsert(
-                    {"domain": domain, **profile}
-                ).execute()
+                db.client.table("domain_profiles").upsert({"domain": domain, **profile}).execute()
             except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Domain profile save failed: {exc}")
         try:
@@ -116,9 +114,7 @@ class DomainAdapter:
         except Exception as exc:  # noqa: BLE001
             logger.debug(f"Local domain profile save failed: {exc}")
 
-    def get_prompt(
-        self, domain: str, user_prompt: str, context: str | None = None
-    ) -> dict[str, Any]:
+    def get_prompt(self, domain: str, user_prompt: str, context: str | None = None) -> dict[str, Any]:
         profile = self._profiles.get(domain) or self.DOMAINS.get("code", {})
         system_prompt = profile.get("system_prompt", "")
         full_prompt = user_prompt
@@ -136,18 +132,14 @@ class DomainAdapter:
             "disclaimer": disclaimer,
         }
 
-    def adapt_request(
-        self, domain: str, user_prompt: str, context: str | None = None
-    ) -> dict[str, Any]:
+    def adapt_request(self, domain: str, user_prompt: str, context: str | None = None) -> dict[str, Any]:
         prompt_pkg = self.get_prompt(domain, user_prompt, context=context)
         try:
             from brain.model_router import ModelRouter
 
             router = ModelRouter()
             prompt = f"System: {prompt_pkg['system_prompt']}\n\nUser: {prompt_pkg['user_prompt']}\n\nRespond concisely with actionable detail."
-            result = router.route_and_generate(
-                prompt, task_type="coding" if domain == "code" else "reasoning"
-            )
+            result = router.route_and_generate(prompt, task_type="coding" if domain == "code" else "reasoning")
             text = result.get("text", "") if isinstance(result, dict) else str(result)
             return {
                 "domain": domain,
@@ -171,8 +163,6 @@ class DomainAdapter:
         return {"status": "success", "domain": domain, "profile": merged}
 
     def list_domains(self) -> list[str]:
-        return list(self.DOMAINS.keys()) + [
-            d for d in self._profiles if d not in self.DOMAINS
-        ]
+        return list(self.DOMAINS.keys()) + [d for d in self._profiles if d not in self.DOMAINS]
 
 ```

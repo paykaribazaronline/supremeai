@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_api_new_endpoints.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,044 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.522773
+**সাইজ:** 4,984 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.574000
 
 ---
 
@@ -159,15 +159,9 @@ def test_config_endpoint_admin_control(monkeypatch):
     monkeypatch.setattr(
         config_route.db,
         "get_config",
-        lambda key: (
-            ["awesome-selfhosted", "libraries.io"]
-            if key == "marketplace.resource_sources"
-            else None
-        ),
+        lambda key: (["awesome-selfhosted", "libraries.io"] if key == "marketplace.resource_sources" else None),
     )
-    monkeypatch.setattr(
-        config_route.db, "set_config", lambda key, value, category="general": None
-    )
+    monkeypatch.setattr(config_route.db, "set_config", lambda key, value, category="general": None)
 
     resp = client.get("/config/marketplace.resource_sources", headers=auth_headers)
     assert resp.status_code == 200

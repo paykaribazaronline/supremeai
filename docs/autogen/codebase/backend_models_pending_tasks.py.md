@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/pending_tasks.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,004 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.497969
+**সাইজ:** 4,003 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.559461
 
 ---
 
@@ -129,7 +129,6 @@ def update_task_status(task_id: str, status: TaskStatus, resolved_by: str, reaso
     row = cursor.fetchone()
     conn.close()
     return row_to_task(row) if row else None
-
 
 
 def row_to_task(row: sqlite3.Row) -> PendingTask:

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/core/test_core_missing_coverage.py
 
 **প্রকার:** .py  
-**সাইজ:** 23,135 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.529235
+**সাইজ:** 23,392 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.577802
 
 ---
 
@@ -24,6 +24,7 @@ import pytest
 # Helpers / fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture(autouse=True)
 def _isolate_test_env(monkeypatch):
     monkeypatch.setenv("ENV", "test")
@@ -34,6 +35,7 @@ def _isolate_test_env(monkeypatch):
 
 
 # ========================== config.py ==========================
+
 
 class TestSettingsValidators:
     """Cover validator branches not exercised by test_config.py."""
@@ -125,6 +127,7 @@ class TestSettingsValidators:
 
 
 # ========================== config_cache.py ==========================
+
 
 class TestConfigCacheMissingBranches:
     def test_should_refresh_after_ttl(self):
@@ -228,6 +231,7 @@ class TestConfigCacheMissingBranches:
 
 # ========================== config_proxy.py ==========================
 
+
 class TestConfigProxyMissingBranches:
     @pytest.mark.asyncio
     async def test_get_refreshes_after_expiry(self):
@@ -270,6 +274,7 @@ class TestConfigProxyMissingBranches:
 
 # ========================== cost_guard.py ==========================
 
+
 class TestCostGuardMissingBranches:
     @pytest.mark.asyncio
     async def test_sync_get_branch_when_not_coroutine(self):
@@ -288,6 +293,7 @@ class TestCostGuardMissingBranches:
 
 
 # ========================== event_bus.py ==========================
+
 
 class TestEventBusMissingBranches:
     def test_register_listener(self):
@@ -376,6 +382,7 @@ class TestEventBusMissingBranches:
 
 # ========================== pubsub.py ==========================
 
+
 class TestPubSubMissingBranches:
     def test_subscribe_creates_channel(self):
         from core.pubsub import PubSub
@@ -421,6 +428,7 @@ class TestPubSubMissingBranches:
 
 # ========================== knowledge_base.py ==========================
 
+
 class TestKnowledgeBaseMissingBranches:
     def test_module_creates_data_dir_and_file(self, monkeypatch, tmp_path):
         import importlib
@@ -431,6 +439,7 @@ class TestKnowledgeBaseMissingBranches:
         monkeypatch.setenv("SUPREMEAI_MEMORY_FILE_PATH", str(tmp_path / "data" / "memory_vault.json"))
 
         import core.knowledge_base as kb
+
         importlib.reload(kb)
 
         assert (tmp_path / "data").exists()
@@ -438,6 +447,7 @@ class TestKnowledgeBaseMissingBranches:
 
 
 # ========================== security_vault.py ==========================
+
 
 class TestSecurityVaultModuleInit:
     def test_module_raises_without_encryption_key(self, monkeypatch):
@@ -453,6 +463,7 @@ class TestSecurityVaultModuleInit:
 
 # ========================== swarm_orchestrator.py ==========================
 
+
 class TestSwarmOrchestratorMissingBranches:
     @pytest.mark.anyio
     async def test_execute_task_runs_all_agents(self):
@@ -460,9 +471,11 @@ class TestSwarmOrchestratorMissingBranches:
 
         orchestrator = SwarmOrchestrator()
 
-        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock) as mock_design, \
-             patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock) as mock_code, \
-             patch.object(orchestrator.qa, "verify", new_callable=AsyncMock) as mock_verify:
+        with (
+            patch.object(orchestrator.architect, "design", new_callable=AsyncMock) as mock_design,
+            patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock) as mock_code,
+            patch.object(orchestrator.qa, "verify", new_callable=AsyncMock) as mock_verify,
+        ):
             workspace = await orchestrator.execute_task("prompt", "uid")
             mock_design.assert_called_once()
             mock_code.assert_called_once()
@@ -471,6 +484,7 @@ class TestSwarmOrchestratorMissingBranches:
 
 
 # ========================== llm_gateway.py ==========================
+
 
 class TestLLMGatewayMissingBranches:
     @pytest.mark.anyio
@@ -486,12 +500,18 @@ class TestLLMGatewayMissingBranches:
         mock_cost_guard = MagicMock()
         mock_cost_guard.check_budget = AsyncMock()
 
-        with patch("core.llm_gateway.get_firestore_db", return_value=mock_db), \
-             patch("core.llm_gateway.CostGuard", return_value=mock_cost_guard), \
-             patch("core.llm_gateway.litellm.acompletion", new_callable=AsyncMock, return_value=MagicMock(
-                 choices=[MagicMock(message=MagicMock(content="ok"))],
-                 _response_metadata={},
-             )) as mock_call:
+        with (
+            patch("core.llm_gateway.get_firestore_db", return_value=mock_db),
+            patch("core.llm_gateway.CostGuard", return_value=mock_cost_guard),
+            patch(
+                "core.llm_gateway.litellm.acompletion",
+                new_callable=AsyncMock,
+                return_value=MagicMock(
+                    choices=[MagicMock(message=MagicMock(content="ok"))],
+                    _response_metadata={},
+                ),
+            ) as mock_call,
+        ):
             os.environ["OPENAI_API_KEY"] = "mock"
             result = await gateway.acompletion(prompt="hi", tenant_id="t1")
             assert result["success"] is True
@@ -509,10 +529,14 @@ class TestLLMGatewayMissingBranches:
             "fallback_chain": ["fb/model"],
         }
 
-        with patch("core.llm_gateway.litellm.acompletion", new_callable=AsyncMock, return_value=MagicMock(
-            choices=[MagicMock(message=MagicMock(content="ok"))],
-            _response_metadata={},
-        )) as mock_call:
+        with patch(
+            "core.llm_gateway.litellm.acompletion",
+            new_callable=AsyncMock,
+            return_value=MagicMock(
+                choices=[MagicMock(message=MagicMock(content="ok"))],
+                _response_metadata={},
+            ),
+        ) as mock_call:
             os.environ["OPENAI_API_KEY"] = "mock"
             os.environ["GROQ_API_KEY"] = "mock"
             result = await gateway.acompletion(prompt="hi", provider="groq")
@@ -528,10 +552,14 @@ class TestLLMGatewayMissingBranches:
         gateway.cache.query_similar = AsyncMock(return_value=None)
         gateway.routing_policy = {"complexity_rules": {}, "fallback_chain": []}
 
-        with patch("core.llm_gateway.litellm.acompletion", new_callable=AsyncMock, return_value=MagicMock(
-            choices=[MagicMock(message=MagicMock(content="ok"))],
-            _response_metadata={},
-        )) as mock_call:
+        with patch(
+            "core.llm_gateway.litellm.acompletion",
+            new_callable=AsyncMock,
+            return_value=MagicMock(
+                choices=[MagicMock(message=MagicMock(content="ok"))],
+                _response_metadata={},
+            ),
+        ) as mock_call:
             os.environ["OPENAI_API_KEY"] = "mock"
             msgs = [{"role": "user", "content": "hi"}]
             result = await gateway.acompletion(prompt=msgs)
@@ -554,10 +582,12 @@ class TestLLMGatewayMissingBranches:
         mock_cost_guard = MagicMock()
         mock_cost_guard.check_budget = AsyncMock()
 
-        with patch("core.llm_gateway.get_firestore_db", return_value=mock_db), \
-             patch("core.llm_gateway.SelfHealerService", return_value=mock_healer), \
-             patch("core.llm_gateway.CostGuard", return_value=mock_cost_guard), \
-             patch("core.llm_gateway.litellm.acompletion", new_callable=AsyncMock, side_effect=Exception("fail")):
+        with (
+            patch("core.llm_gateway.get_firestore_db", return_value=mock_db),
+            patch("core.llm_gateway.SelfHealerService", return_value=mock_healer),
+            patch("core.llm_gateway.CostGuard", return_value=mock_cost_guard),
+            patch("core.llm_gateway.litellm.acompletion", new_callable=AsyncMock, side_effect=Exception("fail")),
+        ):
             os.environ["OPENAI_API_KEY"] = "mock"
             with pytest.raises(Exception):
                 await gateway.acompletion(prompt="hi", tenant_id="t1")
@@ -571,6 +601,7 @@ class TestLLMGatewayMissingBranches:
 
 
 # ========================== log_batcher.py ==========================
+
 
 class TestLogBatcherMissingBranches:
     @pytest.mark.anyio

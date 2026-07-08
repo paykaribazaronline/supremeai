@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_chaos_worker.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,252 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.513644
+**সাইজ:** 3,186 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.568748
 
 ---
 
@@ -37,9 +37,7 @@ async def test_execute_audit_sequence_all_pass():
     mock_client.post.return_value = mock_response
 
     with (
-        patch(
-            "workers.chaos_worker.generate_fuzz_payloads", return_value=mock_payloads
-        ),
+        patch("workers.chaos_worker.generate_fuzz_payloads", return_value=mock_payloads),
         patch("workers.chaos_worker.run_sandbox_ast_check", return_value=False),
         patch("httpx.AsyncClient") as mock_client_cls,
     ):
@@ -67,9 +65,7 @@ async def test_execute_audit_sequence_fuzz_failure():
     mock_client.post.return_value = mock_response
 
     with (
-        patch(
-            "workers.chaos_worker.generate_fuzz_payloads", return_value=mock_payloads
-        ),
+        patch("workers.chaos_worker.generate_fuzz_payloads", return_value=mock_payloads),
         patch("workers.chaos_worker.run_sandbox_ast_check", side_effect=fake_check),
         patch("httpx.AsyncClient") as mock_client_cls,
     ):
@@ -93,9 +89,7 @@ async def test_execute_audit_sequence_network_failure():
     mock_client.post.side_effect = Exception("Network error")
 
     with (
-        patch(
-            "workers.chaos_worker.generate_fuzz_payloads", return_value=mock_payloads
-        ),
+        patch("workers.chaos_worker.generate_fuzz_payloads", return_value=mock_payloads),
         patch("httpx.AsyncClient") as mock_client_cls,
     ):
         mock_client_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client)

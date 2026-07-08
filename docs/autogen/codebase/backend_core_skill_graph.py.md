@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/skill_graph.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,732 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.477368
+**সাইজ:** 2,702 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.547215
 
 ---
 
@@ -60,9 +60,7 @@ class SkillGraph:
             self._graph.add_edge(dep, skill_id)
         if not nx.is_directed_acyclic_graph(self._graph):
             self._graph.remove_node(skill_id)
-            raise ValueError(
-                f"Adding skill '{skill_id}' creates a cycle in the skill graph"
-            )
+            raise ValueError(f"Adding skill '{skill_id}' creates a cycle in the skill graph")
 
     def remove_skill(self, skill_id: str) -> None:
         """Remove a skill and all incident edges from the graph."""

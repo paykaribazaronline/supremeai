@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/evolution/security_sandbox.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,973 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.502928
+**সাইজ:** 6,318 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.562366
 
 ---
 
@@ -19,30 +19,55 @@ from core.logging_config import logger
 
 class ASTGatekeeper(ast.NodeVisitor):
     """
-    হোয়াইটলিস্ট-বেসড কড়া AST গেটকিপার। যেকোনো ব্ল্যাকলিস্টেড ফাংশন, 
+    হোয়াইটলিস্ট-বেসড কড়া AST গেটকিপার। যেকোনো ব্ল্যাকলিস্টেড ফাংশন,
     মডিউল ইম্পোর্ট বা ইন্টারনাল অ্যাট্রিবিউট ডাইভার্সন দেখলেই এটি এক্সিকিউশন ডিসেবল করে।
     """  # noqa: W291
+
     # বাংলা কমেন্ট: শুধুমাত্র নিরাপদ পাইথন নোডগুলোর হোয়াইটলিস্ট
     ALLOWED_NODES = {
-        ast.Module, ast.Expr, ast.Load, ast.Store, ast.Name,
-        ast.Num, ast.Str, ast.Constant, ast.BinOp, ast.UnaryOp,
-        ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Mod, ast.Pow,
-        ast.List, ast.Dict, ast.Tuple, ast.Set, ast.Compare,
-        ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE,
-        ast.If, ast.Assign, ast.AugAssign, ast.Pass,
-        ast.Call, ast.keyword, ast.FunctionDef, ast.arguments, ast.arg, ast.Return
+        ast.Module,
+        ast.Expr,
+        ast.Load,
+        ast.Store,
+        ast.Name,
+        ast.Num,
+        ast.Str,
+        ast.Constant,
+        ast.BinOp,
+        ast.UnaryOp,
+        ast.Add,
+        ast.Sub,
+        ast.Mult,
+        ast.Div,
+        ast.Mod,
+        ast.Pow,
+        ast.List,
+        ast.Dict,
+        ast.Tuple,
+        ast.Set,
+        ast.Compare,
+        ast.Eq,
+        ast.NotEq,
+        ast.Lt,
+        ast.LtE,
+        ast.Gt,
+        ast.GtE,
+        ast.If,
+        ast.Assign,
+        ast.AugAssign,
+        ast.Pass,
+        ast.Call,
+        ast.keyword,
+        ast.FunctionDef,
+        ast.arguments,
+        ast.arg,
+        ast.Return,
     }
 
     # বাংলা কমেন্ট: মারাত্মক আরসিই (RCE) ভেক্টরের ব্ল্যাকলিস্ট
-    FORBIDDEN_BUILTINS = {
-        'eval', 'exec', 'compile', 'open', '__import__', 'globals',
-        'locals', 'getattr', 'setattr', 'delattr', 'hasattr', 'input'
-    }
+    FORBIDDEN_BUILTINS = {"eval", "exec", "compile", "open", "__import__", "globals", "locals", "getattr", "setattr", "delattr", "hasattr", "input"}
 
-    FORBIDDEN_ATTRIBUTES = {
-        '__subclasses__', '__builtins__', '__globals__', '__code__',
-        '__dict__', '__class__', '__base__', '__bases__'
-    }
+    FORBIDDEN_ATTRIBUTES = {"__subclasses__", "__builtins__", "__globals__", "__code__", "__dict__", "__class__", "__base__", "__bases__"}
 
     def generic_visit(self, node):
         # বাংলা কমেন্ট: নোডটি হোয়াইটলিস্টে না থাকলে সরাসরি Fail-Closed মেকানিজমে রিজেক্ট করা হবে।
@@ -76,6 +101,7 @@ class ASTGatekeeper(ast.NodeVisitor):
 
 class SecurityException(Exception):
     """কাস্টম সিকিউরিটি ভায়োলেশন এক্সেপশন।"""
+
     pass
 
 
@@ -93,10 +119,19 @@ def execute_secure_sandbox(code_source: str, local_scope: dict = None) -> dict:
         gatekeeper.visit(parsed_ast)
 
         # বাংলা কমেন্ট: সম্পূর্ণ ফাকা গ্লোবাল ডিকশনারি দিয়ে exec রান করা হচ্ছে যাতে বিল্ট-ইন এক্সেস না পায় (০% গ্যাপ পলিসি)
-        safe_globals = {"__builtins__": {
-            'print': print, 'range': range, 'len': len, 'int': int,
-            'str': str, 'float': float, 'list': list, 'dict': dict, 'abs': abs
-        }}
+        safe_globals = {
+            "__builtins__": {
+                "print": print,
+                "range": range,
+                "len": len,
+                "int": int,
+                "str": str,
+                "float": float,
+                "list": list,
+                "dict": dict,
+                "abs": abs,
+            }
+        }
 
         # কোড এক্সিকিউশন
         exec(code_source, safe_globals, local_scope)

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/onboarding.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,191 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.486547
+**সাইজ:** 6,972 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.552687
 
 ---
 
@@ -117,9 +117,7 @@ async def complete_onboarding(payload: OnboardingPayload):
     2. Save user preferences (theme, model, language)
     3. Return readiness status
     """
-    logger.info(
-        f"Onboarding completion request for user={payload.user_id} provider={payload.provider}"
-    )
+    logger.info(f"Onboarding completion request for user={payload.user_id} provider={payload.provider}")
 
     # 1. Validate API key
     provider_valid = await _validate_api_key(payload.provider, payload.api_key)
@@ -169,17 +167,10 @@ async def get_onboarding_status(user_id: str) -> dict[str, Any]:
         from database.supabase_client import db
 
         if db.client:
-            res = (
-                db.client.table("user_preferences")
-                .select("*")
-                .eq("user_id", user_id)
-                .execute()
-            )
+            res = db.client.table("user_preferences").select("*").eq("user_id", user_id).execute()
             if res.data:
                 prefs = res.data[0]
-                completed_at = prefs.get("custom_shortcuts", {}).get(
-                    "onboarding_completed_at"
-                )
+                completed_at = prefs.get("custom_shortcuts", {}).get("onboarding_completed_at")
                 return {
                     "user_id": user_id,
                     "onboarding_complete": bool(completed_at),
@@ -187,9 +178,7 @@ async def get_onboarding_status(user_id: str) -> dict[str, Any]:
                     "preferences": {
                         "theme": prefs.get("theme", "dark"),
                         "default_model": prefs.get("default_model", ""),
-                        "language": prefs.get("custom_shortcuts", {}).get(
-                            "language", "en"
-                        ),
+                        "language": prefs.get("custom_shortcuts", {}).get("language", "en"),
                     },
                 }
     except Exception as exc:  # noqa: BLE001
@@ -205,9 +194,7 @@ async def reset_onboarding(user_id: str) -> dict[str, str]:
         from database.supabase_client import db
 
         if db.client:
-            db.client.table("user_preferences").delete().eq(
-                "user_id", user_id
-            ).execute()
+            db.client.table("user_preferences").delete().eq("user_id", user_id).execute()
     except Exception as exc:  # noqa: BLE001
         # বল মনতবয: রসট বযরথ হল আগ নরব success রটরন করত (ভল ইমপরশন);
         # এখন বযরথত warning হসব লগ কর হয় যত সপরট টম সমসয জনত পর

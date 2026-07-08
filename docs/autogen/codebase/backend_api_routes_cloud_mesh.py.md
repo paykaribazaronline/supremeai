@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/cloud_mesh.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,060 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.486954
+**সাইজ:** 3,024 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.552928
 
 ---
 
@@ -59,13 +59,9 @@ async def set_defcon(payload: DefconPayload):
     the system into maintenance mode, locking out non-admin traffic.
     """
     if payload.level not in [1, 2, 3, 4, 5]:
-        raise HTTPException(
-            status_code=400, detail="Invalid DEFCON level. Must be 1-5."
-        )
+        raise HTTPException(status_code=400, detail="Invalid DEFCON level. Must be 1-5.")
 
-    logger.warning(
-        f"Setting system to DEFCON {payload.level}. Reason: {payload.reason}"
-    )
+    logger.warning(f"Setting system to DEFCON {payload.level}. Reason: {payload.reason}")
     # Integration with WAF, API gateway limits, and system global states.
     return {
         "status": "success",

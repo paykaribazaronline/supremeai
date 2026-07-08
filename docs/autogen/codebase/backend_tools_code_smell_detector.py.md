@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/code_smell_detector.py
 
 **প্রকার:** .py  
-**সাইজ:** 22,687 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.540581
+**সাইজ:** 22,189 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.584656
 
 ---
 
@@ -27,9 +27,7 @@ class CodeSmellDetector:
     def __init__(self):
         self.radon_available = self._check_radon()
         self.pylint_available = self._check_pylint()
-        logger.info(
-            f"CodeSmellDetector initialized (radon={self.radon_available}, pylint={self.pylint_available})"
-        )
+        logger.info(f"CodeSmellDetector initialized (radon={self.radon_available}, pylint={self.pylint_available})")
 
     def _check_radon(self) -> bool:
         try:
@@ -67,9 +65,7 @@ class CodeSmellDetector:
                 complexity += len(child.values) - 1
         return complexity
 
-    def analyze_python_file(
-        self, filepath: str, thresholds: dict[str, int] | None = None
-    ) -> list[dict[str, Any]]:
+    def analyze_python_file(self, filepath: str, thresholds: dict[str, int] | None = None) -> list[dict[str, Any]]:
         if not os.path.exists(filepath):
             return []
 
@@ -140,9 +136,7 @@ class CodeSmellDetector:
                             }
                         )
 
-                    return_count = sum(
-                        1 for child in ast.walk(node) if isinstance(child, ast.Return)
-                    )
+                    return_count = sum(1 for child in ast.walk(node) if isinstance(child, ast.Return))
                     if return_count > 7:
                         smells.append(
                             {
@@ -157,11 +151,7 @@ class CodeSmellDetector:
                         )
 
                 if isinstance(node, ast.ClassDef):
-                    methods = sum(
-                        1
-                        for child in ast.iter_child_nodes(node)
-                        if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef))
-                    )
+                    methods = sum(1 for child in ast.iter_child_nodes(node) if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)))
                     if methods > class_methods_threshold:
                         smells.append(
                             {
@@ -218,9 +208,7 @@ class CodeSmellDetector:
 
         return smells
 
-    def _detect_duplicate_functions(
-        self, tree: ast.AST, filepath: str
-    ) -> list[dict[str, Any]]:
+    def _detect_duplicate_functions(self, tree: ast.AST, filepath: str) -> list[dict[str, Any]]:
         smells: list[dict[str, Any]] = []
         bodies: dict[str, list[dict[str, Any]]] = {}
         for node in ast.walk(tree):
@@ -250,9 +238,7 @@ class CodeSmellDetector:
                 )
         return smells
 
-    def _detect_broad_exceptions(
-        self, tree: ast.AST, file_path: str
-    ) -> list[dict[str, Any]]:
+    def _detect_broad_exceptions(self, tree: ast.AST, file_path: str) -> list[dict[str, Any]]:
         """Detects broad exception handlers like `except Exception:` or bare `except:`."""
         smells: list[dict[str, Any]] = []
         for node in ast.walk(tree):
@@ -291,9 +277,7 @@ class CodeSmellDetector:
         dump = re.sub(r"\d+", "0", dump)
         return dump
 
-    def _analyze_radon(
-        self, filepath: str, tree: ast.AST | None, threshold: int
-    ) -> list[dict[str, Any]]:
+    def _analyze_radon(self, filepath: str, tree: ast.AST | None, threshold: int) -> list[dict[str, Any]]:
         try:
             from radon.complexity import cc_visit
             from radon.metrics import mi_visit
@@ -330,9 +314,11 @@ class CodeSmellDetector:
             except Exception as e:  # noqa: BLE001
                 try:
                     import loguru
+
                     loguru.logger.error(f"Tool execution error: {e}")
                 except Exception as e:  # noqa: BLE001
                     import logging
+
                     logging.warning(f"Exception suppressed: {e}")
                 pass
             return results
@@ -341,9 +327,7 @@ class CodeSmellDetector:
         except SyntaxError:
             return []
 
-    def analyze_directory(
-        self, directory_path: str, thresholds: dict[str, int] | None = None
-    ) -> dict[str, list[dict[str, Any]]]:
+    def analyze_directory(self, directory_path: str, thresholds: dict[str, int] | None = None) -> dict[str, list[dict[str, Any]]]:
         results: dict[str, list[dict[str, Any]]] = {}
         if not os.path.isdir(directory_path):
             return results
@@ -371,9 +355,7 @@ class CodeSmellDetector:
 
         return results
 
-    def analyze_js_ts_file(
-        self, filepath: str, thresholds: dict[str, int] | None = None
-    ) -> list[dict[str, Any]]:
+    def analyze_js_ts_file(self, filepath: str, thresholds: dict[str, int] | None = None) -> list[dict[str, Any]]:
         if not os.path.exists(filepath):
             return []
         smells: list[dict[str, Any]] = []
@@ -411,9 +393,7 @@ class CodeSmellDetector:
                     func_count += 1
                     if "(" in stripped:
                         params = stripped.split("(")[1].split(")")[0]
-                        if len(
-                            [p.strip() for p in params.split(",") if p.strip()]
-                        ) > max_params and not stripped.startswith("//"):
+                        if len([p.strip() for p in params.split(",") if p.strip()]) > max_params and not stripped.startswith("//"):
                             big_param_funcs += 1
                 if in_func:
                     current_func_lines += 1
@@ -461,9 +441,7 @@ class CodeSmellDetector:
             logger.error(f"Failed to analyze JS/TS file {filepath}: {e}")
         return smells
 
-    def _analyze_pylint_directory(
-        self, directory_path: str
-    ) -> dict[str, list[dict[str, Any]]]:
+    def _analyze_pylint_directory(self, directory_path: str) -> dict[str, list[dict[str, Any]]]:
         output: dict[str, list[dict[str, Any]]] = {}
         with tempfile.TemporaryDirectory() as tmpdir:
             rcfile = os.path.join(tmpdir, ".pylintrc")
@@ -490,16 +468,10 @@ class CodeSmellDetector:
                         continue
                     output.setdefault(path, []).append(
                         {
-                            "type": item.get("symbol")
-                            or item.get("message-id", "pylint"),
+                            "type": item.get("symbol") or item.get("message-id", "pylint"),
                             "line": item.get("line", 0),
                             "message": item.get("message", ""),
-                            "severity": (
-                                "warning"
-                                if item.get("type")
-                                in ("convention", "refactor", "warning")
-                                else "critical"
-                            ),
+                            "severity": ("warning" if item.get("type") in ("convention", "refactor", "warning") else "critical"),
                             "source": "pylint",
                         }
                     )

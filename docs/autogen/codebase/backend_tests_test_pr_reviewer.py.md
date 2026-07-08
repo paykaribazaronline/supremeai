@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_pr_reviewer.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,480 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.516041
+**সাইজ:** 1,496 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.570139
 
 ---
 
@@ -21,7 +21,9 @@ from tools.pr_reviewer import PRReviewer
 @pytest.mark.anyio
 async def test_static_security_scan_detects_secret():
     reviewer = PRReviewer()
-    diff = "diff --git a/src/config.py b/src/config.py\n--- a/src/config.py\n+++ b/src/config.py\n@@ -1,3 +1,4 @@\n+aws_key = 'AKIA1234567890123456'\n"
+    diff = (
+        "diff --git a/src/config.py b/src/config.py\n--- a/src/config.py\n+++ b/src/config.py\n@@ -1,3 +1,4 @@\n+aws_key = 'AKIA1234567890123456'\n"
+    )
     comments = await reviewer.analyze_diff(diff)
     assert len(comments) == 1
     assert comments[0]["severity"] == "critical"

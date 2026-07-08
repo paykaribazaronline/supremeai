@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_admin_god.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,606 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.513783
+**সাইজ:** 5,607 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.568829
 
 ---
 
@@ -10,6 +10,7 @@
 
 ```py
 """Admin God Layer tests for SupremeAI 2.0."""
+
 import pytest
 
 from core.admin_god import AdminGodLayer

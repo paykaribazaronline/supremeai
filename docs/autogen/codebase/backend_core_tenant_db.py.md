@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/tenant_db.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,846 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.482912
+**সাইজ:** 2,816 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.550528
 
 ---
 
@@ -28,9 +28,7 @@ class TenantAwareFirestore:
 
     def __init__(self, tenant_id: str):
         if not tenant_id:
-            logger.critical(
-                "🚨 SECURITY BREACH: Attempted to initialize DB without a tenant_id!"
-            )
+            logger.critical("🚨 SECURITY BREACH: Attempted to initialize DB without a tenant_id!")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Database access denied: Missing tenant isolation context.",

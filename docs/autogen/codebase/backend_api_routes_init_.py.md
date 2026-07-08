@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/__init__.py
 
 **প্রকার:** .py  
-**সাইজ:** 12,911 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.487248
+**সাইজ:** 12,952 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.553107
 
 ---
 
@@ -19,6 +19,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for approval_manager_router: {traceback.format_exc()}")
     approval_manager_router = None
 
@@ -30,6 +31,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for admin_dashboard_router: {traceback.format_exc()}")
     admin_dashboard_router = None
 
@@ -41,6 +43,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for agent_router: {traceback.format_exc()}")
     agent_router = None
 
@@ -52,6 +55,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for auth_router: {traceback.format_exc()}")
     auth_router = None
 
@@ -63,6 +67,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for async_task_router: {traceback.format_exc()}")
     async_task_router = None
 
@@ -74,6 +79,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for cdc_router: {traceback.format_exc()}")
     cdc_router = None
 
@@ -85,6 +91,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for browser_router: {traceback.format_exc()}")
     browser_router = None
 
@@ -96,6 +103,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for codeflow_router: {traceback.format_exc()}")
     codeflow_router = None
 
@@ -107,6 +115,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for feedback_router: {traceback.format_exc()}")
     feedback_router = None
 
@@ -118,6 +127,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for knowledge_router: {traceback.format_exc()}")
     knowledge_router = None
 
@@ -129,6 +139,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for marketplace_router: {traceback.format_exc()}")
     marketplace_router = None
 
@@ -140,6 +151,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for media_router: {traceback.format_exc()}")
     media_router = None
 
@@ -151,6 +163,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for memory_router: {traceback.format_exc()}")
     memory_router = None
 
@@ -162,6 +175,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for metrics_router: {traceback.format_exc()}")
     metrics_router = None
 
@@ -174,6 +188,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for site_actions_router: {traceback.format_exc()}")
     site_actions_router = None
 
@@ -186,6 +201,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for llm_gateway_router: {traceback.format_exc()}")
     llm_gateway_router = None
 
@@ -197,6 +213,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for simulator_router: {traceback.format_exc()}")
     simulator_router = None
 
@@ -208,6 +225,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for stream_router: {traceback.format_exc()}")
     stream_router = None
 
@@ -219,6 +237,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for task_router: {traceback.format_exc()}")
     task_router = None
 
@@ -230,6 +249,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for email_router: {traceback.format_exc()}")
     email_router = None
 
@@ -241,6 +261,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for github_router: {traceback.format_exc()}")
     github_router = None
 
@@ -252,6 +273,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for internal_router: {traceback.format_exc()}")
     internal_router = None
 
@@ -263,6 +285,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for config_router: {traceback.format_exc()}")
     config_router = None
 
@@ -274,6 +297,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for sso_router: {traceback.format_exc()}")
     sso_router = None
 
@@ -285,6 +309,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for repos_router: {traceback.format_exc()}")
     repos_router = None
 
@@ -296,6 +321,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for tools_ops_router: {traceback.format_exc()}")
     tools_ops_router = None
 
@@ -307,6 +333,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for voice_router: {traceback.format_exc()}")
     voice_router = None
 
@@ -318,6 +345,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for onboarding_router: {traceback.format_exc()}")
     onboarding_router = None
 
@@ -329,6 +357,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for tools_registry_router: {traceback.format_exc()}")
     tools_registry_router = None
 
@@ -340,6 +369,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for preferences_router: {traceback.format_exc()}")
     preferences_router = None
 
@@ -351,6 +381,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for usage_metrics_router: {traceback.format_exc()}")
     usage_metrics_router = None
 
@@ -362,6 +393,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for agents_router: {traceback.format_exc()}")
     agents_router = None
 
@@ -373,6 +405,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for payments_router: {traceback.format_exc()}")
     payments_router = None
 
@@ -384,6 +417,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for markdown_router: {traceback.format_exc()}")
     markdown_router = None
 
@@ -395,6 +429,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for api_keys_router: {traceback.format_exc()}")
     api_keys_router = None
 
@@ -406,6 +441,7 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for graph_router: {traceback.format_exc()}")
     graph_router = None
 
@@ -417,26 +453,31 @@ except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for ci_webhooks_router: {traceback.format_exc()}")
     ci_webhooks_router = None
 
 try:
     from .websocket_voice import router as websocket_voice_router
+
     _safe_imports["websocket_voice_router"] = websocket_voice_router
 except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for websocket_voice_router: {traceback.format_exc()}")
     websocket_voice_router = None
 
 try:
     from .integrations import router as integrations_router
+
     _safe_imports["integrations_router"] = integrations_router
 except Exception:  # noqa: BLE001
     import traceback
 
     from loguru import logger
+
     logger.warning(f"Router import failed for integrations_router: {traceback.format_exc()}")
     integrations_router = None
 

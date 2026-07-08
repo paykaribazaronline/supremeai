@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/alembic/versions/664fe16e33ca_add_ci_reports_table.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,709 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.501496
+**সাইজ:** 1,694 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.561486
 
 ---
 
@@ -12,7 +12,7 @@
 """add_ci_reports_table
 
 Revision ID: 664fe16e33ca
-Revises: 
+Revises:
 Create Date: 2026-06-29 02:10:12.661696
 
 """  # noqa: W291
@@ -52,9 +52,7 @@ def upgrade() -> None:
         """
     )
     op.execute("CREATE INDEX IF NOT EXISTS idx_ci_reports_run_id ON ci_reports(run_id)")
-    op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_ci_reports_created ON ci_reports(created_at DESC)"
-    )
+    op.execute("CREATE INDEX IF NOT EXISTS idx_ci_reports_created ON ci_reports(created_at DESC)")
 
 
 def downgrade() -> None:

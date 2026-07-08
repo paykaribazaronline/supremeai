@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/workers/chaos_worker.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,028 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.469038
+**সাইজ:** 5,759 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.542078
 
 ---
 
@@ -63,18 +63,15 @@ class NightlyChaosAuditor:
                     # স্যান্ডবক্স যদি কোনো ম্যালিশিয়াস কোডকে ট্রু (Safe) বলে দেয়, তবে সিকিউরিটি লিক!
                     if run_sandbox_ast_check(code):
                         failures += 1
-                        logger.critical(
-                            "🚨 [SECURITY BREACH] Sandbox bypass detected during autonomous fuzzing!"
-                        )
+                        logger.critical("🚨 [SECURITY BREACH] Sandbox bypass detected during autonomous fuzzing!")
                 except Exception as e:  # noqa: BLE001
                     import logging
+
                     logging.warning(f"Exception suppressed: {e}")  # SecurityError আশা করা হচ্ছে, তাই এটি পাস
 
             # 🧪 টেস্ট ২: রানটাইম কানেকশন পুল স্ট্রেস চেক (Synthetic Heavy Requests)
             async with httpx.AsyncClient(timeout=5.0) as client:
-                headers = {
-                    "Idempotency-Key": f"auto-chaos-{datetime.now(UTC).timestamp()}"
-                }
+                headers = {"Idempotency-Key": f"auto-chaos-{datetime.now(UTC).timestamp()}"}
                 # একই টাইমে ব্যাক-টু-ব্যাক ৫টি রিকোয়েস্ট ফায়ার করে রাউটার স্টেট চেক
                 tasks = [
                     client.post(
@@ -87,10 +84,7 @@ class NightlyChaosAuditor:
                 responses = await asyncio.gather(*tasks, return_exceptions=True)
 
                 for res in responses:
-                    if (
-                        isinstance(res, Exception)
-                        or res.status_code >= SERVER_ERROR_THRESHOLD
-                    ):
+                    if isinstance(res, Exception) or res.status_code >= SERVER_ERROR_THRESHOLD:
                         failures += 1
                         logger.error(
                             "💥 Runtime Connection Failure or %d Server Error detected: %s",
@@ -102,9 +96,7 @@ class NightlyChaosAuditor:
             # asyncio.to_thread দিয়ে blocking I/O offload করা হচ্ছে — event loop freeze বন্ধ হবে।
             now = datetime.now(UTC)
             if failures > 0:
-                logger.critical(
-                    f"💣 Chaos Audit FAILED with {failures} anomalies. LOCKING deployment gates!"
-                )
+                logger.critical(f"💣 Chaos Audit FAILED with {failures} anomalies. LOCKING deployment gates!")
                 gate_data = {
                     "status": "LOCKED",
                     "reason": f"Autonomous audit failed with {failures} anomalies.",
@@ -114,9 +106,7 @@ class NightlyChaosAuditor:
                     await asyncio.to_thread(self.gate_ref.set, gate_data)
                 return False
             else:
-                logger.info(
-                    "🏆 Autonomous Chaos Audit PASSED perfectly. Deploy gate is UNLOCKED."
-                )
+                logger.info("🏆 Autonomous Chaos Audit PASSED perfectly. Deploy gate is UNLOCKED.")
                 gate_data = {
                     "status": "UNLOCKED",
                     "reason": "All self-testing gates returned green.",
@@ -127,9 +117,7 @@ class NightlyChaosAuditor:
                 return True
 
         except Exception as global_err:  # noqa: BLE001
-            logger.critical(
-                f"⚠️ Auditor crashed internally: {str(global_err)}. Locking pipeline for safety."
-            )
+            logger.critical(f"⚠️ Auditor crashed internally: {str(global_err)}. Locking pipeline for safety.")
             error_data = {
                 "status": "LOCKED",
                 "reason": f"Auditor internal error: {str(global_err)}",

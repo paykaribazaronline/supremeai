@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/swarm_orchestrator.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,468 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.474715
+**সাইজ:** 1,469 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.545578
 
 ---
 
@@ -24,6 +24,7 @@ class SwarmOrchestrator:
     """
     Coordinates execution of specialized agents sharing state inside a workspace context.
     """
+
     def __init__(self):
         self.architect = ArchitectureAgent()
         self.coder = CodeGeneratorAgent()

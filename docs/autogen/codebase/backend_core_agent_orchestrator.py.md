@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/agent_orchestrator.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,631 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.480384
+**সাইজ:** 10,512 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.549006
 
 ---
 
@@ -20,9 +20,7 @@ from pydantic import BaseModel
 
 MAX_AGENT_TOKENS = int(os.getenv("MAX_AGENT_TOKENS", "5000"))
 MAX_AGENT_ITERATIONS = int(os.getenv("MAX_AGENT_ITERATIONS", "5"))
-ADMIN_PERMISSIONS_REQUIRED = (
-    os.getenv("AGENT_ADMIN_PERMISSIONS_REQUIRED", "true").lower() == "true"
-)
+ADMIN_PERMISSIONS_REQUIRED = os.getenv("AGENT_ADMIN_PERMISSIONS_REQUIRED", "true").lower() == "true"
 
 # [Antigravity 2026-06-22] Import free-tier tracker for budget-aware routing
 try:
@@ -32,9 +30,7 @@ try:
     _free_tier_available = True
 except ImportError:
     _free_tier_available = False
-    logger.warning(
-        "[Orchestrator] free_tier_tracker not available — budget-aware routing disabled"
-    )
+    logger.warning("[Orchestrator] free_tier_tracker not available — budget-aware routing disabled")
 
 TIER_KEYWORDS = {
     1: [
@@ -99,9 +95,7 @@ def route_request(prompt: str, task_type: str = "general") -> "SmartSemanticRout
             reasoning=f"Explicit task_type={task_type}",
         )
 
-    if "VISION" in upper_task or any(
-        ext in prompt_lower for ext in [".png", ".jpg", ".jpeg", ".pdf"]
-    ):
+    if "VISION" in upper_task or any(ext in prompt_lower for ext in [".png", ".jpg", ".jpeg", ".pdf"]):
         return SmartSemanticRouter(
             intent="vision",
             requires_expensive=True,
@@ -110,11 +104,7 @@ def route_request(prompt: str, task_type: str = "general") -> "SmartSemanticRout
         )
 
     if _matches_any(prompt_lower, TIER_KEYWORDS[1]):
-        intent = (
-            "coding"
-            if _matches_any(prompt_lower, TIER_KEYWORDS[1][:10])
-            else "reasoning"
-        )
+        intent = "coding" if _matches_any(prompt_lower, TIER_KEYWORDS[1][:10]) else "reasoning"
         return SmartSemanticRouter(
             intent=intent,
             requires_expensive=True,
@@ -239,6 +229,7 @@ class AsyncTaskManager:
         if celery_url:
             try:
                 import httpx
+
                 # বাংলা মন্তব্য: HTTP Timeout Audit Gate সন্তুষ্ট করতে explicit timeout=10.0 সেট করা হলো
                 def send_enqueue():
                     try:
@@ -252,11 +243,13 @@ class AsyncTaskManager:
                         logger.debug(f"Celery request failed: {ex}")
 
                 import asyncio
+
                 try:
                     loop = asyncio.get_running_loop()
                     loop.run_in_executor(None, send_enqueue)
                 except RuntimeError:
                     import threading
+
                     threading.Thread(target=send_enqueue, daemon=True).start()
             except Exception as e:  # noqa: BLE001
                 logger.debug(f"Celery enqueue failed: {e}")
@@ -330,9 +323,7 @@ def budget_aware_route(
                     f"tier={semantic_route.tier}, best_free_provider={best_provider}"
                 )
             else:
-                logger.warning(
-                    "[Orchestrator] budget_aware_route: all free providers exhausted"
-                )
+                logger.warning("[Orchestrator] budget_aware_route: all free providers exhausted")
         except Exception as exc:  # noqa: BLE001
             logger.warning(f"[Orchestrator] budget_aware_route failed: {exc}")
 

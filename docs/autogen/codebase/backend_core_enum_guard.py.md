@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/enum_guard.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,608 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.483362
+**সাইজ:** 2,532 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.550760
 
 ---
 
@@ -20,6 +20,7 @@ from database.session import engine
 class EnumMismatchError(Exception):
     pass
 
+
 async def guard_enum(db_enum_name: str, py_enum: type[enum.Enum]):
     """
     Validates that the Python Enum matches the Postgres Enum at startup.
@@ -28,12 +29,8 @@ async def guard_enum(db_enum_name: str, py_enum: type[enum.Enum]):
     try:
         async with engine.connect() as conn:
             result = await conn.execute(
-                text(
-                    "SELECT enumlabel FROM pg_enum "
-                    "JOIN pg_type ON pg_enum.enumtypid = pg_type.oid "
-                    "WHERE pg_type.typname = :enum_name"
-                ),
-                {"enum_name": db_enum_name}
+                text("SELECT enumlabel FROM pg_enum " "JOIN pg_type ON pg_enum.enumtypid = pg_type.oid " "WHERE pg_type.typname = :enum_name"),
+                {"enum_name": db_enum_name},
             )
             db_labels = {row[0] for row in result.all()}
 

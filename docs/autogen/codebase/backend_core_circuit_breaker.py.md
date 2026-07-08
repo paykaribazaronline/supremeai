@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/circuit_breaker.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,436 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.479601
+**সাইজ:** 4,388 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.548564
 
 ---
 
@@ -81,10 +81,7 @@ class CircuitBreaker:
 
     def allow_request(self) -> bool:
         if self.state == "OPEN":
-            if (
-                self.opened_at is not None
-                and (time.time() - self.opened_at) >= self.recovery_timeout
-            ):
+            if self.opened_at is not None and (time.time() - self.opened_at) >= self.recovery_timeout:
                 self.state = "HALF_OPEN"
                 self._persist_to_redis()
                 return True

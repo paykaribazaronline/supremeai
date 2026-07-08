@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_circuit_breaker.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,269 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.521621
+**সাইজ:** 2,270 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.573329
 
 ---
 
@@ -10,6 +10,7 @@
 
 ```py
 """Tests for core.circuit_breaker.CircuitBreaker."""
+
 import time
 
 import pytest

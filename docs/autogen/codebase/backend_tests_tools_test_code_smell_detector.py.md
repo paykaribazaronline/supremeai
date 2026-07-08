@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/tools/test_code_smell_detector.py
 
 **প্রকার:** .py  
-**সাইজ:** 20,354 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.531905
+**সাইজ:** 20,080 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.579400
 
 ---
 
@@ -18,7 +18,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-#对环境变量做最小设置,避免导入时触发外部依赖
+# 对环境变量做最小设置,避免导入时触发外部依赖
 os.environ.setdefault("OPENROUTER_API_KEY", "")
 os.environ.setdefault("HF_API_KEY", "")
 os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
@@ -49,8 +49,8 @@ def _make_fake_radon(cc_return, mi_return):
 # _normalize examinaiton
 # ========================
 
-class TestNormalize:
 
+class TestNormalize:
     def test_collapses_whitespace(self, detector):
         result = detector._normalize("def foo():\n    return 1")
         assert "\n" not in result
@@ -89,8 +89,8 @@ class TestNormalize:
 # _calculate_complexity
 # ========================
 
-class TestCalculateComplexity:
 
+class TestCalculateComplexity:
     def test_simple_function_base_complexity(self, detector):
         code = "def foo():\n    return 1\n"
         tree = ast.parse(code)
@@ -124,13 +124,7 @@ class TestCalculateComplexity:
         assert detector._calculate_complexity(tree.body[0]) == 4
 
     def test_nested_if_and_for(self, detector):
-        code = (
-            "def foo():\n"
-            "    for i in range(10):\n"
-            "        if i > 5:\n"
-            "            while True:\n"
-            "                break\n"
-        )
+        code = "def foo():\n" "    for i in range(10):\n" "        if i > 5:\n" "            while True:\n" "                break\n"
         tree = ast.parse(code)
         assert detector._calculate_complexity(tree.body[0]) >= 4
 
@@ -149,8 +143,8 @@ class TestCalculateComplexity:
 # _detect_broad_exceptions
 # ========================
 
-class TestDetectBroadExceptions:
 
+class TestDetectBroadExceptions:
     def test_detects_bare_except(self, detector):
         code = "def foo():\n    try:\n        pass\n    except:\n        pass\n"
         tree = ast.parse(code)
@@ -187,15 +181,7 @@ class TestDetectBroadExceptions:
         assert result == []
 
     def test_multiple_broad_handlers(self, detector):
-        code = (
-            "def foo():\n"
-            "    try:\n"
-            "        pass\n"
-            "    except Exception:\n"
-            "        pass\n"
-            "    except:\n"
-            "        pass\n"
-        )
+        code = "def foo():\n" "    try:\n" "        pass\n" "    except Exception:\n" "        pass\n" "    except:\n" "        pass\n"
         tree = ast.parse(code)
         result = detector._detect_broad_exceptions(tree, "test.py")
         assert len(result) == 2
@@ -204,25 +190,19 @@ class TestDetectBroadExceptions:
 # ========================
 # _detect_duplicate_functions
 # Bengali: ast.dump(node.body)-তে বাগ রয়েছে — এটি একটি লিটারাল
-#密鑠 এই টেস্টটি বর্তমান আচরণের সাথে সামঞ্জস্যপূর্ণভাবে লিখা হয়েছে।
+# 密鑠 এই টেস্টটি বর্তমান আচরণের সাথে সামঞ্জস্যপূর্ণভাবে লিখা হয়েছে।
 # ========================
 
-class TestDetectDuplicateFunctions:
 
+class TestDetectDuplicateFunctions:
     def test_duplicate_detection_crashes_due_to_body_bug(self, detector):
-        code = (
-            "def foo():\n    x = 1\n    return x\n\n"
-            "def bar():\n    x = 1\n    return x\n"
-        )
+        code = "def foo():\n    x = 1\n    return x\n\n" "def bar():\n    x = 1\n    return x\n"
         tree = ast.parse(code)
         with pytest.raises(TypeError):
             detector._detect_duplicate_functions(tree, "test.py")
 
     def test_unique_bodies_also_crashes(self, detector):
-        code = (
-            "def foo():\n    x = 1\n    return x\n\n"
-            "def bar():\n    y = 2\n    return y\n"
-        )
+        code = "def foo():\n    x = 1\n    return x\n\n" "def bar():\n    y = 2\n    return y\n"
         tree = ast.parse(code)
         with pytest.raises(TypeError):
             detector._detect_duplicate_functions(tree, "test.py")
@@ -234,10 +214,7 @@ class TestDetectDuplicateFunctions:
             detector._detect_duplicate_functions(tree, "test.py")
 
     def test_mocked_dump_detects_duplicate(self, detector):
-        code = (
-            "def foo():\n    x = 1\n    return x\n\n"
-            "def bar():\n    x = 1\n    return x\n"
-        )
+        code = "def foo():\n    x = 1\n    return x\n\n" "def bar():\n    x = 1\n    return x\n"
         tree = ast.parse(code)
         with patch.object(detector, "_normalize", return_value="same_norm"):
             with patch("backend.tools.code_smell_detector.ast.dump", side_effect=lambda node: "same"):
@@ -251,8 +228,8 @@ class TestDetectDuplicateFunctions:
 # analyze_python_file
 # ========================
 
-class TestAnalyzePythonFile:
 
+class TestAnalyzePythonFile:
     def test_missing_file_returns_empty(self, detector, tmp_path):
         result = detector.analyze_python_file(str(tmp_path / "nonexistent.py"))
         assert result == []
@@ -321,8 +298,8 @@ class TestAnalyzePythonFile:
 # analyze_js_ts_file
 # ========================
 
-class TestAnalyzeJsTsFile:
 
+class TestAnalyzeJsTsFile:
     def test_missing_file_returns_empty(self, detector, tmp_path):
         result = detector.analyze_js_ts_file(str(tmp_path / "nonexistent.js"))
         assert result == []
@@ -368,8 +345,8 @@ class TestAnalyzeJsTsFile:
 # _analyze_radon
 # ========================
 
-class TestAnalyzeRadon:
 
+class TestAnalyzeRadon:
     def test_returns_empty_when_radon_missing(self, detector):
         with patch.dict(sys.modules, {"radon": None, "radon.complexity": None, "radon.metrics": None}):
             result = detector._analyze_radon("test.py", None, 10)
@@ -426,8 +403,8 @@ class TestAnalyzeRadon:
 # compute_coupling_metrics
 # ========================
 
-class TestComputeCouplingMetrics:
 
+class TestComputeCouplingMetrics:
     def test_no_imports_zero_coupling(self, detector):
         tree = ast.parse("def foo():\n    return 1\n")
         result = detector.compute_coupling_metrics(tree, "test.py")
@@ -464,8 +441,8 @@ class TestComputeCouplingMetrics:
 # Constructor availability
 # ========================
 
-class TestConstructorAvailability:
 
+class TestConstructorAvailability:
     def test_init_reports_radon_status(self):
         with patch.object(CodeSmellDetector, "_check_radon", return_value=True):
             with patch.object(CodeSmellDetector, "_check_pylint", return_value=False):

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/comment_thread_ai.py
 
 **প্রকার:** .py  
-**সাইজ:** 17,206 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.539546
+**সাইজ:** 16,792 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.584031
 
 ---
 
@@ -65,21 +65,15 @@ class CommentThreadAI:
             "Accept": "application/vnd.github.v3+json",
             "X-GitHub-Api-Version": "2022-11-28",
         }
-        logger.info(
-            f"CommentThreadAI initialized (GitHub token: {'set' if self.token else 'MISSING'})"
-        )
+        logger.info(f"CommentThreadAI initialized (GitHub token: {'set' if self.token else 'MISSING'})")
 
     # ── LLM call ─────────────────────────────────────────────────────────────
-    async def _llm(
-        self, prompt: str, task_type: str = "coding", max_cost: float = 0.02
-    ) -> str:
+    async def _llm(self, prompt: str, task_type: str = "coding", max_cost: float = 0.02) -> str:
         try:
             from brain.model_router import ModelRouter
 
             r = ModelRouter()
-            result = await r.async_route_and_generate(
-                prompt, task_type=task_type, max_cost=max_cost
-            )
+            result = await r.async_route_and_generate(prompt, task_type=task_type, max_cost=max_cost)
             return result.get("text", "") if isinstance(result, dict) else str(result)
         except Exception as exc:  # noqa: BLE001
             logger.error(f"LLM call failed: {exc}")
@@ -94,9 +88,7 @@ class CommentThreadAI:
 
     async def _gh_post(self, path: str, body: dict) -> dict[str, Any]:
         async with httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.post(
-                f"{GITHUB_API}{path}", headers=self._headers, json=body
-            )
+            resp = await client.post(f"{GITHUB_API}{path}", headers=self._headers, json=body)
         resp.raise_for_status()
         return resp.json()
 
@@ -110,9 +102,11 @@ class CommentThreadAI:
         except Exception as e:  # noqa: BLE001
             try:
                 import loguru
+
                 loguru.logger.error(f"Tool execution error: {e}")
             except Exception as e:  # noqa: BLE001
                 import logging
+
                 logging.warning(f"Exception suppressed: {e}")
             pass
         try:
@@ -122,9 +116,11 @@ class CommentThreadAI:
         except Exception as e:  # noqa: BLE001
             try:
                 import loguru
+
                 loguru.logger.error(f"Tool execution error: {e}")
             except Exception as e:  # noqa: BLE001
                 import logging
+
                 logging.warning(f"Exception suppressed: {e}")
             pass
         return comments
@@ -135,31 +131,27 @@ class CommentThreadAI:
         except Exception as e:  # noqa: BLE001
             try:
                 import loguru
+
                 loguru.logger.error(f"Tool execution error: {e}")
             except Exception as e:  # noqa: BLE001
                 import logging
+
                 logging.warning(f"Exception suppressed: {e}")
             return []
 
-    async def _post_pr_comment(
-        self, repo: str, pr_number: int, body: str
-    ) -> dict[str, Any]:
+    async def _post_pr_comment(self, repo: str, pr_number: int, body: str) -> dict[str, Any]:
         """Post a general comment on a PR."""
         if not self.token:
             return {"status": "skipped", "reason": "No GitHub token"}
         try:
-            result = await self._gh_post(
-                f"/repos/{repo}/issues/{pr_number}/comments", {"body": body}
-            )
+            result = await self._gh_post(f"/repos/{repo}/issues/{pr_number}/comments", {"body": body})
             logger.info(f"Posted comment on {repo}#{pr_number}")
             return {"status": "success", "comment_url": result.get("html_url")}
         except Exception as exc:  # noqa: BLE001
             logger.error(f"GitHub post comment failed: {exc}")
             return {"status": "error", "error": str(exc)}
 
-    async def _reply_to_review_comment(
-        self, repo: str, pr_number: int, comment_id: int, body: str
-    ) -> dict[str, Any]:
+    async def _reply_to_review_comment(self, repo: str, pr_number: int, comment_id: int, body: str) -> dict[str, Any]:
         """Reply to a specific review comment thread."""
         if not self.token:
             return {"status": "skipped", "reason": "No GitHub token"}
@@ -191,9 +183,7 @@ class CommentThreadAI:
         2. Explain the reasoning
         3. Optionally post reply to GitHub
         """
-        logger.info(
-            f"Handling PR comment: {repo_full_name}#{pr_number} file={file_path}:{line_number}"
-        )
+        logger.info(f"Handling PR comment: {repo_full_name}#{pr_number} file={file_path}:{line_number}")
 
         location = ""
         if file_path:
@@ -232,18 +222,12 @@ class CommentThreadAI:
         if auto_reply and self.token:
             reply_body = f"🤖 **SupremeAI Auto-Response**\n\n{ai_response}\n\n---\n*Generated by SupremeAI. Please review before applying.*"
             if comment_id:
-                post_result = await self._reply_to_review_comment(
-                    repo_full_name, pr_number, comment_id, reply_body
-                )
+                post_result = await self._reply_to_review_comment(repo_full_name, pr_number, comment_id, reply_body)
             else:
-                post_result = await self._post_pr_comment(
-                    repo_full_name, pr_number, reply_body
-                )
+                post_result = await self._post_pr_comment(repo_full_name, pr_number, reply_body)
 
             result["comment_posted"] = post_result.get("status") == "success"
-            result["comment_url"] = post_result.get("comment_url") or post_result.get(
-                "reply_url"
-            )
+            result["comment_url"] = post_result.get("comment_url") or post_result.get("reply_url")
 
         return result
 
@@ -297,14 +281,10 @@ class CommentThreadAI:
             "summary": summary,
         }
 
-    async def detect_stale_prs(
-        self, repo_full_name: str, days_threshold: int = 7
-    ) -> dict[str, Any]:
+    async def detect_stale_prs(self, repo_full_name: str, days_threshold: int = 7) -> dict[str, Any]:
         """Find PRs with no activity in N days."""
         try:
-            prs = await self._gh_get(
-                f"/repos/{repo_full_name}/pulls?state=open&per_page=50"
-            )
+            prs = await self._gh_get(f"/repos/{repo_full_name}/pulls?state=open&per_page=50")
         except Exception as exc:  # noqa: BLE001
             return {"status": "error", "error": str(exc)}
 
@@ -316,9 +296,7 @@ class CommentThreadAI:
             updated = pr.get("updated_at", "")
             if updated:
                 try:
-                    dt = datetime.datetime.strptime(
-                        updated, "%Y-%m-%dT%H:%M:%SZ"
-                    ).replace(tzinfo=datetime.UTC)
+                    dt = datetime.datetime.strptime(updated, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=datetime.UTC)
                     days_idle = (now - dt).days
                     if days_idle >= days_threshold:
                         stale.append(
@@ -333,9 +311,11 @@ class CommentThreadAI:
                 except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
+
                         loguru.logger.error(f"Tool execution error: {e}")
                     except Exception as e:  # noqa: BLE001
                         import logging
+
                         logging.warning(f"Exception suppressed: {e}")
                     pass
 
@@ -350,11 +330,7 @@ class CommentThreadAI:
     async def handle_github_webhook(self, payload: dict[str, Any]) -> dict[str, Any]:
         """Process GitHub webhook events for PR comments."""
         action = payload.get("action", "")
-        (
-            "pr_review_comment"
-            if "pull_request_review_comment" in str(payload.keys())
-            else "issue_comment"
-        )
+        ("pr_review_comment" if "pull_request_review_comment" in str(payload.keys()) else "issue_comment")
 
         if action not in ("created", "edited"):
             return {"status": "ignored", "action": action}
@@ -435,9 +411,7 @@ async def detect_stale(owner: str, repo: str, days: int = 7):
 
 
 @router.post("/webhook")
-async def github_webhook(
-    request: Request, x_github_event: str = Header(default="ping")
-):
+async def github_webhook(request: Request, x_github_event: str = Header(default="ping")):
     """GitHub webhook receiver for PR comment events."""
     if x_github_event == "ping":
         return {"status": "pong"}
@@ -446,9 +420,11 @@ async def github_webhook(
     except Exception as e:  # noqa: BLE001
         try:
             import loguru
+
             loguru.logger.error(f"Tool execution error: {e}")
         except Exception as e:  # noqa: BLE001
             import logging
+
             logging.warning(f"Exception suppressed: {e}")
         raise HTTPException(status_code=400, detail="Invalid JSON payload")
 

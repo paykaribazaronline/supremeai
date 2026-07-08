@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/proxy_manager.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,167 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.544307
+**সাইজ:** 2,169 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.587039
 
 ---
 
@@ -14,11 +14,13 @@ import json
 from typing import List
 from loguru import logger
 
+
 class ProxyManager:
     """
     Manages and rotates proxies for stealth requests.
     Supports config loading and round-robin scheduling.
     """
+
     def __init__(self, config_path: str = "config/proxy_list.json"):
         self.config_path = config_path
         self.proxies: List[str] = []

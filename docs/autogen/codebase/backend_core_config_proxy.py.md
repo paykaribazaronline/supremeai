@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/config_proxy.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,875 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.481754
+**সাইজ:** 1,876 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.549821
 
 ---
 
@@ -53,7 +53,7 @@ class DynamicConfigProxy:
                         "args": 5,
                         "class_methods": 15,
                     },
-                    "COMMON_STRINGS_TO_IGNORE": ["", "utf-8", "rb", "wb", "r", "w", "a", "x", "b", "t", "+"]
+                    "COMMON_STRINGS_TO_IGNORE": ["", "utf-8", "rb", "wb", "r", "w", "a", "x", "b", "t", "+"],
                 }
                 self._expiry = datetime.now() + timedelta(minutes=1)
         except Exception as e:

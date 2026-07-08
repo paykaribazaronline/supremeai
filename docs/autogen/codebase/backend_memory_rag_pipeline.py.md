@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/memory/rag_pipeline.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,546 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.500653
+**সাইজ:** 1,518 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.561009
 
 ---
 
@@ -20,9 +20,7 @@ class RAGPipeline:
     def __init__(self, vector_store: ChromaDBStore = None):
         self.vector_store = vector_store or ChromaDBStore()
 
-    def chunk_text(
-        self, text: str, chunk_size: int = 500, overlap: int = 100
-    ) -> list[str]:
+    def chunk_text(self, text: str, chunk_size: int = 500, overlap: int = 100) -> list[str]:
         words = text.split()
         chunks = []
         i = 0
@@ -35,9 +33,7 @@ class RAGPipeline:
                 break
         return chunks
 
-    def ingest_document(
-        self, doc_id: str, content: str, metadata: dict[str, Any] = None
-    ):
+    def ingest_document(self, doc_id: str, content: str, metadata: dict[str, Any] = None):
         if metadata is None:
             metadata = {}
         chunks = self.chunk_text(content)

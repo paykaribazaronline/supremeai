@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/selector_healing.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,381 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.493597
+**সাইজ:** 1,387 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.556913
 
 ---
 
@@ -17,6 +17,7 @@ from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/admin/selector-healing", tags=["Self-Healing Logs"])
 
+
 class HealingEventOut(BaseModel):
     id: str
     ts: str
@@ -28,8 +29,10 @@ class HealingEventOut(BaseModel):
     screenshot_before_base64: str = ""
     screenshot_after_base64: str = ""
 
+
 class DecisionIn(BaseModel):
     approve: bool
+
 
 # In-memory mock for now since the DB schema (selector_healing_event) is handled by SQLAlchemy in phase 1
 MOCK_EVENTS = [
@@ -42,13 +45,15 @@ MOCK_EVENTS = [
         "confidence_score": 98,
         "auto_applied": False,
         "screenshot_before_base64": "",
-        "screenshot_after_base64": ""
+        "screenshot_after_base64": "",
     }
 ]
+
 
 @router.get("/")
 def get_healing_logs():
     return {"items": MOCK_EVENTS}
+
 
 @router.post("/{event_id}/decision")
 def make_healing_decision(event_id: str, payload: DecisionIn):

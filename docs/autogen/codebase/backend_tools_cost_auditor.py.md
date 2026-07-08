@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/cost_auditor.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,731 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.540178
+**সাইজ:** 2,701 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.584427
 
 ---
 
@@ -67,9 +67,7 @@ class CostAuditor:
             plt.tight_layout()
             plt.savefig(image_report_path, dpi=150)
             plt.close()
-            logger.info(
-                f"Cost reports generated. Image: {image_report_path}, Text: {text_report_path}"
-            )
+            logger.info(f"Cost reports generated. Image: {image_report_path}, Text: {text_report_path}")
         except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to generate cost report image: {e}")
 

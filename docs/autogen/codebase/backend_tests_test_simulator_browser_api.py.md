@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_simulator_browser_api.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,550 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.520060
+**সাইজ:** 2,536 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.572470
 
 ---
 
@@ -38,9 +38,7 @@ def test_simulator_profile_endpoints():
 
 def test_simulator_install_uninstall():
     # Install app
-    resp = client.post(
-        "/api/simulator/install?userId=testuser", json={"appId": "myapp"}
-    )
+    resp = client.post("/api/simulator/install?userId=testuser", json={"appId": "myapp"})
     assert resp.status_code == 200
     data = resp.json()
     assert data["success"] is True

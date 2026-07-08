@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_evolution_pipeline.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,907 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.519553
+**সাইজ:** 4,825 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.572181
 
 ---
 
@@ -80,9 +80,7 @@ async def test_pipeline_success(clean_dynamic_skills):
 
     with patch("core.llm_gateway.llm_gateway.acompletion", new=mock_acompletion):
         creator = AutoSkillCreator()
-        result = await creator.generate_and_deploy_skill(
-            user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer"
-        )
+        result = await creator.generate_and_deploy_skill(user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer")
 
         assert result["success"] is True
         assert result["skill_name"] == "SentimentAnalyzer"
@@ -100,18 +98,14 @@ async def test_pipeline_validation_mismatch(clean_dynamic_skills):
 
     # Modify mock JSON so that execute return value mismatch validation expected output
     mismatch_json = MOCK_AI_RESPONSE_JSON.copy()
-    mismatch_json["code"] = (
-        "class SentimentAnalyzer:\n    async def execute(self, kwargs):\n        return {'sentiment': 'negative'}\n"
-    )
+    mismatch_json["code"] = "class SentimentAnalyzer:\n    async def execute(self, kwargs):\n        return {'sentiment': 'negative'}\n"
 
     async def mock_acompletion(*args, **kwargs):
         return {"text": json.dumps(mismatch_json)}
 
     with patch("core.llm_gateway.llm_gateway.acompletion", new=mock_acompletion):
         creator = AutoSkillCreator()
-        result = await creator.generate_and_deploy_skill(
-            user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer"
-        )
+        result = await creator.generate_and_deploy_skill(user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer")
 
         assert result["success"] is False
         assert "Validation test 1 failed" in result["error"]
@@ -136,9 +130,7 @@ async def test_pipeline_invalid_uss_pydantic(clean_dynamic_skills):
 
     with patch("core.llm_gateway.llm_gateway.acompletion", new=mock_acompletion):
         creator = AutoSkillCreator()
-        result = await creator.generate_and_deploy_skill(
-            user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer"
-        )
+        result = await creator.generate_and_deploy_skill(user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer")
 
         assert result["success"] is False
         assert "USS Validation Exception" in result["error"]

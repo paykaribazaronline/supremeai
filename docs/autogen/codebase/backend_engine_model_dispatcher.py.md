@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/engine/model_dispatcher.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,959 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.484834
+**সাইজ:** 1,963 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.551677
 
 ---
 
@@ -16,12 +16,14 @@ from loguru import logger
 
 try:
     import litellm
+
     HAS_LITELLM = True
 except ImportError:
     HAS_LITELLM = False
 
 try:
     from langsmith import traceable
+
     HAS_LANGSMITH = True
 except ImportError:
     HAS_LANGSMITH = False
@@ -52,6 +54,7 @@ def get_fallback_chain(model: str) -> list[str]:
 
 
 if HAS_LANGSMITH:
+
     @traceable(name="model_dispatch")
     async def dispatch(task: str, complexity: int, user_mode: str) -> dict[str, Any]:
         model = select_model(complexity, user_mode)
@@ -68,6 +71,7 @@ if HAS_LANGSMITH:
             logger.error(f"Model dispatch failed: {exc}")
             return {"model": model, "text": "", "error": str(exc)}
 else:
+
     async def dispatch(task: str, complexity: int, user_mode: str) -> dict[str, Any]:
         model = select_model(complexity, user_mode)
         return {"model": model, "text": "", "error": "langsmith not installed"}

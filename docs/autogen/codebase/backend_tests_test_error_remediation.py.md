@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_error_remediation.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,600 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.507291
+**সাইজ:** 3,489 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.564970
 
 ---
 
@@ -10,6 +10,7 @@
 
 ```py
 """Error remediation tests for SupremeAI 2.0."""
+
 import sys
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -39,9 +40,7 @@ class TestErrorRemediation:
         """Qdrant ইনস্টল থাকলে ইনিশialization করা হচ্ছে।"""
         _skip_if_no_qdrant()
         mock_qdrant = MagicMock()
-        with patch(
-            "core.error_remediation.QdrantClient", return_value=mock_qdrant
-        ) as mock_client:
+        with patch("core.error_remediation.QdrantClient", return_value=mock_qdrant) as mock_client:
             remediation = ErrorRemediation()
             mock_client.assert_called_once()
             assert remediation.qdrant is mock_qdrant
@@ -62,9 +61,7 @@ class TestErrorRemediation:
         mock_qdrant.search.return_value = [mock_result]
 
         with patch("core.error_remediation.HAS_QDRANT", True):
-            with patch(
-                "core.error_remediation.QdrantClient", return_value=mock_qdrant
-            ):
+            with patch("core.error_remediation.QdrantClient", return_value=mock_qdrant):
                 remediation = ErrorRemediation()
                 result = await remediation.lookup_fix("error-signature-123")
                 assert result == "Retry with exponential backoff"
@@ -76,9 +73,7 @@ class TestErrorRemediation:
         mock_qdrant.search.return_value = []
 
         with patch("core.error_remediation.HAS_QDRANT", True):
-            with patch(
-                "core.error_remediation.QdrantClient", return_value=mock_qdrant
-            ):
+            with patch("core.error_remediation.QdrantClient", return_value=mock_qdrant):
                 remediation = ErrorRemediation()
                 result = await remediation.lookup_fix("error-signature-123")
                 assert result is None
@@ -90,9 +85,7 @@ class TestErrorRemediation:
         mock_qdrant.search.side_effect = Exception("Qdrant connection error")
 
         with patch("core.error_remediation.HAS_QDRANT", True):
-            with patch(
-                "core.error_remediation.QdrantClient", return_value=mock_qdrant
-            ):
+            with patch("core.error_remediation.QdrantClient", return_value=mock_qdrant):
                 remediation = ErrorRemediation()
                 result = await remediation.lookup_fix("error-signature-123")
                 assert result is None

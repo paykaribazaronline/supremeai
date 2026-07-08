@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/system_config.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,622 বাইট  
-**আপডেট:** 2026-07-08T19:19:07.495825
+**সাইজ:** 2,557 বাইট  
+**আপডেট:** 2026-07-08T19:31:06.558254
 
 ---
 
@@ -38,33 +38,26 @@ from models.base import Base
 class SystemConfig(Base):
     """
     Centralized key-value configuration store.
-    
+
     বাংলা মন্তব্য: প্রতিটা "logic decision" যা বর্তমানে কোডে hardcode করা আছে
-    (cache threshold, provider base_url, rate limits, feature flags) — 
+    (cache threshold, provider base_url, rate limits, feature flags) —
     সেগুলো এখানে DB row হিসেবে রাখা হবে। Config পাল্টাতে আর re-deploy লাগবে না।
-    
-    TTL caching layer (ConfigCache) এই টেবিলের ওপর বসবে — 
+
+    TTL caching layer (ConfigCache) এই টেবিলের ওপর বসবে —
     প্রতি request-এ DB hit না করে in-memory cache serve করবে,
     এবং change-event এলে cache invalidate হবে।
     """  # noqa: W291, W293
+
     __tablename__ = "system_config"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
-    key: Mapped[str] = mapped_column(
-        String(255), unique=True, index=True, nullable=False
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    key: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     value: Mapped[Any] = mapped_column(JSONB, nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    category: Mapped[str] = mapped_column(
-        String(100), nullable=False, default="general"
-    )
+    category: Mapped[str] = mapped_column(String(100), nullable=False, default="general")
     is_active: Mapped[bool] = mapped_column(default=True)
     version: Mapped[int] = mapped_column(default=1)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(UTC)
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
