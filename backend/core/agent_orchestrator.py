@@ -229,7 +229,8 @@ class AsyncTaskManager:
             try:
                 import httpx
 
-                async with httpx.AsyncClient() as client:
+                # বাংলা মন্তব্য: HTTP Timeout Audit Gate সন্তুষ্ট করতে explicit timeout=10.0 সেট করা হলো
+                async with httpx.AsyncClient(timeout=10.0) as client:
                     await client.post(
                         f"{celery_url}/enqueue",
                         json={"task_id": task_id, "type": task_type, "payload": payload},
