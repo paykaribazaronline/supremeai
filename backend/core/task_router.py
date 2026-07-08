@@ -14,18 +14,12 @@ class TaskRouter:
     def __init__(self) -> None:
         pass
 
-    def process_requirement(
-        self, task_description: str, max_cost: float = 0.01
-    ) -> dict[str, Any]:
+    def process_requirement(self, task_description: str, max_cost: float = 0.01) -> dict[str, Any]:
         logger.info(f"Processing requirement: '{task_description}' max_cost={max_cost}")
         desc_lower = task_description.lower()
         prompt_len = len(task_description)
 
-        token_budget = (
-            "small"
-            if prompt_len <= 500
-            else "medium" if prompt_len <= 2000 else "large"
-        )
+        token_budget = "small" if prompt_len <= 500 else "medium" if prompt_len <= 2000 else "large"
         modality = "text"
         if any(w in desc_lower for w in ["image", "picture", "photo", "vision"]):
             modality = "image"
@@ -34,13 +28,7 @@ class TaskRouter:
 
         if "code" in desc_lower or "program" in desc_lower or "script" in desc_lower:
             task_type = "coding"
-        elif (
-            "image" in desc_lower
-            or "picture" in desc_lower
-            or "photo" in desc_lower
-            or "draw" in desc_lower
-            or "generate an image" in desc_lower
-        ):
+        elif "image" in desc_lower or "picture" in desc_lower or "photo" in desc_lower or "draw" in desc_lower or "generate an image" in desc_lower:
             task_type = "image_generation"
         elif "scrape" in desc_lower or "crawl" in desc_lower:
             task_type = "web_scraping"
@@ -73,15 +61,12 @@ class TaskRouter:
             "modality": modality,
         }
 
-    def analyze_and_route(
-        self, task_description: str, max_cost: float = 0.01
-    ) -> dict[str, Any]:
+    def analyze_and_route(self, task_description: str, max_cost: float = 0.01) -> dict[str, Any]:
         return self.process_requirement(task_description, max_cost=max_cost)
 
-    async def trigger_external_skill(
-        self, webhook_url: str, payload: dict[str, Any], retries: int = 3
-    ) -> dict[str, Any]:
+    async def trigger_external_skill(self, webhook_url: str, payload: dict[str, Any], retries: int = 3) -> dict[str, Any]:
         from urllib.parse import urlparse
+
         ALLOWED_WEBHOOK_DOMAINS = frozenset({"api.n8n.cloud", "hooks.zapier.com", "hooks.slack.com", "discord.com"})
         parsed = urlparse(webhook_url)
         if parsed.scheme not in ("https",) or parsed.hostname not in ALLOWED_WEBHOOK_DOMAINS:
@@ -90,9 +75,7 @@ class TaskRouter:
         async with httpx.AsyncClient(timeout=30.0) as client:
             for attempt in range(retries):
                 try:
-                    response = await client.post(
-                        webhook_url, json=payload, timeout=30.0
-                    )
+                    response = await client.post(webhook_url, json=payload, timeout=30.0)
                     response.raise_for_status()
                     logger.success(f"Skill triggered on attempt {attempt + 1}")
                     return response.json()

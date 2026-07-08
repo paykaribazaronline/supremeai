@@ -120,7 +120,6 @@ def update_task_status(task_id: str, status: TaskStatus, resolved_by: str, reaso
     return row_to_task(row) if row else None
 
 
-
 def row_to_task(row: sqlite3.Row) -> PendingTask:
     return PendingTask(
         task_id=row["task_id"],

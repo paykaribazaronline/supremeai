@@ -18,13 +18,13 @@ from core.config_cache import config_cache
 def get_cache_threshold(task_type: str) -> float:
     """
     task_type অনুযায়ী ক্যাশ থ্রেশহোল্ড রিটার্ন করে — **DB-Driven**।
-    
+
     ConfigCache SystemConfig টেবিল থেকে কনফিগ লোড করে:
       - cache_threshold_code = 0.95
       - cache_threshold_general = 0.85
       - cache_threshold_reasoning = 0.80
       - ইত্যাদি
-    
+
     Admin চাইলে Dashboard থেকে এগুলো পরিবর্তন করতে পারে — re-deploy ছাড়াই।
     TTL-এর মধ্যে in-memory ক্যাশ serve হবে, প্রতি request-এ DB hit হবে না।
     """  # noqa: W293
@@ -52,6 +52,7 @@ class CacheEntry:
         self.model = model
         self.response = response
 
+
 class SemanticCache:
     def __init__(self):
         # Initialize Experience Database as the vector backend
@@ -66,14 +67,8 @@ class SemanticCache:
             hits = self.db.find_similar(prompt, limit=1, threshold=threshold)
             if hits:
                 best_hit = hits[0]
-                logger.info(
-                    f"⚡ [SEMANTIC CACHE HIT] Task: {task_type} | Score: {best_hit['score']:.4f} | Source: {best_hit['source']}"
-                )
-                return CacheEntry(
-                    provider=best_hit.get("source", "chroma"),
-                    model="cached_semantic",
-                    response=best_hit.get("response", "")
-                )
+                logger.info(f"⚡ [SEMANTIC CACHE HIT] Task: {task_type} | Score: {best_hit['score']:.4f} | Source: {best_hit['source']}")
+                return CacheEntry(provider=best_hit.get("source", "chroma"), model="cached_semantic", response=best_hit.get("response", ""))
             return None
         except Exception as e:  # noqa: BLE001
             logger.error(f"⚠️ SemanticCache lookup failed: {e}")
@@ -86,7 +81,7 @@ class SemanticCache:
                 request=prompt,
                 generated_code=response if "code" in task_type.lower() else None,
                 action_taken=response if "code" not in task_type.lower() else "Code Generated",
-                result="success"
+                result="success",
             )
             self.db.record_experience(exp)
             logger.info(f"💾 Successfully recorded successful experience pattern for {task_type}")

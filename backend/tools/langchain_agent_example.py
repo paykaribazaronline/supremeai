@@ -20,10 +20,12 @@ try:
     from langchain_core.messages import HumanMessage, SystemMessage
     from langchain_community.callbacks import get_openai_callback
     from ldai.tracker import TokenUsage
+
     INTEGRATION_OK = True
 except ImportError as e:
     logger.error(f"Failed to import required libraries: {e}")
     INTEGRATION_OK = False
+
 
 def handle_agent_call_langchain(
     config: "AIAgentConfig",
@@ -33,43 +35,45 @@ def handle_agent_call_langchain(
     LaunchDarkly AgentConfig এবং LangChain এর সাহায্যে এজেন্ট কল হ্যান্ডেল করে।
     """
     tracker = config.create_tracker()
-    
+
     # বাংলা মন্তব্য: লঞ্চডার্কলি থেকে ডায়নামিক মডেল নির্ধারণ, অন্যথায় ডিফল্ট মডেল ব্যবহার
     default_model = "gemini-1.5-flash" if os.getenv("GEMINI_API_KEY") else "claude-3-5-sonnet-20241022"
     model_name = config.model.name if (config.model and config.model.name) else default_model
-    
+
     # বাংলা মন্তব্য: লঞ্চডার্কলি মডেল প্রোভাইডার প্রিফিক্স (যেমন: "Gemini.") থাকলে তা বাদ দেওয়া হচ্ছে
     if "." in model_name:
         model_name = model_name.split(".")[-1]
-        
+
     # বাংলা মন্তব্য: মডেল টাইপ অনুযায়ী সঠিক ল্যাংচেইন লাইব্রেরি সিলেক্ট করা হচ্ছে
     if "gemini" in model_name.lower():
         llm = ChatGoogleGenerativeAI(model=model_name)
     else:
         llm = ChatAnthropic(model=model_name)
-    
+
     messages = []
     if config.instructions:
         messages.append(SystemMessage(content=config.instructions))
     messages.append(HumanMessage(content=user_input))
-    
+
     # বাংলা মন্তব্য: লঞ্চডার্কলি অবজারভেবিলিটি ব্যবহার করে কাস্টম লগ রেকর্ড এবং স্প্যান স্টার্ট করা হচ্ছে
     observe.record_log("Executing LangChain Agent Call", logging.INFO, {"model": model_name})
-    
+
     try:
         with observe.start_span("langchain-invoke", attributes={"model": model_name}) as span:
             span.set_attribute("custom-langchain-attribute", "custom-value")
-            
+
             # বাংলা মন্তব্য: টোকেন ট্র্যাকিংয়ের জন্য ল্যাংচেইন কলব্যাক প্রোভাইডার ব্যবহার করা হচ্ছে
             with get_openai_callback() as cb:
                 response = llm.invoke(messages)
-                
+
             # লঞ্চডার্কলি ট্র্যাকার ব্যবহার করে ম্যাট্রিক্স রেকর্ড করা হচ্ছে
-            tracker.track_tokens(TokenUsage(
-                input=cb.prompt_tokens,
-                output=cb.completion_tokens,
-                total=cb.total_tokens,
-            ))
+            tracker.track_tokens(
+                TokenUsage(
+                    input=cb.prompt_tokens,
+                    output=cb.completion_tokens,
+                    total=cb.total_tokens,
+                )
+            )
             tracker.track_success()
             return str(response.content)
     except Exception as exc:
@@ -77,38 +81,37 @@ def handle_agent_call_langchain(
         logger.error(f"LangChain invocation failed: {exc}")
         raise exc
 
+
 if __name__ == "__main__":
     if not INTEGRATION_OK:
         print("❌ Setup failed: missing packages.")  # noqa: T201
         sys.exit(1)
-        
+
     # বাংলা মন্তব্য: লঞ্চডার্কলি ক্লায়েন্ট কনফিগারেশন এবং অবজারভেবিলিটি প্লাগইন ইনিশিয়ালাইজেশন
     sdk_key = os.getenv("LAUNCHDARKLY_SDK_KEY", "sdk-85f22e74-cb85-481b-8fd9-bfb2dd5f0e10")
-    ldclient.set_config(Config(
-        sdk_key,
-        plugins=[
-            ObservabilityPlugin(
-                ObservabilityConfig(
-                    service_name="supremeai-langchain-example",
-                    service_version="1.0.0",
+    ldclient.set_config(
+        Config(
+            sdk_key,
+            plugins=[
+                ObservabilityPlugin(
+                    ObservabilityConfig(
+                        service_name="supremeai-langchain-example",
+                        service_version="1.0.0",
+                    )
                 )
-            )
-        ]
-    ))
-    aiclient = LDAIClient(ldclient.get())
-    context = Context.builder("user-123").kind("user").build()
-    
-    default_model = "gemini-1.5-flash" if os.getenv("GEMINI_API_KEY") else "claude-3-5-sonnet-20241022"
-    config = aiclient.agent_config(
-        'supremes-writing-assistant', 
-        context, 
-        default=AIAgentConfigDefault(
-            enabled=True,
-            model=ModelConfig(name=default_model),
-            instructions="You are a helpful writing assistant."
+            ],
         )
     )
-    
+    aiclient = LDAIClient(ldclient.get())
+    context = Context.builder("user-123").kind("user").build()
+
+    default_model = "gemini-1.5-flash" if os.getenv("GEMINI_API_KEY") else "claude-3-5-sonnet-20241022"
+    config = aiclient.agent_config(
+        "supremes-writing-assistant",
+        context,
+        default=AIAgentConfigDefault(enabled=True, model=ModelConfig(name=default_model), instructions="You are a helpful writing assistant."),
+    )
+
     print("Evaluating AgentConfig...")  # noqa: T201
     if config.enabled:
         try:

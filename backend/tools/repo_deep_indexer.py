@@ -16,16 +16,8 @@ class RepoDeepIndexer:
                 with open(file_path, encoding="utf-8") as f:
                     source = f.read()
                 tree = ast.parse(source)
-                classes = [
-                    node.name
-                    for node in ast.walk(tree)
-                    if isinstance(node, ast.ClassDef)
-                ]
-                functions = [
-                    node.name
-                    for node in ast.walk(tree)
-                    if isinstance(node, ast.FunctionDef)
-                ]
+                classes = [node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]
+                functions = [node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)]
                 imports = []
                 for node in ast.walk(tree):
                     if isinstance(node, ast.Import):
@@ -57,9 +49,11 @@ class RepoDeepIndexer:
                     except Exception as e:  # noqa: BLE001
                         try:
                             import loguru
+
                             loguru.logger.error(f"Tool execution error: {e}")
                         except Exception as e:  # noqa: BLE001
                             import logging
+
                             logging.warning(f"Exception suppressed: {e}")
                         snippet = ""
                     node = {
@@ -91,9 +85,11 @@ class RepoDeepIndexer:
         except Exception as e:  # noqa: BLE001
             try:
                 import loguru
+
                 loguru.logger.error(f"Tool execution error: {e}")
             except Exception as e:  # noqa: BLE001
                 import logging
+
                 logging.warning(f"Exception suppressed: {e}")
             pass
         return []

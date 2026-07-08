@@ -1,4 +1,5 @@
 """Auth middleware tests for SupremeAI 2.0."""
+
 import os
 import pytest
 from unittest.mock import AsyncMock
@@ -127,6 +128,7 @@ class TestVerifyAdminSessionFailClosed:
 
         with pytest.raises(HTTPException) as exc_info:
             import asyncio
+
             asyncio.run(verify_admin_session_fail_closed(mock_request))
 
         assert exc_info.value.status_code == 401
@@ -140,6 +142,7 @@ class TestVerifyAdminSessionFailClosed:
 
         with pytest.raises(HTTPException) as exc_info:
             import asyncio
+
             asyncio.run(verify_admin_session_fail_closed(mock_request))
 
         assert exc_info.value.status_code == 401
@@ -155,6 +158,7 @@ class TestVerifyAdminSessionFailClosed:
         with patch.object(settings, "jwt_secret", None):
             with pytest.raises(HTTPException) as exc_info:
                 import asyncio
+
                 asyncio.run(verify_admin_session_fail_closed(mock_request))
 
             assert exc_info.value.status_code == 500
@@ -173,6 +177,7 @@ class TestVerifyAdminSessionFailClosed:
                 mock_decode.side_effect = ExpiredSignatureError("Expired")
                 with pytest.raises(HTTPException) as exc_info:
                     import asyncio
+
                     asyncio.run(verify_admin_session_fail_closed(mock_request))
 
                 assert exc_info.value.status_code == 401
@@ -191,6 +196,7 @@ class TestVerifyAdminSessionFailClosed:
                 mock_decode.side_effect = JWTError("Invalid")
                 with pytest.raises(HTTPException) as exc_info:
                     import asyncio
+
                     asyncio.run(verify_admin_session_fail_closed(mock_request))
 
                 assert exc_info.value.status_code == 401
@@ -208,6 +214,7 @@ class TestVerifyAdminSessionFailClosed:
                 mock_decode.return_value = {"sub": "user-123", "role": "user"}
                 with pytest.raises(HTTPException) as exc_info:
                     import asyncio
+
                     asyncio.run(verify_admin_session_fail_closed(mock_request))
 
                 assert exc_info.value.status_code == 401

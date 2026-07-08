@@ -17,13 +17,14 @@ class TestGuardEnumSuccess:
         mock_ctx.__aexit__.return_value = False
         mock_engine.connect.return_value = mock_ctx
 
-        with patch('core.enum_guard.engine', mock_engine):
+        with patch("core.enum_guard.engine", mock_engine):
             from enum import Enum
-            class TestEnum(Enum):
-                ACTIVE = 'active'
-                PENDING = 'pending'
 
-            await guard_enum('test_enum', TestEnum)
+            class TestEnum(Enum):
+                ACTIVE = "active"
+                PENDING = "pending"
+
+            await guard_enum("test_enum", TestEnum)
 
     @pytest.mark.anyio
     async def test_guard_enum_db_not_found(self):
@@ -38,24 +39,26 @@ class TestGuardEnumSuccess:
         mock_ctx.__aexit__.return_value = False
         mock_engine.connect.return_value = mock_ctx
 
-        with patch('core.enum_guard.engine', mock_engine):
+        with patch("core.enum_guard.engine", mock_engine):
             from enum import Enum
-            class TestEnum(Enum):
-                ACTIVE = 'active'
 
-            await guard_enum('test_enum', TestEnum)
+            class TestEnum(Enum):
+                ACTIVE = "active"
+
+            await guard_enum("test_enum", TestEnum)
 
     @pytest.mark.anyio
     async def test_guard_enum_db_connection_error(self):
         mock_engine = MagicMock()
         mock_engine.connect.side_effect = Exception("DB connection failed")
 
-        with patch('core.enum_guard.engine', mock_engine):
+        with patch("core.enum_guard.engine", mock_engine):
             from enum import Enum
-            class TestEnum(Enum):
-                ACTIVE = 'active'
 
-            await guard_enum('test_enum', TestEnum)
+            class TestEnum(Enum):
+                ACTIVE = "active"
+
+            await guard_enum("test_enum", TestEnum)
 
     @pytest.mark.anyio
     async def test_guard_enum_mismatch_raises(self):
@@ -70,19 +73,20 @@ class TestGuardEnumSuccess:
         mock_ctx.__aexit__.return_value = False
         mock_engine.connect.return_value = mock_ctx
 
-        with patch('core.enum_guard.engine', mock_engine):
+        with patch("core.enum_guard.engine", mock_engine):
             from enum import Enum
+
             class TestEnum(Enum):
-                ACTIVE = 'active'
-                PENDING = 'pending'
+                ACTIVE = "active"
+                PENDING = "pending"
 
             with pytest.raises(EnumMismatchError):
-                await guard_enum('test_enum', TestEnum)
+                await guard_enum("test_enum", TestEnum)
 
 
 class TestRunEnumGuards:
     @pytest.mark.anyio
     async def test_run_enum_guards(self):
-        with patch('core.enum_guard.guard_enum', new_callable=AsyncMock) as mock_guard:
+        with patch("core.enum_guard.guard_enum", new_callable=AsyncMock) as mock_guard:
             await run_enum_guards()
             assert mock_guard.call_count == 6

@@ -1,4 +1,5 @@
 """Admin routes tests for SupremeAI 2.0."""
+
 import base64
 import hmac
 import hashlib

@@ -13,9 +13,11 @@ def mock_agents():
     mock_qa = MagicMock()
     mock_qa.verify = AsyncMock()
 
-    with patch("core.swarm_orchestrator.ArchitectureAgent", return_value=mock_architect), \
-         patch("core.swarm_orchestrator.CodeGeneratorAgent", return_value=mock_coder), \
-         patch("core.swarm_orchestrator.QAAgent", return_value=mock_qa):
+    with (
+        patch("core.swarm_orchestrator.ArchitectureAgent", return_value=mock_architect),
+        patch("core.swarm_orchestrator.CodeGeneratorAgent", return_value=mock_coder),
+        patch("core.swarm_orchestrator.QAAgent", return_value=mock_qa),
+    ):
         from core.swarm_orchestrator import SwarmOrchestrator
 
         yield {

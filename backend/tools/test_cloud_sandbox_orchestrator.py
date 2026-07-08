@@ -26,7 +26,7 @@ async def test_create_sandbox_runpod_success(mock_env_runpod):
     orchestrator = CloudSandboxOrchestrator(provider="runpod")
 
     mock_resp = _mock_response({"id": "test_sandbox_id", "status": "running"})
-    with patch.object(orchestrator.client, 'post', return_value=mock_resp):
+    with patch.object(orchestrator.client, "post", return_value=mock_resp):
         result = await orchestrator.create_sandbox({"image": "python:3.11-slim"})
 
     assert result is not None
@@ -50,7 +50,7 @@ async def test_get_sandbox_status(mock_env_runpod):
     orchestrator = CloudSandboxOrchestrator(provider="runpod")
 
     mock_resp = _mock_response({"id": "test_sandbox_id", "status": "running"})
-    with patch.object(orchestrator.client, 'get', return_value=mock_resp):
+    with patch.object(orchestrator.client, "get", return_value=mock_resp):
         result = await orchestrator.get_sandbox_status("test_sandbox_id")
 
     assert result is not None
@@ -61,13 +61,8 @@ async def test_get_sandbox_status(mock_env_runpod):
 async def test_run_command(mock_env_runpod):
     orchestrator = CloudSandboxOrchestrator(provider="runpod")
 
-    mock_resp = _mock_response({
-        "status": "COMPLETED",
-        "exitCode": 0,
-        "stdout": "hello world",
-        "stderr": ""
-    })
-    with patch.object(orchestrator.client, 'post', return_value=mock_resp):
+    mock_resp = _mock_response({"status": "COMPLETED", "exitCode": 0, "stdout": "hello world", "stderr": ""})
+    with patch.object(orchestrator.client, "post", return_value=mock_resp):
         result = await orchestrator.run_command("test_sandbox_id", "echo 'hello world'")
 
     assert result is not None
@@ -80,7 +75,7 @@ async def test_destroy_sandbox(mock_env_runpod):
     orchestrator = CloudSandboxOrchestrator(provider="runpod")
 
     mock_resp = _mock_response({"status": "terminated"})
-    with patch.object(orchestrator.client, 'post', return_value=mock_resp):
+    with patch.object(orchestrator.client, "post", return_value=mock_resp):
         result = await orchestrator.destroy_sandbox("test_sandbox_id")
 
     assert result is True
