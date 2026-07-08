@@ -25,6 +25,9 @@ class AdminGodLayer:
                 db_path = settings.admin_rules_db
             except ImportError:
                 db_path = "data/constitutional_rules.db"
+                
+            if not db_path:
+                db_path = "data/constitutional_rules.db"
 
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
