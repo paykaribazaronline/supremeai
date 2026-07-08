@@ -22,7 +22,7 @@ Date:   Wed Jul 8 17:18:49 2026 +0600
     fix(docker): include tools group in poetry install to resolve missing discord module on startup
 
 diff --git a/backend/Dockerfile b/backend/Dockerfile
-index 05dd75e9d..b53ee2199 100644
+index 05dd75e9d4..b53ee2199c 100644
 --- a/backend/Dockerfile
 +++ b/backend/Dockerfile
 @@ -12,7 +12,7 @@ RUN poetry config virtualenvs.in-project true

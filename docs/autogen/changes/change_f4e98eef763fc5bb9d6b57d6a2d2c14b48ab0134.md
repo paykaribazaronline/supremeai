@@ -22,7 +22,7 @@ Date:   Wed Jul 8 16:39:03 2026 +0600
     ci: optimize missed caching for docs and desktop jobs
 
 diff --git a/.github/workflows/supreme-core-ci.yml b/.github/workflows/supreme-core-ci.yml
-index 9c6bf436b..5a45f5d4c 100644
+index 9c6bf436b0..5a45f5d4cc 100644
 --- a/.github/workflows/supreme-core-ci.yml
 +++ b/.github/workflows/supreme-core-ci.yml
 @@ -645,13 +645,15 @@ jobs:
