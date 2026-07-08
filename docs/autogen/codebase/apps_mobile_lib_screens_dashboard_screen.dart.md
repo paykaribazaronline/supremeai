@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/mobile/lib/screens/dashboard_screen.dart
 
 **প্রকার:** .dart  
-**সাইজ:** 6,753 বাইট  
-**আপডেট:** 2026-07-08T19:05:04.369599
+**সাইজ:** 7,967 বাইট  
+**আপডেট:** 2026-07-08T19:16:36.487086
 
 ---
 
@@ -12,7 +12,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/dashboard_provider.dart';
+import '../providers/orchestration_provider.dart';
 import '../widgets/action_hub_card.dart';
+import '../widgets/agent_metrics_card.dart';
+import '../widgets/live_execution_logger.dart';
 import 'terminal_view.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -28,6 +31,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DashboardProvider>().syncDashboard();
+      context.read<OrchestrationProvider>().initRealTimeTaskStream('dashboard-task-id', 'dummy_token');
     });
   }
 
@@ -60,6 +64,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // 🤖 Live Agent Metrics Section
+                    const Text('🤖 Live Agent Metrics', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
+                    const AgentMetricsCard(),
+                    const SizedBox(height: 12),
+                    const Text('📜 Execution Logs', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1F2937),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                      ),
+                      child: const LiveExecutionLogger(),
+                    ),
+                    const SizedBox(height: 24),
+
                     // 🛡️ God Control Section
                     const Text('🛡️ God Control', style: TextStyle(color: Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 12),
