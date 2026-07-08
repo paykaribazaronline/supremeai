@@ -1,4 +1,5 @@
 """Tests for core.output_validator output validation classes."""
+
 from core.output_validator import (
     MultiAICodeGenerator,
     EnhancedConfidenceScorer,

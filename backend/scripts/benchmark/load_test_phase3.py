@@ -14,18 +14,16 @@ from utils.firestore_helpers import get_firestore_db
 logger.remove()
 logger.add(sys.stdout, level="INFO")
 
+
 async def simulate_request(tenant_id: str, request_id: int):
     try:
-        await llm_gateway.acompletion(
-            prompt=f"Test prompt {request_id}",
-            model="openai/gpt-3.5-turbo",
-            tenant_id=tenant_id
-        )
+        await llm_gateway.acompletion(prompt=f"Test prompt {request_id}", model="openai/gpt-3.5-turbo", tenant_id=tenant_id)
         return "success"
     except Exception as e:  # noqa: BLE001
         if "402 Payment Required" in str(e):
             return "402"
         return "error"
+
 
 async def main():
     print("Starting Phase 3 Load Test (1,000 Transactions)")  # noqa: T201
@@ -42,9 +40,11 @@ async def main():
         # Simulate 1% failure rate for SelfHealer testing
         def mock_acompletion_side_effect(*args, **kwargs):
             import random
+
             if random.random() < 0.01:
                 raise Exception("Simulated LiteLLM Error for SelfHealer")
             return AsyncMock()
+
         mock_litellm.side_effect = mock_acompletion_side_effect
 
         start_time = time.perf_counter()
@@ -72,8 +72,8 @@ async def main():
         orchestrator = CloudSandboxOrchestrator(provider="runpod")
         sandbox_id = "load-test-sandbox-1"
         orchestrator._active_sandboxes[sandbox_id] = {
-            "created_at": time.time() - 700, # 11.6 minutes ago (exceeds 10m TTL)
-            "status": "running"
+            "created_at": time.time() - 700,  # 11.6 minutes ago (exceeds 10m TTL)
+            "status": "running",
         }
 
         print(f"Injected sandbox {sandbox_id} with age 11.6 minutes.")  # noqa: T201
@@ -88,6 +88,7 @@ async def main():
 
         remaining = len(orchestrator._active_sandboxes)
         print(f"Remaining sandboxes after cleanup: {remaining} (Expected 0)")  # noqa: T201
+
 
 if __name__ == "__main__":
     asyncio.run(main())

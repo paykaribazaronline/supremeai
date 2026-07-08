@@ -32,6 +32,7 @@ class MicroVMSandbox:
                 return True
         except Exception as e:  # noqa: BLE001
             import logging
+
             logging.warning(f"Exception suppressed: {e}")
         return False
 
@@ -59,17 +60,13 @@ class MicroVMSandbox:
             json.dump(config, f)
         return config_path
 
-    async def execute_async(
-        self, cmd: str, timeout: int = 30, language: str = "python"
-    ) -> dict[str, Any]:
+    async def execute_async(self, cmd: str, timeout: int = 30, language: str = "python") -> dict[str, Any]:
         vm_type = self._check_microvm_available()
 
         if not vm_type:
             vm_type = os.getenv("ALLOW_SANDBOX_FALLBACK", "false").lower() == "true"
             if not vm_type:
-                logger.error(
-                    "No MicroVM available (Firecracker/gVisor) and fallback disabled"
-                )
+                logger.error("No MicroVM available (Firecracker/gVisor) and fallback disabled")
                 return {
                     "success": False,
                     "error": "MicroVM sandbox unavailable - security enforcement active",
@@ -91,9 +88,7 @@ class MicroVMSandbox:
             if self.auto_destroy:
                 self._destroy_vm(vm_id)
 
-    async def _run_firecracker(
-        self, vm_id: str, cmd: str, language: str, timeout: int
-    ) -> dict[str, Any]:
+    async def _run_firecracker(self, vm_id: str, cmd: str, language: str, timeout: int) -> dict[str, Any]:
         self._create_microvm_config(vm_id, cmd)
 
         try:
@@ -148,16 +143,17 @@ class MicroVMSandbox:
         except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e), "provider": "gvisor"}
 
-    async def _run_docker_fallback(
-        self, vm_id: str, cmd: str, timeout: int
-    ) -> dict[str, Any]:
+    async def _run_docker_fallback(self, vm_id: str, cmd: str, timeout: int) -> dict[str, Any]:
         # বাংলা মন্তব্য: P0 Fix — cmd কে সরাসরি `python -c` argument হিসেবে দেওয়া নিষিদ্ধ।
         # এটি shell injection এবং argument injection উভয় প্রতিরোধ করে।
         # cmd → temp file → `python /sandbox/code.py` (file execution, argument injection নয়)
         tmp_file = None
         try:
             with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".py", delete=False, dir="/tmp"  # nosec B108
+                mode="w",
+                suffix=".py",
+                delete=False,
+                dir="/tmp",  # nosec B108
             ) as f:
                 f.write(cmd)
                 tmp_file = f.name
@@ -205,6 +201,7 @@ class MicroVMSandbox:
             # বাংলা মন্তব্য: temp file সবসময় cleanup করতে হবে — resource leak নিষিদ্ধ
             if tmp_file and os.path.exists(tmp_file):
                 import contextlib
+
                 # বাংলা মন্তব্য: SIM105 lint rule সন্তুষ্ট করতে contextlib.suppress ব্যবহার করা হলো
                 with contextlib.suppress(OSError):
                     os.unlink(tmp_file)
@@ -246,7 +243,5 @@ def get_sandbox() -> MicroVMSandbox:
 sandbox = get_sandbox()
 
 
-async def execute_code_securely(
-    code: str, timeout: int = 30, language: str = "python"
-) -> dict[str, Any]:
+async def execute_code_securely(code: str, timeout: int = 30, language: str = "python") -> dict[str, Any]:
     return await get_sandbox().execute_async(code, timeout, language)

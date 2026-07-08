@@ -25,9 +25,11 @@ class DockerSandbox:
         except Exception as e:  # noqa: BLE001
             try:
                 import loguru
+
                 loguru.logger.error(f"Tool execution error: {e}")
             except Exception as e:  # noqa: BLE001
                 import logging
+
                 logging.warning(f"Exception suppressed: {e}")
             return False
 
@@ -66,12 +68,8 @@ class DockerSandbox:
         ]
 
         cmd_lower = cmd.lower()
-        if any(kw in cmd_lower for kw in harmful_keywords) or any(
-            pat in cmd_lower for pat in forbidden_patterns
-        ):
-            logger.warning(
-                "Security Firewall: Command blocked due to high-risk pattern."
-            )
+        if any(kw in cmd_lower for kw in harmful_keywords) or any(pat in cmd_lower for pat in forbidden_patterns):
+            logger.warning("Security Firewall: Command blocked due to high-risk pattern.")
             return {
                 "success": False,
                 "error": "Security Firewall block: command contains forbidden patterns.",
@@ -82,21 +80,18 @@ class DockerSandbox:
             allow_fallback = os.getenv("ALLOW_LOCAL_SANDBOX_FALLBACK") == "true"
 
             if env_name in {"production", "staging"} or not allow_fallback:
-                logger.error(
-                    "Docker is not available and local execution fallback is disabled."
-                )
+                logger.error("Docker is not available and local execution fallback is disabled.")
                 return {
                     "success": False,
                     "error": "Sandbox execution failed: Docker is not running and local execution is disabled for safety.",
                 }
 
-            logger.warning(
-                "Docker is not available. Simulating command execution in local process."
-            )
+            logger.warning("Docker is not available. Simulating command execution in local process.")
             try:
                 # বাংলা মন্তব্য: Windows এ echo এর মত built-in command fallback run করার জন্য shell config setup
                 import sys
-                use_shell = (sys.platform == "win32")
+
+                use_shell = sys.platform == "win32"
                 res = subprocess.run(
                     shlex.split(cmd),
                     shell=use_shell,
@@ -128,9 +123,7 @@ class DockerSandbox:
                 "-c",
                 cmd,
             ]
-            res = subprocess.run(
-                docker_cmd, capture_output=True, text=True, timeout=10, check=False
-            )
+            res = subprocess.run(docker_cmd, capture_output=True, text=True, timeout=10, check=False)
             return {
                 "success": res.returncode == 0,
                 "stdout": res.stdout,

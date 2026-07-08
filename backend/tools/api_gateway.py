@@ -37,9 +37,7 @@ class InternalGateway:
     def __init__(self):
         self.n8n_url = os.getenv("N8N_URL", "http://127.0.0.1:5678")
 
-    def trigger_n8n_workflow(
-        self, webhook_path: str, payload: dict[str, Any]
-    ) -> dict[str, Any]:
+    def trigger_n8n_workflow(self, webhook_path: str, payload: dict[str, Any]) -> dict[str, Any]:
         url = f"{self.n8n_url}/{webhook_path.lstrip('/')}"
         logger.info(f"Triggering n8n workflow at {url}")
         try:
@@ -53,9 +51,7 @@ class InternalGateway:
             logger.error(f"n8n trigger failed: {exc}")
             return {"success": False, "error": str(exc)}
 
-    def trigger_make_webhook(
-        self, webhook_url: str, payload: dict[str, Any]
-    ) -> dict[str, Any]:
+    def trigger_make_webhook(self, webhook_url: str, payload: dict[str, Any]) -> dict[str, Any]:
         logger.info("Triggering Make.com webhook")
         try:
             response = httpx.post(webhook_url, json=payload, timeout=10.0)
@@ -87,11 +83,7 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
 
     allowed = ALLOWED_BACKEND_PATHS.get(source, [])
     normalized = request.path.strip().lower()
-    if not any(
-        normalized == allowed_path.lower()
-        or normalized.startswith(allowed_path.lower() + "/")
-        for allowed_path in allowed
-    ):
+    if not any(normalized == allowed_path.lower() or normalized.startswith(allowed_path.lower() + "/") for allowed_path in allowed):
         logger.warning(f"Blocked path for source={source}: {request.path}")
         raise HTTPException(status_code=403, detail="path not allowed for source")
 
@@ -106,10 +98,7 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
     headers.setdefault("X-Source", source)
 
     # API Key Rotation & Free Tier Tracking Integration
-    if any(
-        endpoint in normalized
-        for endpoint in ["chat/completion", "chat/stream", "chat/message"]
-    ):
+    if any(endpoint in normalized for endpoint in ["chat/completion", "chat/stream", "chat/message"]):
         try:
             from tools.multi_account_rotator import get_rotator, TaskType
             from core.free_tier_tracker import get_tracker
@@ -128,9 +117,7 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
                         headers["X-Dynamic-API-Key"] = account.api_key
                         # Record a basic hit (backend should ideally report exact tokens later)
                         tracker.record(provider.name, token_count=100)
-                        logger.info(
-                            f"Injected {provider.name} key from rotator for {normalized}"
-                        )
+                        logger.info(f"Injected {provider.name} key from rotator for {normalized}")
         except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to inject dynamic API key: {e}")
 
@@ -138,9 +125,7 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
         async with httpx.AsyncClient(timeout=10.0) as client:
             req_method = (request.method or "GET").upper()
             if req_method == "POST":
-                response = await client.post(
-                    target, json=request.payload or {}, headers=headers
-                )
+                response = await client.post(target, json=request.payload or {}, headers=headers)
             else:
                 response = await client.get(target, headers=headers)
 
@@ -149,15 +134,15 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
                 try:
                     failed_provider = headers["X-Dynamic-Provider"]
                     tracker.mark_rate_limited(failed_provider, pause_seconds=60)
-                    logger.warning(
-                        f"Provider {failed_provider} hit 429, paused for 60s."
-                    )
+                    logger.warning(f"Provider {failed_provider} hit 429, paused for 60s.")
                 except Exception as e:  # noqa: BLE001
                     try:
                         import loguru
+
                         loguru.logger.error(f"Tool execution error: {e}")
                     except Exception as e:  # noqa: BLE001
                         import logging
+
                         logging.warning(f"Exception suppressed: {e}")
                     pass
 
@@ -180,9 +165,7 @@ async def api_dispatch(capability: str, payload: dict[str, Any]) -> JSONResponse
 
 
 @router.post("/n8n")
-async def trigger_n8n(
-    webhook_path: str = "", payload: dict[str, Any] = None
-) -> JSONResponse:
+async def trigger_n8n(webhook_path: str = "", payload: dict[str, Any] = None) -> JSONResponse:
     if payload is None:
         payload = {}
     internal = InternalGateway()
@@ -192,9 +175,7 @@ async def trigger_n8n(
 
 
 @router.post("/make")
-async def trigger_make(
-    webhook_url: str = "", payload: dict[str, Any] = None
-) -> JSONResponse:
+async def trigger_make(webhook_url: str = "", payload: dict[str, Any] = None) -> JSONResponse:
     if payload is None:
         payload = {}
     internal = InternalGateway()

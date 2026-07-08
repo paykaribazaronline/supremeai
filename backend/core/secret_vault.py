@@ -25,17 +25,11 @@ class ProductionSecretVault:
             try:
                 # Cloud Run-এর ডিফল্ট সার্ভিস অ্যাকাউন্ট অটোমেটিক্যালি অথোরাইজড হবে
                 self.client = secretmanager.SecretManagerServiceClient()
-                logger.info(
-                    f"🔒 Production Secret Vault hooked into GCP Project: {self.project_id}"
-                )
+                logger.info(f"🔒 Production Secret Vault hooked into GCP Project: {self.project_id}")
             except Exception as e:  # noqa: BLE001
-                logger.warning(
-                    f"Failed to bind Secret Manager Service Client: {str(e)}. Falling back to raw env."
-                )
+                logger.warning(f"Failed to bind Secret Manager Service Client: {str(e)}. Falling back to raw env.")
         else:
-            logger.info(
-                "⚙️ Local/Dev mode active or library missing. Bypassing Google Secret Manager."
-            )
+            logger.info("⚙️ Local/Dev mode active or library missing. Bypassing Google Secret Manager.")
 
     def fetch_secret(self, secret_id: str) -> str:
         """গুগল সিক্রেট ম্যানেজার থেকে রিয়াল-টাইমে সিক্রেট ভ্যালু রিড করার মেকানিজম"""
@@ -64,6 +58,7 @@ class ProductionSecretVault:
     async def fetch_secret_async(self, secret_id: str) -> str:
         """অ্যাসিঙ্ক ইভেন্ট লুপ ব্লক না করে সিক্রেট ফেচ করার মেথড"""
         import asyncio
+
         return await asyncio.to_thread(self.fetch_secret, secret_id)
 
 
@@ -71,10 +66,12 @@ class ProductionSecretVault:
 # বাংলা মন্তব্য: P2 Fix — module loading-এর সময় synchronous GSM calls এড়াতে lazy initialization প্রয়োগ করা হলো।
 _secret_vault_instance: ProductionSecretVault | None = None
 
+
 def get_secret_vault() -> ProductionSecretVault:
     global _secret_vault_instance
     if _secret_vault_instance is None:
         _secret_vault_instance = ProductionSecretVault()
     return _secret_vault_instance
+
 
 secret_vault = get_secret_vault()

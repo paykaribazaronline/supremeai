@@ -21,9 +21,11 @@ client = TestClient(app)
 
 def test_health_returns_ok():
     from core.config import settings
+
     settings._cached_secrets.clear()
     settings._cached_secrets["GEMINI_API_KEY"] = "mock-gemini-key"
     from unittest.mock import patch, PropertyMock
+
     with patch("core.services.redis_queue.__class__.configured", new_callable=PropertyMock, return_value=False):
         resp = client.get("/health")
         assert resp.status_code == 200
@@ -63,9 +65,7 @@ def test_task_execute_allowed_and_success():
         deployment_target="local",
     )
     fake_intent = MagicMock()
-    fake_intent.classify.return_value = type(
-        "Intent", (), {"task_type": TaskType.general, "confidence": 0.5}
-    )()
+    fake_intent.classify.return_value = type("Intent", (), {"task_type": TaskType.general, "confidence": 0.5})()
 
     previous_intent = services.intent_clf
     previous_intent_parser = services_mod.intent_parser
@@ -73,9 +73,7 @@ def test_task_execute_allowed_and_success():
     services_mod.intent_parser = fake_intent_parser
     try:
         # বাংলা মন্তব্য: রিয়েল নেটওয়ার্ক কল বন্ধ করতে সরাসরি ModelRouter.async_route_and_generate মেথডটি মক করা হলো
-        with patch.object(
-            ModelRouter, "async_route_and_generate", new_callable=AsyncMock
-        ) as mock_async_generate:
+        with patch.object(ModelRouter, "async_route_and_generate", new_callable=AsyncMock) as mock_async_generate:
             mock_async_generate.return_value = {
                 "success": True,
                 "provider": "openrouter",
@@ -83,9 +81,7 @@ def test_task_execute_allowed_and_success():
                 "text": "ok",
                 "cost": 0.0,
             }
-            with patch(
-                "admin.god.AdminGodLayer.is_admin_action_allowed", return_value=True
-            ):
+            with patch("admin.god.AdminGodLayer.is_admin_action_allowed", return_value=True):
                 resp = client.post(
                     "/task/execute",
                     json={"task": "hello", "task_type": "general"},
@@ -93,9 +89,7 @@ def test_task_execute_allowed_and_success():
                 )
                 # Clean non-ascii characters to prevent Windows console encoding errors in tests
                 clean_text = resp.text.encode("ascii", "ignore").decode("ascii")
-                assert (
-                    resp.status_code == 200
-                ), f"Failing test execute: status={resp.status_code}, body={clean_text}"
+                assert resp.status_code == 200, f"Failing test execute: status={resp.status_code}, body={clean_text}"
                 body = resp.json()
                 assert body["success"] is True
                 import json
@@ -103,9 +97,7 @@ def test_task_execute_allowed_and_success():
                 res_obj = json.loads(body["result"])
                 assert res_obj["content"] == "ok"
                 # বাংলা মন্তব্য: অন্য কোনো ক্লাসিফিকেশন বা অপটিমাইজেশন স্টেপ মেথডটি দ্বিতীয়বার কল করলেও যেন টেস্ট পাস হয়, তাই assert_any_call ব্যবহার করা হলো
-                mock_async_generate.assert_any_call(
-                    prompt="hello", task_type="general", max_cost=0.01
-                )
+                mock_async_generate.assert_any_call(prompt="hello", task_type="general", max_cost=0.01)
 
     finally:
         services.intent_clf = previous_intent

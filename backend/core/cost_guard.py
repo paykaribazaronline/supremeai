@@ -18,6 +18,7 @@ class CostGuard:
             doc_ref = self._db.collection(f"tenants/{tenant_id}/budget").document("status")
 
             import asyncio
+
             if asyncio.iscoroutinefunction(doc_ref.get):
                 snapshot = await doc_ref.get()
             else:

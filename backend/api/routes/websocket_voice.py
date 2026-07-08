@@ -40,12 +40,15 @@ class VoiceConnectionManager:
             return verify_token(token)
         except Exception as e:  # noqa: BLE001
             from jose import jwt
+
             if isinstance(e, jwt.ExpiredSignatureError):
                 client_host = websocket.client.host if websocket.client else "unknown"
                 print(f"⚠️ [WS Auth] Expired token attempt from {client_host}")  # noqa: T201
             return None
 
+
 manager = VoiceConnectionManager()
+
 
 async def process_audio_with_groq(audio_bytes: bytes) -> str:
     """
@@ -57,13 +60,8 @@ async def process_audio_with_groq(audio_bytes: bytes) -> str:
     url = "https://api.groq.com/openai/v1/audio/transcriptions"
     headers = {"Authorization": f"Bearer {settings.groq_api_key}"}
 
-    files = {
-        "file": ("audio.webm", audio_bytes, "audio/webm")
-    }
-    data = {
-        "model": "whisper-large-v3",
-        "response_format": "json"
-    }
+    files = {"file": ("audio.webm", audio_bytes, "audio/webm")}
+    data = {"model": "whisper-large-v3", "response_format": "json"}
 
     async with httpx.AsyncClient(timeout=10.0) as client:
         try:
@@ -75,6 +73,7 @@ async def process_audio_with_groq(audio_bytes: bytes) -> str:
             print(f"❌ [Groq STT Error]: {e}")  # noqa: T201
             return f"Error processing audio: {str(e)}"
 
+
 async def handle_intent(transcript: str, websocket: WebSocket, start_time: float, user_id: str):
     # Intent Router
     transcript_clean = transcript.strip()
@@ -85,19 +84,13 @@ async def handle_intent(transcript: str, websocket: WebSocket, start_time: float
     else:
         # Natural Language Processing (Simulating conversational Groq/LLM)
         supremeai_response = (
-            f"Hello! You said: '{transcript_clean}'. I am Aethel, "
-            "your SupremeAI orchestrator. How can I assist you with the cluster today?"
+            f"Hello! You said: '{transcript_clean}'. I am Aethel, " "your SupremeAI orchestrator. How can I assist you with the cluster today?"
         )
 
     # Log to database
     if db.client:
         latency_ms = int((time.time() - start_time) * 1000)
-        log_entry = VoiceInteractionLog(
-            user_id=user_id,
-            transcript=transcript_clean,
-            supremeai_response=supremeai_response,
-            latency_ms=latency_ms
-        )
+        log_entry = VoiceInteractionLog(user_id=user_id, transcript=transcript_clean, supremeai_response=supremeai_response, latency_ms=latency_ms)
         try:
             db.client.table("voice_interactions").insert(log_entry.dict(exclude_none=True)).execute()
         except Exception as db_err:  # noqa: BLE001
@@ -110,6 +103,7 @@ async def handle_intent(transcript: str, websocket: WebSocket, start_time: float
         await asyncio.sleep(0.05)
 
     await websocket.send_json({"type": "response_complete"})
+
 
 @router.websocket("/voice")
 async def websocket_voice_endpoint(
@@ -162,7 +156,7 @@ async def websocket_voice_endpoint(
 
                         # 2. Intent Router
                         await handle_intent(transcript, websocket, start_time, auth_payload.get("sub", "anonymous"))
-                        start_time = time.time() # Reset timer
+                        start_time = time.time()  # Reset timer
 
                     elif action == "text_chat":
                         transcript = payload.get("text", "")
@@ -170,7 +164,7 @@ async def websocket_voice_endpoint(
 
                         # Process text intent directly
                         await handle_intent(transcript, websocket, start_time, auth_payload.get("sub", "anonymous"))
-                        start_time = time.time() # Reset timer
+                        start_time = time.time()  # Reset timer
 
                 except json.JSONDecodeError:
                     print("⚠️ [WS] Received invalid text message.")  # noqa: T201
@@ -181,5 +175,6 @@ async def websocket_voice_endpoint(
         print(f"❌ [WS Voice Engine Error]: {e}")  # noqa: T201
         manager.disconnect(websocket)
         import contextlib
+
         with contextlib.suppress(Exception):
             await websocket.close(code=status.WS_1011_INTERNAL_ERROR)

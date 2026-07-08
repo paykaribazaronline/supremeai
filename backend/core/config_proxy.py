@@ -42,7 +42,7 @@ class DynamicConfigProxy:
                         "args": 5,
                         "class_methods": 15,
                     },
-                    "COMMON_STRINGS_TO_IGNORE": ["", "utf-8", "rb", "wb", "r", "w", "a", "x", "b", "t", "+"]
+                    "COMMON_STRINGS_TO_IGNORE": ["", "utf-8", "rb", "wb", "r", "w", "a", "x", "b", "t", "+"],
                 }
                 self._expiry = datetime.now() + timedelta(minutes=1)
         except Exception as e:

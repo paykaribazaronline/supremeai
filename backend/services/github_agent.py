@@ -14,9 +14,9 @@ async def get_user_github_token(user_id: str, db: AsyncSession) -> str | None:
     """
     DB থেকে ইউজারের এনক্রিপ্টেড GitHub টোকেন রিট্রিভ করে ডিক্রিপ্ট করে।
     টোকেন না পেলে None রিটার্ন করে — কলারকে fail-fast করতে হবে।
-    
+
     ⚠️ FIX: AsyncSession.get() শুধুমাত্র primary key নেয়, dict ফিল্টার নয়।
-    আগে db.get(Integration, {"user_id": ..., "provider": ...}) দিয়ে ArgumentError 
+    আগে db.get(Integration, {"user_id": ..., "provider": ...}) দিয়ে ArgumentError
     থ্রো করত। এখন select().where() ব্যবহার করা হচ্ছে।
     """  # noqa: W291, W293
     stmt = select(Integration).where(
@@ -48,27 +48,20 @@ async def create_autonomous_pr(
     """
     এনক্রিপ্টেড টোকেন ডিক্রিপ্ট করে গিটহাবে নতুন ব্রাঞ্চ এবং PR তৈরি করবে।
     repo_name ফরম্যাট হতে হবে: "username/repo"
-    
+
     db_session বাধ্যতামূলক — না দিলে fail-fast করে, যাতে কেউ ভুলে placeholder দিয়ে ডিপ্লয় করতে না পারে।
     """  # noqa: W293
     # ১. ডাটাবেস থেকে এনক্রিপ্টেড টোকেন নিয়ে ডিক্রিপ্ট করা
     if db is None:
-        raise RuntimeError(
-            "create_autonomous_pr: db_session is required. "
-            "Call with an active AsyncSession to fetch the GitHub token from DB."
-        )
+        raise RuntimeError("create_autonomous_pr: db_session is required. " "Call with an active AsyncSession to fetch the GitHub token from DB.")
 
     access_token = await get_user_github_token(user_id, db)
     if access_token is None:
         raise RuntimeError(
-            f"GitHub token not found or could not be decrypted for user '{user_id}'. "
-            "Please connect GitHub via /integrations/github/link first."
+            f"GitHub token not found or could not be decrypted for user '{user_id}'. " "Please connect GitHub via /integrations/github/link first."
         )
 
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Accept": "application/vnd.github.v3+json"
-    }
+    headers = {"Authorization": f"Bearer {access_token}", "Accept": "application/vnd.github.v3+json"}
 
     branch_name = f"supremeai-auto-fix-{datetime.now().strftime('%Y%m%d%H%M%S')}"
     base_url = f"https://api.github.com/repos/{repo_name}"
@@ -88,24 +81,14 @@ async def create_autonomous_pr(
         base_sha = ref_info.json()["object"]["sha"]
 
         # Step B: Create New Branch
-        branch_res = await client.post(
-            f"{base_url}/git/refs",
-            headers=headers,
-            json={"ref": f"refs/heads/{branch_name}", "sha": base_sha}
-        )
+        branch_res = await client.post(f"{base_url}/git/refs", headers=headers, json={"ref": f"refs/heads/{branch_name}", "sha": base_sha})
         if branch_res.status_code != 201:
             raise Exception(f"Failed to create branch: {branch_res.text}")
 
         # Step C: Commit the Code to New Branch
         encoded_code = base64.b64encode(code_content.encode("utf-8")).decode("utf-8")
         commit_res = await client.put(
-            f"{base_url}/contents/{file_path}",
-            headers=headers,
-            json={
-                "message": commit_msg,
-                "content": encoded_code,
-                "branch": branch_name
-            }
+            f"{base_url}/contents/{file_path}", headers=headers, json={"message": commit_msg, "content": encoded_code, "branch": branch_name}
         )
         if commit_res.status_code not in (200, 201):
             raise Exception(f"Failed to commit file: {commit_res.text}")
@@ -122,8 +105,8 @@ async def create_autonomous_pr(
                     "- 🧠 Saved to Memory Vault"
                 ),
                 "head": branch_name,
-                "base": default_branch
-            }
+                "base": default_branch,
+            },
         )
 
         if pr_response.status_code != 201:

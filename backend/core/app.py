@@ -38,9 +38,7 @@ class InterceptHandler(logging.Handler):
         while frame.f_code.co_filename == logging.__file__:
             frame = frame.f_back
             depth += 1
-        logger.opt(depth=depth, exception=record.exc_info).log(
-            level, record.getMessage()
-        )
+        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
 
 logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
@@ -48,8 +46,6 @@ logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
 security = HTTPBasic()
 
 # setup_tracing() is now initialized inside lifespan wrapper logic to avoid startup module load blocking.
-
-
 
 
 if settings.sentry_dsn:
@@ -64,9 +60,9 @@ if settings.sentry_dsn:
 
 
 def _docs_auth(credentials: HTTPBasicCredentials = Depends(security)):
-    correct = secrets.compare_digest(
-        credentials.username, settings.docs_username
-    ) and secrets.compare_digest(credentials.password, settings.docs_password)
+    correct = secrets.compare_digest(credentials.username, settings.docs_username) and secrets.compare_digest(
+        credentials.password, settings.docs_password
+    )
     if not correct:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -154,11 +150,7 @@ async def health():
     else:
         redis_ok = True
     api_keys_ok = bool(
-        settings.openrouter_api_key
-        or settings.gemini_api_key
-        or settings.deepseek_api_key
-        or settings.groq_api_key
-        or settings.nvidia_api_key
+        settings.openrouter_api_key or settings.gemini_api_key or settings.deepseek_api_key or settings.groq_api_key or settings.nvidia_api_key
     )
     # config validation checks
     checks = {
@@ -414,6 +406,7 @@ app.include_router(mobile_bff_router)
 try:
     if os.getenv("SUPREMEAI_ENCRYPTION_KEY"):
         from api.routes.byoc_api import router as byoc_api_router
+
         app.include_router(byoc_api_router)
         logger.info("Universal BYOC management router loaded successfully ✅")
     else:
@@ -448,11 +441,13 @@ except Exception as _e:  # noqa: BLE001
 
 try:
     from api.routes.events import router as events_router
+
     app.include_router(events_router, prefix="/api")
 except Exception as _e:  # noqa: BLE001
     logger.warning(f"events router not loaded: {_e}")
 
 app.router.lifespan_context = lifespan.app_lifespan
+
 
 def router_health_check(fastapi_app: FastAPI):
     expected_count = 20
@@ -462,5 +457,5 @@ def router_health_check(fastapi_app: FastAPI):
             f"Expected at least {expected_count}. Some routers failed to load silently!"
         )
 
-router_health_check(app)
 
+router_health_check(app)

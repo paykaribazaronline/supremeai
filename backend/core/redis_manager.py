@@ -25,13 +25,7 @@ class SecureRedisManager:
             self.client = None
             return
         try:
-            self.client = aioredis.from_url(
-                self.redis_url,
-                encoding="utf-8",
-                decode_responses=True,
-                socket_timeout=2.0,
-                socket_connect_timeout=2.0
-            )
+            self.client = aioredis.from_url(self.redis_url, encoding="utf-8", decode_responses=True, socket_timeout=2.0, socket_connect_timeout=2.0)
             logger.success("🚀 Async Redis Client successfully connected with connection pool.")
         except Exception as e:  # noqa: BLE001
             logger.critical(f"🔥 Fail-Closed Triggered: Redis connection failed during init -> {str(e)}")
@@ -106,6 +100,7 @@ class SecureRedisManager:
             # Fallback to in-memory store
             return self._fallback_is_rate_limited(key, max_requests, window_seconds)
 
+
 # গ্লোবাল সিঙ্গেলটন ইনস্ট্যান্স জেনারেশন
 redis_manager = SecureRedisManager()
 
@@ -113,7 +108,7 @@ redis_manager = SecureRedisManager()
 async def acquire_idempotency_lock(key: str, ttl_seconds: int = 120) -> bool:
     """
     Distributed idempotency lock অধিগ্রহণ করে (Redis SET NX pattern)।
-    
+
     - key: অনন্য idempotency key (সাধারণত: `idempotency:{method}:{user_key}`)
     - ttl_seconds: লকের TTL — এই সময়ের পর লক স্বয়ংক্রিয়ভাবে মুক্ত হয়
     - Returns True যদি লক সফলভাবে অধিগ্রহণ হয়, False যদি ইতিমধ্যে অন্য কেউ ধরে রেখেছে
@@ -123,9 +118,7 @@ async def acquire_idempotency_lock(key: str, ttl_seconds: int = 120) -> bool:
         return True
     try:
         # SET NX EX: atomic, only set if not exists
-        result = await redis_manager.client.set(
-            f"idempotency:{key}", "1", nx=True, ex=ttl_seconds
-        )
+        result = await redis_manager.client.set(f"idempotency:{key}", "1", nx=True, ex=ttl_seconds)
         return result is not None
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[Idempotency] Redis lock acquire failed — fail-open: {e}")
@@ -140,6 +133,7 @@ async def release_idempotency_lock(key: str) -> None:
         await redis_manager.client.delete(f"idempotency:{key}")
     except Exception as e:  # noqa: BLE001
         logger.warning(f"[Idempotency] Redis lock release failed: {e}")
+
 
 async def cache_response_and_release_lock(key: str, response_data: str, ttl_seconds: int) -> bool:
     """

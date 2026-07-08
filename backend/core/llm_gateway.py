@@ -19,6 +19,7 @@ from utils.firestore_helpers import get_firestore_db
 # Load routing policy configuration
 POLICY_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config", "routing_policy.json")
 
+
 class LLMGateway:
     def __init__(self):
         self.routing_policy = self._load_routing_policy()
@@ -32,6 +33,7 @@ class LLMGateway:
 
         # Initialize semantic cache engine
         from core.semantic_cache import SemanticCache
+
         self.cache = SemanticCache()
 
         # বাংলা মন্তব্য: litellm compatibility এবং credentials check এর জন্য env এ secrets inject করা হলো
@@ -62,14 +64,21 @@ class LLMGateway:
         return {"complexity_rules": {}, "fallback_chain": []}
 
     def _get_key_for_model(self, model: str) -> str | None:
-        if not model: return None  # noqa: E701
+        if not model:
+            return None  # noqa: E701
         model_l = model.lower()
-        if "groq" in model_l: return getattr(settings, "groq_api_key", None)  # noqa: E701
-        if "gemini" in model_l: return getattr(settings, "gemini_api_key", None)  # noqa: E701
-        if "gpt" in model_l or "openai" in model_l: return getattr(settings, "openai_api_key", None)  # noqa: E701
-        if "deepseek" in model_l: return getattr(settings, "deepseek_api_key", None)  # noqa: E701
-        if "openrouter" in model_l: return getattr(settings, "openrouter_api_key", None)  # noqa: E701
-        if "hf" in model_l or "huggingface" in model_l: return getattr(settings, "hf_api_key", None)  # noqa: E701
+        if "groq" in model_l:
+            return getattr(settings, "groq_api_key", None)  # noqa: E701
+        if "gemini" in model_l:
+            return getattr(settings, "gemini_api_key", None)  # noqa: E701
+        if "gpt" in model_l or "openai" in model_l:
+            return getattr(settings, "openai_api_key", None)  # noqa: E701
+        if "deepseek" in model_l:
+            return getattr(settings, "deepseek_api_key", None)  # noqa: E701
+        if "openrouter" in model_l:
+            return getattr(settings, "openrouter_api_key", None)  # noqa: E701
+        if "hf" in model_l or "huggingface" in model_l:
+            return getattr(settings, "hf_api_key", None)  # noqa: E701
         return None
 
     def _setup_callbacks(self):
@@ -94,10 +103,7 @@ class LLMGateway:
         def failure_callback(kwargs, exception_obj, start_time, end_time):
             model = kwargs.get("model", "unknown")
             duration = (end_time - start_time).total_seconds() if hasattr(end_time - start_time, "total_seconds") else (end_time - start_time)
-            logger.error(
-                f"🔴 [LLMGateway Failure] Model: {model} failed! | Error: {str(exception_obj)} | "
-                f"Duration: {duration:.2f}s"
-            )
+            logger.error(f"🔴 [LLMGateway Failure] Model: {model} failed! | Error: {str(exception_obj)} | " f"Duration: {duration:.2f}s")
 
         litellm.success_callback = [success_callback]
         litellm.failure_callback = [failure_callback]
@@ -137,13 +143,7 @@ class LLMGateway:
         if prompt_text and not stream:
             cached_res = await self.cache.query_similar(prompt_text, task_type=task_type)
             if cached_res:
-                return {
-                    "success": True,
-                    "text": cached_res.response,
-                    "model": cached_res.model,
-                    "cost": 0.0,
-                    "cached": True
-                }
+                return {"success": True, "text": cached_res.response, "model": cached_res.model, "cost": 0.0, "cached": True}
 
         # ── Pre-flight Cost Guard Check ──
         if tenant_id:
@@ -190,18 +190,12 @@ class LLMGateway:
             try:
                 logger.info(f"Attempting completion with model: {model}")
                 api_key = self._get_key_for_model(model)
-                response = await litellm.acompletion(
-                    model=model,
-                    messages=messages,
-                    timeout=timeout,
-                    stream=False,
-                    api_key=api_key
-                )
+                response = await litellm.acompletion(model=model, messages=messages, timeout=timeout, stream=False, api_key=api_key)
                 return {
                     "success": True,
                     "text": response.choices[0].message.content,
                     "model": model,
-                    "cost": response._response_metadata.get("api_cost", 0.0) if hasattr(response, "_response_metadata") else 0.0
+                    "cost": response._response_metadata.get("api_cost", 0.0) if hasattr(response, "_response_metadata") else 0.0,
                 }
             except Exception as e:  # noqa: BLE001
                 last_exception = e
@@ -220,7 +214,7 @@ class LLMGateway:
                     error_pattern=f"LLMGateway Exception: {error_msg[:100]}",
                     proposed_fix=f"# Recommend checking fallback models or API keys for error:\n# {error_msg}",
                     impact_score=0.2,
-                    dependency_tree=["core.llm_gateway"]
+                    dependency_tree=["core.llm_gateway"],
                 )
         raise final_exception
 
@@ -232,18 +226,12 @@ class LLMGateway:
             try:
                 logger.info(f"Attempting streaming with model: {model}")
                 api_key = self._get_key_for_model(model)
-                response_stream = await litellm.acompletion(
-                    model=model,
-                    messages=messages,
-                    timeout=timeout,
-                    stream=True,
-                    api_key=api_key
-                )
+                response_stream = await litellm.acompletion(model=model, messages=messages, timeout=timeout, stream=True, api_key=api_key)
                 async for chunk in response_stream:
                     content = chunk.choices[0].delta.content
                     if content:
                         yield content
-                return # Successfully streamed out all tokens
+                return  # Successfully streamed out all tokens
             except Exception as e:  # noqa: BLE001
                 last_exception = e
                 logger.warning(f"Model {model} streaming failed, trying fallback...")
