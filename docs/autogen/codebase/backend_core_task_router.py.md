@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/task_router.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,457 বাইট  
-**আপডেট:** 2026-07-08T03:02:32.604669
+**সাইজ:** 9,064 বাইট  
+**আপডেট:** 2026-07-08T03:11:56.324363
 
 ---
 
@@ -25,18 +25,12 @@ class TaskRouter:
     def __init__(self) -> None:
         pass
 
-    def process_requirement(
-        self, task_description: str, max_cost: float = 0.01
-    ) -> dict[str, Any]:
+    def process_requirement(self, task_description: str, max_cost: float = 0.01) -> dict[str, Any]:
         logger.info(f"Processing requirement: '{task_description}' max_cost={max_cost}")
         desc_lower = task_description.lower()
         prompt_len = len(task_description)
 
-        token_budget = (
-            "small"
-            if prompt_len <= 500
-            else "medium" if prompt_len <= 2000 else "large"
-        )
+        token_budget = "small" if prompt_len <= 500 else "medium" if prompt_len <= 2000 else "large"
         modality = "text"
         if any(w in desc_lower for w in ["image", "picture", "photo", "vision"]):
             modality = "image"
@@ -45,13 +39,7 @@ class TaskRouter:
 
         if "code" in desc_lower or "program" in desc_lower or "script" in desc_lower:
             task_type = "coding"
-        elif (
-            "image" in desc_lower
-            or "picture" in desc_lower
-            or "photo" in desc_lower
-            or "draw" in desc_lower
-            or "generate an image" in desc_lower
-        ):
+        elif "image" in desc_lower or "picture" in desc_lower or "photo" in desc_lower or "draw" in desc_lower or "generate an image" in desc_lower:
             task_type = "image_generation"
         elif "scrape" in desc_lower or "crawl" in desc_lower:
             task_type = "web_scraping"
@@ -84,15 +72,12 @@ class TaskRouter:
             "modality": modality,
         }
 
-    def analyze_and_route(
-        self, task_description: str, max_cost: float = 0.01
-    ) -> dict[str, Any]:
+    def analyze_and_route(self, task_description: str, max_cost: float = 0.01) -> dict[str, Any]:
         return self.process_requirement(task_description, max_cost=max_cost)
 
-    async def trigger_external_skill(
-        self, webhook_url: str, payload: dict[str, Any], retries: int = 3
-    ) -> dict[str, Any]:
+    async def trigger_external_skill(self, webhook_url: str, payload: dict[str, Any], retries: int = 3) -> dict[str, Any]:
         from urllib.parse import urlparse
+
         ALLOWED_WEBHOOK_DOMAINS = frozenset({"api.n8n.cloud", "hooks.zapier.com", "hooks.slack.com", "discord.com"})
         parsed = urlparse(webhook_url)
         if parsed.scheme not in ("https",) or parsed.hostname not in ALLOWED_WEBHOOK_DOMAINS:
@@ -101,9 +86,7 @@ class TaskRouter:
         async with httpx.AsyncClient(timeout=30.0) as client:
             for attempt in range(retries):
                 try:
-                    response = await client.post(
-                        webhook_url, json=payload, timeout=30.0
-                    )
+                    response = await client.post(webhook_url, json=payload, timeout=30.0)
                     response.raise_for_status()
                     logger.success(f"Skill triggered on attempt {attempt + 1}")
                     return response.json()
@@ -157,22 +140,15 @@ class TaskRouter:
                         execution_steps = agent_config.get("execution_steps", [])
 
                 logger.info(f"[Router] Launching Layer 2 Engine for destination: {contextual_url} using agent: {agent_name}")
-                
+
                 # ৩০ সেকেন্ডের কড়া টাইমআউট গেট সহ ব্রাউজার লেভেল এক্সট্রাকশন রান
-                result = await asyncio.wait_for(
-                    self._run_browser_automation(task_prompt, contextual_url, execution_steps), 
-                    timeout=35.0
-                )
-                
+                result = await asyncio.wait_for(self._run_browser_automation(task_prompt, contextual_url, execution_steps), timeout=35.0)
+
                 if result and result.get("status") == "success":
-                    return {
-                        "status": "success",
-                        "tier": f"Layer 2 (Zero-Cost Browser Automation: {agent_name})",
-                        "data": result.get("data")
-                    }
+                    return {"status": "success", "tier": f"Layer 2 (Zero-Cost Browser Automation: {agent_name})", "data": result.get("data")}
                 raise Exception("Browser automation was flagged, blocked, or failed to collect data.")
-                
-            except (TimeoutError, Exception) as e:
+
+            except (TimeoutError, Exception) as e:  # noqa: BLE001
                 # বাংলা মন্তব্য: Layer 2 ব্যর্থ হলে বা টাইমআউট হলে Layer 3/4 এ ফলব্যাক ট্রিগার করা হচ্ছে
                 logger.warning(f"[Router] Layer 2 failed or timed out: {str(e)}. Falling back to Layer 3.")
 
@@ -182,7 +158,7 @@ class TaskRouter:
     async def _run_browser_automation(self, prompt: str, url: str, steps: list = None) -> dict:
         """Playwright কন্টেক্সট স্ট্রিম রান করার হেল্পার মেথড।"""
         # tools/browser_agent.py এর সাথে ইন্টারফেস করার জন্য প্লেসহোল্ডার রান
-        await asyncio.sleep(1.5) 
+        await asyncio.sleep(1.5)
         return {"status": "success", "data": "DOM payload stream"}
 
     async def _execute_api_fallback(self, prompt: str) -> dict:

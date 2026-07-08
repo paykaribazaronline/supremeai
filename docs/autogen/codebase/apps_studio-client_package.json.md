@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/package.json
 
 **প্রকার:** .json  
-**সাইজ:** 2,726 বাইট  
-**আপডেট:** 2026-07-08T03:02:32.685386
+**সাইজ:** 2,727 বাইট  
+**আপডেট:** 2026-07-08T03:11:56.357472
 
 ---
 
@@ -37,7 +37,7 @@
     "@tanstack/react-query": "^5.101.0",
     "@webcontainer/api": "^1.6.4",
     "@xterm/addon-fit": "^0.11.0",
-    "firebase": "^10.8.0",
+    "firebase": "^12.15.0",
     "framer-motion": "^12.42.0",
     "i18next": "^23.4.0",
     "lucide-react": "^1.21.0",
@@ -71,7 +71,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
     "jsdom": "^24.0.0",
-    "typescript": "~6.0.2",
+    "typescript": "^5.4.5",
     "typescript-eslint": "^8.58.2",
     "vite": "^7.3.5",
     "vitest": "^3.2.6",
