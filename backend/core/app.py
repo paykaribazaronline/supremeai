@@ -22,7 +22,8 @@ from core.config import settings
 from core.honeypot_middleware import HoneypotMiddleware
 from core.observability_middleware import ObservabilityMiddleware
 from core.rate_limiter import RateLimitMiddleware
-from core.telemetry import setup_tracing
+
+# বাংলা মন্তব্য: unused import setup_tracing সরানো হলো (এটি lifespan-এ শিফট করা হয়েছে)
 from middleware.auth_middleware import ZeroTrustAuthMiddleware
 from middleware.idempotency import IdempotencyMiddleware
 
