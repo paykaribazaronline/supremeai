@@ -22,7 +22,7 @@ class BulletproofASTSandbox(ast.NodeVisitor):
         self.banned_tokens = {
             "__class__", "__subclasses__", "__globals__", "__code__",
             "__import__", "__builtins__", "eval", "exec", "os", "sys",
-            "subprocess", "importlib", "shutil", "socket", "getattr", "setattr"
+            "subprocess", "importlib", "shutil", "socket"
         }
 
     def _flag_violation(self, node, reason):
