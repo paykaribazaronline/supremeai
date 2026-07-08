@@ -102,9 +102,7 @@ class EvolutionEngine:
             # db.client None হলে supabase_success False থাকবে — এটিই সঠিক behavior।
             # আগে: else: supabase_success = True — এটি false positive তৈরি করতো।
             else:
-                logger.warning(
-                    "Supabase client is None. Task history will only be stored in local SQLite."
-                )
+                logger.warning("Supabase client is None. Task history will only be stored in local SQLite.")
         except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to insert success to Supabase: {e}")
             if evolution_write_failures:
@@ -115,8 +113,7 @@ class EvolutionEngine:
         conn = sqlite3.connect(str(self.db_path))
         try:
             conn.execute(
-                "INSERT OR IGNORE INTO task_history (task, approach, result, success, created_at) "
-                "VALUES (?, ?, ?, ?, ?)",
+                "INSERT OR IGNORE INTO task_history (task, approach, result, success, created_at) " "VALUES (?, ?, ?, ?, ?)",
                 (task, approach, result, 1, created_at),
             )
             conn.commit()

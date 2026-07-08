@@ -249,10 +249,10 @@ class Settings(BaseSettings):
             if env == "production":
                 # বাংলা মন্তব্য: P0 Fix — প্রোডাকশনে কোনো ফলব্যাক বা এফিমেরাল সিক্রেট চলবে না। Hard Fail-Closed!
                 raise ValueError(
-                    "🚨 CRITICAL SECURITY ERROR: SUPREMEAI_JWT_SECRET environment variable "
-                    "must be explicitly set in production environments."
+                    "🚨 CRITICAL SECURITY ERROR: SUPREMEAI_JWT_SECRET environment variable " "must be explicitly set in production environments."
                 )
             import secrets as _secrets
+
             logger.warning("⚠️ SUPREMEAI_JWT_SECRET not set. Generating ephemeral secret for local development.")
             return _secrets.token_hex(64)
         return v

@@ -25,7 +25,7 @@ class AdminGodLayer:
                 db_path = settings.admin_rules_db
             except ImportError:
                 db_path = "data/constitutional_rules.db"
-                
+
             if not db_path:
                 db_path = "data/constitutional_rules.db"
 

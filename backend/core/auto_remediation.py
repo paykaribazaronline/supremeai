@@ -171,17 +171,12 @@ class AutoRemediation:
             ) from ve
         return real_path
 
-    async def process_security_alert(
-        self, file_path: str, line_number: int, issue: str, severity: str
-    ) -> dict:
+    async def process_security_alert(self, file_path: str, line_number: int, issue: str, severity: str) -> dict:
         """বাংলা মন্তব্য: P1 Fix — method কে fully async করা হলো।
         আগে: asyncio.run()/loop.run_until_complete() ব্যবহার হতো → running event loop-এ RuntimeError।
         এখন: সব I/O অপারেশন await দিয়ে চলে — কোনো blocking নেই।
         """
-        logger.info(
-            f"Auto-Remediation triggered for {file_path}:{line_number} "
-            f"- Severity: {severity}. Issue: {issue}"
-        )
+        logger.info(f"Auto-Remediation triggered for {file_path}:{line_number} " f"- Severity: {severity}. Issue: {issue}")
 
         # Path traversal protection (ধাপ ১.৫ দেখুন)
         safe_path = self._validate_file_path(file_path)

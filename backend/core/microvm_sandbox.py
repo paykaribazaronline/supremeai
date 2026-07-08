@@ -28,7 +28,8 @@ class MicroVMSandbox:
     def _validate_vm_id(self, vm_id: str) -> bool:
         """বাংলা মন্তব্য: P0 Fix — vm_id-এ alphanumeric, underscore, hyphen only allowed, path injection প্রতিরোধ।"""
         import re
-        return bool(re.match(r'^[a-zA-Z0-9_-]+$', vm_id))
+
+        return bool(re.match(r"^[a-zA-Z0-9_-]+$", vm_id))
 
     def _check_microvm_available(self) -> bool:
         try:
@@ -272,7 +273,6 @@ def get_sandbox() -> MicroVMSandbox:
     if _sandbox_instance is None:
         _sandbox_instance = MicroVMSandbox()
     return _sandbox_instance
-
 
 
 async def execute_code_securely(code: str, timeout: int = 30, language: str = "python") -> dict[str, Any]:

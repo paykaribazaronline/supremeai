@@ -18,12 +18,14 @@ from core.config import settings
 # আগে: import-এ immediate evaluate হতো, যার ফলে JWT secret rotate করা যেত না।
 # এখন: প্রতিটি কলের সময় runtime-এ fetch হবে, enabling secret rotation without restart.
 
+
 def _get_jwt_secret() -> str:
     secret = settings.jwt_secret
     if not secret:
         logger.critical("🚨 FATAL: JWT Secret is missing! Halting boot process to prevent vulnerabilities.")
         raise RuntimeError("Security misconfiguration: Missing JWT Secret.")
     return secret
+
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60

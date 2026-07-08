@@ -7,6 +7,7 @@ from typing import Any
 import httpx
 from loguru import logger
 
+
 class BanglaAiConnector:
     """Auto-generated connector for bangla_ai"""
 

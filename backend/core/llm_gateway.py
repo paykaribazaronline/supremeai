@@ -254,10 +254,13 @@ def get_llm_gateway() -> "LLMGateway":
         _llm_gateway_instance = LLMGateway()
     return _llm_gateway_instance
 
+
 class _LLMGatewayProxy:
     def __getattr__(self, name):
         return getattr(get_llm_gateway(), name)
+
     def __setattr__(self, name, value):
         return setattr(get_llm_gateway(), name, value)
+
 
 llm_gateway = _LLMGatewayProxy()

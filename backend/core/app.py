@@ -19,8 +19,10 @@ from core import services
 from core.admin_routes import router as admin_router
 from core.api_key_middleware import APIKeyAuthMiddleware
 from core.config import settings
+
 # বাংলা মন্তব্য: P1 Fix — F821 Undefined name 'ErrorEvent' ফিক্স করার জন্য ErrorEvent কেও ইম্পোর্ট করা হলো।
-from core.event_bus import ErrorEvent, error_event_bus
+from core.event_bus import ErrorEvent
+from core.event_bus import error_event_bus
 from core.honeypot_middleware import HoneypotMiddleware
 from core.observability_middleware import ObservabilityMiddleware
 from core.rate_limiter import RateLimitMiddleware
@@ -37,6 +39,7 @@ class InterceptHandler(logging.Handler):
         except ValueError:
             level = record.levelno
         frame, depth = logging.currentframe(), 2
+
         while frame.f_code.co_filename == logging.__file__:
             frame = frame.f_back
             depth += 1
@@ -286,13 +289,15 @@ try:
         app.include_router(websocket_voice_router)
 except Exception as _e:  # noqa: BLE001
     logger.warning(f"websocket_voice router not loaded: {_e}")
-    error_event_bus.emit(ErrorEvent(
-        module="app",
-        error_type="ROUTER_LOAD_FAILED",
-        message=str(_e)[:200],
-        severity="WARNING",
-        context={"router": "websocket_voice"},
-    ))
+    error_event_bus.emit(
+        ErrorEvent(
+            module="app",
+            error_type="ROUTER_LOAD_FAILED",
+            message=str(_e)[:200],
+            severity="WARNING",
+            context={"router": "websocket_voice"},
+        )
+    )
 # Include Orchestrator router
 from core.orchestrator import router as orchestrator_router
 
@@ -306,13 +311,15 @@ try:
     app.include_router(collab_router, prefix="/api/v1")
 except Exception as _e:  # noqa: BLE001
     logger.warning(f"collaborative_editor router not loaded: {_e}")
-    error_event_bus.emit(ErrorEvent(
-        module="app",
-        error_type="ROUTER_LOAD_FAILED",
-        message=str(_e)[:200],
-        severity="WARNING",
-        context={"router": "collaborative_editor"},
-    ))
+    error_event_bus.emit(
+        ErrorEvent(
+            module="app",
+            error_type="ROUTER_LOAD_FAILED",
+            message=str(_e)[:200],
+            severity="WARNING",
+            context={"router": "collaborative_editor"},
+        )
+    )
 
 from tools.image_to_code import router as image_to_code_router
 
@@ -327,13 +334,15 @@ try:
     app.include_router(browser_agent_router, prefix="/api")
 except Exception as _e:  # noqa: BLE001
     logger.warning(f"browser_agent router not loaded: {_e}")
-    error_event_bus.emit(ErrorEvent(
-        module="app",
-        error_type="ROUTER_LOAD_FAILED",
-        message=str(_e)[:200],
-        severity="WARNING",
-        context={"router": "browser_agent"},
-    ))
+    error_event_bus.emit(
+        ErrorEvent(
+            module="app",
+            error_type="ROUTER_LOAD_FAILED",
+            message=str(_e)[:200],
+            severity="WARNING",
+            context={"router": "browser_agent"},
+        )
+    )
 
 try:
     from tools.voice_coder import router as voice_coder_router
@@ -341,13 +350,15 @@ try:
     app.include_router(voice_coder_router, prefix="/api")
 except Exception as _e:  # noqa: BLE001
     logger.warning(f"voice_coder router not loaded: {_e}")
-    error_event_bus.emit(ErrorEvent(
-        module="app",
-        error_type="ROUTER_LOAD_FAILED",
-        message=str(_e)[:200],
-        severity="WARNING",
-        context={"router": "voice_coder"},
-    ))
+    error_event_bus.emit(
+        ErrorEvent(
+            module="app",
+            error_type="ROUTER_LOAD_FAILED",
+            message=str(_e)[:200],
+            severity="WARNING",
+            context={"router": "voice_coder"},
+        )
+    )
 
 try:
     from tools.style_learner import router as style_learner_router
@@ -355,13 +366,15 @@ try:
     app.include_router(style_learner_router, prefix="/api")
 except Exception as _e:  # noqa: BLE001
     logger.warning(f"style_learner router not loaded: {_e}")
-    error_event_bus.emit(ErrorEvent(
-        module="app",
-        error_type="ROUTER_LOAD_FAILED",
-        message=str(_e)[:200],
-        severity="WARNING",
-        context={"router": "style_learner"},
-    ))
+    error_event_bus.emit(
+        ErrorEvent(
+            module="app",
+            error_type="ROUTER_LOAD_FAILED",
+            message=str(_e)[:200],
+            severity="WARNING",
+            context={"router": "style_learner"},
+        )
+    )
 
 try:
     from tools.diagram_to_architecture import router as diagram_router
@@ -369,13 +382,15 @@ try:
     app.include_router(diagram_router, prefix="/api")
 except Exception as _e:  # noqa: BLE001
     logger.warning(f"diagram_to_architecture router not loaded: {_e}")
-    error_event_bus.emit(ErrorEvent(
-        module="app",
-        error_type="ROUTER_LOAD_FAILED",
-        message=str(_e)[:200],
-        severity="WARNING",
-        context={"router": "diagram_to_architecture"},
-    ))
+    error_event_bus.emit(
+        ErrorEvent(
+            module="app",
+            error_type="ROUTER_LOAD_FAILED",
+            message=str(_e)[:200],
+            severity="WARNING",
+            context={"router": "diagram_to_architecture"},
+        )
+    )
 
 try:
     from tools.ai_pair_programmer import router as pair_router
@@ -383,13 +398,15 @@ try:
     app.include_router(pair_router, prefix="/api")
 except Exception as _e:  # noqa: BLE001
     logger.warning(f"ai_pair_programmer router not loaded: {_e}")
-    error_event_bus.emit(ErrorEvent(
-        module="app",
-        error_type="ROUTER_LOAD_FAILED",
-        message=str(_e)[:200],
-        severity="WARNING",
-        context={"router": "ai_pair_programmer"},
-    ))
+    error_event_bus.emit(
+        ErrorEvent(
+            module="app",
+            error_type="ROUTER_LOAD_FAILED",
+            message=str(_e)[:200],
+            severity="WARNING",
+            context={"router": "ai_pair_programmer"},
+        )
+    )
 
 try:
     from api.routes.onboarding import router as onboarding_api_router
@@ -397,13 +414,15 @@ try:
     app.include_router(onboarding_api_router, prefix="/api")
 except Exception as _e:  # noqa: BLE001
     logger.warning(f"onboarding API router not loaded: {_e}")
-    error_event_bus.emit(ErrorEvent(
-        module="app",
-        error_type="ROUTER_LOAD_FAILED",
-        message=str(_e)[:200],
-        severity="WARNING",
-        context={"router": "onboarding"},
-    ))
+    error_event_bus.emit(
+        ErrorEvent(
+            module="app",
+            error_type="ROUTER_LOAD_FAILED",
+            message=str(_e)[:200],
+            severity="WARNING",
+            context={"router": "onboarding"},
+        )
+    )
 
 try:
     from api.routes.evolution import router as evolution_router
@@ -411,13 +430,15 @@ try:
     app.include_router(evolution_router)
 except Exception as _e:  # noqa: BLE001
     logger.warning(f"evolution API router not loaded: {_e}")
-    error_event_bus.emit(ErrorEvent(
-        module="app",
-        error_type="ROUTER_LOAD_FAILED",
-        message=str(_e)[:200],
-        severity="WARNING",
-        context={"router": "evolution"},
-    ))
+    error_event_bus.emit(
+        ErrorEvent(
+            module="app",
+            error_type="ROUTER_LOAD_FAILED",
+            message=str(_e)[:200],
+            severity="WARNING",
+            context={"router": "evolution"},
+        )
+    )
 
 if codeflow_router is not None:
     app.include_router(codeflow_router)
@@ -431,13 +452,15 @@ try:
     app.include_router(tts_router, prefix="/api")
 except Exception as _e:  # noqa: BLE001
     logger.warning(f"multilingual_tts router not loaded: {_e}")
-    error_event_bus.emit(ErrorEvent(
-        module="app",
-        error_type="ROUTER_LOAD_FAILED",
-        message=str(_e)[:200],
-        severity="WARNING",
-        context={"router": "multilingual_tts"},
-    ))
+    error_event_bus.emit(
+        ErrorEvent(
+            module="app",
+            error_type="ROUTER_LOAD_FAILED",
+            message=str(_e)[:200],
+            severity="WARNING",
+            context={"router": "multilingual_tts"},
+        )
+    )
 
 # bhasa mourontto: voice streaming router properly loaded with /api/voice prefix
 try:
@@ -447,13 +470,15 @@ try:
         app.include_router(voice_router, prefix="/api/voice")
 except Exception as _e:  # noqa: BLE001
     logger.warning(f"voice streaming router not loaded: {_e}")
-    error_event_bus.emit(ErrorEvent(
-        module="app",
-        error_type="ROUTER_LOAD_FAILED",
-        message=str(_e)[:200],
-        severity="WARNING",
-        context={"router": "voice"},
-    ))
+    error_event_bus.emit(
+        ErrorEvent(
+            module="app",
+            error_type="ROUTER_LOAD_FAILED",
+            message=str(_e)[:200],
+            severity="WARNING",
+            context={"router": "voice"},
+        )
+    )
 
 try:
     from tools.comment_thread_ai import router as comment_ai_router
@@ -461,13 +486,15 @@ try:
     app.include_router(comment_ai_router, prefix="/api")
 except Exception as _e:  # noqa: BLE001
     logger.warning(f"comment_thread_ai router not loaded: {_e}")
-    error_event_bus.emit(ErrorEvent(
-        module="app",
-        error_type="ROUTER_LOAD_FAILED",
-        message=str(_e)[:200],
-        severity="WARNING",
-        context={"router": "comment_thread_ai"},
-    ))
+    error_event_bus.emit(
+        ErrorEvent(
+            module="app",
+            error_type="ROUTER_LOAD_FAILED",
+            message=str(_e)[:200],
+            severity="WARNING",
+            context={"router": "comment_thread_ai"},
+        )
+    )
 
 try:
     from tools.auto_test_generator import router as test_gen_router
@@ -475,13 +502,15 @@ try:
     app.include_router(test_gen_router, prefix="/api")
 except Exception as _e:  # noqa: BLE001
     logger.warning(f"auto_test_generator router not loaded: {_e}")
-    error_event_bus.emit(ErrorEvent(
-        module="app",
-        error_type="ROUTER_LOAD_FAILED",
-        message=str(_e)[:200],
-        severity="WARNING",
-        context={"router": "auto_test_generator"},
-    ))
+    error_event_bus.emit(
+        ErrorEvent(
+            module="app",
+            error_type="ROUTER_LOAD_FAILED",
+            message=str(_e)[:200],
+            severity="WARNING",
+            context={"router": "auto_test_generator"},
+        )
+    )
 
 try:
     from api.routes.tenant_admin import router as tenant_admin_router
@@ -489,13 +518,15 @@ try:
     app.include_router(tenant_admin_router, prefix="/api")
 except Exception as _e:  # noqa: BLE001
     logger.warning(f"tenant_admin router not loaded: {_e}")
-    error_event_bus.emit(ErrorEvent(
-        module="app",
-        error_type="ROUTER_LOAD_FAILED",
-        message=str(_e)[:200],
-        severity="WARNING",
-        context={"router": "tenant_admin"},
-    ))
+    error_event_bus.emit(
+        ErrorEvent(
+            module="app",
+            error_type="ROUTER_LOAD_FAILED",
+            message=str(_e)[:200],
+            severity="WARNING",
+            context={"router": "tenant_admin"},
+        )
+    )
 
 from api.routes.mobile_bff import router as mobile_bff_router
 
@@ -538,13 +569,15 @@ try:
     app.include_router(cloud_mesh_router)
 except Exception as _e:  # noqa: BLE001
     logger.warning(f"cloud_mesh router not loaded: {_e}")
-    error_event_bus.emit(ErrorEvent(
-        module="app",
-        error_type="ROUTER_LOAD_FAILED",
-        message=str(_e)[:200],
-        severity="WARNING",
-        context={"router": "cloud_mesh"},
-    ))
+    error_event_bus.emit(
+        ErrorEvent(
+            module="app",
+            error_type="ROUTER_LOAD_FAILED",
+            message=str(_e)[:200],
+            severity="WARNING",
+            context={"router": "cloud_mesh"},
+        )
+    )
 
 try:
     from api.routes.events import router as events_router
@@ -552,13 +585,15 @@ try:
     app.include_router(events_router, prefix="/api")
 except Exception as _e:  # noqa: BLE001
     logger.warning(f"events router not loaded: {_e}")
-    error_event_bus.emit(ErrorEvent(
-        module="app",
-        error_type="ROUTER_LOAD_FAILED",
-        message=str(_e)[:200],
-        severity="WARNING",
-        context={"router": "events"},
-    ))
+    error_event_bus.emit(
+        ErrorEvent(
+            module="app",
+            error_type="ROUTER_LOAD_FAILED",
+            message=str(_e)[:200],
+            severity="WARNING",
+            context={"router": "events"},
+        )
+    )
 
 app.router.lifespan_context = lifespan.app_lifespan
 
