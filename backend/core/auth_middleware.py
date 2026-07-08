@@ -164,10 +164,8 @@ class AuthMiddleware:
         token = _get_bearer_token(headers)
 
         if is_test:
-            # বাংলা মন্তব্য: টেস্ট মোডে যদি explicitly incorrect token পাঠানো হয়, তবেই কেবল ৪০১ রিটার্ন করব।
-            # খালি টোকেন বা সঠিক টোকেন হলে বাইপাস হতে দেব।
             expected_token = os.getenv("SUPREMEAI_API_TOKEN")
-            if token and expected_token and token != expected_token:
+            if expected_token and token != expected_token:
                 pass
             else:
                 await self.app(scope, receive, send)

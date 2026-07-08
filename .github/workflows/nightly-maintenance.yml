@@ -292,6 +292,14 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
           cache-dependency-path: '**/pnpm-lock.yaml'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      - name: Install Python Dependencies
+        run: |
+          pip install poetry
+          cd backend && poetry install --with dev --without ml
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
       - name: Install Playwright Browsers
