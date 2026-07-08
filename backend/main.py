@@ -1,3 +1,4 @@
+# FILE_PATH: main.py
 import os
 import signal
 import sys
@@ -11,8 +12,24 @@ from api.routes.agent_workspace import router as agent_router
 from api.routes.integrations import router as integrations_router
 from api.routes.public_config import router as public_config_router
 from api.routes.task_workspace import router as workspace_task_router
-from core.app import app  # noqa: F401
 from core.config import settings
+
+
+# Fix for CI/test environment:
+# The `sqlite3.OperationalError: unable to open database file` occurs during test collection
+# because `AdminGodLayer` (imported via `core.app -> core.lifespan -> core.services`)
+# attempts to connect to a SQLite database file specified by `settings.admin_rules_db`
+# at module import time. In a CI environment, this path might not exist or be writable.
+# The logs indicate "Firestore unavailable or in test mode. AdminGodLayer using local SQLite fallback."
+# which means `settings.test_mode` is likely active.
+#
+# By overriding `settings.admin_rules_db` to `":memory:"` when `settings.test_mode` is true,
+# we ensure that an in-memory SQLite database is used for tests, preventing filesystem errors.
+if settings.test_mode:
+    logger.info("Detected test mode. Overriding settings.admin_rules_db to use in-memory SQLite.")
+    settings.admin_rules_db = ":memory:"
+
+from core.app import app  # noqa: F401
 from core.logging_config import setup_logging
 
 
