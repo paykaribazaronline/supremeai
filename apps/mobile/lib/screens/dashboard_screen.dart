@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../providers/orchestration_provider.dart';
+import '../providers/auth_provider.dart';
 import '../widgets/action_hub_card.dart';
 import '../widgets/agent_metrics_card.dart';
 import '../widgets/live_execution_logger.dart';
@@ -18,9 +19,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // 🔥 safe প্র্যাকটিস: ফ্রেম রেন্ডারিং শেষ হওয়ার পর প্রোভাইডার থেকে ডেটা রিড করা হবে
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DashboardProvider>().syncDashboard();
-      context.read<OrchestrationProvider>().initRealTimeTaskStream('dashboard-task-id', 'dummy_token');
+      try {
+        context.read<DashboardProvider>().syncDashboard();
+        
+        // ১. AuthProvider থেকে রিয়েল টোকেন ফেচ করা হচ্ছে
+        final authToken = context.read<AuthProvider>().token ?? '';
+        
+        // ২. DashboardProvider থেকে ডাইনামিক অ্যাক্টিভ টাস্ক আইডি ফেচ করা হচ্ছে
+        final activeTaskId = context.read<DashboardProvider>().activeTaskId ?? '';
+
+        // ৩. ভ্যালিডেশন চেক: টোকেন বা টাস্ক আইডি মিসিং থাকলে স্ট্রিম রান করবে না
+        if (authToken.isNotEmpty && activeTaskId.isNotEmpty) {
+          context.read<OrchestrationProvider>().initRealTimeTaskStream(activeTaskId, authToken);
+          debugPrint('🚀 [Flutter Dashboard] Live SSE Stream connected for Task: $activeTaskId');
+        } else {
+          debugPrint('⚠️ [Flutter Dashboard] Stream skipped: Missing Token ($authToken) or Task ID ($activeTaskId)');
+        }
+      } catch (error) {
+        debugPrint('🔴 [Flutter Dashboard] Failed to initialize real-time stream: $error');
+      }
     });
   }
 

@@ -10,10 +10,12 @@ class DashboardProvider with ChangeNotifier {
   List<CiJobModel> _jobs = [];
   bool _isLoading = false;
   bool _isAdminAuthorized = true; // God Mode toggle state
+  String? _activeTaskId = 'global_dashboard_task';
 
   List<CiJobModel> get jobs => _jobs;
   bool get isLoading => _isLoading;
   bool get isAdminAuthorized => _isAdminAuthorized;
+  String? get activeTaskId => _activeTaskId;
 
   // ড্যাশবোর্ডে ডাটা সিঙ্ক করা
   Future<void> syncDashboard() async {
