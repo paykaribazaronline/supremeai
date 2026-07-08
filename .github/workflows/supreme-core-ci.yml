@@ -759,7 +759,7 @@ jobs:
           MIRROR_REPO_TOKEN: ${{ secrets.MIRROR_REPO_TOKEN }}
         run: |
           git remote add mirror https://${MIRROR_REPO_TOKEN}@github.com/SaifulHaqueNiloy/supremeai.git
-          git push mirror main:refs/heads/main
+          git push --force mirror main:refs/heads/main
 
   generate-codebase-docs:
     name: 📝 Auto-Generate & Deploy Docs
