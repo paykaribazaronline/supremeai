@@ -9,22 +9,24 @@ ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY")
 if not ENCRYPTION_KEY:
     raise ValueError("CRITICAL: ENCRYPTION_KEY environment variable is not set. Halting application for security reasons.")
 
-fernet = Fernet(ENCRYPTION_KEY.encode('utf-8'))
+fernet = Fernet(ENCRYPTION_KEY.encode("utf-8"))
+
 
 def encrypt_token(plain_text: str) -> str:
     """Encrypts a token using AES (Fernet)"""
     if not plain_text:
         return ""
-    encrypted_bytes = fernet.encrypt(plain_text.encode('utf-8'))
-    return encrypted_bytes.decode('utf-8')
+    encrypted_bytes = fernet.encrypt(plain_text.encode("utf-8"))
+    return encrypted_bytes.decode("utf-8")
+
 
 def decrypt_token(cipher_text: str) -> str:
     """Decrypts a token using AES (Fernet)"""
     if not cipher_text:
         return ""
     try:
-        decrypted_bytes = fernet.decrypt(cipher_text.encode('utf-8'))
-        return decrypted_bytes.decode('utf-8')
+        decrypted_bytes = fernet.decrypt(cipher_text.encode("utf-8"))
+        return decrypted_bytes.decode("utf-8")
     except Exception as e:  # noqa: BLE001
         print(f"Error decrypting token: {e}")  # noqa: T201
         return ""

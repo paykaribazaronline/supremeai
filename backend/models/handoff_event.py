@@ -23,4 +23,3 @@ class HandoffEvent(Base):
     end_ts: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     actions_taken_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-

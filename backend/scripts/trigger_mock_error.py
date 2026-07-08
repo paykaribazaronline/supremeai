@@ -16,7 +16,7 @@ async def main():
         error_type="MockError",
         message="This is a mock error to verify EventBus routing",
         severity="WARNING",
-        context={"task_id": "mock_task_123"}
+        context={"task_id": "mock_task_123"},
     )
 
     # Fire the event bus
@@ -25,6 +25,7 @@ async def main():
     # Wait a bit for the async listener to finish
     await asyncio.sleep(0.5)
     print("Mock error triggered successfully.")  # noqa: T201
+
 
 if __name__ == "__main__":
     asyncio.run(main())

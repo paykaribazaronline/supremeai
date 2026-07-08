@@ -1,8 +1,10 @@
 import os
+
 os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno="
 os.environ["ENCRYPTION_KEY"] = "9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno="
 import sys
 import matplotlib
+
 matplotlib.use("Agg")
 
 
@@ -114,6 +116,7 @@ def bypass_jwt_auth():
             patches.append(p)
         except Exception as e:  # noqa: BLE001
             import logging
+
             logging.warning(f"Exception suppressed: {e}")
     yield
     for p in patches:
@@ -129,9 +132,11 @@ def configure_litellm():
         import threading
 
         result = {}
+
         def _import():
             try:
                 import litellm
+
                 result["module"] = litellm
             except Exception as e:  # noqa: BLE001
                 result["error"] = e
@@ -141,9 +146,11 @@ def configure_litellm():
         t.join(timeout=8)
         if t.is_alive():
             import logging
+
             logging.warning("litellm import timed out; skipping configuration")
         elif "error" in result:
             import logging
+
             logging.warning(f"Exception suppressed: {result['error']}")
         else:
             litellm = result["module"]
@@ -152,6 +159,6 @@ def configure_litellm():
             litellm.telemetry = False
     except Exception as e:  # noqa: BLE001
         import logging
+
         logging.warning(f"Exception suppressed: {e}")
     yield
-

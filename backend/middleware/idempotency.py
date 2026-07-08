@@ -37,7 +37,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                 status_code=400,
                 content={
                     "error": "Bad Request: 'Idempotency-Key' header is required for mutating operations.",
-                    "hint": "Provide a unique UUID as 'Idempotency-Key' header."
+                    "hint": "Provide a unique UUID as 'Idempotency-Key' header.",
                 },
             )
 
@@ -86,12 +86,10 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                 if hasattr(response, "body_iterator"):
                     response_body = [section async for section in response.body_iterator]
                     from starlette.responses import Response
+
                     body_bytes = b"".join(response_body)
                     response = Response(
-                        content=body_bytes,
-                        status_code=response.status_code,
-                        headers=dict(response.headers),
-                        media_type=response.media_type
+                        content=body_bytes, status_code=response.status_code, headers=dict(response.headers), media_type=response.media_type
                     )
                 else:
                     body_bytes = response.body if hasattr(response, "body") else b"{}"
@@ -99,11 +97,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                 try:
                     body_str = body_bytes.decode("utf-8")
                     cache_data = json.dumps({"status_code": 200, "body": json.loads(body_str)})
-                    await cache_response_and_release_lock(
-                        idempotency_key,
-                        cache_data,
-                        IDEMPOTENCY_TTL_SECONDS * 5
-                    )
+                    await cache_response_and_release_lock(idempotency_key, cache_data, IDEMPOTENCY_TTL_SECONDS * 5)
                 except Exception as cache_err:  # noqa: BLE001
                     logger.warning(f"[Idempotency] Response caching failed (non-blocking): {cache_err}")
                     await release_idempotency_lock(idempotency_key)
