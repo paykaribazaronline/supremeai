@@ -15,6 +15,15 @@ if os.path.basename(os.getcwd()) == 'backend':
 else:
     sys.path.insert(0, os.path.join(os.getcwd(), 'backend'))
 
+if "ENCRYPTION_KEY" not in os.environ:
+    try:
+        from cryptography.fernet import Fernet
+        os.environ["ENCRYPTION_KEY"] = Fernet.generate_key().decode("utf-8")
+    except ImportError:
+        import base64
+        import os as _os
+        os.environ["ENCRYPTION_KEY"] = base64.urlsafe_b64encode(_os.urandom(32)).decode("utf-8")
+
 try:
     from main import app
 except ImportError as e:
