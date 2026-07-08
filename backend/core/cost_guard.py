@@ -65,6 +65,8 @@ class CostGuard:
             
         return True
 
-# 🔥 গ্লোবাল সিঙ্গেলটন অবজেক্ট (Singleton Instance) তৈরি করা হলো
+# CRITICAL FIX (Import Error & Backward Compatibility):
+# গ্লোবাল সিঙ্গেলটন অবজেক্ট (Singleton Instance) তৈরি করা হলো।
 # এটি করার কারণে task_router.py এখন সরাসরি `from core.cost_guard import cost_guard` ইম্পোর্ট করতে পারবে।
+# পাশাপাশি __init__ এ db=None রাখায় পুরনো কোডগুলো (যারা db পাঠাতো) ক্র্যাশ করবে না।
 cost_guard = CostGuard()

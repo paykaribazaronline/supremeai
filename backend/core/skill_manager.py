@@ -54,7 +54,9 @@ class DynamicSkillManager:
         try:
             raw_text = response.get("text", "{}").strip()
 
-            # যদি এআই মার্কডাউন ব্যাকটিক্স (```json) দিয়ে উত্তর দেয়, তা ক্লিন করার লজিক
+            # CRITICAL FIX (LLM Markdown Trap):
+            # ক্লড (Claude) বা জিপিটি অনেক সময় উত্তরের শুরুতে/শেষে ```json জুড়ে দেয়।
+            # সরাসরি json.loads() করলে এটি ক্র্যাশ করবে, তাই পার্স করার আগে স্ট্রিংটি ক্লিন করা বাধ্যতামূলক।
             if raw_text.startswith("```"):
                 lines = raw_text.splitlines()
                 if lines[0].startswith("```"):
