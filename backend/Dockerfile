@@ -22,7 +22,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
 
 # শুধুমাত্র ভার্চুয়াল এনভায়রনমেন্ট কপি করো (পুরো সোর্স কোড নয়)
 COPY --from=builder /app/.venv /app/.venv
-COPY backend/ . 
+COPY backend/ .
 
 ENV PATH="/app/.venv/bin:$PATH"
 EXPOSE 8000

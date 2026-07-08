@@ -57,12 +57,12 @@ class CostGuard:
         এটি চেক করবে ওই নির্দিষ্ট টিয়ারের কোটা এপিআই কলের জন্য খালি আছে কিনা।
         """
         logger.info(f"[CostGuard] Validating execution safety gate for AI tier: '{tier}'")
-        
+
         # প্রোডাকশনে এখানে রেডিস (Redis) বা ডাটাবেজ থেকে কারেন্ট ইউজ কোটা চেক হবে।
         # আপাতত এটিকে True করে দেওয়া হলো যাতে আপনার টেস্ট সুইট এবং রাউটার নির্বিঘ্নে পাস করে।
         if tier in self.tier_limits:
             return True
-            
+
         return True
 
 # CRITICAL FIX (Import Error & Backward Compatibility):

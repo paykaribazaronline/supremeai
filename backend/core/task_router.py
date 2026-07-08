@@ -107,17 +107,17 @@ class TaskRouter:
             # কাজের ধরণ বুঝে এআই নিজেই নিজের লোকাল টুল বক্স থেকে রেসিপি লোড করবে (১ বার এপিআই খরচ বা ০ কস্ট ক্যাশ হিট)
             skill_recipe = await self.skill_manager.get_or_create_skill(task_prompt)
             steps = skill_recipe.get("execution_steps", [])
-            
+
             # --- LAYER 2: LOCAL BROWSER EXECUTION WITH HUMAN BIAS (15% Domain) ---
             logger.info("[Router] Dispatching dynamic skill recipe to local Playwright Sandbox...")
-            
+
             # আপনার tools/browser_agent.py এর সাথে কানেক্ট করে steps গুলো এক্সিকিউট করা
             # এখানে strict timeout (35s) দেওয়া হয়েছে যাতে বট ব্লকিং লুপে ইউজার আটকে না থাকে
             browser_result = await asyncio.wait_for(
                 self._execute_local_playwright_recipe(steps, contextual_url),
                 timeout=self.browser_timeout
             )
-            
+
             if browser_result and browser_result.get("status") == "success":
                 return {
                     "status": "success",
@@ -128,12 +128,12 @@ class TaskRouter:
 
         except (TimeoutError, Exception) as l2_exception:
             logger.warning(f"[Router] Layer 2 Failed: {str(l2_exception)}. Initiating Failsafe Layer 3...")
-            
+
             # --- LAYER 3: ECONOMY LLM FALLBACK (20% Domain - Ultra Cheap API) ---
             try:
                 if not cost_guard.validate_budget(tier="economy"):
                     raise ValueError("Economy quota breached.")
-                    
+
                 economy_payload = await llm_gateway.acompletion(
                     prompt=task_prompt,
                     model_filters=["deepseek-v3", "gpt-4o-mini"],
@@ -146,13 +146,13 @@ class TaskRouter:
                         "data": economy_payload.get("text")
                     }
                 raise Exception("Economy models failed execution.")
-                
-            # CRITICAL FIX (Ruff Linting): 
-            # পাইথনে সরাসরি `except Exception` লিখলে Ruff 'BLE001 (blind exception)' এরর দেয়। 
+
+            # CRITICAL FIX (Ruff Linting):
+            # পাইথনে সরাসরি `except Exception` লিখলে Ruff 'BLE001 (blind exception)' এরর দেয়।
             # তাই এখানে `# noqa: BLE001` ফ্ল্যাগ দিয়ে স্পেসিফিকভাবে এই ওয়ার্নিংটি বাইপাস করা হয়েছে।
             except Exception as l3_exception:  # noqa: BLE001
                 logger.error(f"[Router] Layer 3 Breached: {str(l3_exception)}. Escalating to Critical Layer 4.")
-                
+
                 # --- LAYER 4: PREMIUM CRITICAL FALLBACK (5% Domain) ---
                 premium_payload = await llm_gateway.acompletion(
                     prompt=task_prompt,
@@ -182,7 +182,7 @@ class TaskRouter:
                     logger.error(f"Browser automation interrupted: {str(e)}")
                     raise e
                 finally:
-                    # CRITICAL FIX (Playwright Memory Leak): 
+                    # CRITICAL FIX (Playwright Memory Leak):
                     # এই ব্লকটি নিশ্চিত করবে যে asyncio.wait_for টাইমআউট দিলেও ব্রাউজার ক্লোজ হবেই হবে!
                     # এটি না দিলে ব্রাউজারগুলো Orphan Process হিসেবে মেমোরিতে (RAM) জমতে থাকবে।
                     await page.close()

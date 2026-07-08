@@ -9,12 +9,12 @@ from core.llm_gateway import llm_gateway  # আপনার কোডের এ�
 class DynamicSkillManager:
     def __init__(self, chroma_client=None):
         # এখানে আপনার ক্রোমাডিবি বা লোকাল ভেক্টর ডিবি ক্লায়েন্ট ইনজেক্ট হবে
-        self.db = chroma_client 
+        self.db = chroma_client
         self._temporary_memory_registry = {}
 
     async def get_or_create_skill(self, task_description: str) -> dict:
         """লোকাল রেজিস্ট্রি চেক করবে, মিস হলে প্রিমিয়াম এআই দিয়ে ১ বার নতুন স্কিল জেনারেট করবে।"""
-        
+
         # ১. লোকাল স্কিল ডাটাবেজে সিমান্টিক সার্চ (MOCK - আপনার ডিবি অনুযায়ী কানেক্ট করবেন)
         existing_skill = await self._search_local_registry(task_description)
         if existing_skill:
@@ -23,13 +23,13 @@ class DynamicSkillManager:
 
         # ২. লোকাল ডাটাবেজে না থাকলে (Registry Miss) -> প্রিমিয়াম এআই দিয়ে ১ বার স্কিল জেনারেট
         logger.warning("🚀 New unique task detected. Generating a reusable skill via Premium LLM...")
-        
+
         system_prompt = (
             "You are SupremeAI's Skill Architect. Your sole job is to generate a reusable, structural "
             "step-by-step automation blueprint for a Playwright browser agent based on user request. "
             "You must return ONLY a raw valid JSON object. No conversation, no markdown codeblocks."
         )
-        
+
         prompt = f"""
         Create a functional automation extraction schema for the following task: '{task_description}'.
         The output format must strictly be JSON matching this shape:
@@ -44,13 +44,13 @@ class DynamicSkillManager:
             ]
         }}
         """
-        
+
         response = await llm_gateway.acompletion(
             prompt=prompt,
             system_prompt=system_prompt,
             model_filters=["claude-3-5-sonnet"]
         )
-        
+
         try:
             raw_text = response.get("text", "{}").strip()
 
