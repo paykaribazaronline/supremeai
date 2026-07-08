@@ -148,6 +148,10 @@ class AuthMiddleware:
             "/api/admin/firebase-totp-setup",
             "/api/admin/firebase-totp-verify",
             "/orchestrator/tick",
+            # বাংলা মন্তব্য: পাবলিক কনফিগ এবং টাস্ক স্ট্রিম এন্ডপয়েন্ট সবার জন্য উন্মুক্ত করা হলো
+            "/api/config/public",
+            "/api/task/stream",
+            "/api/health",
         }
         # বাংলা মন্তব্য: public paths dynamically matching using substring or clean compare.
         is_public = (

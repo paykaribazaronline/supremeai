@@ -26,6 +26,8 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
             "/api/v1/graph",
             "/ws/chat",
             "/ws",
+            # বাংলা মন্তব্য: পাবলিক কনফিগ এন্ডপয়েন্টকে সবার জন্য উন্মুক্ত করা হলো যাতে লগইন ছাড়াও অ্যাক্সেস করা যায়
+            "/api/config/public",
         ]
         if request.method == "OPTIONS":
             return await call_next(request)
