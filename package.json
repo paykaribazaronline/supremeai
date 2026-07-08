@@ -46,6 +46,7 @@
     "pnpm": ">=9.0.0"
   },
   "dependencies": {
-    "@webcontainer/api": "^1.6.4"
+    "@webcontainer/api": "^1.6.4",
+    "rollup": "^4.62.2"
   }
 }

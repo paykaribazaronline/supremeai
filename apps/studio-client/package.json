@@ -9,7 +9,11 @@
   "main": "main.js",
   "scripts": {
     "dev": "vite",
+    "dev:admin": "cross-env VITE_PORTAL_TYPE=admin vite",
+    "dev:user": "cross-env VITE_PORTAL_TYPE=user vite",
     "build": "vite build",
+    "build:admin": "cross-env VITE_PORTAL_TYPE=admin vite build",
+    "build:user": "cross-env VITE_PORTAL_TYPE=user vite build",
     "build:report": "vite build --mode production --reporter=json",
     "lint": "eslint .",
     "preview": "vite preview",

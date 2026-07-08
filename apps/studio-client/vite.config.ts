@@ -45,6 +45,8 @@ export default defineConfig({
     }
   },
   build: {
+    outDir: process.env.VITE_PORTAL_TYPE === 'admin' ? 'dist-admin' : 'dist-user',
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         manualChunks: {

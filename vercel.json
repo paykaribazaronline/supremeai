@@ -1,7 +1,8 @@
 {
-  "buildCommand": "pnpm turbo run build --filter=supremeai-studio-client",
+  "version": 2,
+  "buildCommand": "pnpm --filter supremeai-studio-client build:user",
   "ignoreCommand": "git diff --quiet HEAD^ HEAD ./apps/studio-client",
-  "outputDirectory": "apps/studio-client/dist",
+  "outputDirectory": "apps/studio-client/dist-user",
   "framework": "vite",
   "env": {
     "VITE_PORTAL_TYPE": "user"
