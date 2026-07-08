@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/auth_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 13,078 বাইট  
-**আপডেট:** 2026-07-08T03:25:22.454761
+**সাইজ:** 12,720 বাইট  
+**আপডেট:** 2026-07-08T03:35:53.413503
 
 ---
 
@@ -175,10 +175,8 @@ class AuthMiddleware:
         token = _get_bearer_token(headers)
 
         if is_test:
-            # বাংলা মন্তব্য: টেস্ট মোডে যদি explicitly incorrect token পাঠানো হয়, তবেই কেবল ৪০১ রিটার্ন করব।
-            # খালি টোকেন বা সঠিক টোকেন হলে বাইপাস হতে দেব।
             expected_token = os.getenv("SUPREMEAI_API_TOKEN")
-            if token and expected_token and token != expected_token:
+            if expected_token and token != expected_token:
                 pass
             else:
                 await self.app(scope, receive, send)
