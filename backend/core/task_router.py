@@ -195,7 +195,28 @@ class TaskRouter:
             return {"status": "success", "data": "DOM payload stream"}
 
     async def _execute_local_playwright_recipe(self, steps: list, url: str) -> dict:
-        """লোকাল প্লে-রাইট ড্রাইভারকে ডাইনামিক স্টেপস ফিড করার ইন্টারফেস (Placeholder)"""
-        # এখানে আপনার tools/browser_agent.py কল হবে যা HumanBehaviorSimulators ব্যবহার করবে
-        await asyncio.sleep(2.0) # সিমুলেটেড রানটাইম ডিলে
-        return {"status": "success", "data": "DOM dynamic extracted payload"}
+        """
+        লোকাল প্লে-রাইট ড্রাইভারকে ডাইনামিক স্টেপস ফিড করার আসল প্রডাকশন ইন্টারফেস।
+        """
+        logger.info("[Router] Launching authentic Playwright Interpreter Sandbox...")
+        
+        try:
+            from tools.browser_agent import BrowserAgent
+            
+            # প্রডাকশন কন্টেইনারে headless=True তেই রান হবে
+            agent = BrowserAgent(headless=True)
+            
+            # ডাইনামিক রেসিপি এক্সিকিউট করা হচ্ছে
+            result = await agent.execute_recipe(steps, initial_url=url)
+            
+            if result.get("status") == "success":
+                return {
+                    "status": "success", 
+                    "data": result.get("data")
+                }
+            else:
+                raise Exception(result.get("error", "Unknown automation execution error"))
+                
+        except Exception as error:
+            logger.error(f"[Router] Playwright Sandbox Bridge Failed: {str(error)}")
+            raise error

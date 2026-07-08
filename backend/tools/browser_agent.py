@@ -12,7 +12,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from api.routes.admin_dashboard import require_admin_token
-
+from core.human_behavior import HumanBehaviorSimulators
 
 router = APIRouter(prefix="/browser", tags=["browser-agent"])
 
@@ -103,9 +103,95 @@ class BrowseRequest(BaseModel):
 class BrowserAgent:
     """Controls browser actions — httpx (fast) + Playwright (full JS)."""
 
-    def __init__(self):
+    def __init__(self, headless: bool = True):
         self._pw_browser = None
+        self.headless = headless
         logger.info("Initialized BrowserAgent")
+
+    async def execute_recipe(self, steps: list, initial_url: str = None) -> dict:
+        """
+        ডাটাবেজ বা স্কিল ম্যানেজার থেকে আসা JSON রেসিপি অ্যারে ডাইনামিকালি ইন্টারপ্রিট করবে।
+        """
+        if async_playwright is None:
+            return {"status": "failed", "error": "Playwright is not installed"}
+
+        logger.info(f"🎬 Initializing Dynamic Recipe Interpreter with {len(steps)} steps.")
+        
+        extracted_data = {}
+        
+        async with async_playwright() as p:
+            # কন্টেইনার সেফ স্যান্ডবক্স মোডে ক্রমিয়াম লঞ্চ করা
+            browser = await p.chromium.launch(
+                headless=self.headless,
+                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-blink-features=AutomationControlled"]
+            )
+            context = await browser.new_context(
+                viewport={"width": 1280, "height": 1080},
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+            )
+            page = await context.new_page()
+            
+            try:
+                # যদি ইনিশিয়াল কোনো ইউআরএল দেওয়া থাকে, প্রথমে সেখানে নেভিগেট করবে
+                if initial_url:
+                    logger.info(f"Navigating to initial target: {initial_url}")
+                    await page.goto(initial_url, wait_until="networkidle", timeout=30000)
+
+                # 🔄 ডায়নামিক রেসিপি লুপ স্টার্ট
+                for index, step in enumerate(steps):
+                    action = step.get("action", "").lower()
+                    selector = step.get("selector")
+                    value = step.get("value")
+                    
+                    logger.debug(f"Processing Recipe Step [{index + 1}]: Action='{action}'")
+
+                    if action == "navigate":
+                        await page.goto(step["url"], wait_until="networkidle", timeout=30000)
+                        
+                    elif action == "click":
+                        await HumanBehaviorSimulators.natural_mouse_move_and_click(page, selector)
+                        
+                    elif action == "type":
+                        # স্মার্ট ক্ল্যাম্পিং: বড় টেক্সট হলে ডিরেক্ট পেস্ট/ফিল করবে, ছোট হলে হিউম্যান টাইপিং
+                        if len(str(value)) > 50:
+                            await page.wait_for_selector(selector, state="visible")
+                            await page.fill(selector, str(value))
+                        else:
+                            await HumanBehaviorSimulators.natural_type(page, selector, str(value))
+                            
+                    elif action == "wait":
+                        # যদি ভ্যালু সংখ্যা হয় তবে সেকেন্ড স্লিপ করবে, টেক্সট হলে সিলেক্টর visible হওয়া পর্যন্ত ওয়েট করবে
+                        if str(value).isdigit():
+                            await asyncio.sleep(float(value))
+                        else:
+                            await page.wait_for_selector(str(value), state="visible", timeout=15000)
+                            
+                    elif action == "extract":
+                        await page.wait_for_selector(selector, state="visible", timeout=10000)
+                        
+                        # যদি টেবিল ডেটা বা মাল্টিপল এলিমেন্ট স্ক্র্যাপ করতে বলা হয়
+                        if step.get("type") == "list":
+                            elements = await page.query_selector_all(selector)
+                            extracted_data[selector] = [await el.inner_text() for el in elements]
+                        else:
+                            # ডিফল্ট সিঙ্গেল এলিমেন্ট টেক্সট এক্সট্রাকশন
+                            extracted_data[selector] = await page.inner_text(selector)
+                            
+                        logger.success(f"Successfully extracted target data node from: {selector}")
+
+                # সমস্ত স্টেপ সফলভাবে শেষ হলে
+                return {"status": "success", "data": extracted_data}
+
+            except Exception as e:
+                logger.error(f"❌ Recipe Interpreter crashed mid-execution: {str(e)}")
+                return {"status": "failed", "error": str(e)}
+                
+            finally:
+                # প্লে-রাইট মেমোরি লিক এবং অরফ্যান প্রসেস রুখতে কড়া ক্লিনআপ
+                await page.close()
+                await context.close()
+                await browser.close()
+                logger.info("🗑️ Playwright Sandbox context cleaned up successfully.")
 
     # ── Simple fetch (no JS needed) ────────────────────────────────
     def fetch_page(self, url: str) -> dict[str, Any]:
