@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-08T03:11:56.295244
+Generated at: 2026-07-08T03:25:22.407911
 
 
 ## File: `pnpm-lock.yaml`
@@ -66409,10 +66409,10 @@ class AuthMiddleware:
         token = _get_bearer_token(headers)
 
         if is_test:
-            # বাংলা মন্তব্য: টেস্ট মোডে মিডলওয়্যার যাতে ইন্টিগ্রেশন টেস্টগুলোকে ব্লক না করে সেজন্য bypass।
-            # তবে যদি টেস্টে explicitly incorrect token বা empty token পাঠানো হয়, তবে auth enforce করব।
+            # বাংলা মন্তব্য: টেস্ট মোডে যদি explicitly incorrect token পাঠানো হয়, তবেই কেবল ৪০১ রিটার্ন করব।
+            # খালি টোকেন বা সঠিক টোকেন হলে বাইপাস হতে দেব।
             expected_token = os.getenv("SUPREMEAI_API_TOKEN")
-            if expected_token and token != expected_token:
+            if token and expected_token and token != expected_token:
                 pass
             else:
                 await self.app(scope, receive, send)
@@ -72240,13 +72240,13 @@ class HumanBehaviorSimulators:
         """মানুষের হাতের সামান্য কাঁপুনি সিমুলেট করার জন্য Bezier পাথ পয়েন্ট জেনারেট করে।"""
         x1, y1 = start
         x2, y2 = end
-        
+
         # র্যান্ডম কন্ট্রোল পয়েন্ট নিয়ে ন্যাচারাল কার্ভ তৈরি করা হচ্ছে
         control1_x = x1 + (x2 - x1) * random.uniform(0.1, 0.4)
         control1_y = y1 + (y2 - y1) * random.uniform(0.1, 0.3)
         control2_x = x1 + (x2 - x1) * random.uniform(0.6, 0.9)
         control2_y = y1 + (y2 - y1) * random.uniform(0.7, 0.9)
-        
+
         points = []
         for i in range(steps):
             t = i / float(steps - 1)
@@ -72268,17 +72268,17 @@ class HumanBehaviorSimulators:
             # এলিমেন্টের সেন্টারে সামান্য র্যান্ডম অফসেট নিয়ে ক্লিক কোঅর্ডিনেট নির্ধারণ
             target_x = box["x"] + box["width"] / 2 + random.uniform(-5, 5)
             target_y = box["y"] + box["height"] / 2 + random.uniform(-5, 5)
-            
+
             # এন্ট্রি ভেক্টর সিমুলেট করার জন্য র্যান্ডম শুরু পয়েন্ট নেওয়া হলো
             start_x = random.uniform(0, 100)
             start_y = random.uniform(0, 100)
-            
+
             path = cls._generate_bezier_points((start_x, start_y), (target_x, target_y), steps=random.randint(15, 30))
-            
+
             for x, y in path:
                 await page.mouse.move(x, y)
                 await asyncio.sleep(random.uniform(0.005, 0.015)) # মাইক্রো ডিলে
-                
+
             await asyncio.sleep(random.uniform(0.1, 0.25)) # ক্লিকের আগে সামান্য থামা
             await page.mouse.click(target_x, target_y)
             logger.debug(f"Simulated natural human click on selector: {selector}")
@@ -72293,7 +72293,7 @@ class HumanBehaviorSimulators:
             element = await page.wait_for_selector(selector, state="visible", timeout=10000)
             await element.focus()
             await asyncio.sleep(random.uniform(0.15, 0.3))
-            
+
             for char in text:
                 await page.keyboard.type(char)
                 # Gaussian ডিস্ট্রিবিউশন: Mean=100ms, StdDev=30ms
@@ -72301,7 +72301,7 @@ class HumanBehaviorSimulators:
                 # বাস্তবসম্মত বাউন্ডারি লিমিট (50ms থেকে 250ms)
                 delay = max(0.05, min(delay, 0.25))
                 await asyncio.sleep(delay)
-                
+
             logger.debug(f"Simulated natural typing into selector: {selector}")
         except Exception as e:
             logger.error(f"Human-like typing failed on {selector}: {str(e)}")
@@ -76714,21 +76714,21 @@ class DynamicAgentFactory:
         প্রিমিয়াম এআই ব্যবহার করে ওয়ান-টাইম এজেন্ট স্ক্রিপ্ট বানাবে।
         """
         logger.info(f"Generating a new autonomous agent for task: {task_description}")
-        
+
         system_prompt = (
             "You are the SupremeAI Agent Factory. Your job is to output a raw JSON configuration "
             "and structural flow steps that a Python Playwright browser can execute locally. "
             "Do not return conversational text, return only valid JSON containing 'agent_name', "
             "'description', and 'execution_steps' (a list of actions)."
         )
-        
+
         # প্রিমিয়াম এআই দিয়ে ১ বার খরচ করে এজেন্টের স্ক্রিপ্ট বানিয়ে নেওয়া
         response = await llm_gateway.acompletion(
             prompt=f"Create a custom browser extraction script for: {task_description}",
             system_prompt=system_prompt,
             model_filters=["claude-3-5-sonnet"]
         )
-        
+
         try:
             agent_config = json.loads(response.get("text"))
         except Exception as e:  # noqa: BLE001
@@ -76746,7 +76746,7 @@ class DynamicAgentFactory:
             description=agent_config.get("description", task_description),
             steps=agent_config.get("execution_steps", [])
         )
-        
+
         return agent_config
 
     async def _save_agent_to_registry(self, name: str, description: str, steps: list):

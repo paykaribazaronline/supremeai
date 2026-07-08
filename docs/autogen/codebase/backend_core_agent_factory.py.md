@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/agent_factory.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,667 বাইট  
-**আপডেট:** 2026-07-08T03:11:56.323643
+**সাইজ:** 3,635 বাইট  
+**আপডেট:** 2026-07-08T03:25:22.465155
 
 ---
 
@@ -30,21 +30,21 @@ class DynamicAgentFactory:
         প্রিমিয়াম এআই ব্যবহার করে ওয়ান-টাইম এজেন্ট স্ক্রিপ্ট বানাবে।
         """
         logger.info(f"Generating a new autonomous agent for task: {task_description}")
-        
+
         system_prompt = (
             "You are the SupremeAI Agent Factory. Your job is to output a raw JSON configuration "
             "and structural flow steps that a Python Playwright browser can execute locally. "
             "Do not return conversational text, return only valid JSON containing 'agent_name', "
             "'description', and 'execution_steps' (a list of actions)."
         )
-        
+
         # প্রিমিয়াম এআই দিয়ে ১ বার খরচ করে এজেন্টের স্ক্রিপ্ট বানিয়ে নেওয়া
         response = await llm_gateway.acompletion(
             prompt=f"Create a custom browser extraction script for: {task_description}",
             system_prompt=system_prompt,
             model_filters=["claude-3-5-sonnet"]
         )
-        
+
         try:
             agent_config = json.loads(response.get("text"))
         except Exception as e:  # noqa: BLE001
@@ -62,7 +62,7 @@ class DynamicAgentFactory:
             description=agent_config.get("description", task_description),
             steps=agent_config.get("execution_steps", [])
         )
-        
+
         return agent_config
 
     async def _save_agent_to_registry(self, name: str, description: str, steps: list):
