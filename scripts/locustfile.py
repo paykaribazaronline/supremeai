@@ -1,3 +1,4 @@
+import os
 import uuid
 import random
 import time
@@ -11,11 +12,27 @@ class SupremeAILoadTester(HttpUser):
     wait_time = between(0.1, 0.5)
 
     def on_start(self):
-        """ভার্চুয়াল ইউজার বুট হওয়ার সময় ইউনিক সেশন আইডি জেনারেট করবে"""
+        """
+        Executes on virtual user initialization. Retrieves secure authentication tokens
+        from environment context instead of static hardcoded strings.
+        """
         self.session_id = f"test-session-{uuid.uuid4()}"
+        api_token = os.getenv("SUPREMEAI_API_TOKEN")
+        app_env = os.getenv("APP_ENV", "development").lower()
+
+        if not api_token:
+            if app_env == "production":
+                # বাংলা মন্তব্য: প্রোডাকশনে কোনোভাবেই ফলব্যাক টোকেন চলতে পারে না!
+                logger.critical("CRITICAL: SUPREMEAI_API_TOKEN env var is missing in production environment!")
+                raise ValueError("SUPREMEAI_API_TOKEN environment variable is mandatory for production load tests.")
+            
+            # লোকাল এনভায়রনমেন্টে নন-সেন্সিটিভ টেস্টিংয়ের জন্য ফলব্যাক
+            api_token = "test-token-secure-bypass"
+            logger.warning(f"Using development fallback token. Current environment context: {app_env}")
+
         self.auth_headers = {
             "Content-Type": "application/json",
-            "Authorization": "Bearer test-token-secure-bypass" # অ্যাডমিন বাইপাস টোকেন
+            "Authorization": f"Bearer {api_token}"
         }
 
     @tag('stream_stress')

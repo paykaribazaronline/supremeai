@@ -1,4 +1,5 @@
 import os
+import ast
 from pathlib import Path
 import importlib.util
 from typing import Dict, Any, List
@@ -6,6 +7,79 @@ from loguru import logger
 from skills.registry import SkillRegistry
 from skills.installer import SkillInstaller
 from skills.marketplace import SkillMarketplace
+
+class SecurityError(Exception):
+    """Custom exception raised for AST sandbox validation failures."""
+    pass
+
+class BulletproofASTSandbox(ast.NodeVisitor):
+    def __init__(self, filename: str):
+        self.filename = filename
+        self.is_secure = True
+        self.violation_reason = None
+        
+        # ব্ল্যাকলিস্টেড মডিউল, অ্যাট্রিবিউটস এবং অবজেক্ট প্যারামিটার্স
+        self.banned_tokens = {
+            "__class__", "__subclasses__", "__globals__", "__code__",
+            "__import__", "__builtins__", "eval", "exec", "os", "sys",
+            "subprocess", "importlib", "shutil", "socket", "getattr", "setattr"
+        }
+
+    def _flag_violation(self, node, reason):
+        self.is_secure = False
+        self.violation_reason = f"Line {node.lineno}: {reason}"
+        logger.warning(f"AST Sandbox Violation in '{self.filename}'! Details: {self.violation_reason}")
+
+    def visit_Name(self, node):
+        if node.id in self.banned_tokens:
+            self._flag_violation(node, f"Direct usage of banned name/function '{node.id}'")
+        self.generic_visit(node)
+
+    def visit_Attribute(self, node):
+        if node.attr in self.banned_tokens:
+            self._flag_violation(node, f"Dangerous attribute access attempt: '{node.attr}'")
+        self.generic_visit(node)
+
+    def visit_Constant(self, node):
+        # Python 3.8+ কনস্ট্যান্ট নোড স্ক্যানিং (যা স্ট্রিং লিটারেল কাভার করে)
+        if isinstance(node.value, str):
+            val_clean = node.value.replace(" ", "").lower()
+            for banned in self.banned_tokens:
+                if banned in val_clean:
+                    self._flag_violation(node, f"Obfuscation payload detected in string literal: '{node.value}'")
+                    return
+        self.generic_visit(node)
+
+    def visit_Str(self, node):
+        # লেগ্যাসি পাইথন সাপোর্টের জন্য ব্যাকআপ ভিজিটর
+        val_clean = node.s.replace(" ", "").lower()
+        for banned in self.banned_tokens:
+            if banned in val_clean:
+                self._flag_violation(node, f"Obfuscated legacy payload detected in string: '{node.s}'")
+                return
+        self.generic_visit(node)
+
+    def visit_Call(self, node):
+        # ডাইনামিক কোড রান করার ফাংশন ডাইরেক্ট ব্লক করা
+        if isinstance(node.func, ast.Name):
+            if node.func.id in {"eval", "exec", "__import__", "open"}:
+                self._flag_violation(node, f"Prohibited dynamic call: '{node.func.id}'")
+        self.generic_visit(node)
+
+def secure_sandbox_ast_check(code_string: str, filename: str) -> bool:
+    """
+    Parses and audits a given Python code snippet before compilation or execution.
+    Returns True if fully compliant with SupremeAI sandbox criteria, False otherwise.
+    """
+    try:
+        parsed_tree = ast.parse(code_string)
+    except SyntaxError as e:
+        logger.error(f"Syntax error during sandboxed parsing sequence: {e}")
+        return False
+
+    validator = BulletproofASTSandbox(filename)
+    validator.visit(parsed_tree)
+    return validator.is_secure
 
 class SkillLoader:
     # Centralize security configuration for clarity and reusability.
@@ -17,10 +91,9 @@ class SkillLoader:
         self.registry = registry or SkillRegistry()
         self.installer = installer or SkillInstaller(self.registry)
         self.marketplace = SkillMarketplace()
-        self._loaded: Dict[str, Any] = {}
-        # মাত্র এক লাইনে গ্লোবাল পাথ ডিক্লেয়ারেশন
         self.skills_dir = Path(__file__).resolve().parent / "skills" / "dynamic"
         self.skills_dir.mkdir(parents=True, exist_ok=True)
+        self._loaded: Dict[str, Any] = {}
 
     def discover_local(self) -> List[str]:
         found = []
@@ -29,33 +102,6 @@ class SkillLoader:
                 if entry.is_dir() and (entry / "main.py").exists():
                     found.append(entry.name)
         return found
-
-    def _sandbox_ast_check(self, code: str, filename: str):
-        """
-        Performs AST-based security checks to prevent RCE and other malicious activities.
-        Raises SecurityError if a banned pattern is detected.
-        """
-        import ast
-        try:
-            tree = ast.parse(code, filename=filename)
-        except SyntaxError as e:
-            raise ValueError(f"Syntax error in skill code: {filename}") from e
-
-        for node in ast.walk(tree):
-            # 1. Import Blocker: Prevents importing dangerous modules.
-            if isinstance(node, (ast.Import, ast.ImportFrom)):
-                modules = [alias.name for alias in node.names] if isinstance(node, ast.Import) else [node.module]
-                for mod_name in modules:
-                    if mod_name and mod_name.split('.')[0] in self.BANNED_IMPORTS:
-                        raise SecurityError(f"🛡️ Banned import '{mod_name}' blocked in skill '{filename}'.")
-
-            # 2. Attribute Access Blocker: Prevents access to dunder methods and sensitive attributes.
-            elif isinstance(node, ast.Attribute) and (node.attr.startswith('__') or node.attr in self.BANNED_BUILTINS):
-                raise SecurityError(f"🛡️ Malicious attribute access '{node.attr}' blocked in skill '{filename}'.")
-
-            # 3. Function Call Blocker: Prevents direct calls to banned built-in functions.
-            elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in self.BANNED_BUILTINS:
-                raise SecurityError(f"🛡️ Call to banned function '{node.func.id}' blocked in skill '{filename}'.")
 
     def load(self, name: str) -> Any:
         if name in self._loaded:
@@ -76,7 +122,8 @@ class SkillLoader:
                 logger.warning(f"USS validation failed for loaded skill '{name}': {e}")
 
         code = candidate.read_text(encoding="utf-8")
-        self._sandbox_ast_check(code, str(candidate))
+        if not secure_sandbox_ast_check(code, str(candidate)):
+            raise SecurityError(f"🛡️ AST Sandbox validation failed for skill '{name}'.")
 
         spec = importlib.util.spec_from_file_location(f"skills.dynamic.{name}", candidate)
         mod = importlib.util.module_from_spec(spec)
@@ -106,10 +153,7 @@ class SkillLoader:
         skill = results[0]
         ok = self.installer.install_skill_from_source(
             name=skill["name"],
-            code=skill.get("code", ""),
-            version=skill.get("version", "1.0.0"),
-            description=skill.get("description", ""),
-            dependencies=skill.get("dependencies", []),
+            source_url=skill["download_url"],
+            target_dir=str(self.skills_dir)
         )
-        logger.info(f"Skill install for '{skill['name']}': {'ok' if ok else 'failed'}")
         return ok

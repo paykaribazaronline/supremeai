@@ -41,11 +41,23 @@ async function handleRequest(request) {
     return new Response('No backends configured', { status: 503 })
   }
 
-  // Architectural Fix: Implement Circuit Breaker logic
-  if (Date.now() < circuitBreakerState.brokenUntil) {
+  // বাংলা মন্তব্য: P1 Fix — Cloudflare KV থেকে সার্কিট স্টেট রিড করা হচ্ছে রেস কন্ডিশন ও স্টেট ড্রিফট এড়াতে।
+  const kv = typeof SUPREMEAI_KV !== 'undefined' ? SUPREMEAI_KV : (typeof env !== 'undefined' && env.SUPREMEAI_KV ? env.SUPREMEAI_KV : null);
+  let localState = { ...circuitBreakerState };
+  if (kv) {
+    try {
+      const cached = await kv.get('SUPREMEAI_CIRCUIT_BREAKER_V2', { type: 'json' });
+      if (cached) {
+        localState = cached;
+      }
+    } catch (e) {
+      console.error("KV read error for circuit breaker:", e);
+    }
+  }
+
+  if (Date.now() < localState.brokenUntil) {
     // Circuit is open, return emergency response without hitting KV or origin
     console.error('Circuit Breaker is open. Returning emergency fallback response.');
-    // This can be a static page from R2, a simple message, or a data-driven response
     return new Response('Service temporarily unavailable. Please try again shortly.', { status: 503, headers: { 'Content-Type': 'text/plain' } });
   }
 
@@ -120,13 +132,33 @@ async function getHealthyBackendsFromKV(backends) {
   const directlyChecked = await getHealthyBackends(backends);
   if (directlyChecked.length === 0 && backends.length > 0) {
     // All backends are unhealthy, trip the circuit breaker
-    circuitBreakerState.failureCount++;
-    circuitBreakerState.lastFailureTime = Date.now();
+    let localState = { ...circuitBreakerState };
+    if (kv) {
+      try {
+        const cached = await kv.get('SUPREMEAI_CIRCUIT_BREAKER_V2', { type: 'json' });
+        if (cached) {
+          localState = cached;
+        }
+      } catch (e) {
+        console.error("KV read error during state mutation:", e);
+      }
+    }
+    localState.failureCount++;
+    localState.lastFailureTime = Date.now();
     // If it fails 3 times in a row, open the circuit for 1 minute
-    if (circuitBreakerState.failureCount >= 3) {
+    if (localState.failureCount >= 3) {
       console.error('All backends unhealthy after direct check. Tripping circuit breaker for 60 seconds.');
-      circuitBreakerState.brokenUntil = Date.now() + 60000; // Open for 60 seconds
-      circuitBreakerState.failureCount = 0; // Reset count
+      localState.brokenUntil = Date.now() + 60000; // Open for 60 seconds
+      localState.failureCount = 0; // Reset count
+    }
+    Object.assign(circuitBreakerState, localState);
+    if (kv) {
+      try {
+        // বাংলা মন্তব্য: P1 Fix — অন্যান্য Isolates-এর সাথে ব্রেকার স্টেট সিঙ্ক করতে KV-তে লিখা হচ্ছে।
+        await kv.put('SUPREMEAI_CIRCUIT_BREAKER_V2', JSON.stringify(localState), { expirationTtl: 300 });
+      } catch (e) {
+        console.error("KV write error during state mutation:", e);
+      }
     }
   }
   return directlyChecked;
