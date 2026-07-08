@@ -38,10 +38,10 @@ class AuthMiddleware:
         path = scope.get("path", "")
         # বাংলা মন্তব্য: ASGI request scope variants-এর জন্য path resolution fallback যোগ করা হলো।
         if not path and scope.get("raw_path"):
-            try:
+            import contextlib
+            # বাংলা মন্তব্য: SIM105 lint rule সন্তুষ্ট করতে contextlib.suppress ব্যবহার করা হলো
+            with contextlib.suppress(Exception):
                 path = scope["raw_path"].decode("utf-8").split("?")[0]
-            except Exception:  # noqa: BLE001
-                pass
         headers = scope.get("headers", [])
 
         # Strict admin origin check to prevent security blast radius breach
