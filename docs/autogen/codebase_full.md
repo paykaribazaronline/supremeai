@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-08T10:08:43.765326
+Generated at: 2026-07-08T10:24:21.679905
 
 
 ## File: `pnpm-lock.yaml`
@@ -56210,8 +56210,8 @@ if settings.env.lower() == "production":
     try:
         settings.validate_config()
     except RuntimeError as exc:
-        logger.error(f"Production config validation failed: {exc}")
-        sys.exit(1)
+        logger.error(f"Production config validation failed: {exc}. Booting in resilient mode.")
+        # sys.exit(1) রিমুভ করা হলো (Cloud Run Resilient Boot)
 
 
 def _handle_sigterm(signum, frame):
@@ -68699,11 +68699,11 @@ if settings.env == "production" or os.getenv("ENV") == "production":
     try:
         settings.validate_config()
         # Verify encryption key is configured
-        if not os.getenv("SUPREMEAI_ENCRYPTION_KEY"):
-            raise RuntimeError("SUPREMEAI_ENCRYPTION_KEY environment variable must be set in production")
+        if not os.getenv("SUPREMEAI_ENCRYPTION_KEY") and not os.getenv("ENCRYPTION_KEY"):
+            logger.error("SUPREMEAI_ENCRYPTION_KEY or ENCRYPTION_KEY environment variable must be set in production")
     except Exception as exc:  # noqa: BLE001
-        logger.critical(f"FATAL CONFIG ERROR: {exc}")
-        sys.exit(1)
+        logger.critical(f"FATAL CONFIG ERROR: {exc}. Server will boot in resilient mode.")
+        # sys.exit(1) রিমুভ করা হলো (Cloud Run Resilient Boot)
 
 
 ```

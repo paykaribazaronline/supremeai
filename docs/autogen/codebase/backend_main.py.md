@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/main.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,041 বাইট  
-**আপডেট:** 2026-07-08T10:08:43.807068
+**সাইজ:** 2,134 বাইট  
+**আপডেট:** 2026-07-08T10:24:21.710394
 
 ---
 
@@ -40,8 +40,8 @@ if settings.env.lower() == "production":
     try:
         settings.validate_config()
     except RuntimeError as exc:
-        logger.error(f"Production config validation failed: {exc}")
-        sys.exit(1)
+        logger.error(f"Production config validation failed: {exc}. Booting in resilient mode.")
+        # sys.exit(1) রিমুভ করা হলো (Cloud Run Resilient Boot)
 
 
 def _handle_sigterm(signum, frame):
