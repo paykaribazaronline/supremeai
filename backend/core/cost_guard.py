@@ -1,6 +1,8 @@
 from typing import Any
+
 from fastapi import HTTPException
 from loguru import logger
+
 
 class CostGuard:
     def __init__(self, db: Any = None):

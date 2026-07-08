@@ -31,7 +31,7 @@ async def test_fallback_layer2_success(router):
 @pytest.mark.asyncio
 async def test_fallback_layer2_timeout_drops_to_layer3(router):
     """Layer 2 টাইমআউট হলে এটি সফলভাবে Layer 3 এপিআই ফলব্যাকে ডাউনগ্রেড করে।"""
-    router._execute_local_playwright_recipe = AsyncMock(side_effect=asyncio.TimeoutError())
+    router._execute_local_playwright_recipe = AsyncMock(side_effect=TimeoutError())
     
     with patch("core.task_router.cost_guard") as mock_cost, \
          patch("core.task_router.llm_gateway") as mock_llm:
