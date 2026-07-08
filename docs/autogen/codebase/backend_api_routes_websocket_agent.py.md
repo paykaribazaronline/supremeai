@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/websocket_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,336 বাইট  
-**আপডেট:** 2026-07-08T00:29:13.860702
+**সাইজ:** 9,948 বাইট  
+**আপডেট:** 2026-07-08T01:31:18.007947
 
 ---
 
@@ -17,6 +17,7 @@ from fastapi import Query
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 from fastapi import status
+from loguru import logger
 
 from core.llm_gateway import llm_gateway
 from core.security import verify_token
@@ -77,9 +78,9 @@ JSON:"""
                     "user_id": user_id,
                     "preferences": merged_prefs
                 })
-                print(f"🤖 [WS] Updated user preferences for {user_id}: {merged_prefs}")  # noqa: T201
-        except Exception:  # noqa: BLE001
-            print("⚠️ [WS] Failed to analyze user preferences")  # noqa: T201
+                logger.info(f"🤖 [WS] Updated user preferences for {user_id}")
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"⚠️ [WS] Failed to analyze user preferences: {type(e).__name__}: {e}")
 
 
 # ==========================================
@@ -93,20 +94,26 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
-        print("🟢 [WS] New Client Connected to Neural Engine.")  # noqa: T201
+        logger.info("🟢 [WS] New Client Connected to Neural Engine.")
 
     def disconnect(self, websocket: WebSocket):
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
-        print("🔴 [WS] Client Disconnected.")  # noqa: T201
+        logger.info("🔴 [WS] Client Disconnected.")
 
     async def _authenticate(self, websocket: WebSocket) -> dict | None:
+        # বাংলা মন্তব্য: P0 Fix — Anonymous WebSocket access সম্পূর্ণ নিষিদ্ধ।
+        # Token না থাকলে বা invalid হলে WS_1008 (Policy Violation) দিয়ে তাৎক্ষণিক reject।
+        # আগে anonymous user-কে {"sub": "anonymous"} দিয়ে LLM access দেওয়া হতো — এটি বন্ধ করা হয়েছে।
         token = websocket.query_params.get("token")
         if not token:
-            return {"sub": "anonymous", "role": "viewer"}
+            logger.warning("[WS] Rejected unauthenticated WebSocket connection — no token provided.")
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return None
         try:
             return verify_token(token)
-        except Exception:  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"[WS] Invalid token — closing WebSocket connection: {e}")
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return None
 
@@ -114,6 +121,7 @@ class ConnectionManager:
         self._pref_tasks.setdefault(user_id, set()).add(task)
 
     def cancel_pref_tasks(self, user_id: str) -> None:
+        # বাংলা মন্তব্য: disconnect হলে সব background pref task cancel করা হচ্ছে — zombie task প্রতিরোধ
         tasks = self._pref_tasks.get(user_id, set())
         for task in tasks:
             task.cancel()
@@ -132,9 +140,9 @@ async def websocket_chat_endpoint(
     Real-time bidirectional WebSocket for Token-by-Token streaming and Agentic Tool execution.
     Supports both plain text (Flutter) and JSON payloads with base64 images (Web Chat).
     """
+    # বাংলা মন্তব্য: _authenticate ব্যর্থ হলে সরাসরি return — double-close এড়াতে
     auth_payload = await manager._authenticate(websocket)
     if not auth_payload:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
     await manager.connect(websocket)
@@ -143,7 +151,7 @@ async def websocket_chat_endpoint(
     chat_history = []
 
     # বাংলা মন্তব্য: কানেক্টেড ইউজারের পূর্ববর্তী প্রেফারেন্স ডাটাবেজ থেকে রিড করা হচ্ছে
-    user_id = auth_payload.get("sub", "anonymous")
+    user_id = auth_payload.get("sub", "unknown")
     db = SupabaseDB()
     user_pref_record = await asyncio.to_thread(db.get_user_preferences, user_id)
     user_pref_record = user_pref_record or {}
@@ -164,10 +172,9 @@ async def websocket_chat_endpoint(
 
                 content_to_send = text_prompt
                 if image_base64:
-                    print("📸 [WS] Image payload received and decoded.")  # noqa: T201
+                    logger.info("📸 [WS] Image payload received and decoded.")
 
             except json.JSONDecodeError:
-                print(f"👤 [USER - Text Only]: {user_message}")  # noqa: T201
                 content_to_send = user_message
 
             try:
@@ -199,16 +206,26 @@ async def websocket_chat_endpoint(
                 chat_history.append({"role": "assistant", "content": response_content})
 
                 await websocket.send_text("[DONE]")
-                print("✅ [AI]: Stream completed.")  # noqa: T201
+                logger.info("✅ [AI]: Stream completed.")
 
                 pref_task = asyncio.create_task(analyze_and_save_preferences(user_id, content_to_send))
                 manager.track_pref_task(user_id, pref_task)
 
-            except Exception:  # noqa: BLE001
-                print("❌ [GENERATION ERROR]")  # noqa: T201
-                await websocket.send_text("\n[Error: Neural pipeline failed]\n[DONE]")
+            except Exception as e:  # noqa: BLE001
+                # বাংলা মন্তব্য: P1 Fix — সকল exception সম্পূর্ণ log করা হচ্ছে।
+                # আগে শুধু print("❌ [GENERATION ERROR]") ছিল — production debugging অসম্ভব ছিল।
+                logger.error(
+                    f"[WS] Neural pipeline error for user={user_id}: "
+                    f"{type(e).__name__}: {e}",
+                    exc_info=True,
+                )
+                await websocket.send_text(f"\n[Error: {type(e).__name__}]\n[DONE]")
 
     except WebSocketDisconnect:
+        pass
+    finally:
+        # বাংলা মন্তব্য: P1 Fix — finally block নিশ্চিত করে যে যেকোনো কারণে exit হলেও
+        # (WebSocketDisconnect, Exception, বা CancelledError) zombie task cancel হবে এবং disconnect হবে।
         manager.disconnect(websocket)
         if user_id:
             manager.cancel_pref_tasks(user_id)

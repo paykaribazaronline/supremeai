@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/llm_gateway.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,271 বাইট  
-**আপডেট:** 2026-07-08T00:29:13.847356
+**সাইজ:** 12,468 বাইট  
+**আপডেট:** 2026-07-08T01:31:17.994687
 
 ---
 
@@ -246,7 +246,22 @@ class LLMGateway:
 
         raise last_exception or RuntimeError("All streaming fallback options failed.")
 
-# Initialize global gateway singleton
-llm_gateway = LLMGateway()
+
+# \u09ac\u09be\u0982\u09b2\u09be \u09ae\u09a8\u09cd\u09a4\u09ac\u09cd\u09af: P2 Fix \u2014 Module-level singleton lazy \u0995\u09b0\u09be \u09b9\u09b2\u09cb\u0964
+# \u0986\u0997\u09c7: `llm_gateway = LLMGateway()` import-\u098f execute \u09b9\u09a4\u09cb \u2014 cold start \u09ac\u09be\u09a1\u09bc\u09be\u09a4\u09cb \u098f\u09ac\u0982 pytest isolation \u09ad\u09be\u0999\u09a4\u09cb\u0964
+# \u098f\u0996\u09a8: \u09aa\u09cd\u09b0\u09a5\u09ae \u09ac\u09cd\u09af\u09ac\u09b9\u09be\u09b0\u09c7\u09b0 \u09b8\u09ae\u09af\u09bc instantiate \u09b9\u09ac\u09c7\u0964
+_llm_gateway_instance: "LLMGateway | None" = None
+
+
+def get_llm_gateway() -> "LLMGateway":
+    """Lazy singleton factory \u2014 import \u09b8\u09ae\u09af\u09bc\u09c7 network call \u09a8\u09bf\u09b7\u09bf\u09a6\u09cd\u09a7"""
+    global _llm_gateway_instance
+    if _llm_gateway_instance is None:
+        _llm_gateway_instance = LLMGateway()
+    return _llm_gateway_instance
+
+
+# \u09ac\u09be\u0982\u09b2\u09be \u09ae\u09a8\u09cd\u09a4\u09ac\u09cd\u09af: Backward-compat alias \u2014 \u09a7\u09c0\u09b0\u09c7 \u09a7\u09c0\u09b0\u09c7 \u09b8\u09ac \u099c\u09be\u09af\u09bc\u0997\u09be\u09af\u09bc get_llm_gateway() \u09a6\u09bf\u09df\u09c7 replace \u0995\u09b0\u09c1\u09a8
+llm_gateway = get_llm_gateway()
 
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/config.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,051 বাইট  
-**আপডেট:** 2026-07-08T00:29:13.839821
+**সাইজ:** 11,855 বাইট  
+**আপডেট:** 2026-07-08T01:31:17.987026
 
 ---
 
@@ -12,6 +12,7 @@
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 from dotenv import load_dotenv
 from loguru import logger
@@ -42,10 +43,38 @@ class Settings(BaseSettings):
 
     app_name: str = "SupremeAI 2.0"
     env: str = "local"
+    # debug parameter default True for local development/tests compatibility.
     debug: bool = True
     docs_auth_enabled: bool = True
     docs_username: str = "admin"
     docs_password: str = ""
+
+    @field_validator("debug", mode="before")
+    @classmethod
+    def validate_debug_mode(cls, v: Any, info: ValidationInfo) -> bool:
+        # বাংলা মন্তব্য: P2 Fix — Production/Staging-এ debug mode অসাবধানতাবশত True থাকলে তা Auto-False করে দেওয়া হলো।
+        # কিন্তু যদি ইউজার জোরপূর্বক .env তে debug=true সেট করে, তাহলে Error raise করা হবে।
+        env = info.data.get("env", "local")
+        if env in {"production", "staging"}:
+            if v is True or str(v).lower() == "true":
+                # Check if it was explicitly configured in os.environ as true
+                if os.getenv("debug", "").lower() == "true" or os.getenv("DEBUG", "").lower() == "true":
+                    raise ValueError("Explicitly setting debug=True is prohibited in production/staging environments.")
+                return False
+            return False
+        return bool(v)
+
+    @field_validator("docs_password", mode="before")
+    @classmethod
+    def validate_docs_password(cls, v: str, info: ValidationInfo) -> str:
+        env = info.data.get("env", "local")
+        docs_auth_enabled = info.data.get("docs_auth_enabled", True)
+        # Staging বা Production-এ docs authorization চালু থাকলে docs_password ফাঁকা রাখা যাবে না।
+        if env in {"production", "staging"} and docs_auth_enabled and not v:
+            raise ValueError(
+                "docs_password must be set when docs_auth_enabled=true in production/staging environments."
+            )
+        return v
 
     port: int = 8000
     host: str = "0.0.0.0"  # nosec B104

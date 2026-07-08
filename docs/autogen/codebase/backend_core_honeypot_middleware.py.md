@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/honeypot_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,679 বাইট  
-**আপডেট:** 2026-07-08T00:29:13.838937
+**সাইজ:** 8,356 বাইট  
+**আপডেট:** 2026-07-08T01:31:17.986122
 
 ---
 
@@ -140,18 +140,18 @@ class HoneypotMiddleware:
                 except Exception as e:  # noqa: BLE001
                     logger.error(f"Redis operation failed in HoneypotMiddleware: {e}")
 
-            # হ্যাকারকে ফেক সাকসেস রেসপন্স দেওয়া
+            # বাংলা মন্তব্য: P0 Fix — Honeypot response information-lean করা হলো।
+            # আগে: `"role": "admin", "access_granted": True, "flag": "SupremeAI_Shadow_Env"` দিয়ে
+            # attacker-কে platform identity confirm করা হতো এবং honeypot detect সহজ হতো।
+            # এখন: Generic, neutral response — কোনো system-specific information প্রকাশ পাচ্ছে না।
+            import uuid
             response = JSONResponse(
                 status_code=200,
                 content={
-                    "status": "success",
-                    "data": {
-                        "role": "admin",
-                        "access_granted": True,
-                        "flag": "SupremeAI_Shadow_Env",
-                    },
+                    "status": "ok",
+                    "session_id": str(uuid.uuid4())[:8],
                 },
-                headers={"X-Server": "SupremeAI"},
+                headers={"X-Server": "nginx/1.18.0"},  # Generic server header
             )
             await response(scope, new_receive, send)
             return
@@ -168,15 +168,20 @@ class HoneypotMiddleware:
             import asyncio
 
             loop = asyncio.get_running_loop()
-            task = loop.run_in_executor(
+            # বাংলা মন্তব্য: P1 Fix — run_in_executor নিজেই Future রিটার্ন করে।
+            # asyncio.ensure_future() দিয়ে double-wrap করা নিষিদ্ধ — Python 3.10+ DeprecationWarning দেয়।
+            future = loop.run_in_executor(
                 None, self._persist_threat_intel, ip, payload, endpoint
             )
+
             def _on_done(fut):
-                if fut.exception():
-                    logger.error(f"Threat intel persistence failed: {fut.exception()}")
-            import asyncio
-            asyncio.ensure_future(task).add_done_callback(_on_done)
+                exc = fut.exception()
+                if exc:
+                    logger.error(f"Threat intel persistence failed: {exc}")
+
+            future.add_done_callback(_on_done)
         except RuntimeError:
+            # বাংলা মন্তব্য: event loop না থাকলে synchronously execute করুন
             self._persist_threat_intel(ip, payload, endpoint)
         except Exception as exc:  # noqa: BLE001
             logger.debug(f"Failed to schedule threat intel persistence: {exc}")

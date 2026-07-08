@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/auto_remediation.py
 
 **প্রকার:** .py  
-**সাইজ:** 13,009 বাইট  
-**আপডেট:** 2026-07-08T00:29:13.841326
+**সাইজ:** 14,978 বাইট  
+**আপডেট:** 2026-07-08T01:31:17.988513
 
 ---
 
@@ -19,30 +19,46 @@ from tools.github_agent import GitHubAgent
 
 class AutoRemediationEngine:
     def __init__(self):
-        self.github_client = Github(os.getenv("GITHUB_TOKEN"))
-        self.repo = self.github_client.get_repo(
-            os.getenv("GITHUB_REPOSITORY", "paykaribazaronline/supremeai")
-        )
+        # বাংলা মন্তব্য: P1/P2 Fix — __init__-এ GitHub network call নিষিদ্ধ।
+        # Lazy property হিসেবে GitHub client initialize হবে প্রথম ব্যবহারে।
+        # আগে: `self.repo = self.github_client.get_repo(...)` init-এ network call করতো।
+        self._github_client = None
+        self._repo_obj = None
         self._model = None
 
-    def process_codeql_alert(
+    @property
+    def repo(self):
+        """Lazy GitHub repo property — প্রথম access-এ initialize হবে"""
+        if self._repo_obj is None:
+            token = os.getenv("GITHUB_TOKEN")
+            if not token:
+                raise RuntimeError("GITHUB_TOKEN not configured for AutoRemediationEngine")
+            self._github_client = Github(token)
+            self._repo_obj = self._github_client.get_repo(
+                os.getenv("GITHUB_REPOSITORY", "paykaribazaronline/supremeai")
+            )
+        return self._repo_obj
+
+    async def process_codeql_alert(
         self, file_path: str, line_number: int, vulnerability_details: str
     ):
-        """CodeQL অ্যালার্ট প্রসেস করে অটোমেটিক PR ওপেন করে"""
+        """CodeQL অ্যালার্ট প্রসেস করে অটোমাটিক PR ওপেন করে"""
+        import asyncio
         try:
             # 1. গিটহাব থেকে অরিজিনাল কোড ফেচ করা
-            file_content = self.repo.get_contents(file_path).decoded_content.decode(
-                "utf-8"
+            file_content = await asyncio.to_thread(
+                lambda: self.repo.get_contents(file_path).decoded_content.decode("utf-8")
             )
 
-            # 2. Gemini দিয়ে সিকিউর প্যাচ জেনারেট করা
-            patch_code = self._generate_ai_patch(
+            # 2. বাংলা মন্তব্য: P1 Fix — async patch generation, asyncio.run() নিষিদ্ধ
+            patch_code = await self._generate_ai_patch(
                 file_content, line_number, vulnerability_details
             )
 
             if patch_code:
-                # 3. অটোমেটিক Branch এবং PR তৈরি করা
-                self._create_remediation_pr(
+                # 3. অটোমাটিক Branch এবং PR তৈরি করা
+                await asyncio.to_thread(
+                    self._create_remediation_pr,
                     file_path, file_content, patch_code, vulnerability_details
                 )
                 logger.info(f"✅ Auto-Remediation PR created for {file_path}")
@@ -50,8 +66,9 @@ class AutoRemediationEngine:
         except Exception as e:  # noqa: BLE001
             logger.error(f"❌ Remediation failed: {str(e)}")
 
-    def _generate_ai_patch(self, code: str, line: int, issue: str) -> str:
-        # বাংলা মন্তব্য: লঞ্চডার্কলি এজেন্টস কন্ট্রোল এবং ভ্যারিয়েবল ইভ্যালুয়েশন লজিক যুক্ত করা হলো
+    async def _generate_ai_patch(self, code: str, line: int, issue: str) -> str:
+        # বাংলা মন্তব্য: P1 Fix — asyncio.run() সরানো হয়েছে, এখন async/await ব্যবহার হচ্ছে।
+        # আগে: asyncio.run() running event loop-এ RuntimeError দিতো — self-healing pipeline ক্রাশ করতো।
         ld_ai_client = None
         AICompletionConfigDefault = None
         LDMessage = None
@@ -116,15 +133,14 @@ class AutoRemediationEngine:
             model_name = "gemini/gemini-1.5-pro"
             prompt = default_prompt_template.format(**prompt_vars)
 
-        import asyncio
-
         from core.llm_gateway import llm_gateway
-        response = asyncio.run(llm_gateway.acompletion(
+        # বাংলা মন্তব্য: asyncio.run() সম্পূর্ণ সরানো হয়েছে — এখন await ব্যবহার হচ্ছে
+        response = await llm_gateway.acompletion(
             prompt=prompt,
             task_type="coding",
             stream=False,
             model=model_name
-        ))
+        )
         result = response.get("text", "") if isinstance(response, dict) else str(response)
         return result.strip()
 
@@ -178,8 +194,28 @@ class AutoRemediation:
         with open(file_path, encoding="utf-8") as f:
             original_code = f.read()
 
-        # 2. Query Gemini for the secure patch
-        fixed_code = self._get_ai_patch(file_path, original_code, line_number, issue)
+        # 2. বাংলা মন্তব্য: process_security_alert কে sync রাখা হলো compatibility-র জন্য।
+        # কিন্তু async _get_ai_patch কে synchronous-friendly উপায়ে কল করা হচ্ছে।
+        import asyncio
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+        if loop.is_running():
+            # If the loop is already running, run it in a thread/executor to avoid RuntimeError
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(
+                    lambda: asyncio.run(self._get_ai_patch(file_path, original_code, line_number, issue))
+                )
+                fixed_code = future.result()
+        else:
+            fixed_code = loop.run_until_complete(
+                self._get_ai_patch(file_path, original_code, line_number, issue)
+            )
+
         if not fixed_code:
             return {"success": False, "error": "AI failed to generate a secure patch"}
 
@@ -230,10 +266,10 @@ class AutoRemediation:
             "message": "Remediation patch applied and committed.",
         }
 
-    def _get_ai_patch(
+    async def _get_ai_patch(
         self, file_path: str, code: str, line_number: int, issue: str
     ) -> str:
-        # বাংলাコメント: লঞ্চডার্কলি এজেন্টস কন্ট্রোল এবং ভ্যারিয়েবল ইভ্যালুয়েশন লজিক যুক্ত করা হলো
+        # বাংলা মন্তব্য: P1 Fix — asyncio.run() সরানো হয়েছে, এখন async/await ব্যবহার হচ্ছে।
         ld_ai_client = None
         AICompletionConfigDefault = None
         LDMessage = None
@@ -303,15 +339,13 @@ class AutoRemediation:
             prompt = default_prompt_template.format(**prompt_vars)
 
         try:
-            import asyncio
-
             from core.llm_gateway import llm_gateway
-            response = asyncio.run(llm_gateway.acompletion(
+            response = await llm_gateway.acompletion(
                 prompt=prompt,
                 task_type="coding",
                 stream=False,
                 model=model_name
-            ))
+            )
             raw_text = response.get("text", "") if isinstance(response, dict) else str(response)
 
             # Strip markdown formatting if the model returned any

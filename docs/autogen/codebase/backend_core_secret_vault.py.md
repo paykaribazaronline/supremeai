@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/secret_vault.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,130 বাইট  
-**আপডেট:** 2026-07-08T00:29:13.845310
+**সাইজ:** 3,593 বাইট  
+**আপডেট:** 2026-07-08T01:31:17.992592
 
 ---
 
@@ -79,6 +79,15 @@ class ProductionSecretVault:
 
 
 # Global Vault Singleton Instance
-secret_vault = ProductionSecretVault()
+# বাংলা মন্তব্য: P2 Fix — module loading-এর সময় synchronous GSM calls এড়াতে lazy initialization প্রয়োগ করা হলো।
+_secret_vault_instance: ProductionSecretVault | None = None
+
+def get_secret_vault() -> ProductionSecretVault:
+    global _secret_vault_instance
+    if _secret_vault_instance is None:
+        _secret_vault_instance = ProductionSecretVault()
+    return _secret_vault_instance
+
+secret_vault = get_secret_vault()
 
 ```
