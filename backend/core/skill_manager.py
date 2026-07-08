@@ -73,7 +73,7 @@ class DynamicSkillManager:
         except json.JSONDecodeError as je:
             logger.error(f"LLM returned invalid JSON string: {raw_text}")
             raise ValueError("Failed to parse AI generated skill due to formatting.") from je
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:  # noqa
             logger.error(f"Failed to parse or register dynamic skill: {str(e)}")
             raise ValueError("Invalid configuration returned from Skill Factory.") from e
 
