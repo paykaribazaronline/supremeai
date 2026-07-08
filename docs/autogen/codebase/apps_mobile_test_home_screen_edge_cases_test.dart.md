@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/mobile/test/home_screen_edge_cases_test.dart
 
 **প্রকার:** .dart  
-**সাইজ:** 6,507 বাইট  
-**আপডেট:** 2026-07-08T19:16:36.485159
+**সাইজ:** 6,923 বাইট  
+**আপডেট:** 2026-07-08T19:19:07.588628
 
 ---
 
@@ -122,6 +122,15 @@ class MockOrchestrationProvider extends ChangeNotifier implements OrchestrationP
     _error = null;
     notifyListeners();
   }
+
+  @override
+  Map<String, dynamic> get activeAgentMetrics => {};
+
+  @override
+  set activeAgentMetrics(Map<String, dynamic> val) {}
+
+  @override
+  void initRealTimeTaskStream(String taskId, String token) {}
 }
 
 class MockSettingsProvider extends ChangeNotifier implements SettingsProvider {
@@ -195,6 +204,15 @@ class FakeOrch extends OrchestrationProvider {
     _error = null;
     notifyListeners();
   }
+
+  @override
+  Map<String, dynamic> get activeAgentMetrics => {};
+
+  @override
+  set activeAgentMetrics(Map<String, dynamic> val) {}
+
+  @override
+  void initRealTimeTaskStream(String taskId, String token) {}
 }
 
 class FakeSettings extends SettingsProvider {

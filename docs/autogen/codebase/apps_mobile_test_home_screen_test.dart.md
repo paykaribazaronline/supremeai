@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/mobile/test/home_screen_test.dart
 
 **প্রকার:** .dart  
-**সাইজ:** 7,766 বাইট  
-**আপডেট:** 2026-07-08T19:16:36.485248
+**সাইজ:** 7,974 বাইট  
+**আপডেট:** 2026-07-08T19:19:07.588770
 
 ---
 
@@ -144,6 +144,15 @@ class MockOrchestrationProvider extends ChangeNotifier implements OrchestrationP
     _errorMessage = null;
     notifyListeners();
   }
+
+  @override
+  Map<String, dynamic> get activeAgentMetrics => {};
+
+  @override
+  set activeAgentMetrics(Map<String, dynamic> val) {}
+
+  @override
+  void initRealTimeTaskStream(String taskId, String token) {}
 }
 
 class MockSettingsProvider extends ChangeNotifier implements SettingsProvider {
