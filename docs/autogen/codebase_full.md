@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-08T03:57:12.358179
+Generated at: 2026-07-08T04:03:20.243182
 
 
 ## File: `pnpm-lock.yaml`
@@ -74993,8 +74993,10 @@ class UserProfiler:
 
 ```py
 from typing import Any
+
 from fastapi import HTTPException
 from loguru import logger
+
 
 class CostGuard:
     def __init__(self, db: Any = None):
@@ -78312,9 +78314,9 @@ from typing import Any
 import httpx
 from loguru import logger
 
-from core.skill_manager import DynamicSkillManager
-from core.llm_gateway import llm_gateway
 from core.cost_guard import cost_guard
+from core.llm_gateway import llm_gateway
+from core.skill_manager import DynamicSkillManager
 
 
 class TaskRouter:
@@ -78417,7 +78419,7 @@ class TaskRouter:
             steps = skill_recipe.get("execution_steps", [])
             
             # --- LAYER 2: LOCAL BROWSER EXECUTION WITH HUMAN BIAS (15% Domain) ---
-            logger.info(f"[Router] Dispatching dynamic skill recipe to local Playwright Sandbox...")
+            logger.info("[Router] Dispatching dynamic skill recipe to local Playwright Sandbox...")
             
             # আপনার tools/browser_agent.py এর সাথে কানেক্ট করে steps গুলো এক্সিকিউট করা
             # এখানে strict timeout (35s) দেওয়া হয়েছে যাতে বট ব্লকিং লুপে ইউজার আটকে না থাকে
@@ -78434,7 +78436,7 @@ class TaskRouter:
                 }
             raise Exception("Local Browser Agent execution triggered anti-bot or came up empty.")
 
-        except (asyncio.TimeoutError, Exception) as l2_exception:
+        except (TimeoutError, Exception) as l2_exception:
             logger.warning(f"[Router] Layer 2 Failed: {str(l2_exception)}. Initiating Failsafe Layer 3...")
             
             # --- LAYER 3: ECONOMY LLM FALLBACK (20% Domain - Ultra Cheap API) ---
@@ -78455,7 +78457,7 @@ class TaskRouter:
                     }
                 raise Exception("Economy models failed execution.")
                 
-            except Exception as l3_exception:
+            except Exception as l3_exception:  # noqa: BLE001
                 logger.error(f"[Router] Layer 3 Breached: {str(l3_exception)}. Escalating to Critical Layer 4.")
                 
                 # --- LAYER 4: PREMIUM CRITICAL FALLBACK (5% Domain) ---
@@ -115471,31 +115473,25 @@ async def test_agent_factory_creates_and_saves_agent():
 
 @pytest.mark.asyncio
 async def test_task_router_uses_saved_agent_from_db():
-    """টাস্ক রাউটার যদি ডাটাবেজে ম্যাচিং এজেন্ট পায়, তবে সরাসরি সেটি ব্যবহার করে।"""
+    """টাস্ক রাউটার যদি রেজিস্ট্রি থেকে স্কিল পায়, তবে সরাসরি সেটি ব্যবহার করে।"""
     router = TaskRouter()
     
-    mock_agent = MagicMock()
-    mock_agent.name = "AmazonTracker"
-    mock_agent.execution_steps = [{"action": "click"}]
+    router.skill_manager.get_or_create_skill = AsyncMock(return_value={
+        "skill_name": "AmazonTracker",
+        "execution_steps": [{"action": "click"}]
+    })
     
-    mock_result = MagicMock()
-    mock_result.scalars.return_value.first.return_value = mock_agent
+    router._execute_local_playwright_recipe = AsyncMock(return_value={"status": "success", "data": "DOM Result"})
     
-    mock_session = AsyncMock()
-    mock_session.execute.return_value = mock_result
-    mock_session.__aenter__ = AsyncMock(return_value=mock_session)
-    mock_session.__aexit__ = AsyncMock()
-    
-    router._run_browser_automation = AsyncMock(return_value={"status": "success", "data": "DOM Result"})
-    
-    with patch("database.session.AsyncSessionLocal", return_value=mock_session):
+    with patch("core.task_router.cost_guard"), patch("core.task_router.llm_gateway"):
         response = await router.execute_scraping_task("AmazonTracker prices", "https://amazon.com")
-        assert response["status"] == "success"
-        assert "AmazonTracker" in response["tier"]
-        assert response["data"] == "DOM Result"
-        router._run_browser_automation.assert_called_once_with(
-            "AmazonTracker prices", "https://amazon.com", [{"action": "click"}]
-        )
+        
+    assert response["status"] == "success"
+    assert "Layer 2" in response["execution_tier"]
+    assert response["data"] == "DOM Result"
+    router._execute_local_playwright_recipe.assert_called_once_with(
+        [{"action": "click"}], "https://amazon.com"
+    )
 
 ```
 
@@ -115784,99 +115780,75 @@ async def test_self_healer_test_sandbox_placeholder(mock_db):
 ```py
 import pytest
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 from core.task_router import TaskRouter
 
 @pytest.fixture
-def mock_db_context():
-    """ডাটাবেজ ও ফ্যাক্টরি মক করার জন্য ফিক্সচার।"""
-    mock_result = MagicMock()
-    mock_result.scalars.return_value.first.return_value = None
-    
-    mock_session = AsyncMock()
-    mock_session.execute.return_value = mock_result
-    mock_session.__aenter__ = AsyncMock(return_value=mock_session)
-    mock_session.__aexit__ = AsyncMock()
-    
-    mock_factory = MagicMock()
-    mock_factory.create_specialized_agent = AsyncMock(return_value={
-        "agent_name": "MockAgent", 
-        "execution_steps": []
-    })
-    
-    return mock_session, mock_factory
-
+def router():
+    r = TaskRouter()
+    r.skill_manager.get_or_create_skill = AsyncMock(return_value={"execution_steps": []})
+    return r
 
 @pytest.mark.asyncio
-async def test_fallback_layer2_success(mock_db_context):
+async def test_fallback_layer2_success(router):
     """Layer 2 (Browser Automation) সফল হলে ফলব্যাক লেয়ার ট্রিগার হবে না তা নিশ্চিত করে।"""
-    router = TaskRouter()
-    mock_session, mock_factory = mock_db_context
+    router._execute_local_playwright_recipe = AsyncMock(return_value={"status": "success", "data": "Target Data"})
     
-    # Layer 2 সাকসেস মক করা হলো
-    router._run_browser_automation = AsyncMock(return_value={"status": "success", "data": "Target Data"})
-    router._execute_api_fallback = AsyncMock()
-
-    # বাংলা মন্তব্য: ডাটাবেজ টেবিল এরর এড়াতে সেশন ও ফ্যাক্টরি প্যাক প্যাচ করা হলো
-    with patch("database.session.AsyncSessionLocal", return_value=mock_session), \
-         patch("core.agent_factory.DynamicAgentFactory", return_value=mock_factory):
+    with patch("core.task_router.cost_guard") as mock_cost, \
+         patch("core.task_router.llm_gateway") as mock_llm:
+         
         response = await router.execute_scraping_task(
             task_prompt="Extract pricing", 
             contextual_url="https://example.com/products"
         )
-
+        
     assert response["status"] == "success"
-    assert "Layer 2" in response["tier"]
+    assert "Layer 2" in response["execution_tier"]
     assert response["data"] == "Target Data"
-    router._run_browser_automation.assert_called_once()
-    router._execute_api_fallback.assert_not_called()
-
+    router._execute_local_playwright_recipe.assert_called_once()
+    mock_llm.acompletion.assert_not_called()
 
 @pytest.mark.asyncio
-async def test_fallback_layer2_timeout_drops_to_layer3(mock_db_context):
+async def test_fallback_layer2_timeout_drops_to_layer3(router):
     """Layer 2 টাইমআউট হলে এটি সফলভাবে Layer 3 এপিআই ফলব্যাকে ডাউনগ্রেড করে।"""
-    router = TaskRouter()
-    mock_session, mock_factory = mock_db_context
+    router._execute_local_playwright_recipe = AsyncMock(side_effect=TimeoutError())
     
-    # Layer 2 টাইমআউট এরর মক করা হলো
-    router._run_browser_automation = AsyncMock(side_effect=TimeoutError())
-    router._execute_api_fallback = AsyncMock(return_value={"status": "success", "tier": "Layer 3 (Economy API)", "data": "Fallback Data"})
-
-    with patch("database.session.AsyncSessionLocal", return_value=mock_session), \
-         patch("core.agent_factory.DynamicAgentFactory", return_value=mock_factory):
+    with patch("core.task_router.cost_guard") as mock_cost, \
+         patch("core.task_router.llm_gateway") as mock_llm:
+        mock_cost.validate_budget.return_value = True
+        mock_llm.acompletion = AsyncMock(return_value={"success": True, "text": "Fallback Data"})
+         
         response = await router.execute_scraping_task(
             task_prompt="Extract pricing", 
             contextual_url="https://example.com/products"
         )
-
+        
     assert response["status"] == "success"
-    assert response["tier"] == "Layer 3 (Economy API)"
+    assert "Layer 3" in response["execution_tier"]
     assert response["data"] == "Fallback Data"
-    router._run_browser_automation.assert_called_once()
-    router._execute_api_fallback.assert_called_once_with("Extract pricing")
-
+    router._execute_local_playwright_recipe.assert_called_once()
+    mock_llm.acompletion.assert_called_once()
 
 @pytest.mark.asyncio
-async def test_fallback_layer2_failure_drops_to_layer3(mock_db_context):
+async def test_fallback_layer2_failure_drops_to_layer3(router):
     """Layer 2 এ যেকোনো সাধারণ এক্সেপশন ঘটলে এপিআই ফলব্যাক ট্রিগার করে।"""
-    router = TaskRouter()
-    mock_session, mock_factory = mock_db_context
+    router._execute_local_playwright_recipe = AsyncMock(side_effect=Exception("Blocked by Cloudflare CAPTCHA"))
     
-    # Layer 2 ফেইল এরর মক করা হলো
-    router._run_browser_automation = AsyncMock(side_effect=Exception("Blocked by Cloudflare CAPTCHA"))
-    router._execute_api_fallback = AsyncMock(return_value={"status": "success", "tier": "Layer 3 (Economy API)", "data": "Fallback Data"})
-
-    with patch("database.session.AsyncSessionLocal", return_value=mock_session), \
-         patch("core.agent_factory.DynamicAgentFactory", return_value=mock_factory):
+    with patch("core.task_router.cost_guard") as mock_cost, \
+         patch("core.task_router.llm_gateway") as mock_llm:
+        mock_cost.validate_budget.return_value = True
+        mock_llm.acompletion = AsyncMock(return_value={"success": True, "text": "Fallback Data"})
+         
         response = await router.execute_scraping_task(
             task_prompt="Extract pricing", 
             contextual_url="https://example.com/products"
         )
-
+        
     assert response["status"] == "success"
-    assert response["tier"] == "Layer 3 (Economy API)"
-    router._run_browser_automation.assert_called_once()
-    router._execute_api_fallback.assert_called_once()
+    assert "Layer 3" in response["execution_tier"]
+    assert response["data"] == "Fallback Data"
+    router._execute_local_playwright_recipe.assert_called_once()
+    mock_llm.acompletion.assert_called_once()
 
 ```
 

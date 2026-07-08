@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/task_router.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,536 বাইট  
-**আপডেট:** 2026-07-08T03:57:12.410322
+**সাইজ:** 10,543 বাইট  
+**আপডেট:** 2026-07-08T04:03:20.300029
 
 ---
 
@@ -15,9 +15,9 @@ from typing import Any
 import httpx
 from loguru import logger
 
-from core.skill_manager import DynamicSkillManager
-from core.llm_gateway import llm_gateway
 from core.cost_guard import cost_guard
+from core.llm_gateway import llm_gateway
+from core.skill_manager import DynamicSkillManager
 
 
 class TaskRouter:
@@ -120,7 +120,7 @@ class TaskRouter:
             steps = skill_recipe.get("execution_steps", [])
             
             # --- LAYER 2: LOCAL BROWSER EXECUTION WITH HUMAN BIAS (15% Domain) ---
-            logger.info(f"[Router] Dispatching dynamic skill recipe to local Playwright Sandbox...")
+            logger.info("[Router] Dispatching dynamic skill recipe to local Playwright Sandbox...")
             
             # আপনার tools/browser_agent.py এর সাথে কানেক্ট করে steps গুলো এক্সিকিউট করা
             # এখানে strict timeout (35s) দেওয়া হয়েছে যাতে বট ব্লকিং লুপে ইউজার আটকে না থাকে
@@ -137,7 +137,7 @@ class TaskRouter:
                 }
             raise Exception("Local Browser Agent execution triggered anti-bot or came up empty.")
 
-        except (asyncio.TimeoutError, Exception) as l2_exception:
+        except (TimeoutError, Exception) as l2_exception:
             logger.warning(f"[Router] Layer 2 Failed: {str(l2_exception)}. Initiating Failsafe Layer 3...")
             
             # --- LAYER 3: ECONOMY LLM FALLBACK (20% Domain - Ultra Cheap API) ---
@@ -158,7 +158,7 @@ class TaskRouter:
                     }
                 raise Exception("Economy models failed execution.")
                 
-            except Exception as l3_exception:
+            except Exception as l3_exception:  # noqa: BLE001
                 logger.error(f"[Router] Layer 3 Breached: {str(l3_exception)}. Escalating to Critical Layer 4.")
                 
                 # --- LAYER 4: PREMIUM CRITICAL FALLBACK (5% Domain) ---
