@@ -103,8 +103,10 @@ class EvolutionEngine:
 
         conn = sqlite3.connect(str(self.db_path))
         try:
+            # বাংলা মন্তব্য: P1+P3 Fix — INSERT OR IGNORE দিয়ে idempotency নিশ্চিত করা হলো।
+            # একই data দুইবার insert হবে না। failure এখন clearly রিপোর্ট করে।
             conn.execute(
-                "INSERT INTO task_history (task, approach, result, success, created_at) VALUES (?, ?, ?, ?, ?)",
+                "INSERT OR IGNORE INTO task_history (task, approach, result, success, created_at) VALUES (?, ?, ?, ?, ?)",
                 (task, approach, result, 1, created_at),
             )
             conn.commit()
@@ -113,6 +115,19 @@ class EvolutionEngine:
                 "task": task,
                 "approach": approach,
                 "result": result,
+            }
+        except sqlite3.Error as db_err:
+            # বাংলা মন্তব্য: P1 Fix — SQLite write failure clearly report করা হচ্ছে।
+            # Supabase-এ data আছে কিন্তু local SQLite-এ নেই — partial state স্পষ্ট করা হচ্ছে।
+            logger.error(f"SQLite write failed after Supabase success for task '{task}': {db_err}")
+            if evolution_write_failures:
+                evolution_write_failures.inc()
+            return {
+                "stored": False,
+                "partial": True,
+                "supabase_ok": True,
+                "sqlite_error": str(db_err),
+                "task": task,
             }
         finally:
             conn.close()
@@ -140,8 +155,9 @@ class EvolutionEngine:
 
         conn = sqlite3.connect(str(self.db_path))
         try:
+            # বাংলা মন্তব্য: P1+P3 Fix — INSERT OR IGNORE দিয়ে idempotency নিশ্চিত।
             conn.execute(
-                "INSERT INTO task_history (task, approach, result, success, created_at) VALUES (?, ?, ?, ?, ?)",
+                "INSERT OR IGNORE INTO task_history (task, approach, result, success, created_at) VALUES (?, ?, ?, ?, ?)",
                 (task, approach, result, 0, created_at),
             )
             conn.commit()
@@ -150,6 +166,17 @@ class EvolutionEngine:
                 "task": task,
                 "approach": approach,
                 "result": result,
+            }
+        except sqlite3.Error as db_err:
+            logger.error(f"SQLite write failed after Supabase success for task '{task}': {db_err}")
+            if evolution_write_failures:
+                evolution_write_failures.inc()
+            return {
+                "stored": False,
+                "partial": True,
+                "supabase_ok": True,
+                "sqlite_error": str(db_err),
+                "task": task,
             }
         finally:
             conn.close()

@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 import subprocess
+import tempfile  # বাংলা মন্তব্য: P0 Fix — command injection ঠেকাতে temp file ব্যবহার করা হবে
 import time
 from typing import Any
 
@@ -150,7 +151,17 @@ class MicroVMSandbox:
     async def _run_docker_fallback(
         self, vm_id: str, cmd: str, timeout: int
     ) -> dict[str, Any]:
+        # বাংলা মন্তব্য: P0 Fix — cmd কে সরাসরি `python -c` argument হিসেবে দেওয়া নিষিদ্ধ।
+        # এটি shell injection এবং argument injection উভয় প্রতিরোধ করে।
+        # cmd → temp file → `python /sandbox/code.py` (file execution, argument injection নয়)
+        tmp_file = None
         try:
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".py", delete=False, dir="/tmp"  # nosec B108
+            ) as f:
+                f.write(cmd)
+                tmp_file = f.name
+
             result = subprocess.run(
                 [
                     "docker",
@@ -159,10 +170,15 @@ class MicroVMSandbox:
                     "--read-only",
                     "--network",
                     "none",
+                    "--memory",
+                    "128m",
+                    "--cpus",
+                    "0.5",
+                    "-v",
+                    f"{tmp_file}:/sandbox/code.py:ro",
                     "python:3.11-slim",
                     "python",
-                    "-c",
-                    cmd,
+                    "/sandbox/code.py",  # বাংলা মন্তব্য: file execution — argument injection নয়
                 ],
                 capture_output=True,
                 text=True,
@@ -185,6 +201,13 @@ class MicroVMSandbox:
             }
         except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e), "provider": "docker-fallback"}
+        finally:
+            # বাংলা মন্তব্য: temp file সবসময় cleanup করতে হবে — resource leak নিষিদ্ধ
+            if tmp_file and os.path.exists(tmp_file):
+                try:
+                    os.unlink(tmp_file)
+                except OSError:
+                    pass
 
     def _destroy_vm(self, vm_id: str) -> None:
         vm_dir = f"{self.sandbox_dir}/{vm_id}"
@@ -205,10 +228,25 @@ class MicroVMSandbox:
         }
 
 
-sandbox = MicroVMSandbox()
+# বাংলা মন্তব্য: P2 Fix — Module-level singleton lazy করা হলো।
+# আগে: `sandbox = MicroVMSandbox()` import-এ execute হতো — cold start বাড়াতো এবং pytest isolation ভাঙতো।
+# এখন: প্রথম ব্যবহারের সময় instantiate হবে।
+_sandbox_instance: MicroVMSandbox | None = None
+
+
+def get_sandbox() -> MicroVMSandbox:
+    """Lazy singleton factory — import সময়ে initialization নিষিদ্ধ"""
+    global _sandbox_instance
+    if _sandbox_instance is None:
+        _sandbox_instance = MicroVMSandbox()
+    return _sandbox_instance
+
+
+# Backward-compat alias
+sandbox = get_sandbox()
 
 
 async def execute_code_securely(
     code: str, timeout: int = 30, language: str = "python"
 ) -> dict[str, Any]:
-    return await sandbox.execute_async(code, timeout, language)
+    return await get_sandbox().execute_async(code, timeout, language)

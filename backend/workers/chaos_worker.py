@@ -87,41 +87,42 @@ class NightlyChaosAuditor:
                             res,
                         )
 
-            # ── 🔒 CLOSED-LOOP AUTOMATION DECISION ────────────────────────
+            # বাংলা মন্তব্য: P1 Fix — async function-এ sync Firestore call নিষিদ্ধ।
+            # asyncio.to_thread দিয়ে blocking I/O offload করা হচ্ছে — event loop freeze বন্ধ হবে।
             now = datetime.now(UTC)
             if failures > 0:
                 logger.critical(
-                    f"💀 Chaos Audit FAILED with {failures} anomalies. LOCKING deployment gates!"
+                    f"💣 Chaos Audit FAILED with {failures} anomalies. LOCKING deployment gates!"
                 )
-                self.gate_ref.set(
-                    {
-                        "status": "LOCKED",
-                        "reason": f"Autonomous audit failed with {failures} anomalies.",
-                        "updated_at": now,
-                    }
-                )
+                gate_data = {
+                    "status": "LOCKED",
+                    "reason": f"Autonomous audit failed with {failures} anomalies.",
+                    "updated_at": now,
+                }
+                if self.gate_ref:
+                    await asyncio.to_thread(self.gate_ref.set, gate_data)
                 return False
             else:
                 logger.info(
                     "🏆 Autonomous Chaos Audit PASSED perfectly. Deploy gate is UNLOCKED."
                 )
-                self.gate_ref.set(
-                    {
-                        "status": "UNLOCKED",
-                        "reason": "All self-testing gates returned green.",
-                        "updated_at": now,
-                    }
-                )
+                gate_data = {
+                    "status": "UNLOCKED",
+                    "reason": "All self-testing gates returned green.",
+                    "updated_at": now,
+                }
+                if self.gate_ref:
+                    await asyncio.to_thread(self.gate_ref.set, gate_data)
                 return True
 
         except Exception as global_err:  # noqa: BLE001
             logger.critical(
                 f"⚠️ Auditor crashed internally: {str(global_err)}. Locking pipeline for safety."
             )
-            self.gate_ref.set(
-                {
-                    "status": "LOCKED",
-                    "reason": f"Auditor internal error: {str(global_err)}",
-                }
-            )
+            error_data = {
+                "status": "LOCKED",
+                "reason": f"Auditor internal error: {str(global_err)}",
+            }
+            if self.gate_ref:
+                await asyncio.to_thread(self.gate_ref.set, error_data)
             return False

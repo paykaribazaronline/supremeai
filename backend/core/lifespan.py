@@ -77,6 +77,14 @@ async def app_lifespan(app):
     """
     logger.info("🌐 Core Infrastructure Bootstrapping Active...")
 
+    try:
+        from core.telemetry import setup_tracing
+        # বাংলা মন্তব্য: P2 Fix — startup latency এবং cold start freeze এড়াতে tracing initialization thread-এ offload করা হলো।
+        await asyncio.to_thread(setup_tracing)
+        logger.info("✅ OpenTelemetry tracing provider successfully initialized.")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(f"Failed to initialize tracing provider: {exc}")
+
     services.global_http_client = httpx.AsyncClient(
         limits=httpx.Limits(max_keepalive_connections=50, max_connections=200),
         timeout=httpx.Timeout(30.0),

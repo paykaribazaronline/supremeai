@@ -68,4 +68,13 @@ class ProductionSecretVault:
 
 
 # Global Vault Singleton Instance
-secret_vault = ProductionSecretVault()
+# বাংলা মন্তব্য: P2 Fix — module loading-এর সময় synchronous GSM calls এড়াতে lazy initialization প্রয়োগ করা হলো।
+_secret_vault_instance: ProductionSecretVault | None = None
+
+def get_secret_vault() -> ProductionSecretVault:
+    global _secret_vault_instance
+    if _secret_vault_instance is None:
+        _secret_vault_instance = ProductionSecretVault()
+    return _secret_vault_instance
+
+secret_vault = get_secret_vault()

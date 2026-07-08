@@ -205,35 +205,36 @@ class AsyncTaskManager:
     def __init__(self):
         self._tasks: dict[str, dict[str, Any]] = {}
 
-    def create_task(self, task_type: str, payload: dict[str, Any]) -> str:
+    async def create_task(self, task_type: str, payload: dict) -> str:
         import uuid
 
-        task_id = str(uuid.uuid4())[:12]
-
+        task_id = str(uuid.uuid4())
         self._tasks[task_id] = {
             "id": task_id,
             "type": task_type,
             "payload": payload,
             "status": "pending",
-            "created_at": time.time(),
             "progress": 0,
+            "created_at": time.time(),
         }
 
-        self._enqueue_task(task_id, task_type, payload)
+        # বাংলা মন্তব্য: P3 Fix — async task enqueuing system
+        await self._enqueue_task(task_id, task_type, payload)
 
         return task_id
 
-    def _enqueue_task(self, task_id: str, task_type: str, payload: dict) -> None:
+    async def _enqueue_task(self, task_id: str, task_type: str, payload: dict) -> None:
         celery_url = os.getenv("CELERY_BROKER_URL", "")
         if celery_url:
             try:
                 import httpx
 
-                httpx.post(
-                    f"{celery_url}/enqueue",
-                    json={"task_id": task_id, "type": task_type, "payload": payload},
-                    timeout=2.0,
-                )
+                async with httpx.AsyncClient() as client:
+                    await client.post(
+                        f"{celery_url}/enqueue",
+                        json={"task_id": task_id, "type": task_type, "payload": payload},
+                        timeout=2.0,
+                    )
             except Exception as e:  # noqa: BLE001
                 logger.debug(f"Celery enqueue failed: {e}")
         else:

@@ -104,11 +104,12 @@ function AdminShell() {
   useEffect(() => {
     if (!adminAuthenticated) return;
 
+    // বাংলা মন্তব্য: P2 Fix — hardcoded envConfig সরানো হয়েছে। VITE_ VITE_ENV env vars থেকে ডায়নামিকালি রিড করে fallback দেওয়া হলো।
     setEnvConfig({
-      "ENV": "local",
-      "DEBUG": "true",
-      "PORT": "8000",
-      "GCP_REGION": "us-central1"
+      "ENV": import.meta.env.VITE_ENV ?? "local",
+      "DEBUG": import.meta.env.VITE_DEBUG ?? "false",
+      "PORT": import.meta.env.VITE_PORT ?? "8000",
+      "GCP_REGION": import.meta.env.VITE_GCP_REGION ?? "us-central1"
     });
 
   }, [adminAuthenticated]);
@@ -213,7 +214,25 @@ function AdminShell() {
   };
 
   const handleSaveConfig = () => {
-    console.log("Saving environment configs", envConfig);
+    // বাংলা মন্তব্য: P2 Fix — console.log-এর বদলে সরাসরি backend admin-api config-এ save করার কল যোগ করা হলো।
+    const API_BASE = getApiBaseUrl();
+    const headers = {
+      "Authorization": `Bearer ${getAdminToken()}`,
+      "Content-Type": "application/json"
+    };
+    fetch(`${API_BASE}/admin-api/config`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(envConfig)
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to save config");
+        return res.json();
+      })
+      .then(() => {
+        console.log("Environment config saved successfully.");
+      })
+      .catch(err => console.error("Error saving environment config:", err));
   };
 
   return (

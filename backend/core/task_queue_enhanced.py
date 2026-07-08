@@ -141,8 +141,10 @@ class TaskQueue:
         self._tasks: dict[str, TaskMetadata] = {}
         self._results: dict[str, TaskResult] = {}
 
-        # Statistics
-        self._stats = {"submitted": 0, "completed": 0, "failed": 0, "retried": 0}
+        # বাংলা মন্তব্য: P2 Fix — unbounded dict memory guard
+        # Cloud Run-এ দীর্ঘ uptime-এ dict অসীমভাবে বাড়ে memory leak তৈরি করতো।
+        # এখন max size cap দিয়ে eviction enforce করা হলো।
+        self._MAX_TRACKED_TASKS = int(os.getenv("TASK_QUEUE_MAX_TRACKED", "10000"))
 
     def _init_backends(self):
         """Initialize available backends"""
@@ -371,8 +373,9 @@ class TaskQueue:
             task_id=task_id,
         )
 
-        # Wait for publish confirmation (optional)
-        message_id = future.result()
+        # বাংলা মন্তব্য: P1 Fix — future.result() blocking call কে asyncio.to_thread দিয়ে offload করা হচ্ছে।
+        # আগে: future.result() synchronous blocking — GCP Pub/Sub timeout (~60s) event loop freeze করতো।
+        message_id = await asyncio.to_thread(future.result, 30)  # 30s timeout
         logger.debug(f"Published message {message_id} for task {task_id}")
 
     async def _submit_to_asyncio(
@@ -417,8 +420,8 @@ class TaskQueue:
     async def _asyncio_worker(self):
         """Worker for processing local asyncio queue"""
         logger.info("Started asyncio worker")
-        try:
-            while True:
+        while True:
+            try:
                 func, task_id, args, kwargs = await self.local_queue.get()
                 try:
                     await self._execute_sync(func, task_id, args, kwargs)
@@ -426,17 +429,21 @@ class TaskQueue:
                     logger.error(f"Error in asyncio worker for task {task_id}: {e}")
                 finally:
                     self.local_queue.task_done()
-        except asyncio.CancelledError:
-            logger.info("Asyncio worker cancelled")
-        except Exception as e:  # noqa: BLE001
-            logger.error(f"Asyncio worker failed: {e}")
-            await asyncio.sleep(5)
-            logger.info("Restarting asyncio worker after crash...")
-            worker_task = asyncio.create_task(self._asyncio_worker())
-            if self.local_workers:
-                self.local_workers[0] = worker_task
-            else:
-                self.local_workers.append(worker_task)
+            except asyncio.CancelledError:
+                # বাংলা মন্তব্য: P1 Fix — CancelledError কন্তো suppress করা যাবে না — propagate করুন।
+                # আগে: try/except-এ ব্লক করা হতো — graceful shutdown ব্যর্থ হতো।
+                logger.info("Asyncio worker received cancellation signal. Shutting down gracefully.")
+                raise  # CancelledError propagate নিশ্চিত করুন
+            except Exception as e:  # noqa: BLE001
+                logger.error(f"Asyncio worker failed: {e}")
+                await asyncio.sleep(5)
+                logger.info("Restarting asyncio worker after crash...")
+                worker_task = asyncio.create_task(self._asyncio_worker())
+                if self.local_workers:
+                    self.local_workers[0] = worker_task
+                else:
+                    self.local_workers.append(worker_task)
+                return  # বাংলা মন্তব্য: পুরানো worker exit করুন
 
     async def get_result(self, task_id: str, timeout: float = None) -> TaskResult:
         """
