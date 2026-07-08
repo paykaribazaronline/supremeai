@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/docker_sandbox.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,463 বাইট  
-**আপডেট:** 2026-07-08T01:53:18.631647
+**সাইজ:** 4,711 বাইট  
+**আপডেট:** 2026-07-08T02:14:38.625382
 
 ---
 
@@ -105,9 +105,12 @@ class DockerSandbox:
                 "Docker is not available. Simulating command execution in local process."
             )
             try:
+                # বাংলা মন্তব্য: Windows এ echo এর মত built-in command fallback run করার জন্য shell config setup
+                import sys
+                use_shell = (sys.platform == "win32")
                 res = subprocess.run(
                     shlex.split(cmd),
-                    shell=False,
+                    shell=use_shell,
                     capture_output=True,
                     text=True,
                     timeout=5,

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/core/test_security_vault.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,914 বাইট  
-**আপডেট:** 2026-07-08T01:53:18.622125
+**সাইজ:** 1,959 বাইট  
+**আপডেট:** 2026-07-08T02:14:38.615756
 
 ---
 
@@ -24,6 +24,7 @@ if "core.security_vault" in sys.modules:
     importlib.reload(sys.modules["core.security_vault"])
 
 from core.security_vault import encrypt_token, decrypt_token
+import core.security_vault as security_vault
 
 
 def test_encrypt_token_returns_string():

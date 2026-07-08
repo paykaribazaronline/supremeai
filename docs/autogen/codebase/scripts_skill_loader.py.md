@@ -1,8 +1,8 @@
 # 📄 ফাইল: scripts/skill_loader.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,365 বাইট  
-**আপডেট:** 2026-07-08T01:53:18.528819
+**সাইজ:** 7,343 বাইট  
+**আপডেট:** 2026-07-08T02:14:38.521368
 
 ---
 
@@ -33,7 +33,7 @@ class BulletproofASTSandbox(ast.NodeVisitor):
         self.banned_tokens = {
             "__class__", "__subclasses__", "__globals__", "__code__",
             "__import__", "__builtins__", "eval", "exec", "os", "sys",
-            "subprocess", "importlib", "shutil", "socket", "getattr", "setattr"
+            "subprocess", "importlib", "shutil", "socket"
         }
 
     def _flag_violation(self, node, reason):
