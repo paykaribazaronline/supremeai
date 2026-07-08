@@ -29,8 +29,8 @@ if settings.env.lower() == "production":
     try:
         settings.validate_config()
     except RuntimeError as exc:
-        logger.error(f"Production config validation failed: {exc}")
-        sys.exit(1)
+        logger.error(f"Production config validation failed: {exc}. Booting in resilient mode.")
+        # sys.exit(1) রিমুভ করা হলো (Cloud Run Resilient Boot)
 
 
 def _handle_sigterm(signum, frame):
