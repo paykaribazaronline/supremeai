@@ -62,15 +62,19 @@ function Deploy-GCP {
   docker push $image
   if ($LASTEXITCODE -ne 0) { Fail 'Docker push failed' }
 
+  # বাংলা মন্তব্য: P0 Fix — Secrets কে CLI arguments-এ embed করা নিষিদ্ধ।
+  # পরিবর্তে --set-secrets flag ব্যবহার করে GCP Secret Manager reference দেওয়া হবে।
   $setEnvVars = @("ENV=$EnvTarget")
   if ($env:GCP_PROJECT_ID) { $setEnvVars += "GCP_PROJECT_ID=$env:GCP_PROJECT_ID" }
   if ($env:GCP_REGION) { $setEnvVars += "GCP_REGION=$env:GCP_REGION" }
-  if ($env:OPENAI_API_KEY) { $setEnvVars += "OPENAI_API_KEY=$env:OPENAI_API_KEY" }
-  if ($env:TELEGRAM_BOT_TOKEN) { $setEnvVars += "TELEGRAM_BOT_TOKEN=$env:TELEGRAM_BOT_TOKEN" }
+
+  $setSecrets = @()
+  if ($env:OPENAI_API_KEY) { $setSecrets += "OPENAI_API_KEY=projects/$env:GCP_PROJECT_ID/secrets/OPENAI_API_KEY:latest" }
+  if ($env:TELEGRAM_BOT_TOKEN) { $setSecrets += "TELEGRAM_BOT_TOKEN=projects/$env:GCP_PROJECT_ID/secrets/TELEGRAM_BOT_TOKEN:latest" }
   if ($env:SUPABASE_URL) { $setEnvVars += "SUPABASE_URL=$env:SUPABASE_URL" }
-  if ($env:SUPABASE_KEY) { $setEnvVars += "SUPABASE_KEY=$env:SUPABASE_KEY" }
+  if ($env:SUPABASE_KEY) { $setSecrets += "SUPABASE_KEY=projects/$env:GCP_PROJECT_ID/secrets/SUPABASE_KEY:latest" }
   if ($env:UPSTASH_REDIS_REST_URL) { $setEnvVars += "UPSTASH_REDIS_REST_URL=$env:UPSTASH_REDIS_REST_URL" }
-  if ($env:UPSTASH_REDIS_REST_TOKEN) { $setEnvVars += "UPSTASH_REDIS_REST_TOKEN=$env:UPSTASH_REDIS_REST_TOKEN" }
+  if ($env:UPSTASH_REDIS_REST_TOKEN) { $setSecrets += "UPSTASH_REDIS_REST_TOKEN=projects/$env:GCP_PROJECT_ID/secrets/UPSTASH_REDIS_REST_TOKEN:latest" }
 
   $envValue = $setEnvVars -join ','
   $gcloudArgs = @(
@@ -78,9 +82,13 @@ function Deploy-GCP {
     '--image', $image,
     '--region', $env:GCP_REGION,
     '--project', $env:GCP_PROJECT_ID,
-    '--allow-unauthenticated',
+    '--no-allow-unauthenticated',
     '--set-env-vars', $envValue
   )
+  if ($setSecrets.Count -gt 0) {
+    $gcloudArgs += '--set-secrets'
+    $gcloudArgs += ($setSecrets -join ',')
+  }
   if ($env:PORT) {
     $gcloudArgs += '--port'
     $gcloudArgs += $env:PORT

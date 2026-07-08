@@ -23,7 +23,10 @@ class AutoRemediationEngine:
             if not token:
                 raise RuntimeError("GITHUB_TOKEN not configured for AutoRemediationEngine")
             self._github_client = Github(token)
-            self._repo_obj = self._github_client.get_repo(os.getenv("GITHUB_REPOSITORY", "paykaribazaronline/supremeai"))
+            repo_name = os.getenv("GITHUB_REPOSITORY")
+            if not repo_name:
+                raise RuntimeError("GITHUB_REPOSITORY environment variable must be set for AutoRemediationEngine")
+            self._repo_obj = self._github_client.get_repo(repo_name)
         return self._repo_obj
 
     async def process_codeql_alert(self, file_path: str, line_number: int, vulnerability_details: str):
@@ -149,13 +152,23 @@ class AutoRemediation:
     def _validate_file_path(self, file_path: str) -> str:
         """বাংলা মন্তব্য: P0 Fix — Path traversal attack প্রতিরোধ।
         শুধুমাত্র project directory-র ভেতরের ফাইলগুলোতে write অনুমোদিত।
+        Symlink traversal রোধ করতে commonpath ব্যবহার করা হলো।
         """
         real_path = os.path.realpath(os.path.abspath(file_path))
-        if not real_path.startswith(self._ALLOWED_BASE_DIR + os.sep):
+        # os.path.commonpath() ব্যবহার করে symlink traversal প্রতিরোধ
+        try:
+            common = os.path.commonpath([real_path, self._ALLOWED_BASE_DIR])
+            if common != self._ALLOWED_BASE_DIR:
+                raise ValueError(
+                    f"🛑 Path traversal detected: {file_path!r} resolves to {real_path!r} "
+                    f"which is outside allowed directory {self._ALLOWED_BASE_DIR!r}"
+                )
+        except ValueError as ve:
+            # Windows-এ drive letter mismatch হলে commonpath ValueError দেয়
             raise ValueError(
                 f"🛑 Path traversal detected: {file_path!r} resolves to {real_path!r} "
                 f"which is outside allowed directory {self._ALLOWED_BASE_DIR!r}"
-            )
+            ) from ve
         return real_path
 
     async def process_security_alert(

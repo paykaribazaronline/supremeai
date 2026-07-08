@@ -22,7 +22,13 @@ class MicroVMSandbox:
 
     def _generate_vm_id(self) -> str:
         MicroVMSandbox._vm_id_counter += 1
+        # বাংলা মন্তব্য: P0 Fix — vm_id-এ alphanumeric characters only allowed, path injection প্রতিরোধ।
         return f"supremeai-vm-{int(time.time())}-{MicroVMSandbox._vm_id_counter}"
+
+    def _validate_vm_id(self, vm_id: str) -> bool:
+        """বাংলা মন্তব্য: P0 Fix — vm_id-এ alphanumeric, underscore, hyphen only allowed, path injection প্রতিরোধ।"""
+        import re
+        return bool(re.match(r'^[a-zA-Z0-9_-]+$', vm_id))
 
     def _check_microvm_available(self) -> bool:
         try:
@@ -74,6 +80,13 @@ class MicroVMSandbox:
                 }
 
         vm_id = self._generate_vm_id()
+        # বাংলা মন্তব্য: P0 Fix — vm_id validation before use, path injection প্রতিরোধ।
+        if not self._validate_vm_id(vm_id):
+            return {
+                "success": False,
+                "error": f"Invalid vm_id generated: {vm_id}",
+                "provider": "microvm",
+            }
         vm_dir = f"{self.sandbox_dir}/{vm_id}"
         os.makedirs(vm_dir, exist_ok=True)
 

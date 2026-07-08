@@ -9,6 +9,7 @@ from core import services
 from core.config import settings
 from core.config_cache import config_cache
 from core.discord_bot import SupremeDiscordBot
+from core.event_bus import error_event_bus
 from core.orchestrator import Orchestrator
 from core.pgbouncer_pool import get_db_pool
 from core.pgbouncer_pool import init_db_pool
@@ -81,6 +82,13 @@ async def app_lifespan(app):
         logger.info("✅ OpenTelemetry tracing provider successfully initialized.")
     except Exception as exc:  # noqa: BLE001
         logger.warning(f"Failed to initialize tracing provider: {exc}")
+        error_event_bus.emit(ErrorEvent(
+            module="lifespan",
+            error_type="TRACING_INIT_FAILED",
+            message=str(exc)[:200],
+            severity="WARNING",
+            context={"component": "opentelemetry"},
+        ))
 
     services.global_http_client = httpx.AsyncClient(
         limits=httpx.Limits(max_keepalive_connections=50, max_connections=200),
@@ -106,6 +114,13 @@ async def app_lifespan(app):
         # Health endpoint, SSE stream, config cache সব চলবে DB ছাড়া।
         logger.error(f"❌ Failed to initialize DB Pool: {exc}")
         app.state.db_pool = None
+        error_event_bus.emit(ErrorEvent(
+            module="lifespan",
+            error_type="DB_POOL_INIT_FAILED",
+            message=str(exc)[:200],
+            severity="CRITICAL" if os.getenv("ENV") == "production" else "WARNING",
+            context={"db_url": db_url[:50] if db_url else "", "env": os.getenv("ENV", "unknown")},
+        ))
         if os.getenv("ENV") == "production":
             # Production-এ Sentry-তে alert পাঠান, কিন্তু crash করবেন না
             logger.critical(
@@ -117,8 +132,15 @@ async def app_lifespan(app):
         await config_cache.refresh_async()
         logger.info("✅ System configuration cache successfully initialized.")
     except Exception as exc:  # noqa: BLE001
-        # প্রোডাকশনে ডাটাবেজ সাময়িক ডাউন থাকলেও সার্ভার যেন বুট হতে পারে
+        # প্রোডাকশনে ডাটাবেজ সাময়িক ডাউন থাকলেও সার্ভার যেন বুট হতে পারে
         logger.warning(f"⚠️ Async config load failed, falling back to local DEFAULT_CONFIGS: {exc}")
+        error_event_bus.emit(ErrorEvent(
+            module="lifespan",
+            error_type="CONFIG_CACHE_INIT_FAILED",
+            message=str(exc)[:200],
+            severity="WARNING",
+            context={"fallback": "DEFAULT_CONFIGS"},
+        ))
         from core.config_cache import DEFAULT_CONFIGS
 
         config_cache._cache = dict(DEFAULT_CONFIGS)
@@ -128,6 +150,13 @@ async def app_lifespan(app):
         await redis_manager.initialize()
     except Exception as e:
         logger.error(f"Failed to initialize Redis Manager: {e}")
+        error_event_bus.emit(ErrorEvent(
+            module="lifespan",
+            error_type="REDIS_INIT_FAILED",
+            message=str(e)[:200],
+            severity="CRITICAL" if os.getenv("ENV") == "production" else "WARNING",
+            context={"env": os.getenv("ENV", "unknown")},
+        ))
         if os.getenv("ENV") == "production":
             raise e
 
@@ -139,6 +168,13 @@ async def app_lifespan(app):
             logger.info("🤖 Discord Bot background task initialized successfully.")
     except Exception as e:  # noqa: BLE001
         logger.warning(f"Deferred Discord Bot initialization: {e}")
+        error_event_bus.emit(ErrorEvent(
+            module="lifespan",
+            error_type="DISCORD_BOT_INIT_FAILED",
+            message=str(e)[:200],
+            severity="WARNING",
+            context={"component": "discord_bot"},
+        ))
 
     try:
         orch_inst = Orchestrator()
@@ -147,6 +183,13 @@ async def app_lifespan(app):
         logger.info("⚙️ Orchestrator background tasks initialized successfully.")
     except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to initialize Orchestrator: {e}")
+        error_event_bus.emit(ErrorEvent(
+            module="lifespan",
+            error_type="ORCHESTRATOR_INIT_FAILED",
+            message=str(e)[:200],
+            severity="WARNING",
+            context={"component": "orchestrator"},
+        ))
 
     try:
         from database import db as supabase_db
@@ -156,6 +199,13 @@ async def app_lifespan(app):
             logger.info("Supabase schema bootstrap complete")
     except Exception as exc:  # noqa: BLE001
         logger.warning(f"Supabase bootstrap failed on startup: {exc}. Continuing without schema bootstrap.")
+        error_event_bus.emit(ErrorEvent(
+            module="lifespan",
+            error_type="SUPABASE_BOOTSTRAP_FAILED",
+            message=str(exc)[:200],
+            severity="WARNING",
+            context={"component": "supabase"},
+        ))
 
     yield  # এখানে অ্যাপ্লিকেশন ট্রাফিক রিসিভ করবে
 
@@ -171,6 +221,13 @@ async def app_lifespan(app):
             await orchestrator.stop()
     except Exception as e:  # noqa: BLE001
         logger.error(f"Error closing Discord Bot: {e}")
+        error_event_bus.emit(ErrorEvent(
+            module="lifespan",
+            error_type="SHUTDOWN_DISCORD_ORCHESTRATOR_FAILED",
+            message=str(e)[:200],
+            severity="WARNING",
+            context={"phase": "shutdown"},
+        ))
 
     try:
         pool = await get_db_pool()
@@ -179,12 +236,26 @@ async def app_lifespan(app):
             logger.info("✅ Database connection pool closed successfully.")
     except Exception as e:  # noqa: BLE001
         logger.error(f"Error closing DB pool: {e}")
+        error_event_bus.emit(ErrorEvent(
+            module="lifespan",
+            error_type="SHUTDOWN_DB_POOL_FAILED",
+            message=str(e)[:200],
+            severity="WARNING",
+            context={"phase": "shutdown"},
+        ))
 
     try:
         await redis_manager.close()
         logger.info("✅ Redis Manager connection closed.")
     except Exception as e:  # noqa: BLE001
         logger.error(f"Error closing Redis Manager: {e}")
+        error_event_bus.emit(ErrorEvent(
+            module="lifespan",
+            error_type="SHUTDOWN_REDIS_FAILED",
+            message=str(e)[:200],
+            severity="WARNING",
+            context={"phase": "shutdown"},
+        ))
 
     try:
         if services.global_http_client:
@@ -192,6 +263,13 @@ async def app_lifespan(app):
         logger.info("✅ Global HTTP connection pool closed successfully.")
     except Exception as e:  # noqa: BLE001
         logger.error(f"Error during HTTP connection pool drainage: {str(e)}")
+        error_event_bus.emit(ErrorEvent(
+            module="lifespan",
+            error_type="SHUTDOWN_HTTP_CLIENT_FAILED",
+            message=str(e)[:200],
+            severity="WARNING",
+            context={"phase": "shutdown"},
+        ))
 
     try:
         from tools.browser_agent import shutdown_global_browser
@@ -199,5 +277,12 @@ async def app_lifespan(app):
         await shutdown_global_browser()
     except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to shutdown global browser: {e}")
+        error_event_bus.emit(ErrorEvent(
+            module="lifespan",
+            error_type="SHUTDOWN_BROWSER_FAILED",
+            message=str(e)[:200],
+            severity="WARNING",
+            context={"phase": "shutdown"},
+        ))
 
     logger.info("💀 Serverless runtime environment sequence successfully finalized.")
