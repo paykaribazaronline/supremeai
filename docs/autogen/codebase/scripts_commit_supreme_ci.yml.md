@@ -1,8 +1,8 @@
 # 📄 ফাইল: scripts/commit_supreme_ci.yml
 
 **প্রকার:** .yml  
-**সাইজ:** 67,754 বাইট  
-**আপডেট:** 2026-07-08T11:59:46.657450
+**সাইজ:** 67,778 বাইট  
+**আপডেট:** 2026-07-08T12:03:41.147679
 
 ---
 
@@ -874,8 +874,8 @@ jobs:
           # Ensure we have the branch locally
           git fetch --depth=1 origin ${{ github.ref_name }}
           git checkout -B ${{ github.ref_name }} origin/${{ github.ref_name }}
-          # Push to mirror (create/update the branch there)
-          git push mirror ${{ github.ref_name }}:refs/heads/${{ github.ref_name }}
+          # Force push to mirror to ensure it exactly matches the main repo
+          git push --force mirror ${{ github.ref_name }}:refs/heads/${{ github.ref_name }}
       - name: Skip mirror push when token is not available
         if: env.MIRROR_REPO_TOKEN == ''
         env:
