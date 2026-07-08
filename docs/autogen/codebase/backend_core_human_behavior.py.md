@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/human_behavior.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,950 বাইট  
-**আপডেট:** 2026-07-08T02:55:55.509388
+**সাইজ:** 4,976 বাইট  
+**আপডেট:** 2026-07-08T03:02:32.597933
 
 ---
 
@@ -10,13 +10,15 @@
 
 ```py
 import asyncio
-import math
 import random
 from typing import Any
+
 from loguru import logger
 
+
 try:
-    from playwright.async_api import Page, ElementHandle
+    from playwright.async_api import ElementHandle
+    from playwright.async_api import Page
 except ImportError:
     # বাংলা মন্তব্য: মেইন ব্যাকএন্ড কন্টেইনারে playwright না থাকলে fallback setup
     Page = Any

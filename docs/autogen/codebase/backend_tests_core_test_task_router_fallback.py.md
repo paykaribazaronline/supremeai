@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/core/test_task_router_fallback.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,588 বাইট  
-**আপডেট:** 2026-07-08T02:55:55.561257
+**সাইজ:** 4,580 বাইট  
+**আপডেট:** 2026-07-08T03:02:32.653454
 
 ---
 
@@ -66,7 +66,7 @@ async def test_fallback_layer2_timeout_drops_to_layer3(mock_db_context):
     mock_session, mock_factory = mock_db_context
     
     # Layer 2 টাইমআউট এরর মক করা হলো
-    router._run_browser_automation = AsyncMock(side_effect=asyncio.TimeoutError())
+    router._run_browser_automation = AsyncMock(side_effect=TimeoutError())
     router._execute_api_fallback = AsyncMock(return_value={"status": "success", "tier": "Layer 3 (Economy API)", "data": "Fallback Data"})
 
     with patch("database.session.AsyncSessionLocal", return_value=mock_session), \

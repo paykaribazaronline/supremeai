@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-08T02:55:55.458531
+Generated at: 2026-07-08T03:02:32.542497
 
 
 ## File: `pnpm-lock.yaml`
@@ -73523,13 +73523,15 @@ ld_ai_client = init_ld_client()
 
 ```py
 import asyncio
-import math
 import random
 from typing import Any
+
 from loguru import logger
 
+
 try:
-    from playwright.async_api import Page, ElementHandle
+    from playwright.async_api import ElementHandle
+    from playwright.async_api import Page
 except ImportError:
     # বাংলা মন্তব্য: মেইন ব্যাকএন্ড কন্টেইনারে playwright না থাকলে fallback setup
     Page = Any
@@ -78000,10 +78002,13 @@ health_monitor = HealthMonitor()
 
 ```py
 import json
+
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.dynamic_agent import DynamicAgent
+
 from core.llm_gateway import llm_gateway
+from models.dynamic_agent import DynamicAgent
+
 
 class DynamicAgentFactory:
     """
@@ -78034,7 +78039,7 @@ class DynamicAgentFactory:
         
         try:
             agent_config = json.loads(response.get("text"))
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to parse AI generated agent configuration JSON: {e}")
             import time
             agent_config = {
@@ -78070,7 +78075,7 @@ class DynamicAgentFactory:
                 self.db.add(new_agent)
             await self.db.commit()
             logger.success(f"🧠 [AgentFactory] New skill learned and registered: '{name}'")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             await self.db.rollback()
             logger.error(f"Failed to save dynamic agent to registry: {exc}")
 
@@ -79441,10 +79446,11 @@ class TaskRouter:
             try:
                 logger.info(f"[Router] Check database registry for existing dynamic agent matching: {task_prompt}")
                 # ডাটাবেজ সেশন লোড
+                from sqlalchemy import select
+
+                from core.agent_factory import DynamicAgentFactory
                 from database.session import AsyncSessionLocal
                 from models.dynamic_agent import DynamicAgent
-                from core.agent_factory import DynamicAgentFactory
-                from sqlalchemy import select
 
                 agent_name = None
                 execution_steps = []
@@ -79484,7 +79490,7 @@ class TaskRouter:
                     }
                 raise Exception("Browser automation was flagged, blocked, or failed to collect data.")
                 
-            except (asyncio.TimeoutError, Exception) as e:
+            except (TimeoutError, Exception) as e:
                 # বাংলা মন্তব্য: Layer 2 ব্যর্থ হলে বা টাইমআউট হলে Layer 3/4 এ ফলব্যাক ট্রিগার করা হচ্ছে
                 logger.warning(f"[Router] Layer 2 failed or timed out: {str(e)}. Falling back to Layer 3.")
 
@@ -79501,12 +79507,10 @@ class TaskRouter:
         """বাজেট কন্ট্রোল ও মডেল সিলেকশন সহ এপিআই ফলব্যাক হ্যান্ডলার।"""
         try:
             logger.info("[Router] Routing to Layer 3 Economy AI Core...")
-            from core.llm_gateway import llm_gateway
-            from core.cost_guard import CostGuard
             # Real budget verification will use cost_guard dynamically
             # economy_response = await llm_gateway.acompletion(prompt, model_filters=["gpt-4o-mini", "deepseek-v3"])
             return {"status": "success", "tier": "Layer 3 (Economy API)", "data": "Economy LLM Data"}
-        except Exception as economy_err:
+        except Exception as economy_err:  # noqa: BLE001
             logger.error(f"[Router] Layer 3 breached: {str(economy_err)}. Escalating to Layer 4 Premium.")
             return {"status": "success", "tier": "Layer 4 (Premium API)", "data": "Premium LLM Data"}
 
@@ -92374,8 +92378,16 @@ def row_to_task(row: sqlite3.Row) -> PendingTask:
 ## File: `backend/models/dynamic_agent.py`
 
 ```py
-from sqlalchemy import Column, String, JSON, Integer, Boolean, DateTime, func
+from sqlalchemy import JSON
+from sqlalchemy import Boolean
+from sqlalchemy import Column
+from sqlalchemy import DateTime
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy import func
+
 from models.base import Base
+
 
 class DynamicAgent(Base):
     """
@@ -116838,7 +116850,7 @@ async def test_fallback_layer2_timeout_drops_to_layer3(mock_db_context):
     mock_session, mock_factory = mock_db_context
     
     # Layer 2 টাইমআউট এরর মক করা হলো
-    router._run_browser_automation = AsyncMock(side_effect=asyncio.TimeoutError())
+    router._run_browser_automation = AsyncMock(side_effect=TimeoutError())
     router._execute_api_fallback = AsyncMock(return_value={"status": "success", "tier": "Layer 3 (Economy API)", "data": "Fallback Data"})
 
     with patch("database.session.AsyncSessionLocal", return_value=mock_session), \
@@ -116955,7 +116967,7 @@ if "core.security_vault" in sys.modules:
     importlib.reload(sys.modules["core.security_vault"])
 
 from core.security_vault import encrypt_token, decrypt_token
-import core.security_vault as security_vault
+from core import security_vault
 
 
 def test_encrypt_token_returns_string():
@@ -194828,11 +194840,10 @@ jobs:
 
   deploy-backend:
     name: 🚀 Deploy Backend (Cloud Run)
-    needs: backend-core
+    needs: [pre-merge-gate, production-readiness, backend-core]
     if: |
-      always() && 
       github.ref == 'refs/heads/main' &&
-      needs.backend-core.result != 'failure' && needs.backend-core.result != 'cancelled'
+      github.event_name == 'push'
     runs-on: ubuntu-latest
     environment: production
     steps:

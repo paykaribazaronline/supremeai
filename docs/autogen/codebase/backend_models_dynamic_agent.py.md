@@ -1,16 +1,24 @@
 # 📄 ফাইল: backend/models/dynamic_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 998 বাইট  
-**আপডেট:** 2026-07-08T02:55:55.530995
+**সাইজ:** 1,132 বাইট  
+**আপডেট:** 2026-07-08T03:02:32.621125
 
 ---
 
 ## কোড
 
 ```py
-from sqlalchemy import Column, String, JSON, Integer, Boolean, DateTime, func
+from sqlalchemy import JSON
+from sqlalchemy import Boolean
+from sqlalchemy import Column
+from sqlalchemy import DateTime
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy import func
+
 from models.base import Base
+
 
 class DynamicAgent(Base):
     """

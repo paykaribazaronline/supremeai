@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/agent_factory.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,632 বাইট  
-**আপডেট:** 2026-07-08T02:55:55.513916
+**সাইজ:** 3,667 বাইট  
+**আপডেট:** 2026-07-08T03:02:32.602871
 
 ---
 
@@ -10,10 +10,13 @@
 
 ```py
 import json
+
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.dynamic_agent import DynamicAgent
+
 from core.llm_gateway import llm_gateway
+from models.dynamic_agent import DynamicAgent
+
 
 class DynamicAgentFactory:
     """
@@ -44,7 +47,7 @@ class DynamicAgentFactory:
         
         try:
             agent_config = json.loads(response.get("text"))
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to parse AI generated agent configuration JSON: {e}")
             import time
             agent_config = {
@@ -80,7 +83,7 @@ class DynamicAgentFactory:
                 self.db.add(new_agent)
             await self.db.commit()
             logger.success(f"🧠 [AgentFactory] New skill learned and registered: '{name}'")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             await self.db.rollback()
             logger.error(f"Failed to save dynamic agent to registry: {exc}")
 
