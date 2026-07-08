@@ -13,6 +13,13 @@ addEventListener('scheduled', event => {
   event.waitUntil(checkHealthAndStore())
 })
 
+function getKV() {
+  if (typeof env !== 'undefined' && env.SUPREMEAI_KV) return env.SUPREMEAI_KV;
+  if (typeof SUPREMEAI_KV !== 'undefined') return SUPREMEAI_KV;
+  if (typeof globalThis !== 'undefined' && globalThis.SUPREMEAI_KV) return globalThis.SUPREMEAI_KV;
+  return null;
+}
+
 function getBackends() {
   const gcp_url = typeof env !== 'undefined' ? env.GCP_CLOUD_RUN_URL : (typeof GCP_CLOUD_RUN_URL !== 'undefined' ? GCP_CLOUD_RUN_URL : '');
 
@@ -42,7 +49,7 @@ async function handleRequest(request) {
   }
 
   // বাংলা মন্তব্য: P1 Fix — Cloudflare KV থেকে সার্কিট স্টেট রিড করা হচ্ছে রেস কন্ডিশন ও স্টেট ড্রিফট এড়াতে।
-  const kv = typeof SUPREMEAI_KV !== 'undefined' ? SUPREMEAI_KV : null;
+  const kv = getKV();
   let localState = { ...circuitBreakerState };
   if (kv) {
     try {
@@ -133,6 +140,7 @@ async function getHealthyBackendsFromKV(backends) {
   if (directlyChecked.length === 0 && backends.length > 0) {
     // All backends are unhealthy, trip the circuit breaker
     let localState = { ...circuitBreakerState };
+    const kv = getKV();
     if (kv) {
       try {
         const cached = await kv.get('SUPREMEAI_CIRCUIT_BREAKER_V2', { type: 'json' });
@@ -171,7 +179,7 @@ async function checkHealthAndStore() {
   const healthyBackends = await getHealthyBackends(backends)
   const healthyNames = healthyBackends.map(b => b.name)
 
-  const kv = typeof SUPREMEAI_KV !== 'undefined' ? SUPREMEAI_KV : null;
+  const kv = getKV();
   if (kv) {
     // আর্কিটেকচারাল ফিক্স #2: Add a TTL to prevent using stale data if the cron fails
     await kv.put('healthy_backends', JSON.stringify(healthyNames), {
