@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-08T09:53:36.709171
+Generated at: 2026-07-08T10:08:43.765326
 
 
 ## File: `pnpm-lock.yaml`
@@ -79073,10 +79073,13 @@ async def app_lifespan(app):
 
     try:
         await config_cache.refresh_async()
+        logger.info("✅ System configuration cache successfully initialized.")
     except Exception as exc:  # noqa: BLE001
-        logger.critical(f"🚨 সিস্টেম স্টার্টআপ ব্লক করা হয়েছে - কনফিগারেশন অনুপস্থিত! {exc}")
-        import sys
-        sys.exit(1)
+        # প্রোডাকশনে ডাটাবেজ সাময়িক ডাউন থাকলেও সার্ভার যেন বুট হতে পারে
+        logger.warning(f"⚠️ Async config load failed, falling back to local DEFAULT_CONFIGS: {exc}")
+        from core.config_cache import DEFAULT_CONFIGS
+        config_cache._cache = dict(DEFAULT_CONFIGS)
+        # sys.exit(1) রিমুভ করা হলো যাতে ক্লাউড রান হেলথ চেক পাস করতে পারে
 
     try:
         await redis_manager.initialize()
@@ -192970,6 +192973,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
       
       - name: 📤 Sync to Secondary Repo (Staging Dispatch)
         if: env.MIRROR_REPO_TOKEN != ''

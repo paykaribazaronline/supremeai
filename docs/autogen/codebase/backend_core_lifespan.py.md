@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/lifespan.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,468 বাইট  
-**আপডেট:** 2026-07-08T09:53:36.769015
+**সাইজ:** 7,868 বাইট  
+**আপডেট:** 2026-07-08T10:08:43.822232
 
 ---
 
@@ -123,10 +123,13 @@ async def app_lifespan(app):
 
     try:
         await config_cache.refresh_async()
+        logger.info("✅ System configuration cache successfully initialized.")
     except Exception as exc:  # noqa: BLE001
-        logger.critical(f"🚨 সিস্টেম স্টার্টআপ ব্লক করা হয়েছে - কনফিগারেশন অনুপস্থিত! {exc}")
-        import sys
-        sys.exit(1)
+        # প্রোডাকশনে ডাটাবেজ সাময়িক ডাউন থাকলেও সার্ভার যেন বুট হতে পারে
+        logger.warning(f"⚠️ Async config load failed, falling back to local DEFAULT_CONFIGS: {exc}")
+        from core.config_cache import DEFAULT_CONFIGS
+        config_cache._cache = dict(DEFAULT_CONFIGS)
+        # sys.exit(1) রিমুভ করা হলো যাতে ক্লাউড রান হেলথ চেক পাস করতে পারে
 
     try:
         await redis_manager.initialize()
