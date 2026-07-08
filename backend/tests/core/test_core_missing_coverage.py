@@ -557,6 +557,7 @@ class TestLogBatcherMissingBranches:
             call_count += 1
             if call_count == 1:
                 return {"x": 1}
+            service.running = False
             raise Exception("critical")
 
         with patch("asyncio.wait_for", side_effect=mock_wait_for):
@@ -580,6 +581,7 @@ class TestLogBatcherMissingBranches:
                 service.queue.put_nowait({"i": 1})
                 service.queue.put_nowait({"i": 2})
                 return {"i": 0}
+            service.running = False
             raise TimeoutError()
 
         with patch("asyncio.wait_for", side_effect=mock_wait_for):
