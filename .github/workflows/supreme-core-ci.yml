@@ -459,7 +459,7 @@ jobs:
         with:
           name: frontend-dist
           path: |
-            apps/studio-client/dist
+            apps/studio-client/dist-admin
             apps/web-chat/dist
           retention-days: 1
 
