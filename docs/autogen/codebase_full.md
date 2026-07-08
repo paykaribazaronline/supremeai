@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-08T02:42:51.134557
+Generated at: 2026-07-08T02:55:55.458531
 
 
 ## File: `pnpm-lock.yaml`
@@ -77996,6 +77996,86 @@ health_monitor = HealthMonitor()
 
 ```
 
+## File: `backend/core/agent_factory.py`
+
+```py
+import json
+from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
+from models.dynamic_agent import DynamicAgent
+from core.llm_gateway import llm_gateway
+
+class DynamicAgentFactory:
+    """
+    এজেন্ট ফ্যাক্টরি যা রিকোয়েস্ট অনুযায়ী ডাইনামিকালি কাস্টম এজেন্ট কনফিগারেশন তৈরি ও ডাটাবেজে রেজিস্ট্রি করে (অ্যাসিনক্রোনাস)।
+    """
+    def __init__(self, db_session: AsyncSession):
+        self.db = db_session
+
+    async def create_specialized_agent(self, task_description: str) -> dict:
+        """
+        প্রিমিয়াম এআই ব্যবহার করে ওয়ান-টাইম এজেন্ট স্ক্রিপ্ট বানাবে।
+        """
+        logger.info(f"Generating a new autonomous agent for task: {task_description}")
+        
+        system_prompt = (
+            "You are the SupremeAI Agent Factory. Your job is to output a raw JSON configuration "
+            "and structural flow steps that a Python Playwright browser can execute locally. "
+            "Do not return conversational text, return only valid JSON containing 'agent_name', "
+            "'description', and 'execution_steps' (a list of actions)."
+        )
+        
+        # প্রিমিয়াম এআই দিয়ে ১ বার খরচ করে এজেন্টের স্ক্রিপ্ট বানিয়ে নেওয়া
+        response = await llm_gateway.acompletion(
+            prompt=f"Create a custom browser extraction script for: {task_description}",
+            system_prompt=system_prompt,
+            model_filters=["claude-3-5-sonnet"]
+        )
+        
+        try:
+            agent_config = json.loads(response.get("text"))
+        except Exception as e:
+            logger.error(f"Failed to parse AI generated agent configuration JSON: {e}")
+            import time
+            agent_config = {
+                "agent_name": f"AutoAgent_{int(time.time())}",
+                "description": task_description,
+                "execution_steps": [{"action": "navigate", "value": "contextual_url"}]
+            }
+
+        # ডাটাবেজে আজীবনের জন্য সেভ করে রাখা
+        await self._save_agent_to_registry(
+            name=agent_config.get("agent_name"),
+            description=agent_config.get("description", task_description),
+            steps=agent_config.get("execution_steps", [])
+        )
+        
+        return agent_config
+
+    async def _save_agent_to_registry(self, name: str, description: str, steps: list):
+        try:
+            from sqlalchemy import select
+            stmt = select(DynamicAgent).where(DynamicAgent.name == name)
+            result = await self.db.execute(stmt)
+            existing = result.scalars().first()
+            if existing:
+                existing.execution_steps = steps
+                existing.description = description
+            else:
+                new_agent = DynamicAgent(
+                    name=name,
+                    description=description,
+                    execution_steps=steps
+                )
+                self.db.add(new_agent)
+            await self.db.commit()
+            logger.success(f"🧠 [AgentFactory] New skill learned and registered: '{name}'")
+        except Exception as exc:
+            await self.db.rollback()
+            logger.error(f"Failed to save dynamic agent to registry: {exc}")
+
+```
+
 ## File: `backend/core/factual_verifier.py`
 
 ```py
@@ -79354,23 +79434,52 @@ class TaskRouter:
     async def execute_scraping_task(self, task_prompt: str, contextual_url: str = None) -> dict:
         """
         মাল্টি-টিয়ার ফলব্যাক লজিক ইমপ্লিমেন্টেশন।
-        প্রথমে Layer 2 (Browser Automation) ট্রাই করবে, ক্যাপচা বা টাইমআউট আসলে Layer 3 (Economy AI) ও Layer 4 (Premium AI) এ ফলব্যাক করবে।
+        প্রথমে ডাটাবেজে পূর্বে তৈরি করা ডাইনামিক এজেন্ট খুঁজবে। না পেলে JIT DynamicAgentFactory দিয়ে ওয়ান-টাইম জেনারেট করবে।
         """
         # --- LAYER 2: BROWSER AUTOMATION AGENT ---
         if contextual_url:
             try:
-                logger.info(f"[Router] Attempting Layer 2 Browser Automation for URL: {contextual_url}")
+                logger.info(f"[Router] Check database registry for existing dynamic agent matching: {task_prompt}")
+                # ডাটাবেজ সেশন লোড
+                from database.session import AsyncSessionLocal
+                from models.dynamic_agent import DynamicAgent
+                from core.agent_factory import DynamicAgentFactory
+                from sqlalchemy import select
+
+                agent_name = None
+                execution_steps = []
+
+                # সিঙ্ক্রোনাস/অ্যাসিনক্রোনাস ডাটাবেজ চেকিং
+                async with AsyncSessionLocal() as session:
+                    stmt = select(DynamicAgent).where(DynamicAgent.name.like(f"%{task_prompt[:15]}%"))
+                    result = await session.execute(stmt)
+                    agent = result.scalars().first()
+                    if agent:
+                        agent_name = agent.name
+                        execution_steps = agent.execution_steps
+                        logger.info(f"Loaded existing dynamic agent '{agent_name}' from database.")
+
+                if not agent_name:
+                    logger.info("No matching agent found in registry. Invoking DynamicAgentFactory to build one JIT...")
+                    # AsyncSessionLocal call instead of SessionLocal
+                    async with AsyncSessionLocal() as factory_session:
+                        factory = DynamicAgentFactory(factory_session)
+                        agent_config = await factory.create_specialized_agent(task_prompt)
+                        agent_name = agent_config.get("agent_name")
+                        execution_steps = agent_config.get("execution_steps", [])
+
+                logger.info(f"[Router] Launching Layer 2 Engine for destination: {contextual_url} using agent: {agent_name}")
                 
                 # ৩০ সেকেন্ডের কড়া টাইমআউট গেট সহ ব্রাউজার লেভেল এক্সট্রাকশন রান
                 result = await asyncio.wait_for(
-                    self._run_browser_automation(task_prompt, contextual_url), 
+                    self._run_browser_automation(task_prompt, contextual_url, execution_steps), 
                     timeout=35.0
                 )
                 
                 if result and result.get("status") == "success":
                     return {
                         "status": "success",
-                        "tier": "Layer 2 (Zero-Cost Browser)",
+                        "tier": f"Layer 2 (Zero-Cost Browser Automation: {agent_name})",
                         "data": result.get("data")
                     }
                 raise Exception("Browser automation was flagged, blocked, or failed to collect data.")
@@ -79382,7 +79491,7 @@ class TaskRouter:
         # --- LAYER 3 & 4 ACCELERATION FALLBACKS ---
         return await self._execute_api_fallback(task_prompt)
 
-    async def _run_browser_automation(self, prompt: str, url: str) -> dict:
+    async def _run_browser_automation(self, prompt: str, url: str, steps: list = None) -> dict:
         """Playwright কন্টেক্সট স্ট্রিম রান করার হেল্পার মেথড।"""
         # tools/browser_agent.py এর সাথে ইন্টারফেস করার জন্য প্লেসহোল্ডার রান
         await asyncio.sleep(1.5) 
@@ -92259,6 +92368,28 @@ def row_to_task(row: sqlite3.Row) -> PendingTask:
         resolved_at=row["resolved_at"],
         reason=row["reason"],
     )
+
+```
+
+## File: `backend/models/dynamic_agent.py`
+
+```py
+from sqlalchemy import Column, String, JSON, Integer, Boolean, DateTime, func
+from models.base import Base
+
+class DynamicAgent(Base):
+    """
+    ডাইনামিক এজেন্ট রেজিস্ট্রি মডেল।
+    এআই দ্বারা জেনারেট করা ফ্রি লোকাল এজেন্টগুলোর কনফিগারেশন আজীবনের জন্য এখানে সেভ করা থাকবে।
+    """
+    __tablename__ = "dynamic_agents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), unique=True, index=True, nullable=False)
+    description = Column(String(500), nullable=True)
+    execution_steps = Column(JSON, nullable=False)  # প্লেরাইট স্ক্রিপ্ট বা কনফিগারেশন স্টেপস
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 ```
 
@@ -116304,6 +116435,69 @@ async def test_swarm_orchestrator_execute_task(mock_agents):
 
 ```
 
+## File: `backend/tests/core/test_agent_factory.py`
+
+```py
+import pytest
+import asyncio
+from unittest.mock import AsyncMock, MagicMock, patch
+from core.task_router import TaskRouter
+from core.agent_factory import DynamicAgentFactory
+from models.dynamic_agent import DynamicAgent
+
+@pytest.mark.asyncio
+async def test_agent_factory_creates_and_saves_agent():
+    """এজেন্ট ফ্যাক্টরি এআই রেসপন্স থেকে স্ক্রিপ্ট বানিয়ে ডাটাবেজে সেভ করে তা নিশ্চিত করে।"""
+    mock_db = MagicMock()
+    mock_result = MagicMock()
+    mock_result.scalars.return_value.first.return_value = None
+    mock_db.execute = AsyncMock(return_value=mock_result)
+    mock_db.commit = AsyncMock()
+    
+    factory = DynamicAgentFactory(mock_db)
+    
+    mock_res = {
+        "text": '{"agent_name": "AmazonTracker", "description": "Track prices", "execution_steps": [{"action": "click"}]}'
+    }
+    
+    with patch("core.agent_factory.llm_gateway.acompletion", new_callable=AsyncMock, return_value=mock_res):
+        config = await factory.create_specialized_agent("Track prices on Amazon")
+        assert config["agent_name"] == "AmazonTracker"
+        assert config["execution_steps"] == [{"action": "click"}]
+        mock_db.add.assert_called_once()
+        mock_db.commit.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_task_router_uses_saved_agent_from_db():
+    """টাস্ক রাউটার যদি ডাটাবেজে ম্যাচিং এজেন্ট পায়, তবে সরাসরি সেটি ব্যবহার করে।"""
+    router = TaskRouter()
+    
+    mock_agent = MagicMock()
+    mock_agent.name = "AmazonTracker"
+    mock_agent.execution_steps = [{"action": "click"}]
+    
+    mock_result = MagicMock()
+    mock_result.scalars.return_value.first.return_value = mock_agent
+    
+    mock_session = AsyncMock()
+    mock_session.execute.return_value = mock_result
+    mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_session.__aexit__ = AsyncMock()
+    
+    router._run_browser_automation = AsyncMock(return_value={"status": "success", "data": "DOM Result"})
+    
+    with patch("database.session.AsyncSessionLocal", return_value=mock_session):
+        response = await router.execute_scraping_task("AmazonTracker prices", "https://amazon.com")
+        assert response["status"] == "success"
+        assert "AmazonTracker" in response["tier"]
+        assert response["data"] == "DOM Result"
+        router._run_browser_automation.assert_called_once_with(
+            "AmazonTracker prices", "https://amazon.com", [{"action": "click"}]
+        )
+
+```
+
 ## File: `backend/tests/core/test_log_batcher.py`
 
 ```py
@@ -116589,43 +116783,70 @@ async def test_self_healer_test_sandbox_placeholder(mock_db):
 ```py
 import pytest
 import asyncio
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 from core.task_router import TaskRouter
 
+@pytest.fixture
+def mock_db_context():
+    """ডাটাবেজ ও ফ্যাক্টরি মক করার জন্য ফিক্সচার।"""
+    mock_result = MagicMock()
+    mock_result.scalars.return_value.first.return_value = None
+    
+    mock_session = AsyncMock()
+    mock_session.execute.return_value = mock_result
+    mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_session.__aexit__ = AsyncMock()
+    
+    mock_factory = MagicMock()
+    mock_factory.create_specialized_agent = AsyncMock(return_value={
+        "agent_name": "MockAgent", 
+        "execution_steps": []
+    })
+    
+    return mock_session, mock_factory
+
+
 @pytest.mark.asyncio
-async def test_fallback_layer2_success():
+async def test_fallback_layer2_success(mock_db_context):
     """Layer 2 (Browser Automation) সফল হলে ফলব্যাক লেয়ার ট্রিগার হবে না তা নিশ্চিত করে।"""
     router = TaskRouter()
+    mock_session, mock_factory = mock_db_context
     
     # Layer 2 সাকসেস মক করা হলো
     router._run_browser_automation = AsyncMock(return_value={"status": "success", "data": "Target Data"})
     router._execute_api_fallback = AsyncMock()
 
-    response = await router.execute_scraping_task(
-        task_prompt="Extract pricing", 
-        contextual_url="https://example.com/products"
-    )
+    # বাংলা মন্তব্য: ডাটাবেজ টেবিল এরর এড়াতে সেশন ও ফ্যাক্টরি প্যাক প্যাচ করা হলো
+    with patch("database.session.AsyncSessionLocal", return_value=mock_session), \
+         patch("core.agent_factory.DynamicAgentFactory", return_value=mock_factory):
+        response = await router.execute_scraping_task(
+            task_prompt="Extract pricing", 
+            contextual_url="https://example.com/products"
+        )
 
     assert response["status"] == "success"
-    assert response["tier"] == "Layer 2 (Zero-Cost Browser)"
+    assert "Layer 2" in response["tier"]
     assert response["data"] == "Target Data"
     router._run_browser_automation.assert_called_once()
     router._execute_api_fallback.assert_not_called()
 
 
 @pytest.mark.asyncio
-async def test_fallback_layer2_timeout_drops_to_layer3():
+async def test_fallback_layer2_timeout_drops_to_layer3(mock_db_context):
     """Layer 2 টাইমআউট হলে এটি সফলভাবে Layer 3 এপিআই ফলব্যাকে ডাউনগ্রেড করে।"""
     router = TaskRouter()
+    mock_session, mock_factory = mock_db_context
     
     # Layer 2 টাইমআউট এরর মক করা হলো
     router._run_browser_automation = AsyncMock(side_effect=asyncio.TimeoutError())
     router._execute_api_fallback = AsyncMock(return_value={"status": "success", "tier": "Layer 3 (Economy API)", "data": "Fallback Data"})
 
-    response = await router.execute_scraping_task(
-        task_prompt="Extract pricing", 
-        contextual_url="https://example.com/products"
-    )
+    with patch("database.session.AsyncSessionLocal", return_value=mock_session), \
+         patch("core.agent_factory.DynamicAgentFactory", return_value=mock_factory):
+        response = await router.execute_scraping_task(
+            task_prompt="Extract pricing", 
+            contextual_url="https://example.com/products"
+        )
 
     assert response["status"] == "success"
     assert response["tier"] == "Layer 3 (Economy API)"
@@ -116635,18 +116856,21 @@ async def test_fallback_layer2_timeout_drops_to_layer3():
 
 
 @pytest.mark.asyncio
-async def test_fallback_layer2_failure_drops_to_layer3():
+async def test_fallback_layer2_failure_drops_to_layer3(mock_db_context):
     """Layer 2 এ যেকোনো সাধারণ এক্সেপশন ঘটলে এপিআই ফলব্যাক ট্রিগার করে।"""
     router = TaskRouter()
+    mock_session, mock_factory = mock_db_context
     
     # Layer 2 ফেইল এরর মক করা হলো
     router._run_browser_automation = AsyncMock(side_effect=Exception("Blocked by Cloudflare CAPTCHA"))
     router._execute_api_fallback = AsyncMock(return_value={"status": "success", "tier": "Layer 3 (Economy API)", "data": "Fallback Data"})
 
-    response = await router.execute_scraping_task(
-        task_prompt="Extract pricing", 
-        contextual_url="https://example.com/products"
-    )
+    with patch("database.session.AsyncSessionLocal", return_value=mock_session), \
+         patch("core.agent_factory.DynamicAgentFactory", return_value=mock_factory):
+        response = await router.execute_scraping_task(
+            task_prompt="Extract pricing", 
+            contextual_url="https://example.com/products"
+        )
 
     assert response["status"] == "success"
     assert response["tier"] == "Layer 3 (Economy API)"
