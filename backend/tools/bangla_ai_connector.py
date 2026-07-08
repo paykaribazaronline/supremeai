@@ -4,33 +4,43 @@
 
 from typing import Any
 
-import requests
-
+import httpx
+from loguru import logger
 
 class BanglaAiConnector:
     """Auto-generated connector for bangla_ai"""
 
     def __init__(self, credentials: dict[str, str] | None = None):
         self.base_url = "https://banglaai.example.com"
-        self.session = requests.Session()
         self.auth_data = None
         self.credentials = credentials or {}
 
-    def authenticate(self) -> bool:
-        """Handle authentication"""
+    async def authenticate(self) -> bool:
+        """Handle authentication asynchronously"""
         login_data = {
             "email": self.credentials.get("email"),
             "password": self.credentials.get("password"),
         }
-        resp = self.session.post(f"{self.base_url}/api/login", json=login_data)
-        return resp.status_code == 200
+        async with httpx.AsyncClient(timeout=httpx.Timeout(15.0, connect=5.0)) as client:
+            try:
+                resp = await client.post(f"{self.base_url}/api/login", json=login_data)
+                return resp.status_code == 200
+            except httpx.HTTPError as exc:
+                logger.error(f"🔴 Bangla AI Connector Auth Failed: {exc}")
+                return False
 
-    def call_api(self, prompt: str) -> dict[str, Any]:
-        """Call /api/generate endpoint"""
+    async def call_api(self, prompt: str) -> dict[str, Any]:
+        """Call /api/generate endpoint asynchronously"""
         url = f"{self.base_url}/api/generate"
         payload = {"prompt": prompt}
-        resp = self.session.post(url, json=payload)
-        return resp.json()
+        async with httpx.AsyncClient(timeout=httpx.Timeout(15.0, connect=5.0)) as client:
+            try:
+                resp = await client.post(url, json=payload)
+                resp.raise_for_status()
+                return resp.json()
+            except httpx.HTTPError as exc:
+                logger.error(f"🔴 Bangla AI Connector API Failed: {exc}")
+                raise
 
     def _return_success(self, data: Any) -> dict[str, Any]:
         return {

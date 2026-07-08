@@ -146,6 +146,15 @@ class TaskQueue:
         # এখন max size cap দিয়ে eviction enforce করা হলো।
         self._MAX_TRACKED_TASKS = int(os.getenv("TASK_QUEUE_MAX_TRACKED", "10000"))
 
+        # বাংলা মন্তব্য: P1 Fix — _stats dict initialize করা হলো।
+        # এটি ছাড়া submit_task()-এ AttributeError: 'TaskQueue' object has no attribute '_stats' হতো।
+        self._stats: dict[str, int] = {
+            "submitted": 0,
+            "completed": 0,
+            "failed": 0,
+            "retried": 0,
+        }
+
     def _init_backends(self):
         """Initialize available backends"""
         # Celery backend

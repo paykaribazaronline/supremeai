@@ -101,8 +101,17 @@ async def app_lifespan(app):
             logger.info("⚡ PgBouncer connection pool successfully initialized at startup.")
             await _ensure_api_key_tables()
     except Exception as exc:
+        # বাংলা মন্তব্য: P1 Fix — DB fail হলে startup crash করা হবে না।
+        # DB-dependent features gracefully disabled হবে।
+        # Health endpoint, SSE stream, config cache সব চলবে DB ছাড়া।
         logger.error(f"❌ Failed to initialize DB Pool: {exc}")
-        raise exc
+        app.state.db_pool = None
+        if os.getenv("ENV") == "production":
+            # Production-এ Sentry-তে alert পাঠান, কিন্তু crash করবেন না
+            logger.critical(
+                "🔥 PRODUCTION DB UNAVAILABLE — running in degraded mode. "
+                "DB-dependent endpoints will return 503."
+            )
 
     try:
         await config_cache.refresh_async()

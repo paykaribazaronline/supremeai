@@ -4,6 +4,27 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useStore } from "./store/useStore";
 import { getApiBaseUrl } from "./utils/api";
 
+import { useAdminStore } from "./store/adminStore";
+import { AdminConsole } from "./components/admin/AdminConsole";
+import { UserDashboard } from "./components/customer/UserDashboard";
+import { GlobalConfigInitializer } from "./components/core/GlobalConfigInitializer";
+// বাংলা মন্তব্য: Devin-স্টাইল ড্যাশবোর্ড শেল ইম্পোর্ট — সেশন, নলেজ, সিক্রেট, ইউসেজ ও সেটিংস পেজসহ
+import { DashboardShell } from "./components/dashboard/DashboardShell";
+import { getAethelResponse } from "./services/chatService";
+import type { ChatMessage } from "./services/chatService";
+
+import { useBudgetCheck } from './hooks/useBudgetCheck';
+import { Cpu, Send } from 'lucide-react';
+import ReactFlow, { Background, useNodesState, useEdgesState } from 'reactflow';
+import 'reactflow/dist/style.css';
+import './components/admin/AethelCoreStyles.css';
+import AethelNode from './components/admin/AethelNode';
+import RedesignedDashboardMockup from './components/admin/RedesignedDashboardMockup';
+import ErrorBoundary from './components/admin/DashboardErrorBoundary';
+import { AgentWorkspace } from './pages/AgentWorkspace';
+import { IntegrationsManager } from './pages/IntegrationsManager';
+import { ArchitectTower } from './pages/ArchitectTower';
+
 // বাংলা মন্তব্য: 401/403/429 এরর হলে কোনো রিট্রাই করা হবে না — রেট লিমিট স্টর্ম ঠেকাতে
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,26 +47,6 @@ const queryClient = new QueryClient({
     },
   },
 });
-import { useAdminStore } from "./store/adminStore";
-import { AdminConsole } from "./components/admin/AdminConsole";
-import { UserDashboard } from "./components/customer/UserDashboard";
-import { GlobalConfigInitializer } from "./components/core/GlobalConfigInitializer";
-// বাংলা মন্তব্য: Devin-স্টাইল ড্যাশবোর্ড শেল ইম্পোর্ট — সেশন, নলেজ, সিক্রেট, ইউসেজ ও সেটিংস পেজসহ
-import { DashboardShell } from "./components/dashboard/DashboardShell";
-import { getAethelResponse } from "./services/chatService";
-import type { ChatMessage } from "./services/chatService";
-
-import { useBudgetCheck } from './hooks/useBudgetCheck';
-import { Cpu, Send } from 'lucide-react';
-import ReactFlow, { Background, useNodesState, useEdgesState } from 'reactflow';
-import 'reactflow/dist/style.css';
-import './components/admin/AethelCoreStyles.css';
-import AethelNode from './components/admin/AethelNode';
-import RedesignedDashboardMockup from './components/admin/RedesignedDashboardMockup';
-import ErrorBoundary from './components/admin/DashboardErrorBoundary';
-import { AgentWorkspace } from './pages/AgentWorkspace';
-import { IntegrationsManager } from './pages/IntegrationsManager';
-import { ArchitectTower } from './pages/ArchitectTower';
 
 function AdminShell() {
   const {
@@ -305,10 +306,7 @@ export const App: React.FC = () => {
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges] = useEdgesState([]);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    { id: 1, sender: 'User', text: 'Initialize workspace analysis.', timestamp: new Date().toLocaleTimeString() },
-    { id: 2, sender: 'Aethel', text: 'Workspace active. Loaded 4 key skill connectors: Code Arch, Data Analyzer, Web Research, Custom Node.', timestamp: new Date().toLocaleTimeString() }
-  ]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   // বাংলা মন্তব্য: কোড প্রিভিউ শেয়ার করার জন্য কোড স্টেট ভ্যারিয়েবল ডিক্লেয়ার করা হলো
   const [code, setCode] = useState('// Click Preview or Save to interact with the workspace code');
@@ -333,32 +331,59 @@ export const App: React.FC = () => {
   useEffect(() => {
     const API_BASE_URL = getApiBaseUrl();
     const sseEndpoint = `${API_BASE_URL}/api/task/stream`;
-    
-    console.log("🔌 Initializing SupremeAI Unified Lifespan SSE Stream...");
-    const eventSource = new EventSource(sseEndpoint);
+    let eventSource: EventSource | null = null;
+    let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT_ATTEMPTS = 10;
+    let isMounted = true;
 
-    eventSource.onopen = () => {
-      setServerStatus(true);
-      fetchGateStatus();
-    };
-
-    eventSource.onerror = () => {
-      console.error("🔴 [SYSTEM CRITICAL] SSE Stream severed. SupremeAI Server is OFFLINE.");
-      setServerStatus(false);
-      eventSource.close(); // Prevent infinite native retries
-    };
-    
-    eventSource.onmessage = (e) => {
-      if (e.data && (e.data.includes('auth_error') || e.data.includes('401'))) {
-         console.error("🔴 SSE Auth Error: Closing stream to prevent storm.");
-         eventSource.close();
-         setServerStatus(false);
+    const connect = () => {
+      if (!isMounted) return;
+      if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        console.error("🔴 Max SSE reconnect attempts reached. Giving up.");
+        setServerStatus(false);
+        return;
       }
+
+      console.log("🔌 Initializing SupremeAI Unified Lifespan SSE Stream...");
+      eventSource = new EventSource(sseEndpoint);
+
+      eventSource.onopen = () => {
+        if (!isMounted) return;
+        console.log("🟢 SSE Stream connected.");
+        setServerStatus(true);
+        fetchGateStatus();
+        reconnectAttempts = 0;
+      };
+
+      eventSource.onerror = () => {
+        eventSource?.close();
+        if (!isMounted) return;
+        console.error("🔴 [SYSTEM CRITICAL] SSE Stream severed. SupremeAI Server is OFFLINE.");
+        setServerStatus(false);
+        reconnectAttempts++;
+        const backoff = Math.min(1000 * 2 ** reconnectAttempts, 30000);
+        const jitter = Math.random() * 500;
+        console.log(`🔄 SSE Reconnecting in ${(backoff + jitter) / 1000}s (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
+        reconnectTimeout = setTimeout(connect, backoff + jitter);
+      };
+
+      eventSource.onmessage = (e) => {
+        if (e.data && (e.data.includes('auth_error') || e.data.includes('401'))) {
+           console.error("🔴 SSE Auth Error: Closing stream to prevent storm.");
+           eventSource?.close();
+           if (isMounted) setServerStatus(false);
+        }
+      };
     };
+
+    connect();
 
     return () => {
+      isMounted = false;
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
       console.log("🔌 Cleaning up SSE Stream...");
-      eventSource.close();
+      eventSource?.close();
     };
   }, [setServerStatus, fetchGateStatus]);
 

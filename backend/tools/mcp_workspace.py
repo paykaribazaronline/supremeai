@@ -8,6 +8,7 @@ MCP Server for Dynamic Workspace Isolation in SupremeAI 2.0.
 
 import os
 import json
+import asyncio
 import time
 import tempfile
 import contextlib
@@ -120,7 +121,7 @@ def _session_file_lock(lock_path: Path):
             acquired = True
             break
         except FileExistsError:
-            time.sleep(0.1)
+            await asyncio.sleep(0.1)
     try:
         yield acquired
     finally:

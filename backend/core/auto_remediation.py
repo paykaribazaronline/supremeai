@@ -144,41 +144,48 @@ class AutoRemediation:
     def __init__(self, gemini_api_key: str | None = None):
         self.gemini_api_key = gemini_api_key or os.getenv("GEMINI_API_KEY", "")
         self.github_agent = GitHubAgent()
+        self._ALLOWED_BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-    def process_security_alert(self, file_path: str, line_number: int, issue: str, severity: str) -> dict:
-        logger.info(f"Auto-Remediation triggered for {file_path}:{line_number} - Severity: {severity}. Issue: {issue}")
+    def _validate_file_path(self, file_path: str) -> str:
+        """বাংলা মন্তব্য: P0 Fix — Path traversal attack প্রতিরোধ।
+        শুধুমাত্র project directory-র ভেতরের ফাইলগুলোতে write অনুমোদিত।
+        """
+        real_path = os.path.realpath(os.path.abspath(file_path))
+        if not real_path.startswith(self._ALLOWED_BASE_DIR + os.sep):
+            raise ValueError(
+                f"🛑 Path traversal detected: {file_path!r} resolves to {real_path!r} "
+                f"which is outside allowed directory {self._ALLOWED_BASE_DIR!r}"
+            )
+        return real_path
 
-        # 1. Read the original vulnerable file content
-        if not os.path.exists(file_path):
-            return {"success": False, "error": f"File {file_path} not found"}
+    async def process_security_alert(
+        self, file_path: str, line_number: int, issue: str, severity: str
+    ) -> dict:
+        """বাংলা মন্তব্য: P1 Fix — method কে fully async করা হলো।
+        আগে: asyncio.run()/loop.run_until_complete() ব্যবহার হতো → running event loop-এ RuntimeError।
+        এখন: সব I/O অপারেশন await দিয়ে চলে — কোনো blocking নেই।
+        """
+        logger.info(
+            f"Auto-Remediation triggered for {file_path}:{line_number} "
+            f"- Severity: {severity}. Issue: {issue}"
+        )
 
-        with open(file_path, encoding="utf-8") as f:
+        # Path traversal protection (ধাপ ১.৫ দেখুন)
+        safe_path = self._validate_file_path(file_path)
+
+        if not os.path.exists(safe_path):
+            return {"success": False, "error": f"File {safe_path} not found"}
+
+        with open(safe_path, encoding="utf-8") as f:
             original_code = f.read()
 
-        # 2. বাংলা মন্তব্য: process_security_alert কে sync রাখা হলো compatibility-র জন্য।
-        # কিন্তু async _get_ai_patch কে synchronous-friendly উপায়ে কল করা হচ্ছে।
-        import asyncio
-
-        try:
-            loop = asyncio.get_event_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-
-        if loop.is_running():
-            # If the loop is already running, run it in a thread/executor to avoid RuntimeError
-            import concurrent.futures
-
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(lambda: asyncio.run(self._get_ai_patch(file_path, original_code, line_number, issue)))
-                fixed_code = future.result()
-        else:
-            fixed_code = loop.run_until_complete(self._get_ai_patch(file_path, original_code, line_number, issue))
+        # বাংলা মন্তব্য: P1 Fix — সরাসরি await, asyncio.run() নয়
+        fixed_code = await self._get_ai_patch(safe_path, original_code, line_number, issue)
 
         if not fixed_code:
             return {"success": False, "error": "AI failed to generate a secure patch"}
 
-        # 3. Apply the patch (Write to the file) with validation
+        # Syntax validation
         try:
             import ast
 
@@ -191,23 +198,23 @@ class AutoRemediation:
                 "error": f"Generated patch contains invalid syntax: {se}",
             }
 
+        # Write patched file
         try:
-            with open(file_path, "w", encoding="utf-8") as f:
+            with open(safe_path, "w", encoding="utf-8") as f:
                 f.write(fixed_code)
-            logger.info(f"Patch applied successfully to {file_path}")
+            logger.info(f"Patch applied successfully to {safe_path}")
         except Exception as e:  # noqa: BLE001
-            return {"success": False, "error": f"Failed to apply patch to file: {e}"}
+            return {"success": False, "error": f"Failed to apply patch: {e}"}
 
-        # Attempt to commit the change, but don't fail if token is missing
+        # Attempt GitHub commit
         commit_message = f"🛡️ Auto-Remediation: Fixed {issue}"
         try:
             self.github_agent.commit_changes(
                 repo_url="paykaribazaronline/supremeai",
-                files_to_commit=[file_path],
+                files_to_commit=[safe_path],
                 commit_message=commit_message,
                 branch="main",
             )
-            logger.info(f"Directly committed fix for {issue} to main branch.")
         except RuntimeError as e:
             if "GitHub token is required" in str(e):
                 logger.warning(f"GitHub token not available; patch applied locally but not committed: {e}")

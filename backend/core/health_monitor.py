@@ -91,5 +91,10 @@ class HealthMonitor:
             except Exception as exc:  # noqa: BLE001
                 logger.debug(f"Failed to record request duration: {exc}")
 
+_health_monitor_instance = None
 
-health_monitor = HealthMonitor()
+def get_health_monitor() -> HealthMonitor:
+    global _health_monitor_instance
+    if _health_monitor_instance is None:
+        _health_monitor_instance = HealthMonitor()
+    return _health_monitor_instance

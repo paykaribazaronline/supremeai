@@ -253,8 +253,3 @@ def get_llm_gateway() -> "LLMGateway":
     if _llm_gateway_instance is None:
         _llm_gateway_instance = LLMGateway()
     return _llm_gateway_instance
-
-
-# বাংলা মন্তব্য: Backward-compat alias —
-# ধীরে ধীরে সব জায়গায় get_llm_gateway() দিয়ে replace করুন
-llm_gateway = get_llm_gateway()
