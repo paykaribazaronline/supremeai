@@ -1,5 +1,13 @@
-from sqlalchemy import Column, String, JSON, Integer, Boolean, DateTime, func
+from sqlalchemy import JSON
+from sqlalchemy import Boolean
+from sqlalchemy import Column
+from sqlalchemy import DateTime
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy import func
+
 from models.base import Base
+
 
 class DynamicAgent(Base):
     """

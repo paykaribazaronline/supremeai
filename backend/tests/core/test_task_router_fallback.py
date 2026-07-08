@@ -55,7 +55,7 @@ async def test_fallback_layer2_timeout_drops_to_layer3(mock_db_context):
     mock_session, mock_factory = mock_db_context
     
     # Layer 2 টাইমআউট এরর মক করা হলো
-    router._run_browser_automation = AsyncMock(side_effect=asyncio.TimeoutError())
+    router._run_browser_automation = AsyncMock(side_effect=TimeoutError())
     router._execute_api_fallback = AsyncMock(return_value={"status": "success", "tier": "Layer 3 (Economy API)", "data": "Fallback Data"})
 
     with patch("database.session.AsyncSessionLocal", return_value=mock_session), \

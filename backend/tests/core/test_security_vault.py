@@ -13,7 +13,7 @@ if "core.security_vault" in sys.modules:
     importlib.reload(sys.modules["core.security_vault"])
 
 from core.security_vault import encrypt_token, decrypt_token
-import core.security_vault as security_vault
+from core import security_vault
 
 
 def test_encrypt_token_returns_string():

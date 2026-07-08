@@ -117,10 +117,11 @@ class TaskRouter:
             try:
                 logger.info(f"[Router] Check database registry for existing dynamic agent matching: {task_prompt}")
                 # ডাটাবেজ সেশন লোড
+                from sqlalchemy import select
+
+                from core.agent_factory import DynamicAgentFactory
                 from database.session import AsyncSessionLocal
                 from models.dynamic_agent import DynamicAgent
-                from core.agent_factory import DynamicAgentFactory
-                from sqlalchemy import select
 
                 agent_name = None
                 execution_steps = []
@@ -160,7 +161,7 @@ class TaskRouter:
                     }
                 raise Exception("Browser automation was flagged, blocked, or failed to collect data.")
                 
-            except (asyncio.TimeoutError, Exception) as e:
+            except (TimeoutError, Exception) as e:
                 # বাংলা মন্তব্য: Layer 2 ব্যর্থ হলে বা টাইমআউট হলে Layer 3/4 এ ফলব্যাক ট্রিগার করা হচ্ছে
                 logger.warning(f"[Router] Layer 2 failed or timed out: {str(e)}. Falling back to Layer 3.")
 
@@ -177,11 +178,9 @@ class TaskRouter:
         """বাজেট কন্ট্রোল ও মডেল সিলেকশন সহ এপিআই ফলব্যাক হ্যান্ডলার।"""
         try:
             logger.info("[Router] Routing to Layer 3 Economy AI Core...")
-            from core.llm_gateway import llm_gateway
-            from core.cost_guard import CostGuard
             # Real budget verification will use cost_guard dynamically
             # economy_response = await llm_gateway.acompletion(prompt, model_filters=["gpt-4o-mini", "deepseek-v3"])
             return {"status": "success", "tier": "Layer 3 (Economy API)", "data": "Economy LLM Data"}
-        except Exception as economy_err:
+        except Exception as economy_err:  # noqa: BLE001
             logger.error(f"[Router] Layer 3 breached: {str(economy_err)}. Escalating to Layer 4 Premium.")
             return {"status": "success", "tier": "Layer 4 (Premium API)", "data": "Premium LLM Data"}
