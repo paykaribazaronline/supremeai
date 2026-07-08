@@ -110,23 +110,52 @@ class TaskRouter:
     async def execute_scraping_task(self, task_prompt: str, contextual_url: str = None) -> dict:
         """
         মাল্টি-টিয়ার ফলব্যাক লজিক ইমপ্লিমেন্টেশন।
-        প্রথমে Layer 2 (Browser Automation) ট্রাই করবে, ক্যাপচা বা টাইমআউট আসলে Layer 3 (Economy AI) ও Layer 4 (Premium AI) এ ফলব্যাক করবে।
+        প্রথমে ডাটাবেজে পূর্বে তৈরি করা ডাইনামিক এজেন্ট খুঁজবে। না পেলে JIT DynamicAgentFactory দিয়ে ওয়ান-টাইম জেনারেট করবে।
         """
         # --- LAYER 2: BROWSER AUTOMATION AGENT ---
         if contextual_url:
             try:
-                logger.info(f"[Router] Attempting Layer 2 Browser Automation for URL: {contextual_url}")
+                logger.info(f"[Router] Check database registry for existing dynamic agent matching: {task_prompt}")
+                # ডাটাবেজ সেশন লোড
+                from database.session import AsyncSessionLocal
+                from models.dynamic_agent import DynamicAgent
+                from core.agent_factory import DynamicAgentFactory
+                from sqlalchemy import select
+
+                agent_name = None
+                execution_steps = []
+
+                # সিঙ্ক্রোনাস/অ্যাসিনক্রোনাস ডাটাবেজ চেকিং
+                async with AsyncSessionLocal() as session:
+                    stmt = select(DynamicAgent).where(DynamicAgent.name.like(f"%{task_prompt[:15]}%"))
+                    result = await session.execute(stmt)
+                    agent = result.scalars().first()
+                    if agent:
+                        agent_name = agent.name
+                        execution_steps = agent.execution_steps
+                        logger.info(f"Loaded existing dynamic agent '{agent_name}' from database.")
+
+                if not agent_name:
+                    logger.info("No matching agent found in registry. Invoking DynamicAgentFactory to build one JIT...")
+                    # AsyncSessionLocal call instead of SessionLocal
+                    async with AsyncSessionLocal() as factory_session:
+                        factory = DynamicAgentFactory(factory_session)
+                        agent_config = await factory.create_specialized_agent(task_prompt)
+                        agent_name = agent_config.get("agent_name")
+                        execution_steps = agent_config.get("execution_steps", [])
+
+                logger.info(f"[Router] Launching Layer 2 Engine for destination: {contextual_url} using agent: {agent_name}")
                 
                 # ৩০ সেকেন্ডের কড়া টাইমআউট গেট সহ ব্রাউজার লেভেল এক্সট্রাকশন রান
                 result = await asyncio.wait_for(
-                    self._run_browser_automation(task_prompt, contextual_url), 
+                    self._run_browser_automation(task_prompt, contextual_url, execution_steps), 
                     timeout=35.0
                 )
                 
                 if result and result.get("status") == "success":
                     return {
                         "status": "success",
-                        "tier": "Layer 2 (Zero-Cost Browser)",
+                        "tier": f"Layer 2 (Zero-Cost Browser Automation: {agent_name})",
                         "data": result.get("data")
                     }
                 raise Exception("Browser automation was flagged, blocked, or failed to collect data.")
@@ -138,7 +167,7 @@ class TaskRouter:
         # --- LAYER 3 & 4 ACCELERATION FALLBACKS ---
         return await self._execute_api_fallback(task_prompt)
 
-    async def _run_browser_automation(self, prompt: str, url: str) -> dict:
+    async def _run_browser_automation(self, prompt: str, url: str, steps: list = None) -> dict:
         """Playwright কন্টেক্সট স্ট্রিম রান করার হেল্পার মেথড।"""
         # tools/browser_agent.py এর সাথে ইন্টারফেস করার জন্য প্লেসহোল্ডার রান
         await asyncio.sleep(1.5) 
