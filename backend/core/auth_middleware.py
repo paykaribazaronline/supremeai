@@ -38,8 +38,6 @@ class AuthMiddleware:
         path = scope.get("path", "")
         # বাংলা মন্তব্য: ASGI request scope variants-এর জন্য path resolution fallback যোগ করা হলো।
         if not path and scope.get("raw_path"):
-            import contextlib
-
             # বাংলা মন্তব্য: P1 Fix — Exception Swallowing পরিহার করে নির্দিষ্ট এক্সেপশন ক্যাচ করা হলো
             try:
                 path = scope["raw_path"].decode("utf-8").split("?")[0]
@@ -164,7 +162,6 @@ class AuthMiddleware:
 
         if is_test:
             expected_token = os.getenv("SUPREMEAI_API_TOKEN")
-            import secrets
             # বাংলা মন্তব্য: P1 Fix — test bypass logic সংশোধন করা হলো।
             # আগে: expected_token সেট থাকলে এবং match না করলে `pass` (fallthrough) হতো —
             # তারপর নিচের `enabled` check-এ পড়ে production logic execute হতো।

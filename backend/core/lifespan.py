@@ -108,7 +108,7 @@ async def app_lifespan(app):
             await init_db_pool(db_url)
             logger.info("⚡ PgBouncer connection pool successfully initialized at startup.")
             await _ensure_api_key_tables()
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         # বাংলা মন্তব্য: P1 Fix — DB fail হলে startup crash করা হবে না।
         # DB-dependent features gracefully disabled হবে।
         # Health endpoint, SSE stream, config cache সব চলবে DB ছাড়া।

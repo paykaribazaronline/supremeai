@@ -71,7 +71,7 @@ class ErrorEventBus:
                         context={"original_module": event.module, "original_error": str(listener_exc)[:200]},
                     )
                     asyncio.create_task(self.emit_async(backup_event))
-                except Exception:
+                except Exception:  # noqa: BLE001
                     pass  # Ultimate fallback — no infinite recursion
 
 
