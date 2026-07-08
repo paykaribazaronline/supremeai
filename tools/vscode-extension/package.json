@@ -194,8 +194,8 @@
       "properties": {
         "supremeai.backendUrl": {
           "type": "string",
-          "default": "https://supremeai-a.web.app",
-          "description": "%supremeai.backendUrl.description%"
+          "default": "https://supremeai-api-lhlwyikwlq-uc.a.run.app",
+          "description": "The production FastAPI endpoint on Google Cloud Run used to fetch skills and proposed states."
         },
         "supremeai.aiApiKey": {
           "type": "string",

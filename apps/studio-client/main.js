@@ -1,7 +1,24 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs/promises';
 
+ipcMain.handle('fs:read', async (event, filePath) => {
+    try {
+        return await fs.readFile(filePath, 'utf-8');
+    } catch (error) {
+        return { error: error.message };
+    }
+});
+
+ipcMain.handle('fs:write', async (event, { filePath, content }) => {
+    try {
+        await fs.writeFile(filePath, content, 'utf-8');
+        return { success: true };
+    } catch (error) {
+        return { error: error.message };
+    }
+});
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
