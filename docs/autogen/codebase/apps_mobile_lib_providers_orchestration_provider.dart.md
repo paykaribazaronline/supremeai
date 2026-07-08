@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/mobile/lib/providers/orchestration_provider.dart
 
 **প্রকার:** .dart  
-**সাইজ:** 10,673 বাইট  
-**আপডেট:** 2026-07-08T18:50:08.224843
+**সাইজ:** 11,679 বাইট  
+**আপডেট:** 2026-07-08T19:02:30.732785
 
 ---
 
@@ -93,6 +93,35 @@ class OrchestrationProvider with ChangeNotifier {
   OrchestrationError? _error;
   bool _isOnline = true;
   List<Map<String, dynamic>> _offlineQueue = [];
+
+  Map<String, dynamic> activeAgentMetrics = {};
+
+  void initRealTimeTaskStream(String taskId, String authToken) {
+    final url = Uri.parse('https://supremeai-api-lhlwyikwlq-uc.a.run.app/api/task/stream/$taskId');
+    
+    final request = http.Request('GET', url)
+      ..headers['Authorization'] = 'Bearer $authToken'
+      ..headers['Accept'] = 'text/event-stream';
+
+    request.send().then((response) {
+      response.stream.transform(utf8.decoder).listen((data) {
+        if (data.startsWith('data:')) {
+          try {
+            final jsonString = data.replaceFirst('data:', '').trim();
+            if (jsonString.isNotEmpty) {
+              final metricUpdate = jsonDecode(jsonString);
+              activeAgentMetrics = metricUpdate;
+              notifyListeners();
+            }
+          } catch (e) {
+            debugPrint('🔴 Flutter SSE Parse Error: $e');
+          }
+        }
+      });
+    }).catchError((error) {
+      debugPrint('🔴 Flutter SSE Stream Error: $error');
+    });
+  }
 
   bool get isLoading => _isLoading;
   Map<String, dynamic>? get lastResult => _lastResult;

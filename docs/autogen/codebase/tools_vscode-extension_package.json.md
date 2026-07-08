@@ -1,8 +1,8 @@
 # 📄 ফাইল: tools/vscode-extension/package.json
 
 **প্রকার:** .json  
-**সাইজ:** 9,220 বাইট  
-**আপডেট:** 2026-07-08T18:50:08.232728
+**সাইজ:** 9,297 বাইট  
+**আপডেট:** 2026-07-08T19:02:30.737727
 
 ---
 
@@ -205,8 +205,8 @@
       "properties": {
         "supremeai.backendUrl": {
           "type": "string",
-          "default": "https://supremeai-a.web.app",
-          "description": "%supremeai.backendUrl.description%"
+          "default": "https://supremeai-api-lhlwyikwlq-uc.a.run.app",
+          "description": "The production FastAPI endpoint on Google Cloud Run used to fetch skills and proposed states."
         },
         "supremeai.aiApiKey": {
           "type": "string",

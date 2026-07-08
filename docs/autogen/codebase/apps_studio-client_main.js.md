@@ -1,18 +1,35 @@
 # 📄 ফাইল: apps/studio-client/main.js
 
 **প্রকার:** .js  
-**সাইজ:** 1,147 বাইট  
-**আপডেট:** 2026-07-08T18:50:08.188355
+**সাইজ:** 1,620 বাইট  
+**আপডেট:** 2026-07-08T19:02:30.709009
 
 ---
 
 ## কোড
 
 ```js
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs/promises';
 
+ipcMain.handle('fs:read', async (event, filePath) => {
+    try {
+        return await fs.readFile(filePath, 'utf-8');
+    } catch (error) {
+        return { error: error.message };
+    }
+});
+
+ipcMain.handle('fs:write', async (event, { filePath, content }) => {
+    try {
+        await fs.writeFile(filePath, content, 'utf-8');
+        return { success: true };
+    } catch (error) {
+        return { error: error.message };
+    }
+});
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
