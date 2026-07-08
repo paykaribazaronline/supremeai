@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-08T10:47:57.275319
+Generated at: 2026-07-08T11:07:45.077093
 
 
 ## File: `pnpm-lock.yaml`
@@ -177251,7 +177251,7 @@ else:
 print("🚀 Deploying new image to Cloud Run...")
 ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
 env_args = f"--set-env-vars ENCRYPTION_KEY='{ENCRYPTION_KEY}'" if ENCRYPTION_KEY else ""
-deploy_cmd = f"gcloud run deploy {SERVICE_NAME} --image {IMAGE} --region {REGION} {env_args} --port 8080 --timeout 300s --quiet"
+deploy_cmd = f"gcloud run deploy {SERVICE_NAME} --image {IMAGE} --region {REGION} {env_args} --port 8080 --memory 2048Mi --cpu 2 --timeout 300s --quiet"
 result = run_cmd(deploy_cmd)
 
 if result.exit_code != 0:
@@ -179872,8 +179872,21 @@ jobs:
         run: poetry install --with dev --without ml
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
+      - name: Get Playwright Version
+        id: playwright-version
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> $GITHUB_OUTPUT
+      - name: Cache Playwright Browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
       - name: Install Playwright Browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps
+      - name: Install Playwright System Dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps
       # বাংলা মন্তব্য: vite preview চালানোর আগে dist বিল্ড করা দরকার
       - name: Build Frontend for Preview
         run: pnpm --dir apps/studio-client exec vite build
@@ -180484,8 +180497,21 @@ jobs:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
           SUPREMEAI_API_URL: http://127.0.0.1:8000
         run: poetry run uvicorn main:app --port 8000 &
+      - name: Get Playwright Version
+        id: playwright-version
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> $GITHUB_OUTPUT
+      - name: Cache Playwright Browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
       - name: Install Playwright Browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps
+      - name: Install Playwright System Dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps
       - name: Start Frontend Preview Server
         run: |
           cd apps/studio-client && pnpm exec vite preview --port 5173 &
