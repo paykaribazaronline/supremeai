@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-08T12:17:29.816546
+Generated at: 2026-07-08T17:52:37.367210
 
 
 ## File: `pnpm-lock.yaml`
@@ -54529,6 +54529,10 @@ class AuthMiddleware:
             "/api/admin/firebase-totp-setup",
             "/api/admin/firebase-totp-verify",
             "/orchestrator/tick",
+            # বাংলা মন্তব্য: পাবলিক কনফিগ এবং টাস্ক স্ট্রিম এন্ডপয়েন্ট সবার জন্য উন্মুক্ত করা হলো
+            "/api/config/public",
+            "/api/task/stream",
+            "/api/health",
         }
         # বাংলা মন্তব্য: public paths dynamically matching using substring or clean compare.
         is_public = (
@@ -84211,6 +84215,8 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
             "/api/v1/graph",
             "/ws/chat",
             "/ws",
+            # বাংলা মন্তব্য: পাবলিক কনফিগ এন্ডপয়েন্টকে সবার জন্য উন্মুক্ত করা হলো যাতে লগইন ছাড়াও অ্যাক্সেস করা যায়
+            "/api/config/public",
         ]
         if request.method == "OPTIONS":
             return await call_next(request)

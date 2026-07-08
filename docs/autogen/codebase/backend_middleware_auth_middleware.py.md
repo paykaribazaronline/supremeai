@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/middleware/auth_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,277 বাইট  
-**আপডেট:** 2026-07-08T12:17:29.881384
+**সাইজ:** 4,600 বাইট  
+**আপডেট:** 2026-07-08T17:52:37.446218
 
 ---
 
@@ -37,6 +37,8 @@ class ZeroTrustAuthMiddleware(BaseHTTPMiddleware):
             "/api/v1/graph",
             "/ws/chat",
             "/ws",
+            # বাংলা মন্তব্য: পাবলিক কনফিগ এন্ডপয়েন্টকে সবার জন্য উন্মুক্ত করা হলো যাতে লগইন ছাড়াও অ্যাক্সেস করা যায়
+            "/api/config/public",
         ]
         if request.method == "OPTIONS":
             return await call_next(request)
