@@ -1,8 +1,8 @@
 # 📄 ফাইল: vercel.json
 
 **প্রকার:** .json  
-**সাইজ:** 781 বাইট  
-**আপডেট:** 2026-07-08T17:52:37.372663
+**সাইজ:** 797 বাইট  
+**আপডেট:** 2026-07-08T18:50:08.068356
 
 ---
 
@@ -10,9 +10,10 @@
 
 ```json
 {
-  "buildCommand": "pnpm turbo run build --filter=supremeai-studio-client",
+  "version": 2,
+  "buildCommand": "pnpm --filter supremeai-studio-client build:user",
   "ignoreCommand": "git diff --quiet HEAD^ HEAD ./apps/studio-client",
-  "outputDirectory": "apps/studio-client/dist",
+  "outputDirectory": "apps/studio-client/dist-user",
   "framework": "vite",
   "env": {
     "VITE_PORTAL_TYPE": "user"

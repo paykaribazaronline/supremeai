@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-08T17:52:37.367210
+Generated at: 2026-07-08T18:50:08.063000
 
 
 ## File: `pnpm-lock.yaml`
@@ -20,6 +20,9 @@ importers:
       '@webcontainer/api':
         specifier: ^1.6.4
         version: 1.6.4
+      rollup:
+        specifier: ^4.62.2
+        version: 4.62.2
     devDependencies:
       '@axe-core/playwright':
         specifier: ^4.12.1
@@ -19915,9 +19918,10 @@ for name, paths in sorted(duplicates.items()):
 
 ```json
 {
-  "buildCommand": "pnpm turbo run build --filter=supremeai-studio-client",
+  "version": 2,
+  "buildCommand": "pnpm --filter supremeai-studio-client build:user",
   "ignoreCommand": "git diff --quiet HEAD^ HEAD ./apps/studio-client",
-  "outputDirectory": "apps/studio-client/dist",
+  "outputDirectory": "apps/studio-client/dist-user",
   "framework": "vite",
   "env": {
     "VITE_PORTAL_TYPE": "user"
@@ -21521,7 +21525,7 @@ docs/codebase/ ফোল্ডার রেফার করুন।"
     },
     {
       "target": "admin",
-      "public": "apps/studio-client/dist",
+      "public": "apps/studio-client/dist-admin",
       "ignore": [
         "firebase.json",
         "**/.*",
@@ -22603,7 +22607,8 @@ sequenceDiagram
     "pnpm": ">=9.0.0"
   },
   "dependencies": {
-    "@webcontainer/api": "^1.6.4"
+    "@webcontainer/api": "^1.6.4",
+    "rollup": "^4.62.2"
   }
 }
 
@@ -132517,6 +132522,8 @@ export default defineConfig({
     }
   },
   build: {
+    outDir: process.env.VITE_PORTAL_TYPE === 'admin' ? 'dist-admin' : 'dist-user',
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -132548,7 +132555,11 @@ export default defineConfig({
   "main": "main.js",
   "scripts": {
     "dev": "vite",
+    "dev:admin": "cross-env VITE_PORTAL_TYPE=admin vite",
+    "dev:user": "cross-env VITE_PORTAL_TYPE=user vite",
     "build": "vite build",
+    "build:admin": "cross-env VITE_PORTAL_TYPE=admin vite build",
+    "build:user": "cross-env VITE_PORTAL_TYPE=user vite build",
     "build:report": "vite build --mode production --reporter=json",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -146739,13 +146750,18 @@ export function LoginView({
           <p className="text-slate-400 text-xs mt-1">Authorized access only. Authentication protocol required.</p>
         </div>
         
-        <div className="flex flex-col gap-3.5">
+        <form 
+          className="flex flex-col gap-3.5"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleAdminLogin();
+          }}
+        >
           <input
             type="password"
             placeholder="Enter Authentication Code..."
             value={adminPassword}
             onChange={e => setAdminPassword(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleAdminLogin()}
             className="w-full text-center bg-[#07090f] border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00f3ff] transition-all font-mono tracking-widest"
           />
           {otpRequired && (
@@ -146754,19 +146770,18 @@ export function LoginView({
               placeholder="Enter 6-digit OTP"
               value={adminOtp}
               onChange={e => setAdminOtp(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleAdminLogin()}
               className="w-full text-center bg-[#07090f] border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00f3ff] transition-all font-mono tracking-widest"
             />
           )}
           {adminError && <div className="text-[#ff4d4f] text-xs mt-1 font-mono">{adminError}</div>}
-        </div>
         
-        <button
-          onClick={handleAdminLogin}
-          className="cyber-button w-full uppercase py-3 text-xs tracking-wider font-mono font-bold"
-        >
-          {otpRequired ? 'Verify OTP' : 'Authorize Access'}
-        </button>
+          <button
+            type="submit"
+            className="cyber-button w-full uppercase py-3 text-xs tracking-wider font-mono font-bold mt-2"
+          >
+            {otpRequired ? 'Verify OTP' : 'Authorize Access'}
+          </button>
+        </form>
       </div>
     </div>
   );

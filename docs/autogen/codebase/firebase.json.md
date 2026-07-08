@@ -1,8 +1,8 @@
 # 📄 ফাইল: firebase.json
 
 **প্রকার:** .json  
-**সাইজ:** 4,998 বাইট  
-**আপডেট:** 2026-07-08T17:52:37.374529
+**সাইজ:** 5,004 বাইট  
+**আপডেট:** 2026-07-08T18:50:08.070189
 
 ---
 
@@ -115,7 +115,7 @@
     },
     {
       "target": "admin",
-      "public": "apps/studio-client/dist",
+      "public": "apps/studio-client/dist-admin",
       "ignore": [
         "firebase.json",
         "**/.*",

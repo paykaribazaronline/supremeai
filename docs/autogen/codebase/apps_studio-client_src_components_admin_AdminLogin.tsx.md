@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/AdminLogin.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 2,581 বাইট  
-**আপডেট:** 2026-07-08T17:52:37.517229
+**সাইজ:** 2,573 বাইট  
+**আপডেট:** 2026-07-08T18:50:08.204519
 
 ---
 
@@ -42,13 +42,18 @@ export function LoginView({
           <p className="text-slate-400 text-xs mt-1">Authorized access only. Authentication protocol required.</p>
         </div>
         
-        <div className="flex flex-col gap-3.5">
+        <form 
+          className="flex flex-col gap-3.5"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleAdminLogin();
+          }}
+        >
           <input
             type="password"
             placeholder="Enter Authentication Code..."
             value={adminPassword}
             onChange={e => setAdminPassword(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleAdminLogin()}
             className="w-full text-center bg-[#07090f] border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00f3ff] transition-all font-mono tracking-widest"
           />
           {otpRequired && (
@@ -57,19 +62,18 @@ export function LoginView({
               placeholder="Enter 6-digit OTP"
               value={adminOtp}
               onChange={e => setAdminOtp(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleAdminLogin()}
               className="w-full text-center bg-[#07090f] border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00f3ff] transition-all font-mono tracking-widest"
             />
           )}
           {adminError && <div className="text-[#ff4d4f] text-xs mt-1 font-mono">{adminError}</div>}
-        </div>
         
-        <button
-          onClick={handleAdminLogin}
-          className="cyber-button w-full uppercase py-3 text-xs tracking-wider font-mono font-bold"
-        >
-          {otpRequired ? 'Verify OTP' : 'Authorize Access'}
-        </button>
+          <button
+            type="submit"
+            className="cyber-button w-full uppercase py-3 text-xs tracking-wider font-mono font-bold mt-2"
+          >
+            {otpRequired ? 'Verify OTP' : 'Authorize Access'}
+          </button>
+        </form>
       </div>
     </div>
   );

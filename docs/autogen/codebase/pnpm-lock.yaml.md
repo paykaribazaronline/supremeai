@@ -1,8 +1,8 @@
 # 📄 ফাইল: pnpm-lock.yaml
 
 **প্রকার:** .yaml  
-**সাইজ:** 694,223 বাইট  
-**আপডেট:** 2026-07-08T17:52:37.368553
+**সাইজ:** 694,288 বাইট  
+**আপডেট:** 2026-07-08T18:50:08.064229
 
 ---
 
@@ -22,6 +22,9 @@ importers:
       '@webcontainer/api':
         specifier: ^1.6.4
         version: 1.6.4
+      rollup:
+        specifier: ^4.62.2
+        version: 4.62.2
     devDependencies:
       '@axe-core/playwright':
         specifier: ^4.12.1

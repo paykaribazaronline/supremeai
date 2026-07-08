@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/vite.config.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 1,572 বাইট  
-**আপডেট:** 2026-07-08T17:52:37.500869
+**সাইজ:** 1,678 বাইট  
+**আপডেট:** 2026-07-08T18:50:08.189169
 
 ---
 
@@ -56,6 +56,8 @@ export default defineConfig({
     }
   },
   build: {
+    outDir: process.env.VITE_PORTAL_TYPE === 'admin' ? 'dist-admin' : 'dist-user',
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         manualChunks: {

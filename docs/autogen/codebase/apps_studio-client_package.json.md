@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/package.json
 
 **প্রকার:** .json  
-**সাইজ:** 2,727 বাইট  
-**আপডেট:** 2026-07-08T17:52:37.500997
+**সাইজ:** 2,971 বাইট  
+**আপডেট:** 2026-07-08T18:50:08.189297
 
 ---
 
@@ -20,7 +20,11 @@
   "main": "main.js",
   "scripts": {
     "dev": "vite",
+    "dev:admin": "cross-env VITE_PORTAL_TYPE=admin vite",
+    "dev:user": "cross-env VITE_PORTAL_TYPE=user vite",
     "build": "vite build",
+    "build:admin": "cross-env VITE_PORTAL_TYPE=admin vite build",
+    "build:user": "cross-env VITE_PORTAL_TYPE=user vite build",
     "build:report": "vite build --mode production --reporter=json",
     "lint": "eslint .",
     "preview": "vite preview",
