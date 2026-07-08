@@ -9,7 +9,7 @@ from core import services
 from core.config import settings
 from core.config_cache import config_cache
 from core.discord_bot import SupremeDiscordBot
-from core.event_bus import error_event_bus
+from core.event_bus import ErrorEvent, error_event_bus
 from core.orchestrator import Orchestrator
 from core.pgbouncer_pool import get_db_pool
 from core.pgbouncer_pool import init_db_pool

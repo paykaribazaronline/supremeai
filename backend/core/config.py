@@ -184,7 +184,7 @@ class Settings(BaseSettings):
     sentry_dsn: str = ""
     # বাংলা মন্তব্য: P0 Fix — production-এ কোনো fallback localhost URL চলবে না।
     # get_production_env() প্রোডাকশনে missing variable হলে critical error দেবে।
-    ollama_url: str = Field(default_factory=lambda: get_production_env("OLLAMA_URL"))
+    ollama_url: str = Field(default_factory=lambda: get_production_env("OLLAMA_URL", "http://localhost:11434"))
     gcp_project_id: str = Field(default="", validation_alias="GCP_PROJECT_ID")
     gcp_region: str = Field(default="us-central1", validation_alias="GCP_REGION")
 
