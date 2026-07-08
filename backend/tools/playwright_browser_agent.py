@@ -205,7 +205,7 @@ class PlaywrightBrowserAgent:
                         session_name,
                     )
                     # Add a small delay to mimic human reading time
-                    await asyncio.sleep(random.uniform(1.0, 2.5))
+                    time.sleep(random.uniform(1.0, 2.5))
                     login_flow(page, credentials)
                     page.wait_for_load_state("networkidle")
                     self._save_cookies(context, session_name)
@@ -408,7 +408,7 @@ class PlaywrightBrowserAgent:
 
             # Use human-like typing
             self._human_like_type(page, site_config["input_selector"], prompt)
-            await asyncio.sleep(random.uniform(0.5, 1.0))
+            time.sleep(random.uniform(0.5, 1.0))
 
             # Click submit
             self._human_like_click(page, site_config["submit_button"])
@@ -466,7 +466,7 @@ class PlaywrightBrowserAgent:
 
         try:
             page.goto(url)
-            await asyncio.sleep(2)  # Wait for page to settle
+            time.sleep(2)  # Wait for page to settle
 
             for step in range(max_steps):
                 logger.info(f"Goal Execution Step {step + 1}/{max_steps}")
@@ -533,7 +533,7 @@ class PlaywrightBrowserAgent:
                 asyncio.run(self.memory.add_memory(learning, url, metadata=action))
 
                 page.wait_for_load_state("networkidle")
-                await asyncio.sleep(2)  # Wait for animations/transitions
+                time.sleep(2)  # Wait for animations/transitions
 
             return {"success": True, "result": f"Completed {max_steps} steps."}
         except Exception as exc:  # noqa: BLE001
