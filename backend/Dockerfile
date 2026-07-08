@@ -12,7 +12,7 @@ RUN poetry config virtualenvs.in-project true
 
 # ক্যাশ লেয়ার: শুধু ডিপেন্ডেন্সি ইন্সটল
 COPY backend/pyproject.toml backend/poetry.lock* ./
-RUN poetry install --no-interaction --no-ansi --no-root --only main
+RUN poetry install --no-interaction --no-ansi --no-root --with tools
 
 # Stage 2: Runner
 FROM python:3.11-slim AS runner
