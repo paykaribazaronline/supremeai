@@ -1,3 +1,4 @@
+# FILE_PATH: core/config_cache.py
 """
 config_cache.py — Lightweight In-Memory Config Cache
 ======================================================
@@ -10,23 +11,35 @@ SupremeAI 2.0-এর জন্য TTL-based config cache layer.
 
 ব্যবহার:
     from core.config_cache import config_cache
-    
+
     # Get a config value (cached with TTL)
     threshold = config_cache.get("cache_threshold_code", default=0.95)
-    
+
     # Force refresh
     config_cache.refresh()
-    
+
     # Set a config value (also persists to DB)
     await config_cache.set("cache_threshold_code", 0.90)
 """  # noqa: W293
 
+# === Module-level imports for DB interaction and Event Bus ===
+# These imports are moved to the module level to allow consistent patching in tests
+# and to avoid repeated imports within functions.
+import asyncio
 import threading
 import time
 from typing import Any
 
 from loguru import logger
+from sqlalchemy import select
 
+from core.event_bus import ErrorEvent
+from core.event_bus import error_event_bus
+from database.session import AsyncSessionLocal
+from models.system_config import SystemConfig
+
+
+# =============================================================
 
 # ডিফল্ট কনফিগ — DB না থাকলেও অ্যাপ চালু থাকবে
 DEFAULT_CONFIGS: dict[str, Any] = {
@@ -61,7 +74,7 @@ DEFAULT_CONFIGS: dict[str, Any] = {
 class ConfigCache:
     """
     TTL-based in-memory config cache.
-    
+
     - App startup-এ DB থেকে config load করে
     - TTL (ডিফল্ট: ৬০ সেকেন্ড) পর্যন্ত in-memory serve করে
     - TTL expire হলে পরবর্তি request-এ DB reload করে
@@ -79,72 +92,12 @@ class ConfigCache:
         """TTL expire হয়েছে কিনা চেক করে।"""
         return (time.time() - self._last_refresh) > self._ttl
 
-    def _load_from_db(self) -> dict[str, Any]:
+    async def _async_load_configs_internal(self) -> dict[str, Any]:
         """
-        DB থেকে active SystemConfig রেকর্ড লোড করে।
-        যদি DB না থাকে বা কোন error হয়, DEFAULT_CONFIGS ব্যবহার করে।
+        Internal async method to load configurations from the DB.
+        This is separated to be callable by both sync and async refresh logic.
         """
         configs = dict(DEFAULT_CONFIGS)  # Start with defaults
-        try:
-            # Try to load from SystemConfig table
-            # Synchronous load for cache initialization
-            import asyncio
-
-            from sqlalchemy import select
-
-            from database.session import AsyncSessionLocal
-            from models.system_config import SystemConfig
-
-            async def _async_load():
-                async with AsyncSessionLocal() as session:
-                    stmt = select(SystemConfig).where(SystemConfig.is_active)
-                    result = await session.execute(stmt)
-                    rows = result.scalars().all()
-                    for row in rows:
-                        configs[row.key] = row.value
-                    return configs
-
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                configs = loop.run_until_complete(_async_load())
-                loop.close()
-                logger.info(f"ConfigCache: Loaded {len(configs)} configs from DB")
-            except RuntimeError as e:
-                logger.exception(f"❌ Critical task failure in config_cache.py: {e}")
-                from core.event_bus import ErrorEvent
-                from core.event_bus import error_event_bus
-                error_event_bus.emit(
-                    ErrorEvent(
-                        module="backend.core.config_cache",
-                        error_type=type(e).__name__,
-                        message=str(e),
-                        severity="WARNING",
-                        context={"action": "async_load_fallback"}
-                    )
-                )
-
-        except Exception as exc:  # noqa: BLE001
-            logger.debug(f"ConfigCache: DB load failed, using defaults: {exc}")
-
-        return configs
-
-    def refresh(self):
-        """ফোর্স রিফ্রেশ — ক্যাশ DB থেকে রিলোড করে (সিঙ্ক্রোনাস)।"""
-        with self._lock:
-            self._cache = self._load_from_db()
-            self._last_refresh = time.time()
-            self._loaded = True
-            logger.debug(f"ConfigCache: Refreshed {len(self._cache)} configs")
-
-    async def refresh_async(self):
-        """Asynchronous refresh, mainly for startup."""
-        from sqlalchemy import select
-
-        from database.session import AsyncSessionLocal
-        from models.system_config import SystemConfig
-
-        configs = dict(DEFAULT_CONFIGS)
         try:
             async with AsyncSessionLocal() as session:
                 stmt = select(SystemConfig).where(SystemConfig.is_active)
@@ -152,18 +105,77 @@ class ConfigCache:
                 rows = result.scalars().all()
                 for row in rows:
                     configs[row.key] = row.value
-
-            with self._lock:
-                self._cache = configs
-                self._last_refresh = time.time()
-                self._loaded = True
             logger.info(f"ConfigCache: Async loaded {len(configs)} configs from DB")
+        except Exception as e:
+            logger.exception(f"❌ Critical task failure during async DB load in _async_load_configs_internal: {e}")
+            error_event_bus.emit(
+                ErrorEvent(
+                    module="backend.core.config_cache",
+                    error_type=type(e).__name__,
+                    message=str(e),
+                    severity="WARNING",
+                    context={"action": "_async_load_configs_internal_failure"},
+                )
+            )
+            # If DB loading fails, we return defaults to ensure the system can continue operating.
+            # The calling function will receive these defaults.
+        return configs
+
+    def _load_from_db(self) -> dict[str, Any]:
+        """
+        DB থেকে active SystemConfig রেকর্ড লোড করে।
+        যদি DB না থাকে বা কোন error হয়, DEFAULT_CONFIGS ব্যবহার করে।
+        This method is synchronous and provides a bridge to run the async DB fetch.
+        It uses asyncio.run() which creates and manages its own event loop.
+        """
+        configs = dict(DEFAULT_CONFIGS)  # Always start with defaults
+
+        try:
+            # asyncio.run() creates and manages an event loop. It will raise RuntimeError
+            # if an event loop is already running in the current OS thread.
+            configs = asyncio.run(self._async_load_configs_internal())
+        except RuntimeError as e:
+            # This specific RuntimeError typically occurs if asyncio.run() is called
+            # from within an already running async context (e.g., a pytest-asyncio test).
+            # In such cases, we fall back to defaults, logging the conflict.
+            logger.warning(
+                f"ConfigCache: Synchronous DB load failed because an event loop is already running "
+                f"in this thread. Falling back to defaults. Error: {e}"
+            )
         except Exception as exc:  # noqa: BLE001
-            logger.debug(f"ConfigCache: DB load failed during startup, using defaults: {exc}")
-            with self._lock:
-                self._cache = configs
-                self._last_refresh = time.time()
-                self._loaded = True
+            # Catch other potential exceptions during the synchronous bridge execution,
+            # (e.g., if _async_load_configs_internal itself raised an unhandled error,
+            # or an error occurred before _async_load_configs_internal could execute).
+            logger.warning(f"ConfigCache: DB load failed during synchronous refresh, using defaults: {exc}")
+
+        return configs
+
+    def refresh(self):
+        """ফোর্স রিফ্রেশ — ক্যাশ DB থেকে রিলোড করে (সিঙ্ক্রোনাস)।"""
+        with self._lock:
+            try:
+                # _load_from_db is now designed to always return a dict (either loaded or defaults).
+                # This outer try-except ensures robustness against any unexpected issues
+                # that might arise even from a properly structured _load_from_db,
+                # like a test monkeypatch directly raising.
+                self._cache = self._load_from_db()
+                logger.debug(f"ConfigCache: Refreshed {len(self._cache)} configs")
+            except Exception as exc:
+                logger.warning(f"ConfigCache: Failed to refresh from DB or encountered error: {exc}. Falling back to defaults.")
+                self._cache = dict(DEFAULT_CONFIGS) # Ensure defaults are loaded
+            self._last_refresh = time.time()
+            self._loaded = True
+
+    async def refresh_async(self):
+        """Asynchronous refresh, mainly for startup."""
+        # This can directly await the internal async loader.
+        configs = await self._async_load_configs_internal()
+
+        with self._lock:
+            self._cache = configs
+            self._last_refresh = time.time()
+            self._loaded = True
+        logger.info(f"ConfigCache: Async loaded {len(configs)} configs from DB")
 
     def get(self, key: str, default: Any = None) -> Any:
         """
@@ -185,21 +197,14 @@ class ConfigCache:
         with self._lock:
             if category:
                 # Filter by key prefix pattern (e.g., "cache_threshold_", "provider_")
-                return {
-                    k: v for k, v in self._cache.items()
-                    if k.startswith(category)
-                }
+                return {k: v for k, v in self._cache.items() if k.startswith(category)}
             return dict(self._cache)
 
     async def set(self, key: str, value: Any, description: str = "") -> bool:
         """
         কনফিগ ভ্যালু সেট করে — DB-তেও persist করে + cache update করে।
         """
-        from sqlalchemy import select
-
-        from database.session import AsyncSessionLocal
-        from models.system_config import SystemConfig
-
+        # All required imports are now at the module level.
         try:
             async with AsyncSessionLocal() as session:
                 stmt = select(SystemConfig).where(SystemConfig.key == key)

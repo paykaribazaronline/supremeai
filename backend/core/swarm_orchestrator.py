@@ -13,6 +13,7 @@ class SwarmOrchestrator:
     """
     Coordinates execution of specialized agents sharing state inside a workspace context.
     """
+
     def __init__(self):
         self.architect = ArchitectureAgent()
         self.coder = CodeGeneratorAgent()

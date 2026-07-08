@@ -1,7 +1,7 @@
 """add_ci_reports_table
 
 Revision ID: 664fe16e33ca
-Revises: 
+Revises:
 Create Date: 2026-06-29 02:10:12.661696
 
 """  # noqa: W291
@@ -41,9 +41,7 @@ def upgrade() -> None:
         """
     )
     op.execute("CREATE INDEX IF NOT EXISTS idx_ci_reports_run_id ON ci_reports(run_id)")
-    op.execute(
-        "CREATE INDEX IF NOT EXISTS idx_ci_reports_created ON ci_reports(created_at DESC)"
-    )
+    op.execute("CREATE INDEX IF NOT EXISTS idx_ci_reports_created ON ci_reports(created_at DESC)")
 
 
 def downgrade() -> None:

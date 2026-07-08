@@ -8,9 +8,7 @@ from google.oauth2 import service_account
 def setup_google_vision(credentials_path=None):
     """Setup Google Cloud Vision client"""
     if credentials_path:
-        credentials = service_account.Credentials.from_service_account_file(
-            credentials_path
-        )
+        credentials = service_account.Credentials.from_service_account_file(credentials_path)
         client = vision.ImageAnnotatorClient(credentials=credentials)
     else:
         # Try to use default credentials
