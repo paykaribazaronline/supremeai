@@ -205,7 +205,7 @@ class AsyncTaskManager:
     def __init__(self):
         self._tasks: dict[str, dict[str, Any]] = {}
 
-    async def create_task(self, task_type: str, payload: dict) -> str:
+    def create_task(self, task_type: str, payload: dict) -> str:
         import uuid
 
         task_id = str(uuid.uuid4())
@@ -218,24 +218,35 @@ class AsyncTaskManager:
             "created_at": time.time(),
         }
 
-        # বাংলা মন্তব্য: P3 Fix — async task enqueuing system
-        await self._enqueue_task(task_id, task_type, payload)
+        # বাংলা মন্তব্য: P3 Fix — backward-compatibility এর জন্য sync signature এ ফেরত নেওয়া হলো
+        self._enqueue_task(task_id, task_type, payload)
 
         return task_id
 
-    async def _enqueue_task(self, task_id: str, task_type: str, payload: dict) -> None:
+    def _enqueue_task(self, task_id: str, task_type: str, payload: dict) -> None:
         celery_url = os.getenv("CELERY_BROKER_URL", "")
         if celery_url:
             try:
                 import httpx
-
                 # বাংলা মন্তব্য: HTTP Timeout Audit Gate সন্তুষ্ট করতে explicit timeout=10.0 সেট করা হলো
-                async with httpx.AsyncClient(timeout=10.0) as client:
-                    await client.post(
-                        f"{celery_url}/enqueue",
-                        json={"task_id": task_id, "type": task_type, "payload": payload},
-                        timeout=2.0,
-                    )
+                def send_enqueue():
+                    try:
+                        with httpx.Client(timeout=10.0) as client:
+                            client.post(
+                                f"{celery_url}/enqueue",
+                                json={"task_id": task_id, "type": task_type, "payload": payload},
+                                timeout=2.0,
+                            )
+                    except Exception as ex:  # noqa: BLE001
+                        logger.debug(f"Celery request failed: {ex}")
+
+                import asyncio
+                try:
+                    loop = asyncio.get_running_loop()
+                    loop.run_in_executor(None, send_enqueue)
+                except RuntimeError:
+                    import threading
+                    threading.Thread(target=send_enqueue, daemon=True).start()
             except Exception as e:  # noqa: BLE001
                 logger.debug(f"Celery enqueue failed: {e}")
         else:

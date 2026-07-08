@@ -34,6 +34,22 @@ class LLMGateway:
         from core.semantic_cache import SemanticCache
         self.cache = SemanticCache()
 
+        # বাংলা মন্তব্য: litellm compatibility এবং credentials check এর জন্য env এ secrets inject করা হলো
+        self._inject_secrets_to_env()
+
+    def _inject_secrets_to_env(self):
+        for key, env_var in [
+            ("groq_api_key", "GROQ_API_KEY"),
+            ("gemini_api_key", "GEMINI_API_KEY"),
+            ("openai_api_key", "OPENAI_API_KEY"),
+            ("deepseek_api_key", "DEEPSEEK_API_KEY"),
+            ("openrouter_api_key", "OPENROUTER_API_KEY"),
+            ("hf_api_key", "HF_API_KEY"),
+        ]:
+            val = getattr(settings, key, None)
+            if val:
+                os.environ[env_var] = val
+
     def _load_routing_policy(self) -> dict[str, Any]:
         try:
             if os.path.exists(POLICY_PATH):

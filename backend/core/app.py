@@ -160,11 +160,7 @@ async def health():
         or settings.groq_api_key
         or settings.nvidia_api_key
     )
-    # বাংলা মন্তব্য: pytest টেস্ট মোডে থাকলে keys না থাকলেও True রিটার্ন করা হচ্ছে,
-    # যাতে dynamic test configuration overrides-এর কারণে health check fail না করে।
-    from utils.environment import is_test_environment
-    if is_test_environment():
-        api_keys_ok = True
+    # config validation checks
     checks = {
         "redis": redis_ok,
         "api_keys_configured": api_keys_ok,
