@@ -149,7 +149,7 @@ class TaskRouter:
 
             # CRITICAL FIX (Ruff Linting):
             # পাইথনে সরাসরি `except Exception` লিখলে Ruff 'BLE001 (blind exception)' এরর দেয়।
-            # তাই এখানে `# noqa: BLE001` ফ্ল্যাগ দিয়ে স্পেসিফিকভাবে এই ওয়ার্নিংটি বাইপাস করা হয়েছে।
+            # তাই এখানে 'noqa' ফ্ল্যাগ দিয়ে স্পেসিফিকভাবে এই ওয়ার্নিংটি বাইপাস করা হয়েছে।
             except Exception as l3_exception:  # noqa
                 logger.error(f"[Router] Layer 3 Breached: {str(l3_exception)}. Escalating to Critical Layer 4.")
 
