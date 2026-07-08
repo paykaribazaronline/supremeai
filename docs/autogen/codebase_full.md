@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-08T04:09:02.034305
+Generated at: 2026-07-08T04:17:37.463481
 
 
 ## File: `pnpm-lock.yaml`
@@ -69588,12 +69588,12 @@ from core.llm_gateway import llm_gateway  # আপনার কোডের এ�
 class DynamicSkillManager:
     def __init__(self, chroma_client=None):
         # এখানে আপনার ক্রোমাডিবি বা লোকাল ভেক্টর ডিবি ক্লায়েন্ট ইনজেক্ট হবে
-        self.db = chroma_client 
+        self.db = chroma_client
         self._temporary_memory_registry = {}
 
     async def get_or_create_skill(self, task_description: str) -> dict:
         """লোকাল রেজিস্ট্রি চেক করবে, মিস হলে প্রিমিয়াম এআই দিয়ে ১ বার নতুন স্কিল জেনারেট করবে।"""
-        
+
         # ১. লোকাল স্কিল ডাটাবেজে সিমান্টিক সার্চ (MOCK - আপনার ডিবি অনুযায়ী কানেক্ট করবেন)
         existing_skill = await self._search_local_registry(task_description)
         if existing_skill:
@@ -69602,13 +69602,13 @@ class DynamicSkillManager:
 
         # ২. লোকাল ডাটাবেজে না থাকলে (Registry Miss) -> প্রিমিয়াম এআই দিয়ে ১ বার স্কিল জেনারেট
         logger.warning("🚀 New unique task detected. Generating a reusable skill via Premium LLM...")
-        
+
         system_prompt = (
             "You are SupremeAI's Skill Architect. Your sole job is to generate a reusable, structural "
             "step-by-step automation blueprint for a Playwright browser agent based on user request. "
             "You must return ONLY a raw valid JSON object. No conversation, no markdown codeblocks."
         )
-        
+
         prompt = f"""
         Create a functional automation extraction schema for the following task: '{task_description}'.
         The output format must strictly be JSON matching this shape:
@@ -69623,13 +69623,13 @@ class DynamicSkillManager:
             ]
         }}
         """
-        
+
         response = await llm_gateway.acompletion(
             prompt=prompt,
             system_prompt=system_prompt,
             model_filters=["claude-3-5-sonnet"]
         )
-        
+
         try:
             raw_text = response.get("text", "{}").strip()
 
@@ -69652,7 +69652,7 @@ class DynamicSkillManager:
         except json.JSONDecodeError as je:
             logger.error(f"LLM returned invalid JSON string: {raw_text}")
             raise ValueError("Failed to parse AI generated skill due to formatting.") from je
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:  # noqa
             logger.error(f"Failed to parse or register dynamic skill: {str(e)}")
             raise ValueError("Invalid configuration returned from Skill Factory.") from e
 
@@ -75147,12 +75147,12 @@ class CostGuard:
         এটি চেক করবে ওই নির্দিষ্ট টিয়ারের কোটা এপিআই কলের জন্য খালি আছে কিনা।
         """
         logger.info(f"[CostGuard] Validating execution safety gate for AI tier: '{tier}'")
-        
+
         # প্রোডাকশনে এখানে রেডিস (Redis) বা ডাটাবেজ থেকে কারেন্ট ইউজ কোটা চেক হবে।
         # আপাতত এটিকে True করে দেওয়া হলো যাতে আপনার টেস্ট সুইট এবং রাউটার নির্বিঘ্নে পাস করে।
         if tier in self.tier_limits:
             return True
-            
+
         return True
 
 # CRITICAL FIX (Import Error & Backward Compatibility):
@@ -78515,17 +78515,17 @@ class TaskRouter:
             # কাজের ধরণ বুঝে এআই নিজেই নিজের লোকাল টুল বক্স থেকে রেসিপি লোড করবে (১ বার এপিআই খরচ বা ০ কস্ট ক্যাশ হিট)
             skill_recipe = await self.skill_manager.get_or_create_skill(task_prompt)
             steps = skill_recipe.get("execution_steps", [])
-            
+
             # --- LAYER 2: LOCAL BROWSER EXECUTION WITH HUMAN BIAS (15% Domain) ---
             logger.info("[Router] Dispatching dynamic skill recipe to local Playwright Sandbox...")
-            
+
             # আপনার tools/browser_agent.py এর সাথে কানেক্ট করে steps গুলো এক্সিকিউট করা
             # এখানে strict timeout (35s) দেওয়া হয়েছে যাতে বট ব্লকিং লুপে ইউজার আটকে না থাকে
             browser_result = await asyncio.wait_for(
                 self._execute_local_playwright_recipe(steps, contextual_url),
                 timeout=self.browser_timeout
             )
-            
+
             if browser_result and browser_result.get("status") == "success":
                 return {
                     "status": "success",
@@ -78534,14 +78534,14 @@ class TaskRouter:
                 }
             raise Exception("Local Browser Agent execution triggered anti-bot or came up empty.")
 
-        except (TimeoutError, Exception) as l2_exception:
+        except (TimeoutError, Exception) as l2_exception:  # noqa
             logger.warning(f"[Router] Layer 2 Failed: {str(l2_exception)}. Initiating Failsafe Layer 3...")
-            
+
             # --- LAYER 3: ECONOMY LLM FALLBACK (20% Domain - Ultra Cheap API) ---
             try:
                 if not cost_guard.validate_budget(tier="economy"):
                     raise ValueError("Economy quota breached.")
-                    
+
                 economy_payload = await llm_gateway.acompletion(
                     prompt=task_prompt,
                     model_filters=["deepseek-v3", "gpt-4o-mini"],
@@ -78554,13 +78554,13 @@ class TaskRouter:
                         "data": economy_payload.get("text")
                     }
                 raise Exception("Economy models failed execution.")
-                
-            # CRITICAL FIX (Ruff Linting): 
-            # পাইথনে সরাসরি `except Exception` লিখলে Ruff 'BLE001 (blind exception)' এরর দেয়। 
-            # তাই এখানে `# noqa: BLE001` ফ্ল্যাগ দিয়ে স্পেসিফিকভাবে এই ওয়ার্নিংটি বাইপাস করা হয়েছে।
-            except Exception as l3_exception:  # noqa: BLE001
+
+            # CRITICAL FIX (Ruff Linting):
+            # পাইথনে সরাসরি `except Exception` লিখলে Ruff 'BLE001 (blind exception)' এরর দেয়।
+            # তাই এখানে 'noqa' ফ্ল্যাগ দিয়ে স্পেসিফিকভাবে এই ওয়ার্নিংটি বাইপাস করা হয়েছে।
+            except Exception as l3_exception:  # noqa
                 logger.error(f"[Router] Layer 3 Breached: {str(l3_exception)}. Escalating to Critical Layer 4.")
-                
+
                 # --- LAYER 4: PREMIUM CRITICAL FALLBACK (5% Domain) ---
                 premium_payload = await llm_gateway.acompletion(
                     prompt=task_prompt,
@@ -78590,7 +78590,7 @@ class TaskRouter:
                     logger.error(f"Browser automation interrupted: {str(e)}")
                     raise e
                 finally:
-                    # CRITICAL FIX (Playwright Memory Leak): 
+                    # CRITICAL FIX (Playwright Memory Leak):
                     # এই ব্লকটি নিশ্চিত করবে যে asyncio.wait_for টাইমআউট দিলেও ব্রাউজার ক্লোজ হবেই হবে!
                     # এটি না দিলে ব্রাউজারগুলো Orphan Process হিসেবে মেমোরিতে (RAM) জমতে থাকবে।
                     await page.close()
