@@ -1,8 +1,15 @@
 import asyncio
 import math
 import random
-from playwright.async_api import Page, ElementHandle
+from typing import Any
 from loguru import logger
+
+try:
+    from playwright.async_api import Page, ElementHandle
+except ImportError:
+    # বাংলা মন্তব্য: মেইন ব্যাকএন্ড কন্টেইনারে playwright না থাকলে fallback setup
+    Page = Any
+    ElementHandle = Any
 
 class HumanBehaviorSimulators:
     """
