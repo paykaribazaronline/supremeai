@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/core/test_security_vault.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,540 বাইট  
-**আপডেট:** 2026-07-08T01:44:17.666123
+**সাইজ:** 1,914 বাইট  
+**আপডেট:** 2026-07-08T01:53:18.622125
 
 ---
 
@@ -51,17 +51,23 @@ def test_decrypt_invalid_token_returns_empty():
     assert result == ""
 
 
-@patch("core.security_vault.fernet")
-def test_encrypt_token_uses_fernet(mock_fernet):
-    mock_fernet.encrypt.return_value = b"encrypted-bytes"
+def test_encrypt_token_uses_fernet(monkeypatch):
+    class MockFernet:
+        def encrypt(self, data):
+            assert data == b"hello"
+            return b"encrypted-bytes"
+    # বাংলা মন্তব্য: monkeypatch ব্যবহার করে security_vault.fernet mock করা হলো
+    monkeypatch.setattr(security_vault, "fernet", MockFernet())
     result = encrypt_token("hello")
     assert result == "encrypted-bytes"
-    mock_fernet.encrypt.assert_called_once_with(b"hello")
 
 
-@patch("core.security_vault.fernet")
-def test_decrypt_token_handles_exception(mock_fernet):
-    mock_fernet.decrypt.side_effect = Exception("Decryption failed")
+def test_decrypt_token_handles_exception(monkeypatch):
+    class MockFernet:
+        def decrypt(self, data):
+            raise Exception("Decryption failed")
+    # বাংলা মন্তব্য: monkeypatch ব্যবহার করে security_vault.fernet mock করা হলো
+    monkeypatch.setattr(security_vault, "fernet", MockFernet())
     result = decrypt_token("invalid")
     assert result == ""
 

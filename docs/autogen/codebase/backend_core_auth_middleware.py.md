@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/auth_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 13,202 বাইট  
-**আপডেট:** 2026-07-08T01:44:17.607239
+**সাইজ:** 13,021 বাইট  
+**আপডেট:** 2026-07-08T01:53:18.562585
 
 ---
 
@@ -61,10 +61,8 @@ class AuthMiddleware:
             path.startswith(admin_path) for admin_path in admin_paths
         ) or path in {"/admin/rules", "/admin/cloud-distribution"}
 
-        # বাংলা মন্তব্য: টেস্ট এনভায়রনমেন্টে থাকলে authentication bypass করার লজিক যুক্ত করা হলো
-        is_test = is_test_environment()
-
-        if is_admin_path and not is_test:
+        # Admin routes always require origin verification even in test environments
+        if is_admin_path:
             origin = ""
             referer = ""
             for k, v in headers:

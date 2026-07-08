@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/knowledge_base.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,446 বাইট  
-**আপডেট:** 2026-07-08T01:44:17.612504
+**সাইজ:** 1,765 বাইট  
+**আপডেট:** 2026-07-08T01:53:18.567867
 
 ---
 
@@ -13,9 +13,10 @@ import json
 import os
 
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(BASE_DIR, "data")
-MEMORY_FILE_PATH = os.path.join(DATA_DIR, "memory_vault.json")
+# বাংলা মন্তব্য: টেস্ট ও রিলায়েবিলিটি গেটের জন্য environment overrides fallback নির্ধারণ করা হলো
+BASE_DIR = os.getenv("SUPREMEAI_BASE_DIR") or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.getenv("SUPREMEAI_DATA_DIR") or os.path.join(BASE_DIR, "data")
+MEMORY_FILE_PATH = os.getenv("SUPREMEAI_MEMORY_FILE_PATH") or os.path.join(DATA_DIR, "memory_vault.json")
 
 # ফাইল না থাকলে তৈরি করে নিবে
 if not os.path.exists(DATA_DIR):

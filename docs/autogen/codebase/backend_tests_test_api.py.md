@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_api.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,239 বাইট  
-**আপডেট:** 2026-07-08T01:44:17.649264
+**সাইজ:** 4,306 বাইট  
+**আপডেট:** 2026-07-08T01:53:18.604403
 
 ---
 
@@ -33,6 +33,7 @@ client = TestClient(app)
 def test_health_returns_ok():
     from core.config import settings
     settings._cached_secrets.clear()
+    settings._cached_secrets["GEMINI_API_KEY"] = "mock-gemini-key"
     from unittest.mock import patch, PropertyMock
     with patch("core.services.redis_queue.__class__.configured", new_callable=PropertyMock, return_value=False):
         resp = client.get("/health")

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/config_cache.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,967 বাইট  
-**আপডেট:** 2026-07-08T01:44:17.611309
+**সাইজ:** 10,312 বাইট  
+**আপডেট:** 2026-07-08T01:53:18.566643
 
 ---
 
@@ -143,7 +143,12 @@ class ConfigCache:
     def refresh(self):
         """ফোর্স রিফ্রেশ — ক্যাশ DB থেকে রিলোড করে (সিঙ্ক্রোনাস)।"""
         with self._lock:
-            self._cache = self._load_from_db()
+            try:
+                self._cache = self._load_from_db()
+            except Exception as exc:  # noqa: BLE001
+                # বাংলা মন্তব্য: Sync load failing এ fallback defaults লোড করা হচ্ছে
+                logger.debug(f"ConfigCache: Sync load failed, using defaults: {exc}")
+                self._cache = dict(DEFAULT_CONFIGS)
             self._last_refresh = time.time()
             self._loaded = True
             logger.debug(f"ConfigCache: Refreshed {len(self._cache)} configs")
