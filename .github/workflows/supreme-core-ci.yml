@@ -787,7 +787,12 @@ jobs:
         run: |
           git config --global user.name "SupremeAI-DocBot"
           git config --global user.email "docbot@supremeai.dev"
-          git add -f docs/autogen/ ADR-*.md DIAGRAM-*.md THREAT-MODEL-*.md API-swagger.yaml || true
+          git add -f docs/autogen/ || true
+          git add -f ADR-*.md || true
+          git add -f DIAGRAM-*.md || true
+          git add -f THREAT-MODEL-*.md || true
+          git add -f backend/API-swagger.yaml || true
+          git add -f API-swagger.yaml || true
           git diff-index --quiet HEAD || (git commit -m "docs: [auto-docs] Automated ADR, Codebase Docs & Dashboard [skip ci]" && git push) || echo "No changes to commit"
       - name: Force Purge Unnecessary Old Caches (Smartest Clean)
         if: always()
