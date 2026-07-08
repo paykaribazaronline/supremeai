@@ -117,6 +117,11 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
 
+      - name: Install Poetry
+        run: |
+          pipx install poetry
+          pip install litellm pyyaml httpx
+          poetry config virtualenvs.in-project true
       - name: Load Cached Virtualenv
         id: cached-poetry-dependencies
         uses: actions/cache@v4
@@ -126,10 +131,7 @@ jobs:
       - name: Install Dependencies (Only on Cache Miss)
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         working-directory: backend
-        run: |
-          pip install poetry
-          poetry config virtualenvs.in-project true
-          poetry install --sync --with dev --without ml,tools
+        run: poetry install --sync --with dev --without ml,tools
 
       - name: 🛡️ Safety Guard - File Protection Validation
         id: safety_guard
@@ -202,6 +204,11 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
       
+      - name: Install Poetry
+        run: |
+          pipx install poetry
+          pip install litellm pyyaml httpx
+          poetry config virtualenvs.in-project true
       - name: Load Cached Virtualenv
         id: cached-poetry-dependencies
         uses: actions/cache@v4
@@ -211,10 +218,7 @@ jobs:
       - name: Install Dependencies (Only on Cache Miss)
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         working-directory: backend
-        run: |
-          pip install poetry
-          poetry config virtualenvs.in-project true
-          poetry install --sync --with dev --without ml,tools
+        run: poetry install --sync --with dev --without ml,tools
       
       - name: 🧹 Lint Code (Auto-Fix & Warning Mode)
         working-directory: backend
@@ -496,21 +500,27 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
+      - name: Install Poetry
+        working-directory: backend
+        run: |
+          pipx install poetry
+          poetry config virtualenvs.in-project true
       - name: Load Cached Virtualenv
         id: cached-poetry-dependencies
         uses: actions/cache@v4
         with:
           path: backend/.venv
           key: venv-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
-      - name: Install Backend Dependencies & Start Server
+      - name: Install Backend Dependencies (Only on Cache Miss)
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        working-directory: backend
+        run: poetry install --sync --with dev --without ml,tools
+      - name: Start Backend Server
         working-directory: backend
         env:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
           SUPREMEAI_API_URL: http://127.0.0.1:8000
-        run: |
-          pip install poetry
-          poetry install --sync --with dev --without ml,tools
-          poetry run uvicorn main:app --port 8000 &
+        run: poetry run uvicorn main:app --port 8000 &
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
       - name: Start Frontend Preview Server
@@ -761,18 +771,21 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+      - name: Install Poetry
+        run: |
+          pipx install poetry
+          pip install litellm pyyaml httpx
+          cd backend && poetry config virtualenvs.in-project true
       - name: Load Cached Virtualenv
         id: cached-poetry-dependencies
         uses: actions/cache@v4
         with:
           path: backend/.venv
           key: venv-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
-      - name: Install dependencies (Only on Cache Miss)
+      - name: Install Dependencies (Only on Cache Miss)
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: |
-          pip install poetry litellm pyyaml httpx
-          cd backend && poetry config virtualenvs.in-project true
-          cd backend && poetry install --sync --with dev --without ml,tools
+        working-directory: backend
+        run: poetry install --sync --with dev --without ml,tools
           
       - name: 🤖 Generate AI Architecture Docs (ADR, DFD, OpenAPI)
         env:
