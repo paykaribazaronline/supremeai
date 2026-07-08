@@ -47,11 +47,7 @@ Return ONLY a valid JSON object matching this structure (merge with existing if 
 JSON:"""
 
         try:
-            response = await llm_gateway.acompletion(
-                prompt=analysis_prompt,
-                task_type="analysis",
-                stream=False
-            )
+            response = await llm_gateway.acompletion(prompt=analysis_prompt, task_type="analysis", stream=False)
             text = response.get("text", "{}") if isinstance(response, dict) else str(response)
 
             if "```" in text:
@@ -63,10 +59,7 @@ JSON:"""
             new_prefs = json.loads(text.strip())
             if new_prefs:
                 merged_prefs = {**existing_prefs, **new_prefs}
-                await asyncio.to_thread(db.upsert_user_preferences, {
-                    "user_id": user_id,
-                    "preferences": merged_prefs
-                })
+                await asyncio.to_thread(db.upsert_user_preferences, {"user_id": user_id, "preferences": merged_prefs})
                 logger.info(f"🤖 [WS] Updated user preferences for {user_id}")
         except Exception as e:  # noqa: BLE001
             logger.warning(f"⚠️ [WS] Failed to analyze user preferences: {type(e).__name__}: {e}")
@@ -179,11 +172,7 @@ async def websocket_chat_endpoint(
 
                 messages_payload = [{"role": "system", "content": system_instructions}] + chat_history
 
-                response_stream = await llm_gateway.acompletion(
-                    prompt=messages_payload,
-                    task_type="chat",
-                    stream=True
-                )
+                response_stream = await llm_gateway.acompletion(prompt=messages_payload, task_type="chat", stream=True)
 
                 response_content = ""
                 async for chunk in response_stream:
@@ -204,8 +193,7 @@ async def websocket_chat_endpoint(
                 # বাংলা মন্তব্য: P1 Fix — সকল exception সম্পূর্ণ log করা হচ্ছে।
                 # আগে শুধু print("❌ [GENERATION ERROR]") ছিল — production debugging অসম্ভব ছিল।
                 logger.error(
-                    f"[WS] Neural pipeline error for user={user_id}: "
-                    f"{type(e).__name__}: {e}",
+                    f"[WS] Neural pipeline error for user={user_id}: " f"{type(e).__name__}: {e}",
                     exc_info=True,
                 )
                 await websocket.send_text(f"\n[Error: {type(e).__name__}]\n[DONE]")

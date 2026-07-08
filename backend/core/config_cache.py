@@ -1,3 +1,4 @@
+# FILE_PATH: core/config_cache.py
 """
 config_cache.py — Lightweight In-Memory Config Cache
 ======================================================
@@ -10,22 +11,32 @@ SupremeAI 2.0-এর জন্য TTL-based config cache layer.
 
 ব্যবহার:
     from core.config_cache import config_cache
-    
+
     # Get a config value (cached with TTL)
     threshold = config_cache.get("cache_threshold_code", default=0.95)
-    
+
     # Force refresh
     config_cache.refresh()
-    
+
     # Set a config value (also persists to DB)
     await config_cache.set("cache_threshold_code", 0.90)
 """  # noqa: W293
 
+# Move asyncio and SQLAlchemy-related imports to the top for proper patching and scope
+import asyncio
 import threading
 import time
 from typing import Any
 
 from loguru import logger
+from sqlalchemy import select
+
+from core.event_bus import ErrorEvent  # Ensure ErrorEvent is imported for consistent use
+from core.event_bus import error_event_bus  # Ensure error_event_bus is imported for consistent use
+
+# These imports were local to methods, causing AttributeError when patched at module level
+from database.session import AsyncSessionLocal
+from models.system_config import SystemConfig
 
 
 # ডিফল্ট কনফিগ — DB না থাকলেও অ্যাপ চালু থাকবে
@@ -61,7 +72,7 @@ DEFAULT_CONFIGS: dict[str, Any] = {
 class ConfigCache:
     """
     TTL-based in-memory config cache.
-    
+
     - App startup-এ DB থেকে config load করে
     - TTL (ডিফল্ট: ৬০ সেকেন্ড) পর্যন্ত in-memory serve করে
     - TTL expire হলে পরবর্তি request-এ DB reload করে
@@ -79,72 +90,12 @@ class ConfigCache:
         """TTL expire হয়েছে কিনা চেক করে।"""
         return (time.time() - self._last_refresh) > self._ttl
 
-    def _load_from_db(self) -> dict[str, Any]:
+    async def _load_configs_async_helper(self) -> dict[str, Any]:
         """
-        DB থেকে active SystemConfig রেকর্ড লোড করে।
-        যদি DB না থাকে বা কোন error হয়, DEFAULT_CONFIGS ব্যবহার করে।
+        Asynchronous helper to load active SystemConfig records from DB.
+        If DB fails, returns DEFAULT_CONFIGS.
         """
         configs = dict(DEFAULT_CONFIGS)  # Start with defaults
-        try:
-            # Try to load from SystemConfig table
-            # Synchronous load for cache initialization
-            import asyncio
-
-            from sqlalchemy import select
-
-            from database.session import AsyncSessionLocal
-            from models.system_config import SystemConfig
-
-            async def _async_load():
-                async with AsyncSessionLocal() as session:
-                    stmt = select(SystemConfig).where(SystemConfig.is_active)
-                    result = await session.execute(stmt)
-                    rows = result.scalars().all()
-                    for row in rows:
-                        configs[row.key] = row.value
-                    return configs
-
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                configs = loop.run_until_complete(_async_load())
-                loop.close()
-                logger.info(f"ConfigCache: Loaded {len(configs)} configs from DB")
-            except RuntimeError as e:
-                logger.exception(f"❌ Critical task failure in config_cache.py: {e}")
-                from core.event_bus import ErrorEvent
-                from core.event_bus import error_event_bus
-                error_event_bus.emit(
-                    ErrorEvent(
-                        module="backend.core.config_cache",
-                        error_type=type(e).__name__,
-                        message=str(e),
-                        severity="WARNING",
-                        context={"action": "async_load_fallback"}
-                    )
-                )
-
-        except Exception as exc:  # noqa: BLE001
-            logger.debug(f"ConfigCache: DB load failed, using defaults: {exc}")
-
-        return configs
-
-    def refresh(self):
-        """ফোর্স রিফ্রেশ — ক্যাশ DB থেকে রিলোড করে (সিঙ্ক্রোনাস)।"""
-        with self._lock:
-            self._cache = self._load_from_db()
-            self._last_refresh = time.time()
-            self._loaded = True
-            logger.debug(f"ConfigCache: Refreshed {len(self._cache)} configs")
-
-    async def refresh_async(self):
-        """Asynchronous refresh, mainly for startup."""
-        from sqlalchemy import select
-
-        from database.session import AsyncSessionLocal
-        from models.system_config import SystemConfig
-
-        configs = dict(DEFAULT_CONFIGS)
         try:
             async with AsyncSessionLocal() as session:
                 stmt = select(SystemConfig).where(SystemConfig.is_active)
@@ -152,18 +103,68 @@ class ConfigCache:
                 rows = result.scalars().all()
                 for row in rows:
                     configs[row.key] = row.value
+                logger.info(f"ConfigCache: Async loaded {len(configs)} configs from DB helper")
+        except Exception as e:  # noqa: BLE001
+            logger.exception(f"❌ Error during async DB load in config_cache helper: {e}")
+            error_event_bus.emit(
+                ErrorEvent(
+                    module="backend.core.config_cache",
+                    error_type=type(e).__name__,
+                    message=str(e),
+                    severity="WARNING",
+                    context={"action": "async_load_helper_failure"},
+                )
+            )
+            # If an error occurs, 'configs' remains DEFAULT_CONFIGS as initialized
+        return configs
 
-            with self._lock:
-                self._cache = configs
-                self._last_refresh = time.time()
-                self._loaded = True
-            logger.info(f"ConfigCache: Async loaded {len(configs)} configs from DB")
+    def _load_from_db(self) -> dict[str, Any]:
+        """
+        DB থেকে active SystemConfig রেকর্ড লোড করে।
+        যদি DB না থাকে বা কোন error হয়, DEFAULT_CONFIGS ব্যবহার করে।
+        Uses asyncio.run() to execute async DB operations from a sync context.
+        """
+        configs = dict(DEFAULT_CONFIGS) # Initialize with defaults, in case asyncio.run fails immediately
+        try:
+            # asyncio.run handles event loop creation/destruction safely for sync calls
+            configs = asyncio.run(self._load_configs_async_helper())
         except Exception as exc:  # noqa: BLE001
-            logger.debug(f"ConfigCache: DB load failed during startup, using defaults: {exc}")
-            with self._lock:
-                self._cache = configs
-                self._last_refresh = time.time()
-                self._loaded = True
+            logger.debug(f"ConfigCache: DB load failed during sync refresh via asyncio.run(), using defaults: {exc}")
+            error_event_bus.emit(
+                ErrorEvent(
+                    module="backend.core.config_cache",
+                    error_type=type(exc).__name__,
+                    message=str(exc),
+                    severity="WARNING",
+                    context={"action": "sync_load_fallback_from_asyncio_run"},
+                )
+            )
+            # configs remain DEFAULT_CONFIGS from initialization
+        return configs
+
+    def refresh(self):
+        """ফোর্স রিফ্রেশ — ক্যাশ DB থেকে রিলোড করে (সিঙ্ক্রোনাস)।"""
+        with self._lock:
+            try:
+                self._cache = self._load_from_db()
+            except Exception as exc: # Catch any error from _load_from_db (e.g., a direct test mock raising)
+                logger.error(f"ConfigCache: Failed to refresh from DB, falling back to defaults: {exc}")
+                self._cache = dict(DEFAULT_CONFIGS) # Ensure cache is at least defaults on refresh failure
+            self._last_refresh = time.time()
+            self._loaded = True
+            logger.debug(f"ConfigCache: Refreshed {len(self._cache)} configs")
+
+    async def refresh_async(self):
+        """Asynchronous refresh, mainly for startup."""
+        # Use the shared async helper to load configurations
+        configs = await self._load_configs_async_helper()
+
+        with self._lock:
+            self._cache = configs
+            self._last_refresh = time.time()
+            self._loaded = True
+        logger.info(f"ConfigCache: Async loaded {len(configs)} configs from DB")
+        # _load_configs_async_helper already logs exceptions and emits ErrorEvent.
 
     def get(self, key: str, default: Any = None) -> Any:
         """
@@ -185,21 +186,13 @@ class ConfigCache:
         with self._lock:
             if category:
                 # Filter by key prefix pattern (e.g., "cache_threshold_", "provider_")
-                return {
-                    k: v for k, v in self._cache.items()
-                    if k.startswith(category)
-                }
+                return {k: v for k, v in self._cache.items() if k.startswith(category)}
             return dict(self._cache)
 
     async def set(self, key: str, value: Any, description: str = "") -> bool:
         """
         কনফিগ ভ্যালু সেট করে — DB-তেও persist করে + cache update করে।
         """
-        from sqlalchemy import select
-
-        from database.session import AsyncSessionLocal
-        from models.system_config import SystemConfig
-
         try:
             async with AsyncSessionLocal() as session:
                 stmt = select(SystemConfig).where(SystemConfig.key == key)

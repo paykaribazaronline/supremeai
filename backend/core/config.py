@@ -60,9 +60,7 @@ class Settings(BaseSettings):
         docs_auth_enabled = info.data.get("docs_auth_enabled", True)
         # Staging বা Production-এ docs authorization চালু থাকলে docs_password ফাঁকা রাখা যাবে না।
         if env in {"production", "staging"} and docs_auth_enabled and not v:
-            raise ValueError(
-                "docs_password must be set when docs_auth_enabled=true in production/staging environments."
-            )
+            raise ValueError("docs_password must be set when docs_auth_enabled=true in production/staging environments.")
         return v
 
     port: int = 8000
@@ -79,11 +77,8 @@ class Settings(BaseSettings):
         "https://supremeai-admin.firebaseapp.com",
     ]
 
-
     # বাংলা মন্তব্য: এডমিন ইমেইল লিস্ট সরাসরি .env ফাইল থেকে লোড করা হবে
-    admin_emails: list[str] = Field(
-        default=[], validation_alias="ADMIN_EMAILS"
-    )
+    admin_emails: list[str] = Field(default=[], validation_alias="ADMIN_EMAILS")
 
     # বাংলা মন্তব্য: অনুমোদিত হোস্ট লিস্ট সরাসরি .env ফাইল থেকে লোড করা হবে
     allowed_hosts: list[str] = Field(
@@ -91,9 +86,7 @@ class Settings(BaseSettings):
         validation_alias="ALLOWED_HOSTS",
     )
 
-    jwt_secret: str | None = Field(
-        default=None, validation_alias="SUPREMEAI_JWT_SECRET"
-    )
+    jwt_secret: str | None = Field(default=None, validation_alias="SUPREMEAI_JWT_SECRET")
 
     _cached_secrets: dict[str, str] = PrivateAttr(default_factory=dict)
 
@@ -229,9 +222,7 @@ class Settings(BaseSettings):
         env = info.data.get("env", "local")
         if not v:
             if env == "production":
-                raise ValueError(
-                    "SUPREMEAI_JWT_SECRET environment variable must be set in production"
-                )
+                raise ValueError("SUPREMEAI_JWT_SECRET environment variable must be set in production")
             return "test-secret-placeholder"
         return v
 
@@ -240,9 +231,7 @@ class Settings(BaseSettings):
     def validate_admin_hash(cls, v: str | None, info: ValidationInfo) -> str | None:
         env = info.data.get("env", "local")
         if not v and env == "production":
-            raise ValueError(
-                "supremeai_admin_password_hash must be set in production"
-            )
+            raise ValueError("supremeai_admin_password_hash must be set in production")
         return v
 
     @field_validator("debug")
@@ -287,9 +276,7 @@ class Settings(BaseSettings):
             if not self.ci_webhook_secret:
                 missing.append("secure CI_WEBHOOK_SECRET")
             if missing:
-                raise RuntimeError(
-                    f"Missing required configurations for production: {', '.join(missing)}"
-                )
+                raise RuntimeError(f"Missing required configurations for production: {', '.join(missing)}")
         elif self.env.lower() == "staging" and not self.ci_webhook_secret:
             raise RuntimeError("Missing required configuration for staging/production: secure CI_WEBHOOK_SECRET")
 
@@ -305,4 +292,3 @@ if settings.env == "production" or os.getenv("ENV") == "production":
     except Exception as exc:  # noqa: BLE001
         logger.critical(f"FATAL CONFIG ERROR: {exc}")
         sys.exit(1)
-

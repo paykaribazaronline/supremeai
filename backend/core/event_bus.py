@@ -8,12 +8,14 @@ from pydantic import BaseModel
 
 logger = logging.getLogger("supremeai.event_bus")
 
+
 class ErrorEvent(BaseModel):
     module: str
     error_type: str
     message: str
     severity: str  # CRITICAL, WARNING, INFO
     context: dict[str, Any]
+
 
 class ErrorEventBus:
     def __init__(self):
@@ -53,6 +55,7 @@ class ErrorEventBus:
                 listener(event)
         except Exception as listener_exc:  # noqa: BLE001
             logger.critical(f"🔥 EventBus Listener Failed: {listener_exc}")
+
 
 # Global Instance
 error_event_bus = ErrorEventBus()

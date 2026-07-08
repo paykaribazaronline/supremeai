@@ -21,12 +21,11 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
 
         # যদি রিকোয়েস্টে অরিজিন হেডার থাকে (যেমন ব্রাউজার বেসড রিকোয়েস্ট), তবে সেটি হোয়াইটলিস্টে থাকতে হবে
         if origin and origin not in self.allowed_origins:
-                client_ip = request.client.host if request.client else "unknown"
-                logger.critical(f"🔥 CSRF ALERT: Unauthorized Origin Access Blocked! Malicious Origin: {origin} from IP: {client_ip}")
-                return JSONResponse(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    content={"detail": "Cross-Origin Request Blocked. Device identity unauthorized."}
-                )
+            client_ip = request.client.host if request.client else "unknown"
+            logger.critical(f"🔥 CSRF ALERT: Unauthorized Origin Access Blocked! Malicious Origin: {origin} from IP: {client_ip}")
+            return JSONResponse(
+                status_code=status.HTTP_403_FORBIDDEN, content={"detail": "Cross-Origin Request Blocked. Device identity unauthorized."}
+            )
 
         # বাংলা মন্তব্য: হোস্ট হেডার ভ্যালিডেশন
         host = request.headers.get("Host")
@@ -37,10 +36,7 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
 
         if host and not is_allowed:
             logger.critical(f"🚨 Security Intrusion: Host Header Tampering Detected -> {host}")
-            return JSONResponse(
-                status_code=status.HTTP_403_FORBIDDEN,
-                content={"detail": "Host verification failure."}
-            )
+            return JSONResponse(status_code=status.HTTP_403_FORBIDDEN, content={"detail": "Host verification failure."})
 
         # বাংলা কমেন্ট: ভ্যালিডেশন সাকসেসফুল হলে রিকোয়েস্ট পরবর্তী প্রসেসে পাস হবে
         response = await call_next(request)

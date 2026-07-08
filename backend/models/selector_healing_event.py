@@ -27,4 +27,3 @@ class SelectorHealingEvent(Base):
     screenshot_after_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
 
     reviewed_by_user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
-

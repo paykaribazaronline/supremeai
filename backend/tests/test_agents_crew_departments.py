@@ -1,4 +1,3 @@
-
 import pytest
 
 from agents.crew_departments import ArchitectureAgent, CodeGeneratorAgent, QAAgent
