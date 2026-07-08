@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-08T01:31:17.936542
+Generated at: 2026-07-08T01:36:41.215374
 
 
 ## File: `pnpm-lock.yaml`
@@ -67480,10 +67480,10 @@ class AuthMiddleware:
         path = scope.get("path", "")
         # বাংলা মন্তব্য: ASGI request scope variants-এর জন্য path resolution fallback যোগ করা হলো।
         if not path and scope.get("raw_path"):
-            try:
+            import contextlib
+            # বাংলা মন্তব্য: SIM105 lint rule সন্তুষ্ট করতে contextlib.suppress ব্যবহার করা হলো
+            with contextlib.suppress(Exception):
                 path = scope["raw_path"].decode("utf-8").split("?")[0]
-            except Exception:  # noqa: BLE001
-                pass
         headers = scope.get("headers", [])
 
         # Strict admin origin check to prevent security blast radius breach
@@ -76925,21 +76925,23 @@ class LLMGateway:
         raise last_exception or RuntimeError("All streaming fallback options failed.")
 
 
-# \u09ac\u09be\u0982\u09b2\u09be \u09ae\u09a8\u09cd\u09a4\u09ac\u09cd\u09af: P2 Fix \u2014 Module-level singleton lazy \u0995\u09b0\u09be \u09b9\u09b2\u09cb\u0964
-# \u0986\u0997\u09c7: `llm_gateway = LLMGateway()` import-\u098f execute \u09b9\u09a4\u09cb \u2014 cold start \u09ac\u09be\u09a1\u09bc\u09be\u09a4\u09cb \u098f\u09ac\u0982 pytest isolation \u09ad\u09be\u0999\u09a4\u09cb\u0964
-# \u098f\u0996\u09a8: \u09aa\u09cd\u09b0\u09a5\u09ae \u09ac\u09cd\u09af\u09ac\u09b9\u09be\u09b0\u09c7\u09b0 \u09b8\u09ae\u09af\u09bc instantiate \u09b9\u09ac\u09c7\u0964
+# বাংলা মন্তব্য: P2 Fix — Module-level singleton lazy করা হলো।
+# আগে: `llm_gateway = LLMGateway()` import-এ execute হতো।
+# এটি cold start বাড়াতো এবং pytest isolation ভাঙতো।
+# এখন: প্রথম ব্যবহারের সময় instantiate হবে।
 _llm_gateway_instance: "LLMGateway | None" = None
 
 
 def get_llm_gateway() -> "LLMGateway":
-    """Lazy singleton factory \u2014 import \u09b8\u09ae\u09af\u09bc\u09c7 network call \u09a8\u09bf\u09b7\u09bf\u09a6\u09cd\u09a7"""
+    """Lazy singleton factory — import সময়ে network call নিষিদ্ধ"""
     global _llm_gateway_instance
     if _llm_gateway_instance is None:
         _llm_gateway_instance = LLMGateway()
     return _llm_gateway_instance
 
 
-# \u09ac\u09be\u0982\u09b2\u09be \u09ae\u09a8\u09cd\u09a4\u09ac\u09cd\u09af: Backward-compat alias \u2014 \u09a7\u09c0\u09b0\u09c7 \u09a7\u09c0\u09b0\u09c7 \u09b8\u09ac \u099c\u09be\u09af\u09bc\u0997\u09be\u09af\u09bc get_llm_gateway() \u09a6\u09bf\u09df\u09c7 replace \u0995\u09b0\u09c1\u09a8
+# বাংলা মন্তব্য: Backward-compat alias —
+# ধীরে ধীরে সব জায়গায় get_llm_gateway() দিয়ে replace করুন
 llm_gateway = get_llm_gateway()
 
 ```
@@ -77153,10 +77155,10 @@ class MicroVMSandbox:
         finally:
             # বাংলা মন্তব্য: temp file সবসময় cleanup করতে হবে — resource leak নিষিদ্ধ
             if tmp_file and os.path.exists(tmp_file):
-                try:
+                import contextlib
+                # বাংলা মন্তব্য: SIM105 lint rule সন্তুষ্ট করতে contextlib.suppress ব্যবহার করা হলো
+                with contextlib.suppress(OSError):
                     os.unlink(tmp_file)
-                except OSError:
-                    pass
 
     def _destroy_vm(self, vm_id: str) -> None:
         vm_dir = f"{self.sandbox_dir}/{vm_id}"

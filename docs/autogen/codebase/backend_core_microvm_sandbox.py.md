@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/microvm_sandbox.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,431 বাইট  
-**আপডেট:** 2026-07-08T01:31:17.994878
+**সাইজ:** 9,612 বাইট  
+**আপডেট:** 2026-07-08T01:36:41.265092
 
 ---
 
@@ -215,10 +215,10 @@ class MicroVMSandbox:
         finally:
             # বাংলা মন্তব্য: temp file সবসময় cleanup করতে হবে — resource leak নিষিদ্ধ
             if tmp_file and os.path.exists(tmp_file):
-                try:
+                import contextlib
+                # বাংলা মন্তব্য: SIM105 lint rule সন্তুষ্ট করতে contextlib.suppress ব্যবহার করা হলো
+                with contextlib.suppress(OSError):
                     os.unlink(tmp_file)
-                except OSError:
-                    pass
 
     def _destroy_vm(self, vm_id: str) -> None:
         vm_dir = f"{self.sandbox_dir}/{vm_id}"
