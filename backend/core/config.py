@@ -21,6 +21,22 @@ if "pytest" not in sys.modules:
     load_dotenv(root_env)
 
 
+def get_production_env(var_name: str, default_fallback: str | None = None) -> str | None:
+    value = os.getenv(var_name)
+    env = os.getenv("ENV", "development").lower()
+
+    if not value:
+        if env == "production":
+            # প্রডাকশনে কোনো ফলব্যাক আইপি চলবে না, সরাসরি বুট ক্র্যাশ করবে
+            logger.critical(f"❌ CRITICAL CONFIG ERROR: Missing required environment variable '{var_name}' in production!")
+            raise ValueError(f"Configuration Error: {var_name} must be explicitly defined in production.")
+
+        # ডেভেলপমেন্ট মোডে লোকালহোস্ট ফলব্যাক ঠিক আছে
+        return default_fallback
+
+    return value
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=None if "pytest" in sys.modules else ["../.env", ".env"],
@@ -166,7 +182,7 @@ class Settings(BaseSettings):
     max_response_tokens: int = 1_500
     enable_token_compression: bool = True
     sentry_dsn: str = ""
-    ollama_url: str = "http://127.0.0.1:11434"
+    ollama_url: str = Field(default_factory=lambda: get_production_env("OLLAMA_URL", "http://127.0.0.1:11434"))
     gcp_project_id: str = "supremeai-a"
     gcp_region: str = "us-central1"
 

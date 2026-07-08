@@ -14,11 +14,13 @@ from loguru import logger
 
 
 # ডিফল্ট টাইমআউট সেকেন্ডে — বেশিরভাগ API কলের জন্য উপযুক্ত
-DEFAULT_TIMEOUT = 30.0
+DEFAULT_TIMEOUT = httpx.Timeout(20.0, connect=5.0, read=30.0)
+
+async_client = httpx.AsyncClient(timeout=DEFAULT_TIMEOUT)
 
 
 def create_async_client(
-    timeout: float = DEFAULT_TIMEOUT,
+    timeout: float | httpx.Timeout = DEFAULT_TIMEOUT,
     **kwargs: Any,
 ) -> httpx.AsyncClient:
     """কনফিগার করা httpx.AsyncClient তৈরি করে।
