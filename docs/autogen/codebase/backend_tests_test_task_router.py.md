@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_task_router.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,424 বাইট  
-**আপডেট:** 2026-07-07T22:11:19.778405
+**সাইজ:** 5,448 বাইট  
+**আপডেট:** 2026-07-08T00:29:13.883414
 
 ---
 
@@ -145,7 +145,7 @@ class TestTaskRouterTriggerExternalSkill:
     def test_trigger_success(self, mock_client_cls, router):
         mock_client_cls.return_value = FakeClient({"ok": True, "data": "mocked"})
         result = asyncio.run(
-            router.trigger_external_skill("http://example.com/webhook", {"key": "val"})
+            router.trigger_external_skill("https://hooks.zapier.com/webhook", {"key": "val"})
         )
         assert result.get("ok") is True
         assert "data" not in result.get("error", "")
@@ -154,7 +154,7 @@ class TestTaskRouterTriggerExternalSkill:
     @patch("core.task_router.httpx.AsyncClient")
     def test_trigger_retries_then_fails(self, mock_client_cls, router):
         mock_client_cls.return_value = FakeClient(raise_on_post=True)
-        result = asyncio.run(router.trigger_external_skill("http://bad-url", {}))
+        result = asyncio.run(router.trigger_external_skill("https://hooks.zapier.com/webhook", {}))
         assert result["success"] is False
         assert "unavailable" in result.get("error", "")
 

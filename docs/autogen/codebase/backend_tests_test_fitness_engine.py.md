@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_fitness_engine.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,621 বাইট  
-**আপডেট:** 2026-07-07T22:11:19.783518
+**সাইজ:** 5,673 বাইট  
+**আপডেট:** 2026-07-08T00:29:13.889716
 
 ---
 
@@ -16,7 +16,8 @@ from evolution.fitness_engine import FitnessEngine
 
 
 @pytest.fixture
-def temp_fitness_env(tmp_path):
+def temp_fitness_env(tmp_path, monkeypatch):
+    monkeypatch.setenv("ENV", "local")
     metrics_path = tmp_path / "metrics.json"
     registry_path = tmp_path / "registry.json"
     skills_dir = tmp_path / "dynamic"

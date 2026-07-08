@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/tools/test_coverage_auditor.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,521 বাইট  
-**আপডেট:** 2026-07-07T22:11:19.794191
+**সাইজ:** 4,505 বাইট  
+**আপডেট:** 2026-07-08T00:29:13.903269
 
 ---
 
@@ -13,8 +13,8 @@ from unittest.mock import mock_open
 from unittest.mock import patch
 
 import pytest
-from backend.tools.coverage_auditor import CoverageAuditor
-from backend.tools.coverage_auditor import CoverageGap
+from tools.coverage_auditor import CoverageAuditor
+from tools.coverage_auditor import CoverageGap
 
 
 @pytest.fixture

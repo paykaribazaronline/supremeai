@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_free_tier_tracker.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,417 বাইট  
-**আপডেট:** 2026-07-07T22:11:19.777862
+**সাইজ:** 10,494 বাইট  
+**আপডেট:** 2026-07-08T00:29:13.882771
 
 ---
 
@@ -27,6 +27,8 @@ from __future__ import annotations
 
 import time
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from core.free_tier_tracker import FreeTierTracker
 from core.free_tier_tracker import ProviderBudget
@@ -297,7 +299,8 @@ class TestTokenBudgetManager:
         assert m1 is m2
 
 
-def test_free_tier_tracker_database_loading():
+@pytest.mark.anyio
+async def test_free_tier_tracker_database_loading():
     mock_db = MagicMock()
     mock_db.client = MagicMock()
     mock_db.get_db_provider_configs.return_value = [
@@ -314,6 +317,7 @@ def test_free_tier_tracker_database_loading():
         "core.free_tier_tracker.FREE_PROVIDER_PRIORITY", ["custom_provider"]
     ):
         tracker = FreeTierTracker()
+        await tracker.load_from_db()
         assert tracker.priority_list == ["custom_provider"]
         assert tracker._budgets["custom_provider"].limits["rpm"] == 5
         assert tracker._budgets["custom_provider"].limits["tpm"] == 500

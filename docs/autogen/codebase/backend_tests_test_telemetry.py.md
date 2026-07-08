@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_telemetry.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,387 বাইট  
-**আপডেট:** 2026-07-07T22:11:19.786176
+**সাইজ:** 6,402 বাইট  
+**আপডেট:** 2026-07-08T00:29:13.893238
 
 ---
 
@@ -12,6 +12,8 @@
 import sys
 from unittest.mock import MagicMock
 from unittest.mock import patch
+
+import pytest
 
 
 # Conditional mock for opentelemetry exporter when running in environments

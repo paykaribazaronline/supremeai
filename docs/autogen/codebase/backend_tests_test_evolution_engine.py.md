@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_evolution_engine.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,227 বাইট  
-**আপডেট:** 2026-07-07T22:11:19.782884
+**সাইজ:** 2,402 বাইট  
+**আপডেট:** 2026-07-08T00:29:13.889062
 
 ---
 
@@ -18,15 +18,17 @@ from unittest.mock import MagicMock
 from core.evolution_engine import EvolutionEngine
 
 
-def _make_engine():
+def _make_engine(monkeypatch=None):
     tmpdir = tempfile.mkdtemp()
     db_path = os.path.join(tmpdir, "evolution.db")
     engine = EvolutionEngine(db_path=db_path)
+    if monkeypatch:
+        monkeypatch.setattr("database.supabase_client.db.client", False)
     return engine, db_path, tmpdir
 
 
-def test_run_daily_evolution_empty_history():
-    engine, _, _ = _make_engine()
+def test_run_daily_evolution_empty_history(monkeypatch):
+    engine, _, _ = _make_engine(monkeypatch)
     report = engine.run_daily_evolution([])
     assert report["total_tasks_processed"] == 0
     assert report["success_rate"] == 100.0
@@ -34,8 +36,8 @@ def test_run_daily_evolution_empty_history():
     assert report["new_skills_proposed"] == []
 
 
-def test_run_daily_evolution_all_success():
-    engine, _, _ = _make_engine()
+def test_run_daily_evolution_all_success(monkeypatch):
+    engine, _, _ = _make_engine(monkeypatch)
     history = [
         {"success": True, "task": "t1"},
         {"success": True, "task": "t2"},
@@ -47,8 +49,8 @@ def test_run_daily_evolution_all_success():
     assert report["repeated_failures"] == 0
 
 
-def test_run_daily_evolution_all_failure_triggers_repeated_failures():
-    engine, _, _ = _make_engine()
+def test_run_daily_evolution_all_failure_triggers_repeated_failures(monkeypatch):
+    engine, _, _ = _make_engine(monkeypatch)
     for _ in range(5):
         engine.learn_from_failure("flaky_task", "approach_a", "timeout")
     report = engine.run_daily_evolution([])

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/evolution_engine.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,926 বাইট  
-**আপডেট:** 2026-07-07T22:11:19.743813
+**সাইজ:** 15,042 বাইট  
+**আপডেট:** 2026-07-08T00:29:13.840134
 
 ---
 
@@ -102,6 +102,8 @@ class EvolutionEngine:
             if db.client:
                 db.insert_task_history(task, approach, result, True, created_at)
                 supabase_success = True
+            else:
+                supabase_success = True
         except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to insert success to Supabase: {e}")
             if evolution_write_failures:
@@ -136,6 +138,8 @@ class EvolutionEngine:
 
             if db.client:
                 db.insert_task_history(task, approach, result, False, created_at)
+                supabase_success = True
+            else:
                 supabase_success = True
         except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to insert failure to Supabase: {e}")

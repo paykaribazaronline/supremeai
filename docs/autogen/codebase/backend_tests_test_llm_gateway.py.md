@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_llm_gateway.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,539 বাইট  
-**আপডেট:** 2026-07-07T22:11:19.772116
+**সাইজ:** 5,431 বাইট  
+**আপডেট:** 2026-07-08T00:29:13.875512
 
 ---
 
@@ -37,20 +37,19 @@ def test_load_routing_policy_file_not_found(monkeypatch, tmp_path):
 
 
 def test_inject_secrets_sets_env_vars(monkeypatch):
-    monkeypatch.setattr("core.llm_gateway.settings.groq_api_key", "sk-groq")
-    monkeypatch.setattr("core.llm_gateway.settings.gemini_api_key", "")
-    monkeypatch.setattr("core.llm_gateway.settings.openrouter_api_key", "")
-    monkeypatch.setattr("core.llm_gateway.settings.deepseek_api_key", "")
-    monkeypatch.setattr("core.llm_gateway.settings.hf_api_key", "")
+    from core.config import settings
+    settings._cached_secrets.clear()
+    from unittest.mock import patch
+    with patch("core.config.secret_vault.fetch_secret", side_effect=lambda k: "sk-groq" if k == "GROQ_API_KEY" else ""):
 
-    if "GROQ_API_KEY" in os.environ:
-        monkeypatch.delenv("GROQ_API_KEY")
-    if "GEMINI_API_KEY" in os.environ:
-        monkeypatch.delenv("GEMINI_API_KEY")
+        if "GROQ_API_KEY" in os.environ:
+            monkeypatch.delenv("GROQ_API_KEY")
+        if "GEMINI_API_KEY" in os.environ:
+            monkeypatch.delenv("GEMINI_API_KEY")
 
-    gateway = LLMGateway()
-    assert os.environ.get("GROQ_API_KEY") == "sk-groq"
-    assert "GEMINI_API_KEY" not in os.environ
+        gateway = LLMGateway()
+        assert os.environ.get("GROQ_API_KEY") == "sk-groq"
+        assert "GEMINI_API_KEY" not in os.environ
 
 
 @pytest.mark.anyio

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/tools/test_auto_coverage_improver.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,376 বাইট  
-**আপডেট:** 2026-07-07T22:11:19.794081
+**সাইজ:** 3,344 বাইট  
+**আপডেট:** 2026-07-08T00:29:13.903135
 
 ---
 
@@ -13,17 +13,17 @@ from unittest.mock import AsyncMock
 from unittest.mock import patch
 
 import pytest
-from backend.tools.auto_coverage_improver import AutoCoverageImprover
-from backend.tools.coverage_auditor import CoverageGap
+from tools.auto_coverage_improver import AutoCoverageImprover
+from tools.coverage_auditor import CoverageGap
 
 
 @pytest.fixture
 def improver():
     """Provides an instance of AutoCoverageImprover with mocked dependencies."""
     with (
-        patch("backend.tools.auto_coverage_improver.CoverageAuditor") as MockAuditor,
+        patch("tools.auto_coverage_improver.CoverageAuditor") as MockAuditor,
         patch(
-            "backend.tools.auto_coverage_improver.AutoTestGenerator"
+            "tools.auto_coverage_improver.AutoTestGenerator"
         ) as MockGenerator,
     ):
         improver_instance = AutoCoverageImprover()

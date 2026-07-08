@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_config.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,170 বাইট  
-**আপডেট:** 2026-07-07T22:11:19.775326
+**সাইজ:** 4,298 বাইট  
+**আপডেট:** 2026-07-08T00:29:13.879727
 
 ---
 
@@ -63,7 +63,8 @@ def test_defaults():
     },
     clear=False,
 )
-def test_env_override():
+@patch('core.config.secret_vault.fetch_secret', side_effect=lambda k: os.environ.get(k) or os.environ.get(k.lower()))
+def test_env_override(mock_fetch):
     s = Settings()
     assert s.PROJECT_NAME == "TestApp"
     assert s.env == "production"

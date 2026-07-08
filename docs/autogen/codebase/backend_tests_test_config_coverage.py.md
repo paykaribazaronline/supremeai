@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_config_coverage.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,418 বাইট  
-**আপডেট:** 2026-07-07T22:11:19.788222
+**সাইজ:** 7,776 বাইট  
+**আপডেট:** 2026-07-08T00:29:13.895804
 
 ---
 
@@ -123,8 +123,17 @@ def test_debug_preserved_outside_production():
 def _bare_settings(**attrs) -> Settings:
     # বাংলা মন্তব্য: পুরো pydantic ভ্যালিডেশন এড়াতে খালি ইনস্ট্যান্স বানিয়ে অ্যাট্রিবিউট সেট করা হয়
     s = Settings.__new__(Settings)
+    s._cached_secrets = {}
     for key, value in attrs.items():
-        object.__setattr__(s, key, value)
+        try:
+            object.__setattr__(s, key, value)
+        except AttributeError:
+            if key == "jwt_secret":
+                s._cached_secrets["SUPREMEAI_JWT_SECRET"] = value
+            elif key == "ci_webhook_secret":
+                s._cached_secrets["CI_WEBHOOK_SECRET"] = value
+            else:
+                s._cached_secrets[key.upper()] = value
     return s
 
 
