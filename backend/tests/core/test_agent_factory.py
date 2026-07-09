@@ -19,7 +19,7 @@ async def test_agent_factory_creates_and_saves_agent():
 
     mock_res = {"text": '{"agent_name": "AmazonTracker", "description": "Track prices", "execution_steps": [{"action": "click"}]}'}
 
-    with patch("core.agent_factory.llm_gateway.acompletion", new_callable=AsyncMock, return_value=mock_res):
+    with patch("core.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock, return_value=mock_res):
         config = await factory.create_specialized_agent("Track prices on Amazon")
         assert config["agent_name"] == "AmazonTracker"
         assert config["execution_steps"] == [{"action": "click"}]

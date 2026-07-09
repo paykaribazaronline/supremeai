@@ -16,7 +16,7 @@ def test_defaults():
     assert s.host == "0.0.0.0"
     assert s.supremeai_admin_password_hash is None
     assert s.ollama_url == "http://localhost:11434"
-    assert s.gcp_project_id == "supremeai-a"
+    assert s.gcp_project_id == ""
     assert s.gcp_region == "us-central1"
     assert s.max_cost_per_task == 0.01
     assert s.admin_rules_db == ""
