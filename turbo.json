@@ -5,7 +5,9 @@
     "NODE_ENV",
     "API_URL",
     "SUPABASE_URL",
-    "PINECONE_API_KEY"
+    "PINECONE_API_KEY",
+    "VITE_PORTAL_TYPE",
+    "VITE_API_URL"
   ],
   "tasks": {
     "build": {
@@ -14,6 +16,8 @@
         ".next/**",
         "!.next/cache/**",
         "dist/**",
+        "dist-admin/**",
+        "dist-user/**",
         "build/**"
       ]
     },
