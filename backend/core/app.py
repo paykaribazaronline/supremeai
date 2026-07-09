@@ -18,6 +18,9 @@ from core import lifespan
 from core import services
 from core.admin_routes import router as admin_router
 from core.api_key_middleware import APIKeyAuthMiddleware
+
+# বাংলা মন্তব্য: unused import setup_tracing সরানো হলো (এটি lifespan-এ শিফট করা হয়েছে)
+from core.auth_middleware import AuthMiddleware
 from core.config import settings
 
 # বাংলা মন্তব্য: P1 Fix — F821 Undefined name 'ErrorEvent' ফিক্স করার জন্য ErrorEvent কেও ইম্পোর্ট করা হলো।
@@ -26,9 +29,6 @@ from core.event_bus import error_event_bus
 from core.honeypot_middleware import HoneypotMiddleware
 from core.observability_middleware import ObservabilityMiddleware
 from core.rate_limiter import RateLimitMiddleware
-
-# বাংলা মন্তব্য: unused import setup_tracing সরানো হলো (এটি lifespan-এ শিফট করা হয়েছে)
-from core.auth_middleware import AuthMiddleware
 from middleware.idempotency import IdempotencyMiddleware
 
 
