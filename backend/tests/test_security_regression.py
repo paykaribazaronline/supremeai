@@ -17,6 +17,7 @@ async def test_production_jwt_secret_required():
         Settings(
             env="production",
             SUPREMEAI_JWT_SECRET=None,
+            supremeai_admin_password_hash="dummy-hash",
             openrouter_api_key="valid",
             gemini_api_key="valid",
         )

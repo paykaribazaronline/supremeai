@@ -75,7 +75,7 @@ class TestSettingsValidators:
         from core.config import Settings
 
         result = Settings.set_test_secret(None, type("FakeInfo", (), {"data": {"env": "test"}})())
-        assert result == "test-secret-placeholder"
+        assert len(result) == 128
 
     def test_validate_admin_hash_production_requires(self):
         from pydantic import ValidationError

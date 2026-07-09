@@ -67,7 +67,7 @@ async def test_pipeline_success(clean_dynamic_skills):
     async def mock_acompletion(*args, **kwargs):
         return {"text": json.dumps(MOCK_AI_RESPONSE_JSON)}
 
-    with patch("core.llm_gateway.llm_gateway.acompletion", new=mock_acompletion):
+    with patch("core.llm_gateway.LLMGateway.acompletion", new=mock_acompletion):
         creator = AutoSkillCreator()
         result = await creator.generate_and_deploy_skill(user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer")
 
@@ -92,7 +92,7 @@ async def test_pipeline_validation_mismatch(clean_dynamic_skills):
     async def mock_acompletion(*args, **kwargs):
         return {"text": json.dumps(mismatch_json)}
 
-    with patch("core.llm_gateway.llm_gateway.acompletion", new=mock_acompletion):
+    with patch("core.llm_gateway.LLMGateway.acompletion", new=mock_acompletion):
         creator = AutoSkillCreator()
         result = await creator.generate_and_deploy_skill(user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer")
 
@@ -117,7 +117,7 @@ async def test_pipeline_invalid_uss_pydantic(clean_dynamic_skills):
     async def mock_acompletion(*args, **kwargs):
         return {"text": json.dumps(bad_uss_json)}
 
-    with patch("core.llm_gateway.llm_gateway.acompletion", new=mock_acompletion):
+    with patch("core.llm_gateway.LLMGateway.acompletion", new=mock_acompletion):
         creator = AutoSkillCreator()
         result = await creator.generate_and_deploy_skill(user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer")
 

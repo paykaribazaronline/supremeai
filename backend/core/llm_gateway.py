@@ -256,6 +256,9 @@ def get_llm_gateway() -> "LLMGateway":
 
 
 class _LLMGatewayProxy:
+    async def acompletion(self, *args, **kwargs):
+        return await get_llm_gateway().acompletion(*args, **kwargs)
+
     def __getattr__(self, name):
         return getattr(get_llm_gateway(), name)
 

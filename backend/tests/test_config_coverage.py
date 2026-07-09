@@ -89,7 +89,8 @@ def test_validate_env_rejects_unknown():
 
 # ── set_test_secret ────────────────────────────────────────────────────
 def test_set_test_secret_returns_placeholder_in_local():
-    assert Settings.set_test_secret(None, _info(env="local")) == "test-secret-placeholder"
+    secret = Settings.set_test_secret(None, _info(env="local"))
+    assert len(secret) == 128
 
 
 def test_set_test_secret_raises_in_production_when_missing():
@@ -169,6 +170,6 @@ def test_validate_config_passes_when_production_keys_present():
 def test_settings_construction_defaults():
     s = Settings()
     assert s.env == "local"
-    assert s.jwt_secret == "test-secret-placeholder"
+    assert len(s.jwt_secret) == 128
     assert isinstance(s.admin_emails, list)
     assert isinstance(s.allowed_hosts, list)

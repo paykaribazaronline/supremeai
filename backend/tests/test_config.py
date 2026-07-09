@@ -15,13 +15,13 @@ def test_defaults():
     assert s.port == 8000
     assert s.host == "0.0.0.0"
     assert s.supremeai_admin_password_hash is None
-    assert s.ollama_url == "http://127.0.0.1:11434"
+    assert s.ollama_url == "http://localhost:11434"
     assert s.gcp_project_id == "supremeai-a"
     assert s.gcp_region == "us-central1"
     assert s.max_cost_per_task == 0.01
-    assert s.admin_rules_db == "data/constitutional_rules.db"
-    assert s.memory_db_dir == "data/memory"
-    assert s.skill_registry_path == "data/skill_registry.json"
+    assert s.admin_rules_db == ""
+    assert s.memory_db_dir == ""
+    assert s.skill_registry_path == ""
 
 
 @patch.dict(
@@ -45,9 +45,9 @@ def test_defaults():
         "gcp_project_id": "test-project",
         "gcp_region": "europe-west1",
         "max_cost_per_task": "1.5",
-        "admin_rules_db": "/tmp/rules.db",
-        "memory_db_dir": "/tmp/memory",
-        "skill_registry_path": "/tmp/skills.json",
+        "ADMIN_RULES_DB_PATH": "/tmp/rules.db",
+        "MEMORY_DB_DIR": "/tmp/memory",
+        "SKILL_REGISTRY_PATH": "/tmp/skills.json",
         "SUPREMEAI_JWT_SECRET": "mock-jwt-secret-for-production",
     },
     clear=False,
