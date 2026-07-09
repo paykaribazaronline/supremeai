@@ -7,7 +7,7 @@ class SQLiteMemoryStore:
     """Manages transactional data, session variables, and task history in SQLite database."""
 
     def __init__(self, db_path: str = None):
-        if db_path is None:
+        if not db_path:
             base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             self.db_path = os.path.join(base_dir, "data", "supreme_memory.db")
         else:

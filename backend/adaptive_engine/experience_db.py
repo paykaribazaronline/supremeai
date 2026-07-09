@@ -34,8 +34,10 @@ class ExperienceDatabase:
     def __init__(self, db_path: str = None):
         import os
 
-        if db_path is None:
+        if not db_path:
             db_path = os.getenv("EXPERIENCE_DB_PATH", "data/experience.db")
+        if not db_path:
+            db_path = "data/experience.db"
         self.db_path = Path(db_path)
         if str(self.db_path) != ":memory:":
             self.db_path.parent.mkdir(parents=True, exist_ok=True)

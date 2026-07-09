@@ -28,7 +28,7 @@ from core.observability_middleware import ObservabilityMiddleware
 from core.rate_limiter import RateLimitMiddleware
 
 # বাংলা মন্তব্য: unused import setup_tracing সরানো হলো (এটি lifespan-এ শিফট করা হয়েছে)
-from middleware.auth_middleware import ZeroTrustAuthMiddleware
+from core.auth_middleware import AuthMiddleware
 from middleware.idempotency import IdempotencyMiddleware
 
 
@@ -125,7 +125,7 @@ app.add_middleware(TrustedOriginMiddleware)
 app.add_middleware(ChaosInjectorMiddleware)
 app.add_middleware(ObservabilityMiddleware)
 app.add_middleware(HoneypotMiddleware)
-app.add_middleware(ZeroTrustAuthMiddleware)
+app.add_middleware(AuthMiddleware)
 app.add_middleware(RateLimitMiddleware, requests_per_minute=120, burst=20)
 app.add_middleware(IdempotencyMiddleware)
 app.add_middleware(APIKeyAuthMiddleware)

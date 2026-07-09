@@ -17,7 +17,7 @@ class AdminGodLayer:
     """
 
     def __init__(self, db_path: str = None):
-        if db_path is None:
+        if not db_path:
             # বাংলা মন্তব্য: settings থেকে রুলস ডাটাবেস পাথ রিড করা হচ্ছে
             try:
                 from core.config import settings
