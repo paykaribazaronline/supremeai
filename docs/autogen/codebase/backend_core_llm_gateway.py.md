@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/llm_gateway.py
 
 **প্রকার:** .py  
-**সাইজ:** 12,482 বাইট  
-**আপডেট:** 2026-07-08T19:45:59.794143
+**সাইজ:** 12,513 বাইট  
+**আপডেট:** 2026-07-09T10:27:17.459447
 
 ---
 
@@ -266,8 +266,14 @@ def get_llm_gateway() -> "LLMGateway":
     return _llm_gateway_instance
 
 
-# বাংলা মন্তব্য: Backward-compat alias —
-# ধীরে ধীরে সব জায়গায় get_llm_gateway() দিয়ে replace করুন
-llm_gateway = get_llm_gateway()
+class _LLMGatewayProxy:
+    def __getattr__(self, name):
+        return getattr(get_llm_gateway(), name)
+
+    def __setattr__(self, name, value):
+        return setattr(get_llm_gateway(), name, value)
+
+
+llm_gateway = _LLMGatewayProxy()
 
 ```

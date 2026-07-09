@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/pages/IntegrationsManager.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 3,533 বাইট  
-**আপডেট:** 2026-07-08T19:45:59.880677
+**সাইজ:** 3,658 বাইট  
+**আপডেট:** 2026-07-09T10:27:17.565598
 
 ---
 
@@ -10,14 +10,17 @@
 
 ```tsx
 import React, { useState } from 'react';
+import { getApiBaseUrl } from '../utils/api';
 
 export const IntegrationsManager: React.FC = () => {
-  // টেস্টিংয়ের জন্য লোকাল স্টেট, পরবর্তীতে এটি ব্যাকএন্ড থেকে আসবে
+  // টেস্টিংয়ের জন্য লোকাল স্টেট, পরবর্তীতে এটি ব্যাকএন্ড থেকে আসবে
   const [githubStatus, setGithubStatus] = useState<'Disconnected' | 'Connected'>('Disconnected');
 
   const handleGithubConnect = () => {
-    // সরাসরি আমাদের ব্যাকএন্ডের OAuth লিংকে রিডাইরেক্ট করবে
-    window.location.href = 'http://localhost:8000/api/v1/integrations/github/link';
+    // বাংলা মন্তব্য: P0 Fix — hardcoded localhost URL → dynamic API base URL।
+    // Production-এ localhost redirect করলে OAuth flow break হবে।
+    const API_BASE = getApiBaseUrl();
+    window.location.href = `${API_BASE}/api/v1/integrations/github/link`;
   };
 
   return (

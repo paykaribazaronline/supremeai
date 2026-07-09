@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/security.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,981 বাইট  
-**আপডেট:** 2026-07-08T19:45:59.787670
+**সাইজ:** 3,416 বাইট  
+**আপডেট:** 2026-07-09T10:27:17.451834
 
 ---
 
@@ -25,16 +25,23 @@ from loguru import logger
 from core.config import settings
 
 
-# JWT
-SECRET_KEY = settings.jwt_secret
+# বাংলা মন্তব্য: P0 Fix — module-level SECRET_KEY eager evaluation → lazy property।
+# আগে: import-এ immediate evaluate হতো, যার ফলে JWT secret rotate করা যেত না।
+# এখন: প্রতিটি কলের সময় runtime-এ fetch হবে, enabling secret rotation without restart.
+
+
+def _get_jwt_secret() -> str:
+    secret = settings.jwt_secret
+    if not secret:
+        logger.critical("🚨 FATAL: JWT Secret is missing! Halting boot process to prevent vulnerabilities.")
+        raise RuntimeError("Security misconfiguration: Missing JWT Secret.")
+    return secret
+
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 ADMIN_WHITELIST = settings.admin_emails
-
-if not SECRET_KEY:
-    logger.critical("🚨 FATAL: JWT Secret is missing! Halting boot process to prevent vulnerabilities.")
-    raise RuntimeError("Security misconfiguration: Missing JWT Secret.")
 
 # API Key settings
 API_KEY_PREFIX = "sk-supreme"
@@ -49,14 +56,14 @@ def create_access_token(data: dict) -> str:
     user_email = to_encode.get("sub")
     role = "admin" if user_email in ADMIN_WHITELIST else "user"
     to_encode.update({"role": role})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, _get_jwt_secret(), algorithm=ALGORITHM)
     return encoded_jwt
 
 
 def verify_token(token: str) -> dict:
     """টোকেন ডিকোড এবং ভেরিফাই করবে"""
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, _get_jwt_secret(), algorithms=[ALGORITHM])
         return payload
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired") from None

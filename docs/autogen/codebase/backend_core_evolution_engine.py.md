@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/evolution_engine.py
 
 **প্রকার:** .py  
-**সাইজ:** 16,491 বাইট  
-**আপডেট:** 2026-07-08T19:45:59.787797
+**সাইজ:** 17,187 বাইট  
+**আপডেট:** 2026-07-09T10:27:17.451982
 
 ---
 
@@ -39,6 +39,18 @@ class EvolutionEngine:
         base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.db_path = db_path or os.getenv("EVOLUTION_DB_PATH", os.path.join(base, "data", "evolution.db"))
         self.model_router = model_router or ModelRouter()
+
+        # বাংলা মন্তব্য: P2 Fix — Production Cloud Run-এ local SQLite নিষিদ্ধ।
+        # /data/ directory ephemeral — container restart-এ সব data হারায়।
+        # শুধু Supabase (persistent) ব্যবহার করুন বা Cloud Storage FUSE mount (/mnt/) দিন।
+        env = os.getenv("ENV", "local").lower()
+        if env == "production" and "/data/" in str(self.db_path):
+            logger.warning(
+                "⚠️ SQLite on ephemeral filesystem detected in production. "
+                "Evolution data will NOT survive container restarts. "
+                "Recommend: Set EVOLUTION_DB_PATH=/mnt/gcs/evolution.db for Cloud Storage FUSE."
+            )
+
         os.makedirs(os.path.dirname(str(self.db_path)), exist_ok=True)
         self._ensure_schema()
 
@@ -97,43 +109,40 @@ class EvolutionEngine:
             if db.client:
                 db.insert_task_history(task, approach, result, True, created_at)
                 supabase_success = True
+            # বাংলা মন্তব্য: P1 Fix — else branch-এ supabase_success = True সরানো হলো।
+            # db.client None হলে supabase_success False থাকবে — এটিই সঠিক behavior।
+            # আগে: else: supabase_success = True — এটি false positive তৈরি করতো।
             else:
-                supabase_success = True
+                logger.warning("Supabase client is None. Task history will only be stored in local SQLite.")
         except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to insert success to Supabase: {e}")
             if evolution_write_failures:
                 evolution_write_failures.inc()
 
-        if not supabase_success:
-            return {"stored": False, "error": "Supabase write failed. Saga rollback: skipping SQLite."}
-
+        # বাংলা মন্তব্য: Supabase fail হলেও local SQLite-তে store করা হবে (degraded mode)
+        # আগে: supabase fail হলে SQLite skip করা হতো — data loss হতো
         conn = sqlite3.connect(str(self.db_path))
         try:
-            # বাংলা মন্তব্য: P1+P3 Fix — INSERT OR IGNORE দিয়ে idempotency নিশ্চিত করা হলো।
-            # একই data দুইবার insert হবে না। failure এখন clearly রিপোর্ট করে।
             conn.execute(
-                "INSERT OR IGNORE INTO task_history (task, approach, result, success, created_at) VALUES (?, ?, ?, ?, ?)",
+                "INSERT OR IGNORE INTO task_history (task, approach, result, success, created_at) " "VALUES (?, ?, ?, ?, ?)",
                 (task, approach, result, 1, created_at),
             )
             conn.commit()
             return {
                 "stored": True,
+                "supabase_synced": supabase_success,
                 "task": task,
                 "approach": approach,
                 "result": result,
             }
         except sqlite3.Error as db_err:
-            # বাংলা মন্তব্য: P1 Fix — SQLite write failure clearly report করা হচ্ছে।
-            # Supabase-এ data আছে কিন্তু local SQLite-এ নেই — partial state স্পষ্ট করা হচ্ছে।
-            logger.error(f"SQLite write failed after Supabase success for task '{task}': {db_err}")
+            logger.error(f"SQLite write also failed: {db_err}")
             if evolution_write_failures:
                 evolution_write_failures.inc()
             return {
                 "stored": False,
-                "partial": True,
-                "supabase_ok": True,
+                "supabase_synced": supabase_success,
                 "sqlite_error": str(db_err),
-                "task": task,
             }
         finally:
             conn.close()

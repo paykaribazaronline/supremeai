@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/secure_credential_store.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,385 বাইট  
-**আপডেট:** 2026-07-08T19:45:59.788253
+**সাইজ:** 6,400 বাইট  
+**আপডেট:** 2026-07-09T10:27:17.452553
 
 ---
 
@@ -65,12 +65,27 @@ class LocalFernetProvider(EncryptionProvider):
 
     def encrypt(self, plaintext: str) -> tuple[str, str | None]:
         if not self.enabled or self.fernet is None:
+            # বাংলা মন্তব্য: P0 Fix — production-এ plaintext fallback নিষিদ্ধ।
+            # Development-এ warning log সহ plaintext allowed, production-এ hard crash।
+            from core.config import settings
+
+            env = getattr(settings, "env", "local")
+            if env == "production":
+                raise RuntimeError(
+                    "Credential encryption key not configured in production! " "Set SUPREMEAI_CREDENTIAL_ENC_KEY environment variable."
+                )
+            logger.warning("⚠️ Credential encryption disabled. Storing as plaintext. " "This is ONLY acceptable in development.")
             return plaintext, "local:plaintext"
         try:
             token = self.fernet.encrypt(plaintext.encode()).decode()
             return token, "local:fernet"
         except Exception as exc:  # noqa: BLE001
             logger.error(f"LocalFernetProvider encryption failed: {exc}")
+            # বাংলা মন্তব্য: encryption fail হলেও production-এ plaintext fallback নিষিদ্ধ
+            from core.config import settings
+
+            if getattr(settings, "env", "local") == "production":
+                raise RuntimeError(f"Encryption failed in production: {exc}") from exc
             return plaintext, "local:plaintext"
 
     def decrypt(self, ciphertext: str, key_ref: str | None) -> str:

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/health_checker.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,386 বাইট  
-**আপডেট:** 2026-07-08T19:45:59.848408
+**সাইজ:** 6,451 বাইট  
+**আপডেট:** 2026-07-09T10:27:17.522671
 
 ---
 
@@ -138,7 +138,7 @@ class HealthChecker:
             )
         return anomalies
 
-    def report_to_admin(self, anomalies: list[dict[str, Any]]) -> bool:
+    async def report_to_admin(self, anomalies: list[dict[str, Any]]) -> bool:
         if not anomalies:
             return False
         lines = ["Anomaly Detection Alert"]
@@ -149,10 +149,11 @@ class HealthChecker:
             logger.warning("Telegram credentials not configured; anomaly report not sent")
             return False
         try:
-            import requests
+            import httpx
 
             url = f"https://api.telegram.org/bot{self.telegram_bot_token}/sendMessage"
-            requests.post(url, json={"chat_id": self.admin_chat_id, "text": text}, timeout=10)
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                await client.post(url, json={"chat_id": self.admin_chat_id, "text": text})
             return True
         except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to report anomaly: {exc}")

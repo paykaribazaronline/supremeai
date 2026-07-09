@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/health_monitor.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,717 বাইট  
-**আপডেট:** 2026-07-08T19:45:59.794829
+**সাইজ:** 3,925 বাইট  
+**আপডেট:** 2026-07-09T10:27:17.460218
 
 ---
 
@@ -103,6 +103,13 @@ class HealthMonitor:
                 logger.debug(f"Failed to record request duration: {exc}")
 
 
-health_monitor = HealthMonitor()
+_health_monitor_instance = None
+
+
+def get_health_monitor() -> HealthMonitor:
+    global _health_monitor_instance
+    if _health_monitor_instance is None:
+        _health_monitor_instance = HealthMonitor()
+    return _health_monitor_instance
 
 ```

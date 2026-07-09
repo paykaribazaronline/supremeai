@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/memory/sqlite_store.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,005 বাইট  
-**আপডেট:** 2026-07-08T19:45:59.810777
+**সাইজ:** 4,001 বাইট  
+**আপডেট:** 2026-07-09T10:27:17.478919
 
 ---
 
@@ -18,7 +18,7 @@ class SQLiteMemoryStore:
     """Manages transactional data, session variables, and task history in SQLite database."""
 
     def __init__(self, db_path: str = None):
-        if db_path is None:
+        if not db_path:
             base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             self.db_path = os.path.join(base_dir, "data", "supreme_memory.db")
         else:

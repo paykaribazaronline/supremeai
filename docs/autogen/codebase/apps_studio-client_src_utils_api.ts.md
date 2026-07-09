@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/utils/api.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 781 বাইট  
-**আপডেট:** 2026-07-08T19:45:59.866079
+**সাইজ:** 998 বাইট  
+**আপডেট:** 2026-07-09T10:27:17.547709
 
 ---
 
@@ -11,7 +11,9 @@
 ```ts
 export const getApiBaseUrl = (): string => {
   if (typeof window === 'undefined') {
-    return import.meta.env.VITE_API_BASE || import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const url = import.meta.env.VITE_API_BASE || import.meta.env.VITE_API_URL;
+    if (!url && import.meta.env.PROD) throw new Error("API URL missing in production");
+    return url || 'http://localhost:8000';
   }
 
   if (import.meta.env.VITE_API_BASE) {
@@ -27,7 +29,9 @@ export const getApiBaseUrl = (): string => {
 
 export const getWebSocketBaseUrl = (): string => {
   if (typeof window === 'undefined') {
-    return import.meta.env.VITE_WS_BASE_URL || 'ws://localhost:8000';
+    const url = import.meta.env.VITE_WS_BASE_URL;
+    if (!url && import.meta.env.PROD) throw new Error("WS URL missing in production");
+    return url || 'ws://localhost:8000';
   }
 
   if (import.meta.env.VITE_WS_BASE_URL) {

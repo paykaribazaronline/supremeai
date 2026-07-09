@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/load/locustfile.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,613 বাইট  
-**আপডেট:** 2026-07-08T19:45:59.838797
+**সাইজ:** 4,731 বাইট  
+**আপডেট:** 2026-07-09T10:27:17.511723
 
 ---
 
@@ -26,7 +26,9 @@ class SupremeAILoadTestUser(HttpUser):
     def on_start(self):
         """ইউজার বুট হওয়ার সময় ভ্যালিড এনভায়রনমেন্ট সিক্রেট টোকেন লোড করবে"""
         # প্রডাকশনে পুশ করার সময় secrets বা env থেকে আসল ভ্যালিড টেস্ট টোকেনটি এখানে বসাবে
-        self.auth_token = "YOUR_VALID_PRODUCTION_TEST_JWT_TOKEN"
+        self.auth_token = (
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0X3VzZXIiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MDQxNTM2MDB9.s1MP9mE1Jq_xV8u_D5-uF..."
+        )
         self.headers = {"Content-Type": "application/json", "Authorization": f"Bearer {self.auth_token}"}
 
     @task(2)

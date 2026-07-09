@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/event_bus.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,422 বাইট  
-**আপডেট:** 2026-07-08T19:45:59.784942
+**সাইজ:** 3,646 বাইট  
+**আপডেট:** 2026-07-09T10:27:17.448775
 
 ---
 
@@ -64,8 +64,26 @@ class ErrorEventBus:
                 await listener(event)
             else:
                 listener(event)
+        except asyncio.CancelledError:
+            # বাংলা মন্তব্য: P1 Fix — CancelledError properly re-raised, not swallowed।
+            # আগে: Exception base class-তে catch হওয়ায় CancelledError silently ignored হতো।
+            raise
         except Exception as listener_exc:  # noqa: BLE001
             logger.critical(f"🔥 EventBus Listener Failed: {listener_exc}")
+            # বাংলা মন্তব্য: P1 Fix — listener failure-এ backup EventBus emit করা হলো।
+            # Infinite loop এড়াতে max depth check করা হলো।
+            if event.module != "event_bus" and event.severity != "CRITICAL":
+                try:
+                    backup_event = ErrorEvent(
+                        module="event_bus",
+                        error_type="LISTENER_FAILURE",
+                        message=f"Listener in {event.module} failed: {str(listener_exc)[:200]}",
+                        severity="WARNING",
+                        context={"original_module": event.module, "original_error": str(listener_exc)[:200]},
+                    )
+                    asyncio.create_task(self.emit_async(backup_event))
+                except Exception:  # noqa: BLE001
+                    pass  # Ultimate fallback — no infinite recursion
 
 
 # Global Instance

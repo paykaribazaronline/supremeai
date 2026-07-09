@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/admin/god.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,301 বাইট  
-**আপডেট:** 2026-07-08T19:45:59.814094
+**সাইজ:** 7,383 বাইট  
+**আপডেট:** 2026-07-09T10:27:17.482918
 
 ---
 
@@ -28,13 +28,16 @@ class AdminGodLayer:
     """
 
     def __init__(self, db_path: str = None):
-        if db_path is None:
+        if not db_path:
             # বাংলা মন্তব্য: settings থেকে রুলস ডাটাবেস পাথ রিড করা হচ্ছে
             try:
                 from core.config import settings
 
                 db_path = settings.admin_rules_db
             except ImportError:
+                db_path = "data/constitutional_rules.db"
+
+            if not db_path:
                 db_path = "data/constitutional_rules.db"
 
         self.db_path = Path(db_path)

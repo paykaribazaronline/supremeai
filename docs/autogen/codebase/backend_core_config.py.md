@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/config.py
 
 **প্রকার:** .py  
-**সাইজ:** 12,979 বাইট  
-**আপডেট:** 2026-07-08T19:45:59.787514
+**সাইজ:** 14,196 বাইট  
+**আপডেট:** 2026-07-09T10:27:17.451663
 
 ---
 
@@ -193,17 +193,21 @@ class Settings(BaseSettings):
     max_response_tokens: int = 1_500
     enable_token_compression: bool = True
     sentry_dsn: str = ""
-    ollama_url: str = Field(default_factory=lambda: get_production_env("OLLAMA_URL", "http://127.0.0.1:11434"))
-    gcp_project_id: str = "supremeai-a"
-    gcp_region: str = "us-central1"
+    # বাংলা মন্তব্য: P0 Fix — production-এ কোনো fallback localhost URL চলবে না।
+    # get_production_env() প্রোডাকশনে missing variable হলে critical error দেবে।
+    ollama_url: str = Field(default_factory=lambda: get_production_env("OLLAMA_URL", "http://localhost:11434"))
+    gcp_project_id: str = Field(default="", validation_alias="GCP_PROJECT_ID")
+    gcp_region: str = Field(default="us-central1", validation_alias="GCP_REGION")
 
-    stripe_api_key: str = ""
-    stripe_webhook_secret: str = ""
+    stripe_api_key: str = Field(default="", validation_alias="STRIPE_API_KEY")
+    stripe_webhook_secret: str = Field(default="", validation_alias="STRIPE_WEBHOOK_SECRET")
 
     max_cost_per_task: float = 0.01
-    admin_rules_db: str = "data/constitutional_rules.db"
-    memory_db_dir: str = "data/memory"
-    skill_registry_path: str = "data/skill_registry.json"
+    # বাংলা মন্তব্য: P0 Fix — local filesystem paths hardcoded → env vars।
+    # Cloud Run ephemeral filesystem-এ data lost হবে। Firestore/GCS use করুন।
+    admin_rules_db: str = Field(default="", validation_alias="ADMIN_RULES_DB_PATH")
+    memory_db_dir: str = Field(default="", validation_alias="MEMORY_DB_DIR")
+    skill_registry_path: str = Field(default="", validation_alias="SKILL_REGISTRY_PATH")
 
     # 🔗 Universal Integration Hub (OAuth)
     @computed_field
@@ -254,8 +258,14 @@ class Settings(BaseSettings):
         env = info.data.get("env", "local")
         if not v:
             if env == "production":
-                raise ValueError("SUPREMEAI_JWT_SECRET environment variable must be set in production")
-            return "test-secret-placeholder"
+                # বাংলা মন্তব্য: P0 Fix — প্রোডাকশনে কোনো ফলব্যাক বা এফিমেরাল সিক্রেট চলবে না। Hard Fail-Closed!
+                raise ValueError(
+                    "🚨 CRITICAL SECURITY ERROR: SUPREMEAI_JWT_SECRET environment variable " "must be explicitly set in production environments."
+                )
+            import secrets as _secrets
+
+            logger.warning("⚠️ SUPREMEAI_JWT_SECRET not set. Generating ephemeral secret for local development.")
+            return _secrets.token_hex(64)
         return v
 
     @field_validator("supremeai_admin_password_hash", mode="before")

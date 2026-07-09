@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/adaptive_engine/experience_db.py
 
 **প্রকার:** .py  
-**সাইজ:** 12,283 বাইট  
-**আপডেট:** 2026-07-08T19:45:59.843645
+**সাইজ:** 12,346 বাইট  
+**আপডেট:** 2026-07-09T10:27:17.517225
 
 ---
 
@@ -45,8 +45,10 @@ class ExperienceDatabase:
     def __init__(self, db_path: str = None):
         import os
 
-        if db_path is None:
+        if not db_path:
             db_path = os.getenv("EXPERIENCE_DB_PATH", "data/experience.db")
+        if not db_path:
+            db_path = "data/experience.db"
         self.db_path = Path(db_path)
         if str(self.db_path) != ":memory:":
             self.db_path.parent.mkdir(parents=True, exist_ok=True)

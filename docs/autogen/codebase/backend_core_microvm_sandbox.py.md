@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/microvm_sandbox.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,577 বাইট  
-**আপডেট:** 2026-07-08T19:45:59.794307
+**সাইজ:** 11,499 বাইট  
+**আপডেট:** 2026-07-09T10:27:17.459635
 
 ---
 
@@ -33,7 +33,14 @@ class MicroVMSandbox:
 
     def _generate_vm_id(self) -> str:
         MicroVMSandbox._vm_id_counter += 1
+        # বাংলা মন্তব্য: P0 Fix — vm_id-এ alphanumeric characters only allowed, path injection প্রতিরোধ।
         return f"supremeai-vm-{int(time.time())}-{MicroVMSandbox._vm_id_counter}"
+
+    def _validate_vm_id(self, vm_id: str) -> bool:
+        """বাংলা মন্তব্য: P0 Fix — vm_id-এ alphanumeric, underscore, hyphen only allowed, path injection প্রতিরোধ।"""
+        import re
+
+        return bool(re.match(r"^[a-zA-Z0-9_-]+$", vm_id))
 
     def _check_microvm_available(self) -> bool:
         try:
@@ -85,6 +92,13 @@ class MicroVMSandbox:
                 }
 
         vm_id = self._generate_vm_id()
+        # বাংলা মন্তব্য: P0 Fix — vm_id validation before use, path injection প্রতিরোধ।
+        if not self._validate_vm_id(vm_id):
+            return {
+                "success": False,
+                "error": f"Invalid vm_id generated: {vm_id}",
+                "provider": "microvm",
+            }
         vm_dir = f"{self.sandbox_dir}/{vm_id}"
         os.makedirs(vm_dir, exist_ok=True)
 
@@ -129,9 +143,26 @@ class MicroVMSandbox:
             return {"success": False, "error": str(e), "provider": "firecracker"}
 
     async def _run_gvisor(self, cmd: str, timeout: int) -> dict[str, Any]:
+        # বাংলা মন্তব্য: P0 Fix — cmd সরাসরি argument হিসেবে দেওয়া নিষিদ্ধ।
+        # Docker fallback-এর মতো tempfile pattern অনুসরণ করা হলো।
+        # এটি shell injection এবং argument injection উভয় প্রতিরোধ করে।
+        import contextlib
+        import tempfile
+
+        tmp_file = None
         try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                suffix=".py",
+                delete=False,
+                dir="/tmp",  # nosec B108
+            ) as f:
+                f.write(cmd)
+                tmp_file = f.name
+
             result = subprocess.run(
-                ["runsc", "do", cmd],
+                # বাংলা মন্তব্য: "--" argument separator — পরবর্তী arguments কে flags হিসেবে interpret নিষিদ্ধ
+                ["runsc", "do", "--", "python3", tmp_file],
                 capture_output=True,
                 text=True,
                 timeout=timeout,
@@ -153,6 +184,11 @@ class MicroVMSandbox:
             }
         except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e), "provider": "gvisor"}
+        finally:
+            # বাংলা মন্তব্য: temp file cleanup — resource leak নিষিদ্ধ
+            if tmp_file and os.path.exists(tmp_file):
+                with contextlib.suppress(OSError):
+                    os.unlink(tmp_file)
 
     async def _run_docker_fallback(self, vm_id: str, cmd: str, timeout: int) -> dict[str, Any]:
         # বাংলা মন্তব্য: P0 Fix — cmd কে সরাসরি `python -c` argument হিসেবে দেওয়া নিষিদ্ধ।
@@ -248,10 +284,6 @@ def get_sandbox() -> MicroVMSandbox:
     if _sandbox_instance is None:
         _sandbox_instance = MicroVMSandbox()
     return _sandbox_instance
-
-
-# Backward-compat alias
-sandbox = get_sandbox()
 
 
 async def execute_code_securely(code: str, timeout: int = 30, language: str = "python") -> dict[str, Any]:
