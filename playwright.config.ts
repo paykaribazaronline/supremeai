@@ -62,11 +62,12 @@ export default defineConfig({
   ],
 
   // বাংলা মন্তব্য: ডেভেলপমেন্ট সার্ভার চালু করা, এটি ব্যাকগ্রাউন্ডে থাকবে সমস্ত টেস্ট জুড়ে
+  // CI/CD-তে পোর্ট কনফ্লিক্ট এড়ানোর জন্য reuseExistingServer: true করা হয়েছে
   webServer: [
     {
       command: 'pnpm --dir apps/studio-client dev --host 0.0.0.0 --port 5173',
       url: 'http://127.0.0.1:5173',
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: true,
       timeout: 120 * 1000,
       stdout: 'pipe',
       stderr: 'pipe',
@@ -74,7 +75,7 @@ export default defineConfig({
     {
       command: 'cd backend && poetry run uvicorn main:app --port 8000',
       url: 'http://127.0.0.1:8000/docs',
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: true,
       timeout: 120 * 1000,
       stdout: 'pipe',
       stderr: 'pipe',
