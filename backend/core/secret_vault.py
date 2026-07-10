@@ -26,7 +26,7 @@ class ProductionSecretVault:
         self.client_id = os.getenv("INFISICAL_CLIENT_ID")
         self.client_secret = os.getenv("INFISICAL_CLIENT_SECRET")
         self.token = os.getenv("INFISICAL_TOKEN")
-        
+
         self.client = None
         self._cached_secrets: dict[str, str] = {}
         logger.info("⚙️ Secure Local In-Memory Secret Cache Layer Initialized.")
@@ -35,14 +35,11 @@ class ProductionSecretVault:
             try:
                 # If using Universal Auth (Machine Identity Client ID + Secret)
                 if self.client_id and self.client_secret:
-                    self.client = InfisicalClient(ClientSettings(
-                        auth=AuthenticationOptions(
-                            universal_auth=UniversalAuthMethod(
-                                client_id=self.client_id,
-                                client_secret=self.client_secret
-                            )
+                    self.client = InfisicalClient(
+                        ClientSettings(
+                            auth=AuthenticationOptions(universal_auth=UniversalAuthMethod(client_id=self.client_id, client_secret=self.client_secret))
                         )
-                    ))
+                    )
                     logger.info("🔒 Production Secret Vault hooked into Infisical via Machine Identity")
                 # If using legacy or single Service Token
                 elif self.token:
@@ -74,10 +71,10 @@ class ProductionSecretVault:
             options = GetSecretOptions(
                 environment=self.env if self.env in ["production", "staging", "development"] else "development",
                 project_id=self.project_id,
-                secret_name=secret_id
+                secret_name=secret_id,
             )
             secret_value = self.client.getSecret(options=options).secret_value
-            
+
             # Write-back to cache
             self._cached_secrets[secret_id] = secret_value
             return secret_value
@@ -90,11 +87,13 @@ class ProductionSecretVault:
     async def fetch_secret_async(self, secret_id: str) -> str:
         """অ্যাসিঙ্ক ইভেন্ট লুপ ব্লক না করে সিক্রেট ফেচ করার মেথড"""
         import asyncio
+
         return await asyncio.to_thread(self.fetch_secret, secret_id)
 
 
 # Global Vault Singleton Instance
 _secret_vault_instance: ProductionSecretVault | None = None
+
 
 def get_secret_vault() -> ProductionSecretVault:
     global _secret_vault_instance

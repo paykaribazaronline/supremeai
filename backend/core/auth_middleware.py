@@ -91,7 +91,7 @@ class AuthMiddleware:
             # বাংলা মন্তব্য: Origin/Referer ফাঁকা হলেও block — `and (origin or referer)` শর্ত সরানো হয়েছে।
             # এটি সরাসরি curl বা internal service call দিয়ে admin bypass আটকায়।
             if not is_admin_domain:
-                logger.warning(f"Forbidden admin access to {path} | " f"origin='{origin}' referer='{referer}' — no authorized domain header.")
+                logger.warning(f"Forbidden admin access to {path} | origin='{origin}' referer='{referer}' — no authorized domain header.")
                 response = JSONResponse(
                     status_code=403,
                     content={"detail": "Forbidden: Admin endpoints are restricted to the admin console domain."},

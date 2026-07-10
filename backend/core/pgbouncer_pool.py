@@ -80,7 +80,7 @@ async def get_db_pool() -> PgBouncerConnectionPool:
     RuntimeError is raised if the pool has not been initialized yet.
     """
     if _db_pool_instance is None:
-        raise RuntimeError("DB pool was accessed before app startup initialized it. " "Call init_db_pool() explicitly during the FastAPI lifespan.")
+        raise RuntimeError("DB pool was accessed before app startup initialized it. Call init_db_pool() explicitly during the FastAPI lifespan.")
     return _db_pool_instance
 
 

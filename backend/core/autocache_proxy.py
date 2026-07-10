@@ -75,7 +75,7 @@ class AutocacheProxy:
             self.cost_metrics["total_cost_saved"] += estimated_cost
 
             logger.info(
-                f"💰 [CACHE HIT] Model: {model} | Cost Saved: ${estimated_cost:.6f} | " f"Total Saved: ${self.cost_metrics['total_cost_saved']:.6f}"
+                f"💰 [CACHE HIT] Model: {model} | Cost Saved: ${estimated_cost:.6f} | Total Saved: ${self.cost_metrics['total_cost_saved']:.6f}"
             )
 
             return {

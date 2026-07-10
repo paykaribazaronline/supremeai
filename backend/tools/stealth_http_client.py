@@ -44,9 +44,9 @@ class StealthHTTPClient:
             client_kwargs = {"headers": headers, "timeout": kwargs.pop("timeout", 10.0), **kwargs}
             if proxy:
                 client_kwargs["proxy"] = proxy
-                logger.info(f"Stealth request via proxy: {proxy} (Attempt {attempt+1}/{retries})")
+                logger.info(f"Stealth request via proxy: {proxy} (Attempt {attempt + 1}/{retries})")
             else:
-                logger.info(f"Stealth request without proxy (Attempt {attempt+1}/{retries})")
+                logger.info(f"Stealth request without proxy (Attempt {attempt + 1}/{retries})")
 
             try:
                 async with httpx.AsyncClient(timeout=15.0) as client:
@@ -54,7 +54,7 @@ class StealthHTTPClient:
                     response.raise_for_status()
                     return response
             except Exception as e:
-                logger.warning(f"Request attempt {attempt+1} failed: {e}")
+                logger.warning(f"Request attempt {attempt + 1} failed: {e}")
                 if proxy:
                     self.proxy_manager.report_failed_proxy(proxy)
 

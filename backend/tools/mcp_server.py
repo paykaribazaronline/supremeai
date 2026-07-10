@@ -79,7 +79,7 @@ async def handle_call_tool(name: str, arguments: dict | None) -> list[types.Text
             return [
                 types.TextContent(
                     type="text",
-                    text=f"Optimal execution path from {start} to {end}:\n{ ' -> '.join(path) if path else 'No path found.' }",
+                    text=f"Optimal execution path from {start} to {end}:\n{' -> '.join(path) if path else 'No path found.'}",
                 )
             ]
 

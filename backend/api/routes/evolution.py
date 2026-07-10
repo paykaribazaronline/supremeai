@@ -34,10 +34,12 @@ class GraphNode(BaseModel):
     label: str
     type: str  # e.g., 'agent', 'skill'
 
+
 class GraphEdge(BaseModel):
     source: str
     target: str
     relationship: str
+
 
 class SwarmGraph(BaseModel):
     nodes: list[GraphNode]
@@ -113,16 +115,17 @@ async def forge_dynamic_skill(payload: EvolutionRequest, db: TenantAwareFirestor
 class QuarantineRequest(BaseModel):
     skill_name: str = Field(..., min_length=1, max_length=200)
 
+
 @router.get("/swarm-graph")
 async def get_swarm_graph():
     from evolution.graph_aggregator import GraphAggregator
-    
+
     # ⚡ Simulated dynamic graph state for prototype
     current_state = {
         "nodes": [{"id": "agent-1", "label": "Code-Optimizer", "type": "agent"}, {"id": "skill-2", "label": "FastAPI Refactor", "type": "skill"}],
-        "edges": [{"source": "agent-1", "target": "skill-2", "relationship": "teaches"}]
+        "edges": [{"source": "agent-1", "target": "skill-2", "relationship": "teaches"}],
     }
-    
+
     aggregator = GraphAggregator()
     return await aggregator.get_swarm_delta(current_full_graph=current_state)
 

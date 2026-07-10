@@ -84,7 +84,7 @@ async def handle_intent(transcript: str, websocket: WebSocket, start_time: float
     else:
         # Natural Language Processing (Simulating conversational Groq/LLM)
         supremeai_response = (
-            f"Hello! You said: '{transcript_clean}'. I am Aethel, " "your SupremeAI orchestrator. How can I assist you with the cluster today?"
+            f"Hello! You said: '{transcript_clean}'. I am Aethel, your SupremeAI orchestrator. How can I assist you with the cluster today?"
         )
 
     # Log to database

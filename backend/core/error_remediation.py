@@ -96,7 +96,7 @@ class ErrorRemediation:
         # বল মনতবয: সব রটর শষ হওয়র পর last_exception কখনই বযবহত হত ন (নরব সযলপ);
         # এখন চডনত বযরথতর করণ warning হসব লগ কর হয় যত ডবগ কর সহজ হয়
         if last_exception is not None:
-            logger.warning(f"Qdrant lookup exhausted {max_attempts} attempts; " f"falling back. Last error: {last_exception}")
+            logger.warning(f"Qdrant lookup exhausted {max_attempts} attempts; falling back. Last error: {last_exception}")
         return None
 
     async def lookup_fix(self, error_sig: str) -> str | None:

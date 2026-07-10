@@ -90,7 +90,7 @@ async def test_enabled_catalog_sources_from_db(monkeypatch):
     monkeypatch.setattr(
         marketplace_endpoints.db,
         "get_config",
-        lambda key: (["awesome-python", "libraries.io"] if key == "marketplace.resource_sources" else None),
+        lambda key: ["awesome-python", "libraries.io"] if key == "marketplace.resource_sources" else None,
     )
 
     sources = marketplace_endpoints.get_enabled_catalog_sources()

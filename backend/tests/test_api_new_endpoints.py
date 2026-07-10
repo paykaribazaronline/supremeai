@@ -146,7 +146,7 @@ def test_config_endpoint_admin_control(monkeypatch):
     monkeypatch.setattr(
         config_route.db,
         "get_config",
-        lambda key: (["awesome-selfhosted", "libraries.io"] if key == "marketplace.resource_sources" else None),
+        lambda key: ["awesome-selfhosted", "libraries.io"] if key == "marketplace.resource_sources" else None,
     )
     monkeypatch.setattr(config_route.db, "set_config", lambda key, value, category="general": None)
 

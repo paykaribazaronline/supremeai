@@ -542,12 +542,12 @@ class MultiAccountRotator:
 
                         if raw and hasattr(raw, "strip") and len(raw.strip()) > 8:
                             api_key = raw.strip()
-                            logger.info(f"[ROTATOR] Extracted API key for {provider_name} " f"(length: {len(api_key)}) from selector '{selector}'")
+                            logger.info(f"[ROTATOR] Extracted API key for {provider_name} (length: {len(api_key)}) from selector '{selector}'")
                             return api_key
                 except Exception:  # noqa: BLE001
                     continue
 
-            logger.warning(f"[ROTATOR] Could not extract API key for {provider_name} from dashboard. " "Admin must add it manually.")
+            logger.warning(f"[ROTATOR] Could not extract API key for {provider_name} from dashboard. Admin must add it manually.")
             return None
         except Exception as exc:  # noqa: BLE001
             logger.warning(f"[ROTATOR] API key extraction failed for {provider_name}: {exc}")

@@ -12,7 +12,7 @@ class SecureRedisManager:
         self.token = os.getenv("UPSTASH_REDIS_REST_TOKEN")
         self.headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
         self.client = httpx.AsyncClient(base_url=self.url, headers=self.headers) if self.url else None
-        
+
         if self.client:
             logger.info("⚡ Serverless Upstash Redis REST Provider Active.")
         else:
@@ -45,12 +45,13 @@ class SecureRedisManager:
         except Exception as exc:  # noqa: BLE001
             logger.error(f"❌ Upstash Cache Read Operation Failed for {key}: {exc}")
             return None
-            
+
     async def set_agent_heartbeat(self, agent_id: str, status: str, latency_ms: int, ttl: int = 5) -> bool:
         """এজেন্ট হার্টবিট সেট করার মেথড।"""
         if not self.client:
             return False
         import json
+
         key = f"health:{agent_id}"
         value = json.dumps({"status": status, "latency": latency_ms})
         return await self.set_cache(key, value, ex_seconds=ttl)
@@ -60,6 +61,7 @@ class SecureRedisManager:
         if not self.client or not agent_ids:
             return {}
         import json
+
         keys = [f"health:{agent_id}" for agent_id in agent_ids]
         payload = ["MGET"] + keys
         try:

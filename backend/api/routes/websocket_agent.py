@@ -193,7 +193,7 @@ async def websocket_chat_endpoint(
                 # বাংলা মন্তব্য: P1 Fix — সকল exception সম্পূর্ণ log করা হচ্ছে।
                 # আগে শুধু print("❌ [GENERATION ERROR]") ছিল — production debugging অসম্ভব ছিল।
                 logger.error(
-                    f"[WS] Neural pipeline error for user={user_id}: " f"{type(e).__name__}: {e}",
+                    f"[WS] Neural pipeline error for user={user_id}: {type(e).__name__}: {e}",
                     exc_info=True,
                 )
                 await websocket.send_text(f"\n[Error: {type(e).__name__}]\n[DONE]")

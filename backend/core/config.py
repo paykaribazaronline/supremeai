@@ -272,7 +272,7 @@ class Settings(BaseSettings):
         if not v:
             if env == "production":
                 # বাংলা মন্তব্য: Production-এ JWT secret missing = hard crash। কোনো ephemeral fallback নেই।
-                raise ValueError("🚨 CRITICAL: SUPREMEAI_JWT_SECRET must be explicitly set in production. " "No ephemeral fallback allowed.")
+                raise ValueError("🚨 CRITICAL: SUPREMEAI_JWT_SECRET must be explicitly set in production. No ephemeral fallback allowed.")
             logger.warning("⚠️ SUPREMEAI_JWT_SECRET not set. Generating ephemeral secret for local dev.")
             return secrets.token_hex(64)
         return v
@@ -320,7 +320,7 @@ class Settings(BaseSettings):
             v = [o for o in v if "localhost" not in o and "127.0.0.1" not in o]
             if not v:
                 raise ValueError(
-                    "Production requires at least one non-localhost CORS origin. " "Set CORS_ORIGINS env var (e.g. https://your-app.web.app)."
+                    "Production requires at least one non-localhost CORS origin. Set CORS_ORIGINS env var (e.g. https://your-app.web.app)."
                 )
         return v
 
@@ -362,7 +362,7 @@ class Settings(BaseSettings):
 
         if missing:
             raise ValueError(
-                f"🚨 PRODUCTION FAIL-FAST: Missing required config vars: {', '.join(missing)}. " f"Server startup aborted. Fix config and redeploy."
+                f"🚨 PRODUCTION FAIL-FAST: Missing required config vars: {', '.join(missing)}. Server startup aborted. Fix config and redeploy."
             )
         return self
 
@@ -376,7 +376,7 @@ try:
 except Exception as _boot_exc:  # noqa: BLE001
     _env_value = os.getenv("ENV", "local").lower()
     if _env_value == "production":
-        logger.critical(f"🔥 FATAL CONFIG ERROR in production: {_boot_exc}\n" f"Server startup ABORTED. Fix the configuration and redeploy.")
+        logger.critical(f"🔥 FATAL CONFIG ERROR in production: {_boot_exc}\nServer startup ABORTED. Fix the configuration and redeploy.")
         sys.exit(1)  # ← Production-এ hard crash — Cloud Run restart trigger হবে
     else:
         # বাংলা মন্তব্য: Local/staging-এ warning দিয়ে চলতে দেওয়া হবে

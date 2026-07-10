@@ -113,7 +113,7 @@ class EvolutionEngine:
         conn = sqlite3.connect(str(self.db_path))
         try:
             conn.execute(
-                "INSERT OR IGNORE INTO task_history (task, approach, result, success, created_at) " "VALUES (?, ?, ?, ?, ?)",
+                "INSERT OR IGNORE INTO task_history (task, approach, result, success, created_at) VALUES (?, ?, ?, ?, ?)",
                 (task, approach, result, 1, created_at),
             )
             conn.commit()
@@ -261,7 +261,7 @@ System: You are a Prompt Optimization specialist. Your task is to rewrite a fail
 Original Prompt:
 "{original_prompt}"
 
-This prompt has a failure rate of {failure_data['failure_rate']:.2%} after {failure_data['total']} attempts.
+This prompt has a failure rate of {failure_data["failure_rate"]:.2%} after {failure_data["total"]} attempts.
 
 Based on the prompt, rewrite it to be more precise, clear, and effective. Provide only the new prompt, without any explanation or extra text.
 """

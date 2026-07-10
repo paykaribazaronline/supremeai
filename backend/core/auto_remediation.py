@@ -166,8 +166,7 @@ class AutoRemediation:
         except ValueError as ve:
             # Windows-এ drive letter mismatch হলে commonpath ValueError দেয়
             raise ValueError(
-                f"🛑 Path traversal detected: {file_path!r} resolves to {real_path!r} "
-                f"which is outside allowed directory {self._ALLOWED_BASE_DIR!r}"
+                f"🛑 Path traversal detected: {file_path!r} resolves to {real_path!r} which is outside allowed directory {self._ALLOWED_BASE_DIR!r}"
             ) from ve
         return real_path
 
@@ -176,7 +175,7 @@ class AutoRemediation:
         আগে: asyncio.run()/loop.run_until_complete() ব্যবহার হতো → running event loop-এ RuntimeError।
         এখন: সব I/O অপারেশন await দিয়ে চলে — কোনো blocking নেই।
         """
-        logger.info(f"Auto-Remediation triggered for {file_path}:{line_number} " f"- Severity: {severity}. Issue: {issue}")
+        logger.info(f"Auto-Remediation triggered for {file_path}:{line_number} - Severity: {severity}. Issue: {issue}")
 
         # Path traversal protection (ধাপ ১.৫ দেখুন)
         safe_path = self._validate_file_path(file_path)

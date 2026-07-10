@@ -15,7 +15,7 @@ import os
 # Note: In production, tokens would be verified against Redis/DB
 def verify_takeover_token(token: str) -> bool:
     if os.environ.get("SUPREMEAI_ENV") == "production":
-        raise NotImplementedError("Production token verification not implemented! " "Must validate tokens against Redis/DB before deployment.")
+        raise NotImplementedError("Production token verification not implemented! Must validate tokens against Redis/DB before deployment.")
     return token.startswith("tok_")
 
 

@@ -79,7 +79,7 @@ def test_rollback_monitor_triggers_rollback(mock_redis):
     # Mock redis increment sequence to simulate 10 requests with 3 errors
     # (3/10 = 30% error rate, which breaches the 10% threshold)
     mock_redis.incr.return_value = 10  # Requests count
-    mock_redis.get.side_effect = lambda k: ("3.0" if "errors" in k else ("10" if "total" in k else "15000.0"))
+    mock_redis.get.side_effect = lambda k: "3.0" if "errors" in k else ("10" if "total" in k else "15000.0")
 
     res = monitor.record_metrics_and_check(service, latency_ms=1500.0, is_error=True)
 
