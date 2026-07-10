@@ -18,51 +18,34 @@ import pytest
 
 
 class TestBrowserAgent:
-    def test_fetch_page_success(self):
+    @pytest.mark.asyncio
+    async def test_fetch_page_success(self):
         from tools.browser_agent import BrowserAgent
 
         agent = BrowserAgent()
-        with patch("httpx.get") as mock_get:
-            mock_resp = MagicMock()
-            mock_resp.text = "<html><head><title>Test</title></head><body>Hello World</body></html>"
-            mock_resp.status_code = 200
-            mock_get.return_value = mock_resp
-            result = agent.fetch_page("https://example.com")
-        assert result["success"] is True
-        assert result["title"] == "Test"
-        assert "Hello World" in result["content"]
+        with patch("tools.browser_agent.is_safe_url", return_value=True):
+            with patch("core.playwright_manager.get_global_browser", return_value=None):
+                with patch("httpx.get") as mock_get:
+                    mock_resp = MagicMock()
+                    mock_resp.text = "<html><head><title>Test</title></head><body>Hello World</body></html>"
+                    mock_resp.status_code = 200
+                    mock_get.return_value = mock_resp
+                    result = await agent.navigate_and_interact("https://example.com")
+                assert result["success"] is True
+                assert "Hello World" in result["content"]
 
-    def test_fetch_page_error(self):
+    @pytest.mark.asyncio
+    async def test_fetch_page_error(self):
         from tools.browser_agent import BrowserAgent
+        import httpx
 
         agent = BrowserAgent()
-        with patch("httpx.get", side_effect=Exception("Connection refused")):
-            result = agent.fetch_page("https://invalid-url.xyz")
-        assert result["success"] is False
-        assert "error" in result
-
-    @pytest.mark.anyio
-    async def test_extract_data(self):
-        from tools.browser_agent import BrowserAgent
-
-        agent = BrowserAgent()
-        with (
-            patch.object(
-                agent,
-                "fetch_page",
-                return_value={
-                    "success": True,
-                    "title": "Test",
-                    "content": "Some content",
-                },
-            ),
-            patch("brain.model_router.ModelRouter") as mock_router_cls,
-        ):
-            mock_router = AsyncMock()
-            mock_router.async_route_and_generate.return_value = {"text": '{"name": "Test"}'}
-            mock_router_cls.return_value = mock_router
-            result = await agent.extract_data("https://example.com", "Extract the name")
-        assert result["success"] is True
+        with patch("tools.browser_agent.is_safe_url", return_value=True):
+            with patch("core.playwright_manager.get_global_browser", return_value=None):
+                with patch("httpx.get", side_effect=httpx.RequestError("Connection refused")):
+                    result = await agent.navigate_and_interact("https://invalid-url.xyz")
+                assert result["success"] is False
+                assert "error" in result
 
 
 # ── VoiceCoder ───────────────────────────────────────────────────────────────

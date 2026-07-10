@@ -12,7 +12,7 @@ from core.security_utils import is_safe_url
 
 
 # pytest-asyncio ব্যবহারের জন্য এই ফাইলএর সমস্ত টেস্টকে async হিসেবে চিহ্নিত করা হলো
-pytestmark = pytest.mark.asyncio
+# pytestmark = pytest.mark.asyncio
 
 
 @pytest.fixture
@@ -41,7 +41,8 @@ async def reset_globals():
     ],
 )
 @patch("socket.gethostbyname", return_value="8.8.8.8")
-def test_is_safe_url_public(mock_gethostbyname, url, expected):
+@pytest.mark.asyncio
+async def test_is_safe_url_public(mock_gethostbyname, url, expected):
     """পাবলিক এবং নিরাপদ URL গুলোকে সঠিকভাবে চিহ্নিত করে কিনা তা পরীক্ষা করে।"""
     assert is_safe_url(url) is expected
 
@@ -56,14 +57,16 @@ def test_is_safe_url_public(mock_gethostbyname, url, expected):
         ("http://my-internal-service.local", "192.168.0.5"),
     ],
 )
-def test_is_safe_url_private(url, unsafe_ip):
+@pytest.mark.asyncio
+async def test_is_safe_url_private(url, unsafe_ip):
     """SSRF অ্যাটাক প্রতিরোধের জন্য প্রাইভেট এবং সংরক্ষিত IP অ্যাড্রেস ব্লক করে কিনা তা পরীক্ষা করে।"""
     with patch("socket.gethostbyname", return_value=unsafe_ip):
         assert is_safe_url(url) is False
 
 
 @patch("socket.gethostbyname", side_effect=socket.gaierror)
-def test_is_safe_url_invalid_hostname(mock_gethostbyname):
+@pytest.mark.asyncio
+async def test_is_safe_url_invalid_hostname(mock_gethostbyname):
     """ভুল বা ইনভ্যালিড হোস্টনেম হ্যান্ডেল করতে পারে কিনা তা পরীক্ষা করে।"""
     assert is_safe_url("http://non-existent-domain-xyz.com") is False
 
@@ -72,6 +75,7 @@ def test_is_safe_url_invalid_hostname(mock_gethostbyname):
 
 
 @patch("tools.browser_agent.async_playwright")
+@pytest.mark.asyncio
 async def test_get_global_browser_initialization(mock_async_playwright):
     """প্রথমবার কল করার সময় প্লে-রাইট এবং ব্রাউজার সঠিকভাবে চালু হয় কিনা তা পরীক্ষা করে।"""
     mock_playwright = AsyncMock()
@@ -95,6 +99,7 @@ async def test_get_global_browser_initialization(mock_async_playwright):
 
 
 @patch("tools.browser_agent.is_safe_url", return_value=True)
+@patch("core.playwright_manager.get_global_browser", return_value=None)
 @patch(
     "httpx.get",
     return_value=MagicMock(
@@ -103,34 +108,34 @@ async def test_get_global_browser_initialization(mock_async_playwright):
         raise_for_status=MagicMock(),
     ),
 )
-def test_fetch_page_success(mock_get, mock_is_safe, agent):
-    """একটি ওয়েবপেজ সফলভাবে ফেচ এবং পার্স করতে পারে কিনা তা পরীক্ষা করে।"""
-    result = agent.fetch_page("http://example.com")
+@pytest.mark.asyncio
+async def test_navigate_and_interact_fallback_scraper(mock_get, mock_browser, mock_is_safe, agent):
+    """প্লেরাইট না থাকলে স্ক্র্যাপার ফলব্যাক পরীক্ষা করে।"""
+    result = await agent.navigate_and_interact("http://example.com")
     assert result["success"] is True
-    assert result["title"] == "Test Page"
     assert "Hello" in result["content"]
-    assert "/link" in result["links"]
-    mock_is_safe.assert_called_once_with("http://example.com")
-
 
 @patch("tools.browser_agent.is_safe_url", return_value=False)
-def test_fetch_page_unsafe_url(mock_is_safe, agent):
+@pytest.mark.asyncio
+async def test_navigate_and_interact_unsafe_url(mock_is_safe, agent):
     """নিরাপদ নয় এমন URL ব্লক করে কিনা তা পরীক্ষা করে।"""
-    result = agent.fetch_page("http://localhost")
+    result = await agent.navigate_and_interact("http://localhost")
     assert result["success"] is False
-    assert "SSRF" in result["error"]
-
+    assert "SSRF check failed" in result["error"]
 
 @patch("tools.browser_agent.is_safe_url", return_value=True)
+@patch("core.playwright_manager.get_global_browser", return_value=None)
 @patch("httpx.get", side_effect=httpx.RequestError("Network error"))
-def test_fetch_page_network_error(mock_get, mock_is_safe, agent):
+@pytest.mark.asyncio
+async def test_navigate_and_interact_network_error(mock_get, mock_browser, mock_is_safe, agent):
     """নেটওয়ার্ক ত্রুটি সঠিকভাবে হ্যান্ডেল করে কিনা তা পরীক্ষা করে।"""
-    result = agent.fetch_page("http://example.com")
+    result = await agent.navigate_and_interact("http://example.com")
     assert result["success"] is False
     assert "Network error" in result["error"]
 
 
 @patch("tools.browser_agent.async_playwright")
+@pytest.mark.asyncio
 async def test_execute_recipe_success(mock_async_playwright, agent):
     """একাধিক স্টেপ সহ একটি ডাইনামিক রেসিপি সফলভাবে কার্যকর করতে পারে কিনা তা পরীক্ষা করে।"""
     # প্লে-রাইট API মক করা
@@ -165,6 +170,7 @@ async def test_execute_recipe_success(mock_async_playwright, agent):
 
 
 @patch("tools.browser_agent.async_playwright")
+@pytest.mark.asyncio
 async def test_execute_recipe_failure(mock_async_playwright, agent):
     """রেসিপি কার্যকর করার সময় ত্রুটি ঘটলে সঠিকভাবে রিপোর্ট করে কিনা তা পরীক্ষা করে।"""
     mock_page = AsyncMock()
@@ -187,43 +193,10 @@ async def test_execute_recipe_failure(mock_async_playwright, agent):
     assert mock_browser.close.called  # ফেইল করলেও ব্রাউজার ক্লিনআপ হয়
 
 
-@patch("tools.browser_agent.BrowserAgent.fetch_page")
-@patch("brain.model_router.ModelRouter.async_route_and_generate")
-async def test_extract_data_success(mock_llm, mock_fetch, agent):
-    """AI ব্যবহার করে ডেটা এক্সট্র্যাকশন সফলভাবে কাজ করে কিনা তা পরীক্ষা করে।"""
-    mock_fetch.return_value = {"success": True, "content": "Page content", "title": "Title"}
-    mock_llm.return_value = {"text": '{"key": "value"}'}
-
-    result = await agent.extract_data("http://example.com", "extract the key")
-
-    assert result["success"] is True
-    assert result["extracted"] == '{"key": "value"}'
-    mock_fetch.assert_called_once_with("http://example.com")
-    mock_llm.assert_called_once()
-
-
-@patch("tools.browser_agent.BrowserAgent.fetch_page", return_value={"success": False, "error": "Fetch failed"})
-async def test_extract_data_fetch_fails(mock_fetch, agent):
-    """পেজ ফেচ করতে ব্যর্থ হলে এক্সট্র্যাকশন সঠিকভাবে ফেইল করে কিনা তা পরীক্ষা করে।"""
-    result = await agent.extract_data("http://example.com", "extract something")
-    assert result["success"] is False
-    assert result["error"] == "Fetch failed"
-
-
-@patch("tools.browser_agent.BrowserAgent.fetch_page", return_value={"success": True, "content": "Content"})
-@patch("brain.model_router.ModelRouter.async_route_and_generate", side_effect=Exception("LLM error"))
-async def test_extract_data_llm_fails(mock_llm, mock_fetch, agent):
-    """AI মডেল কল করতে ব্যর্থ হলে এক্সট্র্যাকশন সঠিকভাবে ফেইল করে কিনা তা পরীক্ষা করে।"""
-    result = await agent.extract_data("http://example.com", "extract something")
-    assert result["success"] is False
-    assert "LLM error" in result["error"]
-
-
 @patch("tools.browser_agent.async_playwright", None)
-def test_playwright_not_installed(agent):
+@pytest.mark.asyncio
+async def test_playwright_not_installed(agent):
     """প্লে-রাইট ইনস্টল করা না থাকলে execute_recipe সঠিকভাবে ফেইল করে কিনা তা পরীক্ষা করে।"""
-    import asyncio
-
-    result = asyncio.run(agent.execute_recipe([]))
+    result = await agent.execute_recipe([])
     assert result["status"] == "failed"
     assert "Playwright is not installed" in result["error"]

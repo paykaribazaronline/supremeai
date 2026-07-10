@@ -65,17 +65,20 @@ def test_rag_pipeline():
     assert "12345" in ctx
 
 
-def test_browser_agent():
+@pytest.mark.asyncio
+async def test_browser_agent():
     agent = BrowserAgent()
-    with patch("httpx.get") as mock_get:
-        mock_resp = MagicMock()
-        mock_resp.text = "<html><title>Sample Site</title><body>Hello world</body></html>"
-        mock_resp.is_success = True
-        mock_get.return_value = mock_resp
+    with patch("tools.browser_agent.is_safe_url", return_value=True):
+        with patch("core.playwright_manager.get_global_browser", return_value=None):
+            with patch("httpx.get") as mock_get:
+                mock_resp = MagicMock()
+                mock_resp.text = "<html><title>Sample Site</title><body>Hello world</body></html>"
+                mock_resp.is_success = True
+                mock_get.return_value = mock_resp
 
-        res = agent.fetch_page("http://example.com")
-        assert res["success"] is True
-        assert res["title"] == "Sample Site"
+                res = await agent.navigate_and_interact("http://example.com")
+                assert res["success"] is True
+                assert res["title"] == "Sample Site"
 
 
 def test_computer_agent_security():

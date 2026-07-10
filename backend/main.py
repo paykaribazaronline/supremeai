@@ -11,6 +11,7 @@ from api.routes.agent_workspace import router as agent_router
 from api.routes.integrations import router as integrations_router
 from api.routes.public_config import router as public_config_router
 from api.routes.task_workspace import router as workspace_task_router
+from api.routes.traffic_monitor import router as traffic_monitor_router
 from core.app import app  # noqa: F401
 from core.config import settings
 from core.logging_config import setup_logging
@@ -22,7 +23,7 @@ app.include_router(agent_router, prefix="/api/v1")
 app.include_router(integrations_router, prefix="/api/v1")
 app.include_router(admin_router)
 app.include_router(public_config_router, prefix="/api")
-
+app.include_router(traffic_monitor_router)
 setup_logging()
 
 if settings.env.lower() == "production":

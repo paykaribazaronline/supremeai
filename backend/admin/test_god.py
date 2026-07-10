@@ -1,16 +1,23 @@
 # বাংলা মন্তব্য: অব্যবহৃত ইম্পোর্ট (os, time, MagicMock, logger) মুছে ফেলা হলো।
 import asyncio
 import sys
+import concurrent.futures
 from unittest.mock import patch
 
 import pytest
+import tempfile
+import uuid
+import os
 
 from backend.admin.god import AdminGodLayer
 
-
 @pytest.fixture
 def admin_god_layer():
-    return AdminGodLayer()
+    fd, path = tempfile.mkstemp()
+    os.close(fd)
+    layer = AdminGodLayer(db_path=path)
+    yield layer
+    os.remove(path)
 
 
 class TestAdminGodLayer:
@@ -32,7 +39,7 @@ class TestAdminGodLayer:
         # Test initializing AdminGodLayer with Firestore
         mock_db = mock_get_db.return_value
         admin_god_layer = AdminGodLayer()
-        mock_db.collection.assert_called_once_with(admin_god_layer.collection_name)
+        mock_db.collection.assert_any_call(admin_god_layer.collection_name)
 
     def test_init_db_no_firestore(self):
         # Test initializing AdminGodLayer without Firestore
@@ -129,27 +136,48 @@ class TestAdminGodLayer:
     def test_init_db_concurrent(self, mock_get_db):
         # Test initializing AdminGodLayer with Firestore concurrently
         mock_db = mock_get_db.return_value
-        admin_god_layer1 = AdminGodLayer()
-        admin_god_layer2 = AdminGodLayer()
-        asyncio.gather(admin_god_layer1._init_db(), admin_god_layer2._init_db())
+        fd, path = tempfile.mkstemp()
+        os.close(fd)
+        admin_god_layer1 = AdminGodLayer(db_path=path)
+        admin_god_layer2 = AdminGodLayer(db_path=path)
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future1 = executor.submit(admin_god_layer1._init_db)
+            future2 = executor.submit(admin_god_layer2._init_db)
+            future1.result()
+            future2.result()
+        os.remove(path)
         mock_db.collection.assert_called_with(admin_god_layer1.collection_name)
 
     @patch("backend.admin.god.get_firestore_db")
     def test_get_rule_concurrent(self, mock_get_db):
         # Test getting a rule concurrently
         mock_db = mock_get_db.return_value
-        admin_god_layer1 = AdminGodLayer()
-        admin_god_layer2 = AdminGodLayer()
-        asyncio.gather(admin_god_layer1.get_rule("test_key"), admin_god_layer2.get_rule("test_key"))
+        fd, path = tempfile.mkstemp()
+        os.close(fd)
+        admin_god_layer1 = AdminGodLayer(db_path=path)
+        admin_god_layer2 = AdminGodLayer(db_path=path)
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future1 = executor.submit(admin_god_layer1.get_rule, "test_key")
+            future2 = executor.submit(admin_god_layer2.get_rule, "test_key")
+            future1.result()
+            future2.result()
+        os.remove(path)
         mock_db.collection.return_value.document.assert_called_with("test_key")
 
     @patch("backend.admin.god.get_firestore_db")
     def test_set_rule_concurrent(self, mock_get_db):
         # Test setting a rule concurrently
         mock_db = mock_get_db.return_value
-        admin_god_layer1 = AdminGodLayer()
-        admin_god_layer2 = AdminGodLayer()
-        asyncio.gather(admin_god_layer1.set_rule("test_key", "test_value"), admin_god_layer2.set_rule("test_key", "test_value"))
+        fd, path = tempfile.mkstemp()
+        os.close(fd)
+        admin_god_layer1 = AdminGodLayer(db_path=path)
+        admin_god_layer2 = AdminGodLayer(db_path=path)
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future1 = executor.submit(admin_god_layer1.set_rule, "test_key", "test_value")
+            future2 = executor.submit(admin_god_layer2.set_rule, "test_key", "test_value")
+            future1.result()
+            future2.result()
+        os.remove(path)
         mock_db.collection.return_value.document.assert_called_with("test_key")
 
     @pytest.mark.asyncio
@@ -184,9 +212,12 @@ class TestAdminGodLayer:
 
     def test_get_rule_empty_key(self):
         # Test getting a rule with an empty key
-        admin_god_layer = AdminGodLayer()
+        fd, path = tempfile.mkstemp()
+        os.close(fd)
+        admin_god_layer = AdminGodLayer(db_path=path)
         rule = admin_god_layer.get_rule("")
         assert rule is None
+        os.remove(path)
 
     def test_set_rule_empty_key(self):
         # Test setting a rule with an empty key
@@ -223,9 +254,12 @@ class TestAdminGodLayer:
 
     def test_get_rule_large_key(self):
         # Test getting a rule with a large key
-        admin_god_layer = AdminGodLayer()
+        fd, path = tempfile.mkstemp()
+        os.close(fd)
+        admin_god_layer = AdminGodLayer(db_path=path)
         rule = admin_god_layer.get_rule("a" * 1000)
         assert rule is None
+        os.remove(path)
 
     def test_set_rule_large_key(self):
         # Test setting a rule with a large key

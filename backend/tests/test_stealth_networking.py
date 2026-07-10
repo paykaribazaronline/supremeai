@@ -7,12 +7,15 @@ from tools.proxy_manager import ProxyManager
 from tools.stealth_http_client import StealthHTTPClient
 
 
-def test_production_sandbox_fails_without_docker():
+from tools.local_code_executor import LocalCodeExecutor
+
+@pytest.mark.asyncio
+async def test_production_sandbox_fails_without_docker():
     # Enforce production mode
     old_env = settings.env
     settings.env = "production"
 
-    orchestrator = CloudSandboxOrchestrator()
+    executor = LocalCodeExecutor()
     import sys
     from unittest.mock import MagicMock
 
@@ -20,10 +23,10 @@ def test_production_sandbox_fails_without_docker():
     mock_docker = MagicMock()
     mock_docker.from_env.side_effect = Exception("Docker daemon down")
     with patch.dict("sys.modules", {"docker": mock_docker}):
-        res = orchestrator.run_code("print('hello')")
+        res = await executor.execute_local_code("print('hello')")
 
-    assert res["success"] is False
-    assert "SecurityException" in res["stderr"]
+    assert res["status"] == "error"
+    assert "Docker daemon down" in res["error"]
 
     # Restore settings environment
     settings.env = old_env

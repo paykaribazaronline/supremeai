@@ -99,6 +99,30 @@ class ObservabilityMiddleware:
                 # তব নরব সযলপ ন কর ডবগ লগ কর হল যত টলমটর সমসয বঝ যয়
                 logger.debug(f"PostHog capture failed in observability middleware: {exc}")
 
+            # --- START REDIS TRAFFIC MONITORING ---
+            try:
+                import asyncio
+                import json
+
+                from core.redis_manager import redis_manager
+
+                if redis_manager.client:
+                    now = int(time.time())
+                    # Push to time-series list for the current minute
+                    minute_key = f"traffic:live:{now // 60}"
+
+                    async def push_traffic():
+                        try:
+                            payload = {"method": method, "path": path, "status": status_code, "duration": duration, "error": error_type}
+                            await redis_manager.client.lpush(minute_key, json.dumps(payload))
+                            await redis_manager.client.expire(minute_key, 86400)  # 24 hours retention
+                        except Exception:  # noqa: BLE001
+                            pass
+
+                    asyncio.create_task(push_traffic())
+            except Exception as e:  # noqa: BLE001
+                logger.debug(f"Redis traffic monitoring failed: {e}")
+            # --- END REDIS TRAFFIC MONITORING ---
             try:
                 from database.supabase_client import db
 

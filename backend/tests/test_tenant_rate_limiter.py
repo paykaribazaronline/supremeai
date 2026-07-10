@@ -1,4 +1,3 @@
-# বাংলা মন্তব্য: অব্যবহৃত time ইম্পোর্টটি মুছে ফেলা হলো।
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
