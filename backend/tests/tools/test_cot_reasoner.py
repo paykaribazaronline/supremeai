@@ -18,6 +18,8 @@ class FakeSympy:
     """Lightweight stand-in for sympy used in tests."""
 
     class Expr:
+        __hash__ = None
+
         def __sub__(self, other):
             return 0
 

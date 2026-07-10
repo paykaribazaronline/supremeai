@@ -9,7 +9,7 @@ MCP Server for Supabase/Postgres Database Integration in SupremeAI 2.0.
 import os
 import json
 from typing import List, Any
-from enum import Enum
+from enum import Enum, StrEnum
 
 import psycopg2
 from pydantic import BaseModel, Field, ConfigDict
@@ -24,7 +24,7 @@ def _get_supabase_db_url() -> str:
     return os.getenv("SUPABASE_DATABASE_URL", "")
 
 
-class ResponseFormat(str, Enum):
+class ResponseFormat(StrEnum):
     """আউটপুট ফরম্যাট।"""
 
     MARKDOWN = "markdown"

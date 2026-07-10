@@ -13,7 +13,7 @@ import tempfile
 import contextlib
 from pathlib import Path
 from typing import Dict, Any
-from enum import Enum
+from enum import Enum, StrEnum
 
 from loguru import logger
 from pydantic import BaseModel, Field, ConfigDict
@@ -28,7 +28,7 @@ WORKSPACE_SESSION_FILE = _workspace_root / ".kilo" / "workspace" / "session.json
 WORKSPACE_CONFIG_FILE = _workspace_root / ".kilo" / "workspace" / "config.json"
 
 
-class WorkspaceType(str, Enum):
+class WorkspaceType(StrEnum):
     """ওয়ার্কস্পেসের ধরন।"""
 
     ECOMMERCE_BACKEND = "ecommerce_backend"

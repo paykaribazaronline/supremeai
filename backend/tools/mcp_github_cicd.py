@@ -8,7 +8,7 @@ CI/CD অপারেশন (Issue, PR, Auto-fix) সরাসরে চ্য�
 
 import os
 import json
-from enum import Enum
+from enum import Enum, StrEnum
 
 import httpx
 from pydantic import BaseModel, Field, ConfigDict
@@ -31,7 +31,7 @@ def _get_github_token() -> str:
     return os.getenv("GITHUB_TOKEN", "")
 
 
-class ResponseFormat(str, Enum):
+class ResponseFormat(StrEnum):
     """আউটপুট ফরম্যাট।"""
 
     MARKDOWN = "markdown"

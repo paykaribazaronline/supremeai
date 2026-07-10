@@ -9,7 +9,7 @@ MCP Server for Cloud Deployment Integration in SupremeAI 2.0.
 import os
 import json
 import re
-from enum import Enum
+from enum import Enum, StrEnum
 
 import httpx
 from loguru import logger
@@ -48,7 +48,7 @@ def _get_oracle_region() -> str:
     return region
 
 
-class CloudProvider(str, Enum):
+class CloudProvider(StrEnum):
     """সমর্থিত ক্লাউড প্রোভাইডার।"""
 
     RENDER = "render"
@@ -56,7 +56,7 @@ class CloudProvider(str, Enum):
     ORACLE = "oracle"
 
 
-class ResponseFormat(str, Enum):
+class ResponseFormat(StrEnum):
     """আউটপুট ফরম্যাট।"""
 
     MARKDOWN = "markdown"

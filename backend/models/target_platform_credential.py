@@ -14,14 +14,14 @@ from sqlalchemy.orm import mapped_column
 from models.base import Base
 
 
-class AuthType(str, enum.Enum):
+class AuthType(enum.StrEnum):
     oauth2 = "oauth2"
     cookie_session = "cookie_session"
     api_key = "api_key"
     basic_auth = "basic_auth"
 
 
-class CredentialStatus(str, enum.Enum):
+class CredentialStatus(enum.StrEnum):
     active = "active"
     expired = "expired"
     revoked = "revoked"
