@@ -30,7 +30,7 @@ export class SupremeWebviewProvider implements vscode.WebviewViewProvider {
     private async _fetchLiveRecipes(): Promise<any[]> {
         try {
             // আমাদের স্ট্রেস টেস্টে গ্রিন প্রমাণিত হওয়া ব্যাকএন্ড এন্ডপয়েন্ট
-            const backendUrl = "https://supremeai-api-lhlwyikwlq-uc.a.run.app/api/skills";
+            const backendUrl = 'https://supremeai-api-lhlwyikwlq-uc.a.run.app/api/skills';
             const response = await axios.get(backendUrl, {
                 headers: { 'Authorization': 'Bearer YOUR_VALID_PRODUCTION_TEST_JWT_TOKEN' }
             });
@@ -40,7 +40,7 @@ export class SupremeWebviewProvider implements vscode.WebviewViewProvider {
             }
             return [];
         } catch (error) {
-            console.error("🔴 Failed to fetch live skills for VS Code Sidebar:", error);
+            console.error('🔴 Failed to fetch live skills for VS Code Sidebar:', error);
             return [];
         }
     }
