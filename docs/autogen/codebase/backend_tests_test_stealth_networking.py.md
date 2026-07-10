@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_stealth_networking.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,051 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.497350
+**সাইজ:** 2,262 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.102187
 
 ---
 
@@ -18,23 +18,28 @@ from tools.proxy_manager import ProxyManager
 from tools.stealth_http_client import StealthHTTPClient
 
 
-def test_production_sandbox_fails_without_docker():
+from tools.local_code_executor import LocalCodeExecutor
+
+
+@pytest.mark.asyncio
+async def test_production_sandbox_fails_without_docker():
     # Enforce production mode
     old_env = settings.env
     settings.env = "production"
 
-    orchestrator = CloudSandboxOrchestrator()
+    executor = LocalCodeExecutor()
     import sys
     from unittest.mock import MagicMock
 
     # Mock docker to fail
     mock_docker = MagicMock()
     mock_docker.from_env.side_effect = Exception("Docker daemon down")
-    with patch.dict("sys.modules", {"docker": mock_docker}):
-        res = orchestrator.run_code("print('hello')")
+    with patch.dict(os.environ, {"ENV": "production", "ALLOW_LOCAL_SANDBOX_FALLBACK": "false"}):
+        with patch.dict("sys.modules", {"docker": mock_docker}):
+            res = await executor.execute_local_code("print('hello')")
 
     assert res["success"] is False
-    assert "SecurityException" in res["stderr"]
+    assert "local execution is disabled for safety" in res["error"]
 
     # Restore settings environment
     settings.env = old_env

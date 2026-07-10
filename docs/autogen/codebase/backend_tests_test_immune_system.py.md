@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_immune_system.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,818 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.490902
+**সাইজ:** 2,969 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.095874
 
 ---
 
@@ -32,7 +32,11 @@ def mock_redis(monkeypatch):
     return queue
 
 
-def test_auto_remediation_success(tmp_path):
+import pytest
+
+
+@pytest.mark.asyncio
+async def test_auto_remediation_success(tmp_path):
     # Create a temporary file to test patch application
     test_file = tmp_path / "test_vuln.py"
     test_file.write_text("password = 'hardcoded_secrets'\n", encoding="utf-8")
@@ -44,8 +48,11 @@ def test_auto_remediation_success(tmp_path):
     async def mock_acompletion(*args, **kwargs):
         return {"text": "# Secure Patch Applied for: Hardcoded secret detected\npassword = os.getenv('DB_PASSWORD')"}
 
-    with patch("core.llm_gateway.llm_gateway.acompletion", new=mock_acompletion):
-        res = remediator.process_security_alert(
+    with (
+        patch("core.llm_gateway.LLMGateway.acompletion", new=mock_acompletion),
+        patch.object(remediator, "_validate_file_path", return_value=str(test_file)),
+    ):
+        res = await remediator.process_security_alert(
             file_path=str(test_file),
             line_number=1,
             issue="Hardcoded secret detected",

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_advanced.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,284 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.489396
+**সাইজ:** 5,620 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.094440
 
 ---
 
@@ -12,7 +12,7 @@
 import os
 import sys
 import tempfile
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, AsyncMock
 from unittest.mock import patch
 
 import pytest
@@ -76,17 +76,21 @@ def test_rag_pipeline():
     assert "12345" in ctx
 
 
-def test_browser_agent():
+@pytest.mark.asyncio
+async def test_browser_agent():
     agent = BrowserAgent()
-    with patch("httpx.get") as mock_get:
-        mock_resp = MagicMock()
-        mock_resp.text = "<html><title>Sample Site</title><body>Hello world</body></html>"
-        mock_resp.is_success = True
-        mock_get.return_value = mock_resp
+    with patch("tools.browser_agent.is_safe_url", return_value=True):
+        with patch("tools.browser_agent.get_global_browser", new_callable=AsyncMock) as mock_browser:
+            mock_browser.return_value = None
+            with patch("httpx.get") as mock_get:
+                mock_resp = MagicMock()
+                mock_resp.text = "<html><title>Sample Site</title><body>Hello world</body></html>"
+                mock_resp.is_success = True
+                mock_get.return_value = mock_resp
 
-        res = agent.fetch_page("http://example.com")
-        assert res["success"] is True
-        assert res["title"] == "Sample Site"
+                res = await agent.navigate_and_interact("http://example.com")
+                assert res["success"] is True
+                assert res["title"] == "Sample Site"
 
 
 def test_computer_agent_security():

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_api_keys.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,507 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.491720
+**সাইজ:** 4,590 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.096690
 
 ---
 
@@ -80,6 +80,7 @@ def client():
         patch("core.lifespan._ensure_api_key_tables"),
         patch("core.pgbouncer_pool.get_db_pool", return_value=fake_pool),
         patch("models.api_key.get_db_pool", return_value=fake_pool),
+        patch("api.routes.api_keys._get_current_user", return_value="test_owner"),
     ):
         yield TestClient(app)
 

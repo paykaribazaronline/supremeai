@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/human_behavior.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,911 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.455798
+**সাইজ:** 4,943 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.061745
 
 ---
 
@@ -78,7 +78,7 @@ class HumanBehaviorSimulators:
             await asyncio.sleep(random.uniform(0.1, 0.25))  # ক্লিকের আগে সামান্য থামা
             await page.mouse.click(target_x, target_y)
             logger.debug(f"Simulated natural human click on selector: {selector}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Human-like click failed on {selector}: {str(e)}")
             raise
 
@@ -99,7 +99,7 @@ class HumanBehaviorSimulators:
                 await asyncio.sleep(delay)
 
             logger.debug(f"Simulated natural typing into selector: {selector}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Human-like typing failed on {selector}: {str(e)}")
             raise
 

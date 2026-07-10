@@ -1,8 +1,8 @@
 # 📄 ফাইল: scripts/create_test_admin.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,946 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.422880
+**সাইজ:** 1,966 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.028980
 
 ---
 
@@ -13,6 +13,7 @@ import os
 import sys
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
+from loguru import logger
 
 cred = credentials.Certificate("backend/service-account.json")
 firebase_admin.initialize_app(cred)
@@ -26,8 +27,7 @@ password = os.getenv("TEST_ADMIN_PASSWORD")
 
 if app_env == "production":
     if not email or not password:
-        print("CRITICAL CONFIGURATION ERROR: Production admin creation requires "
-              "both TEST_ADMIN_EMAIL and TEST_ADMIN_PASSWORD env vars explicitly set.")
+        logger.critical("Production admin creation requires both TEST_ADMIN_EMAIL and TEST_ADMIN_PASSWORD env vars.")
         sys.exit(1)
 else:
     # লোকাল ডেভ এনভায়রনমেন্ট বা কন্টেইনারে সিম্পল সিড টেস্টের জন্য নিরাপদ ডিফল্ট
@@ -42,10 +42,10 @@ try:
             password=password,
             email_verified=True
         )
-        print(f"Created user in Auth: {user.uid}")
+        logger.success(f"Created user in Auth: {user.uid}")
     except auth.EmailAlreadyExistsError:
         user = auth.get_user_by_email(email)
-        print(f"User already exists in Auth: {user.uid}")
+        logger.info(f"User already exists in Auth: {user.uid}")
 
     # 2. Firestore-এ অ্যাডমিন রোল সেট করা
     db.collection("admin_users").document(user.uid).set({
@@ -54,9 +54,9 @@ try:
         "created_at": "2026-06-22",
         "totp_secret": None
     }, merge=True)
-    print(f"[OK] Admin role set in Firestore for {email}")
+    logger.success(f"Admin role set in Firestore for {email}")
 
 except Exception as e:
-    print(f"Error: {e}")
+    logger.error(f"Error creating test admin: {e}")
 
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/core/test_integration_phase3.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,801 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.508669
+**সাইজ:** 1,832 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.113096
 
 ---
 
@@ -50,7 +50,7 @@ async def test_llm_gateway_self_healer_integration(mock_acompletion, mock_get_fi
     mock_acompletion.side_effect = Exception("LiteLLM RateLimitError")
 
     with pytest.raises(Exception, match="LiteLLM RateLimitError"):
-        await llm_gateway.acompletion(prompt="Hello", model="openai/gpt-3.5-turbo", tenant_id="tenant-integration")
+        await llm_gateway.acompletion(prompt="Hello unique integration test prompt", model="openai/gpt-3.5-turbo", tenant_id="tenant-integration")
 
     # Verify SelfHealer was called and pending_review is saved
     doc_ref_fixes.set.assert_called_once()

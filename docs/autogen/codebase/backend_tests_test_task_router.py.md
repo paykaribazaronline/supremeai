@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_task_router.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,426 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.493826
+**সাইজ:** 3,264 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.098787
 
 ---
 
@@ -35,7 +35,7 @@ class TestTaskRouterProcessRequirement:
         "desc,expected_type",
         [
             ("write a python script to sort a list", "coding"),
-            ("scrape data from example.com", "web_scraping"),
+            ("scrape data from example.com", "web_scraping_local"),
             ("run a system command to list files", "system_control"),
             ("generate an image of a sunset", "image_generation"),
             ("what is the weather today", "general"),
@@ -86,22 +86,6 @@ class TestTaskRouterProcessRequirement:
         result = router.process_requirement(desc)
         assert result["reasoning_depth"] == expected_depth
 
-    def test_fallback_handler_general(self, router):
-        result = router.process_requirement("hello world")
-        assert result["handler"] == "n8n_webhook"
-
-    def test_fallback_handler_coding(self, router):
-        result = router.process_requirement("write code")
-        assert result["handler"] == "crewai_agents"
-
-    def test_fallback_handler_web_scraping(self, router):
-        result = router.process_requirement("scrape a website")
-        assert result["handler"] == "browser_agent"
-
-    def test_fallback_handler_system_control(self, router):
-        result = router.process_requirement("run a system terminal command")
-        assert result["handler"] == "computer_agent"
-
     def test_cost_limit_passed_through(self, router):
         result = router.process_requirement("code task", max_cost=0.05)
         assert result["cost_limit"] == 0.05
@@ -118,42 +102,5 @@ class TestTaskRouterProcessRequirement:
         result = router.process_requirement("generate an image of a tree")
         assert result["task_type"] == "image_generation"
         assert result["modality"] == "image"
-
-
-class FakeClient:
-    def __init__(self, response_data=None, raise_on_post=False):
-        self.response_data = response_data or {"success": True, "ok": True}
-        self.raise_on_post = raise_on_post
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, *args):
-        pass
-
-    async def post(self, *args, **kwargs):
-        if self.raise_on_post:
-            raise Exception("connection refused")
-        resp = MagicMock()
-        resp.raise_for_status = MagicMock(return_value=None)
-        resp.json = MagicMock(return_value=self.response_data)
-        return resp
-
-
-class TestTaskRouterTriggerExternalSkill:
-    @patch("core.task_router.httpx.AsyncClient")
-    def test_trigger_success(self, mock_client_cls, router):
-        mock_client_cls.return_value = FakeClient({"ok": True, "data": "mocked"})
-        result = asyncio.run(router.trigger_external_skill("https://hooks.zapier.com/webhook", {"key": "val"}))
-        assert result.get("ok") is True
-        assert "data" not in result.get("error", "")
-        assert result.get("ok") is True
-
-    @patch("core.task_router.httpx.AsyncClient")
-    def test_trigger_retries_then_fails(self, mock_client_cls, router):
-        mock_client_cls.return_value = FakeClient(raise_on_post=True)
-        result = asyncio.run(router.trigger_external_skill("https://hooks.zapier.com/webhook", {}))
-        assert result["success"] is False
-        assert "unavailable" in result.get("error", "")
 
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/evolution/auto_skill_creator.py
 
 **প্রকার:** .py  
-**সাইজ:** 12,262 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.481780
+**সাইজ:** 12,485 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.087158
 
 ---
 
@@ -15,10 +15,10 @@ from datetime import datetime
 from typing import Any
 
 from loguru import logger
+from skills.installer import SkillInstaller
 
 from core.tenant_db import TenantAwareFirestore
 from evolution.fitness_engine import FitnessEngine
-from skills.installer import SkillInstaller
 from tools.fuzz_sandbox import SecurityError
 
 # আমাদের হার্ডেনড স্যান্ডবক্স গেটকিপার ইম্পোর্ট
@@ -71,8 +71,9 @@ class AutoSkillCreator:
         start_time = time.time()
         from pathlib import Path
 
-        from core.llm_gateway import llm_gateway
         from skills.schema import UniversalSkillSchema
+
+        from core.llm_gateway import llm_gateway
 
         logger.info(f"🧠 Self-Evolution Triggered: Designing skill '{skill_name}' for demand: '{user_demand}'")
 
@@ -195,9 +196,9 @@ class AutoSkillCreator:
             # Load module from quarantine and execute validation tests inside the restricted Docker Sandbox
             # বাংলা মন্তব্য: এআই জেনারেটেড কোডটি সরাসরি লোকাল ইন্টারপ্রেটারে রান না করিয়ে
             # Dockerized Cloud Sandbox এর সাহায্যে সিকিউর এনভায়রনমেন্টে রান করানো হচ্ছে।
-            from tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
+            from tools.local_code_executor import LocalCodeExecutor
 
-            sandbox = CloudSandboxOrchestrator()
+            sandbox = LocalCodeExecutor()
 
             # Execute validation tests loop inside the sandbox
             for idx, test in enumerate(uss.validation.tests):
@@ -217,9 +218,13 @@ async def run():
 
 asyncio.run(run())
 """
-                run_res = sandbox.run_code(sandbox_script)
-                if not run_res["success"]:
-                    raise ValueError(f"Validation test {idx + 1} crashed or timed out in sandbox. Error: {run_res['stderr']}")
+                run_res = await sandbox.execute_local_code(sandbox_script)
+                if not run_res.get("success"):
+                    err_msg = run_res.get("error", run_res.get("stderr"))
+                    raise ValueError(f"Validation test {idx + 1} crashed or timed out in sandbox. Error: {err_msg}")
+
+                # In execute_local_code, standard output is usually under 'output' not 'stdout'
+                run_res["stdout"] = run_res.get("output", "")
 
                 # Parse stdout logs for output result
                 output_line = [line for line in run_res["stdout"].splitlines() if line.startswith("RESULT:")]

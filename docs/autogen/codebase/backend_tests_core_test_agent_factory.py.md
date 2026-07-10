@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/core/test_agent_factory.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,327 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.508104
+**সাইজ:** 2,029 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.112683
 
 ---
 
@@ -30,7 +30,7 @@ async def test_agent_factory_creates_and_saves_agent():
 
     mock_res = {"text": '{"agent_name": "AmazonTracker", "description": "Track prices", "execution_steps": [{"action": "click"}]}'}
 
-    with patch("core.agent_factory.llm_gateway.acompletion", new_callable=AsyncMock, return_value=mock_res):
+    with patch("core.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock, return_value=mock_res):
         config = await factory.create_specialized_agent("Track prices on Amazon")
         assert config["agent_name"] == "AmazonTracker"
         assert config["execution_steps"] == [{"action": "click"}]
@@ -39,20 +39,19 @@ async def test_agent_factory_creates_and_saves_agent():
 
 
 @pytest.mark.asyncio
-async def test_task_router_uses_saved_agent_from_db():
-    """টাস্ক রাউটার যদি রেজিস্ট্রি থেকে স্কিল পায়, তবে সরাসরি সেটি ব্যবহার করে।"""
+async def test_task_router_dispatches_local_scraping_task():
+    """Ensures the TaskRouter correctly dispatches a 'web_scraping_local' task to the local executor."""
     router = TaskRouter()
 
-    router.skill_manager.get_or_create_skill = AsyncMock(return_value={"skill_name": "AmazonTracker", "execution_steps": [{"action": "click"}]})
+    router.local_executor.execute_local_code = AsyncMock(return_value={"status": "success", "data": "DOM Result"})
 
-    router._execute_local_playwright_recipe = AsyncMock(return_value={"status": "success", "data": "DOM Result"})
+    task_context = {"task_type": "web_scraping_local", "code": "print('scraping')", "cost_limit": 0.05}
 
-    with patch("core.task_router.cost_guard"), patch("core.task_router.llm_gateway"):
-        response = await router.execute_scraping_task("AmazonTracker prices", "https://amazon.com")
+    response = await router.route_and_dispatch(task_context)
 
     assert response["status"] == "success"
-    assert "Layer 2" in response["execution_tier"]
+    assert response["cost"] == 0.05
     assert response["data"] == "DOM Result"
-    router._execute_local_playwright_recipe.assert_called_once_with([{"action": "click"}], "https://amazon.com")
+    router.local_executor.execute_local_code.assert_called_once_with("print('scraping')")
 
 ```

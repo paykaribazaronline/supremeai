@@ -13,7 +13,10 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Health Health Get
   /actuator/health:
     get:
       summary: Actuator Health
@@ -23,7 +26,11 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+                title: Response Actuator Health Actuator Health Get
   /api/admin/login:
     post:
       summary: Admin Login
@@ -2228,6 +2235,67 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/browser/browse:
+    post:
+      tags:
+      - browser
+      summary: Browse
+      description: Navigate to a URL and perform browser actions (Admin Only).
+      operationId: browse_api_browser_browse_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrowseRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /api/browser/extract:
+    post:
+      tags:
+      - browser
+      summary: Extract
+      description: Fetch page and extract structured data with AI (Admin Only).
+      operationId: extract_api_browser_extract_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: url
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Url
+      - name: extraction_prompt
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Extraction Prompt
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/stream/chat:
     post:
       tags:
@@ -2252,120 +2320,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /api/v1/agents/execute:
-    post:
-      tags:
-      - agents
-      summary: Execute Agent
-      operationId: execute_agent_api_v1_agents_execute_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AgentExecuteRequest'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AgentExecuteResponse'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/v1/agents/roles:
-    get:
-      tags:
-      - agents
-      summary: List Agent Roles
-      operationId: list_agent_roles_api_v1_agents_roles_get
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-  /api/v1/agents/monitor/latency:
-    get:
-      tags:
-      - agents
-      summary: Agent Latency Summary
-      operationId: agent_latency_summary_api_v1_agents_monitor_latency_get
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-  /api/task/{task_id}:
-    get:
-      tags:
-      - async-task
-      summary: Get Task Status
-      operationId: get_task_status_api_task__task_id__get
-      parameters:
-      - name: task_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Task Id
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TaskResponse'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/task/_stats:
-    get:
-      tags:
-      - async-task
-      summary: Get Task Stats
-      operationId: get_task_stats_api_task__stats_get
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                additionalProperties: true
-                type: object
-                title: Response Get Task Stats Api Task  Stats Get
-  /cdc/webhook:
-    post:
-      tags:
-      - cdc
-      summary: Handle Cdc Webhook
-      operationId: handle_cdc_webhook_cdc_webhook_post
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-  /cdc/health:
-    get:
-      tags:
-      - cdc
-      summary: Cdc Health
-      operationId: cdc_health_cdc_health_get
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
   /api/v1/media/generate-upload-url:
     post:
       tags:
@@ -2543,8 +2497,8 @@ paths:
     post:
       tags:
       - marketplace
-      summary: Search Marketplaces
-      operationId: search_marketplaces_marketplace_search_post
+      summary: Search Skills
+      operationId: search_skills_marketplace_search_post
       requestBody:
         content:
           application/json:
@@ -2556,7 +2510,11 @@ paths:
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                items:
+                  $ref: '#/components/schemas/SkillResponse'
+                type: array
+                title: Response Search Skills Marketplace Search Post
         '422':
           description: Validation Error
           content:
@@ -2567,20 +2525,23 @@ paths:
     post:
       tags:
       - marketplace
-      summary: Install Tool
-      operationId: install_tool_marketplace_install_post
+      summary: Install Skill
+      operationId: install_skill_marketplace_install_post
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/api__routes__marketplace_endpoints__InstallRequest'
+              $ref: '#/components/schemas/api__routes__marketplace__InstallRequest'
         required: true
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
-              schema: {}
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Install Skill Marketplace Install Post
         '422':
           description: Validation Error
           content:
@@ -4863,67 +4824,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /api/browser/browse:
-    post:
-      tags:
-      - browser-agent
-      summary: Browse
-      description: Navigate to a URL and perform browser actions (Admin Only).
-      operationId: browse_api_browser_browse_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/BrowseRequest'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-      security:
-      - HTTPBearer: []
-  /api/browser/extract:
-    post:
-      tags:
-      - browser-agent
-      summary: Extract
-      description: Fetch page and extract structured data with AI (Admin Only).
-      operationId: extract_api_browser_extract_post
-      security:
-      - HTTPBearer: []
-      parameters:
-      - name: url
-        in: query
-        required: true
-        schema:
-          type: string
-          title: Url
-      - name: extraction_prompt
-        in: query
-        required: true
-        schema:
-          type: string
-          title: Extraction Prompt
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
   /api/voice/process-audio:
     post:
       tags:
@@ -6335,6 +6235,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PublicConfigResponse'
+  /api/admin/traffic/live:
+    get:
+      tags:
+      - traffic
+      summary: Get Live Traffic
+      description: "\u09AC\u09BE\u0982\u09B2\u09BE \u09AE\u09A8\u09CD\u09A4\u09AC\u09CD\
+        \u09AF: \u09B0\u09BF\u09DF\u09C7\u09B2-\u099F\u09BE\u0987\u09AE \u099F\u09CD\
+        \u09B0\u09BE\u09AB\u09BF\u0995, p95 \u09B2\u09CD\u09AF\u09BE\u099F\u09C7\u09A8\
+        \u09CD\u09B8\u09BF \u098F\u09AC\u0982 \u0985\u09CD\u09AF\u09BE\u09B0\u09B0\
+        \ \u09B0\u09C7\u099F\u0964\n\u098F\u099F\u09BF \u09B8\u09CD\u099F\u09C1\u09A1\
+        \u09BF\u0993 \u0995\u09CD\u09B2\u09BE\u09DF\u09C7\u09A8\u09CD\u099F \u09AC\
+        \u09BE \u09AB\u09CD\u09B2\u09BE\u099F\u09BE\u09B0 \u09A1\u09CD\u09AF\u09BE\
+        \u09B6\u09AC\u09CB\u09B0\u09CD\u09A1\u09C7 \u09B2\u09BE\u0987\u09AD \u09B8\
+        \u09CD\u099F\u09CD\u09B0\u09BF\u09AE\u09BF\u0982 \u098F\u09B0 \u099C\u09A8\
+        \u09CD\u09AF \u09AC\u09CD\u09AF\u09AC\u09B9\u09BE\u09B0 \u09B9\u09AC\u09C7\
+        \u0964"
+      operationId: get_live_traffic_api_admin_traffic_live_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Get Live Traffic Api Admin Traffic Live Get
 components:
   schemas:
     ActionStreamRequest:
@@ -6414,74 +6340,6 @@ components:
       - password
       - otp
       title: AdminVerifyRequest
-    AgentExecuteRequest:
-      properties:
-        task:
-          type: string
-          title: Task
-        task_type:
-          type: string
-          title: Task Type
-          default: general
-        role:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Role
-        department:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Department
-        autonomous:
-          type: boolean
-          title: Autonomous
-          default: false
-        user_context:
-          anyOf:
-          - additionalProperties: true
-            type: object
-          - type: 'null'
-          title: User Context
-      type: object
-      required:
-      - task
-      title: AgentExecuteRequest
-    AgentExecuteResponse:
-      properties:
-        success:
-          type: boolean
-          title: Success
-        output:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Output
-        role:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Role
-        provider:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Provider
-        cost:
-          anyOf:
-          - type: number
-          - type: 'null'
-          title: Cost
-        errors:
-          anyOf:
-          - items: {}
-            type: array
-          - type: 'null'
-          title: Errors
-      type: object
-      required:
-      - success
-      title: AgentExecuteResponse
     Body_api_image_to_code_tools_image_to_code_post:
       properties:
         file:
@@ -8149,19 +8007,10 @@ components:
         query:
           type: string
           title: Query
-        categories:
-          anyOf:
-          - items:
-              type: string
-            type: array
-          - type: 'null'
-          title: Categories
-        filters:
-          anyOf:
-          - additionalProperties: true
-            type: object
-          - type: 'null'
-          title: Filters
+        installed_only:
+          type: boolean
+          title: Installed Only
+          default: false
       type: object
       required:
       - query
@@ -8319,6 +8168,43 @@ components:
       - recommendations
       - count
       title: SkillRecResponse
+    SkillResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+        name:
+          type: string
+          title: Name
+        version:
+          type: string
+          title: Version
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+        dependencies:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Dependencies
+        installed:
+          type: boolean
+          title: Installed
+        source:
+          type: string
+          title: Source
+      type: object
+      required:
+      - id
+      - name
+      - version
+      - description
+      - dependencies
+      - installed
+      - source
+      title: SkillResponse
     SmellCheckRequest:
       properties:
         path:
@@ -8554,33 +8440,6 @@ components:
       required:
       - task
       title: TaskRequest
-    TaskResponse:
-      properties:
-        task_id:
-          type: string
-          title: Task Id
-        status:
-          type: string
-          title: Status
-        progress:
-          type: integer
-          title: Progress
-          default: 0
-        result:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Result
-        error:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Error
-      type: object
-      required:
-      - task_id
-      - status
-      title: TaskResponse
     TenantLimitCreate:
       properties:
         tenant_id:
@@ -9077,22 +8936,29 @@ components:
       - prompt
       - project_id
       title: WorkspaceCommand
-    api__routes__marketplace_endpoints__InstallRequest:
+    api__routes__marketplace__InstallRequest:
       properties:
         tool_id:
           type: string
           title: Tool Id
         target_environment:
-          type: string
+          anyOf:
+          - type: string
+          - type: 'null'
           title: Target Environment
         sandbox:
-          type: boolean
+          anyOf:
+          - type: boolean
+          - type: 'null'
           title: Sandbox
-          default: true
+        version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Version
       type: object
       required:
       - tool_id
-      - target_environment
       title: InstallRequest
     api__routes__simulator__InstallRequest:
       properties:
@@ -9110,15 +8976,15 @@ components:
       - appId
       title: InstallRequest
   securitySchemes:
+    HTTPBearer:
+      type: http
+      scheme: bearer
     OAuth2PasswordBearer:
       type: oauth2
       flows:
         password:
           scopes: {}
           tokenUrl: /auth/login
-    HTTPBearer:
-      type: http
-      scheme: bearer
 tags:
 - name: admin
   description: God-mode admin operations.

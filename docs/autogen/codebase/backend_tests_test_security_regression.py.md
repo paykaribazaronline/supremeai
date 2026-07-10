@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_security_regression.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,593 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.501316
+**সাইজ:** 1,683 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.106049
 
 ---
 
@@ -24,14 +24,15 @@ from core.config import Settings
 @pytest.mark.anyio
 async def test_production_jwt_secret_required():
     """Verify that in production environment, a missing jwt_secret raises a validation error."""
-    with pytest.raises(ValidationError) as excinfo:
-        Settings(
-            env="production",
-            SUPREMEAI_JWT_SECRET=None,
-            openrouter_api_key="valid",
-            gemini_api_key="valid",
-        )
-    assert "SUPREMEAI_JWT_SECRET environment variable must be set in production" in str(excinfo.value)
+    with patch.dict(os.environ, {"ENV": "production"}):
+        with pytest.raises(ValidationError) as excinfo:
+            Settings(
+                jwt_secret=None,
+                supremeai_admin_password_hash="dummy-hash",
+                openrouter_api_key="valid",
+                gemini_api_key="valid",
+            )
+    assert "SUPREMEAI_JWT_SECRET must be explicitly set in production" in str(excinfo.value)
 
 
 def test_auth_middleware_rejects_invalid_api_token():

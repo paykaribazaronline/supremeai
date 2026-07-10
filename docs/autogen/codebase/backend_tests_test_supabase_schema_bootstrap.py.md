@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_supabase_schema_bootstrap.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,192 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.489717
+**সাইজ:** 5,195 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.094734
 
 ---
 
@@ -110,7 +110,7 @@ def test_insert_task_history_retries_after_schema_cache_error(monkeypatch):
         def execute(self):
             self.calls += 1
             if self.calls == 1:
-                raise Exception("Could not find the table 'public.task_history' in the schema cache")
+                raise RuntimeError("Could not find the table 'public.task_history' in the schema cache")
             return FakeResponse([{"id": 1, **self.entry}])
 
     class FakeClient:

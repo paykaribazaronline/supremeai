@@ -1,14 +1,16 @@
 # 📄 ফাইল: backend/core/self_healer.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,222 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.449016
+**সাইজ:** 4,601 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.054971
 
 ---
 
 ## কোড
 
 ```py
+import asyncio
+import traceback
 import uuid
 from datetime import UTC
 from datetime import datetime
@@ -17,12 +19,52 @@ from typing import Any
 from loguru import logger
 
 from core.event_bus import ErrorEvent
+from core.event_bus import ErrorEventBus
 from core.event_bus import error_event_bus
 
 
 class SelfHealerService:
-    def __init__(self, db: Any):
+    def __init__(self, db: Any = None):
         self._db = db
+        self.event_bus = ErrorEventBus()
+
+    async def self_heal(self, coro, timeout: float = 30.0):
+        try:
+            async with asyncio.timeout(timeout):
+                return await coro
+        except TimeoutError:
+            await self.event_bus.emit(
+                ErrorEvent(
+                    module="self_healer",
+                    error_type="TIMEOUT",
+                    message=f"Coroutine {coro.__name__} timed out after {timeout}s",
+                    severity="WARNING",
+                    context={"coroutine": coro.__name__, "timeout": timeout},
+                )
+            )
+            raise
+        except asyncio.CancelledError:
+            await self.event_bus.emit(
+                ErrorEvent(
+                    module="self_healer",
+                    error_type="CANCELLED",
+                    message=f"Coroutine {coro.__name__} was cancelled",
+                    severity="WARNING",
+                    context={"coroutine": coro.__name__},
+                )
+            )
+            raise
+        except (RuntimeError, ValueError, TypeError, ConnectionError, OSError) as e:
+            await self.event_bus.emit(
+                ErrorEvent(
+                    module="self_healer",
+                    error_type="ERROR",
+                    message=str(e),
+                    severity="ERROR",
+                    context={"coroutine": coro.__name__, "traceback": traceback.format_exc()},
+                )
+            )
+            raise
 
     def _generate_trace_id(self) -> str:
         return f"err-trace-{uuid.uuid4().hex[:12]}"
@@ -50,6 +92,10 @@ class SelfHealerService:
         trace_id = self._generate_trace_id()
         fix_id = f"fix-{uuid.uuid4().hex[:8]}"
 
+        if self._db is None:
+            # fallback for testing
+            return fix_id
+
         doc_ref = self._db.collection(f"tenants/{tenant_id}/fixes").document(fix_id)
 
         fix_data = {
@@ -63,8 +109,6 @@ class SelfHealerService:
             "reviewed_by": None,
             "applied_at": None,
         }
-
-        import asyncio
 
         if asyncio.iscoroutinefunction(doc_ref.set):
             await doc_ref.set(fix_data)
@@ -80,8 +124,6 @@ class SelfHealerService:
         (Placeholder for actual sandbox testing logic)
         """
         logger.info(f"Testing fix {fix_id} in sandbox environment for tenant {tenant_id}")
-        # Here we would normally use the cloud_sandbox_orchestrator
-        # For now, return True as a placeholder
         return True
 
 
@@ -91,8 +133,6 @@ async def _self_healer_error_listener(event: ErrorEvent):
     If an error meets the criteria, it can trigger the self healer's propose_fix logic.
     """
     logger.info(f"SelfHealer triggered by event from {event.module}: {event.error_type}")
-    # In a full implementation, this would instantiate SelfHealerService and call propose_fix
-    # based on the severity and context of the event.
 
 
 # Register the listener

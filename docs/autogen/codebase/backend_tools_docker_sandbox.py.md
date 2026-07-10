@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/docker_sandbox.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,562 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.518407
+**সাইজ:** 5,212 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.122676
 
 ---
 
@@ -25,23 +25,15 @@ class DockerSandbox:
     def _check_docker(self) -> bool:
         try:
             # Check if docker daemon is running
-            res = subprocess.run(
+            subprocess.run(
                 ["docker", "info"],
                 capture_output=True,
-                text=True,
                 timeout=3,
-                check=False,
+                check=True,
             )
-            return res.returncode == 0
-        except Exception as e:  # noqa: BLE001
-            try:
-                import loguru
-
-                loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:  # noqa: BLE001
-                import logging
-
-                logging.warning(f"Exception suppressed: {e}")
+            return True
+        except (FileNotFoundError, subprocess.TimeoutExpired, OSError, subprocess.CalledProcessError) as e:
+            logger.warning(f"Docker check failed: {e}. Docker-based execution will be unavailable.")
             return False
 
     def execute_command(self, cmd: str) -> dict[str, Any]:
@@ -55,31 +47,33 @@ class DockerSandbox:
             "reboot",
             ":(){ :|:& };:",
         ]
+        import re
+
         forbidden_patterns = [
-            "environ",
-            "getenv",
-            "getenvb",
-            "os.environ",
-            "curl",
-            "wget",
-            "socket",
-            "requests",
-            "urllib",
-            "httpx",
-            "http.client",
-            "nc ",
-            "netcat",
-            "bash -i",
-            "/dev/tcp",
-            "/dev/udp",
-            "eval(",
-            "exec(",
-            "subprocess",
-            "system(",
+            r"\benviron\b",
+            r"\bgetenv\b",
+            r"\bgetenvb\b",
+            r"os\.environ",
+            r"\bcurl\b",
+            r"\bwget\b",
+            r"\bsocket\b",
+            r"\brequests\b",
+            r"\burllib\b",
+            r"\bhttpx\b",
+            r"http\.client",
+            r"\bnc\s",
+            r"\bnetcat\b",
+            r"bash\s+-i",
+            r"/dev/tcp",
+            r"/dev/udp",
+            r"\beval\s*\(",
+            r"\bexec\s*\(",
+            r"\bsubprocess\b",
+            r"\bsystem\s*\(",
         ]
 
         cmd_lower = cmd.lower()
-        if any(kw in cmd_lower for kw in harmful_keywords) or any(pat in cmd_lower for pat in forbidden_patterns):
+        if any(kw in cmd_lower for kw in harmful_keywords) or any(re.search(pat, cmd_lower) for pat in forbidden_patterns):
             logger.warning("Security Firewall: Command blocked due to high-risk pattern.")
             return {
                 "success": False,
@@ -103,22 +97,26 @@ class DockerSandbox:
                 import sys
 
                 use_shell = sys.platform == "win32"
-                res = subprocess.run(
-                    shlex.split(cmd),
+                # shell=True ব্যবহার করার সময় shlex.split ব্যবহার করা উচিত নয়
+                command_to_run = cmd if use_shell else shlex.split(cmd)
+                result = subprocess.run(
+                    command_to_run,
                     shell=use_shell,
                     capture_output=True,
                     text=True,
                     timeout=5,
-                    check=False,
+                    check=True,
                 )
                 return {
-                    "success": res.returncode == 0,
-                    "stdout": res.stdout,
-                    "stderr": res.stderr,
-                    "exit_code": res.returncode,
+                    "success": True,
+                    "stdout": result.stdout,
+                    "stderr": result.stderr,
+                    "exit_code": result.returncode,
                     "simulated": True,
                 }
-            except Exception as e:  # noqa: BLE001
+            except (FileNotFoundError, subprocess.TimeoutExpired, OSError, subprocess.CalledProcessError) as e:
+                if isinstance(e, subprocess.CalledProcessError):
+                    return {"success": False, "error": e.stderr or str(e), "stdout": e.stdout, "simulated": True}
                 return {"success": False, "error": str(e), "simulated": True}
 
         # Run command securely inside docker
@@ -134,15 +132,17 @@ class DockerSandbox:
                 "-c",
                 cmd,
             ]
-            res = subprocess.run(docker_cmd, capture_output=True, text=True, timeout=10, check=False)
+            result = subprocess.run(docker_cmd, capture_output=True, text=True, timeout=10, check=True)
             return {
-                "success": res.returncode == 0,
-                "stdout": res.stdout,
-                "stderr": res.stderr,
-                "exit_code": res.returncode,
+                "success": True,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "exit_code": result.returncode,
                 "simulated": False,
             }
-        except Exception as e:  # noqa: BLE001
+        except (FileNotFoundError, subprocess.TimeoutExpired, OSError, subprocess.CalledProcessError) as e:
+            if isinstance(e, subprocess.CalledProcessError):
+                return {"success": False, "error": e.stderr or str(e), "stdout": e.stdout, "simulated": False}
             return {"success": False, "error": str(e), "simulated": False}
 
 ```

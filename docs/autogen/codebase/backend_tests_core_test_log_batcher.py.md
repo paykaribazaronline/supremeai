@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/core/test_log_batcher.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,377 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.508237
+**সাইজ:** 7,444 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.112810
 
 ---
 
@@ -150,6 +150,7 @@ async def test_log_batcher_service_emit_publishes_to_subscribers():
     queue = batcher_service.subscribe(session_id)
     log_entry = {"session_id": session_id, "message": "test"}
     batcher_service.emit(log_entry)
+    await asyncio.sleep(0)  # Allow the background task to publish
     assert not queue.empty()
     item = await queue.get()
     assert item == log_entry

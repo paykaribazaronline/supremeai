@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_swarm_orchestrator.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,672 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.493085
+**সাইজ:** 1,671 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.098082
 
 ---
 
@@ -39,7 +39,7 @@ async def test_swarm_orchestrator_runs_entire_graph():
     # Mock LLM Gateway response to bypass actual internet LLM calls during pytest
     mock_response = {"choices": [{"message": {"content": "class TestModel: pass"}}]}
 
-    with patch("core.llm_gateway.llm_gateway.acompletion", new_callable=AsyncMock, return_value=mock_response) as mock_call:
+    with patch("core.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock, return_value=mock_response) as mock_call:
         workspace = await orchestrator.execute_task(prompt="Build a simple key-value database model class in Python", user_id="default_user_session")
 
         # Verify all agents were called

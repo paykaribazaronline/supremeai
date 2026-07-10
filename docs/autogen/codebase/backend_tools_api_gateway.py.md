@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/api_gateway.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,628 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.528524
+**সাইজ:** 7,638 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.133577
 
 ---
 
@@ -23,12 +23,12 @@ from pydantic import BaseModel
 
 from core.auth_middleware import AuthMiddleware
 from core.config import get_production_env
-from core.rate_limiter import RateLimiter
+from core.rate_limiter import AsyncRateLimiter
 
 
 auth_middleware = AuthMiddleware.__new__(AuthMiddleware)
 auth_middleware.enabled = bool(os.getenv("SUPREMEAI_API_TOKEN"))
-rate_limiter = RateLimiter()
+rate_limiter = AsyncRateLimiter()
 
 from brain.api_router import ApiRouter
 

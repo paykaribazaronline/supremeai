@@ -1,8 +1,8 @@
 # 📄 ফাইল: scripts/skill_loader.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,451 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.420795
+**সাইজ:** 7,626 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.026592
 
 ---
 
@@ -15,7 +15,13 @@ from pathlib import Path
 import importlib.util
 from typing import Dict, Any, List
 from loguru import logger
-from skills.registry import SkillRegistry
+import sys
+from pathlib import Path
+root_path = str(Path(__file__).resolve().parent.parent)
+if root_path not in sys.path:
+    sys.path.append(root_path)
+
+from core.skill_manager import DynamicSkillManager
 from skills.installer import SkillInstaller
 from skills.marketplace import SkillMarketplace
 
@@ -101,8 +107,8 @@ class SkillLoader:
     BANNED_BUILTINS = {"eval", "exec", "compile", "__import__", "getattr", "setattr", "delattr", "globals", "locals", "open", "input", "breakpoint"}
 
     """Dynamically discovers and loads skill modules at runtime."""
-    def __init__(self, registry: SkillRegistry = None, installer: SkillInstaller = None):
-        self.registry = registry or SkillRegistry()
+    def __init__(self, registry: DynamicSkillManager = None, installer: SkillInstaller = None):
+        self.registry = registry or DynamicSkillManager()
         self.installer = installer or SkillInstaller(self.registry)
         self.marketplace = SkillMarketplace()
         self.skills_dir = Path(__file__).resolve().parent / "skills" / "dynamic"

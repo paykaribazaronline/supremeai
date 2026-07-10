@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/posthog_client.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,201 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.458251
+**সাইজ:** 1,612 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.064170
 
 ---
 
@@ -26,7 +26,8 @@ class PostHogClient:
                 posthog.project_api_key = self.api_key
                 posthog.host = self.host
                 logger.info("Initialized PostHog Analytics Client")
-            except Exception as e:  # noqa: BLE001
+            except (ConnectionError, ValueError, RuntimeError) as e:
+                # সুনির্দিষ্ট নেটওয়ার্ক বা ভ্যালুয়েশন ত্রুটি ক্যাচ করা হলো
                 logger.error(f"Failed to initialize PostHog: {e}")
                 self.enabled = False
         else:
@@ -36,7 +37,8 @@ class PostHogClient:
         if self.enabled:
             try:
                 posthog.capture(distinct_id, event, properties or {})
-            except Exception as e:  # noqa: BLE001
+            except (ConnectionError, ValueError, RuntimeError) as e:
+                # সুনির্দিষ্ট ত্রুটি ক্যাচ করা হলো, যাতে কোনো ক্রিটিকাল এরর চাপা না পড়ে
                 logger.error(f"PostHog capture failed: {e}")
         else:
             logger.info(f"[Mock Analytics] User: {distinct_id} | Event: {event} | Props: {properties}")

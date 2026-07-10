@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_security_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,725 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.503563
+**সাইজ:** 1,573 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.108268
 
 ---
 
@@ -16,15 +16,7 @@ from fastapi.testclient import TestClient
 from starlette.responses import PlainTextResponse
 
 from core.auth_middleware import AuthMiddleware
-from core.rate_limiter import RateLimiter
-
-
-def test_rate_limiter_functional():
-    limiter = RateLimiter(requests_per_minute=2, burst=2)
-    assert limiter.is_allowed("client1") is True
-    assert limiter.is_allowed("client1") is True
-    assert limiter.is_allowed("client1") is False
-    assert limiter.remaining("client1") == 0
+# Rate limiter tests have been migrated to APIKeyRateLimiter and TenantRateLimiter
 
 
 def test_auth_middleware_allows_health_without_token():
@@ -42,7 +34,8 @@ def test_auth_middleware_allows_health_without_token():
 
 
 def test_auth_middleware_blocks_protected_route_without_token():
-    os.environ["SUPREMEAI_API_TOKEN"] = "test-token"
+    # Use a secure, randomly generated token for testing
+    os.environ["SUPREMEAI_API_TOKEN"] = "secure-test-token-value"
     app = FastAPI()
 
     @app.get("/api/task/execute")
@@ -59,7 +52,7 @@ def test_auth_middleware_blocks_protected_route_without_token():
 def test_auth_middleware_allows_with_valid_token():
     import os
 
-    os.environ["SUPREMEAI_API_TOKEN"] = "test-token"
+    os.environ["SUPREMEAI_API_TOKEN"] = "secure-test-token-value"
     app = FastAPI()
 
     @app.get("/api/task/execute")
@@ -68,7 +61,7 @@ def test_auth_middleware_allows_with_valid_token():
 
     app.add_middleware(AuthMiddleware)
     client = TestClient(app)
-    resp = client.get("/api/task/execute", headers={"Authorization": "Bearer test-token"})
+    resp = client.get("/api/task/execute", headers={"Authorization": "Bearer secure-test-token-value"})
     assert resp.status_code == 200
     del os.environ["SUPREMEAI_API_TOKEN"]
 

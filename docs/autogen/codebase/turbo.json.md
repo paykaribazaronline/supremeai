@@ -1,8 +1,8 @@
 # 📄 ফাইল: turbo.json
 
 **প্রকার:** .json  
-**সাইজ:** 506 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.413535
+**সাইজ:** 599 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.020280
 
 ---
 
@@ -16,7 +16,9 @@
     "NODE_ENV",
     "API_URL",
     "SUPABASE_URL",
-    "PINECONE_API_KEY"
+    "PINECONE_API_KEY",
+    "VITE_PORTAL_TYPE",
+    "VITE_API_URL"
   ],
   "tasks": {
     "build": {
@@ -25,6 +27,8 @@
         ".next/**",
         "!.next/cache/**",
         "dist/**",
+        "dist-admin/**",
+        "dist-user/**",
         "build/**"
       ]
     },

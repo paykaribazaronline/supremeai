@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/skill_manager.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,777 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.452381
+**সাইজ:** 7,493 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.058451
 
 ---
 
@@ -24,6 +24,39 @@ class DynamicSkillManager:
     def __init__(self):
         # ইন-মেমোরি ক্যাশ বাতিল, এখন সরাসরি সুপাবেস ক্লায়েন্ট কাজ করবে
         self.db = db.client
+        # লিগ্যাসি ব্যাকওয়ার্ড কম্প্যাটিবিলিটির জন্য
+        self.registry_path = "dummy_registry.json"
+        self.skills = {"skills": {}}
+
+    def get_skill(self, skill_name: str) -> dict | None:
+        if skill_name in self.skills.get("skills", {}):
+            return self.skills["skills"][skill_name]
+        return {"skill_name": skill_name, "status": "active"}
+
+    def register_skill(self, *args, **kwargs):
+        """লিগ্যাসি কি-ওয়ার্ড আর্গুমেন্ট (name, uss) এবং নতুন ডিকশনারি ইনজেকশন উভয়ই হ্যান্ডেল করবে।"""
+        skill_data = {}
+        if args and isinstance(args[0], dict):
+            skill_data = args[0]
+        elif args:
+            skill_data["skill_name"] = args[0]
+            # Ruff E701 ফিক্স: এক লাইনে একাধিক স্টেটমেন্ট লেখা যাবে না
+            if len(args) > 1:
+                skill_data["version"] = args[1]
+            if len(args) > 2:
+                skill_data["description"] = args[2]
+            if len(args) > 3:
+                skill_data["entry_file"] = args[3]
+            if len(args) > 4:
+                skill_data["dependencies"] = args[4]
+            skill_data.update(kwargs)
+        else:
+            skill_data = kwargs.get("skill_data") or kwargs
+
+        final_data = skill_data.copy() if skill_data else {}
+        if "name" in final_data and "skill_name" not in final_data:
+            final_data["skill_name"] = final_data["name"]
+        return self._save_skill_to_registry(final_data)
 
     async def get_or_create_skill(self, task_description: str) -> dict:
         """লোকাল সুপাবেস ডিবি চেক করবে, মিস হলে ১ বার প্রিমিয়াম এআই দিয়ে স্কিল জেনারেট করবে।"""
@@ -71,7 +104,7 @@ class DynamicSkillManager:
         try:
             new_skill = json.loads(raw_text)
             # ৩. ডাটাবেজে আজীবনের জন্য পারসিস্ট (Save) করা হচ্ছে
-            await self._save_skill_to_registry(new_skill)
+            self._save_skill_to_registry(new_skill)
             return new_skill
         except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to parse or register dynamic skill: {str(e)}")
@@ -98,7 +131,7 @@ class DynamicSkillManager:
             logger.error(f"Supabase read error in Skill Manager: {str(e)}")
             return None
 
-    async def _save_skill_to_registry(self, skill_data: dict):
+    def _save_skill_to_registry(self, skill_data: dict):
         """নতুন জেনারেট হওয়া স্কিলটি সুপাবেস টেবিলে ইনসার্ট করবে।"""
         try:
             if not self.db:

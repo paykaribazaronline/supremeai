@@ -1,15 +1,14 @@
 # 📄 ফাইল: backend/tests/test_tenant_rate_limiter.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,700 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.494656
+**সাইজ:** 6,559 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.099546
 
 ---
 
 ## কোড
 
 ```py
-# বাংলা মন্তব্য: অব্যবহৃত time ইম্পোর্টটি মুছে ফেলা হলো।
 from unittest.mock import MagicMock
 from unittest.mock import patch
 

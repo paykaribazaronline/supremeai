@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/telemetry.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,609 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.456085
+**সাইজ:** 2,625 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.062055
 
 ---
 
@@ -70,7 +70,7 @@ def trace_span(name: str, attributes: dict[str, Any] | None = None, kind: str = 
         try:
             yield _RealSpan(span)
             span.set_status(Status(StatusCode.OK))
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             span.set_status(Status(StatusCode.ERROR, str(exc)))
             span.record_exception(exc)
             raise

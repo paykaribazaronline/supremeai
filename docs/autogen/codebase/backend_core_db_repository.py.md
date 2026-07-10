@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/db_repository.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,631 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.458851
+**সাইজ:** 3,663 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.064734
 
 ---
 
@@ -66,7 +66,7 @@ class SmartDataRepository:
                 return doc.to_dict()
             else:
                 raise PrimaryDatabaseDownException("Firebase client not initialized or missing collection method")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logging.warning(f"⚠️ Firebase unreachable ({str(e)}). Retrying...")
             raise PrimaryDatabaseDownException(str(e)) from e
 
@@ -92,7 +92,7 @@ class SmartDataRepository:
                 else:
                     logging.critical("Supabase client is not compatible or not initialized.")
                     return None
-            except Exception as backup_error:
+            except Exception as backup_error:  # noqa: BLE001
                 logging.critical(f"💀 FATAL: Both databases are down! {str(backup_error)}")
                 raise ServiceDegradedException("Both primary and fallback databases unavailable") from backup_error
 

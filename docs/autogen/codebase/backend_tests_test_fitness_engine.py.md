@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_fitness_engine.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,651 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.499951
+**সাইজ:** 5,634 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.104674
 
 ---
 
@@ -10,7 +10,7 @@
 
 ```py
 import pytest
-from skills.registry import SkillRegistry
+from core.skill_manager import DynamicSkillManager
 
 from evolution.fitness_engine import FitnessEngine
 
@@ -35,7 +35,7 @@ def temp_fitness_env(tmp_path, monkeypatch):
     with open(dummy_skill_dir / "schema.json", "w") as f:
         f.write('{"metadata": {"name": "DummySkill", "version": "1.0.0", "description": "test"}}')
 
-    registry = SkillRegistry(registry_path=str(registry_path))
+    registry = DynamicSkillManager()
     registry.register_skill(
         name=skill_name,
         version="1.0.0",

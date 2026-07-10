@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/browser_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 15,460 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.520209
+**সাইজ:** 9,264 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.124729
 
 ---
 
@@ -10,97 +10,21 @@
 
 ```py
 import asyncio
-import ipaddress
-import socket
 from typing import Any
-from urllib.parse import urlparse
-
-import httpx
-from bs4 import BeautifulSoup
-from fastapi import APIRouter
-from fastapi import Depends
 from loguru import logger
+from bs4 import BeautifulSoup
 from pydantic import BaseModel
 
-from api.routes.admin_dashboard import require_admin_token
 from core.human_behavior import HumanBehaviorSimulators
+from core.security_utils import is_safe_url
+from core.playwright_manager import get_global_browser
 
-router = APIRouter(prefix="/browser", tags=["browser-agent"])
-
-
-def is_safe_url(url: str) -> bool:
-    try:
-        parsed = urlparse(url)
-        hostname = parsed.hostname
-        if not hostname:
-            return False
-        if hostname == "169.254.169.254" or hostname.endswith(".local"):
-            return False
-        ip = socket.gethostbyname(hostname)
-        ip_obj = ipaddress.ip_address(ip)
-        return not (ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local)
-    except Exception as e:  # noqa: BLE001
-        try:
-            import loguru
-
-            loguru.logger.error(f"Tool execution error: {e}")
-        except Exception as e:  # noqa: BLE001
-            import logging
-
-            logging.warning(f"Exception suppressed: {e}")
-        return False
-
-
-# Global tracking references for runtime execution
 try:
-    from playwright.async_api import Browser
-    from playwright.async_api import Playwright
     from playwright.async_api import async_playwright
 except ImportError:
-    Browser = Any
-    Playwright = Any
     async_playwright = None
 
-_playwright_runner: Playwright | None = None
-_global_browser: Browser | None = None
-
-
-async def get_global_browser() -> Browser:
-    """গ্লোবাল ব্রাউজার ইনস্ট্যান্স রিটার্ন করে (Lazy Initialization Pattern)"""
-    global _playwright_runner, _global_browser
-    if _global_browser is None:
-        logger.info("🚀 Starting a new headless Global Chromium instance...")
-        if async_playwright is None:
-            raise RuntimeError("Playwright is not installed.")
-        _playwright_runner = await async_playwright().start()
-        _global_browser = await _playwright_runner.chromium.launch(
-            headless=True,
-            args=[
-                "--no-sandbox",
-                "--disable-setuid-sandbox",
-                "--disable-dev-shm-usage",
-            ],
-        )
-    return _global_browser
-
-
-async def shutdown_global_browser():
-    """Lifespan Hook দ্বারা কল করা হবে - কন্টেইনার শাটডাউনের সময় জম্বি প্রসেস ক্লিন করে"""
-    global _playwright_runner, _global_browser
-    logger.info("🛡️ Initiating Playwright Global Lifespan Cleanup...")
-    try:
-        if _global_browser:
-            logger.info("Closing active global Chromium engine...")
-            await _global_browser.close()
-        if _playwright_runner:
-            logger.info("Stopping playwright runner core context...")
-            await _playwright_runner.stop()
-        logger.info("✅ All Playwright OS processes terminated cleanly.")
-    except Exception as e:  # noqa: BLE001
-        logger.critical(f"❌ Error during global browser termination sequence: {str(e)}")
-    finally:
-        _global_browser = None
-        _playwright_runner = None
+from tools.web_scraper import WebScraper
 
 
 class BrowseRequest(BaseModel):
@@ -112,11 +36,12 @@ class BrowseRequest(BaseModel):
 
 
 class BrowserAgent:
-    """Controls browser actions — httpx (fast) + Playwright (full JS)."""
+    """Controls browser actions — Playwright (full JS) and fallbacks."""
 
     def __init__(self, headless: bool = True):
         self._pw_browser = None
         self.headless = headless
+        self.scraper = WebScraper()
         logger.info("Initialized BrowserAgent")
 
     async def execute_recipe(self, steps: list, initial_url: str = None) -> dict:
@@ -192,9 +117,10 @@ class BrowserAgent:
                 # সমস্ত স্টেপ সফলভাবে শেষ হলে
                 return {"status": "success", "data": extracted_data}
 
-            except Exception as e:  # noqa: BLE001
+            except (TimeoutError, Exception) as e:  # noqa: BLE001
+                # প্লে-রাইট বা অন্যান্য অপ্রত্যাশিত ত্রুটি সুনির্দিষ্টভাবে ক্যাচ করা হলো
                 logger.error(f"❌ Recipe Interpreter crashed mid-execution: {str(e)}")
-                return {"status": "failed", "error": str(e)}
+                return {"status": "failed", "error": str(e), "step": index + 1}
 
             finally:
                 # প্লে-রাইট মেমোরি লিক এবং অরফ্যান প্রসেস রুখতে কড়া ক্লিনআপ
@@ -202,43 +128,6 @@ class BrowserAgent:
                 await context.close()
                 await browser.close()
                 logger.info("🗑️ Playwright Sandbox context cleaned up successfully.")
-
-    # ── Simple fetch (no JS needed) ────────────────────────────────
-    def fetch_page(self, url: str) -> dict[str, Any]:
-        logger.info(f"Fetching page: {url}")
-        if not is_safe_url(url):
-            logger.error(f"SSRF Attempt Blocked: {url}")
-            return {
-                "success": False,
-                "error": "SSRF check failed: Unauthorized internal access",
-                "url": url,
-            }
-        try:
-            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-            response = httpx.get(url, headers=headers, timeout=15.0, follow_redirects=True)
-            response.raise_for_status()
-            soup = BeautifulSoup(response.text, "html.parser")
-            title = soup.title.string.strip() if soup.title else "No Title"
-            for tag in soup(["script", "style", "nav", "footer", "header"]):
-                tag.decompose()
-            text = " ".join(soup.get_text(separator=" ").split())[:3000]
-            links = [a.get("href", "") for a in soup.find_all("a", href=True)][:20]
-            return {
-                "success": True,
-                "url": url,
-                "title": title,
-                "content": text,
-                "links": links,
-                "status_code": response.status_code,
-            }
-        except Exception as e:  # noqa: BLE001
-            logger.error(f"Failed to fetch {url}: {e}")
-            return {"success": False, "error": str(e), "url": url}
-
-    # ── Playwright (JS-heavy pages) ────────────────────────────────
-    async def _get_playwright(self):
-        # Delegate to the global browser singleton
-        return await get_global_browser()
 
     async def navigate_and_interact(
         self,
@@ -256,10 +145,10 @@ class BrowserAgent:
                 "url": url,
             }
 
-        browser = await self._get_playwright()
+        browser = await get_global_browser()
         if not browser:
             # Fallback to httpx
-            return self.fetch_page(url)
+            return self.scraper.fetch_page(url)
 
         page = await browser.new_page()
         try:
@@ -309,60 +198,11 @@ class BrowserAgent:
                 "links": links,
                 "action": action,
             }
-        except Exception as e:  # noqa: BLE001
+        except (TimeoutError, Exception) as e:  # noqa: BLE001
+            # প্লে-রাইট সম্পর্কিত যেকোনো সাধারণ ত্রুটি এখানে ধরা হলো
             logger.error(f"Playwright action failed: {e}")
             return {"success": False, "error": str(e), "url": url}
         finally:
             await page.close()
-
-    async def extract_data(self, url: str, extraction_prompt: str) -> dict[str, Any]:
-        """Fetch page and use AI to extract structured data."""
-        page_data = self.fetch_page(url)
-        if not page_data["success"]:
-            return page_data
-
-        try:
-            from brain.model_router import ModelRouter
-
-            router = ModelRouter()
-            prompt = (
-                f"Extract the following from this web page content:\n{extraction_prompt}\n\n"
-                f"Page Title: {page_data.get('title')}\n"
-                f"Content: {page_data.get('content', '')[:2000]}\n\n"
-                "Return a clean JSON object with the extracted data."
-            )
-            result = await router.async_route_and_generate(prompt, task_type="reasoning", max_cost=0.02)
-            extracted = result.get("text", "") if isinstance(result, dict) else ""
-            return {
-                "success": True,
-                "url": url,
-                "extracted": extracted,
-                "raw": page_data,
-            }
-        except Exception as e:  # noqa: BLE001
-            return {"success": False, "error": str(e)}
-
-
-_agent = BrowserAgent()
-
-
-@router.post("/browse", dependencies=[Depends(require_admin_token)])
-async def browse(request: BrowseRequest):
-    """Navigate to a URL and perform browser actions (Admin Only)."""
-    if request.action in ("click", "type", "scroll", "screenshot"):
-        return await _agent.navigate_and_interact(
-            url=request.url,
-            action=request.action,
-            selector=request.selector,
-            text=request.text,
-            wait_for=request.wait_for,
-        )
-    return _agent.fetch_page(request.url)
-
-
-@router.post("/extract", dependencies=[Depends(require_admin_token)])
-async def extract(url: str, extraction_prompt: str):
-    """Fetch page and extract structured data with AI (Admin Only)."""
-    return await _agent.extract_data(url, extraction_prompt)
 
 ```

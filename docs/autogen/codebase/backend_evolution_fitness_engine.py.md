@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/evolution/fitness_engine.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,127 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.482376
+**সাইজ:** 6,121 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.087748
 
 ---
 
@@ -37,10 +37,10 @@ class FitnessEngine:
         self.deprecated_dir = deprecated_dir or os.path.join(base_dir, "skills", "deprecated")
         self.db = db
 
-        # Initialize SkillRegistry
-        from skills.registry import SkillRegistry
+        # Initialize DynamicSkillManager
+        from core.skill_manager import DynamicSkillManager
 
-        self.registry = SkillRegistry(registry_path=registry_path)
+        self.registry = DynamicSkillManager()
 
         self.metrics = self._load_metrics()
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/agents/medical_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,208 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.483968
+**সাইজ:** 5,280 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.089293
 
 ---
 
@@ -139,6 +139,8 @@ class MedicalAgent:
         return {
             "action": action,
             "response": "[Local fallback] Medical domain adapter unavailable. Enable domain_adapter for LLM analysis.",
+            "model": "local-fallback",
+            "provider": "local",
             "disclaimer": self.SYSTEM_PROMPT,
         }
 

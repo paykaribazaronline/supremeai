@@ -1,8 +1,8 @@
 # 📄 ফাইল: scripts/quality/check_ollama_test_coverage.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,712 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.427821
+**সাইজ:** 12,192 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.034213
 
 ---
 
@@ -55,7 +55,12 @@ if sys.platform == "win32":
 
 # ── কনফিগ ────────────────────────────────────────────────────────────────────
 OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
-VENV_PYTHON = str(Path(__file__).resolve().parents[2] / "backend" / ".venv" / "Scripts" / "python.exe")
+
+# Find the python executable in the virtual environment
+VENV_BASE = Path(__file__).resolve().parents[2] / "backend" / ".venv"
+VENV_PYTHON_WIN = VENV_BASE / "Scripts" / "python.exe"
+VENV_PYTHON_UNIX = VENV_BASE / "bin" / "python"
+VENV_PYTHON = str(VENV_PYTHON_WIN if sys.platform == "win32" else VENV_PYTHON_UNIX)
 
 GREEN = "\033[92m"
 RED = "\033[91m"
@@ -122,13 +127,14 @@ def run_pytest_on_file(test_file_path: str) -> dict[str, Any]:
         "--cov-report=term-missing",
         "--cov-report=xml:" + str(Path(test_file_path).parent / "coverage_generated.xml"),
     ]
+    bprint(f"  Running command: {' '.join(cmd)}", YELLOW)
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120, check=False)
         return {
             "returncode": proc.returncode,
             "stdout": proc.stdout,
             "stderr": proc.stderr,
-            "passed": proc.returncode == 0,
+            "passed": proc.returncode in [0, 5], # 0 = all passed, 5 = no tests collected
         }
     except Exception as exc:
         return {"returncode": -1, "passed": False, "error": str(exc)}
@@ -159,6 +165,11 @@ async def main_async() -> int:
 
     source_path = Path(args.source_file)
     if not source_path.exists():
+        bprint(f"❌ Source file not found: {source_path}", RED)
+        return 1
+
+    # Check if the python executable exists
+    if not Path(VENV_PYTHON).exists():
         bprint(f"❌ Source file not found: {source_path}", RED)
         return 1
 

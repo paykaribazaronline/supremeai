@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/lifespan.py
 
 **প্রকার:** .py  
-**সাইজ:** 12,080 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.462691
+**সাইজ:** 12,096 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.068768
 
 ---
 
@@ -163,7 +163,7 @@ async def app_lifespan(app):
 
     try:
         await redis_manager.initialize()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to initialize Redis Manager: {e}")
         error_event_bus.emit(
             ErrorEvent(

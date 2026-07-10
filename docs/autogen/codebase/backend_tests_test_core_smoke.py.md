@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_core_smoke.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,490 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.498275
+**সাইজ:** 1,473 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.103062
 
 ---
 
@@ -28,7 +28,7 @@ def test_setup_logging_runs():
 def test_config_validators_basic():
     from core.config import Settings
 
-    s = Settings(env="test", cors_origins='["http://127.0.0.1:3000"]')
+    s = Settings(env="test", CORS_ORIGINS='["http://127.0.0.1:3000"]')
     assert "127.0.0.1" in " ".join(s.cors_origins)
     # ensure debug remains a bool
     assert isinstance(s.debug, bool)
@@ -54,7 +54,7 @@ async def test_llm_gateway_acompletion_monkeypatched(monkeypatch, tmp_path):
 
     from core.llm_gateway import LLMGateway
 
-    with patch("core.llm_gateway.litellm.acompletion", new=fake_acompletion):
+    with patch("litellm.acompletion", new=fake_acompletion):
         with patch("core.semantic_cache.SemanticCache.query_similar", new=AsyncMock(return_value=None)):
             gateway = LLMGateway()
             res = await gateway.acompletion(prompt="hi")

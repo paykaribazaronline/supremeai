@@ -1,24 +1,23 @@
 # 📄 ফাইল: backend/tests/test_telegram_bot.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,568 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.506524
+**সাইজ:** 7,891 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.111122
 
 ---
 
 ## কোড
 
 ```py
+import asyncio
 import os
+from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
 
 from tools.telegram_bot import TelegramBotHandler
-
-
-from unittest.mock import AsyncMock
 
 
 @pytest.fixture
@@ -165,7 +164,7 @@ def test_handle_message_ai_fallback_no_orchestrator(handler):
 def test_handle_message_ai_fallback_with_orchestrator(handler):
     mock_orchestrator = MagicMock()
     mock_orchestrator.execute_task.return_value = {"result": "Mock AI reply"}
-    handler.orchestrator = mock_orchestrator
+    handler.processor = mock_orchestrator
     response = handler.handle_message("hello bot", user_id="user1")
     assert response == "Mock AI reply"
 
@@ -173,7 +172,7 @@ def test_handle_message_ai_fallback_with_orchestrator(handler):
 def test_handle_message_ai_fallback_error(handler):
     mock_orchestrator = MagicMock()
     mock_orchestrator.execute_task.side_effect = Exception("LLM error")
-    handler.orchestrator = mock_orchestrator
+    handler.processor = mock_orchestrator
     response = handler.handle_message("hello bot", user_id="user1")
     assert "Error" in response
 
@@ -202,6 +201,7 @@ async def test_handle_update_command(handler):
 
 @pytest.mark.asyncio
 async def test_handle_update_ai_fallback(handler):
+    "বাংলা মন্তব্য: রেস কন্ডিশন ফিক্স — ব্যাকগ্রাউন্ড টাস্ক কমপ্লিট হওয়ার জন্য লুপে কন্ট্রোল ইল্ড (Yield) করা হলো।"
     mock_send = AsyncMock()
     mock_send_typing = AsyncMock()
     handler.send_message = mock_send
@@ -216,6 +216,7 @@ async def test_handle_update_ai_fallback(handler):
         },
     }
     await handler.handle_update(update)
+    await asyncio.sleep(0.05)
     mock_send_typing.assert_called_once_with(123)
     mock_send.assert_called_once_with(123, "AI reply")
 

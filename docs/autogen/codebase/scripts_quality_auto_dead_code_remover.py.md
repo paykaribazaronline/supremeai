@@ -1,8 +1,8 @@
 # 📄 ফাইল: scripts/quality/auto_dead_code_remover.py
 
 **প্রকার:** .py  
-**সাইজ:** 15,643 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.427594
+**সাইজ:** 15,602 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.033983
 
 ---
 
@@ -24,10 +24,12 @@ Environment Variables:
 - EXCLUDE: Comma-separated list of patterns to exclude (default: __init__.py,migrations,tests,test_*)
 - MIN_CONFIDENCE: Minimum confidence level for vulture (default: 80)
 - CREATE_PR: Whether to create a pull request (default: false)
+- GITHUB_REPOSITORY: The owner/repo slug for creating issues (e.g., 'my-org/my-repo')
 """
 
 import os
 import subprocess
+import re
 import sys
 from pathlib import Path
 import json
@@ -46,7 +48,7 @@ TARGET_DIRS = os.getenv("TARGET_DIRS", "backend,apps").split(",")
 OUTPUT_FILE = os.getenv("OUTPUT_FILE", "dead_code_report.md")
 EXCLUDE = os.getenv("EXCLUDE", "__init__.py,migrations,tests,test_*").split(",")
 MIN_CONFIDENCE = int(os.getenv("MIN_CONFIDENCE", "80"))
-CREATE_PR = os.getenv("CREATE_PR", "false").lower() == "true"
+CREATE_ISSUE = os.getenv("CREATE_ISSUE", "false").lower() == "true"
 
 def run_vulture() -> str:
     """Run vulture to detect dead code and return the output."""
@@ -96,7 +98,7 @@ def run_vulture() -> str:
 
 def run_radon_cc() -> str:
     """Run radon complexity analysis to find overly complex functions."""
-    cmd = ["radon", "cc"]
+    cmd = ["radon", "cc", "--json"]
     
     # Add target directories
     for directory in TARGET_DIRS:
@@ -121,7 +123,7 @@ def run_radon_cc() -> str:
         
         return result.stdout
         
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired: # noqa: E722
         logger.error("Radon CC timed out")
         return ""
     except FileNotFoundError:
@@ -133,7 +135,7 @@ def run_radon_cc() -> str:
 
 def run_radon_mi() -> str:
     """Run radon maintainability index analysis."""
-    cmd = ["radon", "mi"]
+    cmd = ["radon", "mi", "--json"]
     
     # Add target directories
     for directory in TARGET_DIRS:
@@ -157,7 +159,7 @@ def run_radon_mi() -> str:
         
         return result.stdout
         
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired: # noqa: E722
         logger.error("Radon MI timed out")
         return ""
     except FileNotFoundError:
@@ -201,25 +203,23 @@ def parse_radon_cc_output(output: str) -> list:
     if not output:
         return complex_functions
     
-    lines = output.strip().split('\n')
-    for line in lines:
-        if not line.strip():
-            continue
-        
-        # Radon CC output format: FILE:LINE: FUNCTION CLASS COMPLEXITY
-        match = re.match(r'(.+?):(\d+):\s+(\S+)\s+(\S+)\s+([A-F])', line)
-        if match:
-            file_path, line_num, function_name, class_name, grade = match.groups()
-            # Only include grades D, E, F (complex)
-            if grade in ['D', 'E', 'F']:
-                complex_functions.append({
-                    "file": file_path,
-                    "line": int(line_num),
-                    "function": function_name,
-                    "class": class_name if class_name != "<module>" else None,
-                    "complexity_grade": grade,
-                    "description": f"Complex function '{function_name}' (grade {grade})"
-                })
+    try:
+        data = json.loads(output)
+        for file_path, functions in data.items():
+            for func_data in functions:
+                grade = func_data.get("rank")
+                # Only include grades D, E, F (complex)
+                if grade and grade in ['D', 'E', 'F']:
+                    complex_functions.append({
+                        "file": file_path,
+                        "line": func_data.get("lineno"),
+                        "function": func_data.get("name"),
+                        "class": func_data.get("classname"),
+                        "complexity_grade": grade,
+                        "description": f"Complex function '{func_data.get('name')}' (grade {grade})"
+                    })
+    except json.JSONDecodeError:
+        logger.error("Failed to parse radon cc JSON output")
     
     return complex_functions
 
@@ -230,25 +230,22 @@ def parse_radon_mi_output(output: str) -> list:
     if not output:
         return low_maintainability
     
-    lines = output.strip().split('\n')
-    for line in lines:
-        if not line.strip():
-            continue
-        
-        # Radon MI output format: FILE:LINE: MI RATING
-        match = re.match(r'(.+?):(\d+):\s+(\d+\.\d+)\s+([A-F])', line)
-        if match:
-            file_path, line_num, mi_score, grade = match.groups()
-            mi_score = float(mi_score)
+    try:
+        data = json.loads(output)
+        for file_path, metrics in data.items():
+            grade = metrics.get("rank")
+            mi_score = metrics.get("mi")
             # Only include grades D, E, F (low maintainability)
-            if grade in ['D', 'E', 'F']:
+            if grade and grade in ['D', 'E', 'F']:
                 low_maintainability.append({
                     "file": file_path,
-                    "line": int(line_num),
+                    "line": 1, # MI is per-file
                     "maintainability_index": mi_score,
                     "grade": grade,
-                    "description": f"Low maintainability (MI: {mi_score}, grade {grade})"
+                    "description": f"Low maintainability (MI: {mi_score:.2f}, grade {grade})"
                 })
+    except json.JSONDecodeError:
+        logger.error("Failed to parse radon mi JSON output")
     
     return low_maintainability
 
@@ -346,41 +343,44 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 def create_github_issue(report_content: str) -> bool:
     """Create a GitHub issue with the report (if GitHub CLI is available)."""
+    github_repo = os.getenv("GITHUB_REPOSITORY")
     try:
         # Check if gh is available
         subprocess.run(["gh", "--version"], capture_output=True, check=True)
         
         # Create issue
         title = f"Code Quality Report: {datetime.now().strftime('%Y-%m-%d')}"
-        body = report_content
         
-        # Write to temporary file
-        temp_file = Path("temp_issue_body.md")
-        temp_file.write_text(body, encoding="utf-8")
+        cmd = [
+            "gh", "issue", "create",
+            "--title", title,
+            "--body", report_content,
+            "--label", "tech-debt,autogenerated"
+        ]
+        
+        if github_repo:
+            cmd.extend(["--repo", github_repo])
         
         # Create issue
         result = subprocess.run(
-            ["gh", "issue", "create", "--title", title, "--body-file", str(temp_file)],
+            cmd,
             capture_output=True,
             text=True,
             timeout=30
         )
         
-        # Clean up
-        temp_file.unlink()
-        
         if result.returncode == 0:
-            print(fr"✅ Created GitHub issue: {result.stdout.strip()}")
+            logger.info(f"✅ Created GitHub issue: {result.stdout.strip()}")
             return True
         else:
-            print(fr"❌ Failed to create GitHub issue: {result.stderr}")
+            logger.error(f"❌ Failed to create GitHub issue: {result.stderr}")
             return False
             
     except FileNotFoundError:
-        print(r"⚠️  GitHub CLI not found. Install with: brew install gh (macOS) or sudo apt-get install gh (Linux)")
+        logger.warning("GitHub CLI ('gh') not found. Skipping issue creation.")
         return False
     except Exception as e:
-        print(fr"❌ Error creating GitHub issue: {e}")
+        logger.error(f"❌ Error creating GitHub issue: {e}")
         return False
 
 def main() -> int:
@@ -422,7 +422,7 @@ def main() -> int:
     print(fr"   📉 Low maintainability: {len(low_maintainability)}")
     
     # Optionally create GitHub issue
-    if CREATE_PR:
+    if CREATE_ISSUE:
         print(r"\n🐙 Creating GitHub issue...")
         create_github_issue(report)
     
@@ -430,6 +430,5 @@ def main() -> int:
     return 0
 
 if __name__ == "__main__":
-    import re  # Import regex here to avoid issues if not used
     sys.exit(main())
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/auth_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 13,488 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.449679
+**সাইজ:** 13,548 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.055593
 
 ---
 
@@ -117,6 +117,7 @@ class AuthMiddleware:
                 response = JSONResponse(
                     status_code=401,
                     content={"detail": "Missing Authorization Token for admin route."},
+                    headers={"WWW-Authenticate": "Bearer"},
                 )
                 await response(scope, receive, send)
                 return

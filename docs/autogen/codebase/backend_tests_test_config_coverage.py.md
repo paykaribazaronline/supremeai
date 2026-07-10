@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_config_coverage.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,778 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.505754
+**সাইজ:** 7,738 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.110409
 
 ---
 
@@ -38,26 +38,26 @@ def test_parse_cors_origins_local_env_keeps_localhost():
 def test_parse_cors_origins_production_strips_localhost():
     # বাংলা মন্তব্য: _env_context প্রোডাকশন হলে localhost অরিজিন বাদ যাবে
     origins = ["http://127.0.0.1:3000", "http://localhost:5173", "https://example.com"]
-    result = Settings.parse_cors_origins(list(origins), _info(env="production"))
+    result = Settings.validate_cors_origins(list(origins), _info(env="production"))
     assert result == ["https://example.com"]
 
 
 # ── parse_cors_origins ─────────────────────────────────────────────────
 def test_parse_cors_origins_empty_string():
-    assert Settings(cors_origins="").cors_origins == []
-    assert Settings(cors_origins="  ").cors_origins == []
+    assert Settings(CORS_ORIGINS="").cors_origins == []
+    assert Settings(CORS_ORIGINS="  ").cors_origins == []
 
 
 def test_parse_cors_origins_comma_separated():
-    assert Settings(cors_origins="a, b, c").cors_origins == ["a", "b", "c"]
+    assert Settings(CORS_ORIGINS="a, b, c").cors_origins == ["a", "b", "c"]
 
 
 def test_parse_cors_origins_json_string():
-    assert Settings(cors_origins='["a", "b"]').cors_origins == ["a", "b"]
+    assert Settings(CORS_ORIGINS='["a", "b"]').cors_origins == ["a", "b"]
 
 
 def test_parse_cors_origins_non_string_passthrough():
-    assert Settings(cors_origins=["a"]).cors_origins == ["a"]
+    assert Settings(CORS_ORIGINS=["a"]).cors_origins == ["a"]
 
 
 # ── parse_admin_emails ─────────────────────────────────────────────────
@@ -87,7 +87,7 @@ def test_parse_allowed_hosts_list_passthrough():
     assert Settings.parse_allowed_hosts(["localhost"]) == ["localhost"]
 
 
-# ── validate_env ───────────────────────────────────────────────────────
+# ── validate_production_completeness ───────────────────────────────────────────────────────
 @pytest.mark.parametrize("value,expected", [("LOCAL", "local"), ("Production", "production"), ("test", "test")])
 def test_validate_env_normalizes_case(value, expected):
     assert Settings.validate_env(value) == expected
@@ -98,27 +98,28 @@ def test_validate_env_rejects_unknown():
         Settings.validate_env("banana")
 
 
-# ── set_test_secret ────────────────────────────────────────────────────
-def test_set_test_secret_returns_placeholder_in_local():
-    assert Settings.set_test_secret(None, _info(env="local")) == "test-secret-placeholder"
+# ── set_jwt_secret ────────────────────────────────────────────────────
+def test_set_jwt_secret_returns_placeholder_in_local():
+    secret = Settings.set_jwt_secret(None, _info(env="local"))
+    assert len(secret) == 128
 
 
-def test_set_test_secret_raises_in_production_when_missing():
+def test_set_jwt_secret_raises_in_production_when_missing():
     with pytest.raises(ValueError):
-        Settings.set_test_secret(None, _info(env="production"))
+        Settings.set_jwt_secret(None, _info(env="production"))
 
 
-def test_set_test_secret_keeps_provided_value():
-    assert Settings.set_test_secret("real-secret", _info(env="production")) == "real-secret"
+def test_set_jwt_secret_keeps_provided_value():
+    assert Settings.set_jwt_secret("real-secret", _info(env="production")) == "real-secret"
 
 
-# ── debug_must_be_false_in_production ──────────────────────────────────
+# ── validate_debug_mode ──────────────────────────────────
 def test_debug_forced_false_in_production():
-    assert Settings.debug_must_be_false_in_production(True, _info(env="production")) is False
+    assert Settings.validate_debug_mode(True, _info(env="production")) is False
 
 
 def test_debug_preserved_outside_production():
-    assert Settings.debug_must_be_false_in_production(True, _info(env="local")) is True
+    assert Settings.validate_debug_mode(True, _info(env="local")) is True
 
 
 # ── validate_config ────────────────────────────────────────────────────
@@ -142,7 +143,7 @@ def _bare_settings(**attrs) -> Settings:
 def test_validate_config_noop_for_non_production():
     s = _bare_settings(env="local")
     # কোনো এক্সসেপশন ছাড়াই রিটার্ন করবে
-    assert s.validate_config() is None
+    assert s.validate_production_completeness() is s
 
 
 def test_validate_config_raises_when_production_keys_missing():
@@ -154,13 +155,12 @@ def test_validate_config_raises_when_production_keys_missing():
         jwt_secret="",
         ci_webhook_secret="",
     )
-    with pytest.raises(RuntimeError) as exc:
-        s.validate_config()
+    with pytest.raises(ValueError) as exc:
+        s.validate_production_completeness()
     message = str(exc.value)
-    assert "openrouter_api_key" in message
-    assert "gemini_api_key" in message
-    assert "secure JWT_SECRET" in message
-    assert "secure CI_WEBHOOK_SECRET" in message
+    assert "OPENROUTER_API_KEY" in message
+    assert "GEMINI_API_KEY" in message
+    assert "CI_WEBHOOK_SECRET" in message
 
 
 def test_validate_config_passes_when_production_keys_present():
@@ -172,7 +172,7 @@ def test_validate_config_passes_when_production_keys_present():
         jwt_secret="super-secret",
         ci_webhook_secret="a-strong-unique-secret",
     )
-    assert s.validate_config() is None
+    assert s.validate_production_completeness() is s
 
 
 # ── construction smoke test ────────────────────────────────────────────
@@ -180,7 +180,7 @@ def test_validate_config_passes_when_production_keys_present():
 def test_settings_construction_defaults():
     s = Settings()
     assert s.env == "local"
-    assert s.jwt_secret == "test-secret-placeholder"
+    assert len(s.jwt_secret) in (86, 128)
     assert isinstance(s.admin_emails, list)
     assert isinstance(s.allowed_hosts, list)
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/config_proxy.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,876 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.461211
+**সাইজ:** 1,892 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.067389
 
 ---
 
@@ -56,7 +56,7 @@ class DynamicConfigProxy:
                     "COMMON_STRINGS_TO_IGNORE": ["", "utf-8", "rb", "wb", "r", "w", "a", "x", "b", "t", "+"],
                 }
                 self._expiry = datetime.now() + timedelta(minutes=1)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to refresh config from DB: {e}")
             raise RuntimeError(f"Failed to refresh config from DB: {e}") from e
 

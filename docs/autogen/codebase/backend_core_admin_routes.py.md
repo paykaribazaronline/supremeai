@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/admin_routes.py
 
 **প্রকার:** .py  
-**সাইজ:** 16,810 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.449303
+**সাইজ:** 16,858 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.055270
 
 ---
 
@@ -128,7 +128,7 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
             raise HTTPException(status_code=401, detail="Firebase Admin SDK is unavailable. Cannot authenticate.")
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.exception("Token verification/decoding failed")
         raise HTTPException(status_code=401, detail="Authentication failed") from e
 
@@ -185,7 +185,7 @@ def admin_firebase_totp_setup(payload: AdminFirebaseTotpSetupRequest):
             raise HTTPException(status_code=401, detail="Firebase Admin SDK is unavailable. Cannot authenticate.")
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=401, detail=f"Token decoding failed: {str(e)}") from e
 
     secret = base64.b32encode(os.urandom(10)).decode("utf-8")
@@ -221,7 +221,7 @@ def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
             raise HTTPException(status_code=401, detail="Firebase Admin SDK is unavailable. Cannot authenticate.")
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=401, detail=f"Token decoding failed: {str(e)}") from e
 
     db = get_firestore_client()

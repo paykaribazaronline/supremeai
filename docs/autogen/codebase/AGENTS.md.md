@@ -1,8 +1,8 @@
 # 📄 ফাইল: AGENTS.md
 
 **প্রকার:** .md  
-**সাইজ:** 2,673 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.414784
+**সাইজ:** 2,868 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.021461
 
 ---
 
@@ -101,5 +101,7 @@ _Generated for SupremeAI 2.0 — Admin Plan Execution_
 ## Agent Behavioral Rules
 
 - **Code Comments (Bangla):** Whenever making changes to the codebase, always try to add explanatory comments in **Bangla** so that the rationale behind the changes is easily understood later by the team.
+
+- **Elite Developer Mindset:** As an elite developer, do not just fix a single error. Always investigate and fix the root cause, and proactively find and fix similar errors across the codebase.
 
 ```

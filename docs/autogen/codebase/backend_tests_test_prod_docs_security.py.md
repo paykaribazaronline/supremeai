@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_prod_docs_security.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,293 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.490107
+**সাইজ:** 4,997 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.095133
 
 ---
 
@@ -70,8 +70,10 @@ def test_docs_visible_in_local():
         os.environ["env"] = "local"
         os.environ["openrouter_api_key"] = "sk"
         os.environ["gemini_api_key"] = "sk"
-        os.environ["sentry_dsn"] = "https://sentry.io/123"
-        os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_32_chars_long_test"
+        # Sentry-তে public key প্রয়োজন এবং Stripe API key mandatory, তাই মক ভ্যালু যোগ করা হলো
+        os.environ["sentry_dsn"] = "https://public@sentry.io/123"
+        os.environ["STRIPE_API_KEY"] = "sk_test_mock"
+        os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_64_bytes_long_test_string_pad_pad_pad_pad"
         import core.app as app_mod
         import core.services as services
 
@@ -94,8 +96,13 @@ def test_docs_disabled_in_production():
         os.environ["debug"] = "false"
         os.environ["openrouter_api_key"] = "sk"
         os.environ["gemini_api_key"] = "sk"
-        os.environ["sentry_dsn"] = "https://sentry.io/123"
-        os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_32_chars_long_test"
+        # Sentry-তে public key প্রয়োজন এবং Production-এ Stripe API key ও Webhook Secret mandatory, তাই মক ভ্যালু যোগ করা হলো
+        os.environ["sentry_dsn"] = "https://public@sentry.io/123"
+        os.environ["STRIPE_API_KEY"] = "sk_test_mock"
+        os.environ["STRIPE_WEBHOOK_SECRET"] = "whsec_mock"
+        os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_64_bytes_long_test_string_pad_pad_pad_pad"
+        os.environ["CORS_ORIGINS"] = '["https://example.com"]'
+        os.environ["ALLOWED_HOSTS"] = '["example.com"]'
         os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "CwE60g_bA67m-mock-encryption-key-padded-len="
         os.environ["CI_WEBHOOK_SECRET"] = "secure-ci-webhook-secret-for-testing-2026"
         os.environ["SUPREMEAI_ADMIN_PASSWORD_HASH"] = "mock_hash_for_production_test"

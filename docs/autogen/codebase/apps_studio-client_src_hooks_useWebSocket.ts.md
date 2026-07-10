@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/hooks/useWebSocket.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 3,834 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.567527
+**সাইজ:** 4,719 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.166521
 
 ---
 
@@ -53,6 +53,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
   const wsRef = useRef<WebSocket | null>(null);
   const attemptsRef = useRef(0);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const mountedRef = useRef(true);
 
   const resolveUrl = useCallback(() => {
@@ -74,6 +75,13 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
         attemptsRef.current = 0;
         setStatus('open');
         onOpen?.();
+
+        // বাংলা মন্তব্য: P2 Fix — Heartbeat ping প্রতি 30s এ পাঠানো হয় zombie connections detect করতে।
+        heartbeatRef.current = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'ping', timestamp: Date.now() }));
+          }
+        }, 30000);
       };
 
       ws.onmessage = (event: MessageEvent) => {
@@ -91,6 +99,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
 
       ws.onclose = () => {
         if (!mountedRef.current) return;
+        if (heartbeatRef.current) {
+          clearInterval(heartbeatRef.current);
+          heartbeatRef.current = null;
+        }
         setStatus('closed');
         onClose?.();
 
@@ -118,8 +130,16 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
       clearTimeout(reconnectTimerRef.current);
       reconnectTimerRef.current = null;
     }
+    if (heartbeatRef.current) {
+      clearInterval(heartbeatRef.current);
+      heartbeatRef.current = null;
+    }
     attemptsRef.current = reconnectAttempts;
-    wsRef.current?.close();
+    if (wsRef.current) {
+      if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
+        wsRef.current.close(1000, 'Component unmounted');
+      }
+    }
     wsRef.current = null;
     setStatus('closed');
   }, [reconnectAttempts]);

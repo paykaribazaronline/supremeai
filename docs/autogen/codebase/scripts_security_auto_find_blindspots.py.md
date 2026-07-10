@@ -1,8 +1,8 @@
 # 📄 ফাইল: scripts/security/auto_find_blindspots.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,280 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.430518
+**সাইজ:** 10,781 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.036834
 
 ---
 
@@ -27,7 +27,7 @@ import os
 import re
 import json
 from pathlib import Path
-from typing import List, Dict, Tuple, Callable
+from typing import List, Dict, Tuple, Callable, Any
 
 # --- Configuration ---
 
@@ -43,15 +43,20 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 # --- Checker Functions ---
 
-def find_hardcoded_secrets(content: str, file_path: str) -> List[str]:
+def find_hardcoded_secrets(content: str, file_path: str) -> List[Tuple[int, str]]:
     """Finds hardcoded passwords, API keys, or other secrets."""
     findings = []
-    # Specific hardcoded password from `blindspots-bangla.md`
-    if "supreme-god-password" in content:
-        findings.append("🔴 Critical: Hardcoded 'supreme-god-password' found.")
-    # Generic patterns for keys and passwords
-    if re.search(r'(api_key|secret_key|password)\s*=\s*["\'][A-Za-z0-9_/.+-]{16,}["\']', content, re.IGNORECASE):
-        findings.append("🟠 High: Potential hardcoded secret or API key found.")
+    lines = content.splitlines()
+    # More robust regex to find keys, avoiding variable assignments like `api_key = os.getenv(...)`
+    secret_pattern = re.compile(r'(api_key|secret_key|password|token)\s*[:=]\s*["\']([A-Za-z0-9_/.+-]{16,})["\']', re.IGNORECASE)
+
+    for i, line in enumerate(lines, 1):
+        # Specific hardcoded password from `blindspots-bangla.md`
+        if "supreme-god-password" in line:
+            findings.append((i, "🔴 Critical: Hardcoded 'supreme-god-password' found."))
+        # Generic patterns for keys and passwords
+        if secret_pattern.search(line):
+            findings.append((i, "🟠 High: Potential hardcoded secret or API key found."))
     return findings
 
 def check_cicd_vulnerabilities(content: str, file_path: str) -> List[str]:
@@ -118,7 +123,7 @@ def check_committed_env_file(file_path: Path) -> List[str]:
     return []
 
 # List of all checker functions to be executed on file content
-CONTENT_CHECKERS: List[Callable[[str, str], List[str]]] = [
+CONTENT_CHECKERS: List[Callable[[str, str], Any]] = [
     find_hardcoded_secrets,
     check_cicd_vulnerabilities,
     check_insecure_storage,
@@ -141,8 +146,12 @@ def scan_file(file_path: Path) -> List[Tuple[str, str]]:
             content = f.read()
 
         for checker_func in CONTENT_CHECKERS:
-            for finding in checker_func(content, str(file_path)):
-                findings.append((str(file_path), finding))
+            results = checker_func(content, str(file_path))
+            for finding in results:
+                if isinstance(finding, tuple): # New format with line numbers
+                    findings.append((str(file_path), f"L{finding[0]}: {finding[1]}"))
+                else: # Old format
+                    findings.append((str(file_path), finding))
 
     except Exception as e:
         print(f"⚠️  Could not scan file: {file_path} ({e})")

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/observability_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,982 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.456986
+**সাইজ:** 6,135 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.062947
 
 ---
 
@@ -84,7 +84,7 @@ class ObservabilityMiddleware:
                 kind="server",
             ):
                 await self.app(scope, receive, custom_send)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             error_type = type(exc).__name__
             record_error(error_type, path)
             raise
@@ -110,6 +110,30 @@ class ObservabilityMiddleware:
                 # তব নরব সযলপ ন কর ডবগ লগ কর হল যত টলমটর সমসয বঝ যয়
                 logger.debug(f"PostHog capture failed in observability middleware: {exc}")
 
+            # --- START REDIS TRAFFIC MONITORING ---
+            try:
+                import asyncio
+                import json
+
+                from core.redis_manager import redis_manager
+
+                if redis_manager.client:
+                    now = int(time.time())
+                    # Push to time-series list for the current minute
+                    minute_key = f"traffic:live:{now // 60}"
+
+                    async def push_traffic():
+                        try:
+                            payload = {"method": method, "path": path, "status": status_code, "duration": duration, "error": error_type}
+                            await redis_manager.client.lpush(minute_key, json.dumps(payload))
+                            await redis_manager.client.expire(minute_key, 86400)  # 24 hours retention
+                        except Exception:  # noqa: BLE001
+                            pass
+
+                    asyncio.create_task(push_traffic())
+            except Exception as e:  # noqa: BLE001
+                logger.debug(f"Redis traffic monitoring failed: {e}")
+            # --- END REDIS TRAFFIC MONITORING ---
             try:
                 from database.supabase_client import db
 

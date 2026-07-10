@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/cost_guard.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,910 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.458523
+**সাইজ:** 3,926 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.064412
 
 ---
 
@@ -59,7 +59,7 @@ class CostGuard:
             return True
         except HTTPException:
             raise
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"CostGuard DB Error: {e}")
             raise RuntimeError(f"CostGuard failed to verify budget: {e}") from e
 

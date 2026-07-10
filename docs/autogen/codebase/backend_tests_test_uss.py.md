@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_uss.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,223 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.502202
+**সাইজ:** 3,192 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.106909
 
 ---
 
@@ -19,8 +19,7 @@ from skills.schema import UniversalSkillSchema
 @pytest.fixture
 def temp_skills_dir(tmp_path):
     # Set up temp dir for registry and dynamic skills
-    reg_path = tmp_path / "skills_registry.json"
-    registry = SkillRegistry(registry_path=str(reg_path))
+    registry = SkillRegistry(registry_path=str(tmp_path / "registry.json"))
     installer = SkillInstaller(registry=registry, skills_dir=str(tmp_path / "dynamic"))
     loader = SkillLoader(registry=registry, installer=installer)
     loader.skills_dir = tmp_path / "dynamic"

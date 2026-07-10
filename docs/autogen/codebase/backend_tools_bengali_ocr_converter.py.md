@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/bengali_ocr_converter.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,354 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.534035
+**সাইজ:** 5,524 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.139087
 
 ---
 
@@ -11,6 +11,7 @@
 ```py
 import os
 
+from loguru import logger
 import pandas as pd
 from google.cloud import vision
 from google.oauth2 import service_account
@@ -41,7 +42,7 @@ def extract_text_from_image(client, image_path):
     texts = response.text_annotations
 
     if response.error.message:
-        raise Exception(f"API Error: {response.error.message}")
+        raise RuntimeError(f"API Error: {response.error.message}")
 
     # Return the full text
     if texts:
@@ -74,7 +75,7 @@ def convert_image_to_excel(image_path, excel_path, client):
         text = extract_text_from_image(client, image_path)
 
         if not text:
-            print(f"No text found in {os.path.basename(image_path)}")  # noqa: T201
+            logger.info(f"No text found in {os.path.basename(image_path)}")
             return False
 
         # Parse into table format
@@ -117,13 +118,12 @@ def convert_image_to_excel(image_path, excel_path, client):
             metadata_df.to_excel(writer, sheet_name="Metadata", index=False)
             df.to_excel(writer, sheet_name="Data", index=False)
 
-        print(  # noqa: T201
-            f"Successfully converted {os.path.basename(image_path)} to {os.path.basename(excel_path)}"
-        )
+        logger.success(f"Converted {os.path.basename(image_path)} to {os.path.basename(excel_path)}")
         return True
 
-    except Exception as e:  # noqa: BLE001
-        print(f"Error processing {os.path.basename(image_path)}: {str(e)}")  # noqa: T201
+    except (OSError, ValueError, RuntimeError) as e:
+        # সুনির্দিষ্ট ত্রুটি ক্যাচ করে লগ করা হলো, যাতে অন্য অপ্রত্যাশিত সমস্যাগুলো চাপা না পড়ে
+        logger.error(f"Error processing {os.path.basename(image_path)}: {str(e)}")
         return False
 
 
@@ -136,7 +136,7 @@ def batch_convert_images(folder_path, credentials_path=None):
     image_files = [f for f in os.listdir(folder_path) if f.lower().endswith(".jpg")]
     image_files.sort()
 
-    print(f"Found {len(image_files)} images to process")  # noqa: T201
+    logger.info(f"Found {len(image_files)} images to process")
 
     success_count = 0
     for image_file in image_files:
@@ -147,9 +147,7 @@ def batch_convert_images(folder_path, credentials_path=None):
         if convert_image_to_excel(image_path, excel_path, client):
             success_count += 1
 
-    print(  # noqa: T201
-        f"\nConversion completed: {success_count}/{len(image_files)} images processed successfully"
-    )
+    logger.info(f"Conversion completed: {success_count}/{len(image_files)} images processed successfully")
 
 
 if __name__ == "__main__":
@@ -163,10 +161,10 @@ if __name__ == "__main__":
     try:
         batch_convert_images(folder)
     except Exception as e:  # noqa: BLE001
-        print(f"Setup error: {e}")  # noqa: T201
-        print("Please ensure you have set up Google Cloud Vision API credentials")  # noqa: T201
-        print("Either:")  # noqa: T201
-        print("1. Set GOOGLE_APPLICATION_CREDENTIALS environment variable")  # noqa: T201
-        print("2. Or provide credentials file path to batch_convert_images()")  # noqa: T201
+        logger.critical(f"Setup error: {e}")
+        logger.critical("Please ensure you have set up Google Cloud Vision API credentials")
+        logger.critical("Either:")
+        logger.critical("1. Set GOOGLE_APPLICATION_CREDENTIALS environment variable")
+        logger.critical("2. Or provide credentials file path to batch_convert_images()")
 
 ```

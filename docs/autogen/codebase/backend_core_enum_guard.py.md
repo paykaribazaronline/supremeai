@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/enum_guard.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,532 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.462852
+**সাইজ:** 2,548 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.068952
 
 ---
 
@@ -51,7 +51,7 @@ async def guard_enum(db_enum_name: str, py_enum: type[enum.Enum]):
                 raise EnumMismatchError(error_msg)
 
             logger.info(f"Enum '{db_enum_name}' successfully validated against Python model.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         if isinstance(e, EnumMismatchError):
             raise
         logger.warning(f"Skipping Enum Guard for '{db_enum_name}' (DB connection issue or unsupported dialect): {e}")

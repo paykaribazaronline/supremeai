@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/idempotency_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,706 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.460927
+**সাইজ:** 5,722 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.067101
 
 ---
 
@@ -142,7 +142,7 @@ class IdempotencyMiddleware:
                 ),
                 ex=86400,
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # Clear key on failure so the client can retry immediately
             with contextlib.suppress(Exception):
                 redis.set(redis_key, "", ex=1)

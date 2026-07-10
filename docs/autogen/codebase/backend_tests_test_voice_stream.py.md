@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_voice_stream.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,105 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.495781
+**সাইজ:** 1,201 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.100622
 
 ---
 
@@ -36,7 +36,7 @@ def test_app() -> FastAPI:
 
 def test_stream_audio_requires_text(test_app: FastAPI):
     client = TestClient(test_app)
-    resp = client.get("/api/voice/stream_audio")
+    resp = client.get("/api/voice/stream_audio", headers={"Authorization": "Bearer test-token"})
     assert resp.status_code == 400
     assert "Text cannot be empty" in resp.text
     os.environ.pop("SUPREMEAI_API_TOKEN", None)
@@ -44,7 +44,7 @@ def test_stream_audio_requires_text(test_app: FastAPI):
 
 def test_stream_audio_returns_audio_mpeg(test_app: FastAPI):
     client = TestClient(test_app)
-    resp = client.get("/api/voice/stream_audio?text=hello")
+    resp = client.get("/api/voice/stream_audio?text=hello", headers={"Authorization": "Bearer test-token"})
     assert resp.status_code == 200
     assert "audio/mpeg" in resp.headers["content-type"]
     os.environ.pop("SUPREMEAI_API_TOKEN", None)

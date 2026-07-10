@@ -2,7 +2,7 @@
 
 **প্রকার:** .py  
 **সাইজ:** 5,321 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.492700
+**আপডেট:** 2026-07-10T18:52:51.097682
 
 ---
 
@@ -94,7 +94,7 @@ async def test_honeypot_blocks_sql_injection_prod():
         assert send.await_args_list, "Expected the middleware to send a response"
         start_event = send.await_args_list[0].args[0]
         assert start_event.get("type") == "http.response.start"
-        assert start_event.get("status") == 200
+        assert start_event.get("status") == 418
     finally:
         if old_env is None:
             os.environ.pop("ENV", None)
@@ -128,7 +128,7 @@ async def test_honeypot_blocks_script_injection_prod():
         middleware.app.assert_not_called()
         assert send.await_args_list, "Expected the middleware to send a response"
         start_event = send.await_args_list[0].args[0]
-        assert start_event.get("status") == 200
+        assert start_event.get("status") == 418
     finally:
         if old_env is None:
             os.environ.pop("ENV", None)
@@ -162,7 +162,7 @@ async def test_honeypot_blocks_ignore_instructions_prod():
         middleware.app.assert_not_called()
         assert send.await_args_list, "Expected the middleware to send a response"
         start_event = send.await_args_list[0].args[0]
-        assert start_event.get("status") == 200
+        assert start_event.get("status") == 418
     finally:
         if old_env is None:
             os.environ.pop("ENV", None)

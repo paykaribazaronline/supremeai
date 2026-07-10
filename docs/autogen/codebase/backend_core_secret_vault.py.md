@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/secret_vault.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,490 বাইট  
-**আপডেট:** 2026-07-09T10:27:17.457464
+**সাইজ:** 3,506 বাইট  
+**আপডেট:** 2026-07-10T18:52:51.063383
 
 ---
 
@@ -60,7 +60,7 @@ class ProductionSecretVault:
             response = self.client.access_secret_version(request={"name": name})
             payload = response.payload.data.decode("UTF-8")
             return payload.strip()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"❌ Failed to fetch secret [{secret_id}] from GSM: {str(e)}")
             if self.env == "production":
                 raise RuntimeError(f"Failed to fetch {secret_id} in production: {e}") from e
