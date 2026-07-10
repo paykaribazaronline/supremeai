@@ -104,7 +104,7 @@ def get_credentials(userId: str = "default"):
                 decrypted_dict = json.loads(decrypted)
             except Exception:  # noqa: BLE001
                 decrypted_dict = {}
-            
+
             masked_dict = {}
             for k, v in decrypted_dict.items():
                 if k in ("password", "token", "secret", "api_key", "username") and isinstance(v, str):

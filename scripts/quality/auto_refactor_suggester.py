@@ -246,6 +246,8 @@ def analyze_file(file_path: Path) -> List[Dict[str, Any]]:
 
 def generate_report(suggestions: List[Dict[str, Any]]) -> str:
     """Generate a markdown report of refactoring suggestions."""
+    from datetime import datetime
+
     if not suggestions:
         return f"""# Refactoring Suggestions Report
 
@@ -342,14 +344,10 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
                     str(suggestion.get("line", ""))
                 ]
                 
-                if "function" in suggestion:
-                    func_name = suggestion["function"]
-                    class_name = suggestion.get("class")
-                    if class_name:
-                        func_name = f"{class_name}.{func_name}"
-                    row_data.append(func_name)
-                
-                if "class" in suggestion and "function" not in suggestion:
+                if "function" in sample:
+                    row_data.append(suggestion.get("function", ""))
+
+                if "class" in sample:
                     row_data.append(suggestion.get("class", ""))
                 
                 if "priority" in suggestion:
@@ -459,5 +457,6 @@ def main() -> int:
     return 0
 
 if __name__ == "__main__":
-    import datetime  # Import here to avoid issues if not used
+    import sys
+    from datetime import datetime
     sys.exit(main())

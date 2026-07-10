@@ -17,6 +17,7 @@ Environment Variables:
 
 import os
 import subprocess
+import re
 import sys
 from pathlib import Path
 import json
@@ -85,7 +86,7 @@ def run_vulture() -> str:
 
 def run_radon_cc() -> str:
     """Run radon complexity analysis to find overly complex functions."""
-    cmd = ["radon", "cc"]
+    cmd = ["radon", "cc", "--json"]
     
     # Add target directories
     for directory in TARGET_DIRS:
@@ -110,7 +111,7 @@ def run_radon_cc() -> str:
         
         return result.stdout
         
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired: # noqa: E722
         logger.error("Radon CC timed out")
         return ""
     except FileNotFoundError:
@@ -122,7 +123,7 @@ def run_radon_cc() -> str:
 
 def run_radon_mi() -> str:
     """Run radon maintainability index analysis."""
-    cmd = ["radon", "mi"]
+    cmd = ["radon", "mi", "--json"]
     
     # Add target directories
     for directory in TARGET_DIRS:
@@ -146,7 +147,7 @@ def run_radon_mi() -> str:
         
         return result.stdout
         
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired: # noqa: E722
         logger.error("Radon MI timed out")
         return ""
     except FileNotFoundError:
@@ -190,25 +191,23 @@ def parse_radon_cc_output(output: str) -> list:
     if not output:
         return complex_functions
     
-    lines = output.strip().split('\n')
-    for line in lines:
-        if not line.strip():
-            continue
-        
-        # Radon CC output format: FILE:LINE: FUNCTION CLASS COMPLEXITY
-        match = re.match(r'(.+?):(\d+):\s+(\S+)\s+(\S+)\s+([A-F])', line)
-        if match:
-            file_path, line_num, function_name, class_name, grade = match.groups()
-            # Only include grades D, E, F (complex)
-            if grade in ['D', 'E', 'F']:
-                complex_functions.append({
-                    "file": file_path,
-                    "line": int(line_num),
-                    "function": function_name,
-                    "class": class_name if class_name != "<module>" else None,
-                    "complexity_grade": grade,
-                    "description": f"Complex function '{function_name}' (grade {grade})"
-                })
+    try:
+        data = json.loads(output)
+        for file_path, functions in data.items():
+            for func_data in functions:
+                grade = func_data.get("rank")
+                # Only include grades D, E, F (complex)
+                if grade and grade in ['D', 'E', 'F']:
+                    complex_functions.append({
+                        "file": file_path,
+                        "line": func_data.get("lineno"),
+                        "function": func_data.get("name"),
+                        "class": func_data.get("classname"),
+                        "complexity_grade": grade,
+                        "description": f"Complex function '{func_data.get('name')}' (grade {grade})"
+                    })
+    except json.JSONDecodeError:
+        logger.error("Failed to parse radon cc JSON output")
     
     return complex_functions
 
@@ -219,25 +218,22 @@ def parse_radon_mi_output(output: str) -> list:
     if not output:
         return low_maintainability
     
-    lines = output.strip().split('\n')
-    for line in lines:
-        if not line.strip():
-            continue
-        
-        # Radon MI output format: FILE:LINE: MI RATING
-        match = re.match(r'(.+?):(\d+):\s+(\d+\.\d+)\s+([A-F])', line)
-        if match:
-            file_path, line_num, mi_score, grade = match.groups()
-            mi_score = float(mi_score)
+    try:
+        data = json.loads(output)
+        for file_path, metrics in data.items():
+            grade = metrics.get("rank")
+            mi_score = metrics.get("mi")
             # Only include grades D, E, F (low maintainability)
-            if grade in ['D', 'E', 'F']:
+            if grade and grade in ['D', 'E', 'F']:
                 low_maintainability.append({
                     "file": file_path,
-                    "line": int(line_num),
+                    "line": 1, # MI is per-file
                     "maintainability_index": mi_score,
                     "grade": grade,
-                    "description": f"Low maintainability (MI: {mi_score}, grade {grade})"
+                    "description": f"Low maintainability (MI: {mi_score:.2f}, grade {grade})"
                 })
+    except json.JSONDecodeError:
+        logger.error("Failed to parse radon mi JSON output")
     
     return low_maintainability
 
@@ -419,5 +415,4 @@ def main() -> int:
     return 0
 
 if __name__ == "__main__":
-    import re  # Import regex here to avoid issues if not used
     sys.exit(main())

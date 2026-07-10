@@ -45,6 +45,10 @@ EXCLUDE_PATTERNS = [
 
 def main():
     """মূল ফাংশন যা Vulture ব্যবহার করে অব্যবহৃত কোড খুঁজে বের করে।"""
+    # স্ক্রিপ্টটি ডেপ্রিকেট করা হয়েছে, auto_dead_code_remover.py ব্যবহারের পরামর্শ দেওয়া হচ্ছে।
+    print("⚠️  সতর্কতা: find_dead_code.py ডেপ্রিকেট করা হয়েছে।")
+    print("   দয়া করে আরও উন্নত ফিচারের জন্য `scripts/quality/auto_dead_code_remover.py` ব্যবহার করুন।\n")
+
     print("🦅 SupremeAI Dead Code Detector শুরু হচ্ছে...")
     print(f"🎯 স্ক্যান করার পাথ: {[str(p.relative_to(PROJECT_ROOT)) for p in SCAN_PATHS]}")
     print(f"⚙️ সর্বনিম্ন কনফিডেন্স: {MIN_CONFIDENCE}%\n")
