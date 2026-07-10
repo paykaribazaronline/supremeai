@@ -1,7 +1,10 @@
 # backend/middleware/tenant_rate_limiter.py
+from fastapi import HTTPException
+from fastapi import Request
 from loguru import logger
-from fastapi import Request, HTTPException
+
 from core.services import registry  # আমাদের নতুন ডায়নামিক সার্ভিস রেজিস্ট্রি চেইন
+
 
 async def enforce_tenant_rate_limit(request: Request):
     """Upstash REST ভিত্তিক টেন্যান্ট রেট লিমিটিং গার্ড।"""

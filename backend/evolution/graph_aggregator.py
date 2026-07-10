@@ -1,14 +1,14 @@
 import json
-from typing import Dict, List, Any
+
 from core.services import registry
-from loguru import logger
+
 
 class GraphAggregator:
     def __init__(self):
         self.redis = registry.get_service("redis_manager")
         self.CACHE_KEY = "swarm_graph_state"
 
-    def _compute_delta(self, old_state: Dict, new_state: Dict) -> Dict:
+    def _compute_delta(self, old_state: dict, new_state: dict) -> dict:
         """দুটি স্টেটের মধ্যে পার্থক্য বের করে শুধুমাত্র চেঞ্জগুলো রিটার্ন করে।"""
         delta = {"added": {"nodes": [], "edges": []}, "removed": {"nodes": [], "edges": []}}
         
@@ -28,7 +28,7 @@ class GraphAggregator:
         
         return delta
 
-    async def get_swarm_delta(self, current_full_graph: Dict) -> Dict:
+    async def get_swarm_delta(self, current_full_graph: dict) -> dict:
         """মেইন এন্ট্রি পয়েন্ট: ক্যাশ থেকে পুরনো স্টেট এনে ডিফারেন্স ক্যালকুলেট করে।"""
         if not self.redis:
             return current_full_graph

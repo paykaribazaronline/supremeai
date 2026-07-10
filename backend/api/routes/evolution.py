@@ -27,7 +27,7 @@ from database.session import get_db_session
 from evolution.auto_skill_creator import AutoSkillCreator
 from evolution.fitness_engine import FitnessEngine
 from models.evolution import CodeProposal
-from typing import List
+
 
 class GraphNode(BaseModel):
     id: str
@@ -40,8 +40,8 @@ class GraphEdge(BaseModel):
     relationship: str
 
 class SwarmGraph(BaseModel):
-    nodes: List[GraphNode]
-    edges: List[GraphEdge]
+    nodes: list[GraphNode]
+    edges: list[GraphEdge]
 
 
 router = APIRouter(prefix="/api/evolution", tags=["self-evolution-engine"])

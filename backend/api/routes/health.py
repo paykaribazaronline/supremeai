@@ -1,6 +1,8 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
+
 from core.services import registry
+
 
 # Note: In app.py we registered this router with prefix="/api/health" but 
 # in the user's snippet they had router.post("/health/agents") without prefix 
