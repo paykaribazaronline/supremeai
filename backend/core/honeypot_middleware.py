@@ -3,9 +3,12 @@ from __future__ import annotations
 import json
 import re
 import time
+import uuid
 
 from fastapi.responses import JSONResponse
 from loguru import logger
+
+from core.event_bus import ErrorEvent
 
 
 class HoneypotMiddleware:
@@ -76,48 +79,66 @@ class HoneypotMiddleware:
         is_malicious = any(sig.search(body_str) or sig.search(query_str) for sig in self.attack_signatures)
 
         if is_malicious:
-            # 🚨 হ্যাকার ডিটেক্টেড! তাকে ব্লক না করে Honeypot-এ রাউট করা হচ্ছে
-            logger.warning(f"🕷️ Malicious payload from {hacker_ip}. Routing to Honeypot...")
+            # P0 Fix: হ্যাকার ডিটেক্টেড — Immediate auto-block
+            logger.warning(f"🕷️ Malicious payload from {hacker_ip}. Auto-blocking...")
 
-            # ডেটাবেসে হ্যাকারের প্যাটার্ন স্টাডি করার জন্য সেভ করা (Async Task)
+            # 1. Immediately block IP via RulesMutator
+            RulesMutator().block_ip(hacker_ip, reason="honeypot_malicious_payload_detected")
+
+            # 2. Log threat intelligence to Firestore
             self._log_threat_intelligence(hacker_ip, body_str or query_str, scope.get("path", ""))
 
-            # Increment threat level & block if threshold reached
+            # 3. Set distributed block in Redis with 1 hour TTL
             import core.services as app_mod
 
             if hasattr(app_mod, "redis_queue") and app_mod.redis_queue and app_mod.redis_queue.configured:
                 try:
-                    # Log attacker payload
-                    log_entry = {
+                    # Set honeypot block key with 1 hour TTL
+                    block_entry = {
                         "ip": hacker_ip,
-                        "url": f"{scope.get('scheme', 'http')}://{hacker_ip}{scope.get('path', '')}",
-                        "method": scope.get("method", "GET"),
+                        "reason": "malicious_payload",
                         "timestamp": time.time(),
+                        "threat_level": "HIGH",
+                        "path": scope.get("path", ""),
+                        "method": scope.get("method", "GET"),
                     }
                     app_mod.redis_queue.set(
-                        f"honeypot_attacker:{hacker_ip}:{int(time.time())}",
-                        json.dumps(log_entry),
-                        ex=86400,
+                        f"honeypot:blocked:{hacker_ip}",
+                        json.dumps(block_entry),
+                        ex=3600,  # 1 hour block
                     )
-
-                    threat_key = f"threat_level:{hacker_ip}"
-                    hits = app_mod.redis_queue.incr(threat_key)
-                    if hits == 1:
-                        app_mod.redis_queue.expire(threat_key, 300)
-                    elif hits and hits >= 3:
-                        # Dynamically block IP using RulesMutator
-                        RulesMutator().block_ip(hacker_ip, reason="honeypot_threat_threshold_exceeded")
+                    # Also set blocklist entry
+                    app_mod.redis_queue.set(
+                        f"blocklist:ip:{hacker_ip}",
+                        json.dumps({"reason": "honeypot_malicious_payload", "timestamp": time.time()}),
+                        ex=3600,
+                    )
                 except Exception as e:  # noqa: BLE001
-                    logger.error(f"Redis operation failed in HoneypotMiddleware: {e}")
+                    logger.error(f"Redis honeypot block operation failed: {e}")
 
-            # বাংলা মন্তব্য: P0 Fix — Honeypot response information-lean করা হলো।
-            # আগে: `"role": "admin", "access_granted": True, "flag": "SupremeAI_Shadow_Env"` দিয়ে
-            # attacker-কে platform identity confirm করা হতো এবং honeypot detect সহজ হতো।
-            # এখন: Generic, neutral response — কোনো system-specific information প্রকাশ পাচ্ছে না।
-            import uuid
+            # 4. Fire security event to event bus
+            try:
+                from core.event_bus import ErrorEventBus as _EventBus
+                _bus = _EventBus()
+                _bus.emit(ErrorEvent(
+                    module="honeypot",
+                    error_type="HONEYPOT_TRIGGERED",
+                    message=f"Malicious payload detected from {hacker_ip}",
+                    severity="HIGH",
+                    context={
+                        "ip": hacker_ip,
+                        "action": "ip_blocked",
+                        "block_duration_seconds": 3600,
+                        "path": scope.get("path", ""),
+                        "method": scope.get("method", "GET"),
+                    },
+                ))
+            except Exception:  # noqa: BLE001
+                pass  # Event bus failure should not block the honeypot response
 
+            # 5. Return RFC 2324 (418 I'm a teapot) — اطلاعات-লীন রেসপন্স
             response = JSONResponse(
-                status_code=200,
+                status_code=418,  # RFC 2324 — I'm a teapot
                 content={
                     "status": "ok",
                     "session_id": str(uuid.uuid4())[:8],

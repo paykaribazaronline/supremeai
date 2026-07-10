@@ -14,15 +14,10 @@ from loguru import logger
 from core.config import settings
 
 
-# বাংলা মন্তব্য: P0 Fix — module-level SECRET_KEY eager evaluation → lazy property।
-# আগে: import-এ immediate evaluate হতো, যার ফলে JWT secret rotate করা যেত না।
-# এখন: প্রতিটি কলের সময় runtime-এ fetch হবে, enabling secret rotation without restart.
-
-
 def _get_jwt_secret() -> str:
     secret = settings.jwt_secret
     if not secret:
-        logger.critical("🚨 FATAL: JWT Secret is missing! Halting boot process to prevent vulnerabilities.")
+        logger.critical("FATAL: JWT Secret is missing! Halting boot process.")
         raise RuntimeError("Security misconfiguration: Missing JWT Secret.")
     return secret
 
@@ -38,7 +33,6 @@ API_KEY_RANDOM_BYTES = 32
 
 
 def create_access_token(data: dict) -> str:
-    """ক্রিপটগ্রাফিক সাইনড JWT জেনারেট করবে"""
     to_encode = data.copy()
     expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
@@ -50,7 +44,6 @@ def create_access_token(data: dict) -> str:
 
 
 def verify_token(token: str) -> dict:
-    """টোকেন ডিকোড এবং ভেরিফাই করবে"""
     try:
         payload = jwt.decode(token, _get_jwt_secret(), algorithms=[ALGORITHM])
         return payload
@@ -58,9 +51,6 @@ def verify_token(token: str) -> dict:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired") from None
     except jwt.PyJWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials") from None
-
-
-# ── API Key Crypto ────────────────────────────────────────────────────────
 
 
 def _get_api_key_signing_secret() -> str:
@@ -84,6 +74,7 @@ def hash_api_key(key: str) -> str:
 
 
 def verify_api_key(plain_key: str, stored_hash: str) -> bool:
+    # Constant-time comparison using hmac.compare_digest
     expected = hash_api_key(plain_key)
     return hmac.compare_digest(expected, stored_hash)
 

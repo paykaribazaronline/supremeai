@@ -106,6 +106,7 @@ class AuthMiddleware:
                 response = JSONResponse(
                     status_code=401,
                     content={"detail": "Missing Authorization Token for admin route."},
+                    headers={"WWW-Authenticate": "Bearer"},
                 )
                 await response(scope, receive, send)
                 return

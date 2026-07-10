@@ -1,37 +1,52 @@
 import httpx
-
-from adaptive_engine.experience_db import ExperienceDatabase
-from adaptive_engine.intent_parser import IntentParser
-from adaptive_engine.platform_learner import PlatformLearner
-from adaptive_engine.registry import PlatformRegistry
-from admin.god import AdminGodLayer
-from brain.gcp_router import GCPCloudRunRouter
-from brain.model_router import ModelRouter
-from brain.parallel_cloud_router import ParallelCloudRouter
-from core.config import settings
-from core.gcp_firestore import GCPFirestoreVerificationQueue
-from core.gcp_pubsub_queue import GCPPubSubQueue
-from core.intent import IntentClassifier
-from core.universal_rules import UniversalRulesEngine
-from core.upstash_redis_queue import UpstashRedisQueue
-from tools.gcp_cloud_functions import GCPCloudFunctionClient
+from typing import Any, Callable
 
 
-global_http_client: httpx.AsyncClient | None = None
+class ServiceRegistry:
+    """
+    বাংলা মন্তব্য: P2 Fix — Factory pattern with async initialization.
+    Instance নয়, factory register করুন। async def create() classmethod দিয়ে async initialization করুন।
+    """
 
-model_router = ModelRouter()
-intent_clf = IntentClassifier()
-admin_god = AdminGodLayer(db_path=settings.admin_rules_db)
-parallel_router = ParallelCloudRouter()
-gcp_router = GCPCloudRunRouter()
-verification_queue = GCPFirestoreVerificationQueue()
-gcp_pubsub_queue = GCPPubSubQueue()
-cloud_function_client = GCPCloudFunctionClient()
-redis_queue = UpstashRedisQueue()
+    def __init__(self):
+        self._services: dict[str, Callable] = {}
+        self._instances: dict[str, Any] = {}
 
-platform_registry = PlatformRegistry()
-experience_db = ExperienceDatabase()
-intent_parser = IntentParser(model_router)
-platform_learner = PlatformLearner(model_router, platform_registry)
+    def register(self, name: str, factory: Callable):
+        self._services[name] = factory
 
-rules_engine = UniversalRulesEngine()
+    async def get(self, name: str) -> Any:
+        if name not in self._instances:
+            factory = self._services.get(name)
+            if not factory:
+                raise KeyError(f"Service '{name}' not registered")
+            self._instances[name] = await factory()
+        return self._instances[name]
+
+    def has(self, name: str) -> bool:
+        return name in self._services
+
+
+# Lazy HTTP client — initialized on first use
+_http_client: httpx.AsyncClient | None = None
+
+
+async def get_global_http_client() -> httpx.AsyncClient:
+    global _http_client
+    if _http_client is None:
+        _http_client = httpx.AsyncClient(
+            timeout=httpx.Timeout(30.0, connect=10.0),
+            limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
+        )
+    return _http_client
+
+
+async def close_global_http_client():
+    global _http_client
+    if _http_client:
+        await _http_client.aclose()
+        _http_client = None
+
+
+# Global service registry instance
+registry = ServiceRegistry()

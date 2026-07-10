@@ -1,4 +1,5 @@
 import os
+import secrets
 import sys
 from pathlib import Path
 from typing import Any
@@ -7,9 +8,11 @@ from dotenv import load_dotenv
 from loguru import logger
 from pydantic import Field
 from pydantic import PrivateAttr
+from pydantic import SecretStr
 from pydantic import ValidationInfo
 from pydantic import computed_field
 from pydantic import field_validator
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
 from pydantic_settings import SettingsConfigDict
 
@@ -101,13 +104,21 @@ class Settings(BaseSettings):
     # বাংলা মন্তব্য: এডমিন ইমেইল লিস্ট সরাসরি .env ফাইল থেকে লোড করা হবে
     admin_emails: list[str] = Field(default=[], validation_alias="ADMIN_EMAILS")
 
-    # বাংলা মন্তব্য: অনুমোদিত হোস্ট লিস্ট সরাসরি .env ফাইল থেকে লোড করা হবে
+    # বাংলা মন্তব্য: P0 Fix — Production এ কোনো default host allowed না।
+    # Zero-Trust Host Validation: allowed_hosts ফাঁকা (empty list) default, প্রোডাকশনে বাধ্যতামূলক।
+    # forbidden {'localhost', '127.0.0.1', 'testserver', '0.0.0.0'} প্রোডাকশনে auto-strip
     allowed_hosts: list[str] = Field(
-        default=["localhost", "njel.com.bd", "testserver", "run.app"],
+        default_factory=lambda: [],
         validation_alias="ALLOWED_HOSTS",
     )
 
-    jwt_secret: str | None = Field(default=None, validation_alias="SUPREMEAI_JWT_SECRET")
+    # বাংলা মন্তব্য: P0 Fix — jwt_secret এখন mandatory str (None নয়)।
+    # Production এ অবশ্যই SUPREMEAI_JWT_SECRET env var সেট করতে হবে।
+    # না থাকলে secrets.token_urlsafe(64) generate করে, কিন্তু প্রোডাকশনে fail-closed।
+    jwt_secret: str = Field(
+        default_factory=lambda: secrets.token_urlsafe(64),
+        validation_alias="SUPREMEAI_JWT_SECRET",
+    )
 
     _cached_secrets: dict[str, str] = PrivateAttr(default_factory=dict)
 
@@ -188,8 +199,10 @@ class Settings(BaseSettings):
     gcp_project_id: str = Field(default="", validation_alias="GCP_PROJECT_ID")
     gcp_region: str = Field(default="us-central1", validation_alias="GCP_REGION")
 
-    stripe_api_key: str = Field(default="", validation_alias="STRIPE_API_KEY")
-    stripe_webhook_secret: str = Field(default="", validation_alias="STRIPE_WEBHOOK_SECRET")
+    # বাংলা মন্তব্য: P0 Fix — Stripe credentials SecretStr ব্যবহার করে, log এ mask হয়।
+    # প্রোডাকশনে empty থাকলে model_validator এ fail-closed।
+    stripe_api_key: SecretStr = Field(default=SecretStr(""), validation_alias="STRIPE_API_KEY")
+    stripe_webhook_secret: SecretStr = Field(default=SecretStr(""), validation_alias="STRIPE_WEBHOOK_SECRET")
 
     max_cost_per_task: float = 0.01
     # বাংলা মন্তব্য: P0 Fix — local filesystem paths hardcoded → env vars।
@@ -230,6 +243,18 @@ class Settings(BaseSettings):
             return [email.strip() for email in v.split(",") if email.strip()]
         return v
 
+    @field_validator("allowed_hosts", mode="after")
+    @classmethod
+    def validate_allowed_hosts(cls, v: list[str], info: ValidationInfo) -> list[str]:
+        # বাংলা মন্তব্য: P0 Fix — Production এ localhost-type host auto-strip + empty check
+        env = info.data.get("env", "local")
+        forbidden = {"localhost", "127.0.0.1", "testserver", "0.0.0.0"}
+        if env == "production":
+            v = [h for h in v if h.lower() not in forbidden]
+            if not v:
+                raise ValueError("Production requires explicit ALLOWED_HOSTS — localhost/testserver forbidden.")
+        return v
+
     @field_validator("allowed_hosts", mode="before")
     @classmethod
     def parse_allowed_hosts(cls, v) -> list[str]:
@@ -241,20 +266,30 @@ class Settings(BaseSettings):
             return [host.strip() for host in v.split(",") if host.strip()]
         return v
 
+    @field_validator("jwt_secret", mode="after")
+    @classmethod
+    def validate_jwt_secret_strength(cls, v: str, info: ValidationInfo) -> str:
+        # বাংলা মন্তব্য: P0 Fix — JWT secret দৈর্ঘ্য >= 64 এবং weak secrets dictionary চেক
+        if info.data.get("env") == "production":
+            if len(v) < 64:
+                raise ValueError("JWT secret must be >= 64 bytes entropy in production.")
+            weak_secrets = {"secret", "password", "123456", "changeme", "admin", "jwt_secret"}
+            if v.lower() in weak_secrets:
+                raise ValueError("JWT secret is in weak secrets dictionary.")
+        return v
+
     @field_validator("jwt_secret", mode="before")
     @classmethod
-    def set_test_secret(cls, v: str | None, info: ValidationInfo) -> str | None:
+    def set_jwt_secret(cls, v: str | None, info: ValidationInfo) -> str:
         env = info.data.get("env", "local")
         if not v:
             if env == "production":
-                # বাংলা মন্তব্য: P0 Fix — প্রোডাকশনে কোনো ফলব্যাক বা এফিমেরাল সিক্রেট চলবে না। Hard Fail-Closed!
                 raise ValueError(
-                    "🚨 CRITICAL SECURITY ERROR: SUPREMEAI_JWT_SECRET environment variable " "must be explicitly set in production environments."
+                    "🚨 CRITICAL SECURITY ERROR: SUPREMEAI_JWT_SECRET environment variable "
+                    "must be explicitly set in production environments."
                 )
-            import secrets as _secrets
-
             logger.warning("⚠️ SUPREMEAI_JWT_SECRET not set. Generating ephemeral secret for local development.")
-            return _secrets.token_hex(64)
+            return secrets.token_hex(64)
         return v
 
     @field_validator("supremeai_admin_password_hash", mode="before")
@@ -273,6 +308,15 @@ class Settings(BaseSettings):
             return False
         return v
 
+    @field_validator("cors_origins", mode="after")
+    @classmethod
+    def validate_cors_origins(cls, v: list[str], info: ValidationInfo) -> list[str]:
+        # বাংলা মন্তব্য: P0 Fix — Production এ localhost CORS origins auto-strip
+        env = info.data.get("env", "local")
+        if env == "production":
+            v = [o for o in v if "localhost" not in o and "127.0.0.1" not in o]
+        return v
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, v, info: ValidationInfo):
@@ -287,11 +331,19 @@ class Settings(BaseSettings):
                     v = json.loads(v)
                 except json.JSONDecodeError:
                     v = [origin.strip() for origin in v.split(",") if origin.strip()]
-
-        env = info.data.get("env", "local")
-        if env == "production" and v:
-            v = [o for o in v if "localhost" not in o and "127.0.0.1" not in o]
         return v
+
+    @model_validator(mode="after")
+    def validate_stripe_in_production(self):
+        # বাংলা মন্তব্য: P0 Fix — প্রোডাকশনে Stripe credentials বাধ্যতামূলক
+        if self.env == "production":
+            stripe_key = self.stripe_api_key.get_secret_value() if self.stripe_api_key else ""
+            stripe_webhook = self.stripe_webhook_secret.get_secret_value() if self.stripe_webhook_secret else ""
+            if not stripe_key:
+                raise ValueError("Stripe API key is mandatory in production.")
+            if not stripe_webhook:
+                raise ValueError("Stripe webhook secret is mandatory in production.")
+        return self
 
     def validate_config(self) -> None:
         if self.env.lower() == "production":
