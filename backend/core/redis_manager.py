@@ -1,7 +1,9 @@
 # backend/core/redis_manager.py
 import os
+
 import httpx
 from loguru import logger
+
 
 class SecureRedisManager:
     def __init__(self):
@@ -65,7 +67,7 @@ class SecureRedisManager:
             if response.status_code == 200:
                 res_data = response.json().get("result", [])
                 health_data = {}
-                for agent_id, raw_val in zip(agent_ids, res_data):
+                for agent_id, raw_val in zip(agent_ids, res_data, strict=False):
                     if raw_val:
                         try:
                             # Handle both stringified json and already parsed dict from Upstash
@@ -76,7 +78,7 @@ class SecureRedisManager:
                         health_data[agent_id] = {"status": "dead", "latency": 0}
                 return health_data
             return {}
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.error(f"❌ Upstash MGET Failed for health check: {exc}")
             return {}
 

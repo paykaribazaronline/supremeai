@@ -1,8 +1,14 @@
 import os
+
 from loguru import logger
 
+
 try:
-    from infisical_client import ClientSettings, InfisicalClient, GetSecretOptions, AuthenticationOptions, UniversalAuthMethod
+    from infisical_client import AuthenticationOptions
+    from infisical_client import ClientSettings
+    from infisical_client import GetSecretOptions
+    from infisical_client import InfisicalClient
+    from infisical_client import UniversalAuthMethod
 except ImportError:
     InfisicalClient = None
 
