@@ -8,15 +8,15 @@ long-running AI tasks.
 Integrates 'Freebuff CLI' as a zero-cost headless AI worker.
 """
 
-import os
-import httpx
 from loguru import logger
 from typing import Dict, Any
+
+import os
+import httpx
 
 
 class CloudSandboxOrchestrator:
     """
-    Orchestrates ephemeral cloud sandboxes (VMs) for tasks in the cloud.
     Orchestrates ephemeral cloud sandboxes (VMs) for code execution and delegates tasks to Freebuff.
     """
 

@@ -187,7 +187,7 @@ class BrowserAgent:
                 "links": links,
                 "action": action,
             }
-        except (TimeoutError, Exception) as e:
+        except (TimeoutError, Exception) as e:  # noqa: BLE001
             # প্লে-রাইট সম্পর্কিত যেকোনো সাধারণ ত্রুটি এখানে ধরা হলো
             logger.error(f"Playwright action failed: {e}")
             return {"success": False, "error": str(e), "url": url}
