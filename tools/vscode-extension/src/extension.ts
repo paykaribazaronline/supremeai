@@ -23,6 +23,7 @@ import { CodeGenerationService, getCodeGenerationService, setCodeGenerationServi
 import { CodeReviewService, getCodeReviewService, setCodeReviewService } from './ai/CodeReviewService';
 import { detectOtherAiAgents } from './agentDetector'; // এজেন্ট ডিটেক্টর ইম্পোর্ট করা হলো
 import { SupremeWebviewProvider } from './providers/SupremeWebviewProvider';
+import { CrossAiObserverService } from './services/CrossAiObserverService';
 let currentBrowserPreviewPanel: vscode.WebviewPanel | undefined; // ব্রাউজার প্রিভিউ প্যানেল ট্র্যাক করার জন্য
 let supremeAIService: SupremeAIService;
 let aiService: AIService;
@@ -51,6 +52,9 @@ function escapeHtml(value: string): string {
 
 export async function activate(context: vscode.ExtensionContext) {
   console.log('[SupremeAI] VS Code Extension activating...');
+
+  // 📡 লোকাল ডিভাইসে অন্য AI এজেন্টদের অবজার্ভ করা শুরু করো
+  CrossAiObserverService.initialize(context);
 
   const config = vscode.workspace.getConfiguration('supremeai');
   const backendUrl = config.get<string>('backendUrl', 'https://supremeai-a.web.app');
