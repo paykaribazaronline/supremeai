@@ -382,3 +382,24 @@ except Exception as _boot_exc:  # noqa: BLE001
         # বাংলা মন্তব্য: Local/staging-এ warning দিয়ে চলতে দেওয়া হবে
         logger.warning(f"⚠️ Config validation warning (non-production): {_boot_exc}")
         settings = Settings.model_construct()  # type: ignore[assignment]
+
+
+def get_production_env(var_name: str, default_fallback: str = None) -> str:
+    """বাংলা মন্তব্য: Fail-Fast Config Guard.
+    প্রোডাকশন এনভায়রনমেন্টে কোনো ক্রিটিক্যাল সিক্রেট মিসিং থাকলে সিস্টেম লোকালহোস্টে
+    ফলব্যাক না করে সরাসরি হার্ড ক্র্যাশ করবে, যা সাইলেন্ট ফেইলর প্রতিরোধ করে।
+    """
+    import os
+
+    from loguru import logger
+
+    value = os.getenv(var_name)
+    env = os.getenv("ENV", "development").lower()
+
+    if not value:
+        if env == "production":
+            logger.critical(f"❌ CRITICAL CONFIG ERROR: Missing required environment variable '{var_name}' in production!")
+            raise ValueError(f"Configuration Error: {var_name} must be explicitly defined in production.")
+        return default_fallback
+
+    return value
