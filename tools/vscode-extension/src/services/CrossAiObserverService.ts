@@ -2,10 +2,10 @@ import * as vscode from 'vscode';
 import axios from 'axios';
 
 export class CrossAiObserverService {
-    private static _backendUrl = "https://supremeai-api-lhlwyikwlq-uc.a.run.app/api/evolution/learn";
+    private static _backendUrl = 'https://supremeai-api-lhlwyikwlq-uc.a.run.app/api/evolution/learn';
 
     public static initialize(context: vscode.ExtensionContext) {
-        console.log("📡 [Cross-AI Observer] Sniffer Layer Active on Local Device.");
+        console.log('📡 [Cross-AI Observer] Sniffer Layer Active on Local Device.');
 
         // ১. লোকাল টার্মিনাল কমান্ড ইন্টারসেপ্টর
         context.subscriptions.push(
@@ -52,9 +52,9 @@ export class CrossAiObserverService {
             await axios.post(this._backendUrl, payload, {
                 headers: { 'Authorization': 'Bearer YOUR_VALID_PRODUCTION_TEST_JWT_TOKEN' }
             });
-            console.log(`💾 [Cross-AI Learned] Intercepted workflow synced to Supreme Database Pool.`);
+            console.log('💾 [Cross-AI Learned] Intercepted workflow synced to Supreme Database Pool.');
         } catch (error) {
-            console.error("❌ Failed to stream cross-AI observed metrics to backend:", error);
+            console.error('❌ Failed to stream cross-AI observed metrics to backend:', error);
         }
     }
 }
