@@ -12,12 +12,17 @@ from pydantic import BaseModel
 
 from core.auth_middleware import AuthMiddleware
 from core.config import get_production_env
-from core.rate_limiter import RateLimiter
+
+# FIX: Changed import from 'RateLimiter' (assuming it's a class not exported or renamed)
+# to 'rate_limiter' (assuming core.rate_limiter exports an instance directly).
+# The subsequent instantiation of RateLimiter() is removed as 'rate_limiter' is now the instance itself.
+from core.rate_limiter import rate_limiter
 
 
 auth_middleware = AuthMiddleware.__new__(AuthMiddleware)
 auth_middleware.enabled = bool(os.getenv("SUPREMEAI_API_TOKEN"))
-rate_limiter = RateLimiter()
+# rate_limiter = RateLimiter() # This line is removed as 'rate_limiter' is directly imported
+# as an instance from core.rate_limiter.
 
 from brain.api_router import ApiRouter
 
