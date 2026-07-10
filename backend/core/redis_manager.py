@@ -44,8 +44,43 @@ class SecureRedisManager:
             logger.error(f"❌ Upstash Cache Read Operation Failed for {key}: {exc}")
             return None
             
+    async def set_agent_heartbeat(self, agent_id: str, status: str, latency_ms: int, ttl: int = 5) -> bool:
+        """এজেন্ট হার্টবিট সেট করার মেথড।"""
+        if not self.client:
+            return False
+        import json
+        key = f"health:{agent_id}"
+        value = json.dumps({"status": status, "latency": latency_ms})
+        return await self.set_cache(key, value, ex_seconds=ttl)
+
+    async def get_agents_health(self, agent_ids: list[str]) -> dict:
+        """একাধিক এজেন্টের হেলথ স্ট্যাটাস একসাথে MGET দিয়ে ফেচ করে।"""
+        if not self.client or not agent_ids:
+            return {}
+        import json
+        keys = [f"health:{agent_id}" for agent_id in agent_ids]
+        payload = ["MGET"] + keys
+        try:
+            response = await self.client.post("/", json=payload)
+            if response.status_code == 200:
+                res_data = response.json().get("result", [])
+                health_data = {}
+                for agent_id, raw_val in zip(agent_ids, res_data):
+                    if raw_val:
+                        try:
+                            # Handle both stringified json and already parsed dict from Upstash
+                            health_data[agent_id] = json.loads(raw_val) if isinstance(raw_val, str) else raw_val
+                        except json.JSONDecodeError:
+                            health_data[agent_id] = {"status": "dead", "latency": 0}
+                    else:
+                        health_data[agent_id] = {"status": "dead", "latency": 0}
+                return health_data
+            return {}
+        except Exception as exc:
+            logger.error(f"❌ Upstash MGET Failed for health check: {exc}")
+            return {}
+
     async def close(self):
-        """FastAPI lifespan শাটডাউন সিকোয়েন্সের সাথে সামঞ্জস্য রাখার জন্য গেটওয়ে ক্লোজার।"""
         if self.client:
             await self.client.aclose()
             logger.info("💀 Upstash Async connection wrapper gracefully terminated.")
