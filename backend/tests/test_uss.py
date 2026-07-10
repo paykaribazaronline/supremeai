@@ -1,14 +1,14 @@
 import pytest
 from skill_loader import SkillLoader
 from skills.installer import SkillInstaller
-from core.skill_manager import DynamicSkillManager
+from skills.registry import SkillRegistry
 from skills.schema import UniversalSkillSchema
 
 
 @pytest.fixture
 def temp_skills_dir(tmp_path):
     # Set up temp dir for registry and dynamic skills
-    registry = DynamicSkillManager()
+    registry = SkillRegistry(registry_path=str(tmp_path / "registry.json"))
     installer = SkillInstaller(registry=registry, skills_dir=str(tmp_path / "dynamic"))
     loader = SkillLoader(registry=registry, installer=installer)
     loader.skills_dir = tmp_path / "dynamic"

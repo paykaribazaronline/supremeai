@@ -153,7 +153,7 @@ def test_handle_message_ai_fallback_no_orchestrator(handler):
 def test_handle_message_ai_fallback_with_orchestrator(handler):
     mock_orchestrator = MagicMock()
     mock_orchestrator.execute_task.return_value = {"result": "Mock AI reply"}
-    handler.orchestrator = mock_orchestrator
+    handler.processor = mock_orchestrator
     response = handler.handle_message("hello bot", user_id="user1")
     assert response == "Mock AI reply"
 
@@ -161,7 +161,7 @@ def test_handle_message_ai_fallback_with_orchestrator(handler):
 def test_handle_message_ai_fallback_error(handler):
     mock_orchestrator = MagicMock()
     mock_orchestrator.execute_task.side_effect = Exception("LLM error")
-    handler.orchestrator = mock_orchestrator
+    handler.processor = mock_orchestrator
     response = handler.handle_message("hello bot", user_id="user1")
     assert "Error" in response
 

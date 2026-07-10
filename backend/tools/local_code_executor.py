@@ -14,7 +14,13 @@ class LocalCodeExecutor:
         if self.use_docker and self.docker_sandbox:
             try:
                 logger.info("🐳 Running code inside tight Docker Sandbox Container...")
-                return await self.docker_sandbox.run_secure(code, timeout=timeout_seconds)
+                import shlex
+                loop = asyncio.get_event_loop()
+                escaped_code = shlex.quote(code)
+                res = await loop.run_in_executor(None, self.docker_sandbox.execute_command, f"python -c {escaped_code}")
+                if not res.get("success") and "Sandbox execution failed" in res.get("error", ""):
+                    return res
+                return res
             except Exception as exc:  # noqa: BLE001
                 logger.warning(f"⚠️ Docker failure, falling back to host subprocess: {exc}")
 

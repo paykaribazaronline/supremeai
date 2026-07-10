@@ -23,11 +23,12 @@ async def test_production_sandbox_fails_without_docker():
     # Mock docker to fail
     mock_docker = MagicMock()
     mock_docker.from_env.side_effect = Exception("Docker daemon down")
-    with patch.dict("sys.modules", {"docker": mock_docker}):
-        res = await executor.execute_local_code("print('hello')")
+    with patch.dict(os.environ, {"ENV": "production", "ALLOW_LOCAL_SANDBOX_FALLBACK": "false"}):
+        with patch.dict("sys.modules", {"docker": mock_docker}):
+            res = await executor.execute_local_code("print('hello')")
 
-    assert res["status"] == "error"
-    assert "Docker daemon down" in res["error"]
+    assert res["success"] is False
+    assert "Sandbox execution failed" in res["error"]
 
     # Restore settings environment
     settings.env = old_env

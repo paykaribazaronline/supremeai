@@ -99,7 +99,7 @@ def test_insert_task_history_retries_after_schema_cache_error(monkeypatch):
         def execute(self):
             self.calls += 1
             if self.calls == 1:
-                raise Exception("Could not find the table 'public.task_history' in the schema cache")
+                raise RuntimeError("Could not find the table 'public.task_history' in the schema cache")
             return FakeResponse([{"id": 1, **self.entry}])
 
     class FakeClient:

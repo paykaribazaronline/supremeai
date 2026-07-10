@@ -26,7 +26,7 @@ def test_check_docker_success(sandbox):
         )
 
 
-@pytest.mark.parametrize("exception", [FileNotFoundError, subprocess.TimeoutExpired, OSError, subprocess.CalledProcessError(1, "cmd")])
+@pytest.mark.parametrize("exception", [FileNotFoundError, subprocess.TimeoutExpired("cmd", 3), OSError, subprocess.CalledProcessError(1, "cmd")])
 def test_check_docker_failure(sandbox, exception):
     """ডকার অনুপস্থিত বা ত্রুটিযুক্ত হলে False রিটার্ন করে কিনা তা পরীক্ষা করে।"""
     with patch("subprocess.run", side_effect=exception) as mock_run:

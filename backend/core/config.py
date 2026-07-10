@@ -78,7 +78,7 @@ class Settings(BaseSettings):
 
     # বাংলা মন্তব্য: JWT secret — production-এ অবশ্যই >= 64 bytes entropy
     jwt_secret: str = Field(
-        default_factory=lambda: secrets.token_urlsafe(64),
+        default="",
         validation_alias="SUPREMEAI_JWT_SECRET",
     )
 
