@@ -213,31 +213,7 @@ resource "random_password" "db_password" {
   special = true
 }
 
-#########################
-# MEMORYSTORE (Redis) for Caching
-#########################
 
-resource "google_redis_instance" "supremeai_cache" {
-  provider        = google-beta
-  name            = "supremeai-cache-${var.environment}"
-  region          = var.region
-  tier            = "STANDARD_HA"
-  memory_size_gb  = 1
-  
-  # Enable persistence for production
-  persistence_config {
-    snapshot_period = 3600  # 1 hour
-    snapshot_enabled = true
-  }
-  
-  # Reserved memory for overhead
-  reserved_memory_mb = 256
-  
-  # Authorized network (if using VPC)
-  # authorized_network = "${google_compute_network.default.id}"
-  
-  depends_on = [google_service_networking_connection.default_vpc]
-}
 
 #########################
 # PUB/SUB for Event Streaming
@@ -531,15 +507,7 @@ output "database_connection_name" {
   value       = google_sql_database_instance.supremeai_db.connection_name
 }
 
-output "redis_host" {
-  description = "Hostname for Redis instance"
-  value       = google_redis_instance.supremeai_cache.host_ip
-}
 
-output "redis_port" {
-  description = "Port for Redis instance"
-  value       = google_redis_instance.supremeai_cache.port
-}
 
 output "pubsub_topic_user_events" {
   description = "Pub/Sub topic for user events"

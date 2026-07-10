@@ -248,6 +248,8 @@ core_routers = [
     ("api.routes.usage_metrics", ""),
     ("api.routes.payments", ""),
     ("api.routes.sso", ""),
+    ("api.routes.health", ""),
+    ("api.routes.evolution", ""),
     ("api.routes.api_keys", ""),
     ("api.routes.ci_webhooks", ""),
     ("core.orchestrator", ""),

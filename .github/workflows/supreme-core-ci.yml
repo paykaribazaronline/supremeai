@@ -98,9 +98,36 @@ jobs:
           fi
           echo "✅ PASS: All httpx clients have explicit timeouts" >> $GITHUB_STEP_SUMMARY
 
-
-
-
+      - name: 🩹 Inline Auto-Fix (On Failure)
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT_FOR_AUTO_FIX }}
+        run: |
+          echo "=== Inline Auto-Fix Triggered ===" >> $GITHUB_STEP_SUMMARY
+          echo "Running ruff formatting and fixing..."
+          ruff format backend/ || true
+          ruff check backend/ --fix || true
+          
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "🔧 Changes detected, committing fixes..."
+            git config --global user.name 'SupremeAI Auto-Fix Bot'
+            git config --global user.email 'bot@supremeai.dev'
+            git add -u
+            git commit -m "fix(ci): Automatically apply lint fixes inline"
+            
+            BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+            git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
+            
+            echo "🔄 Syncing with remote branch before pushing..."
+            git pull --rebase origin $BRANCH_NAME
+            git push origin HEAD:$BRANCH_NAME
+            
+            echo "✅ Auto-Fix applied successfully! A new CI run should start shortly." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "❌ No auto-fixable changes found. The failure requires manual intervention." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
 
   production-readiness:
     name: 🚀 Production Readiness (Safety Guard, Multi-Model Validator, Codegraph)
@@ -407,6 +434,46 @@ jobs:
         env:
           VITE_PORTAL_TYPE: 'admin'
         run: pnpm turbo run build lint --filter=supremeai-studio-client --filter=@supremeai/web-chat --filter=supremeai-vscode --cache-dir=.turbo
+
+      - name: 🩹 Inline Frontend Auto-Fix (On Failure)
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT_FOR_AUTO_FIX }}
+        run: |
+          echo "=== Inline Frontend Auto-Fix Triggered ===" >> $GITHUB_STEP_SUMMARY
+          echo "Running ESLint and Prettier auto-fixes..."
+          
+          # Fix studio-client
+          if [ -d "apps/studio-client" ]; then
+            pnpm --dir apps/studio-client exec eslint . --fix || true
+          fi
+          
+          # Fix web-chat
+          if [ -d "apps/web-chat" ]; then
+            pnpm --dir apps/web-chat exec eslint . --fix || true
+          fi
+          
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "🔧 Changes detected in frontend, committing fixes..."
+            git config --global user.name 'SupremeAI Auto-Fix Bot'
+            git config --global user.email 'bot@supremeai.dev'
+            git add -u
+            git commit -m "fix(ci): Automatically apply frontend lint fixes inline"
+            
+            BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+            git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
+            
+            echo "🔄 Syncing with remote branch before pushing..."
+            git pull --rebase origin $BRANCH_NAME
+            git push origin HEAD:$BRANCH_NAME
+            
+            echo "✅ Frontend Auto-Fix applied successfully! A new check will trigger." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "❌ No auto-fixable changes could be applied for the frontend." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
 
       - name: Run Studio Client Vitest with JSON Report
         run: pnpm --dir apps/studio-client exec vitest run --reporter=json > apps/studio-client/vitest-report.json

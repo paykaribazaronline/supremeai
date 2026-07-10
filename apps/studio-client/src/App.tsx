@@ -24,6 +24,8 @@ import ErrorBoundary from './components/admin/DashboardErrorBoundary';
 import { AgentWorkspace } from './pages/AgentWorkspace';
 import { IntegrationsManager } from './pages/IntegrationsManager';
 import { ArchitectTower } from './pages/ArchitectTower';
+import SwarmMap from './components/SwarmMap';
+
 
 // বাংলা মন্তব্য: 401/403/429 এরর হলে কোনো রিট্রাই করা হবে না — রেট লিমিট স্টর্ম ঠেকাতে
 const queryClient = new QueryClient({
@@ -541,6 +543,7 @@ export const App: React.FC = () => {
                 <Route path="/workspace/agent" element={<AgentWorkspace />} />
                 <Route path="/integrations" element={<IntegrationsManager />} />
                 <Route path="/architect-tower" element={<ArchitectTower />} />
+                <Route path="/swarm" element={<SwarmMap />} />
                 <Route path="/workspace/*" element={
                   <DashboardShell
                     theme={theme}
