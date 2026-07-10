@@ -4,6 +4,12 @@ from pathlib import Path
 import importlib.util
 from typing import Dict, Any, List
 from loguru import logger
+import sys
+from pathlib import Path
+root_path = str(Path(__file__).resolve().parent.parent)
+if root_path not in sys.path:
+    sys.path.append(root_path)
+
 from core.skill_manager import DynamicSkillManager
 from skills.installer import SkillInstaller
 from skills.marketplace import SkillMarketplace
