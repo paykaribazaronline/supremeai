@@ -108,22 +108,24 @@ jobs:
           ruff format backend/ || true
           ruff check backend/ --fix || true
           
-          if ! git diff --quiet; then
-            echo "Changes detected, committing fixes..."
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "🔧 Changes detected, committing fixes..."
             git config --global user.name 'SupremeAI Auto-Fix Bot'
             git config --global user.email 'bot@supremeai.dev'
             git add -u
-            git commit -m "fix(ci): Automatically apply lint fixes inline
-
-            Triggered by Pre-Merge Gate failure on run #${{ github.run_id }}"
+            git commit -m "fix(ci): Automatically apply lint fixes inline"
             
             BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
-            git pull --rebase "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" $BRANCH_NAME
-            git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" HEAD:$BRANCH_NAME
-            echo "✅ Auto-fixes pushed successfully to $BRANCH_NAME! A new check will trigger." >> $GITHUB_STEP_SUMMARY
+            git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
+            
+            echo "🔄 Syncing with remote branch before pushing..."
+            git pull --rebase origin $BRANCH_NAME
+            git push origin HEAD:$BRANCH_NAME
+            
+            echo "✅ Auto-Fix applied successfully! A new CI run should start shortly." >> $GITHUB_STEP_SUMMARY
             exit 1
           else
-            echo "ℹ️ No automatic fixes could be applied." >> $GITHUB_STEP_SUMMARY
+            echo "❌ No auto-fixable changes found. The failure requires manual intervention." >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
 
@@ -451,22 +453,24 @@ jobs:
             pnpm --dir apps/web-chat exec eslint . --fix || true
           fi
           
-          if ! git diff --quiet; then
-            echo "Changes detected in frontend, committing fixes..."
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "🔧 Changes detected in frontend, committing fixes..."
             git config --global user.name 'SupremeAI Auto-Fix Bot'
             git config --global user.email 'bot@supremeai.dev'
             git add -u
-            git commit -m "fix(ci): Automatically apply frontend lint fixes inline
-
-            Triggered by Frontend Monorepo (Turbo) failure on run #${{ github.run_id }}"
+            git commit -m "fix(ci): Automatically apply frontend lint fixes inline"
             
             BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
-            git pull --rebase "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" $BRANCH_NAME
-            git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" HEAD:$BRANCH_NAME
-            echo "✅ Frontend auto-fixes pushed successfully to $BRANCH_NAME! A new check will trigger." >> $GITHUB_STEP_SUMMARY
+            git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
+            
+            echo "🔄 Syncing with remote branch before pushing..."
+            git pull --rebase origin $BRANCH_NAME
+            git push origin HEAD:$BRANCH_NAME
+            
+            echo "✅ Frontend Auto-Fix applied successfully! A new check will trigger." >> $GITHUB_STEP_SUMMARY
             exit 1
           else
-            echo "ℹ️ No automatic fixes could be applied for the frontend." >> $GITHUB_STEP_SUMMARY
+            echo "❌ No auto-fixable changes could be applied for the frontend." >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
 
