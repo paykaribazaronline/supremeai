@@ -89,9 +89,7 @@ class Settings(BaseSettings):
 
     # ── Stripe credentials — SecretStr দিয়ে log-safe ────────────────────────
     stripe_api_key: SecretStr = Field(default=SecretStr(""), validation_alias="STRIPE_API_KEY")
-    stripe_webhook_secret: SecretStr = Field(
-        default=SecretStr(""), validation_alias="STRIPE_WEBHOOK_SECRET"
-    )
+    stripe_webhook_secret: SecretStr = Field(default=SecretStr(""), validation_alias="STRIPE_WEBHOOK_SECRET")
 
     # ── LLM rate limit thresholds — সব env-driven, hardcode নেই ─────────────
     # বাংলা মন্তব্য: আগে এগুলো hardcode ছিল। এখন ops team .env দিয়ে change করতে পারবে —
@@ -136,13 +134,9 @@ class Settings(BaseSettings):
 
     # ── Sandbox config — env-driven ──────────────────────────────────────────
     sandbox_root: str = Field(default="/tmp/sandboxes", validation_alias="SANDBOX_ROOT")  # nosec B108
-    firecracker_path: str = Field(
-        default="/usr/bin/firecracker", validation_alias="FIRECRACKER_PATH"
-    )
+    firecracker_path: str = Field(default="/usr/bin/firecracker", validation_alias="FIRECRACKER_PATH")
     gvisor_path: str = Field(default="/usr/bin/runsc", validation_alias="GVISOR_PATH")
-    allow_sandbox_fallback: bool = Field(
-        default=False, validation_alias="ALLOW_SANDBOX_FALLBACK"
-    )
+    allow_sandbox_fallback: bool = Field(default=False, validation_alias="ALLOW_SANDBOX_FALLBACK")
 
     _cached_secrets: dict[str, str] = PrivateAttr(default_factory=dict)
 
@@ -225,13 +219,8 @@ class Settings(BaseSettings):
         # বাংলা মন্তব্য: Production/Staging-এ debug=True explicitly set করলে hard crash।
         env = info.data.get("env", "local")
         if env in {"production", "staging"}:
-            if str(v).lower() == "true" and (
-                os.getenv("debug", "").lower() == "true"
-                or os.getenv("DEBUG", "").lower() == "true"
-            ):
-                raise ValueError(
-                    "Explicitly setting debug=True is PROHIBITED in production/staging."
-                )
+            if str(v).lower() == "true" and (os.getenv("debug", "").lower() == "true" or os.getenv("DEBUG", "").lower() == "true"):
+                raise ValueError("Explicitly setting debug=True is PROHIBITED in production/staging.")
             return False
         return bool(v)
 
@@ -244,9 +233,7 @@ class Settings(BaseSettings):
         env = info.data.get("env", "local")
         docs_auth_enabled = info.data.get("docs_auth_enabled", True)
         if env in {"production", "staging"} and docs_auth_enabled and not v:
-            raise ValueError(
-                "docs_password must be set when docs_auth_enabled=true in production/staging."
-            )
+            raise ValueError("docs_password must be set when docs_auth_enabled=true in production/staging.")
         return v
 
     @field_validator("admin_emails", mode="before")
@@ -275,9 +262,7 @@ class Settings(BaseSettings):
         if env == "production":
             v = [h for h in v if h.lower() not in forbidden]
             if not v:
-                raise ValueError(
-                    "Production requires explicit ALLOWED_HOSTS — localhost/testserver forbidden."
-                )
+                raise ValueError("Production requires explicit ALLOWED_HOSTS — localhost/testserver forbidden.")
         return v
 
     @field_validator("jwt_secret", mode="before")
@@ -287,13 +272,8 @@ class Settings(BaseSettings):
         if not v:
             if env == "production":
                 # বাংলা মন্তব্য: Production-এ JWT secret missing = hard crash। কোনো ephemeral fallback নেই।
-                raise ValueError(
-                    "🚨 CRITICAL: SUPREMEAI_JWT_SECRET must be explicitly set in production. "
-                    "No ephemeral fallback allowed."
-                )
-            logger.warning(
-                "⚠️ SUPREMEAI_JWT_SECRET not set. Generating ephemeral secret for local dev."
-            )
+                raise ValueError("🚨 CRITICAL: SUPREMEAI_JWT_SECRET must be explicitly set in production. " "No ephemeral fallback allowed.")
+            logger.warning("⚠️ SUPREMEAI_JWT_SECRET not set. Generating ephemeral secret for local dev.")
             return secrets.token_hex(64)
         return v
 
@@ -340,8 +320,7 @@ class Settings(BaseSettings):
             v = [o for o in v if "localhost" not in o and "127.0.0.1" not in o]
             if not v:
                 raise ValueError(
-                    "Production requires at least one non-localhost CORS origin. "
-                    "Set CORS_ORIGINS env var (e.g. https://your-app.web.app)."
+                    "Production requires at least one non-localhost CORS origin. " "Set CORS_ORIGINS env var (e.g. https://your-app.web.app)."
                 )
         return v
 
@@ -350,11 +329,7 @@ class Settings(BaseSettings):
         # বাংলা মন্তব্য: Production-এ Stripe credentials বাধ্যতামূলক
         if self.env == "production":
             stripe_key = self.stripe_api_key.get_secret_value() if self.stripe_api_key else ""
-            stripe_webhook = (
-                self.stripe_webhook_secret.get_secret_value()
-                if self.stripe_webhook_secret
-                else ""
-            )
+            stripe_webhook = self.stripe_webhook_secret.get_secret_value() if self.stripe_webhook_secret else ""
             if not stripe_key:
                 raise ValueError("Stripe API key is mandatory in production.")
             if not stripe_webhook:
@@ -387,8 +362,7 @@ class Settings(BaseSettings):
 
         if missing:
             raise ValueError(
-                f"🚨 PRODUCTION FAIL-FAST: Missing required config vars: {', '.join(missing)}. "
-                f"Server startup aborted. Fix config and redeploy."
+                f"🚨 PRODUCTION FAIL-FAST: Missing required config vars: {', '.join(missing)}. " f"Server startup aborted. Fix config and redeploy."
             )
         return self
 
@@ -399,13 +373,10 @@ class Settings(BaseSettings):
 # "Resilient boot" মানে broken state-এ traffic serve করা — এটি বিপজ্জনক এবং নিষিদ্ধ।
 try:
     settings = Settings()
-except Exception as _boot_exc:
+except Exception as _boot_exc:  # noqa: BLE001
     _env_value = os.getenv("ENV", "local").lower()
     if _env_value == "production":
-        logger.critical(
-            f"🔥 FATAL CONFIG ERROR in production: {_boot_exc}\n"
-            f"Server startup ABORTED. Fix the configuration and redeploy."
-        )
+        logger.critical(f"🔥 FATAL CONFIG ERROR in production: {_boot_exc}\n" f"Server startup ABORTED. Fix the configuration and redeploy.")
         sys.exit(1)  # ← Production-এ hard crash — Cloud Run restart trigger হবে
     else:
         # বাংলা মন্তব্য: Local/staging-এ warning দিয়ে চলতে দেওয়া হবে

@@ -89,11 +89,8 @@ class LLMGateway:
             if os.path.exists(_POLICY_PATH):
                 with open(_POLICY_PATH, encoding="utf-8") as f:
                     return json.load(f)
-            logger.warning(
-                f"[LLMGateway] Routing policy not found at '{_POLICY_PATH}'. "
-                f"Using default fallback config."
-            )
-        except Exception as exc:
+            logger.warning(f"[LLMGateway] Routing policy not found at '{_POLICY_PATH}'. " f"Using default fallback config.")
+        except Exception as exc:  # noqa: BLE001
             logger.exception(f"[LLMGateway] Error loading routing policy: {exc}")
             error_event_bus.emit(
                 ErrorEvent(
@@ -130,26 +127,16 @@ class LLMGateway:
                 usage = getattr(response_obj, "usage", None)
                 prompt_tokens = getattr(usage, "prompt_tokens", 0)
                 completion_tokens = getattr(usage, "completion_tokens", 0)
-                cost = (
-                    response_obj._response_metadata.get("api_cost", 0.0)
-                    if hasattr(response_obj, "_response_metadata")
-                    else 0.0
-                )
+                cost = response_obj._response_metadata.get("api_cost", 0.0) if hasattr(response_obj, "_response_metadata") else 0.0
                 duration = (end_time - start_time).total_seconds()
-                logger.info(
-                    f"[LLMGateway] ✅ Model={model} | Cost=${cost:.6f} | "
-                    f"P={prompt_tokens} C={completion_tokens} | {duration:.2f}s"
-                )
-            except Exception as exc:
+                logger.info(f"[LLMGateway] ✅ Model={model} | Cost=${cost:.6f} | " f"P={prompt_tokens} C={completion_tokens} | {duration:.2f}s")
+            except Exception as exc:  # noqa: BLE001
                 logger.warning(f"[LLMGateway] Success callback error: {exc}")
 
         def failure_callback(kwargs, exception_obj, start_time, end_time):
             model = kwargs.get("model", "unknown")
             duration = (end_time - start_time).total_seconds()
-            logger.error(
-                f"[LLMGateway] ❌ Model={model} failed | "
-                f"Error={str(exception_obj)[:200]} | {duration:.2f}s"
-            )
+            logger.error(f"[LLMGateway] ❌ Model={model} failed | " f"Error={str(exception_obj)[:200]} | {duration:.2f}s")
             error_event_bus.emit(
                 ErrorEvent(
                     module="llm_gateway",
@@ -176,12 +163,8 @@ class LLMGateway:
         elif any(kw in task_type.lower() for kw in ("agent", "analysis")):
             difficulty = "medium"
 
-        model_candidates: list[str] = self.routing_policy.get("complexity_rules", {}).get(
-            difficulty, []
-        )
-        fallbacks: list[str] = self.routing_policy.get(
-            "fallback_chain", list(_DEFAULT_FALLBACK_MODELS)
-        )
+        model_candidates: list[str] = self.routing_policy.get("complexity_rules", {}).get(difficulty, [])
+        fallbacks: list[str] = self.routing_policy.get("fallback_chain", list(_DEFAULT_FALLBACK_MODELS))
 
         call_chain: list[str] = []
         if model:
@@ -217,6 +200,7 @@ class LLMGateway:
     ) -> Any:
         """বাংলা মন্তব্য: Main async completion interface।"""
         import asyncio
+
         import litellm  # lazy import
 
         if messages is not None and prompt is None:
@@ -271,30 +255,19 @@ class LLMGateway:
                     "success": True,
                     "text": response.choices[0].message.content,
                     "model": current_model,
-                    "cost": (
-                        response._response_metadata.get("api_cost", 0.0)
-                        if hasattr(response, "_response_metadata")
-                        else 0.0
-                    ),
+                    "cost": (response._response_metadata.get("api_cost", 0.0) if hasattr(response, "_response_metadata") else 0.0),
                 }
             except asyncio.CancelledError:
                 # বাংলা মন্তব্য: CancelledError re-raise — কখনো suppress করা যাবে না
-                logger.warning(
-                    f"[LLMGateway] acompletion cancelled during model {current_model}"
-                )
+                logger.warning(f"[LLMGateway] acompletion cancelled during model {current_model}")
                 raise
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 last_exception = exc
-                logger.warning(
-                    f"[LLMGateway] Model {current_model} failed: {str(exc)[:200]}. "
-                    f"Trying next in chain..."
-                )
+                logger.warning(f"[LLMGateway] Model {current_model} failed: {str(exc)[:200]}. " f"Trying next in chain...")
                 continue
 
         # বাংলা মন্তব্য: সব fallbacks exhausted — self healer trigger এবং error emit
-        final_exception = last_exception or RuntimeError(
-            "All routing models failed to produce a completion."
-        )
+        final_exception = last_exception or RuntimeError("All routing models failed to produce a completion.")
         if tenant_id:
             db = get_firestore_db()
             if db:
@@ -325,6 +298,7 @@ class LLMGateway:
     ) -> AsyncGenerator[str, None]:
         """বাংলা মন্তব্য: Streaming completion — fallback chain সহ।"""
         import asyncio
+
         import litellm  # lazy import
 
         last_exception: Exception | None = None
@@ -349,11 +323,9 @@ class LLMGateway:
                 # বাংলা মন্তব্য: CancelledError re-raise — কখনো suppress করা যাবে না
                 logger.warning(f"[LLMGateway] Stream cancelled at model {current_model}")
                 raise
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 last_exception = exc
-                logger.warning(
-                    f"[LLMGateway] Stream model {current_model} failed: {str(exc)[:200]}"
-                )
+                logger.warning(f"[LLMGateway] Stream model {current_model} failed: {str(exc)[:200]}")
                 continue
 
         raise last_exception or RuntimeError("All streaming fallback options failed.")
@@ -374,9 +346,10 @@ def get_llm_gateway() -> "LLMGateway":
         _llm_gateway_instance = LLMGateway()
     return _llm_gateway_instance
 
+
 def __getattr__(name: str):
-    """বাংলা মন্তব্য: টেস্ট কালেকশন ফিক্স — পুরানো টেস্ট ফাইলগুলো যদি মডিউল লেভেলের 
-    'llm_gateway' ভ্যারিয়েবল খোঁজে, তবে এই ম্যাজিক মেথডটি ডাইনামিকালি আমাদের 
+    """বাংলা মন্তব্য: টেস্ট কালেকশন ফিক্স — পুরানো টেস্ট ফাইলগুলো যদি মডিউল লেভেলের
+    'llm_gateway' ভ্যারিয়েবল খোঁজে, তবে এই ম্যাজিক মেথডটি ডাইনামিকালি আমাদের
     Lazy Getter ফাংশনটি সাপ্লাই করবে। এতে ২২টি টেস্ট ফাইল ব্রেক করা ছাড়াই সচল হবে।
     """
     if name == "llm_gateway":

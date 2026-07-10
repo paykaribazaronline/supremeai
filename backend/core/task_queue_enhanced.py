@@ -6,6 +6,7 @@
 # CancelledError সবসময় re-raise।
 
 import asyncio
+import contextlib
 import inspect
 import json
 import time
@@ -35,6 +36,7 @@ def _check_celery_available() -> bool:
     if not CELERY_AVAILABLE:
         try:
             import celery  # noqa: F401
+
             CELERY_AVAILABLE = True
         except ImportError:
             pass
@@ -46,6 +48,7 @@ def _check_redis_available() -> bool:
     if not REDIS_AVAILABLE:
         try:
             import redis.asyncio  # noqa: F401
+
             REDIS_AVAILABLE = True
         except ImportError:
             pass
@@ -57,6 +60,7 @@ def _check_pubsub_available() -> bool:
     if not PUBSUB_AVAILABLE:
         try:
             from google.cloud import pubsub_v1  # noqa: F401
+
             PUBSUB_AVAILABLE = True
         except ImportError:
             pass
@@ -156,10 +160,7 @@ class TaskQueue:
         self._worker_task: asyncio.Task | None = None
         self._shutdown_event = asyncio.Event()
 
-        logger.info(
-            f"[TaskQueue] Initialized with backend={default_backend.value}, "
-            f"max_tracked={max_tracked_tasks}"
-        )
+        logger.info(f"[TaskQueue] Initialized with backend={default_backend.value}, " f"max_tracked={max_tracked_tasks}")
 
     def _evict_oldest_if_needed(self) -> None:
         """
@@ -177,10 +178,7 @@ class TaskQueue:
                 logger.debug(f"[TaskQueue] Evicted old task: {oldest_id}")
             else:
                 # বাংলা মন্তব্য: সব tasks pending হলে evict করা যাবে না — log এবং break
-                logger.warning(
-                    f"[TaskQueue] Max tracked tasks ({self._MAX_TRACKED_TASKS}) reached "
-                    f"with all pending tasks. Cannot evict."
-                )
+                logger.warning(f"[TaskQueue] Max tracked tasks ({self._MAX_TRACKED_TASKS}) reached " f"with all pending tasks. Cannot evict.")
                 break
 
     async def submit_task(
@@ -240,7 +238,7 @@ class TaskQueue:
             self._results[task_id].status = "cancelled"
             self._completion_events[task_id].set()
             raise
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.exception(f"[TaskQueue] Failed to submit task {task_id}: {exc}")
             self._results[task_id].status = "failed"
             self._results[task_id].error = str(exc)
@@ -249,9 +247,7 @@ class TaskQueue:
             self._completion_events[task_id].set()
             raise
 
-    async def get_result(
-        self, task_id: str, timeout: float | None = None
-    ) -> TaskResult:
+    async def get_result(self, task_id: str, timeout: float | None = None) -> TaskResult:
         """
         বাংলা মন্তব্য: Anti-Polling result retrieval।
         আগের ভাঙা কোড: while True: await asyncio.sleep(0.1)
@@ -267,11 +263,8 @@ class TaskQueue:
             try:
                 # বাংলা মন্তব্য: blocking wait নয় — event-driven await
                 await asyncio.wait_for(event.wait(), timeout=timeout)
-            except asyncio.TimeoutError:
-                raise TimeoutError(
-                    f"Timeout ({timeout}s) waiting for task {task_id}. "
-                    f"Current status: {self._results[task_id].status}"
-                )
+            except TimeoutError:
+                raise TimeoutError(f"Timeout ({timeout}s) waiting for task {task_id}. " f"Current status: {self._results[task_id].status}") from None
             except asyncio.CancelledError:
                 # বাংলা মন্তব্য: CancelledError re-raise — graceful shutdown support
                 logger.warning(f"[TaskQueue] get_result cancelled for task {task_id}")
@@ -316,7 +309,7 @@ class TaskQueue:
             result_obj.completed_at = time.time()
             logger.warning(f"[TaskQueue] Task {task_id} cancelled during execution.")
             raise
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.exception(
                 f"[TaskQueue] Task {task_id} failed: {exc}",
                 # বাংলা মন্তব্য: logger.exception() — full stack trace সহ
@@ -329,15 +322,11 @@ class TaskQueue:
             # বাংলা মন্তব্য: সবসময় event set — caller কখনো stuck থাকবে না
             self._mark_complete(task_id)
 
-    async def _submit_to_asyncio(
-        self, func: Callable, task_id: str, args: tuple, kwargs: dict
-    ) -> None:
+    async def _submit_to_asyncio(self, func: Callable, task_id: str, args: tuple, kwargs: dict) -> None:
         """বাংলা মন্তব্য: Local asyncio queue-এ submit এবং worker ensure।"""
         await self.local_queue.put((func, task_id, args, kwargs))
         if self._worker_task is None or self._worker_task.done():
-            self._worker_task = asyncio.create_task(
-                self._asyncio_worker(), name=f"task_queue_worker_{int(time.time())}"
-            )
+            self._worker_task = asyncio.create_task(self._asyncio_worker(), name=f"task_queue_worker_{int(time.time())}")
 
     async def _asyncio_worker(self) -> None:
         """
@@ -349,22 +338,20 @@ class TaskQueue:
         while not self._shutdown_event.is_set():
             try:
                 # বাংলা মন্তব্য: timeout দিয়ে wait — shutdown signal check করা যাবে
-                func, task_id, args, kwargs = await asyncio.wait_for(
-                    self.local_queue.get(), timeout=1.0
-                )
+                func, task_id, args, kwargs = await asyncio.wait_for(self.local_queue.get(), timeout=1.0)
                 try:
                     await self._execute_task(func, task_id, args, kwargs)
                 finally:
                     self.local_queue.task_done()
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 # বাংলা মন্তব্য: queue empty — loop continue, shutdown check হবে
                 continue
             except asyncio.CancelledError:
                 # বাংলা মন্তব্য: CancelledError = graceful shutdown signal
                 logger.info("[TaskQueue] AsyncIO worker received cancellation. Shutting down.")
                 raise  # re-raise — কখনো suppress করা যাবে না
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 # বাংলা মন্তব্য: worker crash — log করা এবং continue
                 logger.exception(f"[TaskQueue] AsyncIO worker unexpected error: {exc}")
                 await asyncio.sleep(1)  # brief pause before retry
@@ -418,9 +405,7 @@ class TaskQueue:
             "timestamp": time.time(),
         }
         payload = json.dumps(message_data).encode("utf-8")
-        future = publisher.publish(
-            topic_path, payload, priority=str(priority.value), task_id=task_id
-        )
+        future = publisher.publish(topic_path, payload, priority=str(priority.value), task_id=task_id)
         # বাংলা মন্তব্য: blocking future.result() → thread pool offload
         message_id = await asyncio.to_thread(future.result, 30)
         logger.debug(f"[TaskQueue] Pub/Sub message {message_id} for task {task_id}")
@@ -436,9 +421,7 @@ class TaskQueue:
         """বাংলা মন্তব্য: Celery task submit — lazy import।"""
         from celery import Celery  # lazy import
 
-        celery_app = Celery(
-            "supremeai_tasks", broker=self.redis_url, backend=self.redis_url
-        )
+        celery_app = Celery("supremeai_tasks", broker=self.redis_url, backend=self.redis_url)
         # বাংলা মন্তব্য: Celery send_task — function reference safe
         await asyncio.to_thread(
             celery_app.send_task,
@@ -454,10 +437,9 @@ class TaskQueue:
         self._shutdown_event.set()
         if self._worker_task and not self._worker_task.done():
             self._worker_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._worker_task
-            except asyncio.CancelledError:
-                pass  # বাংলা মন্তব্য: expected — worker successfully cancelled
+                # বাংলা মন্তব্য: expected — worker successfully cancelled
         logger.info("[TaskQueue] Shutdown complete.")
 
     def get_status(self, task_id: str) -> str:
@@ -481,9 +463,7 @@ class TaskQueue:
         to_remove = [
             tid
             for tid, result in self._results.items()
-            if result.status in ("completed", "failed", "cancelled")
-            and result.completed_at
-            and result.completed_at < cutoff_time
+            if result.status in ("completed", "failed", "cancelled") and result.completed_at and result.completed_at < cutoff_time
         ]
         for tid in to_remove:
             self._tasks.pop(tid, None)

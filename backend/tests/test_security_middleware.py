@@ -5,15 +5,7 @@ from fastapi.testclient import TestClient
 from starlette.responses import PlainTextResponse
 
 from core.auth_middleware import AuthMiddleware
-from core.rate_limiter import RateLimiter
-
-
-def test_rate_limiter_functional():
-    limiter = RateLimiter(requests_per_minute=2, burst=2)
-    assert limiter.is_allowed("client1") is True
-    assert limiter.is_allowed("client1") is True
-    assert limiter.is_allowed("client1") is False
-    assert limiter.remaining("client1") == 0
+# Rate limiter tests have been migrated to APIKeyRateLimiter and TenantRateLimiter
 
 
 def test_auth_middleware_allows_health_without_token():
