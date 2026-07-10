@@ -89,5 +89,6 @@ class SecureRedisManager:
             await self.client.aclose()
             logger.info("💀 Upstash Async connection wrapper gracefully terminated.")
 
+
 # Create the singleton instance
 redis_manager = SecureRedisManager()
