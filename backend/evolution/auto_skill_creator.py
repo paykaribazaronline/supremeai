@@ -4,10 +4,10 @@ from datetime import datetime
 from typing import Any
 
 from loguru import logger
+from skills.installer import SkillInstaller
 
 from core.tenant_db import TenantAwareFirestore
 from evolution.fitness_engine import FitnessEngine
-from skills.installer import SkillInstaller
 from tools.fuzz_sandbox import SecurityError
 
 # আমাদের হার্ডেনড স্যান্ডবক্স গেটকিপার ইম্পোর্ট
@@ -60,8 +60,9 @@ class AutoSkillCreator:
         start_time = time.time()
         from pathlib import Path
 
-        from core.llm_gateway import llm_gateway
         from skills.schema import UniversalSkillSchema
+
+        from core.llm_gateway import llm_gateway
 
         logger.info(f"🧠 Self-Evolution Triggered: Designing skill '{skill_name}' for demand: '{user_demand}'")
 
@@ -208,8 +209,9 @@ asyncio.run(run())
 """
                 run_res = await sandbox.execute_local_code(sandbox_script)
                 if not run_res.get("success"):
-                    raise ValueError(f"Validation test {idx + 1} crashed or timed out in sandbox. Error: {run_res.get('error', run_res.get('stderr'))}")
-                
+                    err_msg = run_res.get('error', run_res.get('stderr'))
+                    raise ValueError(f"Validation test {idx + 1} crashed or timed out in sandbox. Error: {err_msg}")
+
                 # In execute_local_code, standard output is usually under 'output' not 'stdout'
                 run_res["stdout"] = run_res.get("output", "")
 

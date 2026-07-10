@@ -136,8 +136,9 @@ class LLMGateway:
         def failure_callback(kwargs, exception_obj, start_time, end_time):
             model = kwargs.get("model", "unknown")
             try:
-                duration = (end_time - start_time).total_seconds() if hasattr((end_time - start_time), "total_seconds") else float(end_time - start_time)
-            except Exception:
+                delta = end_time - start_time
+                duration = delta.total_seconds() if hasattr(delta, "total_seconds") else float(delta)
+            except Exception:  # noqa: BLE001
                 duration = 0.0
             logger.error(f"[LLMGateway] ❌ Model={model} failed | " f"Error={str(exception_obj)[:200]} | {duration:.2f}s")
             error_event_bus.emit(
