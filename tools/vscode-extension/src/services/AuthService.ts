@@ -214,5 +214,7 @@ export class AuthService {
 
   public setUser(user: any): void {
     this.user = user;
+    const isAdmin = user && (user.role === 'admin' || user.is_superuser === true);
+    vscode.commands.executeCommand('setContext', 'supremeai.isAdmin', !!isAdmin);
   }
 }

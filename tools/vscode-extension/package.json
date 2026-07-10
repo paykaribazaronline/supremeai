@@ -27,16 +27,16 @@
       "packageDescription": "Real-time code analysis, learning, and AI assistance with SupremeAI Core Engine"
     },
     "bn": {
-      "packageDisplayName": "সুপ্রিমএআই - এআই-চালিত ডেভেলপমেন্ট সহায়ক",
-      "packageDescription": "সুপ্রিমএআই কোর ইঞ্জিনের সাথে রিয়েল-টাইম কোড বিশ্লেষণ, শিখুন এবং এআই সহায়তা"
+      "packageDisplayName": "\u09b8\u09c1\u09aa\u09cd\u09b0\u09bf\u09ae\u098f\u0986\u0987 - \u098f\u0986\u0987-\u099a\u09be\u09b2\u09bf\u09a4 \u09a1\u09c7\u09ad\u09c7\u09b2\u09aa\u09ae\u09c7\u09a8\u09cd\u099f \u09b8\u09b9\u09be\u09af\u09bc\u0995",
+      "packageDescription": "\u09b8\u09c1\u09aa\u09cd\u09b0\u09bf\u09ae\u098f\u0986\u0987 \u0995\u09cb\u09b0 \u0987\u099e\u09cd\u099c\u09bf\u09a8\u09c7\u09b0 \u09b8\u09be\u09a5\u09c7 \u09b0\u09bf\u09af\u09bc\u09c7\u09b2-\u099f\u09be\u0987\u09ae \u0995\u09cb\u09a1 \u09ac\u09bf\u09b6\u09cd\u09b2\u09c7\u09b7\u09a3, \u09b6\u09bf\u0996\u09c1\u09a8 \u098f\u09ac\u0982 \u098f\u0986\u0987 \u09b8\u09b9\u09be\u09af\u09bc\u09a4\u09be"
     },
     "es": {
       "packageDisplayName": "SupremeAI - Asistente de desarrollo impulsado por IA",
-      "packageDescription": "Análisis de código en tiempo real, aprendizaje y asistencia de IA con el motor SupremeAI Core"
+      "packageDescription": "An\u00e1lisis de c\u00f3digo en tiempo real, aprendizaje y asistencia de IA con el motor SupremeAI Core"
     },
     "hi": {
-      "packageDisplayName": "सुप्रीमएआई - एआई-संचालित विकास सहायक",
-      "packageDescription": "सुप्रीमएआई कोर इंजन के साथ वास्तविक समय कोड विश्लेषण, सीखना और एआई सहायता"
+      "packageDisplayName": "\u0938\u0941\u092a\u094d\u0930\u0940\u092e\u090f\u0906\u0908 - \u090f\u0906\u0908-\u0938\u0902\u091a\u093e\u0932\u093f\u0924 \u0935\u093f\u0915\u093e\u0938 \u0938\u0939\u093e\u092f\u0915",
+      "packageDescription": "\u0938\u0941\u092a\u094d\u0930\u0940\u092e\u090f\u0906\u0908 \u0915\u094b\u0930 \u0907\u0902\u091c\u0928 \u0915\u0947 \u0938\u093e\u0925 \u0935\u093e\u0938\u094d\u0924\u0935\u093f\u0915 \u0938\u092e\u092f \u0915\u094b\u0921 \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923, \u0938\u0940\u0916\u0928\u093e \u0914\u0930 \u090f\u0906\u0908 \u0938\u0939\u093e\u092f\u0924\u093e"
     }
   },
   "keywords": [
@@ -57,97 +57,97 @@
     "commands": [
       {
         "command": "supremeai.login",
-        "title": "%supremeai.login.title%",
+        "title": "Login",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.loginAsGuest",
-        "title": "%supremeai.loginAsGuest.title%",
+        "title": "Login as Guest",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.logout",
-        "title": "%supremeai.logout.title%",
+        "title": "Logout",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.acceptSuggestion",
-        "title": "%supremeai.acceptSuggestion.title%",
+        "title": "Accept Suggestion",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.rejectSuggestion",
-        "title": "%supremeai.rejectSuggestion.title%",
+        "title": "Reject Suggestion",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.sendFeedback",
-        "title": "%supremeai.sendFeedback.title%",
+        "title": "Send Feedback",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.reportError",
-        "title": "%supremeai.reportError.title%",
+        "title": "Report Error",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.forceLearn",
-        "title": "%supremeai.forceLearn.title%",
+        "title": "Force Learn",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.analyzeCodeFlow",
-        "title": "%supremeai.analyzeCodeFlow.title%",
+        "title": "Analyze Code Flow",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.resolveError",
-        "title": "%supremeai.resolveError.title%",
+        "title": "Resolve Error",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.showSecurityIssues",
-        "title": "%supremeai.showSecurityIssues.title%",
+        "title": "Show Security Issues",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.showDependencies",
-        "title": "%supremeai.showDependencies.title%",
+        "title": "Show Dependencies",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.openCodeFlowDashboard",
-        "title": "%supremeai.openCodeFlowDashboard.title%",
+        "title": "Open Code Flow Dashboard",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.refreshCodeFlow",
-        "title": "%supremeai.refreshCodeFlow.title%",
+        "title": "Refresh Code Flow",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.aiComplete",
-        "title": "%supremeai.aiComplete.title%",
+        "title": "AI Code Completion",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.aiExplain",
-        "title": "%supremeai.aiExplain.title%",
+        "title": "Explain Code",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.sendMessageToChat",
-        "title": "%supremeai.sendMessageToChat.title%",
+        "title": "Send to Chat",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.aiReview",
-        "title": "%supremeai.aiReview.title%",
+        "title": "Review Code",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.openExtensionSettings",
-        "title": "%supremeai.openExtensionSettings.title%",
+        "title": "Open Settings",
         "category": "SupremeAI"
       }
     ],
@@ -200,43 +200,43 @@
         "supremeai.aiApiKey": {
           "type": "string",
           "default": "",
-          "description": "%supremeai.aiApiKey.description%",
+          "description": "The API key for authentication.",
           "secret": true
         },
         "supremeai.codegeex4.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "%supremeai.codegeex4.enabled.description%"
+          "description": "Enable CodeGeeX4 model."
         },
         "supremeai.codegeex4.model": {
           "type": "string",
           "default": "codegeex-4",
-          "description": "%supremeai.codegeex4.model.description%"
+          "description": "The CodeGeeX4 model name."
         },
         "supremeai.enableRealTimeLearning": {
           "type": "boolean",
           "default": true,
-          "description": "%supremeai.enableRealTimeLearning.description%"
+          "description": "Enable real-time code learning and pattern recognition."
         },
         "supremeai.autoReportErrors": {
           "type": "boolean",
           "default": true,
-          "description": "%supremeai.autoReportErrors.description%"
+          "description": "Automatically report unhandled errors to SupremeAI."
         },
         "supremeai.enableCodeFlow": {
           "type": "boolean",
           "default": true,
-          "description": "%supremeai.enableCodeFlow.description%"
+          "description": "Enable CodeFlow analysis features."
         },
         "supremeai.autoAnalyzeOnSave": {
           "type": "boolean",
           "default": false,
-          "description": "%supremeai.autoAnalyzeOnSave.description%"
+          "description": "Automatically analyze code on save."
         },
         "supremeai.aiModel": {
           "type": "string",
           "default": "supreme-large",
-          "description": "%supremeai.aiModel.description%"
+          "description": "Default AI model to use."
         }
       }
     },
@@ -253,19 +253,21 @@
       "supremeai-sidebar": [
         {
           "id": "supremeaiChat",
-          "name": "%supremeai.chat.title%",
+          "name": "Chat",
           "type": "webview",
           "icon": "media/icon.svg"
         },
         {
           "id": "supremeaiAdminDashboard",
-          "name": "%supremeai.adminDashboard.title%",
+          "name": "Admin Dashboard",
+          "when": "supremeai.authenticated && supremeai.isAdmin",
           "type": "webview",
           "icon": "media/icon.svg"
         },
         {
           "id": "supremeaiCustomerDashboard",
-          "name": "%supremeai.customerDashboard.title%",
+          "name": "User Settings",
+          "when": "supremeai.authenticated",
           "type": "webview",
           "icon": "media/icon.svg"
         }

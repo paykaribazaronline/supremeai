@@ -132,12 +132,14 @@ export class SupremeAIChatView {
       <button class="btn btn-secondary" onclick="openSettings()">⚙️</button>
     </div>
   </div>
+  ${isGuest ? '' : `
   <div style="padding: 6px 16px; font-size: 11px; background: var(--vscode-input-background, #1e1e1e); border-bottom: 1px solid var(--vscode-panel-border); color: var(--vscode-descriptionForeground); display: flex; justify-content: space-between; align-items: center;">
     <span>🔑 API Key:</span>
     <span style="font-weight: bold; color: ${hasApiKey ? 'var(--vscode-testing-iconPassedColor, #73c991)' : 'var(--vscode-testing-iconFailedColor, #f14c4c)'};">
       ${hasApiKey ? 'Active' : 'Missing'}
     </span>
   </div>
+  `}
   <div class="messages" id="messages">
     ${emptyState}
     ${messagesHtml}

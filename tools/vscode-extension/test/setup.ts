@@ -29,4 +29,9 @@ vi.mock('vscode', () => ({
       extensionKind: 1,
     }),
   },
+  EventEmitter: class {
+    event = vi.fn();
+    fire = vi.fn();
+    dispose = vi.fn();
+  },
 }));
