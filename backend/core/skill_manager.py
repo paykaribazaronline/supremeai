@@ -29,14 +29,19 @@ class DynamicSkillManager:
             skill_data = args[0]
         elif args:
             skill_data["skill_name"] = args[0]
-            if len(args) > 1: skill_data["version"] = args[1]
-            if len(args) > 2: skill_data["description"] = args[2]
-            if len(args) > 3: skill_data["entry_file"] = args[3]
-            if len(args) > 4: skill_data["dependencies"] = args[4]
+            # Ruff E701 ফিক্স: এক লাইনে একাধিক স্টেটমেন্ট লেখা যাবে না
+            if len(args) > 1:
+                skill_data["version"] = args[1]
+            if len(args) > 2:
+                skill_data["description"] = args[2]
+            if len(args) > 3:
+                skill_data["entry_file"] = args[3]
+            if len(args) > 4:
+                skill_data["dependencies"] = args[4]
             skill_data.update(kwargs)
         else:
             skill_data = kwargs.get("skill_data") or kwargs
-            
+
         final_data = skill_data.copy() if skill_data else {}
         if "name" in final_data and "skill_name" not in final_data:
             final_data["skill_name"] = final_data["name"]
