@@ -28,7 +28,7 @@ async def test_production_sandbox_fails_without_docker():
             res = await executor.execute_local_code("print('hello')")
 
     assert res["success"] is False
-    assert "Sandbox execution failed" in res["error"]
+    assert "local execution is disabled for safety" in res["error"]
 
     # Restore settings environment
     settings.env = old_env
