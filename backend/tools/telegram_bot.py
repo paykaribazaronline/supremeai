@@ -46,10 +46,10 @@ class TelegramBotHandler:
         "/rules": "📜 Constitutional rules: 5 directions (North, South, East, West, Center)",
     }
 
-    def __init__(self, orchestrator=None) -> None:
+    def __init__(self, task_processor_interface=None) -> None:
         self.bot_token: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
         self.api_base: str = f"https://api.telegram.org/bot{self.bot_token}"
-        self.orchestrator = orchestrator
+        self.processor = task_processor_interface
 
         if not self.bot_token:
             logger.warning("TELEGRAM_BOT_TOKEN not set — Telegram bot disabled.")
@@ -208,11 +208,12 @@ class TelegramBotHandler:
         await self.send_message(chat_id, "\n".join(status_lines))
 
     async def _ai_response(self, text: str, user_id: str) -> str:
-        if self.orchestrator:
+        if self.processor:
             try:
                 task_type = "coding" if any(k in text.lower() for k in ["code", "function", "script"]) else "general"
                 loop = asyncio.get_event_loop()
-                result = await loop.run_in_executor(None, lambda: self.orchestrator.execute_task(text, task_type))
+                # Run synchronous orchestrator call in executor to prevent blocking the event loop
+                result = await loop.run_in_executor(None, lambda: self.processor.execute_task(text, task_type))
                 return result.get("result", "Sorry, I couldn't process that.")
             except Exception as exc:  # noqa: BLE001
                 logger.error(f"Orchestrator error: {exc}")

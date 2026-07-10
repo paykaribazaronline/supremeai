@@ -26,9 +26,7 @@ def test_check_docker_success(sandbox):
         )
 
 
-@pytest.mark.parametrize(
-    "exception", [FileNotFoundError, subprocess.TimeoutExpired, OSError, subprocess.CalledProcessError(1, "cmd")]
-)
+@pytest.mark.parametrize("exception", [FileNotFoundError, subprocess.TimeoutExpired, OSError, subprocess.CalledProcessError(1, "cmd")])
 def test_check_docker_failure(sandbox, exception):
     """ডকার অনুপস্থিত বা ত্রুটিযুক্ত হলে False রিটার্ন করে কিনা তা পরীক্ষা করে।"""
     with patch("subprocess.run", side_effect=exception) as mock_run:
@@ -55,9 +53,7 @@ def test_execute_command_docker_success(sandbox):
     """ডকার উপস্থিত থাকলে কমান্ড সফলভাবে কার্যকর হয় কিনা তা পরীক্ষা করে।"""
     sandbox.docker_available = True
     with patch("subprocess.run") as mock_run:
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="hello world", stderr=""
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="hello world", stderr="")
         result = sandbox.execute_command("echo 'hello world'")
 
         assert result["success"] is True
@@ -84,9 +80,7 @@ def test_execute_command_local_fallback_success(sandbox):
     """ডকার না থাকলে লোকাল ফলব্যাক মোডে কমান্ড সফলভাবে চলে কিনা তা পরীক্ষা করে।"""
     sandbox.docker_available = False
     with patch("os.getenv", return_value="true"), patch("subprocess.run") as mock_run:
-        mock_run.return_value = MagicMock(
-            returncode=0, stdout="local output", stderr=""
-        )
+        mock_run.return_value = MagicMock(returncode=0, stdout="local output", stderr="")
         result = sandbox.execute_command("echo 'local output'")
 
         assert result["success"] is True
@@ -97,10 +91,13 @@ def test_execute_command_local_fallback_success(sandbox):
 def test_execute_command_local_fallback_failure(sandbox):
     """লোকাল ফলব্যাক মোডে কমান্ড ব্যর্থ হলে সঠিকভাবে রিপোর্ট করে কিনা তা পরীক্ষা করে।"""
     sandbox.docker_available = False
-    with patch("os.getenv", return_value="true"), patch(
-        "subprocess.run",
-        side_effect=subprocess.CalledProcessError(127, "cmd", stderr="not found"),
-    ) as mock_run:
+    with (
+        patch("os.getenv", return_value="true"),
+        patch(
+            "subprocess.run",
+            side_effect=subprocess.CalledProcessError(127, "cmd", stderr="not found"),
+        ) as mock_run,
+    ):
         result = sandbox.execute_command("some_bad_command")
 
         assert result["success"] is False
@@ -111,9 +108,7 @@ def test_execute_command_local_fallback_failure(sandbox):
 def test_execute_command_local_fallback_timeout(sandbox):
     """লোকাল ফলব্যাক মোডে কমান্ড টাইমআউট হলে সঠিকভাবে রিপোর্ট করে কিনা তা পরীক্ষা করে।"""
     sandbox.docker_available = False
-    with patch("os.getenv", return_value="true"), patch(
-        "subprocess.run", side_effect=subprocess.TimeoutExpired("cmd", 5)
-    ) as mock_run:
+    with patch("os.getenv", return_value="true"), patch("subprocess.run", side_effect=subprocess.TimeoutExpired("cmd", 5)) as mock_run:
         result = sandbox.execute_command("sleep 10")
 
         assert result["success"] is False

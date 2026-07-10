@@ -1,5 +1,7 @@
 from typing import Any
+
 from loguru import logger
+
 
 try:
     from playwright.async_api import Browser
@@ -45,7 +47,7 @@ async def shutdown_global_browser():
             logger.info("Stopping playwright runner core context...")
             await _playwright_runner.stop()
         logger.info("✅ All Playwright OS processes terminated cleanly.")
-    except (RuntimeError, OSError, ConnectionError, Exception) as e:
+    except (RuntimeError, OSError, ConnectionError, Exception) as e:  # noqa: BLE001
         # প্লে-রাইট শাটডাউন করার সময় যেকোনো ধরনের ত্রুটি লগ করা হলো
         logger.critical(f"❌ Error during global browser termination sequence: {str(e)}")
     finally:

@@ -456,10 +456,14 @@ def delete_session(session_id: str):
 
 
 from fastapi import Depends
+
 from api.routes.admin_dashboard import require_admin_token
-from tools.browser_agent import BrowserAgent, BrowseRequest
+from tools.browser_agent import BrowserAgent
+from tools.browser_agent import BrowseRequest
+
 
 _agent = BrowserAgent()
+
 
 @router.post("/browse", dependencies=[Depends(require_admin_token)])
 async def browse(request: BrowseRequest):
@@ -479,5 +483,6 @@ async def browse(request: BrowseRequest):
 async def extract(url: str, extraction_prompt: str):
     """Fetch page and extract structured data with AI (Admin Only)."""
     from tools.ai_web_extractor import AIWebExtractor
+
     extractor = AIWebExtractor()
     return await extractor.extract_data(url, extraction_prompt)

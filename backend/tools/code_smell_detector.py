@@ -420,7 +420,7 @@ class CodeSmellDetector:
                         "severity": "critical",
                     }
                 )
-        except (IOError, OSError) as e:
+        except OSError as e:
             logger.error(f"Failed to analyze JS/TS file {filepath}: {e}")
         return smells
 

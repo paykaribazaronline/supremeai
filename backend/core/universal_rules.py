@@ -28,7 +28,7 @@ class UniversalRulesEngine:
             try:
                 with open(self.rules_path, encoding="utf-8") as f:
                     return json.load(f)
-            except (json.JSONDecodeError, IOError) as e:
+            except (OSError, json.JSONDecodeError) as e:
                 # Fallback to default in case of corruption
                 logger.error(f"⚠️ Rules file corrupted, falling back to defaults: {e}")
 
@@ -62,7 +62,7 @@ class UniversalRulesEngine:
             os.makedirs(os.path.dirname(self.rules_path), exist_ok=True)
             with open(self.rules_path, "w", encoding="utf-8") as f:
                 json.dump(default_rules, f, indent=4)
-        except IOError as e:
+        except OSError as e:
             logger.warning(f"Could not write default rules file: {e}")
         return default_rules
 
@@ -79,7 +79,7 @@ class UniversalRulesEngine:
 
             os.replace(temp_path, self.rules_path)
             return True
-        except (IOError, OSError):
+        except OSError:
             return False
 
     def apply(self, decision_context: dict[str, Any]) -> dict[str, Any]:

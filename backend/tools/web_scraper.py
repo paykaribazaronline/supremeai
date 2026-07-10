@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from loguru import logger
 from core.security_utils import is_safe_url
 
+
 class WebScraper:
     def fetch_page(self, url: str) -> dict[str, Any]:
         logger.info(f"Fetching page: {url}")

@@ -5,7 +5,7 @@ from tools.web_scraper import WebScraper
 class AIWebExtractor:
     def __init__(self):
         self.scraper = WebScraper()
-        
+
     async def extract_data(self, url: str, extraction_prompt: str) -> dict[str, Any]:
         """Fetch page and use AI to extract structured data."""
         page_data = self.scraper.fetch_page(url)
@@ -30,6 +30,6 @@ class AIWebExtractor:
                 "extracted": extracted,
                 "raw": page_data,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # মডেল রাউটার বা ডেটা এক্সট্র্যাকশন সম্পর্কিত যেকোনো ত্রুটি এখানে ধরা হলো
             return {"success": False, "error": str(e)}

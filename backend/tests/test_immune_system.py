@@ -23,6 +23,7 @@ def mock_redis(monkeypatch):
 
 import pytest
 
+
 @pytest.mark.asyncio
 async def test_auto_remediation_success(tmp_path):
     # Create a temporary file to test patch application

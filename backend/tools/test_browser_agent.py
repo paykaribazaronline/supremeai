@@ -1,4 +1,4 @@
-import asyncio
+import socket
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -168,7 +168,7 @@ async def test_execute_recipe_success(mock_async_playwright, agent):
 async def test_execute_recipe_failure(mock_async_playwright, agent):
     """রেসিপি কার্যকর করার সময় ত্রুটি ঘটলে সঠিকভাবে রিপোর্ট করে কিনা তা পরীক্ষা করে।"""
     mock_page = AsyncMock()
-    mock_page.goto.side_effect = asyncio.TimeoutError("Page load timeout")
+    mock_page.goto.side_effect = TimeoutError("Page load timeout")
     mock_context = AsyncMock()
     mock_context.new_page.return_value = mock_page
     mock_browser = AsyncMock()

@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from core.human_behavior import HumanBehaviorSimulators
 from core.security_utils import is_safe_url
 from core.playwright_manager import get_global_browser
+
 try:
     from playwright.async_api import async_playwright
 except ImportError:
@@ -46,8 +47,7 @@ class BrowserAgent:
         async with async_playwright() as p:
             # কন্টেইনার সেফ স্যান্ডবক্স মোডে ক্রমিয়াম লঞ্চ করা
             browser = await p.chromium.launch(
-                headless=self.headless,
-                args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-blink-features=AutomationControlled"]
+                headless=self.headless, args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-blink-features=AutomationControlled"]
             )
             context = await browser.new_context(
                 viewport={"width": 1280, "height": 1080},
@@ -106,7 +106,7 @@ class BrowserAgent:
                 # সমস্ত স্টেপ সফলভাবে শেষ হলে
                 return {"status": "success", "data": extracted_data}
 
-            except (asyncio.TimeoutError, Exception) as e:
+            except (TimeoutError, Exception) as e:  # noqa: BLE001
                 # প্লে-রাইট বা অন্যান্য অপ্রত্যাশিত ত্রুটি সুনির্দিষ্টভাবে ক্যাচ করা হলো
                 logger.error(f"❌ Recipe Interpreter crashed mid-execution: {str(e)}")
                 return {"status": "failed", "error": str(e), "step": index + 1}
@@ -187,7 +187,7 @@ class BrowserAgent:
                 "links": links,
                 "action": action,
             }
-        except (asyncio.TimeoutError, Exception) as e:
+        except (TimeoutError, Exception) as e:
             # প্লে-রাইট সম্পর্কিত যেকোনো সাধারণ ত্রুটি এখানে ধরা হলো
             logger.error(f"Playwright action failed: {e}")
             return {"success": False, "error": str(e), "url": url}

@@ -133,7 +133,13 @@ def test_validate_production_completeness_raises_on_missing_production_keys():
     from core.config import Settings
 
     s = Settings.model_construct(
-        env="production", openrouter_api_key="", gemini_api_key="", jwt_secret="secret", ci_webhook_secret="supreme-ci-secret-2026", stripe_api_key="sk_test_123", stripe_webhook_secret="whsec_123"
+        env="production",
+        openrouter_api_key="",
+        gemini_api_key="",
+        jwt_secret="secret",
+        ci_webhook_secret="supreme-ci-secret-2026",
+        stripe_api_key="sk_test_123",
+        stripe_webhook_secret="whsec_123",
     )
     with pytest.raises(ValueError):
         s.validate_production_completeness()
