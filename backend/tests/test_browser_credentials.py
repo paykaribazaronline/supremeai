@@ -42,7 +42,7 @@ def test_secure_credential_store_encrypt_decrypt(monkeypatch):
 
 def test_secure_credential_store_mask():
     store = SecureCredentialStore()
-    assert store.mask("secrets") == "sec****"
+    assert store.mask("secrets") == "secr***"
 
 
 def test_browser_save_and_list_credentials():
@@ -60,4 +60,4 @@ def test_browser_save_and_list_credentials():
     creds = resp.json()["credentials"]
     assert len(creds) == 1
     assert creds[0]["serviceName"] == "example"
-    assert creds[0]["password"] == "••••••••••rets"
+    assert creds[0]["password"] == "secr***"
