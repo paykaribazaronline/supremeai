@@ -60,7 +60,9 @@ resource "google_cloud_run_service" "api" {
 
     metadata {
       annotations = {
-        "autoscaling.knative.dev/maxScale" = "10"
+        "autoscaling.knative.dev/maxScale" = "5"
+        # 💤 বাংলা মন্তব্য: ইউজার না থাকলে বিল সম্পূর্ণ শূন্য করতে Scale-to-Zero এনফোর্সমেন্ট
+        "autoscaling.knative.dev/minScale" = "0"
       }
     }
   }
