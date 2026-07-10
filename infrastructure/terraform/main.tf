@@ -28,3 +28,22 @@ resource "google_cloud_run_service" "supremeai_core" {
     }
   }
 }
+
+resource "google_artifact_registry_repository" "supreme_repo" {
+  location      = var.gcp_region
+  repository_id = "supremeai-repo"
+  description   = "SupremeAI Docker Container Images (Cost Optimized)"
+  format        = "DOCKER"
+
+  # 🗑️ বাংলা মন্তব্য: ৭ দিনের পুরনো এবং ট্যাগ ছাড়া ডেড ইমেজগুলো অটো-ডিলিট করার পলিসি
+  cleanup_policies {
+    id     = "prune-old-images"
+    action = "DELETE"
+    condition {
+      tag_state  = "ANY"
+      older_than = "604800s" # 7 Days in seconds
+    }
+  }
+
+  cleanup_policy_dry_run = false
+}
