@@ -1,3 +1,4 @@
+# FILE_PATH: core/auto_remediation.py
 import os
 
 from github import Github
@@ -144,10 +145,10 @@ class AutoRemediation:
     applies it, and creates a GitHub Pull Request for evaluation.
     """
 
-    def __init__(self, gemini_api_key: str | None = None):
+    def __init__(self, gemini_api_key: str | None = None, allowed_base_dir: str | None = None):
         self.gemini_api_key = gemini_api_key or os.getenv("GEMINI_API_KEY", "")
         self.github_agent = GitHubAgent()
-        self._ALLOWED_BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        self._ALLOWED_BASE_DIR = os.path.abspath(allowed_base_dir if allowed_base_dir is not None else os.path.join(os.path.dirname(__file__), ".."))
 
     def _validate_file_path(self, file_path: str) -> str:
         """বাংলা মন্তব্য: P0 Fix — Path traversal attack প্রতিরোধ।
