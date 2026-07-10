@@ -1,7 +1,6 @@
-from enum import StrEnum
 import re
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 
 class TaskType(StrEnum):

@@ -1,7 +1,6 @@
-from enum import StrEnum
 from dataclasses import dataclass
 from dataclasses import field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from loguru import logger
