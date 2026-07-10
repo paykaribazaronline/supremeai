@@ -1,3 +1,4 @@
+# FILE_PATH: core/secret_vault.py
 import os
 
 from loguru import logger
@@ -28,6 +29,7 @@ class ProductionSecretVault:
         self.token = os.getenv("INFISICAL_TOKEN")
 
         self.client = None
+        # Initialize _cached_secrets unconditionally and early in the constructor.
         self._cached_secrets: dict[str, str] = {}
         logger.info("⚙️ Secure Local In-Memory Secret Cache Layer Initialized.")
 
@@ -53,6 +55,14 @@ class ProductionSecretVault:
 
     def fetch_secret(self, secret_id: str, default: str = None) -> str:
         """Infisical থেকে রিয়াল-টাইমে সিক্রেট ভ্যালু রিড করার মেকানিজম"""
+        # Defensive check to ensure _cached_secrets exists.
+        # This addresses the AttributeError in cases where an instance might be
+        # created or re-initialized in an unusual way (e.g., specific test mocks)
+        # that bypasses or incompletely executes the __init__ method.
+        if not hasattr(self, '_cached_secrets'):
+            self._cached_secrets = {}
+            logger.warning(f"'_cached_secrets' attribute was missing on {self.__class__.__name__} instance during fetch_secret. Initializing defensively.")
+
         if secret_id in self._cached_secrets:
             return self._cached_secrets[secret_id]
 
