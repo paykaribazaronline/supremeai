@@ -9,7 +9,7 @@ MCP Server for Supabase/Postgres Database Integration in SupremeAI 2.0.
 import os
 import json
 from typing import List, Any
-from enum import Enum, StrEnum
+from enum import StrEnum
 
 import psycopg2
 from pydantic import BaseModel, Field, ConfigDict

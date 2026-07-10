@@ -13,7 +13,7 @@ import tempfile
 import contextlib
 from pathlib import Path
 from typing import Dict, Any
-from enum import Enum, StrEnum
+from enum import StrEnum
 
 from loguru import logger
 from pydantic import BaseModel, Field, ConfigDict
