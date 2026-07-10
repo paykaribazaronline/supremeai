@@ -1,4 +1,16 @@
+# FILE_PATH: main.py
 import os
+
+
+# During test collection in CI, environment variables might not be set in a way that
+# allows core services like RedisManager to initialize properly, leading to ImportError
+# if 'redis_manager' is conditionally defined. Setting a 'test' environment flag
+# very early ensures that core modules which depend on 'settings' will take a
+# test-specific initialization path, potentially defining a mock 'redis_manager'.
+# This helps resolve 'ImportError: cannot import name 'redis_manager'' if its definition
+# in 'core/redis_manager.py' is conditional on the environment (e.g., via settings.env).
+os.environ["SUPREMEAI_ENV"] = "test"
+
 import signal
 import sys
 
