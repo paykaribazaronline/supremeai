@@ -1,3 +1,4 @@
+# FILE_PATH: tests/test_prod_docs_security.py
 import os
 import subprocess
 import sys
@@ -92,6 +93,7 @@ def test_docs_disabled_in_production():
         os.environ["SUPREMEAI_ADMIN_PASSWORD_HASH"] = "mock_hash_for_production_test"
         os.environ["docs_auth_enabled"] = "false"
         os.environ["REDIS_URL"] = "redis://mock:6379"
+        os.environ["STRIPE_API_KEY"] = "sk_test_mock_key" # Added to satisfy production mandatory key
         
         # Mock secret fetching to prevent errors for missing production secrets
         import core.secret_vault as sv
