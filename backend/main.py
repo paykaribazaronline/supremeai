@@ -1,3 +1,4 @@
+# FILE_PATH: main.py
 import os
 import signal
 import sys
