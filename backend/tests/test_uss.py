@@ -8,8 +8,7 @@ from skills.schema import UniversalSkillSchema
 @pytest.fixture
 def temp_skills_dir(tmp_path):
     # Set up temp dir for registry and dynamic skills
-    reg_path = tmp_path / "skills_registry.json"
-    registry = DynamicSkillManager(registry_path=str(reg_path))
+    registry = DynamicSkillManager()
     installer = SkillInstaller(registry=registry, skills_dir=str(tmp_path / "dynamic"))
     loader = SkillLoader(registry=registry, installer=installer)
     loader.skills_dir = tmp_path / "dynamic"

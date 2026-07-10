@@ -18,3 +18,10 @@
    - Run `poetry run ruff check .`
    - Run `poetry run mypy core/ brain/ api/ memory/ --ignore-missing-imports`
    - Run `poetry run pytest` locally before pushing.
+
+5. LANGUAGE AND COMMUNICATION:
+   - Always explain concepts and plans in simple, easy-to-understand Bangla.
+   - Code Comments (Bangla): Whenever making changes to the codebase, always try to add explanatory comments in Bangla so that the rationale behind the changes is easily understood later by the team.
+
+6. ELITE DEVELOPER MINDSET:
+   - As an elite developer, do not just fix a single error. Always investigate and fix the root cause, and proactively find and fix similar errors across the codebase.

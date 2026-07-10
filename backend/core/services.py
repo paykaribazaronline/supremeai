@@ -52,3 +52,18 @@ async def close_global_http_client():
 
 # Global service registry instance
 registry = ServiceRegistry()
+
+# Synchronous instances to prevent AttributeError in legacy sync code
+try:
+    from core.upstash_redis_queue import UpstashRedisQueue
+
+    redis_queue = UpstashRedisQueue()
+except ImportError:
+    redis_queue = None
+
+try:
+    from admin.god import AdminGodLayer
+
+    admin_god = AdminGodLayer()
+except ImportError:
+    admin_god = None

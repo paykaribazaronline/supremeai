@@ -12,8 +12,7 @@ from evolution.auto_skill_creator import AutoSkillCreator
 @pytest.fixture
 def clean_dynamic_skills(tmp_path):
     # Set up temp dir for registry, dynamic and quarantine folders
-    reg_path = tmp_path / "skills_registry.json"
-    registry = DynamicSkillManager(registry_path=str(reg_path))
+    registry = DynamicSkillManager()
 
     # Configure custom installer with temp skills_dir
     installer = SkillInstaller(registry=registry, skills_dir=str(tmp_path / "dynamic"))
