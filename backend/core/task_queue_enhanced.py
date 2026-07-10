@@ -1,3 +1,4 @@
+from enum import StrEnum
 # backend/core/task_queue_enhanced.py
 # বাংলা মন্তব্য: সম্পূর্ণ রি-ফ্যাক্টর — Polling anti-pattern উপড়ে ফেলা হয়েছে।
 # get_result() এর while True sleep(0.1) loop → asyncio.Event callback model।
@@ -68,7 +69,7 @@ def _check_pubsub_available() -> bool:
 
 
 # ── Data Models ────────────────────────────────────────────────────────────────
-class QueueBackend(str, Enum):
+class QueueBackend(StrEnum):
     CELERY = "celery"
     REDIS = "redis"
     PUBSUB = "pubsub"

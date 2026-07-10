@@ -44,7 +44,7 @@ signal.signal(signal.SIGINT, _handle_sigterm)
 
 
 def run_server() -> None:
-    port = int(os.environ.get("PORT", 8080))
+    port = int(os.environ.get("PORT", "8080"))
     is_local = settings.env == "local"
     uvicorn_kwargs = {
         "host": settings.host,

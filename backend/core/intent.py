@@ -1,9 +1,10 @@
+from enum import StrEnum
 import re
 from dataclasses import dataclass
 from enum import Enum
 
 
-class TaskType(str, Enum):
+class TaskType(StrEnum):
     general = "general"
     coding = "coding"
     translation = "translation"

@@ -3,6 +3,7 @@ import sqlite3
 import uuid
 from datetime import UTC
 from datetime import datetime
+import enum
 from pathlib import Path
 
 from pydantic import BaseModel

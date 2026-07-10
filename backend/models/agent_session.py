@@ -13,7 +13,7 @@ from sqlalchemy.orm import mapped_column
 from models.base import Base
 
 
-class AgentSessionState(str, enum.Enum):
+class AgentSessionState(enum.StrEnum):
     Idle = "Idle"
     Scanning_Target_DOM = "Scanning_Target_DOM"
     Executing_Workflows = "Executing_Workflows"
@@ -24,7 +24,7 @@ class AgentSessionState(str, enum.Enum):
     Failed = "Failed"
 
 
-class ControlMode(str, enum.Enum):
+class ControlMode(enum.StrEnum):
     agent = "agent"
     pending_handoff = "pending_handoff"
     human = "human"

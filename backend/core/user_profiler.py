@@ -1,3 +1,4 @@
+from enum import StrEnum
 from dataclasses import dataclass
 from dataclasses import field
 from enum import Enum
@@ -6,7 +7,7 @@ from typing import Any
 from loguru import logger
 
 
-class UserMode(str, Enum):
+class UserMode(StrEnum):
     FAST_TRACK = "FAST_TRACK"
     LEARNING = "LEARNING"
     PRODUCTION = "PRODUCTION"
