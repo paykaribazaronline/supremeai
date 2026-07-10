@@ -259,9 +259,9 @@ def check_metrics() -> dict:
     except Exception as e:
         print(f"  ⚠️ Health endpoint check failed: {e}")
 
-    # All checks failed — assume healthy (don't block on monitoring failure)
-    print("  ⚠️ All metric checks failed — assuming healthy (fail open for metrics)")
-    return {"healthy": True, "error_rate": 0.0, "p99_latency_ms": 0, "source": "default"}
+    # All checks failed — fail-closed: assume unhealthy to prevent deploying a bad revision during a monitoring outage.
+    print("  ❌ All metric checks failed — assuming unhealthy (fail-closed).")
+    return {"healthy": False, "error_rate": 1.0, "p99_latency_ms": 0, "source": "failure"}
 
 
 # ═══════════════════════════════════════════════════════════════

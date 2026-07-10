@@ -28,12 +28,17 @@ def is_safe_url(url: str) -> bool:
         ip = socket.gethostbyname(hostname)
         ip_obj = ipaddress.ip_address(ip)
         return not (ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local)
-    except Exception as e:  # noqa: BLE001
+    except (ValueError, OSError) as e:
+
+        # സുনির্দিষ্ট URL বা সকেট ত্রুটি ক্যাচ করা হলো
+
         try:
+
             import loguru
 
             loguru.logger.error(f"Tool execution error: {e}")
-        except Exception as e:  # noqa: BLE001
+        except (ImportError, AttributeError) as e:
+
             import logging
 
             logging.warning(f"Exception suppressed: {e}")
@@ -85,8 +90,11 @@ async def shutdown_global_browser():
             logger.info("Stopping playwright runner core context...")
             await _playwright_runner.stop()
         logger.info("✅ All Playwright OS processes terminated cleanly.")
-    except Exception as e:  # noqa: BLE001
-        logger.critical(f"❌ Error during global browser termination sequence: {str(e)}")
+    except (RuntimeError, OSError, ConnectionError) as e:
+
+        # প্লেরাইট শাটডাউন ত্রুটি ক্যাচ করা হলো
+
+        logger.critical(f\"❌ Error during global browser termination sequence: {str(e)}\")
     finally:
         _global_browser = None
         _playwright_runner = None
@@ -181,8 +189,11 @@ class BrowserAgent:
                 # সমস্ত স্টেপ সফলভাবে শেষ হলে
                 return {"status": "success", "data": extracted_data}
 
-            except Exception as e:  # noqa: BLE001
-                logger.error(f"❌ Recipe Interpreter crashed mid-execution: {str(e)}")
+            except (ValueError, TypeError, asyncio.TimeoutError, ConnectionError, RuntimeError) as e:
+
+                # প্লেরাইট এবং অন্যান্য ত্রুটি সুনির্দিষ্টভাবে ক্যাচ করা হলো
+
+                logger.error(f\"❌ Recipe Interpreter crashed mid-execution: {str(e)}\")
                 return {"status": "failed", "error": str(e)}
 
             finally:
@@ -220,8 +231,11 @@ class BrowserAgent:
                 "links": links,
                 "status_code": response.status_code,
             }
-        except Exception as e:  # noqa: BLE001
-            logger.error(f"Failed to fetch {url}: {e}")
+        except (httpx.RequestError, httpx.HTTPStatusError, ValueError, OSError) as e:
+
+            # HTTP রিকোয়েস্ট ত্রুটি ক্যাচ করা হলো
+
+            logger.error(f\"Failed to fetch {url}: {e}\")
             return {"success": False, "error": str(e), "url": url}
 
     # ── Playwright (JS-heavy pages) ────────────────────────────────
@@ -298,7 +312,7 @@ class BrowserAgent:
                 "links": links,
                 "action": action,
             }
-        except Exception as e:  # noqa: BLE001
+        except (ValueError, TypeError, asyncio.TimeoutError, ConnectionError, RuntimeError) as e:
             logger.error(f"Playwright action failed: {e}")
             return {"success": False, "error": str(e), "url": url}
         finally:
@@ -328,7 +342,7 @@ class BrowserAgent:
                 "extracted": extracted,
                 "raw": page_data,
             }
-        except Exception as e:  # noqa: BLE001
+        except (ValueError, TypeError, asyncio.TimeoutError, ConnectionError, RuntimeError) as e:
             return {"success": False, "error": str(e)}
 
 

@@ -15,22 +15,28 @@ class DockerSandbox:
         try:
             # Check if docker daemon is running
             res = subprocess.run(
+            subprocess.run(
                 ["docker", "info"],
                 capture_output=True,
                 text=True,
                 timeout=3,
                 check=False,
+                check=True,
             )
             return res.returncode == 0
-        except Exception as e:  # noqa: BLE001
+        except (FileNotFoundError, subprocess.TimeoutExpired, OSError) as e:
+            # সাবপ্রসেস চালানোর সময় সুনির্দিষ্ট ত্রুটি ক্যাচ করা হলো
             try:
                 import loguru
 
                 loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:  # noqa: BLE001
+            except (ImportError, AttributeError) as e:
                 import logging
 
                 logging.warning(f"Exception suppressed: {e}")
+            return True
+        except (FileNotFoundError, subprocess.TimeoutExpired, OSError, subprocess.CalledProcessError) as e:
+            logger.warning(f"Docker check failed: {e}. Docker-based execution will be unavailable.")
             return False
 
     def execute_command(self, cmd: str) -> dict[str, Any]:
@@ -94,20 +100,33 @@ class DockerSandbox:
                 use_shell = sys.platform == "win32"
                 res = subprocess.run(
                     shlex.split(cmd),
+                # shell=True ব্যবহার করার সময় shlex.split ব্যবহার করা উচিত নয়
+                command_to_run = cmd if use_shell else shlex.split(cmd)
+                result = subprocess.run(
+                    command_to_run,
                     shell=use_shell,
                     capture_output=True,
                     text=True,
                     timeout=5,
                     check=False,
+                    check=True,
                 )
                 return {
                     "success": res.returncode == 0,
                     "stdout": res.stdout,
                     "stderr": res.stderr,
                     "exit_code": res.returncode,
+                    "success": True,
+                    "stdout": result.stdout,
+                    "stderr": result.stderr,
+                    "exit_code": result.returncode,
                     "simulated": True,
                 }
-            except Exception as e:  # noqa: BLE001
+            except (FileNotFoundError, subprocess.TimeoutExpired, OSError) as e:
+                # লোকাল ফ্যালব্যাকে সাবপ্রসেস ত্রুটি ক্যাচ করা হলো
+            except (FileNotFoundError, subprocess.TimeoutExpired, OSError, subprocess.CalledProcessError) as e:
+                if isinstance(e, subprocess.CalledProcessError):
+                    return {"success": False, "error": e.stderr or str(e), "stdout": e.stdout, "simulated": True}
                 return {"success": False, "error": str(e), "simulated": True}
 
         # Run command securely inside docker
@@ -124,12 +143,21 @@ class DockerSandbox:
                 cmd,
             ]
             res = subprocess.run(docker_cmd, capture_output=True, text=True, timeout=10, check=False)
+            result = subprocess.run(docker_cmd, capture_output=True, text=True, timeout=10, check=True)
             return {
                 "success": res.returncode == 0,
                 "stdout": res.stdout,
                 "stderr": res.stderr,
                 "exit_code": res.returncode,
+                "success": True,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+                "exit_code": result.returncode,
                 "simulated": False,
             }
-        except Exception as e:  # noqa: BLE001
+        except (FileNotFoundError, subprocess.TimeoutExpired, OSError) as e:
+            # ডকার কন্টেইনার চালানোর সময় সুনির্দিষ্ট ত্রুটি ক্যাচ করা হলো
+        except (FileNotFoundError, subprocess.TimeoutExpired, OSError, subprocess.CalledProcessError) as e:
+            if isinstance(e, subprocess.CalledProcessError):
+                return {"success": False, "error": e.stderr or str(e), "stdout": e.stdout, "simulated": False}
             return {"success": False, "error": str(e), "simulated": False}

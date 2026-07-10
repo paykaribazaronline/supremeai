@@ -36,7 +36,8 @@ class SelfHealerService:
                 )
             )
             raise
-        except Exception as e:  # noqa: BLE001
+        except (RuntimeError, ValueError, TypeError, ConnectionError, OSError) as e:
+            # সাধারণ এক্সেপশনের বদলে সুনির্দিষ্ট ত্রুটি ক্যাচ করে ইভেন্ট বাসে পাঠানো হলো
             await self.event_bus.emit(
                 ErrorEvent(
                     module="self_healer",

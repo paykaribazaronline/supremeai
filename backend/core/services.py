@@ -53,25 +53,22 @@ async def close_global_http_client():
 # Global service registry instance
 registry = ServiceRegistry()
 
-# Synchronous instances to prevent AttributeError in legacy sync code
-try:
-    from core.upstash_redis_queue import UpstashRedisQueue
+# Synchronous instances for legacy sync code.
+# These imports are mandatory for the application to function correctly.
+# Removing the try/except blocks ensures a "fail-fast" startup if a
+# critical dependency is missing, preventing NoneType errors at runtime.
+from core.upstash_redis_queue import UpstashRedisQueue
+from admin.god import AdminGodLayer
+from brain.model_router import ModelRouter
+from core.intent import IntentClassifier
+from adaptive_engine.intent_parser import IntentParser
+from adaptive_engine.experience_db import ExperienceDatabase
 
-    redis_queue = UpstashRedisQueue()
-except ImportError:
-    redis_queue = None
-
-try:
-    from admin.god import AdminGodLayer
-
-    admin_god = AdminGodLayer()
-except ImportError:
-    admin_god = None
-
-# Legacy backend compatibility layer for task endpoints
-try:
-    from brain.model_router import ModelRouter
-
-    model_router = ModelRouter()
-except ImportError:
-    model_router = None
+redis_queue = UpstashRedisQueue()
+admin_god = AdminGodLayer()
+model_router = ModelRouter()
+intent_clf = IntentClassifier()
+# The 'if model_router' check is kept as a safeguard, though with fail-fast,
+# model_router should always be available if IntentParser is.
+intent_parser = IntentParser(model_router=model_router) if model_router else None
+experience_db = ExperienceDatabase()

@@ -15,7 +15,7 @@ def test_defaults():
     assert s.port == 8000
     assert s.host == "0.0.0.0"
     assert s.supremeai_admin_password_hash is None
-    assert s.ollama_url == "http://localhost:11434"
+    assert s.ollama_url == ""
     assert s.gcp_project_id == ""
     assert s.gcp_region == "us-central1"
     assert s.max_cost_per_task == 0.01
@@ -32,7 +32,7 @@ def test_defaults():
         "debug": "false",
         "port": "9000",
         "host": "0.0.0.0",
-        "supremeai_admin_password_hash": "hashed123",
+        "supremeai_admin_password_hash": "mock_hash_value_for_test_pass",
         "openrouter_api_key": "sk-openrouter",
         "hf_api_key": "sk-hf",
         "gemini_api_key": "sk-gemini",
@@ -45,10 +45,15 @@ def test_defaults():
         "gcp_project_id": "test-project",
         "gcp_region": "europe-west1",
         "max_cost_per_task": "1.5",
+        "STRIPE_API_KEY": "sk_test_123",
+        "STRIPE_WEBHOOK_SECRET": "whsec_123",
+        "CI_WEBHOOK_SECRET": "supreme-ci-secret-2026",
         "ADMIN_RULES_DB_PATH": "/tmp/rules.db",
         "MEMORY_DB_DIR": "/tmp/memory",
         "SKILL_REGISTRY_PATH": "/tmp/skills.json",
-        "SUPREMEAI_JWT_SECRET": "mock-jwt-secret-for-production",
+        "SUPREMEAI_JWT_SECRET": "a" * 128,
+        "CORS_ORIGINS": '["https://supremeai.web.app"]',
+        "ALLOWED_HOSTS": '["api.supremeai.com"]',
     },
     clear=False,
 )
@@ -60,7 +65,7 @@ def test_env_override(mock_fetch):
     assert s.debug is False
     assert s.port == 9000
     assert s.host == "0.0.0.0"
-    assert s.supremeai_admin_password_hash == "hashed123"
+    assert s.supremeai_admin_password_hash == "mock_hash_value_for_test_pass"
     assert s.openrouter_api_key == "sk-openrouter"
     assert s.hf_api_key == "sk-hf"
     assert s.gemini_api_key == "sk-gemini"
@@ -107,8 +112,14 @@ def test_parse_allowed_hosts_empty_string():
     {
         "env": "production",
         "cors_origins": '["http://127.0.0.1:3000", "https://example.com"]',
-        "SUPREMEAI_JWT_SECRET": "mock-jwt-secret-for-production",
-        "SUPREMEAI_ADMIN_PASSWORD_HASH": "mock_hash_for_production_test",
+        "SUPREMEAI_JWT_SECRET": "a" * 128,
+        "SUPREMEAI_ADMIN_PASSWORD_HASH": "mock_hash_value_for_test_pass",
+        "ALLOWED_HOSTS": '["api.supremeai.com"]',
+        "STRIPE_API_KEY": "sk_test_123",
+        "STRIPE_WEBHOOK_SECRET": "whsec_123",
+        "OPENROUTER_API_KEY": "sk_test",
+        "GEMINI_API_KEY": "sk_test",
+        "CI_WEBHOOK_SECRET": "supreme-ci-secret-2026",
     },
     clear=False,
 )
@@ -118,14 +129,14 @@ def test_cors_origins_production_strips_localhost():
     assert "https://example.com" in s.cors_origins
 
 
-def test_validate_config_raises_on_missing_production_keys():
+def test_validate_production_completeness_raises_on_missing_production_keys():
     from core.config import Settings
 
     s = Settings.model_construct(
-        env="production", openrouter_api_key="", gemini_api_key="", jwt_secret="secret", ci_webhook_secret="supreme-ci-secret-2026"
+        env="production", openrouter_api_key="", gemini_api_key="", jwt_secret="secret", ci_webhook_secret="supreme-ci-secret-2026", stripe_api_key="sk_test_123", stripe_webhook_secret="whsec_123"
     )
-    with pytest.raises(RuntimeError):
-        s.validate_config()
+    with pytest.raises(ValueError):
+        s.validate_production_completeness()
 
 
 @patch.dict(os.environ, {"max_cost_per_task": "abc"}, clear=False)
