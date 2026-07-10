@@ -96,6 +96,7 @@ def get_recent_activity():
 @router.get("/credentials")
 def get_credentials(userId: str = "default"):
     import json
+
     user_creds = []
     for c in CREDENTIALS:
         if c.get("userId") == userId:
@@ -122,13 +123,14 @@ def get_credentials(userId: str = "default"):
 @router.post("/credentials")
 def save_credential(cred: CredentialRequest):
     import json
+
     ciphertext, key_ref = credential_store.encrypt(json.dumps(cred.model_dump()))
     new_cred = {
         "id": f"cred_{len(CREDENTIALS) + 1}",
         "userId": cred.userId,
         "serviceName": cred.serviceName,
         "ciphertext": ciphertext,
-        "key_ref": key_ref
+        "key_ref": key_ref,
     }
     CREDENTIALS.append(new_cred)
     audit.log_decision(

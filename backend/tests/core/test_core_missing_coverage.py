@@ -77,8 +77,6 @@ class TestSettingsValidators:
         result = Settings.set_jwt_secret(None, type("FakeInfo", (), {"data": {"env": "test"}})())
         assert len(result) == 128
 
-
-
     def test_get_cached_secret_caches_value(self, monkeypatch):
         from core.config import Settings
 

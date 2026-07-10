@@ -31,6 +31,7 @@ def reset_globals():
 
 def test_secure_credential_store_encrypt_decrypt(monkeypatch):
     import json
+
     monkeypatch.setenv("SUPREMEAI_CREDENTIAL_ENC_KEY", generate_key())
     store = SecureCredentialStore()
     payload = {"serviceName": "example", "username": "user", "password": "secret"}
