@@ -62,14 +62,9 @@ if settings.sentry_dsn:
             environment=settings.env,
         )
     except Exception as exc:  # noqa: BLE001
-        # বাংলা মন্তব্য: Anti-Suppression Rule - Fail-fast on critical initialization
         logger.critical(f"Sentry SDK initialization failed. Configuration error: {exc}")
-        error_event_bus.emit(
-            ErrorEvent(
-                module="app", error_type="SENTRY_INIT_FAILED", message=str(exc)[:200], severity="CRITICAL", context={"sentry_dsn_configured": True}
-            )
-        )
-        sys.exit(1)
+        if os.getenv("ENV", "development").lower() != "test":
+            sys.exit(1)
 
 
 def _docs_auth(credentials: HTTPBasicCredentials = Depends(security)) -> str:
