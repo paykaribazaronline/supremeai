@@ -15,6 +15,7 @@ class LocalCodeExecutor:
             try:
                 logger.info("🐳 Running code inside tight Docker Sandbox Container...")
                 import shlex
+
                 loop = asyncio.get_event_loop()
                 escaped_code = shlex.quote(code)
                 res = await loop.run_in_executor(None, self.docker_sandbox.execute_command, f"python -c {escaped_code}")
