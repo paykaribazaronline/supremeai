@@ -217,6 +217,7 @@ class TestAdminGodLayer:
     def test_init_db_large_db_path(self):
         # Test initializing AdminGodLayer with a large db_path
         import sqlite3
+
         with pytest.raises(sqlite3.OperationalError):
             AdminGodLayer(db_path="a" * 1000)
 
