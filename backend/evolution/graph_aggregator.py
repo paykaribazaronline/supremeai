@@ -41,5 +41,5 @@ class GraphAggregator:
         
         # ক্যাশ আপডেট
         await self.redis.set_cache(self.CACHE_KEY, json.dumps(current_full_graph), ex_seconds=3600)
-        
+
         return delta
