@@ -57,12 +57,13 @@ registry = ServiceRegistry()
 # These imports are mandatory for the application to function correctly.
 # Removing the try/except blocks ensures a "fail-fast" startup if a
 # critical dependency is missing, preventing NoneType errors at runtime.
-from core.upstash_redis_queue import UpstashRedisQueue
-from admin.god import AdminGodLayer
-from brain.model_router import ModelRouter
-from core.intent import IntentClassifier
-from adaptive_engine.intent_parser import IntentParser
-from adaptive_engine.experience_db import ExperienceDatabase
+from adaptive_engine.experience_db import ExperienceDatabase  # noqa: E402
+from adaptive_engine.intent_parser import IntentParser  # noqa: E402
+from admin.god import AdminGodLayer  # noqa: E402
+from brain.model_router import ModelRouter  # noqa: E402
+from core.intent import IntentClassifier  # noqa: E402
+from core.upstash_redis_queue import UpstashRedisQueue  # noqa: E402
+
 
 redis_queue = UpstashRedisQueue()
 admin_god = AdminGodLayer()
