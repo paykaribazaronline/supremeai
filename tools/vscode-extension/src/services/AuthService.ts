@@ -7,6 +7,10 @@ export class AuthService {
   private config: SupremeAIConfig;
   private token: string | null = null;
   private user: any | null = null;
+  private authState: string | null = null;
+
+  private readonly _onAuthStateChanged = new vscode.EventEmitter<boolean>();
+  public readonly onAuthStateChanged = this._onAuthStateChanged.event;
 
   private secrets: vscode.SecretStorage | null = null;
 
@@ -37,6 +41,7 @@ export class AuthService {
       if (storedToken) {
         this.token = storedToken;
         await vscode.commands.executeCommand('setContext', 'supremeai.authenticated', true);
+        this._onAuthStateChanged.fire(true);
       }
     }
   }
@@ -56,7 +61,8 @@ export class AuthService {
       }
 
       const baseUrl = this.resolveBaseUrl();
-      const loginUrl = `${baseUrl}/auth/login`;
+      this.authState = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      const loginUrl = `${baseUrl}/auth/login?state=${this.authState}`;
       console.log('[SupremeAI] Opening browser for login:', loginUrl);
       await vscode.env.openExternal(vscode.Uri.parse(loginUrl));
       vscode.window.showInformationMessage('Login page opened in your browser. After signing in, the extension will detect the callback and complete authentication.');
@@ -98,12 +104,14 @@ export class AuthService {
     this.token = token;
     this.user = user;
     await vscode.commands.executeCommand('setContext', 'supremeai.authenticated', true);
+    this._onAuthStateChanged.fire(true);
   }
 
   public async loginAsGuest(): Promise<boolean> {
     this.token = null;
     this.user = null;
     await vscode.commands.executeCommand('setContext', 'supremeai.authenticated', false);
+    this._onAuthStateChanged.fire(false);
     return false;
   }
 
@@ -114,6 +122,7 @@ export class AuthService {
     this.token = null;
     this.user = null;
     await vscode.commands.executeCommand('setContext', 'supremeai.authenticated', false);
+    this._onAuthStateChanged.fire(false);
     vscode.window.showInformationMessage('Logged out successfully.');
   }
 
@@ -127,6 +136,47 @@ export class AuthService {
 
   public isAuthenticated(): boolean {
     return !!this.token;
+  }
+
+  public getAuthState(): string | null {
+    return this.authState;
+  }
+
+  public clearAuthState(): void {
+    this.authState = null;
+  }
+
+  public async verifyToken(token: string): Promise<boolean> {
+    try {
+      const baseUrl = this.resolveBaseUrl();
+      const response = await fetch(`${baseUrl}/auth/verify`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      return response.ok;
+    } catch (error) {
+      console.error('[SupremeAI] Token verification failed:', error);
+      return false;
+    }
+  }
+
+  public async fetchUserProfile(token: string): Promise<any | null> {
+    try {
+      const baseUrl = this.resolveBaseUrl();
+      const response = await fetch(`${baseUrl}/auth/me`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!response.ok) return null;
+      return await response.json();
+    } catch (error) {
+      console.error('[SupremeAI] Profile fetch failed:', error);
+      return null;
+    }
   }
 
   public async rotateApiKey(): Promise<string | null> {
@@ -159,6 +209,7 @@ export class AuthService {
   public setToken(token: string): void {
     this.token = token;
     vscode.commands.executeCommand('setContext', 'supremeai.authenticated', true);
+    this._onAuthStateChanged.fire(true);
   }
 
   public setUser(user: any): void {
