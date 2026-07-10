@@ -6,8 +6,9 @@ from .event_bus import ErrorEventBus
 
 
 class SelfHealerService:
-    def __init__(self):
+    def __init__(self, db=None):
         self.event_bus = ErrorEventBus()
+        self.db = db
 
     async def self_heal(self, coro, timeout: float = 30.0):
         try:

@@ -14,6 +14,10 @@ class DynamicSkillManager:
         # ইন-মেমোরি ক্যাশ বাতিল, এখন সরাসরি সুপাবেস ক্লায়েন্ট কাজ করবে
         self.db = db.client
 
+    async def register_skill(self, skill_data: dict):
+        """লিগ্যাসি টেস্ট সুইট সিঙ্ক করার জন্য পাবলিক এপিআই র্যাপার"""
+        return await self._save_skill_to_registry(skill_data)
+
     async def get_or_create_skill(self, task_description: str) -> dict:
         """লোকাল সুপাবেস ডিবি চেক করবে, মিস হলে ১ বার প্রিমিয়াম এআই দিয়ে স্কিল জেনারেট করবে।"""
 

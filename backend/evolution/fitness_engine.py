@@ -29,7 +29,7 @@ class FitnessEngine:
         # Initialize DynamicSkillManager
         from core.skill_manager import DynamicSkillManager
 
-        self.registry = DynamicSkillManager(registry_path=registry_path)
+        self.registry = DynamicSkillManager()
 
         self.metrics = self._load_metrics()
 

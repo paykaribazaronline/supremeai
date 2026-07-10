@@ -67,3 +67,11 @@ try:
     admin_god = AdminGodLayer()
 except ImportError:
     admin_god = None
+
+# Legacy backend compatibility layer for task endpoints
+try:
+    from brain.model_router import ModelRouter
+
+    model_router = ModelRouter()
+except ImportError:
+    model_router = None
