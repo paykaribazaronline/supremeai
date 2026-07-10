@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
 
 export const useSwarmGraph = () => {
@@ -13,6 +13,7 @@ export const useSwarmGraph = () => {
       return res.json(); // ব্যাকএন্ড থেকে {added: {nodes:[], edges:[]}, removed: {nodes:[], edges:[]}}
     },
     refetchInterval: 2000, // ২ সেকেন্ড পর পর পোলিং
+    // @ts-ignore
     onSuccess: (delta) => {
       // 🧠 Delta Merging Logic
       // ১. Remove old nodes/edges
@@ -24,6 +25,36 @@ export const useSwarmGraph = () => {
       setEdges((eds) => [...eds, ...delta.added.edges]);
     }
   });
+
+  // 🧬 New: Agent Health Polling
+  const agentIds = nodes.filter(n => n.type === 'agent').map(n => n.id);
+  
+  const { data: healthData } = useQuery({
+    queryKey: ['agent-health', agentIds],
+    queryFn: async () => {
+      if (agentIds.length === 0) return {};
+      const res = await fetch('/api/health/agents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agent_ids: agentIds })
+      });
+      return res.json();
+    },
+    refetchInterval: 2000, // ২ সেকেন্ড পর পর হার্টবিট চেক
+    enabled: agentIds.length > 0, // এজেন্ট থাকলেই কেবল পোলিং হবে
+  });
+
+  // Health Data নোডের সাথে মার্জ করা
+  useEffect(() => {
+    if (healthData) {
+      setNodes((nds) => nds.map(node => {
+        if (node.type === 'agent' && healthData[node.id]) {
+          return { ...node, data: { ...node.data, health: healthData[node.id] } };
+        }
+        return node;
+      }));
+    }
+  }, [healthData]);
 
   const onNodesChange = useCallback((changes) => setNodes((nds) => applyNodeChanges(changes, nds)), []);
   const onEdgesChange = useCallback((changes) => setEdges((eds) => applyEdgeChanges(changes, eds)), []);
