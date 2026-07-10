@@ -1,27 +1,26 @@
-from fastapi import APIRouter, Depends, Query
-from typing import List, Dict, Any
+from fastapi import APIRouter
+from pydantic import BaseModel
 from core.services import registry
-from loguru import logger
 
-router = APIRouter(prefix="/api/health", tags=["health-monitor"])
+# Note: In app.py we registered this router with prefix="/api/health" but 
+# in the user's snippet they had router.post("/health/agents") without prefix 
+# in the router instantiation. I will ensure the final route matches /api/health/agents.
+# Since app.py already has prefix "", I'll just use the exact snippet the user provided
+# to avoid routing mismatches, but app.py prefix might be empty for health.
+# Wait, in app.py we did `("api.routes.health", "")` which means no prefix.
+# So I will use prefix="/api" in the router or just use the exact path from the snippet.
 
-@router.get("/agents")
-async def get_agents_health(agent_ids: List[str] = Query(default=[])) -> Dict[str, Any]:
-    """
-    Fetch real-time health status for a list of agents using Upstash MGET.
-    Expects a query parameter like: ?agent_ids=agent-1&agent_ids=agent-2
-    """
-    if not agent_ids:
-        return {}
-        
-    redis_manager = registry.get_service("redis_manager")
-    if not redis_manager:
-        logger.warning("Redis manager not available. Returning empty health status.")
-        return {agent_id: {"status": "dead", "latency": 0} for agent_id in agent_ids}
-        
-    try:
-        health_data = await redis_manager.get_agents_health(agent_ids)
-        return health_data
-    except Exception as e:
-        logger.error(f"Error fetching agent health: {e}")
-        return {agent_id: {"status": "dead", "latency": 0} for agent_id in agent_ids}
+router = APIRouter()
+
+class HealthRequest(BaseModel):
+    agent_ids: list[str]
+
+@router.post("/api/health/agents")
+async def get_agents_health(request: HealthRequest):
+    redis_mgr = registry.get_service("redis_manager")
+    if not redis_mgr:
+        return {"error": "Observability layer is offline."}
+    
+    # MGET কল করা হচ্ছে
+    health_data = await redis_mgr.get_agents_health(request.agent_ids)
+    return health_data
