@@ -432,6 +432,43 @@ jobs:
           VITE_PORTAL_TYPE: 'admin'
         run: pnpm turbo run build lint --filter=supremeai-studio-client --filter=@supremeai/web-chat --filter=supremeai-vscode --cache-dir=.turbo
 
+      - name: 🩹 Inline Frontend Auto-Fix (On Failure)
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT_FOR_AUTO_FIX }}
+        run: |
+          echo "=== Inline Frontend Auto-Fix Triggered ===" >> $GITHUB_STEP_SUMMARY
+          echo "Running ESLint and Prettier auto-fixes..."
+          
+          # Fix studio-client
+          if [ -d "apps/studio-client" ]; then
+            pnpm --dir apps/studio-client exec eslint . --fix || true
+          fi
+          
+          # Fix web-chat
+          if [ -d "apps/web-chat" ]; then
+            pnpm --dir apps/web-chat exec eslint . --fix || true
+          fi
+          
+          if ! git diff --quiet; then
+            echo "Changes detected in frontend, committing fixes..."
+            git config --global user.name 'SupremeAI Auto-Fix Bot'
+            git config --global user.email 'bot@supremeai.dev'
+            git add .
+            git commit -m "fix(ci): Automatically apply frontend lint fixes inline
+
+            Triggered by Frontend Monorepo (Turbo) failure on run #${{ github.run_id }}"
+            
+            BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+            git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" HEAD:$BRANCH_NAME
+            echo "✅ Frontend auto-fixes pushed successfully to $BRANCH_NAME! A new check will trigger." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "ℹ️ No automatic fixes could be applied for the frontend." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+
       - name: Run Studio Client Vitest with JSON Report
         run: pnpm --dir apps/studio-client exec vitest run --reporter=json > apps/studio-client/vitest-report.json
 
