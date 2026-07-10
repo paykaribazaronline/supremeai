@@ -10,7 +10,7 @@ async def enforce_tenant_rate_limit(request: Request):
     """Upstash REST ভিত্তিক টেন্যান্ট রেট লিমিটিং গার্ড।"""
     tenant_id = request.headers.get("x-tenant-id", "anonymous_pool")
     redis_mgr = registry.get_service("redis_manager")
-    
+
     if not redis_mgr:
         logger.warning("⚠️ Redis manager unavailable. Bypassing rate limiter gateway for resilience.")
         return
@@ -26,6 +26,6 @@ async def enforce_tenant_rate_limit(request: Request):
         if hits >= 100:
             logger.critical(f"🚨 Rate Limit Exceeded for Tenant: {tenant_id}!")
             raise HTTPException(status_code=429, detail="Too Many Requests. Rate limit exceeded.")
-        
+
         # কাউন্টার ইনক্রিমেন্ট এবং আপডেট
         await redis_mgr.set_cache(cache_key, str(hits + 1), ex_seconds=60)
