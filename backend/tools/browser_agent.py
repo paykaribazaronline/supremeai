@@ -94,7 +94,7 @@ async def shutdown_global_browser():
 
         # প্লেরাইট শাটডাউন ত্রুটি ক্যাচ করা হলো
 
-        logger.critical(f\"❌ Error during global browser termination sequence: {str(e)}\")
+        logger.critical(f"❌ Error during global browser termination sequence: {str(e)}")
     finally:
         _global_browser = None
         _playwright_runner = None
@@ -193,7 +193,7 @@ class BrowserAgent:
 
                 # প্লেরাইট এবং অন্যান্য ত্রুটি সুনির্দিষ্টভাবে ক্যাচ করা হলো
 
-                logger.error(f\"❌ Recipe Interpreter crashed mid-execution: {str(e)}\")
+                logger.error(f"❌ Recipe Interpreter crashed mid-execution: {str(e)}")
                 return {"status": "failed", "error": str(e)}
 
             finally:
@@ -235,7 +235,7 @@ class BrowserAgent:
 
             # HTTP রিকোয়েস্ট ত্রুটি ক্যাচ করা হলো
 
-            logger.error(f\"Failed to fetch {url}: {e}\")
+            logger.error(f"Failed to fetch {url}: {e}")
             return {"success": False, "error": str(e), "url": url}
 
     # ── Playwright (JS-heavy pages) ────────────────────────────────
