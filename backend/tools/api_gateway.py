@@ -12,12 +12,12 @@ from pydantic import BaseModel
 
 from core.auth_middleware import AuthMiddleware
 from core.config import get_production_env
-from core.rate_limiter import RateLimiter
+from core.rate_limiter import AsyncRateLimiter
 
 
 auth_middleware = AuthMiddleware.__new__(AuthMiddleware)
 auth_middleware.enabled = bool(os.getenv("SUPREMEAI_API_TOKEN"))
-rate_limiter = RateLimiter()
+rate_limiter = AsyncRateLimiter()
 
 from brain.api_router import ApiRouter
 
