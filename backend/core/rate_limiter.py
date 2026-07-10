@@ -1,8 +1,13 @@
-import asyncio
+from __future__ import annotations
+
 import os
-from typing import Optional
+from typing import TYPE_CHECKING
 
 from loguru import logger
+
+
+if TYPE_CHECKING:
+    import redis.asyncio
 
 
 class AsyncRateLimiter:
@@ -12,12 +17,13 @@ class AsyncRateLimiter:
     """
 
     def __init__(self):
-        self._redis: Optional["redis.asyncio.Redis"] = None
+        self._redis: redis.asyncio.Redis | None = None
         self._rate_limit_enabled = os.getenv("RATE_LIMIT_ENABLED", "true").lower() in {"true", "1", "yes"}
 
     async def _get_redis(self):
         if self._redis is None:
             import redis.asyncio as aioredis
+
             redis_url = os.getenv("REDIS_URL") or os.getenv("UPSTASH_REDIS_URL") or "redis://localhost:6379"
             self._redis = aioredis.from_url(redis_url, decode_responses=True)
         return self._redis
@@ -33,7 +39,7 @@ class AsyncRateLimiter:
             results = await pipe.execute()
             current = results[0]
             return current <= limit
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Rate limiter unavailable (fail-open): {e}")
             return True
 

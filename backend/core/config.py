@@ -285,8 +285,7 @@ class Settings(BaseSettings):
         if not v:
             if env == "production":
                 raise ValueError(
-                    "🚨 CRITICAL SECURITY ERROR: SUPREMEAI_JWT_SECRET environment variable "
-                    "must be explicitly set in production environments."
+                    "🚨 CRITICAL SECURITY ERROR: SUPREMEAI_JWT_SECRET environment variable " "must be explicitly set in production environments."
                 )
             logger.warning("⚠️ SUPREMEAI_JWT_SECRET not set. Generating ephemeral secret for local development.")
             return secrets.token_hex(64)

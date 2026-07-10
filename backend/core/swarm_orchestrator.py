@@ -43,7 +43,7 @@ class CircuitBreaker:
                 self.state = CircuitBreakerState.CLOSED
                 self.failures = 0
             return result
-        except Exception as e:
+        except Exception:
             self.failures += 1
             self.last_failure_time = time.time()
             if self.failures >= self.failure_threshold:
@@ -53,6 +53,7 @@ class CircuitBreaker:
 
 class CircuitBreakerOpenError(Exception):
     """Raised when circuit breaker is OPEN and request is rejected."""
+
     pass
 
 

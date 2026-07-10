@@ -119,20 +119,23 @@ class HoneypotMiddleware:
             # 4. Fire security event to event bus
             try:
                 from core.event_bus import ErrorEventBus as _EventBus
+
                 _bus = _EventBus()
-                _bus.emit(ErrorEvent(
-                    module="honeypot",
-                    error_type="HONEYPOT_TRIGGERED",
-                    message=f"Malicious payload detected from {hacker_ip}",
-                    severity="HIGH",
-                    context={
-                        "ip": hacker_ip,
-                        "action": "ip_blocked",
-                        "block_duration_seconds": 3600,
-                        "path": scope.get("path", ""),
-                        "method": scope.get("method", "GET"),
-                    },
-                ))
+                _bus.emit(
+                    ErrorEvent(
+                        module="honeypot",
+                        error_type="HONEYPOT_TRIGGERED",
+                        message=f"Malicious payload detected from {hacker_ip}",
+                        severity="HIGH",
+                        context={
+                            "ip": hacker_ip,
+                            "action": "ip_blocked",
+                            "block_duration_seconds": 3600,
+                            "path": scope.get("path", ""),
+                            "method": scope.get("method", "GET"),
+                        },
+                    )
+                )
             except Exception:  # noqa: BLE001
                 pass  # Event bus failure should not block the honeypot response
 

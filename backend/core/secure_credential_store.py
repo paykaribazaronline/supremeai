@@ -4,14 +4,8 @@ import base64
 import os
 from abc import ABC
 from abc import abstractmethod
-from datetime import datetime
-from datetime import timedelta
-from datetime import timezone
-from typing import Any
 
 from loguru import logger
-
-from core.config import settings
 
 
 try:
@@ -139,6 +133,7 @@ class CloudKMSProvider(EncryptionProvider):
             return
         try:
             from google.cloud import kms
+
             self.kms_client = kms.KeyManagementServiceClient()
             logger.info("Cloud KMS initialized successfully.")
         except ImportError:
@@ -151,10 +146,7 @@ class CloudKMSProvider(EncryptionProvider):
             logger.warning("KMS not configured; returning plaintext.")
             return plaintext, None
         try:
-            import google.cloud.kms as kms
-            response = self.kms_client.encrypt(
-                request={"name": self.key_name, "plaintext": plaintext.encode()}
-            )
+            response = self.kms_client.encrypt(request={"name": self.key_name, "plaintext": plaintext.encode()})
             ciphertext = base64.b64encode(response.ciphertext).decode()
             return ciphertext, self.key_name
         except Exception as exc:  # noqa: BLE001
@@ -166,7 +158,6 @@ class CloudKMSProvider(EncryptionProvider):
             logger.warning("KMS not configured or missing key_ref; returning ciphertext as-is.")
             return ciphertext
         try:
-            import google.cloud.kms as kms
             response = self.kms_client.decrypt(
                 request={
                     "name": key_ref or self.key_name,
@@ -181,9 +172,7 @@ class CloudKMSProvider(EncryptionProvider):
 
 class SecureCredentialStore:
     def __init__(self, provider: EncryptionProvider | None = None) -> None:
-        self.provider: EncryptionProvider = provider or (
-            CloudKMSProvider() if os.getenv("KMS_KEY_NAME") else LocalFernetProvider()
-        )
+        self.provider: EncryptionProvider = provider or (CloudKMSProvider() if os.getenv("KMS_KEY_NAME") else LocalFernetProvider())
 
     def encrypt(self, plaintext: str) -> tuple[str, str | None]:
         return self.provider.encrypt(plaintext)

@@ -1,5 +1,7 @@
+from collections.abc import Callable
+from typing import Any
+
 import httpx
-from typing import Any, Callable
 
 
 class ServiceRegistry:

@@ -1,8 +1,8 @@
 import asyncio
 import logging
 from collections.abc import Callable
+from datetime import UTC
 from datetime import datetime
-from datetime import timezone
 from typing import Any
 
 from pydantic import BaseModel
@@ -72,13 +72,13 @@ class ErrorEventBus:
             return_exceptions=True,
         )
 
-        for handler, result in zip(self._listeners, results):
+        for handler, result in zip(self._listeners, results, strict=False):
             if isinstance(result, Exception):
                 dlq_item = DeadLetterQueueItem(
                     event_type=event.error_type,
                     handler_name=getattr(handler, "__name__", str(handler)),
                     error=str(result),
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                 )
                 await self._dlq.put(dlq_item)
                 logger.error(f"Event handler failed: {dlq_item.handler_name} — {result}")
@@ -99,7 +99,7 @@ class ErrorEventBus:
             return await handler(event)
         except asyncio.CancelledError:
             raise  # CRITICAL: Never suppress CancelledError
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return e  # Return exception, don't suppress
 
     @property
