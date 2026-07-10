@@ -453,3 +453,31 @@ def delete_session(session_id: str):
     if session_id in SESSIONS:
         del SESSIONS[session_id]
     return {"success": True}
+
+
+from fastapi import Depends
+from api.routes.admin_dashboard import require_admin_token
+from tools.browser_agent import BrowserAgent, BrowseRequest
+
+_agent = BrowserAgent()
+
+@router.post("/browse", dependencies=[Depends(require_admin_token)])
+async def browse(request: BrowseRequest):
+    """Navigate to a URL and perform browser actions (Admin Only)."""
+    if request.action in ("click", "type", "scroll", "screenshot"):
+        return await _agent.navigate_and_interact(
+            url=request.url,
+            action=request.action,
+            selector=request.selector,
+            text=request.text,
+            wait_for=request.wait_for,
+        )
+    return _agent.scraper.fetch_page(request.url)
+
+
+@router.post("/extract", dependencies=[Depends(require_admin_token)])
+async def extract(url: str, extraction_prompt: str):
+    """Fetch page and extract structured data with AI (Admin Only)."""
+    from tools.ai_web_extractor import AIWebExtractor
+    extractor = AIWebExtractor()
+    return await extractor.extract_data(url, extraction_prompt)
