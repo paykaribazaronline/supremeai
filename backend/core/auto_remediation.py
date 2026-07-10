@@ -144,10 +144,11 @@ class AutoRemediation:
     applies it, and creates a GitHub Pull Request for evaluation.
     """
 
-    def __init__(self, gemini_api_key: str | None = None):
+    def __init__(self, gemini_api_key: str | None = None, base_dir: str | None = None):
         self.gemini_api_key = gemini_api_key or os.getenv("GEMINI_API_KEY", "")
         self.github_agent = GitHubAgent()
-        self._ALLOWED_BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        # If base_dir is provided, use it for testing; otherwise, default to the project root
+        self._ALLOWED_BASE_DIR = base_dir or os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
     def _validate_file_path(self, file_path: str) -> str:
         """বাংলা মন্তব্য: P0 Fix — Path traversal attack প্রতিরোধ।
@@ -165,6 +166,8 @@ class AutoRemediation:
                 )
         except ValueError as ve:
             # Windows-এ drive letter mismatch হলে commonpath ValueError দেয়
+            # Or other commonpath edge cases that might raise ValueError
+            # Re-raising with the original message as it's a security-critical check
             raise ValueError(
                 f"🛑 Path traversal detected: {file_path!r} resolves to {real_path!r} "
                 f"which is outside allowed directory {self._ALLOWED_BASE_DIR!r}"
