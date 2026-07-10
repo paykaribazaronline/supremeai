@@ -22,7 +22,7 @@ import { AIService, getAIService, setAIService } from './ai/AIService';
 import { CodeGenerationService, getCodeGenerationService, setCodeGenerationService } from './ai/CodeGenerationService';
 import { CodeReviewService, getCodeReviewService, setCodeReviewService } from './ai/CodeReviewService';
 import { detectOtherAiAgents } from './agentDetector'; // এজেন্ট ডিটেক্টর ইম্পোর্ট করা হলো
-
+import { SupremeWebviewProvider } from './providers/SupremeWebviewProvider';
 let currentBrowserPreviewPanel: vscode.WebviewPanel | undefined; // ব্রাউজার প্রিভিউ প্যানেল ট্র্যাক করার জন্য
 let supremeAIService: SupremeAIService;
 let aiService: AIService;
@@ -327,6 +327,11 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // ইউজারের জন্য শুধুমাত্র চ্যাট ট্যাব রাখা হচ্ছে, বাকিগুলো অ্যাডমিন ড্যাশবোর্ডের জন্য
   // registerSidebarViews(context); // ড্যাশবোর্ড এবং কোড ফ্লো ভিউ সরানো হলো
+
+  const recipeProvider = new SupremeWebviewProvider(context.extensionUri);
+  context.subscriptions.push(
+      vscode.window.registerWebviewViewProvider(SupremeWebviewProvider.viewType, recipeProvider)
+  );
   // registerActivityView(context); // অ্যাক্টিভিটি ভিউ সরানো হলো
   registerChatProvider(context);
   registerInlineCompletionProvider(context, fbHandler);
