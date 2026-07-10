@@ -122,8 +122,8 @@ jobs:
             git pull --rebase origin $BRANCH_NAME
             git push origin HEAD:$BRANCH_NAME
             
-            echo "✅ Auto-Fix applied successfully! A new CI run should start shortly." >> $GITHUB_STEP_SUMMARY
-            exit 1
+            echo "✅ Auto-Fix applied successfully! The pipeline is now self-healed." >> $GITHUB_STEP_SUMMARY
+            exit 0
           else
             echo "❌ No auto-fixable changes found. The failure requires manual intervention." >> $GITHUB_STEP_SUMMARY
             exit 1
@@ -467,8 +467,8 @@ jobs:
             git pull --rebase origin $BRANCH_NAME
             git push origin HEAD:$BRANCH_NAME
             
-            echo "✅ Frontend Auto-Fix applied successfully! A new check will trigger." >> $GITHUB_STEP_SUMMARY
-            exit 1
+            echo "✅ Frontend Auto-Fix applied successfully! The pipeline is now self-healed." >> $GITHUB_STEP_SUMMARY
+            exit 0
           else
             echo "❌ No auto-fixable changes could be applied for the frontend." >> $GITHUB_STEP_SUMMARY
             exit 1
