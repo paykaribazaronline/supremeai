@@ -1,6 +1,7 @@
 import pathlib
 import re
 
+
 p = pathlib.Path('tests/core/test_core_missing_coverage.py')
 text = p.read_text(encoding='utf-8')
 
@@ -17,7 +18,9 @@ text = text.replace(
 # Fix test_emit_no_running_loop_runs_directly
 text = re.sub(
     r'with patch\("asyncio\.get_running_loop", side_effect=RuntimeError\("no loop"\)\):',
-    r'with patch("asyncio.get_running_loop", side_effect=RuntimeError("no loop")), patch("core.event_bus.anyio.from_thread.start_blocking_portal", side_effect=RuntimeError("no anyio")):',
+    r'with patch("asyncio.get_running_loop", side_effect=RuntimeError("no loop")),'
+    r' patch("core.event_bus.anyio.from_thread.start_blocking_portal",'
+    r' side_effect=RuntimeError("no anyio")):',
     text
 )
 
@@ -26,7 +29,9 @@ text = text.replace('await bus.emit(event)', 'await bus.emit_async(event)')
 
 # Remove test_validate_admin_hash_production_requires
 text = re.sub(
-    r'    def test_validate_admin_hash_production_requires\(self\):.*?Settings\(\n.*?env="production",.*?jwt_secret="secret",.*?supremeai_admin_password_hash="",.*?\)',
+    r'    def test_validate_admin_hash_production_requires\(self\):'
+    r'.*?Settings\(\n.*?env="production",.*?jwt_secret="secret",'
+    r'.*?supremeai_admin_password_hash="",.*?\)',
     '',
     text,
     flags=re.DOTALL

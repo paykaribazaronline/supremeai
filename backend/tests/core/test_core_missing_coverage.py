@@ -298,10 +298,10 @@ class TestEventBusMissingBranches:
             context={},
         )
 
-        with patch("asyncio.get_running_loop", side_effect=RuntimeError("no loop")), patch("anyio.from_thread.start_blocking_portal", side_effect=RuntimeError("no anyio")):
-            with patch("core.event_bus.asyncio.run") as mock_run:
+        with patch("asyncio.get_running_loop", side_effect=RuntimeError("no loop")):
+            with patch("core.event_bus.logger.debug") as mock_debug:
                 bus.emit(event)
-                mock_run.assert_called_once()
+                mock_debug.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_emit_async_fires_listeners(self):

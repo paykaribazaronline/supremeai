@@ -95,19 +95,41 @@ def get_recent_activity():
 
 @router.get("/credentials")
 def get_credentials(userId: str = "default"):
+    import json
     user_creds = []
     for c in CREDENTIALS:
         if c.get("userId") == userId:
-            decrypted = credential_store.decrypt(c)
-            user_creds.append(credential_store.mask(decrypted))
+            decrypted = credential_store.decrypt(c.get("ciphertext", ""), c.get("key_ref"))
+            try:
+                decrypted_dict = json.loads(decrypted)
+            except Exception:
+                decrypted_dict = {}
+            
+            masked_dict = {}
+            for k, v in decrypted_dict.items():
+                if k in ("password", "token", "secret", "api_key", "username") and isinstance(v, str):
+                    if k == "username":
+                        masked_dict[k] = v
+                    else:
+                        masked_dict[k] = credential_store.mask(v)
+                else:
+                    masked_dict[k] = v
+            masked_dict["serviceName"] = c.get("serviceName")
+            user_creds.append(masked_dict)
     return {"credentials": user_creds}
 
 
 @router.post("/credentials")
 def save_credential(cred: CredentialRequest):
-    new_cred = credential_store.encrypt(cred.model_dump())
-    new_cred["id"] = f"cred_{len(CREDENTIALS) + 1}"
-    new_cred["userId"] = cred.userId
+    import json
+    ciphertext, key_ref = credential_store.encrypt(json.dumps(cred.model_dump()))
+    new_cred = {
+        "id": f"cred_{len(CREDENTIALS) + 1}",
+        "userId": cred.userId,
+        "serviceName": cred.serviceName,
+        "ciphertext": ciphertext,
+        "key_ref": key_ref
+    }
     CREDENTIALS.append(new_cred)
     audit.log_decision(
         action_type="browser_credential_saved",

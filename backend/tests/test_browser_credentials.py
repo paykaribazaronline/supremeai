@@ -30,21 +30,19 @@ def reset_globals():
 
 
 def test_secure_credential_store_encrypt_decrypt(monkeypatch):
+    import json
     monkeypatch.setenv("SUPREMEAI_CREDENTIAL_ENC_KEY", generate_key())
     store = SecureCredentialStore()
     payload = {"serviceName": "example", "username": "user", "password": "secret"}
-    encrypted = store.encrypt(payload)
-    assert encrypted.get("__enc__") is True
-    decrypted = store.decrypt(encrypted)
-    assert decrypted == payload
+    ciphertext, key_ref = store.encrypt(json.dumps(payload))
+    assert isinstance(ciphertext, str)
+    decrypted = store.decrypt(ciphertext, key_ref)
+    assert json.loads(decrypted) == payload
 
 
 def test_secure_credential_store_mask():
     store = SecureCredentialStore()
-    payload = {"serviceName": "example", "username": "user", "password": "secrets"}
-    masked = store.mask(payload)
-    assert masked["password"] == "••••••••••rets"
-    assert masked["username"] == "user"
+    assert store.mask("secrets") == "sec****"
 
 
 def test_browser_save_and_list_credentials():
