@@ -1,7 +1,7 @@
 import os
 import sys
 import tempfile
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, AsyncMock
 from unittest.mock import patch
 
 import pytest
@@ -69,7 +69,8 @@ def test_rag_pipeline():
 async def test_browser_agent():
     agent = BrowserAgent()
     with patch("tools.browser_agent.is_safe_url", return_value=True):
-        with patch("core.playwright_manager.get_global_browser", return_value=None):
+        with patch("tools.browser_agent.get_global_browser", new_callable=AsyncMock) as mock_browser:
+            mock_browser.return_value = None
             with patch("httpx.get") as mock_get:
                 mock_resp = MagicMock()
                 mock_resp.text = "<html><title>Sample Site</title><body>Hello world</body></html>"

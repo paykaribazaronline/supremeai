@@ -34,12 +34,8 @@ async def test_task_router_dispatches_local_scraping_task():
 
     router.local_executor.execute_local_code = AsyncMock(return_value={"status": "success", "data": "DOM Result"})
 
-    task_context = {
-        "task_type": "web_scraping_local",
-        "code": "print('scraping')",
-        "cost_limit": 0.05
-    }
-    
+    task_context = {"task_type": "web_scraping_local", "code": "print('scraping')", "cost_limit": 0.05}
+
     response = await router.route_and_dispatch(task_context)
 
     assert response["status"] == "success"

@@ -24,7 +24,8 @@ class TestBrowserAgent:
 
         agent = BrowserAgent()
         with patch("tools.browser_agent.is_safe_url", return_value=True):
-            with patch("core.playwright_manager.get_global_browser", return_value=None):
+            with patch("tools.browser_agent.get_global_browser", new_callable=AsyncMock) as mock_browser:
+                mock_browser.return_value = None
                 with patch("httpx.get") as mock_get:
                     mock_resp = MagicMock()
                     mock_resp.text = "<html><head><title>Test</title></head><body>Hello World</body></html>"
@@ -41,7 +42,8 @@ class TestBrowserAgent:
 
         agent = BrowserAgent()
         with patch("tools.browser_agent.is_safe_url", return_value=True):
-            with patch("core.playwright_manager.get_global_browser", return_value=None):
+            with patch("tools.browser_agent.get_global_browser", new_callable=AsyncMock) as mock_browser:
+                mock_browser.return_value = None
                 with patch("httpx.get", side_effect=httpx.RequestError("Connection refused")):
                     result = await agent.navigate_and_interact("https://invalid-url.xyz")
                 assert result["success"] is False

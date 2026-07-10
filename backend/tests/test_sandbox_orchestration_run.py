@@ -1,10 +1,11 @@
 import pytest
 from tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
 
+
 @pytest.mark.asyncio
 async def test_sandbox_run_code_success():
     orchestrator = CloudSandboxOrchestrator()
-    code = "python -c 'x = 5; y = 10; print(f\"RESULT:{{\\\"val\\\": {x + y}}}\")'"
+    code = 'python -c \'x = 5; y = 10; print(f"RESULT:{{\\"val\\": {x + y}}}")\''
     res = await orchestrator.run_command("sandbox-123", code)
 
     assert res["status"] == "COMPLETED"

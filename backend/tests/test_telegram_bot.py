@@ -1,13 +1,12 @@
+import asyncio
 import os
+from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
 
 from tools.telegram_bot import TelegramBotHandler
-
-
-from unittest.mock import AsyncMock
 
 
 @pytest.fixture
@@ -191,6 +190,7 @@ async def test_handle_update_command(handler):
 
 @pytest.mark.asyncio
 async def test_handle_update_ai_fallback(handler):
+    "বাংলা মন্তব্য: রেস কন্ডিশন ফিক্স — ব্যাকগ্রাউন্ড টাস্ক কমপ্লিট হওয়ার জন্য লুপে কন্ট্রোল ইল্ড (Yield) করা হলো।"
     mock_send = AsyncMock()
     mock_send_typing = AsyncMock()
     handler.send_message = mock_send
@@ -205,6 +205,7 @@ async def test_handle_update_ai_fallback(handler):
         },
     }
     await handler.handle_update(update)
+    await asyncio.sleep(0.05)
     mock_send_typing.assert_called_once_with(123)
     mock_send.assert_called_once_with(123, "AI reply")
 

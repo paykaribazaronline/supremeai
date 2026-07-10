@@ -9,6 +9,7 @@ from tools.stealth_http_client import StealthHTTPClient
 
 from tools.local_code_executor import LocalCodeExecutor
 
+
 @pytest.mark.asyncio
 async def test_production_sandbox_fails_without_docker():
     # Enforce production mode

@@ -7,7 +7,7 @@ import httpx
 import pytest
 
 from tools.browser_agent import BrowserAgent
-from core.playwright_manager import get_global_browser, shutdown_global_browser
+from core.playwright_manager import get_global_browser
 from core.security_utils import is_safe_url
 
 
@@ -19,14 +19,6 @@ from core.security_utils import is_safe_url
 def agent():
     """টেস্টের জন্য একটি BrowserAgent ইনস্ট্যান্স প্রদান করে।"""
     return BrowserAgent()
-
-
-@pytest.fixture(autouse=True)
-async def reset_globals():
-    """প্রতিটি টেস্টের পরে গ্লোবাল প্লে-রাইট ভ্যারিয়েবল রিসেট করা নিশ্চিত করে।"""
-    yield
-    # শাটডাউন ফাংশন কল করে রিসোর্স ক্লিন আপ করা
-    await shutdown_global_browser()
 
 
 # --- is_safe_url ফাংশনের জন্য টেস্ট ---
@@ -74,14 +66,14 @@ async def test_is_safe_url_invalid_hostname(mock_gethostbyname):
 # --- গ্লোবাল ব্রাউজার ম্যানেজমেন্ট টেস্ট ---
 
 
-@patch("tools.browser_agent.async_playwright")
+@patch("core.playwright_manager.async_playwright")
 @pytest.mark.asyncio
 async def test_get_global_browser_initialization(mock_async_playwright):
     """প্রথমবার কল করার সময় প্লে-রাইট এবং ব্রাউজার সঠিকভাবে চালু হয় কিনা তা পরীক্ষা করে।"""
     mock_playwright = AsyncMock()
     mock_browser = AsyncMock()
     mock_playwright.chromium.launch.return_value = mock_browser
-    mock_async_playwright.return_value.start.return_value = mock_playwright
+    mock_async_playwright.return_value.start = AsyncMock(return_value=mock_playwright)
 
     # প্রথমবার কল
     browser1 = await get_global_browser()
@@ -99,7 +91,7 @@ async def test_get_global_browser_initialization(mock_async_playwright):
 
 
 @patch("tools.browser_agent.is_safe_url", return_value=True)
-@patch("core.playwright_manager.get_global_browser", return_value=None)
+@patch("tools.browser_agent.get_global_browser", new_callable=AsyncMock, return_value=None)
 @patch(
     "httpx.get",
     return_value=MagicMock(
@@ -115,6 +107,7 @@ async def test_navigate_and_interact_fallback_scraper(mock_get, mock_browser, mo
     assert result["success"] is True
     assert "Hello" in result["content"]
 
+
 @patch("tools.browser_agent.is_safe_url", return_value=False)
 @pytest.mark.asyncio
 async def test_navigate_and_interact_unsafe_url(mock_is_safe, agent):
@@ -123,8 +116,9 @@ async def test_navigate_and_interact_unsafe_url(mock_is_safe, agent):
     assert result["success"] is False
     assert "SSRF check failed" in result["error"]
 
+
 @patch("tools.browser_agent.is_safe_url", return_value=True)
-@patch("core.playwright_manager.get_global_browser", return_value=None)
+@patch("tools.browser_agent.get_global_browser", new_callable=AsyncMock, return_value=None)
 @patch("httpx.get", side_effect=httpx.RequestError("Network error"))
 @pytest.mark.asyncio
 async def test_navigate_and_interact_network_error(mock_get, mock_browser, mock_is_safe, agent):

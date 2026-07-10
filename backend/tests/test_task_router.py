@@ -75,8 +75,6 @@ class TestTaskRouterProcessRequirement:
         result = router.process_requirement(desc)
         assert result["reasoning_depth"] == expected_depth
 
-
-
     def test_cost_limit_passed_through(self, router):
         result = router.process_requirement("code task", max_cost=0.05)
         assert result["cost_limit"] == 0.05
@@ -93,6 +91,3 @@ class TestTaskRouterProcessRequirement:
         result = router.process_requirement("generate an image of a tree")
         assert result["task_type"] == "image_generation"
         assert result["modality"] == "image"
-
-
-

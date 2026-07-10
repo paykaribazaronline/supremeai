@@ -40,7 +40,7 @@ def test_auth_middleware_blocks_protected_route_without_token():
 
 def test_auth_middleware_allows_with_valid_token():
     import os
-    
+
     os.environ["SUPREMEAI_API_TOKEN"] = "secure-test-token-value"
     app = FastAPI()
 

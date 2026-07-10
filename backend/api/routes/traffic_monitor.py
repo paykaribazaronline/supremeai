@@ -6,7 +6,7 @@ from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
 
-from core.rbac import get_current_admin_user
+from api.routes.admin import get_current_admin
 from core.redis_manager import redis_manager
 
 
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api/admin/traffic", tags=["traffic"])
 
 
 @router.get("/live")
-async def get_live_traffic(admin: dict = Depends(get_current_admin_user)) -> dict[str, Any]:
+async def get_live_traffic(admin: dict = Depends(get_current_admin)) -> dict[str, Any]:
     """বাংলা মন্তব্য: রিয়েল-টাইম ট্রাফিক, p95 ল্যাটেন্সি এবং অ্যারর রেট।
     এটি স্টুডিও ক্লায়েন্ট বা ফ্লাটার ড্যাশবোর্ডে লাইভ স্ট্রিমিং এর জন্য ব্যবহার হবে।"""
 
