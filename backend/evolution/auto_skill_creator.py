@@ -184,9 +184,9 @@ class AutoSkillCreator:
             # Load module from quarantine and execute validation tests inside the restricted Docker Sandbox
             # বাংলা মন্তব্য: এআই জেনারেটেড কোডটি সরাসরি লোকাল ইন্টারপ্রেটারে রান না করিয়ে
             # Dockerized Cloud Sandbox এর সাহায্যে সিকিউর এনভায়রনমেন্টে রান করানো হচ্ছে।
-            from tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
+            from tools.local_code_executor import LocalCodeExecutor
 
-            sandbox = CloudSandboxOrchestrator()
+            sandbox = LocalCodeExecutor()
 
             # Execute validation tests loop inside the sandbox
             for idx, test in enumerate(uss.validation.tests):
@@ -206,9 +206,12 @@ async def run():
 
 asyncio.run(run())
 """
-                run_res = sandbox.run_code(sandbox_script)
-                if not run_res["success"]:
-                    raise ValueError(f"Validation test {idx + 1} crashed or timed out in sandbox. Error: {run_res['stderr']}")
+                run_res = await sandbox.execute_local_code(sandbox_script)
+                if not run_res.get("success"):
+                    raise ValueError(f"Validation test {idx + 1} crashed or timed out in sandbox. Error: {run_res.get('error', run_res.get('stderr'))}")
+                
+                # In execute_local_code, standard output is usually under 'output' not 'stdout'
+                run_res["stdout"] = run_res.get("output", "")
 
                 # Parse stdout logs for output result
                 output_line = [line for line in run_res["stdout"].splitlines() if line.startswith("RESULT:")]

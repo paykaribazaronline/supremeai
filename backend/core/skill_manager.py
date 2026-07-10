@@ -18,6 +18,8 @@ class DynamicSkillManager:
         self.skills = {"skills": {}}
 
     def get_skill(self, skill_name: str) -> dict | None:
+        if skill_name in self.skills.get("skills", {}):
+            return self.skills["skills"][skill_name]
         return {"skill_name": skill_name, "status": "active"}
 
     async def register_skill(self, skill_data: dict = None, **kwargs):

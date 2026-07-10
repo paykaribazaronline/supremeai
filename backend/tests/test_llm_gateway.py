@@ -25,21 +25,7 @@ def test_load_routing_policy_file_not_found(monkeypatch, tmp_path):
     assert "fallback_chain" in gateway.routing_policy
 
 
-def test_inject_secrets_sets_env_vars(monkeypatch):
-    from core.config import settings
-
-    settings._cached_secrets.clear()
-    from unittest.mock import patch
-
-    with patch("core.config.secret_vault.fetch_secret", side_effect=lambda k: "sk-groq" if k == "GROQ_API_KEY" else ""):
-        if "GROQ_API_KEY" in os.environ:
-            monkeypatch.delenv("GROQ_API_KEY")
-        if "GEMINI_API_KEY" in os.environ:
-            monkeypatch.delenv("GEMINI_API_KEY")
-
-        gateway = LLMGateway()
-        assert os.environ.get("GROQ_API_KEY") == "sk-groq"
-        assert "GEMINI_API_KEY" not in os.environ
+# test_inject_secrets_sets_env_vars has been removed as LLMGateway no longer injects secrets into os.environ.
 
 
 @pytest.mark.anyio

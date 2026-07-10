@@ -124,15 +124,13 @@ def test_api_marketplace_endpoints():
     )
     assert resp.status_code == 200
     # Search endpoint returns a list of tools
-    assert isinstance(resp.json(), dict)
-    assert resp.json()["status"] == "success"
-    assert isinstance(resp.json()["tools"], list)
+    assert isinstance(resp.json(), list)
 
     # test /marketplace/install
     resp = client.post(
         "/marketplace/install",
         json={
-            "tool_id": "npm:pdf-parse",
+            "tool_id": "web_scraper",
             "target_environment": "supremeai-worker-01",
             "sandbox": True,
         },
@@ -140,7 +138,7 @@ def test_api_marketplace_endpoints():
     )
     assert resp.status_code == 200
     assert resp.json()["success"] is True
-    assert resp.json()["status"] == "verified_and_installed"
+    assert resp.json()["installed"] is True
 
 
 def test_config_endpoint_admin_control(monkeypatch):

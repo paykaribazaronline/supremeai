@@ -26,7 +26,8 @@ def test_load_routing_policy_handles_invalid_json(monkeypatch, tmp_path):
     bad.write_text("{ this is : not json", encoding="utf-8")
     monkeypatch.setattr("core.llm_gateway._POLICY_PATH", str(bad))
     gateway = LLMGateway()
-    assert gateway.routing_policy == {"complexity_rules": {}, "fallback_chain": []}
+    from core.llm_gateway import _DEFAULT_FALLBACK_MODELS
+    assert gateway.routing_policy == {"complexity_rules": {}, "fallback_chain": list(_DEFAULT_FALLBACK_MODELS)}
 
 
 def test_success_callback_logs_without_error():

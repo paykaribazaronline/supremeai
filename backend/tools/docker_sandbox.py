@@ -36,31 +36,32 @@ class DockerSandbox:
             "reboot",
             ":(){ :|:& };:",
         ]
+        import re
         forbidden_patterns = [
-            "environ",
-            "getenv",
-            "getenvb",
-            "os.environ",
-            "curl",
-            "wget",
-            "socket",
-            "requests",
-            "urllib",
-            "httpx",
-            "http.client",
-            "nc ",
-            "netcat",
-            "bash -i",
-            "/dev/tcp",
-            "/dev/udp",
-            "eval(",
-            "exec(",
-            "subprocess",
-            "system(",
+            r"\benviron\b",
+            r"\bgetenv\b",
+            r"\bgetenvb\b",
+            r"os\.environ",
+            r"\bcurl\b",
+            r"\bwget\b",
+            r"\bsocket\b",
+            r"\brequests\b",
+            r"\burllib\b",
+            r"\bhttpx\b",
+            r"http\.client",
+            r"\bnc\s",
+            r"\bnetcat\b",
+            r"bash\s+-i",
+            r"/dev/tcp",
+            r"/dev/udp",
+            r"\beval\s*\(",
+            r"\bexec\s*\(",
+            r"\bsubprocess\b",
+            r"\bsystem\s*\(",
         ]
 
         cmd_lower = cmd.lower()
-        if any(kw in cmd_lower for kw in harmful_keywords) or any(pat in cmd_lower for pat in forbidden_patterns):
+        if any(kw in cmd_lower for kw in harmful_keywords) or any(re.search(pat, cmd_lower) for pat in forbidden_patterns):
             logger.warning("Security Firewall: Command blocked due to high-risk pattern.")
             return {
                 "success": False,

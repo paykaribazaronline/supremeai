@@ -49,8 +49,9 @@ class AdminGodLayer:
 
     def _init_sqlite_db(self):
         # বাংলা মন্তব্য: লোকাল SQLite ডাটাবেস এবং ডিফল্ট রুলস সেটআপ
+        from contextlib import closing
         with self.sqlite_lock:
-            with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
+            with closing(sqlite3.connect(self.db_path, check_same_thread=False)) as conn:
                 conn.execute(
                     """
                     CREATE TABLE IF NOT EXISTS rules (
@@ -103,8 +104,9 @@ class AdminGodLayer:
                 logger.error(f"Error fetching rule {key} from Firestore: {e}")
 
         # বাংলা মন্তব্য: ফায়ারস্টোর নিষ্ক্রিয় বা টেস্ট মোডে থাকলে SQLite ব্যাকআপ থেকে রিড হবে
+        from contextlib import closing
         with self.sqlite_lock:
-            with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
+            with closing(sqlite3.connect(self.db_path, check_same_thread=False)) as conn:
                 cur = conn.execute("SELECT value FROM rules WHERE key = ?", (key,))
                 row = cur.fetchone()
                 return row[0] if row else default
@@ -120,8 +122,9 @@ class AdminGodLayer:
                 logger.error(f"Error setting rule {key} in Firestore: {e}. Falling back to SQLite.")
 
         # বাংলা মন্তব্য: SQLite ব্যাকআপ ডাটাবেসে রুল সংরক্ষণ করা হচ্ছে
+        from contextlib import closing
         with self.sqlite_lock:
-            with sqlite3.connect(self.db_path, check_same_thread=False) as conn:
+            with closing(sqlite3.connect(self.db_path, check_same_thread=False)) as conn:
                 conn.execute(
                     """
                     INSERT INTO rules(key, value, updated_at)

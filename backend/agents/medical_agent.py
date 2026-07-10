@@ -128,5 +128,7 @@ class MedicalAgent:
         return {
             "action": action,
             "response": "[Local fallback] Medical domain adapter unavailable. Enable domain_adapter for LLM analysis.",
+            "model": "local-fallback",
+            "provider": "local",
             "disclaimer": self.SYSTEM_PROMPT,
         }

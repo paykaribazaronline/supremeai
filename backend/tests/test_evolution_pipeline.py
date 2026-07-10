@@ -60,7 +60,8 @@ MOCK_AI_RESPONSE_JSON = {
 
 
 @pytest.mark.anyio
-async def test_pipeline_success(clean_dynamic_skills):
+async def test_pipeline_success(clean_dynamic_skills, monkeypatch):
+    monkeypatch.setenv("ALLOW_LOCAL_SANDBOX_FALLBACK", "true")
     loader, registry, installer = clean_dynamic_skills
 
     async def mock_acompletion(*args, **kwargs):
@@ -81,7 +82,8 @@ async def test_pipeline_success(clean_dynamic_skills):
 
 
 @pytest.mark.anyio
-async def test_pipeline_validation_mismatch(clean_dynamic_skills):
+async def test_pipeline_validation_mismatch(clean_dynamic_skills, monkeypatch):
+    monkeypatch.setenv("ALLOW_LOCAL_SANDBOX_FALLBACK", "true")
     loader, registry, installer = clean_dynamic_skills
 
     # Modify mock JSON so that execute return value mismatch validation expected output
