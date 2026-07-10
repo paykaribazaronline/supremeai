@@ -131,7 +131,7 @@ class IdempotencyMiddleware:
                 ),
                 ex=86400,
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # Clear key on failure so the client can retry immediately
             with contextlib.suppress(Exception):
                 redis.set(redis_key, "", ex=1)

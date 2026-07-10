@@ -73,7 +73,7 @@ class ObservabilityMiddleware:
                 kind="server",
             ):
                 await self.app(scope, receive, custom_send)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             error_type = type(exc).__name__
             record_error(error_type, path)
             raise

@@ -48,7 +48,7 @@ class CostGuard:
             return True
         except HTTPException:
             raise
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"CostGuard DB Error: {e}")
             raise RuntimeError(f"CostGuard failed to verify budget: {e}") from e
 

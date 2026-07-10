@@ -49,7 +49,7 @@ class ProductionSecretVault:
             response = self.client.access_secret_version(request={"name": name})
             payload = response.payload.data.decode("UTF-8")
             return payload.strip()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"❌ Failed to fetch secret [{secret_id}] from GSM: {str(e)}")
             if self.env == "production":
                 raise RuntimeError(f"Failed to fetch {secret_id} in production: {e}") from e

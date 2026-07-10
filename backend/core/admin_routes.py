@@ -117,7 +117,7 @@ def admin_firebase_login(payload: AdminFirebaseLoginRequest):
             raise HTTPException(status_code=401, detail="Firebase Admin SDK is unavailable. Cannot authenticate.")
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.exception("Token verification/decoding failed")
         raise HTTPException(status_code=401, detail="Authentication failed") from e
 
@@ -174,7 +174,7 @@ def admin_firebase_totp_setup(payload: AdminFirebaseTotpSetupRequest):
             raise HTTPException(status_code=401, detail="Firebase Admin SDK is unavailable. Cannot authenticate.")
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=401, detail=f"Token decoding failed: {str(e)}") from e
 
     secret = base64.b32encode(os.urandom(10)).decode("utf-8")
@@ -210,7 +210,7 @@ def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
             raise HTTPException(status_code=401, detail="Firebase Admin SDK is unavailable. Cannot authenticate.")
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=401, detail=f"Token decoding failed: {str(e)}") from e
 
     db = get_firestore_client()

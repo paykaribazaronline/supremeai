@@ -45,6 +45,6 @@ class DynamicConfigProxy:
                     "COMMON_STRINGS_TO_IGNORE": ["", "utf-8", "rb", "wb", "r", "w", "a", "x", "b", "t", "+"],
                 }
                 self._expiry = datetime.now() + timedelta(minutes=1)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to refresh config from DB: {e}")
             raise RuntimeError(f"Failed to refresh config from DB: {e}") from e

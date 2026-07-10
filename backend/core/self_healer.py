@@ -35,7 +35,7 @@ class SelfHealerService:
                 )
             )
             raise
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             await self.event_bus.emit(
                 ErrorEvent(
                     module="self_healer",

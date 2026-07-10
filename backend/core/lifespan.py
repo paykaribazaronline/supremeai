@@ -152,7 +152,7 @@ async def app_lifespan(app):
 
     try:
         await redis_manager.initialize()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to initialize Redis Manager: {e}")
         error_event_bus.emit(
             ErrorEvent(

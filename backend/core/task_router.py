@@ -156,7 +156,7 @@ class TaskRouter:
                     # আপনার সমস্ত হিউম্যান-লাইক প্লে-রাইট অটোমেশন লজিক এখানে চলবে
                     await asyncio.sleep(1.5)  # Simulated DOM extraction
                     return {"status": "success", "data": "DOM payload stream"}
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     logger.error(f"Browser automation interrupted: {str(e)}")
                     raise e
                 finally:
@@ -192,6 +192,6 @@ class TaskRouter:
             else:
                 raise Exception(result.get("error", "Unknown automation execution error"))
 
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001
             logger.error(f"[Router] Playwright Sandbox Bridge Failed: {str(error)}")
             raise error

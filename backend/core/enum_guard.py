@@ -40,7 +40,7 @@ async def guard_enum(db_enum_name: str, py_enum: type[enum.Enum]):
                 raise EnumMismatchError(error_msg)
 
             logger.info(f"Enum '{db_enum_name}' successfully validated against Python model.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         if isinstance(e, EnumMismatchError):
             raise
         logger.warning(f"Skipping Enum Guard for '{db_enum_name}' (DB connection issue or unsupported dialect): {e}")

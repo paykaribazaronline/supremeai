@@ -55,7 +55,7 @@ class SmartDataRepository:
                 return doc.to_dict()
             else:
                 raise PrimaryDatabaseDownException("Firebase client not initialized or missing collection method")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logging.warning(f"⚠️ Firebase unreachable ({str(e)}). Retrying...")
             raise PrimaryDatabaseDownException(str(e)) from e
 
@@ -81,6 +81,6 @@ class SmartDataRepository:
                 else:
                     logging.critical("Supabase client is not compatible or not initialized.")
                     return None
-            except Exception as backup_error:
+            except Exception as backup_error:  # noqa: BLE001
                 logging.critical(f"💀 FATAL: Both databases are down! {str(backup_error)}")
                 raise ServiceDegradedException("Both primary and fallback databases unavailable") from backup_error
