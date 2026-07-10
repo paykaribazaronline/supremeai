@@ -112,12 +112,13 @@ jobs:
             echo "Changes detected, committing fixes..."
             git config --global user.name 'SupremeAI Auto-Fix Bot'
             git config --global user.email 'bot@supremeai.dev'
-            git add .
+            git add -u
             git commit -m "fix(ci): Automatically apply lint fixes inline
 
             Triggered by Pre-Merge Gate failure on run #${{ github.run_id }}"
             
             BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+            git pull --rebase "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" $BRANCH_NAME
             git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" HEAD:$BRANCH_NAME
             echo "✅ Auto-fixes pushed successfully to $BRANCH_NAME! A new check will trigger." >> $GITHUB_STEP_SUMMARY
             exit 1
@@ -454,12 +455,13 @@ jobs:
             echo "Changes detected in frontend, committing fixes..."
             git config --global user.name 'SupremeAI Auto-Fix Bot'
             git config --global user.email 'bot@supremeai.dev'
-            git add .
+            git add -u
             git commit -m "fix(ci): Automatically apply frontend lint fixes inline
 
             Triggered by Frontend Monorepo (Turbo) failure on run #${{ github.run_id }}"
             
             BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+            git pull --rebase "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" $BRANCH_NAME
             git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" HEAD:$BRANCH_NAME
             echo "✅ Frontend auto-fixes pushed successfully to $BRANCH_NAME! A new check will trigger." >> $GITHUB_STEP_SUMMARY
             exit 1
