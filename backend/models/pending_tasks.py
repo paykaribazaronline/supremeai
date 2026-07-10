@@ -9,7 +9,7 @@ from pathlib import Path
 from pydantic import BaseModel
 
 
-class TaskType(str, Enum):
+class TaskType(enum.StrEnum):
     CODE_PUSH = "CODE_PUSH"
     NEW_SITE_VISIT = "NEW_SITE_VISIT"
     SKILL_GENERATION = "SKILL_GENERATION"
@@ -17,7 +17,7 @@ class TaskType(str, Enum):
     AUTO_EVOLUTION_PATCH = "AUTO_EVOLUTION_PATCH"
 
 
-class TaskStatus(str, Enum):
+class TaskStatus(enum.StrEnum):
     PENDING = "PENDING"
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"

@@ -13,7 +13,7 @@ from sqlalchemy.orm import mapped_column
 from models.base import Base
 
 
-class PolicyScope(str, enum.Enum):
+class PolicyScope(enum.StrEnum):
     global_scope = "global"
     per_platform = "per_platform"
     per_action = "per_action"

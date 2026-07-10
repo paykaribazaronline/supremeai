@@ -108,11 +108,11 @@ jobs:
           ruff format backend/ || true
           ruff check backend/ --fix || true
           
-          if [[ -n "$(git status --porcelain)" ]]; then
+          git add -u
+          if ! git diff --staged --quiet; then
             echo "🔧 Changes detected, committing fixes..."
             git config --global user.name 'SupremeAI Auto-Fix Bot'
             git config --global user.email 'bot@supremeai.dev'
-            git add -u
             git commit -m "fix(ci): Automatically apply lint fixes inline"
             
             BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
@@ -453,11 +453,11 @@ jobs:
             pnpm --dir apps/web-chat exec eslint . --fix || true
           fi
           
-          if [[ -n "$(git status --porcelain)" ]]; then
+          git add -u
+          if ! git diff --staged --quiet; then
             echo "🔧 Changes detected in frontend, committing fixes..."
             git config --global user.name 'SupremeAI Auto-Fix Bot'
             git config --global user.email 'bot@supremeai.dev'
-            git add -u
             git commit -m "fix(ci): Automatically apply frontend lint fixes inline"
             
             BRANCH_NAME="${{ github.head_ref || github.ref_name }}"

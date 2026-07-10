@@ -13,7 +13,7 @@ export const useSwarmGraph = () => {
       return res.json(); // ব্যাকএন্ড থেকে {added: {nodes:[], edges:[]}, removed: {nodes:[], edges:[]}}
     },
     refetchInterval: 2000, // ২ সেকেন্ড পর পর পোলিং
-    // @ts-expect-error
+    // @ts-expect-error Backend type mismatch
     onSuccess: (delta) => {
       // 🧠 Delta Merging Logic
       // ১. Remove old nodes/edges

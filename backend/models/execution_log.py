@@ -15,7 +15,7 @@ from sqlalchemy.orm import mapped_column
 from models.base import Base
 
 
-class LogType(str, enum.Enum):
+class LogType(enum.StrEnum):
     shell_cmd = "shell_cmd"
     shell_stdout = "shell_stdout"
     shell_stderr = "shell_stderr"
