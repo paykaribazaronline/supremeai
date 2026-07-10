@@ -209,7 +209,7 @@ asyncio.run(run())
 """
                 run_res = await sandbox.execute_local_code(sandbox_script)
                 if not run_res.get("success"):
-                    err_msg = run_res.get('error', run_res.get('stderr'))
+                    err_msg = run_res.get("error", run_res.get("stderr"))
                     raise ValueError(f"Validation test {idx + 1} crashed or timed out in sandbox. Error: {err_msg}")
 
                 # In execute_local_code, standard output is usually under 'output' not 'stdout'

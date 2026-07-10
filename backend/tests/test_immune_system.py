@@ -37,8 +37,10 @@ async def test_auto_remediation_success(tmp_path):
     async def mock_acompletion(*args, **kwargs):
         return {"text": "# Secure Patch Applied for: Hardcoded secret detected\npassword = os.getenv('DB_PASSWORD')"}
 
-    with patch("core.llm_gateway.LLMGateway.acompletion", new=mock_acompletion), \
-         patch.object(remediator, "_validate_file_path", return_value=str(test_file)):
+    with (
+        patch("core.llm_gateway.LLMGateway.acompletion", new=mock_acompletion),
+        patch.object(remediator, "_validate_file_path", return_value=str(test_file)),
+    ):
         res = await remediator.process_security_alert(
             file_path=str(test_file),
             line_number=1,

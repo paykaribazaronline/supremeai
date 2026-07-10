@@ -27,6 +27,7 @@ def test_load_routing_policy_handles_invalid_json(monkeypatch, tmp_path):
     monkeypatch.setattr("core.llm_gateway._POLICY_PATH", str(bad))
     gateway = LLMGateway()
     from core.llm_gateway import _DEFAULT_FALLBACK_MODELS
+
     assert gateway.routing_policy == {"complexity_rules": {}, "fallback_chain": list(_DEFAULT_FALLBACK_MODELS)}
 
 

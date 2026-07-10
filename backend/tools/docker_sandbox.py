@@ -37,6 +37,7 @@ class DockerSandbox:
             ":(){ :|:& };:",
         ]
         import re
+
         forbidden_patterns = [
             r"\benviron\b",
             r"\bgetenv\b",
