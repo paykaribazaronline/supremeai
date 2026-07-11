@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T13:38:55.608461
+Generated at: 2026-07-11T13:46:44.041146
 
 
 ## File: `pnpm-lock.yaml`
@@ -156349,6 +156349,18 @@ export function searchMovie(dcOrVars, varsOrOptions, options) {
 
 ```
 
+## File: `apps/studio-client/src/utils/cn.ts`
+
+```ts
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+```
+
 ## File: `apps/studio-client/src/utils/apiInterceptor.ts`
 
 ```ts
@@ -162014,7 +162026,7 @@ Shell.displayName = 'Shell';
 ## File: `apps/studio-client/src/components/ui/Button.stories.tsx`
 
 ```tsx
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from './Button';
 
 const meta: Meta<typeof Button> = {
@@ -162084,7 +162096,7 @@ export function Skeleton({ className = '' }: { className?: string }) {
 
 ```tsx
 import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './Card';
 import { Button } from './Button';
 import { Input } from './Input';
@@ -162215,7 +162227,7 @@ export function ActionCard({
 
 ```tsx
 import React from 'react';
-import { cn } from './Button'; // Reusing cn utility
+import { cn } from '../../utils/cn';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -162312,7 +162324,7 @@ export const ToastContext = createContext<ToastContextType | undefined>(undefine
 ## File: `apps/studio-client/src/components/ui/Input.stories.tsx`
 
 ```tsx
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Input } from './Input';
 
 const meta: Meta<typeof Input> = {
@@ -162375,7 +162387,7 @@ export const Disabled: Story = {
 
 ```tsx
 import React from 'react';
-import { cn } from './Button'; // Reusing cn utility
+import { cn } from '../../utils/cn';
 
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
@@ -162499,12 +162511,7 @@ export { useToast } from './useToastUI';
 
 ```tsx
 import React from 'react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { cn } from '../../utils/cn';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -175412,7 +175419,7 @@ export class SandboxService {
     let stdout = '';
     const stderr = '';
     
-    return new Promise(async (resolve) => {
+    return new Promise((resolve) => {
       let isResolved = false;
       
       const timer = setTimeout(() => {
@@ -175427,34 +175434,35 @@ export class SandboxService {
         }
       }, this.timeoutMs);
       
-      try {
-        const process = await this.containerInstance!.spawn(command, args);
-        
-        process.output.pipeTo(
-          new WritableStream({
-            write(data) {
-              stdout += data;
-            },
-          })
-        );
-        
-        const exitCode = await process.exit;
-        
-        if (!isResolved) {
-          isResolved = true;
-          clearTimeout(timer);
-          resolve({
-            status: exitCode === 0 ? 'SUCCESS' : 'FAILED',
-            stdout,
-            stderr,
-            executionTimeMs: Date.now() - startTime,
-          });
-        }
-      } catch (err: any) {
-        if (!isResolved) {
-          isResolved = true;
-          clearTimeout(timer);
-          resolve({
+      (async () => {
+        try {
+          const process = await this.containerInstance!.spawn(command, args);
+          
+          process.output.pipeTo(
+            new WritableStream({
+              write(data) {
+                stdout += data;
+              },
+            })
+          );
+          
+          const exitCode = await process.exit;
+          
+          if (!isResolved) {
+            isResolved = true;
+            clearTimeout(timer);
+            resolve({
+              status: exitCode === 0 ? 'SUCCESS' : 'FAILED',
+              stdout,
+              stderr,
+              executionTimeMs: Date.now() - startTime,
+            });
+          }
+        } catch (err: any) {
+          if (!isResolved) {
+            isResolved = true;
+            clearTimeout(timer);
+            resolve({
             status: 'FAILED',
             stdout,
             stderr: err.toString(),
@@ -175462,6 +175470,7 @@ export class SandboxService {
           });
         }
       }
+      })();
     });
   }
 }

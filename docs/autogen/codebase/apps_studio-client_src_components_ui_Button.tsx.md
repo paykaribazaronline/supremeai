@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/ui/Button.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 2,079 বাইট  
-**আপডেট:** 2026-07-11T13:38:55.764485
+**সাইজ:** 1,947 বাইট  
+**আপডেট:** 2026-07-11T13:46:44.201097
 
 ---
 
@@ -10,12 +10,7 @@
 
 ```tsx
 import React from 'react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { cn } from '../../utils/cn';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';

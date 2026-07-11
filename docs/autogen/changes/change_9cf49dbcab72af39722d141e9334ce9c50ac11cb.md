@@ -1,12 +1,12 @@
-# 📋 Commit 743d73b16c69ea4768115bb92d849e11398c9a23
+# 📋 Commit 9cf49dbcab72af39722d141e9334ce9c50ac11cb
 
 ## Commit Stats
 ```
-commit 743d73b16c69ea4768115bb92d849e11398c9a23
+commit 9cf49dbcab72af39722d141e9334ce9c50ac11cb
 Author: SupremeAI CI Bot <ci-bot@supremeai.dev>
-Date:   Sat Jul 11 19:26:52 2026 +0600
+Date:   Sat Jul 11 19:45:27 2026 +0600
 
-    chore(ci): add eslint-plugin-storybook to studio-client
+    fix(ci): resolve frontend lint errors for storybook and sandbox
 
  .agent                                             |     27 +
  .antigravity                                       |     27 +
@@ -35,7 +35,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  .github/scripts/test_ai_reviewer.py                |     94 +
  .github/workflows/nightly-maintenance.yml          |    422 +
  .github/workflows/supreme-ci-auto-fix.yml          |    118 +
- .github/workflows/supreme-core-ci.yml              |    998 +
+ .github/workflows/supreme-core-ci.yml              |    999 +
  .github/workflows/supreme-mobile-cd.yml            |    101 +
  .github/workflows/supreme-release-builds.yml       |    164 +
  .github/workflows/sync-from-prod.yml               |     41 +
@@ -318,7 +318,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  apps/studio-client/.gitignore                      |     24 +
  apps/studio-client/.storybook/main.ts              |     28 +
  apps/studio-client/.storybook/preview.tsx          |     28 +
- apps/studio-client/.storybook/withTheme.tsx        |     18 +
+ apps/studio-client/.storybook/withTheme.tsx        |     21 +
  apps/studio-client/README.md                       |     73 +
  apps/studio-client/components.json                 |      1 +
  apps/studio-client/dist-user/admin.html            |     13 +
@@ -457,7 +457,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  .../studio-client/src/components/ui/ActionCard.tsx |     54 +
  apps/studio-client/src/components/ui/Badge.tsx     |     23 +
  .../src/components/ui/Button.stories.tsx           |     54 +
- apps/studio-client/src/components/ui/Button.tsx    |     52 +
+ apps/studio-client/src/components/ui/Button.tsx    |     47 +
  .../src/components/ui/Card.stories.tsx             |     36 +
  apps/studio-client/src/components/ui/Card.tsx      |     72 +
  .../src/components/ui/Input.stories.tsx            |     56 +
@@ -542,7 +542,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  apps/studio-client/src/services/authService.ts     |     30 +
  apps/studio-client/src/services/chatService.ts     |    137 +
  apps/studio-client/src/services/ciReportService.ts |     27 +
- apps/studio-client/src/services/sandbox.ts         |    113 +
+ apps/studio-client/src/services/sandbox.ts         |    115 +
  apps/studio-client/src/services/storageApi.ts      |     53 +
  .../src/services/test_budget_check.test.ts         |     23 +
  apps/studio-client/src/store/adminStore.ts         |     89 +
@@ -578,6 +578,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  apps/studio-client/src/types/swarm.ts              |     26 +
  apps/studio-client/src/utils/api.ts                |     32 +
  apps/studio-client/src/utils/apiInterceptor.ts     |     66 +
+ apps/studio-client/src/utils/cn.ts                 |      6 +
  apps/studio-client/src/vite-env.d.ts               |      9 +
  apps/studio-client/src/workers/logParser.worker.ts |     44 +
  apps/studio-client/test-electron.mjs               |      1 +
@@ -609,7 +610,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  backend/.coveragerc                                |     99 +
  backend/.dockerignore                              |     50 +
  backend/.gcloudignore                              |     38 +
- backend/API-swagger.yaml                           |   9222 +
+ backend/API-swagger.yaml                           |   9457 +
  backend/Dockerfile                                 |     33 +
  backend/README.md                                  |     52 +
  backend/__init__.py                                |      0
@@ -734,7 +735,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  backend/core/agent_orchestrator.py                 |    325 +
  backend/core/api_key_middleware.py                 |     71 +
  backend/core/api_key_rate_limiter.py               |     30 +
- backend/core/app.py                                |    331 +
+ backend/core/app.py                                |    333 +
  backend/core/audit_logger.py                       |     64 +
  backend/core/auth_middleware.py                    |    254 +
  backend/core/auto_remediation.py                   |    322 +
@@ -983,7 +984,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  backend/tests/test_api_router.py                   |     67 +
  backend/tests/test_audit_logger.py                 |     56 +
  backend/tests/test_auth_middleware.py              |    250 +
- backend/tests/test_auth_routes.py                  |    176 +
+ backend/tests/test_auth_routes.py                  |    177 +
  backend/tests/test_auto_fix_trigger.py             |      3 +
  backend/tests/test_auto_skill_creator.py           |    197 +
  backend/tests/test_autonomous_agent.py             |     68 +
@@ -1359,8 +1360,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  docs/auto_fix_in_github_implementation_plan.md     |    352 +
  docs/autogen/INDEX.md                              |     16 +
  docs/autogen/LATEST-PUSH-SUMMARY.md                |      3 +
- ...nge_07d9d69750b74f23a2215cdb2b6042c1ffd1696b.md |  19242 ++
- ...nge_6558b31c45fa64147193aa433555ea28f61d688b.md |  19116 ++
+ ...nge_743d73b16c69ea4768115bb92d849e11398c9a23.md |  19273 ++
  ...nge_81e69fabe74016d89221ba07607324fc762590fa.md |     37 +
  ...nge_8f6a4f074d05ed4dde2c5f141b8cbcf1b6cc1bd7.md |    131 +
  ...nge_922606d53ed2b6ef06eacbb4110d36e82a937bab.md |    133 +
@@ -1368,6 +1368,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  ...nge_c4cfc7e5cdc60a62e2389d6cf92ba44b7465cbea.md |  19195 ++
  ...nge_d608096b2b46a46c8b2b820bc54e9d82e0be8310.md |     82 +
  ...nge_d694966ffe7614a4d01df6e8b0029fd2b808419c.md |  19195 ++
+ ...nge_e9322788b7dee95be9a3141c8103bb8b34377fac.md |  19274 ++
  ...nge_f0c62b0afa0e7d0457ae133ebdd93b7ca0ce4244.md |  19195 ++
  .../.github_actions_setup-backend_action.yml.md    |     45 +
  ...github_scripts_advanced-validation-report.py.md |    266 +
@@ -1388,7 +1389,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  .../.github_scripts_test_ai_reviewer.py.md         |    107 +
  .../.github_workflows_nightly-maintenance.yml.md   |    435 +
  .../.github_workflows_supreme-ci-auto-fix.yml.md   |    130 +
- .../.github_workflows_supreme-core-ci.yml.md       |   1011 +
+ .../.github_workflows_supreme-core-ci.yml.md       |   1012 +
  .../.github_workflows_supreme-mobile-cd.yml.md     |    114 +
  ....github_workflows_supreme-release-builds.yml.md |    177 +
  .../.github_workflows_sync-from-prod.yml.md        |     53 +
@@ -1521,7 +1522,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  .../codebase/apps_studio-client_dist-user_sw.js.md |    111 +
  .../apps_studio-client_eslint.config.js.md         |     47 +
  .../autogen/codebase/apps_studio-client_main.js.md |    118 +
- .../codebase/apps_studio-client_package.json.md    |    127 +
+ .../codebase/apps_studio-client_package.json.md    |    128 +
  .../apps_studio-client_public_manifest.json.md     |     46 +
  .../codebase/apps_studio-client_public_sw.js.md    |    111 +
  .../apps_studio-client_src_App.test.tsx.md         |    147 +
@@ -1747,7 +1748,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  .../codebase/apps_web-chat_vite-env.d.ts.md        |     14 +
  .../codebase/apps_web-chat_vite.config.ts.md       |     23 +
  .../codebase/apps_web-chat_vitest.config.ts.md     |     21 +
- docs/autogen/codebase/backend_API-swagger.yaml.md  |   9235 +
+ docs/autogen/codebase/backend_API-swagger.yaml.md  |   9470 +
  docs/autogen/codebase/backend_README.md.md         |     65 +
  .../backend_adaptive_engine_experience_db.py.md    |    312 +
  .../codebase/backend_adaptive_engine_init_.py.md   |     13 +
@@ -1848,7 +1849,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  .../codebase/backend_core_agent_orchestrator.py.md |    338 +
  .../codebase/backend_core_api_key_middleware.py.md |     84 +
  .../backend_core_api_key_rate_limiter.py.md        |     43 +
- docs/autogen/codebase/backend_core_app.py.md       |    344 +
+ docs/autogen/codebase/backend_core_app.py.md       |    346 +
  .../codebase/backend_core_audit_logger.py.md       |     77 +
  .../codebase/backend_core_auth_middleware.py.md    |    267 +
  .../codebase/backend_core_auto_remediation.py.md   |    335 +
@@ -1984,7 +1985,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  .../codebase/backend_fix_coverage_tests.py.md      |     53 +
  docs/autogen/codebase/backend_fix_tests.py.md      |     39 +
  docs/autogen/codebase/backend_init_.py.md          |     13 +
- docs/autogen/codebase/backend_main.py.md           |     72 +
+ docs/autogen/codebase/backend_main.py.md           |     71 +
  .../backend_memory_checkpoint_resume.py.md         |     39 +
  .../codebase/backend_memory_chromadb_store.py.md   |    202 +
  .../backend_memory_cloud_postgres_store.py.md      |    168 +
@@ -2048,7 +2049,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  .../backend_scripts_trigger_mock_error.py.md       |     44 +
  .../codebase/backend_services_github_agent.py.md   |    128 +
  .../codebase/backend_services_memory_service.py.md |     52 +
- .../backend_services_sandbox_service.py.md         |    111 +
+ .../backend_services_sandbox_service.py.md         |    110 +
  .../codebase/backend_storage_asset_manager.py.md   |    153 +
  docs/autogen/codebase/backend_storage_init_.py.md  |     14 +
  .../backend_storage_r2_storage_client.py.md        |     84 +
@@ -2097,7 +2098,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  .../codebase/backend_tests_test_api_router.py.md   |     80 +
  .../codebase/backend_tests_test_audit_logger.py.md |     69 +
  .../backend_tests_test_auth_middleware.py.md       |    263 +
- .../codebase/backend_tests_test_auth_routes.py.md  |    189 +
+ .../codebase/backend_tests_test_auth_routes.py.md  |    190 +
  .../backend_tests_test_auto_fix_trigger.py.md      |     16 +
  .../backend_tests_test_auto_skill_creator.py.md    |    210 +
  .../backend_tests_test_autonomous_agent.py.md      |     81 +
@@ -2454,7 +2455,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  .../packages_ui-components_tsconfig.json.md        |     36 +
  docs/autogen/codebase/playwright-ct.config.ts.md   |     49 +
  docs/autogen/codebase/playwright.config.ts.md      |     97 +
- docs/autogen/codebase/pnpm-lock.yaml.md            |  21278 ++
+ docs/autogen/codebase/pnpm-lock.yaml.md            |  21297 ++
  docs/autogen/codebase/pnpm-workspace.yaml.md       |     17 +
  docs/autogen/codebase/render.yaml.md               |     43 +
  docs/autogen/codebase/render_temp_CHANGELOG.md.md  |    216 +
@@ -2502,6 +2503,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  .../codebase/scripts_generate_push_summary.py.md   |    117 +
  .../codebase/scripts_generate_smart_docs.py.md     |    171 +
  .../scripts_health_auto_health_check.py.md         |    143 +
+ .../scripts_health_check_auto_health_check.py.md   |     55 +
  docs/autogen/codebase/scripts_k6_load_test.js.md   |     55 +
  docs/autogen/codebase/scripts_locustfile.py.md     |    139 +
  docs/autogen/codebase/scripts_migrate.py.md        |     99 +
@@ -2635,8 +2637,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  .../tools_vscode-extension_vitest.config.ts.md     |     35 +
  docs/autogen/codebase/turbo.json.md                |     48 +
  docs/autogen/codebase/vercel.json.md               |     41 +
- docs/autogen/codebase_full.md                      | 207626 ++++++++++++++++++
- docs/autogen/summaries/PUSH-SUMMARY-07d9d69.md     |      3 +
+ docs/autogen/codebase_full.md                      | 207931 ++++++++++++++++++
  docs/autogen/summaries/PUSH-SUMMARY-b43169f5f3.md  |     62 +
  docs/autogen/summaries/PUSH-SUMMARY-ba23773c8.md   |     62 +
  docs/autogen/summaries/PUSH-SUMMARY-bb0d48191.md   |     62 +
@@ -2654,6 +2655,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  docs/autogen/summaries/PUSH-SUMMARY-e2c063157.md   |     62 +
  docs/autogen/summaries/PUSH-SUMMARY-e4b49a821a.md  |     62 +
  docs/autogen/summaries/PUSH-SUMMARY-e4be88400c.md  |     62 +
+ docs/autogen/summaries/PUSH-SUMMARY-e932278.md     |      3 +
  docs/autogen/summaries/PUSH-SUMMARY-e9e15fcfc.md   |     62 +
  docs/autogen/summaries/PUSH-SUMMARY-f0c62b0.md     |      3 +
  docs/codebase_dump.md                              | 120214 ++++++++++
@@ -2843,6 +2845,7 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  scripts/generate_push_summary.py                   |    104 +
  scripts/generate_smart_docs.py                     |    159 +
  scripts/health/auto_health_check.py                |    130 +
+ scripts/health_check/auto_health_check.py          |     42 +
  scripts/k6/load_test.js                            |     42 +
  scripts/locustfile.py                              |    126 +
  scripts/migrate.py                                 |     86 +
@@ -3015,17 +3018,17 @@ Date:   Sat Jul 11 19:26:52 2026 +0600
  tools/vscode-extension/vitest.config.ts            |     22 +
  turbo.json                                         |     36 +
  vercel.json                                        |     28 +
- 3007 files changed, 868889 insertions(+)
+ 3010 files changed, 869982 insertions(+)
 
 ```
 
 ## Diff Detail
 ```diff
-commit 743d73b16c69ea4768115bb92d849e11398c9a23
+commit 9cf49dbcab72af39722d141e9334ce9c50ac11cb
 Author: SupremeAI CI Bot <ci-bot@supremeai.dev>
-Date:   Sat Jul 11 19:26:52 2026 +0600
+Date:   Sat Jul 11 19:45:27 2026 +0600
 
-    chore(ci): add eslint-plugin-storybook to studio-client
+    fix(ci): resolve frontend lint errors for storybook and sandbox
 
 diff --git a/.agent b/.agent
 new file mode 100644
@@ -8369,10 +8372,10 @@ index 0000000..77ad4c3
 \ No newline at end of file
 diff --git a/.github/workflows/supreme-core-ci.yml b/.github/workflows/supreme-core-ci.yml
 new file mode 100644
-index 0000000..39aee0c
+index 0000000..2c25a53
 --- /dev/null
 +++ b/.github/workflows/supreme-core-ci.yml
-@@ -0,0 +1,998 @@
+@@ -0,0 +1,999 @@
 +# ==============================================================================
 +# [IMMUTABLE CONFIGURATION - MANUAL CONTROL ONLY]
 +# ------------------------------------------------------------------------------
@@ -9272,6 +9275,7 @@ index 0000000..39aee0c
 +        with:
 +          fetch-depth: 0
 +          persist-credentials: false
++          lfs: true
 +      
 +      - name: 📤 Sync to Secondary Repo (Staging Dispatch)
 +        if: env.MIRROR_REPO_TOKEN != ''
@@ -19265,9 +19269,8 @@ index 0000000..61a4ca8
 +          title: Critical Count
 +        high_count:
 +          type: integer
-+          title: High Count
 +       
 
-... [TRUNCATED — diff was 37,457,456 bytes, capped at 512,000] ...
+... [TRUNCATED — diff was 37,496,590 bytes, capped at 512,000] ...
 
 ```

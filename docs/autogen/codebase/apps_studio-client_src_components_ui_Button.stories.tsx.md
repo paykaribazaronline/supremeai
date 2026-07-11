@@ -1,15 +1,15 @@
 # 📄 ফাইল: apps/studio-client/src/components/ui/Button.stories.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 1,008 বাইট  
-**আপডেট:** 2026-07-11T13:38:55.763002
+**সাইজ:** 1,013 বাইট  
+**আপডেট:** 2026-07-11T13:46:44.199645
 
 ---
 
 ## কোড
 
 ```tsx
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from './Button';
 
 const meta: Meta<typeof Button> = {

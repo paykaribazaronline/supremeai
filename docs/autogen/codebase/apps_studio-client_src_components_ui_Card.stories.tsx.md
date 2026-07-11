@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/ui/Card.stories.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 1,076 বাইট  
-**আপডেট:** 2026-07-11T13:38:55.763265
+**সাইজ:** 1,081 বাইট  
+**আপডেট:** 2026-07-11T13:46:44.199875
 
 ---
 
@@ -10,7 +10,7 @@
 
 ```tsx
 import React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './Card';
 import { Button } from './Button';
 import { Input } from './Input';

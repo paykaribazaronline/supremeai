@@ -1,15 +1,15 @@
 # 📄 ফাইল: apps/studio-client/src/components/ui/Input.stories.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 1,180 বাইট  
-**আপডেট:** 2026-07-11T13:38:55.764082
+**সাইজ:** 1,185 বাইট  
+**আপডেট:** 2026-07-11T13:46:44.200731
 
 ---
 
 ## কোড
 
 ```tsx
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Input } from './Input';
 
 const meta: Meta<typeof Input> = {

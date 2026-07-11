@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/ui/Input.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 1,621 বাইট  
-**আপডেট:** 2026-07-11T13:38:55.763619
+**সাইজ:** 1,605 বাইট  
+**আপডেট:** 2026-07-11T13:46:44.200229
 
 ---
 
@@ -10,7 +10,7 @@
 
 ```tsx
 import React from 'react';
-import { cn } from './Button'; // Reusing cn utility
+import { cn } from '../../utils/cn';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;

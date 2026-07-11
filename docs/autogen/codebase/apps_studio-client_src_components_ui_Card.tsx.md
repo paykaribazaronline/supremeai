@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/ui/Card.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 2,147 বাইট  
-**আপডেট:** 2026-07-11T13:38:55.764235
+**সাইজ:** 2,131 বাইট  
+**আপডেট:** 2026-07-11T13:46:44.200852
 
 ---
 
@@ -10,7 +10,7 @@
 
 ```tsx
 import React from 'react';
-import { cn } from './Button'; // Reusing cn utility
+import { cn } from '../../utils/cn';
 
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
