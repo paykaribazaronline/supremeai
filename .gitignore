@@ -130,6 +130,7 @@ data/**/*.db
 # Local dev artifacts
 .supreme/
 .scratch/
+scratch/
 .firebase/
 
 codebase.md
