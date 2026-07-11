@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T13:56:22.500858
+Generated at: 2026-07-11T14:23:58.519334
 
 
 ## File: `pnpm-lock.yaml`
@@ -207442,8 +207442,10 @@ jobs:
       needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled'
     steps:
       - uses: actions/checkout@v4
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+      - name: Install Vercel CLI & pnpm
+        run: |
+          npm install -g pnpm
+          npm install --global vercel@latest
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
       - name: Build Project Artifacts
