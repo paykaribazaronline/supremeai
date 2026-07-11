@@ -34,17 +34,24 @@ jobs:
         id: cache-key
         run: echo "key=py-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/requirements.txt') }}" >> $GITHUB_OUTPUT
 
-      - name: "♻️ Cache and Install Dependencies"
+      - name: Setup Poetry
+        uses: snok/install-poetry@v1
+        with:
+          plugins: poetry-plugin-export
+
+      - name: "♻️ Cache pip dependencies"
         uses: actions/cache@v4
-        id: cache-deps
         with:
           path: ~/.cache/pip
-          key: ${{ steps.cache-key.outputs.key }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
-      - name: "⚙️ Install Dependencies if Cache Miss"
-        if: steps.cache-deps.outputs.cache-hit != 'true'
+      - name: "⚙️ Install Dependencies"
+        working-directory: backend
         run: |
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          pip install --no-cache-dir --disable-pip-version-check -r <(poetry export --with dev --without ml,tools --format requirements.txt --output requirements.txt && cat requirements.txt)
           pip install black isort pip-audit ruff
 
   health-check:
@@ -153,19 +160,19 @@ jobs:
         with:
           plugins: poetry-plugin-export
 
-      - name: Cache Poetry dependencies
-        uses: actions/cache@v3
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
         with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
-            ${{ runner.os }}-poetry-
+            ${{ runner.os }}-pip-
 
-      - name: Install Dependencies via Poetry Export
+      - name: Setup Python & Install Dependencies
         working-directory: backend
         run: |
-          poetry config virtualenvs.create false
-          pip install -r <(poetry export --with dev --without ml,tools --format requirements.txt)
+          python -m pip install --upgrade pip
+          pip install --no-cache-dir --disable-pip-version-check -r <(poetry export --with dev --without ml,tools --format requirements.txt --output requirements.txt && cat requirements.txt)
           
       - name: 🤖 Generate AI Architecture Docs (ADR, DFD, OpenAPI)
         env:
