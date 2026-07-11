@@ -87,7 +87,7 @@ def merge_fix_branches(fix_branches: str) -> bool:
             check=False
         )
         if push_result.returncode == 0:
-            print(f"✅ Fix branches merged successfully")
+            print("✅ Fix branches merged successfully")
             return True
         else:
             print(f"❌ Push failed: {push_result.stderr}")
@@ -242,7 +242,7 @@ def main():
     print("⚖️ SupremeAI CI Decision Engine — Phase 5")
     print("=" * 60)
 
-    print(f"📊 Input:")
+    print("📊 Input:")
     print(f"  Confidence: {FINAL_CONFIDENCE:.2f}")
     print(f"  Risk: {RISK_ASSESSMENT}")
     print(f"  Deploy Recommended: {DEPLOY_RECOMMENDED}")

@@ -109,7 +109,7 @@ def generate_api_markdown(spec: Dict[str, Any]) -> str:
     
     md = f"# {title} v{version}\n\n"
     md += f"{description}\n\n"
-    md += f"*Generated automatically from OpenAPI specification*\n\n"
+    md += "*Generated automatically from OpenAPI specification*\n\n"
     md += "---\n\n"
     
     paths = spec.get("paths", {})
@@ -118,7 +118,6 @@ def generate_api_markdown(spec: Dict[str, Any]) -> str:
     
     # Group by tags for better organization
     tagged_paths = {}
-    untagged_paths = []
     
     for path, path_item in paths.items():
         # Get tags from all operations in this path
@@ -155,7 +154,7 @@ def generate_api_markdown(spec: Dict[str, Any]) -> str:
                     continue
                 
                 operation = path_item[method]
-                operation_id = operation.get("operationId", f"{method.upper()} {path}")
+                operation.get("operationId", f"{method.upper()} {path}")
                 summary = operation.get("summary", "")
                 description = operation.get("description", "")
                 

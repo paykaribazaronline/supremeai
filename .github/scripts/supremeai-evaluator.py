@@ -79,7 +79,7 @@ def call_supremeai_evaluator(error_logs: str, fixed_code: str, job_context: str)
 
         with urllib.request.urlopen(req, timeout=90) as resp:
             result = json.loads(resp.read().decode("utf-8"))
-            print(f"✅ SupremeAI Evaluator response received")
+            print("✅ SupremeAI Evaluator response received")
             return result
 
     except Exception as e:
@@ -153,7 +153,7 @@ Evaluate and return ONLY a JSON object with this exact structure:
                 content = content.split("```")[1].split("```")[0].strip()
 
             eval_result = json.loads(content)
-            print(f"✅ OpenAI Evaluator response received")
+            print("✅ OpenAI Evaluator response received")
             return eval_result
 
     except Exception as e:
@@ -210,7 +210,7 @@ Evaluate and return ONLY a JSON object with this exact structure:
             content = content.split("```")[1].split("```")[0].strip()
 
         eval_result = json.loads(content)
-        print(f"✅ Gemini Evaluator response received")
+        print("✅ Gemini Evaluator response received")
         return eval_result
 
     except Exception as e:

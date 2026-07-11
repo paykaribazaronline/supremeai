@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-import os
 import json
-import sys
-import yaml
 from pathlib import Path
 
 class SupremeRiskScorer:

@@ -21,7 +21,7 @@ def verify_deployment_gate():
         
         if status == "LOCKED":
             logger.critical("❌" * 20)
-            logger.critical(f"🚨 DEPLOYMENT REJECTED! The autonomous gate is LOCKED.")
+            logger.critical("🚨 DEPLOYMENT REJECTED! The autonomous gate is LOCKED.")
             logger.critical(f"📝 Reason: {reason}")
             logger.critical(f"⏰ Last Audit Update: {updated_at}")
             logger.critical("❌" * 20)

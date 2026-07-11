@@ -5,12 +5,10 @@ Provides unified search across all collected resource catalogs
 
 import json
 import logging
-import os
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Union
-import re
-from dataclasses import dataclass, asdict
+from typing import Dict, List, Any, Optional
+from dataclasses import dataclass
 from enum import Enum
 
 

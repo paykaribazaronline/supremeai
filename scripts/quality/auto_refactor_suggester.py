@@ -17,10 +17,9 @@ Environment Variables:
 """
 
 import os
-import re
 import ast
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 import logging
 
 # Configure logging
@@ -458,5 +457,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     import sys
-    from datetime import datetime
     sys.exit(main())

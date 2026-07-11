@@ -26,7 +26,7 @@ import time
 import hashlib
 import urllib.request as _url_req
 from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any, Optional
 import logging
 from google.cloud import firestore
 from google.oauth2 import service_account

@@ -1,7 +1,6 @@
 # backend/tests/analysis/test_root_cause_analysis_agent.py
 
 import pytest
-import json
 from unittest.mock import AsyncMock, MagicMock
 
 # The path assumes the tests are run from the root of the 'backend' directory

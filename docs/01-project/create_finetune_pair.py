@@ -1,5 +1,4 @@
 import json
-import os
 from pathlib import Path
 
 # Define paths based on the structure created in the 'Learn from Human Fixes' workflow

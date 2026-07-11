@@ -20,9 +20,8 @@ Environment Variables:
 """
 
 import os
-import json
-from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional
+import sys
+from typing import Dict, Any, Optional
 import logging
 from google.cloud import firestore
 from google.cloud import storage
@@ -258,7 +257,7 @@ def setup_default_skills(db: firestore.Client, tenant_id: str) -> bool:
         logger.error(f"Failed to set up default skills for tenant {tenant_id}: {e}")
         return False
 
-def send_welcome_email(tenant_email: str, tenant_name: str, template_id: str) -> bool:
+def send_welcome_email(tenant_email: str, tenant_name: str, tenant_id: str, template: str) -> bool:
     """Send a welcome email to the new tenant."""
     try:
         # This is a simplified implementation
@@ -366,8 +365,6 @@ def main() -> int:
     if not db:
         return 1
     
-    storage_client = get_storage_client()
-    
     # Track overall success
     success = True
     
@@ -407,7 +404,7 @@ def main() -> int:
     # Step 4: Send welcome email
     if success and tenant_email:
         print("\n4️⃣ Sending welcome email...")
-        if not send_welcome_email(tenant_email, tenant_name, WELCOME_EMAIL_TEMPLATE):
+        if not send_welcome_email(tenant_email, tenant_name, tenant_id, WELCOME_EMAIL_TEMPLATE):
             # Don't fail the entire process for email issues
             print("   ⚠️  Warning: Failed to send welcome email")
         else:

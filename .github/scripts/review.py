@@ -5,9 +5,9 @@ import subprocess
 import urllib.request
 import asyncio
 import aiohttp
-from typing import List, Dict, Optional
+from typing import List, Optional
 import google.generativeai as genai
-from google.api_core.exceptions import ResourceExhausted, GoogleAPICallError
+from google.api_core.exceptions import ResourceExhausted
 import importlib.util
 
 # Dynamically import the CodeSmellDetector from the backend tools

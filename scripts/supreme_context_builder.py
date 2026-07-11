@@ -1,7 +1,6 @@
 import os
 import math
 import sys
-from datetime import datetime
 
 # ⚙️ কনফিগারেশন
 ROOT_DIR = "."
@@ -52,8 +51,8 @@ def generate_ai_context():
     
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as out_file:
         # ১. প্রজেক্ট মেটাডেটা
-        out_file.write(f"\n")
-        out_file.write(f"\n\n")
+        out_file.write("\n")
+        out_file.write("\n\n")
         
         # ২. ডিরেক্টরি ট্রি (The Map)
         print("🗺️ Generating Directory Tree...")

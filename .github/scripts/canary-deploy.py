@@ -362,7 +362,7 @@ def main():
     # Write GitHub Actions output
     if GITHUB_OUTPUT:
         with open(GITHUB_OUTPUT, "a") as f:
-            f.write(f"canary_result=success\n")
+            f.write("canary_result=success\n")
             f.write(f"deployed_revision={CANDIDATE_REV}\n")
 
     print(f"\n🎉 Deploy successful! {CANDIDATE_REV} is now the stable revision.")

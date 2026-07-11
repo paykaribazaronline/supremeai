@@ -24,7 +24,6 @@ import json
 import os
 import sys
 import time
-from typing import Optional
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
@@ -286,7 +285,7 @@ def main():
 
     # Exit code determines if auto-fix commit proceeds
     if result["consensus"] == "unsafe":
-        print(f"\n🚨 CONSENSUS: UNSAFE — auto-fix commit will be blocked")
+        print("\n🚨 CONSENSUS: UNSAFE — auto-fix commit will be blocked")
         if result.get("errors"):
             print(f"   Errors: {result['errors']}")
         return 1

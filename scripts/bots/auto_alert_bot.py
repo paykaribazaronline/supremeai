@@ -24,7 +24,6 @@ import time
 import json
 import requests
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
 import logging
 
 # Configure logging
@@ -173,7 +172,7 @@ def send_shutdown_notification() -> bool:
 def main() -> int:
     """Main monitoring loop."""
     print("🚨 Starting SupremeAI Alert Bot...")
-    print(f"🔧 Configuration:")
+    print("🔧 Configuration:")
     print(f"   • Check interval: {CHECK_INTERVAL} seconds")
     print(f"   • Budget alert threshold: {BUDGET_ALERT_THRESHOLD*100}%")
     print(f"   • Discord alerts: {'✅ Enabled' if DISCORD_WEBHOOK_URL else '❌ Disabled'}")

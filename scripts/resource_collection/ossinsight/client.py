@@ -11,12 +11,7 @@ parent_dir = current_dir.parent
 sys.path.insert(0, str(parent_dir))
 
 from base_api_client import BaseAPIClient
-import requests
 from typing import Dict, List, Any, Optional
-import json
-import logging
-from datetime import datetime
-import time
 
 
 class OssinsightClient(BaseAPIClient):
@@ -162,11 +157,11 @@ def main_ossinsight():
     result = client.run(endpoints)
     
     if result:
-        print(f"[SUCCESS] Ossinsight client completed successfully")
+        print("[SUCCESS] Ossinsight client completed successfully")
         print(f"  Data saved to: {result}")
         return 0
     else:
-        print(f"[ERROR] Ossinsight client failed")
+        print("[ERROR] Ossinsight client failed")
         return 1
 
 

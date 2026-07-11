@@ -223,11 +223,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-```
-
-This script will serve as your automated security scanner. Once you've added it to your repository, you can run it locally or as part of the GitHub Actions workflow we created earlier to continuously monitor for potential issues.
-
-<!--
-[PROMPT_SUGGESTION]How can I modify the `auto_find_blindspots.py` script to ignore findings in test files?[/PROMPT_SUGGESTION]
-[PROMPT_SUGGESTION]Based on the scan results, show me how to fix the `check_same_thread=False` issue in `admin/god.py`.[/PROMPT_SUGGESTION]

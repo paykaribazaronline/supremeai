@@ -86,7 +86,7 @@ def main():
     ]
 
     print(f"Running evaluation on {len(test_cases)} test cases...\n")
-    results = evaluate(test_cases, [correctness_metric, hallucination_metric])
+    evaluate(test_cases, [correctness_metric, hallucination_metric])
     
     print("\nDeepEval Evaluation Finished successfully!")
 

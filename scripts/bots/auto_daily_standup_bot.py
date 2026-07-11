@@ -22,10 +22,9 @@ Environment Variables:
 import sys
 import os
 import time
-import json
 import schedule
 from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 import logging
 
 # Configure logging
@@ -230,7 +229,7 @@ def run_scheduler() -> None:
 def main() -> int:
     """Main function."""
     print("📅 Starting Daily Standup Bot...")
-    print(f"🔧 Configuration:")
+    print("🔧 Configuration:")
     print(f"   • Scheduled time: {STANDUP_HOUR:02d}:{STANDUP_MINUTE:02d} {TIMEZONE}")
     print(f"   • Discord webhook: {'✅ Configured' if DISCORD_WEBHOOK_URL else '❌ Not configured'}")
     print(f"   • Slack webhook: {'✅ Configured' if SLACK_WEBHOOK_URL else '❌ Not configured'}")

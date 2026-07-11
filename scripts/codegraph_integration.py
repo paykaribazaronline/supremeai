@@ -31,13 +31,13 @@ class CodeGraphGenerator:
         
         try:
             # pydeps ব্যবহার করে ডিপেন্ডেন্সি ম্যাপ তৈরি করুন
-            result = subprocess.run(
+            subprocess.run(
                 ["pip", "install", "pydeps", "-q"],
                 timeout=30,
                 capture_output=True
             )
             
-            result = subprocess.run(
+            subprocess.run(
                 [
                     "pydeps",
                     "backend/core",
@@ -212,7 +212,7 @@ class CodeGraphGenerator:
             with open(output_file, "w") as f:
                 json.dump(index, f, indent=2, ensure_ascii=False)
             
-            logger.info(f"✅ Knowledge index saved")
+            logger.info("✅ Knowledge index saved")
             return {"status": "success", "output_file": str(output_file)}
             
         except Exception as e:

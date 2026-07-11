@@ -23,8 +23,7 @@ import os
 import sys
 import string
 import secrets
-from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import Optional
 
 # Add the backend directory to the path
 backend_dir = os.path.join(os.path.dirname(__file__), '../../backend')

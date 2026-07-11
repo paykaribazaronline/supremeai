@@ -63,7 +63,7 @@ def generate_docs():
     file_count = 0
     total_size = 0
     full_dump_content = "# 🧠 SupremeAI 2.0 Codebase Dump\n"
-    full_dump_content += f"# বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।\n\n"
+    full_dump_content += "# বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।\n\n"
     full_dump_content += f"Generated at: {datetime.now().isoformat()}\n\n"
 
     # ১. মডুলার কোডবেস এবং ফুল ডাম্প জেনারেশন
@@ -126,7 +126,7 @@ def generate_docs():
     # ৩. পুরনো চেঞ্জলগ ফাইলগুলো পরিষ্কার করা (সর্বশেষ ১০টি রাখা)
     change_files = sorted(changes_dir.glob("change_*.md"), key=os.path.getmtime, reverse=True)
     if len(change_files) > 10:
-        print(f"Pruning old changelogs (keeping max 10)...")
+        print("Pruning old changelogs (keeping max 10)...")
         for f in change_files[10:]:
             try:
                 f.unlink()

@@ -1,4 +1,3 @@
-import re
 
 filepath = 'backend/core/app.py'
 with open(filepath, 'r', encoding='utf-8') as f:

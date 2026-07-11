@@ -8,7 +8,6 @@ import time
 import statistics
 import argparse
 import sys
-from pathlib import Path
 
 try:
     import httpx

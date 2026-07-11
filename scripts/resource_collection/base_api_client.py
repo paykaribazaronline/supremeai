@@ -3,16 +3,14 @@ Base API client class for SupremeAI resource collection
 Provides common functionality for API-based resource collection
 """
 
-import abc
 import json
 import logging
 import time
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Optional
 import requests
-import urllib.parse
 
 
 class BaseAPIClient(ABC):

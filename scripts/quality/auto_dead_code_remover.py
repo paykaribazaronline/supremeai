@@ -92,7 +92,7 @@ def run_radon_cc() -> str:
     # Add target directories
     for directory in TARGET_DIRS:
         if Path(directory).exists():
-            cmd.append(f"--min=B")  # Show B and worse (B, C, D, E, F)
+            cmd.append("--min=B")  # Show B and worse (B, C, D, E, F)
             cmd.append(directory)
         else:
             logger.warning(f"Directory {directory} does not exist, skipping")

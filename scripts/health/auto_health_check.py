@@ -13,7 +13,6 @@ import sys
 import asyncio
 import logging
 import httpx
-from datetime import datetime
 
 # Add the backend directory to the path so we can import from core if needed
 from pathlib import Path
@@ -110,7 +109,7 @@ async def run_health_check():
     if os.getenv("CI") != "true":
         db_success, db_message = await check_database_connection()
         if db_success:
-            logging.info(f"✅ Database is healthy.")
+            logging.info("✅ Database is healthy.")
         else:
             all_healthy = False
             error_msg = f"Database is down! Error: {db_message}"

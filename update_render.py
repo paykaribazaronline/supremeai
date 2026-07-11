@@ -1,6 +1,5 @@
 import urllib.request
 import json
-import sys
 
 api_key = "rnd_gEmpPduF8s6icBAWPAdt9fJMLwvf"
 services = ["srv-d991umnaqgkc73fk89o0", "srv-d817sc7aqgkc73aocjlg"]

@@ -8,9 +8,7 @@ Analyzes recent git changes and generates/updates:
 - Security Threat Models
 """
 
-import os
 import subprocess
-import sys
 from pathlib import Path
 from litellm import completion
 

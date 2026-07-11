@@ -39,7 +39,7 @@ try:
         "role": "admin",
         "created_at": "2026-06-22",
     }, merge=True)
-    print(f"[OK] Admin role set for admin@supremeai.com")
+    print("[OK] Admin role set for admin@supremeai.com")
 except Exception as e:
     print(f"admin@supremeai.com: {e}")
 

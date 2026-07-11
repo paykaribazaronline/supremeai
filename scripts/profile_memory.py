@@ -7,7 +7,7 @@ from loguru import logger
 from playwright.async_api import async_playwright
 # সুপ্রিমএআই কোর ইনফ্রাস্ট্রাকচার ইম্পোর্ট
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from backend.tools.browser_agent import BrowserAgent, shutdown_global_browser
+from backend.tools.browser_agent import BrowserAgent
 
 def get_process_memory():
     """কারেন্ট পাইথন প্রসেস এবং তার সমস্ত চাইল্ড প্রসেসের (Chromium) মোট র্যাম কনজাম্পশন বের করে"""
@@ -37,7 +37,7 @@ async def run_endurance_test(iterations: int = 50):
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True, args=browser_args)
         # We pass the externally managed browser instance to the agent
-        agent = BrowserAgent(browser=browser)
+        BrowserAgent(browser=browser)
 
     # টেস্ট করার জন্য একটি ডাইনামিক ও হেভি জেএস চালিত সাইট (লোকাল শুটিং রেঞ্জের ভেতর)
     # আর্কিটেকচারাল নোট: example.com এর পরিবর্তে একটি জটিল, JS-ভারী সাইট ব্যবহার করা হচ্ছে মেমরি লিক আরও কার্যকরভাবে শনাক্ত করার জন্য।
@@ -87,7 +87,7 @@ async def run_endurance_test(iterations: int = 50):
     net_leak = final_mem - initial_mem
     
     print("="*70)
-    print(f"\n📊 FINAL ENDURANCE REPORT:")
+    print("\n📊 FINAL ENDURANCE REPORT:")
     print(f"  Peak Memory Observed : {max(snapshots):.2f} MB")
     print(f"  Post-Cleanup Memory  : {final_mem:.2f} MB")
     print(f"  Net Memory Leak Size : {f'{net_leak:.2f} MB' if net_leak > 5 else '0.00 MB (Perfect Teardown)'}")

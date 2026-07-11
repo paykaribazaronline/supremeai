@@ -1,3 +1,4 @@
+import sys
 #!/usr/bin/env python
 """
 auto_tenant_health_report.py
@@ -23,7 +24,7 @@ Environment Variables:
 
 import os
 import json
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional
 import logging
 from google.cloud import firestore

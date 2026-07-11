@@ -13,7 +13,6 @@ Seeds the database with initial data such as:
 This script should be idempotent - safe to run multiple times.
 """
 
-import os
 import sys
 from pathlib import Path
 

@@ -1,5 +1,3 @@
-import asyncio
-from backend.core.tenant_db import TenantAwareFirestore
 from backend.api.dependencies import get_tenant_db
 from fastapi import HTTPException
 

@@ -5,7 +5,6 @@ This script extracts the OpenAPI schema from the FastAPI app and writes it to AP
 """
 import sys
 import yaml
-import json
 import os
 from pathlib import Path
 

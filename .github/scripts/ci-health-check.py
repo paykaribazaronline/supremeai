@@ -15,7 +15,7 @@ import os
 import sys
 import time
 import urllib.request
-from typing import Dict, Optional, Tuple
+from typing import Tuple
 
 # ═══════════════════════════════════════════════════════════════
 # কনফিগারেশন
@@ -125,7 +125,7 @@ def check_supremeai_api() -> Tuple[bool, str]:
         except urllib.error.HTTPError as e:
             # 401/403 মানে API আছে কিন্তু auth issue — এটা acceptable
             if e.code in (401, 403):
-                print(f"✅ SupremeAI API reachable (auth required — expected)")
+                print("✅ SupremeAI API reachable (auth required — expected)")
                 return True, "supremeai"
             print(f"⚠️ SupremeAI API HTTP error: {e.code}")
 
@@ -133,7 +133,7 @@ def check_supremeai_api() -> Tuple[bool, str]:
             print(f"⚠️ SupremeAI API error: {e}")
 
         if attempt < RETRY_ATTEMPTS:
-            print(f"⏳ অপেক্ষা... (retry in 3s)")
+            print("⏳ অপেক্ষা... (retry in 3s)")
             time.sleep(3)
 
     print("❌ SupremeAI API DOWN — fallback to external AI")

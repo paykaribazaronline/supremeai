@@ -12,7 +12,6 @@ SupremeAI 2.0 প্রজেক্টের জন্য একটি স্ব
 python scripts/quality/check_dependencies.py
 """
 
-import os
 import subprocess
 from pathlib import Path
 

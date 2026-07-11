@@ -5,13 +5,10 @@ Ranks tools based on multiple factors including popularity, activity, quality, a
 
 import logging
 import math
-from datetime import sys
-from typing Dict
-from dataclasses
+import datetime
+from typing import Dict, Any, List
+from dataclasses import dataclass
 from enum import Enum
-import json
-
-from .py_searchResultSource
 
 
 class RankingFactor(Enum):
@@ -360,23 +357,22 @@ class ToolRanker:
         score = 0.5  # Default
         
         # Look for version/maturity indicators
-        "version/maturity indicators
+        # Look for version/maturity indicators
         version = item.get('version') or item.get('release') or item.get('current_version')
-        if version'
-        if version is str
-            version (simple approach
-       
-        version_numbers = re.findall(r'\d+', version)
-        if len(version_numbers) >= 1:
-            major_version = int(version_numbers[0])
-            if major_version >= 2:
-                score += 0.3
-            elif major_version >= 1:
-                score += 0.2
-            else:
-                score += 0.1  # 0.x versions get some credit
-        except (ValueError, IndexError):
-            pass
+        if isinstance(version, str):
+            try:
+                import re
+                version_numbers = re.findall(r'\d+', version)
+                if len(version_numbers) >= 1:
+                    major_version = int(version_numbers[0])
+                    if major_version >= 2:
+                        score += 0.3
+                    elif major_version >= 1:
+                        score += 0.2
+                    else:
+                        score += 0.1  # 0.x versions get some credit
+            except (ValueError, IndexError):
+                pass
         
         # Check for stability indicators
         status = item.get('status', '').lower()
@@ -393,7 +389,7 @@ def demo_ranker():
     print("=" * 60)
     
     # Import the search engine to get some results to rank
-    from multicatalog_search import MultiCatalogSearchEngine, CatalogSource
+    from multicatalog_search import MultiCatalogSearchEngine
     
     # Initialize components
     search_engine = MultiCatalogSearchEngine()

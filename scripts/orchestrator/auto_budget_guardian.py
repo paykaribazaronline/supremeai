@@ -34,8 +34,7 @@ Serverless (Cloud Run, Cloud Functions) পরিবেশে শুধুমা
 
 import os
 import time
-from typing import Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # Add the backend directory to the path so we can import from core
 import sys
@@ -145,7 +144,6 @@ def check_and_protect_budgets() -> None:
 def run_budget_guardian_check() -> None:
     """Execute a single budget guard check - designed to be called by external schedulers."""
     from core.config_cache import config_cache
-    import time
     import asyncio
     
     now = int(time.time())

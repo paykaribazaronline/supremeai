@@ -2,7 +2,7 @@
 
 import re
 import json
-from typing import List, Dict, Any, Optional, Protocol
+from typing import List, Dict, Any, Optional
 
 # Placeholder for external clients
 # from backend.clients.github_client import GitHubClient # এটি একটি বাস্তব ক্লায়েন্ট হবে

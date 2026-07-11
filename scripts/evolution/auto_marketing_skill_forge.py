@@ -21,11 +21,10 @@ Environment Variables:
 import os
 import sys
 import time
-import json
 import logging
-from typing import Dict, List, Optional
+from typing import List, Optional
 import requests
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 
 # Add the backend directory to the path
 backend_dir = os.path.join(os.path.dirname(__file__), '../../../backend')
@@ -72,7 +71,7 @@ def initialize_firebase() -> Optional[firestore.Client]:
     
     try:
         # Check if already initialized
-        app = firebase_admin.get_app()
+        firebase_admin.get_app()
     except ValueError:
         # Initialize with application default credentials
         cred = credentials.ApplicationDefault()
@@ -82,7 +81,7 @@ def initialize_firebase() -> Optional[firestore.Client]:
         if FIREBASE_DATABASE_ID:
             options['databaseId'] = FIREBASE_DATABASE_ID
         
-        app = firebase_admin.initialize_app(cred, options)
+        firebase_admin.initialize_app(cred, options)
     
     return firestore.client()
 
@@ -94,7 +93,7 @@ def get_pending_requests(db: firestore.Client) -> List[dict]:
     """
     try:
         # Check if already initialized
-        app = firebase_admin.get_app()
+        firebase_admin.get_app()
     except ValueError:
         # Initialize with application default credentials
         cred = credentials.ApplicationDefault()
@@ -104,7 +103,7 @@ def get_pending_requests(db: firestore.Client) -> List[dict]:
         if FIREBASE_DATABASE_ID:
             options['databaseId'] = FIREBASE_DATABASE_ID
         
-        app = firebase_admin.initialize_app(cred, options)
+        firebase_admin.initialize_app(cred, options)
     return firestore.client()
 
 def forge_skill(request_data: dict) -> bool:

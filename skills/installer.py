@@ -9,6 +9,11 @@ from .registry import SkillRegistry
 _SKILL_NAME_PATTERN = re.compile(r'^[a-zA-Z0-9_-]+$')
 
 
+class SecurityError(Exception):
+    """Exception raised for security violations during skill installation."""
+    pass
+
+
 class SkillInstaller:
     """Installs dependencies and registers code packages as dynamic skills."""
     def __init__(self, registry: SkillRegistry = None, skills_dir: str = None):
@@ -57,7 +62,7 @@ class SkillInstaller:
         logger.info(f"Dynamic Installer installing: {dependencies}")
         try:
             cmd = [sys.executable, "-m", "pip", "install"] + dependencies
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True)
             logger.info("Installation completed successfully.")
             return True
         except subprocess.CalledProcessError as e:

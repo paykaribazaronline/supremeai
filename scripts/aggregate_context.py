@@ -25,7 +25,7 @@ def build_god_context(source_dir="context_modules", output_file="supremeai_god_c
             filename = os.path.basename(file)
             tag_name = filename.replace('.xml', '')
             
-            outfile.write(f'  \n')
+            outfile.write('  \n')
             outfile.write(f'  <{tag_name}>\n')
             
             with open(file, "r", encoding="utf-8") as infile:

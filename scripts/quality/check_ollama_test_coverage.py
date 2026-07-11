@@ -26,12 +26,9 @@ from __future__ import annotations
 import argparse
 import asyncio
 import io
-import json
 import os
 import subprocess
 import sys
-import tempfile
-import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
@@ -163,7 +160,7 @@ async def main_async() -> int:
         return 1
 
     source_code = source_path.read_text(encoding="utf-8")
-    module_name = source_path.stem.replace("_", "")
+    source_path.stem.replace("_", "")
     test_file_name = f"test_{source_path.stem}_ollama_gen.py"
     test_file_path = source_path.parent / test_file_name
 
@@ -220,7 +217,7 @@ async def main_async() -> int:
     # ── Step 3: Save ──────────────────────────────────────────────────────
     bprint(f"\n💾 [ধাপ 3] টেস্ট ফাইল সেভ হচ্ছে: {test_file_name}", CYAN)
     test_file_path.write_text(cleaned_code, encoding="utf-8")
-    bprint(f"  ✅ সেভ সম্পূর্ণ!", GREEN)
+    bprint("  ✅ সেভ সম্পূর্ণ!", GREEN)
 
     # Print a preview
     preview = cleaned_code[:600].replace("\n", "\n     ")
@@ -231,7 +228,7 @@ async def main_async() -> int:
         return 0
 
     # ── Step 4: Run tests ─────────────────────────────────────────────────
-    bprint(f"\n🧪 [ধাপ 4] pytest চালানো হচ্ছে...", CYAN)
+    bprint("\n🧪 [ধাপ 4] pytest চালানো হচ্ছে...", CYAN)
     run_result = run_pytest_on_file(str(test_file_path))
 
     bprint(f"  Return code : {run_result['returncode']}")
@@ -245,7 +242,7 @@ async def main_async() -> int:
     cov_xml = test_file_path.parent / "coverage_generated.xml"
     if cov_xml.exists() and run_result.get("passed"):
         pct, covered, valid = parse_coverage_from_xml(str(cov_xml))
-        bprint(f"\n📊 [ধাপ 5] Coverage রিপোর্ট:", CYAN)
+        bprint("\n📊 [ধাপ 5] Coverage রিপোর্ট:", CYAN)
         bprint(f"  Coverage       : {pct}%", GREEN if pct >= 70 else YELLOW)
         bprint(f"  Lines covered  : {covered} / {valid}")
         if pct >= 70:

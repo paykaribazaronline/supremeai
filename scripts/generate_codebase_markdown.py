@@ -1,6 +1,4 @@
 import os
-import re
-import time
 from datetime import datetime
 from pathlib import Path
 import json
@@ -103,7 +101,7 @@ def send_to_telegram(file_path: Path, env: dict):
         boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW"
         data = []
         data.append(f"--{boundary}".encode('utf-8'))
-        data.append(f'Content-Disposition: form-data; name="chat_id"'.encode('utf-8'))
+        data.append('Content-Disposition: form-data; name="chat_id"'.encode('utf-8'))
         data.append(''.encode('utf-8'))
         data.append(str(chat_id).encode('utf-8'))
         
@@ -120,7 +118,7 @@ def send_to_telegram(file_path: Path, env: dict):
         req.add_header('Content-Type', f'multipart/form-data; boundary={boundary}')
         
         with urllib.request.urlopen(req) as res:
-            resp_body = res.read().decode('utf-8')
+            res.read().decode('utf-8')
             print("Telegram document sent successfully!")
     except Exception as e:
         print(f"Failed to send to Telegram: {e}")

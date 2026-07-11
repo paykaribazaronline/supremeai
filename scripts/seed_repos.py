@@ -1,5 +1,4 @@
 import re
-import os
 
 md_path = r"c:\Users\n\supremeai\supremeai_2.0\docs\-01-admin's plan\3.1supremeai-tailored-repos.md"
 sql_path = r"c:\Users\n\supremeai\supremeai_2.0\backend\database\migrations\05_seed_github_repos.sql"

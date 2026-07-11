@@ -3,7 +3,6 @@ Base scraper class for SupremeAI resource collection
 Provides common functionality for scraping various awesome lists and resource sites
 """
 
-import abc
 import json
 import logging
 import time

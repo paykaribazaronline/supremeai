@@ -1,5 +1,4 @@
 import ast
-import sys
 from loguru import logger
 
 # Testing Suite Color Codes
@@ -56,7 +55,7 @@ def generate_fuzz_payloads():
         payloads.append((f"{key}('print(1)')", "Direct Builtin Execution"))
         payloads.append((f"x = {key}\nx('pass')", "Alias Binding Attack"))
         payloads.append((f"fn = '{key}'\nfunc = globals()[fn]", "Dynamic String Key Lookup"))
-        payloads.append((f"f = 'ev' + 'al'\nmain = globals()[f]", "String Concatenation Lookup"))
+        payloads.append(("f = 'ev' + 'al'\nmain = globals()[f]", "String Concatenation Lookup"))
     
     # Category 2: Banned Imports & Aliasing
     banned_imports = ["os", "sys", "subprocess", "shutil", "socket", "pty"]
@@ -126,7 +125,7 @@ def execute_ultimate_fuzz_test():
             blocked_count += 1
             
     print("="*80)
-    print(f"\n📊 FINAL FUZZING LAB REPORT:")
+    print("\n📊 FINAL FUZZING LAB REPORT:")
     print(f"  🟢 TOTAL ATTACKS SECURELY DEFENDED : {GREEN}{blocked_count + syntax_error_count}/100{RESET}")
     print(f"  🔴 TOTAL BYPASSES (SANDBOX CRACKS) : {RED if bypass_count > 0 else GREEN}{bypass_count}/100{RESET}")
     print("="*80)

@@ -81,7 +81,7 @@ def get_commit_details(sha: str) -> Dict[str, str]:
     """প্রো-টিপ: কমিটের বিস্তারিত তথ্য (অথর, মেসেজ) যোগ করা।"""
     try:
         # format-এর মাধ্যমে 원하는 তথ্য সহজেই নেওয়া যায়
-        details_str = run_git_command(["show", "-s", f"--format=%an%n%ae%n%s", sha])
+        details_str = run_git_command(["show", "-s", "--format=%an%n%ae%n%s", sha])
         author, email, subject = details_str.strip().split('\n', 2)
         return {"author": author, "email": email, "subject": subject}
     except Exception:

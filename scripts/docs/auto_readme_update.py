@@ -15,68 +15,9 @@ Environment Variables:
 """
 
 import os
-import re
 import ast
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-import logging
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-# Configuration
-ROUTES_DIR = os.getenv("ROUTES_DIR", "backend/api/routes")
-README_PATH = os.getenv("README_PATH", "README.md")
-API_TABLE_MARKER_START = os.getenv("API_TABLE_MARKER_START", "<!-- API ENDPOINTS START -->")
-API_TABLE_MARKER_END = os.getenv("API_TABLE_MARKER_END", "<!-- API ENDPOINTS END -->")
-
-def extract_route_info_from_file(file_path: Path) -> List[Dict[str, str]]:
-    """
-    Extract route information from a Python file using AST parsing.
-    
-    Returns list of dictionaries with keys: method, path, function_name, description
-    """
-    routes = []
-    
-    try:
-        content = file_path.read_text(encoding="utf-8")
-        tree = ast.parse(content)
-    except (SyntaxError, UnicodeDecodeError) as e:
-        logger.warning(f"Could not parse {file_path}: {e}")
-        return routes
-    
-    # Walk through the AST to find FastAPI route decorators
-    for node in ast.walk(tree):
-        if isinstance(
-
-<tool_call>
-<function=write>
-<parameter=content>
-#!/usr/bin/env python
-"""
-auto_readme_update.py
-=====================
-Automatically updates README.md with API endpoint tables when new routers are added.
-
-Scans the backend/api/routes/ directory for Python files and generates a markdown
-table of API endpoints for inclusion in README.md.
-
-Environment Variables:
-- ROUTES_DIR: Directory containing route modules (default: backend/api/routes)
-- README_PATH: Path to README.md file (default: README.md)
-- API_TABLE_MARKER_START: Start marker for API table in README (default: <!-- API ENDPOINTS START -->)
-- API_TABLE_MARKER_END: End marker for API table in README (default: <!-- API ENDPOINTS END -->)
-"""
-
-import os
-import re
-import ast
-from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict
 import logging
 
 # Configure logging
@@ -234,7 +175,7 @@ def update_readme(api_table: str) -> bool:
             return False
         
         before = parts[0]
-        after_part = parts[1].split(API_TABLE_MARKER_END, 1)
+        parts[1].split(API_TABLE_MARKER_END, 1)
         if len(after_parts) < 2:
             logger.error("Could not split content by end marker")
             return False

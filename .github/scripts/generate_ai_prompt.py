@@ -41,31 +41,31 @@ def get_failed_jobs_logs():
                 with urllib.request.urlopen(log_req) as log_response:
                     log_text = log_response.read().decode("utf-8", errors="ignore")
                 
-# Keep last 200 lines of logs to stay within token limits
-    log_lines = log_text.splitlines()
-    truncated_log = "\n".join(log_lines[-200:])
-    
-    # এরর কন্টেক্সট ট্রাঙ্কেশন - শুধু মূল এরর ফিল্টার করে রাখা
-    def extract_error_context(log_text: str, max_lines: int = 100) -> str:
-        """এরর লগ থেকে শুধু মূল এরর কন্টেক্সট এক্সট্র্যাক্ট করে রাখা (টোকেন সেভ করার জন্য)"""
-        lines = log_text.splitlines()
-        error_lines = []
-        capture = False
-        for line in lines:
-            if any(keyword in line.lower() for keyword in ['error:', 'exception:', 'failed', 'traceback', 'error at', 'error in', '!!!', '>>>']):
-                capture = True
-            if capture:
-                error_lines.append(line)
-                if len(error_lines) >= max_lines:
-                    break
-        return '\n'.join(error_lines) if error_lines else log_text[-2000:]
-    
-    # ট্রাঙ্কেটেড লগ ব্যবহার করে প্রম্পট তৈরি
-    error_truncated_log = extract_error_context(truncated_log)
-    diagnoses.append({
-        "job_name": job_name,
-        "logs": error_truncated_log
-    })
+                # Keep last 200 lines of logs to stay within token limits
+                log_lines = log_text.splitlines()
+                truncated_log = "\n".join(log_lines[-200:])
+
+                # এরর কন্টেক্সট ট্রাঙ্কেশন - শুধু মূল এরর ফিল্টার করে রাখা
+                def extract_error_context(log_text: str, max_lines: int = 100) -> str:
+                    """এরর লগ থেকে শুধু মূল এরর কন্টেক্সট এক্সট্র্যাক্ট করে রাখা (টোকেন সেভ করার জন্য)"""
+                    lines = log_text.splitlines()
+                    error_lines = []
+                    capture = False
+                    for line in lines:
+                        if any(keyword in line.lower() for keyword in ['error:', 'exception:', 'failed', 'traceback', 'error at', 'error in', '!!!', '>>>']):
+                            capture = True
+                        if capture:
+                            error_lines.append(line)
+                            if len(error_lines) >= max_lines:
+                                break
+                    return '\n'.join(error_lines) if error_lines else log_text[-2000:]
+
+                # ট্রাঙ্কেটেড লগ ব্যবহার করে প্রম্পট তৈরি
+                error_truncated_log = extract_error_context(truncated_log)
+                diagnoses.append({
+                    "job_name": job_name,
+                    "logs": error_truncated_log
+                })
             except Exception as ex:
                 print(f"Error fetching logs for job {job_name} ({job_id}): {ex}", file=sys.stderr)
         return diagnoses

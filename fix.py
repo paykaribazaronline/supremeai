@@ -1,4 +1,3 @@
-import re
 
 for file in ['.github/workflows/supreme-core-ci.yml', '.github/workflows/nightly-maintenance.yml']:
     with open(file, 'r', encoding='utf-8') as f:

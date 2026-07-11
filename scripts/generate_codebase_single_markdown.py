@@ -48,7 +48,7 @@ def generate_full_codebase_markdown():
     file_count = 0
     total_size = 0
     full_dump_content = "# 🧠 SupremeAI 2.0 Full Codebase Dump\n"
-    full_dump_content += f"# বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা একক-ফাইল কোডবেস ডাম্প যা পুরো কোডবেস একসাথে দেখতে সাহায্য করে।\n\n"
+    full_dump_content += "# বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা একক-ফাইল কোডবেস ডাম্প যা পুরো কোডবেস একসাথে দেখতে সাহায্য করে।\n\n"
     full_dump_content += f"Generated at: {datetime.now().isoformat()}\n\n"
     
     # কোডবেসের সব ফাইল ঘুরে দেখা (বাংলা মন্তব্য: os.walk ব্যবহার করে পুরো প্রজেক্ট স্ক্যান করা হচ্ছে)

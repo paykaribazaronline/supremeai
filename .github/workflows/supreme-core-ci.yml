@@ -289,7 +289,7 @@ jobs:
         working-directory: backend
         run: |
           # ১. Ruff দিয়ে এরর ফিক্স এবং ফরম্যাট করা
-          poetry run ruff check . --fix || true
+          python -m ruff check backend/ --fix || true
           poetry run ruff format || true
           
           # ২. গিট চেঞ্জ চেক করে পুশ করা (Self-Healing)

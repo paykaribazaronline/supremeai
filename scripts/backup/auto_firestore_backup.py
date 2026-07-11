@@ -149,7 +149,7 @@ def create_firestore_backup() -> bool:
     backup_name = f"{BACKUP_PREFIX}_{timestamp}"
     backup_path = f"gs://{BACKUP_BUCKET}/{backup_name}/"
     
-    print(f"🔥 Starting Firestore backup...")
+    print("🔥 Starting Firestore backup...")
     print(f"📁 Project: {PROJECT_ID}")
     print(f"🗄️  Database: {DATABASE_ID}")
     print(f"📦 Bucket: {BACKUP_BUCKET}")
@@ -196,8 +196,8 @@ def create_firestore_backup() -> bool:
         
         # ── PHASE 6: Poll for completion instead of fire-and-forget ──
         try:
-            result = operation.result(timeout=BACKUP_TIMEOUT_SECONDS)
-            print(f"\u2705 Export COMPLETED successfully!")
+            operation.result(timeout=BACKUP_TIMEOUT_SECONDS)
+            print("\u2705 Export COMPLETED successfully!")
             print(f"\U0001f4be Backup available at: {backup_path}")
             
             # Write backup manifest to GCS

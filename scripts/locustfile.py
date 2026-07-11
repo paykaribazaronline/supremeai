@@ -1,6 +1,5 @@
 import os
 import uuid
-import random
 import time
 from locust import HttpUser, task, between, tag
 import logging
