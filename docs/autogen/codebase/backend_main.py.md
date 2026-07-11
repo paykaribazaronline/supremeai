@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/main.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,495 বাইট  
-**আপডেট:** 2026-07-11T15:05:35.221032
+**সাইজ:** 1,285 বাইট  
+**আপডেট:** 2026-07-11T15:50:11.291699
 
 ---
 
@@ -23,13 +23,7 @@ from core.logging_config import setup_logging
 
 setup_logging()
 
-if settings.env.lower() == "production":
-    try:
-        settings.validate_config()
-    except RuntimeError as exc:
-        logger.error(f"Production config validation failed: {exc}. Booting in resilient mode.")
-        # sys.exit(1) রিমুভ করা হলো (Cloud Run Resilient Boot)
-
+# Production config validation is now handled automatically by Pydantic model validators
 
 def _handle_sigterm(signum, frame):
     logger.info("Received shutdown signal. Performing graceful shutdown...")

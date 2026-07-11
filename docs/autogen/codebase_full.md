@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T15:05:35.173970
+Generated at: 2026-07-11T15:50:11.246658
 
 
 ## File: `pnpm-lock.yaml`
@@ -63399,13 +63399,7 @@ from core.logging_config import setup_logging
 
 setup_logging()
 
-if settings.env.lower() == "production":
-    try:
-        settings.validate_config()
-    except RuntimeError as exc:
-        logger.error(f"Production config validation failed: {exc}. Booting in resilient mode.")
-        # sys.exit(1) রিমুভ করা হলো (Cloud Run Resilient Boot)
-
+# Production config validation is now handled automatically by Pydantic model validators
 
 def _handle_sigterm(signum, frame):
     logger.info("Received shutdown signal. Performing graceful shutdown...")
