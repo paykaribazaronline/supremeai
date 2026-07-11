@@ -901,7 +901,7 @@ jobs:
     if: |
       always() && 
       github.ref == 'refs/heads/main' &&
-      needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled'
+      needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled' && needs.frontend-core.result != 'skipped'
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -927,7 +927,7 @@ jobs:
     if: |
       always() && 
       github.ref == 'refs/heads/main' &&
-      needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled'
+      needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled' && needs.frontend-core.result != 'skipped'
     steps:
       - uses: actions/checkout@v4
       - name: Install Vercel CLI & pnpm

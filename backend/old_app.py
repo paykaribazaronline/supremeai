@@ -7,11 +7,7 @@ import logging
 import os
 import secrets
 import sys
-from pathlib import Path
-
-
-# Add project root to sys.path so 'skills' module can be imported
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from typing import Any
 
 import sentry_sdk
 from fastapi import Depends
@@ -27,7 +23,6 @@ from loguru import logger
 
 from core import lifespan
 from core import services
-from typing import Any
 from core.admin_routes import router as admin_router
 from core.api_key_middleware import APIKeyAuthMiddleware
 from core.auth_middleware import AuthMiddleware
@@ -134,16 +129,6 @@ app.add_middleware(IdempotencyMiddleware)
 app.add_middleware(APIKeyAuthMiddleware)
 
 
-from slowapi import Limiter
-from slowapi import _rate_limit_exceeded_handler
-from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
-
-
-limiter = Limiter(key_func=get_remote_address)
-app.state.limiter = limiter
-
-
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     return JSONResponse(
@@ -156,7 +141,42 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException) ->
     )
 
 
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+@app.get("/health")
+async def health() -> dict[str, Any]:
+    redis_ok = False
+    if services.redis_queue.configured:
+        try:
+            services.redis_queue.set("health", "ok", ex=5)
+            redis_ok = services.redis_queue.get("health") == "ok"
+        except Exception as exc:  # noqa: BLE001
+            # বাংলা মন্তব্য: Anti-Suppression Rule
+            logger.error(f"Health check failed on redis connection: {exc}")
+            error_event_bus.emit(ErrorEvent(module="app.health", error_type="REDIS_HEALTH_FAIL", message=str(exc)[:200], severity="ERROR"))
+            redis_ok = False
+    else:
+        redis_ok = True
+
+    api_keys_ok = bool(
+        settings.openrouter_api_key or settings.gemini_api_key or settings.deepseek_api_key or settings.groq_api_key or settings.nvidia_api_key
+    )
+    checks = {
+        "redis": redis_ok,
+        "api_keys_configured": api_keys_ok,
+    }
+    all_ok = all(checks.values())
+    return {
+        "status": "ok" if all_ok else "degraded",
+        "orchestrator": "online",
+        "checks": checks,
+    }
+
+
+@app.get("/actuator/health")
+def actuator_health() -> dict[str, str]:
+    return {
+        "status": "UP",
+        "orchestrator": "online",
+    }
 
 
 def _safe_include_router(app: FastAPI, router_module: str, prefix: str = "") -> None:
@@ -194,46 +214,7 @@ def _safe_include_router(app: FastAPI, router_module: str, prefix: str = "") -> 
         sys.exit(1)
 
 
-
-@app.get("/health")
-async def health() -> dict[str, Any]:
-    redis_ok = False
-    if hasattr(services, 'redis_queue') and services.redis_queue.configured:
-        try:
-            services.redis_queue.set("health", "ok", ex=5)
-            redis_ok = services.redis_queue.get("health") == "ok"
-        except Exception as exc:  # noqa: BLE001
-            # বাংলা মন্তব্য: Anti-Suppression Rule
-            logger.error(f"Health check failed on redis connection: {exc}")
-            error_event_bus.emit(ErrorEvent(module="app.health", error_type="REDIS_HEALTH_FAIL", message=str(exc)[:200], severity="ERROR"))
-            redis_ok = False
-    else:
-        redis_ok = True
-
-    api_keys_ok = bool(
-        settings.openrouter_api_key or settings.gemini_api_key or settings.deepseek_api_key or settings.groq_api_key or settings.nvidia_api_key
-    )
-    checks = {
-        "redis": redis_ok,
-        "api_keys_configured": api_keys_ok,
-    }
-    all_ok = all(checks.values())
-    return {
-        "status": "ok" if all_ok else "degraded",
-        "orchestrator": "online",
-        "checks": checks,
-    }
-
-
-@app.get("/actuator/health")
-def actuator_health() -> dict[str, str]:
-    return {
-        "status": "UP",
-        "orchestrator": "online",
-    }
-
 app.include_router(admin_router)
-
 
 # Core Routers
 core_routers = [
@@ -252,32 +233,25 @@ core_routers = [
     ("api.routes.graph", ""),
     ("api.routes.knowledge", ""),
     ("api.routes.marketplace", ""),
-    ("api.routes.auth", "/api/v1"),
-    ("api.routes.onboarding", "/api/v1/onboarding"),
-    ("api.routes.evolution", "/api/v1/evolution"),
+    ("api.routes.auth", ""),
     ("api.routes.admin_dashboard", ""),
     ("api.routes.email", ""),
     ("api.routes.github", ""),
     ("api.routes.internal", ""),
     ("api.routes.config", ""),
+    ("api.routes.onboarding", ""),
     ("api.routes.repos", ""),
     ("api.routes.tools_ops", ""),
     ("api.routes.agents", ""),
-    ("api.routes.admin", ""),
     ("api.routes.tools_registry", ""),
     ("api.routes.preferences", ""),
     ("api.routes.usage_metrics", ""),
+    ("api.routes.payments", ""),
     ("api.routes.sso", ""),
     ("api.routes.health", ""),
+    ("api.routes.evolution", ""),
     ("api.routes.api_keys", ""),
     ("api.routes.ci_webhooks", ""),
-    ("api.routes.task_workspace", "/api/v1"),
-    ("api.routes.websocket_agent", ""),
-    ("api.routes.agent_workspace", "/api/v1"),
-    ("api.routes.integrations", "/api/v1"),
-    ("api.routes.public_config", "/api"),
-    ("api.routes.traffic_monitor", ""),
-    ("api.routes.swarm", "/api/v1"),
     ("core.orchestrator", ""),
 ]
 
@@ -294,6 +268,8 @@ optional_routers = [
     ("tools.style_learner", "/api"),
     ("tools.diagram_to_architecture", "/api"),
     ("tools.ai_pair_programmer", "/api"),
+    ("api.routes.onboarding", "/api"),
+    ("api.routes.evolution", ""),
     ("api.routes.codeflow", ""),
     ("api.routes.feedback", ""),
     ("tools.multilingual_tts", "/api"),
@@ -306,7 +282,6 @@ optional_routers = [
     ("api.routes.metrics", ""),
     ("api.routes.cloud_mesh", ""),
     ("api.routes.events", "/api"),
-    ("api.routes.payments", ""),
 ]
 
 for router_path, prefix in optional_routers:
@@ -325,7 +300,7 @@ def router_health_check(fastapi_app: FastAPI) -> None:
     expected_count = 20
     if len(fastapi_app.routes) < expected_count:
         logger.critical(
-            f"🔥 CRITICAL: Only {len(fastapi_app.routes)} routes loaded. Expected at least {expected_count}. Some routers failed to load!"
+            f"🔥 CRITICAL: Only {len(fastapi_app.routes)} routes loaded. " f"Expected at least {expected_count}. Some routers failed to load!"
         )
         # বাংলা মন্তব্য: Strict fail-fast rule
         sys.exit(1)
