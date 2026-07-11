@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T13:13:34.390428
+Generated at: 2026-07-11T13:28:08.897727
 
 
 ## File: `pnpm-lock.yaml`
@@ -242,6 +242,9 @@ importers:
       eslint-plugin-react-refresh:
         specifier: ^0.5.2
         version: 0.5.3(eslint@9.39.5(jiti@2.7.0))
+      eslint-plugin-storybook:
+        specifier: ^10.5.0
+        version: 10.5.0(eslint@9.39.5(jiti@2.7.0))(storybook@8.6.18(prettier@3.9.5))(typescript@5.9.3)
       eslint-visitor-keys:
         specifier: ^5.0.1
         version: 5.0.1
@@ -5308,6 +5311,12 @@ packages:
     resolution: {integrity: sha512-5EMmLCV98Pi4o/f/3DP/v/tNqLHMIc9I8LKClNDWhZ9JTho89/kQcitCXQBMG7sAfVRK0Ie3T2EDOzp1YXYiVA==}
     peerDependencies:
       eslint: ^9 || ^10
+
+  eslint-plugin-storybook@10.5.0:
+    resolution: {integrity: sha512-UyhbK11baKAYqzyDUHlwDlm1aP/wxPMR0vFmsxA5984BGaPwarhoXUWng1Xa0cd9BdPbQ+zr/y8ADk6XxtwkYg==}
+    peerDependencies:
+      eslint: '>=8'
+      storybook: ^10.5.0
 
   eslint-scope@5.1.1:
     resolution: {integrity: sha512-2NxwbF/hZ0KpepYN0cNbo+FN6XoK7GaHlQhgx/hIZl6Va0bF45RQOOwhLIy8lQDbuCiadSLCBnH2CFYquit5bw==}
@@ -16108,6 +16117,16 @@ snapshots:
   eslint-plugin-react-refresh@0.5.3(eslint@9.39.5(jiti@2.7.0)):
     dependencies:
       eslint: 9.39.5(jiti@2.7.0)
+
+  eslint-plugin-storybook@10.5.0(eslint@9.39.5(jiti@2.7.0))(storybook@8.6.18(prettier@3.9.5))(typescript@5.9.3):
+    dependencies:
+      '@typescript-eslint/types': 8.63.0
+      '@typescript-eslint/utils': 8.63.0(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
+      eslint: 9.39.5(jiti@2.7.0)
+      storybook: 8.6.18(prettier@3.9.5)
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
 
   eslint-scope@5.1.1:
     dependencies:
@@ -63324,7 +63343,6 @@ import sys
 
 import uvicorn
 from loguru import logger
-
 
 from core.app import app  # noqa: F401
 from core.config import settings
@@ -129069,9 +129087,8 @@ import asyncio
 import logging
 from typing import Any
 
-from docker.errors import ContainerError
-
 import docker
+from docker.errors import ContainerError
 
 
 logger = logging.getLogger(__name__)
@@ -152408,6 +152425,7 @@ export default defineConfig({
     "eslint": "^9.39.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "eslint-plugin-storybook": "^10.5.0",
     "eslint-visitor-keys": "^5.0.1",
     "globals": "^17.5.0",
     "jsdom": "^24.0.0",

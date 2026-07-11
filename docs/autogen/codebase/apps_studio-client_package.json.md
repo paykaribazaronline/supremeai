@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/package.json
 
 **প্রকার:** .json  
-**সাইজ:** 3,534 বাইট  
-**আপডেট:** 2026-07-11T13:13:34.509844
+**সাইজ:** 3,576 বাইট  
+**আপডেট:** 2026-07-11T13:28:09.039952
 
 ---
 
@@ -86,6 +86,7 @@
     "eslint": "^9.39.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "eslint-plugin-storybook": "^10.5.0",
     "eslint-visitor-keys": "^5.0.1",
     "globals": "^17.5.0",
     "jsdom": "^24.0.0",

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/main.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,496 বাইট  
-**আপডেট:** 2026-07-11T13:13:34.430695
+**সাইজ:** 1,495 বাইট  
+**আপডেট:** 2026-07-11T13:28:08.943266
 
 ---
 
@@ -15,7 +15,6 @@ import sys
 
 import uvicorn
 from loguru import logger
-
 
 from core.app import app  # noqa: F401
 from core.config import settings
