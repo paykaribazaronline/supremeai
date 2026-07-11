@@ -230,7 +230,8 @@ class TelegramBotHandler:
             import httpx
             from core.event_bus import error_event_bus, ErrorEvent
 
-            async with httpx.AsyncClient() as client:
+            # সংশোধন: Explicit timeout যোগ করা হয়েছে
+            async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0)) as client:
                 resp = await client.post(url, json={"url": webhook_url})
                 if resp.status_code == 200:
                     logger.info(f"Successfully registered Telegram Webhook to {webhook_url}")
