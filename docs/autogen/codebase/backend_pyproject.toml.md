@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/pyproject.toml
 
 **প্রকার:** .toml  
-**সাইজ:** 7,007 বাইট  
-**আপডেট:** 2026-07-11T16:26:09.318175
+**সাইজ:** 7,029 বাইট  
+**আপডেট:** 2026-07-11T17:00:44.947732
 
 ---
 
@@ -29,6 +29,7 @@ networkx = "^3.2.0"
 uvicorn = {extras = ["standard"], version = "^0.30.0"}
 httpx = ">=0.28.1,<0.29.0"
 loguru = "^0.7.2"
+defusedxml = "^0.7.1"
 pydantic = "^2.7.0"
 pydantic-settings = "^2.2.0"
 python-dotenv = "^1.0.1"

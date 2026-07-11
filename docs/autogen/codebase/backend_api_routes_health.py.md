@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/health.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,115 বাইট  
-**আপডেট:** 2026-07-11T16:26:09.345050
+**সাইজ:** 1,255 বাইট  
+**আপডেট:** 2026-07-11T17:00:44.974575
 
 ---
 
@@ -39,5 +39,10 @@ async def get_agents_health(request: HealthRequest):
     # MGET কল করা হচ্ছে
     health_data = await redis_mgr.get_agents_health(request.agent_ids)
     return health_data
+
+@router.get("/health")
+async def health_check():
+    # Basic health check for Render
+    return {"status": "ok", "orchestrator": "online"}
 
 ```

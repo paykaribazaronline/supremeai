@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/mobile/lib/screens/dashboard/main_shell.dart
 
 **প্রকার:** .dart  
-**সাইজ:** 1,903 বাইট  
-**আপডেট:** 2026-07-11T16:26:09.477489
+**সাইজ:** 2,068 বাইট  
+**আপডেট:** 2026-07-11T17:00:45.103408
 
 ---
 
@@ -12,9 +12,9 @@
 import 'package:flutter/material.dart';
 import '../../widgets/supreme_bottom_nav.dart';
 import '../../theme/app_theme.dart';
-import '../../theme/colors.dart';
+import 'package:supremeai/theme/colors.dart'; // SupremeColors ইমপোর্ট ঠিক করা হলো
 // Note: Import your actual screens here. Using placeholders for now.
-import 'dashboard_screen.dart';
+import 'home_screen.dart'; // dashboard_screen এর বদলে home_screen ব্যবহার করা হলো
 // import '../analytics/analytics_screen.dart';
 // import '../chat/agent_chat_screen.dart';
 // import '../api/api_keys_screen.dart';
@@ -58,7 +58,7 @@ class _MainShellState extends State<MainShell> {
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(), // Disable swipe to change tab
         children: [
-          const DashboardScreen(),
+          const HomeScreen(),
           // Placeholder for missing screens, using Center text for now until they are integrated
           const Center(child: Text('Analytics', style: TextStyle(color: Colors.white))),
           const Center(child: Text('Chat', style: TextStyle(color: Colors.white))),

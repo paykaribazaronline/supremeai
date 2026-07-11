@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/mobile/lib/theme/app_theme.dart
 
 **প্রকার:** .dart  
-**সাইজ:** 2,417 বাইট  
-**আপডেট:** 2026-07-11T16:26:09.481919
+**সাইজ:** 2,705 বাইট  
+**আপডেট:** 2026-07-11T17:00:45.107834
 
 ---
 
@@ -23,7 +23,8 @@ class AppTheme {
     useMaterial3: true,
     scaffoldBackgroundColor: DesignTokens.colorBgVoidLight,
     textTheme: const TextTheme(
-      displayLarge: TextStyle(color: DesignTokens.colorTextPrimaryLight, fontSize: DesignTokens.fontSize3xl, fontWeight: DesignTokens.fontWeightBold),
+      // ফন্ট সাইজ টোকেনের নাম fontSize3xl থেকে fontSize_3xl এ আপডেট করা হয়েছে
+      displayLarge: TextStyle(color: DesignTokens.colorTextPrimaryLight, fontSize: DesignTokens.fontSize_3xl, fontWeight: DesignTokens.fontWeightBold),
       headlineMedium: TextStyle(color: DesignTokens.colorTextPrimaryLight, fontSize: DesignTokens.fontSizeXl, fontWeight: DesignTokens.fontWeightSemibold),
       bodyLarge: TextStyle(color: DesignTokens.colorTextPrimaryLight, fontSize: DesignTokens.fontSizeBase, fontWeight: DesignTokens.fontWeightRegular),
       bodyMedium: TextStyle(color: DesignTokens.colorTextSecondaryLight, fontSize: DesignTokens.fontSizeSm, fontWeight: DesignTokens.fontWeightRegular),
@@ -41,7 +42,8 @@ class AppTheme {
     useMaterial3: true,
     scaffoldBackgroundColor: DesignTokens.colorBgVoidDark,
     textTheme: const TextTheme(
-      displayLarge: TextStyle(color: DesignTokens.colorTextPrimaryDark, fontSize: DesignTokens.fontSize3xl, fontWeight: DesignTokens.fontWeightBold),
+      // ডার্ক মোডের জন্যও ফন্ট সাইজের নাম আপডেট করা হলো
+      displayLarge: TextStyle(color: DesignTokens.colorTextPrimaryDark, fontSize: DesignTokens.fontSize_3xl, fontWeight: DesignTokens.fontWeightBold),
       headlineMedium: TextStyle(color: DesignTokens.colorTextPrimaryDark, fontSize: DesignTokens.fontSizeXl, fontWeight: DesignTokens.fontWeightSemibold),
       bodyLarge: TextStyle(color: DesignTokens.colorTextPrimaryDark, fontSize: DesignTokens.fontSizeBase, fontWeight: DesignTokens.fontWeightRegular),
       bodyMedium: TextStyle(color: DesignTokens.colorTextSecondaryDark, fontSize: DesignTokens.fontSizeSm, fontWeight: DesignTokens.fontWeightRegular),
