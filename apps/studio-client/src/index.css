@@ -421,3 +421,31 @@ body.matrix {
 .animate-pulse-glow {
   animation: pulse-glow-border 1.6s ease-in-out infinite;
 }
+
+/* ═══════════════════════════════════════════════════════
+   P2 MICRO-ANIMATIONS & SHIMMER
+   ═══════════════════════════════════════════════════════ */
+.glass-hover {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px var(--neon-blue);
+}
+
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 600ms, transform 600ms;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}

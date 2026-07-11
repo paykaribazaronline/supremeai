@@ -10,8 +10,7 @@ import 'package:supremeai/screens/login_screen.dart';
 import 'package:supremeai/screens/dashboard/home_screen.dart';
 import 'package:supremeai/services/localization_service.dart';
 import 'package:supremeai/services/notification_service.dart';
-import 'package:supremeai/screens/dashboard_screen.dart';
-
+import 'package:supremeai/screens/dashboard/main_shell.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -40,7 +39,7 @@ class SupremeAIApp extends StatelessWidget {
             theme: AppTheme.light,
             darkTheme: AppTheme.dark,
             themeMode: _getThemeMode(settings.settings.themeMode),
-            home: const DashboardScreen(),
+            home: const AuthWrapper(),
           );
         },
       ),
@@ -63,9 +62,13 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     
-    if (auth.status == AuthStatus.authenticated || auth.status == AuthStatus.guest) {
-      return const HomeScreen();
-    }
-    return const LoginScreen();
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 600),
+      switchInCurve: Curves.easeIn,
+      switchOutCurve: Curves.easeOut,
+      child: (auth.status == AuthStatus.authenticated || auth.status == AuthStatus.guest)
+          ? const MainShell(key: ValueKey('MainShell'))
+          : const LoginScreen(key: ValueKey('LoginScreen')),
+    );
   }
 }

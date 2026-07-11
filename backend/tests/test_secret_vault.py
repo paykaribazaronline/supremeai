@@ -25,6 +25,7 @@ def vault_production():
                 v.project_id = "proj-1"
                 v.env = "production"
                 v.client = mock_client
+                v._cached_secrets = {}
                 yield v
 
 
@@ -51,18 +52,16 @@ def test_fetch_secret_env_empty(vault_local):
 
 def test_production_mode_fetch_secret(vault_production):
     response = MagicMock()
-    response.payload.data.decode.return_value = "secret_value\n"
-    vault_production.client.access_secret_version.return_value = response
+    response.secret_value = "secret_value"
+    vault_production.client.getSecret.return_value = response
     with patch.dict(os.environ, {"SECRET_ID": ""}, clear=False):
         result = vault_production.fetch_secret("SECRET_ID")
     assert result == "secret_value"
-    vault_production.client.access_secret_version.assert_called_once()
-    called_name = vault_production.client.access_secret_version.call_args[1]["request"]["name"]
-    assert called_name == "projects/proj-1/secrets/SECRET_ID/versions/latest"
+    vault_production.client.getSecret.assert_called_once()
 
 
 def test_production_mode_fetch_secret_error(vault_production):
-    vault_production.client.access_secret_version.side_effect = Exception("GCP error")
+    vault_production.client.getSecret.side_effect = Exception("Infisical error")
     with patch.dict(os.environ, {"SECRET_ID": ""}, clear=False):
         import pytest
 
@@ -75,6 +74,7 @@ def test_production_mode_missing_client_and_project(vault_production):
     v.env = "production"
     v.client = None
     v.project_id = None
+    v._cached_secrets = {}
     import pytest
 
     with pytest.raises(RuntimeError):

@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useStore } from "./store/useStore";
 import { getApiBaseUrl } from "./utils/api";
 
+import { ThemeSyncProvider } from './providers/ThemeSyncProvider';
 import { useAdminStore } from "./store/adminStore";
 import { AdminConsole } from "./components/admin/AdminConsole";
 import { UserDashboard } from "./components/customer/UserDashboard";
@@ -25,6 +26,15 @@ import { AgentWorkspace } from './pages/AgentWorkspace';
 import { IntegrationsManager } from './pages/IntegrationsManager';
 import { ArchitectTower } from './pages/ArchitectTower';
 import SwarmMap from './components/SwarmMap';
+import { LoginPage } from './pages/LoginPage';
+
+// --- Auth Guard ---
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  // In a real implementation this would check context or store
+  // For the UI/UX blueprint we provide the structural guard
+  const isAuthenticated = true; // Replace with actual auth check from useStore
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+};
 
 
 // বাংলা মন্তব্য: 401/403/429 এরর হলে কোনো রিট্রাই করা হবে না — রেট লিমিট স্টর্ম ঠেকাতে
@@ -78,8 +88,6 @@ function AdminShell() {
   const [checkpointsList] = useState<any[]>([]);
   const [adminMessages, setAdminMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [adminInput, setAdminInput] = useState("");
-  const [rulesJson, setRulesJson] = useState("{}");
   const [saveStatus, setSaveStatus] = useState("");
   const [liveLogs, setLiveLogs] = useState<string[]>([]);
   const [costReport, setCostReport] = useState("");
@@ -146,35 +154,6 @@ function AdminShell() {
         setActionStatus("DEPLOY FAILED");
         setTimeout(() => setActionStatus(""), 2000);
       });
-  };
-
-  const handleSendAdmin = async () => {
-    if (!adminInput.trim()) return;
-    const now = new Date().toLocaleTimeString();
-    const requestId = crypto.randomUUID();
-    const userMessage = { id: requestId, sender: 'user', text: adminInput, timestamp: now };
-    const responseId = crypto.randomUUID();
-
-    setAdminMessages(prev => [
-      ...prev,
-      userMessage,
-      { id: responseId, sender: 'bot', text: `Processing admin command: "${adminInput}"...`, timestamp: now }
-    ]);
-    setAdminInput("");
-    setLoading(true);
-
-    try {
-      const history = [...adminMessages, userMessage].map(msg => ({
-        role: msg.sender === 'user' ? 'user' : 'assistant',
-        content: msg.text,
-      }));
-      const responseText = await getAethelResponse(adminInput, history as any);
-      setAdminMessages(prev => prev.map(msg => msg.id === responseId ? { ...msg, text: responseText } : msg));
-    } catch (error: any) {
-      setAdminMessages(prev => prev.map(msg => msg.id === responseId ? { ...msg, text: `AI backend error: ${error?.message || 'Unable to process command.'}` } : msg));
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleSaveRules = () => {
@@ -302,6 +281,14 @@ function AdminShell() {
 const PORTAL_TYPE = import.meta.env.VITE_PORTAL_TYPE || 'user';
 
 export const App: React.FC = () => {
+  return (
+    <ThemeSyncProvider>
+      <AppContent />
+    </ThemeSyncProvider>
+  );
+};
+
+const AppContent: React.FC = () => {
   const {
     isServerOnline, setServerStatus, deployGate, fetchGateStatus
   } = useStore();
@@ -539,18 +526,21 @@ export const App: React.FC = () => {
                  USER PORTAL (supremeai-lac.vercel.app)
               ========================================= */
               <>
-                <Route path="/" element={legacyWorkspace} />
-                <Route path="/workspace/agent" element={<AgentWorkspace />} />
-                <Route path="/integrations" element={<IntegrationsManager />} />
-                <Route path="/architect-tower" element={<ArchitectTower />} />
-                <Route path="/swarm" element={<SwarmMap />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/" element={<Navigate to="/workspace" replace />} />
+                <Route path="/workspace/agent" element={<ProtectedRoute><AgentWorkspace /></ProtectedRoute>} />
+                <Route path="/integrations" element={<ProtectedRoute><IntegrationsManager /></ProtectedRoute>} />
+                <Route path="/architect-tower" element={<ProtectedRoute><ArchitectTower /></ProtectedRoute>} />
+                <Route path="/swarm" element={<ProtectedRoute><SwarmMap /></ProtectedRoute>} />
                 <Route path="/workspace/*" element={
-                  <DashboardShell
-                    theme={theme}
-                    toggleTheme={toggleTheme}
-                    isServerOnline={isServerOnline}
-                    workspace={legacyWorkspace}
-                  />
+                  <ProtectedRoute>
+                    <DashboardShell
+                      theme={theme}
+                      toggleTheme={toggleTheme}
+                      isServerOnline={isServerOnline}
+                      workspace={legacyWorkspace}
+                    />
+                  </ProtectedRoute>
                 } />
                 {/* ইউজাররা /admin এ যাওয়ার চেষ্টা করলে হোমপেজে পাঠিয়ে দেবে */}
                 <Route path="/admin/*" element={<Navigate to="/" replace />} />

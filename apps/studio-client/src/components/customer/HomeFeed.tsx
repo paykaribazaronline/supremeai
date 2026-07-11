@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { SkeletonLoader } from './ui/SkeletonLoader';
 
 interface Widget {
   id: string;
@@ -17,6 +18,15 @@ const initialWidgets: Widget[] = [
 
 export function HomeFeed() {
   const [widgets, setWidgets] = useState<Widget[]>(initialWidgets);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate data fetch
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, id: string) => {
     e.dataTransfer.setData('text/plain', id);
@@ -44,30 +54,41 @@ export function HomeFeed() {
   };
 
   return (
-    <div className="p-4 bg-[#020205] min-h-[calc(100vh-64px)] overflow-y-auto">
+    <div className="p-4 bg-[#020205] min-h-[calc(100vh-64px)] overflow-y-auto page-transition-enter-active">
       <h2 className="text-2xl font-bold font-['Space_Grotesk'] tracking-widest mb-6 text-[#f8f9fa]">
         Personalized Home Feed
       </h2>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {widgets.map(widget => (
-          <div
-            key={widget.id}
-            draggable
-            onDragStart={(e) => handleDragStart(e, widget.id)}
-            onDragOver={(e) => handleDragOver(e)}
-            onDrop={(e) => handleDrop(e, widget.id)}
-            className="glass-card cursor-move p-4 flex flex-col gap-3 hover:shadow-lg transition-shadow"
-          >
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--neon-blue)]/10 text-[var(--neon-blue)]">
-                {/* Icon placeholder */}
-                <span className="text-[var(--neon-blue)]">🤖</span>
+        {isLoading 
+          ? Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex flex-col gap-3 p-4 border border-slate-800 rounded-xl bg-slate-900/30">
+                <div className="flex gap-2 items-center">
+                  <SkeletonLoader type="avatar" className="w-8 h-8" />
+                  <SkeletonLoader className="w-32" />
+                </div>
+                <SkeletonLoader className="w-full mt-2" />
+                <SkeletonLoader className="w-3/4" />
               </div>
-              <h3 className="font-semibold text-[var(--foreground)]">{widget.title}</h3>
-            </div>
-            <p className="text-[var(--foreground)]/70 text-sm flex-1">{widget.content}</p>
-          </div>
-        ))}
+            ))
+          : widgets.map(widget => (
+              <div
+                key={widget.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, widget.id)}
+                onDragOver={(e) => handleDragOver(e)}
+                onDrop={(e) => handleDrop(e, widget.id)}
+                className="glass-card cursor-move p-4 flex flex-col gap-3 glass-hover"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--neon-blue)]/10 text-[var(--neon-blue)]">
+                    <span className="text-[var(--neon-blue)]">🤖</span>
+                  </div>
+                  <h3 className="font-semibold text-[var(--foreground)]">{widget.title}</h3>
+                </div>
+                <p className="text-[var(--foreground)]/70 text-sm flex-1">{widget.content}</p>
+              </div>
+            ))
+        }
       </div>
     </div>
   );

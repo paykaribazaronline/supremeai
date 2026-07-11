@@ -36,8 +36,8 @@ function createWindow() {
     },
     titleBarStyle: 'hidden', // Modern look
     titleBarOverlay: {
-      color: '#1e1e1e',
-      symbolColor: '#ffffff'
+      color: '#030712', // SupremeColors.bgVoid
+      symbolColor: '#00f3ff' // SupremeColors.brandPrimary for symbols
     }
   });
 

@@ -37,7 +37,55 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
   }
 
   private getLoadingHTML(): string {
-    return '<!DOCTYPE html><html><body style="display:flex;justify-content:center;align-items:center;height:100vh;color:var(--vscode-descriptionForeground);font-family:sans-serif;"><div>🚀 Loading SupremeAI...</div></body></html>';
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: var(--vscode-font-family);
+      padding: 20px;
+      color: var(--vscode-descriptionForeground);
+      background-color: var(--vscode-sideBar-background);
+    }
+    .skeleton-box {
+      background-color: var(--vscode-sideBarSectionHeader-background);
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .skeleton-box::after {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      transform: translateX(-100%);
+      background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0,
+        rgba(255, 255, 255, 0.05) 20%,
+        rgba(255, 255, 255, 0.1) 60%,
+        rgba(255, 255, 255, 0)
+      );
+      animation: shimmer 2s infinite;
+      content: '';
+    }
+    @keyframes shimmer {
+      100% {
+        transform: translateX(100%);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="skeleton-box" style="width: 60%; height: 24px;"></div>
+  <div class="skeleton-box" style="width: 100%; height: 120px; margin-top: 20px;"></div>
+  <div class="skeleton-box" style="width: 80%; height: 20px; margin-top: 20px;"></div>
+  <div class="skeleton-box" style="width: 90%; height: 20px;"></div>
+</body>
+</html>`;
   }
 
   private setupWebviewMessageListener(webviewView: vscode.WebviewView): void {
@@ -116,6 +164,14 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
 <head>
   <meta charset="UTF-8">
   <style>
+    :root {
+      --brand-primary: #00f3ff;
+      --brand-secondary: #bc13fe;
+      --bg-void: #030712;
+      --text-primary: #f3f4f6;
+      --bg-surface: var(--vscode-sideBar-background, #111827);
+      --text-main: var(--vscode-foreground, #f3f4f6);
+    }
     body {
       font-family: var(--vscode-font-family);
       padding: 20px;
@@ -201,6 +257,14 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    :root {
+      --brand-primary: #00f3ff;
+      --brand-secondary: #bc13fe;
+      --bg-void: #030712;
+      --text-primary: #f3f4f6;
+      --bg-surface: var(--vscode-sideBar-background, #111827);
+      --text-main: var(--vscode-foreground, #f3f4f6);
+    }
     body {
       font-family: var(--vscode-font-family);
       padding: 10px;
@@ -245,6 +309,22 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
     .stat-value {
       font-weight: bold;
       color: var(--vscode-foreground);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #00ff66;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #00ff66;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(0, 255, 102, 0.7); }
+      70% { box-shadow: 0 0 0 6px rgba(0, 255, 102, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 255, 102, 0); }
     }
     .button {
       background: var(--vscode-button-background);
@@ -302,6 +382,10 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
     <div class="stat-item">
       <span class="stat-label">Patterns Learned</span>
       <span class="stat-value">${stats?.learningCount || 0}</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">System Status</span>
+      <span class="stat-value"><div class="pulse-dot"></div> Online</span>
     </div>
     <div class="stat-item">
       <span class="stat-label">Code Edits</span>
