@@ -20,21 +20,22 @@ on:
     branches: [main, develop]
   workflow_dispatch:
     inputs:
-      force_backend:
-        description: 'Force backend tests to run'
-        required: false
-        default: false
+      target_job:
+        description: 'Which job to run? (Select "all" for full pipeline)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'pre-merge-gate-only'
+          - 'backend-core-only'
+          - 'frontend-core-only'
+          - 'performance-e2e-only'
+          - 'deploy-render-only'
+      ignore_dependencies:
+        description: 'Force run selected job even if upstream jobs are skipped? (Not for deploy)'
         type: boolean
-      force_frontend:
-        description: 'Force frontend tests to run'
-        required: false
         default: false
-        type: boolean
-      force_security:
-        description: 'Force security scan to run'
-        required: false
-        default: false
-        type: boolean
 
   schedule:
     - cron: '0 0 * * *'
