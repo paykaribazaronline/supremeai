@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/mobile/lib/main.dart
 
 **প্রকার:** .dart  
-**সাইজ:** 2,368 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.185245
+**সাইজ:** 2,578 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.307779
 
 ---
 
@@ -21,8 +21,7 @@ import 'package:supremeai/screens/login_screen.dart';
 import 'package:supremeai/screens/dashboard/home_screen.dart';
 import 'package:supremeai/services/localization_service.dart';
 import 'package:supremeai/services/notification_service.dart';
-import 'package:supremeai/screens/dashboard_screen.dart';
-
+import 'package:supremeai/screens/dashboard/main_shell.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -51,7 +50,7 @@ class SupremeAIApp extends StatelessWidget {
             theme: AppTheme.light,
             darkTheme: AppTheme.dark,
             themeMode: _getThemeMode(settings.settings.themeMode),
-            home: const DashboardScreen(),
+            home: const AuthWrapper(),
           );
         },
       ),
@@ -74,10 +73,14 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     
-    if (auth.status == AuthStatus.authenticated || auth.status == AuthStatus.guest) {
-      return const HomeScreen();
-    }
-    return const LoginScreen();
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 600),
+      switchInCurve: Curves.easeIn,
+      switchOutCurve: Curves.easeOut,
+      child: (auth.status == AuthStatus.authenticated || auth.status == AuthStatus.guest)
+          ? const MainShell(key: ValueKey('MainShell'))
+          : const LoginScreen(key: ValueKey('LoginScreen')),
+    );
   }
 }
 ```

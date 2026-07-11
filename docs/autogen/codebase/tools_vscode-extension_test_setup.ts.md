@@ -1,8 +1,8 @@
 # 📄 ফাইল: tools/vscode-extension/test/setup.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 792 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.204482
+**সাইজ:** 885 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.317554
 
 ---
 
@@ -39,6 +39,11 @@ vi.mock('vscode', () => ({
     getExtension: vi.fn().mockReturnValue({
       extensionKind: 1,
     }),
+  },
+  EventEmitter: class {
+    event = vi.fn();
+    fire = vi.fn();
+    dispose = vi.fn();
   },
 }));
 

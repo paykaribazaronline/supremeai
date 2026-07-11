@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/internal.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,083 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.051204
+**সাইজ:** 2,099 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.248774
 
 ---
 
@@ -47,7 +47,7 @@ async def run_daily_evolution(request: Request, payload: RunEvolutionRequest):
     task_history = payload.task_history or []
     try:
         report = engine.run_daily_evolution(task_history)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.error(f"EvolutionEngine failed: {exc}")
         raise HTTPException(status_code=500, detail=f"Evolution failed: {exc}") from exc
     try:

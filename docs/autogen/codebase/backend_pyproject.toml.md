@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/pyproject.toml
 
 **প্রকার:** .toml  
-**সাইজ:** 6,957 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.027762
+**সাইজ:** 7,049 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.238303
 
 ---
 
@@ -40,6 +40,7 @@ sentry-sdk = {extras = ["fastapi"], version = "^2.0.0"}
 openai = "^1.35.0"
 supabase = "^2.5.0"
 upstash-redis = "^1.1.0"
+infisical-python = "2.3.5"
 google-cloud-firestore = "^2.16.0"
 google-cloud-pubsub = "^2.27.0"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
@@ -67,12 +68,15 @@ setuptools = "<82.0.0"
 neo4j = "^5.14.0"
 mcp = ">=0.9.1"
 litellm = "^1.40.0"
+slowapi = "^0.1.9"
+pinecone-client = "^5.0.1"
 # বাংলা মন্তব্য: লঞ্চডার্কলি এজেন্টস কন্ট্রোল এবং অবজারভেবিলিটি প্লাগইন ডিপেন্ডেন্সি যুক্ত করা হলো
 launchdarkly-server-sdk = "^9.8.0"
 launchdarkly-server-sdk-ai = "^1.0.0"
 launchdarkly-observability = "^1.0.0"
 redis = ">=5,<9"
 boto3 = "^1.34.0"
+nats-py = "^2.9.0"
 
 [tool.poetry.group.ml.dependencies]
 # ── ML/AI: torch, OCR, whisper, embeddings (~3 GB) ──

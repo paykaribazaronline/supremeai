@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/llm_gateway.py
 
 **প্রকার:** .py  
-**সাইজ:** 16,368 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.042074
+**সাইজ:** 17,982 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.244789
 
 ---
 
@@ -24,6 +24,7 @@ from typing import Any
 
 from loguru import logger
 
+from core.circuit_breaker import CircuitBreaker
 from core.config import settings
 from core.cost_guard import CostGuard
 from core.event_bus import ErrorEvent
@@ -75,6 +76,7 @@ class LLMGateway:
         self.routing_policy = self._load_routing_policy()
         self._setup_litellm_globals()
         self._setup_callbacks()
+        self._circuit_breakers: dict[str, CircuitBreaker] = {}
 
         # বাংলা মন্তব্য: SemanticCache lazy import — cold start এড়াতে
         from core.semantic_cache import SemanticCache
@@ -100,7 +102,7 @@ class LLMGateway:
             if os.path.exists(_POLICY_PATH):
                 with open(_POLICY_PATH, encoding="utf-8") as f:
                     return json.load(f)
-            logger.warning(f"[LLMGateway] Routing policy not found at '{_POLICY_PATH}'. " f"Using default fallback config.")
+            logger.warning(f"[LLMGateway] Routing policy not found at '{_POLICY_PATH}'. Using default fallback config.")
         except Exception as exc:  # noqa: BLE001
             logger.exception(f"[LLMGateway] Error loading routing policy: {exc}")
             error_event_bus.emit(
@@ -140,7 +142,7 @@ class LLMGateway:
                 completion_tokens = getattr(usage, "completion_tokens", 0)
                 cost = response_obj._response_metadata.get("api_cost", 0.0) if hasattr(response_obj, "_response_metadata") else 0.0
                 duration = (end_time - start_time).total_seconds()
-                logger.info(f"[LLMGateway] ✅ Model={model} | Cost=${cost:.6f} | " f"P={prompt_tokens} C={completion_tokens} | {duration:.2f}s")
+                logger.info(f"[LLMGateway] ✅ Model={model} | Cost=${cost:.6f} | P={prompt_tokens} C={completion_tokens} | {duration:.2f}s")
             except Exception as exc:  # noqa: BLE001
                 logger.warning(f"[LLMGateway] Success callback error: {exc}")
 
@@ -151,7 +153,7 @@ class LLMGateway:
                 duration = delta.total_seconds() if hasattr(delta, "total_seconds") else float(delta)
             except Exception:  # noqa: BLE001
                 duration = 0.0
-            logger.error(f"[LLMGateway] ❌ Model={model} failed | " f"Error={str(exception_obj)[:200]} | {duration:.2f}s")
+            logger.error(f"[LLMGateway] ❌ Model={model} failed | Error={str(exception_obj)[:200]} | {duration:.2f}s")
             error_event_bus.emit(
                 ErrorEvent(
                     module="llm_gateway",
@@ -254,6 +256,20 @@ class LLMGateway:
 
         last_exception: Exception | None = None
         for current_model in call_chain:
+            # Circuit Breaker check
+            if current_model not in self._circuit_breakers:
+                # Initialize using settings from config (which defaults to threshold=3, cooldown=60)
+                self._circuit_breakers[current_model] = CircuitBreaker(
+                    name=current_model,
+                    failure_threshold=getattr(settings, "circuit_breaker_failure_threshold", 3),
+                    recovery_timeout=getattr(settings, "circuit_breaker_cooldown_period", 60),
+                )
+
+            cb = self._circuit_breakers[current_model]
+            if not cb.allow_request():
+                logger.warning(f"[LLMGateway] Circuit breaker OPEN for {current_model}. Skipping...")
+                continue
+
             try:
                 logger.info(f"[LLMGateway] Attempting: {current_model}")
                 # বাংলা মন্তব্য: api_key per-call pass — os.environ injection সম্পূর্ণ নিষিদ্ধ
@@ -266,6 +282,7 @@ class LLMGateway:
                     api_key=api_key,
                     **kwargs,
                 )
+                cb.mark_success()
                 return {
                     "success": True,
                     "text": response.choices[0].message.content,
@@ -278,7 +295,8 @@ class LLMGateway:
                 raise
             except Exception as exc:  # noqa: BLE001
                 last_exception = exc
-                logger.warning(f"[LLMGateway] Model {current_model} failed: {str(exc)[:200]}. " f"Trying next in chain...")
+                cb.mark_failure()
+                logger.warning(f"[LLMGateway] Model {current_model} failed: {str(exc)[:200]}. Trying next in chain...")
                 continue
 
         # বাংলা মন্তব্য: সব fallbacks exhausted — self healer trigger এবং error emit
@@ -318,6 +336,19 @@ class LLMGateway:
 
         last_exception: Exception | None = None
         for current_model in call_chain:
+            # Circuit Breaker check
+            if current_model not in self._circuit_breakers:
+                self._circuit_breakers[current_model] = CircuitBreaker(
+                    name=current_model,
+                    failure_threshold=getattr(settings, "circuit_breaker_failure_threshold", 3),
+                    recovery_timeout=getattr(settings, "circuit_breaker_cooldown_period", 60),
+                )
+
+            cb = self._circuit_breakers[current_model]
+            if not cb.allow_request():
+                logger.warning(f"[LLMGateway] Circuit breaker OPEN for {current_model}. Skipping...")
+                continue
+
             try:
                 logger.info(f"[LLMGateway] Streaming attempt: {current_model}")
                 # বাংলা মন্তব্য: api_key per-call — os.environ injection নিষিদ্ধ
@@ -329,6 +360,7 @@ class LLMGateway:
                     stream=True,
                     api_key=api_key,
                 )
+                cb.mark_success()
                 async for chunk in response_stream:
                     content = chunk.choices[0].delta.content
                     if content:
@@ -340,6 +372,7 @@ class LLMGateway:
                 raise
             except Exception as exc:  # noqa: BLE001
                 last_exception = exc
+                cb.mark_failure()
                 logger.warning(f"[LLMGateway] Stream model {current_model} failed: {str(exc)[:200]}")
                 continue
 

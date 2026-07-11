@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/github.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,859 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.057280
+**সাইজ:** 3,939 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.251382
 
 ---
 
@@ -81,7 +81,7 @@ async def connect_repo(payload: ConnectRequest, db=Depends(get_tenant_db)):
             "status": "success",
             "message": f"Connected to {payload.repo_owner}/{payload.repo_name}",
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
@@ -93,7 +93,7 @@ async def improve_repo(payload: ImproveRequest, db=Depends(get_tenant_db)):
         return {"status": "success", "analysis": analysis}
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
@@ -106,7 +106,7 @@ async def push_improvements(payload: PushRequest, db=Depends(get_tenant_db)):
         return res
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
@@ -115,7 +115,7 @@ async def discover_repos(payload: DiscoverRequest):
     try:
         repos = repo_discovery_agent.discover_repos(payload.requirement, payload.tech_stack, payload.criteria)
         return {"status": "success", "repos": repos}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
@@ -124,7 +124,7 @@ async def implement_repo(payload: ImplementRequest):
     try:
         res = repo_discovery_agent.implement_repo(payload.repo_url, payload.integration_method, payload.target_project)
         return res
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 ```

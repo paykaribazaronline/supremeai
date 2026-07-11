@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/dashboard/AutomationQueuePage.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 10,431 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.132870
+**সাইজ:** 10,423 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.283236
 
 ---
 
@@ -12,7 +12,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Trash2, Loader2, ListChecks, AlertOctagon, Terminal, Clock } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
-import { setSujonState } from '../LiveSujonBackground';
+import { setSujonState } from '../sujon-utils';
 
 interface AutomationTask {
   id: string;

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_resource_catalog.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,915 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.073007
+**সাইজ:** 2,913 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.257730
 
 ---
 
@@ -101,7 +101,7 @@ async def test_enabled_catalog_sources_from_db(monkeypatch):
     monkeypatch.setattr(
         marketplace_endpoints.db,
         "get_config",
-        lambda key: (["awesome-python", "libraries.io"] if key == "marketplace.resource_sources" else None),
+        lambda key: ["awesome-python", "libraries.io"] if key == "marketplace.resource_sources" else None,
     )
 
     sources = marketplace_endpoints.get_enabled_catalog_sources()

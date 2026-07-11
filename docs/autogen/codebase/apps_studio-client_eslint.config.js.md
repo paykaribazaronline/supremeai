@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/eslint.config.js
 
 **প্রকার:** .js  
-**সাইজ:** 898 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.124251
+**সাইজ:** 1,128 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.278757
 
 ---
 
@@ -14,30 +14,34 @@ import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
-import { defineConfig, globalIgnores } from 'eslint/config'
 
-export default defineConfig([
-  globalIgnores(['dist']),
+
+export default tseslint.config(
+  { ignores: ['dist'] },
   {
-    files: ['**/*.{ts,tsx}'],
     extends: [
       js.configs.recommended,
-      tseslint.configs.recommended,
-      reactHooks.configs.flat.recommended,
-      reactRefresh.configs.vite,
+      ...tseslint.configs.recommended,
     ],
+    files: ['**/*.{ts,tsx}'],
     languageOptions: {
+      ecmaVersion: 2020,
       globals: globals.browser,
     },
+    plugins: {
+      'react-hooks': reactHooks,
+      'react-refresh': reactRefresh,
+    },
     rules: {
+      ...reactHooks.configs.recommended.rules,
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true, allowExportNames: ['useTheme', 'useToast', 'useI18n', 'useThemeSync', 'useSwarmStream', 'setSujonState', 'useSujonState', 'SUJON_STATE_EVENT', 'SujonState', 'Theme', 'THEME_ORDER', 'ToastType', 'Toast', 'globalShowToastRef'] },
+      ],
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
-      'react-refresh/only-export-components': 'off',
-      'react-hooks/exhaustive-deps': 'off',
       'react-hooks/set-state-in-effect': 'off',
-      'react-hooks/immutability': 'off',
     },
   },
-])
-
+)
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: tools/vscode-extension/src/providers/SupremeAISidebarProvider.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 12,393 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.200586
+**সাইজ:** 16,398 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.315270
 
 ---
 
@@ -14,17 +14,34 @@
  */
 
 import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs';
 import { getSupremeAIService } from '../services/SupremeAIService';
 import { AuthService } from '../services/AuthService';
 
 export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
   private webview: vscode.WebviewView | null = null;
   private updateTimer: NodeJS.Timeout | null = null;
+  private globalCss: string = '';
 
   constructor(
     private readonly _extensionUri: vscode.Uri,
     private readonly _viewId: string
-  ) {}
+  ) {
+    this.loadGlobalCss();
+  }
+
+  private loadGlobalCss() {
+    try {
+      // Load the generated CSS tokens from the design-tokens package
+      const cssPath = path.join(this._extensionUri.fsPath, '..', 'packages', 'design-tokens', 'outputs', 'tokens-vscode.css');
+      if (fs.existsSync(cssPath)) {
+        this.globalCss = fs.readFileSync(cssPath, 'utf8');
+      }
+    } catch (e) {
+      console.error('Failed to load global CSS for webview', e);
+    }
+  }
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -48,7 +65,56 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
   }
 
   private getLoadingHTML(): string {
-    return '<!DOCTYPE html><html><body style="display:flex;justify-content:center;align-items:center;height:100vh;color:var(--vscode-descriptionForeground);font-family:sans-serif;"><div>🚀 Loading SupremeAI...</div></body></html>';
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    ${this.globalCss}
+    body {
+      font-family: var(--supremeai-font-family-body, var(--vscode-font-family));
+      padding: 20px;
+      color: var(--supremeai-color-text-primary-dark, var(--vscode-descriptionForeground));
+      background-color: var(--supremeai-color-bg-void-dark, var(--vscode-sideBar-background));
+    }
+    .skeleton-box {
+      background-color: var(--vscode-sideBarSectionHeader-background);
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .skeleton-box::after {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      transform: translateX(-100%);
+      background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0,
+        rgba(255, 255, 255, 0.05) 20%,
+        rgba(255, 255, 255, 0.1) 60%,
+        rgba(255, 255, 255, 0)
+      );
+      animation: shimmer 2s infinite;
+      content: '';
+    }
+    @keyframes shimmer {
+      100% {
+        transform: translateX(100%);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="skeleton-box" style="width: 60%; height: 24px;"></div>
+  <div class="skeleton-box" style="width: 100%; height: 120px; margin-top: 20px;"></div>
+  <div class="skeleton-box" style="width: 80%; height: 20px; margin-top: 20px;"></div>
+  <div class="skeleton-box" style="width: 90%; height: 20px;"></div>
+</body>
+</html>`;
   }
 
   private setupWebviewMessageListener(webviewView: vscode.WebviewView): void {
@@ -127,11 +193,12 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
 <head>
   <meta charset="UTF-8">
   <style>
+    ${this.globalCss}
     body {
-      font-family: var(--vscode-font-family);
+      font-family: var(--supremeai-font-family-body, var(--vscode-font-family));
       padding: 20px;
-      color: var(--vscode-foreground);
-      background-color: var(--vscode-sideBar-background);
+      color: var(--supremeai-color-text-primary-dark, var(--vscode-foreground));
+      background-color: var(--supremeai-color-bg-void-dark, var(--vscode-sideBar-background));
       text-align: center;
       display: flex;
       flex-direction: column;
@@ -155,19 +222,23 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
       line-height: 1.5;
     }
     .btn {
-      background: var(--vscode-button-background);
-      color: var(--vscode-button-foreground);
-      border: none;
+      background: linear-gradient(135deg, color-mix(in srgb, var(--supremeai-color-brand-primary-dark) 15%, transparent), color-mix(in srgb, var(--supremeai-color-brand-secondary-dark) 15%, transparent));
+      border: 1px solid var(--supremeai-color-brand-primary-dark);
+      color: var(--supremeai-color-text-primary-dark);
       padding: 10px 20px;
-      border-radius: 4px;
+      border-radius: var(--supremeai-radius-md);
       cursor: pointer;
       font-size: 14px;
       font-weight: bold;
       width: 100%;
       max-width: 200px;
+      transition: all var(--supremeai-motion-duration-fast) var(--supremeai-motion-easing-bounce);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--supremeai-color-brand-primary-dark) 20%, transparent);
     }
     .btn:hover {
-      background: var(--vscode-button-hoverBackground);
+      background: linear-gradient(135deg, color-mix(in srgb, var(--supremeai-color-brand-primary-dark) 30%, transparent), color-mix(in srgb, var(--supremeai-color-brand-secondary-dark) 30%, transparent));
+      box-shadow: 0 0 20px color-mix(in srgb, var(--supremeai-color-brand-primary-dark) 50%, transparent);
+      transform: translateY(-2px);
     }
   </style>
 </head>
@@ -212,11 +283,12 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    ${this.globalCss}
     body {
-      font-family: var(--vscode-font-family);
-      padding: 10px;
-      color: var(--vscode-foreground);
-      background-color: var(--vscode-sideBar-background);
+      font-family: var(--supremeai-font-family-body, var(--vscode-font-family));
+      padding: 16px;
+      color: var(--supremeai-color-text-primary-dark, var(--vscode-foreground));
+      background-color: var(--supremeai-color-bg-void-dark, var(--vscode-sideBar-background));
     }
     .header {
       display: flex;
@@ -256,20 +328,40 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
     .stat-value {
       font-weight: bold;
       color: var(--vscode-foreground);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--supremeai-color-brand-success-dark);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--supremeai-color-brand-success-dark);
+      animation: pulse 2s infinite var(--supremeai-motion-easing-smooth);
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--supremeai-color-brand-success-dark) 70%, transparent); }
+      70% { box-shadow: 0 0 0 6px rgba(0, 255, 102, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 255, 102, 0); }
     }
     .button {
-      background: var(--vscode-button-background);
-      color: var(--vscode-button-foreground);
-      border: none;
+      background: color-mix(in srgb, var(--supremeai-color-bg-elevated-dark) 100%, transparent);
+      color: var(--supremeai-color-text-secondary-dark);
+      border: 1px solid var(--supremeai-color-border-accent-dark);
       padding: 8px 12px;
-      border-radius: 4px;
+      border-radius: var(--supremeai-radius-md);
       cursor: pointer;
       width: 100%;
       margin: 4px 0;
       font-size: 13px;
+      transition: all var(--supremeai-motion-duration-fast) var(--supremeai-motion-easing-bounce);
     }
     .button:hover {
-      background: var(--vscode-button-hoverBackground);
+      border-color: var(--supremeai-color-brand-primary-dark);
+      background: color-mix(in srgb, var(--supremeai-color-brand-primary-dark) 8%, transparent);
+      color: var(--supremeai-color-text-primary-dark);
+      transform: translateY(-1px);
     }
     .status {
       display: inline-block;
@@ -313,6 +405,10 @@ export class SupremeAISidebarProvider implements vscode.WebviewViewProvider {
     <div class="stat-item">
       <span class="stat-label">Patterns Learned</span>
       <span class="stat-value">${stats?.learningCount || 0}</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">System Status</span>
+      <span class="stat-value"><div class="pulse-dot"></div> Online</span>
     </div>
     <div class="stat-item">
       <span class="stat-label">Code Edits</span>

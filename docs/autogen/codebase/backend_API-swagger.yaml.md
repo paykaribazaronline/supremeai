@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/API-swagger.yaml
 
 **প্রকার:** .yaml  
-**সাইজ:** 236,098 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.028492
+**সাইজ:** 242,585 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.238630
 
 ---
 
@@ -4155,6 +4155,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /preferences/{user_id}/stream:
+    get:
+      tags:
+      - preferences
+      summary: Stream Preferences
+      description: SSE endpoint to listen for real-time theme and preference updates
+        for a specific user.
+      operationId: stream_preferences_preferences__user_id__stream_get
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /metrics/usage/:
     get:
       tags:
@@ -4420,6 +4447,189 @@ paths:
           content:
             application/json:
               schema: {}
+  /api/health/agents:
+    post:
+      summary: Get Agents Health
+      operationId: get_agents_health_api_health_agents_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HealthRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/evolution/logs:
+    get:
+      tags:
+      - self-evolution-engine
+      summary: Get Evolution Logs
+      operationId: get_evolution_logs_api_evolution_logs_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /api/evolution/forge:
+    post:
+      tags:
+      - self-evolution-engine
+      summary: Forge Dynamic Skill
+      description: On-the-fly AI Skill Generation and Sandbox Deployed Gate.
+      operationId: forge_dynamic_skill_api_evolution_forge_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvolutionRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/evolution/swarm-graph:
+    get:
+      tags:
+      - self-evolution-engine
+      summary: Get Swarm Graph
+      operationId: get_swarm_graph_api_evolution_swarm_graph_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/evolution/quarantine:
+    post:
+      tags:
+      - self-evolution-engine
+      summary: Quarantine Skill
+      operationId: quarantine_skill_api_evolution_quarantine_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: metrics_path
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Metrics Path
+      - name: registry_path
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Registry Path
+      - name: skills_dir
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Skills Dir
+      - name: deprecated_dir
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Deprecated Dir
+      - name: db
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - {}
+          - type: 'null'
+          title: Db
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuarantineRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/evolution/proposals:
+    get:
+      tags:
+      - self-evolution-engine
+      summary: List Proposals
+      description: List all pending AI code proposals for admin review.
+      operationId: list_proposals_api_evolution_proposals_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /api/evolution/proposals/{proposal_id}/approve:
+    post:
+      tags:
+      - self-evolution-engine
+      summary: Approve Proposal
+      description: Manually approve a proposal after security review.
+      operationId: approve_proposal_api_evolution_proposals__proposal_id__approve_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: proposal_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Proposal Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/api-keys/create:
     post:
       tags:
@@ -7107,6 +7317,19 @@ components:
       required:
       - medications
       title: DrugInteractionRequest
+    EvolutionRequest:
+      properties:
+        skill_name:
+          type: string
+          title: Skill Name
+        user_demand:
+          type: string
+          title: User Demand
+      type: object
+      required:
+      - skill_name
+      - user_demand
+      title: EvolutionRequest
     FeedbackEvent:
       properties:
         event_type:
@@ -7203,6 +7426,17 @@ components:
           title: Detail
       type: object
       title: HTTPValidationError
+    HealthRequest:
+      properties:
+        agent_ids:
+          items:
+            type: string
+          type: array
+          title: Agent Ids
+      type: object
+      required:
+      - agent_ids
+      title: HealthRequest
     ImapAuthRequest:
       properties:
         host:
@@ -7752,6 +7986,17 @@ components:
       required:
       - files_changed
       title: PushRequest
+    QuarantineRequest:
+      properties:
+        skill_name:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Skill Name
+      type: object
+      required:
+      - skill_name
+      title: QuarantineRequest
     RepoCreate:
       properties:
         id:

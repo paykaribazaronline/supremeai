@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/dashboard/HealingLogPanel.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 8,221 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.133669
+**সাইজ:** 8,277 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.283622
 
 ---
 
@@ -12,7 +12,7 @@
 import { useState, useEffect } from 'react';
 import { Activity, ShieldAlert, CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
-import { useToast } from '../../contexts/ToastContext';
+import { useToast } from '../../contexts/useToast';
 interface HealingEvent {
   id: string;
   ts: string;
@@ -38,6 +38,7 @@ export function HealingLogPanel() {
         showToast('error', 'Failed to load healing events');
       })
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDecision = async (id: string, approve: boolean) => {

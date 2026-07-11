@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/upload_validator.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,358 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.044964
+**সাইজ:** 2,360 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.245973
 
 ---
 
@@ -62,7 +62,7 @@ async def validate_upload(file: object) -> None:
     if len(body) > MAX_UPLOAD_BYTES:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"Upload exceeds maximum allowed size of {MAX_UPLOAD_BYTES // (1024*1024)}MB.",
+            detail=f"Upload exceeds maximum allowed size of {MAX_UPLOAD_BYTES // (1024 * 1024)}MB.",
         )
     await file_obj.seek(0)
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/mobile/lib/providers/settings_provider.dart
 
 **প্রকার:** .dart  
-**সাইজ:** 5,916 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.189403
+**সাইজ:** 6,865 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.309782
 
 ---
 
@@ -210,6 +210,34 @@ class SettingsProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> listenToThemeSyncStream(String userId) async {
+    final client = http.Client();
+    final url = '$_baseUrl/api/preferences/$userId/stream';
+    try {
+      final request = http.Request('GET', Uri.parse(url));
+      final response = await client.send(request);
+      
+      response.stream.transform(utf8.decoder).transform(const LineSplitter()).listen((line) {
+        if (line.startsWith('data: ')) {
+          final dataString = line.substring(6);
+          try {
+            final data = json.decode(dataString);
+            if (data['event'] == 'theme_changed' && data['theme'] != null) {
+              _settings = _settings.copyWith(themeMode: data['theme']);
+              notifyListeners();
+            }
+          } catch (_) {
+            // ignore JSON parse errors from heartbeat pings
+          }
+        }
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Theme Sync SSE error: $e');
+      }
     }
   }
 }

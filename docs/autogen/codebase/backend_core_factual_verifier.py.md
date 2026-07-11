@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/factual_verifier.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,525 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.043221
+**সাইজ:** 7,576 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.245318
 
 ---
 
@@ -73,8 +73,8 @@ class FactualVerifier:
             from tools.local_search_rag import LocalSearchRAG
 
             self.local_rag = LocalSearchRAG()
-        except ImportError:
-            _logger.warning("LocalSearchRAG not available, RAG-based verification disabled")
+        except (ImportError, RuntimeError) as e:
+            _logger.warning(f"LocalSearchRAG not available or failed to initialize, RAG-based verification disabled: {e}")
             self.local_rag = None
 
     def verify_with_local_rag(self, claim: str) -> dict:

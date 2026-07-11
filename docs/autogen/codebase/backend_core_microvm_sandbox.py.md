@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/microvm_sandbox.py
 
 **প্রকার:** .py  
-**সাইজ:** 18,325 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.042286
+**সাইজ:** 18,309 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.244911
 
 ---
 
@@ -83,7 +83,7 @@ def _validate_sandbox_root(path_str: str) -> Path:
 def _validate_vm_id(vm_id: str) -> str:
     """বাংলা মন্তব্য: vm_id pattern validation — path injection prevent।"""
     if not _VM_ID_PATTERN.match(vm_id):
-        raise ValueError(f"Invalid vm_id '{vm_id}'. " f"Only alphanumeric, hyphen, underscore allowed (max 64 chars).")
+        raise ValueError(f"Invalid vm_id '{vm_id}'. Only alphanumeric, hyphen, underscore allowed (max 64 chars).")
     return vm_id
 
 
@@ -96,7 +96,7 @@ def _safe_vm_path(sandbox_root: Path, vm_id: str) -> Path:
     vm_path = (sandbox_root / vm_id).resolve()
     sandbox_root_str = str(sandbox_root)
     if not str(vm_path).startswith(sandbox_root_str):
-        raise ValueError(f"Path traversal detected! vm_id '{vm_id}' resolves to '{vm_path}' " f"which is outside sandbox root '{sandbox_root_str}'.")
+        raise ValueError(f"Path traversal detected! vm_id '{vm_id}' resolves to '{vm_path}' which is outside sandbox root '{sandbox_root_str}'.")
     return vm_path
 
 
@@ -125,7 +125,7 @@ class MicroVMSandbox:
         self.auto_destroy = True
         self.allow_fallback = settings.allow_sandbox_fallback
 
-        logger.info(f"[MicroVMSandbox] Initialized. " f"sandbox_root={self.sandbox_root} | " f"allow_fallback={self.allow_fallback}")
+        logger.info(f"[MicroVMSandbox] Initialized. sandbox_root={self.sandbox_root} | allow_fallback={self.allow_fallback}")
 
     @classmethod
     def _generate_vm_id(cls) -> str:

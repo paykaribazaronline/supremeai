@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/CICDVisualizer.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 12,157 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.142690
+**সাইজ:** 12,217 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.287815
 
 ---
 
@@ -41,6 +41,7 @@ export function CICDVisualizer() {
 
   useEffect(() => {
     fetchGateStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleFlag = (id: string) => {

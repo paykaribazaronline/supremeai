@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/web-chat/script.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 4,975 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.178754
+**সাইজ:** 10,897 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.304811
 
 ---
 
@@ -10,141 +10,264 @@
 
 ```ts
 import DOMPurify from 'dompurify';
+import { AppConfig } from './env';
+import { errorBus } from './error-bus';
 
-// WebSocket Setup
+// --- Type Definitions ---
+interface WsPayload {
+    text: string;
+    image_base64?: string;
+}
+
+// --- Global State ---
 const abortController = new AbortController();
-window.addEventListener("unload", () => abortController.abort());
-
-const isProd = window.location.hostname !== '127.0.0.1' && window.location.hostname !== 'localhost';
-const PROTOCOL = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-const HOST = isProd ? window.location.host : '127.0.0.1:8000';
-const WS_URL = `${PROTOCOL}${HOST}/ws/chat`;
-
 let ws: WebSocket | null = null;
 let isGenerating = false;
 let currentImageBase64: string | null = null;
+let reconnectAttempts = 0;
+let reconnectTimeoutId: number | undefined;
 
-// DOM Elements
-const chatHistory = document.getElementById('chatHistory') as HTMLDivElement;
-const chatInput = document.getElementById('chatInput') as HTMLInputElement;
-const btnSend = document.getElementById('btnSend') as HTMLButtonElement;
+// --- Cleanup on Unload ---
+window.addEventListener("unload", () => cleanup("Window unloading"), { once: true });
 
-const imageUpload = document.getElementById('imageUpload') as HTMLInputElement;
-const btnAttach = document.getElementById('btnAttach') as HTMLButtonElement;
-const imagePreviewContainer = document.getElementById('imagePreviewContainer') as HTMLDivElement;
-const imagePreview = document.getElementById('imagePreview') as HTMLImageElement;
-const btnRemoveImage = document.getElementById('btnRemoveImage') as HTMLButtonElement;
+// --- DOM Elements ---
+// Strict non-null assertions or runtime checks are mandatory
+const chatHistory = document.getElementById('chatHistory') as HTMLDivElement | null;
+const chatInput = document.getElementById('chatInput') as HTMLInputElement | null;
+const btnSend = document.getElementById('btnSend') as HTMLButtonElement | null;
+const imageUpload = document.getElementById('imageUpload') as HTMLInputElement | null;
+const btnAttach = document.getElementById('btnAttach') as HTMLButtonElement | null;
+const imagePreviewContainer = document.getElementById('imagePreviewContainer') as HTMLDivElement | null;
+const imagePreview = document.getElementById('imagePreview') as HTMLImageElement | null;
+const btnRemoveImage = document.getElementById('btnRemoveImage') as HTMLButtonElement | null;
+const btnLaunchWorkspace = document.getElementById('btnLaunchWorkspace') as HTMLButtonElement | null;
 
-// Attachment Logic
-if (btnAttach) btnAttach.addEventListener('click', () => imageUpload?.click());
+// --- Initialization Check ---
+// বাংলা মন্তব্য: return type যুক্ত করা হয়েছে (void) - ESLint explicit-function-return-type fix
+function validateDOM(): void {
+    if (!chatHistory || !chatInput || !btnSend) {
+        const error = new Error("Critical DOM elements missing (chatHistory, chatInput, or btnSend)");
+        errorBus.report(error, { sourceModule: "script.ts", action: "DOM Initialization" }, "critical");
+        throw error; // Fail fast
+    }
+}
+validateDOM();
 
-if (imageUpload) {
-    imageUpload.addEventListener('change', function(e: any) {
-        const file = e.target.files[0];
+// --- Event Listeners with Strict Cleanup ---
+if (btnAttach && imageUpload) {
+    btnAttach.addEventListener('click', () => imageUpload.click(), { signal: abortController.signal });
+    
+    // Strict typing for file input event
+    imageUpload.addEventListener('change', (e: Event) => {
+        const target = e.target as HTMLInputElement;
+        const file = target.files?.[0];
         if (!file) return;
 
+        // Path Traversal Mitigation: Only accept image types (though FileReader handles it locally)
+        if (!file.type.startsWith('image/')) {
+            errorBus.report(new Error(`Invalid file type attempted: ${file.type}`), { sourceModule: "script.ts", action: "File Selection" }, "warning");
+            alert("Only image files are allowed.");
+            target.value = ''; // Reset
+            return;
+        }
+
         const reader = new FileReader();
-        reader.onload = function(event: any) {
-            currentImageBase64 = event.target.result;
-            if (imagePreview) imagePreview.src = currentImageBase64 || '';
-            if (imagePreviewContainer) imagePreviewContainer.style.display = 'block';
+        reader.onload = (event: ProgressEvent<FileReader>) => {
+            if (typeof event.target?.result === 'string') {
+                currentImageBase64 = event.target.result;
+                if (imagePreview) imagePreview.src = currentImageBase64;
+                if (imagePreviewContainer) imagePreviewContainer.style.display = 'block';
+            }
+        };
+        reader.onerror = (_error) => {
+            errorBus.report(new Error("File reading failed"), { sourceModule: "script.ts", action: "File Reader" }, "error");
         };
         reader.readAsDataURL(file);
-    });
+    }, { signal: abortController.signal });
 }
 
-if (btnRemoveImage) btnRemoveImage.addEventListener('click', clearImageAttachment, { signal: abortController.signal });
+if (btnRemoveImage) {
+    btnRemoveImage.addEventListener('click', clearImageAttachment, { signal: abortController.signal });
+}
 
-function clearImageAttachment() {
+if (btnSend) {
+    btnSend.addEventListener('click', handleSend, { signal: abortController.signal });
+}
+
+if (chatInput) {
+    chatInput.addEventListener('keypress', (e: KeyboardEvent) => {
+        if (e.key === 'Enter') handleSend();
+    }, { signal: abortController.signal });
+}
+
+if (btnLaunchWorkspace) {
+    btnLaunchWorkspace.addEventListener('click', () => {
+        document.body.setAttribute('data-auth', 'logged-in');
+        // Initialize WebSocket connection when entering workspace
+        connectWebSocket();
+    }, { signal: abortController.signal });
+}
+
+// --- Functions ---
+// বাংলা মন্তব্য: return type যুক্ত করা হয়েছে (void) - ESLint explicit-function-return-type fix
+function clearImageAttachment(): void {
     currentImageBase64 = null;
     if (imageUpload) imageUpload.value = '';
     if (imagePreviewContainer) imagePreviewContainer.style.display = 'none';
     if (imagePreview) imagePreview.src = '';
 }
 
-function connectWebSocket() {
-    // Append JWT token as query param for WebSocket auth
-    const token = localStorage.getItem('jwt_token');
-    const urlWithAuth = token ? `${WS_URL}?token=${token}` : WS_URL;
-    ws = new WebSocket(urlWithAuth);
-
-    ws.onopen = () => {
-        console.log('🟢 [WS] Connected to Neural Engine');
-        addMessage('assistant', 'সিস্টেম কানেক্টেড! আমি SupremeAI এজেন্ট, কীভাবে সাহায্য করতে পারি?');
-    };
-
-    ws.onmessage = (event) => {
-        const data = event.data;
-        if (data === '[DONE]') {
-            isGenerating = false;
-            return;
-        }
-
-        const lastMessage = chatHistory?.lastElementChild;
-        if (lastMessage && lastMessage.classList.contains('msg-assistant')) {
-            lastMessage.innerHTML += DOMPurify.sanitize(data);
-        } else {
-            addMessage('assistant', data);
-        }
-        if (chatHistory) chatHistory.scrollTop = chatHistory.scrollHeight;
-    };
-
-    ws.onclose = () => {
-        console.log('🔴 [WS] Disconnected. Reconnecting in 3s...');
-        setTimeout(connectWebSocket, 3000);
-    };
+// বাংলা মন্তব্য: return type যুক্ত করা হয়েছে (number) - ESLint explicit-function-return-type fix
+function calculateBackoff(): number {
+    const delay = AppConfig.ws.initialReconnectDelayMs * Math.pow(2, reconnectAttempts);
+    return Math.min(delay, AppConfig.ws.maxReconnectDelayMs);
 }
 
-function addMessage(role: string, text: string) {
+// বাংলা মন্তব্য: return type যুক্ত করা হয়েছে (void) - ESLint explicit-function-return-type fix
+function connectWebSocket(): void {
+    // If we're already connecting or open, do nothing
+    if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) {
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem(AppConfig.jwtStorageKey);
+        // Using URL object for safe query param construction (prevents injection)
+        const urlObj = new URL(AppConfig.wsUrl);
+        if (token) {
+            urlObj.searchParams.append("token", token);
+        }
+        
+        ws = new WebSocket(urlObj.toString());
+        
+        ws.onopen = () => {
+            console.info('🟢 [WS] Connected to Neural Engine');
+            reconnectAttempts = 0; // Reset counter on successful connection
+            addMessage('assistant', 'সিস্টেম কানেক্টেড! আমি SupremeAI এজেন্ট, কীভাবে সাহায্য করতে পারি?');
+        };
+
+        ws.onmessage = (event: MessageEvent<string>) => {
+            const data = event.data;
+            if (data === '[DONE]') {
+                isGenerating = false;
+                return;
+            }
+
+            const lastMessage = chatHistory?.lastElementChild;
+            if (lastMessage && lastMessage.classList.contains('msg-assistant')) {
+                // We use innerHTML but strictly sanitize it first using DOMPurify
+                lastMessage.innerHTML += DOMPurify.sanitize(data);
+            } else {
+                addMessage('assistant', data);
+            }
+            if (chatHistory) chatHistory.scrollTop = chatHistory.scrollHeight;
+        };
+
+        ws.onclose = (event: CloseEvent) => {
+            ws = null;
+            if (abortController.signal.aborted) {
+                console.info('⚪ [WS] Closed gracefully due to app unmount.');
+                return;
+            }
+            
+            if (reconnectAttempts >= AppConfig.ws.maxReconnectAttempts) {
+                errorBus.report(
+                    new Error(`WebSocket failed to reconnect after ${AppConfig.ws.maxReconnectAttempts} attempts.`),
+                    { sourceModule: "script.ts", action: "WS Reconnection" },
+                    "critical"
+                );
+                addMessage('assistant', '⚠️ সার্ভারের সাথে সংযোগ বিচ্ছিন্ন। দয়া করে পেজটি রিলোড করুন।');
+                return;
+            }
+
+            const delay = calculateBackoff();
+            console.warn(`🔴 [WS] Disconnected (Code: ${event.code}). Reconnecting in ${delay}ms... (Attempt ${reconnectAttempts + 1})`);
+            
+            clearTimeout(reconnectTimeoutId);
+            reconnectTimeoutId = window.setTimeout(() => {
+                reconnectAttempts++;
+                connectWebSocket();
+            }, delay);
+        };
+
+        ws.onerror = (event: Event) => {
+            // Log WS errors to the event bus
+            errorBus.report(
+                new Error("WebSocket encountered an error."),
+                { sourceModule: "script.ts", action: "WS Communication", rawEvent: event },
+                "warning"
+            );
+        };
+
+    } catch (error: unknown) {
+        errorBus.report(error, { sourceModule: "script.ts", action: "WS Initialization" }, "error");
+    }
+}
+
+// বাংলা মন্তব্য: return type যুক্ত করা হয়েছে (void) - ESLint explicit-function-return-type fix
+function addMessage(role: "user" | "assistant", text: string): void {
     if (!chatHistory) return;
     const div = document.createElement('div');
+    // We use predefined CSS classes for styling (removed inline styles)
     div.className = `msg msg-${role}`;
     div.innerHTML = DOMPurify.sanitize(text);
-    
-    div.style.padding = '10px 14px';
-    div.style.borderRadius = '12px';
-    div.style.marginBottom = '8px';
-    div.style.maxWidth = '80%';
-    div.style.color = 'white';
-    div.style.alignSelf = role === 'user' ? 'flex-end' : 'flex-start';
-    div.style.background = role === 'user' ? '#3B82F6' : '#1F2937';
     
     chatHistory.appendChild(div);
     chatHistory.scrollTop = chatHistory.scrollHeight;
 }
 
-function handleSend() {
-    const text = chatInput ? chatInput.value.trim() : '';
+// বাংলা মন্তব্য: return type যুক্ত করা হয়েছে (void) - ESLint explicit-function-return-type fix
+function handleSend(): void {
+    if (!chatInput) return;
+    const text = chatInput.value.trim();
     
-    if ((!text && !currentImageBase64) || isGenerating || !ws || ws.readyState !== WebSocket.OPEN) return;
+    if ((!text && !currentImageBase64) || isGenerating || !ws || ws.readyState !== WebSocket.OPEN) {
+        return;
+    }
 
     const displayMessage = text ? text : '[📸 Image Attached]';
     addMessage('user', displayMessage);
-    if (chatInput) chatInput.value = '';
+    chatInput.value = '';
     isGenerating = true;
 
-    const payload: any = { text: text };
+    // Strictly typed payload
+    const payload: WsPayload = { text };
     if (currentImageBase64) {
         payload.image_base64 = currentImageBase64;
     }
 
-    ws.send(JSON.stringify(payload));
-    addMessage('assistant', ''); 
+    try {
+        ws.send(JSON.stringify(payload));
+        addMessage('assistant', ''); // Placeholder for streaming response
+    } catch (error: unknown) {
+        isGenerating = false;
+        errorBus.report(error, { sourceModule: "script.ts", action: "Sending WS Message" }, "error");
+        addMessage('assistant', '⚠️ মেসেজ পাঠাতে সমস্যা হয়েছে।');
+    }
+    
     clearImageAttachment();
 }
 
-if (btnSend) btnSend.addEventListener('click', handleSend, { signal: abortController.signal });
-if (chatInput) {
-    chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') handleSend();
-    });
+/**
+ * Encapsulated Execution Guards (Anti-Leak Rules)
+ * Ensures everything is cleaned up if the module unloads
+ */
+// বাংলা মন্তব্য: return type যুক্ত করা হয়েছে (void) - ESLint explicit-function-return-type fix
+function cleanup(reason: string): void {
+    console.info(`🧹 Executing strict cleanup. Reason: ${reason}`);
+    abortController.abort(); // Unbinds all DOM event listeners
+    clearTimeout(reconnectTimeoutId);
+    if (ws) {
+        // 1000 = Normal Closure
+        ws.close(1000, "Client unmounting");
+        ws = null;
+    }
 }
 
+// Initial setup
 if (chatHistory) {
     chatHistory.style.display = 'flex';
     chatHistory.style.flexDirection = 'column';
 }
-
 connectWebSocket();
-
 ```

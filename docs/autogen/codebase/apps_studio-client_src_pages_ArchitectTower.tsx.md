@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/pages/ArchitectTower.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 4,765 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.145652
+**সাইজ:** 4,925 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.289238
 
 ---
 
@@ -41,7 +41,17 @@ export const ArchitectTower: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchFixes();
+    let isMounted = true;
+    
+    const loadFixes = async () => {
+      await fetchFixes();
+    };
+    
+    loadFixes();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (

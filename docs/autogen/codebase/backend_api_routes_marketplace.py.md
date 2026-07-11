@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/marketplace.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,044 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.050444
+**সাইজ:** 5,076 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.248474
 
 ---
 
@@ -141,7 +141,7 @@ def search_skills(req: SearchRequest) -> list[dict[str, Any]]:
             sql += " AND installed = 1"
         rows = conn.execute(sql, params).fetchall()
         return [_row_to_skill(r) for r in rows]
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.error(f"Marketplace search failed: {exc}")
         raise HTTPException(status_code=500, detail=str(exc)) from exc
     finally:
@@ -179,7 +179,7 @@ async def install_skill(req: InstallRequest) -> dict[str, Any]:
         }
     except HTTPException:
         raise
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.error(f"Skill install failed: {exc}")
         raise HTTPException(status_code=500, detail=str(exc)) from exc
     finally:

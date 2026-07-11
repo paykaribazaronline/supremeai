@@ -1,8 +1,8 @@
 # 📄 ফাইল: scripts/generate_openapi.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,279 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.002908
+**সাইজ:** 1,681 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.164928
 
 ---
 
@@ -35,6 +35,12 @@ if "ENCRYPTION_KEY" not in os.environ:
         import os as _os
         os.environ["ENCRYPTION_KEY"] = base64.urlsafe_b64encode(_os.urandom(32)).decode("utf-8")
 
+os.environ.setdefault("DOCS_PASSWORD", "dummy")
+os.environ.setdefault("SUPREMEAI_ADMIN_PASSWORD_HASH", "$2b$12$dummyhashdummyhashdummyhashdummyhashdummyhashdummyha")
+os.environ.setdefault("SUPREMEAI_JWT_SECRET", "dummy_jwt_secret_for_openapi_generation_that_is_at_least_64_bytes_long_so_it_passes_validation")
+os.environ.setdefault("OPENROUTER_API_KEY", "dummy")
+
+
 try:
     from main import app
 except ImportError as e:
@@ -44,7 +50,7 @@ except ImportError as e:
 def generate_openapi():
     openapi_schema = app.openapi()
     
-    output_path = Path("API-swagger.yaml")
+    output_path = Path(__file__).parent.parent / "backend" / "API-swagger.yaml"
     with open(output_path, "w", encoding="utf-8") as f:
         yaml.dump(openapi_schema, f, sort_keys=False)
         

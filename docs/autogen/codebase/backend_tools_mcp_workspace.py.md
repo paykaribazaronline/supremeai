@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/mcp_workspace.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,015 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.115192
+**সাইজ:** 14,032 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.274896
 
 ---
 
@@ -24,7 +24,7 @@ import tempfile
 import contextlib
 from pathlib import Path
 from typing import Dict, Any
-from enum import Enum
+from enum import StrEnum
 
 from loguru import logger
 from pydantic import BaseModel, Field, ConfigDict
@@ -39,7 +39,7 @@ WORKSPACE_SESSION_FILE = _workspace_root / ".kilo" / "workspace" / "session.json
 WORKSPACE_CONFIG_FILE = _workspace_root / ".kilo" / "workspace" / "config.json"
 
 
-class WorkspaceType(str, Enum):
+class WorkspaceType(StrEnum):
     """ওয়ার্কস্পেসের ধরন।"""
 
     ECOMMERCE_BACKEND = "ecommerce_backend"
@@ -158,7 +158,7 @@ def _save_workspace_session(project_type: WorkspaceType, tenant_id: str | None =
             with os.fdopen(temp_fd, "w", encoding="utf-8") as f:
                 f.write(json.dumps(session, indent=2, ensure_ascii=False))
             os.replace(temp_path, str(session_path))
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 os.unlink(temp_path)
             except OSError as exc:

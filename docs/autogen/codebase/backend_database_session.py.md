@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/database/session.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,607 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.099169
+**সাইজ:** 1,623 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.268250
 
 ---
 
@@ -45,7 +45,7 @@ async def get_db_session():
     async with AsyncSessionLocal() as session:
         try:
             yield session
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             await session.rollback()
             logger.error(f"Database transaction rolled back due to error: {e}")
             raise

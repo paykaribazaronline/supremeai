@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/autocache_proxy.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,850 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.037870
+**সাইজ:** 8,846 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.243006
 
 ---
 
@@ -86,7 +86,7 @@ class AutocacheProxy:
             self.cost_metrics["total_cost_saved"] += estimated_cost
 
             logger.info(
-                f"💰 [CACHE HIT] Model: {model} | Cost Saved: ${estimated_cost:.6f} | " f"Total Saved: ${self.cost_metrics['total_cost_saved']:.6f}"
+                f"💰 [CACHE HIT] Model: {model} | Cost Saved: ${estimated_cost:.6f} | Total Saved: ${self.cost_metrics['total_cost_saved']:.6f}"
             )
 
             return {

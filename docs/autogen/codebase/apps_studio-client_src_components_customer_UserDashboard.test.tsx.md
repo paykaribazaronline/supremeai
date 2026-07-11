@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/customer/UserDashboard.test.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 7,280 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.136394
+**সাইজ:** 7,300 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.284890
 
 ---
 
@@ -116,7 +116,7 @@ describe('UserDashboard', () => {
   it('switches to presets tab when clicked', () => {
     render(<UserDashboard {...defaultProps} />);
     fireEvent.click(getTabButton(/Quick Presets/i));
-    expect(getTabButton(/Quick Presets/i).classList.contains('bg-[#00f3ff]/20')).toBe(true);
+    expect(getTabButton(/Quick Presets/i).classList.contains('bg-accent-primary/20')).toBe(true);
   });
 
   it('switches to chat tab when clicked', () => {
@@ -129,7 +129,7 @@ describe('UserDashboard', () => {
   it('switches to feed tab when clicked', () => {
     render(<UserDashboard {...defaultProps} />);
     fireEvent.click(getTabButton(/Home Feed/i));
-    expect(screen.getByText('AI Assistant')).toBeInTheDocument();
+    expect(screen.getByText('Personalized Home Feed')).toBeInTheDocument();
   });
 
   it('shows project list on overview', () => {
@@ -191,7 +191,7 @@ describe('UserDashboard', () => {
   it('switches to overview from quick action and back to presets', () => {
     render(<UserDashboard {...defaultProps} />);
     fireEvent.click(getTabButton(/Quick Presets/i));
-    expect(getTabButton(/Quick Presets/i).classList.contains('bg-[#00f3ff]/20')).toBe(true);
+    expect(getTabButton(/Quick Presets/i).classList.contains('bg-accent-primary/20')).toBe(true);
   });
 });
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/customer/UserDashboard.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 15,665 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.136568
+**সাইজ:** 15,720 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.284971
 
 ---
 
@@ -147,15 +147,15 @@ export function UserDashboard({
     : customerMessages.slice(-4);
 
   return (
-    <div className="min-h-screen bg-[#030611] text-white font-mono relative">
+    <div className="min-h-screen bg-background text-foreground font-mono relative">
       <div className="scanline pointer-events-none fixed inset-0 z-50" />
 
-      <header className="flex justify-between items-center border-b border-[#00f3ff]/15 pb-3 px-6 pt-3 mb-4">
+      <header className="flex justify-between items-center border-b border-border-accent pb-3 px-6 pt-3 mb-4">
         <div className="flex items-center gap-3">
-          <span className="text-[#00f3ff] animate-pulse text-lg">▲</span>
+          <span className="text-neon-blue animate-pulse text-lg">▲</span>
           <div>
             {/* বাংলা মন্তব্য: টেস্টে সহজে ও নির্ভরযোগ্যভাবে সনাক্ত করার জন্য header-title data-testid যোগ করা হলো */}
-            <h1 data-testid="header-title" className="text-sm font-bold tracking-widest text-[#00f3ff] uppercase">
+            <h1 data-testid="header-title" className="text-sm font-bold tracking-widest text-neon-blue uppercase">
               Welcome back, {user?.username || 'User'}
             </h1>
             <p className="text-[10px] text-slate-400 font-mono">
@@ -165,7 +165,7 @@ export function UserDashboard({
         </div>
         <div className="flex items-center gap-3">
           {/* বাংলা মন্তব্য: সার্ভার স্ট্যাটাস টেস্ট করার জন্য core-status data-testid ব্যবহার করা হলো */}
-          <span data-testid="core-status" className={`text-xs font-bold ${isServerOnline ? 'text-[#00f3ff]' : 'text-rose-500'}`}>
+          <span data-testid="core-status" className={`text-xs font-bold ${isServerOnline ? 'text-neon-blue' : 'text-danger'}`}>
             CORE: {isServerOnline ? 'ONLINE' : 'OFFLINE'}
           </span>
           <span className="text-[10px] text-slate-400 font-mono">
@@ -173,7 +173,7 @@ export function UserDashboard({
           </span>
           <button
             onClick={toggleTheme}
-            className="text-xs font-bold text-[#00f3ff] hover:text-cyan-400 tracking-wider transition-colors px-3 py-1.5 rounded border border-[#00f3ff]/20"
+            className="text-xs font-bold text-neon-blue hover:text-accent-primary tracking-wider transition-colors px-3 py-1.5 rounded border border-border-accent"
           >
             {theme === 'dark' ? '☀️ Light' : '🌙 Dark'}
           </button>
@@ -189,8 +189,8 @@ export function UserDashboard({
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 text-xs font-bold tracking-wider rounded-lg transition-all ${
               activeTab === tab
-                ? 'bg-[#00f3ff]/20 text-[#00f3ff] border border-[#00f3ff]/30'
-                : 'text-slate-400 hover:text-white border border-transparent hover:border-slate-700'
+                ? 'bg-accent-primary/20 text-neon-blue border border-border-accent'
+                : 'text-text-secondary hover:text-foreground border border-transparent hover:border-border-accent'
             }`}
           >
             {tab === 'overview' && <><Activity size={10} className="inline mr-1" /> Overview</>}
@@ -208,7 +208,7 @@ export function UserDashboard({
           <div className="dashboard-grid mb-6">
             <div className="stat-card">
               <div className="flex items-center justify-between mb-3">
-                <FolderOpen size={16} className="text-[#00f3ff]" />
+                <FolderOpen size={16} className="text-neon-blue" />
                 <span className="badge badge-cyan">Active</span>
               </div>
               <p className="text-2xl font-bold text-white font-['Space_Grotesk']">{projects.length}</p>
@@ -217,7 +217,7 @@ export function UserDashboard({
 
             <div className="stat-card">
               <div className="flex items-center justify-between mb-3">
-                <MessageSquare size={16} className="text-[#bc13fe]" />
+                <MessageSquare size={16} className="text-neon-purple" />
                 <span className="badge badge-purple">Live</span>
               </div>
               <p className="text-2xl font-bold text-white font-['Space_Grotesk']">{chatHistory.length + customerMessages.length}</p>
@@ -246,8 +246,8 @@ export function UserDashboard({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 dashboard-section">
               <div className="section-header">
-                <h2 className="text-xs font-bold tracking-widest text-[#00f3ff] uppercase">Your Projects</h2>
-                <button className="text-[10px] text-slate-400 hover:text-[#00f3ff] font-mono transition-colors">
+                <h2 className="text-xs font-bold tracking-widest text-neon-blue uppercase">Your Projects</h2>
+                <button className="text-[10px] text-text-secondary hover:text-neon-blue font-mono transition-colors">
                   View All <ChevronRight size={10} />
                 </button>
               </div>
@@ -256,7 +256,7 @@ export function UserDashboard({
                 projects.map((project) => (
                   <div key={project.id} className="project-item">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#00f3ff]/10 flex items-center justify-center text-[#00f3ff]">
+                      <div className="w-8 h-8 rounded-lg bg-accent-primary/10 flex items-center justify-center text-neon-blue">
                         <FolderOpen size={14} />
                       </div>
                       <div>
@@ -276,15 +276,15 @@ export function UserDashboard({
 
             <div className="dashboard-section flex flex-col">
               <div className="section-header">
-                <h2 className="text-xs font-bold tracking-widest text-[#00f3ff] uppercase">Quick Actions</h2>
+                <h2 className="text-xs font-bold tracking-widest text-neon-blue uppercase">Quick Actions</h2>
               </div>
               <div className="flex flex-col gap-2">
                 <button className="quick-action-btn" onClick={() => setActiveTab('chat')}>
-                  <MessageSquare size={14} className="text-[#00f3ff]" />
+                  <MessageSquare size={14} className="text-neon-blue" />
                   <span>New Chat Session</span>
                 </button>
                 <button className="quick-action-btn" onClick={() => setActiveTab('presets')}>
-                  <Play size={14} className="text-[#bc13fe]" />
+                  <Play size={14} className="text-neon-purple" />
                   <span>Launch Preset</span>
                 </button>
                 <button className="quick-action-btn" onClick={() => setActiveTab('feed')}>
@@ -301,7 +301,7 @@ export function UserDashboard({
 
           <div className="mt-6 dashboard-section">
             <div className="section-header">
-              <h2 className="text-xs font-bold tracking-widest text-[#00f3ff] uppercase">
+              <h2 className="text-xs font-bold tracking-widest text-neon-blue uppercase">
                 <Activity size={12} className="inline mr-2" />
                 Recent Activity
               </h2>
@@ -310,13 +310,13 @@ export function UserDashboard({
             <div className="flex flex-col gap-1">
               {recentChats.length > 0 ? (
                 recentChats.map((msg: ChatMessage, idx: number) => (
-                  <div key={idx} className="flex items-center gap-3 p-2.5 rounded-lg bg-black/20 border border-white/[0.03] text-[10px] font-mono">
-                    <Clock size={10} className="text-slate-400" />
+                  <div key={idx} className="flex items-center gap-3 p-2.5 rounded-lg bg-input-bg border border-border-accent text-[10px] font-mono">
+                    <Clock size={10} className="text-text-secondary" />
                     <span className="text-slate-400">{msg.sender === 'User' ? 'You' : 'AI'}:</span>
-                    <span className="text-slate-300 flex-1 truncate">
+                    <span className="text-foreground flex-1 truncate">
                       {msg.text}
                       {msg.action?.label && (
-                        <span className="ml-1 text-[9px] text-[#bc13fe]">[{msg.action.icon} {msg.action.label}]</span>
+                        <span className="ml-1 text-[9px] text-neon-purple">[{msg.action.icon} {msg.action.label}]</span>
                       )}
                     </span>
                   </div>

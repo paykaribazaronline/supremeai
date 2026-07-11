@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/dashboard/SiteActionsPage.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 17,962 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.133206
+**সাইজ:** 18,227 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.283408
 
 ---
 
@@ -76,7 +76,11 @@ export function SiteActionsPage() {
   }, []);
 
   useEffect(() => {
-    refresh();
+    // বাংলা মন্তব্য: set-state-in-effect ফিক্স — refresh কে async ফাংশনের ভেতরে র‍্যাপ করা হয়েছে
+    const loadActions = async () => {
+      await refresh();
+    };
+    loadActions();
   }, [refresh]);
 
   const resetForm = () => {

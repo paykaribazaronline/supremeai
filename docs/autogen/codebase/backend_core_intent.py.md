@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/intent.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,540 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.040436
+**সাইজ:** 2,541 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.244052
 
 ---
 
@@ -11,10 +11,10 @@
 ```py
 import re
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 
-class TaskType(str, Enum):
+class TaskType(StrEnum):
     general = "general"
     coding = "coding"
     translation = "translation"

@@ -1,26 +1,26 @@
 # 📄 ফাইল: backend/models/pending_tasks.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,003 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.062040
+**সাইজ:** 3,999 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.253338
 
 ---
 
 ## কোড
 
 ```py
+import enum
 import json
 import sqlite3
 import uuid
 from datetime import UTC
 from datetime import datetime
-from enum import Enum
 from pathlib import Path
 
 from pydantic import BaseModel
 
 
-class TaskType(str, Enum):
+class TaskType(enum.StrEnum):
     CODE_PUSH = "CODE_PUSH"
     NEW_SITE_VISIT = "NEW_SITE_VISIT"
     SKILL_GENERATION = "SKILL_GENERATION"
@@ -28,7 +28,7 @@ class TaskType(str, Enum):
     AUTO_EVOLUTION_PATCH = "AUTO_EVOLUTION_PATCH"
 
 
-class TaskStatus(str, Enum):
+class TaskStatus(enum.StrEnum):
     PENDING = "PENDING"
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"

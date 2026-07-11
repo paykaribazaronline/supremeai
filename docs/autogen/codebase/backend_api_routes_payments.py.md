@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/payments.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,879 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.052562
+**সাইজ:** 6,924 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.249332
 
 ---
 
@@ -93,13 +93,13 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
         decoded = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
         if decoded.get("user_id") != payload.user_id and decoded.get("sub") != payload.user_id:
             raise HTTPException(status_code=403, detail="User mismatch")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}") from e
     try:
         stripe_key = settings.stripe_api_key
         if not stripe_key:
             if os.environ.get("SUPREMEAI_ENV") == "production":
-                raise RuntimeError("Stripe API key not configured in production. " "Payment processing is unavailable.")
+                raise RuntimeError("Stripe API key not configured in production. Payment processing is unavailable.")
             logger.warning("Stripe API key not set in settings. Using mock checkout session.")
             return {
                 "status": "mock",
@@ -135,7 +135,7 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
             # তব নরব সযলপ ন কর ডবগ লগ কর হল
             logger.debug(f"PostHog checkout capture failed: {exc}")
         return {"status": "success", "session_id": session.id, "url": session.url}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to create Stripe checkout session: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
@@ -155,7 +155,7 @@ async def stripe_webhook(request: Request):
     try:
         stripe.api_key = stripe_key
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Webhook signature verification failed: {e}")
         raise HTTPException(status_code=400, detail="Invalid signature") from e
 

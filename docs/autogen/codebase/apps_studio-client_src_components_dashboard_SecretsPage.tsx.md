@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/dashboard/SecretsPage.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 6,360 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.134650
+**সাইজ:** 6,621 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.284041
 
 ---
 
@@ -51,7 +51,11 @@ export function SecretsPage() {
   }, []);
 
   useEffect(() => {
-    fetchKeys();
+    // বাংলা মন্তব্য: set-state-in-effect ফিক্স — fetchKeys কে async ফাংশনের ভেতরে র‍্যাপ করা হয়েছে
+    const loadKeys = async () => {
+      await fetchKeys();
+    };
+    loadKeys();
   }, [fetchKeys]);
 
   const handleCreate = async () => {

@@ -1,8 +1,8 @@
 # 📄 ফাইল: tools/vscode-extension/package.json
 
 **প্রকার:** .json  
-**সাইজ:** 9,297 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.198416
+**সাইজ:** 9,120 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.314077
 
 ---
 
@@ -68,97 +68,97 @@
     "commands": [
       {
         "command": "supremeai.login",
-        "title": "%supremeai.login.title%",
+        "title": "Login",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.loginAsGuest",
-        "title": "%supremeai.loginAsGuest.title%",
+        "title": "Login as Guest",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.logout",
-        "title": "%supremeai.logout.title%",
+        "title": "Logout",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.acceptSuggestion",
-        "title": "%supremeai.acceptSuggestion.title%",
+        "title": "Accept Suggestion",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.rejectSuggestion",
-        "title": "%supremeai.rejectSuggestion.title%",
+        "title": "Reject Suggestion",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.sendFeedback",
-        "title": "%supremeai.sendFeedback.title%",
+        "title": "Send Feedback",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.reportError",
-        "title": "%supremeai.reportError.title%",
+        "title": "Report Error",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.forceLearn",
-        "title": "%supremeai.forceLearn.title%",
+        "title": "Force Learn",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.analyzeCodeFlow",
-        "title": "%supremeai.analyzeCodeFlow.title%",
+        "title": "Analyze Code Flow",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.resolveError",
-        "title": "%supremeai.resolveError.title%",
+        "title": "Resolve Error",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.showSecurityIssues",
-        "title": "%supremeai.showSecurityIssues.title%",
+        "title": "Show Security Issues",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.showDependencies",
-        "title": "%supremeai.showDependencies.title%",
+        "title": "Show Dependencies",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.openCodeFlowDashboard",
-        "title": "%supremeai.openCodeFlowDashboard.title%",
+        "title": "Open Code Flow Dashboard",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.refreshCodeFlow",
-        "title": "%supremeai.refreshCodeFlow.title%",
+        "title": "Refresh Code Flow",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.aiComplete",
-        "title": "%supremeai.aiComplete.title%",
+        "title": "AI Code Completion",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.aiExplain",
-        "title": "%supremeai.aiExplain.title%",
+        "title": "Explain Code",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.sendMessageToChat",
-        "title": "%supremeai.sendMessageToChat.title%",
+        "title": "Send to Chat",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.aiReview",
-        "title": "%supremeai.aiReview.title%",
+        "title": "Review Code",
         "category": "SupremeAI"
       },
       {
         "command": "supremeai.openExtensionSettings",
-        "title": "%supremeai.openExtensionSettings.title%",
+        "title": "Open Settings",
         "category": "SupremeAI"
       }
     ],
@@ -211,43 +211,43 @@
         "supremeai.aiApiKey": {
           "type": "string",
           "default": "",
-          "description": "%supremeai.aiApiKey.description%",
+          "description": "The API key for authentication.",
           "secret": true
         },
         "supremeai.codegeex4.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "%supremeai.codegeex4.enabled.description%"
+          "description": "Enable CodeGeeX4 model."
         },
         "supremeai.codegeex4.model": {
           "type": "string",
           "default": "codegeex-4",
-          "description": "%supremeai.codegeex4.model.description%"
+          "description": "The CodeGeeX4 model name."
         },
         "supremeai.enableRealTimeLearning": {
           "type": "boolean",
           "default": true,
-          "description": "%supremeai.enableRealTimeLearning.description%"
+          "description": "Enable real-time code learning and pattern recognition."
         },
         "supremeai.autoReportErrors": {
           "type": "boolean",
           "default": true,
-          "description": "%supremeai.autoReportErrors.description%"
+          "description": "Automatically report unhandled errors to SupremeAI."
         },
         "supremeai.enableCodeFlow": {
           "type": "boolean",
           "default": true,
-          "description": "%supremeai.enableCodeFlow.description%"
+          "description": "Enable CodeFlow analysis features."
         },
         "supremeai.autoAnalyzeOnSave": {
           "type": "boolean",
           "default": false,
-          "description": "%supremeai.autoAnalyzeOnSave.description%"
+          "description": "Automatically analyze code on save."
         },
         "supremeai.aiModel": {
           "type": "string",
           "default": "supreme-large",
-          "description": "%supremeai.aiModel.description%"
+          "description": "Default AI model to use."
         }
       }
     },
@@ -264,19 +264,21 @@
       "supremeai-sidebar": [
         {
           "id": "supremeaiChat",
-          "name": "%supremeai.chat.title%",
+          "name": "Chat",
           "type": "webview",
           "icon": "media/icon.svg"
         },
         {
           "id": "supremeaiAdminDashboard",
-          "name": "%supremeai.adminDashboard.title%",
+          "name": "Admin Dashboard",
+          "when": "supremeai.authenticated && supremeai.isAdmin",
           "type": "webview",
           "icon": "media/icon.svg"
         },
         {
           "id": "supremeaiCustomerDashboard",
-          "name": "%supremeai.customerDashboard.title%",
+          "name": "User Settings",
+          "when": "supremeai.authenticated",
           "type": "webview",
           "icon": "media/icon.svg"
         }
@@ -294,6 +296,7 @@
     "package-ext": "esbuild src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --minify"
   },
   "devDependencies": {
+    "@types/fast-levenshtein": "^0.0.4",
     "@types/node": "18.x",
     "@types/vscode": "^1.85.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
@@ -307,7 +310,9 @@
     "vscode": "^1.1.37"
   },
   "dependencies": {
-    "@dataconnect/generated": "file:src/dataconnect-generated"
+    "@dataconnect/generated": "file:src/dataconnect-generated",
+    "@supremeai/design-tokens": "workspace:^",
+    "fast-levenshtein": "^3.0.0"
   }
 }
 ```

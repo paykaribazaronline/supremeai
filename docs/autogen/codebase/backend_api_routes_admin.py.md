@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/admin.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,319 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.051563
+**সাইজ:** 4,335 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.248905
 
 ---
 
@@ -53,7 +53,7 @@ async def update_constitutional_rule(payload: RuleUpdate):
     try:
         god_layer.set_rule(payload.key, payload.value)
         return {"status": "success", "message": f"Rule {payload.key} updated to {payload.value}"}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 

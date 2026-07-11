@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/mcp_cloud_deploy.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,410 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.119968
+**সাইজ:** 11,409 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.276852
 
 ---
 
@@ -20,7 +20,7 @@ MCP Server for Cloud Deployment Integration in SupremeAI 2.0.
 import os
 import json
 import re
-from enum import Enum
+from enum import StrEnum
 
 import httpx
 from loguru import logger
@@ -59,7 +59,7 @@ def _get_oracle_region() -> str:
     return region
 
 
-class CloudProvider(str, Enum):
+class CloudProvider(StrEnum):
     """সমর্থিত ক্লাউড প্রোভাইডার।"""
 
     RENDER = "render"
@@ -67,7 +67,7 @@ class CloudProvider(str, Enum):
     ORACLE = "oracle"
 
 
-class ResponseFormat(str, Enum):
+class ResponseFormat(StrEnum):
     """আউটপুট ফরম্যাট।"""
 
     MARKDOWN = "markdown"

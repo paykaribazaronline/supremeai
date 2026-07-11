@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/user_profiler.py
 
 **প্রকার:** .py  
-**সাইজ:** 846 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.040921
+**সাইজ:** 847 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.244321
 
 ---
 
@@ -11,13 +11,13 @@
 ```py
 from dataclasses import dataclass
 from dataclasses import field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from loguru import logger
 
 
-class UserMode(str, Enum):
+class UserMode(StrEnum):
     FAST_TRACK = "FAST_TRACK"
     LEARNING = "LEARNING"
     PRODUCTION = "PRODUCTION"

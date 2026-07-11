@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/dashboard/SandboxViewport.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 6,270 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.133061
+**সাইজ:** 6,335 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.283310
 
 ---
 
@@ -23,13 +23,15 @@ export const SandboxViewport: React.FC = () => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
+        const currentImageCache = imageCache.current;
+
         // Listen for base64 screencast frames on SSE
         const handleMessage = (event: MessageEvent) => {
             try {
                 const parsed = JSON.parse(event.data);
                 if (parsed.channel === 'screencast') {
                     // Expecting parsed.data to be base64 string of JPEG
-                    const img = imageCache.current;
+                    const img = currentImageCache;
                     img.onload = () => {
                         // Maintain aspect ratio or stretch? Usually CDP provides viewport-sized frames
                         canvas.width = img.width;
@@ -52,8 +54,9 @@ export const SandboxViewport: React.FC = () => {
                 wsRef.removeEventListener('message', handleMessage);
             }
             // Clear image cache
-            imageCache.current.src = '';
+            currentImageCache.src = '';
         };
+     
     }, [wsRef]);
 
     // Handle Human Takeover Dispatch
@@ -146,6 +149,7 @@ export const SandboxViewport: React.FC = () => {
             canvas.removeEventListener('keydown', onKeyDown);
             canvas.removeEventListener('keyup', onKeyUp);
         };
+     
     }, [controlMode, wsRef]);
 
     return (

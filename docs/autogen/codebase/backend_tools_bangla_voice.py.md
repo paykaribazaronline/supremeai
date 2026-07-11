@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/bangla_voice.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,769 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.114156
+**সাইজ:** 3,801 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.274514
 
 ---
 
@@ -68,7 +68,7 @@ class BanglaVoice:
             if self._stt_available:
                 return self._transcribe_whisper(audio_path)
             return self._transcribe_whisper(audio_path)
-        except Exception as exc:  # pylint: disable=broad-except
+        except Exception as exc:  # pylint: disable=broad-except  # noqa: BLE001
             raise RuntimeError(f"Bangla STT failed: {exc}") from exc
 
     def speak(self, text: str, output_path: str = "bangla_speech.mp3") -> BanglaVoiceResult:
@@ -80,7 +80,7 @@ class BanglaVoice:
             if self._tts_available:
                 return self._speak_coqui(text, output_path)
             return self._speak_gtts(text, output_path)
-        except Exception as exc:  # pylint: disable=broad-except
+        except Exception as exc:  # pylint: disable=broad-except  # noqa: BLE001
             raise RuntimeError(f"Bangla TTS failed: {exc}") from exc
 
     def _transcribe_whisper(self, audio_path: str) -> BanglaVoiceResult:

@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/App.test.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 4,711 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.126278
+**সাইজ:** 4,930 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.279589
 
 ---
 
@@ -19,6 +19,11 @@ vi.mock('./services/chatService', () => ({
 
 import { App } from './App';
 import { getAethelResponse } from './services/chatService';
+
+vi.mock('./components/core/AuthGuards', () => ({
+  ProtectedRoute: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  GuestRoute: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
 
 // Mock ResizeObserver for ReactFlow in JSDOM
 class MockResizeObserver {

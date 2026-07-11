@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/hooks/useWebSocket.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 4,719 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.147770
+**সাইজ:** 7,057 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.290772
 
 ---
 
@@ -55,12 +55,43 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const mountedRef = useRef(true);
+  
+  // বাংলা মন্তব্য: P2 Fix — reconnectAttempts এবং reconnectInterval কে ref এ রাখা হয়েছে যাতে useCallback dependency list পরিবর্তন না হয়
+  const reconnectAttemptsRef = useRef(reconnectAttempts);
+  const reconnectIntervalRef = useRef(reconnectInterval);
+  
+  // Sync refs when options change
+  useEffect(() => {
+    reconnectAttemptsRef.current = reconnectAttempts;
+    reconnectIntervalRef.current = reconnectInterval;
+  }, [reconnectAttempts, reconnectInterval]);
 
   const resolveUrl = useCallback(() => {
     if (url) return url;
     return `${getWebSocketBaseUrl()}/ws`;
   }, [url]);
 
+  // বাংলা মন্তব্য: Callbacks কে ref এ সংরক্ষণ করা হয় (immutability fix)
+  // এভাবে connect function এর dependency list থেকে callbacks সরানো যায়
+  const onMessageRef = useRef(onMessage);
+  const onOpenRef = useRef(onOpen);
+  const onCloseRef = useRef(onClose);
+  const onErrorRef = useRef(onError);
+  
+  // Keep refs updated when callbacks change
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+    onOpenRef.current = onOpen;
+    onCloseRef.current = onClose;
+    onErrorRef.current = onError;
+  }, [onMessage, onOpen, onClose, onError]);
+
+  // বাংলা মন্তব্য: connectRef এ connect function এর রেফারেন্স রাখা হয়, 
+  // যাতে reconnect টাইমআউটে রেফারেন্স থাকে
+  const connectRef = useRef<() => void>();
+
+  // বাংলা মন্তব্য: connect function এর dependency list থেকে callbacks সরানো হয়েছে
+  // কারণ callbacks গুলো ref এ সংরক্ষিত আছে
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
@@ -74,7 +105,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
         if (!mountedRef.current) return;
         attemptsRef.current = 0;
         setStatus('open');
-        onOpen?.();
+        onOpenRef.current?.();
 
         // বাংলা মন্তব্য: P2 Fix — Heartbeat ping প্রতি 30s এ পাঠানো হয় zombie connections detect করতে।
         heartbeatRef.current = setInterval(() => {
@@ -90,10 +121,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
         try {
           const parsed = JSON.parse(event.data);
           setData(parsed);
-          onMessage?.(parsed);
+          onMessageRef.current?.(parsed);
         } catch {
           setData(event.data);
-          onMessage?.(event.data);
+          onMessageRef.current?.(event.data);
         }
       };
 
@@ -104,26 +135,31 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
           heartbeatRef.current = null;
         }
         setStatus('closed');
-        onClose?.();
+        onCloseRef.current?.();
 
-        if (attemptsRef.current < reconnectAttempts) {
+        if (attemptsRef.current < reconnectAttemptsRef.current) {
           attemptsRef.current += 1;
           reconnectTimerRef.current = setTimeout(() => {
-            if (mountedRef.current) connect();
-          }, reconnectInterval * attemptsRef.current);
+            if (mountedRef.current) connectRef.current?.();
+          }, reconnectIntervalRef.current * attemptsRef.current);
         }
       };
 
       ws.onerror = (event: Event) => {
         if (!mountedRef.current) return;
         setStatus('error');
-        onError?.(event);
+        onErrorRef.current?.(event);
       };
     } catch (err) {
       if (!mountedRef.current) return;
       setStatus('error');
     }
-  }, [resolveUrl, reconnectAttempts, reconnectInterval, onMessage, onOpen, onClose, onError]);
+  }, [resolveUrl]);
+
+  // Update connectRef after connect is defined (not inside the callback)
+  useEffect(() => {
+    connectRef.current = connect;
+  }, [connect]);
 
   const disconnect = useCallback(() => {
     if (reconnectTimerRef.current) {
@@ -134,7 +170,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
       clearInterval(heartbeatRef.current);
       heartbeatRef.current = null;
     }
-    attemptsRef.current = reconnectAttempts;
+    attemptsRef.current = reconnectAttemptsRef.current;
     if (wsRef.current) {
       if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
         wsRef.current.close(1000, 'Component unmounted');
@@ -142,7 +178,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
     }
     wsRef.current = null;
     setStatus('closed');
-  }, [reconnectAttempts]);
+  }, []);
 
   const send = useCallback((message: unknown) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -153,6 +189,9 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
     }
   }, []);
 
+  // বাংলা মন্তব্য: autoConnect এর জন্য useEffect ব্যবহার করা হয়, 
+  // connect() কে useEffect এর ভিতরে কল করা হয়, যা set-state-in-effect এর সমস্যা তৈরি করে
+  // এটি একটি স্বচ্ছতা নীতি ভঙ্গি, তবে এটি একটি ব্যবস্থামান্য প্যাটার্ন
   useEffect(() => {
     mountedRef.current = true;
     if (autoConnect) {
@@ -166,5 +205,4 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
 
   return { status, data, send, connect, disconnect, lastMessage };
 }
-
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/__init__.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,629 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.050864
+**সাইজ:** 14,988 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.248636
 
 ---
 
@@ -481,7 +481,19 @@ except (ImportError, AttributeError, SyntaxError, RuntimeError, ValueError):
     logger.warning(f"Router import failed for integrations_router: {traceback.format_exc()}")
     integrations_router = None
 
+try:
+    from .swarm import router as swarm_router
 
-__all__ = list(_safe_imports.keys()) + ["voice_router", "websocket_voice_router", "integrations_router"]
+    _safe_imports["swarm_router"] = swarm_router
+except (ImportError, AttributeError, SyntaxError, RuntimeError, ValueError):
+    import traceback
+
+    from loguru import logger
+
+    logger.warning(f"Router import failed for swarm_router: {traceback.format_exc()}")
+    swarm_router = None
+
+
+__all__ = list(_safe_imports.keys()) + ["voice_router", "websocket_voice_router", "integrations_router", "swarm_router"]
 
 ```

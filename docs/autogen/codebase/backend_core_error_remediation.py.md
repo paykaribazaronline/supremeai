@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/error_remediation.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,143 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.032052
+**সাইজ:** 5,139 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.240497
 
 ---
 
@@ -107,7 +107,7 @@ class ErrorRemediation:
         # বল মনতবয: সব রটর শষ হওয়র পর last_exception কখনই বযবহত হত ন (নরব সযলপ);
         # এখন চডনত বযরথতর করণ warning হসব লগ কর হয় যত ডবগ কর সহজ হয়
         if last_exception is not None:
-            logger.warning(f"Qdrant lookup exhausted {max_attempts} attempts; " f"falling back. Last error: {last_exception}")
+            logger.warning(f"Qdrant lookup exhausted {max_attempts} attempts; falling back. Last error: {last_exception}")
         return None
 
     async def lookup_fix(self, error_sig: str) -> str | None:

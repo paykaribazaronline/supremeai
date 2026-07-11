@@ -1,0 +1,75 @@
+# 📄 ফাইল: docker-compose.prod.yml
+
+**প্রকার:** .yml  
+**সাইজ:** 1,199 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.162073
+
+---
+
+## কোড
+
+```yml
+version: '3.8'
+
+services:
+  nats:
+    image: nats:latest
+    command: "-js -a super_secret_token"
+    ports:
+      - "4222:4222"
+    networks:
+      - supreme_net
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - supreme_net
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    depends_on:
+      - nats
+      - redis
+    environment:
+      - NATS_URL=nats://super_secret_token@nats:4222
+      - REDIS_URL=redis://redis:6379
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    networks:
+      - supreme_net
+
+  swarm-worker:
+    build: 
+      context: ./backend
+      dockerfile: docker/swarm-worker.Dockerfile
+    deploy:
+      replicas: 3
+    depends_on:
+      - nats
+    environment:
+      - NATS_URL=nats://super_secret_token@nats:4222
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    networks:
+      - supreme_net
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - supreme_net
+
+networks:
+  supreme_net:
+    driver: bridge
+
+```

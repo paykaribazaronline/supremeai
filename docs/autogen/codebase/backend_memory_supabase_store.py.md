@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/memory/supabase_store.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,728 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.063357
+**সাইজ:** 4,744 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.253836
 
 ---
 
@@ -62,7 +62,7 @@ class SupabaseStore(SQLiteMemoryStore):
                     raise RuntimeError("SUPABASE_KEY is required for Supabase client initialization")
 
                 self._supabase_client = create_client(url, key)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 raise RuntimeError(f"Supabase client init failed: {exc}") from exc
         return self._supabase_client
 

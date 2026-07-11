@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/graph/SkillGraph.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 4,191 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.145327
+**সাইজ:** 4,251 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.289082
 
 ---
 
@@ -92,6 +92,7 @@ export default function SkillGraph() {
 
   useEffect(() => {
     fetchGraphData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onConnect = useCallback(

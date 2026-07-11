@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/graph_service.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,736 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.112360
+**সাইজ:** 3,725 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.273738
 
 ---
 
@@ -46,7 +46,7 @@ class GraphService:
         async with self.driver.session() as session:
             for skill in skills:
                 await session.run(
-                    "MERGE (s:Skill {id: $id}) " "SET s.name = $name, s.category = $category, s.success_rate = $success_rate",
+                    "MERGE (s:Skill {id: $id}) SET s.name = $name, s.category = $category, s.success_rate = $success_rate",
                     id=skill["id"],
                     name=skill["name"],
                     category=skill["category"],
@@ -61,7 +61,7 @@ class GraphService:
             return True
 
         async with self.driver.session() as session:
-            query = f"MATCH (s1:Skill {{id: $source}}), (s2:Skill {{id: $target}}) " f"MERGE (s1)-[r:{rel_type}]->(s2) " f"SET r.strength = $strength"
+            query = f"MATCH (s1:Skill {{id: $source}}), (s2:Skill {{id: $target}}) MERGE (s1)-[r:{rel_type}]->(s2) SET r.strength = $strength"
             await session.run(query, source=source_id, target=target_id, strength=strength)
         return True
 

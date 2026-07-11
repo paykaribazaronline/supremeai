@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/dashboard/FileTreePanel.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 4,227 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.132137
+**সাইজ:** 4,282 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.282902
 
 ---
 
@@ -29,13 +29,16 @@ export const FileTreePanel: React.FC = () => {
       treeRef.current.set('/', { name: 'workspace', path: '/', type: 'directory', status: 'unchanged' });
       setTreeMap(new Map(treeRef.current));
     }
+     
   }, [fileTreeData]);
 
   // Clean up on unmount or session reset is handled by the store, but we also clear the ref here.
   useEffect(() => {
+    const currentTreeRef = treeRef.current;
     return () => {
-      treeRef.current.clear();
+      currentTreeRef.clear();
     };
+     
   }, []);
 
   const toggleFolder = (path: string) => {

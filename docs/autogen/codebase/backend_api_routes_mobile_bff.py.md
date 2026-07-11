@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/mobile_bff.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,030 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.055833
+**সাইজ:** 2,046 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.250811
 
 ---
 
@@ -59,7 +59,7 @@ async def proxy_mobile_ai_request(request: Request, payload: MobileChatRequest):
             "provider": raw_response.get("provider"),
         }
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"❌ Mobile BFF Execution Error: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal BFF Proxy Error.") from e
 

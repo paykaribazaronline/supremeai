@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/mcp_github_cicd.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,746 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.116927
+**সাইজ:** 10,747 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.275652
 
 ---
 
@@ -19,7 +19,7 @@ CI/CD অপারেশন (Issue, PR, Auto-fix) সরাসরে চ্য�
 
 import os
 import json
-from enum import Enum
+from enum import StrEnum
 
 import httpx
 from pydantic import BaseModel, Field, ConfigDict
@@ -42,7 +42,7 @@ def _get_github_token() -> str:
     return os.getenv("GITHUB_TOKEN", "")
 
 
-class ResponseFormat(str, Enum):
+class ResponseFormat(StrEnum):
     """আউটপুট ফরম্যাট।"""
 
     MARKDOWN = "markdown"

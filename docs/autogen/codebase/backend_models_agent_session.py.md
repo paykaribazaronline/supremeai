@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/agent_session.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,660 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.060008
+**সাইজ:** 1,656 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.252512
 
 ---
 
@@ -24,7 +24,7 @@ from sqlalchemy.orm import mapped_column
 from models.base import Base
 
 
-class AgentSessionState(str, enum.Enum):
+class AgentSessionState(enum.StrEnum):
     Idle = "Idle"
     Scanning_Target_DOM = "Scanning_Target_DOM"
     Executing_Workflows = "Executing_Workflows"
@@ -35,7 +35,7 @@ class AgentSessionState(str, enum.Enum):
     Failed = "Failed"
 
 
-class ControlMode(str, enum.Enum):
+class ControlMode(enum.StrEnum):
     agent = "agent"
     pending_handoff = "pending_handoff"
     human = "human"

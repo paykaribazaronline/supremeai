@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/app.py
 
 **প্রকার:** .py  
-**সাইজ:** 10,597 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.037453
+**সাইজ:** 10,831 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.242828
 
 ---
 
@@ -140,6 +140,10 @@ app.add_middleware(IdempotencyMiddleware)
 app.add_middleware(APIKeyAuthMiddleware)
 
 
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
+
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     return JSONResponse(
@@ -150,6 +154,9 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException) ->
             "instance": request.url.path,
         },
     )
+
+
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 @app.get("/health")
@@ -259,6 +266,8 @@ core_routers = [
     ("api.routes.usage_metrics", ""),
     ("api.routes.payments", ""),
     ("api.routes.sso", ""),
+    ("api.routes.health", ""),
+    ("api.routes.evolution", ""),
     ("api.routes.api_keys", ""),
     ("api.routes.ci_webhooks", ""),
     ("core.orchestrator", ""),
@@ -309,7 +318,7 @@ def router_health_check(fastapi_app: FastAPI) -> None:
     expected_count = 20
     if len(fastapi_app.routes) < expected_count:
         logger.critical(
-            f"🔥 CRITICAL: Only {len(fastapi_app.routes)} routes loaded. " f"Expected at least {expected_count}. Some routers failed to load!"
+            f"🔥 CRITICAL: Only {len(fastapi_app.routes)} routes loaded. Expected at least {expected_count}. Some routers failed to load!"
         )
         # বাংলা মন্তব্য: Strict fail-fast rule
         sys.exit(1)

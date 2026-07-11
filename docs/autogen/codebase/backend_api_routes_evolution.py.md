@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/evolution.py
 
 **প্রকার:** .py  
-**সাইজ:** 8,657 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.053162
+**সাইজ:** 9,523 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.249569
 
 ---
 
@@ -40,6 +40,23 @@ from evolution.fitness_engine import FitnessEngine
 from models.evolution import CodeProposal
 
 
+class GraphNode(BaseModel):
+    id: str
+    label: str
+    type: str  # e.g., 'agent', 'skill'
+
+
+class GraphEdge(BaseModel):
+    source: str
+    target: str
+    relationship: str
+
+
+class SwarmGraph(BaseModel):
+    nodes: list[GraphNode]
+    edges: list[GraphEdge]
+
+
 router = APIRouter(prefix="/api/evolution", tags=["self-evolution-engine"])
 
 security = HTTPBearer()
@@ -53,7 +70,7 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
         if decoded.get("role") != "admin":
             raise HTTPException(status_code=403, detail="Forbidden: User does not have admin role.")
         return decoded
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         expected = os.getenv("SUPREMEAI_API_TOKEN") or ""
         if expected and secrets.compare_digest(token, expected):
             return {"uid": "admin", "role": "admin"}
@@ -82,7 +99,7 @@ async def get_evolution_logs(admin: dict = Depends(require_admin_token)):
             lines = f.readlines()
         logs = [json.loads(line) for line in lines if line.strip()]
         return {"logs": logs}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to read evolution logs: {e}")
         raise HTTPException(status_code=500, detail="Failed to read evolution logs") from e
 
@@ -108,6 +125,20 @@ async def forge_dynamic_skill(payload: EvolutionRequest, db: TenantAwareFirestor
 
 class QuarantineRequest(BaseModel):
     skill_name: str = Field(..., min_length=1, max_length=200)
+
+
+@router.get("/swarm-graph")
+async def get_swarm_graph():
+    from evolution.graph_aggregator import GraphAggregator
+
+    # ⚡ Simulated dynamic graph state for prototype
+    current_state = {
+        "nodes": [{"id": "agent-1", "label": "Code-Optimizer", "type": "agent"}, {"id": "skill-2", "label": "FastAPI Refactor", "type": "skill"}],
+        "edges": [{"source": "agent-1", "target": "skill-2", "relationship": "teaches"}],
+    }
+
+    aggregator = GraphAggregator()
+    return await aggregator.get_swarm_delta(current_full_graph=current_state)
 
 
 @router.post("/quarantine")
@@ -178,7 +209,7 @@ async def quarantine_skill(
         return {"success": True, "skill_name": skill_name, "new_status": "QUARANTINED"}
     except HTTPException:
         raise
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.exception(f"Quarantine failed for '{skill_name}'")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

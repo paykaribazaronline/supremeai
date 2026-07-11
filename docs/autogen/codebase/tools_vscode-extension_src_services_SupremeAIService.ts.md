@@ -1,8 +1,8 @@
 # 📄 ফাইল: tools/vscode-extension/src/services/SupremeAIService.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 26,308 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.203755
+**সাইজ:** 27,072 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.317156
 
 ---
 
@@ -132,6 +132,23 @@ export class SupremeAIService {
         success: false,
         message: error.message || 'Failed to report error',
       };
+    }
+  }
+
+  /**
+   * Request agentic self-healing for an error
+   * POST /api/v1/swarm/execute-healing
+   */
+  async requestSelfHealing(payload: { filePath: string, message: string, lineNumber: number, codeContext: string, languageId: string }): Promise<{ fixedCode?: string, success: boolean, message?: string }> {
+    try {
+      const response = await this.client.post('/api/v1/swarm/execute-healing', payload);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 429) {
+        return { success: false, message: 'Rate limit exceeded (Cooldown Active). Please wait.' };
+      }
+      console.error(`[SupremeAI] Failed to request self-healing: ${error.message}`);
+      return { success: false, message: error.message };
     }
   }
 

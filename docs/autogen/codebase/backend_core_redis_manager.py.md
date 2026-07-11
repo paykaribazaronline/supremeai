@@ -1,171 +1,107 @@
 # 📄 ফাইল: backend/core/redis_manager.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,249 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.032368
+**সাইজ:** 4,346 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.240632
 
 ---
 
 ## কোড
 
 ```py
-# বাংলা কমেন্ট: সুপ্রিম-এআই এর কোর অ্যাসিঙ্ক রেডিস এবং ফেল-ক্লোজড রেট-লিমিটিং ইঞ্জিন।
-# রেডিস ডাউন থাকলে এটি কোনো সিকিউরিটি গেট বাইপাস করতে দেবে না (Fail-Closed)।
+# backend/core/redis_manager.py
+import os
 
-import time
-
-import redis.asyncio as aioredis
-
-from core.config import settings
-from core.logging_config import logger
+import httpx
+from loguru import logger
 
 
 class SecureRedisManager:
     def __init__(self):
-        self.redis_url = settings.redis_url
-        self.client = None
+        # .env বা এনভায়রনমেন্ট থেকে Upstash ক্রেডেনশিয়াল ফেচ করা হচ্ছে
+        self.url = os.getenv("UPSTASH_REDIS_REST_URL")
+        self.token = os.getenv("UPSTASH_REDIS_REST_TOKEN")
+        self.headers = {"Authorization": f"Bearer {self.token}"} if self.token else {}
+        self.client = httpx.AsyncClient(base_url=self.url, headers=self.headers) if self.url else None
 
-        # Circuit Breaker state
-        self._failure_count = 0
-        self._circuit_open_until = 0.0
-        self._fallback_store: dict[str, tuple[int, float]] = {}  # key: (count, expires_at)
+        if self.client:
+            logger.info("⚡ Serverless Upstash Redis REST Provider Active.")
+        else:
+            logger.critical("🔥 CRITICAL: Serverless Redis Endpoint Missing! System entering Fail-Closed state.")
 
-    async def initialize(self):
-        if not self.redis_url:
-            logger.critical("🔥 CRITICAL: REDIS_URL missing in configurations! System entering Fail-Closed state.")
-            self.client = None
-            return
+    async def set_cache(self, key: str, value: str, ex_seconds: int = 3600) -> bool:
+        """Upstash REST API এর মাধ্যমে কি-ভ্যালু পেয়ার সেভ করার মেথড।"""
+        if not self.client:
+            return False
         try:
-            self.client = aioredis.from_url(self.redis_url, encoding="utf-8", decode_responses=True, socket_timeout=2.0, socket_connect_timeout=2.0)
-            logger.success("🚀 Async Redis Client successfully connected with connection pool.")
-        except Exception as e:  # noqa: BLE001
-            logger.critical(f"🔥 Fail-Closed Triggered: Redis connection failed during init -> {str(e)}")
-            self.client = None
-
-    def _fallback_is_rate_limited(self, key: str, max_requests: int, window_seconds: int) -> bool:
-        now = time.time()
-        # Clean up expired entries
-        expired_keys = [k for k, v in self._fallback_store.items() if v[1] < now]
-        for k in expired_keys:
-            del self._fallback_store[k]
-
-        count, expires_at = self._fallback_store.get(key, (0, now + window_seconds))
-        if expires_at < now:
-            count = 0
-            expires_at = now + window_seconds
-
-        count += 1
-        self._fallback_store[key] = (count, expires_at)
-
-        if count > max_requests:
-            logger.warning(f"🚨 In-memory Rate Limit Triggered for Key: {key}. Total: {count}/{max_requests}")
-            return True
-        return False
-
-    async def is_rate_limited(self, key: str, max_requests: int, window_seconds: int) -> bool:
-        now = time.time()
-
-        # Check if circuit is open
-        if self._circuit_open_until > now:
-            logger.warning(f"⚡ Circuit breaker open! Using in-memory fallback for key: {key}")
-            return self._fallback_is_rate_limited(key, max_requests, window_seconds)
-
-        # Half-open: Reset failure count when circuit closes
-        if self._circuit_open_until != 0.0 and self._circuit_open_until <= now:
-            self._failure_count = 0
-            self._circuit_open_until = 0.0
-            logger.info("⚡ Circuit breaker half-open: attempting Redis connection again.")
-
-        if self.client is None:
-            # According to User instructions, fallback to memory if client is offline or circuit breaks
-            self._failure_count += 1
-            if self._failure_count >= 5:
-                self._circuit_open_until = now + 10.0
-                logger.critical("🔥 Circuit Breaker Triggered: Redis offline 5 times. Opening circuit for 10s.")
-            return self._fallback_is_rate_limited(key, max_requests, window_seconds)
-
-        try:
-            async with self.client.pipeline(transaction=True) as pipe:
-                await pipe.incr(key)
-                await pipe.expire(key, window_seconds)
-                current_requests, _ = await pipe.execute()
-
-            # Reset failure count on success
-            self._failure_count = 0
-            self._circuit_open_until = 0.0
-
-            if current_requests > max_requests:
-                logger.warning(f"🚨 Rate Limit Triggered for Key: {key}. Total: {current_requests}/{max_requests}")
-                return True
-
+            # Upstash REST কমান্ড স্ট্রাকচার: ["SET", key, value, "EX", seconds]
+            payload = ["SET", key, value, "EX", str(ex_seconds)]
+            response = await self.client.post("/", json=payload)
+            return response.status_code == 200
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"❌ Upstash Cache Write Operation Failed for {key}: {exc}")
             return False
 
-        except aioredis.RedisError as redis_err:
-            self._failure_count += 1
-            if self._failure_count >= 5:
-                self._circuit_open_until = now + 10.0
-                logger.critical(f"🔥 Circuit Breaker Triggered: Redis failed 5 times -> {str(redis_err)}. Opening circuit for 10s.")
-            else:
-                logger.warning(f"⚠️ Redis connection failed ({self._failure_count}/5) -> {str(redis_err)}")
+    async def get_cache(self, key: str) -> str | None:
+        """Upstash REST API এর মাধ্যমে ডাটা রিড করার মেthod।"""
+        if not self.client:
+            return None
+        try:
+            payload = ["GET", key]
+            response = await self.client.post("/", json=payload)
+            if response.status_code == 200:
+                res_data = response.json()
+                return res_data.get("result")
+            return None
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"❌ Upstash Cache Read Operation Failed for {key}: {exc}")
+            return None
 
-            # Fallback to in-memory store
-            return self._fallback_is_rate_limited(key, max_requests, window_seconds)
+    async def set_agent_heartbeat(self, agent_id: str, status: str, latency_ms: int, ttl: int = 5) -> bool:
+        """এজেন্ট হার্টবিট সেট করার মেথড।"""
+        if not self.client:
+            return False
+        import json
+
+        key = f"health:{agent_id}"
+        value = json.dumps({"status": status, "latency": latency_ms})
+        return await self.set_cache(key, value, ex_seconds=ttl)
+
+    async def get_agents_health(self, agent_ids: list[str]) -> dict:
+        """একাধিক এজেন্টের হেলথ স্ট্যাটাস একসাথে MGET দিয়ে ফেচ করে।"""
+        if not self.client or not agent_ids:
+            return {}
+        import json
+
+        keys = [f"health:{agent_id}" for agent_id in agent_ids]
+        payload = ["MGET"] + keys
+        try:
+            response = await self.client.post("/", json=payload)
+            if response.status_code == 200:
+                res_data = response.json().get("result", [])
+                health_data = {}
+                for agent_id, raw_val in zip(agent_ids, res_data, strict=False):
+                    if raw_val:
+                        try:
+                            # Handle both stringified json and already parsed dict from Upstash
+                            health_data[agent_id] = json.loads(raw_val) if isinstance(raw_val, str) else raw_val
+                        except json.JSONDecodeError:
+                            health_data[agent_id] = {"status": "dead", "latency": 0}
+                    else:
+                        health_data[agent_id] = {"status": "dead", "latency": 0}
+                return health_data
+            return {}
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"❌ Upstash MGET Failed for health check: {exc}")
+            return {}
+
+    async def close(self):
+        if self.client:
+            await self.client.aclose()
+            logger.info("💀 Upstash Async connection wrapper gracefully terminated.")
 
 
-# গ্লোবাল সিঙ্গেলটন ইনস্ট্যান্স জেনারেশন
+# Create the singleton instance
 redis_manager = SecureRedisManager()
-
-
-async def acquire_idempotency_lock(key: str, ttl_seconds: int = 120) -> bool:
-    """
-    Distributed idempotency lock অধিগ্রহণ করে (Redis SET NX pattern)।
-
-    - key: অনন্য idempotency key (সাধারণত: `idempotency:{method}:{user_key}`)
-    - ttl_seconds: লকের TTL — এই সময়ের পর লক স্বয়ংক্রিয়ভাবে মুক্ত হয়
-    - Returns True যদি লক সফলভাবে অধিগ্রহণ হয়, False যদি ইতিমধ্যে অন্য কেউ ধরে রেখেছে
-    """  # noqa: W293
-    if redis_manager.client is None:
-        logger.warning("[Idempotency] Redis offline — lock skipped (fail-open)")
-        return True
-    try:
-        # SET NX EX: atomic, only set if not exists
-        result = await redis_manager.client.set(f"idempotency:{key}", "1", nx=True, ex=ttl_seconds)
-        return result is not None
-    except Exception as e:  # noqa: BLE001
-        logger.warning(f"[Idempotency] Redis lock acquire failed — fail-open: {e}")
-        return True
-
-
-async def release_idempotency_lock(key: str) -> None:
-    """Idempotency লক রিলিজ করে (ব্যর্থ রিকোয়েস্টের পর retry allow করতে)।"""
-    if redis_manager.client is None:
-        return
-    try:
-        await redis_manager.client.delete(f"idempotency:{key}")
-    except Exception as e:  # noqa: BLE001
-        logger.warning(f"[Idempotency] Redis lock release failed: {e}")
-
-
-async def cache_response_and_release_lock(key: str, response_data: str, ttl_seconds: int) -> bool:
-    """
-    Lua স্ক্রিপ্টের মাধ্যমে atomically cache write এবং lock release করে।
-    এটি ডেডলক (frozen lock) প্রতিরোধ করে।
-    """
-    if redis_manager.client is None:
-        return False
-    lua_script = """
-    redis.call("SET", KEYS[1], ARGV[1], "EX", ARGV[2])
-    redis.call("DEL", KEYS[2])
-    return 1
-    """
-    try:
-        cache_key = f"idempotency:response:{key}"
-        lock_key = f"idempotency:{key}"
-        script = redis_manager.client.register_script(lua_script)
-        await script(keys=[cache_key, lock_key], args=[response_data, ttl_seconds])
-        return True
-    except Exception as e:  # noqa: BLE001
-        logger.warning(f"[Idempotency] Atomic cache+release failed: {e}")
-        return False
 
 ```

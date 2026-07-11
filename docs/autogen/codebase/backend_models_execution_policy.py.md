@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/execution_policy.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,582 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.061529
+**সাইজ:** 1,580 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.253048
 
 ---
 
@@ -24,7 +24,7 @@ from sqlalchemy.orm import mapped_column
 from models.base import Base
 
 
-class PolicyScope(str, enum.Enum):
+class PolicyScope(enum.StrEnum):
     global_scope = "global"
     per_platform = "per_platform"
     per_action = "per_action"

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/logging_config.py
 
 **প্রকার:** .py  
-**সাইজ:** 681 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.037300
+**সাইজ:** 1,060 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.242767
 
 ---
 
@@ -20,8 +20,9 @@ def setup_logging():
     In production, this could also push to OpenTelemetry.
     """
     logger.remove()
+    # বাংলা মন্তব্য: pytest চালানোর সময় sys.stdout ক্লোজ হয়ে যাওয়ার কারণে "I/O operation on closed file" এরর হয়। এটি এড়াতে lambda ব্যবহার করে ডাইনামিকালি sys.stdout রিড করা হচ্ছে।
     logger.add(
-        sys.stdout,
+        lambda msg: sys.stdout.write(msg),
         colorize=True,
         format=(
             "<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | "

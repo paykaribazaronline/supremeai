@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/email.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,328 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.052838
+**সাইজ:** 1,360 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.249443
 
 ---
 
@@ -39,7 +39,7 @@ async def gmail_auth(payload: GmailAuthRequest):
         if success:
             return {"status": "success", "message": "Connected Gmail via OAuth"}
         raise HTTPException(status_code=400, detail="Failed to connect Gmail OAuth")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
@@ -50,7 +50,7 @@ async def imap_auth(payload: ImapAuthRequest):
         if success:
             return {"status": "success", "message": "Connected generic IMAP"}
         raise HTTPException(status_code=400, detail="Failed to connect generic IMAP")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 ```

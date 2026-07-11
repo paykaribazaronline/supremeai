@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/web-chat/tsconfig.json
 
 **প্রকার:** .json  
-**সাইজ:** 531 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.178363
+**সাইজ:** 119 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.304488
 
 ---
 
@@ -10,27 +10,11 @@
 
 ```json
 {
-  "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "module": "ESNext",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "skipLibCheck": true,
-
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
-  },
-  "include": ["**/*.ts"]
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
 }
 
 ```

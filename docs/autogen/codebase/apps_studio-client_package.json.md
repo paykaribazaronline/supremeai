@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/package.json
 
 **প্রকার:** .json  
-**সাইজ:** 2,971 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.125399
+**সাইজ:** 3,088 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.279202
 
 ---
 
@@ -36,11 +36,13 @@
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
     "@monaco-editor/react": "^4.7.0",
+    "@supremeai/design-tokens": "workspace:^",
     "@supremeai/ui-components": "workspace:*",
     "@tailwindcss/vite": "^4.2.4",
     "@tanstack/react-query": "^5.101.0",
     "@webcontainer/api": "^1.6.4",
     "@xterm/addon-fit": "^0.11.0",
+    "@xyflow/react": "^12.11.2",
     "firebase": "^12.15.0",
     "framer-motion": "^12.42.0",
     "i18next": "^23.4.0",
@@ -57,7 +59,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
+    "@eslint/js": "^9.39.5",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.4.0",
     "@testing-library/react": "^16.0.0",
@@ -70,9 +72,10 @@
     "cross-env": "^10.1.0",
     "electron": "^41.8.0",
     "electron-builder": "^24.13.3",
-    "eslint": "^10.2.1",
+    "eslint": "^9.39.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "eslint-visitor-keys": "^5.0.1",
     "globals": "^17.5.0",
     "jsdom": "^24.0.0",
     "typescript": "^5.4.5",

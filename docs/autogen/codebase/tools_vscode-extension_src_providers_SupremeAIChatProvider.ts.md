@@ -1,8 +1,8 @@
 # 📄 ফাইল: tools/vscode-extension/src/providers/SupremeAIChatProvider.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 9,793 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.201534
+**সাইজ:** 10,005 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.315816
 
 ---
 
@@ -21,6 +21,7 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
   private webview: vscode.WebviewView | null = null;
   private messageHistory: ChatMessage[] = [];
   private currentSession: ChatSession | null = null;
+  private authListenerDisposable?: vscode.Disposable;
 
   constructor(context: vscode.ExtensionContext | string) {
     this.viewId = typeof context === 'string' ? context : 'supremeaiChat';
@@ -38,7 +39,17 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
     };
 
     this.setupWebviewMessageListener(webviewView);
-    webviewView.webview.html = SupremeAIChatView.getHTMLContent(true, 'Guest', false, this.messageHistory);
+    this.updateContent(webviewView);
+
+    const authService = AuthService.getInstance();
+    if (authService) {
+      this.authListenerDisposable?.dispose();
+      this.authListenerDisposable = authService.onAuthStateChanged(() => {
+        if (this.webview) {
+          this.updateContent(this.webview);
+        }
+      });
+    }
   }
 
   private setupWebviewMessageListener(webviewView: vscode.WebviewView): void {
@@ -64,10 +75,10 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
             await this.handleRefactorCode();
             break;
           case 'login':
-            vscode.window.showWarningMessage('Web login is currently unavailable due to a backend 401.');
+            vscode.commands.executeCommand('supremeai.login');
             break;
           case 'loginAsGuest':
-            vscode.window.showWarningMessage('Guest mode is currently unavailable. The backend rejects guest tokens with status 401.');
+            vscode.commands.executeCommand('supremeai.loginAsGuest');
             break;
           case 'logout':
             vscode.commands.executeCommand('supremeai.logout');
@@ -295,6 +306,7 @@ export class SupremeAIChatProvider implements vscode.WebviewViewProvider {
 
   public dispose(): void {
     this.webview = null;
+    this.authListenerDisposable?.dispose();
   }
 
   public postMessageToChat(message: string): void {

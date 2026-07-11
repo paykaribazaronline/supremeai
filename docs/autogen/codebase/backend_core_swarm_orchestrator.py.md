@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/swarm_orchestrator.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,577 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.036565
+**সাইজ:** 3,593 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.242477
 
 ---
 
@@ -54,7 +54,7 @@ class CircuitBreaker:
                 self.state = CircuitBreakerState.CLOSED
                 self.failures = 0
             return result
-        except Exception:
+        except Exception:  # noqa: BLE001
             self.failures += 1
             self.last_failure_time = time.time()
             if self.failures >= self.failure_threshold:

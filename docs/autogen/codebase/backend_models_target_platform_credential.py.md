@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/target_platform_credential.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,683 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.061048
+**সাইজ:** 1,679 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.252874
 
 ---
 
@@ -25,14 +25,14 @@ from sqlalchemy.orm import mapped_column
 from models.base import Base
 
 
-class AuthType(str, enum.Enum):
+class AuthType(enum.StrEnum):
     oauth2 = "oauth2"
     cookie_session = "cookie_session"
     api_key = "api_key"
     basic_auth = "basic_auth"
 
 
-class CredentialStatus(str, enum.Enum):
+class CredentialStatus(enum.StrEnum):
     active = "active"
     expired = "expired"
     revoked = "revoked"

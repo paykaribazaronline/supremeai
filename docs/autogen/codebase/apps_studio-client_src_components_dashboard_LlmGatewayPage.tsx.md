@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/dashboard/LlmGatewayPage.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 8,867 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.132285
+**সাইজ:** 9,144 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.282976
 
 ---
 
@@ -60,7 +60,11 @@ export function LlmGatewayPage() {
   }, []);
 
   useEffect(() => {
-    loadAll();
+    // বাংলা মন্তব্য: set-state-in-effect ফিক্স — loadAll কে async ফাংশনের ভেতরে র‍্যাপ করা হয়েছে
+    const initializeGateway = async () => {
+      await loadAll();
+    };
+    initializeGateway();
   }, [loadAll]);
 
   // বাংলা মন্তব্য: লাইভ মডেল সুইচ — নির্দিষ্ট প্রোভাইডার/মডেলে রাউটার ওভাররাইড সেট করা হয়

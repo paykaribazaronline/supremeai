@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/tools/test_cot_reasoner.py
 
 **প্রকার:** .py  
-**সাইজ:** 18,492 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.097289
+**সাইজ:** 18,517 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.267425
 
 ---
 
@@ -29,6 +29,8 @@ class FakeSympy:
     """Lightweight stand-in for sympy used in tests."""
 
     class Expr:
+        __hash__ = None
+
         def __sub__(self, other):
             return 0
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/feedback.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,467 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.058663
+**সাইজ:** 2,483 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.251924
 
 ---
 
@@ -92,7 +92,7 @@ async def ingest(event: FeedbackEvent) -> FeedbackResponse:
         raise HTTPException(status_code=400, detail=handled.get("reason", "Unsupported feedback type"))
     except HTTPException:
         raise
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.error(f"feedback ingest failed: {exc}")
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 

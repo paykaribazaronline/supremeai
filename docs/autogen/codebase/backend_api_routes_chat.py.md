@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/chat.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,957 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.058086
+**সাইজ:** 3,973 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.251701
 
 ---
 
@@ -73,7 +73,7 @@ async def get_completion(request: Request, payload: ChatPayload, db=Depends(get_
             "cached": False,
             "cache_source": "L5_AI_MODEL",
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Async LLM Error: {str(e)}")
         raise HTTPException(status_code=500, detail="AI Gateway Timeout.") from e
 

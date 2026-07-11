@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/CommandCenter.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 29,455 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.138590
+**সাইজ:** 29,517 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.285933
 
 ---
 
@@ -41,7 +41,7 @@ import {
 } from 'lucide-react';
 import AethelNode from './AethelNode';
 import { useAdminStore } from '../../store/adminStore';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useTheme } from '../../contexts/useTheme';
 import { AudioRecorderService } from '../../services/audio/AudioRecorderService';
 import { AudioPlaybackService } from '../../services/audio/AudioPlaybackService';
 import { WaveformVisualizer } from '../audio/WaveformVisualizer';
@@ -112,6 +112,7 @@ export function CommandCenter() {
     return () => {
       window.removeEventListener('supremeai_speak', handleAethelSpeak);
     };
+     
   }, []);
 
   const toggleVoiceRecording = async () => {
@@ -268,6 +269,7 @@ export function CommandCenter() {
 
     setNodes(initialNodes);
     setEdges(initialEdges);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

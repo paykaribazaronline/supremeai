@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/lifespan.py
 
 **প্রকার:** .py  
-**সাইজ:** 12,096 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.045712
+**সাইজ:** 12,090 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.246268
 
 ---
 
@@ -116,7 +116,7 @@ async def app_lifespan(app):
     try:
         db_url = settings.supabase_database_url
         if "sqlite" in db_url:
-            logger.info("💾 SQLite Memory Database Detected for Agent Telemetry. " "Skipping PostgreSQL asyncpg pool initialization.")
+            logger.info("💾 SQLite Memory Database Detected for Agent Telemetry. Skipping PostgreSQL asyncpg pool initialization.")
             app.state.db_pool = None
         else:
             await init_db_pool(db_url)
@@ -139,7 +139,7 @@ async def app_lifespan(app):
         )
         if os.getenv("ENV") == "production":
             # Production-এ Sentry-তে alert পাঠান, কিন্তু crash করবেন না
-            logger.critical("🔥 PRODUCTION DB UNAVAILABLE — running in degraded mode. " "DB-dependent endpoints will return 503.")
+            logger.critical("🔥 PRODUCTION DB UNAVAILABLE — running in degraded mode. DB-dependent endpoints will return 503.")
 
     try:
         await config_cache.refresh_async()

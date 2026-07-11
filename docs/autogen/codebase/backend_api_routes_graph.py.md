@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/graph.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,353 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.053898
+**সাইজ:** 5,382 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.249942
 
 ---
 
@@ -74,7 +74,7 @@ async def get_skill_graph(user=Depends(require_auth_token)):
 
         # রিয়েল ডাটাবেস থেকে ফেচ করার লজিক (Cypher Query)
         async with graph_service.driver.session() as session:
-            result = await session.run("MATCH (n:Skill) OPTIONAL MATCH (n)-[r]->(m:Skill) " "RETURN n, r, m LIMIT 100")
+            result = await session.run("MATCH (n:Skill) OPTIONAL MATCH (n)-[r]->(m:Skill) RETURN n, r, m LIMIT 100")
             records = await result.data()
 
             nodes_dict = {}
@@ -110,7 +110,7 @@ async def get_skill_graph(user=Depends(require_auth_token)):
 
             return {"nodes": list(nodes_dict.values()), "edges": edges}
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error fetching skill graph: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch knowledge graph") from e
 
@@ -130,7 +130,7 @@ async def get_learning_path(
                 detail=f"No path found between {start_skill} and {end_skill}",
             )
         return {"path": path}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error finding path: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e)) from e
 

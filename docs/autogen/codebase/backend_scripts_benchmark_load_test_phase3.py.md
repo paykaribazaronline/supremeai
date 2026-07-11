@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/scripts/benchmark/load_test_phase3.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,557 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.048028
+**সাইজ:** 3,563 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.247008
 
 ---
 
@@ -75,8 +75,8 @@ async def main():
         print(f"402 Payment Required (False Positives?): {payment_required}")  # noqa: T201
         print(f"Other Errors (Triggered SelfHealer): {errors}")  # noqa: T201
         print(f"Total Time: {elapsed:.2f} seconds")  # noqa: T201
-        print(f"Latency: {(elapsed/1000)*1000:.2f} ms / request (avg concurrency)")  # noqa: T201
-        print(f"RPS: {1000/elapsed:.2f} req/s")  # noqa: T201
+        print(f"Latency: {(elapsed / 1000) * 1000:.2f} ms / request (avg concurrency)")  # noqa: T201
+        print(f"RPS: {1000 / elapsed:.2f} req/s")  # noqa: T201
 
         # Test Sandbox TTL
         print("\n=== Testing Sandbox Auto-Destroy ===")  # noqa: T201

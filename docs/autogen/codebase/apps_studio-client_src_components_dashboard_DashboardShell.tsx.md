@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/dashboard/DashboardShell.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 8,276 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.131961
+**সাইজ:** 8,721 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.282833
 
 ---
 
@@ -26,6 +26,7 @@ import {
   Shield,
   Wifi,
   WifiOff,
+  Activity,
 } from 'lucide-react';
 import { useHashRoute, type DashboardRoute, parseHash } from './useHashRoute';
 import { SessionsPage } from './SessionsPage';
@@ -38,7 +39,10 @@ import { VaultPage } from './VaultPage';
 import { AutomationQueuePage } from './AutomationQueuePage';
 import { SiteActionsPage } from './SiteActionsPage';
 import { LlmGatewayPage } from './LlmGatewayPage';
-import { LiveSujonBackground, setSujonState, type SujonState } from '../LiveSujonBackground';
+import { LiveSujonBackground } from '../LiveSujonBackground';
+import { setSujonState, type SujonState } from '../sujon-utils';
+import { MockSwarmProvider } from '../../providers/MockSwarmProvider';
+import { SwarmHealthDashboard } from '../swarm/SwarmHealthDashboard';
 
 interface NavItem {
   id: DashboardRoute;
@@ -61,6 +65,7 @@ const NAV_ITEMS: NavItem[] = [
 const ADMIN_NAV_ITEMS: NavItem[] = [
   { id: 'site-actions', label: 'Site Actions', icon: <Table2 size={15} /> },
   { id: 'llm-gateway', label: 'LLM Gateway', icon: <Cpu size={15} /> },
+  { id: 'swarm-health', label: 'Swarm Health', icon: <Activity size={15} /> },
   { id: 'admin', label: 'Admin Console', icon: <Shield size={15} /> },
 ];
 
@@ -85,6 +90,7 @@ export function DashboardShell(props: DashboardShellProps) {
       automation: 'processing',
       'site-actions': 'idle',
       'llm-gateway': 'idle',
+      'swarm-health': 'idle',
       knowledge: 'idle',
       secrets: 'idle',
       usage: 'idle',
@@ -113,6 +119,8 @@ export function DashboardShell(props: DashboardShellProps) {
         return <SiteActionsPage />;
       case 'llm-gateway':
         return <LlmGatewayPage />;
+      case 'swarm-health':
+        return <SwarmHealthDashboard />;
       case 'knowledge':
         return <KnowledgePage />;
       case 'secrets':
@@ -123,7 +131,7 @@ export function DashboardShell(props: DashboardShellProps) {
         return <SettingsPage />;
       case 'admin':
         // বাংলা মন্তব্য: অ্যাডমিন কনসোলের জন্য #/admin রুট
-        return <div className="p-6 text-slate-400 text-xs">Admin console (use /admin subdomain)</div>;
+        return <div className="p-6 text-text-secondary text-xs">Admin console (use /admin subdomain)</div>;
       case 'sessions':
       default:
         return <SessionsPage onOpenSession={handleOpenSession} />;
@@ -133,21 +141,22 @@ export function DashboardShell(props: DashboardShellProps) {
   const navItems = [...NAV_ITEMS, ...ADMIN_NAV_ITEMS];
 
   return (
-    <div className="relative min-h-screen flex bg-[#0b0f19] text-white">
-      {/* বাংলা মন্তব্য: Sujon অ্যাম্বিয়েন্ট ব্যাকগ্রাউন্ড */}
-      <LiveSujonBackground />
+    <MockSwarmProvider>
+      <div className="relative min-h-screen flex bg-background text-foreground">
+        {/* বাংলা মন্তব্য: Sujon অ্যাম্বিয়েন্ট ব্যাকগ্রাউন্ড */}
+        <LiveSujonBackground />
 
-      {/* বাংলা মন্তব্য: বাম প্যানেল ব্যাকগ্রাউন্ড গ্রেডিয়েন্ট */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#00111a] to-[#061025]" />
+        {/* বাংলা মন্তব্য: বাম প্যানেল ব্যাকগ্রাউন্ড গ্রেডিয়েন্ট */}
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background to-card-bg opacity-80" />
 
       {/* সাইডবার */}
       <aside
         data-testid="dashboard-sidebar"
-        className="relative z-10 w-56 shrink-0 border-r border-white/[0.06] bg-[#080b13] flex flex-col"
+        className="relative z-10 w-56 shrink-0 border-r border-border-accent bg-card-bg flex flex-col"
       >
         {/* হেডার */}
-        <div className="flex items-center gap-2 px-4 py-4 border-b border-white/[0.06]">
-          <span className="text-blue-400 text-lg">▲</span>
+        <div className="flex items-center gap-2 px-4 py-4 border-b border-border-accent">
+          <span className="text-neon-blue text-lg">▲</span>
           <span className="text-sm font-semibold tracking-wide">SupremeAI</span>
         </div>
 
@@ -162,8 +171,8 @@ export function DashboardShell(props: DashboardShellProps) {
                 onClick={() => navigate(item.id)}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left ${
                   isActive
-                    ? 'bg-blue-600/20 text-blue-300 border border-blue-500/20'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]'
+                    ? 'bg-accent-primary/20 text-neon-blue border border-neon-blue/20'
+                    : 'text-text-secondary hover:text-foreground hover:bg-input-bg'
                 }`}
               >
                 {item.icon}
@@ -174,26 +183,26 @@ export function DashboardShell(props: DashboardShellProps) {
         </nav>
 
         {/* স্ট্যাটাস ও থিম */}
-        <div className="px-3 py-3 border-t border-white/[0.06] space-y-2">
+        <div className="px-3 py-3 border-t border-border-accent space-y-2">
           <div
             data-testid="sidebar-server-status"
             className="flex items-center gap-2 text-[11px]"
           >
             {props.isServerOnline ? (
               <>
-                <Wifi size={11} className="text-emerald-400" />
-                <span className="text-emerald-400 font-medium">Online</span>
+                <Wifi size={11} className="text-success" />
+                <span className="text-success font-medium">Online</span>
               </>
             ) : (
               <>
-                <WifiOff size={11} className="text-rose-400" />
-                <span className="text-rose-400 font-medium">Offline</span>
+                <WifiOff size={11} className="text-danger" />
+                <span className="text-danger font-medium">Offline</span>
               </>
             )}
           </div>
           <button
             onClick={props.toggleTheme}
-            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] text-slate-400 hover:text-slate-300 hover:bg-white/[0.04] transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] text-text-secondary hover:text-foreground hover:bg-input-bg transition-colors"
           >
             <Shield size={11} />
             {props.theme === 'dark' ? 'Dark' : 'Light'} mode
@@ -206,6 +215,7 @@ export function DashboardShell(props: DashboardShellProps) {
         {renderPage()}
       </main>
     </div>
+    </MockSwarmProvider>
   );
 }
 

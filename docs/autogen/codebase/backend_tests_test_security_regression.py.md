@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_security_regression.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,683 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.085898
+**সাইজ:** 1,689 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.262885
 
 ---
 
@@ -32,7 +32,7 @@ async def test_production_jwt_secret_required():
                 openrouter_api_key="valid",
                 gemini_api_key="valid",
             )
-    assert "SUPREMEAI_JWT_SECRET must be explicitly set in production" in str(excinfo.value)
+    assert "SUPREMEAI_JWT_SECRET must be explicitly set in all environments" in str(excinfo.value)
 
 
 def test_auth_middleware_rejects_invalid_api_token():

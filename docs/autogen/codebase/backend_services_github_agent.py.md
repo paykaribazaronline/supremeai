@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/services/github_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,329 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.098708
+**সাইজ:** 5,323 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.268060
 
 ---
 
@@ -64,12 +64,12 @@ async def create_autonomous_pr(
     """  # noqa: W293
     # ১. ডাটাবেস থেকে এনক্রিপ্টেড টোকেন নিয়ে ডিক্রিপ্ট করা
     if db is None:
-        raise RuntimeError("create_autonomous_pr: db_session is required. " "Call with an active AsyncSession to fetch the GitHub token from DB.")
+        raise RuntimeError("create_autonomous_pr: db_session is required. Call with an active AsyncSession to fetch the GitHub token from DB.")
 
     access_token = await get_user_github_token(user_id, db)
     if access_token is None:
         raise RuntimeError(
-            f"GitHub token not found or could not be decrypted for user '{user_id}'. " "Please connect GitHub via /integrations/github/link first."
+            f"GitHub token not found or could not be decrypted for user '{user_id}'. Please connect GitHub via /integrations/github/link first."
         )
 
     headers = {"Authorization": f"Bearer {access_token}", "Accept": "application/vnd.github.v3+json"}

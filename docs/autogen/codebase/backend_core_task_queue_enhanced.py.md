@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/task_queue_enhanced.py
 
 **প্রকার:** .py  
-**সাইজ:** 21,580 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.040601
+**সাইজ:** 21,590 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.244129
 
 ---
 
@@ -15,7 +15,6 @@
 # _asyncio_worker() এর while True → gracefully cancellable coroutine।
 # Bounded memory: max tracked tasks cap enforce।
 # CancelledError সবসময় re-raise।
-
 import asyncio
 import contextlib
 import inspect
@@ -27,6 +26,7 @@ from collections.abc import Callable
 from dataclasses import asdict
 from dataclasses import dataclass
 from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from loguru import logger
@@ -79,7 +79,7 @@ def _check_pubsub_available() -> bool:
 
 
 # ── Data Models ────────────────────────────────────────────────────────────────
-class QueueBackend(str, Enum):
+class QueueBackend(StrEnum):
     CELERY = "celery"
     REDIS = "redis"
     PUBSUB = "pubsub"
@@ -171,7 +171,7 @@ class TaskQueue:
         self._worker_task: asyncio.Task | None = None
         self._shutdown_event = asyncio.Event()
 
-        logger.info(f"[TaskQueue] Initialized with backend={default_backend.value}, " f"max_tracked={max_tracked_tasks}")
+        logger.info(f"[TaskQueue] Initialized with backend={default_backend.value}, max_tracked={max_tracked_tasks}")
 
     def _evict_oldest_if_needed(self) -> None:
         """
@@ -189,7 +189,7 @@ class TaskQueue:
                 logger.debug(f"[TaskQueue] Evicted old task: {oldest_id}")
             else:
                 # বাংলা মন্তব্য: সব tasks pending হলে evict করা যাবে না — log এবং break
-                logger.warning(f"[TaskQueue] Max tracked tasks ({self._MAX_TRACKED_TASKS}) reached " f"with all pending tasks. Cannot evict.")
+                logger.warning(f"[TaskQueue] Max tracked tasks ({self._MAX_TRACKED_TASKS}) reached with all pending tasks. Cannot evict.")
                 break
 
     async def submit_task(
@@ -275,7 +275,7 @@ class TaskQueue:
                 # বাংলা মন্তব্য: blocking wait নয় — event-driven await
                 await asyncio.wait_for(event.wait(), timeout=timeout)
             except TimeoutError:
-                raise TimeoutError(f"Timeout ({timeout}s) waiting for task {task_id}. " f"Current status: {self._results[task_id].status}") from None
+                raise TimeoutError(f"Timeout ({timeout}s) waiting for task {task_id}. Current status: {self._results[task_id].status}") from None
             except asyncio.CancelledError:
                 # বাংলা মন্তব্য: CancelledError re-raise — graceful shutdown support
                 logger.warning(f"[TaskQueue] get_result cancelled for task {task_id}")

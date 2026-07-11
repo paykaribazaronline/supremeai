@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/admin_dashboard.py
 
 **প্রকার:** .py  
-**সাইজ:** 30,826 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.054757
+**সাইজ:** 30,922 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.250268
 
 ---
 
@@ -513,7 +513,7 @@ def get_codebase_export():
     try:
         codebase_md = export_codebase_to_markdown("..")
         return {"success": True, "markdown": codebase_md}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to export codebase: {e}")
         raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}") from e
 
@@ -611,7 +611,7 @@ def get_full_data_export():
             "users": users,
             "costs": costs,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Full data export failed: {e}")
         raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}") from e
 
@@ -746,7 +746,7 @@ async def execute_manual_gate_override(payload: GateOverridePayload):
             "message": f"SupremeAI 2.0 Deployment Gate has been successfully forced to {requested_status}.",
         }
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"❌ Failed to commit manual gate override to Cloud Firestore: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Infrastructure Sync Failure: {str(e)}") from e
 
@@ -759,7 +759,7 @@ async def get_ci_logs(limit: int = 20):
     try:
         reports = await get_recent_ci_reports(limit)
         return reports
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"❌ Failed to fetch CI logs: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Database query failure: {str(e)}") from e
 
@@ -787,7 +787,7 @@ async def receive_ci_report(report: CIReportPayload, request: Request):
         report_id = res.get("id") if res else None
         logger.info(f"Successfully saved CI report with ID: {report_id}")
         return {"status": "success", "report_id": report_id}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"❌ Failed to save CI report: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to save CI report: {str(e)}") from e
 
@@ -814,7 +814,7 @@ async def get_events(limit: int = Query(50, ge=1, le=200)):
                 logger.warning(f"Skipping malformed event log line: {line.strip()}")
 
         return events[:limit]
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error reading events log: {e}")
         raise HTTPException(status_code=500, detail="Could not read event logs.") from e
 

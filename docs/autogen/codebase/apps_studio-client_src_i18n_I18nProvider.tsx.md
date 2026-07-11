@@ -1,19 +1,19 @@
 # 📄 ফাইল: apps/studio-client/src/i18n/I18nProvider.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 659 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.129503
+**সাইজ:** 771 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.281078
 
 ---
 
 ## কোড
 
 ```tsx
-import { createContext, useContext } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
+import { I18nContext } from './I18nContext';
 
-export const I18nContext = createContext({ t: (key: string) => key, locale: 'en', setLocale: (_next: string) => {} } satisfies Record<string, any>);
-
+// বাংলা মন্তব্য: I18nContext একে অপর ফাইল থেকে ইম্পোর্ট করা হয়েছে, যাতে react-refresh সতর্কতা দূর হয়
+// useI18n hook একে অপর ফাইলে সরানো হয়েছে (useI18n.ts)
 export const TranslationProvider = ({ locale, children }: { locale: string; children: React.ReactNode }) => {
   const { t, setLocale } = useTranslation(locale as any || 'en');
   return (
@@ -22,7 +22,4 @@ export const TranslationProvider = ({ locale, children }: { locale: string; chil
     </I18nContext.Provider>
   );
 };
-
-export const useI18n = () => useContext(I18nContext);
-
 ```

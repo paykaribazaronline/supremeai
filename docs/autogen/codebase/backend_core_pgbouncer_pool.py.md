@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/pgbouncer_pool.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,479 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.030707
+**সাইজ:** 3,476 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.239810
 
 ---
 
@@ -91,7 +91,7 @@ async def get_db_pool() -> PgBouncerConnectionPool:
     RuntimeError is raised if the pool has not been initialized yet.
     """
     if _db_pool_instance is None:
-        raise RuntimeError("DB pool was accessed before app startup initialized it. " "Call init_db_pool() explicitly during the FastAPI lifespan.")
+        raise RuntimeError("DB pool was accessed before app startup initialized it. Call init_db_pool() explicitly during the FastAPI lifespan.")
     return _db_pool_instance
 
 

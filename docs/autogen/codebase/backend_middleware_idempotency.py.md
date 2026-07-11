@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/middleware/idempotency.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,117 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.069794
+**সাইজ:** 6,133 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.256511
 
 ---
 
@@ -118,7 +118,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
 
             return response
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # বাংলা মন্তব্য: Exception হলে লক রিলিজ করা
             await release_idempotency_lock(idempotency_key)
             logger.error(f"❌ Execution failed inside Idempotency block: {str(e)}")

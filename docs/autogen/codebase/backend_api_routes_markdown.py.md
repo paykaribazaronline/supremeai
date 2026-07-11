@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/markdown.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,030 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.055542
+**সাইজ:** 7,046 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.250692
 
 ---
 
@@ -159,7 +159,7 @@ async def compare_ranges(payload: CompareRequest):
                 f"{markdown_b}"
             ),
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 

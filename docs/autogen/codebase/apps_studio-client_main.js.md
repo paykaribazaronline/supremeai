@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/main.js
 
 **প্রকার:** .js  
-**সাইজ:** 1,620 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.124501
+**সাইজ:** 1,686 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.278851
 
 ---
 
@@ -47,8 +47,8 @@ function createWindow() {
     },
     titleBarStyle: 'hidden', // Modern look
     titleBarOverlay: {
-      color: '#1e1e1e',
-      symbolColor: '#ffffff'
+      color: '#030712', // SupremeColors.bgVoid
+      symbolColor: '#00f3ff' // SupremeColors.brandPrimary for symbols
     }
   });
 

@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/core/GlobalConfigInitializer.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 2,276 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.131313
+**সাইজ:** 2,608 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.282577
 
 ---
 
@@ -23,32 +23,37 @@ export const GlobalConfigInitializer: React.FC<GlobalConfigInitializerProps> = (
   const { isConfigLoaded, setConfig } = useStore();
   const [error, setError] = useState<string | null>(null);
 
-  const fetchConfig = async () => {
-    setError(null);
-    try {
-      const res = await fetch(`${getApiBaseUrl()}/api/config/public`);
-      if (res.ok) {
-        const data = await res.json();
-        setConfig(data);
-        if (data.maxConcurrency) {
-          setApiConcurrency(data.maxConcurrency);
-        }
-      } else {
-        throw new Error(`Failed to load config: ${res.statusText}`);
-      }
-    } catch (err) {
-      console.error("Config fetch error:", err);
-      // Fallback to safe defaults on network error
-      setConfig(AppDefaults);
-      setError("Failed to connect to SupremeAI core. Using safe-default configurations.");
-    }
-  };
-
   useEffect(() => {
+    const fetchConfig = async () => {
+      setError(null);
+      try {
+        const res = await fetch(`${getApiBaseUrl()}/api/config/public`);
+        if (res.ok) {
+          const data = await res.json();
+          setConfig(data);
+          if (data.maxConcurrency) {
+            setApiConcurrency(data.maxConcurrency);
+          }
+        } else {
+          throw new Error(`Failed to load config: ${res.statusText}`);
+        }
+      } catch (err) {
+        console.error("Config fetch error:", err);
+        // Fallback to safe defaults on network error
+        setConfig(AppDefaults);
+        setError("Failed to connect to SupremeAI core. Using safe-default configurations.");
+      }
+    };
+
     if (!isConfigLoaded) {
-      fetchConfig();
+      // বাংলা মন্তব্য: set-state-in-effect ফিক্স — fetchConfig কে async ফাংশনের ভেতরে র‍্যাপ করা হয়েছে
+      const loadConfig = async () => {
+        await fetchConfig();
+      };
+      loadConfig();
     }
-  }, [isConfigLoaded]);
+     
+  }, [isConfigLoaded, setConfig]);
 
   if (!isConfigLoaded) {
     return (

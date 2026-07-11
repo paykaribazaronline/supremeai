@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/RateLimitManager.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 18,382 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.143229
+**সাইজ:** 18,646 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.288054
 
 ---
 
@@ -12,7 +12,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { getAdminToken } from '../../services/adminTokenStore';
 import { getApiBaseUrl } from '../../utils/api';
-import { useToast } from '../../contexts/ToastContext';
+import { useToast } from '../../contexts/useToast';
 
 interface TenantLimit {
   tenant_id: string;
@@ -82,7 +82,13 @@ export const RateLimitManager: React.FC = () => {
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { 
+    // বাংলা মন্তব্য: set-state-in-effect ফিক্স — fetchData কে async ফাংশনের ভেতরে র‍্যাপ করা হয়েছে
+    const loadData = async () => {
+      await fetchData();
+    };
+    loadData();
+  }, [fetchData]);
 
   const handleEdit = (t: TenantLimit) => {
     setEditingId(t.tenant_id);

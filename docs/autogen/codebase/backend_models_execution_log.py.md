@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/models/execution_log.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,834 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.060618
+**সাইজ:** 1,832 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.252738
 
 ---
 
@@ -26,7 +26,7 @@ from sqlalchemy.orm import mapped_column
 from models.base import Base
 
 
-class LogType(str, enum.Enum):
+class LogType(enum.StrEnum):
     shell_cmd = "shell_cmd"
     shell_stdout = "shell_stdout"
     shell_stderr = "shell_stderr"

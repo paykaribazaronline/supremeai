@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/websocket_voice.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,971 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.056450
+**সাইজ:** 6,968 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.251020
 
 ---
 
@@ -95,7 +95,7 @@ async def handle_intent(transcript: str, websocket: WebSocket, start_time: float
     else:
         # Natural Language Processing (Simulating conversational Groq/LLM)
         supremeai_response = (
-            f"Hello! You said: '{transcript_clean}'. I am Aethel, " "your SupremeAI orchestrator. How can I assist you with the cluster today?"
+            f"Hello! You said: '{transcript_clean}'. I am Aethel, your SupremeAI orchestrator. How can I assist you with the cluster today?"
         )
 
     # Log to database

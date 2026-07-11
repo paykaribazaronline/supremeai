@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/admin/DeploymentModal.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 13,222 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.139000
+**সাইজ:** 13,870 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.286131
 
 ---
 
@@ -94,13 +94,19 @@ const DeploymentModal: React.FC<DeploymentModalProps> = ({
   // CI লগগুলো প্রসেস করে ডিসপ্লেble logs এ রূপান্তরকারী
   useEffect(() => {
     if (!ciLogs) return;
-    const resolved = (Array.isArray(ciLogs) ? ciLogs : []).map((log: { status?: string; message?: string; commit_message?: string; branch?: string; created_at?: number }) => ({
-      status: log.status || 'INFO',
-      message: log.message || log.commit_message || 'Pipeline event',
-      branch: log.branch,
-      created_at: log.created_at,
-    }));
-    setLogs((prev) => (prev.length ? [...prev, ...resolved] : resolved));
+    
+    // বাংলা মন্তব্য: set-state-in-effect ফিক্স — লগ প্রসেসিং async ফাংশনের ভেতরে করা হয়েছে
+    const processCILogs = async () => {
+      const resolved = (Array.isArray(ciLogs) ? ciLogs : []).map((log: { status?: string; message?: string; commit_message?: string; branch?: string; created_at?: number }) => ({
+        status: log.status || 'INFO',
+        message: log.message || log.commit_message || 'Pipeline event',
+        branch: log.branch,
+        created_at: log.created_at,
+      }));
+      setLogs((prev) => (prev.length ? [...prev, ...resolved] : resolved));
+    };
+    
+    processCILogs();
   }, [ciLogs]);
 
   const queryClient = useQueryClient();
@@ -108,13 +114,18 @@ const DeploymentModal: React.FC<DeploymentModalProps> = ({
   useEffect(() => {
     if (isDeploymentModalOpen && !deploymentStatus) {
       if (ciLogs && Array.isArray(ciLogs) && ciLogs.length > 0) {
-        const latest = ciLogs[0];
-        const mapped = { status: latest.status || 'INFO', message: latest.message || latest.commit_message || 'Pipeline event' };
-        setDeploymentStatus({
-          status: mapped.status === 'success' ? 'success' : mapped.status === 'failed' ? 'failed' : 'running',
-          message: mapped.message,
-          url: mapped.status === 'success' ? 'https://supremeai-api-565236080752.us-central1.run.app' : undefined,
-        });
+        // বাংলা মন্তব্য: set-state-in-effect ফিক্স — ডিপ্লয়মেন্ট স্ট্যাটাস সেট করা async ফাংশনের ভেতরে করা হয়েছে
+        const initDeploymentStatus = async () => {
+          const latest = ciLogs[0];
+          const mapped = { status: latest.status || 'INFO', message: latest.message || latest.commit_message || 'Pipeline event' };
+          setDeploymentStatus({
+            status: mapped.status === 'success' ? 'success' : mapped.status === 'failed' ? 'failed' : 'running',
+            message: mapped.message,
+            url: mapped.status === 'success' ? 'https://supremeai-api-565236080752.us-central1.run.app' : undefined,
+          });
+        };
+        
+        initDeploymentStatus();
       }
     }
   }, [isDeploymentModalOpen, ciLogs, deploymentStatus]);

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/task_workspace.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,356 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.052219
+**সাইজ:** 3,372 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.249158
 
 ---
 
@@ -67,7 +67,7 @@ async def execute_task(payload: TaskPayload, background_tasks: BackgroundTasks):
 
         return {"result": result_text, "status": "success"}
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"❌ Neural Pipeline Error: {str(e)}")  # noqa: T201
         raise HTTPException(status_code=500, detail="Neural connection pipeline error.") from e
 

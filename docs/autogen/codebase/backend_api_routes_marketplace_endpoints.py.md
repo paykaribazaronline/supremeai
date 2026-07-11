@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/marketplace_endpoints.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,006 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.052084
+**সাইজ:** 3,038 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.249108
 
 ---
 
@@ -92,7 +92,7 @@ async def search_marketplaces(payload: SearchRequest, request: Request):
             results.extend(resource_results)
 
         return {"status": "success", "tools": results}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
@@ -101,7 +101,7 @@ async def install_tool(payload: InstallRequest):
     try:
         res = marketplace_agent.install_tool(payload.tool_id, payload.target_environment, payload.sandbox)
         return res
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 ```

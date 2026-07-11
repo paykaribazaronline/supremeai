@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/dashboard/VaultPage.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 13,307 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.133844
+**সাইজ:** 13,568 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.283712
 
 ---
 
@@ -60,7 +60,11 @@ export function VaultPage() {
   }, []);
 
   useEffect(() => {
-    refresh();
+    // বাংলা মন্তব্য: set-state-in-effect ফিক্স — refresh কে async ফাংশনের ভেতরে র‍্যাপ করা হয়েছে
+    const loadVault = async () => {
+      await refresh();
+    };
+    loadVault();
   }, [refresh]);
 
   const handleImport = async () => {

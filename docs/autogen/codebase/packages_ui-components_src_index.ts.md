@@ -1,19 +1,18 @@
 # 📄 ফাইল: packages/ui-components/src/index.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 287 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.016020
+**সাইজ:** 266 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.170969
 
 ---
 
 ## কোড
 
 ```ts
-export { DashboardShell } from './components/DashboardShell';
-export { LiveSujonBackground } from './components/LiveSujonBackground';
-export { SharedProviders } from './contexts/SharedProviders';
-
 export { ChatBubble } from './ChatBubble';
 export { getApiBaseUrl } from './utils/api';
-  
+export { SupremeCard } from './components/SupremeCard';
+export { SupremeHeader } from './components/SupremeHeader';
+export { SharedProviders } from './contexts/SharedProviders';
+
 ```

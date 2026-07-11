@@ -4458,6 +4458,167 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/evolution/logs:
+    get:
+      tags:
+      - self-evolution-engine
+      summary: Get Evolution Logs
+      operationId: get_evolution_logs_api_evolution_logs_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /api/evolution/forge:
+    post:
+      tags:
+      - self-evolution-engine
+      summary: Forge Dynamic Skill
+      description: On-the-fly AI Skill Generation and Sandbox Deployed Gate.
+      operationId: forge_dynamic_skill_api_evolution_forge_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvolutionRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/evolution/swarm-graph:
+    get:
+      tags:
+      - self-evolution-engine
+      summary: Get Swarm Graph
+      operationId: get_swarm_graph_api_evolution_swarm_graph_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/evolution/quarantine:
+    post:
+      tags:
+      - self-evolution-engine
+      summary: Quarantine Skill
+      operationId: quarantine_skill_api_evolution_quarantine_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: metrics_path
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Metrics Path
+      - name: registry_path
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Registry Path
+      - name: skills_dir
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Skills Dir
+      - name: deprecated_dir
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Deprecated Dir
+      - name: db
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - {}
+          - type: 'null'
+          title: Db
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuarantineRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/evolution/proposals:
+    get:
+      tags:
+      - self-evolution-engine
+      summary: List Proposals
+      description: List all pending AI code proposals for admin review.
+      operationId: list_proposals_api_evolution_proposals_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /api/evolution/proposals/{proposal_id}/approve:
+    post:
+      tags:
+      - self-evolution-engine
+      summary: Approve Proposal
+      description: Manually approve a proposal after security review.
+      operationId: approve_proposal_api_evolution_proposals__proposal_id__approve_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: proposal_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Proposal Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/api-keys/create:
     post:
       tags:
@@ -5990,83 +6151,6 @@ paths:
           content:
             application/json:
               schema: {}
-  /api/byoc/credentials:
-    post:
-      tags:
-      - BYOC Management
-      summary: Save Credentials
-      description: Encrypts and saves client-provided cloud service credentials securely.
-      operationId: save_credentials_api_byoc_credentials_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/BYOCCredentialsPayload'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/byoc/deploy:
-    post:
-      tags:
-      - BYOC Management
-      summary: Deploy Container
-      description: Checks user tier quota limits and starts background container deployment.
-      operationId: deploy_container_api_byoc_deploy_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/BYOCDeployRequest'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/byoc/status/{job_id}:
-    get:
-      tags:
-      - BYOC Management
-      summary: Get Deployment Status
-      description: Returns live execution state and logs for a container deployment
-        job.
-      operationId: get_deployment_status_api_byoc_status__job_id__get
-      parameters:
-      - name: job_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Job Id
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
   /task/quota:
     get:
       tags:
@@ -6466,48 +6550,6 @@ components:
       - password
       - otp
       title: AdminVerifyRequest
-    BYOCCredentialsPayload:
-      properties:
-        provider:
-          type: string
-          enum:
-          - gcp
-          - aws
-          - azure
-          title: Provider
-          default: gcp
-        gcp_credentials:
-          $ref: '#/components/schemas/GCPServiceAccountPayload'
-      type: object
-      required:
-      - gcp_credentials
-      title: BYOCCredentialsPayload
-    BYOCDeployRequest:
-      properties:
-        skill_name:
-          type: string
-          title: Skill Name
-          description: Name of the skill container to spin up
-        provider:
-          type: string
-          enum:
-          - gcp
-          - aws
-          - azure
-          title: Provider
-          default: gcp
-        memory_limit:
-          type: string
-          title: Memory Limit
-          default: 256Mi
-        cpu_limit:
-          type: string
-          title: Cpu Limit
-          default: 1000m
-      type: object
-      required:
-      - skill_name
-      title: BYOCDeployRequest
     Body_api_image_to_code_tools_image_to_code_post:
       properties:
         file:
@@ -7264,6 +7306,19 @@ components:
       required:
       - medications
       title: DrugInteractionRequest
+    EvolutionRequest:
+      properties:
+        skill_name:
+          type: string
+          title: Skill Name
+        user_demand:
+          type: string
+          title: User Demand
+      type: object
+      required:
+      - skill_name
+      - user_demand
+      title: EvolutionRequest
     FeedbackEvent:
       properties:
         event_type:
@@ -7306,36 +7361,6 @@ components:
       - selector
       - value
       title: FillRequest
-    GCPServiceAccountPayload:
-      properties:
-        type:
-          type: string
-          title: Type
-          description: Credentials Type (must be service_account)
-        project_id:
-          type: string
-          title: Project Id
-          description: GCP Project ID
-        private_key_id:
-          type: string
-          title: Private Key Id
-          description: GCP Private Key ID
-        private_key:
-          type: string
-          title: Private Key
-          description: GCP Private Key
-        client_email:
-          type: string
-          title: Client Email
-          description: GCP Client Email
-      type: object
-      required:
-      - type
-      - project_id
-      - private_key_id
-      - private_key
-      - client_email
-      title: GCPServiceAccountPayload
     GateOverridePayload:
       properties:
         target_status:
@@ -7950,6 +7975,17 @@ components:
       required:
       - files_changed
       title: PushRequest
+    QuarantineRequest:
+      properties:
+        skill_name:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Skill Name
+      type: object
+      required:
+      - skill_name
+      title: QuarantineRequest
     RepoCreate:
       properties:
         id:

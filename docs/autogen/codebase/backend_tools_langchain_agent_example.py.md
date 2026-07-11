@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/langchain_agent_example.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,061 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.115871
+**সাইজ:** 6,077 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.275206
 
 ---
 
@@ -87,7 +87,7 @@ def handle_agent_call_langchain(
             )
             tracker.track_success()
             return str(response.content)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         tracker.track_error()
         logger.error(f"LangChain invocation failed: {exc}")
         raise exc

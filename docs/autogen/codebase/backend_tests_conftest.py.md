@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/conftest.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,176 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.085143
+**সাইজ:** 5,939 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.262607
 
 ---
 
@@ -10,9 +10,23 @@
 
 ```py
 import os
+import sys
+
+from loguru import logger
+
+# বাংলা মন্তব্য: pytest কালেকশনের সময় loguru-এর ডিফল্ট stderr হ্যান্ডলার যেন I/O error না দেয়, তাই প্রথমেই সেটি রিমুভ করা হলো।
+logger.remove()
 
 os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno="
 os.environ["ENCRYPTION_KEY"] = "9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno="
+os.environ["STRIPE_API_KEY"] = "sk_test_dummy"
+os.environ["STRIPE_WEBHOOK_SECRET"] = "whsec_dummy"
+os.environ["OPENROUTER_API_KEY"] = "sk-or-v1-dummy"
+os.environ["GEMINI_API_KEY"] = "AIzaSy_dummy"
+os.environ["CI_WEBHOOK_SECRET"] = "dummy_ci"
+os.environ["ENV"] = "test"
+os.environ["DOCS_PASSWORD"] = "dummy_pass"
+os.environ["SUPREMEAI_ADMIN_PASSWORD_HASH"] = "dummy_admin_hash"
 import sys
 import matplotlib
 
@@ -94,6 +108,7 @@ _TEST_ENV_DEFAULTS = {
     "ORACLE_CLOUD_API_KEY": "mock_oracle_key",
     "AUTOFIX_AUTHORIZED": "false",
     "EXPERIENCE_DB_PATH": f"data/test_experience_{os.getpid()}.db",
+    "LITELLM_DISABLE_ASYNC_CLIENT_CLEANUP": "True",
 }
 
 

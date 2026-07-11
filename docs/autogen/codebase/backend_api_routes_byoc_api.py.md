@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/byoc_api.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,447 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.053005
+**সাইজ:** 6,463 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.249496
 
 ---
 
@@ -58,7 +58,7 @@ async def save_credentials(payload: BYOCCredentialsPayload):
         encrypted_vault[user_id] = encrypted_data
 
         return {"status": "success", "message": "GCP Service Account credentials encrypted and securely saved.", "provider": payload.provider}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=f"Failed to encrypt credentials: {str(e)}") from e
 
 

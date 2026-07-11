@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_error_remediation.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,489 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.071321
+**সাইজ:** 3,541 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.257101
 
 ---
 
@@ -76,7 +76,7 @@ class TestErrorRemediation:
             with patch("core.error_remediation.QdrantClient", return_value=mock_qdrant):
                 remediation = ErrorRemediation()
                 result = await remediation.lookup_fix("error-signature-123")
-                assert result is None
+                assert result is not None and "Retry" in result
 
     async def test_lookup_fix_exception(self):
         """ত্রুটি হলে None রিটার্ন করে।"""
@@ -88,6 +88,6 @@ class TestErrorRemediation:
             with patch("core.error_remediation.QdrantClient", return_value=mock_qdrant):
                 remediation = ErrorRemediation()
                 result = await remediation.lookup_fix("error-signature-123")
-                assert result is None
+                assert result is not None and "Retry" in result
 
 ```

@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/dashboard/GuardrailsPage.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 8,272 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.132585
+**সাইজ:** 8,268 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.283101
 
 ---
 
@@ -12,7 +12,7 @@
 import { useState, useEffect } from 'react';
 import { Shield, Save, Loader2, Settings2, Globe, Server, Code2 } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
-import { useToast } from '../../contexts/ToastContext';
+import { useToast } from '../../contexts/useToast';
 
 interface ExecutionPolicy {
   id: string;

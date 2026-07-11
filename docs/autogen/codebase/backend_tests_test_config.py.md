@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_config.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,836 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.074686
+**সাইজ:** 4,853 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.258409
 
 ---
 
@@ -140,13 +140,12 @@ def test_cors_origins_production_strips_localhost():
     assert "https://example.com" in s.cors_origins
 
 
-def test_validate_production_completeness_raises_on_missing_production_keys():
+@patch("core.config.secret_vault.fetch_secret", return_value="")
+def test_validate_production_completeness_raises_on_missing_production_keys(mock_fetch):
     from core.config import Settings
 
     s = Settings.model_construct(
         env="production",
-        openrouter_api_key="",
-        gemini_api_key="",
         jwt_secret="secret",
         ci_webhook_secret="supreme-ci-secret-2026",
         stripe_api_key="sk_test_123",

@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/main.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 1,011 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.126540
+**সাইজ:** 1,013 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.279699
 
 ---
 
@@ -16,14 +16,14 @@ import './index.css'
 import { App } from './App.tsx'
 import { getApiBaseUrl } from './utils/api';
 import { setupGlobalFetchInterceptor } from './utils/apiInterceptor';
-import { ToastProvider } from './contexts/ToastContext';
+import { ToastProvider } from './contexts/ToastProvider';
 
 setupGlobalFetchInterceptor();
 
 // Inject globally for any UI components or legacy scripts that expect it
 (window as any).getApiBaseUrl = getApiBaseUrl;
 
-import { ThemeProvider } from './contexts/ThemeContext'
+import { ThemeProvider } from './contexts/ThemeProvider'
 // Shared providers (react-query, monaco defaults)
 import { SharedProviders } from '@supremeai/ui-components'
 import { BrowserRouter } from 'react-router-dom'

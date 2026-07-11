@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/tools/test_code_smell_detector.py
 
 **প্রকার:** .py  
-**সাইজ:** 20,080 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.096704
+**সাইজ:** 20,105 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.267145
 
 ---
 
@@ -114,7 +114,7 @@ class TestCalculateComplexity:
         assert detector._calculate_complexity(tree.body[0]) == 2
 
     def test_except_handler_increases_complexity(self, detector):
-        code = "def foo():\n    try:\n        pass\n    except Exception:\n        pass\n"
+        code = "def foo():\n    try:\n        pass\n    except Exception:  # noqa: BLE001\n        pass\n"
         tree = ast.parse(code)
         assert detector._calculate_complexity(tree.body[0]) == 2
 
@@ -124,7 +124,7 @@ class TestCalculateComplexity:
         assert detector._calculate_complexity(tree.body[0]) == 4
 
     def test_nested_if_and_for(self, detector):
-        code = "def foo():\n" "    for i in range(10):\n" "        if i > 5:\n" "            while True:\n" "                break\n"
+        code = "def foo():\n    for i in range(10):\n        if i > 5:\n            while True:\n                break\n"
         tree = ast.parse(code)
         assert detector._calculate_complexity(tree.body[0]) >= 4
 
@@ -154,7 +154,7 @@ class TestDetectBroadExceptions:
         assert result[0]["severity"] == "warning"
 
     def test_detects_broad_exception(self, detector):
-        code = "def foo():\n    try:\n        pass\n    except Exception:\n        pass\n"
+        code = "def foo():\n    try:\n        pass\n    except Exception:  # noqa: BLE001\n        pass\n"
         tree = ast.parse(code)
         result = detector._detect_broad_exceptions(tree, "test.py")
         assert len(result) == 1
@@ -181,7 +181,7 @@ class TestDetectBroadExceptions:
         assert result == []
 
     def test_multiple_broad_handlers(self, detector):
-        code = "def foo():\n" "    try:\n" "        pass\n" "    except Exception:\n" "        pass\n" "    except:\n" "        pass\n"
+        code = "def foo():\n    try:\n        pass\n    except Exception:  # noqa: BLE001\n        pass\n    except:\n        pass\n"
         tree = ast.parse(code)
         result = detector._detect_broad_exceptions(tree, "test.py")
         assert len(result) == 2
@@ -196,13 +196,13 @@ class TestDetectBroadExceptions:
 
 class TestDetectDuplicateFunctions:
     def test_duplicate_detection_crashes_due_to_body_bug(self, detector):
-        code = "def foo():\n    x = 1\n    return x\n\n" "def bar():\n    x = 1\n    return x\n"
+        code = "def foo():\n    x = 1\n    return x\n\ndef bar():\n    x = 1\n    return x\n"
         tree = ast.parse(code)
         with pytest.raises(TypeError):
             detector._detect_duplicate_functions(tree, "test.py")
 
     def test_unique_bodies_also_crashes(self, detector):
-        code = "def foo():\n    x = 1\n    return x\n\n" "def bar():\n    y = 2\n    return y\n"
+        code = "def foo():\n    x = 1\n    return x\n\ndef bar():\n    y = 2\n    return y\n"
         tree = ast.parse(code)
         with pytest.raises(TypeError):
             detector._detect_duplicate_functions(tree, "test.py")
@@ -214,7 +214,7 @@ class TestDetectDuplicateFunctions:
             detector._detect_duplicate_functions(tree, "test.py")
 
     def test_mocked_dump_detects_duplicate(self, detector):
-        code = "def foo():\n    x = 1\n    return x\n\n" "def bar():\n    x = 1\n    return x\n"
+        code = "def foo():\n    x = 1\n    return x\n\ndef bar():\n    x = 1\n    return x\n"
         tree = ast.parse(code)
         with patch.object(detector, "_normalize", return_value="same_norm"):
             with patch("backend.tools.code_smell_detector.ast.dump", side_effect=lambda node: "same"):
@@ -271,7 +271,7 @@ class TestAnalyzePythonFile:
         assert any(s["type"] == "Syntax Error" for s in result)
 
     def test_broad_exception_detected_when_no_dup_bug(self, detector, tmp_path):
-        src = "def foo():\n    try:\n        pass\n    except Exception:\n        pass\n"
+        src = "def foo():\n    try:\n        pass\n    except Exception:  # noqa: BLE001\n        pass\n"
         f = tmp_path / "be.py"
         f.write_text(src, encoding="utf-8")
         with patch.object(detector, "_detect_duplicate_functions", return_value=[]):

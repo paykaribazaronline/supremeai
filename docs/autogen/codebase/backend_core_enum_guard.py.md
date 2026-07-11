@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/enum_guard.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,548 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.045886
+**সাইজ:** 2,542 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.246396
 
 ---
 
@@ -29,7 +29,7 @@ async def guard_enum(db_enum_name: str, py_enum: type[enum.Enum]):
     try:
         async with engine.connect() as conn:
             result = await conn.execute(
-                text("SELECT enumlabel FROM pg_enum " "JOIN pg_type ON pg_enum.enumtypid = pg_type.oid " "WHERE pg_type.typname = :enum_name"),
+                text("SELECT enumlabel FROM pg_enum JOIN pg_type ON pg_enum.enumtypid = pg_type.oid WHERE pg_type.typname = :enum_name"),
                 {"enum_name": db_enum_name},
             )
             db_labels = {row[0] for row in result.all()}

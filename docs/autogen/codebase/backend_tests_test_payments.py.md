@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_payments.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,673 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.088745
+**সাইজ:** 2,157 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.263945
 
 ---
 
@@ -18,10 +18,22 @@ from core.app import app
 from core.config import settings
 
 
+import pytest
+from unittest.mock import patch
+
 client = TestClient(app)
 
 mock_token = jwt.encode({"user_id": "test-user-id", "role": "admin"}, settings.jwt_secret, algorithm="HS256")
 auth_headers = {"Authorization": f"Bearer {mock_token}"}
+
+
+@pytest.fixture(autouse=True)
+def mock_stripe():
+    with patch("stripe.checkout.Session.create") as mock_session:
+        # Instead of a dict, make the mock return an object with .id and .url
+        mock_session.return_value.id = "cs_test_123"
+        mock_session.return_value.url = "https://stripe.com/test"
+        yield mock_session
 
 
 def test_get_plans():
@@ -35,10 +47,7 @@ def test_get_plans():
 
 
 def test_create_checkout_session_mock():
-    # Verify mock checkout flow when Stripe API key is not configured
-    if "STRIPE_SECRET_KEY" in os.environ:
-        del os.environ["STRIPE_SECRET_KEY"]
-
+    # Because conftest sets dummy STRIPE_API_KEY, the API will hit the mocked Stripe method
     resp = client.post(
         "/payments/checkout",
         json={
@@ -51,12 +60,15 @@ def test_create_checkout_session_mock():
     )
     assert resp.status_code == 200
     data = resp.json()
-    assert data["status"] == "mock"
-    assert data["session_id"] == "mock_session_123"
-    assert "mock_session_123" in data["url"]
+    assert data["status"] == "success"
+    assert data["session_id"] == "cs_test_123"
+    assert "https://stripe.com/test" in data["url"]
 
 
-def test_webhook_ignored_if_missing_config():
+from unittest.mock import PropertyMock
+
+@patch("api.routes.payments.settings.stripe_webhook_secret", new_callable=PropertyMock, return_value="")
+def test_webhook_ignored_if_missing_config(mock_secret):
     # Verify webhook behaves gracefully when credentials/key are missing
     headers = {**auth_headers, "stripe-signature": "invalid-sig"}
     resp = client.post("/payments/webhook", headers=headers, content=b"some-payload")

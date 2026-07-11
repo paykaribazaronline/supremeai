@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/dashboard/useHashRoute.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 1,954 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.134371
+**সাইজ:** 1,989 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.283923
 
 ---
 
@@ -26,7 +26,8 @@ export type DashboardRoute =
   | 'settings'
   | 'admin'
   | 'guardrails'
-  | 'healing-log';
+  | 'healing-log'
+  | 'swarm-health';
 
 export interface ParsedRoute {
   page: DashboardRoute;
@@ -37,7 +38,7 @@ export interface ParsedRoute {
 export function parseHash(hash: string): ParsedRoute {
   const clean = hash.replace(/^#\/?/, '');
   const [page, param] = clean.split('/');
-  const known: DashboardRoute[] = ['sessions', 'session', 'workspace', 'vault', 'automation', 'site-actions', 'llm-gateway', 'knowledge', 'secrets', 'usage', 'settings', 'admin', 'guardrails', 'healing-log'];
+  const known: DashboardRoute[] = ['sessions', 'session', 'workspace', 'vault', 'automation', 'site-actions', 'llm-gateway', 'knowledge', 'secrets', 'usage', 'settings', 'admin', 'guardrails', 'healing-log', 'swarm-health'];
   if (known.includes(page as DashboardRoute)) {
     return { page: page as DashboardRoute, param };
   }

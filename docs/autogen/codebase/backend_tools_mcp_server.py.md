@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/mcp_server.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,340 বাইট  
-**আপডেট:** 2026-07-10T19:10:52.104637
+**সাইজ:** 4,338 বাইট  
+**আপডেট:** 2026-07-11T08:59:12.270476
 
 ---
 
@@ -90,7 +90,7 @@ async def handle_call_tool(name: str, arguments: dict | None) -> list[types.Text
             return [
                 types.TextContent(
                     type="text",
-                    text=f"Optimal execution path from {start} to {end}:\n{ ' -> '.join(path) if path else 'No path found.' }",
+                    text=f"Optimal execution path from {start} to {end}:\n{' -> '.join(path) if path else 'No path found.'}",
                 )
             ]
 
