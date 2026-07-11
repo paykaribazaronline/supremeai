@@ -240,11 +240,12 @@ def test_gcp_pubsub_queue_local_roundtrip():
 
 
 def test_gcp_cloud_function_client_trigger(monkeypatch):
-    monkeypatch.setenv("GCP_PROJECT_ID", "supremeai-a")
-    monkeypatch.setenv("GCP_REGION", "us-central1")
-    monkeypatch.setenv("GCP_CLOUD_FUNCTION_NAME", "processOCR")
     monkeypatch.setattr(httpx, "Client", FakeClient)
-    client = GCPCloudFunctionClient()
+    client = GCPCloudFunctionClient(
+        project_id="supremeai-a",
+        region="us-central1",
+        function_name="processOCR",
+    )
 
     result = client.trigger({"imageUrls": ["https://example.com/a.png"]})
 

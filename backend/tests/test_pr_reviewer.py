@@ -22,8 +22,6 @@ async def test_static_security_scan_detects_secret():
 @pytest.mark.anyio
 @patch("tools.pr_reviewer.Github")
 async def test_review_pr_trigger_changes(mock_github):
-    os.environ["GITHUB_TOKEN"] = "fake-token"
-
     mock_repo = MagicMock()
     mock_pr = MagicMock()
     mock_file = MagicMock()
@@ -38,9 +36,11 @@ async def test_review_pr_trigger_changes(mock_github):
     mock_repo.get_pull.return_value = mock_pr
     mock_github.return_value.get_repo.return_value = mock_repo
 
-    reviewer = PRReviewer()
-    res = await reviewer.review_pr("owner/repo", 42)
-    assert res["status"] == "success"
-    assert res["action_taken"] == "REQUEST_CHANGES"
+    with patch("tools.pr_reviewer.settings") as mock_settings:
+        mock_settings.github_token = "fake-token"
+        reviewer = PRReviewer()
+        res = await reviewer.review_pr("owner/repo", 42)
+        assert res["status"] == "success"
+        assert res["action_taken"] == "REQUEST_CHANGES"
     assert len(res["comments"]) >= 1
     assert any("Stripe Secret Key" in c["body"] for c in res["comments"])

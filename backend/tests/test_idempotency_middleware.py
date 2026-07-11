@@ -77,10 +77,8 @@ class TestIdempotencyMiddleware:
             if "pytest" in sys.modules:
                 del sys.modules["pytest"]
 
-            with patch.dict(os.environ, {"ENV": "production"}):
-                import core.services as app_mod
-
-                with patch.object(app_mod, "redis_queue", None):
+            with patch.dict(os.environ, {"ENV": "production", "REDIS_URL": ""}):
+                with patch.object(middleware, "_get_redis", new_callable=AsyncMock, return_value=None):
                     await middleware(scope, MagicMock(), MagicMock())
                     mock_app.assert_called_once()
 

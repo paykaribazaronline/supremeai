@@ -16,10 +16,10 @@ except ImportError:
 
 # বাংলা মন্তব্য: Module-level env read এবং Celery app scaffold রিমুভ করা হলো।
 # এখন Lazy initialization হবে এবং configuration settings থেকে আসবে।
-_celery_app_instance: Celery | None = None
+_celery_app_instance: "Celery | None" = None
 
 
-def get_celery_app() -> Celery | None:
+def get_celery_app() -> "Celery | None":
     global _celery_app_instance
     if not CELERY_AVAILABLE:
         return None

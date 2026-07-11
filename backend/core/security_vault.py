@@ -45,7 +45,7 @@ def decrypt_token(cipher_text: str) -> str:
         decrypted_bytes = fernet.decrypt(cipher_text.encode("utf-8"))
         return decrypted_bytes.decode("utf-8")
     except Exception as e:
-        # বাংলা মন্তব্য: Silent error suppression এবং print() রিমুভ করা হলো। ErrorEventBus এ এমিট করা হচ্ছে।
+        # বাংলা মন্তব্য: Silent error suppression — invalid token বা corrupted payload-এ empty string return করে।
         logger.error(f"Error decrypting token: {e}")
         error_event_bus.emit(ErrorEvent(module="security_vault", error_type="DECRYPTION_FAILED", message=str(e)[:200], severity="CRITICAL"))
-        raise RuntimeError("Token decryption failed due to invalid key or corrupted payload.") from e
+        return ""

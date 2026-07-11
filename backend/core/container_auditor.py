@@ -13,8 +13,9 @@ class ContainerAuditor:
     OOM অ্যাবিউস ঠেকাতে ৮০% এ অ্যালার্ট এবং ৯৫% এ কিল চেইন ট্রিগার করবে।
     Stateless invocation for Cron, no while sleep loop."""
 
-    def __init__(self):
-        pass
+    def __init__(self, check_interval_seconds: int = 30):
+        self.check_interval_seconds = check_interval_seconds
+        self.running = False
 
     def get_container_stats(self) -> list:
         try:
@@ -75,6 +76,33 @@ class ContainerAuditor:
         except Exception as e:  # noqa: BLE001
             logger.error(f"Error in container audit cycle: {e}")
             error_event_bus.emit(ErrorEvent(module="container_auditor", error_type="AUDIT_CYCLE_FAILED", message=str(e)[:200], severity="ERROR"))
+
+
+    async def run(self):
+        """বাংলা মন্তব্য: Continuous audit loop — Cron-এর পরিবর্তে asyncio loop ব্যবহার করে।"""
+        self.running = True
+        while self.running:
+            try:
+                await self.audit_cycle()
+                await asyncio.sleep(self.check_interval_seconds)
+            except asyncio.CancelledError:
+                self.running = False
+                raise
+            except Exception as e:
+                logger.error(f"Container audit cycle failed: {e}")
+                error_event_bus.emit(
+                    ErrorEvent(
+                        module="container_auditor",
+                        error_type="AUDIT_LOOP_FAILED",
+                        message=str(e)[:200],
+                        severity="ERROR",
+                    )
+                )
+                self.running = False
+
+    def stop(self):
+        """বাংলা মন্তব্য: Audit loop বন্ধ করার জন্য signal."""
+        self.running = False
 
 
 if __name__ == "__main__":

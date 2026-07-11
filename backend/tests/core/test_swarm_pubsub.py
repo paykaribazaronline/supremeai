@@ -56,10 +56,14 @@ class TestSwarmPubSubInit:
             mock_redis = AsyncMock()
             mock_from_url.return_value = mock_redis
 
-            pubsub = SwarmPubSub()
+            with patch("core.config.settings") as mock_settings:
+                mock_settings.redis_url = "redis://localhost"
+                pubsub = SwarmPubSub()
 
-            mock_from_url.assert_called_once_with("redis://localhost")
-            assert pubsub.redis is mock_redis
+                # Access redis property to trigger lazy init
+                r = pubsub.redis
+                mock_from_url.assert_called_once_with("redis://localhost")
+                assert r is mock_redis
 
 
 # -------------------- Tests: subscribe --------------------
@@ -287,7 +291,12 @@ class TestGlobalInstance:
         """বাংলা মন্তব্য: Global instance-এ Redis connection আছে।"""
         from core.swarm_pubsub import swarm_streamer
 
-        assert swarm_streamer.redis is not None
+        with patch("core.config.settings") as mock_settings:
+            mock_settings.redis_url = "redis://localhost"
+            with patch("redis.asyncio.from_url") as mock_from_url:
+                mock_redis = AsyncMock()
+                mock_from_url.return_value = mock_redis
+                assert swarm_streamer.redis is not None
 
 
 # -------------------- Tests: Integration --------------------

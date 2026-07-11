@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from tools.graph_service import GraphService
 
-# বাংলা মন্তব্য: Neo4j নলেজ গ্রাফ সার্ভিসের লজিক টেস্ট করা হচ্ছে।
+# বাংলা মন্তব্য: Neo4j নলেজ গ্রাফ সার্ভিসের লজিক টেস্ট করা হচ্ছে.
 
 
 @pytest.mark.anyio
@@ -25,16 +25,14 @@ async def test_graph_service_dry_run():
 @pytest.mark.anyio
 async def test_graph_service_real_connection():
     # বাংলা মন্তব্য: ক্রেডেনশিয়াল থাকলে AsyncGraphDatabase ড্রাইভার কল হচ্ছে কিনা তা যাচাই করা।
-    env_vars = {
-        "NEO4J_URI": "bolt://mock-uri",
-        "NEO4J_USER": "neo4j",
-        "NEO4J_PASSWORD": "mock_password",
-    }
+    with patch("tools.graph_service.AsyncGraphDatabase.driver") as mock_driver:
+        mock_instance = AsyncMock()
+        mock_driver.return_value = mock_instance
 
-    with patch.dict("os.environ", env_vars):
-        with patch("tools.graph_service.AsyncGraphDatabase.driver") as mock_driver:
-            mock_instance = AsyncMock()
-            mock_driver.return_value = mock_instance
+        with patch("tools.graph_service.settings") as mock_settings:
+            mock_settings.neo4j_uri = "bolt://mock-uri"
+            mock_settings.neo4j_user = "neo4j"
+            mock_settings.neo4j_password = "mock_password"
 
             service = GraphService()
             assert service.dry_run is False
@@ -50,14 +48,14 @@ async def test_graph_service_real_connection():
                         "id": "1",
                         "name": "Python",
                         "category": "Coding",
-                        "success_rate": 0.9,
+                        "description": "A programming language",
                     }
                 ]
             )
 
-            # চেক করা হচ্ছে যে session.run কল হয়েছে
+            # Verify that a session was acquired and a transaction was run
+            mock_instance.session.assert_called_once()
             mock_session.run.assert_called_once()
 
-            # ড্রাইভার ক্লোজ করা
             await service.close()
             mock_instance.close.assert_called_once()

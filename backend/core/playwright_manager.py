@@ -42,17 +42,21 @@ async def get_global_browser() -> Browser:
 async def shutdown_global_browser():
     """Lifespan Hook দ্বারা কল করা হবে - কন্টেইনার শাটডাউনের সময় জম্বি প্রসেস ক্লিন করে"""
     global _playwright_runner, _global_browser
+    logger.info("🛡️ Initiating Playwright Global Lifespan Cleanup...")
     try:
         if _global_browser:
+            logger.info("Closing active global Chromium engine...")
             await _global_browser.close()
     except Exception as e:  # noqa: BLE001
-        logger.error(f"Error closing global browser: {e}")
+        logger.critical(f"Error closing global browser: {e}")
 
     try:
         if _playwright_runner:
+            logger.info("Stopping playwright runner core context...")
             await _playwright_runner.stop()
     except Exception as e:  # noqa: BLE001
-        logger.error(f"Error stopping global playwright runner: {e}")
+        logger.critical(f"Error stopping global playwright runner: {e}")
     finally:
         _global_browser = None
         _playwright_runner = None
+        logger.info("✅ All Playwright OS processes terminated cleanly.")

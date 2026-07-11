@@ -19,16 +19,27 @@ class SwarmPubSub:
     def __init__(self):
         self._redis = None
 
+    @property
+    def redis(self):
+        """বাংলা মন্তব্য: Public accessor for lazy-initialized Redis client."""
+        return self._get_redis()
+
+    @redis.setter
+    def redis(self, value):
+        """বাংলা মন্তব্য: Allow tests to inject mock Redis client."""
+        self._redis = value
+
     def _get_redis(self):
-        if self._redis is None:
-            import redis.asyncio as aioredis
+        if self._redis is not None:
+            return self._redis
+        import redis.asyncio as aioredis
 
-            from core.config import settings
+        from core.config import settings
 
-            url = str(settings.redis_url)
-            if not url:
-                raise RuntimeError("REDIS_URL is not configured in settings. Fail-Fast!")
-            self._redis = aioredis.from_url(url)
+        url = str(settings.redis_url)
+        if not url:
+            raise RuntimeError("REDIS_URL is not configured in settings. Fail-Fast!")
+        self._redis = aioredis.from_url(url)
         return self._redis
 
     async def subscribe(self) -> AsyncGenerator[str, None]:
