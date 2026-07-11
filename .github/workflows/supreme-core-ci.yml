@@ -937,3 +937,54 @@ jobs:
         run: |
           # বাংলা মন্তব্য: codebase_full.md ফাইলটি ১৩MB+ বড় হওয়ায় GitHub Pages limit অতিক্রম করে, তাই বাদ দেওয়া হচ্ছে
           find docs/autogen -name "codebase_full.md"
+
+  # Merged from deploy.yml (Deploy SupremeAI 2.0)
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
+
+      - name: Build and push Worker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/docker/swarm-worker.Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-worker:latest
+
+  deploy-to-staging:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Execute Remote Deployment via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "Pulling latest images..."
+            docker-compose -f docker-compose.prod.yml pull
+            echo "Deploying SupremeAI 2.0 to Production Environment..."
+            docker-compose -f docker-compose.prod.yml up -d
+            echo "Deployment successful."
