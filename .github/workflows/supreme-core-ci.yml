@@ -688,8 +688,9 @@ jobs:
   deploy-backend:
     name: 🚀 Deploy Backend (Cloud Run)
     needs: [backend-core, performance-e2e-test, security-audit]
+    # TEMPORARILY DISABLED: Remove `false &&` to reactivate Cloud Run deployment
     if: |
-      false && # TEMPORARILY DISABLED: Remove `false &&` to reactivate Cloud Run deployment
+      false && 
       github.ref == 'refs/heads/main' &&
       github.event_name == 'push'
     runs-on: ubuntu-latest
