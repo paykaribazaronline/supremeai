@@ -15,6 +15,7 @@ os.environ["GEMINI_API_KEY"] = "AIzaSy_dummy"
 os.environ["CI_WEBHOOK_SECRET"] = "dummy_ci"
 os.environ["ENV"] = "test"
 os.environ["DOCS_PASSWORD"] = "dummy_pass"
+os.environ["SUPREMEAI_ADMIN_PASSWORD_HASH"] = "dummy_admin_hash"
 import sys
 import matplotlib
 
