@@ -8,7 +8,6 @@ from loguru import logger
 from core import services
 from core.config import settings
 from core.config_cache import config_cache
-from core.discord_bot import SupremeDiscordBot
 from core.event_bus import ErrorEvent
 from core.event_bus import error_event_bus
 from core.orchestrator import Orchestrator
@@ -166,23 +165,6 @@ async def app_lifespan(app):
         if os.getenv("ENV") == "production":
             raise e
 
-    try:
-        if settings.discord_bot_token and settings.discord_bot_token != "mock_token":
-            bot = SupremeDiscordBot()
-            app.state.discord_bot_task = asyncio.create_task(bot.start(settings.discord_bot_token))
-            app.state.discord_bot = bot
-            logger.info("🤖 Discord Bot background task initialized successfully.")
-    except Exception as e:  # noqa: BLE001
-        logger.warning(f"Deferred Discord Bot initialization: {e}")
-        error_event_bus.emit(
-            ErrorEvent(
-                module="lifespan",
-                error_type="DISCORD_BOT_INIT_FAILED",
-                message=str(e)[:200],
-                severity="WARNING",
-                context={"component": "discord_bot"},
-            )
-        )
 
     try:
         orch_inst = Orchestrator()
@@ -224,19 +206,15 @@ async def app_lifespan(app):
     logger.critical("🚨 Graceful Shutdown Sequence triggered via Cloud Run Orchestrator.")
 
     try:
-        bot = getattr(app.state, "discord_bot", None)
-        if bot:
-            await bot.close()
-            logger.info("✅ Discord Bot connection closed successfully.")
         orchestrator = getattr(app.state, "orchestrator", None)
         if orchestrator:
             await orchestrator.stop()
     except Exception as e:  # noqa: BLE001
-        logger.error(f"Error closing Discord Bot: {e}")
+        logger.error(f"Error closing Orchestrator: {e}")
         error_event_bus.emit(
             ErrorEvent(
                 module="lifespan",
-                error_type="SHUTDOWN_DISCORD_ORCHESTRATOR_FAILED",
+                error_type="SHUTDOWN_ORCHESTRATOR_FAILED",
                 message=str(e)[:200],
                 severity="WARNING",
                 context={"phase": "shutdown"},

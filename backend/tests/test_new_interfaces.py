@@ -2,7 +2,6 @@ import os
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from core.discord_bot import SupremeDiscordBot
 from tools.voice import VoiceInterface
 
 
@@ -35,9 +34,7 @@ def test_voice_interface_stt_success(mock_post):
             os.remove(dummy_path)
 
 
-def test_discord_bot_initialization():
-    bot = SupremeDiscordBot()
-    assert bot is not None
+
 
 
 def test_local_ocr_extractor():
