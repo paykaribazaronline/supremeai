@@ -13,13 +13,13 @@ from typing import Any
 
 from loguru import logger
 
+from core.circuit_breaker import CircuitBreaker
 from core.config import settings
 from core.cost_guard import CostGuard
 from core.event_bus import ErrorEvent
 from core.event_bus import error_event_bus
 from core.prompt_handler import normalize_prompt
 from core.self_healer import SelfHealerService
-from core.circuit_breaker import CircuitBreaker
 from utils.firestore_helpers import get_firestore_db
 
 
@@ -251,9 +251,9 @@ class LLMGateway:
                 self._circuit_breakers[current_model] = CircuitBreaker(
                     name=current_model,
                     failure_threshold=getattr(settings, "circuit_breaker_failure_threshold", 3),
-                    recovery_timeout=getattr(settings, "circuit_breaker_cooldown_period", 60)
+                    recovery_timeout=getattr(settings, "circuit_breaker_cooldown_period", 60),
                 )
-            
+
             cb = self._circuit_breakers[current_model]
             if not cb.allow_request():
                 logger.warning(f"[LLMGateway] Circuit breaker OPEN for {current_model}. Skipping...")
@@ -330,9 +330,9 @@ class LLMGateway:
                 self._circuit_breakers[current_model] = CircuitBreaker(
                     name=current_model,
                     failure_threshold=getattr(settings, "circuit_breaker_failure_threshold", 3),
-                    recovery_timeout=getattr(settings, "circuit_breaker_cooldown_period", 60)
+                    recovery_timeout=getattr(settings, "circuit_breaker_cooldown_period", 60),
                 )
-            
+
             cb = self._circuit_breakers[current_model]
             if not cb.allow_request():
                 logger.warning(f"[LLMGateway] Circuit breaker OPEN for {current_model}. Skipping...")

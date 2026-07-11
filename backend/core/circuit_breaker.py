@@ -3,13 +3,14 @@ from __future__ import annotations
 import json
 import threading
 import time
+import uuid
 from collections.abc import Callable
+from datetime import datetime
 from typing import Any
 from typing import TypeVar
 
 from loguru import logger
-import uuid
-from datetime import datetime
+
 from core.log_batcher import batcher
 
 
@@ -118,7 +119,7 @@ class CircuitBreaker:
                 "message": f"{self.name}: {status}",
                 "created_at": datetime.utcnow().isoformat(),
                 "model": self.name,
-                "status": status
+                "status": status,
             }
             batcher.emit(log_entry)
         except Exception as e:
