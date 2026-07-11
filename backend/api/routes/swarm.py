@@ -158,9 +158,9 @@ async def save_forge_swarm(payload: ForgePayload):
             "message": "Swarm blueprint saved successfully",
             "data": {"swarm_name": payload.name, "node_count": len(payload.nodes), "edge_count": len(payload.edges)},
         }
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         logger.error(f"Failed to save Forge Swarm: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error while saving swarm blueprint")
+        raise HTTPException(status_code=500, detail="Internal server error while saving swarm blueprint") from e
 
 
 async def run_swarm_execution_async(execution_plan):
@@ -197,7 +197,7 @@ async def execute_forge_flow(flow_id: str, payload: ForgePayload, background_tas
         return {"status": "accepted", "message": "Swarm execution started in background"}
     except ValueError as e:
         logger.error(f"DAG Validation Error: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    except Exception as e:
         logger.error(f"Execution failed: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to execute flow")
+        raise HTTPException(status_code=500, detail="Failed to execute flow") from e

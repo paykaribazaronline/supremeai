@@ -1,5 +1,5 @@
-import enum
 import logging
+from enum import StrEnum
 from typing import Any
 
 from pydantic import BaseModel
@@ -8,7 +8,7 @@ from pydantic import BaseModel
 logger = logging.getLogger(__name__)
 
 
-class DebateState(str, enum.Enum):
+class DebateState(StrEnum):
     PROPOSING = "PROPOSING"
     JUDGING = "JUDGING"
     RETHINKING = "RETHINKING"

@@ -62,7 +62,7 @@ class FactualVerifier:
             from tools.local_search_rag import LocalSearchRAG
 
             self.local_rag = LocalSearchRAG()
-        except Exception as e:
+        except (ImportError, RuntimeError) as e:
             _logger.warning(f"LocalSearchRAG not available or failed to initialize, RAG-based verification disabled: {e}")
             self.local_rag = None
 
