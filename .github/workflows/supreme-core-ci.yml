@@ -138,7 +138,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -146,11 +146,11 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
 
-      - name: Install Poetry
-        run: |
-          pipx install poetry
-          pip install litellm pyyaml httpx
-          poetry config virtualenvs.in-project true
+      - name: Setup Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
       - name: Load Cached Virtualenv
         id: cached-poetry-dependencies
         uses: actions/cache@v4
@@ -233,11 +233,11 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
       
-      - name: Install Poetry
-        run: |
-          pipx install poetry
-          pip install litellm pyyaml httpx
-          poetry config virtualenvs.in-project true
+      - name: Setup Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
       - name: Load Cached Virtualenv
         id: cached-poetry-dependencies
         uses: actions/cache@v4
@@ -350,25 +350,14 @@ jobs:
         with:
           category: "/language:python,javascript"
 
-      - name: 🔍 Trivy Scan - Python Dependencies
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: 'backend'
-          format: 'sarif'
-          output: 'trivy-python.sarif'
-          severity: 'CRITICAL,HIGH'
+      - name: 🔍 Parallel Security Scan
         continue-on-error: true
-
-      - name: 🔍 Trivy Scan - Node.js Dependencies
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-nodejs.sarif'
-          severity: 'CRITICAL,HIGH'
-        continue-on-error: true
+        run: |
+          wget https://github.com/aquasecurity/trivy/releases/download/v0.48.3/trivy_0.48.3_Linux-64bit.deb
+          sudo dpkg -i trivy_0.48.3_Linux-64bit.deb
+          trivy fs --format sarif --output trivy-python.sarif --severity CRITICAL,HIGH backend &
+          trivy fs --format sarif --output trivy-nodejs.sarif --severity CRITICAL,HIGH . &
+          wait
 
       - name: Upload Trivy Python SARIF
         uses: github/codeql-action/upload-sarif@v4
@@ -576,26 +565,16 @@ jobs:
           name: frontend-dist
           path: apps
         continue-on-error: true
-      # বাংলা মন্তব্য: আর্টিফ্যাক্ট ডাউনলোড ব্যর্থ হলে বা dist না থাকলে ফলব্যাক হিসেবে বিল্ড চালানো হবে
-      - name: Fallback Build Frontend (if dist missing)
-        run: |
-          if [ ! -d "apps/studio-client/dist" ]; then
-            echo "⚠️ dist/ not found — building frontend as fallback..."
-            pnpm --dir apps/studio-client exec vite build
-          else
-            echo "✅ dist/ found from artifact download."
-          fi
-        env:
-          CI: true
+
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-      - name: Install Poetry
-        working-directory: backend
-        run: |
-          pipx install poetry
-          poetry config virtualenvs.in-project true
+      - name: Setup Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
       - name: Load Cached Virtualenv
         id: cached-poetry-dependencies
         uses: actions/cache@v4
@@ -841,7 +820,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           persist-credentials: false
       
       - name: 📤 Sync to Secondary Repo (Staging Dispatch)
@@ -922,16 +901,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install Poetry
-        run: |
-          pipx install poetry
-          pip install litellm pyyaml httpx
-          cd backend && poetry config virtualenvs.in-project true
+      - name: Setup Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
       - name: Load Cached Virtualenv
         id: cached-poetry-dependencies
         uses: actions/cache@v4
