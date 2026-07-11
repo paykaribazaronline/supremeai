@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_auth_routes.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,577 বাইট  
-**আপডেট:** 2026-07-11T13:28:08.993426
+**সাইজ:** 6,669 বাইট  
+**আপডেট:** 2026-07-11T13:36:50.140149
 
 ---
 
@@ -114,9 +114,10 @@ class TestOptionalCurrentUser:
 
 class TestLoginEndpoint:
     def test_login_returns_501(self, client):
-        resp = client.post("/auth/login", json={"username": "test", "password": "test"})
-        assert resp.status_code == 501
-        assert resp.json()["detail"] == "Direct login is not supported. Use the admin TOTP flow or an OAuth provider."
+        with patch("api.routes.auth.settings.env", "production"):
+            resp = client.post("/auth/login", json={"username": "test", "password": "test"})
+            assert resp.status_code == 501
+            assert resp.json()["detail"] == "Direct login is not supported in production. Use the admin TOTP flow or an OAuth provider."
 
     def test_login_missing_username(self, client):
         resp = client.post("/auth/login", json={"password": "test"})

@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/services/sandbox.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 2,998 বাইট  
-**আপডেট:** 2026-07-11T13:28:09.069624
+**সাইজ:** 3,000 বাইট  
+**আপডেট:** 2026-07-11T13:36:50.216277
 
 ---
 
@@ -64,7 +64,7 @@ export class SandboxService {
     
     const startTime = Date.now();
     let stdout = '';
-    let stderr = '';
+    const stderr = '';
     
     return new Promise(async (resolve) => {
       let isResolved = false;

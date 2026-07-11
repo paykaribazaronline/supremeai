@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T13:28:08.897727
+Generated at: 2026-07-11T13:36:50.044900
 
 
 ## File: `pnpm-lock.yaml`
@@ -66752,7 +66752,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /onboarding/complete:
+  /api/onboarding/complete:
     post:
       tags:
       - onboarding
@@ -66764,7 +66764,7 @@ paths:
         2. Save user preferences (theme, model, language)
 
         3. Return readiness status'
-      operationId: complete_onboarding_onboarding_complete_post
+      operationId: complete_onboarding_api_onboarding_complete_post
       requestBody:
         content:
           application/json:
@@ -66784,13 +66784,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /onboarding/status/{user_id}:
+  /api/onboarding/status/{user_id}:
     get:
       tags:
       - onboarding
       summary: Get Onboarding Status
       description: Check if a user has completed onboarding.
-      operationId: get_onboarding_status_onboarding_status__user_id__get
+      operationId: get_onboarding_status_api_onboarding_status__user_id__get
       parameters:
       - name: user_id
         in: path
@@ -66806,20 +66806,21 @@ paths:
               schema:
                 type: object
                 additionalProperties: true
-                title: Response Get Onboarding Status Onboarding Status  User Id  Get
+                title: Response Get Onboarding Status Api Onboarding Status  User
+                  Id  Get
         '422':
           description: Validation Error
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /onboarding/reset/{user_id}:
+  /api/onboarding/reset/{user_id}:
     delete:
       tags:
       - onboarding
       summary: Reset Onboarding
       description: Reset onboarding state (for testing/support).
-      operationId: reset_onboarding_onboarding_reset__user_id__delete
+      operationId: reset_onboarding_api_onboarding_reset__user_id__delete
       parameters:
       - name: user_id
         in: path
@@ -66836,7 +66837,7 @@ paths:
                 type: object
                 additionalProperties:
                   type: string
-                title: Response Reset Onboarding Onboarding Reset  User Id  Delete
+                title: Response Reset Onboarding Api Onboarding Reset  User Id  Delete
         '422':
           description: Validation Error
           content:
@@ -67345,6 +67346,158 @@ paths:
             schema:
               $ref: '#/components/schemas/SummarizeRequest'
         required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/rules:
+    post:
+      tags:
+      - Admin Control Center
+      summary: Update Constitutional Rule
+      description: Update God.py constitutional rules directly from the Command Center
+        UI
+      operationId: update_constitutional_rule_api_admin_rules_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RuleUpdate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/actions/{action_type}:
+    post:
+      tags:
+      - Admin Control Center
+      summary: Trigger Quick Action
+      description: Trigger 1-click Quick Actions from Dashboard
+      operationId: trigger_quick_action_api_admin_actions__action_type__post
+      parameters:
+      - name: action_type
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Action Type
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/fixes:
+    get:
+      tags:
+      - Admin Control Center
+      summary: Get Fixes
+      description: Fetch all fixes for a tenant with a specific status.
+      operationId: get_fixes_api_admin_fixes_get
+      parameters:
+      - name: tenant_id
+        in: query
+        required: false
+        schema:
+          type: string
+          default: default
+          title: Tenant Id
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+          default: pending_review
+          title: Status
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/fixes/{fix_id}/approve:
+    post:
+      tags:
+      - Admin Control Center
+      summary: Approve Fix
+      description: Approve a pending fix.
+      operationId: approve_fix_api_admin_fixes__fix_id__approve_post
+      parameters:
+      - name: fix_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Fix Id
+      - name: tenant_id
+        in: query
+        required: false
+        schema:
+          type: string
+          default: default
+          title: Tenant Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/fixes/{fix_id}/reject:
+    post:
+      tags:
+      - Admin Control Center
+      summary: Reject Fix
+      description: Reject a pending fix.
+      operationId: reject_fix_api_admin_fixes__fix_id__reject_post
+      parameters:
+      - name: fix_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Fix Id
+      - name: tenant_id
+        in: query
+        required: false
+        schema:
+          type: string
+          default: default
+          title: Tenant Id
       responses:
         '200':
           description: Successful Response
@@ -69527,7 +69680,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CheckoutRequest'
+              $ref: '#/components/schemas/api__routes__billing_api__CheckoutRequest'
         required: true
       responses:
         '200':
@@ -69719,6 +69872,54 @@ paths:
 
         Maintains connection with a 20s heartbeat.'
       operationId: dashboard_stream_api_dashboard_stream_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /payments/plans:
+    get:
+      tags:
+      - payments
+      summary: Get Subscription Plans
+      operationId: get_subscription_plans_payments_plans_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /payments/checkout:
+    post:
+      tags:
+      - payments
+      summary: Create Checkout Session
+      operationId: create_checkout_session_payments_checkout_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/api__routes__payments__CheckoutRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /payments/webhook:
+    post:
+      tags:
+      - payments
+      summary: Stripe Webhook
+      operationId: stripe_webhook_payments_webhook_post
       responses:
         '200':
           description: Successful Response
@@ -70017,23 +70218,6 @@ components:
       required:
       - message
       title: ChatStreamRequest
-    CheckoutRequest:
-      properties:
-        price_id:
-          type: string
-          title: Price Id
-        success_url:
-          type: string
-          title: Success Url
-        cancel_url:
-          type: string
-          title: Cancel Url
-      type: object
-      required:
-      - price_id
-      - success_url
-      - cancel_url
-      title: CheckoutRequest
     CheckpointResponse:
       properties:
         task_id:
@@ -71538,6 +71722,19 @@ components:
       - model
       - remaining_requests
       title: RouterOverrideRequest
+    RuleUpdate:
+      properties:
+        key:
+          type: string
+          title: Key
+        value:
+          type: string
+          title: Value
+      type: object
+      required:
+      - key
+      - value
+      title: RuleUpdate
     RulesPayload:
       properties:
         rules:
@@ -72565,6 +72762,23 @@ components:
       - prompt
       - project_id
       title: WorkspaceCommand
+    api__routes__billing_api__CheckoutRequest:
+      properties:
+        price_id:
+          type: string
+          title: Price Id
+        success_url:
+          type: string
+          title: Success Url
+        cancel_url:
+          type: string
+          title: Cancel Url
+      type: object
+      required:
+      - price_id
+      - success_url
+      - cancel_url
+      title: CheckoutRequest
     api__routes__marketplace__InstallRequest:
       properties:
         tool_id:
@@ -72589,6 +72803,27 @@ components:
       required:
       - tool_id
       title: InstallRequest
+    api__routes__payments__CheckoutRequest:
+      properties:
+        price_id:
+          type: string
+          title: Price Id
+        success_url:
+          type: string
+          title: Success Url
+        cancel_url:
+          type: string
+          title: Cancel Url
+        user_id:
+          type: string
+          title: User Id
+      type: object
+      required:
+      - price_id
+      - success_url
+      - cancel_url
+      - user_id
+      title: CheckoutRequest
     api__routes__simulator__InstallRequest:
       properties:
         appId:
@@ -79602,10 +79837,11 @@ core_routers = [
     ("api.routes.github", ""),
     ("api.routes.internal", ""),
     ("api.routes.config", ""),
-    ("api.routes.onboarding", ""),
+    ("api.routes.onboarding", "/api"),
     ("api.routes.repos", ""),
     ("api.routes.tools_ops", ""),
     ("api.routes.agents", ""),
+    ("api.routes.admin", ""),
     ("api.routes.tools_registry", ""),
     ("api.routes.preferences", ""),
     ("api.routes.usage_metrics", ""),
@@ -79649,6 +79885,7 @@ optional_routers = [
     ("api.routes.metrics", ""),
     ("api.routes.cloud_mesh", ""),
     ("api.routes.events", "/api"),
+    ("api.routes.payments", ""),
 ]
 
 for router_path, prefix in optional_routers:
@@ -112043,9 +112280,10 @@ class TestOptionalCurrentUser:
 
 class TestLoginEndpoint:
     def test_login_returns_501(self, client):
-        resp = client.post("/auth/login", json={"username": "test", "password": "test"})
-        assert resp.status_code == 501
-        assert resp.json()["detail"] == "Direct login is not supported. Use the admin TOTP flow or an OAuth provider."
+        with patch("api.routes.auth.settings.env", "production"):
+            resp = client.post("/auth/login", json={"username": "test", "password": "test"})
+            assert resp.status_code == 501
+            assert resp.json()["detail"] == "Direct login is not supported in production. Use the admin TOTP flow or an OAuth provider."
 
     def test_login_missing_username(self, client):
         resp = client.post("/auth/login", json={"password": "test"})
@@ -175124,7 +175362,7 @@ export class SandboxService {
     
     const startTime = Date.now();
     let stdout = '';
-    let stderr = '';
+    const stderr = '';
     
     return new Promise(async (resolve) => {
       let isResolved = false;
@@ -207141,6 +207379,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+          lfs: true
       
       - name: 📤 Sync to Secondary Repo (Staging Dispatch)
         if: env.MIRROR_REPO_TOKEN != ''
