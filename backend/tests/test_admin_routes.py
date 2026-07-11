@@ -60,7 +60,7 @@ class TestHelperFunctions:
 
     def test_get_admin_credentials_missing_hash(self):
         """এডমিন পাসওয়ার্ড হ্যাশ নেই থাকলে 500 রিটার্ন করে।"""
-        with patch.dict(os.environ, {}, clear=False):
+        with patch.dict(os.environ, {"SUPREMEAI_ADMIN_PASSWORD_HASH": ""}, clear=False):
             from core.admin_routes import _get_admin_credentials
 
             with pytest.raises(HTTPException) as exc_info:

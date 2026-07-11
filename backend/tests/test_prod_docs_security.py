@@ -56,11 +56,11 @@ def test_docs_visible_in_local():
     code = textwrap.dedent(
         """
         import os
-        os.environ["env"] = "local"
-        os.environ["openrouter_api_key"] = "sk"
-        os.environ["gemini_api_key"] = "sk"
+        os.environ["ENV"] = "local"
+        os.environ["OPENROUTER_API_KEY"] = "sk"
+        os.environ["GEMINI_API_KEY"] = "sk"
         # Sentry-তে public key প্রয়োজন এবং Stripe API key mandatory, তাই মক ভ্যালু যোগ করা হলো
-        os.environ["sentry_dsn"] = "https://public@sentry.io/123"
+        os.environ["SENTRY_DSN"] = "https://public@sentry.io/123"
         os.environ["STRIPE_API_KEY"] = "sk_test_mock"
         os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_64_bytes_long_test_string_pad_pad_pad_pad"
         import core.app as app_mod
@@ -81,12 +81,12 @@ def test_docs_disabled_in_production():
     code = textwrap.dedent(
         """
         import os
-        os.environ["env"] = "production"
-        os.environ["debug"] = "false"
-        os.environ["openrouter_api_key"] = "sk"
-        os.environ["gemini_api_key"] = "sk"
+        os.environ["ENV"] = "production"
+        os.environ["DEBUG"] = "false"
+        os.environ["OPENROUTER_API_KEY"] = "sk"
+        os.environ["GEMINI_API_KEY"] = "sk"
         # Sentry-তে public key প্রয়োজন এবং Production-এ Stripe API key ও Webhook Secret mandatory, তাই মক ভ্যালু যোগ করা হলো
-        os.environ["sentry_dsn"] = "https://public@sentry.io/123"
+        os.environ["SENTRY_DSN"] = "https://public@sentry.io/123"
         os.environ["STRIPE_API_KEY"] = "sk_test_mock"
         os.environ["STRIPE_WEBHOOK_SECRET"] = "whsec_mock"
         os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_64_bytes_long_test_string_pad_pad_pad_pad"
