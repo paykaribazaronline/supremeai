@@ -1,8 +1,11 @@
-import logging
 import asyncio
+import logging
+
 from core.event_bus import error_event_bus
 
+
 logger = logging.getLogger("supremeai.immune_system")
+
 
 class MaintenancePipeline:
     def __init__(self):
@@ -21,12 +24,8 @@ class MaintenancePipeline:
         # Placeholder for DB, Redis, API Connectivity logic
         # For now, just return the current status
         status = "HEALTHY" if self.health_score > 80 else ("DEGRADED" if self.health_score > 50 else "CRITICAL")
-        return {
-            "status": status,
-            "health_score": self.health_score,
-            "message": "Routine health check completed."
-        }
-        
+        return {"status": status, "health_score": self.health_score, "message": "Routine health check completed."}
+
     async def detect_performance_regression(self):
         logger.info("🛡️ Immune System: Running performance regression detection...")
         # Placeholder for latency check logic
@@ -37,7 +36,7 @@ class MaintenancePipeline:
         # Placeholder for self-healing logic based on the event
         if event:
             logger.info(f"Attempting to heal module {event.module} for error {event.error_type}")
-        
+
         # Simulating a healing process
         await asyncio.sleep(1)
         self.health_score = min(100, self.health_score + 2)

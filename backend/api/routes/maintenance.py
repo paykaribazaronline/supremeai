@@ -1,8 +1,11 @@
 from fastapi import APIRouter
+
 from core.maintenance_pipeline import MaintenancePipeline
+
 
 router = APIRouter(prefix="/maintenance", tags=["Maintenance"])
 pipeline = MaintenancePipeline()
+
 
 @router.get("/status")
 async def get_maintenance_status():
