@@ -53,7 +53,7 @@ export class SandboxService {
     
     const startTime = Date.now();
     let stdout = '';
-    let stderr = '';
+    const stderr = '';
     
     return new Promise(async (resolve) => {
       let isResolved = false;
