@@ -15,6 +15,7 @@ client = TestClient(app)
 mock_token = jwt.encode({"user_id": "test-user-id", "role": "admin"}, settings.jwt_secret, algorithm="HS256")
 auth_headers = {"Authorization": f"Bearer {mock_token}"}
 
+
 @pytest.fixture(autouse=True)
 def mock_stripe():
     with patch("stripe.checkout.Session.create") as mock_session:
