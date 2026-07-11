@@ -10,6 +10,7 @@ from core.config import settings
 from core.config_cache import config_cache
 from core.event_bus import ErrorEvent
 from core.event_bus import error_event_bus
+from core.maintenance_pipeline import maintenance_pipeline
 from core.orchestrator import Orchestrator
 from core.pgbouncer_pool import get_db_pool
 from core.pgbouncer_pool import init_db_pool
@@ -199,6 +200,9 @@ async def app_lifespan(app):
                 context={"component": "supabase"},
             )
         )
+
+    # Start SupremeAI Immune System zero-cost background probing
+    maintenance_pipeline.start_monitoring()
 
     yield  # এখানে অ্যাপ্লিকেশন ট্রাফিক রিসিভ করবে
 
