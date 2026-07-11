@@ -73,7 +73,6 @@ class TestGetGlobalBrowser:
     @pytest.mark.asyncio
     async def test_returns_existing_browser(self, mock_browser, mock_playwright_runner):
         """বাংলা মন্তব্য: Second call-এ existing browser return হয় (singleton pattern)।"""
-        
 
         pm._global_browser = mock_browser
         pm._playwright_runner = mock_playwright_runner
@@ -132,7 +131,6 @@ class TestShutdownGlobalBrowser:
     @pytest.mark.asyncio
     async def test_successful_shutdown(self, mock_browser, mock_playwright_runner):
         """বাংলা মন্তব্য: Browser এবং runner properly close হয়।"""
-        
 
         pm._global_browser = mock_browser
         pm._playwright_runner = mock_playwright_runner
@@ -149,7 +147,6 @@ class TestShutdownGlobalBrowser:
     @pytest.mark.asyncio
     async def test_shutdown_with_no_browser(self):
         """বাংলা মন্তব্য: Browser না থাকলেও shutdown peacefully শেষ হয়।"""
-        
 
         pm._global_browser = None
         pm._playwright_runner = None
@@ -164,7 +161,6 @@ class TestShutdownGlobalBrowser:
     @pytest.mark.asyncio
     async def test_shutdown_with_browser_only(self, mock_browser):
         """বাংলা মন্তব্য: Browser থাকলে শুধু browser close হয়।"""
-        
 
         pm._global_browser = mock_browser
         pm._playwright_runner = None
@@ -179,7 +175,6 @@ class TestShutdownGlobalBrowser:
     @pytest.mark.asyncio
     async def test_shutdown_with_runner_only(self, mock_playwright_runner):
         """বাংলা মন্তব্য: Runner থাকলে শুধু runner stop হয়।"""
-        
 
         pm._global_browser = None
         pm._playwright_runner = mock_playwright_runner
@@ -195,8 +190,6 @@ class TestShutdownGlobalBrowser:
     async def test_shutdown_handles_browser_close_error(self, mock_browser, mock_playwright_runner):
         """বাংলা মন্তব্য: Browser close error handle করে runner stop করে।"""
         mock_browser.close = AsyncMock(side_effect=RuntimeError("Browser close failed"))
-
-        
 
         pm._global_browser = mock_browser
         pm._playwright_runner = mock_playwright_runner
@@ -215,8 +208,6 @@ class TestShutdownGlobalBrowser:
     async def test_shutdown_handles_runner_stop_error(self, mock_browser, mock_playwright_runner):
         """বাংলা মন্তব্য: Runner stop error handle করে।"""
         mock_playwright_runner.stop = AsyncMock(side_effect=RuntimeError("Runner stop failed"))
-
-        
 
         pm._global_browser = mock_browser
         pm._playwright_runner = mock_playwright_runner
@@ -237,8 +228,6 @@ class TestShutdownGlobalBrowser:
         """বাংলা মন্তব্য: OSError handle করে gracefully।"""
         mock_browser.close = AsyncMock(side_effect=OSError("OS error during close"))
 
-        
-
         pm._global_browser = mock_browser
         pm._playwright_runner = mock_playwright_runner
 
@@ -254,8 +243,6 @@ class TestShutdownGlobalBrowser:
         """বাংলা মন্তব্য: ConnectionError handle করে gracefully।"""
         mock_browser.close = AsyncMock(side_effect=ConnectionError("Connection lost"))
 
-        
-
         pm._global_browser = mock_browser
         pm._playwright_runner = mock_playwright_runner
 
@@ -269,7 +256,6 @@ class TestShutdownGlobalBrowser:
     @pytest.mark.asyncio
     async def test_shutdown_logs_correct_messages(self, mock_browser, mock_playwright_runner):
         """বাংলা মন্তব্য: Shutdown process-এ সঠিক log messages print হয়।"""
-        
 
         pm._global_browser = mock_browser
         pm._playwright_runner = mock_playwright_runner

@@ -72,6 +72,7 @@ class MultiLayerCache:
     def _get_semantic_cache(self):
         if self._semantic_cache is None:
             from core.semantic_cache import SemanticCache
+
             self._semantic_cache = SemanticCache()
         return self._semantic_cache
 

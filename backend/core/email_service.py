@@ -9,7 +9,7 @@ from core.event_bus import error_event_bus
 
 class EmailService:
     """বাংলা মন্তব্য: ইমেইল সার্ভিস যা Pydantic Settings থেকে URL এবং API Key রিড করে।"""
-    
+
     def __init__(self):
         # Lazy initialization for settings
         self._settings = None
@@ -17,6 +17,7 @@ class EmailService:
     def _get_settings(self):
         if self._settings is None:
             from core.config import settings
+
             self._settings = settings
         return self._settings
 
@@ -52,24 +53,24 @@ class EmailService:
                     return True
                 else:
                     logger.error(f"Failed to send email to {to_email}: {response.text}")
-                    error_event_bus.emit(ErrorEvent(
-                        module="email_service",
-                        error_type="RESEND_API_ERROR",
-                        message=response.text[:200],
-                        severity="ERROR",
-                        context={"status_code": response.status_code, "to_email": to_email}
-                    ))
+                    error_event_bus.emit(
+                        ErrorEvent(
+                            module="email_service",
+                            error_type="RESEND_API_ERROR",
+                            message=response.text[:200],
+                            severity="ERROR",
+                            context={"status_code": response.status_code, "to_email": to_email},
+                        )
+                    )
                     return False
         except Exception as e:
             # বাংলা মন্তব্য: Silent Exception রিমুভ করা হলো এবং ErrorEventBus-এ এমিট করা হলো।
             logger.error(f"Exception while sending email: {e}")
-            error_event_bus.emit(ErrorEvent(
-                module="email_service",
-                error_type="HTTP_REQUEST_FAILED",
-                message=str(e)[:200],
-                severity="ERROR",
-                context={"to_email": to_email}
-            ))
+            error_event_bus.emit(
+                ErrorEvent(
+                    module="email_service", error_type="HTTP_REQUEST_FAILED", message=str(e)[:200], severity="ERROR", context={"to_email": to_email}
+                )
+            )
             # Fail-fast: Re-raise exception
             raise RuntimeError(f"Failed to send email to {to_email}") from e
 
@@ -114,5 +115,6 @@ class EmailService:
         </html>
         """
         return await self._send_email(user_email, subject, html)
+
 
 email_service = EmailService()

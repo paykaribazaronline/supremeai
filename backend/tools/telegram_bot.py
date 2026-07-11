@@ -224,11 +224,12 @@ class TelegramBotHandler:
         """বাংলা মন্তব্য: while True: sleep() পোলিং লুপ বাদ দিয়ে Event-Driven Webhook মডেলে মাইগ্রেট করা হলো।"""
         if not self.bot_token:
             return
-        
+
         url = f"https://api.telegram.org/bot{self.bot_token}/setWebhook"
         try:
             import httpx
             from core.event_bus import error_event_bus, ErrorEvent
+
             async with httpx.AsyncClient() as client:
                 resp = await client.post(url, json={"url": webhook_url})
                 if resp.status_code == 200:
@@ -239,6 +240,7 @@ class TelegramBotHandler:
         except Exception as e:
             logger.error(f"Webhook setup exception: {e}")
             from core.event_bus import error_event_bus, ErrorEvent
+
             error_event_bus.emit(ErrorEvent(module="telegram_bot", error_type="WEBHOOK_EXCEPTION", message=str(e)[:200], severity="ERROR"))
             raise RuntimeError("Failed to setup Telegram webhook.") from e
 

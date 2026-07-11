@@ -39,5 +39,5 @@ async def get_upload_url(request: UploadRequest, user=Depends(get_current_user))
     return {
         "upload_url": upload_url,
         "file_path": safe_filename,
-        "public_url": f"{getattr(settings, "r2_public_url", 'https://pub-your-r2.dev')}/{safe_filename}",
+        "public_url": f"{getattr(settings, 'r2_public_url', 'https://pub-your-r2.dev')}/{safe_filename}",
     }

@@ -439,6 +439,7 @@ class CodeSmellDetector:
                     return output
 
                 import shlex
+
                 cmd = shlex.split(f"pylint --output-format=json --rcfile={shlex.quote(rcfile)} {shlex.quote(directory_path)}")
                 proc = subprocess.run(
                     cmd,
@@ -500,6 +501,7 @@ class CodeSmellDetector:
                 return {"status": "blocked", "reason": "Path traversal detected"}
 
             import shlex
+
             cmd = shlex.split(f"jscpd {shlex.quote(directory_path)} --silent --format json --min-lines 5 --min-tokens 50")
             proc = subprocess.run(
                 cmd,

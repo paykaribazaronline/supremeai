@@ -199,14 +199,17 @@ class CollaborativeEditor:
         logger.info(f"Starting collaborative session for {session_id} using Redis PubSub.")
         try:
             from core.swarm_pubsub import swarm_streamer
+
             async for event in swarm_streamer.subscribe():
                 if f"session_{session_id}" in event:
                     logger.info(f"Received collaboration event: {event}")
         except Exception as e:
             logger.error(f"Collaboration session error: {e}")
             from core.event_bus import error_event_bus, ErrorEvent
+
             error_event_bus.emit(ErrorEvent(module="collaborative_editor", error_type="SESSION_ERROR", message=str(e)[:200], severity="CRITICAL"))
             raise RuntimeError("Collaboration session failed.") from e
+
 
 editor_manager = CollaborativeEditor()
 

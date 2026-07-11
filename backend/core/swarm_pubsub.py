@@ -24,6 +24,7 @@ class SwarmPubSub:
             import redis.asyncio as aioredis
 
             from core.config import settings
+
             url = str(settings.redis_url)
             if not url:
                 raise RuntimeError("REDIS_URL is not configured in settings. Fail-Fast!")
@@ -36,12 +37,14 @@ class SwarmPubSub:
             redis_client = self._get_redis()
         except RuntimeError as e:
             logger.error(f"SwarmPubSub: Cannot subscribe, Redis unavailable: {e}")
-            error_event_bus.emit(ErrorEvent(
-                module="swarm_pubsub",
-                error_type="REDIS_UNAVAILABLE",
-                message=str(e)[:200],
-                severity="CRITICAL",
-            ))
+            error_event_bus.emit(
+                ErrorEvent(
+                    module="swarm_pubsub",
+                    error_type="REDIS_UNAVAILABLE",
+                    message=str(e)[:200],
+                    severity="CRITICAL",
+                )
+            )
             raise
 
         pubsub = redis_client.pubsub()
@@ -62,21 +65,25 @@ class SwarmPubSub:
                 await pubsub.close()
             except Exception as cleanup_err:
                 logger.error(f"SwarmPubSub cleanup error: {cleanup_err}")
-                error_event_bus.emit(ErrorEvent(
-                    module="swarm_pubsub",
-                    error_type="CLEANUP_FAILED",
-                    message=str(cleanup_err)[:200],
-                    severity="WARNING",
-                ))
+                error_event_bus.emit(
+                    ErrorEvent(
+                        module="swarm_pubsub",
+                        error_type="CLEANUP_FAILED",
+                        message=str(cleanup_err)[:200],
+                        severity="WARNING",
+                    )
+                )
             raise
         except Exception as e:
             logger.error(f"SwarmPubSub subscription error: {e}")
-            error_event_bus.emit(ErrorEvent(
-                module="swarm_pubsub",
-                error_type="SUBSCRIPTION_ERROR",
-                message=str(e)[:200],
-                severity="ERROR",
-            ))
+            error_event_bus.emit(
+                ErrorEvent(
+                    module="swarm_pubsub",
+                    error_type="SUBSCRIPTION_ERROR",
+                    message=str(e)[:200],
+                    severity="ERROR",
+                )
+            )
             raise
 
     async def broadcast(self, event_type: str, payload: dict):
@@ -89,12 +96,14 @@ class SwarmPubSub:
             raise
         except Exception as e:
             logger.error(f"SwarmPubSub broadcast failed: {e}")
-            error_event_bus.emit(ErrorEvent(
-                module="swarm_pubsub",
-                error_type="BROADCAST_FAILED",
-                message=str(e)[:200],
-                severity="ERROR",
-            ))
+            error_event_bus.emit(
+                ErrorEvent(
+                    module="swarm_pubsub",
+                    error_type="BROADCAST_FAILED",
+                    message=str(e)[:200],
+                    severity="ERROR",
+                )
+            )
             raise
 
 

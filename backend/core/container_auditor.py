@@ -9,7 +9,7 @@ from core.event_bus import error_event_bus
 
 
 class ContainerAuditor:
-    """বাংলা মন্তব্য: রিয়েল-টাইম কন্টেইনার মেমরি অডিট। 
+    """বাংলা মন্তব্য: রিয়েল-টাইম কন্টেইনার মেমরি অডিট।
     OOM অ্যাবিউস ঠেকাতে ৮০% এ অ্যালার্ট এবং ৯৫% এ কিল চেইন ট্রিগার করবে।
     Stateless invocation for Cron, no while sleep loop."""
 
@@ -23,12 +23,7 @@ class ContainerAuditor:
             if result.returncode != 0:
                 logger.error(f"Failed to fetch docker stats: {result.stderr}")
                 error_event_bus.emit(
-                    ErrorEvent(
-                        module="container_auditor",
-                        error_type="DOCKER_STATS_FAILED",
-                        message=result.stderr[:200],
-                        severity="WARNING"
-                    )
+                    ErrorEvent(module="container_auditor", error_type="DOCKER_STATS_FAILED", message=result.stderr[:200], severity="WARNING")
                 )
                 return []
 
@@ -39,14 +34,7 @@ class ContainerAuditor:
             return stats
         except Exception as e:
             logger.error(f"Error executing docker stats: {e}")
-            error_event_bus.emit(
-                ErrorEvent(
-                    module="container_auditor",
-                    error_type="DOCKER_STATS_EXEC_ERROR",
-                    message=str(e)[:200],
-                    severity="ERROR"
-                )
-            )
+            error_event_bus.emit(ErrorEvent(module="container_auditor", error_type="DOCKER_STATS_EXEC_ERROR", message=str(e)[:200], severity="ERROR"))
             return []
 
     def parse_memory_percent(self, mem_perc_str: str) -> float:
@@ -77,7 +65,7 @@ class ContainerAuditor:
                                 error_type="DOCKER_KILL_FAILED",
                                 message=str(e)[:200],
                                 severity="CRITICAL",
-                                context={"container_name": name}
+                                context={"container_name": name},
                             )
                         )
                 elif mem_perc >= 80.0:
@@ -86,14 +74,8 @@ class ContainerAuditor:
             raise
         except Exception as e:
             logger.error(f"Error in container audit cycle: {e}")
-            error_event_bus.emit(
-                ErrorEvent(
-                    module="container_auditor",
-                    error_type="AUDIT_CYCLE_FAILED",
-                    message=str(e)[:200],
-                    severity="ERROR"
-                )
-            )
+            error_event_bus.emit(ErrorEvent(module="container_auditor", error_type="AUDIT_CYCLE_FAILED", message=str(e)[:200], severity="ERROR"))
+
 
 if __name__ == "__main__":
     auditor = ContainerAuditor()

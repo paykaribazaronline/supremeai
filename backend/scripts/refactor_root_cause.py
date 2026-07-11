@@ -23,6 +23,7 @@ def process_file(filepath: Path, dry_run: bool = False):
     # For this AST agent script we will use a regex-based robust replacement for the two exact patterns.
 
     import re
+
     original_content = content
     modified = False
 
@@ -33,19 +34,19 @@ def process_file(filepath: Path, dry_run: bool = False):
     # This is a complex multiline replacement, for now we will inject an import at the top
     # and use regex to replace basic `except Exception:` that just has `pass`.
 
-    pass_pattern = re.compile(r'(except\s+Exception(\s+as\s+\w+)?:\s*\n\s*)pass', re.MULTILINE)
-    
+    pass_pattern = re.compile(r"(except\s+Exception(\s+as\s+\w+)?:\s*\n\s*)pass", re.MULTILINE)
+
     def replacer(match):
         prefix = match.group(1)
         # Use a safe fallback for the exception variable name
         var_name = match.group(2).strip().split()[-1] if match.group(2) else "e"
         if not match.group(2):
             # If no variable was captured, we need to modify the except statement
-            prefix = prefix.replace('except Exception:', 'except Exception as e:')
+            prefix = prefix.replace("except Exception:", "except Exception as e:")
             var_name = "e"
-        
+
         replacement = f"{prefix}from loguru import logger\n"
-        indent = prefix.split('\n')[-1]
+        indent = prefix.split("\n")[-1]
         replacement += f"{indent}logger.error(f'Caught exception: {{{var_name}}}')\n"
         replacement += f"{indent}from core.event_bus import error_event_bus, ErrorEvent\n"
         replacement += f"{indent}error_event_bus.emit(ErrorEvent(module='auto_refactor', error_type='GENERIC_EXCEPTION', message=str({var_name})[:200], severity='ERROR'))"
@@ -60,7 +61,7 @@ def process_file(filepath: Path, dry_run: bool = False):
     # Replace os.getenv("FOO", "bar") with getattr(settings, "foo", "bar")
     # This requires adding from core.config import settings
     getenv_pattern = re.compile(r'os\.getenv\((["\'])(.*?)\1(?:,\s*(.*?))?\)')
-    
+
     def getenv_replacer(match):
         env_var = match.group(2)
         default_val = match.group(3)
@@ -72,14 +73,14 @@ def process_file(filepath: Path, dry_run: bool = False):
 
     new_content, count = getenv_pattern.subn(getenv_replacer, original_content)
     if count > 0:
-        if 'from core.config import settings' not in new_content:
+        if "from core.config import settings" not in new_content:
             # Inject at top
-            lines = new_content.split('\n')
+            lines = new_content.split("\n")
             for i, line in enumerate(lines):
-                if line.startswith('import ') or line.startswith('from '):
-                    lines.insert(i, 'from core.config import settings')
+                if line.startswith("import ") or line.startswith("from "):
+                    lines.insert(i, "from core.config import settings")
                     break
-            new_content = '\n'.join(lines)
+            new_content = "\n".join(lines)
         modified = True
 
     if modified:

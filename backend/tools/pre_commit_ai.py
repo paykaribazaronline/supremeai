@@ -57,6 +57,7 @@ class PreCommitAI:
         """Gets the git diff for staged files."""
         try:
             import shlex
+
             cmd = shlex.split("git diff --cached")
             result = subprocess.run(
                 cmd,
@@ -76,6 +77,7 @@ class PreCommitAI:
         """Returns list of staged file paths."""
         try:
             import shlex
+
             cmd = shlex.split("git diff --cached --name-only --diff-filter=ACM")
             result = subprocess.run(
                 cmd,
@@ -193,6 +195,7 @@ class PreCommitAI:
             if fix_report["count"] > 0:
                 import shlex
                 import os
+
                 for fp in files:
                     # Strict Path Traversal Whitelist Validation
                     abs_path = os.path.abspath(fp)
@@ -200,7 +203,7 @@ class PreCommitAI:
                     if not abs_path.startswith(base_dir) or ".." in fp:
                         logger.error(f"Security Alert: Path traversal attempt blocked for {fp}")
                         continue
-                    
+
                     with contextlib.suppress(Exception):
                         cmd = shlex.split(f"git add {shlex.quote(fp)}")
                         subprocess.run(cmd, check=True, capture_output=True)
