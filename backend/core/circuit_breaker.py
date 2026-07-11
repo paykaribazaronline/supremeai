@@ -8,6 +8,9 @@ from typing import Any
 from typing import TypeVar
 
 from loguru import logger
+import uuid
+from datetime import datetime
+from core.log_batcher import batcher
 
 
 T = TypeVar("T")
@@ -86,6 +89,8 @@ class CircuitBreaker:
     def mark_success(self) -> None:
         with self._lock:
             self._half_open_in_flight = max(0, self._half_open_in_flight - 1)
+        if self.state != "CLOSED":
+            self._emit_alert("CIRCUIT_CLOSED")
         self.failures = 0
         self.state = "CLOSED"
         self.opened_at = None
@@ -98,10 +103,26 @@ class CircuitBreaker:
         now = time.time()
         self.last_failure_at = now
         self.failures += 1
-        if self.failures >= self.failure_threshold:
+        if self.failures >= self.failure_threshold and self.state != "OPEN":
             self.state = "OPEN"
             self.opened_at = now
+            self._emit_alert("CIRCUIT_OPEN")
         self._persist_to_redis()
+
+    def _emit_alert(self, status: str) -> None:
+        try:
+            log_entry = {
+                "id": str(uuid.uuid4()),
+                "session_id": "swarm_health",
+                "log_type": "alert",
+                "message": f"{self.name}: {status}",
+                "created_at": datetime.utcnow().isoformat(),
+                "model": self.name,
+                "status": status
+            }
+            batcher.emit(log_entry)
+        except Exception as e:
+            logger.debug(f"Failed to emit alert: {e}")
 
     async def call(self, func: Callable[..., T], *args: object, **kwargs: object) -> T:
         if not self.allow_request():

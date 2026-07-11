@@ -19,6 +19,7 @@ from core.event_bus import ErrorEvent
 from core.event_bus import error_event_bus
 from core.prompt_handler import normalize_prompt
 from core.self_healer import SelfHealerService
+from core.circuit_breaker import CircuitBreaker
 from utils.firestore_helpers import get_firestore_db
 
 
@@ -64,6 +65,7 @@ class LLMGateway:
         self.routing_policy = self._load_routing_policy()
         self._setup_litellm_globals()
         self._setup_callbacks()
+        self._circuit_breakers: dict[str, CircuitBreaker] = {}
 
         # বাংলা মন্তব্য: SemanticCache lazy import — cold start এড়াতে
         from core.semantic_cache import SemanticCache
@@ -243,6 +245,20 @@ class LLMGateway:
 
         last_exception: Exception | None = None
         for current_model in call_chain:
+            # Circuit Breaker check
+            if current_model not in self._circuit_breakers:
+                # Initialize using settings from config (which defaults to threshold=3, cooldown=60)
+                self._circuit_breakers[current_model] = CircuitBreaker(
+                    name=current_model,
+                    failure_threshold=getattr(settings, "circuit_breaker_failure_threshold", 3),
+                    recovery_timeout=getattr(settings, "circuit_breaker_cooldown_period", 60)
+                )
+            
+            cb = self._circuit_breakers[current_model]
+            if not cb.allow_request():
+                logger.warning(f"[LLMGateway] Circuit breaker OPEN for {current_model}. Skipping...")
+                continue
+
             try:
                 logger.info(f"[LLMGateway] Attempting: {current_model}")
                 # বাংলা মন্তব্য: api_key per-call pass — os.environ injection সম্পূর্ণ নিষিদ্ধ
@@ -255,6 +271,7 @@ class LLMGateway:
                     api_key=api_key,
                     **kwargs,
                 )
+                cb.mark_success()
                 return {
                     "success": True,
                     "text": response.choices[0].message.content,
@@ -267,6 +284,7 @@ class LLMGateway:
                 raise
             except Exception as exc:  # noqa: BLE001
                 last_exception = exc
+                cb.mark_failure()
                 logger.warning(f"[LLMGateway] Model {current_model} failed: {str(exc)[:200]}. Trying next in chain...")
                 continue
 
@@ -307,6 +325,19 @@ class LLMGateway:
 
         last_exception: Exception | None = None
         for current_model in call_chain:
+            # Circuit Breaker check
+            if current_model not in self._circuit_breakers:
+                self._circuit_breakers[current_model] = CircuitBreaker(
+                    name=current_model,
+                    failure_threshold=getattr(settings, "circuit_breaker_failure_threshold", 3),
+                    recovery_timeout=getattr(settings, "circuit_breaker_cooldown_period", 60)
+                )
+            
+            cb = self._circuit_breakers[current_model]
+            if not cb.allow_request():
+                logger.warning(f"[LLMGateway] Circuit breaker OPEN for {current_model}. Skipping...")
+                continue
+
             try:
                 logger.info(f"[LLMGateway] Streaming attempt: {current_model}")
                 # বাংলা মন্তব্য: api_key per-call — os.environ injection নিষিদ্ধ
@@ -318,6 +349,7 @@ class LLMGateway:
                     stream=True,
                     api_key=api_key,
                 )
+                cb.mark_success()
                 async for chunk in response_stream:
                     content = chunk.choices[0].delta.content
                     if content:
@@ -329,6 +361,7 @@ class LLMGateway:
                 raise
             except Exception as exc:  # noqa: BLE001
                 last_exception = exc
+                cb.mark_failure()
                 logger.warning(f"[LLMGateway] Stream model {current_model} failed: {str(exc)[:200]}")
                 continue
 

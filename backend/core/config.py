@@ -113,6 +113,10 @@ class Settings(BaseSettings):
     max_cost_per_task: float = Field(default=0.01, validation_alias="MAX_COST_PER_TASK")
     enable_token_compression: bool = True
 
+    # ── Circuit Breaker Config ───────────────────────────────────────────────
+    circuit_breaker_failure_threshold: int = Field(default=3, validation_alias="CIRCUIT_BREAKER_FAILURE_THRESHOLD")
+    circuit_breaker_cooldown_period: int = Field(default=60, validation_alias="CIRCUIT_BREAKER_COOLDOWN_PERIOD")
+
     # বাংলা মন্তব্য: Model names env-driven — code deploy ছাড়াই model switch করা যাবে
     claude_openrouter_model: str = Field(
         default="anthropic/claude-3.5-haiku:free",
