@@ -939,9 +939,9 @@ jobs:
         env:
           SUPREMEAI_API_KEY: ${{ secrets.SUPREMEAI_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          # বাংলা মন্তব্য: প্রোডাকশন-রেডি সিকিউরিটি মোডে Settings ইনিশিয়ালাইজ করার সময় STRIPE_API_KEY ভ্যালিডেশন এরর এড়াতে এটি ইনজেক্ট করা হয়েছে
-          STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
-          DOCS_PASSWORD: ${{ secrets.DOCS_PASSWORD }}
+          # বাংলা মন্তব্য: প্রোডাকশন-রেডি সিকিউরিটি মোডে Settings ইনিশিয়ালাইজ করার সময় ভ্যালিডেশন এরর এড়াতে এটি ইনজেক্ট করা হয়েছে
+          STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY || 'sk_test_dummy' }}
+          DOCS_PASSWORD: ${{ secrets.DOCS_PASSWORD || 'dummy_docs_password' }}
         run: |
           cd backend && poetry run python ../scripts/generate_openapi.py
           cd .. && python scripts/auto_generate_architecture_docs.py
