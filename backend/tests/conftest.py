@@ -8,6 +8,13 @@ logger.remove()
 
 os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno="
 os.environ["ENCRYPTION_KEY"] = "9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno="
+os.environ["STRIPE_API_KEY"] = "sk_test_dummy"
+os.environ["STRIPE_WEBHOOK_SECRET"] = "whsec_dummy"
+os.environ["OPENROUTER_API_KEY"] = "sk-or-v1-dummy"
+os.environ["GEMINI_API_KEY"] = "AIzaSy_dummy"
+os.environ["CI_WEBHOOK_SECRET"] = "dummy_ci"
+os.environ["ENV"] = "test"
+os.environ["DOCS_PASSWORD"] = "dummy_pass"
 import sys
 import matplotlib
 
