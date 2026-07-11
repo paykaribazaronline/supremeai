@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T19:00:24.627225
+Generated at: 2026-07-11T19:26:12.002983
 
 
 ## File: `pnpm-lock.yaml`
@@ -114882,15 +114882,12 @@ class TestIdempotencyMiddleware:
             "headers": [],
         }
 
-        import sys
+        from unittest.mock import patch
 
-        sys.modules["pytest"] = MagicMock()
-
-        try:
+        with patch.dict("sys.modules"):
+            sys.modules["pytest"] = MagicMock()
             await middleware(scope, MagicMock(), MagicMock())
             mock_app.assert_called_once()
-        finally:
-            del sys.modules["pytest"]
 
     @pytest.mark.anyio
     async def test_middleware_get_request(self):
@@ -114920,29 +114917,17 @@ class TestIdempotencyMiddleware:
             "headers": [(b"idempotency-key", b"test-key")],
         }
 
-        import sys
-
-        sys.modules["pytest"] = None
-        os_env_backup = {}
-        for key in ["ENV"]:
-            os_env_backup[key] = os.environ.get(key)
-
-        try:
-            import core.services as app_mod
-            from unittest.mock import patch
-
-            with patch.dict(os.environ, {"ENV": "production"}, clear=True):
+        from unittest.mock import patch
+        
+        with patch.dict("sys.modules"):
+            if "pytest" in sys.modules:
+                del sys.modules["pytest"]
+            
+            with patch.dict(os.environ, {"ENV": "production"}):
+                import core.services as app_mod
                 with patch.object(app_mod, "redis_queue", None):
                     await middleware(scope, MagicMock(), MagicMock())
                     mock_app.assert_called_once()
-        finally:
-            for key, value in os_env_backup.items():
-                if value is not None:
-                    os.environ[key] = value
-                else:
-                    os.environ.pop(key, None)
-            if "pytest" in sys.modules:
-                del sys.modules["pytest"]
 
     @pytest.mark.anyio
     async def test_middleware_put_request(self):
@@ -124626,7 +124611,6 @@ class TestGetGlobalBrowser:
         with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
             await pm.get_global_browser()
 
-
             assert pm._global_browser is mock_browser
             assert pm._playwright_runner is mock_playwright_runner
 
@@ -124816,7 +124800,6 @@ class TestPlaywrightManagerIntegration:
 
             # Shutdown
             await pm.shutdown_global_browser()
-
 
             assert pm._global_browser is None
             assert pm._playwright_runner is None
@@ -129083,8 +129066,7 @@ class TestSecurityVaultModuleInit:
         monkeypatch.delenv("ENCRYPTION_KEY", raising=False)
         monkeypatch.delenv("SUPREMEAI_ENCRYPTION_KEY", raising=False)
 
-        if "core.security_vault" in sys.modules:
-            del sys.modules["core.security_vault"]
+        monkeypatch.delitem(sys.modules, "core.security_vault", raising=False)
 
         with pytest.raises(ValueError, match="CRITICAL: ENCRYPTION_KEY"):
             import core.security_vault  # noqa: F401
@@ -129573,8 +129555,7 @@ class TestPlaywrightManagerMissingBranches:
     def test_imports_without_playwright(self, monkeypatch):
         monkeypatch.setitem(sys.modules, "playwright", None)
         monkeypatch.setitem(sys.modules, "playwright.async_api", None)
-        if "core.playwright_manager" in sys.modules:
-            del sys.modules["core.playwright_manager"]
+        monkeypatch.delitem(sys.modules, "core.playwright_manager", raising=False)
         import core.playwright_manager as pm
 
         assert pm.async_playwright is None
@@ -133723,9 +133704,8 @@ import asyncio
 import logging
 from typing import Any
 
-from docker.errors import ContainerError
-
 import docker
+from docker.errors import ContainerError
 
 
 logger = logging.getLogger(__name__)

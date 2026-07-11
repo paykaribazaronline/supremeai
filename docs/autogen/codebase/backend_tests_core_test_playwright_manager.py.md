@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/core/test_playwright_manager.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,267 বাইট  
-**আপডেট:** 2026-07-11T19:00:24.723624
+**সাইজ:** 14,265 বাইট  
+**আপডেট:** 2026-07-11T19:26:12.098297
 
 ---
 
@@ -132,7 +132,6 @@ class TestGetGlobalBrowser:
 
         with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
             await pm.get_global_browser()
-
 
             assert pm._global_browser is mock_browser
             assert pm._playwright_runner is mock_playwright_runner
@@ -323,7 +322,6 @@ class TestPlaywrightManagerIntegration:
 
             # Shutdown
             await pm.shutdown_global_browser()
-
 
             assert pm._global_browser is None
             assert pm._playwright_runner is None
