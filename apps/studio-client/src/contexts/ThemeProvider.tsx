@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { getAdminToken } from '../services/adminTokenStore';
 import { getApiBaseUrl } from '../utils/api';
 import { THEME_ORDER } from './ThemeConstants';
-import { ThemeContext, Theme } from './ThemeContext';
+import { ThemeContext } from './ThemeContext';
+import type { Theme } from './ThemeConstants';
 
 // বাংলা মন্তব্য: ThemeContext একে অপর ফাইল থেকে ইম্পোর্ট করা হয়েছে, যাতে react-refresh সতর্কতা দূর হয়
 // useTheme hook একে অপর ফাইলে সরানো হয়েছে (useTheme.ts)

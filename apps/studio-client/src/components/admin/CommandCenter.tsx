@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 import AethelNode from './AethelNode';
 import { useAdminStore } from '../../store/adminStore';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useTheme } from '../../contexts/useTheme';
 import { AudioRecorderService } from '../../services/audio/AudioRecorderService';
 import { AudioPlaybackService } from '../../services/audio/AudioPlaybackService';
 import { WaveformVisualizer } from '../audio/WaveformVisualizer';

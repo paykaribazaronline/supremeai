@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import { Theme } from './ThemeConstants';
+import type { Theme} from './ThemeConstants';
 
 // বাংলা মন্তব্য: ThemeContext এখানে সরাসরি ডিফাইন করা হয়েছে, যাতে ThemeProvider.tsx এ রেফ্রেশ সমস্যা না হয়
 interface ThemeContextType {

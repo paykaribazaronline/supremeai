@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ToastContext, ToastType, ToastMessage } from './ToastContext';
+import { ToastContext } from './ToastContext';
+import type { ToastType, ToastMessage } from './ToastContext';
 
 // বাংলা মন্তব্য: ToastContext একে অপর ফাইল থেকে ইম্পোর্ট করা হয়েছে, যাতে react-refresh সতর্কতা দূর হয়
 // useToast hook একে অপর ফাইলে সরানো হয়েছে (useToastUI.ts)
@@ -36,5 +37,5 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 };
 
 // Re-export for convenience
-export { ToastType, ToastMessage } from './ToastContext';
+export type { ToastType, ToastMessage } from './ToastContext';
 export { useToast } from './useToastUI';

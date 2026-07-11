@@ -8,8 +8,8 @@ import {
   Controls,
   Background,
   MiniMap,
-  Connection,
-  Edge,
+  type Connection,
+  type Edge,
   useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';

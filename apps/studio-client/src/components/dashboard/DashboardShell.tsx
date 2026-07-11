@@ -28,7 +28,8 @@ import { VaultPage } from './VaultPage';
 import { AutomationQueuePage } from './AutomationQueuePage';
 import { SiteActionsPage } from './SiteActionsPage';
 import { LlmGatewayPage } from './LlmGatewayPage';
-import { LiveSujonBackground, setSujonState, type SujonState } from '../LiveSujonBackground';
+import { LiveSujonBackground } from '../LiveSujonBackground';
+import { setSujonState, type SujonState } from '../sujon-utils';
 import { MockSwarmProvider } from '../../providers/MockSwarmProvider';
 import { SwarmHealthDashboard } from '../swarm/SwarmHealthDashboard';
 

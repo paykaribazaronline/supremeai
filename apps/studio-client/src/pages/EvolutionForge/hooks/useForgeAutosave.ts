@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useReactFlow, Node, Edge } from '@xyflow/react';
+import { useReactFlow, type Node, type Edge } from '@xyflow/react';
 
 export const useForgeAutosave = (nodes: Node[], edges: Edge[], debounceMs = 1000) => {
   const { toObject } = useReactFlow();

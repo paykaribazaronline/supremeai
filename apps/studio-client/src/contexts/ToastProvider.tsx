@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { ToastContext, ToastType, globalShowToastRef } from './ToastContext';
+import { ToastContext, globalShowToastRef } from './ToastContext';
+import type { ToastType } from './ToastContext';
 
 // বাংলা মন্তব্য: ToastContext একে অপর ফাইল থেকে ইম্পোর্ট করা হয়েছে, যাতে react-refresh সতর্কতা দূর হয়
 // useToast hook একে অপর ফাইলে সরানো হয়েছে (useToast.ts)

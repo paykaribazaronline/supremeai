@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { getAdminToken } from '../../services/adminTokenStore';
 import { getApiBaseUrl } from '../../utils/api';
-import { useToast } from '../../contexts/ToastContext';
+import { useToast } from '../../contexts/useToast';
 
 interface TenantLimit {
   tenant_id: string;

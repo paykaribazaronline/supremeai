@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { SujonState } from '../store/sessionCockpitStore';
+import type { SujonState } from '../store/sessionCockpitStore';
 
 // বাংলা মন্তব্য: এই ফাইলে SujonState এবং সম্পর্কিত utility functions সরানো হয়েছে, যাতে LiveSujonBackground.tsx এ রেফ্রেশ সমস্যা না হয়
 export type { SujonState };

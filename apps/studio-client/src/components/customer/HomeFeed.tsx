@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { SkeletonLoader } from './ui/SkeletonLoader';
+import { SkeletonLoader } from '../ui/SkeletonLoader';
 
 interface Widget {
   id: string;

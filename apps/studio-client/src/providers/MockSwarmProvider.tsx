@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { SwarmContextState, SwarmMetrics, SwarmLog, CircuitState } from '../types/swarm';
+import type { SwarmContextState, SwarmMetrics, SwarmLog, CircuitState } from '../types/swarm';
 import { SwarmHealthContext } from './SwarmHealthContext';
 
 // বাংলা মন্তব্য: SwarmHealthContext একে অপর ফাইল থেকে ইম্পোর্ট করা হয়েছে, যাতে react-refresh সতর্কতা দূর হয়

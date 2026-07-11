@@ -20,7 +20,8 @@ import { DashboardShell } from "./components/dashboard/DashboardShell";
 import { UserDashboard } from "./components/customer/UserDashboard";
 
 // Services & Hooks
-import { getAethelResponse, ChatMessage } from "./services/chatService";
+import { getAethelResponse } from "./services/chatService";
+import type { ChatMessage } from "./services/chatService";
 import { useServerStream } from "./hooks/useServerStream";
 import ErrorBoundary from './components/admin/DashboardErrorBoundary';
 

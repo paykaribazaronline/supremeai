@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Trash2, Loader2, ListChecks, AlertOctagon, Terminal, Clock } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
-import { setSujonState } from '../LiveSujonBackground';
+import { setSujonState } from '../sujon-utils';
 
 interface AutomationTask {
   id: string;

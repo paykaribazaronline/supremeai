@@ -5,14 +5,14 @@ import './index.css'
 import { App } from './App.tsx'
 import { getApiBaseUrl } from './utils/api';
 import { setupGlobalFetchInterceptor } from './utils/apiInterceptor';
-import { ToastProvider } from './contexts/ToastContext';
+import { ToastProvider } from './contexts/ToastProvider';
 
 setupGlobalFetchInterceptor();
 
 // Inject globally for any UI components or legacy scripts that expect it
 (window as any).getApiBaseUrl = getApiBaseUrl;
 
-import { ThemeProvider } from './contexts/ThemeContext'
+import { ThemeProvider } from './contexts/ThemeProvider'
 // Shared providers (react-query, monaco defaults)
 import { SharedProviders } from '@supremeai/ui-components'
 import { BrowserRouter } from 'react-router-dom'

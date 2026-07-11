@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Activity, ShieldAlert, CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
-import { useToast } from '../../contexts/ToastContext';
+import { useToast } from '../../contexts/useToast';
 interface HealingEvent {
   id: string;
   ts: string;
