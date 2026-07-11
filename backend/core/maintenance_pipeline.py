@@ -9,7 +9,6 @@ from core.health_probes import probe_external_api
 from core.health_probes import probe_redis
 
 
-
 logger = logging.getLogger("supremeai.immune_system")
 
 
@@ -41,13 +40,13 @@ class MaintenancePipeline:
 
     async def run_health_check(self):
         # logger.info("🛡️ Immune System: Running routine health check...")
-        
+
         results = {
             "redis": await probe_redis(),
             "database": await probe_database(),
             "api_gemini": await probe_external_api("https://generativelanguage.googleapis.com"),
             "api_openrouter": await probe_external_api("https://openrouter.ai/api/v1/auth/key"),
-            "timestamp": time.time()
+            "timestamp": time.time(),
         }
 
         # Calculate Degradation
@@ -63,7 +62,7 @@ class MaintenancePipeline:
 
         # Adjust score safely
         self.health_score = max(0, 100 - penalty)
-        
+
         # Trigger circuit breaker event if degraded significantly
         if self.health_score < 70:
             logger.warning(f"🛡️ Immune System: Health degraded (Score: {self.health_score}). Triggering circuit breaker event.")
@@ -73,7 +72,7 @@ class MaintenancePipeline:
                     error_type="system.health.degraded",
                     message="System health score dropped below safe threshold.",
                     severity="CRITICAL",
-                    context={"results": results, "score": self.health_score}
+                    context={"results": results, "score": self.health_score},
                 )
             )
 
@@ -81,6 +80,7 @@ class MaintenancePipeline:
         results["status"] = status
         results["health_score"] = self.health_score
         return results
+
     async def detect_performance_regression(self):
         logger.info("🛡️ Immune System: Running performance regression detection...")
         # Placeholder for latency check logic
@@ -88,7 +88,7 @@ class MaintenancePipeline:
 
     async def auto_remediate(self, event=None):
         logger.warning("🚑 Immune System: Triggering self-healing remediation...")
-        
+
         # Cooldown Period (2 minutes) to prevent Flapping
         current_time = time.time()
         if current_time - self.last_recovery_time < 120:
@@ -98,10 +98,10 @@ class MaintenancePipeline:
         if event:
             logger.info(f"Attempting to heal module {event.module} for error {event.error_type}")
             from core.redis_manager import redis_manager
-            
+
             # Simulated checks based on the event payload or type
             # In a real scenario, the event type might be exactly 'llm_provider_down' or 'redis_connection_lost'
-            
+
             if "gemini" in str(event.context).lower() or event.error_type == "system.health.degraded":
                 logger.info("🚑 Auto-Recovery: LLM Provider degraded. Switching active provider to OpenRouter.")
                 # Set active_provider in Redis (if redis is up)
@@ -113,14 +113,14 @@ class MaintenancePipeline:
                                 module="auto_remediation",
                                 error_type="system.routing.updated",
                                 message="Switched to OpenRouter successfully.",
-                                severity="INFO"
+                                severity="INFO",
                             )
                         )
                         self.last_recovery_time = current_time
                         self.health_score = min(100, self.health_score + 30)
-                    except Exception as e: # noqa: BLE001
+                    except Exception as e:  # noqa: BLE001
                         logger.error(f"Failed to switch provider: {e}")
-            
+
             if "redis" in str(event.context).lower() or event.error_type == "redis_connection_lost":
                 logger.info("🚑 Auto-Recovery: Redis degraded. Attempting to re-initialize pool.")
                 try:
@@ -129,10 +129,11 @@ class MaintenancePipeline:
                     # e.g., await redis_manager.connect()
                     self.last_recovery_time = current_time
                     self.health_score = min(100, self.health_score + 20)
-                except Exception as e: # noqa: BLE001
+                except Exception as e:  # noqa: BLE001
                     logger.error(f"Failed to recover Redis: {e}")
 
         logger.info("🚑 Remediation cycle completed.")
+
 
 # Global instance for easy import and singleton usage
 maintenance_pipeline = MaintenancePipeline()

@@ -12,6 +12,7 @@ try:
 except ImportError:
     db = None
 
+
 async def probe_redis():
     """
     Ping Redis to verify connectivity with exponential backoff on failure.
@@ -26,8 +27,9 @@ async def probe_redis():
         else:
             return {"status": "down", "latency": None, "reason": "Not initialized"}
         return {"status": "up", "latency": (time.perf_counter() - start) * 1000}
-    except Exception as e: # noqa: BLE001
+    except Exception as e:  # noqa: BLE001
         return {"status": "down", "latency": None, "reason": str(e)}
+
 
 async def probe_database():
     """
@@ -41,8 +43,9 @@ async def probe_database():
             # Here we just check if it exists as a placeholder, since true ping depends on the client library.
             pass
         return {"status": "up", "latency": (time.perf_counter() - start) * 1000}
-    except Exception as e: # noqa: BLE001
+    except Exception as e:  # noqa: BLE001
         return {"status": "down", "latency": None, "reason": str(e)}
+
 
 async def probe_external_api(url: str):
     """
@@ -53,9 +56,9 @@ async def probe_external_api(url: str):
         await chaos_engine.inject_fault()
         async with httpx.AsyncClient(timeout=2.0) as client:
             await client.get(url)
-            # We don't strictly check for 200 OK because many APIs return 401/403 for missing keys, 
+            # We don't strictly check for 200 OK because many APIs return 401/403 for missing keys,
             # which still means the network and the API gateway are UP.
             # Just getting a response means it's reachable.
             return {"status": "up", "latency": (time.perf_counter() - start) * 1000}
-    except Exception as e: # noqa: BLE001
+    except Exception as e:  # noqa: BLE001
         return {"status": "down", "latency": None, "reason": str(e)}

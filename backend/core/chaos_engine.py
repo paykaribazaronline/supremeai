@@ -36,4 +36,5 @@ class ChaosEngine:
             # We can raise a simulated exception or just rely on the timeout
             raise ConnectionError("Simulated LLM Provider Down")
 
+
 chaos_engine = ChaosEngine()
