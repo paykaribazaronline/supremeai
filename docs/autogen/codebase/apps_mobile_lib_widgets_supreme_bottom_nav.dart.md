@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/mobile/lib/widgets/supreme_bottom_nav.dart
 
 **প্রকার:** .dart  
-**সাইজ:** 3,138 বাইট  
-**আপডেট:** 2026-07-11T13:53:46.635131
+**সাইজ:** 3,169 বাইট  
+**আপডেট:** 2026-07-11T13:56:22.710506
 
 ---
 
@@ -11,6 +11,7 @@
 ```dart
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/colors.dart';
 import '../services/localization_service.dart';
 
 class SupremeBottomNav extends StatelessWidget {

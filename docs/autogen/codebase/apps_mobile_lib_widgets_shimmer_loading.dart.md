@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/mobile/lib/widgets/shimmer_loading.dart
 
 **প্রকার:** .dart  
-**সাইজ:** 2,172 বাইট  
-**আপডেট:** 2026-07-11T13:53:46.634796
+**সাইজ:** 2,203 বাইট  
+**আপডেট:** 2026-07-11T13:56:22.709938
 
 ---
 
@@ -11,6 +11,7 @@
 ```dart
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/colors.dart';
 
 class ShimmerLoading extends StatefulWidget {
   final double width;

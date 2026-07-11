@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/mobile/lib/screens/dashboard/main_shell.dart
 
 **প্রকার:** .dart  
-**সাইজ:** 1,869 বাইট  
-**আপডেট:** 2026-07-11T13:53:46.630622
+**সাইজ:** 1,903 বাইট  
+**আপডেট:** 2026-07-11T13:56:22.703236
 
 ---
 
@@ -12,6 +12,7 @@
 import 'package:flutter/material.dart';
 import '../../widgets/supreme_bottom_nav.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/colors.dart';
 // Note: Import your actual screens here. Using placeholders for now.
 import 'dashboard_screen.dart';
 // import '../analytics/analytics_screen.dart';

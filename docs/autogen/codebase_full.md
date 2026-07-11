@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T13:53:46.492632
+Generated at: 2026-07-11T13:56:22.500858
 
 
 ## File: `pnpm-lock.yaml`
@@ -184869,6 +184869,7 @@ class ChatMessage {
 import 'package:flutter/material.dart';
 import '../../widgets/supreme_bottom_nav.dart';
 import '../../theme/app_theme.dart';
+import '../../theme/colors.dart';
 // Note: Import your actual screens here. Using placeholders for now.
 import 'dashboard_screen.dart';
 // import '../analytics/analytics_screen.dart';
@@ -189028,21 +189029,21 @@ class DesignTokens {
   static const double fontSizeBase = 15;
   static const double fontSizeLg = 18;
   static const double fontSizeXl = 22;
-  static const double fontSize-2xl = 28;
-  static const double fontSize-3xl = 36;
+  static const double fontSize2xl = 28;
+  static const double fontSize3xl = 36;
   static const FontWeight fontWeightRegular = FontWeight.w400;
   static const FontWeight fontWeightMedium = FontWeight.w500;
   static const FontWeight fontWeightSemibold = FontWeight.w600;
   static const FontWeight fontWeightBold = FontWeight.w700;
-  static const double space-1 = 4;
-  static const double space-2 = 8;
-  static const double space-3 = 12;
-  static const double space-4 = 16;
-  static const double space-5 = 20;
-  static const double space-6 = 24;
-  static const double space-8 = 32;
-  static const double space-12 = 48;
-  static const double space-16 = 64;
+  static const double space1 = 4;
+  static const double space2 = 8;
+  static const double space3 = 12;
+  static const double space4 = 16;
+  static const double space5 = 20;
+  static const double space6 = 24;
+  static const double space8 = 32;
+  static const double space12 = 48;
+  static const double space16 = 64;
   static const double radiusSm = 6;
   static const double radiusMd = 10;
   static const double radiusLg = 16;
@@ -189103,6 +189104,30 @@ class AppTheme {
     ),
   );
 }
+```
+
+## File: `apps/mobile/lib/theme/colors.dart`
+
+```dart
+import 'package:flutter/material.dart';
+import 'tokens.dart';
+
+class SupremeColors {
+  static const Color brandPrimary = DesignTokens.colorBrandPrimaryLight;
+  static const Color brandSecondary = DesignTokens.colorBrandSecondaryLight;
+  static const Color brandSuccess = DesignTokens.colorBrandSuccessLight;
+  static const Color brandWarning = DesignTokens.colorBrandWarningLight;
+  static const Color brandDanger = DesignTokens.colorBrandDangerLight;
+  static const Color bgVoid = DesignTokens.colorBgVoidLight;
+  static const Color bgSurface = DesignTokens.colorBgSurfaceLight;
+  static const Color bgCard = DesignTokens.colorBgElevatedLight;
+  static const Color textPrimary = DesignTokens.colorTextPrimaryLight;
+  static const Color textSecondary = DesignTokens.colorTextSecondaryLight;
+  static const Color textMuted = DesignTokens.colorTextDisabledLight;
+  static const Color borderDefault = DesignTokens.colorBorderDefaultLight;
+  static const Color borderAccent = DesignTokens.colorBorderAccentLight;
+}
+
 ```
 
 ## File: `apps/mobile/lib/theme/theme_provider.dart`
@@ -190223,6 +190248,7 @@ class _JsonDropzoneState extends State<JsonDropzone> {
 ```dart
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/colors.dart';
 
 class ShimmerLoading extends StatefulWidget {
   final double width;
@@ -190604,6 +190630,7 @@ class AgentMetricsCard extends StatelessWidget {
 ```dart
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/colors.dart';
 import '../services/localization_service.dart';
 
 class SupremeBottomNav extends StatelessWidget {

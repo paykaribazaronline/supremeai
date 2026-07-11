@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/mobile/lib/theme/tokens.dart
 
 **প্রকার:** .dart  
-**সাইজ:** 3,329 বাইট  
-**আপডেট:** 2026-07-11T13:53:46.633330
+**সাইজ:** 3,318 বাইট  
+**আপডেট:** 2026-07-11T13:56:22.707529
 
 ---
 
@@ -43,21 +43,21 @@ class DesignTokens {
   static const double fontSizeBase = 15;
   static const double fontSizeLg = 18;
   static const double fontSizeXl = 22;
-  static const double fontSize-2xl = 28;
-  static const double fontSize-3xl = 36;
+  static const double fontSize2xl = 28;
+  static const double fontSize3xl = 36;
   static const FontWeight fontWeightRegular = FontWeight.w400;
   static const FontWeight fontWeightMedium = FontWeight.w500;
   static const FontWeight fontWeightSemibold = FontWeight.w600;
   static const FontWeight fontWeightBold = FontWeight.w700;
-  static const double space-1 = 4;
-  static const double space-2 = 8;
-  static const double space-3 = 12;
-  static const double space-4 = 16;
-  static const double space-5 = 20;
-  static const double space-6 = 24;
-  static const double space-8 = 32;
-  static const double space-12 = 48;
-  static const double space-16 = 64;
+  static const double space1 = 4;
+  static const double space2 = 8;
+  static const double space3 = 12;
+  static const double space4 = 16;
+  static const double space5 = 20;
+  static const double space6 = 24;
+  static const double space8 = 32;
+  static const double space12 = 48;
+  static const double space16 = 64;
   static const double radiusSm = 6;
   static const double radiusMd = 10;
   static const double radiusLg = 16;
