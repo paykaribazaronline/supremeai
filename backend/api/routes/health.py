@@ -29,6 +29,7 @@ async def get_agents_health(request: HealthRequest):
     health_data = await redis_mgr.get_agents_health(request.agent_ids)
     return health_data
 
+
 @router.get("/health")
 async def health_check():
     # Basic health check for Render
