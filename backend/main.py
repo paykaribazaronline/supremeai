@@ -1,3 +1,4 @@
+# FILE_PATH: main.py
 import os
 import signal
 import sys
@@ -5,18 +6,39 @@ import sys
 import uvicorn
 from loguru import logger
 
-from api.routes import websocket_agent
-from api.routes.admin import router as admin_router
-from api.routes.agent_workspace import router as agent_router
-from api.routes.integrations import router as integrations_router
-from api.routes.public_config import router as public_config_router
-from api.routes.task_workspace import router as workspace_task_router
-from api.routes.traffic_monitor import router as traffic_monitor_router
-from core.app import app  # noqa: F401
-from core.config import settings
-from core.logging_config import setup_logging
+
+# All core application imports are grouped here.
+# If any critical module or its dependencies (like 'slowapi' or 'pinecone') are missing,
+# an ImportError will be raised. This block catches such errors to provide a clean exit
+# and a clear message for the CI pipeline about missing dependencies.
+try:
+    from api.routes import websocket_agent
+    from api.routes.admin import router as admin_router
+    from api.routes.agent_workspace import router as agent_router
+    from api.routes.integrations import router as integrations_router
+    from api.routes.public_config import router as public_config_router
+    from api.routes.task_workspace import router as workspace_task_router
+    from api.routes.traffic_monitor import router as traffic_monitor_router
+    from core.app import app  # noqa: F401
+    from core.config import settings
+    from core.logging_config import setup_logging
+
+    # Setup logging early, after core dependencies are imported
+    setup_logging()
+
+except ImportError as e:
+    logger.critical(
+        f"🔥 CRITICAL DEPENDENCY ERROR: The application failed to load due to a missing Python package. "
+        f"Original error: {e}. "
+        "This likely means a required package (e.g., 'slowapi', 'pinecone') is not installed. "
+        "Please ensure your CI environment or local setup has all project dependencies installed "
+        "as specified in requirements.txt or pyproject.toml."
+    )
+    # Exit immediately to prevent further traceback and clearly indicate the root cause
+    sys.exit(1)
 
 
+# Include routers only if the application core was successfully loaded
 app.include_router(workspace_task_router)
 app.include_router(websocket_agent.router)
 app.include_router(agent_router, prefix="/api/v1")
@@ -24,14 +46,13 @@ app.include_router(integrations_router, prefix="/api/v1")
 app.include_router(admin_router)
 app.include_router(public_config_router, prefix="/api")
 app.include_router(traffic_monitor_router)
-setup_logging()
+
 
 if settings.env.lower() == "production":
     try:
         settings.validate_config()
     except RuntimeError as exc:
         logger.error(f"Production config validation failed: {exc}. Booting in resilient mode.")
-        # sys.exit(1) রিমুভ করা হলো (Cloud Run Resilient Boot)
 
 
 def _handle_sigterm(signum, frame):
