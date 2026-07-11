@@ -156,7 +156,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: backend/.venv
-          key: venv-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
+          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/poetry.lock') }}
+          restore-keys: |
+            venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
+            venv-${{ runner.os }}-
       - name: Install Dependencies (Only on Cache Miss)
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         working-directory: backend
@@ -243,7 +246,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: backend/.venv
-          key: venv-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
+          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/poetry.lock') }}
+          restore-keys: |
+            venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
+            venv-${{ runner.os }}-
       - name: Install Dependencies (Only on Cache Miss)
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         working-directory: backend
@@ -580,7 +586,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: backend/.venv
-          key: venv-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
+          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/poetry.lock') }}
+          restore-keys: |
+            venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
+            venv-${{ runner.os }}-
       - name: Install Backend Dependencies (Only on Cache Miss)
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         working-directory: backend
@@ -916,7 +925,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: backend/.venv
-          key: venv-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
+          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/poetry.lock') }}
+          restore-keys: |
+            venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
+            venv-${{ runner.os }}-
       - name: Install Dependencies (Only on Cache Miss)
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         working-directory: backend
