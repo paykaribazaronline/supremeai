@@ -217,7 +217,6 @@ editor_manager = CollaborativeEditor()
 
 @router.websocket("/ws/{session_id}/{client_id}")
 async def websocket_collab(websocket: WebSocket, session_id: str, client_id: str):
-
     await editor_manager.connect_client(session_id, client_id, websocket)
     try:
         while True:
