@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/lifespan.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,095 বাইট  
-**আপডেট:** 2026-07-11T17:11:02.636979
+**সাইজ:** 11,067 বাইট  
+**আপডেট:** 2026-07-11T17:16:16.861436
 
 ---
 
@@ -161,7 +161,7 @@ async def app_lifespan(app):
         # sys.exit(1) রিমুভ করা হলো যাতে ক্লাউড রান হেলথ চেক পাস করতে পারে
 
     try:
-        await redis_manager.initialize()
+        pass
     except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to initialize Redis Manager: {e}")
         error_event_bus.emit(

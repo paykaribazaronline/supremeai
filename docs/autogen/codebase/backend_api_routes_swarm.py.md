@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/swarm.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,208 বাইট  
-**আপডেট:** 2026-07-11T17:11:02.647596
+**সাইজ:** 7,150 বাইট  
+**আপডেট:** 2026-07-11T17:16:16.872072
 
 ---
 
@@ -86,11 +86,7 @@ class SelfHealingRequest(BaseModel):
     languageId: str
 
 
-from core.app import limiter
-
-
 @router.post("/execute-healing")
-@limiter.limit("5/minute")
 async def execute_healing(payload: SelfHealingRequest, request: Request):
     """
     Agent-in-the-Loop endpoint to self-heal code errors from VS Code Extension.

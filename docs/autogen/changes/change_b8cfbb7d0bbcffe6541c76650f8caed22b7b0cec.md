@@ -1,12 +1,12 @@
-# 📋 Commit b5ccf11138afe19ba472905cd49fdc5276036960
+# 📋 Commit b8cfbb7d0bbcffe6541c76650f8caed22b7b0cec
 
 ## Commit Stats
 ```
-commit b5ccf11138afe19ba472905cd49fdc5276036960
+commit b8cfbb7d0bbcffe6541c76650f8caed22b7b0cec
 Author: SupremeAI CI Bot <ci-bot@supremeai.dev>
-Date:   Sat Jul 11 22:12:04 2026 +0600
+Date:   Sat Jul 11 23:14:56 2026 +0600
 
-    chore: remove discord dependency permanently
+    fix(backend): resolve lifespan AttributeError, circular import, and pydantic allowed_hosts config parse error
 
  .agent                                             |     27 +
  .antigravity                                       |     27 +
@@ -35,11 +35,11 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  .github/scripts/test_ai_reviewer.py                |     94 +
  .github/workflows/nightly-maintenance.yml          |    422 +
  .github/workflows/supreme-ci-auto-fix.yml          |    118 +
- .github/workflows/supreme-core-ci.yml              |   1036 +
+ .github/workflows/supreme-core-ci.yml              |   1071 +
  .github/workflows/supreme-mobile-cd.yml            |    101 +
  .github/workflows/supreme-release-builds.yml       |    164 +
  .github/workflows/sync-from-prod.yml               |     41 +
- .gitignore                                         |    178 +
+ .gitignore                                         |    179 +
  .kilo/agent/bangla-tips.md                         |      4 +
  .kilo/agent/config.json                            |     60 +
  .kilo/mcp/README.md                                |     61 +
@@ -244,7 +244,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  apps/mobile/lib/src/shell/auth_state_shell.dart    |     52 +
  apps/mobile/lib/src/theme/app_theme.dart           |     87 +
  apps/mobile/lib/src/theme/tokens.dart              |     15 +
- apps/mobile/lib/theme/app_theme.dart               |     40 +
+ apps/mobile/lib/theme/app_theme.dart               |     42 +
  apps/mobile/lib/theme/colors.dart                  |     18 +
  apps/mobile/lib/theme/theme_provider.dart          |     12 +
  apps/mobile/lib/theme/tokens.dart                  |     63 +
@@ -611,7 +611,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  backend/.coveragerc                                |     99 +
  backend/.dockerignore                              |     50 +
  backend/.gcloudignore                              |     38 +
- backend/API-swagger.yaml                           |   9457 +
+ backend/API-swagger.yaml                           |   9043 +
  backend/Dockerfile                                 |     33 +
  backend/README.md                                  |     52 +
  backend/__init__.py                                |      0
@@ -667,7 +667,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  backend/api/routes/feedback.py                     |     86 +
  backend/api/routes/github.py                       |    117 +
  backend/api/routes/graph.py                        |    124 +
- backend/api/routes/health.py                       |     30 +
+ backend/api/routes/health.py                       |     36 +
  backend/api/routes/integrations.py                 |    125 +
  backend/api/routes/internal.py                     |     59 +
  backend/api/routes/knowledge.py                    |    131 +
@@ -691,7 +691,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  backend/api/routes/site_actions.py                 |    184 +
  backend/api/routes/sso.py                          |    201 +
  backend/api/routes/stream.py                       |     40 +
- backend/api/routes/swarm.py                        |    199 +
+ backend/api/routes/swarm.py                        |    195 +
  backend/api/routes/task.py                         |    433 +
  backend/api/routes/task_workspace.py               |     79 +
  backend/api/routes/tenant_admin.py                 |    375 +
@@ -736,7 +736,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  backend/core/agent_orchestrator.py                 |    325 +
  backend/core/api_key_middleware.py                 |     71 +
  backend/core/api_key_rate_limiter.py               |     30 +
- backend/core/app.py                                |    333 +
+ backend/core/app.py                                |    290 +
  backend/core/audit_logger.py                       |     64 +
  backend/core/auth_middleware.py                    |    254 +
  backend/core/auto_remediation.py                   |    322 +
@@ -753,7 +753,6 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  backend/core/cost_guard.py                         |     74 +
  backend/core/db_repository.py                      |     86 +
  backend/core/decision_engine.py                    |     13 +
- backend/core/discord_bot.py                        |     58 +
  backend/core/docker-compose.yml                    |     75 +
  backend/core/email_service.py                      |     92 +
  backend/core/enum_guard.py                         |     66 +
@@ -780,7 +779,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  backend/core/knowledge_base.py                     |     35 +
  backend/core/language_router.py                    |     73 +
  backend/core/ld_client.py                          |     55 +
- backend/core/lifespan.py                           |    288 +
+ backend/core/lifespan.py                           |    287 +
  backend/core/llm_gateway.py                        |    394 +
  backend/core/log_batcher.py                        |    118 +
  backend/core/logging_config.py                     |     29 +
@@ -916,7 +915,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  backend/p2p/__init__.py                            |      0
  backend/p2p/credit_system.py                       |     26 +
  backend/p2p/secure_tunnel.py                       |      9 +
- backend/pyproject.toml                             |    183 +
+ backend/pyproject.toml                             |    184 +
  backend/pytest.ini                                 |      6 +
  backend/reports/__init__.py                        |      0
  backend/reports/optimization_engine.py             |      9 +
@@ -952,6 +951,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  backend/tests/conftest.py                          |    179 +
  backend/tests/core/test_agent_factory.py           |     44 +
  backend/tests/core/test_config_proxy.py            |     88 +
+ backend/tests/core/test_container_auditor.py       |      0
  backend/tests/core/test_core_missing_coverage.py   |    631 +
  backend/tests/core/test_cost_guard.py              |     67 +
  backend/tests/core/test_enum_guard.py              |     92 +
@@ -1066,7 +1066,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  backend/tests/test_multi_account_rotator.py        |    420 +
  backend/tests/test_multicloud.py                   |     79 +
  backend/tests/test_new_endpoints_sprint5.py        |    109 +
- backend/tests/test_new_interfaces.py               |     72 +
+ backend/tests/test_new_interfaces.py               |     69 +
  backend/tests/test_new_tools_sprint5.py            |     92 +
  backend/tests/test_optimization_engine.py          |     20 +
  backend/tests/test_output_validator.py             |     70 +
@@ -1264,6 +1264,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  config/routing_policy.json                         |     13 +
  config/vercel.json                                 |      7 +
  coverage.toml                                      |     29 +
+ deploy_render.py                                   |     18 +
  docker-compose.prod.yml                            |     62 +
  docker-compose.yml                                 |     82 +
  .../1,supremeai_repo_optimization_guide.md         |    474 +
@@ -1361,13 +1362,13 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  docs/auto_fix_in_github_implementation_plan.md     |    352 +
  docs/autogen/INDEX.md                              |     16 +
  docs/autogen/LATEST-PUSH-SUMMARY.md                |      3 +
- ...nge_7808a198e1866b59474d891d08704cbe688a67f2.md |  19222 ++
- ...nge_b07ec0564fb3a196f420beedc150cdb2d35fad1a.md |    111 +
+ ...nge_b5ccf11138afe19ba472905cd49fdc5276036960.md |  19223 ++
  ...nge_c4cfc7e5cdc60a62e2389d6cf92ba44b7465cbea.md |  19195 ++
  ...nge_d40e8445edf52b529a53878dc6d1c894f0e89459.md |  19260 ++
  ...nge_d608096b2b46a46c8b2b820bc54e9d82e0be8310.md |     82 +
  ...nge_d694966ffe7614a4d01df6e8b0029fd2b808419c.md |  19195 ++
  ...nge_e9322788b7dee95be9a3141c8103bb8b34377fac.md |  19274 ++
+ ...nge_eb16d7f0026849385d02384261a0e62da305548c.md |  19206 ++
  ...nge_f0c62b0afa0e7d0457ae133ebdd93b7ca0ce4244.md |  19195 ++
  ...nge_f79a9d3b60dcc50b94dd8a66b76f53f77f59b0bb.md |  19272 ++
  ...nge_fd21708bed34508f82c2a57941e3482be493e64d.md |  19260 ++
@@ -1390,7 +1391,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  .../.github_scripts_test_ai_reviewer.py.md         |    107 +
  .../.github_workflows_nightly-maintenance.yml.md   |    435 +
  .../.github_workflows_supreme-ci-auto-fix.yml.md   |    130 +
- .../.github_workflows_supreme-core-ci.yml.md       |   1049 +
+ .../.github_workflows_supreme-core-ci.yml.md       |   1084 +
  .../.github_workflows_supreme-mobile-cd.yml.md     |    114 +
  ....github_workflows_supreme-release-builds.yml.md |    177 +
  .../.github_workflows_sync-from-prod.yml.md        |     53 +
@@ -1486,7 +1487,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  ...s_mobile_lib_src_shell_auth_state_shell.dart.md |     65 +
  .../apps_mobile_lib_src_theme_app_theme.dart.md    |    100 +
  .../apps_mobile_lib_src_theme_tokens.dart.md       |     28 +
- .../apps_mobile_lib_theme_app_theme.dart.md        |     52 +
+ .../apps_mobile_lib_theme_app_theme.dart.md        |     54 +
  .../codebase/apps_mobile_lib_theme_colors.dart.md  |     31 +
  .../apps_mobile_lib_theme_theme_provider.dart.md   |     24 +
  .../codebase/apps_mobile_lib_theme_tokens.dart.md  |     76 +
@@ -1751,7 +1752,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  .../codebase/apps_web-chat_vite-env.d.ts.md        |     14 +
  .../codebase/apps_web-chat_vite.config.ts.md       |     23 +
  .../codebase/apps_web-chat_vitest.config.ts.md     |     21 +
- docs/autogen/codebase/backend_API-swagger.yaml.md  |   9470 +
+ docs/autogen/codebase/backend_API-swagger.yaml.md  |   9056 +
  docs/autogen/codebase/backend_README.md.md         |     65 +
  .../backend_adaptive_engine_experience_db.py.md    |    312 +
  .../codebase/backend_adaptive_engine_init_.py.md   |     13 +
@@ -1801,7 +1802,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  .../codebase/backend_api_routes_feedback.py.md     |     99 +
  .../codebase/backend_api_routes_github.py.md       |    130 +
  .../codebase/backend_api_routes_graph.py.md        |    137 +
- .../codebase/backend_api_routes_health.py.md       |     43 +
+ .../codebase/backend_api_routes_health.py.md       |     49 +
  .../codebase/backend_api_routes_init_.py.md        |    499 +
  .../codebase/backend_api_routes_integrations.py.md |    138 +
  .../codebase/backend_api_routes_internal.py.md     |     72 +
@@ -1852,7 +1853,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  .../codebase/backend_core_agent_orchestrator.py.md |    338 +
  .../codebase/backend_core_api_key_middleware.py.md |     84 +
  .../backend_core_api_key_rate_limiter.py.md        |     43 +
- docs/autogen/codebase/backend_core_app.py.md       |    346 +
+ docs/autogen/codebase/backend_core_app.py.md       |    303 +
  .../codebase/backend_core_audit_logger.py.md       |     77 +
  .../codebase/backend_core_auth_middleware.py.md    |    267 +
  .../codebase/backend_core_auto_remediation.py.md   |    335 +
@@ -1869,7 +1870,6 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  .../autogen/codebase/backend_core_cost_guard.py.md |     87 +
  .../codebase/backend_core_db_repository.py.md      |     99 +
  .../codebase/backend_core_decision_engine.py.md    |     26 +
- .../codebase/backend_core_discord_bot.py.md        |     71 +
  .../codebase/backend_core_docker-compose.yml.md    |     88 +
  .../codebase/backend_core_email_service.py.md      |    105 +
  .../autogen/codebase/backend_core_enum_guard.py.md |     79 +
@@ -1897,7 +1897,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  .../codebase/backend_core_knowledge_base.py.md     |     48 +
  .../codebase/backend_core_language_router.py.md    |     86 +
  docs/autogen/codebase/backend_core_ld_client.py.md |     68 +
- docs/autogen/codebase/backend_core_lifespan.py.md  |    323 +
+ docs/autogen/codebase/backend_core_lifespan.py.md  |    300 +
  .../codebase/backend_core_llm_gateway.py.md        |    407 +
  .../codebase/backend_core_log_batcher.py.md        |    131 +
  .../codebase/backend_core_logging_config.py.md     |     42 +
@@ -1988,7 +1988,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  .../codebase/backend_fix_coverage_tests.py.md      |     53 +
  docs/autogen/codebase/backend_fix_tests.py.md      |     39 +
  docs/autogen/codebase/backend_init_.py.md          |     13 +
- docs/autogen/codebase/backend_main.py.md           |     65 +
+ docs/autogen/codebase/backend_main.py.md           |     66 +
  .../backend_memory_checkpoint_resume.py.md         |     39 +
  .../codebase/backend_memory_chromadb_store.py.md   |    202 +
  .../backend_memory_cloud_postgres_store.py.md      |    168 +
@@ -2034,7 +2034,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  .../codebase/backend_p2p_credit_system.py.md       |     39 +
  docs/autogen/codebase/backend_p2p_init_.py.md      |     13 +
  .../codebase/backend_p2p_secure_tunnel.py.md       |     22 +
- docs/autogen/codebase/backend_pyproject.toml.md    |    196 +
+ docs/autogen/codebase/backend_pyproject.toml.md    |    197 +
  docs/autogen/codebase/backend_reports_init_.py.md  |     13 +
  .../backend_reports_optimization_engine.py.md      |     22 +
  .../codebase/backend_run_roundtrip_tests.py.md     |     40 +
@@ -2182,7 +2182,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  .../backend_tests_test_multi_account_rotator.py.md |    433 +
  .../codebase/backend_tests_test_multicloud.py.md   |     92 +
  .../backend_tests_test_new_endpoints_sprint5.py.md |    122 +
- .../backend_tests_test_new_interfaces.py.md        |     88 +
+ .../backend_tests_test_new_interfaces.py.md        |     82 +
  .../backend_tests_test_new_tools_sprint5.py.md     |    105 +
  .../backend_tests_test_optimization_engine.py.md   |     33 +
  .../backend_tests_test_output_validator.py.md      |     83 +
@@ -2379,6 +2379,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  .../autogen/codebase/config_routing_policy.json.md |     26 +
  docs/autogen/codebase/config_vercel.json.md        |     20 +
  docs/autogen/codebase/coverage.toml.md             |     42 +
+ docs/autogen/codebase/deploy_render.py.md          |     31 +
  docs/autogen/codebase/docker-compose.prod.yml.md   |     75 +
  docs/autogen/codebase/docker-compose.yml.md        |     95 +
  docs/autogen/codebase/dummy_registry.json.md       |     20 +
@@ -2456,6 +2457,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  .../packages_ui-components_src_index.ts.md         |     18 +
  .../packages_ui-components_src_utils_api.ts.md     |     28 +
  .../packages_ui-components_tsconfig.json.md        |     36 +
+ docs/autogen/codebase/patch_ci.py.md               |    101 +
  docs/autogen/codebase/playwright-ct.config.ts.md   |     49 +
  docs/autogen/codebase/playwright.config.ts.md      |     97 +
  docs/autogen/codebase/pnpm-lock.yaml.md            |  21297 ++
@@ -2639,9 +2641,10 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  .../tools_vscode-extension_tsconfig.json.md        |     48 +
  .../tools_vscode-extension_vitest.config.ts.md     |     35 +
  docs/autogen/codebase/turbo.json.md                |     48 +
+ docs/autogen/codebase/update_render.py.md          |     41 +
+ docs/autogen/codebase/update_render_backup.py.md   |     40 +
  docs/autogen/codebase/vercel.json.md               |     41 +
- docs/autogen/codebase_full.md                      | 207998 ++++++++++++++++++
- docs/autogen/summaries/PUSH-SUMMARY-7808a19.md     |      3 +
+ docs/autogen/codebase_full.md                      | 207678 ++++++++++++++++++
  docs/autogen/summaries/PUSH-SUMMARY-c1cce7893.md   |     62 +
  docs/autogen/summaries/PUSH-SUMMARY-c46c34b3a6.md  |     62 +
  docs/autogen/summaries/PUSH-SUMMARY-c4cfc7e.md     |      3 +
@@ -2658,6 +2661,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  docs/autogen/summaries/PUSH-SUMMARY-e4be88400c.md  |     62 +
  docs/autogen/summaries/PUSH-SUMMARY-e932278.md     |      3 +
  docs/autogen/summaries/PUSH-SUMMARY-e9e15fcfc.md   |     62 +
+ docs/autogen/summaries/PUSH-SUMMARY-eb16d7f.md     |      3 +
  docs/autogen/summaries/PUSH-SUMMARY-f0c62b0.md     |      3 +
  docs/autogen/summaries/PUSH-SUMMARY-f79a9d3.md     |      3 +
  docs/autogen/summaries/PUSH-SUMMARY-fd21708.md     |      3 +
@@ -2780,6 +2784,7 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  packages/ui-components/src/index.ts                |      5 +
  packages/ui-components/src/utils/api.ts            |     15 +
  packages/ui-components/tsconfig.json               |     23 +
+ patch_ci.py                                        |     88 +
  playwright-ct.config.ts                            |     37 +
  playwright-report/index.html                       |     90 +
  playwright.config.ts                               |     84 +
@@ -3020,18 +3025,20 @@ Date:   Sat Jul 11 22:12:04 2026 +0600
  tools/vscode-extension/tsconfig.json               |     36 +
  tools/vscode-extension/vitest.config.ts            |     22 +
  turbo.json                                         |     36 +
+ update_render.py                                   |     28 +
+ update_render_backup.py                            |     27 +
  vercel.json                                        |     28 +
- 3013 files changed, 927362 insertions(+)
+ 3020 files changed, 945522 insertions(+)
 
 ```
 
 ## Diff Detail
 ```diff
-commit b5ccf11138afe19ba472905cd49fdc5276036960
+commit b8cfbb7d0bbcffe6541c76650f8caed22b7b0cec
 Author: SupremeAI CI Bot <ci-bot@supremeai.dev>
-Date:   Sat Jul 11 22:12:04 2026 +0600
+Date:   Sat Jul 11 23:14:56 2026 +0600
 
-    chore: remove discord dependency permanently
+    fix(backend): resolve lifespan AttributeError, circular import, and pydantic allowed_hosts config parse error
 
 diff --git a/.agent b/.agent
 new file mode 100644
@@ -8375,10 +8382,10 @@ index 0000000..77ad4c3
 \ No newline at end of file
 diff --git a/.github/workflows/supreme-core-ci.yml b/.github/workflows/supreme-core-ci.yml
 new file mode 100644
-index 0000000..bec80f4
+index 0000000..fdaa1ec
 --- /dev/null
 +++ b/.github/workflows/supreme-core-ci.yml
-@@ -0,0 +1,1036 @@
+@@ -0,0 +1,1071 @@
 +# ==============================================================================
 +# [IMMUTABLE CONFIGURATION - MANUAL CONTROL ONLY]
 +# ------------------------------------------------------------------------------
@@ -8417,6 +8424,9 @@ index 0000000..bec80f4
 +        default: false
 +        type: boolean
 +
++  schedule:
++    - cron: '0 0 * * *'
++
 +# ==============================================================================
 +# [IMMUTABLE CONFIGURATION - MANUAL CONTROL ONLY]
 +# ------------------------------------------------------------------------------
@@ -8435,6 +8445,31 @@ index 0000000..bec80f4
 +  IMAGE_NAME: ${{ github.repository }}
 +
 +jobs:
++
++  changes:
++    runs-on: ubuntu-latest
++    outputs:
++      backend: ${{ steps.filter.outputs.backend }}
++      frontend: ${{ steps.filter.outputs.frontend }}
++      dependencies: ${{ steps.filter.outputs.dependencies }}
++    steps:
++      - uses: actions/checkout@v4
++      - uses: dorny/paths-filter@v3
++        id: filter
++        with:
++          filters: |
++            backend:
++              - 'backend/**'
++              - 'api/**'
++              - 'core/**'
++            frontend:
++              - 'apps/studio-client/**'
++              - 'apps/web-chat/**'
++            dependencies:
++              - 'pyproject.toml'
++              - 'poetry.lock'
++              - 'package.json'
++              - 'pnpm-lock.yaml'
 +
 +  # ==============================================================================
 +  # PRE-MERGE GATE: Iron Curtain — যেকোনো কোড মার্জের আগে বাধ্যতামূলক চেক
@@ -8496,7 +8531,7 @@ index 0000000..bec80f4
 +            echo "🔧 Changes detected, committing fixes..."
 +            git config --global user.name 'SupremeAI Auto-Fix Bot'
 +            git config --global user.email 'bot@supremeai.dev'
-+            git commit -m "fix(ci): Automatically apply lint fixes inline"
++            git commit -m "fix(ci): Automatically apply lint fixes inline [skip ci]"
 +            
 +            BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
 +            git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
@@ -8514,7 +8549,8 @@ index 0000000..bec80f4
 +
 +  production-readiness:
 +    name: 🚀 Production Readiness (Safety Guard, Multi-Model Validator, Codegraph)
-+    needs: pre-merge-gate
++    needs: [changes, pre-merge-gate]
++    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.dependencies == 'true'
 +    runs-on: ubuntu-latest
 +    steps:
 +      - uses: actions/checkout@v4
@@ -8608,7 +8644,8 @@ index 0000000..bec80f4
 +
 +  backend-core:
 +    name: 🐍 Backend (Test & Auto-Fix)
-+    needs: [pre-merge-gate, production-readiness]
++    needs: [changes, pre-merge-gate, production-readiness]
++    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.dependencies == 'true'
 +    runs-on: ubuntu-latest
 +    steps:
 +      - uses: actions/checkout@v4
@@ -8649,7 +8686,7 @@ index 0000000..bec80f4
 +            git config user.name "SupremeAI Auto-Fix Bot 🤖"
 +            git config user.email "actions@github.com"
 +            git add .
-+            git commit -m "style(ci): auto-fix formatting issues 🔧"
++            git commit -m "style(ci): auto-fix formatting issues 🔧 [skip ci]"
 +            
 +            BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
 +            git remote set-url origin https://x-access-token:${{ secrets.GH_PAT_FOR_AUTO_FIX }}@github.com/${{ github.repository }}.git
@@ -8720,6 +8757,8 @@ index 0000000..bec80f4
 +  security-audit:
 +    name: 🛡️ CodeQL & Trivy Security Scan
 +    runs-on: ubuntu-latest
++    needs: changes
++    if: github.event_name == 'schedule' || needs.changes.outputs.dependencies == 'true'
 +    permissions:
 +      security-events: write
 +      actions: read
@@ -8804,6 +8843,8 @@ index 0000000..bec80f4
 +  frontend-core:
 +    name: 🌐 Frontend Monorepo (Turbo)
 +    runs-on: ubuntu-latest
++    needs: changes
++    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.dependencies == 'true'
 +    steps:
 +      - uses: actions/checkout@v4
 +      - uses: pnpm/action-setup@v3
@@ -8858,7 +8899,7 @@ index 0000000..bec80f4
 +            echo "🔧 Changes detected in frontend, committing fixes..."
 +            git config --global user.name 'SupremeAI Auto-Fix Bot'
 +            git config --global user.email 'bot@supremeai.dev'
-+            git commit -m "fix(ci): Automatically apply frontend lint fixes inline"
++            git commit -m "fix(ci): Automatically apply frontend lint fixes inline [skip ci]"
 +            
 +            BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
 +            git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
@@ -8934,6 +8975,7 @@ index 0000000..bec80f4
 +    name: 🧪 Human Simulation & Load Tests
 +    needs: [backend-core, frontend-core]
 +    runs-on: ubuntu-latest
++    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
 +    steps:
 +      - uses: actions/checkout@v4
 +      - uses: pnpm/action-setup@v3
@@ -9742,10 +9784,10 @@ index 0000000..fa22ac8
 \ No newline at end of file
 diff --git a/.gitignore b/.gitignore
 new file mode 100644
-index 0000000..8e213f3
+index 0000000..b6b0a69
 --- /dev/null
 +++ b/.gitignore
-@@ -0,0 +1,178 @@
+@@ -0,0 +1,179 @@
 +# Rust artifacts
 +src-tauri/target/
 +src-tauri/Cargo.lock
@@ -9878,6 +9920,7 @@ index 0000000..8e213f3
 +# Local dev artifacts
 +.supreme/
 +.scratch/
++scratch/
 +.firebase/
 +
 +codebase.md
@@ -19154,70 +19197,8 @@ index 0000000..61a4ca8
 +          type: string
 +          title: Symbol
 +        quantity:
-+          type: number
-+          title: Quantity
-+        price:
-+          anyOf:
-+          - type: number
-+          - type: 'null'
-+          title: Price
-+      type: object
-+      required:
-+      - symbol
-+      - quantity
-+      title: TradeRequest
-+    UploadRequest:
-+      properties:
-+        file_name:
-+          type: string
-+          title: File Name
-+        file_type:
-+          type: string
-+          title: File Type
-+        folder:
-+          type: string
-+          title: Folder
-+          default: skills_bundles
-+      type: object
-+      required:
-+      - file_name
-+      - file_type
-+      title: UploadRequest
-+    UrlPermissionRequest:
-+      properties:
-+        urlPattern:
-+          type: string
-+          title: Urlpattern
-+        userId:
-+          anyOf:
-+          - type: string
-+          - type: 'null'
-+          title: Userid
-+          default: default
-+        reason:
-+          anyOf:
-+          - type: string
-+          - type: 'null'
-+          title: Reason
-+          default: None
-+      type: object
-+      required:
-+      - urlPattern
-+      title: UrlPermissionRequest
-+    UsageMetricUpsert:
-+      properties:
-+        metric_date:
-+          type: string
-+          title: Metric Date
-+        total_requests:
-+          type: integer
-+          title: Total Requests
-+        total_tokens:
-+          type: integer
-+          title: Total Tokens
-+        total_cost:
-+
++          
 
-... [TRUNCATED — diff was 39,646,816 bytes, capped at 512,000] ...
+... [TRUNCATED — diff was 40,341,520 bytes, capped at 512,000] ...
 
 ```

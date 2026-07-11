@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T17:11:02.570950
+Generated at: 2026-07-11T17:16:16.795024
 
 
 ## File: `pnpm-lock.yaml`
@@ -76035,7 +76035,7 @@ class Settings(BaseSettings):
     admin_emails: list[str] = Field(default=[], validation_alias="ADMIN_EMAILS")
 
     # বাংলা মন্তব্য: Zero-Trust Host Validation — empty = crash
-    allowed_hosts: list[str] = Field(
+    allowed_hosts: str | list[str] = Field(
         default_factory=list,
         validation_alias="ALLOWED_HOSTS",
     )
@@ -86609,7 +86609,7 @@ async def app_lifespan(app):
         # sys.exit(1) রিমুভ করা হলো যাতে ক্লাউড রান হেলথ চেক পাস করতে পারে
 
     try:
-        await redis_manager.initialize()
+        pass
     except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to initialize Redis Manager: {e}")
         error_event_bus.emit(
@@ -95540,11 +95540,7 @@ class SelfHealingRequest(BaseModel):
     languageId: str
 
 
-from core.app import limiter
-
-
 @router.post("/execute-healing")
-@limiter.limit("5/minute")
 async def execute_healing(payload: SelfHealingRequest, request: Request):
     """
     Agent-in-the-Loop endpoint to self-heal code errors from VS Code Extension.
@@ -123625,6 +123621,12 @@ def test_celery_app_exposed():
     from workers.celery_app import app
 
     assert app is not None
+
+```
+
+## File: `backend/tests/core/test_container_auditor.py`
+
+```py
 
 ```
 

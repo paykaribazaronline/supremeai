@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/config.py
 
 **প্রকার:** .py  
-**সাইজ:** 18,724 বাইট  
-**আপডেট:** 2026-07-11T17:11:02.625266
+**সাইজ:** 18,730 বাইট  
+**আপডেট:** 2026-07-11T17:16:16.849630
 
 ---
 
@@ -81,7 +81,7 @@ class Settings(BaseSettings):
     admin_emails: list[str] = Field(default=[], validation_alias="ADMIN_EMAILS")
 
     # বাংলা মন্তব্য: Zero-Trust Host Validation — empty = crash
-    allowed_hosts: list[str] = Field(
+    allowed_hosts: str | list[str] = Field(
         default_factory=list,
         validation_alias="ALLOWED_HOSTS",
     )
