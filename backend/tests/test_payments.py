@@ -54,15 +54,7 @@ def test_create_checkout_session_mock():
     assert "https://stripe.com/test" in data["url"]
 
 
-<<<<<<< Updated upstream
-from unittest.mock import PropertyMock
-
-
-@patch("api.routes.payments.settings.stripe_webhook_secret", new_callable=PropertyMock, return_value="")
-def test_webhook_ignored_if_missing_config(mock_secret):
-=======
 def test_webhook_ignored_if_missing_config():
->>>>>>> Stashed changes
     # Verify webhook behaves gracefully when credentials/key are missing
     original_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
     os.environ["STRIPE_WEBHOOK_SECRET"] = ""
