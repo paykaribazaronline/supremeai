@@ -174,3 +174,5 @@ docs/reports/workflow_diff.txt
 # Compiled function output
 infrastructure/firebase_functions/**/lib/
 .env
+.vercel
+.env*

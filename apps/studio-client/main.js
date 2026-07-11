@@ -1,7 +1,8 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, nativeTheme } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
+import { readFileSync } from 'fs';
 
 ipcMain.handle('fs:read', async (event, filePath) => {
     try {
@@ -24,7 +25,38 @@ const __dirname = path.dirname(__filename);
 
 const PRELOAD_PATH = path.join(__dirname, 'preload.cjs');
 
+// Load design tokens
+let tokens = {};
+try {
+  const tokenPath = path.join(__dirname, '../../packages/design-tokens/outputs/json/tokens.json');
+  tokens = JSON.parse(readFileSync(tokenPath, 'utf-8'));
+} catch (e) {
+  console.warn("Could not load design tokens. Falling back to defaults.");
+}
+
+function updateTitleBar(win) {
+  if (!win) return;
+  const isDark = nativeTheme.shouldUseDarkColors;
+  // Fallback colors if tokens are missing
+  const bgColor = isDark 
+    ? (tokens['color-neutral-900'] || '#0F172A')
+    : (tokens['color-neutral-50'] || '#F8FAFC');
+  
+  const symbolColor = tokens['color-brand-500'] || '#6366F1';
+  
+  win.setTitleBarOverlay({
+    color: bgColor,
+    symbolColor: symbolColor
+  });
+}
+
 function createWindow() {
+  const isDark = nativeTheme.shouldUseDarkColors;
+  const bgColor = isDark 
+    ? (tokens['color-neutral-900'] || '#0F172A')
+    : (tokens['color-neutral-50'] || '#F8FAFC');
+  const symbolColor = tokens['color-brand-500'] || '#6366F1';
+
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -36,9 +68,13 @@ function createWindow() {
     },
     titleBarStyle: 'hidden', // Modern look
     titleBarOverlay: {
-      color: '#030712', // SupremeColors.bgVoid
-      symbolColor: '#00f3ff' // SupremeColors.brandPrimary for symbols
+      color: bgColor,
+      symbolColor: symbolColor
     }
+  });
+
+  nativeTheme.on('updated', () => {
+    updateTitleBar(win);
   });
 
   // Check if we are in development mode

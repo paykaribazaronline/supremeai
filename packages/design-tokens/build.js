@@ -1,86 +1,99 @@
-const fs = require('fs');
-const path = require('path');
+import StyleDictionary from 'style-dictionary';
+import fs from 'fs';
+import path from 'path';
 
-const rawData = fs.readFileSync(path.join(__dirname, 'design-tokens.json'), 'utf-8');
-const tokens = JSON.parse(rawData);
+// Register a custom transform for Dart (Flutter)
+StyleDictionary.registerTransform({
+  name: 'size/flutter/sp',
+  type: 'value',
+  filter: function(prop) {
+    return prop.attributes.category === 'font' && prop.attributes.type === 'size';
+  },
+  transform: function(prop) {
+    return parseFloat(prop.original.value) + '.sp';
+  }
+});
 
-// Flatten function
-function flattenTokens(obj, prefix = '') {
-    let result = {};
-    for (const key in obj) {
-        if (obj[key] && typeof obj[key] === 'object' && !obj[key].type) {
-            const newPrefix = prefix ? `${prefix}-${key}` : key;
-            const nested = flattenTokens(obj[key], newPrefix);
-            result = { ...result, ...nested };
-        } else if (obj[key] && obj[key].type) {
-            const newPrefix = prefix ? `${prefix}-${key}` : key;
-            result[newPrefix] = obj[key];
-        }
-    }
-    return result;
-}
-
-const flatTokens = flattenTokens(tokens);
-
-// Generate tokens.css
-let cssOutput = ':root {\n';
-for (const key in flatTokens) {
-    cssOutput += `  --supremeai-${key}: ${flatTokens[key].value};\n`;
-}
-cssOutput += '}\n';
-
-// Generate tokens-vscode.css
-let vscodeOutput = ':root {\n';
-for (const key in flatTokens) {
-    vscodeOutput += `  --supremeai-${key}: ${flatTokens[key].value};\n`;
-}
-vscodeOutput += '}\n';
-
-// Generate tokens.dart
-let dartOutput = "import 'package:flutter/material.dart';\n\nclass DesignTokens {\n";
-for (const key in flatTokens) {
-    const token = flatTokens[key];
-    const camelCaseKey = key.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+StyleDictionary.registerFormat({
+  name: 'vscode/theme',
+  format: function({ dictionary }) {
+    const colors = {};
+    dictionary.allTokens.forEach(token => {
+      // Map token to VS Code color key, assuming we structure it appropriately
+      // For simplicity, we just dump them flat for testing, or map specific ones
+      // E.g., `vscode.editor.background`
+      if (token.path[0] === 'vscode') {
+        const key = token.path.slice(1).join('.');
+        colors[key] = token.value;
+      }
+    });
     
-    if (token.type === 'color') {
-        let val = token.value;
-        if (val.startsWith('#')) {
-            val = '0xFF' + val.replace('#', '');
-        } else if (val.startsWith('rgba')) {
-            const matches = val.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
-            if (matches) {
-                const a = Math.round(parseFloat(matches[4]) * 255).toString(16).padStart(2, '0');
-                const r = parseInt(matches[1], 10).toString(16).padStart(2, '0');
-                const g = parseInt(matches[2], 10).toString(16).padStart(2, '0');
-                const b = parseInt(matches[3], 10).toString(16).padStart(2, '0');
-                val = `0x${a}${r}${g}${b}`;
-            }
+    return JSON.stringify({
+      name: "SupremeAI Theme",
+      type: "dark",
+      colors: colors,
+      tokenColors: []
+    }, null, 2);
+  }
+});
+
+StyleDictionary.registerFormat({
+  name: 'flutter/custom',
+  format: function({ dictionary }) {
+    let output = "import 'dart:ui';\n\nclass AppColors {\n  AppColors._();\n\n";
+    dictionary.allTokens.forEach(token => {
+      if (token.path[0] !== 'vscode') {
+        const name = token.name;
+        // Convert hex #RRGGBB to 0xFFRRGGBB
+        let value = token.value;
+        if (typeof value === 'string' && value.startsWith('#')) {
+          value = `Color(0xFF${value.substring(1)})`;
         }
-        dartOutput += `  static const Color ${camelCaseKey} = Color(${val});\n`;
-    } else if (token.type === 'fontSizes' || token.type === 'spacing' || token.type === 'borderRadius') {
-        dartOutput += `  static const double ${camelCaseKey} = ${parseFloat(token.value)};\n`;
-    } else if (token.type === 'fontWeights') {
-        dartOutput += `  static const FontWeight ${camelCaseKey} = FontWeight.w${token.value};\n`;
-    } else if (token.type === 'time') {
-        const ms = parseInt(token.value.replace('ms', ''));
-        dartOutput += `  static const Duration ${camelCaseKey} = Duration(milliseconds: ${ms});\n`;
-    } else if (token.type === 'other' && token.value.startsWith('cubic-bezier')) {
-        const matches = token.value.match(/cubic-bezier\(([\d.-]+),\s*([\d.-]+),\s*([\d.-]+),\s*([\d.-]+)\)/);
-        if (matches) {
-            dartOutput += `  static const Curve ${camelCaseKey} = Cubic(${matches[1]}, ${matches[2]}, ${matches[3]}, ${matches[4]});\n`;
-        }
+        output += `  static const ${name} = ${value};\n`;
+      }
+    });
+    output += "}\n";
+    return output;
+  }
+});
+
+const sd = new StyleDictionary({
+  source: ['tokens/**/*.json'],
+  platforms: {
+    css: {
+      transformGroup: 'css',
+      buildPath: 'outputs/css/',
+      files: [{
+        destination: 'variables.css',
+        format: 'css/variables'
+      }]
+    },
+    json: {
+      transformGroup: 'web',
+      buildPath: 'outputs/json/',
+      files: [{
+        destination: 'tokens.json',
+        format: 'json/flat'
+      }]
+    },
+    flutter: {
+      transformGroup: 'flutter',
+      buildPath: 'outputs/flutter/',
+      files: [{
+        destination: 'colors.dart',
+        format: 'flutter/custom'
+      }]
+    },
+    vscode: {
+      transformGroup: 'web',
+      buildPath: 'outputs/vscode/',
+      files: [{
+        destination: 'supremeai-theme.json',
+        format: 'vscode/theme'
+      }]
     }
-}
-dartOutput += '}\n';
+  }
+});
 
-// Ensure outputs dir exists
-const outDir = path.join(__dirname, 'outputs');
-if (!fs.existsSync(outDir)) {
-    fs.mkdirSync(outDir);
-}
-
-fs.writeFileSync(path.join(outDir, 'tokens.css'), cssOutput);
-fs.writeFileSync(path.join(outDir, 'tokens-vscode.css'), vscodeOutput);
-fs.writeFileSync(path.join(outDir, 'tokens.dart'), dartOutput);
-
-console.log('✅ Tokens successfully built without Style Dictionary dependencies!');
+sd.buildAllPlatforms();
+console.log('Design tokens generated successfully!');

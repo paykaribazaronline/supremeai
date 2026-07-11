@@ -189,6 +189,13 @@
         }
       ]
     },
+    "themes": [
+      {
+        "label": "SupremeAI Dark",
+        "uiTheme": "vs-dark",
+        "path": "./node_modules/@supremeai/design-tokens/outputs/vscode/supremeai-theme.json"
+      }
+    ],
     "configuration": {
       "title": "SupremeAI",
       "properties": {

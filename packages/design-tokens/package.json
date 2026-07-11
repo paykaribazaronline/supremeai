@@ -6,5 +6,8 @@
   "types": "outputs/tokens.d.ts",
   "scripts": {
     "build": "node build.js && node scripts/copy-to-flutter.js"
+  },
+  "dependencies": {
+    "style-dictionary": "^5.5.0"
   }
 }

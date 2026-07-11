@@ -1,71 +1,79 @@
 import React, { useState } from 'react';
 import { getApiBaseUrl } from '../utils/api';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
 
 export const IntegrationsManager: React.FC = () => {
-  // টেস্টিংয়ের জন্য লোকাল স্টেট, পরবর্তীতে এটি ব্যাকএন্ড থেকে আসবে
   const [githubStatus, setGithubStatus] = useState<'Disconnected' | 'Connected'>('Disconnected');
 
   const handleGithubConnect = () => {
-    // বাংলা মন্তব্য: P0 Fix — hardcoded localhost URL → dynamic API base URL।
-    // Production-এ localhost redirect করলে OAuth flow break হবে।
     const API_BASE = getApiBaseUrl();
     window.location.href = `${API_BASE}/api/v1/integrations/github/link`;
   };
 
   return (
-    <div className="p-8 text-white bg-gray-900 min-h-screen">
-      <div className="max-w-5xl mx-auto">
+    <div className="p-8 max-w-5xl mx-auto space-y-8">
+      <div>
         <h1 className="text-3xl font-bold mb-2">🔗 Universal Integrations Hub</h1>
-        <p className="text-gray-400 mb-8">
+        <p className="text-[var(--supremeai-color-neutral-500)]">
           Connect your favorite tools and platforms to empower SupremeAI's autonomous capabilities.
         </p>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
-          {/* 🟢 GitHub Card (Active) */}
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 flex flex-col items-center shadow-lg transition-transform hover:-translate-y-1 hover:border-blue-500">
-            <div className="text-5xl mb-4">🐙</div>
-            <h2 className="text-xl font-bold mb-2">GitHub</h2>
-            <p className="text-sm text-gray-400 text-center mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        {/* 🟢 GitHub Card (Active) */}
+        <Card className="hover:border-[var(--supremeai-color-brand-primary-light)] dark:hover:border-[var(--supremeai-color-brand-primary-dark)] transition-colors">
+          <CardHeader className="text-center">
+            <div className="text-5xl mb-2">🐙</div>
+            <CardTitle>GitHub</CardTitle>
+            <CardDescription>
               Automate code pushes, PR creation, and repository management.
-            </p>
-            <button
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
               onClick={handleGithubConnect}
-              className={`w-full py-2.5 rounded-lg font-bold transition-all duration-200 ${
-                githubStatus === 'Connected'
-                  ? 'bg-green-600/20 text-green-400 border border-green-500/50 hover:bg-green-600/30'
-                  : 'bg-white text-black hover:bg-gray-200 shadow-md'
-              }`}
+              variant={githubStatus === 'Connected' ? 'outline' : 'primary'}
+              className="w-full"
             >
               {githubStatus === 'Connected' ? '✅ Connected' : 'Connect GitHub'}
-            </button>
-          </div>
+            </Button>
+          </CardContent>
+        </Card>
 
-          {/* 🟡 Facebook Card (Coming Soon) */}
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 flex flex-col items-center shadow-lg opacity-50 grayscale hover:grayscale-0 transition-all duration-300">
-            <div className="text-5xl mb-4">📘</div>
-            <h2 className="text-xl font-bold mb-2">Facebook</h2>
-            <p className="text-sm text-gray-400 text-center mb-6">
+        {/* 🟡 Facebook Card (Coming Soon) */}
+        <Card className="opacity-60 grayscale">
+          <CardHeader className="text-center">
+            <div className="text-5xl mb-2">📘</div>
+            <CardTitle>Facebook</CardTitle>
+            <CardDescription>
               Auto-post updates, manage pages, and reply to comments.
-            </p>
-            <button disabled className="w-full py-2.5 rounded-lg font-bold bg-gray-700 text-gray-500 cursor-not-allowed">
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button disabled variant="outline" className="w-full cursor-not-allowed">
               Coming Soon
-            </button>
-          </div>
+            </Button>
+          </CardContent>
+        </Card>
 
-          {/* 🟡 Instagram Card (Coming Soon) */}
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 flex flex-col items-center shadow-lg opacity-50 grayscale hover:grayscale-0 transition-all duration-300">
-            <div className="text-5xl mb-4">📸</div>
-            <h2 className="text-xl font-bold mb-2">Instagram</h2>
-            <p className="text-sm text-gray-400 text-center mb-6">
+        {/* 🟡 Instagram Card (Coming Soon) */}
+        <Card className="opacity-60 grayscale">
+          <CardHeader className="text-center">
+            <div className="text-5xl mb-2">📸</div>
+            <CardTitle>Instagram</CardTitle>
+            <CardDescription>
               AI-driven visual content publishing and scheduling.
-            </p>
-            <button disabled className="w-full py-2.5 rounded-lg font-bold bg-gray-700 text-gray-500 cursor-not-allowed">
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button disabled variant="outline" className="w-full cursor-not-allowed">
               Coming Soon
-            </button>
-          </div>
+            </Button>
+          </CardContent>
+        </Card>
 
-        </div>
       </div>
     </div>
   );

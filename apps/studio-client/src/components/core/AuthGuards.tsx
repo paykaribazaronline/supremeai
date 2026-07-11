@@ -1,23 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-// import { useStore } from "../../store/useStore";
+import { useAuthStore, AuthStatus } from '../../store/authStore';
 
-// Mocking an auth hook for now - in reality this would use useStore or Firebase Auth
 const useAuthStatus = () => {
-  const [isChecking, setIsChecking] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const status = useAuthStore((state) => state.status);
+  const initialize = useAuthStore((state) => state.initialize);
 
   useEffect(() => {
-    // Simulate token check delay for smooth UX transition
-    const timer = setTimeout(() => {
-      // Temporarily hardcoded to true for development UI testing, 
-      // Replace with actual token validation
-      setIsAuthenticated(true);
-      setIsChecking(false);
-    }, 800);
-    
-    return () => clearTimeout(timer);
-  }, []);
+    if (status === AuthStatus.UNINITIALIZED) {
+      initialize();
+    }
+  }, [status, initialize]);
+
+  const isChecking = status === AuthStatus.UNINITIALIZED;
+  const isAuthenticated = status === AuthStatus.LOGGED_IN;
 
   return { isChecking, isAuthenticated };
 };
