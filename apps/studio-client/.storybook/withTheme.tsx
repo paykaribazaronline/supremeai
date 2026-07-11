@@ -1,10 +1,7 @@
 import React from 'react';
 import '../src/index.css';
 
-export const withTheme = (Story, context) => {
-  const theme = context.globals.theme || 'light';
-
-  // Apply the theme to the body or a wrapper class
+const ThemeWrapper = ({ theme, Story }: any) => {
   React.useEffect(() => {
     document.body.classList.remove('light', 'dark');
     document.body.classList.add(theme);
@@ -15,4 +12,10 @@ export const withTheme = (Story, context) => {
       <Story />
     </div>
   );
+};
+
+export const withTheme = (Story: any, context: any) => {
+  const theme = context.globals.theme || 'light';
+
+  return <ThemeWrapper theme={theme} Story={Story} />;
 };

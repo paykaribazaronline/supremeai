@@ -55,7 +55,7 @@ export class SandboxService {
     let stdout = '';
     const stderr = '';
     
-    return new Promise(async (resolve) => {
+    return new Promise((resolve) => {
       let isResolved = false;
       
       const timer = setTimeout(() => {
@@ -70,34 +70,35 @@ export class SandboxService {
         }
       }, this.timeoutMs);
       
-      try {
-        const process = await this.containerInstance!.spawn(command, args);
-        
-        process.output.pipeTo(
-          new WritableStream({
-            write(data) {
-              stdout += data;
-            },
-          })
-        );
-        
-        const exitCode = await process.exit;
-        
-        if (!isResolved) {
-          isResolved = true;
-          clearTimeout(timer);
-          resolve({
-            status: exitCode === 0 ? 'SUCCESS' : 'FAILED',
-            stdout,
-            stderr,
-            executionTimeMs: Date.now() - startTime,
-          });
-        }
-      } catch (err: any) {
-        if (!isResolved) {
-          isResolved = true;
-          clearTimeout(timer);
-          resolve({
+      (async () => {
+        try {
+          const process = await this.containerInstance!.spawn(command, args);
+          
+          process.output.pipeTo(
+            new WritableStream({
+              write(data) {
+                stdout += data;
+              },
+            })
+          );
+          
+          const exitCode = await process.exit;
+          
+          if (!isResolved) {
+            isResolved = true;
+            clearTimeout(timer);
+            resolve({
+              status: exitCode === 0 ? 'SUCCESS' : 'FAILED',
+              stdout,
+              stderr,
+              executionTimeMs: Date.now() - startTime,
+            });
+          }
+        } catch (err: any) {
+          if (!isResolved) {
+            isResolved = true;
+            clearTimeout(timer);
+            resolve({
             status: 'FAILED',
             stdout,
             stderr: err.toString(),
@@ -105,6 +106,7 @@ export class SandboxService {
           });
         }
       }
+      })();
     });
   }
 }
