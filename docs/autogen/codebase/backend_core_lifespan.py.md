@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/lifespan.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,096 বাইট  
-**আপডেট:** 2026-07-11T16:17:51.568958
+**সাইজ:** 11,095 বাইট  
+**আপডেট:** 2026-07-11T16:26:09.335178
 
 ---
 
@@ -175,7 +175,6 @@ async def app_lifespan(app):
         )
         if os.getenv("ENV") == "production":
             raise e
-
 
     try:
         orch_inst = Orchestrator()

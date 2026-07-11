@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_new_interfaces.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,055 বাইট  
-**আপডেট:** 2026-07-11T16:17:51.589832
+**সাইজ:** 2,052 বাইট  
+**আপডেট:** 2026-07-11T16:26:09.370098
 
 ---
 
@@ -43,9 +43,6 @@ def test_voice_interface_stt_success(mock_post):
     finally:
         if os.path.exists(dummy_path):
             os.remove(dummy_path)
-
-
-
 
 
 def test_local_ocr_extractor():
