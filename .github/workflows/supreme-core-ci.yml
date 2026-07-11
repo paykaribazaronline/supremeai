@@ -178,21 +178,21 @@ jobs:
       - name: Setup Poetry
         uses: snok/install-poetry@v1
         with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-      - name: Load Cached Virtualenv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
+          plugins: poetry-plugin-export
+
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v3
         with:
-          path: backend/.venv
-          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/pyproject.toml') }}
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
-            venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
-            venv-${{ runner.os }}-
-      - name: Install Dependencies (Only on Cache Miss)
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+            ${{ runner.os }}-poetry-
+
+      - name: Install Dependencies via Poetry Export
         working-directory: backend
-        run: poetry install --sync --with dev --without ml,tools
+        run: |
+          poetry config virtualenvs.create false
+          pip install -r <(poetry export --with dev --without ml,tools --format requirements.txt)
 
       - name: 🛡️ Safety Guard - File Protection Validation
         id: safety_guard
@@ -269,21 +269,21 @@ jobs:
       - name: Setup Poetry
         uses: snok/install-poetry@v1
         with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-      - name: Load Cached Virtualenv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
+          plugins: poetry-plugin-export
+
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v3
         with:
-          path: backend/.venv
-          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/pyproject.toml') }}
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
-            venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
-            venv-${{ runner.os }}-
-      - name: Install Dependencies (Only on Cache Miss)
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+            ${{ runner.os }}-poetry-
+
+      - name: Install Dependencies via Poetry Export
         working-directory: backend
-        run: poetry install --sync --with dev --without ml,tools
+        run: |
+          poetry config virtualenvs.create false
+          pip install -r <(poetry export --with dev --without ml,tools --format requirements.txt)
       
       - name: 🩹 Auto-Fix and Format Code
         working-directory: backend
@@ -1008,21 +1008,21 @@ jobs:
       - name: Setup Poetry
         uses: snok/install-poetry@v1
         with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-      - name: Load Cached Virtualenv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
+          plugins: poetry-plugin-export
+
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v3
         with:
-          path: backend/.venv
-          key: venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/pyproject.toml') }}
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
-            venv-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-
-            venv-${{ runner.os }}-
-      - name: Install Dependencies (Only on Cache Miss)
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+            ${{ runner.os }}-poetry-
+
+      - name: Install Dependencies via Poetry Export
         working-directory: backend
-        run: poetry install --sync --with dev --without ml,tools
+        run: |
+          poetry config virtualenvs.create false
+          pip install -r <(poetry export --with dev --without ml,tools --format requirements.txt)
           
       - name: 🤖 Generate AI Architecture Docs (ADR, DFD, OpenAPI)
         env:
