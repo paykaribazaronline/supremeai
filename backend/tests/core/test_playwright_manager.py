@@ -21,10 +21,10 @@ def reset_global_state():
     বাংলা মন্তব্য: প্রতিটি test-এর পর global browser state reset করে।
     Module-level globals clean রাখার জন্য।
     """
-    yield
-    # Cleanup after test
     import core.playwright_manager as pm
-
+    pm._global_browser = None
+    pm._playwright_runner = None
+    yield
     pm._global_browser = None
     pm._playwright_runner = None
 
