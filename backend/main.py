@@ -14,6 +14,7 @@ setup_logging()
 
 # Production config validation is now handled automatically by Pydantic model validators
 
+
 def _handle_sigterm(signum, frame):
     logger.info("Received shutdown signal. Performing graceful shutdown...")
     sys.exit(0)
