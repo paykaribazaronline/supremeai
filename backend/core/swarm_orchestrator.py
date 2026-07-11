@@ -1,3 +1,4 @@
+# FILE_PATH: core/swarm_orchestrator.py
 # Multi-Agent Swarm Orchestrator Engine
 # বাংলা মন্তব্য: মাল্টি-এজেন্ট সিকোয়েন্সিয়াল সোয়ার্ম কোঅর্ডিনেটর ও টাস্ক রানার।
 
@@ -85,7 +86,9 @@ class SwarmOrchestrator:
             await self.circuit_breaker.call(self.qa.verify, workspace, user_id)
         except CircuitBreakerOpenError as e:
             workspace.log(f"SwarmOrchestrator: Circuit breaker OPEN — {e}")
-            workspace.add_error(str(e))
+            # The SharedWorkspace model does not have an 'add_error' method.
+            # Assuming it has an 'errors' list attribute to which errors can be appended.
+            workspace.errors.append(str(e))
             return workspace
 
         workspace.log("SwarmOrchestrator: Multi-Agent execution graph completed successfully.")
