@@ -4,9 +4,9 @@ services:
     env: docker
     dockerfilePath: Dockerfile
     dockerContext: .
-    region: oregon
+    region: singapore
     plan: free
-    healthCheckPath: /api/v1/system/health
+    healthCheckPath: /health
     envVars:
       - key: ENV
         value: production
