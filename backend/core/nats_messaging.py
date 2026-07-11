@@ -1,22 +1,24 @@
-import asyncio
 import json
 import logging
-from typing import Any, Callable, Dict, Optional
+from collections.abc import Callable
+from typing import Any
 
 import nats
-from nats.errors import ConnectionClosedError, TimeoutError, NoServersError
-from nats.js import jetstream
+from nats.errors import NoServersError
 from nats.js.errors import KeyValueError
 from pydantic import BaseModel
 
+
 logger = logging.getLogger(__name__)
+
 
 class NATSClient:
     """
     Centralized NATS Client for Distributed Swarm Edge Execution.
     Supports JetStream for Key-Value store (Worker Registry) and persistent queues.
     """
-    def __init__(self, url: str = "nats://localhost:4222", token: Optional[str] = "super_secret_token"):
+
+    def __init__(self, url: str = "nats://localhost:4222", token: str | None = "super_secret_token"):
         self.url = url
         self.token = token
         self.nc = None
@@ -29,12 +31,12 @@ class NATSClient:
             connect_kwargs = {"servers": [self.url]}
             if self.token:
                 connect_kwargs["token"] = self.token
-                
+
             self.nc = await nats.connect(**connect_kwargs)
             self.js = self.nc.jetstream()
-            
+
             logger.info("✅ Connected to NATS Broker successfully.")
-            
+
             # Initialize or bind to the Key-Value store for Worker Registry
             try:
                 self.kv_store = await self.js.key_value("WORKER_REGISTRY")
@@ -48,7 +50,7 @@ class NATSClient:
         except Exception as e:
             logger.error(f"❌ NATS Connection Error: {str(e)}")
 
-    async def publish_event(self, subject: str, data: BaseModel | Dict[str, Any]):
+    async def publish_event(self, subject: str, data: BaseModel | dict[str, Any]):
         """Publishes an event to a specific NATS subject."""
         if not self.nc:
             logger.warning("NATS client is not connected.")
@@ -62,7 +64,7 @@ class NATSClient:
         if not self.nc:
             logger.warning("NATS client is not connected.")
             return
-            
+
         async def message_handler(msg):
             try:
                 decoded_data = json.loads(msg.data.decode())
@@ -81,7 +83,7 @@ class NATSClient:
         if self.kv_store:
             await self.kv_store.put(worker_id, json.dumps(payload).encode())
 
-    async def get_worker(self, worker_id: str) -> Optional[dict]:
+    async def get_worker(self, worker_id: str) -> dict | None:
         """Retrieves worker info from the KV store."""
         if self.kv_store:
             try:
@@ -91,7 +93,7 @@ class NATSClient:
                 return None
         return None
 
-    async def get_all_workers(self) -> Dict[str, dict]:
+    async def get_all_workers(self) -> dict[str, dict]:
         """Retrieves all registered workers from the KV store."""
         workers = {}
         if self.kv_store:
@@ -103,6 +105,7 @@ class NATSClient:
             except Exception:
                 pass
         return workers
+
 
 # Global instance
 nats_client = NATSClient()

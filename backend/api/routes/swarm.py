@@ -1,18 +1,19 @@
+import asyncio
 import logging
 import uuid
-import asyncio
+from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from fastapi import BackgroundTasks
+from fastapi import HTTPException
 from fastapi import Request
 from pydantic import BaseModel
 from pydantic import Field
-from typing import List, Dict, Any, Optional
 from sse_starlette.sse import EventSourceResponse
 
 from core.swarm_pubsub import swarm_streamer
-from engine.swarm_orchestrator import SwarmOrchestrator
 from engine.forge_compiler import ForgeCompiler
+from engine.swarm_orchestrator import SwarmOrchestrator
 
 
 logger = logging.getLogger(__name__)
@@ -122,23 +123,27 @@ class FlowPosition(BaseModel):
     x: float
     y: float
 
+
 class FlowNode(BaseModel):
     id: str = Field(..., description="Unique ID of the node")
     type: str = Field(..., description="Type of the node (e.g., agentNode, taskNode)")
     position: FlowPosition
-    data: Dict[str, Any] = Field(default_factory=dict, description="Node payload containing role, model, prompt, etc.")
+    data: dict[str, Any] = Field(default_factory=dict, description="Node payload containing role, model, prompt, etc.")
+
 
 class FlowEdge(BaseModel):
     id: str = Field(..., description="Unique ID of the edge")
     source: str = Field(..., description="Source node ID")
     target: str = Field(..., description="Target node ID")
-    animated: Optional[bool] = Field(default=False, description="Whether the edge is animated")
+    animated: bool | None = Field(default=False, description="Whether the edge is animated")
+
 
 class ForgePayload(BaseModel):
     name: str = Field(..., description="Name of the custom swarm flow")
-    description: Optional[str] = Field(default="", description="Optional description of the swarm's purpose")
-    nodes: List[FlowNode]
-    edges: List[FlowEdge]
+    description: str | None = Field(default="", description="Optional description of the swarm's purpose")
+    nodes: list[FlowNode]
+    edges: list[FlowEdge]
+
 
 @router.post("/forge", status_code=201)
 async def save_forge_swarm(payload: ForgePayload):
@@ -149,13 +154,9 @@ async def save_forge_swarm(payload: ForgePayload):
         logger.info(f"Received Forge payload for Swarm: {payload.name} with {len(payload.nodes)} nodes.")
 
         return {
-            "status": "success", 
-            "message": "Swarm blueprint saved successfully", 
-            "data": {
-                "swarm_name": payload.name,
-                "node_count": len(payload.nodes),
-                "edge_count": len(payload.edges)
-            }
+            "status": "success",
+            "message": "Swarm blueprint saved successfully",
+            "data": {"swarm_name": payload.name, "node_count": len(payload.nodes), "edge_count": len(payload.edges)},
         }
     except Exception as e:
         logger.error(f"Failed to save Forge Swarm: {str(e)}")
@@ -168,20 +169,20 @@ async def run_swarm_execution_async(execution_plan):
             await swarm_streamer.broadcast(
                 event_type="NODE_EXECUTION",
                 payload={
-                    "nodeId": node['id'],
+                    "nodeId": node["id"],
                     "status": "RUNNING",
-                    "message": f"Agent Node [{node['data'].get('label', 'Unknown')}] is now processing input..."
-                }
+                    "message": f"Agent Node [{node['data'].get('label', 'Unknown')}] is now processing input...",
+                },
             )
             await asyncio.sleep(2)
 
             await swarm_streamer.broadcast(
                 event_type="NODE_EXECUTION",
                 payload={
-                    "nodeId": node['id'],
+                    "nodeId": node["id"],
                     "status": "COMPLETED",
-                    "message": f"Agent Node [{node['data'].get('label', 'Unknown')}] execution finished."
-                }
+                    "message": f"Agent Node [{node['data'].get('label', 'Unknown')}] execution finished.",
+                },
             )
     except Exception as e:
         logger.error(f"Execution background task failed: {str(e)}")

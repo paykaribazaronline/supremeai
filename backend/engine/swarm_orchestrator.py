@@ -96,16 +96,18 @@ class SwarmOrchestrator:
 
         # Inject Memory Middleware
         from engine.memory_middleware import memory_mw
+
         self.workspace.log("🧠 Querying Neural Memory for relevant past experiences...")
         augmented_prompt = await memory_mw.augment_task(self.task_prompt)
 
         if consensus_mode:
             from engine.debate_engine import ConsensusOrchestrator
+
             self.workspace.log("🛡️ Consensus Mode Enabled: Engaging Debate Engine...")
             orchestrator = ConsensusOrchestrator(self.session_id)
             # Pass the memory-enriched prompt to the debate cycle
             final_proposal = await orchestrator.run_debate_cycle(augmented_prompt)
-            
+
             if final_proposal:
                 self.workspace.log(f"✅ Consensus Reached by {final_proposal.agent_id}!")
                 self.workspace.generated_code = {"consensus_output": final_proposal.content}

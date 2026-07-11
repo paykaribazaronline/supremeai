@@ -1,24 +1,27 @@
 import logging
-from collections import deque, defaultdict
-from typing import List, Dict, Any
+from collections import defaultdict
+from collections import deque
+from typing import Any
+
 
 logger = logging.getLogger(__name__)
 
+
 class ForgeCompiler:
     @staticmethod
-    def compile_and_sort(nodes: List[Dict[str, Any]], edges: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        '''
+    def compile_and_sort(nodes: list[dict[str, Any]], edges: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """
         Parses React Flow nodes and edges, validates DAG properties,
         and returns the linear execution sequence.
-        '''
+        """
         adj_list = defaultdict(list)
-        in_degree = {node['id']: 0 for node in nodes}
-        node_map = {node['id']: node for node in nodes}
+        in_degree = {node["id"]: 0 for node in nodes}
+        node_map = {node["id"]: node for node in nodes}
 
         # Build adjacency list and calculate in-degrees
         for edge in edges:
-            src = edge['source']
-            tgt = edge['target']
+            src = edge["source"]
+            tgt = edge["target"]
             adj_list[src].append(tgt)
             if tgt in in_degree:
                 in_degree[tgt] += 1

@@ -1,27 +1,27 @@
 import asyncio
-import json
 import logging
 import os
-import uuid
 import platform
-from datetime import datetime, UTC
+import uuid
+from datetime import UTC
+from datetime import datetime
 
 from core.nats_messaging import NATSClient
 
+
 logger = logging.getLogger(__name__)
+
 
 class SwarmWorkerNode:
     """
     Distributed Edge Worker that registers itself to the Control Plane
     and listens for specific tasks.
     """
+
     def __init__(self, agent_type: str = "general"):
         self.worker_id = f"worker_{uuid.uuid4().hex[:8]}"
         self.agent_type = agent_type
-        self.nats = NATSClient(
-            url=os.getenv("NATS_URL", "nats://localhost:4222"),
-            token=os.getenv("NATS_TOKEN", "super_secret_token")
-        )
+        self.nats = NATSClient(url=os.getenv("NATS_URL", "nats://localhost:4222"), token=os.getenv("NATS_TOKEN", "super_secret_token"))
         self.is_running = True
 
     def get_capabilities(self):
@@ -32,7 +32,7 @@ class SwarmWorkerNode:
             "cpu_optimized": True,
             "gpu_available": False,  # Mock capability
             "status": "IDLE",
-            "last_heartbeat": datetime.now(UTC).isoformat()
+            "last_heartbeat": datetime.now(UTC).isoformat(),
         }
 
     async def heartbeat_loop(self):
@@ -60,10 +60,10 @@ class SwarmWorkerNode:
             return
 
         logger.info(f"🟢 Swarm Worker [{self.worker_id}] connected.")
-        
+
         # Start Heartbeat loop
         asyncio.create_task(self.heartbeat_loop())
-        
+
         # Subscribe to Task queue
         subject = f"TASK.ASSIGN.{self.agent_type}"
         await self.nats.subscribe(subject, self.handle_task)
@@ -72,6 +72,7 @@ class SwarmWorkerNode:
         # Keep alive loop
         while self.is_running:
             await asyncio.sleep(1)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

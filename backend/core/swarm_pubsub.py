@@ -2,9 +2,12 @@ import asyncio
 import json
 import logging
 from collections.abc import AsyncGenerator
+
 import redis.asyncio as redis
 
+
 logger = logging.getLogger(__name__)
+
 
 class SwarmPubSub:
     def __init__(self):
@@ -33,6 +36,7 @@ class SwarmPubSub:
         """সকল অ্যাক্টিভ ক্লায়েন্টকে Redis চ্যানেলে ডেটা পুশ করবে"""
         message = json.dumps({"type": event_type, "data": payload})
         await self.redis.publish("swarm_stream", message)
+
 
 # গ্লোবাল ইন্সট্যান্স যা পুরো অ্যাপ জুড়ে ব্যবহার হবে
 swarm_streamer = SwarmPubSub()

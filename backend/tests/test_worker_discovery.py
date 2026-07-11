@@ -8,24 +8,25 @@ from engine.worker_node import SwarmWorkerNode
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 async def main():
     logger.info("--- Starting Dynamic Topology Discovery Test ---")
-    
+
     # 1. Connect NATS globally
     await nats_client.connect()
-    
+
     # 2. Start the Control Plane Registry Watcher
     logger.info("Starting Control Plane Worker Registry...")
     asyncio.create_task(worker_registry.watch_registry())
-    
+
     # Give it a second to initialize
     await asyncio.sleep(2)
-    
+
     # 3. Spin up an Edge Worker Node
     logger.info("Starting Mock Edge Worker [Architect]...")
     worker = SwarmWorkerNode(agent_type="Architect")
     asyncio.create_task(worker.start())
-    
+
     # 4. Wait for Control Plane to discover it via JetStream KV
     logger.info("Waiting for Discovery...")
     for i in range(5):
@@ -36,12 +37,13 @@ async def main():
             logger.info(f"Capabilities: {architects[0]}")
             break
         else:
-            logger.info(f"...still waiting ({i+1}/5)...")
-            
+            logger.info(f"...still waiting ({i + 1}/5)...")
+
     # Cleanup
     worker.is_running = False
     worker_registry.is_running = False
     logger.info("Test completed.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
