@@ -14,6 +14,7 @@ import { AgentWorkspace } from './pages/AgentWorkspace';
 import { IntegrationsManager } from './pages/IntegrationsManager';
 import { ArchitectTower } from './pages/ArchitectTower';
 import SwarmMap from './components/SwarmMap';
+import EvolutionForge from './pages/EvolutionForge/EvolutionForge';
 import { DashboardShell } from "./components/dashboard/DashboardShell";
 import { UserDashboard } from "./components/customer/UserDashboard";
 
@@ -163,6 +164,11 @@ const AppContent: React.FC = () => {
                 <Route path="/swarm" element={
                   <ProtectedRoute>
                     <SwarmMap />
+                  </ProtectedRoute>
+                } />
+                <Route path="/evolution-forge" element={
+                  <ProtectedRoute>
+                    <EvolutionForge />
                   </ProtectedRoute>
                 } />
                 <Route path="/workspace/*" element={

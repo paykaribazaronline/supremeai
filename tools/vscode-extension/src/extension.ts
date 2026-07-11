@@ -25,6 +25,7 @@ import { CodeReviewService, getCodeReviewService, setCodeReviewService } from '.
 import { detectOtherAiAgents } from './agentDetector'; // এজেন্ট ডিটেক্টর ইম্পোর্ট করা হলো
 import { SupremeWebviewProvider } from './providers/SupremeWebviewProvider';
 import { CrossAiObserverService } from './services/CrossAiObserverService';
+import { SelfHealingService } from './services/SelfHealingService';
 import { BrowserPreviewProvider } from './providers/BrowserPreviewProvider';
 
 let supremeAIService: SupremeAIService;
@@ -69,6 +70,29 @@ export async function activate(context: vscode.ExtensionContext) {
 
   supremeAIService = new SupremeAIService(supremeConfig);
   setSupremeAIService(supremeAIService);
+
+  // 🩺 ইনিশিয়ালাইজ এজেন্ট-ইন-দ্য-লুপ (Self Healing)
+  SelfHealingService.initialize(context, supremeAIService);
+  const { HealingStatusBar } = require('./ui/HealingStatusBar');
+  new HealingStatusBar(context);
+  const { TelemetryTracker } = require('./services/TelemetryTracker');
+  TelemetryTracker.initialize(context);
+  
+  // 💡 Register Explain Fix CodeAction
+  const { SupremeAIActionProvider } = require('./providers/SupremeAIActionProvider');
+  context.subscriptions.push(
+      vscode.languages.registerCodeActionsProvider('*', new SupremeAIActionProvider(), {
+          providedCodeActionKinds: [vscode.CodeActionKind.QuickFix]
+      })
+  );
+
+  context.subscriptions.push(
+      vscode.commands.registerCommand('supremeai.explainFix', async (uri: vscode.Uri, line: number) => {
+          vscode.window.showInformationMessage(`SupremeAI: Generating explanation for the fix on line ${line}...`);
+          // Here we would open the SupremeAI Sidebar Webview and trigger the chat with the explanation context.
+          vscode.commands.executeCommand('supremeai.sidebar.focus');
+      })
+  );
 
   const auth = AuthService.getInstance(supremeConfig, context.secrets);
   await auth.initialize();

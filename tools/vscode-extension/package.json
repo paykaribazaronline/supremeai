@@ -285,6 +285,7 @@
     "package-ext": "esbuild src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --minify"
   },
   "devDependencies": {
+    "@types/fast-levenshtein": "^0.0.4",
     "@types/node": "18.x",
     "@types/vscode": "^1.85.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
@@ -299,6 +300,7 @@
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
-    "@supremeai/design-tokens": "workspace:^"
+    "@supremeai/design-tokens": "workspace:^",
+    "fast-levenshtein": "^3.0.0"
   }
 }

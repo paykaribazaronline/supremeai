@@ -71,21 +71,29 @@ class SelfHealingRequest(BaseModel):
     languageId: str
 
 
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+
+limiter = Limiter(key_func=get_remote_address)
+
 @router.post("/execute-healing")
-async def execute_healing(payload: SelfHealingRequest):
+@limiter.limit("5/minute")
+async def execute_healing(payload: SelfHealingRequest, request: Request):
     """
     Agent-in-the-Loop endpoint to self-heal code errors from VS Code Extension.
+    Rate limited to 5 requests per minute per IP to prevent LLM cost spikes.
     """
     session_id = str(uuid.uuid4())
     task_prompt = f"""
     The following {payload.languageId} code in {payload.filePath} has an error at line {payload.lineNumber}:
     Error Message: {payload.message}
-    
+
     Code Context:
     ```
     {payload.codeContext}
     ```
-    
+
     Please fix the error and provide the corrected complete code content.
     """
 
