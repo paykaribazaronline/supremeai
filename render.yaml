@@ -1,9 +1,9 @@
 services:
   - type: web
     name: supremeai-backend
-    env: docker
-    dockerfilePath: Dockerfile
-    dockerContext: .
+    env: image
+    image:
+      url: ghcr.io/paykaribazaronline/supremeai-backend:latest
     region: singapore
     plan: free
     healthCheckPath: /health
