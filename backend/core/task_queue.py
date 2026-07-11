@@ -40,7 +40,7 @@ def get_celery_app() -> Celery | None:
                 timezone="UTC",
                 enable_utc=True,
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to initialize Celery: {e}")
             error_event_bus.emit(ErrorEvent(module="task_queue", error_type="CELERY_INIT_FAILED", message=str(e)[:200], severity="CRITICAL"))
             # Fallback to sync
@@ -59,7 +59,7 @@ def process_requirement_async(project_id: str, description: str) -> dict[str, An
             # Real implementation would import the task function.
             task = _process_requirement_task.delay(project_id, description)
             return {"status": "queued", "task_id": task.id}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to queue task with Celery: {e}")
             error_event_bus.emit(
                 ErrorEvent(

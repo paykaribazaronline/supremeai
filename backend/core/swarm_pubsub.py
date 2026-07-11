@@ -63,7 +63,7 @@ class SwarmPubSub:
             try:
                 await pubsub.unsubscribe("swarm_stream")
                 await pubsub.close()
-            except Exception as cleanup_err:
+            except Exception as cleanup_err:  # noqa: BLE001
                 logger.error(f"SwarmPubSub cleanup error: {cleanup_err}")
                 error_event_bus.emit(
                     ErrorEvent(

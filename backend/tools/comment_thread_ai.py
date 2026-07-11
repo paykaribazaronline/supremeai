@@ -88,20 +88,20 @@ class CommentThreadAI:
             # Review comments (line-level)
             review = await self._gh_get(f"/repos/{repo}/pulls/{pr_number}/comments")
             comments.extend(review if isinstance(review, list) else [])
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to get PR review comments for {repo}#{pr_number}: {e}")
         try:
             # Issue comments (general PR comments)
             issue = await self._gh_get(f"/repos/{repo}/issues/{pr_number}/comments")
             comments.extend(issue if isinstance(issue, list) else [])
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to get PR issue comments for {repo}#{pr_number}: {e}")
         return comments
 
     async def _get_pr_files(self, repo: str, pr_number: int) -> list[dict]:
         try:
             return await self._gh_get(f"/repos/{repo}/pulls/{pr_number}/files")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to get PR files for {repo}#{pr_number}: {e}")
             return []
 

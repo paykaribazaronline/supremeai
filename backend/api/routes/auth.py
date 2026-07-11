@@ -75,7 +75,7 @@ class MeResponse(BaseModel):
 
 @router.post("/login", response_model=TokenResponse)
 async def login(body: LoginRequest):
-    if settings.env != "local" and settings.env != "test":
+    if settings.env != "local" and settings.env != "test":  # noqa: PLR1714
         raise HTTPException(
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
             detail="Direct login is not supported in production. Use the admin TOTP flow or an OAuth provider.",

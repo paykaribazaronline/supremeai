@@ -88,7 +88,7 @@ class MultiLayerCache:
                 return {"response": cached_response, "source": "L1_EXACT_CACHE", "latency_ms": 1}
         except asyncio.CancelledError:
             raise
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"L1 cache read error: {e}")
             error_event_bus.emit(ErrorEvent(module="multi_layer_cache", error_type="L1_READ_FAILED", message=str(e)[:200], severity="WARNING"))
 
@@ -100,7 +100,7 @@ class MultiLayerCache:
                 return {"response": semantic_result.response, "source": "L2_SEMANTIC_CACHE", "latency_ms": 5}
         except asyncio.CancelledError:
             raise
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"L2 semantic cache error: {e}")
             error_event_bus.emit(ErrorEvent(module="multi_layer_cache", error_type="L2_READ_FAILED", message=str(e)[:200], severity="WARNING"))
 
@@ -117,7 +117,7 @@ class MultiLayerCache:
                     return {"response": cached_response, "source": "L3_PREFIX_CACHE", "latency_ms": 10}
         except asyncio.CancelledError:
             raise
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"L3 prefix cache error: {e}")
             error_event_bus.emit(ErrorEvent(module="multi_layer_cache", error_type="L3_READ_FAILED", message=str(e)[:200], severity="WARNING"))
 
@@ -143,7 +143,7 @@ class MultiLayerCache:
             await exact_match_cache.setex(exact_cache_key, 3600, response)
         except asyncio.CancelledError:
             raise
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"L1 cache write error: {e}")
             error_event_bus.emit(ErrorEvent(module="multi_layer_cache", error_type="L1_WRITE_FAILED", message=str(e)[:200], severity="WARNING"))
 
@@ -151,7 +151,7 @@ class MultiLayerCache:
             await self._get_semantic_cache().set(prompt, response, task_type="general")
         except asyncio.CancelledError:
             raise
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"L2 semantic cache write error: {e}")
             error_event_bus.emit(ErrorEvent(module="multi_layer_cache", error_type="L2_WRITE_FAILED", message=str(e)[:200], severity="WARNING"))
 
@@ -164,7 +164,7 @@ class MultiLayerCache:
                 await prefix_cache.setex(prefix_cache_key, 1800, response)
         except asyncio.CancelledError:
             raise
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"L3 prefix cache write error: {e}")
             error_event_bus.emit(ErrorEvent(module="multi_layer_cache", error_type="L3_WRITE_FAILED", message=str(e)[:200], severity="WARNING"))
 

@@ -9,7 +9,7 @@ def setup_logging():
     In production, this could also push to OpenTelemetry.
     """
     logger.remove()
-    # বাংলা মন্তব্য: pytest চালানোর সময় sys.stdout ক্লোজ হয়ে যাওয়ার কারণে "I/O operation on closed file" এরর হয়। এটি এড়াতে lambda ব্যবহার করে ডাইনামিকালি sys.stdout রিড করা হচ্ছে।
+    # বাংলা মন্তব্য: pytest চালানোর সময় sys.stdout ক্লোজ হয়ে যাওয়ার কারণে "I/O operation on closed file" এরর হয়। এটি এড়াতে lambda ব্যবহার করে ডাইনামিকালি sys.stdout রিড করা হচ্ছে।  # noqa: E501
     logger.add(
         lambda msg: sys.stdout.write(msg),
         colorize=True,

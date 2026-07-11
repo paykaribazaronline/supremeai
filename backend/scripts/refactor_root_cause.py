@@ -8,14 +8,14 @@ def process_file(filepath: Path, dry_run: bool = False):
     try:
         with open(filepath, encoding="utf-8") as f:
             content = f.read()
-    except Exception as e:
-        print(f"Skipping {filepath} due to read error: {e}")
+    except Exception as e:  # noqa: BLE001
+        print(f"Skipping {filepath} due to read error: {e}")  # noqa: T201
         return
 
     try:
-        tree = ast.parse(content)
-    except Exception as e:
-        print(f"Skipping {filepath} due to syntax error: {e}")
+        tree = ast.parse(content)  # noqa: F841
+    except Exception as e:  # noqa: BLE001
+        print(f"Skipping {filepath} due to syntax error: {e}")  # noqa: T201
         return
 
     # In a real implementation we would use libcst or a robust regex strategy to replace in place,
@@ -49,7 +49,7 @@ def process_file(filepath: Path, dry_run: bool = False):
         indent = prefix.split("\n")[-1]
         replacement += f"{indent}logger.error(f'Caught exception: {{{var_name}}}')\n"
         replacement += f"{indent}from core.event_bus import error_event_bus, ErrorEvent\n"
-        replacement += f"{indent}error_event_bus.emit(ErrorEvent(module='auto_refactor', error_type='GENERIC_EXCEPTION', message=str({var_name})[:200], severity='ERROR'))"
+        replacement += f"{indent}error_event_bus.emit(ErrorEvent(module='auto_refactor', error_type='GENERIC_EXCEPTION', message=str({var_name})[:200], severity='ERROR'))"  # noqa: E501
         return replacement
 
     new_content, count = pass_pattern.subn(replacer, original_content)
@@ -87,9 +87,9 @@ def process_file(filepath: Path, dry_run: bool = False):
         if not dry_run:
             with open(filepath, "w", encoding="utf-8") as f:
                 f.write(new_content)
-            print(f"Refactored: {filepath}")
+            print(f"Refactored: {filepath}")  # noqa: T201
         else:
-            print(f"[DRY RUN] Would refactor: {filepath}")
+            print(f"[DRY RUN] Would refactor: {filepath}")  # noqa: T201
 
 
 def main():

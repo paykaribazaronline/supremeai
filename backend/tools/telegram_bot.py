@@ -84,7 +84,7 @@ class TelegramBotHandler:
                     f"{self.api_base}/sendChatAction",
                     json={"chat_id": chat_id, "action": "typing"},
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Telegram sendTyping failed for chat_id {chat_id}: {e}")
 
     async def set_webhook(self, webhook_url: str) -> bool:

@@ -32,7 +32,7 @@ class ContainerAuditor:
                 if line:
                     stats.append(json.loads(line))
             return stats
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Error executing docker stats: {e}")
             error_event_bus.emit(ErrorEvent(module="container_auditor", error_type="DOCKER_STATS_EXEC_ERROR", message=str(e)[:200], severity="ERROR"))
             return []
@@ -57,7 +57,7 @@ class ContainerAuditor:
                     logger.error(f"🚨 OOM Kill Chain Triggered: Container {name} is at {mem_perc}%. Terminating...")
                     try:
                         subprocess.run(["docker", "kill", name], capture_output=True, timeout=5, check=False)
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         logger.error(f"Failed to kill container {name}: {e}")
                         error_event_bus.emit(
                             ErrorEvent(
@@ -72,7 +72,7 @@ class ContainerAuditor:
                     logger.warning(f"⚠️ Memory Warning: Container {name} is nearing capacity at {mem_perc}%.")
         except asyncio.CancelledError:
             raise
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Error in container audit cycle: {e}")
             error_event_bus.emit(ErrorEvent(module="container_auditor", error_type="AUDIT_CYCLE_FAILED", message=str(e)[:200], severity="ERROR"))
 

@@ -45,13 +45,13 @@ async def shutdown_global_browser():
     try:
         if _global_browser:
             await _global_browser.close()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error closing global browser: {e}")
 
     try:
         if _playwright_runner:
             await _playwright_runner.stop()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error stopping global playwright runner: {e}")
     finally:
         _global_browser = None

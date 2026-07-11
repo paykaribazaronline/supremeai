@@ -17,12 +17,12 @@ mp.delitem(sys.modules, "core.playwright_manager", raising=False)
 mp.undo()
 
 # 3. test_playwright_manager.py runs
-from unittest.mock import patch
+from unittest.mock import patch  # noqa: E402
 
 
-print("pm is module_instance_A:", pm is module_instance_A)
-print("sys.modules['core.playwright_manager'] is module_instance_A:", sys.modules["core.playwright_manager"] is module_instance_A)
+print("pm is module_instance_A:", pm is module_instance_A)  # noqa: T201
+print("sys.modules['core.playwright_manager'] is module_instance_A:", sys.modules["core.playwright_manager"] is module_instance_A)  # noqa: T201
 patcher = patch("core.playwright_manager.async_playwright", return_value=123)
 patcher.start()
-print("pm.async_playwright is callable:", callable(pm.async_playwright))
+print("pm.async_playwright is callable:", callable(pm.async_playwright))  # noqa: T201
 patcher.stop()

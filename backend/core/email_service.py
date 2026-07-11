@@ -86,7 +86,7 @@ class EmailService:
                 <a href="{frontend_url}/studio" style="padding: 10px 20px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 5px;">Go to Studio</a>
             </body>
         </html>
-        """
+        """  # noqa: E501
         return await self._send_email(user_email, subject, html)
 
     async def send_password_reset(self, user_email: str, reset_link: str) -> bool:
