@@ -14,11 +14,13 @@ import {
 import '@xyflow/react/dist/style.css';
 
 import AgentNode from './nodes/AgentNode';
-// Import Sidebar here later
+import TaskNode from './nodes/TaskNode';
+import { ForgeSidebar } from './ForgeSidebar';
 
 // Register custom node types
 const nodeTypes = {
   agentNode: AgentNode,
+  taskNode: TaskNode,
 };
 
 const initialNodes = [
@@ -49,9 +51,12 @@ const EvolutionForgeCanvas = () => {
     (event: React.DragEvent) => {
       event.preventDefault();
 
-      // We will grab the dragged node type from the Sidebar event later
       const type = event.dataTransfer.getData('application/reactflow');
       if (typeof type === 'undefined' || !type) return;
+
+      // Extract the JSON payload we sent from the sidebar
+      const nodeDataString = event.dataTransfer.getData('application/json');
+      const nodeData = nodeDataString ? JSON.parse(nodeDataString) : {};
 
       const position = {
         x: event.clientX - (reactFlowWrapper.current?.getBoundingClientRect().left ?? 0),
@@ -59,10 +64,14 @@ const EvolutionForgeCanvas = () => {
       };
 
       const newNode = {
-        id: `node_${Date.now()}`,
+        id: `agent_${Date.now()}`,
         type,
         position,
-        data: { label: `New ${type}`, role: 'Coder', model: 'Gemini-1.5-Pro' },
+        data: { 
+          label: nodeData.label || 'New Node', 
+          role: nodeData.role || 'Unknown', 
+          model: nodeData.model || 'Unknown' 
+        },
       };
 
       setNodes((nds) => nds.concat(newNode));
@@ -71,8 +80,8 @@ const EvolutionForgeCanvas = () => {
   );
 
   return (
-    <div className="flex h-[calc(100vh-64px)] w-full bg-background" ref={reactFlowWrapper}>
-      {/* <ForgeSidebar /> will go here */}
+    <div className="flex h-[calc(100vh-64px)] w-full bg-background relative" ref={reactFlowWrapper}>
+      <ForgeSidebar />
       
       <div className="flex-grow h-full relative">
         <ReactFlow
