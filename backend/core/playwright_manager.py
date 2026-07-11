@@ -21,7 +21,7 @@ async def get_global_browser() -> Browser:
     global _playwright_runner, _global_browser
     if _global_browser is None:
         logger.info("🚀 Starting a new headless Global Chromium instance...")
-        if async_playwright is None:
+        if not callable(async_playwright):
             raise RuntimeError("Playwright is not installed.")
         _playwright_runner = await async_playwright().start()
         _global_browser = await _playwright_runner.chromium.launch(

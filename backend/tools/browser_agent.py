@@ -37,7 +37,7 @@ class BrowserAgent:
         """
         ডাটাবেজ বা স্কিল ম্যানেজার থেকে আসা JSON রেসিপি অ্যারে ডাইনামিকালি ইন্টারপ্রিট করবে।
         """
-        if async_playwright is None:
+        if not callable(async_playwright):
             return {"status": "failed", "error": "Playwright is not installed"}
 
         logger.info(f"🎬 Initializing Dynamic Recipe Interpreter with {len(steps)} steps.")

@@ -30,7 +30,7 @@ def mock_nats_connection():
     """Mock NATS connection এবং JetStream context।"""
     mock_nc = AsyncMock()
     mock_js = AsyncMock()
-    mock_nc.jetstream.return_value = mock_js
+    mock_nc.jetstream = MagicMock(return_value=mock_js)
     return mock_nc, mock_js
 
 
@@ -95,7 +95,7 @@ class TestConnect:
         mock_nc = AsyncMock()
         mock_js = AsyncMock()
         mock_kv = AsyncMock()
-        mock_nc.jetstream.return_value = mock_js
+        mock_nc.jetstream = MagicMock(return_value=mock_js)
         mock_js.key_value.return_value = mock_kv
 
         with patch("nats.connect", return_value=mock_nc) as mock_connect:
