@@ -23,8 +23,9 @@ export const FileTreePanel: React.FC = () => {
 
   // Clean up on unmount or session reset is handled by the store, but we also clear the ref here.
   useEffect(() => {
+    const currentTreeRef = treeRef.current;
     return () => {
-      treeRef.current.clear();
+      currentTreeRef.clear();
     };
      
   }, []);

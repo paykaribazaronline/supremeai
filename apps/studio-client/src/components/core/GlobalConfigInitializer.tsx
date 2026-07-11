@@ -12,28 +12,28 @@ export const GlobalConfigInitializer: React.FC<GlobalConfigInitializerProps> = (
   const { isConfigLoaded, setConfig } = useStore();
   const [error, setError] = useState<string | null>(null);
 
-  const fetchConfig = async () => {
-    setError(null);
-    try {
-      const res = await fetch(`${getApiBaseUrl()}/api/config/public`);
-      if (res.ok) {
-        const data = await res.json();
-        setConfig(data);
-        if (data.maxConcurrency) {
-          setApiConcurrency(data.maxConcurrency);
-        }
-      } else {
-        throw new Error(`Failed to load config: ${res.statusText}`);
-      }
-    } catch (err) {
-      console.error("Config fetch error:", err);
-      // Fallback to safe defaults on network error
-      setConfig(AppDefaults);
-      setError("Failed to connect to SupremeAI core. Using safe-default configurations.");
-    }
-  };
-
   useEffect(() => {
+    const fetchConfig = async () => {
+      setError(null);
+      try {
+        const res = await fetch(`${getApiBaseUrl()}/api/config/public`);
+        if (res.ok) {
+          const data = await res.json();
+          setConfig(data);
+          if (data.maxConcurrency) {
+            setApiConcurrency(data.maxConcurrency);
+          }
+        } else {
+          throw new Error(`Failed to load config: ${res.statusText}`);
+        }
+      } catch (err) {
+        console.error("Config fetch error:", err);
+        // Fallback to safe defaults on network error
+        setConfig(AppDefaults);
+        setError("Failed to connect to SupremeAI core. Using safe-default configurations.");
+      }
+    };
+
     if (!isConfigLoaded) {
       // বাংলা মন্তব্য: set-state-in-effect ফিক্স — fetchConfig কে async ফাংশনের ভেতরে র‍্যাপ করা হয়েছে
       const loadConfig = async () => {
@@ -42,7 +42,7 @@ export const GlobalConfigInitializer: React.FC<GlobalConfigInitializerProps> = (
       loadConfig();
     }
      
-  }, [isConfigLoaded, fetchConfig]);
+  }, [isConfigLoaded, setConfig]);
 
   if (!isConfigLoaded) {
     return (

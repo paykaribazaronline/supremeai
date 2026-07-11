@@ -23,7 +23,6 @@ vi.mock('axios', () => {
 });
 
 import { api } from './api';
-import axios from 'axios';
 
 vi.mock('./error-bus', () => ({
   errorBus: {

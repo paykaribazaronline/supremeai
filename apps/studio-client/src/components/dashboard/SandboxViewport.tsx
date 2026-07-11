@@ -12,13 +12,15 @@ export const SandboxViewport: React.FC = () => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
+        const currentImageCache = imageCache.current;
+
         // Listen for base64 screencast frames on SSE
         const handleMessage = (event: MessageEvent) => {
             try {
                 const parsed = JSON.parse(event.data);
                 if (parsed.channel === 'screencast') {
                     // Expecting parsed.data to be base64 string of JPEG
-                    const img = imageCache.current;
+                    const img = currentImageCache;
                     img.onload = () => {
                         // Maintain aspect ratio or stretch? Usually CDP provides viewport-sized frames
                         canvas.width = img.width;
@@ -41,7 +43,7 @@ export const SandboxViewport: React.FC = () => {
                 wsRef.removeEventListener('message', handleMessage);
             }
             // Clear image cache
-            imageCache.current.src = '';
+            currentImageCache.src = '';
         };
      
     }, [wsRef]);
