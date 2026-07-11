@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/evolution.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,523 বাইট  
-**আপডেট:** 2026-07-11T11:32:06.983453
+**সাইজ:** 9,569 বাইট  
+**আপডেট:** 2026-07-11T13:13:34.451118
 
 ---
 
@@ -31,6 +31,7 @@ from pydantic import Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
+from api.dependencies import get_fitness_engine
 from api.dependencies import get_tenant_db
 from core.config import settings
 from core.tenant_db import TenantAwareFirestore
@@ -145,7 +146,7 @@ async def get_swarm_graph():
 async def quarantine_skill(
     payload: QuarantineRequest,
     admin: dict = Depends(require_admin_token),
-    fitness_engine: FitnessEngine | None = Depends(FitnessEngine),
+    fitness_engine: FitnessEngine = Depends(get_fitness_engine),
 ):
     skill_name = payload.skill_name.strip()
     try:

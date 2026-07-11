@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/services/apiClient.ts
 
 **প্রকার:** .ts  
-**সাইজ:** 4,454 বাইট  
-**আপডেট:** 2026-07-11T11:32:07.082734
+**সাইজ:** 4,738 বাইট  
+**আপডেট:** 2026-07-11T13:13:34.534921
 
 ---
 
@@ -33,10 +33,18 @@ export const setApiConcurrency = (concurrency: number) => {
 };
 
 export const getAuthHeaders = (): Record<string, string> => {
-  return {
-    'Content-Type': 'application/json'
-    // Authorization header removed as per httpOnly cookie setup
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
   };
+  
+  // 🟢 Sprint 5: Backend API Integration
+  // Use localStorage or zustand state to get token. Assuming token is saved in localStorage 'supremeai_auth_token'
+  const token = localStorage.getItem('supremeai_auth_token');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
 };
 
 const handleResponse = async (res: Response) => {

@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/billing_api.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,425 বাইট  
-**আপডেট:** 2026-07-11T11:32:06.984006
+**সাইজ:** 13,418 বাইট  
+**আপডেট:** 2026-07-11T13:13:34.451611
 
 ---
 
@@ -23,14 +23,24 @@ from fastapi import HTTPException
 from fastapi import Request
 from fastapi import status
 from loguru import logger
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm.exc import StaleDataError
 
+from api.dependencies import get_current_user_token
+from core.config import settings
+from core.gcp_firestore import get_firestore_client
 from core.token_deductor import TokenDeductor
 from database.session import get_db_session
 from models.wallet import TransactionLedgerEntry
 from models.wallet import UserWallet
+
+
+class CheckoutRequest(BaseModel):
+    price_id: str
+    success_url: str
+    cancel_url: str
 
 
 router = APIRouter(prefix="/api/billing", tags=["Billing & Credit Wallet"])
@@ -56,8 +66,13 @@ async def _ensure_wallet(session: AsyncSession, user_id: str) -> UserWallet:
 # 📊 ROUTE: Fetch Current Wallet Details
 # ==========================================
 @router.get("/wallet")
-async def get_wallet_balance(session: AsyncSession = Depends(get_db_session)):
-    user_id = "default_user_session"
+async def get_wallet_balance(
+    session: AsyncSession = Depends(get_db_session),
+    token_payload: dict = Depends(get_current_user_token),
+):
+    user_id = token_payload.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
     wallet = await _ensure_wallet(session, user_id)
     return {"user_id": wallet.user_id, "balance_usd": float(wallet.balance_usd), "monthly_allowance_usd": float(wallet.monthly_allowance_usd)}
 
@@ -66,8 +81,13 @@ async def get_wallet_balance(session: AsyncSession = Depends(get_db_session)):
 # 📊 ROUTE: Fetch Transaction History Log
 # ==========================================
 @router.get("/history")
-async def get_transaction_history(session: AsyncSession = Depends(get_db_session)):
-    user_id = "default_user_session"
+async def get_transaction_history(
+    session: AsyncSession = Depends(get_db_session),
+    token_payload: dict = Depends(get_current_user_token),
+):
+    user_id = token_payload.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
     result = await session.execute(
         select(TransactionLedgerEntry).where(TransactionLedgerEntry.user_id == user_id).order_by(TransactionLedgerEntry.timestamp.desc())
     )
@@ -89,11 +109,17 @@ async def get_transaction_history(session: AsyncSession = Depends(get_db_session
 # 💳 ROUTE: Add Funds / TopUp Checkout
 # ==========================================
 @router.post("/add-funds")
-async def add_funds(amount: float, session: AsyncSession = Depends(get_db_session)):
+async def add_funds(
+    amount: float,
+    session: AsyncSession = Depends(get_db_session),
+    token_payload: dict = Depends(get_current_user_token),
+):
     if amount <= 0.0:
         raise HTTPException(status_code=400, detail="Topup amount must be greater than zero.")
 
-    user_id = "default_user_session"
+    user_id = token_payload.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
     await _ensure_wallet(session, user_id)
 
     checkout_id = str(uuid.uuid4())
@@ -103,6 +129,57 @@ async def add_funds(amount: float, session: AsyncSession = Depends(get_db_sessio
         "checkout_url": f"https://checkout.supremeai.test/pay/{checkout_id}?amount={amount}",
         "message": "Checkout session generated. Complete transaction using checkout_url.",
     }
+
+
+# ==========================================
+# 💳 ROUTE: Subscription Plans
+# ==========================================
+@router.get("/plans")
+async def get_subscription_plans():
+    return {
+        "plans": [
+            {"id": "price_basic_monthly", "name": "Basic Plan", "price": 9.99, "currency": "usd", "interval": "month"},
+            {"id": "price_premium_monthly", "name": "Premium Plan", "price": 49.99, "currency": "usd", "interval": "month"},
+            {"id": "price_enterprise_monthly", "name": "Enterprise Plan", "price": 199.99, "currency": "usd", "interval": "month"},
+        ]
+    }
+
+
+# ==========================================
+# 💳 ROUTE: Create Checkout Session
+# ==========================================
+@router.post("/checkout")
+async def create_checkout_session(payload: CheckoutRequest, token_payload: dict = Depends(get_current_user_token)):
+    user_id = token_payload.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    try:
+        stripe_key = settings.stripe_api_key
+        if not stripe_key:
+            if os.environ.get("SUPREMEAI_ENV") == "production":
+                raise RuntimeError("Stripe API key not configured in production. Payment processing is unavailable.")
+            logger.warning("Stripe API key not set in settings. Using mock checkout session.")
+            return {
+                "status": "mock",
+                "session_id": "mock_session_123",
+                "url": payload.success_url + "?session_id=mock_session_123",
+            }
+
+        stripe.api_key = stripe_key
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[{"price": payload.price_id, "quantity": 1}],
+            mode="subscription",
+            success_url=payload.success_url + "?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url=payload.cancel_url,
+            client_reference_id=user_id,
+            metadata={"price_id": payload.price_id},
+        )
+        return {"status": "success", "session_id": session.id, "url": session.url}
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"Failed to create Stripe checkout session: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 # ==========================================
@@ -159,6 +236,26 @@ async def stripe_webhook(request: Request, session: AsyncSession = Depends(get_d
                 session.add(entry)
 
             logger.success(f"Successfully credited ${amount_received} to user {user_id}")
+
+        elif event["type"] == "checkout.session.completed":
+            session_obj = event["data"]["object"]
+            user_id = session_obj.get("client_reference_id")
+            subscription_id = session_obj.get("subscription")
+            price_id = session_obj.get("metadata", {}).get("price_id", "")
+            logger.info(f"Subscription completed for user {user_id}: {subscription_id}")
+
+            db = get_firestore_client()
+            if db and user_id:
+                try:
+                    db.collection("admin_users").document(user_id).update(
+                        {
+                            "subscription_status": "active",
+                            "subscription_id": subscription_id,
+                            "plan_id": price_id,
+                        }
+                    )
+                except Exception as e:  # noqa: BLE001
+                    logger.error(f"Failed to update user subscription status in Firestore: {e}")
 
     except StaleDataError as e:
         logger.critical(f"Concurrency Failure on Webhook for user {user_id}. Requires manual intervention.")

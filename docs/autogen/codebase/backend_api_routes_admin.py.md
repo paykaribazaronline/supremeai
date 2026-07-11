@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/admin.py
 
 **প্রকার:** .py  
-**সাইজ:** 4,335 বাইট  
-**আপডেট:** 2026-07-11T11:32:06.981921
+**সাইজ:** 4,437 বাইট  
+**আপডেট:** 2026-07-11T13:13:34.449858
 
 ---
 
@@ -11,6 +11,7 @@
 ```py
 from datetime import UTC
 from datetime import datetime
+from pathlib import Path
 
 from fastapi import APIRouter
 from fastapi import Depends
@@ -25,7 +26,8 @@ from utils.firestore_helpers import get_firestore_db
 
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Control Center"])
-god_layer = AdminGodLayer(db_path="data/admin_rules.db")
+_db_path = str(Path(__file__).resolve().parent.parent.parent / "data" / "admin_rules.db")
+god_layer = AdminGodLayer(db_path=_db_path)
 
 
 def get_current_admin(payload: dict = Depends(get_current_user_token)) -> dict:

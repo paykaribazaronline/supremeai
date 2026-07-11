@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/ui/Card.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 1,073 বাইট  
-**আপডেট:** 2026-07-11T11:32:07.067188
+**সাইজ:** 2,147 বাইট  
+**আপডেট:** 2026-07-11T13:13:34.520964
 
 ---
 
@@ -10,32 +10,76 @@
 
 ```tsx
 import React from 'react';
-import { BanglaHint } from '../BanglaHint';
+import { cn } from './Button'; // Reusing cn utility
 
-interface CardProps {
-  children: React.ReactNode;
-  className?: string;
-  title?: string;
-  icon?: React.ReactNode;
-  banglaHint?: string;
-}
-
-export function Card({ children, className = '', title, icon, banglaHint }: CardProps) {
-  return (
-    <div className={`bg-[var(--card-bg)] backdrop-blur-md border border-[var(--card-border)] rounded-xl p-5 shadow-[0_4px_20px_rgba(0,243,255,0.05)] hover:border-[#00f3ff]/30 dark:hover:border-[#00f3ff]/30 transition-all duration-300 text-[var(--foreground)] ${className}`}>
-      {(title || icon || banglaHint) && (
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            {title && <span className="font-bold tracking-wider text-sm text-[var(--card-title-text)]">{title}</span>}
-            {banglaHint && <BanglaHint text={banglaHint} />}
-          </div>
-          {icon && <span className="text-[#00f3ff]">{icon}</span>}
-        </div>
+const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn(
+        "rounded-xl border border-[var(--supremeai-color-border-accent-light)] dark:border-[var(--supremeai-color-border-accent-dark)] bg-[var(--supremeai-color-bg-elevated-light)] dark:bg-[var(--supremeai-color-bg-elevated-dark)] text-foreground shadow-sm",
+        className
       )}
-      {children}
-    </div>
-  );
-}
+      {...props}
+    />
+  )
+)
+Card.displayName = "Card"
 
+const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn("flex flex-col space-y-1.5 p-6", className)}
+      {...props}
+    />
+  )
+)
+CardHeader.displayName = "CardHeader"
+
+const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
+  ({ className, ...props }, ref) => (
+    <h3
+      ref={ref}
+      className={cn(
+        "text-2xl font-semibold leading-none tracking-tight",
+        className
+      )}
+      {...props}
+    />
+  )
+)
+CardTitle.displayName = "CardTitle"
+
+const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
+  ({ className, ...props }, ref) => (
+    <p
+      ref={ref}
+      className={cn("text-sm text-muted-foreground", className)}
+      {...props}
+    />
+  )
+)
+CardDescription.displayName = "CardDescription"
+
+const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+  )
+)
+CardContent.displayName = "CardContent"
+
+const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn("flex items-center p-6 pt-0", className)}
+      {...props}
+    />
+  )
+)
+CardFooter.displayName = "CardFooter"
+
+export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 
 ```

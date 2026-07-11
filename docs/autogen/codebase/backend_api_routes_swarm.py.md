@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/swarm.py
 
 **প্রকার:** .py  
-**সাইজ:** 7,300 বাইট  
-**আপডেট:** 2026-07-11T11:32:06.985858
+**সাইজ:** 7,208 বাইট  
+**আপডেট:** 2026-07-11T13:13:34.453230
 
 ---
 
@@ -86,11 +86,7 @@ class SelfHealingRequest(BaseModel):
     languageId: str
 
 
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-
-
-limiter = Limiter(key_func=get_remote_address)
+from core.app import limiter
 
 
 @router.post("/execute-healing")

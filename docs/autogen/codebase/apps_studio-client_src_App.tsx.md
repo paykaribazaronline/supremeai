@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/App.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 7,226 বাইট  
-**আপডেট:** 2026-07-11T11:32:07.054981
+**সাইজ:** 7,472 বাইট  
+**আপডেট:** 2026-07-11T13:13:34.510066
 
 ---
 
@@ -21,7 +21,8 @@ import { ToastProvider } from './components/ui/Toast';
 
 // Pages
 import { AdminShell } from "./pages/admin/AdminShell";
-import { LoginPage } from './pages/LoginPage';
+import { LoginScreen } from './pages/auth/LoginScreen';
+import { RegisterScreen } from './pages/auth/RegisterScreen';
 import { AgentWorkspace } from './pages/AgentWorkspace';
 import { IntegrationsManager } from './pages/IntegrationsManager';
 import { ArchitectTower } from './pages/ArchitectTower';
@@ -155,7 +156,12 @@ const AppContent: React.FC = () => {
                 {/* GUEST STATE */}
                 <Route path="/login" element={
                   <GuestRoute>
-                    <LoginPage />
+                    <LoginScreen />
+                  </GuestRoute>
+                } />
+                <Route path="/register" element={
+                  <GuestRoute>
+                    <RegisterScreen />
                   </GuestRoute>
                 } />
                 <Route path="/" element={<Navigate to="/workspace" replace />} />

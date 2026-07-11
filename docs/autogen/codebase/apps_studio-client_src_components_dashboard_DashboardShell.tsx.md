@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/src/components/dashboard/DashboardShell.tsx
 
 **প্রকার:** .tsx  
-**সাইজ:** 8,721 বাইট  
-**আপডেট:** 2026-07-11T11:32:07.063119
+**সাইজ:** 9,985 বাইট  
+**আপডেট:** 2026-07-11T13:13:34.516786
 
 ---
 
@@ -142,79 +142,80 @@ export function DashboardShell(props: DashboardShellProps) {
 
   return (
     <MockSwarmProvider>
-      <div className="relative min-h-screen flex bg-background text-foreground">
+      <div className="relative min-h-screen flex bg-[var(--supremeai-color-bg-void-light)] dark:bg-[var(--supremeai-color-bg-void-dark)] text-foreground">
         {/* বাংলা মন্তব্য: Sujon অ্যাম্বিয়েন্ট ব্যাকগ্রাউন্ড */}
         <LiveSujonBackground />
 
-        {/* বাংলা মন্তব্য: বাম প্যানেল ব্যাকগ্রাউন্ড গ্রেডিয়েন্ট */}
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-background to-card-bg opacity-80" />
-
-      {/* সাইডবার */}
-      <aside
-        data-testid="dashboard-sidebar"
-        className="relative z-10 w-56 shrink-0 border-r border-border-accent bg-card-bg flex flex-col"
-      >
-        {/* হেডার */}
-        <div className="flex items-center gap-2 px-4 py-4 border-b border-border-accent">
-          <span className="text-neon-blue text-lg">▲</span>
-          <span className="text-sm font-semibold tracking-wide">SupremeAI</span>
-        </div>
-
-        {/* সাইডবার নেভিগেশন লিংক */}
-        <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5">
-          {navItems.map((item) => {
-            const isActive = route.page === item.id;
-            return (
-              <button
-                key={item.id}
-                data-testid={`nav-${item.id}`}
-                onClick={() => navigate(item.id)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left ${
-                  isActive
-                    ? 'bg-accent-primary/20 text-neon-blue border border-neon-blue/20'
-                    : 'text-text-secondary hover:text-foreground hover:bg-input-bg'
-                }`}
-              >
-                {item.icon}
-                {item.label}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* স্ট্যাটাস ও থিম */}
-        <div className="px-3 py-3 border-t border-border-accent space-y-2">
-          <div
-            data-testid="sidebar-server-status"
-            className="flex items-center gap-2 text-[11px]"
-          >
-            {props.isServerOnline ? (
-              <>
-                <Wifi size={11} className="text-success" />
-                <span className="text-success font-medium">Online</span>
-              </>
-            ) : (
-              <>
-                <WifiOff size={11} className="text-danger" />
-                <span className="text-danger font-medium">Offline</span>
-              </>
-            )}
+        {/* সাইডবার */}
+        <aside
+          data-testid="dashboard-sidebar"
+          className="relative z-10 w-64 shrink-0 border-r border-[var(--supremeai-color-border-accent-light)] dark:border-[var(--supremeai-color-border-accent-dark)] bg-[var(--supremeai-color-bg-elevated-light)] dark:bg-[var(--supremeai-color-bg-elevated-dark)] flex flex-col transition-colors"
+        >
+          {/* হেডার */}
+          <div className="flex items-center gap-2 px-6 py-4 border-b border-[var(--supremeai-color-border-accent-light)] dark:border-[var(--supremeai-color-border-accent-dark)]">
+            <div className="bg-[var(--supremeai-color-brand-500)] h-8 w-8 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-xs">SAI</span>
+            </div>
+            <span className="font-bold text-xl tracking-tight">SupremeAI</span>
           </div>
-          <button
-            onClick={props.toggleTheme}
-            className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] text-text-secondary hover:text-foreground hover:bg-input-bg transition-colors"
-          >
-            <Shield size={11} />
-            {props.theme === 'dark' ? 'Dark' : 'Light'} mode
-          </button>
-        </div>
-      </aside>
 
-      {/* মূল কন্টেন্ট এলাকা */}
-      <main className="relative z-10 flex-1 min-w-0 overflow-y-auto">
-        {renderPage()}
-      </main>
-    </div>
+          {/* সাইডবার নেভিগেশন লিংক */}
+          <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
+            {navItems.map((item) => {
+              const isActive = route.page === item.id;
+              return (
+                <button
+                  key={item.id}
+                  data-testid={`nav-${item.id}`}
+                  onClick={() => navigate(item.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors text-left ${
+                    isActive
+                      ? 'bg-[var(--supremeai-color-brand-50)] text-[var(--supremeai-color-brand-600)] dark:bg-[var(--supremeai-color-brand-500)]/10 dark:text-[var(--supremeai-color-brand-500)]'
+                      : 'text-[var(--supremeai-color-neutral-500)] hover:text-foreground hover:bg-[var(--supremeai-color-neutral-100)] dark:hover:bg-[var(--supremeai-color-neutral-900)]'
+                  }`}
+                >
+                  {item.icon}
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* স্ট্যাটাস ও থিম */}
+          <div className="px-4 py-4 border-t border-[var(--supremeai-color-border-accent-light)] dark:border-[var(--supremeai-color-border-accent-dark)] space-y-3">
+            <div
+              data-testid="sidebar-server-status"
+              className="flex items-center gap-2 text-xs"
+            >
+              {props.isServerOnline ? (
+                <>
+                  <Wifi size={14} className="text-[var(--supremeai-color-brand-success-light)] dark:text-[var(--supremeai-color-brand-success-dark)]" />
+                  <span className="text-[var(--supremeai-color-brand-success-light)] dark:text-[var(--supremeai-color-brand-success-dark)] font-medium">Online</span>
+                </>
+              ) : (
+                <>
+                  <WifiOff size={14} className="text-[var(--supremeai-color-brand-danger-light)] dark:text-[var(--supremeai-color-brand-danger-dark)]" />
+                  <span className="text-[var(--supremeai-color-brand-danger-light)] dark:text-[var(--supremeai-color-brand-danger-dark)] font-medium">Offline</span>
+                </>
+              )}
+            </div>
+            <button
+              onClick={props.toggleTheme}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm text-[var(--supremeai-color-neutral-500)] hover:text-foreground hover:bg-[var(--supremeai-color-neutral-100)] dark:hover:bg-[var(--supremeai-color-neutral-900)] transition-colors"
+            >
+              <Shield size={14} />
+              {props.theme === 'dark' ? 'Dark' : 'Light'} mode
+            </button>
+          </div>
+        </aside>
+
+        {/* মূল কন্টেন্ট এলাকা */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
+          <main className="flex-1 overflow-y-auto bg-[var(--supremeai-color-bg-void-light)] dark:bg-[var(--supremeai-color-bg-void-dark)]">
+            {renderPage()}
+          </main>
+        </div>
+      </div>
     </MockSwarmProvider>
   );
 }

@@ -1,8 +1,8 @@
 # 📄 ফাইল: packages/design-tokens/package.json
 
 **প্রকার:** .json  
-**সাইজ:** 287 বাইট  
-**আপডেট:** 2026-07-11T11:32:06.945492
+**সাইজ:** 345 বাইট  
+**আপডেট:** 2026-07-11T13:13:34.418259
 
 ---
 
@@ -17,6 +17,9 @@
   "types": "outputs/tokens.d.ts",
   "scripts": {
     "build": "node build.js && node scripts/copy-to-flutter.js"
+  },
+  "dependencies": {
+    "style-dictionary": "^5.5.0"
   }
 }
 

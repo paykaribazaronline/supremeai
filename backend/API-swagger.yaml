@@ -585,19 +585,13 @@ paths:
                 $ref: '#/components/schemas/HTTPValidationError'
   /task/execute:
     post:
-      tags:
-      - Supreme Workspace Tasks
       summary: Execute Task
-      description: 'Handles user prompts from the Vanilla JS Customer Dashboard.
-
-        Integrates Redis rate limiting, RAM conversation history, and Supabase persistent
-        storage.'
       operationId: execute_task_task_execute_post
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TaskPayload'
+              $ref: '#/components/schemas/TaskRequest'
         required: true
       responses:
         '200':
@@ -2548,12 +2542,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /auth/login:
+  /api/v1/auth/login:
     post:
       tags:
       - auth
       summary: Login
-      operationId: login_auth_login_post
+      operationId: login_api_v1_auth_login_post
       requestBody:
         content:
           application/json:
@@ -2573,12 +2567,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /auth/me:
+  /api/v1/auth/me:
     get:
       tags:
       - auth
       summary: Me
-      operationId: me_auth_me_get
+      operationId: me_api_v1_auth_me_get
       responses:
         '200':
           description: Successful Response
@@ -4237,54 +4231,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /payments/plans:
-    get:
-      tags:
-      - payments
-      summary: Get Subscription Plans
-      operationId: get_subscription_plans_payments_plans_get
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-  /payments/checkout:
-    post:
-      tags:
-      - payments
-      summary: Create Checkout Session
-      operationId: create_checkout_session_payments_checkout_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CheckoutRequest'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /payments/webhook:
-    post:
-      tags:
-      - payments
-      summary: Stripe Webhook
-      operationId: stripe_webhook_payments_webhook_post
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
   /auth/sso/oidc/discovery:
     post:
       tags:
@@ -4515,55 +4461,12 @@ paths:
       - self-evolution-engine
       summary: Quarantine Skill
       operationId: quarantine_skill_api_evolution_quarantine_post
-      security:
-      - HTTPBearer: []
-      parameters:
-      - name: metrics_path
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Metrics Path
-      - name: registry_path
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Registry Path
-      - name: skills_dir
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Skills Dir
-      - name: deprecated_dir
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Deprecated Dir
-      - name: db
-        in: query
-        required: false
-        schema:
-          anyOf:
-          - {}
-          - type: 'null'
-          title: Db
       requestBody:
-        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/QuarantineRequest'
+        required: true
       responses:
         '200':
           description: Successful Response
@@ -4576,6 +4479,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
   /api/evolution/proposals:
     get:
       tags:
@@ -4983,6 +4888,328 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/workspace/task/execute:
+    post:
+      tags:
+      - Supreme Workspace Tasks
+      summary: Execute Task
+      description: 'Handles user prompts from the Vanilla JS Customer Dashboard.
+
+        Integrates Redis rate limiting, RAM conversation history, and Supabase persistent
+        storage.'
+      operationId: execute_task_api_v1_workspace_task_execute_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskPayload'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/workspace/task/quota:
+    get:
+      tags:
+      - Supreme Workspace Tasks
+      summary: Get Quota
+      description: Fetch the current token quota from Redis for the UI.
+      operationId: get_quota_api_v1_workspace_task_quota_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/agent/execute:
+    post:
+      summary: Execute Agent Command
+      operationId: execute_agent_command_api_v1_agent_execute_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceCommand'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/agent/learn:
+    post:
+      summary: Commit To Memory
+      description: "\u09B6\u09C1\u09A7\u09C1\u09AE\u09BE\u09A4\u09CD\u09B0 \u09AD\u09C7\
+        \u09B0\u09BF\u09AB\u09BE\u09DF\u09C7\u09A1 \u098F\u09AC\u0982 \u0995\u09BE\
+        \u099C \u0995\u09B0\u09BE \u0995\u09CB\u09A1\u0997\u09C1\u09B2\u09CB\u0987\
+        \ \u09AE\u09C7\u09AE\u09CB\u09B0\u09BF \u09AD\u09B2\u09CD\u099F\u09C7 \u09B8\
+        \u09C7\u09AD \u09B9\u09AC\u09C7\u0964"
+      operationId: commit_to_memory_api_v1_agent_learn_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearnRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/agent/github/pr:
+    post:
+      summary: Trigger Github Pr
+      operationId: trigger_github_pr_api_v1_agent_github_pr_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PRRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/integrations/github/link:
+    get:
+      summary: Link Github
+      description: "\u0987\u0989\u099C\u09BE\u09B0\u0995\u09C7 GitHub OAuth \u09B2\
+        \u0997\u0987\u09A8 \u09AA\u09C7\u0987\u099C\u09C7 \u09B0\u09BF\u09A1\u09BE\
+        \u0987\u09B0\u09C7\u0995\u09CD\u099F \u0995\u09B0\u09C7\u0964\nredirect_uri\
+        \ \u098F\u0996\u09A8 \u09A1\u09BE\u09AF\u09BC\u09A8\u09BE\u09AE\u09BF\u0995\
+        \ \u2014 settings.frontend_base_url \u09A5\u09C7\u0995\u09C7 \u09A8\u09C7\u0993\
+        \u09AF\u09BC\u09BE \u09B9\u09AF\u09BC\u0964"
+      operationId: link_github_api_v1_integrations_github_link_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/integrations/github/callback:
+    get:
+      summary: Github Callback
+      description: "GitHub OAuth \u0995\u09B2\u09AC\u09CD\u09AF\u09BE\u0995 \u09B9\
+        \u09CD\u09AF\u09BE\u09A8\u09CD\u09A1\u09B2\u09BE\u09B0\u0964\n\u0995\u09CB\
+        \u09A1 \u098F\u0995\u09CD\u09B8\u099A\u09C7\u099E\u09CD\u099C \u0995\u09B0\
+        \u09C7 access_token \u09A8\u09C7\u09AF\u09BC, \u098F\u09A8\u0995\u09CD\u09B0\
+        \u09BF\u09AA\u09CD\u099F \u0995\u09B0\u09C7, \u098F\u09AC\u0982 DB-\u09A4\u09C7\
+        \ \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09A3 \u0995\u09B0\u09C7\u0964"
+      operationId: github_callback_api_v1_integrations_github_callback_get
+      parameters:
+      - name: code
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Code
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/config/public:
+    get:
+      tags:
+      - public_config
+      summary: Get Public Config
+      operationId: get_public_config_api_config_public_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicConfigResponse'
+  /api/admin/traffic/live:
+    get:
+      tags:
+      - traffic
+      summary: Get Live Traffic
+      description: "\u09AC\u09BE\u0982\u09B2\u09BE \u09AE\u09A8\u09CD\u09A4\u09AC\u09CD\
+        \u09AF: \u09B0\u09BF\u09DF\u09C7\u09B2-\u099F\u09BE\u0987\u09AE \u099F\u09CD\
+        \u09B0\u09BE\u09AB\u09BF\u0995, p95 \u09B2\u09CD\u09AF\u09BE\u099F\u09C7\u09A8\
+        \u09CD\u09B8\u09BF \u098F\u09AC\u0982 \u0985\u09CD\u09AF\u09BE\u09B0\u09B0\
+        \ \u09B0\u09C7\u099F\u0964\n\u098F\u099F\u09BF \u09B8\u09CD\u099F\u09C1\u09A1\
+        \u09BF\u0993 \u0995\u09CD\u09B2\u09BE\u09DF\u09C7\u09A8\u09CD\u099F \u09AC\
+        \u09BE \u09AB\u09CD\u09B2\u09BE\u099F\u09BE\u09B0 \u09A1\u09CD\u09AF\u09BE\
+        \u09B6\u09AC\u09CB\u09B0\u09CD\u09A1\u09C7 \u09B2\u09BE\u0987\u09AD \u09B8\
+        \u09CD\u099F\u09CD\u09B0\u09BF\u09AE\u09BF\u0982 \u098F\u09B0 \u099C\u09A8\
+        \u09CD\u09AF \u09AC\u09CD\u09AF\u09AC\u09B9\u09BE\u09B0 \u09B9\u09AC\u09C7\
+        \u0964"
+      operationId: get_live_traffic_api_admin_traffic_live_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Get Live Traffic Api Admin Traffic Live Get
+  /api/v1/stream:
+    get:
+      tags:
+      - Swarm
+      summary: Stream Swarm Health
+      description: 'SSE Endpoint for Real-time Swarm Health & Logs.
+
+        URL: /api/v1/swarm/stream'
+      operationId: stream_swarm_health_api_v1_stream_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/telemetry/patch-result:
+    post:
+      tags:
+      - Swarm
+      summary: Record Patch Telemetry
+      description: Receives telemetry on whether the user accepted, rejected, or modified
+        the Swarm's proposed fix.
+      operationId: record_patch_telemetry_api_v1_telemetry_patch_result_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchTelemetry'
+        required: true
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/execute-healing:
+    post:
+      tags:
+      - Swarm
+      summary: Execute Healing
+      description: 'Agent-in-the-Loop endpoint to self-heal code errors from VS Code
+        Extension.
+
+        Rate limited to 5 requests per minute per IP to prevent LLM cost spikes.'
+      operationId: execute_healing_api_v1_execute_healing_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SelfHealingRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/forge:
+    post:
+      tags:
+      - Swarm
+      summary: Save Forge Swarm
+      description: Saves the visual swarm layout (nodes and edges) from the Evolution
+        Forge.
+      operationId: save_forge_swarm_api_v1_forge_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgePayload'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/forge/{flow_id}/execute:
+    post:
+      tags:
+      - Swarm
+      summary: Execute Forge Flow
+      operationId: execute_forge_flow_api_v1_forge__flow_id__execute_post
+      parameters:
+      - name: flow_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Flow Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgePayload'
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /orchestrator/status:
     get:
       tags:
@@ -5211,98 +5438,6 @@ paths:
           content:
             application/json:
               schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/onboarding/complete:
-    post:
-      tags:
-      - onboarding
-      summary: Complete Onboarding
-      description: 'Complete user onboarding:
-
-        1. Validate API key against provider
-
-        2. Save user preferences (theme, model, language)
-
-        3. Return readiness status'
-      operationId: complete_onboarding_api_onboarding_complete_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OnboardingPayload'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OnboardingResponse'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/onboarding/status/{user_id}:
-    get:
-      tags:
-      - onboarding
-      summary: Get Onboarding Status
-      description: Check if a user has completed onboarding.
-      operationId: get_onboarding_status_api_onboarding_status__user_id__get
-      parameters:
-      - name: user_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: User Id
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: true
-                title: Response Get Onboarding Status Api Onboarding Status  User
-                  Id  Get
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/onboarding/reset/{user_id}:
-    delete:
-      tags:
-      - onboarding
-      summary: Reset Onboarding
-      description: Reset onboarding state (for testing/support).
-      operationId: reset_onboarding_api_onboarding_reset__user_id__delete
-      parameters:
-      - name: user_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: User Id
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties:
-                  type: string
-                title: Response Reset Onboarding Api Onboarding Reset  User Id  Delete
         '422':
           description: Validation Error
           content:
@@ -5967,6 +6102,42 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/billing/plans:
+    get:
+      tags:
+      - Billing & Credit Wallet
+      summary: Get Subscription Plans
+      operationId: get_subscription_plans_api_billing_plans_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/billing/checkout:
+    post:
+      tags:
+      - Billing & Credit Wallet
+      summary: Create Checkout Session
+      operationId: create_checkout_session_api_billing_checkout_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/billing/webhook/stripe:
     post:
       tags:
@@ -6151,326 +6322,6 @@ paths:
           content:
             application/json:
               schema: {}
-  /task/quota:
-    get:
-      tags:
-      - Supreme Workspace Tasks
-      summary: Get Quota
-      description: Fetch the current token quota from Redis for the UI.
-      operationId: get_quota_task_quota_get
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-  /api/v1/agent/execute:
-    post:
-      summary: Execute Agent Command
-      operationId: execute_agent_command_api_v1_agent_execute_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/WorkspaceCommand'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/v1/agent/learn:
-    post:
-      summary: Commit To Memory
-      description: "\u09B6\u09C1\u09A7\u09C1\u09AE\u09BE\u09A4\u09CD\u09B0 \u09AD\u09C7\
-        \u09B0\u09BF\u09AB\u09BE\u09DF\u09C7\u09A1 \u098F\u09AC\u0982 \u0995\u09BE\
-        \u099C \u0995\u09B0\u09BE \u0995\u09CB\u09A1\u0997\u09C1\u09B2\u09CB\u0987\
-        \ \u09AE\u09C7\u09AE\u09CB\u09B0\u09BF \u09AD\u09B2\u09CD\u099F\u09C7 \u09B8\
-        \u09C7\u09AD \u09B9\u09AC\u09C7\u0964"
-      operationId: commit_to_memory_api_v1_agent_learn_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LearnRequest'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/v1/agent/github/pr:
-    post:
-      summary: Trigger Github Pr
-      operationId: trigger_github_pr_api_v1_agent_github_pr_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PRRequest'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/v1/integrations/github/link:
-    get:
-      summary: Link Github
-      description: "\u0987\u0989\u099C\u09BE\u09B0\u0995\u09C7 GitHub OAuth \u09B2\
-        \u0997\u0987\u09A8 \u09AA\u09C7\u0987\u099C\u09C7 \u09B0\u09BF\u09A1\u09BE\
-        \u0987\u09B0\u09C7\u0995\u09CD\u099F \u0995\u09B0\u09C7\u0964\nredirect_uri\
-        \ \u098F\u0996\u09A8 \u09A1\u09BE\u09AF\u09BC\u09A8\u09BE\u09AE\u09BF\u0995\
-        \ \u2014 settings.frontend_base_url \u09A5\u09C7\u0995\u09C7 \u09A8\u09C7\u0993\
-        \u09AF\u09BC\u09BE \u09B9\u09AF\u09BC\u0964"
-      operationId: link_github_api_v1_integrations_github_link_get
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-  /api/v1/integrations/github/callback:
-    get:
-      summary: Github Callback
-      description: "GitHub OAuth \u0995\u09B2\u09AC\u09CD\u09AF\u09BE\u0995 \u09B9\
-        \u09CD\u09AF\u09BE\u09A8\u09CD\u09A1\u09B2\u09BE\u09B0\u0964\n\u0995\u09CB\
-        \u09A1 \u098F\u0995\u09CD\u09B8\u099A\u09C7\u099E\u09CD\u099C \u0995\u09B0\
-        \u09C7 access_token \u09A8\u09C7\u09AF\u09BC, \u098F\u09A8\u0995\u09CD\u09B0\
-        \u09BF\u09AA\u09CD\u099F \u0995\u09B0\u09C7, \u098F\u09AC\u0982 DB-\u09A4\u09C7\
-        \ \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09A3 \u0995\u09B0\u09C7\u0964"
-      operationId: github_callback_api_v1_integrations_github_callback_get
-      parameters:
-      - name: code
-        in: query
-        required: true
-        schema:
-          type: string
-          title: Code
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/admin/rules:
-    post:
-      tags:
-      - Admin Control Center
-      summary: Update Constitutional Rule
-      description: Update God.py constitutional rules directly from the Command Center
-        UI
-      operationId: update_constitutional_rule_api_admin_rules_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RuleUpdate'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/admin/actions/{action_type}:
-    post:
-      tags:
-      - Admin Control Center
-      summary: Trigger Quick Action
-      description: Trigger 1-click Quick Actions from Dashboard
-      operationId: trigger_quick_action_api_admin_actions__action_type__post
-      parameters:
-      - name: action_type
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Action Type
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/admin/fixes:
-    get:
-      tags:
-      - Admin Control Center
-      summary: Get Fixes
-      description: Fetch all fixes for a tenant with a specific status.
-      operationId: get_fixes_api_admin_fixes_get
-      parameters:
-      - name: tenant_id
-        in: query
-        required: false
-        schema:
-          type: string
-          default: default
-          title: Tenant Id
-      - name: status
-        in: query
-        required: false
-        schema:
-          type: string
-          default: pending_review
-          title: Status
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/admin/fixes/{fix_id}/approve:
-    post:
-      tags:
-      - Admin Control Center
-      summary: Approve Fix
-      description: Approve a pending fix.
-      operationId: approve_fix_api_admin_fixes__fix_id__approve_post
-      parameters:
-      - name: fix_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Fix Id
-      - name: tenant_id
-        in: query
-        required: false
-        schema:
-          type: string
-          default: default
-          title: Tenant Id
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/admin/fixes/{fix_id}/reject:
-    post:
-      tags:
-      - Admin Control Center
-      summary: Reject Fix
-      description: Reject a pending fix.
-      operationId: reject_fix_api_admin_fixes__fix_id__reject_post
-      parameters:
-      - name: fix_id
-        in: path
-        required: true
-        schema:
-          type: string
-          title: Fix Id
-      - name: tenant_id
-        in: query
-        required: false
-        schema:
-          type: string
-          default: default
-          title: Tenant Id
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-  /api/config/public:
-    get:
-      tags:
-      - public_config
-      summary: Get Public Config
-      operationId: get_public_config_api_config_public_get
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PublicConfigResponse'
-  /api/admin/traffic/live:
-    get:
-      tags:
-      - traffic
-      summary: Get Live Traffic
-      description: "\u09AC\u09BE\u0982\u09B2\u09BE \u09AE\u09A8\u09CD\u09A4\u09AC\u09CD\
-        \u09AF: \u09B0\u09BF\u09DF\u09C7\u09B2-\u099F\u09BE\u0987\u09AE \u099F\u09CD\
-        \u09B0\u09BE\u09AB\u09BF\u0995, p95 \u09B2\u09CD\u09AF\u09BE\u099F\u09C7\u09A8\
-        \u09CD\u09B8\u09BF \u098F\u09AC\u0982 \u0985\u09CD\u09AF\u09BE\u09B0\u09B0\
-        \ \u09B0\u09C7\u099F\u0964\n\u098F\u099F\u09BF \u09B8\u09CD\u099F\u09C1\u09A1\
-        \u09BF\u0993 \u0995\u09CD\u09B2\u09BE\u09DF\u09C7\u09A8\u09CD\u099F \u09AC\
-        \u09BE \u09AB\u09CD\u09B2\u09BE\u099F\u09BE\u09B0 \u09A1\u09CD\u09AF\u09BE\
-        \u09B6\u09AC\u09CB\u09B0\u09CD\u09A1\u09C7 \u09B2\u09BE\u0987\u09AD \u09B8\
-        \u09CD\u099F\u09CD\u09B0\u09BF\u09AE\u09BF\u0982 \u098F\u09B0 \u099C\u09A8\
-        \u09CD\u09AF \u09AC\u09CD\u09AF\u09AC\u09B9\u09BE\u09B0 \u09B9\u09AC\u09C7\
-        \u0964"
-      operationId: get_live_traffic_api_admin_traffic_live_get
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                additionalProperties: true
-                type: object
-                title: Response Get Live Traffic Api Admin Traffic Live Get
 components:
   schemas:
     ActionStreamRequest:
@@ -6774,15 +6625,11 @@ components:
         cancel_url:
           type: string
           title: Cancel Url
-        user_id:
-          type: string
-          title: User Id
       type: object
       required:
       - price_id
       - success_url
       - cancel_url
-      - user_id
       title: CheckoutRequest
     CheckpointResponse:
       properties:
@@ -7361,6 +7208,98 @@ components:
       - selector
       - value
       title: FillRequest
+    FlowEdge:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Unique ID of the edge
+        source:
+          type: string
+          title: Source
+          description: Source node ID
+        target:
+          type: string
+          title: Target
+          description: Target node ID
+        animated:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Animated
+          description: Whether the edge is animated
+          default: false
+      type: object
+      required:
+      - id
+      - source
+      - target
+      title: FlowEdge
+    FlowNode:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Unique ID of the node
+        type:
+          type: string
+          title: Type
+          description: Type of the node (e.g., agentNode, taskNode)
+        position:
+          $ref: '#/components/schemas/FlowPosition'
+        data:
+          additionalProperties: true
+          type: object
+          title: Data
+          description: Node payload containing role, model, prompt, etc.
+      type: object
+      required:
+      - id
+      - type
+      - position
+      title: FlowNode
+    FlowPosition:
+      properties:
+        x:
+          type: number
+          title: X
+        y:
+          type: number
+          title: Y
+      type: object
+      required:
+      - x
+      - y
+      title: FlowPosition
+    ForgePayload:
+      properties:
+        name:
+          type: string
+          title: Name
+          description: Name of the custom swarm flow
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+          description: Optional description of the swarm's purpose
+          default: ''
+        nodes:
+          items:
+            $ref: '#/components/schemas/FlowNode'
+          type: array
+          title: Nodes
+        edges:
+          items:
+            $ref: '#/components/schemas/FlowEdge'
+          type: array
+          title: Edges
+      type: object
+      required:
+      - name
+      - nodes
+      - edges
+      title: ForgePayload
     GateOverridePayload:
       properties:
         target_status:
@@ -7854,6 +7793,36 @@ components:
       - code
       - prompt
       title: PRRequest
+    PatchTelemetry:
+      properties:
+        error_id:
+          type: string
+          title: Error Id
+          description: Unique ID for the intercepted error
+        patch_id:
+          type: string
+          title: Patch Id
+          description: Unique ID for the generated patch
+        file_path:
+          type: string
+          title: File Path
+          description: Path of the healed file
+        status:
+          type: string
+          title: Status
+          description: '''ACCEPTED'', ''REJECTED'', or ''MODIFIED'''
+        similarity_score:
+          type: number
+          title: Similarity Score
+          description: Levenshtein similarity score (0.0 to 1.0)
+      type: object
+      required:
+      - error_id
+      - patch_id
+      - file_path
+      - status
+      - similarity_score
+      title: PatchTelemetry
     PreferenceUpdate:
       properties:
         theme:
@@ -8166,19 +8135,6 @@ components:
       - model
       - remaining_requests
       title: RouterOverrideRequest
-    RuleUpdate:
-      properties:
-        key:
-          type: string
-          title: Key
-        value:
-          type: string
-          title: Value
-      type: object
-      required:
-      - key
-      - value
-      title: RuleUpdate
     RulesPayload:
       properties:
         rules:
@@ -8260,6 +8216,31 @@ components:
       required:
       - query
       title: SearchRequest
+    SelfHealingRequest:
+      properties:
+        filePath:
+          type: string
+          title: Filepath
+        message:
+          type: string
+          title: Message
+        lineNumber:
+          type: integer
+          title: Linenumber
+        codeContext:
+          type: string
+          title: Codecontext
+        languageId:
+          type: string
+          title: Languageid
+      type: object
+      required:
+      - filePath
+      - message
+      - lineNumber
+      - codeContext
+      - languageId
+      title: SelfHealingRequest
     SessionIn:
       properties:
         id:

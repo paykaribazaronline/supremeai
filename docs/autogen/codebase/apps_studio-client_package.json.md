@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/package.json
 
 **প্রকার:** .json  
-**সাইজ:** 3,088 বাইট  
-**আপডেট:** 2026-07-11T11:32:07.054728
+**সাইজ:** 3,534 বাইট  
+**আপডেট:** 2026-07-11T13:13:34.509844
 
 ---
 
@@ -31,7 +31,9 @@
     "electron:dev": "concurrently -k \"cross-env BROWSER=none pnpm run dev\" \"wait-on http://127.0.0.1:5173 && electron .\"",
     "electron:build": "pnpm run build && electron-builder",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
@@ -43,6 +45,7 @@
     "@webcontainer/api": "^1.6.4",
     "@xterm/addon-fit": "^0.11.0",
     "@xyflow/react": "^12.11.2",
+    "clsx": "^2.0.0",
     "firebase": "^12.15.0",
     "framer-motion": "^12.42.0",
     "i18next": "^23.4.0",
@@ -54,12 +57,20 @@
     "react-router-dom": "^6.4.0",
     "reactflow": "^11.11.4",
     "recharts": "^3.8.1",
+    "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.2.4",
     "xterm": "^5.3.0",
     "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
+    "@storybook/addon-essentials": "^8.6.14",
+    "@storybook/addon-interactions": "^8.6.14",
+    "@storybook/addon-links": "^8.6.18",
+    "@storybook/blocks": "^8.6.14",
+    "@storybook/react": "^8.6.18",
+    "@storybook/react-vite": "^8.6.18",
+    "@storybook/test": "^8.6.15",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.4.0",
     "@testing-library/react": "^16.0.0",
@@ -78,6 +89,7 @@
     "eslint-visitor-keys": "^5.0.1",
     "globals": "^17.5.0",
     "jsdom": "^24.0.0",
+    "storybook": "^8.6.18",
     "typescript": "^5.4.5",
     "typescript-eslint": "^8.58.2",
     "vite": "^7.3.5",

@@ -1,8 +1,8 @@
 # 📄 ফাইল: tools/vscode-extension/package.json
 
 **প্রকার:** .json  
-**সাইজ:** 9,120 বাইট  
-**আপডেট:** 2026-07-11T11:32:07.122254
+**সাইজ:** 9,318 বাইট  
+**আপডেট:** 2026-07-11T13:13:34.567219
 
 ---
 
@@ -200,6 +200,13 @@
         }
       ]
     },
+    "themes": [
+      {
+        "label": "SupremeAI Dark",
+        "uiTheme": "vs-dark",
+        "path": "./node_modules/@supremeai/design-tokens/outputs/vscode/supremeai-theme.json"
+      }
+    ],
     "configuration": {
       "title": "SupremeAI",
       "properties": {
