@@ -1,9 +1,34 @@
+# FILE_PATH: main.py
 import os
 import signal
 import sys
 
 import uvicorn
 from loguru import logger
+
+
+# Check for critical external dependencies that have caused ModuleNotFoundError.
+# This ensures that if these packages are missing, the application fails early
+# with a clear message, rather than a deep traceback from an indirect import.
+MISSING_CRITICAL_DEPS = []
+try:
+    import slowapi
+except ImportError:
+    MISSING_CRITICAL_DEPS.append("slowapi")
+
+try:
+    import pinecone
+except ImportError:
+    MISSING_CRITICAL_DEPS.append("pinecone")
+
+if MISSING_CRITICAL_DEPS:
+    logger.critical(
+        f"❌ Critical dependencies missing: {', '.join(MISSING_CRITICAL_DEPS)}. "
+        "Please ensure all required packages are installed (e.g., via `pip install -r requirements.txt`). "
+        "Exiting due to unfulfilled dependencies."
+    )
+    sys.exit(1)
+
 
 from api.routes import websocket_agent
 from api.routes.admin import router as admin_router
