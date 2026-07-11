@@ -1,19 +1,36 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+const { mockAxiosInstance } = vi.hoisted(() => {
+  return {
+    mockAxiosInstance: {
+      get: vi.fn(),
+      post: vi.fn(),
+      interceptors: {
+        request: { use: vi.fn() },
+        response: { use: vi.fn() }
+      }
+    }
+  };
+});
+
+vi.mock('axios', () => {
+  return {
+    default: {
+      create: vi.fn(() => mockAxiosInstance)
+    },
+    AxiosError: class AxiosError extends Error {}
+  };
+});
+
 import { api } from './api';
-// বাংলা মন্তব্য: errorBus ও AppConfig এখানে ইম্পোর্ট করা হয়েছিল কিন্তু ব্যবহার হয়নি, তাই সরানো হয়েছে
-// import { errorBus } from './error-bus';
-// import { AppConfig } from './env';
 import axios from 'axios';
 
-// Mock dependencies
-vi.mock('axios');
 vi.mock('./error-bus', () => ({
   errorBus: {
     report: vi.fn(),
   }
 }));
 
-// We need to mock the AppConfig to prevent Fail-Fast during tests
 vi.mock('./env', () => ({
   AppConfig: {
     apiUrl: 'http://test.local',
@@ -23,31 +40,13 @@ vi.mock('./env', () => ({
 }));
 
 describe('api', () => {
-  // বাংলা মন্তব্য: any এর বদলে AxiosInstance টাইপ ব্যবহার করা হয়েছে
-  interface MockedAxios {
-    get: ReturnType<typeof vi.fn>;
-    post: ReturnType<typeof vi.fn>;
-    interceptors: {
-      request: { use: ReturnType<typeof vi.fn> };
-    };
-  }
-  
-  let mockedAxios: MockedAxios;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedAxios = {
-      get: vi.fn(),
-      post: vi.fn(),
-      interceptors: { request: { use: vi.fn() } }
-    };
-    // Override the created axios instance
-    (axios.create as unknown as { mockReturnValue: (v: MockedAxios) => void }).mockReturnValue(mockedAxios);
   });
 
   it('fetchQuota should return data from backend without hardcoding', async () => {
     // Setup proper mock response
-    mockedAxios.get.mockResolvedValueOnce({ data: { remaining: 100 } });
+    mockAxiosInstance.get.mockResolvedValueOnce({ data: { remaining: 100 } });
     
     // We must re-import/re-evaluate api because it creates the axios instance at module level
     // For simplicity in this test structure, we'll assume the mock applies.
