@@ -6,17 +6,26 @@ name: "🤖 Manual Maintenance & Auto-Fix"
 on:
   workflow_dispatch:
     inputs:
-      task:
-        description: "Which maintenance task to run?"
-        type: choice
-        required: true
-        default: "health-check"
-        options:
-          - "health-check"
-          - "auto-lint-fix"
-          - "dependency-vulnerability-scan"
-          - "auto-remediate-security-issues"
-          - "auto-generate-deploy-docs"
+      run_health_check:
+        description: 'Run Health Check'
+        type: boolean
+        default: true
+      run_auto_lint_fix:
+        description: 'Run Auto Lint Fix'
+        type: boolean
+        default: false
+      run_dependency_scan:
+        description: 'Run Dependency Vulnerability Scan'
+        type: boolean
+        default: false
+      run_security_remediate:
+        description: 'Run Security Remediation'
+        type: boolean
+        default: false
+      run_generate_docs:
+        description: 'Generate & Deploy Docs'
+        type: boolean
+        default: false
 
 # বাংলা মন্তব্য: প্রতিটি টাস্ককে আলাদা জব-এ ভাগ করা হয়েছে স্বচ্ছতা এবং নির্ভরযোগ্যতার জন্য।
 jobs:
@@ -56,7 +65,7 @@ jobs:
 
   health-check:
     needs: setup
-    if: github.event.inputs.task == 'health-check'
+    if: github.event.inputs.run_health_check == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -75,7 +84,7 @@ jobs:
 
   auto-lint-fix:
     needs: setup
-    if: github.event.inputs.task == 'auto-lint-fix'
+    if: github.event.inputs.run_auto_lint_fix == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -110,7 +119,7 @@ jobs:
 
   dependency-vulnerability-scan:
     needs: setup
-    if: github.event.inputs.task == 'dependency-vulnerability-scan'
+    if: github.event.inputs.run_dependency_scan == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -138,7 +147,7 @@ jobs:
     name: 📝 Auto-Generate & Deploy Docs
     # বাংলা মন্তব্য: মেইন বা ডেভেলপ ব্রাঞ্চে পুশ করা হলে স্বয়ংক্রিয়ভাবে কোডবেসের মার্কডাউন ফাইল ও ড্যাশবোর্ড জেনারেট এবং ডিপ্লয় হবে
     runs-on: ubuntu-latest
-    if: github.event.inputs.task == 'auto-generate-deploy-docs'
+    if: github.event.inputs.run_generate_docs == 'true'
     permissions:
       contents: write
       pages: write
