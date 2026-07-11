@@ -2,7 +2,7 @@
 # বাংলা মন্তব্য: সম্পূর্ণ রি-ফ্যাক্টর — Fail-Fast, Zero-Hardcode, Pydantic-Enforced Config Layer।
 # কোনো API Key, hardcoded domain বা threshold এখানে নেই।
 # সব ভ্যালু env var বা GCP Secret Manager থেকে আসে।
-# Production-এ কোনো missing required var = startup crash (sys.exit(1)) — "resilient boot" নিষিদ্ধ।
+# যেকোনো Environment-এ (Local/Staging/Prod) কোনো missing required var = startup crash (sys.exit(1)) — "resilient boot" সম্পূর্ণ নিষিদ্ধ।
 
 import os
 import secrets
@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     """
     বাংলা মন্তব্য: এটি সিস্টেমের একমাত্র সত্যের উৎস (Single Source of Truth)।
     কোনো hardcoded value নেই। সব env-driven।
-    Production-এ missing required var = startup Fail-Fast (sys.exit(1))।
+    যেকোনো এনভায়রনমেন্টে missing required var = startup Fail-Fast (sys.exit(1))।
     """
 
     model_config = SettingsConfigDict(
@@ -61,7 +61,6 @@ class Settings(BaseSettings):
 
     # বাংলা মন্তব্য: CORS origins এখন সম্পূর্ণ env-driven।
     # Default এ কোনো hardcoded URL নেই।
-    # Production-এ CORS_ORIGINS env var বাধ্যতামূলক।
     cors_origins: str | list[str] = Field(
         default_factory=list,
         validation_alias="CORS_ORIGINS",
@@ -70,13 +69,13 @@ class Settings(BaseSettings):
     # বাংলা মন্তব্য: Admin email list সম্পূর্ণ env-driven
     admin_emails: list[str] = Field(default=[], validation_alias="ADMIN_EMAILS")
 
-    # বাংলা মন্তব্য: Zero-Trust Host Validation — production-এ empty = crash
+    # বাংলা মন্তব্য: Zero-Trust Host Validation — empty = crash
     allowed_hosts: list[str] = Field(
         default_factory=list,
         validation_alias="ALLOWED_HOSTS",
     )
 
-    # বাংলা মন্তব্য: JWT secret — production-এ অবশ্যই >= 64 bytes entropy
+    # বাংলা মন্তব্য: JWT secret — fail-fast on missing
     jwt_secret: str = Field(
         default="",
         validation_alias="SUPREMEAI_JWT_SECRET",
@@ -92,8 +91,6 @@ class Settings(BaseSettings):
     stripe_webhook_secret: SecretStr = Field(default=SecretStr(""), validation_alias="STRIPE_WEBHOOK_SECRET")
 
     # ── LLM rate limit thresholds — সব env-driven, hardcode নেই ─────────────
-    # বাংলা মন্তব্য: আগে এগুলো hardcode ছিল। এখন ops team .env দিয়ে change করতে পারবে —
-    # code redeploy ছাড়াই। এটি একটি critical operational improvement।
     gemini_rpm_limit: int = Field(default=9, validation_alias="GEMINI_RPM_LIMIT")
     gemini_tpm_limit: int = Field(default=240_000, validation_alias="GEMINI_TPM_LIMIT")
     gemini_rpd_limit: int = Field(default=475, validation_alias="GEMINI_RPD_LIMIT")
@@ -117,7 +114,7 @@ class Settings(BaseSettings):
     circuit_breaker_failure_threshold: int = Field(default=3, validation_alias="CIRCUIT_BREAKER_FAILURE_THRESHOLD")
     circuit_breaker_cooldown_period: int = Field(default=60, validation_alias="CIRCUIT_BREAKER_COOLDOWN_PERIOD")
 
-    # বাংলা মন্তব্য: Model names env-driven — code deploy ছাড়াই model switch করা যাবে
+    # বাংলা মন্তব্য: Model names env-driven
     claude_openrouter_model: str = Field(
         default="anthropic/claude-3.5-haiku:free",
         validation_alias="CLAUDE_OPENROUTER_MODEL",
@@ -125,13 +122,13 @@ class Settings(BaseSettings):
 
     sentry_dsn: str = Field(default="", validation_alias="SENTRY_DSN")
 
-    # বাংলা মন্তব্য: OLLAMA_URL — production-এ fail-fast, কোনো localhost fallback নেই
+    # বাংলা মন্তব্য: OLLAMA_URL — fail-fast, কোনো localhost fallback নেই
     ollama_url: str = Field(default="", validation_alias="OLLAMA_URL")
 
     gcp_project_id: str = Field(default="", validation_alias="GCP_PROJECT_ID")
     gcp_region: str = Field(default="us-central1", validation_alias="GCP_REGION")
 
-    # বাংলা মন্তব্য: Filesystem paths — Cloud Run ephemeral filesystem-এ এগুলো empty রাখুন
+    # বাংলা মন্তব্য: Filesystem paths
     admin_rules_db: str = Field(default="", validation_alias="ADMIN_RULES_DB_PATH")
     memory_db_dir: str = Field(default="", validation_alias="MEMORY_DB_DIR")
     skill_registry_path: str = Field(default="", validation_alias="SKILL_REGISTRY_PATH")
@@ -145,7 +142,7 @@ class Settings(BaseSettings):
     _cached_secrets: dict[str, str] = PrivateAttr(default_factory=dict)
 
     def _get_cached_secret(self, key: str) -> str:
-        # বাংলা মন্তব্য: lazy cache — প্রতিটি secret একবারই fetch হয়। Network call minimize।
+        # বাংলা মন্তব্য: lazy cache — প্রতিটি secret একবারই fetch হয়।
         if key not in self._cached_secrets:
             self._cached_secrets[key] = secret_vault.fetch_secret(key)
         return self._cached_secrets[key]
@@ -220,7 +217,6 @@ class Settings(BaseSettings):
     @field_validator("debug", mode="before")
     @classmethod
     def validate_debug_mode(cls, v: Any, info: ValidationInfo) -> bool:
-        # বাংলা মন্তব্য: Production/Staging-এ debug=True explicitly set করলে hard crash।
         env = info.data.get("env", "local")
         if env in {"production", "staging"}:
             if str(v).lower() == "true" and (os.getenv("debug", "").lower() == "true" or os.getenv("DEBUG", "").lower() == "true"):
@@ -231,19 +227,18 @@ class Settings(BaseSettings):
     @field_validator("docs_password", mode="before")
     @classmethod
     def validate_docs_password(cls, v: str, info: ValidationInfo) -> str:
-        # বাংলা মন্তব্য: pytest context-এ docs_password validation skip করা হয়
         if "pytest" in sys.modules:
             return v
         env = info.data.get("env", "local")
         docs_auth_enabled = info.data.get("docs_auth_enabled", True)
-        if env in {"production", "staging"} and docs_auth_enabled and not v:
-            raise ValueError("docs_password must be set when docs_auth_enabled=true in production/staging.")
+        if docs_auth_enabled and not v:
+            # All environments must have password if docs are enabled
+            raise ValueError("docs_password must be set when docs_auth_enabled=true.")
         return v
 
     @field_validator("admin_emails", mode="before")
     @classmethod
     def parse_admin_emails(cls, v) -> list[str]:
-        # বাংলা মন্তব্য: কমা-separated string → list conversion
         if isinstance(v, str):
             v = v.strip()
             return [email.strip() for email in v.split(",") if email.strip()] if v else []
@@ -260,44 +255,38 @@ class Settings(BaseSettings):
     @field_validator("allowed_hosts", mode="after")
     @classmethod
     def validate_allowed_hosts(cls, v: list[str], info: ValidationInfo) -> list[str]:
-        # বাংলা মন্তব্য: Production-এ localhost-type host forbidden — auto-strip করা হবে
+        # Fail fast if no hosts are defined in production/staging
         env = info.data.get("env", "local")
         forbidden = {"localhost", "127.0.0.1", "testserver", "0.0.0.0"}
-        if env == "production":
+        if env in {"production", "staging"}:
             v = [h for h in v if h.lower() not in forbidden]
             if not v:
-                raise ValueError("Production requires explicit ALLOWED_HOSTS — localhost/testserver forbidden.")
+                raise ValueError(f"{env.capitalize()} requires explicit ALLOWED_HOSTS — localhost/testserver forbidden.")
         return v
 
     @field_validator("jwt_secret", mode="before")
     @classmethod
     def set_jwt_secret(cls, v: str | None, info: ValidationInfo) -> str:
-        env = info.data.get("env", "local")
-        if not v:
-            if env == "production":
-                # বাংলা মন্তব্য: Production-এ JWT secret missing = hard crash। কোনো ephemeral fallback নেই।
-                raise ValueError("🚨 CRITICAL: SUPREMEAI_JWT_SECRET must be explicitly set in production. No ephemeral fallback allowed.")
-            logger.warning("⚠️ SUPREMEAI_JWT_SECRET not set. Generating ephemeral secret for local dev.")
-            return secrets.token_hex(64)
-        return v
+        # Fail fast for all environments if missing (except pytest)
+        if not v and "pytest" not in sys.modules:
+            raise ValueError("🚨 CRITICAL: SUPREMEAI_JWT_SECRET must be explicitly set in all environments. No dummy fallback allowed.")
+        return v or secrets.token_hex(64)  # Pytest only fallback
 
     @field_validator("jwt_secret", mode="after")
     @classmethod
     def validate_jwt_secret_strength(cls, v: str, info: ValidationInfo) -> str:
-        if info.data.get("env") == "production":
-            if len(v) < 64:
-                raise ValueError("JWT secret must be >= 64 bytes entropy in production.")
-            weak_secrets = {"secret", "password", "123456", "changeme", "admin", "jwt_secret"}
-            if v.lower() in weak_secrets:
-                raise ValueError("JWT secret is in weak secrets dictionary — change it.")
+        if len(v) < 64 and "pytest" not in sys.modules:
+            raise ValueError("JWT secret must be >= 64 bytes entropy in all environments.")
+        weak_secrets = {"secret", "password", "123456", "changeme", "admin", "jwt_secret"}
+        if v.lower() in weak_secrets:
+            raise ValueError("JWT secret is in weak secrets dictionary — change it.")
         return v
 
     @field_validator("supremeai_admin_password_hash", mode="before")
     @classmethod
     def validate_admin_hash(cls, v: str | None, info: ValidationInfo) -> str | None:
-        env = info.data.get("env", "local")
-        if not v and env == "production":
-            raise ValueError("supremeai_admin_password_hash must be set in production.")
+        if not v and "pytest" not in sys.modules:
+            raise ValueError("supremeai_admin_password_hash must be explicitly set.")
         return v
 
     @field_validator("cors_origins", mode="before")
@@ -319,91 +308,66 @@ class Settings(BaseSettings):
     @classmethod
     def validate_cors_origins(cls, v: list[str], info: ValidationInfo) -> list[str]:
         env = info.data.get("env", "local")
-        if env == "production":
-            # বাংলা মন্তব্য: Production-এ localhost CORS origins auto-strip
+        if env in {"production", "staging"}:
             v = [o for o in v if "localhost" not in o and "127.0.0.1" not in o]
             if not v:
                 raise ValueError(
-                    "Production requires at least one non-localhost CORS origin. Set CORS_ORIGINS env var (e.g. https://your-app.web.app)."
+                    f"{env.capitalize()} requires at least one non-localhost CORS origin. Set CORS_ORIGINS env var."
                 )
         return v
 
     @model_validator(mode="after")
-    def validate_stripe_in_production(self):
-        # বাংলা মন্তব্য: Production-এ Stripe credentials বাধ্যতামূলক
-        if self.env == "production":
-            stripe_key = self.stripe_api_key.get_secret_value() if self.stripe_api_key else ""
-            stripe_webhook = self.stripe_webhook_secret.get_secret_value() if self.stripe_webhook_secret else ""
-            if not stripe_key:
-                raise ValueError("Stripe API key is mandatory in production.")
-            if not stripe_webhook:
-                raise ValueError("Stripe webhook secret is mandatory in production.")
+    def validate_stripe_completeness(self):
+        stripe_key = self.stripe_api_key.get_secret_value() if self.stripe_api_key else ""
+        stripe_webhook = self.stripe_webhook_secret.get_secret_value() if self.stripe_webhook_secret else ""
+        if not stripe_key and "pytest" not in sys.modules:
+            raise ValueError("Stripe API key is mandatory.")
+        if not stripe_webhook and "pytest" not in sys.modules:
+            raise ValueError("Stripe webhook secret is mandatory.")
         return self
 
     @model_validator(mode="after")
-    def validate_production_completeness(self):
+    def validate_completeness(self):
         """
-        বাংলা মন্তব্য: Production Fail-Fast Guard — এটিই সিস্টেমের শেষ defense line।
-        কোনো missing config = ValueError → startup crash → Cloud Run restart।
-        'Resilient boot' in production = security theater এবং সম্পূর্ণ নিষিদ্ধ।
+        বাংলা মন্তব্য: Fail-Fast Guard for ALL environments.
         """
-        if self.env != "production":
+        if "pytest" in sys.modules:
             return self
 
         missing: list[str] = []
-
-        if not self.openrouter_api_key:
-            missing.append("OPENROUTER_API_KEY")
-        if not self.gemini_api_key:
-            missing.append("GEMINI_API_KEY")
-        if not self.ci_webhook_secret:
-            missing.append("CI_WEBHOOK_SECRET")
-        if not self.sentry_dsn:
-            # বাংলা মন্তব্য: Sentry optional কিন্তু strongly recommended
-            logger.warning("⚠️ SENTRY_DSN not configured — production observability degraded.")
-        if not (os.getenv("SUPREMEAI_ENCRYPTION_KEY") or os.getenv("ENCRYPTION_KEY")):
-            missing.append("SUPREMEAI_ENCRYPTION_KEY")
+        if not self.openrouter_api_key: missing.append("OPENROUTER_API_KEY")
+        if not self.gemini_api_key: missing.append("GEMINI_API_KEY")
+        if not self.ci_webhook_secret: missing.append("CI_WEBHOOK_SECRET")
+        if not (os.getenv("SUPREMEAI_ENCRYPTION_KEY") or os.getenv("ENCRYPTION_KEY")): missing.append("SUPREMEAI_ENCRYPTION_KEY")
 
         if missing:
             raise ValueError(
-                f"🚨 PRODUCTION FAIL-FAST: Missing required config vars: {', '.join(missing)}. Server startup aborted. Fix config and redeploy."
+                f"🚨 FAIL-FAST: Missing required config vars: {', '.join(missing)}. Server startup aborted."
             )
         return self
 
 
 # ── Singleton instantiation with True Fail-Fast ────────────────────────────────
 # বাংলা মন্তব্য: এখানে Fail-Fast সত্যিকারভাবে enforce হচ্ছে।
-# Production-এ ValidationError = sys.exit(1) — কোনো "resilient boot" নেই।
-# "Resilient boot" মানে broken state-এ traffic serve করা — এটি বিপজ্জনক এবং নিষিদ্ধ।
+# কোনো "resilient boot" বা dummy fallback নেই। Exception মানেই sys.exit(1)।
 try:
     settings = Settings()
 except Exception as _boot_exc:  # noqa: BLE001
-    _env_value = os.getenv("ENV", "local").lower()
-    if _env_value == "production":
-        logger.critical(f"🔥 FATAL CONFIG ERROR in production: {_boot_exc}\nServer startup ABORTED. Fix the configuration and redeploy.")
-        sys.exit(1)  # ← Production-এ hard crash — Cloud Run restart trigger হবে
-    else:
-        # বাংলা মন্তব্য: Local/staging-এ warning দিয়ে চলতে দেওয়া হবে
-        logger.warning(f"⚠️ Config validation warning (non-production): {_boot_exc}")
-        settings = Settings.model_construct()  # type: ignore[assignment]
+    logger.critical(f"🔥 FATAL CONFIG ERROR: {_boot_exc}\nServer startup ABORTED (Fail-Fast applied). Fix the configuration.")
+    sys.exit(1)
 
 
-def get_production_env(var_name: str, default_fallback: str = None) -> str:
-    """বাংলা মন্তব্য: Fail-Fast Config Guard.
-    প্রোডাকশন এনভায়রনমেন্টে কোনো ক্রিটিক্যাল সিক্রেট মিসিং থাকলে সিস্টেম লোকালহোস্টে
-    ফলব্যাক না করে সরাসরি হার্ড ক্র্যাশ করবে, যা সাইলেন্ট ফেইলর প্রতিরোধ করে।
+def get_production_env(var_name: str) -> str:
+    """বাংলা মন্তব্য: Strict Fail-Fast Config Guard.
+    যেকোনো এনভায়রনমেন্টে কোনো ক্রিটিক্যাল সিক্রেট মিসিং থাকলে সরাসরি হার্ড ক্র্যাশ করবে,
+    যাতে সাইলেন্ট ফেইলর প্রতিরোধ করা যায়। কোনো default_fallback প্যারামিটার বা ডামি ভ্যালু নেই।
     """
     import os
-
     from loguru import logger
 
     value = os.getenv(var_name)
-    env = os.getenv("ENV", "development").lower()
-
     if not value:
-        if env == "production":
-            logger.critical(f"❌ CRITICAL CONFIG ERROR: Missing required environment variable '{var_name}' in production!")
-            raise ValueError(f"Configuration Error: {var_name} must be explicitly defined in production.")
-        return default_fallback
+        logger.critical(f"❌ CRITICAL CONFIG ERROR: Missing required environment variable '{var_name}'!")
+        raise ValueError(f"Configuration Error: {var_name} must be explicitly defined.")
 
     return value

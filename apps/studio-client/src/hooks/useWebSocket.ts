@@ -44,6 +44,16 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const mountedRef = useRef(true);
+  
+  // বাংলা মন্তব্য: P2 Fix — reconnectAttempts এবং reconnectInterval কে ref এ রাখা হয়েছে যাতে useCallback dependency list পরিবর্তন না হয়
+  const reconnectAttemptsRef = useRef(reconnectAttempts);
+  const reconnectIntervalRef = useRef(reconnectInterval);
+  
+  // Sync refs when options change
+  useEffect(() => {
+    reconnectAttemptsRef.current = reconnectAttempts;
+    reconnectIntervalRef.current = reconnectInterval;
+  }, [reconnectAttempts, reconnectInterval]);
 
   const resolveUrl = useCallback(() => {
     if (url) return url;
@@ -95,11 +105,11 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
         setStatus('closed');
         onClose?.();
 
-        if (attemptsRef.current < reconnectAttempts) {
+        if (attemptsRef.current < reconnectAttemptsRef.current) {
           attemptsRef.current += 1;
           reconnectTimerRef.current = setTimeout(() => {
             if (mountedRef.current) connect();
-          }, reconnectInterval * attemptsRef.current);
+          }, reconnectIntervalRef.current * attemptsRef.current);
         }
       };
 
@@ -112,7 +122,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
       if (!mountedRef.current) return;
       setStatus('error');
     }
-  }, [resolveUrl, reconnectAttempts, reconnectInterval, onMessage, onOpen, onClose, onError]);
+  }, [resolveUrl, onMessage, onOpen, onClose, onError]);
 
   const disconnect = useCallback(() => {
     if (reconnectTimerRef.current) {
@@ -123,7 +133,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
       clearInterval(heartbeatRef.current);
       heartbeatRef.current = null;
     }
-    attemptsRef.current = reconnectAttempts;
+    attemptsRef.current = reconnectAttemptsRef.current;
     if (wsRef.current) {
       if (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING) {
         wsRef.current.close(1000, 'Component unmounted');
@@ -131,7 +141,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
     }
     wsRef.current = null;
     setStatus('closed');
-  }, [reconnectAttempts]);
+  }, []);
 
   const send = useCallback((message: unknown) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {

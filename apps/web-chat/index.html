@@ -5,14 +5,29 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SupremeAI 2.0 — Workspace</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:8000 ws://127.0.0.1:8000 wss: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:;">
+    
+    <!-- 
+      CSP (Content Security Policy) 
+      Hardcoded 127.0.0.1 is removed.
+      Instead, we allow connect-src 'self' and generic wss: https: 
+      In a production environment, the precise CSP should be injected via HTTP headers (e.g., from Nginx/Cloudflare) 
+      based on the environment variables, avoiding static hardcoding in HTML.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src 'self' wss: https: ws: http:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:;">
     <meta http-equiv="X-XSS-Protection" content="1; mode=block">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
 </head>
-<body>
-    <div class="app-container">
+<body data-auth="logged-out">
+    <div class="hero-section" id="loggedOutView">
+        <h1 class="hero-logo">SupremeAI</h1>
+        <p class="hero-tagline">The Future of Autonomous Orchestration</p>
+        <button class="hero-btn" id="btnLaunchWorkspace">Launch Workspace</button>
+    </div>
+
+    <div class="app-container" id="loggedInView">
         <div class="workspace-panel">
             <div class="top-bar">
                 <div>
@@ -35,11 +50,12 @@
                     <span class="core-label">Assistant Core</span>
                 </div>
 
-                <div class="floating-node node-code" data-skill="Code Architect" style="top: 10%; left: 15%;">
+                <!-- CSS Positioning instead of inline styles for architectural purity -->
+                <div class="floating-node node-code node-pos-left" data-skill="Code Architect">
                     <div class="node-title">💻 Code Architect</div>
                     <div class="node-sub">Code and repo agent</div>
                 </div>
-                <div class="floating-node node-data" data-skill="Data Analyzer" style="top: 12%; right: 15%;">
+                <div class="floating-node node-data node-pos-right" data-skill="Data Analyzer">
                     <div class="node-title">📊 Data Analyzer</div>
                     <div class="node-sub">PDF/Excel insights</div>
                 </div>
@@ -53,7 +69,7 @@
                         <span class="voice-dot" id="voiceIndicator"></span>
                         <span id="voiceText">Voice Command Bar</span>
                     </div>
-                    <div class="quota-text">🔋 Quota: <span id="quotaValue">87</span>% remaining</div>
+                    <div class="quota-text">🔋 Quota: <span id="quotaValue">Loading...</span>% remaining</div>
                 </div>
             </div>
         </div>
@@ -67,21 +83,20 @@
                 <span id="activeSkillBadge" class="skill-badge hidden"></span>
             </div>
 
-            <div class="chat-history" id="chatHistory">
-                </div>
+            <div class="chat-history" id="chatHistory"></div>
 
-            <div id="imagePreviewContainer" style="display: none; position: relative; margin-bottom: 12px; max-width: 120px; border-radius: 8px; border: 1px solid #374151; padding: 4px; background: #1F2937;">
-                <img id="imagePreview" style="width: 100%; border-radius: 6px; object-fit: cover;" />
-                <button id="btnRemoveImage" style="position: absolute; top: -8px; right: -8px; background: #EF4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-size: 12px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✕</button>
+            <div id="imagePreviewContainer" class="image-preview-container">
+                <img id="imagePreview" class="image-preview" alt="Attachment preview" />
+                <button id="btnRemoveImage" class="btn-remove-image" title="Remove attachment">✕</button>
             </div>
 
-            <div class="input-area" style="display: flex; gap: 10px; align-items: center; background: #1F2937; padding: 10px; border-radius: 12px; border: 1px solid #374151;">
-                <input type="file" id="imageUpload" accept="image/*" style="display: none;" />
-                <button id="btnAttach" title="Attach Image" style="background: none; border: none; color: #9CA3AF; cursor: pointer; font-size: 22px; padding: 0 5px; transition: color 0.2s;">📎</button>
+            <div class="input-area">
+                <input type="file" id="imageUpload" accept="image/*" class="hidden-input" />
+                <button id="btnAttach" class="btn-icon" title="Attach Image">📎</button>
                 
-                <input type="text" id="chatInput" placeholder="Type a message or upload an image..." style="flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 15px;" />
+                <input type="text" id="chatInput" class="chat-input" placeholder="Type a message or upload an image..." />
                 
-                <button id="btnSend" style="background: #3B82F6; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: background 0.2s;">Send</button>
+                <button id="btnSend" class="btn-primary">Send</button>
             </div>
         </div>
     </div>

@@ -1,12 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { getAdminToken } from '../services/adminTokenStore';
 import { getApiBaseUrl } from '../utils/api';
+import { THEME_ORDER } from './ThemeConstants';
 
 // বাংলা মন্তব্য: ৪টি থিম সাপোর্ট করা হচ্ছে — Dark Space, Sky Blue, Sunset Ember, Emerald Matrix
-type Theme = 'dark' | 'light' | 'sunset' | 'matrix';
-
-// থিম সাইকেল অর্ডার (টগল বাটনে ক্লিক করলে পরবর্তী থিমে যাবে)
-const THEME_ORDER: Theme[] = ['dark', 'light', 'sunset', 'matrix'];
+export type Theme = 'dark' | 'light' | 'sunset' | 'matrix';
 
 interface ThemeContextType {
   theme: Theme;

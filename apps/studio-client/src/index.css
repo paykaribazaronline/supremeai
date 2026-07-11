@@ -2,8 +2,40 @@
 @import "tailwindcss";
 
 @theme {
-  --color-supreme-bg: #0f172a;
-  --color-supreme-accent: #f97316;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-neon-blue: var(--neon-blue);
+  --color-neon-purple: var(--neon-purple);
+  --color-cyber-gray: var(--cyber-gray);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-sidebar-bg: var(--sidebar-bg);
+  --color-tabbar-bg: var(--tabbar-bg);
+  --color-border-color: var(--border-color);
+  --color-card-text: var(--card-text);
+  --color-card-title-text: var(--card-title-text);
+  --color-alert-bg: var(--alert-bg);
+  --color-input-bg: var(--input-bg);
+  --color-input-border: var(--input-border);
+  --color-panel-bg: var(--panel-bg);
+
+  --color-bg-main: var(--bg-main);
+  --color-text-main: var(--text-main);
+  --color-text-secondary: var(--text-secondary);
+  --color-bg-panel: var(--bg-panel);
+  --color-bg-cell: var(--bg-cell);
+  --color-border-accent: var(--border-accent);
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-secondary: var(--accent-secondary);
+  --color-node-bg: var(--node-bg);
+  --color-node-text: var(--node-text);
+  --color-node-border: var(--node-border);
+  --color-chat-bg: var(--chat-bg);
+  --color-chat-input-bg: var(--chat-input-bg);
+  --color-waveform-bg: var(--waveform-bg);
 }
 /* ═══════════════════════════════════════════════════════
    THEME 1: SKY BLUE (Light) — ডিফল্ট :root থিম

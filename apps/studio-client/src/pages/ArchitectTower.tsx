@@ -30,7 +30,17 @@ export const ArchitectTower: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchFixes();
+    let isMounted = true;
+    
+    const loadFixes = async () => {
+      await fetchFixes();
+    };
+    
+    loadFixes();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return (
