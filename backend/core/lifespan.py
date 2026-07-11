@@ -150,7 +150,7 @@ async def app_lifespan(app):
         # sys.exit(1) রিমুভ করা হলো যাতে ক্লাউড রান হেলথ চেক পাস করতে পারে
 
     try:
-        await redis_manager.initialize()
+        pass
     except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to initialize Redis Manager: {e}")
         error_event_bus.emit(

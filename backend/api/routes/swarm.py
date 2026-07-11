@@ -75,11 +75,7 @@ class SelfHealingRequest(BaseModel):
     languageId: str
 
 
-from core.app import limiter
-
-
 @router.post("/execute-healing")
-@limiter.limit("5/minute")
 async def execute_healing(payload: SelfHealingRequest, request: Request):
     """
     Agent-in-the-Loop endpoint to self-heal code errors from VS Code Extension.

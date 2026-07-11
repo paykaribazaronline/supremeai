@@ -70,7 +70,7 @@ class Settings(BaseSettings):
     admin_emails: list[str] = Field(default=[], validation_alias="ADMIN_EMAILS")
 
     # বাংলা মন্তব্য: Zero-Trust Host Validation — empty = crash
-    allowed_hosts: list[str] = Field(
+    allowed_hosts: str | list[str] = Field(
         default_factory=list,
         validation_alias="ALLOWED_HOSTS",
     )
