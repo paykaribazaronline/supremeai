@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/app.py
 
 **প্রকার:** .py  
-**সাইজ:** 11,341 বাইট  
-**আপডেট:** 2026-07-11T13:28:08.951488
+**সাইজ:** 11,408 বাইট  
+**আপডেট:** 2026-07-11T13:36:50.100742
 
 ---
 
@@ -268,10 +268,11 @@ core_routers = [
     ("api.routes.github", ""),
     ("api.routes.internal", ""),
     ("api.routes.config", ""),
-    ("api.routes.onboarding", ""),
+    ("api.routes.onboarding", "/api"),
     ("api.routes.repos", ""),
     ("api.routes.tools_ops", ""),
     ("api.routes.agents", ""),
+    ("api.routes.admin", ""),
     ("api.routes.tools_registry", ""),
     ("api.routes.preferences", ""),
     ("api.routes.usage_metrics", ""),
@@ -315,6 +316,7 @@ optional_routers = [
     ("api.routes.metrics", ""),
     ("api.routes.cloud_mesh", ""),
     ("api.routes.events", "/api"),
+    ("api.routes.payments", ""),
 ]
 
 for router_path, prefix in optional_routers:
