@@ -1,8 +1,8 @@
 # 📄 ফাইল: apps/studio-client/package.json
 
 **প্রকার:** .json  
-**সাইজ:** 3,576 বাইট  
-**আপডেট:** 2026-07-11T13:49:08.398450
+**সাইজ:** 3,600 বাইট  
+**আপডেট:** 2026-07-11T13:51:38.441743
 
 ---
 
@@ -29,7 +29,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "electron:dev": "concurrently -k \"cross-env BROWSER=none pnpm run dev\" \"wait-on http://127.0.0.1:5173 && electron .\"",
-    "electron:build": "pnpm run build && electron-builder",
+    "electron:build": "cross-env ELECTRON=true pnpm run build && electron-builder",
     "test": "vitest run",
     "test:watch": "vitest",
     "storybook": "storybook dev -p 6006",

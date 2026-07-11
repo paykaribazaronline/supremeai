@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T13:49:08.251502
+Generated at: 2026-07-11T13:51:38.347475
 
 
 ## File: `pnpm-lock.yaml`
@@ -152571,7 +152571,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: './', // Important for Electron to load local files
+  base: process.env.ELECTRON === 'true' ? './' : '/', // Use './' for Electron, '/' for Web to fix client-side routing and MIME issues
   plugins: [
     react({ jsxRuntime: 'automatic' }),
     tailwindcss()
@@ -152654,7 +152654,7 @@ export default defineConfig({
     "lint": "eslint .",
     "preview": "vite preview",
     "electron:dev": "concurrently -k \"cross-env BROWSER=none pnpm run dev\" \"wait-on http://127.0.0.1:5173 && electron .\"",
-    "electron:build": "pnpm run build && electron-builder",
+    "electron:build": "cross-env ELECTRON=true pnpm run build && electron-builder",
     "test": "vitest run",
     "test:watch": "vitest",
     "storybook": "storybook dev -p 6006",
