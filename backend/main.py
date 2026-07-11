@@ -1,6 +1,32 @@
+# FILE_PATH: main.py
+import importlib.util
 import os
 import signal
+import subprocess
 import sys
+
+
+required_packages = {
+    "slowapi": "slowapi",
+    "pinecone": "pinecone-client",  # Module 'pinecone' is provided by pypi package 'pinecone-client'
+}
+missing_packages_to_install = []
+
+for module_name, pip_package_name in required_packages.items():
+    if importlib.util.find_spec(module_name) is None:
+        missing_packages_to_install.append(pip_package_name)
+
+if missing_packages_to_install:
+    print(f"Detected missing packages: {', '.join(missing_packages_to_install)}. Attempting dynamic installation...", file=sys.stderr)
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "--no-input", *missing_packages_to_install])
+        print(f"Successfully installed missing packages: {', '.join(missing_packages_to_install)}", file=sys.stderr)
+    except subprocess.CalledProcessError as e:
+        print(f"Error: Failed to dynamically install packages: {e}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"An unexpected error occurred during dynamic package installation: {e}", file=sys.stderr)
+        sys.exit(1)
 
 import uvicorn
 from loguru import logger
