@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_new_interfaces.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,197 বাইট  
-**আপডেট:** 2026-07-11T15:50:11.342099
+**সাইজ:** 2,055 বাইট  
+**আপডেট:** 2026-07-11T16:17:51.589832
 
 ---
 
@@ -13,7 +13,6 @@ import os
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from core.discord_bot import SupremeDiscordBot
 from tools.voice import VoiceInterface
 
 
@@ -46,9 +45,7 @@ def test_voice_interface_stt_success(mock_post):
             os.remove(dummy_path)
 
 
-def test_discord_bot_initialization():
-    bot = SupremeDiscordBot()
-    assert bot is not None
+
 
 
 def test_local_ocr_extractor():
