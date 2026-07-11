@@ -22,6 +22,7 @@ async def get_global_browser() -> Browser:
     if _global_browser is None:
         logger.info("🚀 Starting a new headless Global Chromium instance...")
         import sys
+
         current_module = sys.modules.get(__name__, sys.modules.get("core.playwright_manager"))
         current_async_playwright = getattr(current_module, "async_playwright", async_playwright) if current_module else async_playwright
         if not callable(current_async_playwright):

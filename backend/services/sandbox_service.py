@@ -2,8 +2,9 @@ import asyncio
 import logging
 from typing import Any
 
-import docker
 from docker.errors import ContainerError
+
+import docker
 
 
 logger = logging.getLogger(__name__)

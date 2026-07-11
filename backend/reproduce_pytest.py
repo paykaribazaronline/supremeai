@@ -1,8 +1,11 @@
 import sys
+
 from _pytest.monkeypatch import MonkeyPatch
 
 # 1. Collection time: test_playwright_manager.py is imported
 import core.playwright_manager as pm
+
+
 module_instance_A = pm
 
 # 2. test_core_missing_coverage.py runs
@@ -10,11 +13,13 @@ mp = MonkeyPatch()
 mp.setitem(sys.modules, "playwright", None)
 mp.setitem(sys.modules, "playwright.async_api", None)
 mp.delitem(sys.modules, "core.playwright_manager", raising=False)
-import core.playwright_manager as module_instance_B
+
 mp.undo()
 
 # 3. test_playwright_manager.py runs
 from unittest.mock import patch
+
+
 print("pm is module_instance_A:", pm is module_instance_A)
 print("sys.modules['core.playwright_manager'] is module_instance_A:", sys.modules["core.playwright_manager"] is module_instance_A)
 patcher = patch("core.playwright_manager.async_playwright", return_value=123)
