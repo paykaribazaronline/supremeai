@@ -159,42 +159,6 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException) ->
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
-@app.get("/health")
-async def health() -> dict[str, Any]:
-    redis_ok = False
-    if services.redis_queue.configured:
-        try:
-            services.redis_queue.set("health", "ok", ex=5)
-            redis_ok = services.redis_queue.get("health") == "ok"
-        except Exception as exc:  # noqa: BLE001
-            # বাংলা মন্তব্য: Anti-Suppression Rule
-            logger.error(f"Health check failed on redis connection: {exc}")
-            error_event_bus.emit(ErrorEvent(module="app.health", error_type="REDIS_HEALTH_FAIL", message=str(exc)[:200], severity="ERROR"))
-            redis_ok = False
-    else:
-        redis_ok = True
-
-    api_keys_ok = bool(
-        settings.openrouter_api_key or settings.gemini_api_key or settings.deepseek_api_key or settings.groq_api_key or settings.nvidia_api_key
-    )
-    checks = {
-        "redis": redis_ok,
-        "api_keys_configured": api_keys_ok,
-    }
-    all_ok = all(checks.values())
-    return {
-        "status": "ok" if all_ok else "degraded",
-        "orchestrator": "online",
-        "checks": checks,
-    }
-
-
-@app.get("/actuator/health")
-def actuator_health() -> dict[str, str]:
-    return {
-        "status": "UP",
-        "orchestrator": "online",
-    }
 
 
 def _safe_include_router(app: FastAPI, router_module: str, prefix: str = "") -> None:
@@ -251,13 +215,11 @@ core_routers = [
     ("api.routes.graph", ""),
     ("api.routes.knowledge", ""),
     ("api.routes.marketplace", ""),
-    ("api.routes.auth", "/api/v1"),
     ("api.routes.admin_dashboard", ""),
     ("api.routes.email", ""),
     ("api.routes.github", ""),
     ("api.routes.internal", ""),
     ("api.routes.config", ""),
-    ("api.routes.onboarding", "/api"),
     ("api.routes.repos", ""),
     ("api.routes.tools_ops", ""),
     ("api.routes.agents", ""),
@@ -267,7 +229,6 @@ core_routers = [
     ("api.routes.usage_metrics", ""),
     ("api.routes.sso", ""),
     ("api.routes.health", ""),
-    ("api.routes.evolution", ""),
     ("api.routes.api_keys", ""),
     ("api.routes.ci_webhooks", ""),
     ("api.routes.task_workspace", "/api/v1"),

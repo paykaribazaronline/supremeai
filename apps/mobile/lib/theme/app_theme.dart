@@ -12,7 +12,8 @@ class AppTheme {
     useMaterial3: true,
     scaffoldBackgroundColor: DesignTokens.colorBgVoidLight,
     textTheme: const TextTheme(
-      displayLarge: TextStyle(color: DesignTokens.colorTextPrimaryLight, fontSize: DesignTokens.fontSize3xl, fontWeight: DesignTokens.fontWeightBold),
+      // ফন্ট সাইজ টোকেনের নাম fontSize3xl থেকে fontSize_3xl এ আপডেট করা হয়েছে
+      displayLarge: TextStyle(color: DesignTokens.colorTextPrimaryLight, fontSize: DesignTokens.fontSize_3xl, fontWeight: DesignTokens.fontWeightBold),
       headlineMedium: TextStyle(color: DesignTokens.colorTextPrimaryLight, fontSize: DesignTokens.fontSizeXl, fontWeight: DesignTokens.fontWeightSemibold),
       bodyLarge: TextStyle(color: DesignTokens.colorTextPrimaryLight, fontSize: DesignTokens.fontSizeBase, fontWeight: DesignTokens.fontWeightRegular),
       bodyMedium: TextStyle(color: DesignTokens.colorTextSecondaryLight, fontSize: DesignTokens.fontSizeSm, fontWeight: DesignTokens.fontWeightRegular),
@@ -30,7 +31,8 @@ class AppTheme {
     useMaterial3: true,
     scaffoldBackgroundColor: DesignTokens.colorBgVoidDark,
     textTheme: const TextTheme(
-      displayLarge: TextStyle(color: DesignTokens.colorTextPrimaryDark, fontSize: DesignTokens.fontSize3xl, fontWeight: DesignTokens.fontWeightBold),
+      // ডার্ক মোডের জন্যও ফন্ট সাইজের নাম আপডেট করা হলো
+      displayLarge: TextStyle(color: DesignTokens.colorTextPrimaryDark, fontSize: DesignTokens.fontSize_3xl, fontWeight: DesignTokens.fontWeightBold),
       headlineMedium: TextStyle(color: DesignTokens.colorTextPrimaryDark, fontSize: DesignTokens.fontSizeXl, fontWeight: DesignTokens.fontWeightSemibold),
       bodyLarge: TextStyle(color: DesignTokens.colorTextPrimaryDark, fontSize: DesignTokens.fontSizeBase, fontWeight: DesignTokens.fontWeightRegular),
       bodyMedium: TextStyle(color: DesignTokens.colorTextSecondaryDark, fontSize: DesignTokens.fontSizeSm, fontWeight: DesignTokens.fontWeightRegular),

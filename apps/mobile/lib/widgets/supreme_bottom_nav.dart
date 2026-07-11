@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import '../theme/colors.dart';
+import 'package:supremeai/theme/colors.dart'; // SupremeColors ইমপোর্ট ঠিক করা হলো
 import '../services/localization_service.dart';
 
 class SupremeBottomNav extends StatelessWidget {
