@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+
 # Add project root to sys.path so 'skills' module can be imported
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
@@ -133,13 +134,15 @@ app.add_middleware(IdempotencyMiddleware)
 app.add_middleware(APIKeyAuthMiddleware)
 
 
+from slowapi import Limiter
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi import Limiter
 from slowapi.util import get_remote_address
+
 
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
+
 
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:

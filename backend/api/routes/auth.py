@@ -82,7 +82,7 @@ async def login(body: LoginRequest):
         )
 
     # Fallback logic: If SSO is not configured or fails, use local credentials
-    
+
     # 🟢 Dev/Fallback Mode: Generate a token for local testing or emergency fallback
     user_id = f"dev_{body.username.split('@')[0]}"
     primary_role = "admin" if "admin" in body.username else "user"

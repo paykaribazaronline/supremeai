@@ -5,8 +5,6 @@ import sys
 import uvicorn
 from loguru import logger
 
-from api.routes.admin import router as admin_router
-
 from core.app import app  # noqa: F401
 from core.config import settings
 from core.logging_config import setup_logging

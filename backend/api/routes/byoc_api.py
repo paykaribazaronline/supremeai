@@ -9,10 +9,10 @@ from datetime import datetime
 
 from fastapi import APIRouter
 from fastapi import BackgroundTasks
-from fastapi import HTTPException
 from fastapi import Depends
-from api.dependencies import get_current_user_token
+from fastapi import HTTPException
 
+from api.dependencies import get_current_user_token
 from byoc.cloud_connector import GCPCredentialManager
 from byoc.container_orchestrator import ContainerOrchestrator
 from models.byoc_payloads import BYOCCredentialsPayload
@@ -32,10 +32,7 @@ encrypted_vault: dict[str, bytes] = {}
 # 🔐 ROUTE: Upload & Encrypt Credentials
 # ==========================================
 @router.post("/credentials")
-async def save_credentials(
-    payload: BYOCCredentialsPayload,
-    token_payload: dict = Depends(get_current_user_token)
-):
+async def save_credentials(payload: BYOCCredentialsPayload, token_payload: dict = Depends(get_current_user_token)):
     """
     Encrypts and saves client-provided cloud service credentials securely.
     """
@@ -62,11 +59,7 @@ async def save_credentials(
 # 🚀 ROUTE: Trigger Terraform Container Deploy
 # ==========================================
 @router.post("/deploy")
-async def deploy_container(
-    payload: BYOCDeployRequest,
-    background_tasks: BackgroundTasks,
-    token_payload: dict = Depends(get_current_user_token)
-):
+async def deploy_container(payload: BYOCDeployRequest, background_tasks: BackgroundTasks, token_payload: dict = Depends(get_current_user_token)):
     """
     Checks user tier quota limits and starts background container deployment.
     """

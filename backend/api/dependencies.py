@@ -6,12 +6,14 @@ from loguru import logger
 
 from core.security import verify_token
 from core.tenant_db import TenantAwareFirestore
+from evolution.fitness_engine import FitnessEngine
 
 # শেয়ার্ড ইউটিলিটি — টেস্ট এনভায়রনমেন্ট চেক কেন্দ্রীভূত
 from utils.environment import is_test_environment
-from evolution.fitness_engine import FitnessEngine
+
 
 _fitness_engine = FitnessEngine()
+
 
 def get_fitness_engine() -> FitnessEngine:
     return _fitness_engine

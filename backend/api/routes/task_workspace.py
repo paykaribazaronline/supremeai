@@ -1,10 +1,10 @@
 from fastapi import APIRouter
 from fastapi import BackgroundTasks
-from fastapi import HTTPException
 from fastapi import Depends
+from fastapi import HTTPException
 from pydantic import BaseModel
-from api.dependencies import get_current_user_token
 
+from api.dependencies import get_current_user_token
 from core.llm_gateway import llm_gateway
 
 
@@ -29,11 +29,7 @@ class TaskPayload(BaseModel):
 # 🚀 ROUTE: /task/execute
 # ==========================================
 @router.post("/execute")
-async def execute_task(
-    payload: TaskPayload,
-    background_tasks: BackgroundTasks,
-    token_payload: dict = Depends(get_current_user_token)
-):
+async def execute_task(payload: TaskPayload, background_tasks: BackgroundTasks, token_payload: dict = Depends(get_current_user_token)):
     """
     Handles user prompts from the Vanilla JS Customer Dashboard.
     Integrates Redis rate limiting, RAM conversation history, and Supabase persistent storage.

@@ -20,7 +20,8 @@ from pydantic import Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from api.dependencies import get_tenant_db, get_fitness_engine
+from api.dependencies import get_fitness_engine
+from api.dependencies import get_tenant_db
 from core.config import settings
 from core.tenant_db import TenantAwareFirestore
 from database.session import get_db_session

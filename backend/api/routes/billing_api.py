@@ -12,23 +12,25 @@ from fastapi import HTTPException
 from fastapi import Request
 from fastapi import status
 from loguru import logger
-from api.dependencies import get_current_user_token
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm.exc import StaleDataError
 
+from api.dependencies import get_current_user_token
+from core.config import settings
+from core.gcp_firestore import get_firestore_client
 from core.token_deductor import TokenDeductor
 from database.session import get_db_session
 from models.wallet import TransactionLedgerEntry
 from models.wallet import UserWallet
-from pydantic import BaseModel
-from core.gcp_firestore import get_firestore_client
-from core.config import settings
+
 
 class CheckoutRequest(BaseModel):
     price_id: str
     success_url: str
     cancel_url: str
+
 
 router = APIRouter(prefix="/api/billing", tags=["Billing & Credit Wallet"])
 token_deductor = TokenDeductor()
@@ -136,14 +138,11 @@ async def get_subscription_plans():
 # 💳 ROUTE: Create Checkout Session
 # ==========================================
 @router.post("/checkout")
-async def create_checkout_session(
-    payload: CheckoutRequest,
-    token_payload: dict = Depends(get_current_user_token)
-):
+async def create_checkout_session(payload: CheckoutRequest, token_payload: dict = Depends(get_current_user_token)):
     user_id = token_payload.get("sub")
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token")
-        
+
     try:
         stripe_key = settings.stripe_api_key
         if not stripe_key:
@@ -226,7 +225,7 @@ async def stripe_webhook(request: Request, session: AsyncSession = Depends(get_d
                 session.add(entry)
 
             logger.success(f"Successfully credited ${amount_received} to user {user_id}")
-            
+
         elif event["type"] == "checkout.session.completed":
             session_obj = event["data"]["object"]
             user_id = session_obj.get("client_reference_id")
