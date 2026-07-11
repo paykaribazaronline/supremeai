@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T19:26:12.002983
+Generated at: 2026-07-11T19:51:42.108217
 
 
 ## File: `pnpm-lock.yaml`
@@ -106103,6 +106103,12 @@ def setup_litellm():
     litellm.telemetry = False
     yield
 
+@pytest.fixture(autouse=True)
+def disable_semantic_cache(monkeypatch):
+    from unittest.mock import AsyncMock
+    monkeypatch.setattr("core.semantic_cache.SemanticCache.query_similar", AsyncMock(return_value=None))
+    yield
+
 
 def test_load_routing_policy_file_not_found(monkeypatch, tmp_path):
     monkeypatch.setattr(
@@ -114918,13 +114924,14 @@ class TestIdempotencyMiddleware:
         }
 
         from unittest.mock import patch
-        
+
         with patch.dict("sys.modules"):
             if "pytest" in sys.modules:
                 del sys.modules["pytest"]
-            
+
             with patch.dict(os.environ, {"ENV": "production"}):
                 import core.services as app_mod
+
                 with patch.object(app_mod, "redis_queue", None):
                     await middleware(scope, MagicMock(), MagicMock())
                     mock_app.assert_called_once()
@@ -124510,10 +124517,10 @@ def reset_global_state():
     বাংলা মন্তব্য: প্রতিটি test-এর পর global browser state reset করে।
     Module-level globals clean রাখার জন্য।
     """
-    yield
-    # Cleanup after test
     import core.playwright_manager as pm
-
+    pm._global_browser = None
+    pm._playwright_runner = None
+    yield
     pm._global_browser = None
     pm._playwright_runner = None
 
@@ -136981,9 +136988,20 @@ from unittest.mock import patch
 import httpx
 import pytest
 
+from core.playwright_manager import get_global_browser
 from tools.browser_agent import BrowserAgent
 from core.playwright_manager import get_global_browser
 from core.security_utils import is_safe_url
+
+
+@pytest.fixture(autouse=True)
+def reset_global_state():
+    import core.playwright_manager as pm
+    pm._global_browser = None
+    pm._playwright_runner = None
+    yield
+    pm._global_browser = None
+    pm._playwright_runner = None
 
 
 # pytest-asyncio ব্যবহারের জন্য এই ফাইলএর সমস্ত টেস্টকে async হিসেবে চিহ্নিত করা হলো

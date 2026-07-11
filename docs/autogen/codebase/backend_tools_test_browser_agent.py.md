@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/test_browser_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,170 বাইট  
-**আপডেট:** 2026-07-11T19:26:12.109305
+**সাইজ:** 9,460 বাইট  
+**আপডেট:** 2026-07-11T19:51:42.246296
 
 ---
 
@@ -17,9 +17,20 @@ from unittest.mock import patch
 import httpx
 import pytest
 
+from core.playwright_manager import get_global_browser
 from tools.browser_agent import BrowserAgent
 from core.playwright_manager import get_global_browser
 from core.security_utils import is_safe_url
+
+
+@pytest.fixture(autouse=True)
+def reset_global_state():
+    import core.playwright_manager as pm
+    pm._global_browser = None
+    pm._playwright_runner = None
+    yield
+    pm._global_browser = None
+    pm._playwright_runner = None
 
 
 # pytest-asyncio ব্যবহারের জন্য এই ফাইলএর সমস্ত টেস্টকে async হিসেবে চিহ্নিত করা হলো

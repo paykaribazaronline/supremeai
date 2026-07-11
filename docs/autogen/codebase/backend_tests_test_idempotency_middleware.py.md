@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_idempotency_middleware.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,400 বাইট  
-**আপডেট:** 2026-07-11T19:26:12.088696
+**সাইজ:** 3,381 বাইট  
+**আপডেট:** 2026-07-11T19:51:42.221249
 
 ---
 
@@ -83,13 +83,14 @@ class TestIdempotencyMiddleware:
         }
 
         from unittest.mock import patch
-        
+
         with patch.dict("sys.modules"):
             if "pytest" in sys.modules:
                 del sys.modules["pytest"]
-            
+
             with patch.dict(os.environ, {"ENV": "production"}):
                 import core.services as app_mod
+
                 with patch.object(app_mod, "redis_queue", None):
                     await middleware(scope, MagicMock(), MagicMock())
                     mock_app.assert_called_once()

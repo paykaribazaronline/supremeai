@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/core/test_playwright_manager.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,265 বাইট  
-**আপডেট:** 2026-07-11T19:26:12.098297
+**সাইজ:** 14,302 বাইট  
+**আপডেট:** 2026-07-11T19:51:42.233360
 
 ---
 
@@ -32,10 +32,10 @@ def reset_global_state():
     বাংলা মন্তব্য: প্রতিটি test-এর পর global browser state reset করে।
     Module-level globals clean রাখার জন্য।
     """
-    yield
-    # Cleanup after test
     import core.playwright_manager as pm
-
+    pm._global_browser = None
+    pm._playwright_runner = None
+    yield
     pm._global_browser = None
     pm._playwright_runner = None
 
