@@ -72,13 +72,14 @@ class TestIdempotencyMiddleware:
         }
 
         from unittest.mock import patch
-        
+
         with patch.dict("sys.modules"):
             if "pytest" in sys.modules:
                 del sys.modules["pytest"]
-            
+
             with patch.dict(os.environ, {"ENV": "production"}):
                 import core.services as app_mod
+
                 with patch.object(app_mod, "redis_queue", None):
                     await middleware(scope, MagicMock(), MagicMock())
                     mock_app.assert_called_once()
