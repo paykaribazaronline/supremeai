@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/API-swagger.yaml
 
 **প্রকার:** .yaml  
-**সাইজ:** 237,430 বাইট  
-**আপডেট:** 2026-07-11T17:16:16.844579
+**সাইজ:** 248,567 বাইট  
+**আপডেট:** 2026-07-11T17:37:52.597031
 
 ---
 
@@ -15,6 +15,30 @@ info:
   description: Multi-cloud AI orchestration platform with zero-cost edge computing.
   version: 2.0.0
 paths:
+  /health:
+    get:
+      summary: Health Check
+      operationId: health_check_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /actuator/health:
+    get:
+      summary: Actuator Health
+      operationId: actuator_health_actuator_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+                title: Response Actuator Health Actuator Health Get
   /api/admin/login:
     post:
       summary: Admin Login
@@ -2526,6 +2550,259 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/auth/login:
+    post:
+      tags:
+      - auth
+      summary: Login
+      operationId: login_api_v1_auth_login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/auth/me:
+    get:
+      tags:
+      - auth
+      summary: Me
+      operationId: me_api_v1_auth_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+      security:
+      - OAuth2PasswordBearer: []
+  /api/v1/onboarding/onboarding/complete:
+    post:
+      tags:
+      - onboarding
+      summary: Complete Onboarding
+      description: 'Complete user onboarding:
+
+        1. Validate API key against provider
+
+        2. Save user preferences (theme, model, language)
+
+        3. Return readiness status'
+      operationId: complete_onboarding_api_v1_onboarding_onboarding_complete_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardingPayload'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/onboarding/onboarding/status/{user_id}:
+    get:
+      tags:
+      - onboarding
+      summary: Get Onboarding Status
+      description: Check if a user has completed onboarding.
+      operationId: get_onboarding_status_api_v1_onboarding_onboarding_status__user_id__get
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Get Onboarding Status Api V1 Onboarding Onboarding
+                  Status  User Id  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/onboarding/onboarding/reset/{user_id}:
+    delete:
+      tags:
+      - onboarding
+      summary: Reset Onboarding
+      description: Reset onboarding state (for testing/support).
+      operationId: reset_onboarding_api_v1_onboarding_onboarding_reset__user_id__delete
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+                title: Response Reset Onboarding Api V1 Onboarding Onboarding Reset  User
+                  Id  Delete
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/evolution/api/evolution/logs:
+    get:
+      tags:
+      - self-evolution-engine
+      summary: Get Evolution Logs
+      operationId: get_evolution_logs_api_v1_evolution_api_evolution_logs_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /api/v1/evolution/api/evolution/forge:
+    post:
+      tags:
+      - self-evolution-engine
+      summary: Forge Dynamic Skill
+      description: On-the-fly AI Skill Generation and Sandbox Deployed Gate.
+      operationId: forge_dynamic_skill_api_v1_evolution_api_evolution_forge_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvolutionRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/evolution/api/evolution/swarm-graph:
+    get:
+      tags:
+      - self-evolution-engine
+      summary: Get Swarm Graph
+      operationId: get_swarm_graph_api_v1_evolution_api_evolution_swarm_graph_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/evolution/api/evolution/quarantine:
+    post:
+      tags:
+      - self-evolution-engine
+      summary: Quarantine Skill
+      operationId: quarantine_skill_api_v1_evolution_api_evolution_quarantine_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuarantineRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /api/v1/evolution/api/evolution/proposals:
+    get:
+      tags:
+      - self-evolution-engine
+      summary: List Proposals
+      description: List all pending AI code proposals for admin review.
+      operationId: list_proposals_api_v1_evolution_api_evolution_proposals_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /api/v1/evolution/api/evolution/proposals/{proposal_id}/approve:
+    post:
+      tags:
+      - self-evolution-engine
+      summary: Approve Proposal
+      description: Manually approve a proposal after security review.
+      operationId: approve_proposal_api_v1_evolution_api_evolution_proposals__proposal_id__approve_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: proposal_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Proposal Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /admin-api/logs/stream:
     get:
       tags:
@@ -4409,16 +4686,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /health:
-    get:
-      summary: Health Check
-      operationId: health_check_health_get
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
   /api/api-keys/create:
     post:
       tags:
@@ -7079,6 +7346,19 @@ components:
       required:
       - medications
       title: DrugInteractionRequest
+    EvolutionRequest:
+      properties:
+        skill_name:
+          type: string
+          title: Skill Name
+        user_demand:
+          type: string
+          title: User Demand
+      type: object
+      required:
+      - skill_name
+      - user_demand
+      title: EvolutionRequest
     FeedbackEvent:
       properties:
         event_type:
@@ -7437,6 +7717,19 @@ components:
       required:
       - document_text
       title: LegalAnalysisRequest
+    LoginRequest:
+      properties:
+        username:
+          type: string
+          title: Username
+        password:
+          type: string
+          title: Password
+      type: object
+      required:
+      - username
+      - password
+      title: LoginRequest
     MarkdownExportRequest:
       properties:
         root_dir:
@@ -7464,6 +7757,25 @@ components:
           title: Clone Url
       type: object
       title: MarkdownExportRequest
+    MeResponse:
+      properties:
+        user_id:
+          type: string
+          title: User Id
+        role:
+          type: string
+          title: Role
+        scopes:
+          items:
+            type: string
+          type: array
+          title: Scopes
+          default: []
+      type: object
+      required:
+      - user_id
+      - role
+      title: MeResponse
     MobileChatRequest:
       properties:
         message:
@@ -7545,6 +7857,74 @@ components:
       - authorization_url
       - state
       title: OIDCLoginResponse
+    OnboardingPayload:
+      properties:
+        user_id:
+          type: string
+          title: User Id
+        provider:
+          type: string
+          title: Provider
+          default: openrouter
+        api_key:
+          type: string
+          title: Api Key
+        default_model:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Default Model
+          default: gpt-4o-mini
+        theme:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Theme
+          default: dark
+        language:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Language
+          default: en
+        first_chat_sent:
+          type: boolean
+          title: First Chat Sent
+          default: false
+      type: object
+      required:
+      - user_id
+      - api_key
+      title: OnboardingPayload
+    OnboardingResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+        user_id:
+          type: string
+          title: User Id
+        provider_valid:
+          type: boolean
+          title: Provider Valid
+        model_ready:
+          type: boolean
+          title: Model Ready
+        message:
+          type: string
+          title: Message
+        setup_complete:
+          type: boolean
+          title: Setup Complete
+      type: object
+      required:
+      - status
+      - user_id
+      - provider_valid
+      - model_ready
+      - message
+      - setup_complete
+      title: OnboardingResponse
     PRCommentPayload:
       properties:
         repo_full_name:
@@ -7757,6 +8137,17 @@ components:
       required:
       - files_changed
       title: PushRequest
+    QuarantineRequest:
+      properties:
+        skill_name:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Skill Name
+      type: object
+      required:
+      - skill_name
+      title: QuarantineRequest
     RepoCreate:
       properties:
         id:
@@ -8667,6 +9058,27 @@ components:
       required:
       - repo_full_name
       title: ThreadSummaryRequest
+    TokenResponse:
+      properties:
+        access_token:
+          type: string
+          title: Access Token
+        token_type:
+          type: string
+          title: Token Type
+          default: bearer
+        user_id:
+          type: string
+          title: User Id
+        role:
+          type: string
+          title: Role
+      type: object
+      required:
+      - access_token
+      - user_id
+      - role
+      title: TokenResponse
     ToolCreate:
       properties:
         id:

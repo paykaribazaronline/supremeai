@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T17:16:16.795024
+Generated at: 2026-07-11T17:37:52.562180
 
 
 ## File: `pnpm-lock.yaml`
@@ -37017,6 +37017,109 @@ This document outlines potential security threats to the SupremeAI 2.0 authentic
   - **Recommendation:** Perform regular automated secret scanning on the codebase. Consolidate the two `config.py` files to ensure consistent security validation logic is applied across the entire application.
 ```
 
+## File: `fix_tests.py`
+
+```py
+import re
+
+filepath = 'backend/core/app.py'
+with open(filepath, 'r', encoding='utf-8') as f:
+    content = f.read()
+
+# Add imports
+if 'from core import services' not in content:
+    content = content.replace('from core import lifespan', 'from core import lifespan\nfrom core import services\nfrom typing import Any')
+
+# Add health and actuator endpoints
+endpoints = """
+@app.get("/health")
+async def health() -> dict[str, Any]:
+    redis_ok = False
+    if hasattr(services, 'redis_queue') and services.redis_queue.configured:
+        try:
+            services.redis_queue.set("health", "ok", ex=5)
+            redis_ok = services.redis_queue.get("health") == "ok"
+        except Exception as exc:  # noqa: BLE001
+            # বাংলা মন্তব্য: Anti-Suppression Rule
+            logger.error(f"Health check failed on redis connection: {exc}")
+            error_event_bus.emit(ErrorEvent(module="app.health", error_type="REDIS_HEALTH_FAIL", message=str(exc)[:200], severity="ERROR"))
+            redis_ok = False
+    else:
+        redis_ok = True
+
+    api_keys_ok = bool(
+        settings.openrouter_api_key or settings.gemini_api_key or settings.deepseek_api_key or settings.groq_api_key or settings.nvidia_api_key
+    )
+    checks = {
+        "redis": redis_ok,
+        "api_keys_configured": api_keys_ok,
+    }
+    all_ok = all(checks.values())
+    return {
+        "status": "ok" if all_ok else "degraded",
+        "orchestrator": "online",
+        "checks": checks,
+    }
+
+
+@app.get("/actuator/health")
+def actuator_health() -> dict[str, str]:
+    return {
+        "status": "UP",
+        "orchestrator": "online",
+    }
+
+app.include_router(admin_router)
+"""
+content = content.replace('app.include_router(admin_router)', endpoints)
+
+# Restore core_routers
+routes_to_add = """    ("api.routes.marketplace", ""),
+    ("api.routes.auth", "/api/v1"),
+    ("api.routes.onboarding", "/api/v1/onboarding"),
+    ("api.routes.evolution", "/api/v1/evolution"),"""
+
+content = content.replace('    ("api.routes.marketplace", ""),', routes_to_add)
+
+with open(filepath, 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print("Patch applied")
+
+```
+
+## File: `fix_deploy.py`
+
+```py
+import re
+
+filepath = '.github/workflows/supreme-core-ci.yml'
+with open(filepath, 'r', encoding='utf-8') as f:
+    content = f.read()
+
+# Update deploy-frontend-prod if condition
+content = re.sub(
+    r"(deploy-frontend-prod:.*?if: \|\n.*?always\(\) && \n.*?github.ref == 'refs/heads/main' &&\n.*?needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled')",
+    r"\1 && needs.frontend-core.result != 'skipped'",
+    content,
+    flags=re.DOTALL
+)
+
+# Update deploy-to-vercel if condition
+content = re.sub(
+    r"(deploy-to-vercel:.*?if: \|\n.*?always\(\) && \n.*?github.ref == 'refs/heads/main' &&\n.*?needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled')",
+    r"\1 && needs.frontend-core.result != 'skipped'",
+    content,
+    flags=re.DOTALL
+)
+
+with open(filepath, 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print("Deploy fixes applied")
+
+```
+
 ## File: `playwright.config.ts`
 
 ```ts
@@ -63261,6 +63364,321 @@ requires-python = ">=3.11"
 
 ```
 
+## File: `backend/old_app.py`
+
+```py
+# backend/core/app.py
+# বাংলা মন্তব্য: সম্পূর্ণ রি-ফ্যাক্টর — Fail-Fast, No Suppression, Encapsulated Guards।
+# Missing env variant = sys.exit(1)
+# 100% Strict Typing and production-ready setup.
+
+import logging
+import os
+import secrets
+import sys
+from typing import Any
+
+import sentry_sdk
+from fastapi import Depends
+from fastapi import FastAPI
+from fastapi import HTTPException
+from fastapi import Request
+from fastapi import status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBasic
+from fastapi.security import HTTPBasicCredentials
+from loguru import logger
+
+from core import lifespan
+from core import services
+from core.admin_routes import router as admin_router
+from core.api_key_middleware import APIKeyAuthMiddleware
+from core.auth_middleware import AuthMiddleware
+from core.config import settings
+from core.event_bus import ErrorEvent
+from core.event_bus import error_event_bus
+from core.honeypot_middleware import HoneypotMiddleware
+from core.observability_middleware import ObservabilityMiddleware
+from core.origin_validator import TrustedOriginMiddleware
+from middleware.chaos_injector import ChaosInjectorMiddleware
+from middleware.idempotency import IdempotencyMiddleware
+
+
+class InterceptHandler(logging.Handler):
+    def emit(self, record: logging.LogRecord) -> None:
+        try:
+            level = logger.level(record.levelname).name
+        except ValueError:
+            level = str(record.levelno)
+        frame, depth = logging.currentframe(), 2
+
+        while frame and frame.f_code.co_filename == logging.__file__:
+            frame = frame.f_back
+            depth += 1
+        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+
+
+logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
+
+security = HTTPBasic()
+
+if settings.sentry_dsn:
+    try:
+        sentry_sdk.init(
+            dsn=settings.sentry_dsn,
+            traces_sample_rate=0.2 if settings.env.lower() == "production" else 1.0,
+            environment=settings.env,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.critical(f"Sentry SDK initialization failed. Configuration error: {exc}")
+        if os.getenv("ENV", "development").lower() != "test":
+            sys.exit(1)
+
+
+def _docs_auth(credentials: HTTPBasicCredentials = Depends(security)) -> str:
+    correct = secrets.compare_digest(credentials.username, settings.docs_username) and secrets.compare_digest(
+        credentials.password, settings.docs_password
+    )
+    if not correct:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
+
+
+def _maybe_docs_auth() -> list[Depends]:
+    if settings.docs_auth_enabled and not settings.debug:
+        return [Depends(_docs_auth)]
+    return []
+
+
+docs_auth_dep = _maybe_docs_auth()
+
+is_prod = settings.env.lower() == "production"
+docs_enabled = settings.debug or not is_prod or settings.docs_auth_enabled
+
+tags_metadata = [
+    {"name": "admin", "description": "God-mode admin operations."},
+    {"name": "agent", "description": "Autonomous agents execution and planning."},
+    {"name": "marketplace", "description": "Discover and manage AI skills and tools."},
+    {"name": "tools", "description": "Registry and management of integrated tools."},
+]
+
+app = FastAPI(
+    title=f"{settings.app_name} (Production Ready)",
+    description="Multi-cloud AI orchestration platform with zero-cost edge computing.",
+    version="2.0.0",
+    openapi_tags=tags_metadata,
+    debug=settings.debug,
+    docs_url="/docs" if docs_enabled else None,
+    redoc_url="/redoc" if docs_enabled else None,
+    openapi_url="/openapi.json" if docs_enabled else None,
+    dependencies=docs_auth_dep,
+)
+
+# বাংলা মন্তব্য: CORS Configuration. No wildcard allowed.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Request-ID", "X-Tenant-ID", "X-API-Key"],
+)
+
+app.add_middleware(TrustedOriginMiddleware)
+app.add_middleware(ChaosInjectorMiddleware)
+app.add_middleware(ObservabilityMiddleware)
+app.add_middleware(HoneypotMiddleware)
+app.add_middleware(AuthMiddleware)
+# বাংলা মন্তব্য: Removed missing RateLimitMiddleware. APIKeyRateLimiter handles it inside its scope.
+app.add_middleware(IdempotencyMiddleware)
+app.add_middleware(APIKeyAuthMiddleware)
+
+
+@app.exception_handler(HTTPException)
+async def custom_http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "title": "Task Execution Failed",
+            "detail": exc.detail,
+            "instance": request.url.path,
+        },
+    )
+
+
+@app.get("/health")
+async def health() -> dict[str, Any]:
+    redis_ok = False
+    if services.redis_queue.configured:
+        try:
+            services.redis_queue.set("health", "ok", ex=5)
+            redis_ok = services.redis_queue.get("health") == "ok"
+        except Exception as exc:  # noqa: BLE001
+            # বাংলা মন্তব্য: Anti-Suppression Rule
+            logger.error(f"Health check failed on redis connection: {exc}")
+            error_event_bus.emit(ErrorEvent(module="app.health", error_type="REDIS_HEALTH_FAIL", message=str(exc)[:200], severity="ERROR"))
+            redis_ok = False
+    else:
+        redis_ok = True
+
+    api_keys_ok = bool(
+        settings.openrouter_api_key or settings.gemini_api_key or settings.deepseek_api_key or settings.groq_api_key or settings.nvidia_api_key
+    )
+    checks = {
+        "redis": redis_ok,
+        "api_keys_configured": api_keys_ok,
+    }
+    all_ok = all(checks.values())
+    return {
+        "status": "ok" if all_ok else "degraded",
+        "orchestrator": "online",
+        "checks": checks,
+    }
+
+
+@app.get("/actuator/health")
+def actuator_health() -> dict[str, str]:
+    return {
+        "status": "UP",
+        "orchestrator": "online",
+    }
+
+
+def _safe_include_router(app: FastAPI, router_module: str, prefix: str = "") -> None:
+    """বাংলা মন্তব্য: Lazy loader with strict exception handling and fail-fast."""
+    import importlib
+
+    try:
+        module = importlib.import_module(router_module)
+        router = getattr(module, "router", None)
+        if router:
+            app.include_router(router, prefix=prefix)
+    except ImportError as exc:
+        logger.warning(f"Optional router {router_module} not installed/found: {exc}")
+        error_event_bus.emit(
+            ErrorEvent(
+                module="app",
+                error_type="ROUTER_NOT_FOUND",
+                message=str(exc)[:200],
+                severity="WARNING",
+                context={"router_module": router_module},
+            )
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.critical(f"Critical error loading router {router_module}: {exc}")
+        error_event_bus.emit(
+            ErrorEvent(
+                module="app",
+                error_type="ROUTER_LOAD_FAILED",
+                message=str(exc)[:500],
+                severity="CRITICAL",
+                context={"router_module": router_module},
+            )
+        )
+        # বাংলা মন্তব্য: Fail-fast on configuration or initialization errors
+        sys.exit(1)
+
+
+app.include_router(admin_router)
+
+# Core Routers
+core_routers = [
+    ("api.routes.memory", ""),
+    ("api.routes.task", ""),
+    ("api.routes.markdown", "/api/v1"),
+    ("api.routes.simulator", ""),
+    ("api.routes.site_actions", ""),
+    ("api.routes.llm_gateway", ""),
+    ("api.routes.browser", ""),
+    ("api.routes.stream", ""),
+    ("api.routes.agent", ""),
+    ("api.routes.async_task", ""),
+    ("api.routes.cdc", ""),
+    ("api.routes.media", ""),
+    ("api.routes.graph", ""),
+    ("api.routes.knowledge", ""),
+    ("api.routes.marketplace", ""),
+    ("api.routes.auth", ""),
+    ("api.routes.admin_dashboard", ""),
+    ("api.routes.email", ""),
+    ("api.routes.github", ""),
+    ("api.routes.internal", ""),
+    ("api.routes.config", ""),
+    ("api.routes.onboarding", ""),
+    ("api.routes.repos", ""),
+    ("api.routes.tools_ops", ""),
+    ("api.routes.agents", ""),
+    ("api.routes.tools_registry", ""),
+    ("api.routes.preferences", ""),
+    ("api.routes.usage_metrics", ""),
+    ("api.routes.payments", ""),
+    ("api.routes.sso", ""),
+    ("api.routes.health", ""),
+    ("api.routes.evolution", ""),
+    ("api.routes.api_keys", ""),
+    ("api.routes.ci_webhooks", ""),
+    ("core.orchestrator", ""),
+]
+
+for router_path, prefix in core_routers:
+    _safe_include_router(app, router_path, prefix)
+
+# Optional / External Tools Routers
+optional_routers = [
+    ("api.routes.websocket_voice", ""),
+    ("tools.collaborative_editor", "/api/v1"),
+    ("tools.image_to_code", ""),
+    ("tools.browser_agent", "/api"),
+    ("tools.voice_coder", "/api"),
+    ("tools.style_learner", "/api"),
+    ("tools.diagram_to_architecture", "/api"),
+    ("tools.ai_pair_programmer", "/api"),
+    ("api.routes.onboarding", "/api"),
+    ("api.routes.evolution", ""),
+    ("api.routes.codeflow", ""),
+    ("api.routes.feedback", ""),
+    ("tools.multilingual_tts", "/api"),
+    ("api.routes.voice", "/api/voice"),
+    ("tools.comment_thread_ai", "/api"),
+    ("tools.auto_test_generator", "/api"),
+    ("api.routes.tenant_admin", "/api"),
+    ("api.routes.mobile_bff", ""),
+    ("api.routes.billing_api", ""),
+    ("api.routes.metrics", ""),
+    ("api.routes.cloud_mesh", ""),
+    ("api.routes.events", "/api"),
+]
+
+for router_path, prefix in optional_routers:
+    _safe_include_router(app, router_path, prefix)
+
+
+if os.getenv("SUPREMEAI_ENCRYPTION_KEY"):
+    _safe_include_router(app, "api.routes.byoc_api", "")
+else:
+    logger.warning("Universal BYOC router not loaded: SUPREMEAI_ENCRYPTION_KEY missing")
+
+app.router.lifespan_context = lifespan.app_lifespan
+
+
+def router_health_check(fastapi_app: FastAPI) -> None:
+    expected_count = 20
+    if len(fastapi_app.routes) < expected_count:
+        logger.critical(
+            f"🔥 CRITICAL: Only {len(fastapi_app.routes)} routes loaded. Expected at least {expected_count}. Some routers failed to load!"
+        )
+        # বাংলা মন্তব্য: Strict fail-fast rule
+        sys.exit(1)
+
+
+router_health_check(app)
+
+```
+
 ## File: `backend/fix_coverage_tests.py`
 
 ```py
@@ -63636,6 +64054,30 @@ info:
   description: Multi-cloud AI orchestration platform with zero-cost edge computing.
   version: 2.0.0
 paths:
+  /health:
+    get:
+      summary: Health Check
+      operationId: health_check_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /actuator/health:
+    get:
+      summary: Actuator Health
+      operationId: actuator_health_actuator_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+                title: Response Actuator Health Actuator Health Get
   /api/admin/login:
     post:
       summary: Admin Login
@@ -66147,6 +66589,259 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/auth/login:
+    post:
+      tags:
+      - auth
+      summary: Login
+      operationId: login_api_v1_auth_login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/auth/me:
+    get:
+      tags:
+      - auth
+      summary: Me
+      operationId: me_api_v1_auth_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+      security:
+      - OAuth2PasswordBearer: []
+  /api/v1/onboarding/onboarding/complete:
+    post:
+      tags:
+      - onboarding
+      summary: Complete Onboarding
+      description: 'Complete user onboarding:
+
+        1. Validate API key against provider
+
+        2. Save user preferences (theme, model, language)
+
+        3. Return readiness status'
+      operationId: complete_onboarding_api_v1_onboarding_onboarding_complete_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardingPayload'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/onboarding/onboarding/status/{user_id}:
+    get:
+      tags:
+      - onboarding
+      summary: Get Onboarding Status
+      description: Check if a user has completed onboarding.
+      operationId: get_onboarding_status_api_v1_onboarding_onboarding_status__user_id__get
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Get Onboarding Status Api V1 Onboarding Onboarding
+                  Status  User Id  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/onboarding/onboarding/reset/{user_id}:
+    delete:
+      tags:
+      - onboarding
+      summary: Reset Onboarding
+      description: Reset onboarding state (for testing/support).
+      operationId: reset_onboarding_api_v1_onboarding_onboarding_reset__user_id__delete
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+                title: Response Reset Onboarding Api V1 Onboarding Onboarding Reset  User
+                  Id  Delete
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/evolution/api/evolution/logs:
+    get:
+      tags:
+      - self-evolution-engine
+      summary: Get Evolution Logs
+      operationId: get_evolution_logs_api_v1_evolution_api_evolution_logs_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /api/v1/evolution/api/evolution/forge:
+    post:
+      tags:
+      - self-evolution-engine
+      summary: Forge Dynamic Skill
+      description: On-the-fly AI Skill Generation and Sandbox Deployed Gate.
+      operationId: forge_dynamic_skill_api_v1_evolution_api_evolution_forge_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvolutionRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/evolution/api/evolution/swarm-graph:
+    get:
+      tags:
+      - self-evolution-engine
+      summary: Get Swarm Graph
+      operationId: get_swarm_graph_api_v1_evolution_api_evolution_swarm_graph_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/v1/evolution/api/evolution/quarantine:
+    post:
+      tags:
+      - self-evolution-engine
+      summary: Quarantine Skill
+      operationId: quarantine_skill_api_v1_evolution_api_evolution_quarantine_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuarantineRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /api/v1/evolution/api/evolution/proposals:
+    get:
+      tags:
+      - self-evolution-engine
+      summary: List Proposals
+      description: List all pending AI code proposals for admin review.
+      operationId: list_proposals_api_v1_evolution_api_evolution_proposals_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+      security:
+      - HTTPBearer: []
+  /api/v1/evolution/api/evolution/proposals/{proposal_id}/approve:
+    post:
+      tags:
+      - self-evolution-engine
+      summary: Approve Proposal
+      description: Manually approve a proposal after security review.
+      operationId: approve_proposal_api_v1_evolution_api_evolution_proposals__proposal_id__approve_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: proposal_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Proposal Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /admin-api/logs/stream:
     get:
       tags:
@@ -68030,16 +68725,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
-  /health:
-    get:
-      summary: Health Check
-      operationId: health_check_health_get
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema: {}
   /api/api-keys/create:
     post:
       tags:
@@ -70700,6 +71385,19 @@ components:
       required:
       - medications
       title: DrugInteractionRequest
+    EvolutionRequest:
+      properties:
+        skill_name:
+          type: string
+          title: Skill Name
+        user_demand:
+          type: string
+          title: User Demand
+      type: object
+      required:
+      - skill_name
+      - user_demand
+      title: EvolutionRequest
     FeedbackEvent:
       properties:
         event_type:
@@ -71058,6 +71756,19 @@ components:
       required:
       - document_text
       title: LegalAnalysisRequest
+    LoginRequest:
+      properties:
+        username:
+          type: string
+          title: Username
+        password:
+          type: string
+          title: Password
+      type: object
+      required:
+      - username
+      - password
+      title: LoginRequest
     MarkdownExportRequest:
       properties:
         root_dir:
@@ -71085,6 +71796,25 @@ components:
           title: Clone Url
       type: object
       title: MarkdownExportRequest
+    MeResponse:
+      properties:
+        user_id:
+          type: string
+          title: User Id
+        role:
+          type: string
+          title: Role
+        scopes:
+          items:
+            type: string
+          type: array
+          title: Scopes
+          default: []
+      type: object
+      required:
+      - user_id
+      - role
+      title: MeResponse
     MobileChatRequest:
       properties:
         message:
@@ -71166,6 +71896,74 @@ components:
       - authorization_url
       - state
       title: OIDCLoginResponse
+    OnboardingPayload:
+      properties:
+        user_id:
+          type: string
+          title: User Id
+        provider:
+          type: string
+          title: Provider
+          default: openrouter
+        api_key:
+          type: string
+          title: Api Key
+        default_model:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Default Model
+          default: gpt-4o-mini
+        theme:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Theme
+          default: dark
+        language:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Language
+          default: en
+        first_chat_sent:
+          type: boolean
+          title: First Chat Sent
+          default: false
+      type: object
+      required:
+      - user_id
+      - api_key
+      title: OnboardingPayload
+    OnboardingResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+        user_id:
+          type: string
+          title: User Id
+        provider_valid:
+          type: boolean
+          title: Provider Valid
+        model_ready:
+          type: boolean
+          title: Model Ready
+        message:
+          type: string
+          title: Message
+        setup_complete:
+          type: boolean
+          title: Setup Complete
+      type: object
+      required:
+      - status
+      - user_id
+      - provider_valid
+      - model_ready
+      - message
+      - setup_complete
+      title: OnboardingResponse
     PRCommentPayload:
       properties:
         repo_full_name:
@@ -71378,6 +72176,17 @@ components:
       required:
       - files_changed
       title: PushRequest
+    QuarantineRequest:
+      properties:
+        skill_name:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Skill Name
+      type: object
+      required:
+      - skill_name
+      title: QuarantineRequest
     RepoCreate:
       properties:
         id:
@@ -72288,6 +73097,27 @@ components:
       required:
       - repo_full_name
       title: ThreadSummaryRequest
+    TokenResponse:
+      properties:
+        access_token:
+          type: string
+          title: Access Token
+        token_type:
+          type: string
+          title: Token Type
+          default: bearer
+        user_id:
+          type: string
+          title: User Id
+        role:
+          type: string
+          title: Role
+      type: object
+      required:
+      - access_token
+      - user_id
+      - role
+      title: TokenResponse
     ToolCreate:
       properties:
         id:
@@ -79344,6 +80174,8 @@ from pathlib import Path
 # Add project root to sys.path so 'skills' module can be imported
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
+from typing import Any
+
 import sentry_sdk
 from fastapi import Depends
 from fastapi import FastAPI
@@ -79357,6 +80189,7 @@ from fastapi.security import HTTPBasicCredentials
 from loguru import logger
 
 from core import lifespan
+from core import services
 from core.admin_routes import router as admin_router
 from core.api_key_middleware import APIKeyAuthMiddleware
 from core.auth_middleware import AuthMiddleware
@@ -79523,7 +80356,46 @@ def _safe_include_router(app: FastAPI, router_module: str, prefix: str = "") -> 
         sys.exit(1)
 
 
+@app.get("/health")
+async def health() -> dict[str, Any]:
+    redis_ok = False
+    if hasattr(services, "redis_queue") and services.redis_queue.configured:
+        try:
+            services.redis_queue.set("health", "ok", ex=5)
+            redis_ok = services.redis_queue.get("health") == "ok"
+        except Exception as exc:  # noqa: BLE001
+            # বাংলা মন্তব্য: Anti-Suppression Rule
+            logger.error(f"Health check failed on redis connection: {exc}")
+            error_event_bus.emit(ErrorEvent(module="app.health", error_type="REDIS_HEALTH_FAIL", message=str(exc)[:200], severity="ERROR"))
+            redis_ok = False
+    else:
+        redis_ok = True
+
+    api_keys_ok = bool(
+        settings.openrouter_api_key or settings.gemini_api_key or settings.deepseek_api_key or settings.groq_api_key or settings.nvidia_api_key
+    )
+    checks = {
+        "redis": redis_ok,
+        "api_keys_configured": api_keys_ok,
+    }
+    all_ok = all(checks.values())
+    return {
+        "status": "ok" if all_ok else "degraded",
+        "orchestrator": "online",
+        "checks": checks,
+    }
+
+
+@app.get("/actuator/health")
+def actuator_health() -> dict[str, str]:
+    return {
+        "status": "UP",
+        "orchestrator": "online",
+    }
+
+
 app.include_router(admin_router)
+
 
 # Core Routers
 core_routers = [
@@ -79542,6 +80414,9 @@ core_routers = [
     ("api.routes.graph", ""),
     ("api.routes.knowledge", ""),
     ("api.routes.marketplace", ""),
+    ("api.routes.auth", "/api/v1"),
+    ("api.routes.onboarding", "/api/v1/onboarding"),
+    ("api.routes.evolution", "/api/v1/evolution"),
     ("api.routes.admin_dashboard", ""),
     ("api.routes.email", ""),
     ("api.routes.github", ""),
@@ -123624,9 +124499,1059 @@ def test_celery_app_exposed():
 
 ```
 
+## File: `backend/tests/core/test_playwright_manager.py`
+
+```py
+# backend/tests/core/test_playwright_manager.py
+# বাংলা মন্তব্য: Playwright manager-এর জন্য comprehensive unit tests।
+# Playwright browser mock করা হয়েছে — actual browser dependency ছাড়াই।
+
+import asyncio
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+import pytest
+
+from core.playwright_manager import get_global_browser
+from core.playwright_manager import shutdown_global_browser
+
+
+# -------------------- Fixtures --------------------
+
+
+@pytest.fixture(autouse=True)
+def reset_global_state():
+    """
+    বাংলা মন্তব্য: প্রতিটি test-এর পর global browser state reset করে।
+    Module-level globals clean রাখার জন্য।
+    """
+    yield
+    # Cleanup after test
+    import core.playwright_manager as pm
+
+    pm._global_browser = None
+    pm._playwright_runner = None
+
+
+@pytest.fixture
+def mock_browser():
+    """Mock Playwright browser instance।"""
+    browser = AsyncMock()
+    browser.close = AsyncMock()
+    return browser
+
+
+@pytest.fixture
+def mock_playwright_runner():
+    """Mock Playwright runner instance।"""
+    runner = AsyncMock()
+    runner.stop = AsyncMock()
+    return runner
+
+
+# -------------------- Tests: get_global_browser --------------------
+
+
+class TestGetGlobalBrowser:
+    """বাংলা মন্তব্য: get_global_browser() function-এর lazy initialization টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_creates_browser_when_none(self, mock_browser, mock_playwright_runner):
+        """বাংলা মন্তব্য: First call-এ নতুন browser create হয়।"""
+        mock_playwright = AsyncMock()
+        mock_playwright.start.return_value = mock_playwright_runner
+        mock_playwright_runner.chromium.launch.return_value = mock_browser
+
+        with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
+            with patch("core.playwright_manager.logger") as mock_logger:
+                browser = await get_global_browser()
+
+                assert browser is mock_browser
+                mock_logger.info.assert_called_once_with("🚀 Starting a new headless Global Chromium instance...")
+                mock_playwright_runner.chromium.launch.assert_called_once_with(
+                    headless=True,
+                    args=[
+                        "--no-sandbox",
+                        "--disable-setuid-sandbox",
+                        "--disable-dev-shm-usage",
+                    ],
+                )
+
+    @pytest.mark.asyncio
+    async def test_returns_existing_browser(self, mock_browser, mock_playwright_runner):
+        """বাংলা মন্তব্য: Second call-এ existing browser return হয় (singleton pattern)।"""
+        import core.playwright_manager as pm
+
+        pm._global_browser = mock_browser
+        pm._playwright_runner = mock_playwright_runner
+
+        with patch("core.playwright_manager.async_playwright") as mock_playwright:
+            browser = await get_global_browser()
+
+            assert browser is mock_browser
+            mock_playwright.assert_not_called()  # Should not create new instance
+
+    @pytest.mark.asyncio
+    async def test_raises_when_playwright_not_installed(self):
+        """বাংলা মন্তব্য: Playwright install না থাকলে RuntimeError raise হয়।"""
+        with patch("core.playwright_manager.async_playwright", None):
+            with pytest.raises(RuntimeError, match="Playwright is not installed"):
+                await get_global_browser()
+
+    @pytest.mark.asyncio
+    async def test_browser_launch_with_correct_args(self, mock_browser, mock_playwright_runner):
+        """বাংলা মন্তব্য: Browser launch করার সময় সঠিক arguments pass হয়।"""
+        mock_playwright = AsyncMock()
+        mock_playwright.start.return_value = mock_playwright_runner
+        mock_playwright_runner.chromium.launch.return_value = mock_browser
+
+        with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
+            await get_global_browser()
+
+            launch_call = mock_playwright_runner.chromium.launch.call_args
+            assert launch_call.kwargs["headless"] is True
+            assert launch_call.kwargs["args"] == [
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+            ]
+
+    @pytest.mark.asyncio
+    async def test_sets_global_variables(self, mock_browser, mock_playwright_runner):
+        """বাংলা মন্তব্য: Global variables সঠিকভাবে set হয়।"""
+        mock_playwright = AsyncMock()
+        mock_playwright.start.return_value = mock_playwright_runner
+        mock_playwright_runner.chromium.launch.return_value = mock_browser
+
+        with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
+            await get_global_browser()
+
+            import core.playwright_manager as pm
+
+            assert pm._global_browser is mock_browser
+            assert pm._playwright_runner is mock_playwright_runner
+
+
+# -------------------- Tests: shutdown_global_browser --------------------
+
+
+class TestShutdownGlobalBrowser:
+    """বাংলা মন্তব্য: shutdown_global_browser() function-এর cleanup logic টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_successful_shutdown(self, mock_browser, mock_playwright_runner):
+        """বাংলা মন্তব্য: Browser এবং runner properly close হয়।"""
+        import core.playwright_manager as pm
+
+        pm._global_browser = mock_browser
+        pm._playwright_runner = mock_playwright_runner
+
+        with patch("core.playwright_manager.logger") as mock_logger:
+            await shutdown_global_browser()
+
+            mock_browser.close.assert_called_once()
+            mock_playwright_runner.stop.assert_called_once()
+            assert pm._global_browser is None
+            assert pm._playwright_runner is None
+            mock_logger.info.assert_any_call("✅ All Playwright OS processes terminated cleanly.")
+
+    @pytest.mark.asyncio
+    async def test_shutdown_with_no_browser(self):
+        """বাংলা মন্তব্য: Browser না থাকলেও shutdown peacefully শেষ হয়।"""
+        import core.playwright_manager as pm
+
+        pm._global_browser = None
+        pm._playwright_runner = None
+
+        with patch("core.playwright_manager.logger") as mock_logger:
+            await shutdown_global_browser()
+
+            # Should not raise any error
+            assert pm._global_browser is None
+            assert pm._playwright_runner is None
+
+    @pytest.mark.asyncio
+    async def test_shutdown_with_browser_only(self, mock_browser):
+        """বাংলা মন্তব্য: Browser থাকলে শুধু browser close হয়।"""
+        import core.playwright_manager as pm
+
+        pm._global_browser = mock_browser
+        pm._playwright_runner = None
+
+        with patch("core.playwright_manager.logger") as mock_logger:
+            await shutdown_global_browser()
+
+            mock_browser.close.assert_called_once()
+            assert pm._global_browser is None
+            assert pm._playwright_runner is None
+
+    @pytest.mark.asyncio
+    async def test_shutdown_with_runner_only(self, mock_playwright_runner):
+        """বাংলা মন্তব্য: Runner থাকলে শুধু runner stop হয়।"""
+        import core.playwright_manager as pm
+
+        pm._global_browser = None
+        pm._playwright_runner = mock_playwright_runner
+
+        with patch("core.playwright_manager.logger") as mock_logger:
+            await shutdown_global_browser()
+
+            mock_playwright_runner.stop.assert_called_once()
+            assert pm._global_browser is None
+            assert pm._playwright_runner is None
+
+    @pytest.mark.asyncio
+    async def test_shutdown_handles_browser_close_error(self, mock_browser, mock_playwright_runner):
+        """বাংলা মন্তব্য: Browser close error handle করে runner stop করে।"""
+        mock_browser.close = AsyncMock(side_effect=RuntimeError("Browser close failed"))
+
+        import core.playwright_manager as pm
+
+        pm._global_browser = mock_browser
+        pm._playwright_runner = mock_playwright_runner
+
+        with patch("core.playwright_manager.logger") as mock_logger:
+            await shutdown_global_browser()
+
+            # Should log critical error but continue
+            mock_logger.critical.assert_called_once()
+            # Note: Due to exception handling, runner.stop() may not be called if browser.close() fails first
+            # Globals should be reset
+            assert pm._global_browser is None
+            assert pm._playwright_runner is None
+
+    @pytest.mark.asyncio
+    async def test_shutdown_handles_runner_stop_error(self, mock_browser, mock_playwright_runner):
+        """বাংলা মন্তব্য: Runner stop error handle করে।"""
+        mock_playwright_runner.stop = AsyncMock(side_effect=RuntimeError("Runner stop failed"))
+
+        import core.playwright_manager as pm
+
+        pm._global_browser = mock_browser
+        pm._playwright_runner = mock_playwright_runner
+
+        with patch("core.playwright_manager.logger") as mock_logger:
+            await shutdown_global_browser()
+
+            # Should log critical error
+            mock_logger.critical.assert_called_once()
+            # Browser should still be closed
+            mock_browser.close.assert_called_once()
+            # Globals should be reset
+            assert pm._global_browser is None
+            assert pm._playwright_runner is None
+
+    @pytest.mark.asyncio
+    async def test_shutdown_handles_os_error(self, mock_browser, mock_playwright_runner):
+        """বাংলা মন্তব্য: OSError handle করে gracefully।"""
+        mock_browser.close = AsyncMock(side_effect=OSError("OS error during close"))
+
+        import core.playwright_manager as pm
+
+        pm._global_browser = mock_browser
+        pm._playwright_runner = mock_playwright_runner
+
+        with patch("core.playwright_manager.logger") as mock_logger:
+            await shutdown_global_browser()
+
+            mock_logger.critical.assert_called_once()
+            assert pm._global_browser is None
+            assert pm._playwright_runner is None
+
+    @pytest.mark.asyncio
+    async def test_shutdown_handles_connection_error(self, mock_browser, mock_playwright_runner):
+        """বাংলা মন্তব্য: ConnectionError handle করে gracefully।"""
+        mock_browser.close = AsyncMock(side_effect=ConnectionError("Connection lost"))
+
+        import core.playwright_manager as pm
+
+        pm._global_browser = mock_browser
+        pm._playwright_runner = mock_playwright_runner
+
+        with patch("core.playwright_manager.logger") as mock_logger:
+            await shutdown_global_browser()
+
+            mock_logger.critical.assert_called_once()
+            assert pm._global_browser is None
+            assert pm._playwright_runner is None
+
+    @pytest.mark.asyncio
+    async def test_shutdown_logs_correct_messages(self, mock_browser, mock_playwright_runner):
+        """বাংলা মন্তব্য: Shutdown process-এ সঠিক log messages print হয়।"""
+        import core.playwright_manager as pm
+
+        pm._global_browser = mock_browser
+        pm._playwright_runner = mock_playwright_runner
+
+        with patch("core.playwright_manager.logger") as mock_logger:
+            await shutdown_global_browser()
+
+            # Verify all expected log messages
+            mock_logger.info.assert_any_call("🛡️ Initiating Playwright Global Lifespan Cleanup...")
+            mock_logger.info.assert_any_call("Closing active global Chromium engine...")
+            mock_logger.info.assert_any_call("Stopping playwright runner core context...")
+            mock_logger.info.assert_any_call("✅ All Playwright OS processes terminated cleanly.")
+
+
+# -------------------- Tests: Integration --------------------
+
+
+class TestPlaywrightManagerIntegration:
+    """বাংলা মন্তব্য: Integration-style tests for realistic scenarios।"""
+
+    @pytest.mark.asyncio
+    async def test_full_lifecycle(self, mock_browser, mock_playwright_runner):
+        """বাংলা মন্তব্য: Create এবং shutdown এর সম্পূর্ণ lifecycle।"""
+        mock_playwright = AsyncMock()
+        mock_playwright.start.return_value = mock_playwright_runner
+        mock_playwright_runner.chromium.launch.return_value = mock_browser
+
+        with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
+            # Create browser
+            browser1 = await get_global_browser()
+            assert browser1 is mock_browser
+
+            # Get again (should return same instance)
+            browser2 = await get_global_browser()
+            assert browser2 is mock_browser
+
+            # Shutdown
+            await shutdown_global_browser()
+
+            import core.playwright_manager as pm
+
+            assert pm._global_browser is None
+            assert pm._playwright_runner is None
+
+    @pytest.mark.asyncio
+    async def test_multiple_sequential_requests(self, mock_browser, mock_playwright_runner):
+        """বাংলা মন্তব্য: Multiple sequential requests একই browser return করে।"""
+        mock_playwright = AsyncMock()
+        mock_playwright.start.return_value = mock_playwright_runner
+        mock_playwright_runner.chromium.launch.return_value = mock_browser
+
+        with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
+            # Multiple requests
+            browsers = []
+            for _ in range(5):
+                browsers.append(await get_global_browser())
+
+            # All should be the same instance
+            assert all(b is mock_browser for b in browsers)
+            # Browser should be created only once
+            assert mock_playwright_runner.chromium.launch.call_count == 1
+
+```
+
 ## File: `backend/tests/core/test_container_auditor.py`
 
 ```py
+# backend/tests/core/test_container_auditor.py
+# বাংলা মন্তব্য: ContainerAuditor-এর জন্য comprehensive unit tests।
+# Docker commands mock করা হয়েছে — actual Docker dependency ছাড়াই।
+
+import asyncio
+import json
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+import pytest
+
+from core.container_auditor import ContainerAuditor
+
+
+# -------------------- Fixtures --------------------
+
+
+@pytest.fixture
+def auditor():
+    """ContainerAuditor ইনস্ট্যান্স ফেরত দেয়।"""
+    return ContainerAuditor(check_interval_seconds=1)
+
+
+@pytest.fixture
+def mock_docker_stats_output():
+    """Mock docker stats JSON output।"""
+    return json_lines(
+        [
+            {"Name": "container1", "MemPerc": "45.2%"},
+            {"Name": "container2", "MemPerc": "82.5%"},
+            {"Name": "container3", "MemPerc": "96.8%"},
+        ]
+    )
+
+
+def json_lines(items: list[dict]) -> str:
+    """List of dicts-কে newline-separated JSON string-এ রূপান্তর করে।"""
+    return "\n".join(json.dumps(item) for item in items)
+
+
+# -------------------- Tests: __init__ --------------------
+
+
+class TestContainerAuditorInit:
+    """বাংলা মন্তব্য: Initialization এবং attribute setting টেস্ট।"""
+
+    def test_default_initialization(self):
+        auditor = ContainerAuditor()
+        assert auditor.check_interval == 5
+        assert auditor.running is False
+
+    def test_custom_interval(self):
+        auditor = ContainerAuditor(check_interval_seconds=10)
+        assert auditor.check_interval == 10
+        assert auditor.running is False
+
+
+# -------------------- Tests: get_container_stats --------------------
+
+
+class TestGetContainerStats:
+    """বাংলা মন্তব্য: Docker stats fetching এবং error handling টেস্ট।"""
+
+    def test_successful_stats_fetch(self, auditor, mock_docker_stats_output):
+        """বাংলা মন্তব্য: সফলভাবে docker stats return হলে correct list-of-dicts পাওয়া যায়।"""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = mock_docker_stats_output
+        mock_result.stderr = ""
+
+        with patch("subprocess.run", return_value=mock_result) as mock_run:
+            stats = auditor.get_container_stats()
+
+            mock_run.assert_called_once()
+            call_kwargs = mock_run.call_args
+            assert call_kwargs.kwargs["capture_output"] is True
+            assert call_kwargs.kwargs["text"] is True
+            assert call_kwargs.kwargs["timeout"] == 10
+            assert call_kwargs.kwargs["check"] is False
+
+            assert len(stats) == 3
+            assert stats[0]["Name"] == "container1"
+            assert stats[2]["MemPerc"] == "96.8%"
+
+    def test_docker_command_failure(self, auditor):
+        """বাংলা মন্তব্য: docker stats command fail করলে empty list return হয়।"""
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stderr = "Cannot connect to Docker daemon"
+
+        with patch("subprocess.run", return_value=mock_result):
+            stats = auditor.get_container_stats()
+            assert stats == []
+
+    def test_docker_stats_timeout(self, auditor):
+        """বাংলা মন্তব্য: subprocess timeout হলে empty list return হয়।"""
+        import subprocess
+
+        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired(cmd="docker stats", timeout=10)):
+            stats = auditor.get_container_stats()
+            assert stats == []
+
+    def test_docker_stats_general_exception(self, auditor):
+        """বাংলা মন্তব্য: যেকোনো unexpected exception handle করে empty list return হয়।"""
+        with patch("subprocess.run", side_effect=RuntimeError("Unexpected error")):
+            stats = auditor.get_container_stats()
+            assert stats == []
+
+    def test_empty_stdout(self, auditor):
+        """বাংলা মন্তব্য: empty stdout-এ return হয় empty list।"""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = ""
+        mock_result.stderr = ""
+
+        with patch("subprocess.run", return_value=mock_result):
+            stats = auditor.get_container_stats()
+            assert stats == []
+
+    def test_whitespace_only_stdout(self, auditor):
+        """বাংলা মন্তব্য: whitespace-only stdout-এ return হয় empty list।"""
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "   \n  \n  "
+        mock_result.stderr = ""
+
+        with patch("subprocess.run", return_value=mock_result):
+            stats = auditor.get_container_stats()
+            assert stats == []
+
+
+# -------------------- Tests: parse_memory_percent --------------------
+
+
+class TestParseMemoryPercent:
+    """বাংলা মন্তব্য: Memory percentage string parsing টেস্ট।"""
+
+    def test_valid_percentage(self, auditor):
+        assert auditor.parse_memory_percent("45.2%") == 45.2
+
+    def test_high_percentage(self, auditor):
+        assert auditor.parse_memory_percent("99.9%") == 99.9
+
+    def test_zero_percentage(self, auditor):
+        assert auditor.parse_memory_percent("0.00%") == 0.0
+
+    def test_percentage_with_whitespace(self, auditor):
+        assert auditor.parse_memory_percent("  50.5%  ") == 50.5
+
+    def test_invalid_string_returns_zero(self, auditor):
+        assert auditor.parse_memory_percent("N/A") == 0.0
+
+    def test_empty_string_returns_zero(self, auditor):
+        assert auditor.parse_memory_percent("") == 0.0
+
+    def test_non_numeric_returns_zero(self, auditor):
+        assert auditor.parse_memory_percent("abc%") == 0.0
+
+
+# -------------------- Tests: audit_cycle --------------------
+
+
+class TestAuditCycle:
+    """বাংলা মন্তব্য: audit_cycle-এর memory threshold logic এবং docker kill টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_normal_memory_no_action(self, auditor):
+        """বাংলা মন্তব্য: 80%-এর নিচে মেমরি থাকলে কোনো action নেই।"""
+        stats = [{"Name": "container1", "MemPerc": "45.2%"}]
+
+        with patch.object(auditor, "get_container_stats", return_value=stats):
+            with patch("core.container_auditor.logger") as mock_logger:
+                await auditor.audit_cycle()
+                # কোনো warning বা error log হওয়া উচিত নয়
+                mock_logger.warning.assert_not_called()
+                mock_logger.error.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_warning_threshold_80_percent(self, auditor):
+        """বাংলা মন্তব্য: 80%+ মেমরি হলে warning log হয় কিন্তু kill হয় না।"""
+        stats = [{"Name": "container_warn", "MemPerc": "82.5%"}]
+
+        with patch.object(auditor, "get_container_stats", return_value=stats):
+            with patch("core.container_auditor.logger") as mock_logger:
+                with patch("subprocess.run") as mock_run:
+                    await auditor.audit_cycle()
+
+                    mock_logger.warning.assert_called_once()
+                    assert "Memory Warning" in mock_logger.warning.call_args[0][0]
+                    mock_run.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_critical_threshold_95_percent_kills_container(self, auditor):
+        """বাংলা মন্তব্য: 95%+ মেমরি হলে docker kill command run হয়।"""
+        stats = [{"Name": "oom_container", "MemPerc": "96.8%"}]
+
+        with patch.object(auditor, "get_container_stats", return_value=stats):
+            with patch("core.container_auditor.logger") as mock_logger:
+                with patch("subprocess.run") as mock_run:
+                    mock_run.return_value = MagicMock(returncode=0)
+
+                    await auditor.audit_cycle()
+
+                    mock_logger.error.assert_called_once()
+                    assert "OOM Kill Chain Triggered" in mock_logger.error.call_args[0][0]
+                    mock_run.assert_called_once_with(
+                        ["docker", "kill", "oom_container"],
+                        capture_output=True,
+                        timeout=5,
+                        check=False,
+                    )
+
+    @pytest.mark.asyncio
+    async def test_kill_command_failure_logs_error(self, auditor):
+        """বাংলা মন্তব্য: docker kill fail করলে error log হয়।"""
+        stats = [{"Name": "bad_container", "MemPerc": "97.0%"}]
+
+        with patch.object(auditor, "get_container_stats", return_value=stats):
+            with patch("core.container_auditor.logger") as mock_logger:
+                with patch("subprocess.run", side_effect=RuntimeError("Kill failed")):
+                    await auditor.audit_cycle()
+
+                    # OOM error + kill failure error — 2 error logs
+                    error_calls = [c for c in mock_logger.error.call_args_list if "OOM" in c[0][0] or "Failed to kill" in c[0][0]]
+                    assert len(error_calls) >= 1
+
+    @pytest.mark.asyncio
+    async def test_multiple_containers_mixed_thresholds(self, auditor):
+        """বাংলা মন্তব্য: Multiple containers-এ mixed thresholds correctly handle হয়।"""
+        stats = [
+            {"Name": "healthy", "MemPerc": "30.0%"},
+            {"Name": "warning_container", "MemPerc": "85.0%"},
+            {"Name": "critical_container", "MemPerc": "98.0%"},
+        ]
+
+        with patch.object(auditor, "get_container_stats", return_value=stats):
+            with patch("core.container_auditor.logger") as mock_logger:
+                with patch("subprocess.run") as mock_run:
+                    await auditor.audit_cycle()
+
+                    # 1 warning + 1 OOM error
+                    assert mock_logger.warning.call_count == 1
+                    assert mock_logger.error.call_count == 1
+                    mock_run.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_empty_stats_list(self, auditor):
+        """বাংলা মন্তব্য: কোনো container না থাকলে audit_cycle peacefully শেষ হয়।"""
+        with patch.object(auditor, "get_container_stats", return_value=[]):
+            with patch("core.container_auditor.logger") as mock_logger:
+                await auditor.audit_cycle()
+                mock_logger.warning.assert_not_called()
+                mock_logger.error.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_audit_cycle_exception_handling(self, auditor):
+        """বাংলা মন্তব্য: audit_cycle-এ exception হলে run() method handle করে।"""
+        with patch.object(auditor, "get_container_stats", side_effect=RuntimeError("Unexpected")):
+            with patch("core.container_auditor.logger") as mock_logger:
+                with pytest.raises(RuntimeError):
+                    await auditor.audit_cycle()
+                # Logger may or may not be called depending on implementation
+                # The exception is raised, which is the important part
+
+
+# -------------------- Tests: run --------------------
+
+
+class TestRun:
+    """বাংলা মন্তব্য: run() method-এর lifecycle এবং graceful shutdown টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_run_starts_and_logs(self, auditor):
+        """বাংলা মন্তব্য: run() call করলে starting log হয় এবং running=True হয়।"""
+        with patch("core.container_auditor.logger") as mock_logger:
+            with patch.object(auditor, "audit_cycle", new_callable=AsyncMock):
+                with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+                    # First iteration completes, then we stop
+                    async def stop_after_first(*args, **kwargs):
+                        auditor.stop()
+
+                    mock_sleep.side_effect = stop_after_first
+
+                    await auditor.run()
+
+                    assert auditor.running is False
+                    mock_logger.info.assert_any_call("🛡️  Starting Live Memory Container Audit Chain...")
+
+    @pytest.mark.asyncio
+    async def test_run_handles_audit_exception(self, auditor):
+        """বাংলা মন্তব্য: audit_cycle exception হলে run() handle করে continue করে।"""
+        call_count = 0
+
+        async def failing_audit():
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise RuntimeError("First cycle failed")
+            auditor.stop()
+
+        with patch("core.container_auditor.logger") as mock_logger:
+            with patch.object(auditor, "audit_cycle", side_effect=failing_audit):
+                with patch("asyncio.sleep", new_callable=AsyncMock):
+                    await auditor.run()
+
+                    assert call_count == 2
+                    mock_logger.error.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_stop_sets_running_false(self, auditor):
+        """বাংলা মন্তব্য: stop() call করলে running=False হয়।"""
+        auditor.running = True
+        with patch("core.container_auditor.logger") as mock_logger:
+            auditor.stop()
+            assert auditor.running is False
+            mock_logger.info.assert_called_once_with("Container Audit Chain stopped.")
+
+
+# -------------------- Tests: Integration --------------------
+
+
+class TestContainerAuditorIntegration:
+    """বাংলা মন্তব্য: Integration-style tests for realistic scenarios।"""
+
+    @pytest.mark.asyncio
+    async def test_full_cycle_with_mock_docker(self, auditor):
+        """বাংলা মন্তব্য: Full audit cycle with realistic docker stats output।"""
+        realistic_stats = [
+            {"Name": "supremeai-backend", "MemPerc": "35.2%"},
+            {"Name": "supremeai-worker-1", "MemPerc": "78.9%"},
+            {"Name": "supremeai-worker-2", "MemPerc": "94.1%"},
+        ]
+
+        with patch.object(auditor, "get_container_stats", return_value=realistic_stats):
+            with patch("core.container_auditor.logger") as mock_logger:
+                with patch("subprocess.run") as mock_run:
+                    await auditor.audit_cycle()
+
+                    # 78.9% < 80%, so no warning
+                    # 94.1% < 95%, so no OOM kill
+                    # But worker-2 at 94.1% is close to threshold, let's verify no critical actions
+                    mock_logger.error.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_full_cycle_with_critical_container(self, auditor):
+        """বাংলা মন্তব্য: Full cycle with one critical container triggering kill।"""
+        critical_stats = [
+            {"Name": "leaking-container", "MemPerc": "97.5%"},
+        ]
+
+        with patch.object(auditor, "get_container_stats", return_value=critical_stats):
+            with patch("core.container_auditor.logger") as mock_logger:
+                with patch("subprocess.run", return_value=MagicMock(returncode=0)) as mock_run:
+                    await auditor.audit_cycle()
+
+                    mock_logger.error.assert_called_once()
+                    assert "OOM Kill Chain Triggered" in mock_logger.error.call_args[0][0]
+                    mock_run.assert_called_once()
+
+```
+
+## File: `backend/tests/core/test_theme_pubsub.py`
+
+```py
+# backend/tests/core/test_theme_pubsub.py
+# বাংলা মন্তব্য: ThemePubSub-এর জন্য comprehensive unit tests।
+# In-memory pubsub — no external dependencies।
+
+import asyncio
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+import pytest
+
+from core.theme_pubsub import ThemePubSub
+
+
+# -------------------- Fixtures --------------------
+
+
+@pytest.fixture
+def theme_pubsub():
+    """ThemePubSub ইনস্ট্যান্স ফেরত দেয়।"""
+    return ThemePubSub()
+
+
+@pytest.fixture
+def mock_queue():
+    """Mock asyncio.Queue।"""
+    queue = MagicMock(spec=asyncio.Queue)
+    queue.put_nowait = MagicMock()
+    return queue
+
+
+# -------------------- Tests: __init__ --------------------
+
+
+class TestThemePubSubInit:
+    """বাংলা মন্তব্য: Initialization টেস্ট।"""
+
+    def test_initializes_empty_subscribers(self):
+        """বাংলা মন্তব্য: Initial subscribers dict empty হয়।"""
+        pubsub = ThemePubSub()
+        assert pubsub._subscribers == {}
+
+
+# -------------------- Tests: subscribe --------------------
+
+
+class TestSubscribe:
+    """বাংলা মন্তব্য: subscribe() method টেস্ট।"""
+
+    def test_subscribe_creates_new_queue(self, theme_pubsub):
+        """বাংলা মন্তব্য: নতুন user subscribe করলে নতুন queue create হয়।"""
+        queue = theme_pubsub.subscribe("user1")
+
+        assert isinstance(queue, asyncio.Queue)
+        assert "user1" in theme_pubsub._subscribers
+        assert len(theme_pubsub._subscribers["user1"]) == 1
+        assert theme_pubsub._subscribers["user1"][0] is queue
+
+    def test_subscribe_returns_new_queue_each_time(self, theme_pubsub):
+        """বাংলা মন্তব্য: প্রতিটি subscribe call নতুন queue return করে।"""
+        queue1 = theme_pubsub.subscribe("user1")
+        queue2 = theme_pubsub.subscribe("user1")
+
+        assert queue1 is not queue2
+        assert len(theme_pubsub._subscribers["user1"]) == 2
+
+    def test_subscribe_multiple_users(self, theme_pubsub):
+        """বাংলা মন্তব্য: Multiple users subscribe করতে পারে independently।"""
+        queue1 = theme_pubsub.subscribe("user1")
+        queue2 = theme_pubsub.subscribe("user2")
+        queue3 = theme_pubsub.subscribe("user3")
+
+        assert len(theme_pubsub._subscribers) == 3
+        assert "user1" in theme_pubsub._subscribers
+        assert "user2" in theme_pubsub._subscribers
+        assert "user3" in theme_pubsub._subscribers
+
+    def test_subscribe_same_user_multiple_times(self, theme_pubsub):
+        """বাংলা মন্তব্য: একই user multiple times subscribe করতে পারে।"""
+        queues = [theme_pubsub.subscribe("user1") for _ in range(5)]
+
+        assert len(theme_pubsub._subscribers["user1"]) == 5
+        assert all(isinstance(q, asyncio.Queue) for q in queues)
+
+
+# -------------------- Tests: unsubscribe --------------------
+
+
+class TestUnsubscribe:
+    """বাংলা মন্তব্য: unsubscribe() method টেস্ট।"""
+
+    def test_unsubscribe_removes_queue(self, theme_pubsub):
+        """বাংলা মন্তব্য: Unsubscribe করলে queue remove হয়।"""
+        queue = theme_pubsub.subscribe("user1")
+        theme_pubsub.unsubscribe("user1", queue)
+
+        assert "user1" not in theme_pubsub._subscribers
+
+    def test_unsubscribe_one_of_multiple_queues(self, theme_pubsub):
+        """বাংলা মন্তব্য: Multiple queues থেকে একটি remove হয়।"""
+        queue1 = theme_pubsub.subscribe("user1")
+        queue2 = theme_pubsub.subscribe("user1")
+        queue3 = theme_pubsub.subscribe("user1")
+
+        theme_pubsub.unsubscribe("user1", queue2)
+
+        assert len(theme_pubsub._subscribers["user1"]) == 2
+        assert queue1 in theme_pubsub._subscribers["user1"]
+        assert queue2 not in theme_pubsub._subscribers["user1"]
+        assert queue3 in theme_pubsub._subscribers["user1"]
+
+    def test_unsubscribe_last_queue_removes_user(self, theme_pubsub):
+        """বাংলা মন্তব্য: Last queue unsubscribe হলে user entry remove হয়।"""
+        queue = theme_pubsub.subscribe("user1")
+        theme_pubsub.unsubscribe("user1", queue)
+
+        assert "user1" not in theme_pubsub._subscribers
+        assert len(theme_pubsub._subscribers) == 0
+
+    def test_unsubscribe_nonexistent_user(self, theme_pubsub):
+        """বাংলা মন্তব্য: Nonexistent user unsubscribe করলে error নেই।"""
+        queue = asyncio.Queue()
+        # Should not raise any error
+        theme_pubsub.unsubscribe("nonexistent", queue)
+
+    def test_unsubscribe_wrong_queue(self, theme_pubsub):
+        """বাংলা মন্তব্য: ভুল queue unsubscribe করলে error নেই।"""
+        queue1 = theme_pubsub.subscribe("user1")
+        queue2 = asyncio.Queue()
+
+        # Should not raise any error
+        theme_pubsub.unsubscribe("user1", queue2)
+
+        # Original queue should still be there
+        assert len(theme_pubsub._subscribers["user1"]) == 1
+        assert queue1 in theme_pubsub._subscribers["user1"]
+
+    def test_unsubscribe_handles_value_error(self, theme_pubsub):
+        """বাংলা মন্তব্য: Queue list-এ না থাকলেও ValueError suppress হয়।"""
+        queue = theme_pubsub.subscribe("user1")
+        theme_pubsub.unsubscribe("user1", queue)
+
+        # Unsubscribe again - should not raise ValueError
+        theme_pubsub.unsubscribe("user1", queue)
+
+        assert "user1" not in theme_pubsub._subscribers
+
+
+# -------------------- Tests: publish --------------------
+
+
+class TestPublish:
+    """বাংলা মন্তব্য: publish() method টেস্ট।"""
+
+    def test_publish_to_single_subscriber(self, theme_pubsub):
+        """বাংলা মন্তব্য: Single subscriber-কে message publish হয়।"""
+        queue = theme_pubsub.subscribe("user1")
+
+        with patch.object(queue, "put_nowait") as mock_put:
+            theme_pubsub.publish("user1", "dark_mode")
+
+            mock_put.assert_called_once()
+            call_args = mock_put.call_args[0][0]
+            assert call_args["event"] == "theme_changed"
+            assert call_args["theme"] == "dark_mode"
+
+    def test_publish_to_multiple_subscribers(self, theme_pubsub):
+        """বাংলা মন্তব্য: Multiple subscribers-কে সবাইকে message publish হয়।"""
+        queue1 = theme_pubsub.subscribe("user1")
+        queue2 = theme_pubsub.subscribe("user1")
+        queue3 = theme_pubsub.subscribe("user1")
+
+        with patch.object(queue1, "put_nowait") as mock_put1:
+            with patch.object(queue2, "put_nowait") as mock_put2:
+                with patch.object(queue3, "put_nowait") as mock_put3:
+                    theme_pubsub.publish("user1", "light_mode")
+
+                    mock_put1.assert_called_once()
+                    mock_put2.assert_called_once()
+                    mock_put3.assert_called_once()
+
+                    # Verify all got the same message
+                    for mock_put in [mock_put1, mock_put2, mock_put3]:
+                        call_args = mock_put.call_args[0][0]
+                        assert call_args["event"] == "theme_changed"
+                        assert call_args["theme"] == "light_mode"
+
+    def test_publish_only_to_specific_user(self, theme_pubsub):
+        """বাংলা মন্তব্য: শুধু নির্দিষ্ট user-এর subscribers-কে publish হয়।"""
+        queue_user1 = theme_pubsub.subscribe("user1")
+        queue_user2 = theme_pubsub.subscribe("user2")
+
+        with patch.object(queue_user1, "put_nowait") as mock_put1:
+            with patch.object(queue_user2, "put_nowait") as mock_put2:
+                theme_pubsub.publish("user1", "dark_mode")
+
+                mock_put1.assert_called_once()
+                mock_put2.assert_not_called()
+
+    def test_publish_to_nonexistent_user(self, theme_pubsub):
+        """বাংলা মন্তব্য: Nonexistent user publish করলে error নেই।"""
+        # Should not raise any error
+        theme_pubsub.publish("nonexistent", "dark_mode")
+
+    def test_publish_logs_correct_message(self, theme_pubsub):
+        """বাংলা মন্তব্য: Publish করার সময় সঠিক log message হয়।"""
+        queue = theme_pubsub.subscribe("user1")
+
+        with patch.object(queue, "put_nowait"):
+            with patch("core.theme_pubsub.logger") as mock_logger:
+                theme_pubsub.publish("user1", "dark_mode")
+
+                mock_logger.info.assert_called_once()
+                log_msg = mock_logger.info.call_args[0][0]
+                assert "Publishing theme update 'dark_mode' for user 'user1'" in log_msg
+                assert "1 clients" in log_msg
+
+    def test_publish_logs_correct_client_count(self, theme_pubsub):
+        """বাংলা মন্তব্য: Client count correctly log হয়।"""
+        for _ in range(3):
+            theme_pubsub.subscribe("user1")
+
+        with patch("core.theme_pubsub.logger") as mock_logger:
+            theme_pubsub.publish("user1", "dark_mode")
+
+            log_msg = mock_logger.info.call_args[0][0]
+            assert "3 clients" in log_msg
+
+    def test_publish_message_format(self, theme_pubsub):
+        """বাংলা মন্তব্য: Published message-এর সঠিক format আছে।"""
+        queue = theme_pubsub.subscribe("user1")
+
+        with patch.object(queue, "put_nowait") as mock_put:
+            theme_pubsub.publish("user1", "dark_mode")
+
+            message = mock_put.call_args[0][0]
+            assert message == {"event": "theme_changed", "theme": "dark_mode"}
+
+
+# -------------------- Tests: Global Instance --------------------
+
+
+class TestGlobalInstance:
+    """বাংলা মন্তব্য: Global theme_pubsub instance টেস্ট।"""
+
+    def test_global_instance_exists(self):
+        """বাংলা মন্তব্য: Global instance create করা আছে।"""
+        from core.theme_pubsub import theme_pubsub
+
+        assert isinstance(theme_pubsub, ThemePubSub)
+
+    def test_global_instance_is_singleton(self):
+        """বাংলা মন্তব্য: Global instance singleton pattern follow করে।"""
+        from core.theme_pubsub import theme_pubsub as instance1
+        from core.theme_pubsub import theme_pubsub as instance2
+
+        assert instance1 is instance2
+
+
+# -------------------- Tests: Integration --------------------
+
+
+class TestThemePubSubIntegration:
+    """বাংলা মন্তব্য: Integration-style tests for realistic scenarios।"""
+
+    def test_full_subscribe_publish_workflow(self):
+        """বাংলা মন্তব্য: Subscribe এবং publish এর সম্পূর্ণ workflow।"""
+        pubsub = ThemePubSub()
+
+        # Subscribe multiple users
+        queue1 = pubsub.subscribe("user1")
+        queue2 = pubsub.subscribe("user2")
+
+        # Publish to user1
+        pubsub.publish("user1", "dark_mode")
+
+        # Verify queue1 received the message
+        assert not queue1.empty()
+        message = queue1.get_nowait()
+        assert message["event"] == "theme_changed"
+        assert message["theme"] == "dark_mode"
+
+        # Verify queue2 did not receive anything
+        assert queue2.empty()
+
+    def test_multiple_theme_changes(self):
+        """বাংলা মন্তব্য: Multiple theme changes correctly broadcast হয়।"""
+        pubsub = ThemePubSub()
+        queue = pubsub.subscribe("user1")
+
+        themes = ["light", "dark", "system", "high_contrast"]
+
+        for theme in themes:
+            pubsub.publish("user1", theme)
+
+        # Verify all messages were queued
+        received = []
+        while not queue.empty():
+            received.append(queue.get_nowait())
+
+        assert len(received) == 4
+        for i, theme in enumerate(themes):
+            assert received[i]["theme"] == theme
+
+    def test_user_disconnect_cleanup(self):
+        """বাংলা মন্তব্য: User unsubscribe হলে properly cleanup হয়।"""
+        pubsub = ThemePubSub()
+
+        queue1 = pubsub.subscribe("user1")
+        queue2 = pubsub.subscribe("user1")
+        queue3 = pubsub.subscribe("user1")
+
+        # User disconnects with queue2
+        pubsub.unsubscribe("user1", queue2)
+
+        # Publish should only go to remaining queues
+        with patch.object(queue1, "put_nowait") as mock_put1:
+            with patch.object(queue3, "put_nowait") as mock_put3:
+                pubsub.publish("user1", "dark_mode")
+
+                mock_put1.assert_called_once()
+                mock_put3.assert_called_once()
+
+    def test_concurrent_subscribers(self):
+        """বাংলা মন্তব্য: Concurrent subscribers correctly handle হয়।"""
+        pubsub = ThemePubSub()
+
+        # Simulate multiple concurrent subscriptions
+        queues = [pubsub.subscribe(f"user{i}") for i in range(10)]
+
+        assert len(pubsub._subscribers) == 10
+
+        # Publish to all users
+        for i in range(10):
+            pubsub.publish(f"user{i}", f"theme_{i}")
+
+        # Verify each queue got its message
+        for i, queue in enumerate(queues):
+            assert not queue.empty()
+            message = queue.get_nowait()
+            assert message["theme"] == f"theme_{i}"
 
 ```
 
@@ -123753,6 +125678,1514 @@ async def test_swarm_orchestrator_execute_task(mock_agents):
     mock_agents["qa"].verify.assert_awaited_once()
     assert workspace.task_id is not None
     assert workspace.original_prompt == "do something"
+
+```
+
+## File: `backend/tests/core/test_swarm_orchestrator_coverage.py`
+
+```py
+# backend/tests/core/test_swarm_orchestrator_coverage.py
+# বাংলা মন্তব্য: SwarmOrchestrator এবং CircuitBreaker-এর জন্য comprehensive unit tests।
+# Agent methods mock করা হয়েছে — actual agent execution ছাড়াই।
+
+import time
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+import pytest
+
+from core.swarm_orchestrator import CircuitBreaker
+from core.swarm_orchestrator import CircuitBreakerOpenError
+from core.swarm_orchestrator import CircuitBreakerState
+from core.swarm_orchestrator import SwarmOrchestrator
+
+
+# -------------------- Fixtures --------------------
+
+
+@pytest.fixture
+def circuit_breaker():
+    """CircuitBreaker ইনস্ট্যান্স ফেরত দেয়।"""
+    return CircuitBreaker(failure_threshold=3, recovery_timeout=30.0)
+
+
+@pytest.fixture
+def mock_workspace():
+    """Mock SharedWorkspace।"""
+    workspace = MagicMock()
+    workspace.log = MagicMock()
+    workspace.add_error = MagicMock()
+    return workspace
+
+
+# -------------------- Tests: CircuitBreakerState --------------------
+
+
+class TestCircuitBreakerState:
+    """বাংলা মন্তব্য: CircuitBreakerState constants টেস্ট।"""
+
+    def test_closed_state(self):
+        assert CircuitBreakerState.CLOSED == "CLOSED"
+
+    def test_open_state(self):
+        assert CircuitBreakerState.OPEN == "OPEN"
+
+    def test_half_open_state(self):
+        assert CircuitBreakerState.HALF_OPEN == "HALF_OPEN"
+
+
+# -------------------- Tests: CircuitBreakerOpenError --------------------
+
+
+class TestCircuitBreakerOpenError:
+    """বাংলা মন্তব্য: CircuitBreakerOpenError exception টেস্ট।"""
+
+    def test_can_be_raised(self):
+        with pytest.raises(CircuitBreakerOpenError, match="Service temporarily unavailable"):
+            raise CircuitBreakerOpenError("Service temporarily unavailable — circuit breaker OPEN")
+
+    def test_is_exception(self):
+        with pytest.raises(Exception):
+            raise CircuitBreakerOpenError("Test error")
+
+
+# -------------------- Tests: CircuitBreaker --------------------
+
+
+class TestCircuitBreakerInit:
+    """বাংলা মন্তব্য: CircuitBreaker initialization টেস্ট।"""
+
+    def test_default_initialization(self):
+        cb = CircuitBreaker()
+        assert cb.failure_threshold == 5
+        assert cb.recovery_timeout == 30.0
+        assert cb.failures == 0
+        assert cb.last_failure_time is None
+        assert cb.state == CircuitBreakerState.CLOSED
+
+    def test_custom_initialization(self):
+        cb = CircuitBreaker(failure_threshold=10, recovery_timeout=60.0)
+        assert cb.failure_threshold == 10
+        assert cb.recovery_timeout == 60.0
+
+    def test_initial_state_is_closed(self):
+        cb = CircuitBreaker()
+        assert cb.state == CircuitBreakerState.CLOSED
+
+
+class TestCircuitBreakerCall:
+    """বাংলা মন্তব্য: CircuitBreaker.call() method-এর logic টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_successful_call_in_closed_state(self, circuit_breaker):
+        """বাংলা মন্তব্য: CLOSED state-এ সফল call result return করে।"""
+        mock_coro = AsyncMock(return_value="success")
+
+        result = await circuit_breaker.call(mock_coro, "arg1", key="value")
+
+        assert result == "success"
+        assert circuit_breaker.state == CircuitBreakerState.CLOSED
+        assert circuit_breaker.failures == 0
+
+    @pytest.mark.asyncio
+    async def test_successful_call_resets_failures(self, circuit_breaker):
+        """বাংলা মন্তব্য: Success হলে failures reset হয়।"""
+        circuit_breaker.failures = 2
+        circuit_breaker.state = CircuitBreakerState.HALF_OPEN  # Need to be in HALF_OPEN state
+        mock_coro = AsyncMock(return_value="success")
+
+        await circuit_breaker.call(mock_coro)
+
+        assert circuit_breaker.failures == 0
+        assert circuit_breaker.state == CircuitBreakerState.CLOSED
+
+    @pytest.mark.asyncio
+    async def test_failure_increments_counter(self, circuit_breaker):
+        """বাংলা মন্তব্য: Failure হলে failure counter increment হয়।"""
+        mock_coro = AsyncMock(side_effect=RuntimeError("Service error"))
+
+        with pytest.raises(RuntimeError):
+            await circuit_breaker.call(mock_coro)
+
+        assert circuit_breaker.failures == 1
+        assert circuit_breaker.last_failure_time is not None
+
+    @pytest.mark.asyncio
+    async def test_multiple_failures_under_threshold(self, circuit_breaker):
+        """বাংলা মন্তব্য: Threshold-এর নিচে failures থাকলে state CLOSED থাকে।"""
+        mock_coro = AsyncMock(side_effect=RuntimeError("Service error"))
+
+        for i in range(2):
+            with pytest.raises(RuntimeError):
+                await circuit_breaker.call(mock_coro)
+
+        assert circuit_breaker.failures == 2
+        assert circuit_breaker.state == CircuitBreakerState.CLOSED
+
+    @pytest.mark.asyncio
+    async def test_failures_exceed_threshold_opens_circuit(self, circuit_breaker):
+        """বাংলা মন্তব্য: Threshold cross করলে circuit OPEN হয়।"""
+        mock_coro = AsyncMock(side_effect=RuntimeError("Service error"))
+
+        for i in range(3):
+            with pytest.raises(RuntimeError):
+                await circuit_breaker.call(mock_coro)
+
+        assert circuit_breaker.failures == 3
+        assert circuit_breaker.state == CircuitBreakerState.OPEN
+
+    @pytest.mark.asyncio
+    async def test_open_circuit_rejects_calls(self, circuit_breaker):
+        """বাংলা মন্তব্য: OPEN state-এ calls reject হয়।"""
+        circuit_breaker.state = CircuitBreakerState.OPEN
+        circuit_breaker.last_failure_time = time.time()
+
+        mock_coro = AsyncMock(return_value="success")
+
+        with pytest.raises(CircuitBreakerOpenError, match="Service temporarily unavailable"):
+            await circuit_breaker.call(mock_coro)
+
+    @pytest.mark.asyncio
+    async def test_open_circuit_transitions_to_half_open_after_timeout(self, circuit_breaker):
+        """বাংলা মন্তব্য: Recovery timeout পরে OPEN থেকে HALF_OPEN হয়।"""
+        circuit_breaker.state = CircuitBreakerState.OPEN
+        circuit_breaker.last_failure_time = time.time() - 31.0  # 31 seconds ago
+
+        mock_coro = AsyncMock(return_value="success")
+
+        result = await circuit_breaker.call(mock_coro)
+
+        assert result == "success"
+        # After successful call in HALF_OPEN, it transitions to CLOSED
+        assert circuit_breaker.state == CircuitBreakerState.CLOSED
+
+    @pytest.mark.asyncio
+    async def test_open_circuit_stays_open_before_timeout(self, circuit_breaker):
+        """বাংলা মন্তব্য: Timeout আগে OPEN state maintain করে।"""
+        circuit_breaker.state = CircuitBreakerState.OPEN
+        circuit_breaker.last_failure_time = time.time() - 10.0  # 10 seconds ago
+
+        mock_coro = AsyncMock(return_value="success")
+
+        with pytest.raises(CircuitBreakerOpenError):
+            await circuit_breaker.call(mock_coro)
+
+        assert circuit_breaker.state == CircuitBreakerState.OPEN
+
+    @pytest.mark.asyncio
+    async def test_half_open_success_closes_circuit(self, circuit_breaker):
+        """বাংলা মন্তব্য: HALF_OPEN state-এ success হলে CLOSED হয়।"""
+        circuit_breaker.state = CircuitBreakerState.HALF_OPEN
+        circuit_breaker.failures = 2
+
+        mock_coro = AsyncMock(return_value="success")
+
+        result = await circuit_breaker.call(mock_coro)
+
+        assert result == "success"
+        assert circuit_breaker.state == CircuitBreakerState.CLOSED
+        assert circuit_breaker.failures == 0
+
+    @pytest.mark.asyncio
+    async def test_half_open_failure_reopens_circuit(self, circuit_breaker):
+        """বাংলা মন্তব্য: HALF_OPEN state-এ failure হলে আবার OPEN হয়।"""
+        circuit_breaker.state = CircuitBreakerState.HALF_OPEN
+        circuit_breaker.failures = 2
+
+        mock_coro = AsyncMock(side_effect=RuntimeError("Still failing"))
+
+        with pytest.raises(RuntimeError):
+            await circuit_breaker.call(mock_coro)
+
+        assert circuit_breaker.state == CircuitBreakerState.OPEN
+        assert circuit_breaker.failures == 3
+
+    @pytest.mark.asyncio
+    async def test_call_with_args_and_kwargs(self, circuit_breaker):
+        """বাংলা মন্তব্য: args এবং kwargs correctly coroutine-এ pass হয়।"""
+        mock_coro = AsyncMock(return_value="result")
+
+        result = await circuit_breaker.call(mock_coro, "arg1", "arg2", key1="val1", key2="val2")
+
+        mock_coro.assert_called_once_with("arg1", "arg2", key1="val1", key2="val2")
+        assert result == "result"
+
+
+# -------------------- Tests: SwarmOrchestrator --------------------
+
+
+class TestSwarmOrchestratorInit:
+    """বাংলা মন্তব্য: SwarmOrchestrator initialization টেস্ট।"""
+
+    def test_initialization(self):
+        """বাংলা মন্তব্য: Orchestrator initialize হয় with all agents।"""
+        orchestrator = SwarmOrchestrator()
+
+        assert orchestrator.architect is not None
+        assert orchestrator.coder is not None
+        assert orchestrator.qa is not None
+        assert orchestrator.circuit_breaker is not None
+
+    def test_circuit_breaker_default_config(self):
+        """বাংলা মন্তব্য: Circuit breaker default configuration দিয়ে create হয়।"""
+        orchestrator = SwarmOrchestrator()
+        assert orchestrator.circuit_breaker.failure_threshold == 3
+        assert orchestrator.circuit_breaker.recovery_timeout == 30.0
+
+
+class TestSwarmOrchestratorExecuteTask:
+    """বাংলা মন্তব্য: execute_task() method-এর orchestration logic টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_successful_task_execution(self, mock_workspace):
+        """বাংলা মন্তব্য: সব agents successfully execute হলে completed workspace return হয়।"""
+        orchestrator = SwarmOrchestrator()
+
+        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock):
+            with patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock):
+                with patch.object(orchestrator.qa, "verify", new_callable=AsyncMock):
+                    with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
+                        result = await orchestrator.execute_task("Build a REST API", "user123")
+
+                        assert result is mock_workspace
+                        mock_workspace.log.assert_any_call("SwarmOrchestrator: Multi-Agent execution graph completed successfully.")
+
+    @pytest.mark.asyncio
+    async def test_task_creates_unique_task_id(self, mock_workspace):
+        """বাংলা মন্তব্য: প্রতিটি task-এর unique task_id হয়।"""
+        orchestrator = SwarmOrchestrator()
+
+        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock):
+            with patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock):
+                with patch.object(orchestrator.qa, "verify", new_callable=AsyncMock):
+                    with patch("core.swarm_orchestrator.SharedWorkspace") as mock_ws_class:
+                        mock_ws_class.return_value = mock_workspace
+
+                        await orchestrator.execute_task("Task 1", "user1")
+                        call1_task_id = mock_ws_class.call_args[1]["task_id"]
+
+                        await orchestrator.execute_task("Task 2", "user2")
+                        call2_task_id = mock_ws_class.call_args[1]["task_id"]
+
+                        assert call1_task_id != call2_task_id
+
+    @pytest.mark.asyncio
+    async def test_task_logs_initialization(self, mock_workspace):
+        """বাংলা মন্তব্য: Task initialization log হয়।"""
+        orchestrator = SwarmOrchestrator()
+
+        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock):
+            with patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock):
+                with patch.object(orchestrator.qa, "verify", new_callable=AsyncMock):
+                    with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
+                        await orchestrator.execute_task("Test task", "user123")
+
+                        # Verify initialization log was called
+                        mock_workspace.log.assert_called()
+                        # Check that the log contains the expected message
+                        log_calls = [str(call) for call in mock_workspace.log.call_args_list]
+                        assert any("Initialized swarm department" in call for call in log_calls)
+
+    @pytest.mark.asyncio
+    async def test_circuit_breaker_open_returns_workspace(self, mock_workspace):
+        """বাংলা মন্তব্য: Circuit breaker OPEN হলে workspace return হয় with error।"""
+        orchestrator = SwarmOrchestrator()
+
+        # Make circuit breaker open
+        orchestrator.circuit_breaker.state = CircuitBreakerState.OPEN
+        orchestrator.circuit_breaker.last_failure_time = time.time()
+
+        with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
+            result = await orchestrator.execute_task("Test task", "user123")
+
+            assert result is mock_workspace
+            # Check that log was called with circuit breaker message
+            mock_workspace.log.assert_called()
+            log_calls = [str(call) for call in mock_workspace.log.call_args_list]
+            assert any("Circuit breaker OPEN" in call for call in log_calls)
+            mock_workspace.add_error.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_architecture_phase_failure(self, mock_workspace):
+        """বাংলা মন্তব্য: Architecture phase fail করলে circuit breaker trigger হয়।"""
+        orchestrator = SwarmOrchestrator()
+
+        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock, side_effect=RuntimeError("Design failed")):
+            with patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock):
+                with patch.object(orchestrator.qa, "verify", new_callable=AsyncMock):
+                    with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
+                        with pytest.raises(RuntimeError):
+                            await orchestrator.execute_task("Test task", "user123")
+
+                        # Circuit breaker should have recorded the failure
+                        assert orchestrator.circuit_breaker.failures == 1
+
+    @pytest.mark.asyncio
+    async def test_code_generation_phase_failure(self, mock_workspace):
+        """বাংলা মন্তব্য: Code generation phase fail করলে circuit breaker trigger হয়।"""
+        orchestrator = SwarmOrchestrator()
+
+        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock):
+            with patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock, side_effect=RuntimeError("Code gen failed")):
+                with patch.object(orchestrator.qa, "verify", new_callable=AsyncMock):
+                    with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
+                        with pytest.raises(RuntimeError):
+                            await orchestrator.execute_task("Test task", "user123")
+
+                        assert orchestrator.circuit_breaker.failures == 1
+
+    @pytest.mark.asyncio
+    async def test_qa_phase_failure(self, mock_workspace):
+        """বাংলা মন্তব্য: QA phase fail করলে circuit breaker trigger হয়।"""
+        orchestrator = SwarmOrchestrator()
+
+        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock):
+            with patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock):
+                with patch.object(orchestrator.qa, "verify", new_callable=AsyncMock, side_effect=RuntimeError("QA failed")):
+                    with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
+                        with pytest.raises(RuntimeError):
+                            await orchestrator.execute_task("Test task", "user123")
+
+                        assert orchestrator.circuit_breaker.failures == 1
+
+    @pytest.mark.asyncio
+    async def test_default_user_id(self, mock_workspace):
+        """বাংলা মন্তব্য: Default user_id 'default_user_session' ব্যবহার হয়।"""
+        orchestrator = SwarmOrchestrator()
+
+        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock) as mock_design:
+            with patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock):
+                with patch.object(orchestrator.qa, "verify", new_callable=AsyncMock):
+                    with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
+                        await orchestrator.execute_task("Test task")
+
+                        # Verify architect.design was called with default user_id
+                        mock_design.assert_called_once()
+                        call_args = mock_design.call_args
+                        assert call_args[0][1] == "default_user_session"
+
+
+# -------------------- Tests: Integration --------------------
+
+
+class TestSwarmOrchestratorIntegration:
+    """বাংলা মন্তব্য: Integration-style tests for realistic scenarios।"""
+
+    @pytest.mark.asyncio
+    async def test_full_successful_execution_flow(self, mock_workspace):
+        """বাংলা মন্তব্য: সম্পূর্ণ successful execution flow।"""
+        orchestrator = SwarmOrchestrator()
+
+        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock) as mock_design:
+            with patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock) as mock_code:
+                with patch.object(orchestrator.qa, "verify", new_callable=AsyncMock) as mock_verify:
+                    with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
+                        result = await orchestrator.execute_task("Build a microservice", "user456")
+
+                        # All three phases should be called
+                        mock_design.assert_called_once()
+                        mock_code.assert_called_once()
+                        mock_verify.assert_called_once()
+
+                        # All should be called with workspace and user_id
+                        for mock_method in [mock_design, mock_code, mock_verify]:
+                            call_args = mock_method.call_args
+                            assert call_args[0][0] is mock_workspace
+                            assert call_args[0][1] == "user456"
+
+    @pytest.mark.asyncio
+    async def test_circuit_breaker_prevents_cascading_failures(self, mock_workspace):
+        """বাংলা মন্তব্য: Circuit breaker cascading failures prevent করে।"""
+        orchestrator = SwarmOrchestrator()
+
+        # Simulate multiple failures to open circuit
+        for i in range(3):
+            with patch.object(orchestrator.architect, "design", new_callable=AsyncMock, side_effect=RuntimeError("Service down")):
+                with patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock):
+                    with patch.object(orchestrator.qa, "verify", new_callable=AsyncMock):
+                        with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
+                            with pytest.raises(RuntimeError):
+                                await orchestrator.execute_task(f"Task {i}", "user1")
+
+        # Circuit should now be open
+        assert orchestrator.circuit_breaker.state == CircuitBreakerState.OPEN
+
+        # Next call should be rejected immediately
+        with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
+            result = await orchestrator.execute_task("Task after open", "user1")
+            # Should return workspace with error, not raise
+            assert result is mock_workspace
+            mock_workspace.add_error.assert_called_once()
+
+```
+
+## File: `backend/tests/core/test_event_bus_coverage.py`
+
+```py
+# backend/tests/core/test_event_bus_coverage.py
+# বাংলা মন্তব্য: ErrorEventBus-এর জন্য comprehensive unit tests।
+# Async event bus with DLQ, listeners, এবং structured context।
+
+import asyncio
+import json
+from datetime import UTC
+from datetime import datetime
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+import pytest
+
+from core.event_bus import DeadLetterQueueItem
+from core.event_bus import ErrorContext
+from core.event_bus import ErrorEvent
+from core.event_bus import ErrorEventBus
+from core.event_bus import error_event_bus
+
+
+# -------------------- Fixtures --------------------
+
+
+@pytest.fixture
+def event_bus():
+    """Fresh ErrorEventBus instance for each test।"""
+    return ErrorEventBus()
+
+
+@pytest.fixture
+def sample_error_event():
+    """Sample ErrorEvent for testing।"""
+    return ErrorEvent(
+        module="test_module",
+        error_type="TestError",
+        message="This is a test error message",
+        severity="ERROR",
+        context={"request_id": "req-123"},
+        structured_context=ErrorContext(
+            module="test_module",
+            user_id="user-456",
+            task_id="task-789",
+            request_id="req-123",
+            env="test",
+        ),
+    )
+
+
+@pytest.fixture
+def sample_dlq_item(sample_error_event):
+    """Sample DeadLetterQueueItem for testing।"""
+    return DeadLetterQueueItem(
+        event_type="TestError",
+        handler_name="test_handler",
+        error="Handler failed",
+        timestamp=datetime.now(UTC),
+        retry_count=0,
+        original_event=sample_error_event,
+    )
+
+
+# -------------------- Tests: ErrorContext --------------------
+
+
+class TestErrorContext:
+    """বাংলা মন্তব্য: ErrorContext model টেস্ট।"""
+
+    def test_create_with_all_fields(self):
+        ctx = ErrorContext(
+            module="api",
+            user_id="user-123",
+            task_id="task-456",
+            request_id="req-789",
+            env="production",
+            extra={"key": "value"},
+        )
+        assert ctx.module == "api"
+        assert ctx.user_id == "user-123"
+        assert ctx.task_id == "task-456"
+        assert ctx.request_id == "req-789"
+        assert ctx.env == "production"
+        assert ctx.extra == {"key": "value"}
+
+    def test_create_with_defaults(self):
+        ctx = ErrorContext(module="test")
+        assert ctx.module == "test"
+        assert ctx.user_id is None
+        assert ctx.task_id is None
+        assert ctx.request_id is None
+        assert ctx.env == "unknown"
+        assert ctx.extra == {}
+
+
+# -------------------- Tests: ErrorEvent --------------------
+
+
+class TestErrorEvent:
+    """বাংলা মন্তব্য: ErrorEvent model টেস্ট।"""
+
+    def test_create_error_event(self, sample_error_event):
+        assert sample_error_event.module == "test_module"
+        assert sample_error_event.error_type == "TestError"
+        assert sample_error_event.message == "This is a test error message"
+        assert sample_error_event.severity == "ERROR"
+        assert sample_error_event.context == {"request_id": "req-123"}
+        assert sample_error_event.structured_context is not None
+        assert sample_error_event.structured_context.user_id == "user-456"
+
+    def test_timestamp_auto_generated(self):
+        event = ErrorEvent(
+            module="test",
+            error_type="TestError",
+            message="Test",
+            severity="INFO",
+        )
+        assert isinstance(event.timestamp, datetime)
+        assert event.timestamp.tzinfo is not None  # Should be UTC
+
+
+# -------------------- Tests: DeadLetterQueueItem --------------------
+
+
+class TestDeadLetterQueueItem:
+    """বাংলা মন্তব্য: DeadLetterQueueItem model টেস্ট।"""
+
+    def test_create_dlq_item(self, sample_dlq_item, sample_error_event):
+        assert sample_dlq_item.event_type == "TestError"
+        assert sample_dlq_item.handler_name == "test_handler"
+        assert sample_dlq_item.error == "Handler failed"
+        assert sample_dlq_item.retry_count == 0
+        assert sample_dlq_item.original_event is sample_error_event
+
+    def test_default_retry_count(self, sample_error_event):
+        dlq_item = DeadLetterQueueItem(
+            event_type="TestError",
+            handler_name="handler",
+            error="Error",
+            timestamp=datetime.now(UTC),
+            original_event=sample_error_event,
+        )
+        assert dlq_item.retry_count == 0
+
+
+# -------------------- Tests: ErrorEventBus Init --------------------
+
+
+class TestErrorEventBusInit:
+    """বাংলা মন্তব্য: ErrorEventBus initialization টেস্ট।"""
+
+    def test_initialization(self, event_bus):
+        assert event_bus._listeners == []
+        assert event_bus._dead_letter_handlers == []
+        assert event_bus._total_emitted == 0
+        assert event_bus._total_dlq_items == 0
+        assert event_bus.dead_letter_queue_size == 0
+
+    def test_dlq_max_size(self, event_bus):
+        """বাংলা মন্তব্য: DLQ bounded with maxsize=1000।"""
+        assert event_bus._dlq.maxsize == 1000
+
+
+# -------------------- Tests: register_listener --------------------
+
+
+class TestRegisterListener:
+    """বাংলা মন্তব্য: register_listener() method টেস্ট।"""
+
+    def test_register_single_listener(self, event_bus):
+        def listener(event):
+            pass
+
+        event_bus.register_listener(listener)
+        assert len(event_bus._listeners) == 1
+        assert event_bus._listeners[0] is listener
+
+    def test_register_multiple_listeners(self, event_bus):
+        def listener1(event):
+            pass
+
+        def listener2(event):
+            pass
+
+        event_bus.register_listener(listener1)
+        event_bus.register_listener(listener2)
+        assert len(event_bus._listeners) == 2
+
+    def test_register_async_listener(self, event_bus):
+        async def async_listener(event):
+            pass
+
+        event_bus.register_listener(async_listener)
+        assert len(event_bus._listeners) == 1
+
+
+# -------------------- Tests: register_dead_letter_handler --------------------
+
+
+class TestRegisterDeadLetterHandler:
+    """বাংলা মন্তব্য: register_dead_letter_handler() method টেস্ট।"""
+
+    def test_register_single_handler(self, event_bus):
+        def handler(item):
+            pass
+
+        event_bus.register_dead_letter_handler(handler)
+        assert len(event_bus._dead_letter_handlers) == 1
+
+    def test_register_multiple_handlers(self, event_bus):
+        def handler1(item):
+            pass
+
+        def handler2(item):
+            pass
+
+        event_bus.register_dead_letter_handler(handler1)
+        event_bus.register_dead_letter_handler(handler2)
+        assert len(event_bus._dead_letter_handlers) == 2
+
+
+# -------------------- Tests: emit --------------------
+
+
+class TestEmit:
+    """বাংলা মন্তব্য: emit() synchronous method টেস্ট।"""
+
+    def test_emit_increments_counter(self, event_bus, sample_error_event):
+        event_bus.emit(sample_error_event)
+        assert event_bus._total_emitted == 1
+
+    def test_emit_without_listeners(self, event_bus, sample_error_event):
+        """বাংলা মন্তব্য: Listeners না থাকলেও emit works।"""
+        with patch("core.event_bus.logger") as mock_logger:
+            event_bus.emit(sample_error_event)
+            # Should log the event
+            mock_logger.error.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_emit_with_successful_listener(self, event_bus, sample_error_event):
+        """বাংলা মন্তব্য: Successful listener-এ event dispatch হয়।"""
+        received_events = []
+
+        def listener(event):
+            received_events.append(event)
+
+        event_bus.register_listener(listener)
+        await event_bus.emit_async(sample_error_event)
+
+        assert len(received_events) == 1
+        assert received_events[0] is sample_error_event
+
+    @pytest.mark.asyncio
+    async def test_emit_with_failing_listener_adds_to_dlq(self, event_bus, sample_error_event):
+        """বাংলা মন্তব্য: Failing listener-এ DLQ-তে item add হয়।"""
+
+        def failing_listener(event):
+            raise RuntimeError("Listener failed")
+
+        event_bus.register_listener(failing_listener)
+        await event_bus.emit_async(sample_error_event)
+
+        assert event_bus._total_dlq_items == 1
+        assert event_bus.dead_letter_queue_size == 1
+
+    def test_emit_no_running_loop(self, event_bus, sample_error_event):
+        """বাংলা মন্তব্য: Running loop না থাকলে sync log works।"""
+        with patch("core.event_bus.logger") as mock_logger:
+            event_bus.emit(sample_error_event)
+            # Should complete without error
+            assert event_bus._total_emitted == 1
+            mock_logger.debug.assert_called_once()
+
+
+# -------------------- Tests: emit_async --------------------
+
+
+class TestEmitAsync:
+    """বাংলা মন্তব্য: emit_async() async method টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_emit_async_increments_counter(self, event_bus, sample_error_event):
+        await event_bus.emit_async(sample_error_event)
+        assert event_bus._total_emitted == 1
+
+    @pytest.mark.asyncio
+    async def test_emit_async_dispatches_to_listeners(self, event_bus, sample_error_event):
+        """বাংলা মন্তব্য: emit_async listeners-এ dispatch করে।"""
+        received_events = []
+
+        async def async_listener(event):
+            received_events.append(event)
+
+        event_bus.register_listener(async_listener)
+        await event_bus.emit_async(sample_error_event)
+
+        assert len(received_events) == 1
+        assert received_events[0] is sample_error_event
+
+    @pytest.mark.asyncio
+    async def test_emit_async_with_multiple_listeners(self, event_bus, sample_error_event):
+        """বাংলা মন্তব্য: Multiple listeners-এ concurrently dispatch হয়।"""
+        received = []
+
+        async def listener1(event):
+            received.append("listener1")
+
+        async def listener2(event):
+            received.append("listener2")
+
+        event_bus.register_listener(listener1)
+        event_bus.register_listener(listener2)
+        await event_bus.emit_async(sample_error_event)
+
+        assert len(received) == 2
+
+
+# -------------------- Tests: _safe_invoke --------------------
+
+
+class TestSafeInvoke:
+    """বাংলা মন্তব্য: _safe_invoke() method টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_safe_invoke_sync_listener_success(self, event_bus, sample_error_event):
+        """বাংলা মন্তব্য: Sync listener successfully invoke হয়।"""
+
+        def sync_listener(event):
+            return "success"
+
+        result = await event_bus._safe_invoke(sync_listener, sample_error_event)
+        assert result == "success"
+
+    @pytest.mark.asyncio
+    async def test_safe_invoke_async_listener_success(self, event_bus, sample_error_event):
+        """বাংলা মন্তব্য: Async listener successfully invoke হয়।"""
+
+        async def async_listener(event):
+            return "async_success"
+
+        result = await event_bus._safe_invoke(async_listener, sample_error_event)
+        assert result == "async_success"
+
+    @pytest.mark.asyncio
+    async def test_safe_invoke_returns_exception(self, event_bus, sample_error_event):
+        """বাংলা মন্তব্য: Exception return হয়, suppress হয় না।"""
+
+        def failing_listener(event):
+            raise RuntimeError("Listener error")
+
+        result = await event_bus._safe_invoke(failing_listener, sample_error_event)
+        assert isinstance(result, RuntimeError)
+
+    @pytest.mark.asyncio
+    async def test_safe_invoke_cancelled_error_raised(self, event_bus, sample_error_event):
+        """বাংলা মন্তব্য: CancelledError re-raise হয়।"""
+
+        async def cancelled_listener(event):
+            raise asyncio.CancelledError()
+
+        with pytest.raises(asyncio.CancelledError):
+            await event_bus._safe_invoke(cancelled_listener, sample_error_event)
+
+
+# -------------------- Tests: _dispatch_async --------------------
+
+
+class TestDispatchAsync:
+    """বাংলা মন্তব্য: _dispatch_async() method টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_dispatch_with_no_listeners(self, event_bus, sample_error_event):
+        """বাংলা মন্তব্য: Listeners না থাকলে early return হয়।"""
+        await event_bus._dispatch_async(sample_error_event)
+        # Should complete without error
+
+    @pytest.mark.asyncio
+    async def test_dispatch_with_successful_listeners(self, event_bus, sample_error_event):
+        """বাংলা মন্তব্য: সব listeners successfully invoke হয়।"""
+        results = []
+
+        async def listener1(event):
+            results.append(1)
+
+        async def listener2(event):
+            results.append(2)
+
+        event_bus.register_listener(listener1)
+        event_bus.register_listener(listener2)
+        await event_bus._dispatch_async(sample_error_event)
+
+        assert len(results) == 2
+
+    @pytest.mark.asyncio
+    async def test_dispatch_with_failing_listener_adds_to_dlq(self, event_bus, sample_error_event):
+        """বাংলা মন্তব্য: Failing listener-এ DLQ-তে item add হয়।"""
+
+        def failing_listener(event):
+            raise RuntimeError("Handler failed")
+
+        event_bus.register_listener(failing_listener)
+        await event_bus._dispatch_async(sample_error_event)
+
+        assert event_bus._total_dlq_items == 1
+        assert event_bus.dead_letter_queue_size == 1
+
+    @pytest.mark.asyncio
+    async def test_dispatch_calls_dead_letter_handlers(self, event_bus, sample_error_event):
+        """বাংলা মন্তব্য: DLQ item add হলে dead letter handlers call হয়।"""
+        handler_calls = []
+
+        def failing_listener(event):
+            raise RuntimeError("Failed")
+
+        def dlq_handler(item):
+            handler_calls.append(item)
+
+        event_bus.register_listener(failing_listener)
+        event_bus.register_dead_letter_handler(dlq_handler)
+        await event_bus._dispatch_async(sample_error_event)
+
+        assert len(handler_calls) == 1
+        assert handler_calls[0].handler_name == "failing_listener"
+
+    @pytest.mark.asyncio
+    async def test_dispatch_dlq_full_logs_critical(self, event_bus, sample_error_event):
+        """বাংলা মন্তব্য: DLQ full হলে critical log হয়।"""
+
+        def failing_listener(event):
+            raise RuntimeError("Failed")
+
+        event_bus.register_listener(failing_listener)
+
+        # Fill the DLQ
+        for _ in range(1000):
+            event_bus._dlq.put_nowait(
+                DeadLetterQueueItem(
+                    event_type="dummy",
+                    handler_name="dummy",
+                    error="dummy",
+                    timestamp=datetime.now(UTC),
+                )
+            )
+
+        with patch("core.event_bus.logger") as mock_logger:
+            await event_bus._dispatch_async(sample_error_event)
+            # Should log critical error
+            mock_logger.critical.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_dispatch_isolates_listener_failures(self, event_bus, sample_error_event):
+        """বাংলা মন্তব্য: একটি listener failure অন্য listeners-কে affect করে না।"""
+        results = []
+
+        def failing_listener(event):
+            raise RuntimeError("Failed")
+
+        async def successful_listener(event):
+            results.append("success")
+
+        event_bus.register_listener(failing_listener)
+        event_bus.register_listener(successful_listener)
+        await event_bus._dispatch_async(sample_error_event)
+
+        # Successful listener should still have been called
+        assert len(results) == 1
+        assert event_bus._total_dlq_items == 1
+
+
+# -------------------- Tests: _log_event --------------------
+
+
+class TestLogEvent:
+    """বাংলা মন্তব্য: _log_event() method টেস্ট।"""
+
+    def test_log_critical_severity(self, event_bus):
+        event = ErrorEvent(
+            module="critical_module",
+            error_type="CriticalError",
+            message="Critical failure",
+            severity="CRITICAL",
+        )
+        with patch("core.event_bus.logger") as mock_logger:
+            event_bus._log_event(event)
+            mock_logger.critical.assert_called_once()
+
+    def test_log_error_severity(self, event_bus):
+        event = ErrorEvent(
+            module="error_module",
+            error_type="Error",
+            message="Error occurred",
+            severity="ERROR",
+        )
+        with patch("core.event_bus.logger") as mock_logger:
+            event_bus._log_event(event)
+            mock_logger.error.assert_called_once()
+
+    def test_log_warning_severity(self, event_bus):
+        event = ErrorEvent(
+            module="warn_module",
+            error_type="Warning",
+            message="Warning message",
+            severity="WARNING",
+        )
+        with patch("core.event_bus.logger") as mock_logger:
+            event_bus._log_event(event)
+            mock_logger.warning.assert_called_once()
+
+    def test_log_info_severity(self, event_bus):
+        event = ErrorEvent(
+            module="info_module",
+            error_type="Info",
+            message="Info message",
+            severity="INFO",
+        )
+        with patch("core.event_bus.logger") as mock_logger:
+            event_bus._log_event(event)
+            mock_logger.info.assert_called_once()
+
+    def test_log_with_structured_context(self, event_bus):
+        event = ErrorEvent(
+            module="test",
+            error_type="TestError",
+            message="Test",
+            severity="ERROR",
+            structured_context=ErrorContext(
+                module="test",
+                user_id="user-123",
+                task_id="task-456",
+                request_id="req-789",
+                env="production",
+            ),
+        )
+        with patch("core.event_bus.logger") as mock_logger:
+            event_bus._log_event(event)
+            log_msg = mock_logger.error.call_args[0][0]
+            assert "user-123" in log_msg
+            assert "task-456" in log_msg
+            assert "req-789" in log_msg
+
+
+# -------------------- Tests: process_dead_letter_queue --------------------
+
+
+class TestProcessDeadLetterQueue:
+    """বাংলা মন্তব্য: process_dead_letter_queue() method টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_process_empty_dlq(self, event_bus):
+        """বাংলা মন্তব্য: Empty DLQ-এ return হয় empty list।"""
+        result = await event_bus.process_dead_letter_queue()
+        assert result == []
+
+    @pytest.mark.asyncio
+    async def test_process_dlq_items(self, event_bus, sample_dlq_item):
+        """বাংলা মন্তব্য: DLQ থেকে items process হয়।"""
+        event_bus._dlq.put_nowait(sample_dlq_item)
+
+        result = await event_bus.process_dead_letter_queue()
+
+        assert len(result) == 1
+        assert result[0] is sample_dlq_item
+        assert result[0].retry_count == 1
+
+    @pytest.mark.asyncio
+    async def test_process_dlq_respects_max_items(self, event_bus):
+        """বাংলা মন্তব্য: max_items respect করে।"""
+        # Add 5 items
+        for i in range(5):
+            item = DeadLetterQueueItem(
+                event_type=f"Error{i}",
+                handler_name="handler",
+                error="error",
+                timestamp=datetime.now(UTC),
+            )
+            event_bus._dlq.put_nowait(item)
+
+        result = await event_bus.process_dead_letter_queue(max_items=3)
+        assert len(result) == 3
+
+    @pytest.mark.asyncio
+    async def test_process_dlq_increments_retry_count(self, event_bus):
+        """বাংলা মন্তব্য: Process করার সময় retry_count increment হয়।"""
+        item = DeadLetterQueueItem(
+            event_type="TestError",
+            handler_name="handler",
+            error="error",
+            timestamp=datetime.now(UTC),
+            retry_count=2,
+        )
+        event_bus._dlq.put_nowait(item)
+
+        result = await event_bus.process_dead_letter_queue()
+
+        assert result[0].retry_count == 3
+
+
+# -------------------- Tests: Properties --------------------
+
+
+class TestProperties:
+    """বাংলা মন্তব্য: EventBus properties টেস্ট।"""
+
+    def test_dead_letter_queue_size(self, event_bus, sample_dlq_item):
+        assert event_bus.dead_letter_queue_size == 0
+        event_bus._dlq.put_nowait(sample_dlq_item)
+        assert event_bus.dead_letter_queue_size == 1
+
+    def test_stats_property(self, event_bus, sample_error_event):
+        """বাংলা মন্তব্য: stats property correct information return করে।"""
+        event_bus.emit(sample_error_event)
+        event_bus._total_dlq_items = 1  # Manually set for testing
+
+        # Add a DLQ item
+        event_bus._dlq.put_nowait(
+            DeadLetterQueueItem(
+                event_type="TestError",
+                handler_name="handler",
+                error="error",
+                timestamp=datetime.now(UTC),
+            )
+        )
+
+        stats = event_bus.stats
+        assert stats["total_emitted"] == 1
+        assert stats["total_dlq_items"] == 1
+        assert stats["dlq_current_size"] == 1
+        assert stats["registered_listeners"] == 0
+
+
+# -------------------- Tests: Global Instance --------------------
+
+
+class TestGlobalInstance:
+    """বাংলা মন্তব্য: Global error_event_bus instance টেস্ট।"""
+
+    def test_global_instance_exists(self):
+        """বাংলা মন্তব্য: Global instance create করা আছে।"""
+        assert isinstance(error_event_bus, ErrorEventBus)
+
+    def test_global_instance_is_singleton(self):
+        """বাংলা মন্তব্য: Global instance singleton pattern follow করে।"""
+        from core.event_bus import error_event_bus as instance1
+        from core.event_bus import error_event_bus as instance2
+
+        assert instance1 is instance2
+
+```
+
+## File: `backend/tests/core/test_nats_messaging.py`
+
+```py
+# backend/tests/core/test_nats_messaging.py
+# বাংলা মন্তব্য: NATSClient-এর জন্য comprehensive unit tests।
+# NATS server mock করা হয়েছে — actual NATS dependency ছাড়াই।
+
+import json
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+import pytest
+
+# Handle missing nats module gracefully
+try:
+    from core.nats_messaging import NATSClient
+except ModuleNotFoundError:
+    pytest.skip("nats module not installed", allow_module_level=True)
+
+
+# -------------------- Fixtures --------------------
+
+
+@pytest.fixture
+def nats_client():
+    """NATSClient ইনস্ট্যান্স ফেরত দেয়।"""
+    return NATSClient(url="nats://localhost:4222", token="test_token")
+
+
+@pytest.fixture
+def mock_nats_connection():
+    """Mock NATS connection এবং JetStream context।"""
+    mock_nc = AsyncMock()
+    mock_js = AsyncMock()
+    mock_nc.jetstream.return_value = mock_js
+    return mock_nc, mock_js
+
+
+@pytest.fixture
+def mock_kv_store():
+    """Mock Key-Value store।"""
+    kv = AsyncMock()
+    kv.get.return_value = MagicMock(value=json.dumps({"status": "active"}).encode())
+    kv.keys.return_value = ["worker1", "worker2"]
+    return kv
+
+
+# -------------------- Tests: __init__ --------------------
+
+
+class TestNATSClientInit:
+    """বাংলা মন্তব্য: Initialization টেস্ট।"""
+
+    def test_default_initialization(self):
+        client = NATSClient()
+        assert client.url == "nats://localhost:4222"
+        assert client.token == "super_secret_token"
+        assert client.nc is None
+        assert client.js is None
+        assert client.kv_store is None
+
+    def test_custom_url_and_token(self):
+        client = NATSClient(url="nats://custom:4222", token="custom_token")
+        assert client.url == "nats://custom:4222"
+        assert client.token == "custom_token"
+
+    def test_none_token(self):
+        client = NATSClient(token=None)
+        assert client.token is None
+
+
+# -------------------- Tests: connect --------------------
+
+
+class TestConnect:
+    """বাংলা মন্তব্য: connect() method-এর connection logic এবং error handling টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_successful_connection_with_token(self, nats_client, mock_nats_connection):
+        """বাংলা মন্তব্য: Token সহ সফল connection establish হয়।"""
+        mock_nc, mock_js = mock_nats_connection
+        mock_kv = AsyncMock()
+        mock_js.key_value.return_value = mock_kv
+
+        with patch("nats.connect", return_value=mock_nc) as mock_connect:
+            await nats_client.connect()
+
+            mock_connect.assert_called_once_with(servers=["nats://localhost:4222"], token="test_token")
+            assert nats_client.nc is mock_nc
+            assert nats_client.js is mock_js
+            assert nats_client.kv_store is mock_kv
+
+    @pytest.mark.asyncio
+    async def test_successful_connection_without_token(self):
+        """বাংলা মন্তব্য: Token না দিলেও connection establish হয়।"""
+        client = NATSClient(token=None)
+        mock_nc = AsyncMock()
+        mock_js = AsyncMock()
+        mock_kv = AsyncMock()
+        mock_nc.jetstream.return_value = mock_js
+        mock_js.key_value.return_value = mock_kv
+
+        with patch("nats.connect", return_value=mock_nc) as mock_connect:
+            await client.connect()
+
+            # token shouldn't be in kwargs when None
+            call_kwargs = mock_connect.call_args.kwargs
+            assert "token" not in call_kwargs or call_kwargs.get("token") is None
+
+    @pytest.mark.asyncio
+    async def test_connection_creates_kv_store_if_not_exists(self, nats_client, mock_nats_connection):
+        """বাংলা মন্তব্য: KV store না থাকলে create_key_value() call হয়।"""
+        mock_nc, mock_js = mock_nats_connection
+        mock_js.key_value.side_effect = Exception("Bucket not found")
+        mock_kv = AsyncMock()
+        mock_js.create_key_value.return_value = mock_kv
+
+        with patch("nats.connect", return_value=mock_nc):
+            await nats_client.connect()
+
+            mock_js.create_key_value.assert_called_once_with(bucket="WORKER_REGISTRY")
+            assert nats_client.kv_store is mock_kv
+
+    @pytest.mark.asyncio
+    async def test_connection_no_servers_error(self, nats_client):
+        """বাংলা মন্তব্য: NoServersError handle করে gracefully।"""
+        from nats.errors import NoServersError
+
+        with patch("nats.connect", side_effect=NoServersError("No servers available")):
+            await nats_client.connect()
+            # Connection fails gracefully, nc remains None
+            assert nats_client.nc is None
+            assert nats_client.js is None
+            assert nats_client.kv_store is None
+
+    @pytest.mark.asyncio
+    async def test_connection_general_exception(self, nats_client):
+        """বাংলা মন্তব্য: General exception handle করে gracefully।"""
+        with patch("nats.connect", side_effect=RuntimeError("Connection timeout")):
+            await nats_client.connect()
+            assert nats_client.nc is None
+
+
+# -------------------- Tests: publish_event --------------------
+
+
+class TestPublishEvent:
+    """বাংলা মন্তব্য: publish_event() method টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_publish_with_dict(self, nats_client):
+        """বাংলা মন্তব্য: dict data publish হয় correctly।"""
+        mock_nc = AsyncMock()
+        nats_client.nc = mock_nc
+
+        test_data = {"event": "test", "value": 123}
+        await nats_client.publish_event("test.subject", test_data)
+
+        mock_nc.publish.assert_called_once()
+        call_args = mock_nc.publish.call_args
+        assert call_args.args[0] == "test.subject"
+        published_data = json.loads(call_args.args[1].decode())
+        assert published_data == test_data
+
+    @pytest.mark.asyncio
+    async def test_publish_with_pydantic_model(self, nats_client):
+        """বাংলা মন্তব্য: Pydantic model data publish হয় correctly।"""
+        from pydantic import BaseModel
+
+        class TestModel(BaseModel):
+            name: str
+            value: int
+
+        mock_nc = AsyncMock()
+        nats_client.nc = mock_nc
+
+        model = TestModel(name="test", value=42)
+        await nats_client.publish_event("test.subject", model)
+
+        published_data = json.loads(mock_nc.publish.call_args.args[1].decode())
+        assert published_data == {"name": "test", "value": 42}
+
+    @pytest.mark.asyncio
+    async def test_publish_without_connection(self, nats_client):
+        """বাংলা মন্তব্য: Connection না থাকলে publish skip হয়।"""
+        nats_client.nc = None
+        with patch("core.nats_messaging.logger") as mock_logger:
+            await nats_client.publish_event("test.subject", {"data": "test"})
+            mock_logger.warning.assert_called_once_with("NATS client is not connected.")
+            # publish shouldn't be called
+            assert nats_client.nc is None
+
+
+# -------------------- Tests: subscribe --------------------
+
+
+class TestSubscribe:
+    """বাংলা মন্তব্য: subscribe() method টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_subscribe_success(self, nats_client):
+        """বাংলা মন্তব্য: সফলভাবে subscribe হয়।"""
+        mock_nc = AsyncMock()
+        nats_client.nc = mock_nc
+
+        async def mock_callback(data):
+            pass
+
+        await nats_client.subscribe("test.subject", mock_callback)
+
+        mock_nc.subscribe.assert_called_once()
+        # Verify the callback was registered
+        call_args = mock_nc.subscribe.call_args
+        assert call_args.args[0] == "test.subject"
+        assert call_args.kwargs["cb"] is not None
+
+    @pytest.mark.asyncio
+    async def test_subscribe_without_connection(self, nats_client):
+        """বাংলা মন্তব্য: Connection না থাকলে subscribe skip হয়।"""
+        nats_client.nc = None
+        with patch("core.nats_messaging.logger") as mock_logger:
+            await nats_client.subscribe("test.subject", lambda x: x)
+            mock_logger.warning.assert_called_once_with("NATS client is not connected.")
+
+    @pytest.mark.asyncio
+    async def test_subscribe_message_handler_success(self, nats_client):
+        """বাংলা মন্তব্য: Message handler correctly process করে message।"""
+        mock_nc = AsyncMock()
+        nats_client.nc = mock_nc
+
+        received_data = []
+
+        async def callback(data):
+            received_data.append(data)
+
+        await nats_client.subscribe("test.subject", callback)
+
+        # Get the registered message handler
+        subscribe_call = mock_nc.subscribe.call_args
+        message_handler = subscribe_call.kwargs["cb"]
+
+        # Simulate receiving a message
+        mock_msg = MagicMock()
+        mock_msg.data = json.dumps({"event": "test", "value": 123}).encode()
+        await message_handler(mock_msg)
+
+        assert len(received_data) == 1
+        assert received_data[0] == {"event": "test", "value": 123}
+
+    @pytest.mark.asyncio
+    async def test_subscribe_message_handler_error(self, nats_client):
+        """বাংলা মন্তব্য: Message handler-এ error হলে gracefully handle হয়।"""
+        mock_nc = AsyncMock()
+        nats_client.nc = mock_nc
+
+        async def callback(data):
+            raise RuntimeError("Handler error")
+
+        await nats_client.subscribe("test.subject", callback)
+
+        # Get the registered message handler
+        subscribe_call = mock_nc.subscribe.call_args
+        message_handler = subscribe_call.kwargs["cb"]
+
+        # Simulate receiving a message that causes error
+        mock_msg = MagicMock()
+        mock_msg.data = b"invalid json"
+
+        with patch("core.nats_messaging.logger") as mock_logger:
+            await message_handler(mock_msg)
+            # Error should be logged, not raised
+            mock_logger.error.assert_called_once()
+
+
+# -------------------- Tests: register_worker --------------------
+
+
+class TestRegisterWorker:
+    """বাংলা মন্তব্য: register_worker() method টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_register_worker_success(self, nats_client, mock_kv_store):
+        """বাংলা মন্তব্য: Worker successfully register হয়।"""
+        nats_client.kv_store = mock_kv_store
+
+        worker_data = {"status": "active", "last_heartbeat": "2024-01-01T00:00:00Z"}
+        await nats_client.register_worker("worker1", worker_data)
+
+        mock_kv_store.put.assert_called_once()
+        call_args = mock_kv_store.put.call_args
+        assert call_args.args[0] == "worker1"
+        stored_data = json.loads(call_args.args[1].decode())
+        assert stored_data == worker_data
+
+    @pytest.mark.asyncio
+    async def test_register_worker_without_kv_store(self, nats_client):
+        """বাংলা মন্তব্য: KV store না থাকলে register skip হয়।"""
+        nats_client.kv_store = None
+        # Should not raise any error
+        await nats_client.register_worker("worker1", {"status": "active"})
+
+
+# -------------------- Tests: get_worker --------------------
+
+
+class TestGetWorker:
+    """বাংলা মন্তব্য: get_worker() method টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_get_worker_success(self, nats_client, mock_kv_store):
+        """বাংলা মন্তব্য: Worker info successfully retrieve হয়।"""
+        nats_client.kv_store = mock_kv_store
+
+        worker_info = await nats_client.get_worker("worker1")
+
+        mock_kv_store.get.assert_called_once_with("worker1")
+        assert worker_info == {"status": "active"}
+
+    @pytest.mark.asyncio
+    async def test_get_worker_not_found(self, nats_client, mock_kv_store):
+        """বাংলা মন্তব্য: Worker না থাকলে None return হয়।"""
+        from nats.js.errors import KeyValueError
+
+        mock_kv_store.get.side_effect = KeyValueError("Key not found")
+        nats_client.kv_store = mock_kv_store
+
+        worker_info = await nats_client.get_worker("nonexistent")
+        assert worker_info is None
+
+    @pytest.mark.asyncio
+    async def test_get_worker_without_kv_store(self, nats_client):
+        """বাংলা মন্তব্য: KV store না থাকলে None return হয়।"""
+        nats_client.kv_store = None
+        worker_info = await nats_client.get_worker("worker1")
+        assert worker_info is None
+
+
+# -------------------- Tests: get_all_workers --------------------
+
+
+class TestGetAllWorkers:
+    """বাংলা মন্তব্য: get_all_workers() method টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_get_all_workers_success(self, nats_client, mock_kv_store):
+        """বাংলা মন্তব্য: সব workers successfully retrieve হয়।"""
+        nats_client.kv_store = mock_kv_store
+
+        # Mock the get calls for each key
+        worker1_data = json.dumps({"status": "active"}).encode()
+        worker2_data = json.dumps({"status": "idle"}).encode()
+
+        def mock_get(key):
+            if key == "worker1":
+                result = MagicMock()
+                result.value = worker1_data
+                return result
+            elif key == "worker2":
+                result = MagicMock()
+                result.value = worker2_data
+                return result
+
+        mock_kv_store.get.side_effect = mock_get
+
+        workers = await nats_client.get_all_workers()
+
+        assert len(workers) == 2
+        assert workers["worker1"] == {"status": "active"}
+        assert workers["worker2"] == {"status": "idle"}
+
+    @pytest.mark.asyncio
+    async def test_get_all_workers_empty(self, nats_client, mock_kv_store):
+        """বাংলা মন্তব্য: কোনো worker না থাকলে empty dict return হয়।"""
+        mock_kv_store.keys.return_value = []
+        nats_client.kv_store = mock_kv_store
+
+        workers = await nats_client.get_all_workers()
+        assert workers == {}
+
+    @pytest.mark.asyncio
+    async def test_get_all_workers_exception_handling(self, nats_client, mock_kv_store):
+        """বাংলা মন্তব্য: Exception handle করে empty dict return হয়।"""
+        mock_kv_store.keys.side_effect = RuntimeError("KV store error")
+        nats_client.kv_store = mock_kv_store
+
+        workers = await nats_client.get_all_workers()
+        assert workers == {}
+
+    @pytest.mark.asyncio
+    async def test_get_all_workers_without_kv_store(self, nats_client):
+        """বাংলা মন্তব্য: KV store না থাকলে empty dict return হয়।"""
+        nats_client.kv_store = None
+        workers = await nats_client.get_all_workers()
+        assert workers == {}
+
+
+# -------------------- Tests: Global Instance --------------------
+
+
+class TestGlobalInstance:
+    """বাংলা মন্তব্য: Global nats_client instance টেস্ট।"""
+
+    def test_global_instance_exists(self):
+        """বাংলা মন্তব্য: Global instance create করা আছে।"""
+        from core.nats_messaging import nats_client
+
+        assert isinstance(nats_client, NATSClient)
+
+    def test_global_instance_default_config(self):
+        """বাংলা মন্তব্য: Global instance default configuration দিয়ে create করা আছে।"""
+        from core.nats_messaging import nats_client
+
+        assert nats_client.url == "nats://localhost:4222"
+        assert nats_client.token == "super_secret_token"
 
 ```
 
@@ -124094,6 +127527,360 @@ async def test_self_healer_test_sandbox_placeholder(mock_db):
 
 ```
 
+## File: `backend/tests/core/test_cost_guard_coverage.py`
+
+```py
+# backend/tests/core/test_cost_guard_coverage.py
+# বাংলা মন্তব্য: CostGuard-এর জন্য comprehensive unit tests।
+# Database এবং HTTP exceptions mock করা হয়েছে।
+
+import asyncio
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+import pytest
+from fastapi import HTTPException
+
+from core.cost_guard import CostGuard
+
+
+# -------------------- Fixtures --------------------
+
+
+@pytest.fixture
+def cost_guard():
+    """CostGuard ইনস্ট্যান্স ফেরত দেয়।"""
+    return CostGuard()
+
+
+@pytest.fixture
+def cost_guard_with_db():
+    """Database সহ CostGuard ইনস্ট্যান্স ফেরত দেয়।"""
+    mock_db = MagicMock()
+    return CostGuard(db=mock_db), mock_db
+
+
+@pytest.fixture
+def mock_budget_doc():
+    """Mock budget document snapshot।"""
+    doc = MagicMock()
+    doc.exists = True
+    doc.to_dict.return_value = {
+        "monthly_limit": 100.0,
+        "spent_amount": 50.0,
+    }
+    return doc
+
+
+# -------------------- Tests: __init__ --------------------
+
+
+class TestCostGuardInit:
+    """বাংলা মন্তব্য: Initialization এবং tier limits টেস্ট।"""
+
+    def test_default_initialization(self, cost_guard):
+        """বাংলা মন্তব্য: Default initialization with no DB।"""
+        assert cost_guard._db is None
+        assert cost_guard.tier_limits["free"] == 0.0
+        assert cost_guard.tier_limits["economy"] == 0.02
+        assert cost_guard.tier_limits["premium"] == 0.50
+
+    def test_initialization_with_db(self, cost_guard_with_db):
+        """বাংলা মন্তব্য: DB দিয়ে initialization।"""
+        cost_guard, mock_db = cost_guard_with_db
+        assert cost_guard._db is mock_db
+
+
+# -------------------- Tests: check_budget --------------------
+
+
+class TestCheckBudget:
+    """বাংলা মন্তব্য: check_budget() method টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_check_budget_without_db(self, cost_guard):
+        """বাংলা মন্তব্য: DB না থাকলে budget check bypass হয়।"""
+        result = await cost_guard.check_budget("tenant-123", 0.01)
+        assert result is True
+
+    @pytest.mark.asyncio
+    async def test_check_budget_within_limit(self, cost_guard_with_db, mock_budget_doc):
+        """বাংলা মন্তব্য: Budget limit-এর ভিতরে থাকলে True return হয়।"""
+        cost_guard, mock_db = cost_guard_with_db
+        mock_db.collection.return_value.document.return_value.get.return_value = mock_budget_doc
+
+        result = await cost_guard.check_budget("tenant-123", 0.01)
+
+        assert result is True
+
+    @pytest.mark.asyncio
+    async def test_check_budget_exceeds_limit(self, cost_guard_with_db):
+        """বাংলা মন্তব্য: Budget exceed করলে HTTPException raise হয়।"""
+        cost_guard, mock_db = cost_guard_with_db
+
+        # Create a doc that exceeds budget
+        doc = MagicMock()
+        doc.exists = True
+        doc.to_dict.return_value = {
+            "monthly_limit": 100.0,
+            "spent_amount": 99.99,  # Almost at limit
+        }
+
+        mock_db.collection.return_value.document.return_value.get.return_value = doc
+
+        with pytest.raises(HTTPException) as exc_info:
+            await cost_guard.check_budget("tenant-123", 0.02)  # Would exceed
+
+        assert exc_info.value.status_code == 402
+        assert "Budget Exceeded" in str(exc_info.value.detail)
+
+    @pytest.mark.asyncio
+    async def test_check_budget_no_budget_configured(self, cost_guard_with_db):
+        """বাংলা মন্তব্য: Budget না থাকলে HTTPException raise হয়।"""
+        cost_guard, mock_db = cost_guard_with_db
+
+        doc = MagicMock()
+        doc.exists = False
+
+        mock_db.collection.return_value.document.return_value.get.return_value = doc
+
+        with pytest.raises(HTTPException) as exc_info:
+            await cost_guard.check_budget("tenant-123", 0.01)
+
+        assert exc_info.value.status_code == 402
+        assert "No budget configured" in str(exc_info.value.detail)
+
+    @pytest.mark.asyncio
+    async def test_check_budget_with_zero_limit(self, cost_guard_with_db):
+        """বাংলা মন্তব্য: Zero budget limit-এ any cost exceed হবে।"""
+        cost_guard, mock_db = cost_guard_with_db
+
+        doc = MagicMock()
+        doc.exists = True
+        doc.to_dict.return_value = {
+            "monthly_limit": 0.0,
+            "spent_amount": 0.0,
+        }
+
+        mock_db.collection.return_value.document.return_value.get.return_value = doc
+
+        with pytest.raises(HTTPException) as exc_info:
+            await cost_guard.check_budget("tenant-123", 0.01)
+
+        assert exc_info.value.status_code == 402
+
+    @pytest.mark.asyncio
+    async def test_check_budget_exact_limit(self, cost_guard_with_db):
+        """বাংলা মন্তব্য: Exact budget limit-এ success হয়।"""
+        cost_guard, mock_db = cost_guard_with_db
+
+        doc = MagicMock()
+        doc.exists = True
+        doc.to_dict.return_value = {
+            "monthly_limit": 100.0,
+            "spent_amount": 99.98,
+        }
+
+        mock_db.collection.return_value.document.return_value.get.return_value = doc
+
+        # 99.98 + 0.02 = 100.0 (exact limit, should succeed)
+        result = await cost_guard.check_budget("tenant-123", 0.02)
+        assert result is True
+
+    @pytest.mark.asyncio
+    async def test_check_budget_with_async_get(self, cost_guard_with_db, mock_budget_doc):
+        """বাংলা মন্তব্য: Async get() method handle করে।"""
+        cost_guard, mock_db = cost_guard_with_db
+
+        # Make get() async
+        async_get = AsyncMock(return_value=mock_budget_doc)
+        mock_db.collection.return_value.document.return_value.get = async_get
+
+        result = await cost_guard.check_budget("tenant-123", 0.01)
+        assert result is True
+
+    @pytest.mark.asyncio
+    async def test_check_budget_with_sync_get(self, cost_guard_with_db, mock_budget_doc):
+        """বাংলা মন্তব্য: Sync get() method handle করে।"""
+        cost_guard, mock_db = cost_guard_with_db
+
+        # get() is already sync (MagicMock)
+        mock_db.collection.return_value.document.return_value.get.return_value = mock_budget_doc
+
+        result = await cost_guard.check_budget("tenant-123", 0.01)
+        assert result is True
+
+    @pytest.mark.asyncio
+    async def test_check_budget_handles_general_exception(self, cost_guard_with_db):
+        """বাংলা মন্তব্য: General exception handle করে RuntimeError raise হয়।"""
+        cost_guard, mock_db = cost_guard_with_db
+
+        mock_db.collection.return_value.document.return_value.get.side_effect = RuntimeError("DB error")
+
+        with pytest.raises(RuntimeError) as exc_info:
+            await cost_guard.check_budget("tenant-123", 0.01)
+
+        assert "CostGuard failed to verify budget" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    async def test_check_budget_reraises_http_exception(self, cost_guard_with_db):
+        """বাংলা মন্তব্য: HTTPException directly re-raise হয়।"""
+        cost_guard, mock_db = cost_guard_with_db
+
+        mock_db.collection.return_value.document.return_value.get.side_effect = HTTPException(status_code=402, detail="Custom error")
+
+        with pytest.raises(HTTPException) as exc_info:
+            await cost_guard.check_budget("tenant-123", 0.01)
+
+        assert exc_info.value.status_code == 402
+        assert "Custom error" in str(exc_info.value.detail)
+
+    @pytest.mark.asyncio
+    async def test_check_budget_with_missing_fields(self, cost_guard_with_db):
+        """বাংলা মন্তব্য: Missing fields default values দিয়ে handle হয়।"""
+        cost_guard, mock_db = cost_guard_with_db
+
+        doc = MagicMock()
+        doc.exists = True
+        doc.to_dict.return_value = {}  # No fields
+
+        mock_db.collection.return_value.document.return_value.get.return_value = doc
+
+        # Should use defaults: monthly_limit=0.0, spent_amount=0.0
+        # 0.0 + 0.01 > 0.0, so should raise
+        with pytest.raises(HTTPException) as exc_info:
+            await cost_guard.check_budget("tenant-123", 0.01)
+
+        assert exc_info.value.status_code == 402
+
+
+# -------------------- Tests: validate_budget --------------------
+
+
+class TestValidateBudget:
+    """বাংলা মন্তব্য: validate_budget() method টেস্ট।"""
+
+    def test_validate_free_tier(self, cost_guard):
+        """বাংলা মন্তব্য: Free tier validate হয়।"""
+        result = cost_guard.validate_budget("free")
+        assert result is True
+
+    def test_validate_economy_tier(self, cost_guard):
+        """বাংলা মন্তব্য: Economy tier validate হয়।"""
+        result = cost_guard.validate_budget("economy")
+        assert result is True
+
+    def test_validate_premium_tier(self, cost_guard):
+        """বাংলা মন্তব্য: Premium tier validate হয়।"""
+        result = cost_guard.validate_budget("premium")
+        assert result is True
+
+    def test_validate_unknown_tier(self, cost_guard):
+        """বাংলা মন্তব্য: Unknown tier-ও True return করে (bypass mode)।"""
+        result = cost_guard.validate_budget("enterprise")
+        assert result is True
+
+    def test_validate_logs_tier(self, cost_guard):
+        """বাংলা মন্তব্য: Tier validation log হয়।"""
+        with patch("core.cost_guard.logger") as mock_logger:
+            cost_guard.validate_budget("premium")
+            mock_logger.info.assert_called_once()
+            log_msg = mock_logger.info.call_args[0][0]
+            assert "Validating execution safety gate for AI tier: 'premium'" in log_msg
+
+
+# -------------------- Tests: Global Instance --------------------
+
+
+class TestGlobalInstance:
+    """বাংলা মন্তব্য: Global cost_guard instance টেস্ট।"""
+
+    def test_global_instance_exists(self):
+        """বাংলা মন্তব্য: Global instance create করা আছে।"""
+        from core.cost_guard import cost_guard
+
+        assert isinstance(cost_guard, CostGuard)
+
+    def test_global_instance_default_config(self):
+        """বাংলা মন্তব্য: Global instance default configuration দিয়ে create করা আছে।"""
+        from core.cost_guard import cost_guard
+
+        assert cost_guard._db is None  # Default no DB
+        assert "free" in cost_guard.tier_limits
+        assert "economy" in cost_guard.tier_limits
+        assert "premium" in cost_guard.tier_limits
+
+
+# -------------------- Tests: Integration --------------------
+
+
+class TestCostGuardIntegration:
+    """বাংলা মন্তব্য: Integration-style tests for realistic scenarios।"""
+
+    @pytest.mark.asyncio
+    async def test_full_budget_check_workflow(self, cost_guard_with_db, mock_budget_doc):
+        """বাংলা মন্তব্য: সম্পূর্ণ budget check workflow।"""
+        cost_guard, mock_db = cost_guard_with_db
+        mock_db.collection.return_value.document.return_value.get.return_value = mock_budget_doc
+
+        # Check budget for a small cost
+        result = await cost_guard.check_budget("tenant-123", 0.01)
+        assert result is True
+
+        # Verify DB was queried correctly
+        mock_db.collection.assert_called_once_with("tenants/tenant-123/budget")
+        mock_db.collection.return_value.document.assert_called_once_with("status")
+
+    @pytest.mark.asyncio
+    async def test_budget_exhaustion_scenario(self, cost_guard_with_db):
+        """বাংলা মন্তব্য: Budget exhaustion scenario।"""
+        cost_guard, mock_db = cost_guard_with_db
+
+        # First check - within budget
+        doc1 = MagicMock()
+        doc1.exists = True
+        doc1.to_dict.return_value = {
+            "monthly_limit": 100.0,
+            "spent_amount": 50.0,
+        }
+        mock_db.collection.return_value.document.return_value.get.return_value = doc1
+
+        result = await cost_guard.check_budget("tenant-123", 0.01)
+        assert result is True
+
+        # Second check - budget exhausted
+        doc2 = MagicMock()
+        doc2.exists = True
+        doc2.to_dict.return_value = {
+            "monthly_limit": 100.0,
+            "spent_amount": 100.01,
+        }
+        mock_db.collection.return_value.document.return_value.get.return_value = doc2
+
+        with pytest.raises(HTTPException) as exc_info:
+            await cost_guard.check_budget("tenant-123", 0.01)
+
+        assert exc_info.value.status_code == 402
+
+    @pytest.mark.asyncio
+    async def test_tier_validation_workflow(self, cost_guard):
+        """বাংলা মন্তব্য: Tier validation workflow।"""
+        # All tiers should validate successfully
+        tiers = ["free", "economy", "premium"]
+        for tier in tiers:
+            result = cost_guard.validate_budget(tier)
+            assert result is True
+
+    @pytest.mark.asyncio
+    async def test_bypass_mode_without_db(self, cost_guard):
+        """বাংলা মন্তব্য: No DB means bypass mode।"""
+        # Without DB, all budget checks should pass
+        result = await cost_guard.check_budget("any-tenant", 1000.0)
+        assert result is True
+
+```
+
 ## File: `backend/tests/core/test_integration_phase3.py`
 
 ```py
@@ -124427,16 +128214,370 @@ def test_memory_file_is_overwritten_completely(temp_memory_file):
 
 ```
 
+## File: `backend/tests/core/test_swarm_pubsub.py`
+
+```py
+# backend/tests/core/test_swarm_pubsub.py
+# বাংলা মন্তব্য: SwarmPubSub-এর জন্য comprehensive unit tests।
+# Redis mock করা হয়েছে — actual Redis dependency ছাড়াই।
+
+import asyncio
+import json
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+import pytest
+
+from core.swarm_pubsub import SwarmPubSub
+
+
+# -------------------- Fixtures --------------------
+
+
+@pytest.fixture
+def swarm_pubsub():
+    """SwarmPubSub ইনস্ট্যান্স ফেরত দেয়।"""
+    with patch("redis.asyncio.from_url", return_value=AsyncMock()):
+        pubsub = SwarmPubSub()
+        return pubsub
+
+
+@pytest.fixture
+def mock_pubsub():
+    """Mock Redis pubsub instance।"""
+    pubsub = AsyncMock()
+    pubsub.subscribe = AsyncMock()
+    pubsub.unsubscribe = AsyncMock()
+    pubsub.close = AsyncMock()
+    pubsub.get_message = AsyncMock()
+    return pubsub
+
+
+@pytest.fixture
+def mock_redis(mock_pubsub):
+    """Mock Redis client।"""
+    redis = AsyncMock()
+    redis.pubsub = MagicMock(return_value=mock_pubsub)
+    redis.publish = AsyncMock()
+    return redis
+
+
+# -------------------- Tests: __init__ --------------------
+
+
+class TestSwarmPubSubInit:
+    """বাংলা মন্তব্য: Initialization টেস্ট।"""
+
+    def test_creates_redis_connection(self):
+        """বাংলা মন্তব্য: Redis connection create হয়।"""
+        with patch("redis.asyncio.from_url") as mock_from_url:
+            mock_redis = AsyncMock()
+            mock_from_url.return_value = mock_redis
+
+            pubsub = SwarmPubSub()
+
+            mock_from_url.assert_called_once_with("redis://localhost")
+            assert pubsub.redis is mock_redis
+
+
+# -------------------- Tests: subscribe --------------------
+
+
+class TestSubscribe:
+    """বাংলা মন্তব্য: subscribe() async generator method টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_subscribe_creates_pubsub(self, swarm_pubsub, mock_pubsub, mock_redis):
+        """বাংলা মন্তব্য: subscribe() call করলে pubsub create হয়।"""
+        swarm_pubsub.redis = mock_redis
+        mock_redis.pubsub.return_value = mock_pubsub
+
+        # Start the generator
+        gen = swarm_pubsub.subscribe()
+        await gen.__anext__()
+
+        mock_redis.pubsub.assert_called_once()
+        mock_pubsub.subscribe.assert_called_once_with("swarm_stream")
+
+    @pytest.mark.asyncio
+    async def test_subscribe_yields_messages(self, swarm_pubsub, mock_pubsub, mock_redis):
+        """বাংলা মন্তব্য: subscribe() messages yield করে।"""
+        swarm_pubsub.redis = mock_redis
+        mock_redis.pubsub.return_value = mock_pubsub
+
+        # Mock message data
+        test_messages = [
+            {"data": b"message1"},
+            {"data": b"message2"},
+            {"data": b"message3"},
+        ]
+
+        message_index = 0
+
+        async def mock_get_message(**kwargs):
+            nonlocal message_index
+            if message_index < len(test_messages):
+                msg = test_messages[message_index]
+                message_index += 1
+                return msg
+            return None
+
+        mock_pubsub.get_message = mock_get_message
+
+        gen = swarm_pubsub.subscribe()
+        received = []
+
+        # Collect messages
+        for _ in range(3):
+            try:
+                msg = await asyncio.wait_for(gen.__anext__(), timeout=0.5)
+                received.append(msg)
+            except TimeoutError:
+                break
+
+        assert len(received) == 3
+        assert received[0] == "message1"
+        assert received[1] == "message2"
+        assert received[2] == "message3"
+
+    @pytest.mark.asyncio
+    async def test_subscribe_handles_cancelled_error(self, swarm_pubsub, mock_pubsub, mock_redis):
+        """বাংলা মন্তব্য: CancelledError handle করে cleanup করে।"""
+        swarm_pubsub.redis = mock_redis
+        mock_redis.pubsub.return_value = mock_pubsub
+
+        gen = swarm_pubsub.subscribe()
+
+        # Simulate cancellation
+        with pytest.raises(asyncio.CancelledError):
+            mock_pubsub.get_message = AsyncMock(side_effect=asyncio.CancelledError())
+            await gen.__anext__()
+
+        # Verify cleanup
+        mock_pubsub.unsubscribe.assert_called_once_with("swarm_stream")
+        mock_pubsub.close.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_subscribe_sleeps_between_messages(self, swarm_pubsub, mock_pubsub, mock_redis):
+        """বাংলা মন্তব্য: Message polling-এর between-এ sleep হয়।"""
+        swarm_pubsub.redis = mock_redis
+        mock_redis.pubsub.return_value = mock_pubsub
+
+        call_count = 0
+
+        async def mock_get_message(**kwargs):
+            nonlocal call_count
+            call_count += 1
+            # First call: no message (returns None, triggers sleep)
+            if call_count == 1:
+                return None
+            # Second call: return a message
+            if call_count == 2:
+                return {"data": b"test"}
+            # Third call: stop the loop
+            raise asyncio.CancelledError()
+
+        mock_pubsub.get_message = mock_get_message
+
+        with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+            gen = swarm_pubsub.subscribe()
+            try:
+                msg = await gen.__anext__()
+                assert msg == "test"
+            except asyncio.CancelledError:
+                pass
+
+            # Sleep should have been called at least once (after first None)
+            assert mock_sleep.call_count >= 1
+            mock_sleep.assert_any_call(0.01)
+
+    @pytest.mark.asyncio
+    async def test_subscribe_ignores_subscribe_messages(self, swarm_pubsub, mock_pubsub, mock_redis):
+        """বাংলা মন্তব্য: Subscribe confirmation messages ignore করা হয়।"""
+        swarm_pubsub.redis = mock_redis
+        mock_redis.pubsub.return_value = mock_pubsub
+
+        # Mock get_message to return subscribe confirmation first, then actual message
+        call_count = 0
+
+        async def mock_get_message(**kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                # Subscribe confirmation - Redis filters this with ignore_subscribe_messages=True
+                # So we return None instead
+                return None
+            elif call_count == 2:
+                # Actual message
+                return {"data": b"real message"}
+            # Stop after getting the real message
+            raise asyncio.CancelledError()
+
+        mock_pubsub.get_message = mock_get_message
+
+        with patch("asyncio.sleep", new_callable=AsyncMock):
+            gen = swarm_pubsub.subscribe()
+            received = []
+
+            try:
+                # First call should get real message (subscribe messages are filtered by Redis)
+                msg1 = await gen.__anext__()
+                received.append(msg1)
+            except asyncio.CancelledError:
+                pass
+
+            # Should only receive the real message
+            assert received == ["real message"]
+
+
+# -------------------- Tests: broadcast --------------------
+
+
+class TestBroadcast:
+    """বাংলা মন্তব্য: broadcast() method টেস্ট।"""
+
+    @pytest.mark.asyncio
+    async def test_broadcast_publishes_message(self, swarm_pubsub, mock_redis):
+        """বাংলা মন্তব্য: broadcast() call করলে Redis-এ publish হয়।"""
+        swarm_pubsub.redis = mock_redis
+
+        await swarm_pubsub.broadcast("test_event", {"key": "value"})
+
+        mock_redis.publish.assert_called_once()
+        call_args = mock_redis.publish.call_args
+        assert call_args.args[0] == "swarm_stream"
+
+        # Verify message format
+        published_data = json.loads(call_args.args[1])
+        assert published_data["type"] == "test_event"
+        assert published_data["data"] == {"key": "value"}
+
+    @pytest.mark.asyncio
+    async def test_broadcast_with_different_event_types(self, swarm_pubsub, mock_redis):
+        """বাংলা মন্তব্য: Different event types correctly publish হয়।"""
+        swarm_pubsub.redis = mock_redis
+
+        event_types = ["agent_started", "task_completed", "error_occurred"]
+
+        for event_type in event_types:
+            await swarm_pubsub.broadcast(event_type, {"test": "data"})
+
+        assert mock_redis.publish.call_count == 3
+
+        # Verify each event type
+        for i, event_type in enumerate(event_types):
+            call_args = mock_redis.publish.call_args_list[i]
+            published_data = json.loads(call_args.args[1])
+            assert published_data["type"] == event_type
+
+    @pytest.mark.asyncio
+    async def test_broadcast_with_complex_payload(self, swarm_pubsub, mock_redis):
+        """বাংলা মন্তব্য: Complex payload correctly serialize হয়।"""
+        swarm_pubsub.redis = mock_redis
+
+        complex_payload = {
+            "task_id": "123",
+            "agent_id": "agent-456",
+            "results": [{"step": 1, "status": "done"}, {"step": 2, "status": "pending"}],
+            "metadata": {"timestamp": "2024-01-01T00:00:00Z", "priority": "high"},
+        }
+
+        await swarm_pubsub.broadcast("complex_event", complex_payload)
+
+        call_args = mock_redis.publish.call_args
+        published_data = json.loads(call_args.args[1])
+        assert published_data["data"] == complex_payload
+
+
+# -------------------- Tests: Global Instance --------------------
+
+
+class TestGlobalInstance:
+    """বাংলা মন্তব্য: Global swarm_streamer instance টেস্ট।"""
+
+    def test_global_instance_exists(self):
+        """বাংলা মন্তব্য: Global instance create করা আছে।"""
+        from core.swarm_pubsub import swarm_streamer
+
+        assert isinstance(swarm_streamer, SwarmPubSub)
+
+    def test_global_instance_has_redis_connection(self):
+        """বাংলা মন্তব্য: Global instance-এ Redis connection আছে।"""
+        from core.swarm_pubsub import swarm_streamer
+
+        assert swarm_streamer.redis is not None
+
+
+# -------------------- Tests: Integration --------------------
+
+
+class TestSwarmPubSubIntegration:
+    """বাংলা মন্তব্য: Integration-style tests for realistic scenarios।"""
+
+    @pytest.mark.asyncio
+    async def test_pub_sub_workflow(self, mock_pubsub, mock_redis):
+        """বাংলা মন্তব্য: Publish এবং subscribe এর সম্পূর্ণ workflow।"""
+        pubsub = SwarmPubSub()
+        pubsub.redis = mock_redis
+        mock_redis.pubsub.return_value = mock_pubsub
+
+        # Broadcast a message
+        test_payload = {"event": "task_complete", "task_id": "task-123"}
+        await pubsub.broadcast("task_complete", test_payload)
+
+        # Verify it was published
+        mock_redis.publish.assert_called_once()
+        published_msg = json.loads(mock_redis.publish.call_args.args[1])
+        assert published_msg["type"] == "task_complete"
+        assert published_msg["data"] == test_payload
+
+    @pytest.mark.asyncio
+    async def test_multiple_broadcasts(self, mock_redis):
+        """বাংলা মন্তব্য: Multiple broadcasts sequentially correctly handle হয়।"""
+        pubsub = SwarmPubSub()
+        pubsub.redis = mock_redis
+
+        # Broadcast multiple messages
+        for i in range(5):
+            await pubsub.broadcast(f"event_{i}", {"index": i})
+
+        assert mock_redis.publish.call_count == 5
+
+    @pytest.mark.asyncio
+    async def test_subscribe_generator_cleanup(self, mock_pubsub, mock_redis):
+        """বাংলা মন্তব্য: Subscribe generator properly cleanup হয়।"""
+        pubsub = SwarmPubSub()
+        pubsub.redis = mock_redis
+        mock_redis.pubsub.return_value = mock_pubsub
+
+        gen = pubsub.subscribe()
+
+        # Cancel the generator by raising CancelledError
+        mock_pubsub.get_message = AsyncMock(side_effect=asyncio.CancelledError())
+
+        try:
+            await gen.__anext__()
+        except asyncio.CancelledError:
+            pass
+
+        # Verify cleanup was called
+        mock_pubsub.unsubscribe.assert_called_once_with("swarm_stream")
+        mock_pubsub.close.assert_called_once()
+
+```
+
 ## File: `backend/tests/core/test_core_missing_coverage.py`
 
 ```py
 # বাংলা মন্তব্য: core module-এর কম-কভার লাইন কভার করার জন্য অতিরিক্ত টেস্টসমূহ
 import asyncio
+import contextlib
 import json
 import os
 import sys
 import time
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -124657,7 +128798,7 @@ class TestConfigProxyMissingBranches:
         doc_ref.get.return_value = snapshot
         proxy._db.collection.return_value.document.return_value = doc_ref
 
-        # বাংলা মন্তব্য: async event loop runtime error এড়াতে async def এবং await ব্যবহার করা হলো
+        # বাংলা মন্তব্য: async event loop runtime error এড়াতে async def এবং await ব্যবহার করা হলো
         result = await proxy.get("k")
         assert result == "new"
 
@@ -124676,7 +128817,7 @@ class TestConfigProxyMissingBranches:
         doc_ref.get = MagicMock(return_value=snapshot)
         proxy._db.collection.return_value.document.return_value = doc_ref
 
-        # বাংলা মন্তব্য: async event loop runtime error এড়াতে async def এবং await ব্যবহার করা হলো
+        # বাংলা মন্তব্য: async event loop runtime error এড়াতে async def এবং await ব্যবহার করা হলো
         result = await proxy.get("k")
         assert result == "new"
 
@@ -124698,6 +128839,27 @@ class TestCostGuardMissingBranches:
         guard._db.collection.return_value.document.return_value = doc_ref
 
         result = await guard.check_budget("t1", 1.0)
+        assert result is True
+
+    def test_validate_budget_accepts_known_tiers(self):
+        from core.cost_guard import CostGuard
+
+        guard = CostGuard()
+        for tier in ("free", "economy", "premium"):
+            assert guard.validate_budget(tier) is True
+
+    def test_validate_budget_returns_true_for_unknown_tier(self):
+        from core.cost_guard import CostGuard
+
+        guard = CostGuard()
+        assert guard.validate_budget("unknown") is True
+
+    @pytest.mark.asyncio
+    async def test_check_budget_bypasses_when_no_db(self):
+        from core.cost_guard import CostGuard
+
+        guard = CostGuard(db=None)
+        result = await guard.check_budget("any-tenant", 999.0)
         assert result is True
 
 
@@ -124749,7 +128911,7 @@ class TestEventBusMissingBranches:
             context={},
         )
         await bus.emit_async(event)
-        # বাংলা মন্তব্য: ব্যাকগ্রাউন্ড লিসেনার টাস্কটি সম্পন্ন হওয়ার সুযোগ দিতে অপেক্ষা করা হচ্ছে
+        # বাংলা মন্তব্য: ব্যাকগ্রাউন্ড লিসেনার টাস্কটি সম্পন্ন হওয়ার সুযোগ দিতে অপেক্ষা করা হচ্ছে
         await asyncio.sleep(0.05)
         listener.assert_called_once_with(event)
 
@@ -124769,26 +128931,87 @@ class TestEventBusMissingBranches:
             context={},
         )
         await bus.emit_async(event)
-        # বাংলা মন্তব্য: ব্যাকগ্রাউন্ড লিসেনার টাস্কটি সম্পন্ন হওয়ার সুযোগ দিতে অপেক্ষা করা হচ্ছে
+        # বাংলা মন্তব্য: ব্যাকগ্রাউন্ড লিসেনার টাস্কটি সম্পন্ন হওয়ার সুযোগ দিতে অপেক্ষা করা হচ্ছে
         await asyncio.sleep(0.05)
         listener.assert_called_once_with(event)
 
     @pytest.mark.asyncio
-    async def test_safe_execute_listener_swallows_exceptions(self):
-        from core.event_bus import ErrorEvent, ErrorEventBus
+    async def test_handler_failure_routes_to_dlq(self):
+        from core.event_bus import DeadLetterQueueItem, ErrorEvent, ErrorEventBus
 
         bus = ErrorEventBus()
+        dlq_handler = AsyncMock()
+        bus.register_dead_letter_handler(dlq_handler)
+
         listener = MagicMock(side_effect=RuntimeError("boom"))
+        bus.register_listener(listener)
+
         event = ErrorEvent(
             module="test",
             error_type="Err",
             message="msg",
-            severity="WARNING",
+            severity="ERROR",
             context={},
         )
-        # _safe_execute_listener doesn't exist anymore, it's inline in event_bus.py
-        # Skip this test or test the inline logic by emitting an event directly.
         await bus.emit_async(event)
+        await asyncio.sleep(0.05)
+        assert bus.dead_letter_queue_size == 1
+        dlq_handler.assert_called_once()
+        item = dlq_handler.call_args[0][0]
+        assert isinstance(item, DeadLetterQueueItem)
+        assert item.handler_name == str(listener)
+
+    @pytest.mark.asyncio
+    async def test_dlq_full_drops_and_logs_critical(self):
+        from core.event_bus import DeadLetterQueueItem, ErrorEvent, ErrorEventBus
+
+        bus = ErrorEventBus()
+        # Pre-fill DLQ to maxsize
+        for _ in range(1000):
+            bus._dlq.put_nowait(
+                DeadLetterQueueItem(
+                    event_type="x",
+                    handler_name="h",
+                    error="e",
+                    timestamp=datetime.now(UTC),
+                )
+            )
+
+        listener = MagicMock(side_effect=RuntimeError("boom"))
+        bus.register_listener(listener)
+
+        event = ErrorEvent(
+            module="test",
+            error_type="Err",
+            message="msg",
+            severity="ERROR",
+            context={},
+        )
+        with patch("core.event_bus.logger.critical") as mock_critical:
+            await bus.emit_async(event)
+            await asyncio.sleep(0.05)
+            mock_critical.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_process_dead_letter_queue_returns_items(self):
+        from core.event_bus import DeadLetterQueueItem, ErrorEventBus
+
+        bus = ErrorEventBus()
+        item = DeadLetterQueueItem(
+            event_type="e", handler_name="h", error="err", timestamp=datetime.now(UTC)
+        )
+        bus._dlq.put_nowait(item)
+        processed = await bus.process_dead_letter_queue(max_items=10)
+        assert len(processed) == 1
+        assert processed[0].retry_count == 1
+
+    def test_stats_property(self):
+        from core.event_bus import ErrorEventBus
+
+        bus = ErrorEventBus()
+        stats = bus.stats
+        assert "total_emitted" in stats
+        assert "dlq_current_size" in stats
 
 
 # ========================== pubsub.py ==========================
@@ -124892,6 +129115,47 @@ class TestSwarmOrchestratorMissingBranches:
             mock_code.assert_called_once()
             mock_verify.assert_called_once()
             assert workspace is not None
+
+    @pytest.mark.anyio
+    async def test_circuit_breaker_opens_after_threshold(self):
+        from core.swarm_orchestrator import CircuitBreaker, CircuitBreakerOpenError, CircuitBreakerState
+
+        cb = CircuitBreaker(failure_threshold=2, recovery_timeout=0.1)
+
+        async def failing():
+            raise RuntimeError("fail")
+
+        with pytest.raises(RuntimeError):
+            await cb.call(failing)
+        with pytest.raises(RuntimeError):
+            await cb.call(failing)
+
+        assert cb.state == CircuitBreakerState.OPEN
+
+        with pytest.raises(CircuitBreakerOpenError):
+            await cb.call(failing)
+
+    @pytest.mark.anyio
+    async def test_circuit_breaker_half_open_after_timeout(self):
+        from core.swarm_orchestrator import CircuitBreaker, CircuitBreakerState
+
+        cb = CircuitBreaker(failure_threshold=1, recovery_timeout=0.05)
+
+        async def failing():
+            raise RuntimeError("fail")
+
+        with pytest.raises(RuntimeError):
+            await cb.call(failing)
+        assert cb.state == CircuitBreakerState.OPEN
+
+        await asyncio.sleep(0.1)
+        
+        async def succeeding():
+            return "ok"
+        
+        result = await cb.call(succeeding)
+        assert result == "ok"
+        assert cb.state == CircuitBreakerState.CLOSED
 
 
 # ========================== llm_gateway.py ==========================
@@ -125061,6 +129325,464 @@ class TestLogBatcherMissingBranches:
                 await service._run()
                 # বাংলা মন্তব্য: ইভেন্ট লুপ ইটারেসনের কারণে flushing ১ বা ২ বার হতে পারে, তাই check_count flexible রাখা হলো
                 assert mock_flush.call_count >= 1
+
+
+# ========================== container_auditor.py ==========================
+
+
+class TestContainerAuditorMissingBranches:
+    def test_get_container_stats_returns_list_on_success(self, monkeypatch):
+        from core.container_auditor import ContainerAuditor
+
+        auditor = ContainerAuditor(check_interval_seconds=1)
+        fake_stdout = json.dumps({"Name": "c1", "MemPerc": "10.5%"}) + "\n"
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = fake_stdout
+        mock_result.stderr = ""
+
+        monkeypatch.setattr("subprocess.run", lambda *args, **kwargs: mock_result)
+        stats = auditor.get_container_stats()
+        assert isinstance(stats, list)
+        assert stats[0]["Name"] == "c1"
+
+    def test_get_container_stats_returns_empty_on_failure(self, monkeypatch):
+        from core.container_auditor import ContainerAuditor
+
+        auditor = ContainerAuditor(check_interval_seconds=1)
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stderr = "docker error"
+        monkeypatch.setattr("subprocess.run", lambda *args, **kwargs: mock_result)
+        assert auditor.get_container_stats() == []
+
+    def test_get_container_stats_handles_exception(self, monkeypatch):
+        from core.container_auditor import ContainerAuditor
+
+        auditor = ContainerAuditor(check_interval_seconds=1)
+        monkeypatch.setattr("subprocess.run", lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("boom")))
+        assert auditor.get_container_stats() == []
+
+    def test_parse_memory_percent_valid(self):
+        from core.container_auditor import ContainerAuditor
+
+        auditor = ContainerAuditor()
+        assert auditor.parse_memory_percent("85.3%") == 85.3
+
+    def test_parse_memory_percent_invalid(self):
+        from core.container_auditor import ContainerAuditor
+
+        auditor = ContainerAuditor()
+        assert auditor.parse_memory_percent("not-a-number") == 0.0
+
+    @pytest.mark.asyncio
+    async def test_audit_cycle_warns_below_kill_threshold(self, monkeypatch):
+        from core.container_auditor import ContainerAuditor
+
+        auditor = ContainerAuditor(check_interval_seconds=1)
+        monkeypatch.setattr(auditor, "get_container_stats", lambda: [{"Name": "c1", "MemPerc": "82.0%"}])
+        with patch("core.container_auditor.logger.warning") as mock_warning:
+            await auditor.audit_cycle()
+            mock_warning.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_audit_cycle_kills_above_threshold(self, monkeypatch):
+        from core.container_auditor import ContainerAuditor
+
+        auditor = ContainerAuditor(check_interval_seconds=1)
+        monkeypatch.setattr(auditor, "get_container_stats", lambda: [{"Name": "c1", "MemPerc": "96.0%"}])
+        with (
+            patch("core.container_auditor.logger.error") as mock_error,
+            patch("subprocess.run") as mock_run,
+        ):
+            await auditor.audit_cycle()
+            mock_error.assert_called()
+            mock_run.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_audit_cycle_kill_failure_logs(self, monkeypatch):
+        from core.container_auditor import ContainerAuditor
+
+        auditor = ContainerAuditor(check_interval_seconds=1)
+        monkeypatch.setattr(auditor, "get_container_stats", lambda: [{"Name": "c1", "MemPerc": "99.0%"}])
+        with (
+            patch("core.container_auditor.logger.error") as mock_error,
+            patch("subprocess.run", side_effect=RuntimeError("kill fail")),
+        ):
+            await auditor.audit_cycle()
+            mock_error.assert_called()
+
+    @pytest.mark.asyncio
+    async def test_run_stops_on_exception(self, monkeypatch):
+        from core.container_auditor import ContainerAuditor
+
+        auditor = ContainerAuditor(check_interval_seconds=0.01)
+        call_count = 0
+
+        async def fake_audit():
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise RuntimeError("cycle fail")
+            auditor.stop()
+
+        monkeypatch.setattr(auditor, "audit_cycle", fake_audit)
+        await auditor.run()
+        assert auditor.running is False
+
+    def test_stop_sets_running_false(self):
+        from core.container_auditor import ContainerAuditor
+
+        auditor = ContainerAuditor()
+        auditor.running = True
+        auditor.stop()
+        assert auditor.running is False
+
+
+# ========================== nats_messaging.py ==========================
+
+
+class TestNATSMessagingMissingBranches:
+    def test_init_defaults(self):
+        try:
+            from core.nats_messaging import NATSClient
+        except ImportError:
+            pytest.skip("nats module not installed")
+        client = NATSClient()
+        assert client.url == "nats://localhost:4222"
+        assert client.token == "super_secret_token"
+        assert client.nc is None
+        assert client.js is None
+        assert client.kv_store is None
+
+    @pytest.mark.asyncio
+    async def test_connect_creates_kv_store(self, monkeypatch):
+        try:
+            from core.nats_messaging import NATSClient
+        except ImportError:
+            pytest.skip("nats module not installed")
+        client = NATSClient()
+        mock_nc = MagicMock()
+        mock_js = MagicMock()
+        mock_kv = MagicMock()
+        mock_nc.jetstream.return_value = mock_js
+        mock_js.key_value.side_effect = Exception("not found")
+        mock_js.create_key_value = AsyncMock(return_value=mock_kv)
+
+        with patch("core.nats_messaging.nats.connect", new_callable=AsyncMock, return_value=mock_nc):
+            await client.connect()
+
+        assert client.nc is mock_nc
+        assert client.js is mock_js
+        assert client.kv_store is mock_kv
+
+    @pytest.mark.asyncio
+    async def test_publish_event_skips_when_not_connected(self, caplog):
+        try:
+            from core.nats_messaging import NATSClient
+        except ImportError:
+            pytest.skip("nats module not installed")
+        client = NATSClient()
+        await client.publish_event("subj", {"a": 1})
+        assert "NATS client is not connected" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_publish_event_publishes_payload(self):
+        try:
+            from core.nats_messaging import NATSClient
+        except ImportError:
+            pytest.skip("nats module not installed")
+        from pydantic import BaseModel
+
+        client = NATSClient()
+        client.nc = MagicMock()
+        client.nc.publish = AsyncMock()
+
+        class Dummy(BaseModel):
+            a: int
+
+        await client.publish_event("subj", Dummy(a=1))
+        client.nc.publish.assert_called_once()
+        args = client.nc.publish.call_args
+        assert args[0][0] == "subj"
+        assert json.loads(args[0][1].decode()) == {"a": 1}
+
+    @pytest.mark.asyncio
+    async def test_subscribe_skips_when_not_connected(self, caplog):
+        try:
+            from core.nats_messaging import NATSClient
+        except ImportError:
+            pytest.skip("nats module not installed")
+        client = NATSClient()
+        cb = MagicMock()
+        await client.subscribe("subj", cb)
+        assert "NATS client is not connected" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_register_and_get_worker(self):
+        try:
+            from core.nats_messaging import NATSClient
+        except ImportError:
+            pytest.skip("nats module not installed")
+        client = NATSClient()
+        client.kv_store = MagicMock()
+        client.kv_store.put = AsyncMock()
+        client.kv_store.get = AsyncMock(
+            return_value=MagicMock(value=json.dumps({"id": "w1"}).encode())
+        )
+
+        await client.register_worker("w1", {"id": "w1"})
+        worker = await client.get_worker("w1")
+        assert worker == {"id": "w1"}
+
+    @pytest.mark.asyncio
+    async def test_get_worker_returns_none_on_missing(self):
+        try:
+            from core.nats_messaging import NATSClient
+            from nats.js.errors import KeyValueError
+        except ImportError:
+            pytest.skip("nats module not installed")
+        client = NATSClient()
+        client.kv_store = MagicMock()
+        client.kv_store.get = AsyncMock(side_effect=KeyValueError("missing"))
+        assert await client.get_worker("missing") is None
+
+    @pytest.mark.asyncio
+    async def test_get_all_workers_returns_empty_when_no_kv(self):
+        try:
+            from core.nats_messaging import NATSClient
+        except ImportError:
+            pytest.skip("nats module not installed")
+        client = NATSClient()
+        assert await client.get_all_workers() == {}
+
+    @pytest.mark.asyncio
+    async def test_get_all_workers_lists_keys(self):
+        try:
+            from core.nats_messaging import NATSClient
+        except ImportError:
+            pytest.skip("nats module not installed")
+        client = NATSClient()
+        client.kv_store = MagicMock()
+        client.kv_store.keys = AsyncMock(return_value=["w1"])
+        entry = MagicMock()
+        entry.value = json.dumps({"id": "w1"}).encode()
+        client.kv_store.get = AsyncMock(return_value=entry)
+
+        workers = await client.get_all_workers()
+        assert workers == {"w1": {"id": "w1"}}
+
+
+# ========================== playwright_manager.py ==========================
+
+
+class TestPlaywrightManagerMissingBranches:
+    def test_imports_without_playwright(self, monkeypatch):
+        monkeypatch.setitem(sys.modules, "playwright", None)
+        monkeypatch.setitem(sys.modules, "playwright.async_api", None)
+        if "core.playwright_manager" in sys.modules:
+            del sys.modules["core.playwright_manager"]
+        import core.playwright_manager as pm
+
+        assert pm.async_playwright is None
+
+    @pytest.mark.asyncio
+    async def test_get_global_browser_raises_when_not_installed(self, monkeypatch):
+        from core.playwright_manager import async_playwright, get_global_browser
+
+        monkeypatch.setattr("core.playwright_manager.async_playwright", None)
+        with pytest.raises(RuntimeError, match="Playwright is not installed"):
+            await get_global_browser()
+
+    @pytest.mark.asyncio
+    async def test_shutdown_global_browser_handles_errors(self, monkeypatch):
+        from core.playwright_manager import shutdown_global_browser
+
+        mock_browser = MagicMock()
+        mock_runner = MagicMock()
+        monkeypatch.setattr("core.playwright_manager._global_browser", mock_browser)
+        monkeypatch.setattr("core.playwright_manager._playwright_runner", mock_runner)
+        monkeypatch.setattr(
+            "core.playwright_manager._global_browser.close", AsyncMock(side_effect=RuntimeError("close fail"))
+        )
+        monkeypatch.setattr(
+            "core.playwright_manager._playwright_runner.stop", AsyncMock(side_effect=RuntimeError("stop fail"))
+        )
+
+        # The function should complete without raising, even with errors
+        await shutdown_global_browser()
+        assert True
+
+
+# ========================== swarm_pubsub.py ==========================
+
+
+class TestSwarmPubSubMissingBranches:
+    @pytest.mark.asyncio
+    async def test_subscribe_yields_messages(self, monkeypatch):
+        from core.swarm_pubsub import SwarmPubSub
+
+        pubsub = SwarmPubSub()
+        mock_pubsub = MagicMock()
+        mock_pubsub.subscribe = AsyncMock()
+        mock_pubsub.get_message = AsyncMock(
+            side_effect=[{"data": b"hello"}, None, {"data": b"world"}]
+        )
+        mock_pubsub.unsubscribe = AsyncMock()
+        mock_pubsub.close = AsyncMock()
+
+        mock_redis = MagicMock()
+        mock_redis.pubsub = MagicMock(return_value=mock_pubsub)
+        monkeypatch.setattr("core.swarm_pubsub.redis.from_url", lambda *args, **kwargs: mock_redis)
+
+        messages = []
+        
+        async def consume():
+            count = 0
+            async for msg in pubsub.subscribe():
+                messages.append(msg)
+                count += 1
+                if count >= 2:
+                    break
+
+        task = asyncio.create_task(consume())
+        await asyncio.sleep(0.1)
+        task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await task
+
+        # Verify at least one message was received
+        assert len(messages) >= 1, f"Expected at least 1 message, got {messages}"
+
+    @pytest.mark.asyncio
+    async def test_broadcast_publishes_event(self, monkeypatch):
+        from core.swarm_pubsub import SwarmPubSub
+
+        pubsub = SwarmPubSub()
+        mock_redis = MagicMock()
+        mock_redis.publish = AsyncMock()
+        mock_redis.pubsub = MagicMock(return_value=MagicMock())
+        
+        # Completely mock the redis client to prevent any actual connection attempts
+        monkeypatch.setattr("core.swarm_pubsub.redis.from_url", lambda *args, **kwargs: mock_redis)
+
+        await pubsub.broadcast("theme_changed", {"theme": "dark"})
+        mock_redis.publish.assert_called_once()
+        payload = json.loads(mock_redis.publish.call_args[0][1])
+        assert payload["type"] == "theme_changed"
+        assert payload["data"]["theme"] == "dark"
+
+
+# ========================== theme_pubsub.py ==========================
+
+
+class TestThemePubSubMissingBranches:
+    def test_subscribe_creates_queue(self):
+        from core.theme_pubsub import ThemePubSub
+
+        pubsub = ThemePubSub()
+        q = pubsub.subscribe("u1")
+        assert "u1" in pubsub._subscribers
+        assert q in pubsub._subscribers["u1"]
+
+    def test_unsubscribe_removes_queue(self):
+        from core.theme_pubsub import ThemePubSub
+
+        pubsub = ThemePubSub()
+        q = pubsub.subscribe("u1")
+        pubsub.unsubscribe("u1", q)
+        assert "u1" not in pubsub._subscribers
+
+    def test_unsubscribe_keeps_other_queues(self):
+        from core.theme_pubsub import ThemePubSub
+
+        pubsub = ThemePubSub()
+        q1 = pubsub.subscribe("u1")
+        q2 = pubsub.subscribe("u1")
+        pubsub.unsubscribe("u1", q1)
+        assert "u1" in pubsub._subscribers
+        assert q2 in pubsub._subscribers["u1"]
+
+    def test_publish_no_subscribers(self, caplog):
+        from core.theme_pubsub import ThemePubSub
+
+        pubsub = ThemePubSub()
+        pubsub.publish("missing", "dark")
+        assert "Publishing theme update" not in caplog.text
+
+    def test_publish_delivers_to_subscribers(self):
+        from core.theme_pubsub import ThemePubSub
+
+        pubsub = ThemePubSub()
+        q = pubsub.subscribe("u1")
+        pubsub.publish("u1", "dark")
+        msg = q.get_nowait()
+        assert msg["event"] == "theme_changed"
+        assert msg["theme"] == "dark"
+
+
+# ========================== human_behavior.py ==========================
+
+
+class TestHumanBehaviorMissingBranches:
+    def test_module_imports(self):
+        import core.human_behavior as hb
+
+        assert hasattr(hb, "HumanBehaviorSimulators")
+
+    def test_bezier_points_generation(self):
+        from core.human_behavior import HumanBehaviorSimulators
+
+        points = HumanBehaviorSimulators._generate_bezier_points((0, 0), (100, 100), steps=5)
+        assert len(points) == 5
+        assert points[0] == (0, 0)
+        assert points[-1] == (100, 100)
+
+
+# ========================== security_utils.py ==========================
+
+
+class TestSecurityUtilsMissingBranches:
+    def test_is_safe_url_rejects_private_ip(self):
+        from core.security_utils import is_safe_url
+
+        assert is_safe_url("http://192.168.1.1/test") is False
+
+    def test_is_safe_url_rejects_localhost(self):
+        from core.security_utils import is_safe_url
+
+        assert is_safe_url("http://localhost/test") is False
+
+    def test_is_safe_url_rejects_metadata_endpoint(self):
+        from core.security_utils import is_safe_url
+
+        assert is_safe_url("http://169.254.169.254/latest/meta-data/") is False
+
+    def test_is_safe_url_accepts_public_url(self):
+        from core.security_utils import is_safe_url
+
+        assert is_safe_url("https://example.com/test") is True
+
+
+# ========================== swarm_orchestrator.py (additional) ==========================
+
+
+class TestSwarmOrchestratorCircuitBreakerIntegration:
+    @pytest.mark.anyio
+    async def test_execute_task_handles_circuit_breaker_open(self):
+        from core.swarm_orchestrator import CircuitBreakerOpenError, SwarmOrchestrator
+
+        orchestrator = SwarmOrchestrator()
+        orchestrator.circuit_breaker.state = "OPEN"
+
+        with patch.object(
+            orchestrator.circuit_breaker, "call", side_effect=CircuitBreakerOpenError("circuit open")
+        ):
+            workspace = await orchestrator.execute_task("prompt", "uid")
+            assert workspace is not None
+            # Verify the circuit breaker error was logged
+            assert len(workspace.execution_logs) > 0
+            assert "Circuit breaker OPEN" in str(workspace.execution_logs)
 
 ```
 
@@ -129012,8 +133734,9 @@ import asyncio
 import logging
 from typing import Any
 
-import docker
 from docker.errors import ContainerError
+
+import docker
 
 
 logger = logging.getLogger(__name__)
@@ -207108,7 +211831,7 @@ jobs:
     if: |
       always() && 
       github.ref == 'refs/heads/main' &&
-      needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled'
+      needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled' && needs.frontend-core.result != 'skipped'
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -207134,7 +211857,7 @@ jobs:
     if: |
       always() && 
       github.ref == 'refs/heads/main' &&
-      needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled'
+      needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled' && needs.frontend-core.result != 'skipped'
     steps:
       - uses: actions/checkout@v4
       - name: Install Vercel CLI & pnpm
