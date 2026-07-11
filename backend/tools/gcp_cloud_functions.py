@@ -1,4 +1,4 @@
-import os
+from core.config import settings
 from datetime import datetime
 from datetime import UTC
 from typing import Any
@@ -19,11 +19,11 @@ class GCPCloudFunctionClient:
         bearer_token: str | None = None,
         timeout: float = 30.0,
     ):
-        self.project_id = project_id or os.getenv("GCP_PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT")
-        self.region = region or os.getenv("GCP_REGION", "us-central1")
-        self.function_name = function_name or os.getenv("GCP_CLOUD_FUNCTION_NAME")
-        self.base_url = (base_url or os.getenv("GCP_CLOUD_FUNCTION_URL", "")).rstrip("/")
-        self.bearer_token = bearer_token or os.getenv("GCP_CLOUD_FUNCTION_BEARER_TOKEN")
+        self.project_id = project_id or getattr(settings, "gcp_project_id", None) or getattr(settings, "google_cloud_project", None)
+        self.region = region or getattr(settings, "gcp_region", "us-central1")
+        self.function_name = function_name or getattr(settings, "gcp_cloud_function_name", None)
+        self.base_url = (base_url or getattr(settings, "gcp_cloud_function_url", "")).rstrip("/")
+        self.bearer_token = bearer_token or getattr(settings, "gcp_cloud_function_bearer_token", None)
         self.timeout = timeout
 
     @property

@@ -1,6 +1,6 @@
+from core.config import settings
 import json
 import asyncio
-import os
 import redis.asyncio as redis
 
 from fastapi import APIRouter
@@ -18,7 +18,7 @@ class CollaborativeEditor:
         self.redis_listeners: dict[str, asyncio.Task] = {}
 
         # বাংলা মন্তব্য: Redis কানেকশন সেটআপ (Upstash বা Local)
-        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+        redis_url = getattr(settings, "redis_url", "redis://localhost:6379")
         self.redis = redis.from_url(redis_url, decode_responses=True)
         logger.info("Initialized CollaborativeEditor with Redis Pub/Sub and State Persistence")
 
@@ -194,12 +194,26 @@ class CollaborativeEditor:
             await pubsub.unsubscribe(channel)
             logger.info(f"Unsubscribed from Redis channel: {channel}")
 
+    async def start_collaboration_session(self, session_id: str):
+        """বাংলা মন্তব্য: while True: sleep() পোলিং লুপ বাদ দিয়ে PubSub/SSE Event-Driven মডেলে মাইগ্রেট করা হলো।"""
+        logger.info(f"Starting collaborative session for {session_id} using Redis PubSub.")
+        try:
+            from core.swarm_pubsub import swarm_streamer
+            async for event in swarm_streamer.subscribe():
+                if f"session_{session_id}" in event:
+                    logger.info(f"Received collaboration event: {event}")
+        except Exception as e:
+            logger.error(f"Collaboration session error: {e}")
+            from core.event_bus import error_event_bus, ErrorEvent
+            error_event_bus.emit(ErrorEvent(module="collaborative_editor", error_type="SESSION_ERROR", message=str(e)[:200], severity="CRITICAL"))
+            raise RuntimeError("Collaboration session failed.") from e
 
 editor_manager = CollaborativeEditor()
 
 
 @router.websocket("/ws/{session_id}/{client_id}")
 async def websocket_collab(websocket: WebSocket, session_id: str, client_id: str):
+
     await editor_manager.connect_client(session_id, client_id, websocket)
     try:
         while True:

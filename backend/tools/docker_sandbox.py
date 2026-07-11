@@ -1,4 +1,4 @@
-import os
+from core.config import settings
 import subprocess
 import shlex
 from typing import Any
@@ -70,8 +70,8 @@ class DockerSandbox:
             }
 
         if not self.docker_available:
-            env_name = os.getenv("ENV", "").lower()
-            allow_fallback = os.getenv("ALLOW_LOCAL_SANDBOX_FALLBACK") == "true"
+            env_name = getattr(settings, "env", "").lower()
+            allow_fallback = getattr(settings, "allow_local_sandbox_fallback", None) == "true"
 
             if env_name in {"production", "staging"} or not allow_fallback:
                 logger.error("Docker is not available and local execution fallback is disabled.")

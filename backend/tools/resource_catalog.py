@@ -1,4 +1,4 @@
-import os
+from core.config import settings
 import re
 import uuid
 from typing import Any
@@ -39,7 +39,7 @@ class ResourceCatalog:
             "Accept": "application/vnd.github.v3+json",
             "User-Agent": "SupremeAI-ResourceCatalog/2.0",
         }
-        github_token = os.getenv("GITHUB_API_TOKEN", "")
+        github_token = getattr(settings, "github_api_token", "")
         if github_token:
             headers["Authorization"] = f"token {github_token}"
         return headers
@@ -137,7 +137,7 @@ class ResourceCatalog:
                 "platforms": "PyPI",
                 "per_page": limit,
             }
-            api_key = os.getenv("LIBRARIES_IO_API_KEY", "")
+            api_key = getattr(settings, "libraries_io_api_key", "")
             if api_key:
                 params["api_key"] = api_key
 

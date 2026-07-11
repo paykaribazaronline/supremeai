@@ -431,13 +431,17 @@ class CodeSmellDetector:
             with open(rcfile, "w", encoding="utf-8") as f:
                 f.write("[MASTER]\nload-plugins=\n")
             try:
+                # Strict Path Traversal Whitelist Validation
+                abs_dir = os.path.abspath(directory_path)
+                base_dir = os.path.abspath(os.getcwd())
+                if not abs_dir.startswith(base_dir) or ".." in directory_path:
+                    logger.error(f"Security Alert: Path traversal attempt blocked for {directory_path}")
+                    return output
+
+                import shlex
+                cmd = shlex.split(f"pylint --output-format=json --rcfile={shlex.quote(rcfile)} {shlex.quote(directory_path)}")
                 proc = subprocess.run(
-                    [
-                        "pylint",
-                        "--output-format=json",
-                        f"--rcfile={rcfile}",
-                        directory_path,
-                    ],
+                    cmd,
                     capture_output=True,
                     text=True,
                     timeout=120,
@@ -488,21 +492,20 @@ class CodeSmellDetector:
         if not os.path.isdir(directory_path):
             return {"status": "skipped", "reason": "directory not found"}
         try:
+            # Strict Path Traversal Whitelist Validation
+            abs_dir = os.path.abspath(directory_path)
+            base_dir = os.path.abspath(os.getcwd())
+            if not abs_dir.startswith(base_dir) or ".." in directory_path:
+                logger.error(f"Security Alert: Path traversal attempt blocked for {directory_path}")
+                return {"status": "blocked", "reason": "Path traversal detected"}
+
+            import shlex
+            cmd = shlex.split(f"jscpd {shlex.quote(directory_path)} --silent --format json --min-lines 5 --min-tokens 50")
             proc = subprocess.run(
-                [
-                    "jscpd",
-                    directory_path,
-                    "--silent",
-                    "--format",
-                    "json",
-                    "--min-lines",
-                    "5",
-                    "--min-tokens",
-                    "50",
-                ],
+                cmd,
                 capture_output=True,
                 text=True,
-                timeout=120,
+                timeout=180,
                 check=False,
             )
             import json

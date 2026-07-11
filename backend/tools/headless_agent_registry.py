@@ -10,22 +10,22 @@ Headless, Zero-Cost Terminal-Based AI Agent Registry
 """
 
 from __future__ import annotations
+from core.config import settings
 
-import os
 from typing import Any
 
 
 def get_headless_agent_configs() -> dict[str, dict[str, Any]]:
     """বাংলা মন্তব্য: সব হেডলেস এজেন্টের কনফিগারেশন রিটার্ন করে।"""
-    settings: dict[str, dict[str, Any]] = {
+    agent_settings: dict[str, dict[str, Any]] = {
         # bangla: গুগল অফিসিয়াল ফ্রি এআই এজেন্ট, ১০০০ রিকোয়েস্ট/দিন ফ্রি, MCP সাপোর্ট করে
         "gemini-cli": {
             "description": "Google Gemini CLI - Official free terminal AI agent",
             "command": "uvx",
             "args": ["gemini-cli-mcp"],
             "env": {
-                "GEMINI_API_KEY": os.getenv("GEMINI_API_KEY", ""),
-                "GOOGLE_API_KEY": os.getenv("GOOGLE_API_KEY", ""),
+                "GEMINI_API_KEY": getattr(settings, "gemini_api_key", ""),
+                "GOOGLE_API_KEY": getattr(settings, "google_api_key", ""),
             },
             "startup_timeout": 15,
             "allowed_tools": [
@@ -42,7 +42,7 @@ def get_headless_agent_configs() -> dict[str, dict[str, Any]]:
             "command": "uvx",
             "args": ["openhands-mcp-server"],
             "env": {
-                "OPENHANDS_API_KEY": os.getenv("OPENHANDS_API_KEY", ""),
+                "OPENHANDS_API_KEY": getattr(settings, "openhands_api_key", ""),
             },
             "startup_timeout": 20,
             "allowed_tools": [
@@ -61,8 +61,8 @@ def get_headless_agent_configs() -> dict[str, dict[str, Any]]:
             "command": "npx",
             "args": ["@cline/cli", "--headless"],
             "env": {
-                "ANTHROPIC_API_KEY": os.getenv("ANTHROPIC_API_KEY", ""),
-                "CLINE_API_KEY": os.getenv("CLINE_API_KEY", ""),
+                "ANTHROPIC_API_KEY": getattr(settings, "anthropic_api_key", ""),
+                "CLINE_API_KEY": getattr(settings, "cline_api_key", ""),
             },
             "startup_timeout": 15,
             "allowed_tools": [
@@ -86,7 +86,7 @@ def get_headless_agent_configs() -> dict[str, dict[str, Any]]:
             "command": "uvx",
             "args": ["continue-mcp-server"],
             "env": {
-                "CONTINUE_API_KEY": os.getenv("CONTINUE_API_KEY", ""),
+                "CONTINUE_API_KEY": getattr(settings, "continue_api_key", ""),
             },
             "startup_timeout": 15,
             "allowed_tools": [
@@ -104,8 +104,8 @@ def get_headless_agent_configs() -> dict[str, dict[str, Any]]:
             "command": "uvx",
             "args": ["aider-mcp"],
             "env": {
-                "AIDER_API_KEY": os.getenv("AIDER_API_KEY", ""),
-                "OPENROUTER_API_KEY": os.getenv("OPENROUTER_API_KEY", ""),
+                "AIDER_API_KEY": getattr(settings, "aider_api_key", ""),
+                "OPENROUTER_API_KEY": getattr(settings, "openrouter_api_key", ""),
             },
             "startup_timeout": 10,
             "allowed_tools": [
@@ -123,8 +123,8 @@ def get_headless_agent_configs() -> dict[str, dict[str, Any]]:
             "command": "uvx",
             "args": ["swe-agent-mcp"],
             "env": {
-                "GITHUB_TOKEN": os.getenv("GITHUB_TOKEN", ""),
-                "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY", ""),
+                "GITHUB_TOKEN": getattr(settings, "github_token", ""),
+                "OPENAI_API_KEY": getattr(settings, "openai_api_key", ""),
             },
             "startup_timeout": 20,
             "allowed_tools": [
@@ -141,7 +141,7 @@ def get_headless_agent_configs() -> dict[str, dict[str, Any]]:
             "command": "uvx",
             "args": ["plandex-mcp-server"],
             "env": {
-                "PLANDEX_API_KEY": os.getenv("PLANDEX_API_KEY", ""),
+                "PLANDEX_API_KEY": getattr(settings, "plandex_api_key", ""),
             },
             "startup_timeout": 15,
             "allowed_tools": [
@@ -159,8 +159,8 @@ def get_headless_agent_configs() -> dict[str, dict[str, Any]]:
             "command": "uvx",
             "args": ["devika-mcp-server"],
             "env": {
-                "GEMINI_API_KEY": os.getenv("GEMINI_API_KEY", ""),
-                "GROQ_API_KEY": os.getenv("GROQ_API_KEY", ""),
+                "GEMINI_API_KEY": getattr(settings, "gemini_api_key", ""),
+                "GROQ_API_KEY": getattr(settings, "groq_api_key", ""),
             },
             "startup_timeout": 20,
             "allowed_tools": [
@@ -178,8 +178,8 @@ def get_headless_agent_configs() -> dict[str, dict[str, Any]]:
             "command": "uvx",
             "args": ["gpt-pilot-mcp-server"],
             "env": {
-                "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY", ""),
-                "Pythagora_API_KEY": os.getenv("PYTHAGORA_API_KEY", ""),
+                "OPENAI_API_KEY": getattr(settings, "openai_api_key", ""),
+                "Pythagora_API_KEY": getattr(settings, "pythagora_api_key", ""),
             },
             "startup_timeout": 25,
             "allowed_tools": [
@@ -197,7 +197,7 @@ def get_headless_agent_configs() -> dict[str, dict[str, Any]]:
             "command": "uvx",
             "args": ["codeium-lang-server"],
             "env": {
-                "CODEIUM_API_KEY": os.getenv("CODEIUM_API_KEY", ""),
+                "CODEIUM_API_KEY": getattr(settings, "codeium_api_key", ""),
             },
             "startup_timeout": 15,
             "allowed_tools": [
@@ -211,7 +211,7 @@ def get_headless_agent_configs() -> dict[str, dict[str, Any]]:
             "headless_mode": True,
         },
     }
-    return settings
+    return agent_settings
 
 
 def get_headless_agent_registry() -> dict[str, Any]:

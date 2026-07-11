@@ -1,5 +1,5 @@
+from core.config import settings
 import json
-import os
 from typing import Any
 
 from loguru import logger
@@ -21,7 +21,7 @@ class PRReviewer:
     """
 
     def __init__(self, github_token: str = None):
-        self.github_token = github_token or os.getenv("GITHUB_TOKEN")
+        self.github_token = github_token or getattr(settings, "github_token", None)
         if not self.github_token:
             logger.warning("GITHUB_TOKEN not found. PR reviewer will run in dry-run mode.")
             self.gh = None

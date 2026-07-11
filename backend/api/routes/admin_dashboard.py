@@ -60,7 +60,7 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
         return decoded
     except Exception as err:  # noqa: BLE001
         logger.warning("Admin token validation failed", exc_info=True)
-        expected = os.getenv("SUPREMEAI_API_TOKEN") or ""
+        expected = getattr(settings, "supremeai_api_token", None) or ""
         if expected and secrets.compare_digest(token, expected):
             return {"uid": "admin", "role": "admin"}
         raise HTTPException(status_code=401, detail="Authentication failed.") from err
@@ -229,15 +229,15 @@ def get_costs():
 
 @router.get("/health-map")
 def get_health_map():
-    gcp_configured = bool(os.getenv("GCP_PROJECT_ID"))
-    redis_configured = bool(os.getenv("UPSTASH_REDIS_REST_URL"))
-    db_configured = bool(os.getenv("SUPABASE_DATABASE_URL"))
+    gcp_configured = bool(getattr(settings, "gcp_project_id", None))
+    redis_configured = bool(getattr(settings, "upstash_redis_rest_url", None))
+    db_configured = bool(getattr(settings, "supabase_database_url", None))
 
     return {
         "gcp": {
             "status": "healthy" if gcp_configured else "offline",
             "latency": "42ms" if gcp_configured else "N/A",
-            "region": os.getenv("GCP_REGION", "us-central1"),
+            "region": getattr(settings, "gcp_region", "us-central1"),
         },
         "railway": {
             "status": "healthy" if redis_configured else "offline",

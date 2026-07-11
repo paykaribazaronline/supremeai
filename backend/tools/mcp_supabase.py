@@ -6,7 +6,7 @@ MCP Server for Supabase/Postgres Database Integration in SupremeAI 2.0.
 টেবিল মাইগ্রেশন এবং SQL কুয়েরি রান করার ক্ষমতা দেয়।
 """
 
-import os
+from core.config import settings
 import json
 from typing import List, Any
 from enum import StrEnum
@@ -21,7 +21,7 @@ CHARACTER_LIMIT = 25000
 
 
 def _get_supabase_db_url() -> str:
-    return os.getenv("SUPABASE_DATABASE_URL", "")
+    return getattr(settings, "supabase_database_url", "")
 
 
 class ResponseFormat(StrEnum):
@@ -119,7 +119,7 @@ async def supabase_execute_sql(params: ExecuteQueryInput) -> str:
     Returns:
         str: কুয়েরি রেজাল্ট বা এরর মেসেজ
     """
-    admin_authorized = os.getenv("ADMIN_AUTHORIZED", "false").lower() == "true"
+    admin_authorized = getattr(settings, "admin_authorized", "false").lower() == "true"
     # বাংলা মন্তব্য: কেবলমাত্র সত্যিকারের ডেস্ট্রাকটিভ অপারেশনগুলো চেক করা হচ্ছে
     destructive_keywords = ["drop", "delete", "truncate", "alter"]
     if not admin_authorized and any(kw in params.query.lower() for kw in destructive_keywords):
@@ -211,7 +211,7 @@ async def supabase_create_table(params: CreateTableInput) -> str:
     Returns:
         str: টেবিল তৈরির স্ট্যাটাস
     """
-    admin_authorized = os.getenv("ADMIN_AUTHORIZED", "false").lower() == "true"
+    admin_authorized = getattr(settings, "admin_authorized", "false").lower() == "true"
     if not admin_authorized:
         return json.dumps({"error": "Admin authorization required for table creation"}, ensure_ascii=False)
 
@@ -280,7 +280,7 @@ async def supabase_run_migration(params: MigrationInput) -> str:
     Returns:
         str: মাইগ্রেশন স্ট্যাটাস
     """
-    admin_authorized = os.getenv("ADMIN_AUTHORIZED", "false").lower() == "true"
+    admin_authorized = getattr(settings, "admin_authorized", "false").lower() == "true"
     if not admin_authorized:
         return json.dumps({"error": "Admin authorization required for migrations"}, ensure_ascii=False)
 

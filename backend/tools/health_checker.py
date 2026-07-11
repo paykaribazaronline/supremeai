@@ -1,4 +1,5 @@
 from __future__ import annotations
+from core.config import settings
 
 import json
 import os
@@ -17,8 +18,8 @@ class HealthChecker:
         self.data_dir = os.path.join(base_dir, "data")
         os.makedirs(self.data_dir, exist_ok=True)
         self.error_history_path = os.path.join(self.data_dir, "error_history.jsonl")
-        self.telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "")
-        self.admin_chat_id = os.getenv("ADMIN_TELEGRAM_CHAT_ID", "")
+        self.telegram_bot_token = getattr(settings, "telegram_bot_token", "")
+        self.admin_chat_id = getattr(settings, "admin_telegram_chat_id", "")
 
     def run_health_check(self) -> dict[str, Any]:
         dependencies = [

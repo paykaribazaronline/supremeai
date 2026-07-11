@@ -44,10 +44,12 @@ class CloudSandboxOrchestrator:
         logger.info(f"Initialized CloudSandboxOrchestrator (Provider: {self.provider})")
 
     def _get_base_url(self) -> str:
+        from core.config import settings
         if self.provider == "runpod":
-            return "https://api.runpod.io/v2"
+            # বাংলা মন্তব্য: Hardcoded "https://api.runpod.io/v2" রিমুভ করা হলো
+            return getattr(settings, "runpod_api_url", "https://api.runpod.io/v2")
         elif self.provider == "modal":
-            return "https://api.modal.com"
+            return getattr(settings, "modal_api_url", "https://api.modal.com")
         else:
             raise ValueError(f"Unsupported provider: {self.provider}")
 

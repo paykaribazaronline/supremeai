@@ -1,5 +1,4 @@
 import json
-import os
 import secrets
 import shutil
 import time
@@ -61,7 +60,7 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
             raise HTTPException(status_code=403, detail="Forbidden: User does not have admin role.")
         return decoded
     except Exception as e:  # noqa: BLE001
-        expected = os.getenv("SUPREMEAI_API_TOKEN") or ""
+        expected = getattr(settings, "supremeai_api_token", None) or ""
         if expected and secrets.compare_digest(token, expected):
             return {"uid": "admin", "role": "admin"}
         raise HTTPException(status_code=401, detail=f"Invalid Admin Authorization Token: {str(e)}") from e

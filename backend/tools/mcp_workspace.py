@@ -6,6 +6,7 @@ MCP Server for Dynamic Workspace Isolation in SupremeAI 2.0.
 যাতে একই সিস্টেমে একাধিক প্রজেক্ট চালালে ডেটা বা কোড মিক্স-আপ হয় না।
 """
 
+from core.config import settings
 import os
 import json
 import time
@@ -180,7 +181,7 @@ async def workspace_set_context(params: WorkspaceContextInput) -> str:
     Returns:
         str: JSON-formatted সেশন তথ্য সহ সফলতা বার্তা
     """
-    admin_authorized = os.getenv("ADMIN_AUTHORIZED", "false").lower() == "true"
+    admin_authorized = getattr(settings, "admin_authorized", "false").lower() == "true"
     if not admin_authorized and params.project_type == WorkspaceType.ADMIN_PANEL:
         return json.dumps(
             {

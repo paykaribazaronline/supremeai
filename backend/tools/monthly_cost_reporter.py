@@ -1,4 +1,5 @@
 from __future__ import annotations
+from core.config import settings
 
 import os
 import sqlite3
@@ -14,8 +15,8 @@ class MonthlyCostReporter:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.data_dir = os.path.join(base_dir, "data")
         self.db_path = os.path.join(self.data_dir, "supreme_memory.db")
-        self.admin_chat_id = os.getenv("ADMIN_TELEGRAM_CHAT_ID", "")
-        self.telegram_bot_token = os.getenv("TELEGRAM_BOT_TOKEN", "")
+        self.admin_chat_id = getattr(settings, "admin_telegram_chat_id", "")
+        self.telegram_bot_token = getattr(settings, "telegram_bot_token", "")
 
     def _get_connection(self) -> sqlite3.Connection:
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)

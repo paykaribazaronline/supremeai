@@ -3,7 +3,9 @@ import json
 import subprocess
 
 from loguru import logger
-from core.event_bus import error_event_bus, ErrorEvent
+
+from core.event_bus import ErrorEvent
+from core.event_bus import error_event_bus
 
 
 class ContainerAuditor:

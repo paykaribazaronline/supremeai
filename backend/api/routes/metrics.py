@@ -1,5 +1,4 @@
 import contextlib
-import os
 from typing import Any
 
 from fastapi import APIRouter
@@ -53,7 +52,7 @@ class SupremeMetricsEngine:
             # ৩. ওএস রানটাইম এনভায়রনমেন্ট ডাটা এক্সট্রাকশন
             return {
                 "status": "HEALTHY",
-                "environment": os.getenv("ENV", "production"),
+                "environment": getattr(settings, "env", "production"),
                 "financial_metrics": {
                     "total_semantic_cache_hits": total_saved_requests,
                     "estimated_usd_saved": round(total_billing_saved, 4),

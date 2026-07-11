@@ -1,5 +1,5 @@
+from core.config import settings
 import asyncio
-import os
 import secrets
 
 random = secrets.SystemRandom()
@@ -34,7 +34,7 @@ class BrowserStealth:
         if not HAS_PLAYWRIGHT:
             raise RuntimeError("playwright not installed")
         self.playwright = await async_playwright().start()
-        browser = await self.playwright.chromium.launch(headless=os.getenv("BROWSER_HEADLESS", "true").lower() != "false")
+        browser = await self.playwright.chromium.launch(headless=getattr(settings, "browser_headless", "true").lower() != "false")
         args = [
             "--no-sandbox",
             "--disable-setuid-sandbox",

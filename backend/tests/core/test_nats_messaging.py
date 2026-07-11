@@ -357,6 +357,7 @@ class TestGetAllWorkers:
                 result = MagicMock()
                 result.value = worker2_data
                 return result
+            return None
 
         mock_kv_store.get.side_effect = mock_get
 

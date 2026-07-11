@@ -38,12 +38,16 @@ class IdempotencyMiddleware:
                 break
 
         path = scope.get("path", "")
+        # For critical mutating endpoints, enforce the presence of the key.
         if not idempotency_key:
-            # Reject critical requests missing Idempotency-Key header to prevent duplicate execution
-            if "/api/orchestrate/generate" in path or "/api/markdown/export" in path:
+            # P1 Security Fix: Enforce idempotency key for critical mutating endpoints
+            # This prevents accidental duplicate task executions or billing events.
+            critical_paths = ["/api/orchestrate/generate", "/api/billing/charge", "/tools/auto-pr"]
+            if any(p in path for p in critical_paths):
+                logger.warning(f"Rejected request to '{path}' due to missing Idempotency-Key header.")
                 response = JSONResponse(
                     status_code=400,
-                    content={"error": "Idempotency-Key header is required for this action."},
+                    content={"detail": "Idempotency-Key header is required for this endpoint to prevent duplicate operations."},
                 )
                 await response(scope, receive, send)
                 return
@@ -89,7 +93,7 @@ class IdempotencyMiddleware:
             except Exception as exc:  # noqa: BLE001
                 # বল মনতবয: কযশকরত idempotency রকরড পরস করত বযরথ হল রকয়সট পনরায় পরসস হব;
                 # নরবভ ডট করাপশন লকয় রখত warning লগ যকত কর হল
-                logger.warning(f"Failed to parse cached idempotency record for key {idempotency_key}: {exc}")
+                logger.warning(f"Could not parse cached idempotency record for key '{idempotency_key}': {exc}. Reprocessing request.")
 
         # 2. Lock the idempotency key (10 minute timeout to prevent deadlocks)
         redis.set(redis_key, json.dumps({"status": "processing"}), ex=600)

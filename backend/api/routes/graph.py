@@ -1,4 +1,3 @@
-import os
 from typing import Any
 
 from fastapi import APIRouter
@@ -8,6 +7,7 @@ from fastapi import Query
 from loguru import logger
 
 from api.routes.auth import optional_current_user
+from core.config import settings
 from tools.graph_service import GraphService
 
 
@@ -19,7 +19,7 @@ graph_service = GraphService()
 
 # বাংলা মন্তব্য: কাস্টম অথরাইজেশন ডিপেন্ডেন্সি হেল্পার
 async def require_auth_token(current_user=Depends(optional_current_user)):
-    if os.getenv("SUPREMEAI_API_TOKEN") and current_user is None:
+    if getattr(settings, "supremeai_api_token", None) and current_user is None:
         raise HTTPException(status_code=401, detail="Not authenticated")
     return current_user or {"user_id": "dummy_user"}
 

@@ -1,5 +1,5 @@
+from core.config import settings
 import asyncio
-import os
 from loguru import logger
 from tools.docker_sandbox import DockerSandbox  # আমাদের এক্সিস্টিং সুনির্দিষ্ট টুল
 
@@ -12,8 +12,8 @@ class LocalCodeExecutor:
         self.docker_sandbox = DockerSandbox() if use_docker else None
 
     async def execute_local_code(self, code: str, timeout_seconds: int = 30) -> dict:
-        env = os.getenv("ENV", "development").lower()
-        allow_fallback = os.getenv("ALLOW_LOCAL_SANDBOX_FALLBACK", "false").lower() == "true"
+        env = getattr(settings, "env", "development").lower()
+        allow_fallback = getattr(settings, "allow_local_sandbox_fallback", "false").lower() == "true"
 
         if self.use_docker and self.docker_sandbox:
             try:

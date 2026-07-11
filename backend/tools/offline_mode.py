@@ -1,5 +1,5 @@
+from core.config import settings
 import asyncio
-import os
 from typing import Any
 
 import httpx
@@ -14,8 +14,8 @@ class OfflineModeManager:
     """
 
     def __init__(self, local_model_id: str = "llama3-8b"):
-        self.local_model_id = os.getenv("LOCAL_MODEL", local_model_id)
-        self.ollama_url = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
+        self.local_model_id = getattr(settings, "local_model", local_model_id)
+        self.ollama_url = getattr(settings, "ollama_url", "http://127.0.0.1:11434")
         self.sync_queue: list[dict[str, Any]] = []
         self._is_syncing = False
         logger.info(f"Initialized OfflineModeManager with local model {self.local_model_id}")

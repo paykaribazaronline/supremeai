@@ -1,6 +1,6 @@
+from core.config import settings
 import json
 import logging
-import os
 import random
 import time
 from typing import Any
@@ -20,7 +20,7 @@ class VPNRotator:
         self.endpoints = [item.strip() for item in (endpoints or []) if item.strip()]
         self.current_index = current_index
         self.history: list[dict[str, Any]] = []
-        self.max_history = int(os.getenv("VPN_ROTATOR_HISTORY", "100"))
+        self.max_history = int(getattr(settings, "vpn_rotator_history", "100"))
 
     def _record(self, event: str, payload: dict[str, Any]) -> None:
         entry = {"event": event, "ts": time.time(), **payload}
@@ -132,7 +132,7 @@ class VPNRotator:
     async def get_premium_proxy(self, use_case: str) -> dict[str, Any]:
         if not HAS_HTTPX:
             return {"proxy": None, "source": "premium", "reason": "httpx not installed"}
-        config_path = os.getenv("PREMIUM_PROXY_CONFIG", "config/premium_proxy.json")
+        config_path = getattr(settings, "premium_proxy_config", "config/premium_proxy.json")
         try:
             with open(config_path, encoding="utf-8") as fh:
                 cfg = json.load(fh)

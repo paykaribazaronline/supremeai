@@ -1,5 +1,4 @@
 import contextlib
-import os
 from typing import Any
 
 from loguru import logger
@@ -8,6 +7,7 @@ from admin.god import AdminGodLayer
 from brain.autonomous_agent import AutonomousAgent
 from brain.model_router import ModelRouter
 from brain.reasoning_orchestrator import ReasoningOrchestrator
+from core.config import settings
 from core.intent import IntentClassifier
 from tools.vpn_switcher import VPNRotator
 
@@ -29,7 +29,7 @@ class SupremeOrchestrator:
 
     def _maybe_rotate_vpn(self, task_type: str) -> None:
         try:
-            if not os.getenv("VPN_ENDPOINTS"):
+            if not getattr(settings, "vpn_endpoints", None):
                 return
             sensitive = ["completion", "voice", "realtime", "browser"]
             if task_type in sensitive:

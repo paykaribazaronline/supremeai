@@ -1,10 +1,10 @@
-import os
 import random
 from typing import Any
 
 import httpx
 from loguru import logger
 
+from core.config import settings
 from core.upstash_redis_queue import UpstashRedisQueue
 
 
@@ -17,7 +17,7 @@ class ParallelCloudRouter:
 
     PROVIDERS: dict[str, Any] = {
         "gcp_cloud_run": {
-            "url": os.getenv("GCP_CLOUD_RUN_URL", ""),
+            "url": getattr(settings, "gcp_cloud_run_url", ""),
             "weight": 40.0,  # 40% traffic (highest - free tier)
             "capacity": 2000000,  # 2M requests/month
             "current_requests": 0,
@@ -26,7 +26,7 @@ class ParallelCloudRouter:
             "latency_ms": 50.0,
         },
         "railway": {
-            "url": os.getenv("RAILWAY_URL", ""),
+            "url": getattr(settings, "railway_url", ""),
             "weight": 35.0,  # 35% traffic
             "capacity": 500000,  # $5 = ~500K requests
             "current_requests": 0,
@@ -35,7 +35,7 @@ class ParallelCloudRouter:
             "latency_ms": 80.0,
         },
         "render": {
-            "url": os.getenv("RENDER_URL", ""),
+            "url": getattr(settings, "render_url", ""),
             "weight": 25.0,  # 25% traffic
             "capacity": 180000,  # ~180K requests (750 hours free)
             "current_requests": 0,
@@ -49,7 +49,7 @@ class ParallelCloudRouter:
         self.redis_client = None
         self.upstash = UpstashRedisQueue()
         self.last_checked = 0.0
-        redis_url = os.getenv("REDIS_URL") or os.getenv("UPSTASH_REDIS_URL")
+        redis_url = getattr(settings, "redis_url", None) or getattr(settings, "upstash_redis_url", None)
         if redis_url:
             try:
                 import redis

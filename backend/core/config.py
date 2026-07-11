@@ -86,6 +86,12 @@ class Settings(BaseSettings):
         validation_alias="SUPREMEAI_ADMIN_PASSWORD_HASH",
     )
 
+    # বাংলা মন্তব্য: Encryption key — fail-fast on missing
+    encryption_key: SecretStr = Field(
+        default=SecretStr(""),
+        validation_alias="ENCRYPTION_KEY",
+    )
+
     # ── Stripe credentials — SecretStr দিয়ে log-safe ────────────────────────
     stripe_api_key: SecretStr = Field(default=SecretStr(""), validation_alias="STRIPE_API_KEY")
     stripe_webhook_secret: SecretStr = Field(default=SecretStr(""), validation_alias="STRIPE_WEBHOOK_SECRET")
@@ -351,12 +357,10 @@ class Settings(BaseSettings):
         # বাংলা মন্তব্য: E701 ফিক্স — প্রতিটি স্টেটমেন্ট আলাদা লাইনে রাখা হয়েছে
         if not self.openrouter_api_key:
             missing.append("OPENROUTER_API_KEY")
-        if not self.gemini_api_key:
-            missing.append("GEMINI_API_KEY")
+        if not self.encryption_key.get_secret_value():
+            missing.append("ENCRYPTION_KEY")
         if not self.ci_webhook_secret:
             missing.append("CI_WEBHOOK_SECRET")
-        if not (os.getenv("SUPREMEAI_ENCRYPTION_KEY") or os.getenv("ENCRYPTION_KEY")):
-            missing.append("SUPREMEAI_ENCRYPTION_KEY")
 
         if missing:
             raise ValueError(f"🚨 FAIL-FAST: Missing required config vars: {', '.join(missing)}. Server startup aborted.")

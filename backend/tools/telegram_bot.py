@@ -16,10 +16,10 @@ Setup:
 """
 
 from __future__ import annotations
+from core.config import settings
 
 import asyncio
 import contextlib
-import os
 from typing import Any
 
 import httpx
@@ -47,7 +47,7 @@ class TelegramBotHandler:
     }
 
     def __init__(self, task_processor_interface=None) -> None:
-        self.bot_token: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
+        self.bot_token: str = getattr(settings, "telegram_bot_token", "")
         self.api_base: str = f"https://api.telegram.org/bot{self.bot_token}"
         self.processor = task_processor_interface
 
@@ -84,16 +84,8 @@ class TelegramBotHandler:
                     f"{self.api_base}/sendChatAction",
                     json={"chat_id": chat_id, "action": "typing"},
                 )
-        except Exception as e:  # noqa: BLE001
-            try:
-                import loguru
-
-                loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:  # noqa: BLE001
-                import logging
-
-                logging.warning(f"Exception suppressed: {e}")
-            pass
+        except Exception as e:
+            logger.error(f"Telegram sendTyping failed for chat_id {chat_id}: {e}")
 
     async def set_webhook(self, webhook_url: str) -> bool:
         """Register webhook URL with Telegram."""
@@ -180,12 +172,12 @@ class TelegramBotHandler:
     async def _handle_status(self, chat_id: int | str) -> None:
         import httpx as _httpx
 
-        gcp_url = os.getenv("GCP_CLOUD_RUN_URL", "")
+        gcp_url = getattr(settings, "gcp_cloud_run_url", "")
         status_lines = ["🔍 *System Status:*\n"]
         for name, url in [
             ("GCP", gcp_url),
-            ("Railway", os.getenv("RAILWAY_URL", "")),
-            ("Render", os.getenv("RENDER_URL", "")),
+            ("Railway", getattr(settings, "railway_url", "")),
+            ("Render", getattr(settings, "render_url", "")),
         ]:
             if not url:
                 status_lines.append(f"⚪ {name}: not configured")
@@ -228,35 +220,27 @@ class TelegramBotHandler:
             logger.warning("Telegram bot not configured — skipping polling.")
             return
 
-        me = await self.get_me()
-        if not me:
-            logger.error("Invalid TELEGRAM_BOT_TOKEN — cannot start polling.")
+    async def start_webhook(self, webhook_url: str):
+        """বাংলা মন্তব্য: while True: sleep() পোলিং লুপ বাদ দিয়ে Event-Driven Webhook মডেলে মাইগ্রেট করা হলো।"""
+        if not self.bot_token:
             return
-
-        logger.info(f"🤖 Telegram bot @{me['username']} started (polling mode)")
-        offset: int | None = None
-
-        while True:
-            try:
-                async with httpx.AsyncClient(timeout=35) as client:
-                    params: dict[str, Any] = {
-                        "timeout": 30,
-                        "allowed_updates": ["message"],
-                    }
-                    if offset is not None:
-                        params["offset"] = offset
-                    resp = await client.get(f"{self.api_base}/getUpdates", params=params)
-                    data = resp.json()
-
-                if data.get("ok"):
-                    for update in data.get("result", []):
-                        offset = update["update_id"] + 1
-                        asyncio.create_task(self.handle_update(update))
-            except httpx.TimeoutException:
-                continue
-            except Exception as exc:  # noqa: BLE001
-                logger.error(f"Polling error: {exc}")
-                await asyncio.sleep(5)
+        
+        url = f"https://api.telegram.org/bot{self.bot_token}/setWebhook"
+        try:
+            import httpx
+            from core.event_bus import error_event_bus, ErrorEvent
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(url, json={"url": webhook_url})
+                if resp.status_code == 200:
+                    logger.info(f"Successfully registered Telegram Webhook to {webhook_url}")
+                else:
+                    logger.error(f"Failed to register webhook: {resp.text}")
+                    error_event_bus.emit(ErrorEvent(module="telegram_bot", error_type="WEBHOOK_FAILED", message=resp.text[:200], severity="ERROR"))
+        except Exception as e:
+            logger.error(f"Webhook setup exception: {e}")
+            from core.event_bus import error_event_bus, ErrorEvent
+            error_event_bus.emit(ErrorEvent(module="telegram_bot", error_type="WEBHOOK_EXCEPTION", message=str(e)[:200], severity="ERROR"))
+            raise RuntimeError("Failed to setup Telegram webhook.") from e
 
 
 # ── FastAPI webhook endpoint helper ──────────────────────────────

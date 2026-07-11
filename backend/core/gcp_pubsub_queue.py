@@ -50,8 +50,8 @@ class GCPPubSubQueue:
         if self.mode == "local_sqlite":
             # বাংলা মন্তব্য: P2 Fix — Production-এ SQLite fallback সম্পূর্ণ নিষিদ্ধ করা হলো।
             # এটি Cloud Run-এ restarts ও ephemeral disk-এর কারণে data loss হওয়া প্রতিরোধ করবে।
-            if os.getenv("ENV", "local").lower() == "production":
-                raise RuntimeError("GCP Pub/Sub environment mismatch. SQLite fallback is disabled in production to prevent data loss.")
+            if os.getenv("ENV", "local").lower() in ("production", "prod"):
+                raise RuntimeError("CRITICAL: GCP Pub/Sub environment mismatch. SQLite fallback is disabled in production to prevent data loss.")
             if not self.db_path:
                 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
                 self.db_path = os.path.join(base_dir, "data", "gcp_pubsub_queue.db")

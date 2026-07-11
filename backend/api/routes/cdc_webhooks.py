@@ -1,6 +1,5 @@
 import hashlib
 import hmac
-import os
 from typing import Any
 
 from fastapi import APIRouter
@@ -10,12 +9,14 @@ from fastapi import Request
 from loguru import logger
 from pydantic import BaseModel
 
+from core.config import settings
+
 
 router = APIRouter(prefix="/cdc", tags=["cdc"])
 
-SUPABASE_WEBHOOK_SECRET = os.getenv("SUPABASE_WEBHOOK_SECRET", "")
-PINECONE_API_KEY = os.getenv("PINECONE_API_KEY", "")
-PINECONE_HOST = os.getenv("PINECONE_HOST", "")
+SUPABASE_WEBHOOK_SECRET = getattr(settings, "supabase_webhook_secret", "")
+PINECONE_API_KEY = getattr(settings, "pinecone_api_key", "")
+PINECONE_HOST = getattr(settings, "pinecone_host", "")
 
 
 class CDCEvent(BaseModel):

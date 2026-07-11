@@ -56,8 +56,10 @@ class PreCommitAI:
     def _get_staged_diff(self) -> str:
         """Gets the git diff for staged files."""
         try:
+            import shlex
+            cmd = shlex.split("git diff --cached")
             result = subprocess.run(
-                ["git", "diff", "--cached"],
+                cmd,
                 capture_output=True,
                 text=True,
                 check=True,
@@ -73,8 +75,10 @@ class PreCommitAI:
     def _get_staged_files(self) -> list[str]:
         """Returns list of staged file paths."""
         try:
+            import shlex
+            cmd = shlex.split("git diff --cached --name-only --diff-filter=ACM")
             result = subprocess.run(
-                ["git", "diff", "--cached", "--name-only", "--diff-filter=ACM"],
+                cmd,
                 capture_output=True,
                 text=True,
                 check=True,
@@ -187,9 +191,19 @@ class PreCommitAI:
         if auto_fix and files:
             fix_report = self._auto_fix(files)
             if fix_report["count"] > 0:
+                import shlex
+                import os
                 for fp in files:
+                    # Strict Path Traversal Whitelist Validation
+                    abs_path = os.path.abspath(fp)
+                    base_dir = os.path.abspath(os.getcwd())
+                    if not abs_path.startswith(base_dir) or ".." in fp:
+                        logger.error(f"Security Alert: Path traversal attempt blocked for {fp}")
+                        continue
+                    
                     with contextlib.suppress(Exception):
-                        subprocess.run(["git", "add", fp], check=True, capture_output=True)
+                        cmd = shlex.split(f"git add {shlex.quote(fp)}")
+                        subprocess.run(cmd, check=True, capture_output=True)
                 logger.info(f"Auto-fixed {fix_report['count']} issue(s).")
                 # The commit was not blocked, files were fixed and re-staged.
                 # Allow the commit to proceed.

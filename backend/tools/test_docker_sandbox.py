@@ -121,8 +121,8 @@ def test_execute_command_no_fallback_in_prod(sandbox, env):
     """প্রোডাকশন পরিবেশে ডকার ছাড়া লোকাল ফলব্যাক ব্লক করা হচ্ছে কিনা তা পরীক্ষা করে।"""
     sandbox.docker_available = False
     with patch("os.getenv") as mock_getenv:
-        # os.getenv("ENV", "").lower() -> "production"
-        # os.getenv("ALLOW_LOCAL_SANDBOX_FALLBACK") -> "false"
+        # getattr(settings, "env", "").lower() -> "production"
+        # getattr(settings, "allow_local_sandbox_fallback", None) -> "false"
         mock_getenv.side_effect = lambda key, default="": env if key == "ENV" else "false"
 
         result = sandbox.execute_command("echo 'test'")
@@ -135,8 +135,8 @@ def test_execute_command_no_fallback_if_disallowed(sandbox):
     """ALLOW_LOCAL_SANDBOX_FALLBACK=false হলে লোকাল ফলব্যাক কাজ করে না, তা পরীক্ষা করে।"""
     sandbox.docker_available = False
     with patch("os.getenv") as mock_getenv:
-        # os.getenv("ENV", "").lower() -> "development"
-        # os.getenv("ALLOW_LOCAL_SANDBOX_FALLBACK") -> "false"
+        # getattr(settings, "env", "").lower() -> "development"
+        # getattr(settings, "allow_local_sandbox_fallback", None) -> "false"
         mock_getenv.side_effect = lambda key, default="": "development" if key == "ENV" else "false"
 
         result = sandbox.execute_command("echo 'test'")

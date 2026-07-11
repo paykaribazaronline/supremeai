@@ -1,6 +1,7 @@
 # LangChain and LaunchDarkly AgentControl Integration Example
 # বাংলা মন্তব্য: লঞ্চডার্কলি এজেন্টস কন্ট্রোল এবং ল্যাংচেইন ইন্টিগ্রেশনের একটি পূর্ণাঙ্গ ও কার্যকরী উদাহরণ
 
+from core.config import settings
 import os
 import sys
 from loguru import logger
@@ -37,7 +38,7 @@ def handle_agent_call_langchain(
     tracker = config.create_tracker()
 
     # বাংলা মন্তব্য: লঞ্চডার্কলি থেকে ডায়নামিক মডেল নির্ধারণ, অন্যথায় ডিফল্ট মডেল ব্যবহার
-    default_model = "gemini-1.5-flash" if os.getenv("GEMINI_API_KEY") else "claude-3-5-sonnet-20241022"
+    default_model = "gemini-1.5-flash" if getattr(settings, "gemini_api_key", None) else "claude-3-5-sonnet-20241022"
     model_name = config.model.name if (config.model and config.model.name) else default_model
 
     # বাংলা মন্তব্য: লঞ্চডার্কলি মডেল প্রোভাইডার প্রিফিক্স (যেমন: "Gemini.") থাকলে তা বাদ দেওয়া হচ্ছে
@@ -88,7 +89,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # বাংলা মন্তব্য: লঞ্চডার্কলি ক্লায়েন্ট কনফিগারেশন এবং অবজারভেবিলিটি প্লাগইন ইনিশিয়ালাইজেশন
-    sdk_key = os.getenv("LAUNCHDARKLY_SDK_KEY", "sdk-85f22e74-cb85-481b-8fd9-bfb2dd5f0e10")
+    sdk_key = getattr(settings, "launchdarkly_sdk_key", "sdk-85f22e74-cb85-481b-8fd9-bfb2dd5f0e10")
     ldclient.set_config(
         Config(
             sdk_key,
@@ -105,7 +106,7 @@ if __name__ == "__main__":
     aiclient = LDAIClient(ldclient.get())
     context = Context.builder("user-123").kind("user").build()
 
-    default_model = "gemini-1.5-flash" if os.getenv("GEMINI_API_KEY") else "claude-3-5-sonnet-20241022"
+    default_model = "gemini-1.5-flash" if getattr(settings, "gemini_api_key", None) else "claude-3-5-sonnet-20241022"
     config = aiclient.agent_config(
         "supremes-writing-assistant",
         context,

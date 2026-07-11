@@ -1,3 +1,4 @@
+from core.config import settings
 import hashlib
 import os
 import time
@@ -89,7 +90,7 @@ class TTSResponse(BaseModel):
 class MultilingualTTS:
     def __init__(self, provider: str = "auto", api_key: str | None = None):
         self.provider = provider
-        self.api_key = api_key or os.getenv("ELEVENLABS_API_KEY", "")
+        self.api_key = api_key or getattr(settings, "elevenlabs_api_key", "")
         self.model_id = "eleven_multilingual_v2"
         logger.info(f"Initialized MultilingualTTS provider={self.provider} elevenlabs={'yes' if self.api_key else 'no'}")
 
@@ -110,7 +111,7 @@ class MultilingualTTS:
         return os.path.join(base_dir, f"tts_{lang}_{h}.{fmt}")
 
     def _cache_hit(self, text: str, lang: str) -> str | None:
-        ttl = int(os.getenv("TTS_CACHE_TTL", "86400"))
+        ttl = int(getattr(settings, "tts_cache_ttl", "86400"))
         path = self._output_path(text, lang)
         if os.path.exists(path) and (time.time() - os.path.getmtime(path)) < ttl:
             return path

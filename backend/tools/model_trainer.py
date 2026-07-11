@@ -1,3 +1,4 @@
+from core.config import settings
 import os
 import uuid
 from typing import Any
@@ -11,9 +12,9 @@ class ModelTrainer:
         self.provider = "auto"
         if provider in ("runpod", "modal", "docker"):
             self.provider = provider
-        elif os.getenv("RUNPOD_API_KEY"):
+        elif getattr(settings, "runpod_api_key", None):
             self.provider = "runpod"
-        elif os.getenv("MODAL_TOKEN_ID") and os.getenv("MODAL_TOKEN_SECRET"):
+        elif getattr(settings, "modal_token_id", None) and getattr(settings, "modal_token_secret", None):
             self.provider = "modal"
         else:
             self.provider = "local"
@@ -30,8 +31,8 @@ class ModelTrainer:
         job_id = f"ft-job-{uuid.uuid4().hex[:8]}"
 
         if self.provider == "runpod":
-            api_key = os.getenv("RUNPOD_API_KEY")
-            endpoint_id = os.getenv("RUNPOD_ENDPOINT_ID", "unsloth-training")
+            api_key = getattr(settings, "runpod_api_key", None)
+            endpoint_id = getattr(settings, "runpod_endpoint_id", "unsloth-training")
             if not api_key:
                 raise RuntimeError("RUNPOD_API_KEY required for RunPod training.")
 
@@ -65,7 +66,7 @@ class ModelTrainer:
                 logger.info(f"RunPod training job queued: {job_id}")
 
         elif self.provider == "modal":
-            modal_url = os.getenv("MODAL_FINETUNE_WEBHOOK_URL")
+            modal_url = getattr(settings, "modal_finetune_webhook_url", None)
             if not modal_url:
                 modal_url = "https://supremeai--finetune-trigger.modal.run"
 
@@ -94,8 +95,8 @@ class ModelTrainer:
     async def get_job_status(self, job_id: str) -> dict[str, Any]:
         logger.info(f"Checking training job status: {job_id}")
         if self.provider == "runpod":
-            api_key = os.getenv("RUNPOD_API_KEY")
-            endpoint_id = os.getenv("RUNPOD_ENDPOINT_ID", "unsloth-training")
+            api_key = getattr(settings, "runpod_api_key", None)
+            endpoint_id = getattr(settings, "runpod_endpoint_id", "unsloth-training")
             if api_key:
                 headers = {"Authorization": f"Bearer {api_key}"}
                 async with httpx.AsyncClient(timeout=15.0) as client:

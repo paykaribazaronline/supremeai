@@ -6,7 +6,7 @@ MCP Server for GitHub CI/CD Integration in SupremeAI 2.0.
 CI/CD অপারেশন (Issue, PR, Auto-fix) সরাসরে চ্যাটবক্স থেকে করার ক্ষমতা দেয়।
 """
 
-import os
+from core.config import settings
 import json
 from enum import StrEnum
 
@@ -22,13 +22,13 @@ from utils.json_helpers import json_error
 mcp = FastMCP("github_cicd_mcp")
 
 CHARACTER_LIMIT = 25000
-GITHUB_REPO = os.getenv("GITHUB_REPOSITORY", "supremeai/supremeai_2.0")
+GITHUB_REPO = getattr(settings, "github_repository", "supremeai/supremeai_2.0")
 GITHUB_API_URL = "https://api.github.com"
 
 
 def _get_github_token() -> str:
     """Get the current GitHub token from environment variables."""
-    return os.getenv("GITHUB_TOKEN", "")
+    return getattr(settings, "github_token", "")
 
 
 class ResponseFormat(StrEnum):

@@ -1,3 +1,4 @@
+from core.config import settings
 import os
 from typing import Any
 
@@ -11,7 +12,7 @@ class HFImageGenerator:
     """
 
     def __init__(self, api_key: str | None = None):
-        self.api_key = api_key or os.getenv("HF_API_KEY", "")
+        self.api_key = api_key or getattr(settings, "hf_api_key", "")
         self.default_model = "stabilityai/stable-diffusion-xl-base-1.0"
 
     def generate_image(

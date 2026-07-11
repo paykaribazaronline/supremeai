@@ -8,8 +8,8 @@ Handles GitHub PR/issue comment threads:
 """
 
 from __future__ import annotations
+from core.config import settings
 
-import os
 from typing import Any
 
 import httpx
@@ -24,7 +24,7 @@ from pydantic import BaseModel
 router = APIRouter(prefix="/comment-ai", tags=["comment-thread-ai"])
 
 GITHUB_API = "https://api.github.com"
-_GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
+_GITHUB_TOKEN = getattr(settings, "github_token", "")
 
 
 # ── Pydantic models ───────────────────────────────────────────────────────────
@@ -88,44 +88,21 @@ class CommentThreadAI:
             # Review comments (line-level)
             review = await self._gh_get(f"/repos/{repo}/pulls/{pr_number}/comments")
             comments.extend(review if isinstance(review, list) else [])
-        except Exception as e:  # noqa: BLE001
-            try:
-                import loguru
-
-                loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:  # noqa: BLE001
-                import logging
-
-                logging.warning(f"Exception suppressed: {e}")
-            pass
+        except Exception as e:
+            logger.error(f"Failed to get PR review comments for {repo}#{pr_number}: {e}")
         try:
             # Issue comments (general PR comments)
             issue = await self._gh_get(f"/repos/{repo}/issues/{pr_number}/comments")
             comments.extend(issue if isinstance(issue, list) else [])
-        except Exception as e:  # noqa: BLE001
-            try:
-                import loguru
-
-                loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:  # noqa: BLE001
-                import logging
-
-                logging.warning(f"Exception suppressed: {e}")
-            pass
+        except Exception as e:
+            logger.error(f"Failed to get PR issue comments for {repo}#{pr_number}: {e}")
         return comments
 
     async def _get_pr_files(self, repo: str, pr_number: int) -> list[dict]:
         try:
             return await self._gh_get(f"/repos/{repo}/pulls/{pr_number}/files")
-        except Exception as e:  # noqa: BLE001
-            try:
-                import loguru
-
-                loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:  # noqa: BLE001
-                import logging
-
-                logging.warning(f"Exception suppressed: {e}")
+        except Exception as e:
+            logger.error(f"Failed to get PR files for {repo}#{pr_number}: {e}")
             return []
 
     async def _post_pr_comment(self, repo: str, pr_number: int, body: str) -> dict[str, Any]:

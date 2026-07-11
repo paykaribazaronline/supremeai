@@ -35,8 +35,8 @@ class CheckoutRequest(BaseModel):
 router = APIRouter(prefix="/api/billing", tags=["Billing & Credit Wallet"])
 token_deductor = TokenDeductor()
 
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+stripe.api_key = getattr(settings, "stripe_secret_key", None)
+STRIPE_WEBHOOK_SECRET = getattr(settings, "stripe_webhook_secret", None)
 
 
 # Pre-seed default user wallet with SignUp Bonus

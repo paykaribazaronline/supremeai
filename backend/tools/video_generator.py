@@ -1,7 +1,7 @@
 from __future__ import annotations
+from core.config import settings
 
 import json
-import os
 from pathlib import Path
 from typing import Any
 
@@ -15,8 +15,8 @@ class VideoGenerator:
         runway_api_key: str | None = None,
         kling_api_key: str | None = None,
     ) -> None:
-        self.runway_api_key = runway_api_key or os.getenv("RUNWAY_API_KEY", "")
-        self.kling_api_key = kling_api_key or os.getenv("KLING_API_KEY", "")
+        self.runway_api_key = runway_api_key or getattr(settings, "runway_api_key", "")
+        self.kling_api_key = kling_api_key or getattr(settings, "kling_api_key", "")
 
     @staticmethod
     def _runway_payload(prompt: str, duration: int) -> dict[str, Any]:

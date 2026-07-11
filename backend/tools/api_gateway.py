@@ -1,4 +1,4 @@
-import os
+from core.config import settings
 from typing import Any
 
 import httpx
@@ -16,7 +16,7 @@ from core.rate_limiter import AsyncRateLimiter
 
 
 auth_middleware = AuthMiddleware.__new__(AuthMiddleware)
-auth_middleware.enabled = bool(os.getenv("SUPREMEAI_API_TOKEN"))
+auth_middleware.enabled = bool(getattr(settings, "supremeai_api_token", None))
 rate_limiter = AsyncRateLimiter()
 
 from brain.api_router import ApiRouter

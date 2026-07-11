@@ -1,4 +1,3 @@
-import os
 import secrets
 from typing import Any
 
@@ -17,7 +16,7 @@ router = APIRouter()
 
 def _require_admin(request: Request):
     secret = request.headers.get("X-Admin-Secret")
-    expected = os.getenv("SUPREMEAI_ADMIN_SECRET", "") or getattr(settings, "docs_password", "") or ""
+    expected = getattr(settings, "supremeai_admin_secret", "") or getattr(settings, "docs_password", "") or ""
     if not expected:
         raise HTTPException(status_code=500, detail="Admin secret not configured on server.")
     if not secrets.compare_digest(secret or "", expected):

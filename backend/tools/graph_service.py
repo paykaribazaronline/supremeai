@@ -1,4 +1,4 @@
-import os
+from core.config import settings
 from neo4j import AsyncGraphDatabase
 from loguru import logger
 
@@ -8,9 +8,9 @@ from loguru import logger
 class GraphService:
     def __init__(self):
         # বাংলা মন্তব্য: Neo4j Aura (ফ্রি টিয়ার) এর ক্রেডেনশিয়াল
-        self.uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
-        self.user = os.getenv("NEO4J_USER", "neo4j")
-        self.password = os.getenv("NEO4J_PASSWORD")
+        self.uri = getattr(settings, "neo4j_uri", "bolt://localhost:7687")
+        self.user = getattr(settings, "neo4j_user", "neo4j")
+        self.password = getattr(settings, "neo4j_password", None)
 
         # বাংলা মন্তব্য: যদি পাসওয়ার্ড না থাকে, তবে মক/ড্রাই-রান মোড চালু হবে
         self.dry_run = not self.password

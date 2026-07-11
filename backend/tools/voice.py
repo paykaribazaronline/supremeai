@@ -15,7 +15,7 @@ class VoiceInterface:
     """
 
     def __init__(self):
-        self.hf_token = os.getenv("HF_API_KEY", settings.hf_api_key)
+        self.hf_token = getattr(settings, "hf_api_key", settings.hf_api_key)
         self.api_url = "https://api-inference.huggingface.co/models/openai/whisper-large-v3"
 
     def speech_to_text(self, audio_path: str) -> str:

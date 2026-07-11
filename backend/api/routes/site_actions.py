@@ -8,10 +8,12 @@ from fastapi import APIRouter
 from fastapi import HTTPException
 from pydantic import BaseModel
 
+from core.config import settings
+
 
 router = APIRouter(prefix="/api/admin/site-actions", tags=["Site Actions Registry"])
 
-DB_PATH = os.getenv("SITE_ACTIONS_DB", "data/site_actions.db")
+DB_PATH = getattr(settings, "site_actions_db", "data/site_actions.db")
 _lock = threading.Lock()
 
 

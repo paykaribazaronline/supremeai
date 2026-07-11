@@ -9,9 +9,7 @@ from unittest.mock import patch
 
 import pytest
 
-
-
-
+import core.playwright_manager as pm
 # -------------------- Fixtures --------------------
 
 
@@ -21,12 +19,6 @@ def reset_global_state():
     বাংলা মন্তব্য: প্রতিটি test-এর পর global browser state reset করে।
     Module-level globals clean রাখার জন্য।
     """
-<<<<<<< HEAD
-    import core.playwright_manager as pm
-
-=======
-    
->>>>>>> 47022671ca (fix: resolve global state corruption, deduplicate module imports in tests, add reducer script)
     pm._global_browser = None
     pm._playwright_runner = None
     yield
