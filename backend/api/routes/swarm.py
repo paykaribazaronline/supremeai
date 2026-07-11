@@ -1,14 +1,19 @@
-from fastapi import APIRouter
-from fastapi import Request, BackgroundTasks
-from sse_starlette.sse import EventSourceResponse
-from pydantic import BaseModel, Field
-import uuid
 import logging
+import uuid
 
-from core.swarm_pubstream import swarm_streamer
+from fastapi import APIRouter
+from fastapi import BackgroundTasks
+from fastapi import Request
+from pydantic import BaseModel
+from pydantic import Field
+from sse_starlette.sse import EventSourceResponse
+
+from core.swarm_pubsub import swarm_streamer
 from engine.swarm_orchestrator import SwarmOrchestrator
 
+
 logger = logging.getLogger(__name__)
+
 
 router = APIRouter(tags=["Swarm"])
 
@@ -48,7 +53,7 @@ async def record_patch_telemetry(payload: PatchTelemetry, background_tasks: Back
     Receives telemetry on whether the user accepted, rejected, or modified the Swarm's proposed fix.
     """
     background_tasks.add_task(_save_telemetry_to_db, payload.model_dump())
-    
+
     logger.info(f"Telemetry received: Patch {payload.patch_id} was {payload.status} with score {payload.similarity_score}")
     return {"message": "Telemetry recorded"}
 
