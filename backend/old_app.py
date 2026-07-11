@@ -300,7 +300,7 @@ def router_health_check(fastapi_app: FastAPI) -> None:
     expected_count = 20
     if len(fastapi_app.routes) < expected_count:
         logger.critical(
-            f"🔥 CRITICAL: Only {len(fastapi_app.routes)} routes loaded. " f"Expected at least {expected_count}. Some routers failed to load!"
+            f"🔥 CRITICAL: Only {len(fastapi_app.routes)} routes loaded. Expected at least {expected_count}. Some routers failed to load!"
         )
         # বাংলা মন্তব্য: Strict fail-fast rule
         sys.exit(1)

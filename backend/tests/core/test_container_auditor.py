@@ -15,6 +15,7 @@ from core.container_auditor import ContainerAuditor
 
 # -------------------- Fixtures --------------------
 
+
 @pytest.fixture
 def auditor():
     """ContainerAuditor ইনস্ট্যান্স ফেরত দেয়।"""
@@ -24,11 +25,13 @@ def auditor():
 @pytest.fixture
 def mock_docker_stats_output():
     """Mock docker stats JSON output।"""
-    return json_lines([
-        {"Name": "container1", "MemPerc": "45.2%"},
-        {"Name": "container2", "MemPerc": "82.5%"},
-        {"Name": "container3", "MemPerc": "96.8%"},
-    ])
+    return json_lines(
+        [
+            {"Name": "container1", "MemPerc": "45.2%"},
+            {"Name": "container2", "MemPerc": "82.5%"},
+            {"Name": "container3", "MemPerc": "96.8%"},
+        ]
+    )
 
 
 def json_lines(items: list[dict]) -> str:
@@ -37,6 +40,7 @@ def json_lines(items: list[dict]) -> str:
 
 
 # -------------------- Tests: __init__ --------------------
+
 
 class TestContainerAuditorInit:
     """বাংলা মন্তব্য: Initialization এবং attribute setting টেস্ট।"""
@@ -53,6 +57,7 @@ class TestContainerAuditorInit:
 
 
 # -------------------- Tests: get_container_stats --------------------
+
 
 class TestGetContainerStats:
     """বাংলা মন্তব্য: Docker stats fetching এবং error handling টেস্ট।"""
@@ -127,6 +132,7 @@ class TestGetContainerStats:
 
 # -------------------- Tests: parse_memory_percent --------------------
 
+
 class TestParseMemoryPercent:
     """বাংলা মন্তব্য: Memory percentage string parsing টেস্ট।"""
 
@@ -153,6 +159,7 @@ class TestParseMemoryPercent:
 
 
 # -------------------- Tests: audit_cycle --------------------
+
 
 class TestAuditCycle:
     """বাংলা মন্তব্য: audit_cycle-এর memory threshold logic এবং docker kill টেস্ট।"""
@@ -259,6 +266,7 @@ class TestAuditCycle:
 
 # -------------------- Tests: run --------------------
 
+
 class TestRun:
     """বাংলা মন্তব্য: run() method-এর lifecycle এবং graceful shutdown টেস্ট।"""
 
@@ -310,6 +318,7 @@ class TestRun:
 
 
 # -------------------- Tests: Integration --------------------
+
 
 class TestContainerAuditorIntegration:
     """বাংলা মন্তব্য: Integration-style tests for realistic scenarios।"""

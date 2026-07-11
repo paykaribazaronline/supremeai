@@ -13,6 +13,7 @@ from core.theme_pubsub import ThemePubSub
 
 # -------------------- Fixtures --------------------
 
+
 @pytest.fixture
 def theme_pubsub():
     """ThemePubSub ইনস্ট্যান্স ফেরত দেয়।"""
@@ -29,6 +30,7 @@ def mock_queue():
 
 # -------------------- Tests: __init__ --------------------
 
+
 class TestThemePubSubInit:
     """বাংলা মন্তব্য: Initialization টেস্ট।"""
 
@@ -39,6 +41,7 @@ class TestThemePubSubInit:
 
 
 # -------------------- Tests: subscribe --------------------
+
 
 class TestSubscribe:
     """বাংলা মন্তব্য: subscribe() method টেস্ট।"""
@@ -80,6 +83,7 @@ class TestSubscribe:
 
 
 # -------------------- Tests: unsubscribe --------------------
+
 
 class TestUnsubscribe:
     """বাংলা মন্তব্য: unsubscribe() method টেস্ট।"""
@@ -142,6 +146,7 @@ class TestUnsubscribe:
 
 
 # -------------------- Tests: publish --------------------
+
 
 class TestPublish:
     """বাংলা মন্তব্য: publish() method টেস্ট।"""
@@ -233,12 +238,14 @@ class TestPublish:
 
 # -------------------- Tests: Global Instance --------------------
 
+
 class TestGlobalInstance:
     """বাংলা মন্তব্য: Global theme_pubsub instance টেস্ট।"""
 
     def test_global_instance_exists(self):
         """বাংলা মন্তব্য: Global instance create করা আছে।"""
         from core.theme_pubsub import theme_pubsub
+
         assert isinstance(theme_pubsub, ThemePubSub)
 
     def test_global_instance_is_singleton(self):
@@ -250,6 +257,7 @@ class TestGlobalInstance:
 
 
 # -------------------- Tests: Integration --------------------
+
 
 class TestThemePubSubIntegration:
     """বাংলা মন্তব্য: Integration-style tests for realistic scenarios।"""

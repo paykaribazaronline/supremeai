@@ -13,6 +13,8 @@ from pathlib import Path
 # Add project root to sys.path so 'skills' module can be imported
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
+from typing import Any
+
 import sentry_sdk
 from fastapi import Depends
 from fastapi import FastAPI
@@ -27,7 +29,6 @@ from loguru import logger
 
 from core import lifespan
 from core import services
-from typing import Any
 from core.admin_routes import router as admin_router
 from core.api_key_middleware import APIKeyAuthMiddleware
 from core.auth_middleware import AuthMiddleware
@@ -194,11 +195,10 @@ def _safe_include_router(app: FastAPI, router_module: str, prefix: str = "") -> 
         sys.exit(1)
 
 
-
 @app.get("/health")
 async def health() -> dict[str, Any]:
     redis_ok = False
-    if hasattr(services, 'redis_queue') and services.redis_queue.configured:
+    if hasattr(services, "redis_queue") and services.redis_queue.configured:
         try:
             services.redis_queue.set("health", "ok", ex=5)
             redis_ok = services.redis_queue.get("health") == "ok"
@@ -231,6 +231,7 @@ def actuator_health() -> dict[str, str]:
         "status": "UP",
         "orchestrator": "online",
     }
+
 
 app.include_router(admin_router)
 

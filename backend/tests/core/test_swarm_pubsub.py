@@ -15,6 +15,7 @@ from core.swarm_pubsub import SwarmPubSub
 
 # -------------------- Fixtures --------------------
 
+
 @pytest.fixture
 def swarm_pubsub():
     """SwarmPubSub ইনস্ট্যান্স ফেরত দেয়।"""
@@ -45,6 +46,7 @@ def mock_redis(mock_pubsub):
 
 # -------------------- Tests: __init__ --------------------
 
+
 class TestSwarmPubSubInit:
     """বাংলা মন্তব্য: Initialization টেস্ট।"""
 
@@ -61,6 +63,7 @@ class TestSwarmPubSubInit:
 
 
 # -------------------- Tests: subscribe --------------------
+
 
 class TestSubscribe:
     """বাংলা মন্তব্য: subscribe() async generator method টেস্ট।"""
@@ -111,7 +114,7 @@ class TestSubscribe:
             try:
                 msg = await asyncio.wait_for(gen.__anext__(), timeout=0.5)
                 received.append(msg)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 break
 
         assert len(received) == 3
@@ -211,6 +214,7 @@ class TestSubscribe:
 
 # -------------------- Tests: broadcast --------------------
 
+
 class TestBroadcast:
     """বাংলা মন্তব্য: broadcast() method টেস্ট।"""
 
@@ -269,21 +273,25 @@ class TestBroadcast:
 
 # -------------------- Tests: Global Instance --------------------
 
+
 class TestGlobalInstance:
     """বাংলা মন্তব্য: Global swarm_streamer instance টেস্ট।"""
 
     def test_global_instance_exists(self):
         """বাংলা মন্তব্য: Global instance create করা আছে।"""
         from core.swarm_pubsub import swarm_streamer
+
         assert isinstance(swarm_streamer, SwarmPubSub)
 
     def test_global_instance_has_redis_connection(self):
         """বাংলা মন্তব্য: Global instance-এ Redis connection আছে।"""
         from core.swarm_pubsub import swarm_streamer
+
         assert swarm_streamer.redis is not None
 
 
 # -------------------- Tests: Integration --------------------
+
 
 class TestSwarmPubSubIntegration:
     """বাংলা মন্তব্য: Integration-style tests for realistic scenarios।"""

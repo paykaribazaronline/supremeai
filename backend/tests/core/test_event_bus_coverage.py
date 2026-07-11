@@ -21,6 +21,7 @@ from core.event_bus import error_event_bus
 
 # -------------------- Fixtures --------------------
 
+
 @pytest.fixture
 def event_bus():
     """Fresh ErrorEventBus instance for each test।"""
@@ -61,6 +62,7 @@ def sample_dlq_item(sample_error_event):
 
 # -------------------- Tests: ErrorContext --------------------
 
+
 class TestErrorContext:
     """বাংলা মন্তব্য: ErrorContext model টেস্ট।"""
 
@@ -92,6 +94,7 @@ class TestErrorContext:
 
 # -------------------- Tests: ErrorEvent --------------------
 
+
 class TestErrorEvent:
     """বাংলা মন্তব্য: ErrorEvent model টেস্ট।"""
 
@@ -117,6 +120,7 @@ class TestErrorEvent:
 
 # -------------------- Tests: DeadLetterQueueItem --------------------
 
+
 class TestDeadLetterQueueItem:
     """বাংলা মন্তব্য: DeadLetterQueueItem model টেস্ট।"""
 
@@ -140,6 +144,7 @@ class TestDeadLetterQueueItem:
 
 # -------------------- Tests: ErrorEventBus Init --------------------
 
+
 class TestErrorEventBusInit:
     """বাংলা মন্তব্য: ErrorEventBus initialization টেস্ট।"""
 
@@ -156,6 +161,7 @@ class TestErrorEventBusInit:
 
 
 # -------------------- Tests: register_listener --------------------
+
 
 class TestRegisterListener:
     """বাংলা মন্তব্য: register_listener() method টেস্ট।"""
@@ -189,6 +195,7 @@ class TestRegisterListener:
 
 # -------------------- Tests: register_dead_letter_handler --------------------
 
+
 class TestRegisterDeadLetterHandler:
     """বাংলা মন্তব্য: register_dead_letter_handler() method টেস্ট।"""
 
@@ -212,6 +219,7 @@ class TestRegisterDeadLetterHandler:
 
 
 # -------------------- Tests: emit --------------------
+
 
 class TestEmit:
     """বাংলা মন্তব্য: emit() synchronous method টেস্ট।"""
@@ -244,6 +252,7 @@ class TestEmit:
     @pytest.mark.asyncio
     async def test_emit_with_failing_listener_adds_to_dlq(self, event_bus, sample_error_event):
         """বাংলা মন্তব্য: Failing listener-এ DLQ-তে item add হয়।"""
+
         def failing_listener(event):
             raise RuntimeError("Listener failed")
 
@@ -263,6 +272,7 @@ class TestEmit:
 
 
 # -------------------- Tests: emit_async --------------------
+
 
 class TestEmitAsync:
     """বাংলা মন্তব্য: emit_async() async method টেস্ট।"""
@@ -306,12 +316,14 @@ class TestEmitAsync:
 
 # -------------------- Tests: _safe_invoke --------------------
 
+
 class TestSafeInvoke:
     """বাংলা মন্তব্য: _safe_invoke() method টেস্ট।"""
 
     @pytest.mark.asyncio
     async def test_safe_invoke_sync_listener_success(self, event_bus, sample_error_event):
         """বাংলা মন্তব্য: Sync listener successfully invoke হয়।"""
+
         def sync_listener(event):
             return "success"
 
@@ -321,6 +333,7 @@ class TestSafeInvoke:
     @pytest.mark.asyncio
     async def test_safe_invoke_async_listener_success(self, event_bus, sample_error_event):
         """বাংলা মন্তব্য: Async listener successfully invoke হয়।"""
+
         async def async_listener(event):
             return "async_success"
 
@@ -330,6 +343,7 @@ class TestSafeInvoke:
     @pytest.mark.asyncio
     async def test_safe_invoke_returns_exception(self, event_bus, sample_error_event):
         """বাংলা মন্তব্য: Exception return হয়, suppress হয় না।"""
+
         def failing_listener(event):
             raise RuntimeError("Listener error")
 
@@ -339,6 +353,7 @@ class TestSafeInvoke:
     @pytest.mark.asyncio
     async def test_safe_invoke_cancelled_error_raised(self, event_bus, sample_error_event):
         """বাংলা মন্তব্য: CancelledError re-raise হয়।"""
+
         async def cancelled_listener(event):
             raise asyncio.CancelledError()
 
@@ -347,6 +362,7 @@ class TestSafeInvoke:
 
 
 # -------------------- Tests: _dispatch_async --------------------
+
 
 class TestDispatchAsync:
     """বাংলা মন্তব্য: _dispatch_async() method টেস্ট।"""
@@ -377,6 +393,7 @@ class TestDispatchAsync:
     @pytest.mark.asyncio
     async def test_dispatch_with_failing_listener_adds_to_dlq(self, event_bus, sample_error_event):
         """বাংলা মন্তব্য: Failing listener-এ DLQ-তে item add হয়।"""
+
         def failing_listener(event):
             raise RuntimeError("Handler failed")
 
@@ -407,6 +424,7 @@ class TestDispatchAsync:
     @pytest.mark.asyncio
     async def test_dispatch_dlq_full_logs_critical(self, event_bus, sample_error_event):
         """বাংলা মন্তব্য: DLQ full হলে critical log হয়।"""
+
         def failing_listener(event):
             raise RuntimeError("Failed")
 
@@ -414,12 +432,14 @@ class TestDispatchAsync:
 
         # Fill the DLQ
         for _ in range(1000):
-            event_bus._dlq.put_nowait(DeadLetterQueueItem(
-                event_type="dummy",
-                handler_name="dummy",
-                error="dummy",
-                timestamp=datetime.now(UTC),
-            ))
+            event_bus._dlq.put_nowait(
+                DeadLetterQueueItem(
+                    event_type="dummy",
+                    handler_name="dummy",
+                    error="dummy",
+                    timestamp=datetime.now(UTC),
+                )
+            )
 
         with patch("core.event_bus.logger") as mock_logger:
             await event_bus._dispatch_async(sample_error_event)
@@ -447,6 +467,7 @@ class TestDispatchAsync:
 
 
 # -------------------- Tests: _log_event --------------------
+
 
 class TestLogEvent:
     """বাংলা মন্তব্য: _log_event() method টেস্ট।"""
@@ -519,6 +540,7 @@ class TestLogEvent:
 
 # -------------------- Tests: process_dead_letter_queue --------------------
 
+
 class TestProcessDeadLetterQueue:
     """বাংলা মন্তব্য: process_dead_letter_queue() method টেস্ট।"""
 
@@ -574,6 +596,7 @@ class TestProcessDeadLetterQueue:
 
 # -------------------- Tests: Properties --------------------
 
+
 class TestProperties:
     """বাংলা মন্তব্য: EventBus properties টেস্ট।"""
 
@@ -588,12 +611,14 @@ class TestProperties:
         event_bus._total_dlq_items = 1  # Manually set for testing
 
         # Add a DLQ item
-        event_bus._dlq.put_nowait(DeadLetterQueueItem(
-            event_type="TestError",
-            handler_name="handler",
-            error="error",
-            timestamp=datetime.now(UTC),
-        ))
+        event_bus._dlq.put_nowait(
+            DeadLetterQueueItem(
+                event_type="TestError",
+                handler_name="handler",
+                error="error",
+                timestamp=datetime.now(UTC),
+            )
+        )
 
         stats = event_bus.stats
         assert stats["total_emitted"] == 1
@@ -603,6 +628,7 @@ class TestProperties:
 
 
 # -------------------- Tests: Global Instance --------------------
+
 
 class TestGlobalInstance:
     """বাংলা মন্তব্য: Global error_event_bus instance টেস্ট।"""
@@ -615,4 +641,5 @@ class TestGlobalInstance:
         """বাংলা মন্তব্য: Global instance singleton pattern follow করে।"""
         from core.event_bus import error_event_bus as instance1
         from core.event_bus import error_event_bus as instance2
+
         assert instance1 is instance2

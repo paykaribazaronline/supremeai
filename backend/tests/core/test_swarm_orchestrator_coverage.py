@@ -17,6 +17,7 @@ from core.swarm_orchestrator import SwarmOrchestrator
 
 # -------------------- Fixtures --------------------
 
+
 @pytest.fixture
 def circuit_breaker():
     """CircuitBreaker ইনস্ট্যান্স ফেরত দেয়।"""
@@ -34,6 +35,7 @@ def mock_workspace():
 
 # -------------------- Tests: CircuitBreakerState --------------------
 
+
 class TestCircuitBreakerState:
     """বাংলা মন্তব্য: CircuitBreakerState constants টেস্ট।"""
 
@@ -49,6 +51,7 @@ class TestCircuitBreakerState:
 
 # -------------------- Tests: CircuitBreakerOpenError --------------------
 
+
 class TestCircuitBreakerOpenError:
     """বাংলা মন্তব্য: CircuitBreakerOpenError exception টেস্ট।"""
 
@@ -62,6 +65,7 @@ class TestCircuitBreakerOpenError:
 
 
 # -------------------- Tests: CircuitBreaker --------------------
+
 
 class TestCircuitBreakerInit:
     """বাংলা মন্তব্য: CircuitBreaker initialization টেস্ট।"""
@@ -224,6 +228,7 @@ class TestCircuitBreakerCall:
 
 # -------------------- Tests: SwarmOrchestrator --------------------
 
+
 class TestSwarmOrchestratorInit:
     """বাংলা মন্তব্য: SwarmOrchestrator initialization টেস্ট।"""
 
@@ -376,6 +381,7 @@ class TestSwarmOrchestratorExecuteTask:
 
 
 # -------------------- Tests: Integration --------------------
+
 
 class TestSwarmOrchestratorIntegration:
     """বাংলা মন্তব্য: Integration-style tests for realistic scenarios।"""

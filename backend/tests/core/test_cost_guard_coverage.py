@@ -15,6 +15,7 @@ from core.cost_guard import CostGuard
 
 # -------------------- Fixtures --------------------
 
+
 @pytest.fixture
 def cost_guard():
     """CostGuard ইনস্ট্যান্স ফেরত দেয়।"""
@@ -42,6 +43,7 @@ def mock_budget_doc():
 
 # -------------------- Tests: __init__ --------------------
 
+
 class TestCostGuardInit:
     """বাংলা মন্তব্য: Initialization এবং tier limits টেস্ট।"""
 
@@ -59,6 +61,7 @@ class TestCostGuardInit:
 
 
 # -------------------- Tests: check_budget --------------------
+
 
 class TestCheckBudget:
     """বাংলা মন্তব্য: check_budget() method টেস্ট।"""
@@ -193,9 +196,7 @@ class TestCheckBudget:
         """বাংলা মন্তব্য: HTTPException directly re-raise হয়।"""
         cost_guard, mock_db = cost_guard_with_db
 
-        mock_db.collection.return_value.document.return_value.get.side_effect = HTTPException(
-            status_code=402, detail="Custom error"
-        )
+        mock_db.collection.return_value.document.return_value.get.side_effect = HTTPException(status_code=402, detail="Custom error")
 
         with pytest.raises(HTTPException) as exc_info:
             await cost_guard.check_budget("tenant-123", 0.01)
@@ -223,6 +224,7 @@ class TestCheckBudget:
 
 
 # -------------------- Tests: validate_budget --------------------
+
 
 class TestValidateBudget:
     """বাংলা মন্তব্য: validate_budget() method টেস্ট।"""
@@ -258,17 +260,20 @@ class TestValidateBudget:
 
 # -------------------- Tests: Global Instance --------------------
 
+
 class TestGlobalInstance:
     """বাংলা মন্তব্য: Global cost_guard instance টেস্ট।"""
 
     def test_global_instance_exists(self):
         """বাংলা মন্তব্য: Global instance create করা আছে।"""
         from core.cost_guard import cost_guard
+
         assert isinstance(cost_guard, CostGuard)
 
     def test_global_instance_default_config(self):
         """বাংলা মন্তব্য: Global instance default configuration দিয়ে create করা আছে।"""
         from core.cost_guard import cost_guard
+
         assert cost_guard._db is None  # Default no DB
         assert "free" in cost_guard.tier_limits
         assert "economy" in cost_guard.tier_limits
@@ -276,6 +281,7 @@ class TestGlobalInstance:
 
 
 # -------------------- Tests: Integration --------------------
+
 
 class TestCostGuardIntegration:
     """বাংলা মন্তব্য: Integration-style tests for realistic scenarios।"""

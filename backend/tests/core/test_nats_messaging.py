@@ -18,6 +18,7 @@ except ModuleNotFoundError:
 
 # -------------------- Fixtures --------------------
 
+
 @pytest.fixture
 def nats_client():
     """NATSClient ইনস্ট্যান্স ফেরত দেয়।"""
@@ -44,6 +45,7 @@ def mock_kv_store():
 
 # -------------------- Tests: __init__ --------------------
 
+
 class TestNATSClientInit:
     """বাংলা মন্তব্য: Initialization টেস্ট।"""
 
@@ -66,6 +68,7 @@ class TestNATSClientInit:
 
 
 # -------------------- Tests: connect --------------------
+
 
 class TestConnect:
     """বাংলা মন্তব্য: connect() method-এর connection logic এবং error handling টেস্ট।"""
@@ -138,6 +141,7 @@ class TestConnect:
 
 # -------------------- Tests: publish_event --------------------
 
+
 class TestPublishEvent:
     """বাংলা মন্তব্য: publish_event() method টেস্ট।"""
 
@@ -186,6 +190,7 @@ class TestPublishEvent:
 
 
 # -------------------- Tests: subscribe --------------------
+
 
 class TestSubscribe:
     """বাংলা মন্তব্য: subscribe() method টেস্ট।"""
@@ -267,6 +272,7 @@ class TestSubscribe:
 
 # -------------------- Tests: register_worker --------------------
 
+
 class TestRegisterWorker:
     """বাংলা মন্তব্য: register_worker() method টেস্ট।"""
 
@@ -293,6 +299,7 @@ class TestRegisterWorker:
 
 
 # -------------------- Tests: get_worker --------------------
+
 
 class TestGetWorker:
     """বাংলা মন্তব্য: get_worker() method টেস্ট।"""
@@ -327,6 +334,7 @@ class TestGetWorker:
 
 
 # -------------------- Tests: get_all_workers --------------------
+
 
 class TestGetAllWorkers:
     """বাংলা মন্তব্য: get_all_workers() method টেস্ট।"""
@@ -386,16 +394,19 @@ class TestGetAllWorkers:
 
 # -------------------- Tests: Global Instance --------------------
 
+
 class TestGlobalInstance:
     """বাংলা মন্তব্য: Global nats_client instance টেস্ট।"""
 
     def test_global_instance_exists(self):
         """বাংলা মন্তব্য: Global instance create করা আছে।"""
         from core.nats_messaging import nats_client
+
         assert isinstance(nats_client, NATSClient)
 
     def test_global_instance_default_config(self):
         """বাংলা মন্তব্য: Global instance default configuration দিয়ে create করা আছে।"""
         from core.nats_messaging import nats_client
+
         assert nats_client.url == "nats://localhost:4222"
         assert nats_client.token == "super_secret_token"
