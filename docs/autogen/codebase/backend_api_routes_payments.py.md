@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/api/routes/payments.py
 
 **প্রকার:** .py  
-**সাইজ:** 6,924 বাইট  
-**আপডেট:** 2026-07-11T08:59:12.249332
+**সাইজ:** 7,039 বাইট  
+**আপডেট:** 2026-07-11T09:05:57.865088
 
 ---
 
@@ -144,8 +144,8 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
 async def stripe_webhook(request: Request):
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
-    endpoint_secret = settings.stripe_webhook_secret
-    stripe_key = settings.stripe_api_key
+    endpoint_secret = settings.stripe_webhook_secret.get_secret_value() if settings.stripe_webhook_secret else ""
+    stripe_key = settings.stripe_api_key.get_secret_value() if settings.stripe_api_key else ""
 
     if not sig_header or not endpoint_secret or not stripe_key:
         # Mock or fallback behavior for development/testing

@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T08:59:12.151136
+Generated at: 2026-07-11T09:05:57.806699
 
 
 ## File: `pnpm-lock.yaml`
@@ -90549,8 +90549,8 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
 async def stripe_webhook(request: Request):
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
-    endpoint_secret = settings.stripe_webhook_secret
-    stripe_key = settings.stripe_api_key
+    endpoint_secret = settings.stripe_webhook_secret.get_secret_value() if settings.stripe_webhook_secret else ""
+    stripe_key = settings.stripe_api_key.get_secret_value() if settings.stripe_api_key else ""
 
     if not sig_header or not endpoint_secret or not stripe_key:
         # Mock or fallback behavior for development/testing
@@ -118279,15 +118279,20 @@ def test_create_checkout_session_mock():
     assert "https://stripe.com/test" in data["url"]
 
 
-from unittest.mock import PropertyMock
-
-@patch("api.routes.payments.settings.stripe_webhook_secret", new_callable=PropertyMock, return_value="")
-def test_webhook_ignored_if_missing_config(mock_secret):
+def test_webhook_ignored_if_missing_config():
     # Verify webhook behaves gracefully when credentials/key are missing
-    headers = {**auth_headers, "stripe-signature": "invalid-sig"}
-    resp = client.post("/payments/webhook", headers=headers, content=b"some-payload")
-    assert resp.status_code == 200
-    assert resp.json()["status"] == "ignored"
+    original_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
+    os.environ["STRIPE_WEBHOOK_SECRET"] = ""
+    settings._cached_secrets.pop("STRIPE_WEBHOOK_SECRET", None)
+
+    try:
+        headers = {**auth_headers, "stripe-signature": "invalid-sig"}
+        resp = client.post("/payments/webhook", headers=headers, content=b"some-payload")
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "ignored"
+    finally:
+        if original_secret is not None:
+            os.environ["STRIPE_WEBHOOK_SECRET"] = original_secret
 
 ```
 

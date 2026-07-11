@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_payments.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,157 বাইট  
-**আপডেট:** 2026-07-11T08:59:12.263945
+**সাইজ:** 2,317 বাইট  
+**আপডেট:** 2026-07-11T09:05:57.894184
 
 ---
 
@@ -65,14 +65,19 @@ def test_create_checkout_session_mock():
     assert "https://stripe.com/test" in data["url"]
 
 
-from unittest.mock import PropertyMock
-
-@patch("api.routes.payments.settings.stripe_webhook_secret", new_callable=PropertyMock, return_value="")
-def test_webhook_ignored_if_missing_config(mock_secret):
+def test_webhook_ignored_if_missing_config():
     # Verify webhook behaves gracefully when credentials/key are missing
-    headers = {**auth_headers, "stripe-signature": "invalid-sig"}
-    resp = client.post("/payments/webhook", headers=headers, content=b"some-payload")
-    assert resp.status_code == 200
-    assert resp.json()["status"] == "ignored"
+    original_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
+    os.environ["STRIPE_WEBHOOK_SECRET"] = ""
+    settings._cached_secrets.pop("STRIPE_WEBHOOK_SECRET", None)
+
+    try:
+        headers = {**auth_headers, "stripe-signature": "invalid-sig"}
+        resp = client.post("/payments/webhook", headers=headers, content=b"some-payload")
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "ignored"
+    finally:
+        if original_secret is not None:
+            os.environ["STRIPE_WEBHOOK_SECRET"] = original_secret
 
 ```
