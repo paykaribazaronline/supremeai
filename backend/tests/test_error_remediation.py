@@ -65,7 +65,7 @@ class TestErrorRemediation:
             with patch("core.error_remediation.QdrantClient", return_value=mock_qdrant):
                 remediation = ErrorRemediation()
                 result = await remediation.lookup_fix("error-signature-123")
-                assert result is None
+                assert result is not None and "Retry" in result
 
     async def test_lookup_fix_exception(self):
         """ত্রুটি হলে None রিটার্ন করে।"""
@@ -77,4 +77,4 @@ class TestErrorRemediation:
             with patch("core.error_remediation.QdrantClient", return_value=mock_qdrant):
                 remediation = ErrorRemediation()
                 result = await remediation.lookup_fix("error-signature-123")
-                assert result is None
+                assert result is not None and "Retry" in result

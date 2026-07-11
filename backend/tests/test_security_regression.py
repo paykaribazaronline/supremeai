@@ -21,7 +21,7 @@ async def test_production_jwt_secret_required():
                 openrouter_api_key="valid",
                 gemini_api_key="valid",
             )
-    assert "SUPREMEAI_JWT_SECRET must be explicitly set in production" in str(excinfo.value)
+    assert "SUPREMEAI_JWT_SECRET must be explicitly set in all environments" in str(excinfo.value)
 
 
 def test_auth_middleware_rejects_invalid_api_token():

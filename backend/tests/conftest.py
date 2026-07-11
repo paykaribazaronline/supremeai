@@ -83,6 +83,7 @@ _TEST_ENV_DEFAULTS = {
     "ORACLE_CLOUD_API_KEY": "mock_oracle_key",
     "AUTOFIX_AUTHORIZED": "false",
     "EXPERIENCE_DB_PATH": f"data/test_experience_{os.getpid()}.db",
+    "LITELLM_DISABLE_ASYNC_CLIENT_CLEANUP": "True",
 }
 
 
