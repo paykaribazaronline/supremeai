@@ -882,9 +882,10 @@ jobs:
       - name: Execute Remote Deployment via SSH
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          # বাংলা মন্তব্য: স্টেজিং সার্ভারে ডিপ্লয়মেন্টের জন্য SSH হোস্ট, ইউজারনেম এবং প্রাইভেট কী সিক্রেট থেকে নেওয়া হচ্ছে
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             echo "Pulling latest images..."
             docker-compose -f docker-compose.prod.yml pull
@@ -938,6 +939,9 @@ jobs:
         env:
           SUPREMEAI_API_KEY: ${{ secrets.SUPREMEAI_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # বাংলা মন্তব্য: প্রোডাকশন-রেডি সিকিউরিটি মোডে Settings ইনিশিয়ালাইজ করার সময় STRIPE_API_KEY ভ্যালিডেশন এরর এড়াতে এটি ইনজেক্ট করা হয়েছে
+          STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+          DOCS_PASSWORD: ${{ secrets.DOCS_PASSWORD }}
         run: |
           cd backend && poetry run python ../scripts/generate_openapi.py
           cd .. && python scripts/auto_generate_architecture_docs.py
