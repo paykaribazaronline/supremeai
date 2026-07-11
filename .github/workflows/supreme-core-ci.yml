@@ -683,7 +683,11 @@ jobs:
 
       - name: Trigger Render Deploy
         run: |
-          curl "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+          if [ -n "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" ]; then
+            curl -f "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" || echo "Deploy hook failed but continuing"
+          else
+            echo "Skipping Render deploy: RENDER_DEPLOY_HOOK_URL secret not configured."
+          fi
 
   deploy-backend:
     name: 🚀 Deploy Backend (Cloud Run)
