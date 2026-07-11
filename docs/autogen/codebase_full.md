@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T14:23:58.519334
+Generated at: 2026-07-11T14:41:19.271645
 
 
 ## File: `pnpm-lock.yaml`
@@ -207451,10 +207451,17 @@ jobs:
       - name: Build Project Artifacts
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
       - name: Deploy Project Artifacts to Vercel
+        continue-on-error: true
         run: |
-          DEPLOY_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
-          echo "### 🚀 Vercel Deployment Complete" >> $GITHUB_STEP_SUMMARY
-          echo "**URL:** [$DEPLOY_URL]($DEPLOY_URL)" >> $GITHUB_STEP_SUMMARY
+          DEPLOY_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }} || echo "VERCEL_LIMIT_REACHED")
+          if [[ "$DEPLOY_URL" == *"VERCEL_LIMIT_REACHED"* ]] || [[ "$DEPLOY_URL" == *"Error:"* ]]; then
+            echo "### ⚠️ Vercel Deployment Failed/Skipped" >> $GITHUB_STEP_SUMMARY
+            echo "Deployment failed (likely due to the 100/day free tier limit). Please try again in 24 hours." >> $GITHUB_STEP_SUMMARY
+            exit 0
+          else
+            echo "### 🚀 Vercel Deployment Complete" >> $GITHUB_STEP_SUMMARY
+            echo "**URL:** [$DEPLOY_URL]($DEPLOY_URL)" >> $GITHUB_STEP_SUMMARY
+          fi
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
