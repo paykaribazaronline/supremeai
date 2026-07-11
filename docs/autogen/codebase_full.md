@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T11:29:21.137092
+Generated at: 2026-07-11T11:32:06.913681
 
 
 ## File: `pnpm-lock.yaml`
@@ -203795,57 +203795,6 @@ jobs:
           git push --force mirror main:refs/heads/main
 
 
-  # Merged from deploy.yml (Deploy SupremeAI 2.0)
-  build-and-push:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Log in to the Container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Backend Image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./backend/Dockerfile
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
-
-      - name: Build and push Worker Image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          file: ./backend/docker/swarm-worker.Dockerfile
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-worker:latest
-
-  deploy-to-staging:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Execute Remote Deployment via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          # বাংলা মন্তব্য: স্টেজিং সার্ভারে ডিপ্লয়মেন্টের জন্য SSH হোস্ট, ইউজারনেম এবং প্রাইভেট কী সিক্রেট থেকে নেওয়া হচ্ছে
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            echo "Pulling latest images..."
-            docker-compose -f docker-compose.prod.yml pull
-            echo "Deploying SupremeAI 2.0 to Production Environment..."
-            docker-compose -f docker-compose.prod.yml up -d
-            echo "Deployment successful."
 
   generate-codebase-docs:
     name: 📝 Auto-Generate & Deploy Docs
