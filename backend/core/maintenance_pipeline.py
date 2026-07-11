@@ -9,7 +9,9 @@ from core.health_probes import probe_external_api
 from core.health_probes import probe_redis
 
 
+
 logger = logging.getLogger("supremeai.immune_system")
+
 
 class MaintenancePipeline:
     def __init__(self):
@@ -79,7 +81,6 @@ class MaintenancePipeline:
         results["status"] = status
         results["health_score"] = self.health_score
         return results
-        
     async def detect_performance_regression(self):
         logger.info("🛡️ Immune System: Running performance regression detection...")
         # Placeholder for latency check logic
@@ -96,7 +97,6 @@ class MaintenancePipeline:
 
         if event:
             logger.info(f"Attempting to heal module {event.module} for error {event.error_type}")
-            
             from core.redis_manager import redis_manager
             
             # Simulated checks based on the event payload or type

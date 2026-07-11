@@ -35,6 +35,7 @@ class IdempotencyMiddleware:
                 logger.warning("IdempotencyMiddleware: 'redis' package not installed. Middleware will be bypassed.")
                 return None
             import os
+
             redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
             self._redis_client = aioredis.from_url(redis_url, decode_responses=True)
         return self._redis_client
@@ -124,9 +125,7 @@ class IdempotencyMiddleware:
         is_locked = await redis.set(redis_key, json.dumps({"status": "processing"}), ex=600, nx=True)
         if not is_locked:
             # যদি অন্য কোনো থ্রেড এইমাত্র কী-টি লক করে ফেলে, তবে কনফ্লিক্ট রেসপন্স পাঠানো হবে
-            response = JSONResponse(
-                status_code=409, content={"detail": "Conflict: Request is already being processed."}
-            )
+            response = JSONResponse(status_code=409, content={"detail": "Conflict: Request is already being processed."})
             await response(scope, receive, send)
             return
 
@@ -160,7 +159,7 @@ class IdempotencyMiddleware:
                 body_to_cache = json.loads(response_body_bytes)
             except json.JSONDecodeError:
                 # যদি JSON না হয় (যেমন ছবি বা ফাইল), তাহলে Base64 এনকোড করে সেইভ করা হবে
-                body_to_cache = base64.b64encode(response_body_bytes).decode('utf-8')
+                body_to_cache = base64.b64encode(response_body_bytes).decode("utf-8")
 
             # সম্পন্ন হওয়া রেসপন্সটি Redis-এ ২৪ ঘণ্টার জন্য ক্যাশ করা হচ্ছে
             await redis.set(
