@@ -22,6 +22,7 @@ def reset_global_state():
     Module-level globals clean রাখার জন্য।
     """
     import core.playwright_manager as pm
+
     pm._global_browser = None
     pm._playwright_runner = None
     yield

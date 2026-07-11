@@ -15,6 +15,7 @@ from core.security_utils import is_safe_url
 @pytest.fixture(autouse=True)
 def reset_global_state():
     import core.playwright_manager as pm
+
     pm._global_browser = None
     pm._playwright_runner = None
     yield

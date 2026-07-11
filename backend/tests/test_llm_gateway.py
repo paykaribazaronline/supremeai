@@ -14,9 +14,11 @@ def setup_litellm():
     litellm.telemetry = False
     yield
 
+
 @pytest.fixture(autouse=True)
 def disable_semantic_cache(monkeypatch):
     from unittest.mock import AsyncMock
+
     monkeypatch.setattr("core.semantic_cache.SemanticCache.query_similar", AsyncMock(return_value=None))
     yield
 
