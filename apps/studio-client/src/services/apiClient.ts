@@ -22,10 +22,18 @@ export const setApiConcurrency = (concurrency: number) => {
 };
 
 export const getAuthHeaders = (): Record<string, string> => {
-  return {
-    'Content-Type': 'application/json'
-    // Authorization header removed as per httpOnly cookie setup
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
   };
+  
+  // 🟢 Sprint 5: Backend API Integration
+  // Use localStorage or zustand state to get token. Assuming token is saved in localStorage 'supremeai_auth_token'
+  const token = localStorage.getItem('supremeai_auth_token');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
 };
 
 const handleResponse = async (res: Response) => {

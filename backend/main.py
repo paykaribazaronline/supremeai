@@ -16,7 +16,9 @@ from core.app import app  # noqa: F401
 from core.config import settings
 from core.logging_config import setup_logging
 
+from api.routes.auth import router as auth_router
 
+app.include_router(auth_router, prefix="/api/v1")
 app.include_router(workspace_task_router)
 app.include_router(websocket_agent.router)
 app.include_router(agent_router, prefix="/api/v1")

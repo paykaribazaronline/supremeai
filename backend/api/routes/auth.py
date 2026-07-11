@@ -75,9 +75,27 @@ class MeResponse(BaseModel):
 
 @router.post("/login", response_model=TokenResponse)
 async def login(body: LoginRequest):
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Direct login is not supported. Use the admin TOTP flow or an OAuth provider.",
+    if settings.env != "local" and settings.env != "test":
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED,
+            detail="Direct login is not supported in production. Use the admin TOTP flow or an OAuth provider.",
+        )
+    
+    # 🟢 Dev Mode: Generate a token for local testing
+    user_id = f"dev_{body.username.split('@')[0]}"
+    primary_role = "admin" if "admin" in body.username else "user"
+    token_data = {
+        "sub": user_id,
+        "role": primary_role,
+        "email": body.username,
+        "method": "dev_login",
+    }
+    access_token = create_access_token(token_data)
+    
+    return TokenResponse(
+        access_token=access_token,
+        user_id=user_id,
+        role=primary_role
     )
 
 
