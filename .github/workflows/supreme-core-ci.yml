@@ -20,18 +20,26 @@ on:
     branches: [main, develop]
   workflow_dispatch:
     inputs:
-      target_job:
-        description: 'Which job to run? (Select "all" for full pipeline)'
-        required: true
-        default: 'all'
-        type: choice
-        options:
-          - 'all'
-          - 'pre-merge-gate-only'
-          - 'backend-core-only'
-          - 'frontend-core-only'
-          - 'performance-e2e-only'
-          - 'deploy-render-only'
+      run_pre_merge_gate:
+        description: 'Run Pre-Merge Gate'
+        type: boolean
+        default: true
+      run_backend_core:
+        description: 'Run Backend Core'
+        type: boolean
+        default: true
+      run_frontend_core:
+        description: 'Run Frontend Core'
+        type: boolean
+        default: true
+      run_performance_e2e:
+        description: 'Run Performance E2E'
+        type: boolean
+        default: true
+      run_deploy_render:
+        description: 'Run Deploy to Render'
+        type: boolean
+        default: true
       ignore_dependencies:
         description: 'Force run selected job even if upstream jobs are skipped? (Not for deploy)'
         type: boolean
@@ -170,10 +178,7 @@ jobs:
       ) ||
       (
         github.event_name == 'workflow_dispatch' && 
-        (
-          github.event.inputs.target_job == 'all' || 
-          github.event.inputs.target_job == 'backend-core-only'
-        )
+        github.event.inputs.run_backend_core == 'true'
       )
     runs-on: ubuntu-latest
     steps:
@@ -279,10 +284,7 @@ jobs:
         ) ||
         (
           github.event_name == 'workflow_dispatch' && 
-          (
-            github.event.inputs.target_job == 'all' || 
-            github.event.inputs.target_job == 'backend-core-only'
-          ) &&
+            github.event.inputs.run_backend_core == 'true' &&
           (
             github.event.inputs.ignore_dependencies == 'true' ||
             (needs.pre-merge-gate.result == 'success' && needs.production-readiness.result == 'success')
@@ -408,7 +410,7 @@ jobs:
       ) ||
       (
         github.event_name == 'workflow_dispatch' && 
-        github.event.inputs.target_job == 'all'
+        github.event.inputs.run_backend_core == 'true'
       )
     permissions:
       security-events: write
@@ -502,10 +504,7 @@ jobs:
       ) ||
       (
         github.event_name == 'workflow_dispatch' && 
-        (
-          github.event.inputs.target_job == 'all' || 
-          github.event.inputs.target_job == 'frontend-core-only'
-        )
+        github.event.inputs.run_frontend_core == 'true'
       )
     steps:
       - uses: actions/checkout@v4
@@ -647,10 +646,7 @@ jobs:
         ) ||
         (
           github.event_name == 'workflow_dispatch' && 
-          (
-            github.event.inputs.target_job == 'all' || 
-            github.event.inputs.target_job == 'performance-e2e-only'
-          ) &&
+            github.event.inputs.run_performance_e2e == 'true' &&
           (
             github.event.inputs.ignore_dependencies == 'true' ||
             (needs.backend-core.result == 'success' && needs.frontend-core.result == 'success')
@@ -755,10 +751,7 @@ jobs:
       ) ||
       (
         github.event_name == 'workflow_dispatch' && 
-        (
-          github.event.inputs.target_job == 'all' || 
-          github.event.inputs.target_job == 'deploy-render-only'
-        )
+        github.event.inputs.run_deploy_render == 'true'
       )
     permissions:
       contents: read
