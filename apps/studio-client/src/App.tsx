@@ -6,6 +6,7 @@ import { useStore } from "./store/useStore";
 import { ThemeSyncProvider } from './providers/ThemeSyncProvider';
 import { GlobalConfigInitializer } from "./components/core/GlobalConfigInitializer";
 import { ProtectedRoute, GuestRoute } from "./components/core/AuthGuards";
+import { ToastProvider } from './components/ui/Toast';
 
 // Pages
 import { AdminShell } from "./pages/admin/AdminShell";
@@ -47,7 +48,9 @@ const PORTAL_TYPE = import.meta.env.VITE_PORTAL_TYPE || 'user';
 export const App: React.FC = () => {
   return (
     <ThemeSyncProvider>
-      <AppContent />
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </ThemeSyncProvider>
   );
 };

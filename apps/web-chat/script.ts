@@ -32,7 +32,8 @@ const btnRemoveImage = document.getElementById('btnRemoveImage') as HTMLButtonEl
 const btnLaunchWorkspace = document.getElementById('btnLaunchWorkspace') as HTMLButtonElement | null;
 
 // --- Initialization Check ---
-function validateDOM() {
+// বাংলা মন্তব্য: return type যুক্ত করা হয়েছে (void) - ESLint explicit-function-return-type fix
+function validateDOM(): void {
     if (!chatHistory || !chatInput || !btnSend) {
         const error = new Error("Critical DOM elements missing (chatHistory, chatInput, or btnSend)");
         errorBus.report(error, { sourceModule: "script.ts", action: "DOM Initialization" }, "critical");
@@ -97,19 +98,22 @@ if (btnLaunchWorkspace) {
 }
 
 // --- Functions ---
-function clearImageAttachment() {
+// বাংলা মন্তব্য: return type যুক্ত করা হয়েছে (void) - ESLint explicit-function-return-type fix
+function clearImageAttachment(): void {
     currentImageBase64 = null;
     if (imageUpload) imageUpload.value = '';
     if (imagePreviewContainer) imagePreviewContainer.style.display = 'none';
     if (imagePreview) imagePreview.src = '';
 }
 
+// বাংলা মন্তব্য: return type যুক্ত করা হয়েছে (number) - ESLint explicit-function-return-type fix
 function calculateBackoff(): number {
     const delay = AppConfig.ws.initialReconnectDelayMs * Math.pow(2, reconnectAttempts);
     return Math.min(delay, AppConfig.ws.maxReconnectDelayMs);
 }
 
-function connectWebSocket() {
+// বাংলা মন্তব্য: return type যুক্ত করা হয়েছে (void) - ESLint explicit-function-return-type fix
+function connectWebSocket(): void {
     // If we're already connecting or open, do nothing
     if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) {
         return;
@@ -189,7 +193,8 @@ function connectWebSocket() {
     }
 }
 
-function addMessage(role: "user" | "assistant", text: string) {
+// বাংলা মন্তব্য: return type যুক্ত করা হয়েছে (void) - ESLint explicit-function-return-type fix
+function addMessage(role: "user" | "assistant", text: string): void {
     if (!chatHistory) return;
     const div = document.createElement('div');
     // We use predefined CSS classes for styling (removed inline styles)
@@ -200,7 +205,8 @@ function addMessage(role: "user" | "assistant", text: string) {
     chatHistory.scrollTop = chatHistory.scrollHeight;
 }
 
-function handleSend() {
+// বাংলা মন্তব্য: return type যুক্ত করা হয়েছে (void) - ESLint explicit-function-return-type fix
+function handleSend(): void {
     if (!chatInput) return;
     const text = chatInput.value.trim();
     
@@ -235,7 +241,8 @@ function handleSend() {
  * Encapsulated Execution Guards (Anti-Leak Rules)
  * Ensures everything is cleaned up if the module unloads
  */
-function cleanup(reason: string) {
+// বাংলা মন্তব্য: return type যুক্ত করা হয়েছে (void) - ESLint explicit-function-return-type fix
+function cleanup(reason: string): void {
     console.info(`🧹 Executing strict cleanup. Reason: ${reason}`);
     abortController.abort(); // Unbinds all DOM event listeners
     clearTimeout(reconnectTimeoutId);

@@ -1,8 +1,8 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { SwarmContextState, SwarmMetrics, SwarmLog, CircuitState } from '../types/swarm';
+import { SwarmHealthContext } from './SwarmHealthContext';
 
-export const SwarmHealthContext = createContext<SwarmContextState | null>(null);
-
+// বাংলা মন্তব্য: SwarmHealthContext একে অপর ফাইল থেকে ইম্পোর্ট করা হয়েছে, যাতে react-refresh সতর্কতা দূর হয়
 export const MockSwarmProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('connecting');
   const [circuitState, setCircuitState] = useState<CircuitState>('CLOSED');

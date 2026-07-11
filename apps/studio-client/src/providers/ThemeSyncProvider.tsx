@@ -1,17 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { ThemeSyncContext } from './ThemeSyncContext';
 
-interface ThemeSyncContextType {
-  theme: string;
-  setTheme: (theme: string) => void;
-}
-
-const ThemeSyncContext = createContext<ThemeSyncContextType>({
-  theme: 'dark', // default theme
-  setTheme: () => {},
-});
-
-export const useThemeSync = () => useContext(ThemeSyncContext);
-
+// বাংলা মন্তব্য: ThemeSyncContext একে অপর ফাইল থেকে ইম্পোর্ট করা হয়েছে, যাতে react-refresh সতর্কতা দূর হয়
+// useThemeSync hook একে অপর ফাইলে সরানো হয়েছে (useThemeSync.ts)
 export const ThemeSyncProvider: React.FC<{ children: React.ReactNode; userId?: string }> = ({ 
   children, 
   userId = 'default' 

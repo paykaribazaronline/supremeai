@@ -1,0 +1,4 @@
+import { createContext } from 'react';
+
+// বাংলা মন্তব্য: I18nContext এখানে সরাসরি ডিফাইন করা হয়েছে, যাতে I18nProvider.tsx এ রেফ্রেশ সমস্যা না হয়
+export const I18nContext = createContext({ t: (key: string) => key, locale: 'en', setLocale: (_next: string) => {} } satisfies Record<string, any>);

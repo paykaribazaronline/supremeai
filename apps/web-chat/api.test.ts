@@ -59,11 +59,10 @@ describe('api', () => {
     // we'll assert that the error bus is NOT called on success.
     
     // As a workaround for the test, we'll verify the error handling path which we CAN control:
-    const error = new Error("Network Error");
-    
     // To properly test the implementation, we'd need to mock the internal apiClient
     // Since it's not exported, we test the public surface and rely on the error bus.
     
+    // বাংলা মন্তব্য: error ভ্যারিয়েবলটি ব্যবহার না হয়েছিল, সরানো হয়েছে (unused-vars fix)
     expect(true).toBe(true); // Placeholder for actual DI-based testing
   });
 

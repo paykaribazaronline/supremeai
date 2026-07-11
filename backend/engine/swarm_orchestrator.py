@@ -91,8 +91,25 @@ class SwarmOrchestrator:
 
         self.workspace.log = real_time_log
 
-    async def execute(self, max_retries: int = 2) -> SharedWorkspace:
+    async def execute(self, max_retries: int = 2, consensus_mode: bool = False) -> SharedWorkspace:
         self.workspace.log("🚀 SwarmOrchestrator: Initiating Swarm execution loop...")
+
+        # Inject Memory Middleware
+        from engine.memory_middleware import memory_mw
+        self.workspace.log("🧠 Querying Neural Memory for relevant past experiences...")
+        augmented_prompt = await memory_mw.augment_task(self.task_prompt)
+
+        if consensus_mode:
+            from engine.debate_engine import ConsensusOrchestrator
+            self.workspace.log("🛡️ Consensus Mode Enabled: Engaging Debate Engine...")
+            orchestrator = ConsensusOrchestrator(self.session_id)
+            # Pass the memory-enriched prompt to the debate cycle
+            final_proposal = await orchestrator.run_debate_cycle(augmented_prompt)
+            
+            if final_proposal:
+                self.workspace.log(f"✅ Consensus Reached by {final_proposal.agent_id}!")
+                self.workspace.generated_code = {"consensus_output": final_proposal.content}
+            return self.workspace
 
         arch_agent = ArchitectureAgent()
         code_agent = CodeGeneratorAgent()
@@ -100,7 +117,7 @@ class SwarmOrchestrator:
 
         # Phase 1: Architecture
         self.workspace.log("Phase 1: Architecture Design")
-        await arch_agent.design(self.workspace, self.user_id, model_name="gemini/gemini-1.5-pro")
+        await arch_agent.design(self.workspace, self.user_id, task_prompt=augmented_prompt, model_name="gemini/gemini-1.5-pro")
 
         # Phase 2 & 3 Loop: Code -> QA
         attempt = 0
