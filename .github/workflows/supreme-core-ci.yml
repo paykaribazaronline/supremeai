@@ -947,12 +947,12 @@ jobs:
           CI_WEBHOOK_SECRET: ${{ secrets.CI_WEBHOOK_SECRET || 'dummy_ci_secret' }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY || '9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno=' }}
         run: |
-          cd backend && poetry run python ../scripts/generate_openapi.py
-          cd .. && python scripts/auto_generate_architecture_docs.py
-          python scripts/generate_push_summary.py
+          poetry -C backend run python scripts/generate_openapi.py
+          poetry -C backend run python scripts/auto_generate_architecture_docs.py
+          poetry -C backend run python scripts/generate_push_summary.py
 
       - name: Generate Smart Docs & Dashboard
-        run: python scripts/generate_smart_docs.py
+        run: poetry -C backend run python scripts/generate_smart_docs.py
         
       - name: Commit and Push Docs to Repo
         id: push_docs

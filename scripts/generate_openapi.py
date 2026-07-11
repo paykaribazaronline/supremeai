@@ -39,7 +39,7 @@ except ImportError as e:
 def generate_openapi():
     openapi_schema = app.openapi()
     
-    output_path = Path("API-swagger.yaml")
+    output_path = Path(__file__).parent.parent / "backend" / "API-swagger.yaml"
     with open(output_path, "w", encoding="utf-8") as f:
         yaml.dump(openapi_schema, f, sort_keys=False)
         
