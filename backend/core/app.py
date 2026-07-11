@@ -132,6 +132,7 @@ app.add_middleware(APIKeyAuthMiddleware)
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
+
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     return JSONResponse(
@@ -142,6 +143,7 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException) ->
             "instance": request.url.path,
         },
     )
+
 
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
