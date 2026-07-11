@@ -16,6 +16,7 @@ Setup:
 """
 
 from __future__ import annotations
+import os
 from core.config import settings
 
 import asyncio
@@ -47,7 +48,7 @@ class TelegramBotHandler:
     }
 
     def __init__(self, task_processor_interface=None) -> None:
-        self.bot_token: str = getattr(settings, "telegram_bot_token", "")
+        self.bot_token: str = os.getenv("TELEGRAM_BOT_TOKEN") or getattr(settings, "telegram_bot_token", "")
         self.api_base: str = f"https://api.telegram.org/bot{self.bot_token}"
         self.processor = task_processor_interface
 

@@ -19,7 +19,7 @@ class ProxyManager:
 
     def _load_proxies(self) -> None:
         # বাংলা মন্তব্য: পরিবেশের ভেরিয়েবল বা কনফিগ ফাইল থেকে প্রক্সি লিস্ট লোড করার লজিক
-        env_proxies = getattr(settings, "supremeai_proxies", None)
+        env_proxies = os.getenv("SUPREMEAI_PROXIES") or getattr(settings, "supremeai_proxies", None)
         if env_proxies:
             self.proxies = [p.strip() for p in env_proxies.split(",") if p.strip()]
             logger.info(f"Loaded {len(self.proxies)} proxies from environment.")

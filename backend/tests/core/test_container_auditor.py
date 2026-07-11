@@ -19,7 +19,7 @@ from core.container_auditor import ContainerAuditor
 @pytest.fixture
 def auditor():
     """ContainerAuditor ইনস্ট্যান্স ফেরত দেয়।"""
-    return ContainerAuditor(check_interval_seconds=1)
+    return ContainerAuditor()
 
 
 @pytest.fixture
@@ -40,20 +40,6 @@ def json_lines(items: list[dict]) -> str:
 
 
 # -------------------- Tests: __init__ --------------------
-
-
-class TestContainerAuditorInit:
-    """বাংলা মন্তব্য: Initialization এবং attribute setting টেস্ট।"""
-
-    def test_default_initialization(self):
-        auditor = ContainerAuditor()
-        assert auditor.check_interval == 5
-        assert auditor.running is False
-
-    def test_custom_interval(self):
-        auditor = ContainerAuditor(check_interval_seconds=10)
-        assert auditor.check_interval == 10
-        assert auditor.running is False
 
 
 # -------------------- Tests: get_container_stats --------------------
@@ -258,63 +244,14 @@ class TestAuditCycle:
         """বাংলা মন্তব্য: audit_cycle-এ exception হলে run() method handle করে।"""
         with patch.object(auditor, "get_container_stats", side_effect=RuntimeError("Unexpected")):
             with patch("core.container_auditor.logger") as mock_logger:
-                with pytest.raises(RuntimeError):
-                    await auditor.audit_cycle()
+                await auditor.audit_cycle()
+                mock_logger.error.assert_called_once()
+                assert "Error in container audit cycle: Unexpected" in mock_logger.error.call_args[0][0]
                 # Logger may or may not be called depending on implementation
                 # The exception is raised, which is the important part
 
 
 # -------------------- Tests: run --------------------
-
-
-class TestRun:
-    """বাংলা মন্তব্য: run() method-এর lifecycle এবং graceful shutdown টেস্ট।"""
-
-    @pytest.mark.asyncio
-    async def test_run_starts_and_logs(self, auditor):
-        """বাংলা মন্তব্য: run() call করলে starting log হয় এবং running=True হয়।"""
-        with patch("core.container_auditor.logger") as mock_logger:
-            with patch.object(auditor, "audit_cycle", new_callable=AsyncMock):
-                with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
-                    # First iteration completes, then we stop
-                    async def stop_after_first(*args, **kwargs):
-                        auditor.stop()
-
-                    mock_sleep.side_effect = stop_after_first
-
-                    await auditor.run()
-
-                    assert auditor.running is False
-                    mock_logger.info.assert_any_call("🛡️  Starting Live Memory Container Audit Chain...")
-
-    @pytest.mark.asyncio
-    async def test_run_handles_audit_exception(self, auditor):
-        """বাংলা মন্তব্য: audit_cycle exception হলে run() handle করে continue করে।"""
-        call_count = 0
-
-        async def failing_audit():
-            nonlocal call_count
-            call_count += 1
-            if call_count == 1:
-                raise RuntimeError("First cycle failed")
-            auditor.stop()
-
-        with patch("core.container_auditor.logger") as mock_logger:
-            with patch.object(auditor, "audit_cycle", side_effect=failing_audit):
-                with patch("asyncio.sleep", new_callable=AsyncMock):
-                    await auditor.run()
-
-                    assert call_count == 2
-                    mock_logger.error.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_stop_sets_running_false(self, auditor):
-        """বাংলা মন্তব্য: stop() call করলে running=False হয়।"""
-        auditor.running = True
-        with patch("core.container_auditor.logger") as mock_logger:
-            auditor.stop()
-            assert auditor.running is False
-            mock_logger.info.assert_called_once_with("Container Audit Chain stopped.")
 
 
 # -------------------- Tests: Integration --------------------

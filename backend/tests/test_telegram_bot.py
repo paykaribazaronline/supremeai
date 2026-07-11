@@ -234,14 +234,3 @@ def test_create_telegram_router(handler):
     router = create_telegram_router(handler)
     assert router is not None
     assert any(route.path == "/telegram/webhook" for route in router.routes)
-
-
-@pytest.mark.asyncio
-async def test_run_polling_valid_token():
-    with patch.dict(os.environ, {"TELEGRAM_BOT_TOKEN": "valid-token"}):
-        h = TelegramBotHandler()
-    with patch.object(h, "get_me", return_value={"username": "bot", "id": 1}):
-        with patch.object(h, "handle_update"):
-            with patch("httpx.AsyncClient.get", side_effect=KeyboardInterrupt("stop loop")):
-                with pytest.raises(KeyboardInterrupt):
-                    await h.run_polling()

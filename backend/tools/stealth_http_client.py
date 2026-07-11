@@ -42,14 +42,14 @@ class StealthHTTPClient:
         for attempt in range(retries):
             proxy = self.proxy_manager.get_next_proxy()
             client_kwargs = {"headers": headers, "timeout": kwargs.pop("timeout", 10.0), **kwargs}
+            proxy_kwarg = {"proxy": proxy} if proxy else {}
             if proxy:
-                client_kwargs["proxy"] = proxy
                 logger.info(f"Stealth request via proxy: {proxy} (Attempt {attempt + 1}/{retries})")
             else:
                 logger.info(f"Stealth request without proxy (Attempt {attempt + 1}/{retries})")
 
             try:
-                async with httpx.AsyncClient(timeout=15.0) as client:
+                async with httpx.AsyncClient(timeout=15.0, **proxy_kwarg) as client:
                     response = await client.request(method, url, **client_kwargs)
                     response.raise_for_status()
                     return response
