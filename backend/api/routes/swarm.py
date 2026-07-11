@@ -1,8 +1,12 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
+from fastapi import Request
 from sse_starlette.sse import EventSourceResponse
+
 from core.swarm_pubsub import swarm_streamer
 
+
 router = APIRouter(tags=["Swarm"])
+
 
 @router.get("/stream")
 async def stream_swarm_health(request: Request):
@@ -10,6 +14,7 @@ async def stream_swarm_health(request: Request):
     SSE Endpoint for Real-time Swarm Health & Logs.
     URL: /api/v1/swarm/stream
     """
+
     async def event_generator():
         try:
             async for message in swarm_streamer.subscribe():
@@ -18,7 +23,7 @@ async def stream_swarm_health(request: Request):
                     break
                 # SSE ফরম্যাটে ডেটা পাঠানো হচ্ছে
                 yield {"data": message}
-        except Exception as e:
-            pass # Handle graceful shutdown
+        except Exception:
+            pass  # Handle graceful shutdown
 
     return EventSourceResponse(event_generator())

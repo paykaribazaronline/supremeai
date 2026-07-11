@@ -1,9 +1,11 @@
 import asyncio
 import json
-from typing import AsyncGenerator
 import logging
+from collections.abc import AsyncGenerator
+
 
 logger = logging.getLogger(__name__)
+
 
 class SwarmPubSub:
     def __init__(self):
@@ -15,7 +17,7 @@ class SwarmPubSub:
         queue = asyncio.Queue()
         self.active_connections.append(queue)
         logger.info(f"New client connected to Swarm Stream. Total: {len(self.active_connections)}")
-        
+
         try:
             while True:
                 # কিউ থেকে ডেটা নিয়ে ইয়েল্ড (yield) করবে
@@ -30,11 +32,12 @@ class SwarmPubSub:
     async def broadcast(self, event_type: str, payload: dict):
         """সকল অ্যাক্টিভ ক্লায়েন্টকে রিয়েল-টাইম ডেটা পুশ করবে"""
         if not self.active_connections:
-            return # কোনো ক্লায়েন্ট না থাকলে অযথাই ইভেন্ট পুশ করবে না
-            
+            return  # কোনো ক্লায়েন্ট না থাকলে অযথাই ইভেন্ট পুশ করবে না
+
         message = json.dumps({"type": event_type, "data": payload})
         for queue in self.active_connections:
             await queue.put(message)
+
 
 # গ্লোবাল ইন্সট্যান্স যা পুরো অ্যাপ জুড়ে ব্যবহার হবে
 swarm_streamer = SwarmPubSub()
