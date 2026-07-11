@@ -425,9 +425,7 @@ class TestEventBusMissingBranches:
         from core.event_bus import DeadLetterQueueItem, ErrorEventBus
 
         bus = ErrorEventBus()
-        item = DeadLetterQueueItem(
-            event_type="e", handler_name="h", error="err", timestamp=datetime.now(UTC)
-        )
+        item = DeadLetterQueueItem(event_type="e", handler_name="h", error="err", timestamp=datetime.now(UTC))
         bus._dlq.put_nowait(item)
         processed = await bus.process_dead_letter_queue(max_items=10)
         assert len(processed) == 1
@@ -577,10 +575,10 @@ class TestSwarmOrchestratorMissingBranches:
         assert cb.state == CircuitBreakerState.OPEN
 
         await asyncio.sleep(0.1)
-        
+
         async def succeeding():
             return "ok"
-        
+
         result = await cb.call(succeeding)
         assert result == "ok"
         assert cb.state == CircuitBreakerState.CLOSED
@@ -955,9 +953,7 @@ class TestNATSMessagingMissingBranches:
         client = NATSClient()
         client.kv_store = MagicMock()
         client.kv_store.put = AsyncMock()
-        client.kv_store.get = AsyncMock(
-            return_value=MagicMock(value=json.dumps({"id": "w1"}).encode())
-        )
+        client.kv_store.get = AsyncMock(return_value=MagicMock(value=json.dumps({"id": "w1"}).encode()))
 
         await client.register_worker("w1", {"id": "w1"})
         worker = await client.get_worker("w1")
@@ -1030,12 +1026,8 @@ class TestPlaywrightManagerMissingBranches:
         mock_runner = MagicMock()
         monkeypatch.setattr("core.playwright_manager._global_browser", mock_browser)
         monkeypatch.setattr("core.playwright_manager._playwright_runner", mock_runner)
-        monkeypatch.setattr(
-            "core.playwright_manager._global_browser.close", AsyncMock(side_effect=RuntimeError("close fail"))
-        )
-        monkeypatch.setattr(
-            "core.playwright_manager._playwright_runner.stop", AsyncMock(side_effect=RuntimeError("stop fail"))
-        )
+        monkeypatch.setattr("core.playwright_manager._global_browser.close", AsyncMock(side_effect=RuntimeError("close fail")))
+        monkeypatch.setattr("core.playwright_manager._playwright_runner.stop", AsyncMock(side_effect=RuntimeError("stop fail")))
 
         # The function should complete without raising, even with errors
         await shutdown_global_browser()
@@ -1054,9 +1046,7 @@ class TestSwarmPubSubMissingBranches:
         pubsub = SwarmPubSub()
         mock_pubsub = MagicMock()
         mock_pubsub.subscribe = AsyncMock()
-        mock_pubsub.get_message = AsyncMock(
-            side_effect=[{"data": b"hello"}, None, {"data": b"world"}]
-        )
+        mock_pubsub.get_message = AsyncMock(side_effect=[{"data": b"hello"}, None, {"data": b"world"}])
         mock_pubsub.unsubscribe = AsyncMock()
         mock_pubsub.close = AsyncMock()
 
@@ -1065,7 +1055,7 @@ class TestSwarmPubSubMissingBranches:
         monkeypatch.setattr("core.swarm_pubsub.redis.from_url", lambda *args, **kwargs: mock_redis)
 
         messages = []
-        
+
         async def consume():
             async for msg in pubsub.subscribe():
                 messages.append(msg)
@@ -1090,12 +1080,12 @@ class TestSwarmPubSubMissingBranches:
         mock_redis = MagicMock()
         mock_redis.publish = AsyncMock()
         mock_redis.pubsub = MagicMock(return_value=MagicMock())
-        
+
         # Completely mock the redis client to prevent any actual connection attempts
         monkeypatch.setattr("core.swarm_pubsub.redis.from_url", lambda *args, **kwargs: mock_redis)
 
         await pubsub.broadcast("theme_changed", {"theme": "dark"})
-        
+
         # Verify publish was called
         mock_redis.publish.assert_called_once()
         call_args = mock_redis.publish.call_args
@@ -1207,9 +1197,7 @@ class TestSwarmOrchestratorCircuitBreakerIntegration:
         orchestrator.circuit_breaker.state = "OPEN"
 
         # Mock the architect.design to raise CircuitBreakerOpenError
-        with patch.object(
-            orchestrator.architect, "design", new_callable=AsyncMock, side_effect=CircuitBreakerOpenError("circuit open")
-        ):
+        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock, side_effect=CircuitBreakerOpenError("circuit open")):
             # The function will raise AttributeError because SharedWorkspace doesn't have add_error()
             # This is a known bug in the production code (line 88 of swarm_orchestrator.py)
             # We verify that the circuit breaker error path is reached by checking the log before the error
