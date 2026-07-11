@@ -1,8 +1,8 @@
 # 📄 ফাইল: render.yaml
 
 **প্রকার:** .yaml  
-**সাইজ:** 693 বাইট  
-**আপডেট:** 2026-07-11T10:59:17.796416
+**সাইজ:** 714 বাইট  
+**আপডেট:** 2026-07-11T11:05:10.147525
 
 ---
 
@@ -12,9 +12,9 @@
 services:
   - type: web
     name: supremeai-backend
-    env: docker
-    dockerfilePath: Dockerfile
-    dockerContext: .
+    env: image
+    image:
+      url: ghcr.io/paykaribazaronline/supremeai-backend:latest
     region: singapore
     plan: free
     healthCheckPath: /health

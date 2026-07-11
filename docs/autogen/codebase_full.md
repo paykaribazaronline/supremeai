@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T10:59:17.782922
+Generated at: 2026-07-11T11:05:10.134485
 
 
 ## File: `pnpm-lock.yaml`
@@ -26184,9 +26184,9 @@ if __name__ == "__main__":
 services:
   - type: web
     name: supremeai-backend
-    env: docker
-    dockerfilePath: Dockerfile
-    dockerContext: .
+    env: image
+    image:
+      url: ghcr.io/paykaribazaronline/supremeai-backend:latest
     region: singapore
     plan: free
     healthCheckPath: /health
@@ -203530,7 +203530,42 @@ jobs:
     needs: [backend-core]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
     steps:
+      - uses: actions/checkout@v4
+      
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/supremeai-backend
+          tags: |
+            type=raw,value=latest
+            type=sha
+            
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
       - name: Trigger Render Deploy
         run: |
           curl "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
