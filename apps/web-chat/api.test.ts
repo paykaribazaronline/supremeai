@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { api } from './api';
-import { errorBus } from './error-bus';
-import { AppConfig } from './env';
+// বাংলা মন্তব্য: errorBus ও AppConfig এখানে ইম্পোর্ট করা হয়েছিল কিন্তু ব্যবহার হয়নি, তাই সরানো হয়েছে
+// import { errorBus } from './error-bus';
+// import { AppConfig } from './env';
 import axios from 'axios';
 
 // Mock dependencies
@@ -22,7 +23,16 @@ vi.mock('./env', () => ({
 }));
 
 describe('api', () => {
-  let mockedAxios: any;
+  // বাংলা মন্তব্য: any এর বদলে AxiosInstance টাইপ ব্যবহার করা হয়েছে
+  interface MockedAxios {
+    get: ReturnType<typeof vi.fn>;
+    post: ReturnType<typeof vi.fn>;
+    interceptors: {
+      request: { use: ReturnType<typeof vi.fn> };
+    };
+  }
+  
+  let mockedAxios: MockedAxios;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -32,7 +42,7 @@ describe('api', () => {
       interceptors: { request: { use: vi.fn() } }
     };
     // Override the created axios instance
-    (axios.create as any).mockReturnValue(mockedAxios);
+    (axios.create as unknown as { mockReturnValue: (v: MockedAxios) => void }).mockReturnValue(mockedAxios);
   });
 
   it('fetchQuota should return data from backend without hardcoding', async () => {

@@ -52,4 +52,12 @@ class DesignTokens {
   static const double radiusLg = 16;
   static const double radiusXl = 24;
   static const double radiusFull = 9999;
+  static const Duration motionDurationFast = Duration(milliseconds: 150);
+  static const Duration motionDurationNormal = Duration(milliseconds: 300);
+  static const Duration motionDurationSlow = Duration(milliseconds: 600);
+  static const Curve motionEasingStandard = Cubic(0.4, 0, 0.2, 1);
+  static const Curve motionEasingBounce = Cubic(0.175, 0.885, 0.32, 1.275);
+  static const Curve motionEasingSmooth = Cubic(0.4, 0, 0.2, 1);
+  static const Curve motionEasingDecelerate = Cubic(0, 0, 0.2, 1);
+  static const Curve motionEasingAccelerate = Cubic(0.4, 0, 1, 1);
 }

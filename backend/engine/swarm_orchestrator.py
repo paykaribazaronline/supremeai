@@ -29,14 +29,63 @@ class SwarmOrchestrator:
             # Call original
             original_log(message)
             # Push to real-time pub-sub
+            log_id = str(uuid.uuid4())
             log_entry = {
-                "id": str(uuid.uuid4()),
+                "id": log_id,
                 "session_id": self.session_id,
                 "log_type": "info",
                 "message": message,
                 "created_at": datetime.utcnow().isoformat(),
             }
             batcher.emit(log_entry)
+            
+            import asyncio
+            import psutil
+            from core.swarm_pubsub import swarm_streamer
+            from datetime import datetime
+
+            agent_name = "Orchestrator"
+            if "Architecture" in message or "Phase 1:" in message:
+                agent_name = "Architect"
+            elif "Code" in message or "Phase 2:" in message:
+                agent_name = "Coder"
+            elif "QA" in message or "Phase 3:" in message:
+                agent_name = "QA"
+
+            level = "info"
+            if "rejected" in message.lower() or "failed" in message.lower() or "❌" in message:
+                level = "error"
+            elif "⚠️" in message:
+                level = "warn"
+            elif "✅" in message:
+                level = "success"
+
+            async def push_stream():
+                await swarm_streamer.broadcast(
+                    event_type="LOG", 
+                    payload={
+                        "id": log_id,
+                        "timestamp": int(datetime.utcnow().timestamp() * 1000),
+                        "agentName": agent_name,
+                        "message": message,
+                        "level": level
+                    }
+                )
+                await swarm_streamer.broadcast(
+                    event_type="METRICS", 
+                    payload={
+                        "cpuUsage": psutil.cpu_percent(),
+                        "memoryUsage": psutil.virtual_memory().used / (1024 * 1024),
+                        "activeAgents": 3,
+                        "errorRate": 0.0
+                    }
+                )
+
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(push_stream())
+            except RuntimeError:
+                pass
 
         self.workspace.log = real_time_log
 

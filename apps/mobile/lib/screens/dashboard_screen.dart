@@ -9,6 +9,9 @@ import '../widgets/agent_metrics_card.dart';
 import '../widgets/live_execution_logger.dart';
 import '../widgets/shimmer_loading.dart';
 import '../widgets/fade_in_slide.dart';
+import '../widgets/supreme_ui/supreme_card.dart';
+import '../widgets/supreme_ui/supreme_header.dart';
+import '../theme/tokens.dart';
 import 'terminal_view.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -55,12 +58,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final provider = context.watch<DashboardProvider>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF080B12), // Deep Space Dark
+      backgroundColor: DesignTokens.colorBgVoidDark,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF111827),
+        backgroundColor: DesignTokens.colorBgElevatedDark,
         title: const Text(
           'Supreme Command Center',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(fontWeight: FontWeight.bold, color: DesignTokens.colorTextPrimaryDark),
         ),
         actions: [
           IconButton(
@@ -85,7 +88,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('🤖 Live Agent Metrics', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                          const SupremeHeader(title: '🤖 Live Agent Metrics', gradient: true),
                           const SizedBox(height: 12),
                           const AgentMetricsCard(),
                         ],
@@ -98,14 +101,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('📜 Execution Logs', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                          const SupremeHeader(title: '📜 Execution Logs'),
                           const SizedBox(height: 8),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1F2937),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                            ),
+                          SupremeCard(
+                            padding: const EdgeInsets.all(0),
                             child: const LiveExecutionLogger(),
                           ),
                         ],
@@ -119,17 +118,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('🛡️ God Control', style: TextStyle(color: Colors.redAccent, fontSize: 18, fontWeight: FontWeight.bold)),
+                          const SupremeHeader(title: '🛡️ God Control'),
                           const SizedBox(height: 12),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1F2937),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
-                            ),
+                          SupremeCard(
+                            padding: const EdgeInsets.all(8),
                             child: SwitchListTile(
-                              title: const Text('Admin Authorized', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                              subtitle: const Text('Allow critical write actions globally.', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                              title: const Text('Admin Authorized', style: TextStyle(color: DesignTokens.colorDangerDark, fontWeight: FontWeight.bold)),
+                              subtitle: const Text('Allow critical write actions globally.', style: TextStyle(color: DesignTokens.colorTextSecondaryDark, fontSize: 12)),
                               value: provider.isAdminAuthorized,
                               activeColor: Colors.redAccent, // বাংলা মন্তব্য: Flutter ৩.২৯.০ সংস্করণে activeThumbColor সাপোর্ট করে না, তাই activeColor ব্যবহার করা হলো।
                               onChanged: (bool value) {
@@ -151,7 +146,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('⚡ Quick Actions', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                          const SupremeHeader(title: '⚡ Quick Actions'),
                           const SizedBox(height: 12),
                           GridView.count(
                             crossAxisCount: 2,
@@ -185,7 +180,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('🚀 CI/CD Pipelines', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                          const SupremeHeader(title: '🚀 CI/CD Pipelines'),
                           const SizedBox(height: 12),
                           ListView.separated(
                             shrinkWrap: true,
@@ -197,15 +192,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               final isSuccess = job.status == 'success';
                               
                               return ListTile(
-                                tileColor: const Color(0xFF1F2937),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+                                tileColor: DesignTokens.colorBgElevatedDark,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8), side: BorderSide(color: DesignTokens.colorBorderAccentDark)),
                                 leading: Icon(
                                   isSuccess ? Icons.check_circle : Icons.error,
-                                  color: isSuccess ? Colors.greenAccent : Colors.redAccent,
+                                  color: isSuccess ? DesignTokens.colorSuccessDark : DesignTokens.colorDangerDark,
                                 ),
-                                title: Text(job.name, style: const TextStyle(color: Colors.white, fontSize: 14)),
-                                subtitle: Text('Status: ${job.status.toUpperCase()}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                                trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                                title: Text(job.name, style: const TextStyle(color: DesignTokens.colorTextPrimaryDark, fontSize: 14)),
+                                subtitle: Text('Status: ${job.status.toUpperCase()}', style: const TextStyle(color: DesignTokens.colorTextSecondaryDark, fontSize: 12)),
+                                trailing: const Icon(Icons.chevron_right, color: DesignTokens.colorTextSecondaryDark),
                                 onTap: () {
                                   Navigator.push(
                                     context,

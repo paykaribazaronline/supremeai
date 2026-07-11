@@ -288,10 +288,28 @@ def extract_errors(job_type: str, config: dict):
     failing_file = None
     extensions = config["file_exts"]
     
+    # TypeScript-এর জন্য এরর প্যাটার্ন সংযোজন - tsc -b থেকে এরর লাইন পার্স করা হচ্ছে
+    # TypeScript error format: "error TSXXXX: message (file_path:line:column)"
+    ts_error_pattern = r'error TS\d+:[^\n]*\(([a-zA-Z0-9_\-./]+\.ts):\d+:\d+\)'
+    ts_matches = re.findall(ts_error_pattern, stdout)
+    
+    # ESLint-এর জন্য এরর প্যাটার্ন - "file_path:line:error"
+    eslint_error_pattern = r'([a-zA-Z0-9_\-./]+\.(ts|tsx|js|jsx)):\d+:\d+\s+error'
+    eslint_matches = re.findall(eslint_error_pattern, stdout)
+    
     # Scan for filenames with specified extensions
     matches = []
     for ext in extensions:
         matches.extend(re.findall(rf'([a-zA-Z0-9_\-/]+\{ext})', stdout))
+    
+    # TypeScript-এর এরর থেকে ফাইল পাথ যোগ করা হচ্ছে
+    for ts_file in ts_matches:
+        if ts_file not in matches:
+            matches.append(ts_file)
+    
+    for eslint_file, _ in eslint_matches:
+        if eslint_file not in matches:
+            matches.append(eslint_file)
 
     existing_files = []
     for m in matches:

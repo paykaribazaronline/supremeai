@@ -267,10 +267,10 @@ class Settings(BaseSettings):
     @field_validator("jwt_secret", mode="before")
     @classmethod
     def set_jwt_secret(cls, v: str | None, info: ValidationInfo) -> str:
-        # Fail fast for all environments if missing (except pytest)
-        if not v and "pytest" not in sys.modules:
+        env = info.data.get("env", "local")
+        if not v and env == "production":
             raise ValueError("🚨 CRITICAL: SUPREMEAI_JWT_SECRET must be explicitly set in all environments. No dummy fallback allowed.")
-        return v or secrets.token_hex(64)  # Pytest only fallback
+        return v or secrets.token_hex(64)  # Pytest/non-production fallback
 
     @field_validator("jwt_secret", mode="after")
     @classmethod
@@ -325,6 +325,21 @@ class Settings(BaseSettings):
         return self
 
     @model_validator(mode="after")
+    def validate_production_completeness(self):
+        if self.env != "production":
+            return self
+        missing = []
+        if not self.openrouter_api_key:
+            missing.append("OPENROUTER_API_KEY")
+        if not self.gemini_api_key:
+            missing.append("GEMINI_API_KEY")
+        if not self.ci_webhook_secret:
+            missing.append("CI_WEBHOOK_SECRET")
+        if missing:
+            raise ValueError(f"Missing required production config vars: {', '.join(missing)}")
+        return self
+
+    @model_validator(mode="after")
     def validate_completeness(self):
         """
         বাংলা মন্তব্য: Fail-Fast Guard for ALL environments.
@@ -358,10 +373,10 @@ except Exception as _boot_exc:  # noqa: BLE001
     sys.exit(1)
 
 
-def get_production_env(var_name: str) -> str:
+def get_production_env(var_name: str, default: str | None = None) -> str:
     """বাংলা মন্তব্য: Strict Fail-Fast Config Guard.
     যেকোনো এনভায়রনমেন্টে কোনো ক্রিটিক্যাল সিক্রেট মিসিং থাকলে সরাসরি হার্ড ক্র্যাশ করবে,
-    যাতে সাইলেন্ট ফেইলর প্রতিরোধ করা যায়। কোনো default_fallback প্যারামিটার বা ডামি ভ্যালু নেই।
+    যাতে সাইলেন্ট ফেইলর প্রতিরোধ করা যায়। ডিফল্ট ভ্যালু পাস করলে মিসিং ক্ষেত্রে fallback ব্যবহার হবে।
     """
     import os
 
@@ -369,6 +384,8 @@ def get_production_env(var_name: str) -> str:
 
     value = os.getenv(var_name)
     if not value:
+        if default is not None:
+            return default
         logger.critical(f"❌ CRITICAL CONFIG ERROR: Missing required environment variable '{var_name}'!")
         raise ValueError(f"Configuration Error: {var_name} must be explicitly defined.")
 

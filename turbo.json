@@ -28,6 +28,9 @@
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "@supremeai/design-tokens#build": {
+      "outputs": ["outputs/**"]
     }
   }
 }

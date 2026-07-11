@@ -54,10 +54,12 @@
   --supremeai-radius-lg: 16px;
   --supremeai-radius-xl: 24px;
   --supremeai-radius-full: 9999px;
-  --supremeai-duration-fast: 150ms;
-  --supremeai-duration-normal: 300ms;
-  --supremeai-duration-slow: 600ms;
-  --supremeai-easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
-  --supremeai-easing-decelerate: cubic-bezier(0, 0, 0.2, 1);
-  --supremeai-easing-accelerate: cubic-bezier(0.4, 0, 1, 1);
+  --supremeai-motion-duration-fast: 150ms;
+  --supremeai-motion-duration-normal: 300ms;
+  --supremeai-motion-duration-slow: 600ms;
+  --supremeai-motion-easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --supremeai-motion-easing-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --supremeai-motion-easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --supremeai-motion-easing-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --supremeai-motion-easing-accelerate: cubic-bezier(0.4, 0, 1, 1);
 }

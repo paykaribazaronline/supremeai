@@ -1,15 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useStore } from '../store/useStore';
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  // We simulate a login mutation here
-  // In a real app this uses useAuth or useStore().login
-  // The UI/UX Blueprint suggests using glassmorphism and the Supreme colors
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,62 +13,59 @@ export const LoginPage: React.FC = () => {
       setError('Please fill out all fields.');
       return;
     }
-    // Simulate setting authenticated state
-    // We can just use the store
-    // useStore.getState().setIsAuthenticated(true);
-    // (We'll assume the store has a generic login or we just push to /workspace)
-    // For now we just navigate to /workspace
+    // Simulate auth logic
     navigate('/workspace');
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center relative overflow-hidden page-transition-enter-active">
-      {/* Neon particles placeholder */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-900/20 via-slate-950 to-slate-950"></div>
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center relative overflow-hidden page-transition-enter-active">
+      {/* Neon pulse effects */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-accent-primary/20 via-background to-background"></div>
       
-      <div className="z-10 w-full max-w-md p-8 glass-card border border-cyan-500/20 shadow-2xl rounded-3xl backdrop-blur-xl">
-        <h1 className="text-4xl font-bold text-center mb-2 bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+      <div className="z-10 w-full max-w-md p-8 bg-card-bg border border-border-accent shadow-2xl rounded-3xl backdrop-blur-xl">
+        <h1 className="text-4xl font-bold text-center mb-2 bg-gradient-to-r from-accent-primary to-neon-purple bg-clip-text text-transparent">
           ⚡ SUPREME AI
         </h1>
-        <p className="text-center text-cyan-400 font-mono tracking-widest mb-8">2.0</p>
+        <p className="text-center text-neon-blue font-mono tracking-widest mb-8">Enter the Core</p>
         
-        {error && <div className="mb-4 text-red-400 text-sm text-center">{error}</div>}
+        {error && <div className="mb-4 text-danger text-sm text-center font-mono">{error}</div>}
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <input 
               type="email" 
-              placeholder="Email"
+              placeholder="Email / Identity"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="w-full bg-slate-900/50 border border-slate-700 focus:border-cyan-500 rounded-xl px-4 py-3 text-slate-200 outline-none transition-all glow-input"
+              className="w-full bg-input-bg border border-input-border focus:border-neon-blue rounded-xl px-4 py-3 text-foreground outline-none transition-all glow-input font-mono text-sm"
             />
           </div>
           <div>
             <input 
               type="password" 
-              placeholder="Password"
+              placeholder="Passphrase"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className="w-full bg-slate-900/50 border border-slate-700 focus:border-cyan-500 rounded-xl px-4 py-3 text-slate-200 outline-none transition-all glow-input"
+              className="w-full bg-input-bg border border-input-border focus:border-neon-blue rounded-xl px-4 py-3 text-foreground outline-none transition-all glow-input font-mono text-sm"
             />
           </div>
           
           <button 
             type="submit"
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-500 hover:to-purple-500 text-white font-bold transition-all shadow-[0_0_15px_rgba(0,243,255,0.3)]"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-accent-primary to-neon-purple hover:brightness-110 text-white font-bold transition-all shadow-[0_0_15px_var(--supremeai-color-brand-primary-dark)]"
           >
-            লগইন করুন
+            INITIALIZE SESSION
           </button>
           
           <button 
             type="button"
-            className="w-full py-3 rounded-xl border border-cyan-500/30 hover:bg-cyan-500/10 text-slate-300 transition-all mt-4"
+            className="w-full py-3 rounded-xl border border-border-accent hover:bg-neon-blue/10 text-text-secondary transition-all mt-4 font-mono text-sm"
           >
-            Google দিয়ে লগইন
+            Authenticate with Google
           </button>
         </form>
       </div>
     </div>
   );
 };
+

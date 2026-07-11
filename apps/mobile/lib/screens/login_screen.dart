@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/localization_service.dart';
-import '../theme/app_theme.dart';
+import '../theme/tokens.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -37,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: SupremeColors.bgVoid,
+      backgroundColor: DesignTokens.colorBgVoidDark,
       body: Stack(
         children: [
           // Background Glow Effects
@@ -52,10 +52,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                   height: 300,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: SupremeColors.brandPrimary.withOpacity(0.1 + (_pulseController.value * 0.1)),
+                    color: DesignTokens.colorBrandPrimaryDark.withOpacity(0.1 + (_pulseController.value * 0.1)),
                     boxShadow: [
                       BoxShadow(
-                        color: SupremeColors.brandPrimary.withOpacity(0.2),
+                        color: DesignTokens.colorBrandPrimaryDark.withOpacity(0.2),
                         blurRadius: 100,
                         spreadRadius: 50,
                       )
@@ -76,10 +76,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                   height: 300,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: SupremeColors.brandSecondary.withOpacity(0.1 + ((1 - _pulseController.value) * 0.1)),
+                    color: DesignTokens.colorBrandSecondaryDark.withOpacity(0.1 + ((1 - _pulseController.value) * 0.1)),
                     boxShadow: [
                       BoxShadow(
-                        color: SupremeColors.brandSecondary.withOpacity(0.2),
+                        color: DesignTokens.colorBrandSecondaryDark.withOpacity(0.2),
                         blurRadius: 100,
                         spreadRadius: 50,
                       )
@@ -102,10 +102,10 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                     child: Container(
                       padding: const EdgeInsets.all(32),
                       decoration: BoxDecoration(
-                        color: SupremeColors.bgCard,
+                        color: DesignTokens.colorBgElevatedDark,
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: SupremeColors.brandPrimary.withOpacity(0.2),
+                          color: DesignTokens.colorBorderAccentDark,
                         ),
                         boxShadow: [
                           BoxShadow(
@@ -120,11 +120,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           // App Title with Gradient
                           ShaderMask(
                             shaderCallback: (bounds) => const LinearGradient(
-                              colors: [SupremeColors.brandPrimary, SupremeColors.brandSecondary],
+                              colors: [DesignTokens.colorBrandPrimaryDark, DesignTokens.colorBrandSecondaryDark],
                             ).createShader(bounds),
-                            child: Text(
+                            child: const Text(
                               '⚡ SUPREME AI',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 36,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -133,11 +133,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             ),
                           ),
                           const SizedBox(height: 8),
-                          Text(
-                            '2.0',
+                          const Text(
+                            'Enter the Core',
                             style: TextStyle(
                               fontSize: 16,
-                              color: SupremeColors.brandPrimary,
+                              color: DesignTokens.colorBrandPrimaryDark,
                               fontWeight: FontWeight.w600,
                               letterSpacing: 4,
                             ),
@@ -147,14 +147,14 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           // Input Fields
                           _buildGlowingTextField(
                             controller: emailCtrl,
-                            label: 'Email',
+                            label: 'Email / Identity',
                             icon: Icons.email_outlined,
                             keyboardType: TextInputType.emailAddress,
                           ),
                           const SizedBox(height: 20),
                           _buildGlowingTextField(
                             controller: passCtrl,
-                            label: 'Password',
+                            label: 'Passphrase',
                             icon: Icons.lock_outline,
                             obscureText: true,
                           ),
@@ -167,11 +167,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16),
                               gradient: const LinearGradient(
-                                colors: [SupremeColors.brandPrimary, SupremeColors.brandSecondary],
+                                colors: [DesignTokens.colorBrandPrimaryDark, DesignTokens.colorBrandSecondaryDark],
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: SupremeColors.brandPrimary.withOpacity(0.4),
+                                  color: DesignTokens.colorBrandPrimaryDark.withOpacity(0.4),
                                   blurRadius: 16,
                                   offset: const Offset(0, 4),
                                 )
@@ -186,12 +186,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                               ),
-                              child: Text(
-                                'btn.login'.tr(),
-                                style: const TextStyle(
+                              child: const Text(
+                                'INITIALIZE SESSION',
+                                style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: SupremeColors.bgVoid,
+                                  color: Colors.white,
                                 ),
                               ),
                             ),
@@ -203,15 +203,15 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             onPressed: _handleGoogleLogin,
                             style: OutlinedButton.styleFrom(
                               minimumSize: const Size(double.infinity, 56),
-                              side: BorderSide(color: SupremeColors.brandPrimary.withOpacity(0.5)),
+                              side: BorderSide(color: DesignTokens.colorBorderAccentDark),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            icon: const Icon(Icons.login, color: SupremeColors.textPrimary),
+                            icon: const Icon(Icons.login, color: DesignTokens.colorTextPrimaryDark),
                             label: const Text(
-                              'Google Sign-In',
-                              style: TextStyle(color: SupremeColors.textPrimary, fontSize: 16),
+                              'Authenticate with Google',
+                              style: TextStyle(color: DesignTokens.colorTextPrimaryDark, fontSize: 16),
                             ),
                           ),
                           const SizedBox(height: 24),
@@ -225,12 +225,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                               children: [
                                 Text(
                                   '${'nav.dashboard'.tr()} (Guest Mode)',
-                                  style: TextStyle(color: SupremeColors.textMuted),
+                                  style: const TextStyle(color: DesignTokens.colorTextSecondaryDark),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   '(${'onboarding.rate_limiting_desc'.tr()})',
-                                  style: TextStyle(fontSize: 12, color: SupremeColors.textMuted.withOpacity(0.6)),
+                                  style: TextStyle(fontSize: 12, color: DesignTokens.colorTextSecondaryDark.withOpacity(0.6)),
                                 ),
                               ],
                             ),
@@ -238,7 +238,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           const SizedBox(height: 16),
                           Text(
                             'Build Version: 1.0.1+fix',
-                            style: TextStyle(fontSize: 10, color: SupremeColors.textMuted.withOpacity(0.4)),
+                            style: TextStyle(fontSize: 10, color: DesignTokens.colorTextSecondaryDark.withOpacity(0.4)),
                           ),
                         ],
                       ),
@@ -262,12 +262,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: SupremeColors.bgVoid.withOpacity(0.5),
+        color: DesignTokens.colorBgVoidDark.withOpacity(0.5),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SupremeColors.brandPrimary.withOpacity(0.3)),
+        border: Border.all(color: DesignTokens.colorBorderAccentDark),
         boxShadow: [
           BoxShadow(
-            color: SupremeColors.brandPrimary.withOpacity(0.05),
+            color: DesignTokens.colorBrandPrimaryDark.withOpacity(0.05),
             blurRadius: 10,
             spreadRadius: 1,
           )
@@ -277,11 +277,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         controller: controller,
         obscureText: obscureText,
         keyboardType: keyboardType,
-        style: const TextStyle(color: SupremeColors.textPrimary),
+        style: const TextStyle(color: DesignTokens.colorTextPrimaryDark),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: SupremeColors.textMuted),
-          prefixIcon: Icon(icon, color: SupremeColors.brandPrimary.withOpacity(0.7)),
+          labelStyle: const TextStyle(color: DesignTokens.colorTextSecondaryDark),
+          prefixIcon: Icon(icon, color: DesignTokens.colorBrandPrimaryDark.withOpacity(0.7)),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
@@ -317,3 +317,4 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     }
   }
 }
+

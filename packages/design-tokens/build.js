@@ -61,6 +61,14 @@ for (const key in flatTokens) {
         dartOutput += `  static const double ${camelCaseKey} = ${parseFloat(token.value)};\n`;
     } else if (token.type === 'fontWeights') {
         dartOutput += `  static const FontWeight ${camelCaseKey} = FontWeight.w${token.value};\n`;
+    } else if (token.type === 'time') {
+        const ms = parseInt(token.value.replace('ms', ''));
+        dartOutput += `  static const Duration ${camelCaseKey} = Duration(milliseconds: ${ms});\n`;
+    } else if (token.type === 'other' && token.value.startsWith('cubic-bezier')) {
+        const matches = token.value.match(/cubic-bezier\(([\d.-]+),\s*([\d.-]+),\s*([\d.-]+),\s*([\d.-]+)\)/);
+        if (matches) {
+            dartOutput += `  static const Curve ${camelCaseKey} = Cubic(${matches[1]}, ${matches[2]}, ${matches[3]}, ${matches[4]});\n`;
+        }
     }
 }
 dartOutput += '}\n';
