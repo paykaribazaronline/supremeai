@@ -311,9 +311,7 @@ class Settings(BaseSettings):
         if env in {"production", "staging"}:
             v = [o for o in v if "localhost" not in o and "127.0.0.1" not in o]
             if not v:
-                raise ValueError(
-                    f"{env.capitalize()} requires at least one non-localhost CORS origin. Set CORS_ORIGINS env var."
-                )
+                raise ValueError(f"{env.capitalize()} requires at least one non-localhost CORS origin. Set CORS_ORIGINS env var.")
         return v
 
     @model_validator(mode="after")
@@ -335,15 +333,17 @@ class Settings(BaseSettings):
             return self
 
         missing: list[str] = []
-        if not self.openrouter_api_key: missing.append("OPENROUTER_API_KEY")
-        if not self.gemini_api_key: missing.append("GEMINI_API_KEY")
-        if not self.ci_webhook_secret: missing.append("CI_WEBHOOK_SECRET")
-        if not (os.getenv("SUPREMEAI_ENCRYPTION_KEY") or os.getenv("ENCRYPTION_KEY")): missing.append("SUPREMEAI_ENCRYPTION_KEY")
+        if not self.openrouter_api_key:
+            missing.append("OPENROUTER_API_KEY")
+        if not self.gemini_api_key:
+            missing.append("GEMINI_API_KEY")
+        if not self.ci_webhook_secret:
+            missing.append("CI_WEBHOOK_SECRET")
+        if not (os.getenv("SUPREMEAI_ENCRYPTION_KEY") or os.getenv("ENCRYPTION_KEY")):
+            missing.append("SUPREMEAI_ENCRYPTION_KEY")
 
         if missing:
-            raise ValueError(
-                f"🚨 FAIL-FAST: Missing required config vars: {', '.join(missing)}. Server startup aborted."
-            )
+            raise ValueError(f"🚨 FAIL-FAST: Missing required config vars: {', '.join(missing)}. Server startup aborted.")
         return self
 
 
@@ -363,6 +363,7 @@ def get_production_env(var_name: str) -> str:
     যাতে সাইলেন্ট ফেইলর প্রতিরোধ করা যায়। কোনো default_fallback প্যারামিটার বা ডামি ভ্যালু নেই।
     """
     import os
+
     from loguru import logger
 
     value = os.getenv(var_name)
