@@ -9,6 +9,11 @@ vi.mock('./services/chatService', () => ({
 import { App } from './App';
 import { getAethelResponse } from './services/chatService';
 
+vi.mock('./components/core/AuthGuards', () => ({
+  ProtectedRoute: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  GuestRoute: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 // Mock ResizeObserver for ReactFlow in JSDOM
 class MockResizeObserver {
   observe = vi.fn();

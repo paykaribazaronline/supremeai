@@ -105,7 +105,7 @@ describe('UserDashboard', () => {
   it('switches to presets tab when clicked', () => {
     render(<UserDashboard {...defaultProps} />);
     fireEvent.click(getTabButton(/Quick Presets/i));
-    expect(getTabButton(/Quick Presets/i).classList.contains('bg-[#00f3ff]/20')).toBe(true);
+    expect(getTabButton(/Quick Presets/i).classList.contains('bg-accent-primary/20')).toBe(true);
   });
 
   it('switches to chat tab when clicked', () => {
@@ -118,7 +118,7 @@ describe('UserDashboard', () => {
   it('switches to feed tab when clicked', () => {
     render(<UserDashboard {...defaultProps} />);
     fireEvent.click(getTabButton(/Home Feed/i));
-    expect(screen.getByText('AI Assistant')).toBeInTheDocument();
+    expect(screen.getByText('Personalized Home Feed')).toBeInTheDocument();
   });
 
   it('shows project list on overview', () => {
@@ -180,6 +180,6 @@ describe('UserDashboard', () => {
   it('switches to overview from quick action and back to presets', () => {
     render(<UserDashboard {...defaultProps} />);
     fireEvent.click(getTabButton(/Quick Presets/i));
-    expect(getTabButton(/Quick Presets/i).classList.contains('bg-[#00f3ff]/20')).toBe(true);
+    expect(getTabButton(/Quick Presets/i).classList.contains('bg-accent-primary/20')).toBe(true);
   });
 });

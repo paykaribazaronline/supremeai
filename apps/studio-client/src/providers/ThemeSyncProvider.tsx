@@ -25,9 +25,11 @@ export const ThemeSyncProvider: React.FC<{ children: React.ReactNode; userId?: s
       }
     };
 
-    eventSource.addEventListener('connected', () => {
-      console.log('[ThemeSync] Connected to SSE Stream for user:', userId);
-    });
+    if (typeof eventSource.addEventListener === 'function') {
+      eventSource.addEventListener('connected', () => {
+        console.log('[ThemeSync] Connected to SSE Stream for user:', userId);
+      });
+    }
 
     eventSource.onerror = (err) => {
       console.error('[ThemeSync] SSE Connection Error:', err);
