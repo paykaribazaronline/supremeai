@@ -18,7 +18,8 @@ class CollaborativeEditor:
         self.redis_listeners: dict[str, asyncio.Task] = {}
 
         # বাংলা মন্তব্য: Redis কানেকশন সেটআপ (Upstash বা Local)
-        redis_url = getattr(settings, "redis_url", "redis://localhost:6379")
+        redis_url_setting = getattr(settings, "redis_url", "")
+        redis_url = redis_url_setting if redis_url_setting else "redis://localhost:6379"
         self.redis = redis.from_url(redis_url, decode_responses=True)
         logger.info("Initialized CollaborativeEditor with Redis Pub/Sub and State Persistence")
 

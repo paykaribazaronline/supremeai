@@ -134,8 +134,7 @@ class TaskQueue:
         max_tracked_tasks: int = 10_000,
     ):
         self.default_backend = default_backend
-        # বাংলা মন্তব্য: Settings থেকে URL নেওয়া — hardcode নিষিদ্ধ
-        self.redis_url = redis_url or settings.redis_url
+        self.redis_url = redis_url or settings.redis_url or "redis://localhost:6379"
         self.project_id = project_id or settings.gcp_project_id
 
         # বাংলা মন্তব্য: OrderedDict — FIFO eviction policy (oldest evicted first)

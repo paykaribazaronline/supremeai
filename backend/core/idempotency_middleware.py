@@ -36,7 +36,7 @@ class IdempotencyMiddleware:
                 return None
             import os
 
-            redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+            redis_url = os.getenv("REDIS_URL") or "redis://localhost:6379"
             self._redis_client = aioredis.from_url(redis_url, decode_responses=True)
         return self._redis_client
 

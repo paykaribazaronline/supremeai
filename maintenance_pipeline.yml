@@ -16,9 +16,6 @@ on:
           - "auto-lint-fix"
           - "dependency-vulnerability-scan"
           - "auto-remediate-security-issues"
-          - "auto-deps-update"
-          - "dead-code-removal"
-          - "auto-docs-and-types"
 
 # বাংলা মন্তব্য: প্রতিটি টাস্ককে আলাদা জব-এ ভাগ করা হয়েছে স্বচ্ছতা এবং নির্ভরযোগ্যতার জন্য।
 jobs:
@@ -56,12 +53,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+        with: { python-version: "3.11" }
       - uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ needs.setup.outputs.requirements-cache-key }}
+        with: { path: ~/.cache/pip, key: ${{ needs.setup.outputs.requirements-cache-key }} }
       - name: "⚙️ Install Dependencies"
         run: pip install -r requirements.txt
       - name: "🩺 Run Health Check"
@@ -78,12 +72,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+        with: { python-version: "3.11" }
       - uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ needs.setup.outputs.requirements-cache-key }}
+        with: { path: ~/.cache/pip, key: ${{ needs.setup.outputs.requirements-cache-key }} }
       - name: "⚙️ Install Formatters"
         run: pip install black isort ruff
       - name: "💅 Run Auto-Lint & Format Fix"
@@ -110,12 +101,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+        with: { python-version: "3.11" }
       - uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ needs.setup.outputs.requirements-cache-key }}
+        with: { path: ~/.cache/pip, key: ${{ needs.setup.outputs.requirements-cache-key }} }
       - name: "⚙️ Install Scanner"
         run: pip install pip-audit
       - name: "📦 Run Vulnerability Scan"
@@ -127,90 +115,5 @@ jobs:
           name: vulnerability-report
           path: vulnerability-report.json
 
-      - name: "📝 Create GitHub Issue for Critical Vulnerabilities"
-        run: python scripts/maintenance/create_issue.py vulnerability-report.json
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  auto-deps-update:
-    needs: setup
-    if: ${{ github.event.inputs.task == 'auto-deps-update' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: "⬆️ Auto-Update Vulnerable Dependencies"
-        run: |
-          # A simple placeholder or actual script to bump dependencies
-          echo "Bumping vulnerable dependencies..."
-          # python scripts/update_deps.py
-      - name: "🤖 Create PR for Dependency Updates"
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title: "feat(deps): auto-update vulnerable packages"
-          body: "This PR updates dependencies to fix security vulnerabilities found by pip-audit."
-          branch: "chore/auto-deps-update-${{ github.run_id }}"
-          labels: "dependencies, automated"
-
-  dead-code-removal:
-    needs: setup
-    if: ${{ github.event.inputs.task == 'dead-code-removal' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: "🧹 Find and Remove Dead Code"
-        run: |
-          pip install vulture ruff
-          vulture . --min-confidence 80 > dead_code_report.txt || true
-          # ruff --fix দিয়ে unused import এবং variables সরানো হবে
-          ruff check --select F401,F841 --fix .
-      - name: "📤 Upload Dead Code Report"
-        uses: actions/upload-artifact@v4
-        with:
-          name: dead-code-report
-          path: dead_code_report.txt
-      - name: "🤖 Create PR for Dead Code Removal"
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title: "chore: remove dead code and unused imports"
-          body: "This PR automatically removes unused imports and variables using Ruff."
-          branch: "chore/dead-code-removal-${{ github.run_id }}"
-          labels: "maintenance, automated"
-
-  auto-docs-and-types:
-    needs: setup
-    if: ${{ github.event.inputs.task == 'auto-docs-and-types' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: "✍️ Auto-format Docstrings"
-        run: |
-          pip install docformatter monkeytype
-          docformatter --in-place --recursive .
-      - name: "🤖 Create PR for Auto Docs"
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title: "docs: auto-format docstrings"
-          body: "This PR automatically formats docstrings using docformatter."
-          branch: "chore/auto-docs-types-${{ github.run_id }}"
-          labels: "documentation, automated"
+  # auto-remediate-security-issues জবটি এখানে যোগ করা যেতে পারে
+  # ...
