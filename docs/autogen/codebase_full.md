@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T11:05:10.134485
+Generated at: 2026-07-11T11:14:17.482721
 
 
 ## File: `pnpm-lock.yaml`
@@ -203745,6 +203745,28 @@ jobs:
         run: |
           npm install -g firebase-tools
           firebase deploy --only hosting --project ${{ secrets.GCP_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
+
+  deploy-to-vercel:
+    name: 🚀 Deploy User Portal (Vercel)
+    needs: [frontend-core, performance-e2e-test, security-audit]
+    runs-on: ubuntu-latest
+    if: |
+      always() && 
+      github.ref == 'refs/heads/main' &&
+      needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Build Project Artifacts
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Deploy Project Artifacts to Vercel
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
   sync-mirror:
     name: 📤 Sync to Secondary Repo
