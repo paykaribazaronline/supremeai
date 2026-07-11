@@ -1,3 +1,4 @@
+# FILE_PATH: tools/api_gateway.py
 import os
 from typing import Any
 
@@ -11,7 +12,6 @@ from loguru import logger
 from pydantic import BaseModel
 
 from core.auth_middleware import AuthMiddleware
-from core.config import get_production_env
 from core.rate_limiter import AsyncRateLimiter
 
 
@@ -36,7 +36,10 @@ class GatewayRequest(BaseModel):
 
 class InternalGateway:
     def __init__(self):
-        self.n8n_url = get_production_env("N8N_URL", "http://127.0.0.1:5678")
+        # The function get_production_env() was updated to only take one argument (the variable name)
+        # and no longer supports a default value.
+        # Using os.getenv() directly here to provide a default for local/dev environments.
+        self.n8n_url = os.getenv("N8N_URL", "http://127.0.0.1:5678")
 
     def trigger_n8n_workflow(self, webhook_path: str, payload: dict[str, Any]) -> dict[str, Any]:
         url = f"{self.n8n_url}/{webhook_path.lstrip('/')}"
@@ -92,7 +95,10 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
     if not rate_limiter.check(client_ip):
         raise HTTPException(status_code=429, detail="rate limit exceeded")
 
-    backend_url = get_production_env("SUPREMEAI_BACKEND_URL", "http://127.0.0.1:8000/api/v1")
+    # The function get_production_env() was updated to only take one argument (the variable name)
+    # and no longer supports a default value.
+    # Using os.getenv() directly here to provide a default for local/dev environments.
+    backend_url = os.getenv("SUPREMEAI_BACKEND_URL", "http://127.0.0.1:8000/api/v1")
     target = backend_url.rstrip("/") + "/" + request.path.lstrip("/")
 
     headers = dict(request.headers or {})
