@@ -36,15 +36,12 @@ class TestIdempotencyMiddleware:
             "headers": [],
         }
 
-        import sys
+        from unittest.mock import patch
 
-        sys.modules["pytest"] = MagicMock()
-
-        try:
+        with patch.dict("sys.modules"):
+            sys.modules["pytest"] = MagicMock()
             await middleware(scope, MagicMock(), MagicMock())
             mock_app.assert_called_once()
-        finally:
-            del sys.modules["pytest"]
 
     @pytest.mark.anyio
     async def test_middleware_get_request(self):
@@ -74,29 +71,17 @@ class TestIdempotencyMiddleware:
             "headers": [(b"idempotency-key", b"test-key")],
         }
 
-        import sys
-
-        sys.modules["pytest"] = None
-        os_env_backup = {}
-        for key in ["ENV"]:
-            os_env_backup[key] = os.environ.get(key)
-
-        try:
-            import core.services as app_mod
-            from unittest.mock import patch
-
-            with patch.dict(os.environ, {"ENV": "production"}, clear=True):
+        from unittest.mock import patch
+        
+        with patch.dict("sys.modules"):
+            if "pytest" in sys.modules:
+                del sys.modules["pytest"]
+            
+            with patch.dict(os.environ, {"ENV": "production"}):
+                import core.services as app_mod
                 with patch.object(app_mod, "redis_queue", None):
                     await middleware(scope, MagicMock(), MagicMock())
                     mock_app.assert_called_once()
-        finally:
-            for key, value in os_env_backup.items():
-                if value is not None:
-                    os.environ[key] = value
-                else:
-                    os.environ.pop(key, None)
-            if "pytest" in sys.modules:
-                del sys.modules["pytest"]
 
     @pytest.mark.anyio
     async def test_middleware_put_request(self):

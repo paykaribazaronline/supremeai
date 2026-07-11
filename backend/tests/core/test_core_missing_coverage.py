@@ -514,8 +514,7 @@ class TestSecurityVaultModuleInit:
         monkeypatch.delenv("ENCRYPTION_KEY", raising=False)
         monkeypatch.delenv("SUPREMEAI_ENCRYPTION_KEY", raising=False)
 
-        if "core.security_vault" in sys.modules:
-            del sys.modules["core.security_vault"]
+        monkeypatch.delitem(sys.modules, "core.security_vault", raising=False)
 
         with pytest.raises(ValueError, match="CRITICAL: ENCRYPTION_KEY"):
             import core.security_vault  # noqa: F401
@@ -1004,8 +1003,7 @@ class TestPlaywrightManagerMissingBranches:
     def test_imports_without_playwright(self, monkeypatch):
         monkeypatch.setitem(sys.modules, "playwright", None)
         monkeypatch.setitem(sys.modules, "playwright.async_api", None)
-        if "core.playwright_manager" in sys.modules:
-            del sys.modules["core.playwright_manager"]
+        monkeypatch.delitem(sys.modules, "core.playwright_manager", raising=False)
         import core.playwright_manager as pm
 
         assert pm.async_playwright is None
