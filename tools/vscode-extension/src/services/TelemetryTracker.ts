@@ -47,7 +47,7 @@ export class TelemetryTracker extends BaseDisposable {
             status = 'REJECTED';
         }
 
-        await this.sendTelemetry(patchData.originalErrorId, filePath, status, similarityScore);
+        await TelemetryTracker.sendTelemetry(patchData.originalErrorId, filePath, status, similarityScore);
         
         // Remove from active tracking after evaluation
         this.activePatches.delete(filePath);
