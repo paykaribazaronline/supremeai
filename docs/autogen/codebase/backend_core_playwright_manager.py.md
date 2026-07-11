@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/playwright_manager.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,324 বাইট  
-**আপডেট:** 2026-07-11T18:21:34.899210
+**সাইজ:** 2,330 বাইট  
+**আপডেট:** 2026-07-11T19:00:24.675120
 
 ---
 
@@ -32,7 +32,7 @@ async def get_global_browser() -> Browser:
     global _playwright_runner, _global_browser
     if _global_browser is None:
         logger.info("🚀 Starting a new headless Global Chromium instance...")
-        if async_playwright is None:
+        if not callable(async_playwright):
             raise RuntimeError("Playwright is not installed.")
         _playwright_runner = await async_playwright().start()
         _global_browser = await _playwright_runner.chromium.launch(

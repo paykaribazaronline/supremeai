@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T18:21:34.847694
+Generated at: 2026-07-11T19:00:24.627225
 
 
 ## File: `pnpm-lock.yaml`
@@ -76684,7 +76684,7 @@ async def get_global_browser() -> Browser:
     global _playwright_runner, _global_browser
     if _global_browser is None:
         logger.info("🚀 Starting a new headless Global Chromium instance...")
-        if async_playwright is None:
+        if not callable(async_playwright):
             raise RuntimeError("Playwright is not installed.")
         _playwright_runner = await async_playwright().start()
         _global_browser = await _playwright_runner.chromium.launch(
@@ -77254,7 +77254,7 @@ def _get_api_key_signing_secret() -> str:
 
 
 def generate_api_key(prefix: str = API_KEY_PREFIX) -> str:
-    random_part = secrets.token_urlsafe(API_KEY_RANDOM_BYTES)
+    random_part = secrets.token_urlsafe(API_KEY_RANDOM_BYTES).replace("-", "").replace("_", "")
     key = f"{prefix}-{random_part}"
     parts = key.split("-", 2)
     return f"{parts[0]}-{parts[1]}-{parts[2][:4]}-{parts[2][4:8]}-{parts[2][8:]}"
@@ -121133,7 +121133,7 @@ class TestOnboardingFlow:
         _mock_db.table.return_value.insert.return_value.execute = MagicMock()
 
         resp = client.post(
-            "/api/onboarding/complete",
+            "/api/v1/onboarding/onboarding/complete",
             json={
                 "user_id": "test_user_new",
                 "provider": "openrouter",
@@ -121161,7 +121161,7 @@ class TestOnboardingFlow:
         _mock_db.table.return_value.upsert.return_value.execute = mock_upsert
 
         resp = client.post(
-            "/api/onboarding/complete",
+            "/api/v1/onboarding/onboarding/complete",
             json={
                 "user_id": "existing_user_123",
                 "api_key": "sk-test-key-12345",
@@ -121183,7 +121183,7 @@ class TestOnboardingFlow:
         ]
         _mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = existing
 
-        resp = client.get("/api/onboarding/status/user_abc")
+        resp = client.get("/api/v1/onboarding/onboarding/status/user_abc")
         assert resp.status_code == 200
         data = resp.json()
         assert data["onboarding_complete"] is True
@@ -124513,8 +124513,7 @@ from unittest.mock import patch
 
 import pytest
 
-from core.playwright_manager import get_global_browser
-from core.playwright_manager import shutdown_global_browser
+import core.playwright_manager as pm
 
 
 # -------------------- Fixtures --------------------
@@ -124565,7 +124564,7 @@ class TestGetGlobalBrowser:
 
         with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
             with patch("core.playwright_manager.logger") as mock_logger:
-                browser = await get_global_browser()
+                browser = await pm.get_global_browser()
 
                 assert browser is mock_browser
                 mock_logger.info.assert_called_once_with("🚀 Starting a new headless Global Chromium instance...")
@@ -124587,7 +124586,7 @@ class TestGetGlobalBrowser:
         pm._playwright_runner = mock_playwright_runner
 
         with patch("core.playwright_manager.async_playwright") as mock_playwright:
-            browser = await get_global_browser()
+            browser = await pm.get_global_browser()
 
             assert browser is mock_browser
             mock_playwright.assert_not_called()  # Should not create new instance
@@ -124597,7 +124596,7 @@ class TestGetGlobalBrowser:
         """বাংলা মন্তব্য: Playwright install না থাকলে RuntimeError raise হয়।"""
         with patch("core.playwright_manager.async_playwright", None):
             with pytest.raises(RuntimeError, match="Playwright is not installed"):
-                await get_global_browser()
+                await pm.get_global_browser()
 
     @pytest.mark.asyncio
     async def test_browser_launch_with_correct_args(self, mock_browser, mock_playwright_runner):
@@ -124607,7 +124606,7 @@ class TestGetGlobalBrowser:
         mock_playwright_runner.chromium.launch.return_value = mock_browser
 
         with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
-            await get_global_browser()
+            await pm.get_global_browser()
 
             launch_call = mock_playwright_runner.chromium.launch.call_args
             assert launch_call.kwargs["headless"] is True
@@ -124625,9 +124624,8 @@ class TestGetGlobalBrowser:
         mock_playwright_runner.chromium.launch.return_value = mock_browser
 
         with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
-            await get_global_browser()
+            await pm.get_global_browser()
 
-            import core.playwright_manager as pm
 
             assert pm._global_browser is mock_browser
             assert pm._playwright_runner is mock_playwright_runner
@@ -124648,7 +124646,7 @@ class TestShutdownGlobalBrowser:
         pm._playwright_runner = mock_playwright_runner
 
         with patch("core.playwright_manager.logger") as mock_logger:
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
             mock_browser.close.assert_called_once()
             mock_playwright_runner.stop.assert_called_once()
@@ -124665,7 +124663,7 @@ class TestShutdownGlobalBrowser:
         pm._playwright_runner = None
 
         with patch("core.playwright_manager.logger") as mock_logger:
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
             # Should not raise any error
             assert pm._global_browser is None
@@ -124680,7 +124678,7 @@ class TestShutdownGlobalBrowser:
         pm._playwright_runner = None
 
         with patch("core.playwright_manager.logger") as mock_logger:
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
             mock_browser.close.assert_called_once()
             assert pm._global_browser is None
@@ -124695,7 +124693,7 @@ class TestShutdownGlobalBrowser:
         pm._playwright_runner = mock_playwright_runner
 
         with patch("core.playwright_manager.logger") as mock_logger:
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
             mock_playwright_runner.stop.assert_called_once()
             assert pm._global_browser is None
@@ -124712,7 +124710,7 @@ class TestShutdownGlobalBrowser:
         pm._playwright_runner = mock_playwright_runner
 
         with patch("core.playwright_manager.logger") as mock_logger:
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
             # Should log critical error but continue
             mock_logger.critical.assert_called_once()
@@ -124732,7 +124730,7 @@ class TestShutdownGlobalBrowser:
         pm._playwright_runner = mock_playwright_runner
 
         with patch("core.playwright_manager.logger") as mock_logger:
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
             # Should log critical error
             mock_logger.critical.assert_called_once()
@@ -124753,7 +124751,7 @@ class TestShutdownGlobalBrowser:
         pm._playwright_runner = mock_playwright_runner
 
         with patch("core.playwright_manager.logger") as mock_logger:
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
             mock_logger.critical.assert_called_once()
             assert pm._global_browser is None
@@ -124770,7 +124768,7 @@ class TestShutdownGlobalBrowser:
         pm._playwright_runner = mock_playwright_runner
 
         with patch("core.playwright_manager.logger") as mock_logger:
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
             mock_logger.critical.assert_called_once()
             assert pm._global_browser is None
@@ -124785,7 +124783,7 @@ class TestShutdownGlobalBrowser:
         pm._playwright_runner = mock_playwright_runner
 
         with patch("core.playwright_manager.logger") as mock_logger:
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
             # Verify all expected log messages
             mock_logger.info.assert_any_call("🛡️ Initiating Playwright Global Lifespan Cleanup...")
@@ -124809,17 +124807,16 @@ class TestPlaywrightManagerIntegration:
 
         with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
             # Create browser
-            browser1 = await get_global_browser()
+            browser1 = await pm.get_global_browser()
             assert browser1 is mock_browser
 
             # Get again (should return same instance)
-            browser2 = await get_global_browser()
+            browser2 = await pm.get_global_browser()
             assert browser2 is mock_browser
 
             # Shutdown
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
-            import core.playwright_manager as pm
 
             assert pm._global_browser is None
             assert pm._playwright_runner is None
@@ -124835,7 +124832,7 @@ class TestPlaywrightManagerIntegration:
             # Multiple requests
             browsers = []
             for _ in range(5):
-                browsers.append(await get_global_browser())
+                browsers.append(await pm.get_global_browser())
 
             # All should be the same instance
             assert all(b is mock_browser for b in browsers)
@@ -126806,7 +126803,7 @@ def mock_nats_connection():
     """Mock NATS connection এবং JetStream context।"""
     mock_nc = AsyncMock()
     mock_js = AsyncMock()
-    mock_nc.jetstream.return_value = mock_js
+    mock_nc.jetstream = MagicMock(return_value=mock_js)
     return mock_nc, mock_js
 
 
@@ -126871,7 +126868,7 @@ class TestConnect:
         mock_nc = AsyncMock()
         mock_js = AsyncMock()
         mock_kv = AsyncMock()
-        mock_nc.jetstream.return_value = mock_js
+        mock_nc.jetstream = MagicMock(return_value=mock_js)
         mock_js.key_value.return_value = mock_kv
 
         with patch("nats.connect", return_value=mock_nc) as mock_connect:
@@ -128997,9 +128994,7 @@ class TestEventBusMissingBranches:
         from core.event_bus import DeadLetterQueueItem, ErrorEventBus
 
         bus = ErrorEventBus()
-        item = DeadLetterQueueItem(
-            event_type="e", handler_name="h", error="err", timestamp=datetime.now(UTC)
-        )
+        item = DeadLetterQueueItem(event_type="e", handler_name="h", error="err", timestamp=datetime.now(UTC))
         bus._dlq.put_nowait(item)
         processed = await bus.process_dead_letter_queue(max_items=10)
         assert len(processed) == 1
@@ -129149,10 +129144,10 @@ class TestSwarmOrchestratorMissingBranches:
         assert cb.state == CircuitBreakerState.OPEN
 
         await asyncio.sleep(0.1)
-        
+
         async def succeeding():
             return "ok"
-        
+
         result = await cb.call(succeeding)
         assert result == "ok"
         assert cb.state == CircuitBreakerState.CLOSED
@@ -129527,9 +129522,7 @@ class TestNATSMessagingMissingBranches:
         client = NATSClient()
         client.kv_store = MagicMock()
         client.kv_store.put = AsyncMock()
-        client.kv_store.get = AsyncMock(
-            return_value=MagicMock(value=json.dumps({"id": "w1"}).encode())
-        )
+        client.kv_store.get = AsyncMock(return_value=MagicMock(value=json.dumps({"id": "w1"}).encode()))
 
         await client.register_worker("w1", {"id": "w1"})
         worker = await client.get_worker("w1")
@@ -129602,12 +129595,8 @@ class TestPlaywrightManagerMissingBranches:
         mock_runner = MagicMock()
         monkeypatch.setattr("core.playwright_manager._global_browser", mock_browser)
         monkeypatch.setattr("core.playwright_manager._playwright_runner", mock_runner)
-        monkeypatch.setattr(
-            "core.playwright_manager._global_browser.close", AsyncMock(side_effect=RuntimeError("close fail"))
-        )
-        monkeypatch.setattr(
-            "core.playwright_manager._playwright_runner.stop", AsyncMock(side_effect=RuntimeError("stop fail"))
-        )
+        monkeypatch.setattr("core.playwright_manager._global_browser.close", AsyncMock(side_effect=RuntimeError("close fail")))
+        monkeypatch.setattr("core.playwright_manager._playwright_runner.stop", AsyncMock(side_effect=RuntimeError("stop fail")))
 
         # The function should complete without raising, even with errors
         await shutdown_global_browser()
@@ -129626,9 +129615,7 @@ class TestSwarmPubSubMissingBranches:
         pubsub = SwarmPubSub()
         mock_pubsub = MagicMock()
         mock_pubsub.subscribe = AsyncMock()
-        mock_pubsub.get_message = AsyncMock(
-            side_effect=[{"data": b"hello"}, None, {"data": b"world"}]
-        )
+        mock_pubsub.get_message = AsyncMock(side_effect=[{"data": b"hello"}, None, {"data": b"world"}])
         mock_pubsub.unsubscribe = AsyncMock()
         mock_pubsub.close = AsyncMock()
 
@@ -129637,7 +129624,7 @@ class TestSwarmPubSubMissingBranches:
         monkeypatch.setattr("core.swarm_pubsub.redis.from_url", lambda *args, **kwargs: mock_redis)
 
         messages = []
-        
+
         async def consume():
             async for msg in pubsub.subscribe():
                 messages.append(msg)
@@ -129662,12 +129649,12 @@ class TestSwarmPubSubMissingBranches:
         mock_redis = MagicMock()
         mock_redis.publish = AsyncMock()
         mock_redis.pubsub = MagicMock(return_value=MagicMock())
-        
+
         # Completely mock the redis client to prevent any actual connection attempts
         monkeypatch.setattr("core.swarm_pubsub.redis.from_url", lambda *args, **kwargs: mock_redis)
 
         await pubsub.broadcast("theme_changed", {"theme": "dark"})
-        
+
         # Verify publish was called
         mock_redis.publish.assert_called_once()
         call_args = mock_redis.publish.call_args
@@ -129779,9 +129766,7 @@ class TestSwarmOrchestratorCircuitBreakerIntegration:
         orchestrator.circuit_breaker.state = "OPEN"
 
         # Mock the architect.design to raise CircuitBreakerOpenError
-        with patch.object(
-            orchestrator.architect, "design", new_callable=AsyncMock, side_effect=CircuitBreakerOpenError("circuit open")
-        ):
+        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock, side_effect=CircuitBreakerOpenError("circuit open")):
             # The function will raise AttributeError because SharedWorkspace doesn't have add_error()
             # This is a known bug in the production code (line 88 of swarm_orchestrator.py)
             # We verify that the circuit breaker error path is reached by checking the log before the error
@@ -133738,8 +133723,9 @@ import asyncio
 import logging
 from typing import Any
 
-import docker
 from docker.errors import ContainerError
+
+import docker
 
 
 logger = logging.getLogger(__name__)
@@ -138443,7 +138429,7 @@ class BrowserAgent:
         """
         ডাটাবেজ বা স্কিল ম্যানেজার থেকে আসা JSON রেসিপি অ্যারে ডাইনামিকালি ইন্টারপ্রিট করবে।
         """
-        if async_playwright is None:
+        if not callable(async_playwright):
             return {"status": "failed", "error": "Playwright is not installed"}
 
         logger.info(f"🎬 Initializing Dynamic Recipe Interpreter with {len(steps)} steps.")

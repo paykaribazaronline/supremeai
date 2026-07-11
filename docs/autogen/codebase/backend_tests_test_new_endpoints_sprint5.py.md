@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_new_endpoints_sprint5.py
 
 **প্রকার:** .py  
-**সাইজ:** 3,450 বাইট  
-**আপডেট:** 2026-07-11T18:21:34.953727
+**সাইজ:** 3,492 বাইট  
+**আপডেট:** 2026-07-11T19:00:24.720554
 
 ---
 
@@ -50,7 +50,7 @@ class TestOnboardingFlow:
         _mock_db.table.return_value.insert.return_value.execute = MagicMock()
 
         resp = client.post(
-            "/api/onboarding/complete",
+            "/api/v1/onboarding/onboarding/complete",
             json={
                 "user_id": "test_user_new",
                 "provider": "openrouter",
@@ -78,7 +78,7 @@ class TestOnboardingFlow:
         _mock_db.table.return_value.upsert.return_value.execute = mock_upsert
 
         resp = client.post(
-            "/api/onboarding/complete",
+            "/api/v1/onboarding/onboarding/complete",
             json={
                 "user_id": "existing_user_123",
                 "api_key": "sk-test-key-12345",
@@ -100,7 +100,7 @@ class TestOnboardingFlow:
         ]
         _mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = existing
 
-        resp = client.get("/api/onboarding/status/user_abc")
+        resp = client.get("/api/v1/onboarding/onboarding/status/user_abc")
         assert resp.status_code == 200
         data = resp.json()
         assert data["onboarding_complete"] is True

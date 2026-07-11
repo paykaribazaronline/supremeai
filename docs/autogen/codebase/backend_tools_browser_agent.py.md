@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/browser_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,264 বাইট  
-**আপডেট:** 2026-07-11T18:21:34.971711
+**সাইজ:** 9,270 বাইট  
+**আপডেট:** 2026-07-11T19:00:24.736061
 
 ---
 
@@ -48,7 +48,7 @@ class BrowserAgent:
         """
         ডাটাবেজ বা স্কিল ম্যানেজার থেকে আসা JSON রেসিপি অ্যারে ডাইনামিকালি ইন্টারপ্রিট করবে।
         """
-        if async_playwright is None:
+        if not callable(async_playwright):
             return {"status": "failed", "error": "Playwright is not installed"}
 
         logger.info(f"🎬 Initializing Dynamic Recipe Interpreter with {len(steps)} steps.")

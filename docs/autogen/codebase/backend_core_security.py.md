@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/security.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,684 বাইট  
-**আপডেট:** 2026-07-11T18:21:34.899671
+**সাইজ:** 2,718 বাইট  
+**আপডেট:** 2026-07-11T19:00:24.675568
 
 ---
 
@@ -72,7 +72,7 @@ def _get_api_key_signing_secret() -> str:
 
 
 def generate_api_key(prefix: str = API_KEY_PREFIX) -> str:
-    random_part = secrets.token_urlsafe(API_KEY_RANDOM_BYTES)
+    random_part = secrets.token_urlsafe(API_KEY_RANDOM_BYTES).replace("-", "").replace("_", "")
     key = f"{prefix}-{random_part}"
     parts = key.split("-", 2)
     return f"{parts[0]}-{parts[1]}-{parts[2][:4]}-{parts[2][4:8]}-{parts[2][8:]}"

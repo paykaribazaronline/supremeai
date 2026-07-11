@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/core/test_nats_messaging.py
 
 **প্রকার:** .py  
-**সাইজ:** 16,119 বাইট  
-**আপডেট:** 2026-07-11T18:21:34.958847
+**সাইজ:** 16,141 বাইট  
+**আপডেট:** 2026-07-11T19:00:24.724910
 
 ---
 
@@ -41,7 +41,7 @@ def mock_nats_connection():
     """Mock NATS connection এবং JetStream context।"""
     mock_nc = AsyncMock()
     mock_js = AsyncMock()
-    mock_nc.jetstream.return_value = mock_js
+    mock_nc.jetstream = MagicMock(return_value=mock_js)
     return mock_nc, mock_js
 
 
@@ -106,7 +106,7 @@ class TestConnect:
         mock_nc = AsyncMock()
         mock_js = AsyncMock()
         mock_kv = AsyncMock()
-        mock_nc.jetstream.return_value = mock_js
+        mock_nc.jetstream = MagicMock(return_value=mock_js)
         mock_js.key_value.return_value = mock_kv
 
         with patch("nats.connect", return_value=mock_nc) as mock_connect:

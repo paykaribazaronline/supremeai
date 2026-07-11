@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/core/test_playwright_manager.py
 
 **প্রকার:** .py  
-**সাইজ:** 14,389 বাইট  
-**আপডেট:** 2026-07-11T18:21:34.957432
+**সাইজ:** 14,267 বাইট  
+**আপডেট:** 2026-07-11T19:00:24.723624
 
 ---
 
@@ -20,8 +20,7 @@ from unittest.mock import patch
 
 import pytest
 
-from core.playwright_manager import get_global_browser
-from core.playwright_manager import shutdown_global_browser
+import core.playwright_manager as pm
 
 
 # -------------------- Fixtures --------------------
@@ -72,7 +71,7 @@ class TestGetGlobalBrowser:
 
         with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
             with patch("core.playwright_manager.logger") as mock_logger:
-                browser = await get_global_browser()
+                browser = await pm.get_global_browser()
 
                 assert browser is mock_browser
                 mock_logger.info.assert_called_once_with("🚀 Starting a new headless Global Chromium instance...")
@@ -94,7 +93,7 @@ class TestGetGlobalBrowser:
         pm._playwright_runner = mock_playwright_runner
 
         with patch("core.playwright_manager.async_playwright") as mock_playwright:
-            browser = await get_global_browser()
+            browser = await pm.get_global_browser()
 
             assert browser is mock_browser
             mock_playwright.assert_not_called()  # Should not create new instance
@@ -104,7 +103,7 @@ class TestGetGlobalBrowser:
         """বাংলা মন্তব্য: Playwright install না থাকলে RuntimeError raise হয়।"""
         with patch("core.playwright_manager.async_playwright", None):
             with pytest.raises(RuntimeError, match="Playwright is not installed"):
-                await get_global_browser()
+                await pm.get_global_browser()
 
     @pytest.mark.asyncio
     async def test_browser_launch_with_correct_args(self, mock_browser, mock_playwright_runner):
@@ -114,7 +113,7 @@ class TestGetGlobalBrowser:
         mock_playwright_runner.chromium.launch.return_value = mock_browser
 
         with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
-            await get_global_browser()
+            await pm.get_global_browser()
 
             launch_call = mock_playwright_runner.chromium.launch.call_args
             assert launch_call.kwargs["headless"] is True
@@ -132,9 +131,8 @@ class TestGetGlobalBrowser:
         mock_playwright_runner.chromium.launch.return_value = mock_browser
 
         with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
-            await get_global_browser()
+            await pm.get_global_browser()
 
-            import core.playwright_manager as pm
 
             assert pm._global_browser is mock_browser
             assert pm._playwright_runner is mock_playwright_runner
@@ -155,7 +153,7 @@ class TestShutdownGlobalBrowser:
         pm._playwright_runner = mock_playwright_runner
 
         with patch("core.playwright_manager.logger") as mock_logger:
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
             mock_browser.close.assert_called_once()
             mock_playwright_runner.stop.assert_called_once()
@@ -172,7 +170,7 @@ class TestShutdownGlobalBrowser:
         pm._playwright_runner = None
 
         with patch("core.playwright_manager.logger") as mock_logger:
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
             # Should not raise any error
             assert pm._global_browser is None
@@ -187,7 +185,7 @@ class TestShutdownGlobalBrowser:
         pm._playwright_runner = None
 
         with patch("core.playwright_manager.logger") as mock_logger:
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
             mock_browser.close.assert_called_once()
             assert pm._global_browser is None
@@ -202,7 +200,7 @@ class TestShutdownGlobalBrowser:
         pm._playwright_runner = mock_playwright_runner
 
         with patch("core.playwright_manager.logger") as mock_logger:
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
             mock_playwright_runner.stop.assert_called_once()
             assert pm._global_browser is None
@@ -219,7 +217,7 @@ class TestShutdownGlobalBrowser:
         pm._playwright_runner = mock_playwright_runner
 
         with patch("core.playwright_manager.logger") as mock_logger:
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
             # Should log critical error but continue
             mock_logger.critical.assert_called_once()
@@ -239,7 +237,7 @@ class TestShutdownGlobalBrowser:
         pm._playwright_runner = mock_playwright_runner
 
         with patch("core.playwright_manager.logger") as mock_logger:
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
             # Should log critical error
             mock_logger.critical.assert_called_once()
@@ -260,7 +258,7 @@ class TestShutdownGlobalBrowser:
         pm._playwright_runner = mock_playwright_runner
 
         with patch("core.playwright_manager.logger") as mock_logger:
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
             mock_logger.critical.assert_called_once()
             assert pm._global_browser is None
@@ -277,7 +275,7 @@ class TestShutdownGlobalBrowser:
         pm._playwright_runner = mock_playwright_runner
 
         with patch("core.playwright_manager.logger") as mock_logger:
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
             mock_logger.critical.assert_called_once()
             assert pm._global_browser is None
@@ -292,7 +290,7 @@ class TestShutdownGlobalBrowser:
         pm._playwright_runner = mock_playwright_runner
 
         with patch("core.playwright_manager.logger") as mock_logger:
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
             # Verify all expected log messages
             mock_logger.info.assert_any_call("🛡️ Initiating Playwright Global Lifespan Cleanup...")
@@ -316,17 +314,16 @@ class TestPlaywrightManagerIntegration:
 
         with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
             # Create browser
-            browser1 = await get_global_browser()
+            browser1 = await pm.get_global_browser()
             assert browser1 is mock_browser
 
             # Get again (should return same instance)
-            browser2 = await get_global_browser()
+            browser2 = await pm.get_global_browser()
             assert browser2 is mock_browser
 
             # Shutdown
-            await shutdown_global_browser()
+            await pm.shutdown_global_browser()
 
-            import core.playwright_manager as pm
 
             assert pm._global_browser is None
             assert pm._playwright_runner is None
@@ -342,7 +339,7 @@ class TestPlaywrightManagerIntegration:
             # Multiple requests
             browsers = []
             for _ in range(5):
-                browsers.append(await get_global_browser())
+                browsers.append(await pm.get_global_browser())
 
             # All should be the same instance
             assert all(b is mock_browser for b in browsers)
