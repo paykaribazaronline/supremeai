@@ -1,11 +1,11 @@
+import asyncio
+import json
+
 from fastapi import APIRouter
 from fastapi import HTTPException
 from fastapi import Query
-from pydantic import BaseModel
-
 from fastapi import Request
-import asyncio
-import json
+from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
 from core.theme_pubsub import theme_pubsub
@@ -78,12 +78,13 @@ async def stream_preferences(request: Request, user_id: str):
     """
     SSE endpoint to listen for real-time theme and preference updates for a specific user.
     """
+
     async def event_generator():
         queue = theme_pubsub.subscribe(user_id)
         try:
             # Yield connection success
             yield {"event": "connected", "data": json.dumps({"status": "connected to theme stream"})}
-            
+
             while True:
                 if await request.is_disconnected():
                     break

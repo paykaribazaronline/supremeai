@@ -1,3 +1,4 @@
+import uuid
 from typing import Any
 
 from fastapi import APIRouter
@@ -11,7 +12,6 @@ from brain.langgraph_agent import SupremeOrchestrator
 from brain.model_router import ModelRouter
 from core.generation_monitor import GenerationMonitor
 from core.rbac import RoleBasedAccessControl
-import uuid
 from engine.swarm_orchestrator import SwarmOrchestrator
 
 
@@ -32,6 +32,7 @@ class AgentExecuteRequest(BaseModel):
     department: str | None = None
     autonomous: bool = False
     user_context: dict[str, Any] | None = None
+
 
 class SwarmExecuteRequest(BaseModel):
     task: str
@@ -103,29 +104,25 @@ async def agent_latency_summary():
     summary = monitor.latency_summary()
     return JSONResponse(content=summary)
 
+
 @agent_router.post("/swarm/execute")
 async def execute_swarm(request: Request, body: SwarmExecuteRequest):
     """
-    Executes the multi-agent swarm logic (Architecture -> Code -> QA) 
+    Executes the multi-agent swarm logic (Architecture -> Code -> QA)
     and returns the final workspace state.
     """
     session_id = body.session_id or str(uuid.uuid4())
-    orchestrator = SwarmOrchestrator(
-        user_id=body.user_id,
-        session_id=session_id,
-        task_prompt=body.task
-    )
-    
-    # We await the orchestrator execution. 
-    # In a real heavy system this might be a background task, 
+    orchestrator = SwarmOrchestrator(user_id=body.user_id, session_id=session_id, task_prompt=body.task)
+
+    # We await the orchestrator execution.
+    # In a real heavy system this might be a background task,
     # but since it's zero-cost lean, we keep it simple or run it directly.
-    import asyncio
-    
+
     # Run the swarm as a background task to not block the request immediately,
     # or just await it if we want the HTTP response to contain the final output.
     # For now, we await it directly as requested by the plan.
     workspace = await orchestrator.execute(max_retries=2)
-    
+
     return {
         "status": "completed",
         "session_id": session_id,
@@ -133,6 +130,6 @@ async def execute_swarm(request: Request, body: SwarmExecuteRequest):
             "passed_qa": workspace.test_results.get("passed", False),
             "feedback": workspace.test_results.get("feedback", ""),
             "generated_code": workspace.generated_code,
-            "architecture": workspace.architecture_design
-        }
+            "architecture": workspace.architecture_design,
+        },
     }

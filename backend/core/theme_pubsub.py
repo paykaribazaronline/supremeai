@@ -1,11 +1,14 @@
 import asyncio
 import contextlib
+
 from loguru import logger
+
 
 class ThemePubSub:
     """
     In-memory PubSub for synchronizing theme preferences across connected clients (Web, Mobile).
     """
+
     def __init__(self):
         # user_id -> list of asyncio.Queue
         self._subscribers: dict[str, list[asyncio.Queue]] = {}
@@ -30,5 +33,6 @@ class ThemePubSub:
             logger.info(f"Publishing theme update '{theme}' for user '{user_id}' to {len(self._subscribers[user_id])} clients.")
             for q in self._subscribers[user_id]:
                 q.put_nowait({"event": "theme_changed", "theme": theme})
+
 
 theme_pubsub = ThemePubSub()

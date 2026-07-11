@@ -6,7 +6,9 @@ from models.shared_workspace import SharedWorkspace
 
 
 class SwarmAgentBase:
-    async def call_gateway(self, system_prompt: str, user_prompt: str, user_id: str = "default_user", model_name: str = "gemini/gemini-1.5-flash") -> str:
+    async def call_gateway(
+        self, system_prompt: str, user_prompt: str, user_id: str = "default_user", model_name: str = "gemini/gemini-1.5-flash"
+    ) -> str:
         # বাংলা মন্তব্য: প্রতিটি এজেন্ট কল গেটওয়ের মাধ্যমে রাউট করা হচ্ছে যাতে কস্ট ট্র্যাকিং এনাবেল থাকে।
         messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}]
         resp = await llm_gateway.acompletion(model=model_name, messages=messages, user_id=user_id)
