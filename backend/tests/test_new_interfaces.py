@@ -34,9 +34,6 @@ def test_voice_interface_stt_success(mock_post):
             os.remove(dummy_path)
 
 
-
-
-
 def test_local_ocr_extractor():
     import os
     import tempfile

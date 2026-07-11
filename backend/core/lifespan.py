@@ -165,7 +165,6 @@ async def app_lifespan(app):
         if os.getenv("ENV") == "production":
             raise e
 
-
     try:
         orch_inst = Orchestrator()
         app.state.orchestrator = orch_inst

@@ -1,8 +1,8 @@
 # 📄 ফাইল: render.yaml
 
 **প্রকার:** .yaml  
-**সাইজ:** 714 বাইট  
-**আপডেট:** 2026-07-11T15:50:11.260265
+**সাইজ:** 724 বাইট  
+**আপডেট:** 2026-07-11T16:17:51.532876
 
 ---
 
@@ -14,7 +14,7 @@ services:
     name: supremeai-backend
     env: image
     image:
-      url: ghcr.io/paykaribazaronline/supremeai-backend:latest
+      url: ghcr.io/paykaribazaronline/supremeai/supremeai-backend:latest
     region: singapore
     plan: free
     healthCheckPath: /health

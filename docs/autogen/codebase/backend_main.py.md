@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/main.py
 
 **প্রকার:** .py  
-**সাইজ:** 1,285 বাইট  
-**আপডেট:** 2026-07-11T15:50:11.291699
+**সাইজ:** 1,286 বাইট  
+**আপডেট:** 2026-07-11T16:17:51.558552
 
 ---
 
@@ -24,6 +24,7 @@ from core.logging_config import setup_logging
 setup_logging()
 
 # Production config validation is now handled automatically by Pydantic model validators
+
 
 def _handle_sigterm(signum, frame):
     logger.info("Received shutdown signal. Performing graceful shutdown...")

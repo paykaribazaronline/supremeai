@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/pyproject.toml
 
 **প্রকার:** .toml  
-**সাইজ:** 7,049 বাইট  
-**আপডেট:** 2026-07-11T15:50:11.291217
+**সাইজ:** 7,007 বাইট  
+**আপডেট:** 2026-07-11T16:17:51.558246
 
 ---
 
@@ -101,7 +101,7 @@ optional = true
 [tool.poetry.group.tools.dependencies]
 # ── Optional tools: browser, cloud, analytics (~500 MB) ──
 # Install with: poetry install --with tools
-discord-py = "^2.3.0"
+
 playwright = "^1.60.0"
 playwright-stealth = "^1.0.0"
 pandas = "^2.2.0"
@@ -137,7 +137,7 @@ pytest-xdist = "^3.6.1"
 # বাংলা মন্তব্য: টেস্ট রান করার সময় সমান্তরাল জটিলতায় ডেডলক এড়াতে pytest-timeout যুক্ত করা হলো
 pytest-timeout = "^2.2.0"
 pylint = "^3.2.0"
-discord-py = "^2.3.0"
+
 matplotlib = "^3.8.0"
 pdfplumber = "^0.10.0"
 respx = "^0.21.0"
