@@ -11,10 +11,11 @@ from admin.god import AdminGodLayer  # Your existing god.py
 from api.dependencies import get_current_user_token
 from core.self_healer import SelfHealerService
 from utils.firestore_helpers import get_firestore_db
-
+from pathlib import Path
 
 router = APIRouter(prefix="/api/admin", tags=["Admin Control Center"])
-god_layer = AdminGodLayer(db_path="data/admin_rules.db")
+_db_path = str(Path(__file__).resolve().parent.parent.parent / "data" / "admin_rules.db")
+god_layer = AdminGodLayer(db_path=_db_path)
 
 
 def get_current_admin(payload: dict = Depends(get_current_user_token)) -> dict:

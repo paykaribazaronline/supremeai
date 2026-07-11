@@ -81,7 +81,9 @@ async def login(body: LoginRequest):
             detail="Direct login is not supported in production. Use the admin TOTP flow or an OAuth provider.",
         )
 
-    # 🟢 Dev Mode: Generate a token for local testing
+    # Fallback logic: If SSO is not configured or fails, use local credentials
+    
+    # 🟢 Dev/Fallback Mode: Generate a token for local testing or emergency fallback
     user_id = f"dev_{body.username.split('@')[0]}"
     primary_role = "admin" if "admin" in body.username else "user"
     token_data = {

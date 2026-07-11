@@ -75,11 +75,7 @@ class SelfHealingRequest(BaseModel):
     languageId: str
 
 
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-
-
-limiter = Limiter(key_func=get_remote_address)
+from core.app import limiter
 
 
 @router.post("/execute-healing")

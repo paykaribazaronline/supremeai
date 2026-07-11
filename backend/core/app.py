@@ -7,7 +7,11 @@ import logging
 import os
 import secrets
 import sys
+from pathlib import Path
 from typing import Any
+
+# Add project root to sys.path so 'skills' module can be imported
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 import sentry_sdk
 from fastapi import Depends
@@ -131,7 +135,11 @@ app.add_middleware(APIKeyAuthMiddleware)
 
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
 
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
@@ -240,7 +248,7 @@ core_routers = [
     ("api.routes.graph", ""),
     ("api.routes.knowledge", ""),
     ("api.routes.marketplace", ""),
-    ("api.routes.auth", ""),
+    ("api.routes.auth", "/api/v1"),
     ("api.routes.admin_dashboard", ""),
     ("api.routes.email", ""),
     ("api.routes.github", ""),
@@ -253,12 +261,18 @@ core_routers = [
     ("api.routes.tools_registry", ""),
     ("api.routes.preferences", ""),
     ("api.routes.usage_metrics", ""),
-    ("api.routes.payments", ""),
     ("api.routes.sso", ""),
     ("api.routes.health", ""),
     ("api.routes.evolution", ""),
     ("api.routes.api_keys", ""),
     ("api.routes.ci_webhooks", ""),
+    ("api.routes.task_workspace", "/api/v1"),
+    ("api.routes.websocket_agent", ""),
+    ("api.routes.agent_workspace", "/api/v1"),
+    ("api.routes.integrations", "/api/v1"),
+    ("api.routes.public_config", "/api"),
+    ("api.routes.traffic_monitor", ""),
+    ("api.routes.swarm", "/api/v1"),
     ("core.orchestrator", ""),
 ]
 
@@ -275,8 +289,6 @@ optional_routers = [
     ("tools.style_learner", "/api"),
     ("tools.diagram_to_architecture", "/api"),
     ("tools.ai_pair_programmer", "/api"),
-    ("api.routes.onboarding", "/api"),
-    ("api.routes.evolution", ""),
     ("api.routes.codeflow", ""),
     ("api.routes.feedback", ""),
     ("tools.multilingual_tts", "/api"),

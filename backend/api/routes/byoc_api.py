@@ -10,6 +10,8 @@ from datetime import datetime
 from fastapi import APIRouter
 from fastapi import BackgroundTasks
 from fastapi import HTTPException
+from fastapi import Depends
+from api.dependencies import get_current_user_token
 
 from byoc.cloud_connector import GCPCredentialManager
 from byoc.container_orchestrator import ContainerOrchestrator
@@ -30,7 +32,10 @@ encrypted_vault: dict[str, bytes] = {}
 # 🔐 ROUTE: Upload & Encrypt Credentials
 # ==========================================
 @router.post("/credentials")
-async def save_credentials(payload: BYOCCredentialsPayload):
+async def save_credentials(
+    payload: BYOCCredentialsPayload,
+    token_payload: dict = Depends(get_current_user_token)
+):
     """
     Encrypts and saves client-provided cloud service credentials securely.
     """
@@ -43,7 +48,9 @@ async def save_credentials(payload: BYOCCredentialsPayload):
     # বাংলা মন্তব্য: প্লেইন-টেক্সট সেভ না করে Fernet কী দিয়ে এনক্রিপ্ট করে সিকিউরড ভোল্ট-এ রাখা হচ্ছে
     try:
         encrypted_data = GCPCredentialManager.encrypt_credentials(sa_dict)
-        user_id = "default_user_session"
+        user_id = token_payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
         encrypted_vault[user_id] = encrypted_data
 
         return {"status": "success", "message": "GCP Service Account credentials encrypted and securely saved.", "provider": payload.provider}
@@ -55,12 +62,18 @@ async def save_credentials(payload: BYOCCredentialsPayload):
 # 🚀 ROUTE: Trigger Terraform Container Deploy
 # ==========================================
 @router.post("/deploy")
-async def deploy_container(payload: BYOCDeployRequest, background_tasks: BackgroundTasks):
+async def deploy_container(
+    payload: BYOCDeployRequest,
+    background_tasks: BackgroundTasks,
+    token_payload: dict = Depends(get_current_user_token)
+):
     """
     Checks user tier quota limits and starts background container deployment.
     """
-    user_id = "default_user_session"
-    user_tier = "free"  # প্রোডাকশনে সেশন ও সাবস্ক্রিপশন টিয়ার থেকে আসবে
+    user_id = token_payload.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    user_tier = token_payload.get("plan_id", "free")  # প্রোডাকশনে সেশন ও সাবস্ক্রিপশন টিয়ার থেকে আসবে
 
     # Load quota limits
     # বাংলা মন্তব্য: রাউট লেভেলেই কোটা চেক করে রিকোয়েস্ট ফিল্টার করা হচ্ছে যাতে ওভারফ্লো না হয়

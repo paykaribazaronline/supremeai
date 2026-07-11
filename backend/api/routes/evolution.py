@@ -20,7 +20,7 @@ from pydantic import Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from api.dependencies import get_tenant_db
+from api.dependencies import get_tenant_db, get_fitness_engine
 from core.config import settings
 from core.tenant_db import TenantAwareFirestore
 from database.session import get_db_session
@@ -134,7 +134,7 @@ async def get_swarm_graph():
 async def quarantine_skill(
     payload: QuarantineRequest,
     admin: dict = Depends(require_admin_token),
-    fitness_engine: FitnessEngine | None = Depends(FitnessEngine),
+    fitness_engine: FitnessEngine = Depends(get_fitness_engine),
 ):
     skill_name = payload.skill_name.strip()
     try:

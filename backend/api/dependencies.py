@@ -9,6 +9,12 @@ from core.tenant_db import TenantAwareFirestore
 
 # শেয়ার্ড ইউটিলিটি — টেস্ট এনভায়রনমেন্ট চেক কেন্দ্রীভূত
 from utils.environment import is_test_environment
+from evolution.fitness_engine import FitnessEngine
+
+_fitness_engine = FitnessEngine()
+
+def get_fitness_engine() -> FitnessEngine:
+    return _fitness_engine
 
 
 def get_current_user_token(request: Request) -> dict:

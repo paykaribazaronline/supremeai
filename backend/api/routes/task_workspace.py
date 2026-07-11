@@ -1,12 +1,14 @@
 from fastapi import APIRouter
 from fastapi import BackgroundTasks
 from fastapi import HTTPException
+from fastapi import Depends
 from pydantic import BaseModel
+from api.dependencies import get_current_user_token
 
 from core.llm_gateway import llm_gateway
 
 
-router = APIRouter(prefix="/task", tags=["Supreme Workspace Tasks"])
+router = APIRouter(prefix="/workspace/task", tags=["Supreme Workspace Tasks"])
 
 
 # ==========================================
@@ -27,12 +29,18 @@ class TaskPayload(BaseModel):
 # 🚀 ROUTE: /task/execute
 # ==========================================
 @router.post("/execute")
-async def execute_task(payload: TaskPayload, background_tasks: BackgroundTasks):
+async def execute_task(
+    payload: TaskPayload,
+    background_tasks: BackgroundTasks,
+    token_payload: dict = Depends(get_current_user_token)
+):
     """
     Handles user prompts from the Vanilla JS Customer Dashboard.
     Integrates Redis rate limiting, RAM conversation history, and Supabase persistent storage.
     """
-    _tenant_id = "default_user_session"  # প্রোডাকশনে এটি JWT বা সেশন টোকেন থেকে আসবে
+    _tenant_id = token_payload.get("sub")
+    if not _tenant_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
 
     try:
         # বাংলা মন্তব্য: মেসেজ হিস্ট্রি এবং নতুন টাস্ক প্রম্পটকে গেটওয়ের উপযোগী মেসেজ লিস্ট স্কিমায় কনভার্ট করা হচ্ছে
@@ -65,9 +73,11 @@ async def execute_task(payload: TaskPayload, background_tasks: BackgroundTasks):
 # 📊 ROUTE: /task/quota
 # ==========================================
 @router.get("/quota")
-async def get_quota():
+async def get_quota(token_payload: dict = Depends(get_current_user_token)):
     """
     Fetch the current token quota from Redis for the UI.
     """
-    _tenant_id = "default_user_session"
+    _tenant_id = token_payload.get("sub")
+    if not _tenant_id:
+        raise HTTPException(status_code=401, detail="Invalid token")
     return {"remaining": 87}  # Mocking the 87% for the UI
