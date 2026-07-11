@@ -24,6 +24,12 @@ if "ENCRYPTION_KEY" not in os.environ:
         import os as _os
         os.environ["ENCRYPTION_KEY"] = base64.urlsafe_b64encode(_os.urandom(32)).decode("utf-8")
 
+os.environ.setdefault("DOCS_PASSWORD", "dummy")
+os.environ.setdefault("SUPREMEAI_ADMIN_PASSWORD_HASH", "$2b$12$dummyhashdummyhashdummyhashdummyhashdummyhashdummyha")
+os.environ.setdefault("SUPREMEAI_JWT_SECRET", "dummy_jwt_secret_for_openapi_generation_that_is_at_least_64_bytes_long_so_it_passes_validation")
+os.environ.setdefault("OPENROUTER_API_KEY", "dummy")
+
+
 try:
     from main import app
 except ImportError as e:
