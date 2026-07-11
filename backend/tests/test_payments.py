@@ -1,3 +1,4 @@
+# FILE_PATH: tests/test_payments.py
 import os
 
 from fastapi.testclient import TestClient
@@ -23,10 +24,11 @@ def test_get_plans():
     assert data["plans"][0]["id"] == "price_basic_monthly"
 
 
-def test_create_checkout_session_mock():
+def test_create_checkout_session_mock(mocker):
     # Verify mock checkout flow when Stripe API key is not configured
-    if "STRIPE_SECRET_KEY" in os.environ:
-        del os.environ["STRIPE_SECRET_KEY"]
+    # Patch settings.stripe_secret_key to None for this test to activate mock mode in backend
+    # This is more reliable than manipulating os.environ when the app's settings are already loaded.
+    mocker.patch.object(settings, 'stripe_secret_key', None)
 
     resp = client.post(
         "/payments/checkout",
@@ -45,9 +47,16 @@ def test_create_checkout_session_mock():
     assert "mock_session_123" in data["url"]
 
 
-def test_webhook_ignored_if_missing_config():
+def test_webhook_ignored_if_missing_config(mocker):
     # Verify webhook behaves gracefully when credentials/key are missing
-    headers = {**auth_headers, "stripe-signature": "invalid-sig"}
-    resp = client.post("/payments/webhook", headers=headers, content=b"some-payload")
+    # Patch settings.stripe_webhook_secret to None for this test to trigger the "ignored" status.
+    mocker.patch.object(settings, 'stripe_webhook_secret', None)
+
+    # Send a valid JSON payload as Stripe webhooks expect JSON,
+    # rather than arbitrary bytes, to avoid early 400 Bad Request errors
+    # unrelated to signature verification or missing config.
+    payload = {"id": "evt_test_123", "type": "checkout.session.completed", "data": {"object": {"id": "cs_test_123"}}}
+    headers = {**auth_headers, "stripe-signature": "t=123,v1=invalid_signature"}
+    resp = client.post("/payments/webhook", headers=headers, json=payload)
     assert resp.status_code == 200
     assert resp.json()["status"] == "ignored"
