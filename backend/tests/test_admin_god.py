@@ -11,6 +11,7 @@ class TestAdminGodLayer:
 
     from unittest.mock import patch
     import os
+
     @patch.dict(os.environ, {"SUPREMEAI_ADMIN_PASSWORD_HASH": ""})
     def test_init_default(self):
         """ডিফল্ট ইনিশialization ঠিক আছে।"""

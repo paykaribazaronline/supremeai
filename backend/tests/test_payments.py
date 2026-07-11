@@ -57,6 +57,7 @@ def test_create_checkout_session_mock():
 from pydantic import SecretStr
 from unittest.mock import patch
 
+
 def test_webhook_ignored_if_missing_config():
     # Verify webhook behaves gracefully when credentials/key are missing
     with patch("api.routes.payments.settings.stripe_webhook_secret", new=SecretStr("")):
