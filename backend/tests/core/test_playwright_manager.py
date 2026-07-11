@@ -122,7 +122,6 @@ class TestGetGlobalBrowser:
         with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
             await pm.get_global_browser()
 
-
             assert pm._global_browser is mock_browser
             assert pm._playwright_runner is mock_playwright_runner
 
@@ -312,7 +311,6 @@ class TestPlaywrightManagerIntegration:
 
             # Shutdown
             await pm.shutdown_global_browser()
-
 
             assert pm._global_browser is None
             assert pm._playwright_runner is None
