@@ -28,7 +28,7 @@ jobs:
       - name: "🐍 Setup Python Environment"
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
       - name: "🔑 Generate Cache Key"
         id: cache-key
         run: echo "key=py-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/requirements.txt') }}" >> $GITHUB_OUTPUT
@@ -48,13 +48,13 @@ jobs:
 
   health-check:
     needs: setup
-    if: ${{ github.event.inputs.task == 'health-check' }}
+    if: github.event.inputs.task == 'health-check'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
@@ -67,7 +67,7 @@ jobs:
 
   auto-lint-fix:
     needs: setup
-    if: ${{ github.event.inputs.task == 'auto-lint-fix' }}
+    if: github.event.inputs.task == 'auto-lint-fix'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -76,7 +76,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
@@ -102,13 +102,13 @@ jobs:
 
   dependency-vulnerability-scan:
     needs: setup
-    if: ${{ github.event.inputs.task == 'dependency-vulnerability-scan' }}
+    if: github.event.inputs.task == 'dependency-vulnerability-scan'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
