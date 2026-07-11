@@ -53,7 +53,7 @@ class StealthHTTPClient:
                     response = await client.request(method, url, **client_kwargs)
                     response.raise_for_status()
                     return response
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Request attempt {attempt + 1} failed: {e}")
                 if proxy:
                     self.proxy_manager.report_failed_proxy(proxy)

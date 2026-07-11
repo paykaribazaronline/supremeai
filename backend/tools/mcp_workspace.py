@@ -147,7 +147,7 @@ def _save_workspace_session(project_type: WorkspaceType, tenant_id: str | None =
             with os.fdopen(temp_fd, "w", encoding="utf-8") as f:
                 f.write(json.dumps(session, indent=2, ensure_ascii=False))
             os.replace(temp_path, str(session_path))
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             try:
                 os.unlink(temp_path)
             except OSError as exc:

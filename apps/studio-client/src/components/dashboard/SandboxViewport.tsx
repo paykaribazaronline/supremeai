@@ -43,6 +43,7 @@ export const SandboxViewport: React.FC = () => {
             // Clear image cache
             imageCache.current.src = '';
         };
+     
     }, [wsRef]);
 
     // Handle Human Takeover Dispatch
@@ -135,6 +136,7 @@ export const SandboxViewport: React.FC = () => {
             canvas.removeEventListener('keydown', onKeyDown);
             canvas.removeEventListener('keyup', onKeyUp);
         };
+     
     }, [controlMode, wsRef]);
 
     return (

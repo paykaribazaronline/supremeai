@@ -40,14 +40,14 @@ class NATSClient:
             # Initialize or bind to the Key-Value store for Worker Registry
             try:
                 self.kv_store = await self.js.key_value("WORKER_REGISTRY")
-            except Exception:
+            except Exception:  # noqa: BLE001
                 # Create the bucket if it doesn't exist
                 self.kv_store = await self.js.create_key_value(bucket="WORKER_REGISTRY")
                 logger.info("🛠️ Created JetStream Key-Value bucket: WORKER_REGISTRY")
 
         except NoServersError:
             logger.error("❌ Failed to connect to NATS Broker. Is it running?")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"❌ NATS Connection Error: {str(e)}")
 
     async def publish_event(self, subject: str, data: BaseModel | dict[str, Any]):
@@ -69,7 +69,7 @@ class NATSClient:
             try:
                 decoded_data = json.loads(msg.data.decode())
                 await callback(decoded_data)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Error handling NATS message on {subject}: {str(e)}")
 
         await self.nc.subscribe(subject, cb=message_handler)
@@ -102,7 +102,7 @@ class NATSClient:
                 for key in keys:
                     entry = await self.kv_store.get(key)
                     workers[key] = json.loads(entry.value.decode())
-            except Exception:
+            except Exception:  # noqa: BLE001
                 pass
         return workers
 

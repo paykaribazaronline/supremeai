@@ -18,6 +18,7 @@ export const FileTreePanel: React.FC = () => {
       treeRef.current.set('/', { name: 'workspace', path: '/', type: 'directory', status: 'unchanged' });
       setTreeMap(new Map(treeRef.current));
     }
+     
   }, [fileTreeData]);
 
   // Clean up on unmount or session reset is handled by the store, but we also clear the ref here.
@@ -25,6 +26,7 @@ export const FileTreePanel: React.FC = () => {
     return () => {
       treeRef.current.clear();
     };
+     
   }, []);
 
   const toggleFolder = (path: string) => {

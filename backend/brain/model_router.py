@@ -209,7 +209,7 @@ class ModelRouter:
                 if response is None:
                     return {"success": False, "text": "{}", "error": "LLM Gateway returned None"}
                 return response
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 breaker.mark_failure()
                 raise exc
         except Exception as e:  # noqa: BLE001

@@ -81,6 +81,7 @@ export default function SkillGraph() {
 
   useEffect(() => {
     fetchGraphData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onConnect = useCallback(

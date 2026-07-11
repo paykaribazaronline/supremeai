@@ -9,11 +9,7 @@ from loguru import logger
 
 router = APIRouter()
 
-import logging
 import os
-
-
-logger = logging.getLogger(__name__)
 
 
 # Note: In production, tokens would be verified against Redis/DB
@@ -38,7 +34,7 @@ def verify_takeover_token(token: str) -> bool:
             return False
 
         return True
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Token verification failed: {str(e)}")
         return False
 

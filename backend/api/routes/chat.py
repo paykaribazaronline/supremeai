@@ -62,7 +62,7 @@ async def get_completion(request: Request, payload: ChatPayload, db=Depends(get_
             "cached": False,
             "cache_source": "L5_AI_MODEL",
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Async LLM Error: {str(e)}")
         raise HTTPException(status_code=500, detail="AI Gateway Timeout.") from e
 

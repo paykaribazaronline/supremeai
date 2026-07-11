@@ -148,7 +148,7 @@ async def compare_ranges(payload: CompareRequest):
                 f"{markdown_b}"
             ),
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 

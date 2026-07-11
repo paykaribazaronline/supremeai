@@ -114,7 +114,7 @@ async def stripe_webhook(request: Request, session: AsyncSession = Depends(get_d
     except stripe.error.SignatureVerificationError as e:
         logger.warning("Invalid Stripe signature detected. Dropping request.")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid signature") from e
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Webhook payload validation error: {str(e)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Payload validation failed") from e
 
@@ -152,7 +152,7 @@ async def stripe_webhook(request: Request, session: AsyncSession = Depends(get_d
     except StaleDataError as e:
         logger.critical(f"Concurrency Failure on Webhook for user {user_id}. Requires manual intervention.")
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Transaction conflict. Please contact support.") from e
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Internal server error during webhook processing: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error") from e
 
@@ -201,6 +201,6 @@ async def sslcommerz_webhook_listener(request: Request, session: AsyncSession = 
     except StaleDataError as e:
         logger.critical(f"Concurrency Failure on SSLCommerz Webhook for user {user_id}.")
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Transaction conflict.") from e
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"SSLCommerz Webhook processing failed: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error") from e

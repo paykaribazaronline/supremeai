@@ -76,7 +76,7 @@ def handle_agent_call_langchain(
             )
             tracker.track_success()
             return str(response.content)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         tracker.track_error()
         logger.error(f"LangChain invocation failed: {exc}")
         raise exc

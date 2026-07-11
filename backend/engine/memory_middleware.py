@@ -34,7 +34,7 @@ class MemoryMiddleware:
             logger.info(f"🧠 MemoryMiddleware: Found {len(experiences)} relevant memory chunks. Augmenting prompt.")
             memory_context = "\n".join([f"- Past insight: {exp['metadata'].get('solution', 'Unknown')}" for exp in experiences])
             return f"{task_prompt}\n\n--- RELEVANT PAST EXPERIENCE ---\n{memory_context}\n--------------------------------"
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to augment task with memory: {str(e)}")
             return task_prompt  # Fallback to original prompt
 

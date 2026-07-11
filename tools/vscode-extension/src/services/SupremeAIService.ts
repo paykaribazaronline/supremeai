@@ -134,7 +134,7 @@ export class SupremeAIService {
       return response.data;
     } catch (error: any) {
       if (error.response?.status === 429) {
-        return { success: false, message: "Rate limit exceeded (Cooldown Active). Please wait." };
+        return { success: false, message: 'Rate limit exceeded (Cooldown Active). Please wait.' };
       }
       console.error(`[SupremeAI] Failed to request self-healing: ${error.message}`);
       return { success: false, message: error.message };

@@ -42,7 +42,7 @@ async def update_constitutional_rule(payload: RuleUpdate):
     try:
         god_layer.set_rule(payload.key, payload.value)
         return {"status": "success", "message": f"Rule {payload.key} updated to {payload.value}"}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 

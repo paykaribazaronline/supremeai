@@ -71,7 +71,7 @@ export class TelemetryTracker extends BaseDisposable {
             });
             console.log(`[SupremeAI Telemetry] Sent: ${status} (Score: ${score.toFixed(2)})`);
         } catch (error) {
-            console.error(`[SupremeAI Telemetry] Failed to send telemetry:`, error);
+            console.error('[SupremeAI Telemetry] Failed to send telemetry:', error);
         }
     }
 }

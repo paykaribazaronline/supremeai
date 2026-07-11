@@ -103,7 +103,7 @@ class TestCalculateComplexity:
         assert detector._calculate_complexity(tree.body[0]) == 2
 
     def test_except_handler_increases_complexity(self, detector):
-        code = "def foo():\n    try:\n        pass\n    except Exception:\n        pass\n"
+        code = "def foo():\n    try:\n        pass\n    except Exception:  # noqa: BLE001\n        pass\n"
         tree = ast.parse(code)
         assert detector._calculate_complexity(tree.body[0]) == 2
 
@@ -143,7 +143,7 @@ class TestDetectBroadExceptions:
         assert result[0]["severity"] == "warning"
 
     def test_detects_broad_exception(self, detector):
-        code = "def foo():\n    try:\n        pass\n    except Exception:\n        pass\n"
+        code = "def foo():\n    try:\n        pass\n    except Exception:  # noqa: BLE001\n        pass\n"
         tree = ast.parse(code)
         result = detector._detect_broad_exceptions(tree, "test.py")
         assert len(result) == 1
@@ -170,7 +170,7 @@ class TestDetectBroadExceptions:
         assert result == []
 
     def test_multiple_broad_handlers(self, detector):
-        code = "def foo():\n    try:\n        pass\n    except Exception:\n        pass\n    except:\n        pass\n"
+        code = "def foo():\n    try:\n        pass\n    except Exception:  # noqa: BLE001\n        pass\n    except:\n        pass\n"
         tree = ast.parse(code)
         result = detector._detect_broad_exceptions(tree, "test.py")
         assert len(result) == 2
@@ -260,7 +260,7 @@ class TestAnalyzePythonFile:
         assert any(s["type"] == "Syntax Error" for s in result)
 
     def test_broad_exception_detected_when_no_dup_bug(self, detector, tmp_path):
-        src = "def foo():\n    try:\n        pass\n    except Exception:\n        pass\n"
+        src = "def foo():\n    try:\n        pass\n    except Exception:  # noqa: BLE001\n        pass\n"
         f = tmp_path / "be.py"
         f.write_text(src, encoding="utf-8")
         with patch.object(detector, "_detect_duplicate_functions", return_value=[]):

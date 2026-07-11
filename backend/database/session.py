@@ -34,7 +34,7 @@ async def get_db_session():
     async with AsyncSessionLocal() as session:
         try:
             yield session
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             await session.rollback()
             logger.error(f"Database transaction rolled back due to error: {e}")
             raise

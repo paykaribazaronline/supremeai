@@ -49,11 +49,11 @@ class WorkerRegistry:
                                 logger.warning(f"⚠️ Worker {worker_id} is stale and has been removed from active registry.")
                             # Delete stale record from KV
                             await nats_client.kv_store.delete(worker_id)
-                    except Exception:
+                    except Exception:  # noqa: BLE001
                         pass
 
                 self.active_workers = valid_workers
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Error reading worker registry: {str(e)}")
 
             await asyncio.sleep(5)

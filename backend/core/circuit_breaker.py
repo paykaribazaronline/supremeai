@@ -137,6 +137,6 @@ class CircuitBreaker:
             result = await func(*args, **kwargs)
             self.mark_success()
             return result
-        except Exception:
+        except Exception:  # noqa: BLE001
             self.mark_failure()
             raise

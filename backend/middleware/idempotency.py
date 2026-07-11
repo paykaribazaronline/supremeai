@@ -107,7 +107,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
 
             return response
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # বাংলা মন্তব্য: Exception হলে লক রিলিজ করা
             await release_idempotency_lock(idempotency_key)
             logger.error(f"❌ Execution failed inside Idempotency block: {str(e)}")

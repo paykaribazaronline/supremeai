@@ -31,6 +31,6 @@ class ApiRouter:
             raise KeyError(f"No handler registered for capability '{capability}'")
         try:
             return handler(payload)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             logger.exception("Dispatch failed for capability=%s", capability)
             return {"success": False, "error": str(exc), "capability": capability}

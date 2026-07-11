@@ -33,7 +33,7 @@ async def main():
         else:
             logger.warning("No matches found.")
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Test failed. Make sure API keys are set correctly: {str(e)}")
 
 

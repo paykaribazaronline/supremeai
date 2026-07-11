@@ -92,7 +92,7 @@ export class SelfHealingService extends BaseDisposable {
                 await this.showDiffView(uri, editor.document.getText(), fixResponse.fixedCode);
                 stateManager.setState(HealingState.SUCCESS);
             } else {
-                stateManager.setState(HealingState.FAILED, "No fix returned from backend.");
+                stateManager.setState(HealingState.FAILED, 'No fix returned from backend.');
             }
         } catch (err: any) {
             console.error('Self-healing failed', err);
@@ -150,7 +150,7 @@ export async function getSemanticContext(document: vscode.TextDocument, errorLin
             document.uri
         );
     } catch (e) {
-        console.warn("[SupremeAI] Symbol provider failed. Falling back to heuristic.", e);
+        console.warn('[SupremeAI] Symbol provider failed. Falling back to heuristic.', e);
     }
 
     const imports = extractImports(document);

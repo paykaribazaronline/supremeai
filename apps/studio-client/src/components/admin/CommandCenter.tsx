@@ -101,6 +101,7 @@ export function CommandCenter() {
     return () => {
       window.removeEventListener('supremeai_speak', handleAethelSpeak);
     };
+     
   }, []);
 
   const toggleVoiceRecording = async () => {
@@ -257,6 +258,7 @@ export function CommandCenter() {
 
     setNodes(initialNodes);
     setEdges(initialEdges);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

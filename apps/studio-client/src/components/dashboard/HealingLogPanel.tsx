@@ -27,6 +27,7 @@ export function HealingLogPanel() {
         showToast('error', 'Failed to load healing events');
       })
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDecision = async (id: string, approve: boolean) => {

@@ -26,7 +26,7 @@ class VectorDatabaseClient:
         # or handle exceptions gracefully if the key is dummy.
         try:
             self._ensure_index()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Pinecone init skipped (Missing API Key or Connection Error): {str(e)}")
 
         self.index = self.pc.Index(self.index_name)

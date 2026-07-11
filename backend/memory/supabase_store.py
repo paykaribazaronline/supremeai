@@ -51,7 +51,7 @@ class SupabaseStore(SQLiteMemoryStore):
                     raise RuntimeError("SUPABASE_KEY is required for Supabase client initialization")
 
                 self._supabase_client = create_client(url, key)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 raise RuntimeError(f"Supabase client init failed: {exc}") from exc
         return self._supabase_client
 

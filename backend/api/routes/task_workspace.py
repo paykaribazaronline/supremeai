@@ -56,7 +56,7 @@ async def execute_task(payload: TaskPayload, background_tasks: BackgroundTasks):
 
         return {"result": result_text, "status": "success"}
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"❌ Neural Pipeline Error: {str(e)}")  # noqa: T201
         raise HTTPException(status_code=500, detail="Neural connection pipeline error.") from e
 

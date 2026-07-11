@@ -47,7 +47,7 @@ async def save_credentials(payload: BYOCCredentialsPayload):
         encrypted_vault[user_id] = encrypted_data
 
         return {"status": "success", "message": "GCP Service Account credentials encrypted and securely saved.", "provider": payload.provider}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=f"Failed to encrypt credentials: {str(e)}") from e
 
 

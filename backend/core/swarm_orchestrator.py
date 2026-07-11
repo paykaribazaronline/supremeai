@@ -43,7 +43,7 @@ class CircuitBreaker:
                 self.state = CircuitBreakerState.CLOSED
                 self.failures = 0
             return result
-        except Exception:
+        except Exception:  # noqa: BLE001
             self.failures += 1
             self.last_failure_time = time.time()
             if self.failures >= self.failure_threshold:

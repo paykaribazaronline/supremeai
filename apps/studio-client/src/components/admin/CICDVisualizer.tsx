@@ -30,6 +30,7 @@ export function CICDVisualizer() {
 
   useEffect(() => {
     fetchGateStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleFlag = (id: string) => {

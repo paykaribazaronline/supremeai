@@ -49,7 +49,7 @@ async def get_preferences(user_id: str = Query(default="default")):
             "auto_save": True,
             "custom_shortcuts": {},
         }
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
@@ -69,7 +69,7 @@ async def upsert_preferences(user_id: str = Query(default="default"), payload: P
         if payload.theme:
             theme_pubsub.publish(user_id, payload.theme)
         return {"status": "success", "preferences": res.data[0] if res.data else data}
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 

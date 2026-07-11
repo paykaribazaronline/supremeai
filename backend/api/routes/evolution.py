@@ -59,7 +59,7 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
         if decoded.get("role") != "admin":
             raise HTTPException(status_code=403, detail="Forbidden: User does not have admin role.")
         return decoded
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         expected = os.getenv("SUPREMEAI_API_TOKEN") or ""
         if expected and secrets.compare_digest(token, expected):
             return {"uid": "admin", "role": "admin"}
@@ -88,7 +88,7 @@ async def get_evolution_logs(admin: dict = Depends(require_admin_token)):
             lines = f.readlines()
         logs = [json.loads(line) for line in lines if line.strip()]
         return {"logs": logs}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to read evolution logs: {e}")
         raise HTTPException(status_code=500, detail="Failed to read evolution logs") from e
 
@@ -198,7 +198,7 @@ async def quarantine_skill(
         return {"success": True, "skill_name": skill_name, "new_status": "QUARANTINED"}
     except HTTPException:
         raise
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.exception(f"Quarantine failed for '{skill_name}'")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -81,6 +81,6 @@ async def ingest(event: FeedbackEvent) -> FeedbackResponse:
         raise HTTPException(status_code=400, detail=handled.get("reason", "Unsupported feedback type"))
     except HTTPException:
         raise
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.error(f"feedback ingest failed: {exc}")
         raise HTTPException(status_code=500, detail=str(exc)) from exc
