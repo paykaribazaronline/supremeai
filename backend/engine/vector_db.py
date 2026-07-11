@@ -26,10 +26,10 @@ class VectorDatabaseClient:
         # or handle exceptions gracefully if the key is dummy.
         try:
             self._ensure_index()
+            self.index = self.pc.Index(self.index_name)
         except Exception as e:  # noqa: BLE001
             logger.warning(f"Pinecone init skipped (Missing API Key or Connection Error): {str(e)}")
-
-        self.index = self.pc.Index(self.index_name)
+            self.index = None
 
     def _ensure_index(self):
         indexes = [idx.name for idx in self.pc.list_indexes()]
@@ -47,7 +47,8 @@ class VectorDatabaseClient:
         doc_id = metadata.get("patch_id", f"exp_{uuid.uuid4().hex[:8]}")
 
         def _upsert():
-            self.index.upsert(vectors=[(doc_id, vector, metadata)])
+            if self.index:
+                self.index.upsert(vectors=[(doc_id, vector, metadata)])
 
         # Using asyncio.to_thread to prevent blocking the async event loop
         await asyncio.to_thread(_upsert)
@@ -57,7 +58,9 @@ class VectorDatabaseClient:
         """Retrieves relevant past experiences for RAG."""
 
         def _query():
-            return self.index.query(vector=vector, top_k=top_k, include_metadata=True)
+            if self.index:
+                return self.index.query(vector=vector, top_k=top_k, include_metadata=True)
+            return {"matches": []}
 
         results = await asyncio.to_thread(_query)
         return results.get("matches", [])
