@@ -54,7 +54,10 @@ def test_create_checkout_session_mock():
     assert "https://stripe.com/test" in data["url"]
 
 
-def test_webhook_ignored_if_missing_config():
+from unittest.mock import PropertyMock
+
+@patch("api.routes.payments.settings.stripe_webhook_secret", new_callable=PropertyMock, return_value="")
+def test_webhook_ignored_if_missing_config(mock_secret):
     # Verify webhook behaves gracefully when credentials/key are missing
     headers = {**auth_headers, "stripe-signature": "invalid-sig"}
     resp = client.post("/payments/webhook", headers=headers, content=b"some-payload")
