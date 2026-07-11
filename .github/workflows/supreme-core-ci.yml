@@ -958,19 +958,6 @@ jobs:
           git add -f backend/API-swagger.yaml || true
           git add -f API-swagger.yaml || true
           git diff-index --quiet HEAD || (git commit -m "docs: [auto-docs] Automated ADR, Codebase Docs & Dashboard [skip ci]" && git push) || echo "No changes to commit"
-      - name: Force Purge Unnecessary Old Caches (Smartest Clean)
-        if: always()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "🧹 Initiating Force Cache Purge Engine..."
-          gh cache list --repo ${{ github.repository }} --limit 100 | awk '{print $1}' | while read -r cache_key; do
-            if [ ! -z "$cache_key" ]; then
-              echo "🗑️ Force deleting stale cache key -> $cache_key"
-              gh cache delete "$cache_key" --repo ${{ github.repository }} || true
-            fi
-          done
-          echo "✅ Caches optimized successfully! runtime minutes saved."
       - name: Setup GitHub Pages Environment
         if: github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
