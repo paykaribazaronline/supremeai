@@ -906,7 +906,6 @@ jobs:
 
   generate-codebase-docs:
     name: 📝 Auto-Generate & Deploy Docs
-    needs: [backend-core, frontend-core]
     # বাংলা মন্তব্য: মেইন বা ডেভেলপ ব্রাঞ্চে পুশ করা হলে স্বয়ংক্রিয়ভাবে কোডবেসের মার্কডাউন ফাইল ও ড্যাশবোর্ড জেনারেট এবং ডিপ্লয় হবে
     runs-on: ubuntu-latest
     if: |
