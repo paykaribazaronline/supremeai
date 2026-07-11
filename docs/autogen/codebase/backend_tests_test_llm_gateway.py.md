@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_llm_gateway.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,062 বাইট  
-**আপডেট:** 2026-07-11T19:51:42.206106
+**সাইজ:** 5,064 বাইট  
+**আপডেট:** 2026-07-11T20:08:21.385456
 
 ---
 
@@ -25,9 +25,11 @@ def setup_litellm():
     litellm.telemetry = False
     yield
 
+
 @pytest.fixture(autouse=True)
 def disable_semantic_cache(monkeypatch):
     from unittest.mock import AsyncMock
+
     monkeypatch.setattr("core.semantic_cache.SemanticCache.query_similar", AsyncMock(return_value=None))
     yield
 

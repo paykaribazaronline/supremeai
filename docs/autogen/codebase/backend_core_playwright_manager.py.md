@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/core/playwright_manager.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,330 বাইট  
-**আপডেট:** 2026-07-11T19:51:42.162115
+**সাইজ:** 2,164 বাইট  
+**আপডেট:** 2026-07-11T20:08:21.348390
 
 ---
 
@@ -32,9 +32,13 @@ async def get_global_browser() -> Browser:
     global _playwright_runner, _global_browser
     if _global_browser is None:
         logger.info("🚀 Starting a new headless Global Chromium instance...")
-        if not callable(async_playwright):
+        import sys
+
+        current_module = sys.modules.get(__name__, sys.modules.get("core.playwright_manager"))
+        current_async_playwright = getattr(current_module, "async_playwright", async_playwright) if current_module else async_playwright
+        if not callable(current_async_playwright):
             raise RuntimeError("Playwright is not installed.")
-        _playwright_runner = await async_playwright().start()
+        _playwright_runner = await current_async_playwright().start()
         _global_browser = await _playwright_runner.chromium.launch(
             headless=True,
             args=[
@@ -49,18 +53,17 @@ async def get_global_browser() -> Browser:
 async def shutdown_global_browser():
     """Lifespan Hook দ্বারা কল করা হবে - কন্টেইনার শাটডাউনের সময় জম্বি প্রসেস ক্লিন করে"""
     global _playwright_runner, _global_browser
-    logger.info("🛡️ Initiating Playwright Global Lifespan Cleanup...")
     try:
         if _global_browser:
-            logger.info("Closing active global Chromium engine...")
             await _global_browser.close()
+    except Exception as e:
+        logger.error(f"Error closing global browser: {e}")
+
+    try:
         if _playwright_runner:
-            logger.info("Stopping playwright runner core context...")
             await _playwright_runner.stop()
-        logger.info("✅ All Playwright OS processes terminated cleanly.")
-    except (RuntimeError, OSError, ConnectionError, Exception) as e:  # noqa: BLE001
-        # প্লে-রাইট শাটডাউন করার সময় যেকোনো ধরনের ত্রুটি লগ করা হলো
-        logger.critical(f"❌ Error during global browser termination sequence: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error stopping global playwright runner: {e}")
     finally:
         _global_browser = None
         _playwright_runner = None

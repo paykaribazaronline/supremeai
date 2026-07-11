@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/pyproject.toml
 
 **প্রকার:** .toml  
-**সাইজ:** 7,029 বাইট  
-**আপডেট:** 2026-07-11T19:51:42.156745
+**সাইজ:** 7,049 বাইট  
+**আপডেট:** 2026-07-11T20:08:21.343008
 
 ---
 
@@ -154,7 +154,7 @@ target-version = "py311"
 
 [tool.ruff.lint]
 # Enable a curated rule set — customize per project needs
-select = ["E", "F", "W", "I", "UP", "B", "A", "C4", "SIM", "PL", "T201", "BLE001"]
+select = ["E", "F", "W", "I", "UP", "B", "A", "C4", "SIM", "PL", "T201", "BLE001", "PIE786", "RET503"]
 ignore = ["B008", "C901", "PLR0913", "PLC0415", "PLR0912", "PLR0915", "PLR0911", "PLR2004", "PLW0603", "W291", "W293", "C414", "E731", "F811", "PLW2901", "PLW0108", "SIM103", "SIM108", "SIM117", "SIM112"]
 fixable = ["ALL"]
 

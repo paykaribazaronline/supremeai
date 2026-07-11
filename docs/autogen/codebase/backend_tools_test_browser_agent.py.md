@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tools/test_browser_agent.py
 
 **প্রকার:** .py  
-**সাইজ:** 9,460 বাইট  
-**আপডেট:** 2026-07-11T19:51:42.246296
+**সাইজ:** 9,461 বাইট  
+**আপডেট:** 2026-07-11T20:08:21.420131
 
 ---
 
@@ -26,6 +26,7 @@ from core.security_utils import is_safe_url
 @pytest.fixture(autouse=True)
 def reset_global_state():
     import core.playwright_manager as pm
+
     pm._global_browser = None
     pm._playwright_runner = None
     yield

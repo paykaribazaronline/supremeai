@@ -1,12 +1,12 @@
-# 📋 Commit c4cfc7e5cdc60a62e2389d6cf92ba44b7465cbea
+# 📋 Commit efd89e30023ccee19767e4c255655cbf41aabfc2
 
 ## Commit Stats
 ```
-commit c4cfc7e5cdc60a62e2389d6cf92ba44b7465cbea
+commit efd89e30023ccee19767e4c255655cbf41aabfc2
 Author: SupremeAI CI Bot <ci-bot@supremeai.dev>
-Date:   Sat Jul 11 16:58:14 2026 +0600
+Date:   Sun Jul 12 02:02:47 2026 +0600
 
-    chore: trigger render deploy
+    refactor(core): make ContainerAuditor stateless and emit error events
 
  .agent                                             |     27 +
  .antigravity                                       |     27 +
@@ -35,11 +35,11 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .github/scripts/test_ai_reviewer.py                |     94 +
  .github/workflows/nightly-maintenance.yml          |    422 +
  .github/workflows/supreme-ci-auto-fix.yml          |    118 +
- .github/workflows/supreme-core-ci.yml              |    992 +
+ .github/workflows/supreme-core-ci.yml              |   1071 +
  .github/workflows/supreme-mobile-cd.yml            |    101 +
  .github/workflows/supreme-release-builds.yml       |    164 +
  .github/workflows/sync-from-prod.yml               |     41 +
- .gitignore                                         |    176 +
+ .gitignore                                         |    179 +
  .kilo/agent/bangla-tips.md                         |      4 +
  .kilo/agent/config.json                            |     60 +
  .kilo/mcp/README.md                                |     61 +
@@ -212,7 +212,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  apps/mobile/lib/screens/byoc_hub_screen.dart       |    252 +
  .../lib/screens/consensus/consensus_screen.dart    |     91 +
  apps/mobile/lib/screens/dashboard/home_screen.dart |    302 +
- apps/mobile/lib/screens/dashboard/main_shell.dart  |     63 +
+ apps/mobile/lib/screens/dashboard/main_shell.dart  |     64 +
  apps/mobile/lib/screens/dashboard_screen.dart      |    248 +
  .../lib/screens/extension/extension_screen.dart    |    145 +
  apps/mobile/lib/screens/git/git_screen.dart        |    145 +
@@ -241,7 +241,11 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  apps/mobile/lib/services/offline_sync_service.dart |    126 +
  .../lib/services/payment_gateway_bridge.dart       |     78 +
  apps/mobile/lib/services/screen_api_service.dart   |     51 +
- apps/mobile/lib/theme/app_theme.dart               |     40 +
+ apps/mobile/lib/src/shell/auth_state_shell.dart    |     52 +
+ apps/mobile/lib/src/theme/app_theme.dart           |     87 +
+ apps/mobile/lib/src/theme/tokens.dart              |     15 +
+ apps/mobile/lib/theme/app_theme.dart               |     42 +
+ apps/mobile/lib/theme/colors.dart                  |     18 +
  apps/mobile/lib/theme/theme_provider.dart          |     12 +
  apps/mobile/lib/theme/tokens.dart                  |     63 +
  apps/mobile/lib/widgets/Dockerfile                 |     48 +
@@ -254,8 +258,8 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  apps/mobile/lib/widgets/live_execution_logger.dart |     61 +
  apps/mobile/lib/widgets/live_terminal.dart         |     51 +
  apps/mobile/lib/widgets/loading_widgets.dart       |    146 +
- apps/mobile/lib/widgets/shimmer_loading.dart       |     80 +
- apps/mobile/lib/widgets/supreme_bottom_nav.dart    |     95 +
+ apps/mobile/lib/widgets/shimmer_loading.dart       |     81 +
+ apps/mobile/lib/widgets/supreme_bottom_nav.dart    |     96 +
  .../lib/widgets/supreme_ui/supreme_card.dart       |     50 +
  .../lib/widgets/supreme_ui/supreme_header.dart     |     60 +
  .../lib/widgets/transaction_history_list.dart      |     62 +
@@ -313,14 +317,17 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  apps/mobile/web/index.html                         |     46 +
  apps/mobile/web/manifest.json                      |     35 +
  apps/studio-client/.gitignore                      |     24 +
+ apps/studio-client/.storybook/main.ts              |     28 +
+ apps/studio-client/.storybook/preview.tsx          |     28 +
+ apps/studio-client/.storybook/withTheme.tsx        |     21 +
  apps/studio-client/README.md                       |     73 +
  apps/studio-client/components.json                 |      1 +
  apps/studio-client/dist-user/admin.html            |     13 +
- .../dist-user/assets/index-B3OObvel.css            |      1 +
- .../dist-user/assets/index-UGt2W9eO.js             |    181 +
+ .../dist-user/assets/index-BMQpdoKR.css            |      1 +
+ .../dist-user/assets/index-Bdhy0iVs.js             |    181 +
  .../dist-user/assets/vendor-flow-W7t6ZYNo.js       |      1 +
  .../dist-user/assets/vendor-query-C55vqb5j.js      |      1 +
- .../dist-user/assets/vendor-ui-Djgk_duE.js         |     61 +
+ .../dist-user/assets/vendor-ui-JV2hXOfp.js         |     61 +
  apps/studio-client/dist-user/customer.html         |     13 +
  apps/studio-client/dist-user/favicon.svg           |      1 +
  apps/studio-client/dist-user/icons.svg             |     29 +
@@ -329,9 +336,9 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  apps/studio-client/dist-user/sw.js                 |     98 +
  apps/studio-client/eslint.config.js                |     35 +
  apps/studio-client/index.html                      |    115 +
- apps/studio-client/main.js                         |     69 +
+ apps/studio-client/main.js                         |    105 +
  apps/studio-client/main.js.bak                     |     48 +
- apps/studio-client/package.json                    |    102 +
+ apps/studio-client/package.json                    |    115 +
  apps/studio-client/preload.cjs                     |      6 +
  apps/studio-client/public/admin.html               |     13 +
  apps/studio-client/public/customer.html            |     13 +
@@ -341,7 +348,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  apps/studio-client/public/sw.js                    |     98 +
  apps/studio-client/src/App.css                     |    184 +
  apps/studio-client/src/App.test.tsx                |    134 +
- apps/studio-client/src/App.tsx                     |    198 +
+ apps/studio-client/src/App.tsx                     |    204 +
  apps/studio-client/src/assets/hero.png             |      3 +
  apps/studio-client/src/assets/react.svg            |      1 +
  apps/studio-client/src/assets/vite.svg             |      1 +
@@ -355,11 +362,11 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../src/components/Onboarding/StepFirstChat.tsx    |     42 +
  .../src/components/Onboarding/StepModelSelect.tsx  |     54 +
  .../src/components/OperatorStudio.tsx              |     87 +
- apps/studio-client/src/components/SwarmMap.jsx     |     37 +
+ apps/studio-client/src/components/SwarmMap.tsx     |     45 +
  .../src/components/admin/ActionCard.tsx            |    159 +
  .../src/components/admin/AdminAuthenticated.tsx    |    231 +
  .../src/components/admin/AdminConsole.tsx          |     73 +
- .../src/components/admin/AdminDashboardHome.tsx    |    407 +
+ .../src/components/admin/AdminDashboardHome.tsx    |    362 +
  .../src/components/admin/AdminLogin.tsx            |     69 +
  .../src/components/admin/AdminSubTabContent.tsx    |    203 +
  .../src/components/admin/AdminTopNav.tsx           |     81 +
@@ -377,9 +384,11 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../src/components/admin/DeploymentModal.tsx       |    311 +
  .../src/components/admin/DynamicPanel.tsx          |    118 +
  .../components/admin/EnhancedSkillMarketplace.tsx  |    112 +
+ .../src/components/admin/GitHubCIWidget.tsx        |     71 +
  .../src/components/admin/GithubIntegration.tsx     |     89 +
  .../src/components/admin/HealthBanner.tsx          |     34 +
  .../src/components/admin/HealthMap.tsx             |    108 +
+ .../src/components/admin/HealthReportWidget.tsx    |     66 +
  .../src/components/admin/InteractiveChatTab.tsx    |    482 +
  .../src/components/admin/LiveLogs.tsx              |     90 +
  .../src/components/admin/MemoryBrowser.tsx         |    113 +
@@ -401,7 +410,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../src/components/chat/TypingIndicator.tsx        |     15 +
  .../src/components/chat/UnifiedChatBubble.tsx      |    196 +
  apps/studio-client/src/components/chat/index.ts    |      2 +
- .../src/components/core/AuthGuards.tsx             |     58 +
+ .../src/components/core/AuthGuards.tsx             |     54 +
  .../components/core/GlobalConfigInitializer.tsx    |     74 +
  .../src/components/customer/BrowserPreview.tsx     |     66 +
  .../src/components/customer/ChatPanel.test.tsx     |    159 +
@@ -418,10 +427,11 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../src/components/dashboard/AgentStatePill.tsx    |     38 +
  .../components/dashboard/AutomationQueuePage.tsx   |    234 +
  .../components/dashboard/DashboardShell.test.tsx   |    137 +
- .../src/components/dashboard/DashboardShell.tsx    |    209 +
+ .../src/components/dashboard/DashboardShell.tsx    |    210 +
  .../src/components/dashboard/ExecutionShell.tsx    |    113 +
  .../src/components/dashboard/FileTreePanel.tsx     |    106 +
  .../src/components/dashboard/GuardrailsPage.tsx    |    194 +
+ .../src/components/dashboard/Header.tsx            |     54 +
  .../src/components/dashboard/HealingLogPanel.tsx   |    169 +
  .../src/components/dashboard/KnowledgePage.tsx     |    117 +
  .../src/components/dashboard/LlmGatewayPage.tsx    |    219 +
@@ -431,6 +441,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../src/components/dashboard/SessionDetailPage.tsx |     72 +
  .../src/components/dashboard/SessionsPage.tsx      |    168 +
  .../src/components/dashboard/SettingsPage.tsx      |    178 +
+ .../src/components/dashboard/Sidebar.tsx           |     45 +
  .../src/components/dashboard/SiteActionsPage.tsx   |    421 +
  .../src/components/dashboard/UsagePage.tsx         |    121 +
  .../src/components/dashboard/VaultPage.tsx         |    293 +
@@ -438,6 +449,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../src/components/dashboard/useHashRoute.ts       |     53 +
  .../src/components/editor/CollabEditor.tsx         |    140 +
  .../src/components/graph/SkillGraph.tsx            |    114 +
+ apps/studio-client/src/components/layout/Shell.tsx |     43 +
  .../src/components/nodes/AgentNode.jsx             |     46 +
  .../src/components/nodes/SkillNode.jsx             |     19 +
  apps/studio-client/src/components/sujon-utils.ts   |    159 +
@@ -445,7 +457,12 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../src/components/swarm/SwarmHealthDashboard.tsx  |    111 +
  .../studio-client/src/components/ui/ActionCard.tsx |     54 +
  apps/studio-client/src/components/ui/Badge.tsx     |     23 +
- apps/studio-client/src/components/ui/Card.tsx      |     28 +
+ .../src/components/ui/Button.stories.tsx           |     54 +
+ apps/studio-client/src/components/ui/Button.tsx    |     47 +
+ .../src/components/ui/Card.stories.tsx             |     36 +
+ apps/studio-client/src/components/ui/Card.tsx      |     72 +
+ .../src/components/ui/Input.stories.tsx            |     56 +
+ apps/studio-client/src/components/ui/Input.tsx     |     43 +
  apps/studio-client/src/components/ui/Skeleton.tsx  |      3 +
  .../src/components/ui/SkeletonLoader.tsx           |     38 +
  apps/studio-client/src/components/ui/Toast.tsx     |     41 +
@@ -505,9 +522,11 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../pages/EvolutionForge/hooks/useForgeAutosave.ts |     22 +
  .../src/pages/EvolutionForge/nodes/AgentNode.tsx   |     49 +
  .../src/pages/EvolutionForge/nodes/TaskNode.tsx    |     54 +
- .../src/pages/IntegrationsManager.tsx              |     72 +
+ .../src/pages/IntegrationsManager.tsx              |     80 +
  apps/studio-client/src/pages/LoginPage.tsx         |     71 +
  apps/studio-client/src/pages/admin/AdminShell.tsx  |    235 +
+ apps/studio-client/src/pages/auth/LoginScreen.tsx  |     77 +
+ .../src/pages/auth/RegisterScreen.tsx              |     86 +
  .../src/providers/MockSwarmProvider.tsx            |     75 +
  .../src/providers/SwarmHealthContext.ts            |      5 +
  .../src/providers/ThemeSyncContext.ts              |     12 +
@@ -518,26 +537,49 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  apps/studio-client/src/services/agentService.ts    |     27 +
  .../src/services/api/microserviceMonitor.ts        |     32 +
  apps/studio-client/src/services/apiClient.test.ts  |     63 +
- apps/studio-client/src/services/apiClient.ts       |    116 +
+ apps/studio-client/src/services/apiClient.ts       |    124 +
  .../src/services/audio/AudioPlaybackService.ts     |     85 +
  .../src/services/audio/AudioRecorderService.ts     |    109 +
  apps/studio-client/src/services/authService.ts     |     30 +
  apps/studio-client/src/services/chatService.ts     |    137 +
  apps/studio-client/src/services/ciReportService.ts |     27 +
+ apps/studio-client/src/services/sandbox.ts         |    115 +
  apps/studio-client/src/services/storageApi.ts      |     53 +
  .../src/services/test_budget_check.test.ts         |     23 +
  apps/studio-client/src/store/adminStore.ts         |     89 +
+ apps/studio-client/src/store/authStore.ts          |     82 +
  apps/studio-client/src/store/customerStore.ts      |     68 +
  apps/studio-client/src/store/dashboardStore.ts     |     36 +
  .../studio-client/src/store/sessionCockpitStore.ts |    146 +
  apps/studio-client/src/store/themeStore.ts         |     20 +
  apps/studio-client/src/store/useStore.ts           |    170 +
+ apps/studio-client/src/stories/Configure.mdx       |    388 +
+ .../src/stories/assets/accessibility.png           |      3 +
+ .../src/stories/assets/accessibility.svg           |      1 +
+ .../src/stories/assets/addon-library.png           |      3 +
+ apps/studio-client/src/stories/assets/assets.png   |      3 +
+ .../src/stories/assets/avif-test-image.avif        |    Bin 0 -> 829 bytes
+ apps/studio-client/src/stories/assets/context.png  |      3 +
+ apps/studio-client/src/stories/assets/discord.svg  |      1 +
+ apps/studio-client/src/stories/assets/docs.png     |      3 +
+ .../src/stories/assets/figma-plugin.png            |      3 +
+ apps/studio-client/src/stories/assets/github.svg   |      1 +
+ apps/studio-client/src/stories/assets/share.png    |      3 +
+ apps/studio-client/src/stories/assets/styling.png  |      3 +
+ apps/studio-client/src/stories/assets/testing.png  |      3 +
+ apps/studio-client/src/stories/assets/theming.png  |      3 +
+ .../studio-client/src/stories/assets/tutorials.svg |      1 +
+ apps/studio-client/src/stories/assets/youtube.svg  |      1 +
+ apps/studio-client/src/stories/button.css          |     30 +
+ apps/studio-client/src/stories/header.css          |     32 +
+ apps/studio-client/src/stories/page.css            |     68 +
  apps/studio-client/src/test/setup.ts               |     38 +
  apps/studio-client/src/types.ts                    |     68 +
  apps/studio-client/src/types/customer.ts           |     77 +
  apps/studio-client/src/types/swarm.ts              |     26 +
  apps/studio-client/src/utils/api.ts                |     32 +
  apps/studio-client/src/utils/apiInterceptor.ts     |     66 +
+ apps/studio-client/src/utils/cn.ts                 |      6 +
  apps/studio-client/src/vite-env.d.ts               |      9 +
  apps/studio-client/src/workers/logParser.worker.ts |     44 +
  apps/studio-client/test-electron.mjs               |      1 +
@@ -569,7 +611,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  backend/.coveragerc                                |     99 +
  backend/.dockerignore                              |     50 +
  backend/.gcloudignore                              |     38 +
- backend/API-swagger.yaml                           |   9241 +
+ backend/API-swagger.yaml                           |   9455 +
  backend/Dockerfile                                 |     33 +
  backend/README.md                                  |     52 +
  backend/__init__.py                                |      0
@@ -598,9 +640,9 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../versions/664fe16e33ca_add_ci_reports_table.py  |     50 +
  .../versions/ed9761fee64f_create_system_config.py  |     50 +
  backend/api/__init__.py                            |      0
- backend/api/dependencies.py                        |     39 +
+ backend/api/dependencies.py                        |     47 +
  backend/api/routes/__init__.py                     |    486 +
- backend/api/routes/admin.py                        |    126 +
+ backend/api/routes/admin.py                        |    128 +
  backend/api/routes/admin_dashboard.py              |    841 +
  backend/api/routes/agent_tasks.py                  |    135 +
  backend/api/routes/agent_workspace.py              |    102 +
@@ -608,10 +650,10 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  backend/api/routes/api_keys.py                     |    265 +
  backend/api/routes/approval_manager.py             |     79 +
  backend/api/routes/async_task_router.py            |     36 +
- backend/api/routes/auth.py                         |     88 +
- backend/api/routes/billing_api.py                  |    206 +
+ backend/api/routes/auth.py                         |    104 +
+ backend/api/routes/billing_api.py                  |    303 +
  backend/api/routes/browser.py                      |    512 +
- backend/api/routes/byoc_api.py                     |    136 +
+ backend/api/routes/byoc_api.py                     |    142 +
  backend/api/routes/cdc_webhooks.py                 |     98 +
  backend/api/routes/chat.py                         |     92 +
  backend/api/routes/ci_webhooks.py                  |     31 +
@@ -620,12 +662,12 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  backend/api/routes/config.py                       |     56 +
  backend/api/routes/email.py                        |     43 +
  backend/api/routes/events.py                       |     58 +
- backend/api/routes/evolution.py                    |    248 +
+ backend/api/routes/evolution.py                    |    249 +
  backend/api/routes/execution_policies.py           |     55 +
  backend/api/routes/feedback.py                     |     86 +
  backend/api/routes/github.py                       |    117 +
  backend/api/routes/graph.py                        |    124 +
- backend/api/routes/health.py                       |     30 +
+ backend/api/routes/health.py                       |     36 +
  backend/api/routes/integrations.py                 |    125 +
  backend/api/routes/internal.py                     |     59 +
  backend/api/routes/knowledge.py                    |    131 +
@@ -649,9 +691,9 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  backend/api/routes/site_actions.py                 |    184 +
  backend/api/routes/sso.py                          |    201 +
  backend/api/routes/stream.py                       |     40 +
- backend/api/routes/swarm.py                        |    203 +
+ backend/api/routes/swarm.py                        |    195 +
  backend/api/routes/task.py                         |    433 +
- backend/api/routes/task_workspace.py               |     73 +
+ backend/api/routes/task_workspace.py               |     79 +
  backend/api/routes/tenant_admin.py                 |    375 +
  backend/api/routes/tools_ops.py                    |    157 +
  backend/api/routes/tools_registry.py               |     74 +
@@ -694,7 +736,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  backend/core/agent_orchestrator.py                 |    325 +
  backend/core/api_key_middleware.py                 |     71 +
  backend/core/api_key_rate_limiter.py               |     30 +
- backend/core/app.py                                |    316 +
+ backend/core/app.py                                |    335 +
  backend/core/audit_logger.py                       |     64 +
  backend/core/auth_middleware.py                    |    254 +
  backend/core/auto_remediation.py                   |    322 +
@@ -707,11 +749,10 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  backend/core/config_cache.py                       |    253 +
  backend/core/config_proxy.py                       |     50 +
  backend/core/constants.py                          |     13 +
- backend/core/container_auditor.py                  |     76 +
+ backend/core/container_auditor.py                  |     98 +
  backend/core/cost_guard.py                         |     74 +
  backend/core/db_repository.py                      |     86 +
  backend/core/decision_engine.py                    |     13 +
- backend/core/discord_bot.py                        |     58 +
  backend/core/docker-compose.yml                    |     75 +
  backend/core/email_service.py                      |     92 +
  backend/core/enum_guard.py                         |     66 +
@@ -738,7 +779,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  backend/core/knowledge_base.py                     |     35 +
  backend/core/language_router.py                    |     73 +
  backend/core/ld_client.py                          |     55 +
- backend/core/lifespan.py                           |    310 +
+ backend/core/lifespan.py                           |    287 +
  backend/core/llm_gateway.py                        |    394 +
  backend/core/log_batcher.py                        |    118 +
  backend/core/logging_config.py                     |     29 +
@@ -751,7 +792,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  backend/core/origin_validator.py                   |     60 +
  backend/core/output_validator.py                   |    156 +
  backend/core/pgbouncer_pool.py                     |     94 +
- backend/core/playwright_manager.py                 |     55 +
+ backend/core/playwright_manager.py                 |     58 +
  backend/core/posthog_client.py                     |     36 +
  backend/core/prompt_firewall.py                    |    159 +
  backend/core/prompt_handler.py                     |     21 +
@@ -827,7 +868,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  backend/evolution/skill_graph.py                   |    127 +
  backend/fix_coverage_tests.py                      |     40 +
  backend/fix_tests.py                               |     26 +
- backend/main.py                                    |     72 +
+ backend/main.py                                    |     53 +
  backend/memory/__init__.py                         |      0
  backend/memory/checkpoint_resume.py                |     26 +
  backend/memory/chromadb_store.py                   |    189 +
@@ -871,13 +912,15 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  backend/monitoring/__init__.py                     |      0
  backend/monitoring/cost_auditor.py                 |     27 +
  backend/mypy.ini                                   |      5 +
+ backend/old_app.py                                 |    309 +
  backend/p2p/__init__.py                            |      0
  backend/p2p/credit_system.py                       |     26 +
  backend/p2p/secure_tunnel.py                       |      9 +
- backend/pyproject.toml                             |    183 +
+ backend/pyproject.toml                             |    184 +
  backend/pytest.ini                                 |      6 +
  backend/reports/__init__.py                        |      0
  backend/reports/optimization_engine.py             |      9 +
+ backend/reproduce_pytest.py                        |     28 +
  backend/run_roundtrip_tests.py                     |     27 +
  backend/scout/__init__.py                          |      0
  backend/scout/knowledge_extractor.py               |     20 +
@@ -892,6 +935,8 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  backend/scripts/self_healing_tests.py              |     99 +
  backend/scripts/trigger_mock_error.py              |     31 +
  backend/services/github_agent.py                   |    115 +
+ backend/services/memory_service.py                 |     39 +
+ backend/services/sandbox_service.py                |     98 +
  backend/storage/__init__.py                        |      1 +
  backend/storage/asset_manager.py                   |    140 +
  backend/storage/r2_storage_client.py               |     71 +
@@ -908,15 +953,23 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  backend/tests/conftest.py                          |    179 +
  backend/tests/core/test_agent_factory.py           |     44 +
  backend/tests/core/test_config_proxy.py            |     88 +
- backend/tests/core/test_core_missing_coverage.py   |    631 +
+ backend/tests/core/test_container_auditor.py       |    359 +
+ backend/tests/core/test_core_missing_coverage.py   |   1203 +
  backend/tests/core/test_cost_guard.py              |     67 +
+ backend/tests/core/test_cost_guard_coverage.py     |    348 +
  backend/tests/core/test_enum_guard.py              |     92 +
+ backend/tests/core/test_event_bus_coverage.py      |    645 +
  backend/tests/core/test_integration_phase3.py      |     50 +
  backend/tests/core/test_knowledge_base.py          |    107 +
  backend/tests/core/test_log_batcher.py             |    216 +
+ backend/tests/core/test_nats_messaging.py          |    412 +
+ backend/tests/core/test_playwright_manager.py      |    339 +
  backend/tests/core/test_security_vault.py          |     64 +
  backend/tests/core/test_self_healer.py             |     60 +
  backend/tests/core/test_swarm_orchestrator.py      |     47 +
+ .../tests/core/test_swarm_orchestrator_coverage.py |    433 +
+ backend/tests/core/test_swarm_pubsub.py            |    347 +
+ backend/tests/core/test_theme_pubsub.py            |    340 +
  backend/tests/engine/test_cost_optimizer.py        |     55 +
  backend/tests/engine/test_model_dispatcher.py      |     39 +
  backend/tests/load/locustfile.py                   |     81 +
@@ -941,12 +994,13 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  backend/tests/test_api_router.py                   |     67 +
  backend/tests/test_audit_logger.py                 |     56 +
  backend/tests/test_auth_middleware.py              |    250 +
- backend/tests/test_auth_routes.py                  |    176 +
+ backend/tests/test_auth_routes.py                  |    177 +
  backend/tests/test_auto_fix_trigger.py             |      3 +
  backend/tests/test_auto_skill_creator.py           |    197 +
  backend/tests/test_autonomous_agent.py             |     68 +
  backend/tests/test_bangla_nlp.py                   |     28 +
  backend/tests/test_bangla_voice.py                 |     68 +
+ backend/tests/test_billing_api_integration.py      |     27 +
  backend/tests/test_billing_system.py               |    142 +
  backend/tests/test_brain.py                        |    137 +
  backend/tests/test_browser_credentials.py          |     64 +
@@ -994,12 +1048,12 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  backend/tests/test_health_monitor.py               |    151 +
  backend/tests/test_health_monitor_routes.py        |     53 +
  backend/tests/test_honeypot_middleware.py          |    182 +
- backend/tests/test_idempotency_middleware.py       |    114 +
+ backend/tests/test_idempotency_middleware.py       |    100 +
  backend/tests/test_immune_system.py                |     88 +
  backend/tests/test_immune_system_scanner.py        |     55 +
  backend/tests/test_input_sanitizer.py              |     78 +
  backend/tests/test_language_router.py              |     53 +
- backend/tests/test_llm_gateway.py                  |    141 +
+ backend/tests/test_llm_gateway.py                  |    149 +
  backend/tests/test_llm_gateway_coverage.py         |    171 +
  backend/tests/test_long_term_memory.py             |     24 +
  backend/tests/test_markdown_export.py              |     57 +
@@ -1021,7 +1075,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  backend/tests/test_multi_account_rotator.py        |    420 +
  backend/tests/test_multicloud.py                   |     79 +
  backend/tests/test_new_endpoints_sprint5.py        |    109 +
- backend/tests/test_new_interfaces.py               |     75 +
+ backend/tests/test_new_interfaces.py               |     69 +
  backend/tests/test_new_tools_sprint5.py            |     92 +
  backend/tests/test_optimization_engine.py          |     20 +
  backend/tests/test_output_validator.py             |     70 +
@@ -1182,7 +1236,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  backend/tools/telegram_bot.py                      |    291 +
  backend/tools/tenant_rate_limiter.py               |    222 +
  backend/tools/test_3d_model_generator.py           |      1 +
- backend/tools/test_browser_agent.py                |    196 +
+ backend/tools/test_browser_agent.py                |    208 +
  backend/tools/test_cloud_sandbox_orchestrator.py   |     81 +
  backend/tools/test_docker_sandbox.py               |    145 +
  backend/tools/test_freebuff_client.py              |     65 +
@@ -1219,6 +1273,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  config/routing_policy.json                         |     13 +
  config/vercel.json                                 |      7 +
  coverage.toml                                      |     29 +
+ deploy_render.py                                   |     18 +
  docker-compose.prod.yml                            |     62 +
  docker-compose.yml                                 |     82 +
  .../1,supremeai_repo_optimization_guide.md         |    474 +
@@ -1316,16 +1371,16 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  docs/auto_fix_in_github_implementation_plan.md     |    352 +
  docs/autogen/INDEX.md                              |     16 +
  docs/autogen/LATEST-PUSH-SUMMARY.md                |      3 +
- ...nge_43411f33de567881034b7fbaec863c25ed7110dd.md |     52 +
- ...nge_552186f6803f6c381f9a9b96d40222ac8214f6e8.md |    313 +
- ...nge_6558b31c45fa64147193aa433555ea28f61d688b.md |  19116 ++
- ...nge_81e69fabe74016d89221ba07607324fc762590fa.md |     37 +
- ...nge_8f6a4f074d05ed4dde2c5f141b8cbcf1b6cc1bd7.md |    131 +
- ...nge_922606d53ed2b6ef06eacbb4110d36e82a937bab.md |    133 +
- ...nge_b07ec0564fb3a196f420beedc150cdb2d35fad1a.md |    111 +
+ ...nge_c4cfc7e5cdc60a62e2389d6cf92ba44b7465cbea.md |  19195 ++
+ ...nge_d40e8445edf52b529a53878dc6d1c894f0e89459.md |  19260 ++
  ...nge_d608096b2b46a46c8b2b820bc54e9d82e0be8310.md |     82 +
  ...nge_d694966ffe7614a4d01df6e8b0029fd2b808419c.md |  19195 ++
+ ...nge_e301961d9306f6bc8e75e4d7bd7b1422c22d31fe.md |  19222 ++
+ ...nge_e9322788b7dee95be9a3141c8103bb8b34377fac.md |  19274 ++
+ ...nge_eb16d7f0026849385d02384261a0e62da305548c.md |  19206 ++
  ...nge_f0c62b0afa0e7d0457ae133ebdd93b7ca0ce4244.md |  19195 ++
+ ...nge_f79a9d3b60dcc50b94dd8a66b76f53f77f59b0bb.md |  19272 ++
+ ...nge_fd21708bed34508f82c2a57941e3482be493e64d.md |  19260 ++
  .../.github_actions_setup-backend_action.yml.md    |     45 +
  ...github_scripts_advanced-validation-report.py.md |    266 +
  .../codebase/.github_scripts_canary-deploy.py.md   |    386 +
@@ -1345,7 +1400,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../.github_scripts_test_ai_reviewer.py.md         |    107 +
  .../.github_workflows_nightly-maintenance.yml.md   |    435 +
  .../.github_workflows_supreme-ci-auto-fix.yml.md   |    130 +
- .../.github_workflows_supreme-core-ci.yml.md       |    995 +
+ .../.github_workflows_supreme-core-ci.yml.md       |   1084 +
  .../.github_workflows_supreme-mobile-cd.yml.md     |    114 +
  ....github_workflows_supreme-release-builds.yml.md |    177 +
  .../.github_workflows_sync-from-prod.yml.md        |     53 +
@@ -1409,7 +1464,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  ...apps_mobile_lib_screens_byoc_hub_screen.dart.md |    265 +
  ..._lib_screens_consensus_consensus_screen.dart.md |    104 +
  ...obile_lib_screens_dashboard_home_screen.dart.md |    314 +
- ...mobile_lib_screens_dashboard_main_shell.dart.md |     76 +
+ ...mobile_lib_screens_dashboard_main_shell.dart.md |     77 +
  ...pps_mobile_lib_screens_dashboard_screen.dart.md |    261 +
  ..._lib_screens_extension_extension_screen.dart.md |    158 +
  .../apps_mobile_lib_screens_git_git_screen.dart.md |    158 +
@@ -1438,7 +1493,11 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  ...obile_lib_services_offline_sync_service.dart.md |    139 +
  ...ile_lib_services_payment_gateway_bridge.dart.md |     91 +
  ..._mobile_lib_services_screen_api_service.dart.md |     64 +
- .../apps_mobile_lib_theme_app_theme.dart.md        |     52 +
+ ...s_mobile_lib_src_shell_auth_state_shell.dart.md |     65 +
+ .../apps_mobile_lib_src_theme_app_theme.dart.md    |    100 +
+ .../apps_mobile_lib_src_theme_tokens.dart.md       |     28 +
+ .../apps_mobile_lib_theme_app_theme.dart.md        |     54 +
+ .../codebase/apps_mobile_lib_theme_colors.dart.md  |     31 +
  .../apps_mobile_lib_theme_theme_provider.dart.md   |     24 +
  .../codebase/apps_mobile_lib_theme_tokens.dart.md  |     76 +
  ...apps_mobile_lib_widgets_action_hub_card.dart.md |     75 +
@@ -1450,8 +1509,8 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  ...obile_lib_widgets_live_execution_logger.dart.md |     74 +
  .../apps_mobile_lib_widgets_live_terminal.dart.md  |     64 +
  ...apps_mobile_lib_widgets_loading_widgets.dart.md |    159 +
- ...apps_mobile_lib_widgets_shimmer_loading.dart.md |     93 +
- ...s_mobile_lib_widgets_supreme_bottom_nav.dart.md |    108 +
+ ...apps_mobile_lib_widgets_shimmer_loading.dart.md |     94 +
+ ...s_mobile_lib_widgets_supreme_bottom_nav.dart.md |    109 +
  ...ile_lib_widgets_supreme_ui_supreme_card.dart.md |     63 +
  ...e_lib_widgets_supreme_ui_supreme_header.dart.md |     73 +
  ...le_lib_widgets_transaction_history_list.dart.md |     75 +
@@ -1467,19 +1526,19 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../codebase/apps_mobile_web_manifest.json.md      |     48 +
  .../codebase/apps_studio-client_README.md.md       |     86 +
  .../codebase/apps_studio-client_components.json.md |     14 +
- ...io-client_dist-user_assets_index-UGt2W9eO.js.md |    194 +
+ ...io-client_dist-user_assets_index-Bdhy0iVs.js.md |    194 +
  ...ent_dist-user_assets_vendor-flow-W7t6ZYNo.js.md |     14 +
  ...nt_dist-user_assets_vendor-query-C55vqb5j.js.md |     14 +
- ...lient_dist-user_assets_vendor-ui-Djgk_duE.js.md |     74 +
+ ...lient_dist-user_assets_vendor-ui-JV2hXOfp.js.md |     74 +
  .../apps_studio-client_dist-user_manifest.json.md  |     46 +
  .../codebase/apps_studio-client_dist-user_sw.js.md |    111 +
  .../apps_studio-client_eslint.config.js.md         |     47 +
- .../autogen/codebase/apps_studio-client_main.js.md |     82 +
- .../codebase/apps_studio-client_package.json.md    |    115 +
+ .../autogen/codebase/apps_studio-client_main.js.md |    118 +
+ .../codebase/apps_studio-client_package.json.md    |    128 +
  .../apps_studio-client_public_manifest.json.md     |     46 +
  .../codebase/apps_studio-client_public_sw.js.md    |    111 +
  .../apps_studio-client_src_App.test.tsx.md         |    147 +
- .../codebase/apps_studio-client_src_App.tsx.md     |    211 +
+ .../codebase/apps_studio-client_src_App.tsx.md     |    217 +
  ...tudio-client_src_components_AdminConsole.tsx.md |     83 +
  ..._studio-client_src_components_BanglaHint.tsx.md |     42 +
  ...io-client_src_components_FixPreviewModal.tsx.md |     96 +
@@ -1490,11 +1549,11 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  ..._src_components_Onboarding_StepFirstChat.tsx.md |     55 +
  ...rc_components_Onboarding_StepModelSelect.tsx.md |     67 +
  ...dio-client_src_components_OperatorStudio.tsx.md |    100 +
- ...ps_studio-client_src_components_SwarmMap.jsx.md |     50 +
+ ...ps_studio-client_src_components_SwarmMap.tsx.md |     58 +
  ...o-client_src_components_admin_ActionCard.tsx.md |    172 +
  ..._src_components_admin_AdminAuthenticated.tsx.md |    244 +
  ...client_src_components_admin_AdminConsole.tsx.md |     86 +
- ..._src_components_admin_AdminDashboardHome.tsx.md |    419 +
+ ..._src_components_admin_AdminDashboardHome.tsx.md |    374 +
  ...o-client_src_components_admin_AdminLogin.tsx.md |     82 +
  ..._src_components_admin_AdminSubTabContent.tsx.md |    216 +
  ...-client_src_components_admin_AdminTopNav.tsx.md |     94 +
@@ -1511,9 +1570,11 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  ...ent_src_components_admin_DeploymentModal.tsx.md |    324 +
  ...client_src_components_admin_DynamicPanel.tsx.md |    131 +
  ...omponents_admin_EnhancedSkillMarketplace.tsx.md |    125 +
+ ...ient_src_components_admin_GitHubCIWidget.tsx.md |     84 +
  ...t_src_components_admin_GithubIntegration.tsx.md |    102 +
  ...client_src_components_admin_HealthBanner.tsx.md |     47 +
  ...io-client_src_components_admin_HealthMap.tsx.md |    121 +
+ ..._src_components_admin_HealthReportWidget.tsx.md |     79 +
  ..._src_components_admin_InteractiveChatTab.tsx.md |    495 +
  ...dio-client_src_components_admin_LiveLogs.tsx.md |    103 +
  ...lient_src_components_admin_MemoryBrowser.tsx.md |    126 +
@@ -1535,7 +1596,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  ...ient_src_components_chat_TypingIndicator.tsx.md |     28 +
  ...nt_src_components_chat_UnifiedChatBubble.tsx.md |    209 +
  ...s_studio-client_src_components_chat_index.ts.md |     15 +
- ...io-client_src_components_core_AuthGuards.tsx.md |     71 +
+ ...io-client_src_components_core_AuthGuards.tsx.md |     67 +
  ..._components_core_GlobalConfigInitializer.tsx.md |     87 +
  ...t_src_components_customer_BrowserPreview.tsx.md |     79 +
  ...t_src_components_customer_ChatPanel.test.tsx.md |    172 +
@@ -1551,10 +1612,11 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  ..._src_components_dashboard_AgentStatePill.tsx.md |     51 +
  ...components_dashboard_AutomationQueuePage.tsx.md |    247 +
  ...components_dashboard_DashboardShell.test.tsx.md |    150 +
- ..._src_components_dashboard_DashboardShell.tsx.md |    222 +
+ ..._src_components_dashboard_DashboardShell.tsx.md |    223 +
  ..._src_components_dashboard_ExecutionShell.tsx.md |    126 +
  ...t_src_components_dashboard_FileTreePanel.tsx.md |    119 +
  ..._src_components_dashboard_GuardrailsPage.tsx.md |    207 +
+ ...o-client_src_components_dashboard_Header.tsx.md |     67 +
  ...src_components_dashboard_HealingLogPanel.tsx.md |    182 +
  ...t_src_components_dashboard_KnowledgePage.tsx.md |    130 +
  ..._src_components_dashboard_LlmGatewayPage.tsx.md |    232 +
@@ -1564,6 +1626,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  ...c_components_dashboard_SessionDetailPage.tsx.md |     85 +
  ...nt_src_components_dashboard_SessionsPage.tsx.md |    181 +
  ...nt_src_components_dashboard_SettingsPage.tsx.md |    191 +
+ ...-client_src_components_dashboard_Sidebar.tsx.md |     58 +
  ...src_components_dashboard_SiteActionsPage.tsx.md |    434 +
  ...lient_src_components_dashboard_UsagePage.tsx.md |    134 +
  ...lient_src_components_dashboard_VaultPage.tsx.md |    306 +
@@ -1571,6 +1634,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  ...ent_src_components_dashboard_useHashRoute.ts.md |     66 +
  ...lient_src_components_editor_CollabEditor.tsx.md |    153 +
  ...o-client_src_components_graph_SkillGraph.tsx.md |    127 +
+ ...tudio-client_src_components_layout_Shell.tsx.md |     56 +
  ...io-client_src_components_nodes_AgentNode.jsx.md |     59 +
  ...io-client_src_components_nodes_SkillNode.jsx.md |     32 +
  ..._studio-client_src_components_sujon-utils.ts.md |    171 +
@@ -1578,7 +1642,12 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  ...rc_components_swarm_SwarmHealthDashboard.tsx.md |    124 +
  ...udio-client_src_components_ui_ActionCard.tsx.md |     67 +
  ...ps_studio-client_src_components_ui_Badge.tsx.md |     36 +
- ...pps_studio-client_src_components_ui_Card.tsx.md |     41 +
+ ...-client_src_components_ui_Button.stories.tsx.md |     67 +
+ ...s_studio-client_src_components_ui_Button.tsx.md |     60 +
+ ...io-client_src_components_ui_Card.stories.tsx.md |     49 +
+ ...pps_studio-client_src_components_ui_Card.tsx.md |     85 +
+ ...o-client_src_components_ui_Input.stories.tsx.md |     69 +
+ ...ps_studio-client_src_components_ui_Input.tsx.md |     56 +
  ...studio-client_src_components_ui_Skeleton.tsx.md |     16 +
  ...-client_src_components_ui_SkeletonLoader.tsx.md |     51 +
  ...ps_studio-client_src_components_ui_Toast.tsx.md |     53 +
@@ -1634,9 +1703,11 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  ...ges_EvolutionForge_hooks_useForgeAutosave.ts.md |     35 +
  ...src_pages_EvolutionForge_nodes_AgentNode.tsx.md |     62 +
  ..._src_pages_EvolutionForge_nodes_TaskNode.tsx.md |     67 +
- ...dio-client_src_pages_IntegrationsManager.tsx.md |     85 +
+ ...dio-client_src_pages_IntegrationsManager.tsx.md |     93 +
  .../apps_studio-client_src_pages_LoginPage.tsx.md  |     84 +
  ...studio-client_src_pages_admin_AdminShell.tsx.md |    248 +
+ ...studio-client_src_pages_auth_LoginScreen.tsx.md |     90 +
+ ...dio-client_src_pages_auth_RegisterScreen.tsx.md |     99 +
  ...o-client_src_providers_MockSwarmProvider.tsx.md |     87 +
  ...o-client_src_providers_SwarmHealthContext.ts.md |     17 +
  ...dio-client_src_providers_ThemeSyncContext.ts.md |     24 +
@@ -1646,16 +1717,18 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  ...tudio-client_src_services_adminTokenStore.ts.md |     56 +
  ...s_studio-client_src_services_agentService.ts.md |     40 +
  ...studio-client_src_services_apiClient.test.ts.md |     76 +
- ...apps_studio-client_src_services_apiClient.ts.md |    129 +
+ ...apps_studio-client_src_services_apiClient.ts.md |    137 +
  ...ient_src_services_api_microserviceMonitor.ts.md |     45 +
  ...t_src_services_audio_AudioPlaybackService.ts.md |     98 +
  ...t_src_services_audio_AudioRecorderService.ts.md |    122 +
  ...ps_studio-client_src_services_authService.ts.md |     43 +
  ...ps_studio-client_src_services_chatService.ts.md |    150 +
  ...tudio-client_src_services_ciReportService.ts.md |     40 +
+ .../apps_studio-client_src_services_sandbox.ts.md  |    128 +
  ...pps_studio-client_src_services_storageApi.ts.md |     66 +
  ...lient_src_services_test_budget_check.test.ts.md |     36 +
  .../apps_studio-client_src_store_adminStore.ts.md  |    102 +
+ .../apps_studio-client_src_store_authStore.ts.md   |     95 +
  ...pps_studio-client_src_store_customerStore.ts.md |     81 +
  ...ps_studio-client_src_store_dashboardStore.ts.md |     49 +
  ...udio-client_src_store_sessionCockpitStore.ts.md |    159 +
@@ -1667,6 +1740,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../apps_studio-client_src_types_swarm.ts.md       |     39 +
  .../apps_studio-client_src_utils_api.ts.md         |     45 +
  ...ps_studio-client_src_utils_apiInterceptor.ts.md |     79 +
+ .../codebase/apps_studio-client_src_utils_cn.ts.md |     19 +
  .../apps_studio-client_src_vite-env.d.ts.md        |     22 +
  ...tudio-client_src_workers_logParser.worker.ts.md |     56 +
  .../apps_studio-client_tsconfig.app.json.md        |     38 +
@@ -1687,7 +1761,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../codebase/apps_web-chat_vite-env.d.ts.md        |     14 +
  .../codebase/apps_web-chat_vite.config.ts.md       |     23 +
  .../codebase/apps_web-chat_vitest.config.ts.md     |     21 +
- docs/autogen/codebase/backend_API-swagger.yaml.md  |   9254 +
+ docs/autogen/codebase/backend_API-swagger.yaml.md  |   9468 +
  docs/autogen/codebase/backend_README.md.md         |     65 +
  .../backend_adaptive_engine_experience_db.py.md    |    312 +
  .../codebase/backend_adaptive_engine_init_.py.md   |     13 +
@@ -1710,9 +1784,9 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  docs/autogen/codebase/backend_alembic_env.py.md    |    102 +
  ...ersions_664fe16e33ca_add_ci_reports_table.py.md |     63 +
  ...ersions_ed9761fee64f_create_system_config.py.md |     63 +
- .../codebase/backend_api_dependencies.py.md        |     52 +
+ .../codebase/backend_api_dependencies.py.md        |     60 +
  docs/autogen/codebase/backend_api_init_.py.md      |     13 +
- .../codebase/backend_api_routes_admin.py.md        |    139 +
+ .../codebase/backend_api_routes_admin.py.md        |    141 +
  .../backend_api_routes_admin_dashboard.py.md       |    854 +
  .../codebase/backend_api_routes_agent_tasks.py.md  |    148 +
  .../backend_api_routes_agent_workspace.py.md       |    115 +
@@ -1720,10 +1794,10 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../codebase/backend_api_routes_api_keys.py.md     |    278 +
  .../backend_api_routes_approval_manager.py.md      |     92 +
  .../backend_api_routes_async_task_router.py.md     |     49 +
- .../autogen/codebase/backend_api_routes_auth.py.md |    101 +
- .../codebase/backend_api_routes_billing_api.py.md  |    219 +
+ .../autogen/codebase/backend_api_routes_auth.py.md |    117 +
+ .../codebase/backend_api_routes_billing_api.py.md  |    316 +
  .../codebase/backend_api_routes_browser.py.md      |    525 +
- .../codebase/backend_api_routes_byoc_api.py.md     |    149 +
+ .../codebase/backend_api_routes_byoc_api.py.md     |    155 +
  .../codebase/backend_api_routes_cdc_webhooks.py.md |    111 +
  .../autogen/codebase/backend_api_routes_chat.py.md |    105 +
  .../codebase/backend_api_routes_ci_webhooks.py.md  |     44 +
@@ -1732,12 +1806,12 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../codebase/backend_api_routes_config.py.md       |     69 +
  .../codebase/backend_api_routes_email.py.md        |     56 +
  .../codebase/backend_api_routes_events.py.md       |     71 +
- .../codebase/backend_api_routes_evolution.py.md    |    261 +
+ .../codebase/backend_api_routes_evolution.py.md    |    262 +
  .../backend_api_routes_execution_policies.py.md    |     68 +
  .../codebase/backend_api_routes_feedback.py.md     |     99 +
  .../codebase/backend_api_routes_github.py.md       |    130 +
  .../codebase/backend_api_routes_graph.py.md        |    137 +
- .../codebase/backend_api_routes_health.py.md       |     43 +
+ .../codebase/backend_api_routes_health.py.md       |     49 +
  .../codebase/backend_api_routes_init_.py.md        |    499 +
  .../codebase/backend_api_routes_integrations.py.md |    138 +
  .../codebase/backend_api_routes_internal.py.md     |     72 +
@@ -1762,9 +1836,9 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../codebase/backend_api_routes_site_actions.py.md |    197 +
  docs/autogen/codebase/backend_api_routes_sso.py.md |    214 +
  .../codebase/backend_api_routes_stream.py.md       |     53 +
- .../codebase/backend_api_routes_swarm.py.md        |    216 +
+ .../codebase/backend_api_routes_swarm.py.md        |    208 +
  .../autogen/codebase/backend_api_routes_task.py.md |    446 +
- .../backend_api_routes_task_workspace.py.md        |     86 +
+ .../backend_api_routes_task_workspace.py.md        |     92 +
  .../codebase/backend_api_routes_tenant_admin.py.md |    388 +
  .../codebase/backend_api_routes_tools_ops.py.md    |    170 +
  .../backend_api_routes_tools_registry.py.md        |     87 +
@@ -1788,7 +1862,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../codebase/backend_core_agent_orchestrator.py.md |    338 +
  .../codebase/backend_core_api_key_middleware.py.md |     84 +
  .../backend_core_api_key_rate_limiter.py.md        |     43 +
- docs/autogen/codebase/backend_core_app.py.md       |    329 +
+ docs/autogen/codebase/backend_core_app.py.md       |    348 +
  .../codebase/backend_core_audit_logger.py.md       |     77 +
  .../codebase/backend_core_auth_middleware.py.md    |    267 +
  .../codebase/backend_core_auto_remediation.py.md   |    335 +
@@ -1805,7 +1879,6 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../autogen/codebase/backend_core_cost_guard.py.md |     87 +
  .../codebase/backend_core_db_repository.py.md      |     99 +
  .../codebase/backend_core_decision_engine.py.md    |     26 +
- .../codebase/backend_core_discord_bot.py.md        |     71 +
  .../codebase/backend_core_docker-compose.yml.md    |     88 +
  .../codebase/backend_core_email_service.py.md      |    105 +
  .../autogen/codebase/backend_core_enum_guard.py.md |     79 +
@@ -1833,7 +1906,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../codebase/backend_core_knowledge_base.py.md     |     48 +
  .../codebase/backend_core_language_router.py.md    |     86 +
  docs/autogen/codebase/backend_core_ld_client.py.md |     68 +
- docs/autogen/codebase/backend_core_lifespan.py.md  |    323 +
+ docs/autogen/codebase/backend_core_lifespan.py.md  |    300 +
  .../codebase/backend_core_llm_gateway.py.md        |    407 +
  .../codebase/backend_core_log_batcher.py.md        |    131 +
  .../codebase/backend_core_logging_config.py.md     |     42 +
@@ -1924,7 +1997,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../codebase/backend_fix_coverage_tests.py.md      |     53 +
  docs/autogen/codebase/backend_fix_tests.py.md      |     39 +
  docs/autogen/codebase/backend_init_.py.md          |     13 +
- docs/autogen/codebase/backend_main.py.md           |     85 +
+ docs/autogen/codebase/backend_main.py.md           |     66 +
  .../backend_memory_checkpoint_resume.py.md         |     39 +
  .../codebase/backend_memory_chromadb_store.py.md   |    202 +
  .../backend_memory_cloud_postgres_store.py.md      |    168 +
@@ -1967,10 +2040,11 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  docs/autogen/codebase/backend_models_wallet.py.md  |     64 +
  .../codebase/backend_monitoring_cost_auditor.py.md |     40 +
  .../codebase/backend_monitoring_init_.py.md        |     13 +
+ docs/autogen/codebase/backend_old_app.py.md        |    322 +
  .../codebase/backend_p2p_credit_system.py.md       |     39 +
  docs/autogen/codebase/backend_p2p_init_.py.md      |     13 +
  .../codebase/backend_p2p_secure_tunnel.py.md       |     22 +
- docs/autogen/codebase/backend_pyproject.toml.md    |    196 +
+ docs/autogen/codebase/backend_pyproject.toml.md    |    197 +
  docs/autogen/codebase/backend_reports_init_.py.md  |     13 +
  .../backend_reports_optimization_engine.py.md      |     22 +
  .../codebase/backend_run_roundtrip_tests.py.md     |     40 +
@@ -1987,6 +2061,8 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../backend_scripts_self_healing_tests.py.md       |    112 +
  .../backend_scripts_trigger_mock_error.py.md       |     44 +
  .../codebase/backend_services_github_agent.py.md   |    128 +
+ .../codebase/backend_services_memory_service.py.md |     52 +
+ .../backend_services_sandbox_service.py.md         |    110 +
  .../codebase/backend_storage_asset_manager.py.md   |    153 +
  docs/autogen/codebase/backend_storage_init_.py.md  |     14 +
  .../backend_storage_r2_storage_client.py.md        |     84 +
@@ -2001,15 +2077,23 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  docs/autogen/codebase/backend_tests_conftest.py.md |    192 +
  .../backend_tests_core_test_agent_factory.py.md    |     57 +
  .../backend_tests_core_test_config_proxy.py.md     |    101 +
- ...end_tests_core_test_core_missing_coverage.py.md |    644 +
+ ...backend_tests_core_test_container_auditor.py.md |    372 +
+ ...end_tests_core_test_core_missing_coverage.py.md |   1216 +
  .../backend_tests_core_test_cost_guard.py.md       |     80 +
+ ...ckend_tests_core_test_cost_guard_coverage.py.md |    361 +
  .../backend_tests_core_test_enum_guard.py.md       |    105 +
+ ...ackend_tests_core_test_event_bus_coverage.py.md |    658 +
  ...ackend_tests_core_test_integration_phase3.py.md |     63 +
  .../backend_tests_core_test_knowledge_base.py.md   |    120 +
  .../backend_tests_core_test_log_batcher.py.md      |    229 +
+ .../backend_tests_core_test_nats_messaging.py.md   |    425 +
+ ...ackend_tests_core_test_playwright_manager.py.md |    347 +
  .../backend_tests_core_test_security_vault.py.md   |     77 +
  .../backend_tests_core_test_self_healer.py.md      |     73 +
  ...ackend_tests_core_test_swarm_orchestrator.py.md |     60 +
+ ...sts_core_test_swarm_orchestrator_coverage.py.md |    446 +
+ .../backend_tests_core_test_swarm_pubsub.py.md     |    360 +
+ .../backend_tests_core_test_theme_pubsub.py.md     |    353 +
  .../backend_tests_engine_test_cost_optimizer.py.md |     68 +
  ...ackend_tests_engine_test_model_dispatcher.py.md |     52 +
  docs/autogen/codebase/backend_tests_init_.py.md    |     13 +
@@ -2035,12 +2119,13 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../codebase/backend_tests_test_api_router.py.md   |     80 +
  .../codebase/backend_tests_test_audit_logger.py.md |     69 +
  .../backend_tests_test_auth_middleware.py.md       |    263 +
- .../codebase/backend_tests_test_auth_routes.py.md  |    189 +
+ .../codebase/backend_tests_test_auth_routes.py.md  |    190 +
  .../backend_tests_test_auto_fix_trigger.py.md      |     16 +
  .../backend_tests_test_auto_skill_creator.py.md    |    210 +
  .../backend_tests_test_autonomous_agent.py.md      |     81 +
  .../codebase/backend_tests_test_bangla_nlp.py.md   |     41 +
  .../codebase/backend_tests_test_bangla_voice.py.md |     81 +
+ ...ackend_tests_test_billing_api_integration.py.md |     40 +
  .../backend_tests_test_billing_system.py.md        |    155 +
  .../codebase/backend_tests_test_brain.py.md        |    150 +
  .../backend_tests_test_browser_credentials.py.md   |     77 +
@@ -2088,12 +2173,12 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../backend_tests_test_health_monitor.py.md        |    164 +
  .../backend_tests_test_health_monitor_routes.py.md |     66 +
  .../backend_tests_test_honeypot_middleware.py.md   |    195 +
- ...backend_tests_test_idempotency_middleware.py.md |    127 +
+ ...backend_tests_test_idempotency_middleware.py.md |    113 +
  .../backend_tests_test_immune_system.py.md         |    101 +
  .../backend_tests_test_immune_system_scanner.py.md |     68 +
  .../backend_tests_test_input_sanitizer.py.md       |     91 +
  .../backend_tests_test_language_router.py.md       |     66 +
- .../codebase/backend_tests_test_llm_gateway.py.md  |    154 +
+ .../codebase/backend_tests_test_llm_gateway.py.md  |    160 +
  .../backend_tests_test_llm_gateway_coverage.py.md  |    184 +
  .../backend_tests_test_long_term_memory.py.md      |     37 +
  .../backend_tests_test_markdown_export.py.md       |     70 +
@@ -2115,7 +2200,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../backend_tests_test_multi_account_rotator.py.md |    433 +
  .../codebase/backend_tests_test_multicloud.py.md   |     92 +
  .../backend_tests_test_new_endpoints_sprint5.py.md |    122 +
- .../backend_tests_test_new_interfaces.py.md        |     88 +
+ .../backend_tests_test_new_interfaces.py.md        |     82 +
  .../backend_tests_test_new_tools_sprint5.py.md     |    105 +
  .../backend_tests_test_optimization_engine.py.md   |     33 +
  .../backend_tests_test_output_validator.py.md      |     83 +
@@ -2276,7 +2361,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../codebase/backend_tools_telegram_bot.py.md      |    304 +
  .../backend_tools_tenant_rate_limiter.py.md        |    235 +
  .../backend_tools_test_3d_model_generator.py.md    |     14 +
- .../backend_tools_test_browser_agent.py.md         |    209 +
+ .../backend_tools_test_browser_agent.py.md         |    220 +
  ...end_tools_test_cloud_sandbox_orchestrator.py.md |     94 +
  .../backend_tools_test_docker_sandbox.py.md        |    158 +
  .../backend_tools_test_freebuff_client.py.md       |     78 +
@@ -2312,6 +2397,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../autogen/codebase/config_routing_policy.json.md |     26 +
  docs/autogen/codebase/config_vercel.json.md        |     20 +
  docs/autogen/codebase/coverage.toml.md             |     42 +
+ docs/autogen/codebase/deploy_render.py.md          |     31 +
  docs/autogen/codebase/docker-compose.prod.yml.md   |     75 +
  docs/autogen/codebase/docker-compose.yml.md        |     95 +
  docs/autogen/codebase/dummy_registry.json.md       |     20 +
@@ -2324,6 +2410,8 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  docs/autogen/codebase/find_duplicate_tests.py.md   |     34 +
  docs/autogen/codebase/firebase.json.md             |    244 +
  docs/autogen/codebase/fix.py.md                    |    172 +
+ docs/autogen/codebase/fix_deploy.py.md             |     39 +
+ docs/autogen/codebase/fix_tests.py.md              |     78 +
  docs/autogen/codebase/generate_push_summary.py.md  |    218 +
  .../infrastructure_check_deploy_gate.py.md         |     52 +
  ...infrastructure_cloudflare_enhanced-worker.js.md |    466 +
@@ -2360,15 +2448,23 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  ...cture_terraform_root_cause_analysis_agent.py.md |    219 +
  ..._terraform_test_root_cause_analysis_agent.py.md |    106 +
  .../codebase/infrastructure_vitest-report.json.md  |     14 +
- docs/autogen/codebase/package.json.md              |     66 +
- .../codebase/packages_design-tokens_build.js.md    |     99 +
+ docs/autogen/codebase/package.json.md              |     67 +
+ .../codebase/packages_design-tokens_build.js.md    |    112 +
  .../packages_design-tokens_design-tokens.json.md   |    132 +
+ ...es_design-tokens_outputs_flutter_colors.dart.md |     28 +
+ ...kages_design-tokens_outputs_json_tokens.json.md |     29 +
  .../packages_design-tokens_outputs_tokens.dart.md  |     76 +
- .../packages_design-tokens_package.json.md         |     23 +
+ ...n-tokens_outputs_vscode_supremeai-theme.json.md |     24 +
+ .../packages_design-tokens_package.json.md         |     26 +
  ...ges_design-tokens_scripts_copy-to-flutter.js.md |     35 +
+ ...ackages_design-tokens_tokens_primitives.json.md |     28 +
+ .../packages_design-tokens_tokens_semantic.json.md |     25 +
+ .../packages_design-tokens_tokens_vscode.json.md   |     26 +
  .../codebase/packages_shared-types_package.json.md |     30 +
+ .../packages_shared-types_src_agent.types.ts.md    |     46 +
+ .../packages_shared-types_src_auth.types.ts.md     |     53 +
  .../packages_shared-types_src_conversation.ts.md   |     68 +
- .../codebase/packages_shared-types_src_index.ts.md |     18 +
+ .../codebase/packages_shared-types_src_index.ts.md |     20 +
  .../packages_shared-types_src_message.ts.md        |     34 +
  .../packages_shared-types_tsconfig.json.md         |     35 +
  .../packages_ui-components_package.json.md         |     45 +
@@ -2381,9 +2477,10 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../packages_ui-components_src_index.ts.md         |     18 +
  .../packages_ui-components_src_utils_api.ts.md     |     28 +
  .../packages_ui-components_tsconfig.json.md        |     36 +
+ docs/autogen/codebase/patch_ci.py.md               |    101 +
  docs/autogen/codebase/playwright-ct.config.ts.md   |     49 +
  docs/autogen/codebase/playwright.config.ts.md      |     97 +
- docs/autogen/codebase/pnpm-lock.yaml.md            |  19853 ++
+ docs/autogen/codebase/pnpm-lock.yaml.md            |  21297 ++
  docs/autogen/codebase/pnpm-workspace.yaml.md       |     17 +
  docs/autogen/codebase/render.yaml.md               |     43 +
  docs/autogen/codebase/render_temp_CHANGELOG.md.md  |    216 +
@@ -2430,9 +2527,12 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../codebase/scripts_generate_openapi.py.md        |     62 +
  .../codebase/scripts_generate_push_summary.py.md   |    117 +
  .../codebase/scripts_generate_smart_docs.py.md     |    171 +
+ .../scripts_health_auto_health_check.py.md         |    143 +
+ .../scripts_health_check_auto_health_check.py.md   |     55 +
  docs/autogen/codebase/scripts_k6_load_test.js.md   |     55 +
  docs/autogen/codebase/scripts_locustfile.py.md     |    139 +
  docs/autogen/codebase/scripts_migrate.py.md        |     99 +
+ .../codebase/scripts_migrate_default_user.py.md    |     53 +
  .../codebase/scripts_multi_model_validator.py.md   |    274 +
  .../codebase/scripts_observability_report.json.md  |   4173 +
  ...scripts_orchestrator_auto_budget_guardian.py.md |    192 +
@@ -2513,7 +2613,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../codebase/tools_vscode-extension_README.md.md   |     59 +
  .../tools_vscode-extension_README_BN.md.md         |     91 +
  .../tools_vscode-extension_jest.config.js.md       |     28 +
- .../tools_vscode-extension_package.json.md         |    318 +
+ .../tools_vscode-extension_package.json.md         |    325 +
  .../tools_vscode-extension_package.nls.bn.json.md  |     59 +
  .../tools_vscode-extension_src_agentDetector.ts.md |     49 +
  .../tools_vscode-extension_src_ai_AIService.ts.md  |    212 +
@@ -2561,29 +2661,31 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  .../tools_vscode-extension_tsconfig.json.md        |     48 +
  .../tools_vscode-extension_vitest.config.ts.md     |     35 +
  docs/autogen/codebase/turbo.json.md                |     48 +
+ docs/autogen/codebase/update_render.py.md          |     41 +
+ docs/autogen/codebase/update_render_backup.py.md   |     40 +
  docs/autogen/codebase/vercel.json.md               |     41 +
- docs/autogen/codebase_full.md                      | 204269 ++++++++++++++++++
- docs/autogen/summaries/PUSH-SUMMARY-b10c5e3e1.md   |     62 +
- docs/autogen/summaries/PUSH-SUMMARY-b43169f5f3.md  |     62 +
- docs/autogen/summaries/PUSH-SUMMARY-ba23773c8.md   |     62 +
- docs/autogen/summaries/PUSH-SUMMARY-bb0d48191.md   |     62 +
- docs/autogen/summaries/PUSH-SUMMARY-bd665d66f.md   |     62 +
- docs/autogen/summaries/PUSH-SUMMARY-c1cce7893.md   |     62 +
+ docs/autogen/codebase_full.md                      | 212390 ++++++++++++++++++
  docs/autogen/summaries/PUSH-SUMMARY-c46c34b3a6.md  |     62 +
+ docs/autogen/summaries/PUSH-SUMMARY-c4cfc7e.md     |      3 +
  docs/autogen/summaries/PUSH-SUMMARY-c7140d035f.md  |     62 +
  docs/autogen/summaries/PUSH-SUMMARY-d2d4980b2.md   |     62 +
+ docs/autogen/summaries/PUSH-SUMMARY-d40e844.md     |      3 +
  docs/autogen/summaries/PUSH-SUMMARY-d66b2da28.md   |     62 +
  docs/autogen/summaries/PUSH-SUMMARY-d694966.md     |      3 +
  docs/autogen/summaries/PUSH-SUMMARY-d9b53628a.md   |     62 +
  docs/autogen/summaries/PUSH-SUMMARY-e0219475b.md   |     62 +
  docs/autogen/summaries/PUSH-SUMMARY-e0fb42f935.md  |     62 +
  docs/autogen/summaries/PUSH-SUMMARY-e2c063157.md   |     62 +
+ docs/autogen/summaries/PUSH-SUMMARY-e301961.md     |      3 +
  docs/autogen/summaries/PUSH-SUMMARY-e4b49a821a.md  |     62 +
  docs/autogen/summaries/PUSH-SUMMARY-e4be88400c.md  |     62 +
+ docs/autogen/summaries/PUSH-SUMMARY-e932278.md     |      3 +
  docs/autogen/summaries/PUSH-SUMMARY-e9e15fcfc.md   |     62 +
+ docs/autogen/summaries/PUSH-SUMMARY-eb16d7f.md     |      3 +
  docs/autogen/summaries/PUSH-SUMMARY-f0c62b0.md     |      3 +
- docs/autogen/summaries/PUSH-SUMMARY-f6c7e52f2.md   |     62 +
- docs/codebase_dump.md                              | 120214 +++++++++++
+ docs/autogen/summaries/PUSH-SUMMARY-f79a9d3.md     |      3 +
+ docs/autogen/summaries/PUSH-SUMMARY-fd21708.md     |      3 +
+ docs/codebase_dump.md                              | 120214 ++++++++++
  docs/context_modules/api_rules.xml                 |      6 +
  docs/context_modules/db_context.xml                |      6 +
  docs/context_modules/ui_guidelines.xml             |      6 +
@@ -2613,6 +2715,8 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  find_duplicate_tests.py                            |     21 +
  firebase.json                                      |    231 +
  fix.py                                             |    159 +
+ fix_deploy.py                                      |     26 +
+ fix_tests.py                                       |     65 +
  generate_push_summary.py                           |    206 +
  infrastructure/check_deploy_gate.py                |     39 +
  infrastructure/cloudflare/enhanced-worker.js       |    454 +
@@ -2669,17 +2773,26 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  infrastructure/terraform/variables.tf              |     16 +
  infrastructure/vitest-report.json                  |      1 +
  nginx/nginx.conf                                   |     33 +
- package.json                                       |     53 +
- packages/design-tokens/build.js                    |     86 +
+ package.json                                       |     54 +
+ packages/design-tokens/build.js                    |     99 +
  packages/design-tokens/design-tokens.json          |    119 +
+ packages/design-tokens/outputs/css/variables.css   |     20 +
+ packages/design-tokens/outputs/flutter/colors.dart |     15 +
+ packages/design-tokens/outputs/json/tokens.json    |     16 +
  packages/design-tokens/outputs/tokens-vscode.css   |     65 +
  packages/design-tokens/outputs/tokens.css          |     65 +
  packages/design-tokens/outputs/tokens.dart         |     63 +
- packages/design-tokens/package.json                |     10 +
+ .../outputs/vscode/supremeai-theme.json            |     12 +
+ packages/design-tokens/package.json                |     13 +
  packages/design-tokens/scripts/copy-to-flutter.js  |     22 +
+ packages/design-tokens/tokens/primitives.json      |     15 +
+ packages/design-tokens/tokens/semantic.json        |     12 +
+ packages/design-tokens/tokens/vscode.json          |     13 +
  packages/shared-types/package.json                 |     17 +
+ packages/shared-types/src/agent.types.ts           |     33 +
+ packages/shared-types/src/auth.types.ts            |     40 +
  packages/shared-types/src/conversation.ts          |     55 +
- packages/shared-types/src/index.ts                 |      5 +
+ packages/shared-types/src/index.ts                 |      7 +
  packages/shared-types/src/message.ts               |     21 +
  packages/shared-types/tsconfig.json                |     22 +
  packages/ui-components/package.json                |     32 +
@@ -2693,10 +2806,11 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  packages/ui-components/src/index.ts                |      5 +
  packages/ui-components/src/utils/api.ts            |     15 +
  packages/ui-components/tsconfig.json               |     23 +
+ patch_ci.py                                        |     88 +
  playwright-ct.config.ts                            |     37 +
  playwright-report/index.html                       |     90 +
  playwright.config.ts                               |     84 +
- pnpm-lock.yaml                                     |  19840 ++
+ pnpm-lock.yaml                                     |  21284 ++
  pnpm-workspace.yaml                                |      4 +
  pytest.ini                                         |      7 +
  render.exe                                         |    Bin 0 -> 24276480 bytes
@@ -2760,9 +2874,12 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  scripts/generate_openapi.py                        |     49 +
  scripts/generate_push_summary.py                   |    104 +
  scripts/generate_smart_docs.py                     |    159 +
+ scripts/health/auto_health_check.py                |    130 +
+ scripts/health_check/auto_health_check.py          |     42 +
  scripts/k6/load_test.js                            |     42 +
  scripts/locustfile.py                              |    126 +
  scripts/migrate.py                                 |     86 +
+ scripts/migrate_default_user.py                    |     40 +
  scripts/multi_model_validator.py                   |    261 +
  scripts/observability_report.json                  |   4161 +
  scripts/orchestrator/auto_budget_guardian.py       |    180 +
@@ -2878,7 +2995,7 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  tools/vscode-extension/jest.config.js              |     15 +
  tools/vscode-extension/media/icon.svg              |     51 +
  tools/vscode-extension/media/supremeai-theme.css   |     28 +
- tools/vscode-extension/package.json                |    306 +
+ tools/vscode-extension/package.json                |    313 +
  tools/vscode-extension/package.nls.bn.json         |     46 +
  tools/vscode-extension/src/agentDetector.ts        |     37 +
  tools/vscode-extension/src/ai/AIService.ts         |    200 +
@@ -2930,18 +3047,20 @@ Date:   Sat Jul 11 16:58:14 2026 +0600
  tools/vscode-extension/tsconfig.json               |     36 +
  tools/vscode-extension/vitest.config.ts            |     22 +
  turbo.json                                         |     36 +
+ update_render.py                                   |     28 +
+ update_render_backup.py                            |     27 +
  vercel.json                                        |     28 +
- 2923 files changed, 820176 insertions(+)
+ 3042 files changed, 959675 insertions(+)
 
 ```
 
 ## Diff Detail
 ```diff
-commit c4cfc7e5cdc60a62e2389d6cf92ba44b7465cbea
+commit efd89e30023ccee19767e4c255655cbf41aabfc2
 Author: SupremeAI CI Bot <ci-bot@supremeai.dev>
-Date:   Sat Jul 11 16:58:14 2026 +0600
+Date:   Sun Jul 12 02:02:47 2026 +0600
 
-    chore: trigger render deploy
+    refactor(core): make ContainerAuditor stateless and emit error events
 
 diff --git a/.agent b/.agent
 new file mode 100644
@@ -8285,10 +8404,10 @@ index 0000000..77ad4c3
 \ No newline at end of file
 diff --git a/.github/workflows/supreme-core-ci.yml b/.github/workflows/supreme-core-ci.yml
 new file mode 100644
-index 0000000..76e64dd
+index 0000000..2a63b61
 --- /dev/null
 +++ b/.github/workflows/supreme-core-ci.yml
-@@ -0,0 +1,992 @@
+@@ -0,0 +1,1071 @@
 +# ==============================================================================
 +# [IMMUTABLE CONFIGURATION - MANUAL CONTROL ONLY]
 +# ------------------------------------------------------------------------------
@@ -8327,6 +8446,9 @@ index 0000000..76e64dd
 +        default: false
 +        type: boolean
 +
++  schedule:
++    - cron: '0 0 * * *'
++
 +# ==============================================================================
 +# [IMMUTABLE CONFIGURATION - MANUAL CONTROL ONLY]
 +# ------------------------------------------------------------------------------
@@ -8345,6 +8467,31 @@ index 0000000..76e64dd
 +  IMAGE_NAME: ${{ github.repository }}
 +
 +jobs:
++
++  changes:
++    runs-on: ubuntu-latest
++    outputs:
++      backend: ${{ steps.filter.outputs.backend }}
++      frontend: ${{ steps.filter.outputs.frontend }}
++      dependencies: ${{ steps.filter.outputs.dependencies }}
++    steps:
++      - uses: actions/checkout@v4
++      - uses: dorny/paths-filter@v3
++        id: filter
++        with:
++          filters: |
++            backend:
++              - 'backend/**'
++              - 'api/**'
++              - 'core/**'
++            frontend:
++              - 'apps/studio-client/**'
++              - 'apps/web-chat/**'
++            dependencies:
++              - 'pyproject.toml'
++              - 'poetry.lock'
++              - 'package.json'
++              - 'pnpm-lock.yaml'
 +
 +  # ==============================================================================
 +  # PRE-MERGE GATE: Iron Curtain — যেকোনো কোড মার্জের আগে বাধ্যতামূলক চেক
@@ -8406,7 +8553,7 @@ index 0000000..76e64dd
 +            echo "🔧 Changes detected, committing fixes..."
 +            git config --global user.name 'SupremeAI Auto-Fix Bot'
 +            git config --global user.email 'bot@supremeai.dev'
-+            git commit -m "fix(ci): Automatically apply lint fixes inline"
++            git commit -m "fix(ci): Automatically apply lint fixes inline [skip ci]"
 +            
 +            BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
 +            git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
@@ -8424,7 +8571,8 @@ index 0000000..76e64dd
 +
 +  production-readiness:
 +    name: 🚀 Production Readiness (Safety Guard, Multi-Model Validator, Codegraph)
-+    needs: pre-merge-gate
++    needs: [changes, pre-merge-gate]
++    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.dependencies == 'true'
 +    runs-on: ubuntu-latest
 +    steps:
 +      - uses: actions/checkout@v4
@@ -8518,7 +8666,8 @@ index 0000000..76e64dd
 +
 +  backend-core:
 +    name: 🐍 Backend (Test & Auto-Fix)
-+    needs: [pre-merge-gate, production-readiness]
++    needs: [changes, pre-merge-gate, production-readiness]
++    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.dependencies == 'true'
 +    runs-on: ubuntu-latest
 +    steps:
 +      - uses: actions/checkout@v4
@@ -8559,7 +8708,7 @@ index 0000000..76e64dd
 +            git config user.name "SupremeAI Auto-Fix Bot 🤖"
 +            git config user.email "actions@github.com"
 +            git add .
-+            git commit -m "style(ci): auto-fix formatting issues 🔧"
++            git commit -m "style(ci): auto-fix formatting issues 🔧 [skip ci]"
 +            
 +            BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
 +            git remote set-url origin https://x-access-token:${{ secrets.GH_PAT_FOR_AUTO_FIX }}@github.com/${{ github.repository }}.git
@@ -8630,6 +8779,8 @@ index 0000000..76e64dd
 +  security-audit:
 +    name: 🛡️ CodeQL & Trivy Security Scan
 +    runs-on: ubuntu-latest
++    needs: changes
++    if: github.event_name == 'schedule' || needs.changes.outputs.dependencies == 'true'
 +    permissions:
 +      security-events: write
 +      actions: read
@@ -8714,6 +8865,8 @@ index 0000000..76e64dd
 +  frontend-core:
 +    name: 🌐 Frontend Monorepo (Turbo)
 +    runs-on: ubuntu-latest
++    needs: changes
++    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.dependencies == 'true'
 +    steps:
 +      - uses: actions/checkout@v4
 +      - uses: pnpm/action-setup@v3
@@ -8768,7 +8921,7 @@ index 0000000..76e64dd
 +            echo "🔧 Changes detected in frontend, committing fixes..."
 +            git config --global user.name 'SupremeAI Auto-Fix Bot'
 +            git config --global user.email 'bot@supremeai.dev'
-+            git commit -m "fix(ci): Automatically apply frontend lint fixes inline"
++            git commit -m "fix(ci): Automatically apply frontend lint fixes inline [skip ci]"
 +            
 +            BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
 +            git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
@@ -8844,6 +8997,7 @@ index 0000000..76e64dd
 +    name: 🧪 Human Simulation & Load Tests
 +    needs: [backend-core, frontend-core]
 +    runs-on: ubuntu-latest
++    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
 +    steps:
 +      - uses: actions/checkout@v4
 +      - uses: pnpm/action-setup@v3
@@ -8936,17 +9090,74 @@ index 0000000..76e64dd
 +    needs: [backend-core]
 +    runs-on: ubuntu-latest
 +    if: github.ref == 'refs/heads/main'
++    permissions:
++      contents: read
++      packages: write
 +    steps:
++      - uses: actions/checkout@v4
++      
++      - name: Log in to the Container registry
++        uses: docker/login-action@v3
++        with:
++          registry: ghcr.io
++          username: ${{ github.actor }}
++          password: ${{ secrets.GITHUB_TOKEN }}
++          
++      - name: Set up Docker Buildx
++        uses: docker/setup-buildx-action@v3
++        
++      - name: Extract metadata (tags, labels) for Docker
++        id: meta
++        uses: docker/metadata-action@v5
++        with:
++          images: ghcr.io/${{ github.repository }}/supremeai-backend
++          tags: |
++            type=raw,value=latest
++            type=sha
++            
++      - name: Build and push Docker image
++        uses: docker/build-push-action@v5
++        with:
++          context: .
++          file: ./Dockerfile
++          push: true
++          tags: ${{ steps.meta.outputs.tags }}
++          labels: ${{ steps.meta.outputs.labels }}
++          cache-from: type=gha
++          cache-to: type=gha,mode=max
++
 +      - name: Trigger Render Deploy
 +        run: |
-+          curl "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
++          PRIMARY_HOOK="${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
++          BACKUP_HOOK="${{ secrets.RENDER_DEPLOY_HOOK_URL_BACKUP }}"
++          
++          if [ -n "$PRIMARY_HOOK" ]; then
++            echo "Trying primary Render account..."
++            if curl -f -s "$PRIMARY_HOOK" > /dev/null; then
++              echo "✅ Primary Render deploy triggered successfully!"
++            else
++              echo "⚠️ Primary Render deploy failed. Limit reached or service down."
++              if [ -n "$BACKUP_HOOK" ]; then
++                echo "🔄 Trying backup Render account..."
++                curl -f -s "$BACKUP_HOOK" > /dev/null || echo "❌ Both Render deploy hooks failed but continuing pipeline."
++                echo "✅ Backup Render deploy triggered successfully!"
++              else
++                echo "No backup Render hook configured. Skipping."
++              fi
++            fi
++          elif [ -n "$BACKUP_HOOK" ]; then
++            echo "Primary hook not found. Trying backup Render account..."
++            curl -f -s "$BACKUP_HOOK" > /dev/null || echo "❌ Deploy hook failed but continuing"
++            echo "✅ Backup Render deploy triggered successfully!"
++          else
++            echo "Skipping Render deploy: No deploy hooks configured."
++          fi
 +
 +  deploy-backend:
 +    name: 🚀 Deploy Backend (Cloud Run)
 +    needs: [backend-core, performance-e2e-test, security-audit]
-+    if: |
-+      github.ref == 'refs/heads/main' &&
-+      github.event_name == 'push'
++    # TEMPORARILY DISABLED: Remove `false` and restore conditions to reactivate Cloud Run deployment
++    if: false
 +    runs-on: ubuntu-latest
 +    environment: production
 +    steps:
@@ -9100,7 +9311,7 @@ index 0000000..76e64dd
 +    if: |
 +      always() && 
 +      github.ref == 'refs/heads/main' &&
-+      needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled'
++      needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled' && needs.frontend-core.result != 'skipped'
 +    runs-on: ubuntu-latest
 +    environment: production
 +    steps:
@@ -9116,6 +9327,42 @@ index 0000000..76e64dd
 +        run: |
 +          npm install -g firebase-tools
 +          firebase deploy --only hosting --project ${{ secrets.GCP_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
++          echo "### 🌐 Firebase Deployment Complete" >> $GITHUB_STEP_SUMMARY
++          echo "**URL:** [https://${{ secrets.GCP_PROJECT_ID }}.web.app](https://${{ secrets.GCP_PROJECT_ID }}.web.app)" >> $GITHUB_STEP_SUMMARY
++
++  deploy-to-vercel:
++    name: 🚀 Deploy User Portal (Vercel)
++    needs: [frontend-core, performance-e2e-test, security-audit]
++    runs-on: ubuntu-latest
++    if: |
++      always() && 
++      github.ref == 'refs/heads/main' &&
++      needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled' && needs.frontend-core.result != 'skipped'
++    steps:
++      - uses: actions/checkout@v4
++      - name: Install Vercel CLI & pnpm
++        run: |
++          npm install -g pnpm
++          npm install --global vercel@latest
++      - name: Pull Vercel Environment Information
++        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
++      - name: Build Project Artifacts
++        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
++      - name: Deploy Project Artifacts to Vercel
++        continue-on-error: true
++        run: |
++          DEPLOY_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }} || echo "VERCEL_LIMIT_REACHED")
++          if [[ "$DEPLOY_URL" == *"VERCEL_LIMIT_REACHED"* ]] || [[ "$DEPLOY_URL" == *"Error:"* ]]; then
++            echo "### ⚠️ Vercel Deployment Failed/Skipped" >> $GITHUB_STEP_SUMMARY
++            echo "Deployment failed (likely due to the 100/day free tier limit). Please try again in 24 hours." >> $GITHUB_STEP_SUMMARY
++            exit 0
++          else
++            echo "### 🚀 Vercel Deployment Complete" >> $GITHUB_STEP_SUMMARY
++            echo "**URL:** [$DEPLOY_URL]($DEPLOY_URL)" >> $GITHUB_STEP_SUMMARY
++          fi
++    env:
++      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
++      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 +
 +  sync-mirror:
 +    name: 📤 Sync to Secondary Repo
@@ -9132,67 +9379,18 @@ index 0000000..76e64dd
 +        with:
 +          fetch-depth: 0
 +          persist-credentials: false
++          lfs: true
 +      
 +      - name: 📤 Sync to Secondary Repo (Staging Dispatch)
 +        if: env.MIRROR_REPO_TOKEN != ''
 +        env:
 +          MIRROR_REPO_TOKEN: ${{ secrets.MIRROR_REPO_TOKEN }}
 +        run: |
++          git config lfs.allowincompletepush true
 +          git remote add mirror https://${MIRROR_REPO_TOKEN}@github.com/SaifulHaqueNiloy/supremeai.git
 +          git push --force mirror main:refs/heads/main
 +
 +
-+  # Merged from deploy.yml (Deploy SupremeAI 2.0)
-+  build-and-push:
-+    runs-on: ubuntu-latest
-+    permissions:
-+      contents: read
-+      packages: write
-+    
-+    steps:
-+      - name: Checkout repository
-+        uses: actions/checkout@v4
-+
-+      - name: Log in to the Container registry
-+        uses: docker/login-action@v3
-+        with:
-+          registry: ${{ env.REGISTRY }}
-+          username: ${{ github.actor }}
-+          password: ${{ secrets.GITHUB_TOKEN }}
-+
-+      - name: Build and push Backend Image
-+        uses: docker/build-push-action@v5
-+        with:
-+          context: .
-+          file: ./backend/Dockerfile
-+          push: true
-+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:latest
-+
-+      - name: Build and push Worker Image
-+        uses: docker/build-push-action@v5
-+        with:
-+          context: ./backend
-+          file: ./backend/docker/swarm-worker.Dockerfile
-+          push: true
-+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-worker:latest
-+
-+  deploy-to-staging:
-+    needs: build-and-push
-+    runs-on: ubuntu-latest
-+    steps:
-+      - name: Execute Remote Deployment via SSH
-+        uses: appleboy/ssh-action@master
-+        with:
-+          # বাংলা মন্তব্য: স্টেজিং সার্ভারে ডিপ্লয়মেন্টের জন্য SSH হোস্ট, ইউজারনেম এবং প্রাইভেট কী সিক্রেট থেকে নেওয়া হচ্ছে
-+          host: ${{ secrets.SSH_HOST }}
-+          username: ${{ secrets.SSH_USER }}
-+          key: ${{ secrets.SSH_KEY }}
-+          script: |
-+            echo "Pulling latest images..."
-+            docker-compose -f docker-compose.prod.yml pull
-+            echo "Deploying SupremeAI 2.0 to Production Environment..."
-+            docker-compose -f docker-compose.prod.yml up -d
-+            echo "Deployment successful."
 +
 +  generate-codebase-docs:
 +    name: 📝 Auto-Generate & Deploy Docs
@@ -9608,10 +9806,10 @@ index 0000000..fa22ac8
 \ No newline at end of file
 diff --git a/.gitignore b/.gitignore
 new file mode 100644
-index 0000000..514b06f
+index 0000000..b6b0a69
 --- /dev/null
 +++ b/.gitignore
-@@ -0,0 +1,176 @@
+@@ -0,0 +1,179 @@
 +# Rust artifacts
 +src-tauri/target/
 +src-tauri/Cargo.lock
@@ -9744,6 +9942,7 @@ index 0000000..514b06f
 +# Local dev artifacts
 +.supreme/
 +.scratch/
++scratch/
 +.firebase/
 +
 +codebase.md
@@ -9788,6 +9987,8 @@ index 0000000..514b06f
 +# Compiled function output
 +infrastructure/firebase_functions/**/lib/
 +.env
++.vercel
++.env*
 diff --git a/.kilo/agent/bangla-tips.md b/.kilo/agent/bangla-tips.md
 new file mode 100644
 index 0000000..e2d23ad
@@ -19016,180 +19217,8 @@ index 0000000..61a4ca8
 +      properties:
 +        symbol:
 +          type: string
-+          title: Symbol
-+        quantity:
-+          type: number
-+          title: Quantity
-+        price:
-+          anyOf:
-+          - type: number
-+          - type: 'null'
-+          title: Price
-+      type: object
-+      required:
-+      - symbol
-+      - quantity
-+      title: TradeRequest
-+    UploadRequest:
-+      properties:
-+        file_name:
-+          type: string
-+          title: File Name
-+        file_type:
-+          type: string
-+          title: File Type
-+        folder:
-+          type: string
-+          title: Folder
-+          default: skills_bundles
-+      type: object
-+      required:
-+      - file_name
-+      - file_type
-+      title: UploadRequest
-+    UrlPermissionRequest:
-+      properties:
-+        urlPattern:
-+          type: string
-+          title: Urlpattern
-+        userId:
-+          anyOf:
-+          - type: string
-+          - type: 'null'
-+          title: Userid
-+          default: default
-+        reason:
-+          anyOf:
-+          - type: string
-+          - type: 'null'
-+          title: Reason
-+          default: None
-+      type: object
-+      required:
-+      - urlPattern
-+      title: UrlPermissionRequest
-+    UsageMetricUpsert:
-+      properties:
-+        metric_date:
-+          type: string
-+          title: Metric Date
-+        total_requests:
-+          type: integer
-+          title: Total Requests
-+        total_tokens:
-+          type: integer
-+          title: Total Tokens
-+        total_cost:
-+          type: number
-+          title: Total Cost
-+        unique_users:
-+          type: integer
-+          title: Unique Users
-+        avg_latency_ms:
-+          type: integer
-+          title: Avg Latency Ms
-+        error_rate:
-+          type: number
-+          title: Error Rate
-+      type: object
-+      required:
-+      - metric_date
-+      - total_requests
-+      - total_tokens
-+      - total_cost
-+      - unique_users
-+      - avg_latency_ms
-+      - error_rate
-+      title: UsageMetricUpsert
-+    UserUpdate:
-+      properties:
-+        username:
-+          type: string
-+          title: Username
-+        role:
-+          type: string
-+          title: Role
-+        permissions:
-+          items:
-+            type: string
-+          type: array
-+          title: Permissions
-+      type: object
-+      required:
-+      - username
-+      - role
-+      - permissions
-+      title: UserUpdate
-+    ValidationError:
-+      properties:
-+        loc:
-+          items:
-+            anyOf:
-+            - type: string
-+            - type: integer
-+          type: array
-+          title: Location
-+        msg:
-+          type: string
-+          title: Message
-+        type:
-+          type: string
-+          title: Error Type
-+        input:
-+          title: Input
-+        ctx:
-+          type: object
-+          title: Context
-+      type: object
-+      required:
-+      - loc
-+      - msg
-+      - type
-+      title: ValidationError
-+    VulnCheckRequest:
-+      properties:
-+        file_path:
-+          anyOf:
-+          - type: string
-+          - type: 'null'
-+          title: File Path
-+        diff:
-+          anyOf:
-+          - type: string
-+          - type: 'null'
-+          title: Diff
-+      type: object
-+      title: VulnCheckRequest
-+    VulnCheckResponse:
-+      properties:
-+        file:
-+          type: string
-+          title: File
-+        vulnerability_score:
-+          type: number
-+          title: Vulnerability Score
-+        critical_count:
-+          type: integer
-+          title: Critical Count
-+        high_count:
-+          type: integer
-+          title: High Count
-+        medium_count:
-+          type: integer
-+          title: Medium Count
-+        low_count:
-+          type: integer
-+          title: Low Count
-+        findings:
-+          items:
-+            additionalProperties: true
-+            type: object
-+          type: array
-+          title: Findings
-+        recommendation:
-+          type: string
-+          title: Recomme
++        
 
-... [TRUNCATED — diff was 35,538,559 bytes, capped at 512,000] ...
+... [TRUNCATED — diff was 40,868,652 bytes, capped at 512,000] ...
 
 ```
