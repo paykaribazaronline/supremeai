@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_payments.py
 
 **প্রকার:** .py  
-**সাইজ:** 2,170 বাইট  
-**আপডেট:** 2026-07-11T09:15:34.035004
+**সাইজ:** 2,171 বাইট  
+**আপডেট:** 2026-07-11T09:20:27.524247
 
 ---
 
@@ -67,6 +67,7 @@ def test_create_checkout_session_mock():
 
 from pydantic import SecretStr
 from unittest.mock import patch
+
 
 def test_webhook_ignored_if_missing_config():
     # Verify webhook behaves gracefully when credentials/key are missing

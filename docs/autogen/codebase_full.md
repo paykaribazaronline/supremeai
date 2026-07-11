@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T09:15:33.930489
+Generated at: 2026-07-11T09:20:27.480735
 
 
 ## File: `pnpm-lock.yaml`
@@ -26175,6 +26175,42 @@ async def test_dry_run_pr():
 
 if __name__ == "__main__":
     asyncio.run(test_dry_run_pr())
+
+```
+
+## File: `render.yaml`
+
+```yaml
+services:
+  - type: web
+    name: supremeai-backend
+    env: docker
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    region: singapore
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: SUPREMEAI_JWT_SECRET
+        sync: false
+      - key: SUPREMEAI_ADMIN_PASSWORD_HASH
+        sync: false
+      - key: STRIPE_API_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
 
 ```
 
@@ -110235,6 +110271,7 @@ class TestAdminGodLayer:
 
     from unittest.mock import patch
     import os
+
     @patch.dict(os.environ, {"SUPREMEAI_ADMIN_PASSWORD_HASH": ""})
     def test_init_default(self):
         """ডিফল্ট ইনিশialization ঠিক আছে।"""
@@ -118284,6 +118321,7 @@ def test_create_checkout_session_mock():
 
 from pydantic import SecretStr
 from unittest.mock import patch
+
 
 def test_webhook_ignored_if_missing_config():
     # Verify webhook behaves gracefully when credentials/key are missing

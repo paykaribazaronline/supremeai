@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_admin_god.py
 
 **প্রকার:** .py  
-**সাইজ:** 5,724 বাইট  
-**আপডেট:** 2026-07-11T09:15:34.024262
+**সাইজ:** 5,725 বাইট  
+**আপডেট:** 2026-07-11T09:20:27.520794
 
 ---
 
@@ -22,6 +22,7 @@ class TestAdminGodLayer:
 
     from unittest.mock import patch
     import os
+
     @patch.dict(os.environ, {"SUPREMEAI_ADMIN_PASSWORD_HASH": ""})
     def test_init_default(self):
         """ডিফল্ট ইনিশialization ঠিক আছে।"""
