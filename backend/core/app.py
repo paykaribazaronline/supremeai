@@ -308,6 +308,7 @@ optional_routers = [
     ("api.routes.cloud_mesh", ""),
     ("api.routes.events", "/api"),
     ("api.routes.payments", ""),
+    ("api.routes.maintenance", "/api/v1"),
 ]
 
 for router_path, prefix in optional_routers:

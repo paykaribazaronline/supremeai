@@ -45,6 +45,7 @@ on:
           - ai-validation
           - cleanup-runs
           - cache-maintenance
+          - security-scan
       build_artifacts:
         description: 'Generate release binaries (APK, VSIX, Windows EXE)'
         required: false
@@ -1480,6 +1481,34 @@ jobs:
           done
 
           echo "✅ Cache prune complete"
+
+  # ═══════════════════════════════════════════════════════════════
+  # MAINTENANCE JOB 5: SECURITY SCAN & AUDIT (Daily 1 AM UTC)
+  # ═══════════════════════════════════════════════════════════════
+  security-scan:
+    name: 🛡️ Security Scan & Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: >
+      (github.event_name == 'schedule' && github.event.schedule == '0 1 * * *') ||
+      (github.event_name == 'workflow_dispatch' && inputs.maintenance_job == 'security-scan')
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Install Security Tools
+        run: pip install pip-audit bandit requests python-dotenv
+      - name: Run Audit
+        run: |
+          pip-audit > audit_results.txt || true
+          bandit -r backend/ -f txt -o bandit_results.txt || true
+          cat audit_results.txt bandit_results.txt > combined_audit.txt
+      - name: Notify via Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python scripts/maintenance/notify.py --file combined_audit.txt
 
   # ═══════════════════════════════════════════════════════════════
   # CD JOB 1: GENERATE FLUTTER APK

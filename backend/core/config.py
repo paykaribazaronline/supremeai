@@ -120,6 +120,12 @@ class Settings(BaseSettings):
     circuit_breaker_failure_threshold: int = Field(default=3, validation_alias="CIRCUIT_BREAKER_FAILURE_THRESHOLD")
     circuit_breaker_cooldown_period: int = Field(default=60, validation_alias="CIRCUIT_BREAKER_COOLDOWN_PERIOD")
 
+    # ── Idempotency Config ───────────────────────────────────────────────────
+    idempotency_critical_paths: list[str] = Field(
+        default=["/api/orchestrate/generate", "/api/billing/charge", "/tools/auto-pr"],
+        validation_alias="IDEMPOTENCY_CRITICAL_PATHS",
+    )
+
     # বাংলা মন্তব্য: Model names env-driven
     claude_openrouter_model: str = Field(
         default="anthropic/claude-3.5-haiku:free",

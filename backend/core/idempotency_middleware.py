@@ -1,10 +1,19 @@
 from __future__ import annotations
 
+from core.config import settings
 import contextlib
+import base64
 import json
 
 from fastapi.responses import JSONResponse
 from loguru import logger
+
+# বাংলা মন্তব্য: নন-ব্লকিং অপারেশনের জন্য asyncio এবং redis.asyncio ইম্পোর্ট করা হলো
+import asyncio
+try:
+    import redis.asyncio as aioredis
+except ImportError:
+    aioredis = None
 
 # শেয়ার্ড ইউটিলিটি — টেস্ট এনভায়রনমেন্ট চেক কেন্দ্রীভূত
 from utils.environment import is_test_environment
@@ -13,6 +22,21 @@ from utils.environment import is_test_environment
 class IdempotencyMiddleware:
     def __init__(self, app) -> None:
         self.app = app
+        self._redis_client = None
+
+    async def _get_redis(self):
+        """
+        বাংলা মন্তব্য: একটি শেয়ার্ড অ্যাসিঙ্ক্রোনাস Redis ক্লায়েন্ট ইনস্ট্যান্স তৈরি এবং রিটার্ন করে।
+        এই lazy-loading অ্যাপ্রোচটি শুধুমাত্র যখন প্রয়োজন তখনই রিসোর্স ব্যবহার করে।
+        """
+        if self._redis_client is None:
+            if not aioredis:
+                logger.warning("IdempotencyMiddleware: 'redis' package not installed. Middleware will be bypassed.")
+                return None
+            import os
+            redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+            self._redis_client = aioredis.from_url(redis_url, decode_responses=True)
+        return self._redis_client
 
     async def __call__(self, scope, receive, send) -> None:
         if scope["type"] != "http":
@@ -42,8 +66,7 @@ class IdempotencyMiddleware:
         if not idempotency_key:
             # P1 Security Fix: Enforce idempotency key for critical mutating endpoints
             # This prevents accidental duplicate task executions or billing events.
-            critical_paths = ["/api/orchestrate/generate", "/api/billing/charge", "/tools/auto-pr"]
-            if any(p in path for p in critical_paths):
+            if any(p in path for p in settings.idempotency_critical_paths):
                 logger.warning(f"Rejected request to '{path}' due to missing Idempotency-Key header.")
                 response = JSONResponse(
                     status_code=400,
@@ -54,17 +77,15 @@ class IdempotencyMiddleware:
             await self.app(scope, receive, send)
             return
 
-        import core.services as app_mod
-
-        if not hasattr(app_mod, "redis_queue") or not app_mod.redis_queue or not app_mod.redis_queue.configured:
+        redis = await self._get_redis()
+        if not redis:
             await self.app(scope, receive, send)
             return
 
-        redis = app_mod.redis_queue
         redis_key = f"idempotency:{idempotency_key}"
 
         # 1. Check if the request key exists in Redis
-        existing = redis.get(redis_key)
+        existing = await redis.get(redis_key)
         if existing:
             try:
                 data = json.loads(existing)
@@ -84,32 +105,42 @@ class IdempotencyMiddleware:
                         response = JSONResponse(content=body, status_code=data.get("status_code"))
                     else:
                         response = Response(
-                            content=body,
+                            # বাংলা মন্তব্য: বাইনারি ডেটা হ্যান্ডেল করার জন্য Base64 ডিকোড করা হচ্ছে
+                            content=base64.b64decode(body),
                             status_code=data.get("status_code"),
                             media_type=data.get("media_type"),
                         )
                     await response(scope, receive, send)
                     return
-            except Exception as exc:  # noqa: BLE001
+            except (json.JSONDecodeError, TypeError) as exc:
                 # বল মনতবয: কযশকরত idempotency রকরড পরস করত বযরথ হল রকয়সট পনরায় পরসস হব;
                 # নরবভ ডট করাপশন লকয় রখত warning লগ যকত কর হল
                 logger.warning(f"Could not parse cached idempotency record for key '{idempotency_key}': {exc}. Reprocessing request.")
 
-        # 2. Lock the idempotency key (10 minute timeout to prevent deadlocks)
-        redis.set(redis_key, json.dumps({"status": "processing"}), ex=600)
+        # 2. অ্যাটমিকভাবে idempotency key লক করা (Race Condition প্রতিরোধ)
+        # `nx=True` নিশ্চিত করে যে শুধুমাত্র যদি key-টি আগে থেকে না থাকে, তবেই এটি সেট হবে।
+        # এটি `get` এবং `set` এর মধ্যে অন্য রিকোয়েস্ট আসার সুযোগ বন্ধ করে দেয়।
+        is_locked = await redis.set(redis_key, json.dumps({"status": "processing"}), ex=600, nx=True)
+        if not is_locked:
+            # যদি অন্য কোনো থ্রেড এইমাত্র কী-টি লক করে ফেলে, তবে কনফ্লিক্ট রেসপন্স পাঠানো হবে
+            response = JSONResponse(
+                status_code=409, content={"detail": "Conflict: Request is already being processed."}
+            )
+            await response(scope, receive, send)
+            return
 
         # 3. Call the next request handler and capture response
-        response_body = b""
+        response_body_bytes = b""
         response_headers = []
         response_status = 200
 
         async def custom_send(message):
-            nonlocal response_body, response_headers, response_status
+            nonlocal response_body_bytes, response_headers, response_status
             if message["type"] == "http.response.start":
                 response_status = message["status"]
                 response_headers = message.get("headers", [])
             elif message["type"] == "http.response.body":
-                response_body += message.get("body", b"")
+                response_body_bytes += message.get("body", b"")
             await send(message)
 
         try:
@@ -122,21 +153,29 @@ class IdempotencyMiddleware:
                     media_type = v.decode("utf-8")
                     break
 
-            # Store completed response in redis (Cache for 24 hours)
-            redis.set(
+            # বাংলা মন্তব্য: রেসপন্স বডি JSON নাকি বাইনারি তা নির্ধারণ করা
+            try:
+                # যদি JSON হয়, তাহলে সরাসরি সেইভ করা হবে
+                body_to_cache = json.loads(response_body_bytes)
+            except json.JSONDecodeError:
+                # যদি JSON না হয় (যেমন ছবি বা ফাইল), তাহলে Base64 এনকোড করে সেইভ করা হবে
+                body_to_cache = base64.b64encode(response_body_bytes).decode('utf-8')
+
+            # সম্পন্ন হওয়া রেসপন্সটি Redis-এ ২৪ ঘণ্টার জন্য ক্যাশ করা হচ্ছে
+            await redis.set(
                 redis_key,
                 json.dumps(
                     {
                         "status": "completed",
                         "status_code": response_status,
                         "media_type": media_type,
-                        "body": response_body.decode("utf-8", errors="replace"),
+                        "body": body_to_cache,
                     }
                 ),
                 ex=86400,
             )
         except Exception as e:  # noqa: BLE001
-            # Clear key on failure so the client can retry immediately
+            # বাংলা মন্তব্য: কোনো কারণে রিকোয়েস্ট ফেইল হলে কী-টি মুছে ফেলা হবে, যাতে ক্লায়েন্ট আবার চেষ্টা করতে পারে
             with contextlib.suppress(Exception):
-                redis.set(redis_key, "", ex=1)
+                await redis.delete(redis_key)
             raise e
