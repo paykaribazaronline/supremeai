@@ -209,7 +209,8 @@ jobs:
         working-directory: backend
         run: |
           python -m pip install --upgrade pip
-          pip install --no-cache-dir --disable-pip-version-check -r <(poetry export --with dev --without ml,tools --format requirements.txt --output requirements.txt && cat requirements.txt)
+          poetry export --with dev --without ml,tools --format requirements.txt --output requirements.txt
+          pip install --no-cache-dir --disable-pip-version-check -r requirements.txt
 
       - name: 🛡️ Safety Guard - File Protection Validation
         id: safety_guard
@@ -316,7 +317,8 @@ jobs:
         working-directory: backend
         run: |
           python -m pip install --upgrade pip
-          pip install --no-cache-dir --disable-pip-version-check -r <(poetry export --with dev --without ml,tools --format requirements.txt --output requirements.txt && cat requirements.txt)
+          poetry export --with dev --without ml,tools --format requirements.txt --output requirements.txt
+          pip install --no-cache-dir --disable-pip-version-check -r requirements.txt
       
       - name: 🩹 Auto-Fix and Format Code
         working-directory: backend
@@ -693,7 +695,8 @@ jobs:
         working-directory: backend
         run: |
           python -m pip install --upgrade pip
-          pip install --no-cache-dir --disable-pip-version-check -r <(poetry export --with dev --without ml,tools --format requirements.txt --output requirements.txt && cat requirements.txt)
+          poetry export --with dev --without ml,tools --format requirements.txt --output requirements.txt
+          pip install --no-cache-dir --disable-pip-version-check -r requirements.txt
       - name: Start Backend Server
         working-directory: backend
         env:
