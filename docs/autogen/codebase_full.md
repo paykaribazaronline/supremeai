@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T13:51:38.347475
+Generated at: 2026-07-11T13:53:46.492632
 
 
 ## File: `pnpm-lock.yaml`
@@ -207402,6 +207402,8 @@ jobs:
         run: |
           npm install -g firebase-tools
           firebase deploy --only hosting --project ${{ secrets.GCP_PROJECT_ID }} --token "${{ secrets.FIREBASE_TOKEN }}"
+          echo "### 🌐 Firebase Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** [https://${{ secrets.GCP_PROJECT_ID }}.web.app](https://${{ secrets.GCP_PROJECT_ID }}.web.app)" >> $GITHUB_STEP_SUMMARY
 
   deploy-to-vercel:
     name: 🚀 Deploy User Portal (Vercel)
@@ -207420,7 +207422,10 @@ jobs:
       - name: Build Project Artifacts
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
       - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: |
+          DEPLOY_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          echo "### 🚀 Vercel Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** [$DEPLOY_URL]($DEPLOY_URL)" >> $GITHUB_STEP_SUMMARY
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
