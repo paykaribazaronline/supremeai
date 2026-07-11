@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { apiClient } from '../services/apiClient';
 
 export enum AuthStatus {
   UNINITIALIZED = 'uninitialized',
@@ -18,7 +19,7 @@ interface AuthState {
   user: UserProfile | null;
   login: (email: string, name: string) => Promise<void>;
   logout: () => void;
-  initialize: () => void;
+  initialize: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -26,27 +27,56 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
 
   login: async (email, name) => {
-    // Mock login delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    set({
-      status: AuthStatus.LOGGED_IN,
-      user: {
-        id: 'user_123',
-        email,
-        name,
-        avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
-      },
-    });
+    try {
+      // 🟢 Sprint 5: Call actual FastAPI Dev Login endpoint
+      const response = await apiClient.post<any>('/auth/login', {
+        username: email,
+        password: 'dev_password' // Ignored by dev endpoint
+      });
+      
+      const token = response.access_token;
+      localStorage.setItem('supremeai_auth_token', token);
+      
+      set({
+        status: AuthStatus.LOGGED_IN,
+        user: {
+          id: response.user_id,
+          email,
+          name,
+          avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`,
+        },
+      });
+    } catch (error) {
+      console.error("Login failed:", error);
+      throw error;
+    }
   },
 
   logout: () => {
+    localStorage.removeItem('supremeai_auth_token');
     set({ status: AuthStatus.LOGGED_OUT, user: null });
   },
 
-  initialize: () => {
-    // Mock initialization (e.g., checking tokens in local storage)
-    setTimeout(() => {
+  initialize: async () => {
+    const token = localStorage.getItem('supremeai_auth_token');
+    if (token) {
+      try {
+        const response = await apiClient.get<any>('/auth/me');
+        set({
+          status: AuthStatus.LOGGED_IN,
+          user: {
+            id: response.user_id,
+            email: 'dev_user@example.com', // /auth/me doesn't return email right now, this is a placeholder
+            name: response.role,
+            avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(response.role)}&background=random`,
+          }
+        });
+      } catch (e) {
+        localStorage.removeItem('supremeai_auth_token');
+        set({ status: AuthStatus.LOGGED_OUT });
+      }
+    } else {
       set({ status: AuthStatus.LOGGED_OUT });
-    }, 500);
+    }
   },
 }));
