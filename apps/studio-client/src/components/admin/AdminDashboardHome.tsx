@@ -3,6 +3,8 @@ import { Play, Activity, Server, AlertTriangle, Monitor, Sparkles, Cpu, Layers }
 import { motion } from 'framer-motion';
 import { RealTimeMetricsPanel } from './RealTimeMetricsPanel';
 import { useMetrics, useHealthMap, useCIReports, useDashboardEvents } from '../../hooks/useDashboardData';
+import { HealthReportWidget } from './HealthReportWidget';
+import { GitHubCIWidget } from './GitHubCIWidget';
 
 // বাংলা মন্তব্য: এডমিন ড্যাশবোর্ডের মূল ৬টি প্যানেল গ্রিড লেআউট (Admin Dashboard Home)
 // এটি রেফারেন্স ইমেজ অনুযায়ী রিচ ভিজ্যুয়াল ও ডাটা ইন্ডিকেটর দিয়ে সাজানো হয়েছে।
@@ -347,58 +349,11 @@ export const AdminDashboardHome: React.FC = () => {
           </div>
         </div>
 
-        {/* Card E: Active Agents Map */}
-        <div className="bg-slate-950/60 border border-slate-900 rounded-xl p-5 flex flex-col justify-between min-h-[300px] shadow-[0_0_15px_rgba(0,0,0,0.3)]">
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-[10px] text-[#00f3ff] uppercase font-bold tracking-wider">Active Agents Map</span>
-            <span className="text-[9px] text-emerald-400">GLOBAL ACTIVITY STATUS</span>
-          </div>
+        {/* Card E: System Health Report */}
+        <HealthReportWidget healthMap={healthMap || {}} isLoading={!healthMap} />
 
-          {/* Simple wireframe outline of world map */}
-          <div className="flex-grow flex items-center justify-center py-2 opacity-85">
-            <svg className="w-full h-36" viewBox="0 0 320 160">
-              {/* Continents outlines (fake simple shapes) */}
-              <path d="M 40 40 Q 60 20 80 50 T 120 70 L 100 120 Q 80 130 50 100 Z" fill="none" stroke="#1e293b" strokeWidth="1.5"/>
-              <path d="M 180 50 Q 220 30 260 40 T 290 80 L 260 130 Q 220 140 200 100 Z" fill="none" stroke="#1e293b" strokeWidth="1.5"/>
-              
-              {/* Activity neon dots */}
-              <circle cx="80" cy="50" r="4" fill="#00f3ff" className="animate-ping"/>
-              <circle cx="80" cy="50" r="3" fill="#00f3ff"/>
-              
-              <circle cx="220" cy="60" r="4" fill="#b5179e" className="animate-ping"/>
-              <circle cx="220" cy="60" r="3" fill="#b5179e"/>
-              
-              <circle cx="250" cy="90" r="4" fill="#10b981" className="animate-ping"/>
-              <circle cx="250" cy="90" r="3" fill="#10b981"/>
-            </svg>
-          </div>
-        </div>
-
-        {/* Card F: Task Queue */}
-        <div className="bg-slate-950/60 border border-slate-900 rounded-xl p-5 flex flex-col justify-between min-h-[300px] shadow-[0_0_15px_rgba(0,0,0,0.3)]">
-          <div className="flex justify-between items-center mb-3">
-            <span className="text-[10px] text-[#00f3ff] uppercase font-bold tracking-wider">Task Queue</span>
-            <span className="text-[9px] text-slate-400">PENDING QUEUE</span>
-          </div>
-
-          <div className="flex-grow space-y-2 overflow-y-auto max-h-[180px]">
-            {[
-              { id: 'TASK-1029', name: 'Neural Core Optimization', type: 'Optimize' },
-              { id: 'TASK-3928', name: 'Database Replication Sync', type: 'Sync' },
-              { id: 'TASK-4821', name: 'Observability Log Archive', type: 'Archive' }
-            ].map(task => (
-              <div key={task.id} className="bg-[#040814] border border-slate-900 rounded p-2.5 flex justify-between items-center text-[10px]">
-                <div>
-                  <div className="font-bold text-slate-200">{task.id}</div>
-                  <div className="text-slate-400 text-[8px]">{task.name}</div>
-                </div>
-                <button className="bg-cyan-950/30 hover:bg-[#00f3ff]/20 text-[#00f3ff] border border-[#00f3ff]/30 rounded px-2.5 py-1 transition-all">
-                  MONITOR
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Card F: GitHub CI Pipeline */}
+        <GitHubCIWidget reports={ciReports || []} isLoading={!ciReports} />
 
       </div>
 

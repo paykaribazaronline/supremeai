@@ -20,7 +20,7 @@ class SandboxService:
         try:
             self.client = docker.from_env()
             logger.info("Docker client initialized successfully.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to initialize Docker client: {e}")
             self.client = None
 
@@ -85,7 +85,7 @@ class SandboxService:
                 "stderr": str(e.stderr.decode("utf-8")) if getattr(e, "stderr", None) else str(e),
                 "execution_time_ms": int((asyncio.get_event_loop().time() - start_time) * 1000),
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Sandbox execution failed: {e}")
             return {
                 "status": "FAILED",

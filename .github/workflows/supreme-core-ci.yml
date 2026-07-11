@@ -903,6 +903,7 @@ jobs:
         env:
           MIRROR_REPO_TOKEN: ${{ secrets.MIRROR_REPO_TOKEN }}
         run: |
+          git config lfs.allowincompletepush true
           git remote add mirror https://${MIRROR_REPO_TOKEN}@github.com/SaifulHaqueNiloy/supremeai.git
           git push --force mirror main:refs/heads/main
 
