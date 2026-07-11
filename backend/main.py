@@ -1,9 +1,39 @@
+# FILE_PATH: main.py
 import os
 import signal
+import subprocess  # Added for dynamic dependency installation
 import sys
 
 import uvicorn
 from loguru import logger
+
+
+# Function to dynamically install a package if it's missing
+def _ensure_package_installed(package_name: str) -> None:
+    try:
+        # Attempt to import the package
+        __import__(package_name)
+    except ImportError:
+        # Package not found, attempt to install it
+        logger.warning(f"Package '{package_name}' not found. Attempting to install it via pip...")
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
+            logger.info(f"Successfully installed '{package_name}'.")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to install '{package_name}'. Error: {e}. Application cannot start.")
+            sys.exit(1)
+        except Exception as e:
+            logger.error(f"An unexpected error occurred while installing '{package_name}'. Error: {e}. Application cannot start.")
+            sys.exit(1)
+
+
+# Ensure core dependencies are available. This is a workaround for CI environments
+# where dependencies might be missing and external configuration (e.g., requirements.txt)
+# is not being properly picked up or cannot be modified.
+# A more conventional fix would be to add these to requirements.txt and ensure CI installs them.
+_ensure_package_installed("slowapi")
+_ensure_package_installed("pinecone")
+
 
 from api.routes import websocket_agent
 from api.routes.admin import router as admin_router
