@@ -15,8 +15,6 @@ class TestTaskQueueFallback:
         if result["status"] == "completed":
             assert "Processed requirement" in result["result"]
 
-
-
     def test_task_queue_result_schema_sync_fallback(self):
         from core.task_queue import process_requirement_async
 

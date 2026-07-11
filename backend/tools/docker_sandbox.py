@@ -76,7 +76,9 @@ class DockerSandbox:
             if allow_fallback_str is not None:
                 allow_fallback = allow_fallback_str.lower() == "true"
             else:
-                allow_fallback = getattr(settings, "allow_local_sandbox_fallback", None) == "true" or getattr(settings, "allow_sandbox_fallback", False)
+                allow_fallback = getattr(settings, "allow_local_sandbox_fallback", None) == "true" or getattr(
+                    settings, "allow_sandbox_fallback", False
+                )
 
             if env_name in {"production", "staging"} or not allow_fallback:
                 logger.error("Docker is not available and local execution fallback is disabled.")
