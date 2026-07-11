@@ -163,7 +163,18 @@ jobs:
   production-readiness:
     name: 🚀 Production Readiness (Safety Guard, Multi-Model Validator, Codegraph)
     needs: [changes, pre-merge-gate]
-    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.dependencies == 'true'
+    if: >
+      (
+        github.event_name != 'workflow_dispatch' && 
+        (needs.changes.outputs.backend == 'true' || needs.changes.outputs.dependencies == 'true')
+      ) ||
+      (
+        github.event_name == 'workflow_dispatch' && 
+        (
+          github.event.inputs.target_job == 'all' || 
+          github.event.inputs.target_job == 'backend-core-only'
+        )
+      )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -258,7 +269,26 @@ jobs:
   backend-core:
     name: 🐍 Backend (Test & Auto-Fix)
     needs: [changes, pre-merge-gate, production-readiness]
-    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.dependencies == 'true'
+    if: >
+      always() && !cancelled() &&
+      (
+        (
+          github.event_name != 'workflow_dispatch' && 
+          (needs.changes.outputs.backend == 'true' || needs.changes.outputs.dependencies == 'true') &&
+          needs.pre-merge-gate.result == 'success' && needs.production-readiness.result == 'success'
+        ) ||
+        (
+          github.event_name == 'workflow_dispatch' && 
+          (
+            github.event.inputs.target_job == 'all' || 
+            github.event.inputs.target_job == 'backend-core-only'
+          ) &&
+          (
+            github.event.inputs.ignore_dependencies == 'true' ||
+            (needs.pre-merge-gate.result == 'success' && needs.production-readiness.result == 'success')
+          )
+        )
+      )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -371,7 +401,15 @@ jobs:
     name: 🛡️ CodeQL & Trivy Security Scan
     runs-on: ubuntu-latest
     needs: changes
-    if: github.event_name == 'schedule' || needs.changes.outputs.dependencies == 'true'
+    if: >
+      (
+        github.event_name != 'workflow_dispatch' && 
+        (github.event_name == 'schedule' || needs.changes.outputs.dependencies == 'true')
+      ) ||
+      (
+        github.event_name == 'workflow_dispatch' && 
+        github.event.inputs.target_job == 'all'
+      )
     permissions:
       security-events: write
       actions: read
@@ -457,7 +495,18 @@ jobs:
     name: 🌐 Frontend Monorepo (Turbo)
     runs-on: ubuntu-latest
     needs: changes
-    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.dependencies == 'true'
+    if: >
+      (
+        github.event_name != 'workflow_dispatch' && 
+        (needs.changes.outputs.frontend == 'true' || needs.changes.outputs.dependencies == 'true')
+      ) ||
+      (
+        github.event_name == 'workflow_dispatch' && 
+        (
+          github.event.inputs.target_job == 'all' || 
+          github.event.inputs.target_job == 'frontend-core-only'
+        )
+      )
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v3
@@ -588,7 +637,26 @@ jobs:
     name: 🧪 Human Simulation & Load Tests
     needs: [backend-core, frontend-core]
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    if: >
+      always() && !cancelled() &&
+      (
+        (
+          github.event_name != 'workflow_dispatch' && 
+          (github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) &&
+          needs.backend-core.result == 'success' && needs.frontend-core.result == 'success'
+        ) ||
+        (
+          github.event_name == 'workflow_dispatch' && 
+          (
+            github.event.inputs.target_job == 'all' || 
+            github.event.inputs.target_job == 'performance-e2e-only'
+          ) &&
+          (
+            github.event.inputs.ignore_dependencies == 'true' ||
+            (needs.backend-core.result == 'success' && needs.frontend-core.result == 'success')
+          )
+        )
+      )
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v3
@@ -680,7 +748,18 @@ jobs:
     name: 🚀 Deploy Backend (Render)
     needs: [backend-core]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: >
+      (
+        github.event_name != 'workflow_dispatch' && 
+        github.ref == 'refs/heads/main'
+      ) ||
+      (
+        github.event_name == 'workflow_dispatch' && 
+        (
+          github.event.inputs.target_job == 'all' || 
+          github.event.inputs.target_job == 'deploy-render-only'
+        )
+      )
     permissions:
       contents: read
       packages: write
