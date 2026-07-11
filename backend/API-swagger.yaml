@@ -4144,6 +4144,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /preferences/{user_id}/stream:
+    get:
+      tags:
+      - preferences
+      summary: Stream Preferences
+      description: SSE endpoint to listen for real-time theme and preference updates
+        for a specific user.
+      operationId: stream_preferences_preferences__user_id__stream_get
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /metrics/usage/:
     get:
       tags:
@@ -4409,6 +4436,28 @@ paths:
           content:
             application/json:
               schema: {}
+  /api/health/agents:
+    post:
+      summary: Get Agents Health
+      operationId: get_agents_health_api_health_agents_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HealthRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/api-keys/create:
     post:
       tags:
@@ -5941,6 +5990,83 @@ paths:
           content:
             application/json:
               schema: {}
+  /api/byoc/credentials:
+    post:
+      tags:
+      - BYOC Management
+      summary: Save Credentials
+      description: Encrypts and saves client-provided cloud service credentials securely.
+      operationId: save_credentials_api_byoc_credentials_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BYOCCredentialsPayload'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/byoc/deploy:
+    post:
+      tags:
+      - BYOC Management
+      summary: Deploy Container
+      description: Checks user tier quota limits and starts background container deployment.
+      operationId: deploy_container_api_byoc_deploy_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BYOCDeployRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/byoc/status/{job_id}:
+    get:
+      tags:
+      - BYOC Management
+      summary: Get Deployment Status
+      description: Returns live execution state and logs for a container deployment
+        job.
+      operationId: get_deployment_status_api_byoc_status__job_id__get
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Job Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /task/quota:
     get:
       tags:
@@ -6340,6 +6466,48 @@ components:
       - password
       - otp
       title: AdminVerifyRequest
+    BYOCCredentialsPayload:
+      properties:
+        provider:
+          type: string
+          enum:
+          - gcp
+          - aws
+          - azure
+          title: Provider
+          default: gcp
+        gcp_credentials:
+          $ref: '#/components/schemas/GCPServiceAccountPayload'
+      type: object
+      required:
+      - gcp_credentials
+      title: BYOCCredentialsPayload
+    BYOCDeployRequest:
+      properties:
+        skill_name:
+          type: string
+          title: Skill Name
+          description: Name of the skill container to spin up
+        provider:
+          type: string
+          enum:
+          - gcp
+          - aws
+          - azure
+          title: Provider
+          default: gcp
+        memory_limit:
+          type: string
+          title: Memory Limit
+          default: 256Mi
+        cpu_limit:
+          type: string
+          title: Cpu Limit
+          default: 1000m
+      type: object
+      required:
+      - skill_name
+      title: BYOCDeployRequest
     Body_api_image_to_code_tools_image_to_code_post:
       properties:
         file:
@@ -7138,6 +7306,36 @@ components:
       - selector
       - value
       title: FillRequest
+    GCPServiceAccountPayload:
+      properties:
+        type:
+          type: string
+          title: Type
+          description: Credentials Type (must be service_account)
+        project_id:
+          type: string
+          title: Project Id
+          description: GCP Project ID
+        private_key_id:
+          type: string
+          title: Private Key Id
+          description: GCP Private Key ID
+        private_key:
+          type: string
+          title: Private Key
+          description: GCP Private Key
+        client_email:
+          type: string
+          title: Client Email
+          description: GCP Client Email
+      type: object
+      required:
+      - type
+      - project_id
+      - private_key_id
+      - private_key
+      - client_email
+      title: GCPServiceAccountPayload
     GateOverridePayload:
       properties:
         target_status:
@@ -7192,6 +7390,17 @@ components:
           title: Detail
       type: object
       title: HTTPValidationError
+    HealthRequest:
+      properties:
+        agent_ids:
+          items:
+            type: string
+          type: array
+          title: Agent Ids
+      type: object
+      required:
+      - agent_ids
+      title: HealthRequest
     ImapAuthRequest:
       properties:
         host:
