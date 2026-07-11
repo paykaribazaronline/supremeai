@@ -941,7 +941,11 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           # বাংলা মন্তব্য: প্রোডাকশন-রেডি সিকিউরিটি মোডে Settings ইনিশিয়ালাইজ করার সময় ভ্যালিডেশন এরর এড়াতে এটি ইনজেক্ট করা হয়েছে
           STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY || 'sk_test_dummy' }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET || 'whsec_dummy' }}
           DOCS_PASSWORD: ${{ secrets.DOCS_PASSWORD || 'dummy_docs_password' }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY || 'sk-or-v1-dummy' }}
+          CI_WEBHOOK_SECRET: ${{ secrets.CI_WEBHOOK_SECRET || 'dummy_ci_secret' }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY || '9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno=' }}
         run: |
           cd backend && poetry run python ../scripts/generate_openapi.py
           cd .. && python scripts/auto_generate_architecture_docs.py
