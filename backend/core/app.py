@@ -8,7 +8,6 @@ import os
 import secrets
 import sys
 from pathlib import Path
-from typing import Any
 
 
 # Add project root to sys.path so 'skills' module can be imported
@@ -27,7 +26,6 @@ from fastapi.security import HTTPBasicCredentials
 from loguru import logger
 
 from core import lifespan
-from core import services
 from core.admin_routes import router as admin_router
 from core.api_key_middleware import APIKeyAuthMiddleware
 from core.auth_middleware import AuthMiddleware
@@ -157,8 +155,6 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException) ->
 
 
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-
-
 
 
 def _safe_include_router(app: FastAPI, router_module: str, prefix: str = "") -> None:
