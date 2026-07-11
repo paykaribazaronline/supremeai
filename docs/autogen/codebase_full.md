@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T09:05:57.806699
+Generated at: 2026-07-11T09:15:33.930489
 
 
 ## File: `pnpm-lock.yaml`
@@ -106220,11 +106220,11 @@ def test_docs_visible_in_local():
     code = textwrap.dedent(
         """
         import os
-        os.environ["env"] = "local"
-        os.environ["openrouter_api_key"] = "sk"
-        os.environ["gemini_api_key"] = "sk"
+        os.environ["ENV"] = "local"
+        os.environ["OPENROUTER_API_KEY"] = "sk"
+        os.environ["GEMINI_API_KEY"] = "sk"
         # Sentry-তে public key প্রয়োজন এবং Stripe API key mandatory, তাই মক ভ্যালু যোগ করা হলো
-        os.environ["sentry_dsn"] = "https://public@sentry.io/123"
+        os.environ["SENTRY_DSN"] = "https://public@sentry.io/123"
         os.environ["STRIPE_API_KEY"] = "sk_test_mock"
         os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_64_bytes_long_test_string_pad_pad_pad_pad"
         import core.app as app_mod
@@ -106245,12 +106245,12 @@ def test_docs_disabled_in_production():
     code = textwrap.dedent(
         """
         import os
-        os.environ["env"] = "production"
-        os.environ["debug"] = "false"
-        os.environ["openrouter_api_key"] = "sk"
-        os.environ["gemini_api_key"] = "sk"
+        os.environ["ENV"] = "production"
+        os.environ["DEBUG"] = "false"
+        os.environ["OPENROUTER_API_KEY"] = "sk"
+        os.environ["GEMINI_API_KEY"] = "sk"
         # Sentry-তে public key প্রয়োজন এবং Production-এ Stripe API key ও Webhook Secret mandatory, তাই মক ভ্যালু যোগ করা হলো
-        os.environ["sentry_dsn"] = "https://public@sentry.io/123"
+        os.environ["SENTRY_DSN"] = "https://public@sentry.io/123"
         os.environ["STRIPE_API_KEY"] = "sk_test_mock"
         os.environ["STRIPE_WEBHOOK_SECRET"] = "whsec_mock"
         os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_64_bytes_long_test_string_pad_pad_pad_pad"
@@ -110233,6 +110233,9 @@ from core.rbac import UserContext
 class TestAdminGodLayer:
     """Tests for AdminGodLayer enforcement and constraint injection."""
 
+    from unittest.mock import patch
+    import os
+    @patch.dict(os.environ, {"SUPREMEAI_ADMIN_PASSWORD_HASH": ""})
     def test_init_default(self):
         """ডিফল্ট ইনিশialization ঠিক আছে।"""
         layer = AdminGodLayer()
@@ -112821,7 +112824,7 @@ class TestHelperFunctions:
 
     def test_get_admin_credentials_missing_hash(self):
         """এডমিন পাসওয়ার্ড হ্যাশ নেই থাকলে 500 রিটার্ন করে।"""
-        with patch.dict(os.environ, {}, clear=False):
+        with patch.dict(os.environ, {"SUPREMEAI_ADMIN_PASSWORD_HASH": ""}, clear=False):
             from core.admin_routes import _get_admin_credentials
 
             with pytest.raises(HTTPException) as exc_info:
@@ -118279,20 +118282,16 @@ def test_create_checkout_session_mock():
     assert "https://stripe.com/test" in data["url"]
 
 
+from pydantic import SecretStr
+from unittest.mock import patch
+
 def test_webhook_ignored_if_missing_config():
     # Verify webhook behaves gracefully when credentials/key are missing
-    original_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
-    os.environ["STRIPE_WEBHOOK_SECRET"] = ""
-    settings._cached_secrets.pop("STRIPE_WEBHOOK_SECRET", None)
-
-    try:
+    with patch("api.routes.payments.settings.stripe_webhook_secret", new=SecretStr("")):
         headers = {**auth_headers, "stripe-signature": "invalid-sig"}
         resp = client.post("/payments/webhook", headers=headers, content=b"some-payload")
         assert resp.status_code == 200
         assert resp.json()["status"] == "ignored"
-    finally:
-        if original_secret is not None:
-            os.environ["STRIPE_WEBHOOK_SECRET"] = original_secret
 
 ```
 

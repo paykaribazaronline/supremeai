@@ -1,12 +1,12 @@
-# 📋 Commit 1d773e74b8ca5ef4796784b2ef285a394d22fbae
+# 📋 Commit f0c62b0afa0e7d0457ae133ebdd93b7ca0ce4244
 
 ## Commit Stats
 ```
-commit 1d773e74b8ca5ef4796784b2ef285a394d22fbae
+commit f0c62b0afa0e7d0457ae133ebdd93b7ca0ce4244
 Author: SupremeAI CI Bot <ci-bot@supremeai.dev>
-Date:   Sat Jul 11 15:04:46 2026 +0600
+Date:   Sat Jul 11 15:14:14 2026 +0600
 
-    fix: resolve merge conflict in test_payments.py
+    fix: mock config correctly for tests to pass in CI
 
  .agent                                             |     27 +
  .antigravity                                       |     27 +
@@ -926,7 +926,7 @@ Date:   Sat Jul 11 15:04:46 2026 +0600
  backend/tests/scout/test_knowledge_extractor.py    |     31 +
  backend/tests/scout/test_web_crawler_agent.py      |     21 +
  backend/tests/test_adaptive_engine.py              |    117 +
- backend/tests/test_admin_god.py                    |    122 +
+ backend/tests/test_admin_god.py                    |    125 +
  backend/tests/test_admin_models.py                 |     48 +
  backend/tests/test_admin_routes.py                 |    311 +
  backend/tests/test_advanced.py                     |    165 +
@@ -1026,7 +1026,7 @@ Date:   Sat Jul 11 15:04:46 2026 +0600
  backend/tests/test_optimization_engine.py          |     20 +
  backend/tests/test_output_validator.py             |     70 +
  backend/tests/test_parallel_agent_executor.py      |     93 +
- backend/tests/test_payments.py                     |     70 +
+ backend/tests/test_payments.py                     |     66 +
  backend/tests/test_performance_aware_router.py     |     67 +
  backend/tests/test_pgbouncer_pool.py               |     64 +
  backend/tests/test_posthog.py                      |     14 +
@@ -1316,7 +1316,7 @@ Date:   Sat Jul 11 15:04:46 2026 +0600
  docs/auto_fix_in_github_implementation_plan.md     |    352 +
  docs/autogen/INDEX.md                              |     16 +
  docs/autogen/LATEST-PUSH-SUMMARY.md                |      3 +
- ...nge_2555a2da8cf68e82f0b3a91ce7a0482aa7c5c8d4.md |   5229 +
+ ...nge_1d773e74b8ca5ef4796784b2ef285a394d22fbae.md |  19195 ++
  ...nge_30cd23e3e9d8537f9140e253e6255852d39c9aa9.md |     54 +
  ...nge_43411f33de567881034b7fbaec863c25ed7110dd.md |     52 +
  ...nge_552186f6803f6c381f9a9b96d40222ac8214f6e8.md |    313 +
@@ -2120,7 +2120,7 @@ Date:   Sat Jul 11 15:04:46 2026 +0600
  .../backend_tests_test_optimization_engine.py.md   |     33 +
  .../backend_tests_test_output_validator.py.md      |     83 +
  ...ackend_tests_test_parallel_agent_executor.py.md |    106 +
- .../codebase/backend_tests_test_payments.py.md     |     78 +
+ .../codebase/backend_tests_test_payments.py.md     |     83 +
  ...ckend_tests_test_performance_aware_router.py.md |     80 +
  .../backend_tests_test_pgbouncer_pool.py.md        |     77 +
  .../codebase/backend_tests_test_posthog.py.md      |     27 +
@@ -2561,8 +2561,8 @@ Date:   Sat Jul 11 15:04:46 2026 +0600
  .../tools_vscode-extension_vitest.config.ts.md     |     35 +
  docs/autogen/codebase/turbo.json.md                |     48 +
  docs/autogen/codebase/vercel.json.md               |     41 +
- docs/autogen/codebase_full.md                      | 204227 ++++++++++++++++++
- docs/autogen/summaries/PUSH-SUMMARY-6558b31.md     |      3 +
+ docs/autogen/codebase_full.md                      | 204232 ++++++++++++++++++
+ docs/autogen/summaries/PUSH-SUMMARY-1d773e7.md     |      3 +
  docs/autogen/summaries/PUSH-SUMMARY-aea4e49c3d.md  |     62 +
  docs/autogen/summaries/PUSH-SUMMARY-b10c5e3e1.md   |     62 +
  docs/autogen/summaries/PUSH-SUMMARY-b43169f5f3.md  |     62 +
@@ -2929,17 +2929,17 @@ Date:   Sat Jul 11 15:04:46 2026 +0600
  tools/vscode-extension/vitest.config.ts            |     22 +
  turbo.json                                         |     36 +
  vercel.json                                        |     28 +
- 2921 files changed, 786996 insertions(+)
+ 2921 files changed, 800971 insertions(+)
 
 ```
 
 ## Diff Detail
 ```diff
-commit 1d773e74b8ca5ef4796784b2ef285a394d22fbae
+commit f0c62b0afa0e7d0457ae133ebdd93b7ca0ce4244
 Author: SupremeAI CI Bot <ci-bot@supremeai.dev>
-Date:   Sat Jul 11 15:04:46 2026 +0600
+Date:   Sat Jul 11 15:14:14 2026 +0600
 
-    fix: resolve merge conflict in test_payments.py
+    fix: mock config correctly for tests to pass in CI
 
 diff --git a/.agent b/.agent
 new file mode 100644
@@ -19188,8 +19188,8 @@ index 0000000..61a4ca8
 +      - findings
 +      - recommendation
 +      title: VulnCheckResponse
-+    Worksp
++    Wor
 
-... [TRUNCATED — diff was 34,700,335 bytes, capped at 512,000] ...
+... [TRUNCATED — diff was 34,824,412 bytes, capped at 512,000] ...
 
 ```

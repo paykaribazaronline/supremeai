@@ -1,8 +1,8 @@
 # 📄 ফাইল: backend/tests/test_admin_routes.py
 
 **প্রকার:** .py  
-**সাইজ:** 13,738 বাইট  
-**আপডেট:** 2026-07-11T09:05:57.888499
+**সাইজ:** 13,773 বাইট  
+**আপডেট:** 2026-07-11T09:15:34.027536
 
 ---
 
@@ -71,7 +71,7 @@ class TestHelperFunctions:
 
     def test_get_admin_credentials_missing_hash(self):
         """এডমিন পাসওয়ার্ড হ্যাশ নেই থাকলে 500 রিটার্ন করে।"""
-        with patch.dict(os.environ, {}, clear=False):
+        with patch.dict(os.environ, {"SUPREMEAI_ADMIN_PASSWORD_HASH": ""}, clear=False):
             from core.admin_routes import _get_admin_credentials
 
             with pytest.raises(HTTPException) as exc_info:
