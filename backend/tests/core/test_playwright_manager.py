@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 
-import core.playwright_manager as pm
+
 
 
 # -------------------- Fixtures --------------------
@@ -21,8 +21,12 @@ def reset_global_state():
     বাংলা মন্তব্য: প্রতিটি test-এর পর global browser state reset করে।
     Module-level globals clean রাখার জন্য।
     """
+<<<<<<< HEAD
     import core.playwright_manager as pm
 
+=======
+    
+>>>>>>> 47022671ca (fix: resolve global state corruption, deduplicate module imports in tests, add reducer script)
     pm._global_browser = None
     pm._playwright_runner = None
     yield
@@ -77,7 +81,7 @@ class TestGetGlobalBrowser:
     @pytest.mark.asyncio
     async def test_returns_existing_browser(self, mock_browser, mock_playwright_runner):
         """বাংলা মন্তব্য: Second call-এ existing browser return হয় (singleton pattern)।"""
-        import core.playwright_manager as pm
+        
 
         pm._global_browser = mock_browser
         pm._playwright_runner = mock_playwright_runner
@@ -136,7 +140,7 @@ class TestShutdownGlobalBrowser:
     @pytest.mark.asyncio
     async def test_successful_shutdown(self, mock_browser, mock_playwright_runner):
         """বাংলা মন্তব্য: Browser এবং runner properly close হয়।"""
-        import core.playwright_manager as pm
+        
 
         pm._global_browser = mock_browser
         pm._playwright_runner = mock_playwright_runner
@@ -153,7 +157,7 @@ class TestShutdownGlobalBrowser:
     @pytest.mark.asyncio
     async def test_shutdown_with_no_browser(self):
         """বাংলা মন্তব্য: Browser না থাকলেও shutdown peacefully শেষ হয়।"""
-        import core.playwright_manager as pm
+        
 
         pm._global_browser = None
         pm._playwright_runner = None
@@ -168,7 +172,7 @@ class TestShutdownGlobalBrowser:
     @pytest.mark.asyncio
     async def test_shutdown_with_browser_only(self, mock_browser):
         """বাংলা মন্তব্য: Browser থাকলে শুধু browser close হয়।"""
-        import core.playwright_manager as pm
+        
 
         pm._global_browser = mock_browser
         pm._playwright_runner = None
@@ -183,7 +187,7 @@ class TestShutdownGlobalBrowser:
     @pytest.mark.asyncio
     async def test_shutdown_with_runner_only(self, mock_playwright_runner):
         """বাংলা মন্তব্য: Runner থাকলে শুধু runner stop হয়।"""
-        import core.playwright_manager as pm
+        
 
         pm._global_browser = None
         pm._playwright_runner = mock_playwright_runner
@@ -200,7 +204,7 @@ class TestShutdownGlobalBrowser:
         """বাংলা মন্তব্য: Browser close error handle করে runner stop করে।"""
         mock_browser.close = AsyncMock(side_effect=RuntimeError("Browser close failed"))
 
-        import core.playwright_manager as pm
+        
 
         pm._global_browser = mock_browser
         pm._playwright_runner = mock_playwright_runner
@@ -220,7 +224,7 @@ class TestShutdownGlobalBrowser:
         """বাংলা মন্তব্য: Runner stop error handle করে।"""
         mock_playwright_runner.stop = AsyncMock(side_effect=RuntimeError("Runner stop failed"))
 
-        import core.playwright_manager as pm
+        
 
         pm._global_browser = mock_browser
         pm._playwright_runner = mock_playwright_runner
@@ -241,7 +245,7 @@ class TestShutdownGlobalBrowser:
         """বাংলা মন্তব্য: OSError handle করে gracefully।"""
         mock_browser.close = AsyncMock(side_effect=OSError("OS error during close"))
 
-        import core.playwright_manager as pm
+        
 
         pm._global_browser = mock_browser
         pm._playwright_runner = mock_playwright_runner
@@ -258,7 +262,7 @@ class TestShutdownGlobalBrowser:
         """বাংলা মন্তব্য: ConnectionError handle করে gracefully।"""
         mock_browser.close = AsyncMock(side_effect=ConnectionError("Connection lost"))
 
-        import core.playwright_manager as pm
+        
 
         pm._global_browser = mock_browser
         pm._playwright_runner = mock_playwright_runner
@@ -273,7 +277,7 @@ class TestShutdownGlobalBrowser:
     @pytest.mark.asyncio
     async def test_shutdown_logs_correct_messages(self, mock_browser, mock_playwright_runner):
         """বাংলা মন্তব্য: Shutdown process-এ সঠিক log messages print হয়।"""
-        import core.playwright_manager as pm
+        
 
         pm._global_browser = mock_browser
         pm._playwright_runner = mock_playwright_runner
