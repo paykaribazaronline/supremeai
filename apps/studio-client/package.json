@@ -25,6 +25,7 @@
   "dependencies": {
     "@dataconnect/generated": "file:src/dataconnect-generated",
     "@monaco-editor/react": "^4.7.0",
+    "@supremeai/design-tokens": "workspace:^",
     "@supremeai/ui-components": "workspace:*",
     "@tailwindcss/vite": "^4.2.4",
     "@tanstack/react-query": "^5.101.0",

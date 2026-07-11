@@ -229,7 +229,7 @@ class Settings(BaseSettings):
     def validate_docs_password(cls, v: str, info: ValidationInfo) -> str:
         if "pytest" in sys.modules:
             return v
-        env = info.data.get("env", "local")
+        # বাংলা মন্তব্য: env ভেরিয়েবলটি ব্যবহার করা হয়নি, তাই সরিয়ে দেওয়া হয়েছে (F841 ফিক্স)
         docs_auth_enabled = info.data.get("docs_auth_enabled", True)
         if docs_auth_enabled and not v:
             # All environments must have password if docs are enabled
@@ -333,6 +333,7 @@ class Settings(BaseSettings):
             return self
 
         missing: list[str] = []
+        # বাংলা মন্তব্য: E701 ফিক্স — প্রতিটি স্টেটমেন্ট আলাদা লাইনে রাখা হয়েছে
         if not self.openrouter_api_key:
             missing.append("OPENROUTER_API_KEY")
         if not self.gemini_api_key:

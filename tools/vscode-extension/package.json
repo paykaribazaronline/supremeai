@@ -27,16 +27,16 @@
       "packageDescription": "Real-time code analysis, learning, and AI assistance with SupremeAI Core Engine"
     },
     "bn": {
-      "packageDisplayName": "\u09b8\u09c1\u09aa\u09cd\u09b0\u09bf\u09ae\u098f\u0986\u0987 - \u098f\u0986\u0987-\u099a\u09be\u09b2\u09bf\u09a4 \u09a1\u09c7\u09ad\u09c7\u09b2\u09aa\u09ae\u09c7\u09a8\u09cd\u099f \u09b8\u09b9\u09be\u09af\u09bc\u0995",
-      "packageDescription": "\u09b8\u09c1\u09aa\u09cd\u09b0\u09bf\u09ae\u098f\u0986\u0987 \u0995\u09cb\u09b0 \u0987\u099e\u09cd\u099c\u09bf\u09a8\u09c7\u09b0 \u09b8\u09be\u09a5\u09c7 \u09b0\u09bf\u09af\u09bc\u09c7\u09b2-\u099f\u09be\u0987\u09ae \u0995\u09cb\u09a1 \u09ac\u09bf\u09b6\u09cd\u09b2\u09c7\u09b7\u09a3, \u09b6\u09bf\u0996\u09c1\u09a8 \u098f\u09ac\u0982 \u098f\u0986\u0987 \u09b8\u09b9\u09be\u09af\u09bc\u09a4\u09be"
+      "packageDisplayName": "সুপ্রিমএআই - এআই-চালিত ডেভেলপমেন্ট সহায়ক",
+      "packageDescription": "সুপ্রিমএআই কোর ইঞ্জিনের সাথে রিয়েল-টাইম কোড বিশ্লেষণ, শিখুন এবং এআই সহায়তা"
     },
     "es": {
       "packageDisplayName": "SupremeAI - Asistente de desarrollo impulsado por IA",
-      "packageDescription": "An\u00e1lisis de c\u00f3digo en tiempo real, aprendizaje y asistencia de IA con el motor SupremeAI Core"
+      "packageDescription": "Análisis de código en tiempo real, aprendizaje y asistencia de IA con el motor SupremeAI Core"
     },
     "hi": {
-      "packageDisplayName": "\u0938\u0941\u092a\u094d\u0930\u0940\u092e\u090f\u0906\u0908 - \u090f\u0906\u0908-\u0938\u0902\u091a\u093e\u0932\u093f\u0924 \u0935\u093f\u0915\u093e\u0938 \u0938\u0939\u093e\u092f\u0915",
-      "packageDescription": "\u0938\u0941\u092a\u094d\u0930\u0940\u092e\u090f\u0906\u0908 \u0915\u094b\u0930 \u0907\u0902\u091c\u0928 \u0915\u0947 \u0938\u093e\u0925 \u0935\u093e\u0938\u094d\u0924\u0935\u093f\u0915 \u0938\u092e\u092f \u0915\u094b\u0921 \u0935\u093f\u0936\u094d\u0932\u0947\u0937\u0923, \u0938\u0940\u0916\u0928\u093e \u0914\u0930 \u090f\u0906\u0908 \u0938\u0939\u093e\u092f\u0924\u093e"
+      "packageDisplayName": "सुप्रीमएआई - एआई-संचालित विकास सहायक",
+      "packageDescription": "सुप्रीमएआई कोर इंजन के साथ वास्तविक समय कोड विश्लेषण, सीखना और एआई सहायता"
     }
   },
   "keywords": [
@@ -298,6 +298,7 @@
     "vscode": "^1.1.37"
   },
   "dependencies": {
-    "@dataconnect/generated": "file:src/dataconnect-generated"
+    "@dataconnect/generated": "file:src/dataconnect-generated",
+    "@supremeai/design-tokens": "workspace:^"
   }
 }

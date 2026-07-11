@@ -67,7 +67,7 @@ if (btnAttach && imageUpload) {
                 if (imagePreviewContainer) imagePreviewContainer.style.display = 'block';
             }
         };
-        reader.onerror = (error) => {
+        reader.onerror = (_error) => {
             errorBus.report(new Error("File reading failed"), { sourceModule: "script.ts", action: "File Reader" }, "error");
         };
         reader.readAsDataURL(file);

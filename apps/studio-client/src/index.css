@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Hind+Siliguri:wght@400;500;600;700&display=swap');
+@import "@supremeai/design-tokens/outputs/tokens.css";
 @import "tailwindcss";
 
 @theme {
@@ -37,42 +38,43 @@
   --color-chat-input-bg: var(--chat-input-bg);
   --color-waveform-bg: var(--waveform-bg);
 }
+
 /* ═══════════════════════════════════════════════════════
    THEME 1: SKY BLUE (Light) — ডিফল্ট :root থিম
    ═══════════════════════════════════════════════════════ */
 :root {
-  --background: #f0f9ff;
-  --foreground: #0f172a;
-  --neon-blue: #0284c7;
-  --neon-purple: #4f46e5;
+  --background: var(--supremeai-color-bg-void-light);
+  --foreground: var(--supremeai-color-text-primary-light);
+  --neon-blue: var(--supremeai-color-brand-primary-light);
+  --neon-purple: var(--supremeai-color-brand-secondary-light);
   --cyber-gray: rgba(0, 0, 0, 0.05);
-  --success: #059669;
-  --danger: #dc2626;
-  --warning: #d97706;
-  --card-bg: rgba(255, 255, 255, 0.85);
-  --card-border: rgba(2, 132, 199, 0.2);
+  --success: var(--supremeai-color-brand-success-light);
+  --danger: var(--supremeai-color-brand-danger-light);
+  --warning: var(--supremeai-color-brand-warning-light);
+  --card-bg: var(--supremeai-color-bg-elevated-light);
+  --card-border: var(--supremeai-color-border-accent-light);
   --sidebar-bg: rgba(248, 250, 252, 0.95);
   --tabbar-bg: #e2e8f0;
-  --border-color: rgba(0, 0, 0, 0.1);
-  --card-text: #334155;
-  --card-title-text: #0f172a;
+  --border-color: var(--supremeai-color-border-default-light);
+  --card-text: var(--supremeai-color-text-secondary-light);
+  --card-title-text: var(--supremeai-color-text-primary-light);
   --alert-bg: rgba(0, 0, 0, 0.02);
   --input-bg: #ffffff;
   --input-border: #cbd5e1;
   --panel-bg: #ffffff;
 
   /* CommandCenter Semantic Variables */
-  --bg-main: #f0f9ff;
-  --text-main: #0f172a;
-  --text-secondary: #475569;
-  --bg-panel: rgba(255, 255, 255, 0.85);
+  --bg-main: var(--supremeai-color-bg-void-light);
+  --text-main: var(--supremeai-color-text-primary-light);
+  --text-secondary: var(--supremeai-color-text-secondary-light);
+  --bg-panel: var(--supremeai-color-bg-elevated-light);
   --bg-cell: rgba(0, 0, 0, 0.04);
-  --border-accent: rgba(2, 132, 199, 0.2);
-  --accent-primary: #0284c7;
-  --accent-secondary: #059669;
+  --border-accent: var(--supremeai-color-border-accent-light);
+  --accent-primary: var(--supremeai-color-brand-primary-light);
+  --accent-secondary: var(--supremeai-color-brand-success-light);
   --node-bg: rgba(255, 255, 255, 0.92);
-  --node-text: #0f172a;
-  --node-border: rgba(2, 132, 199, 0.3);
+  --node-text: var(--supremeai-color-text-primary-light);
+  --node-border: var(--supremeai-color-border-accent-light);
   --chat-bg: rgba(255, 255, 255, 0.9);
   --chat-input-bg: #f1f5f9;
   --waveform-bg: rgba(255, 255, 255, 0.9);
@@ -82,37 +84,37 @@
    THEME 2: DEEP SPACE (Dark) — সায়েন্স-ফিকশন নিয়ন থিম
    ═══════════════════════════════════════════════════════ */
 .dark {
-  --background: #030712;
-  --foreground: #f3f4f6;
-  --neon-blue: #00f3ff;
-  --neon-purple: #bc13fe;
+  --background: var(--supremeai-color-bg-void-dark);
+  --foreground: var(--supremeai-color-text-primary-dark);
+  --neon-blue: var(--supremeai-color-brand-primary-dark);
+  --neon-purple: var(--supremeai-color-brand-secondary-dark);
   --cyber-gray: rgba(255, 255, 255, 0.02);
-  --success: #10b981;
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --card-bg: rgba(17, 24, 39, 0.65);
-  --card-border: rgba(0, 243, 255, 0.1);
+  --success: var(--supremeai-color-brand-success-dark);
+  --danger: var(--supremeai-color-brand-danger-dark);
+  --warning: var(--supremeai-color-brand-warning-dark);
+  --card-bg: var(--supremeai-color-bg-elevated-dark);
+  --card-border: var(--supremeai-color-border-accent-dark);
   --sidebar-bg: rgba(10, 15, 26, 0.95);
   --tabbar-bg: #111827;
-  --border-color: rgba(255, 255, 255, 0.06);
-  --card-text: #d1d5db;
-  --card-title-text: #f9fafb;
+  --border-color: var(--supremeai-color-border-default-dark);
+  --card-text: var(--supremeai-color-text-secondary-dark);
+  --card-title-text: var(--supremeai-color-text-primary-dark);
   --alert-bg: rgba(255, 255, 255, 0.01);
   --input-bg: #0b0f19;
   --input-border: #1f2937;
   --panel-bg: #090d16;
 
-  --bg-main: #030611;
-  --text-main: #ffffff;
-  --text-secondary: #94a3b8;
+  --bg-main: var(--supremeai-color-bg-void-dark);
+  --text-main: var(--supremeai-color-text-primary-dark);
+  --text-secondary: var(--supremeai-color-text-secondary-dark);
   --bg-panel: rgba(5, 9, 23, 0.5);
   --bg-cell: rgba(12, 18, 34, 0.8);
-  --border-accent: rgba(0, 243, 255, 0.15);
-  --accent-primary: #00f3ff;
-  --accent-secondary: #00ff66;
+  --border-accent: var(--supremeai-color-border-accent-dark);
+  --accent-primary: var(--supremeai-color-brand-primary-dark);
+  --accent-secondary: var(--supremeai-color-brand-success-dark);
   --node-bg: rgba(6, 10, 24, 0.9);
-  --node-text: #e2e8f0;
-  --node-border: rgba(0, 243, 255, 0.35);
+  --node-text: var(--supremeai-color-text-primary-dark);
+  --node-border: var(--supremeai-color-border-accent-dark);
   --chat-bg: rgba(5, 9, 23, 0.8);
   --chat-input-bg: #030611;
   --waveform-bg: rgba(6, 11, 27, 0.9);

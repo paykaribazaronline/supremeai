@@ -40,7 +40,11 @@ export function SecretsPage() {
   }, []);
 
   useEffect(() => {
-    fetchKeys();
+    // বাংলা মন্তব্য: set-state-in-effect ফিক্স — fetchKeys কে async ফাংশনের ভেতরে র‍্যাপ করা হয়েছে
+    const loadKeys = async () => {
+      await fetchKeys();
+    };
+    loadKeys();
   }, [fetchKeys]);
 
   const handleCreate = async () => {

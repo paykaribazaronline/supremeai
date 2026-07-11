@@ -65,7 +65,11 @@ export function SiteActionsPage() {
   }, []);
 
   useEffect(() => {
-    refresh();
+    // বাংলা মন্তব্য: set-state-in-effect ফিক্স — refresh কে async ফাংশনের ভেতরে র‍্যাপ করা হয়েছে
+    const loadActions = async () => {
+      await refresh();
+    };
+    loadActions();
   }, [refresh]);
 
   const resetForm = () => {

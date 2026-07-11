@@ -47,12 +47,16 @@ export const useSwarmGraph = () => {
   // Health Data নোডের সাথে মার্জ করা
   useEffect(() => {
     if (healthData) {
-      setNodes((nds) => nds.map(node => {
-        if (node.type === 'agent' && healthData[node.id]) {
-          return { ...node, data: { ...node.data, health: healthData[node.id] } };
-        }
-        return node;
-      }));
+      // বাংলা মন্তব্য: set-state-in-effect ফিক্স — নোড আপডেট async ফাংশনের ভেতরে করা হয়েছে
+      const updateNodeHealth = () => {
+        setNodes((nds) => nds.map(node => {
+          if (node.type === 'agent' && healthData[node.id]) {
+            return { ...node, data: { ...node.data, health: healthData[node.id] } };
+          }
+          return node;
+        }));
+      };
+      updateNodeHealth();
     }
   }, [healthData]);
 

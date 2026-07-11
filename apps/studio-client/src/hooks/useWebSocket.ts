@@ -60,7 +60,11 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
     return `${getWebSocketBaseUrl()}/ws`;
   }, [url]);
 
+  // বাংলা মন্তব্য: Immutability ফিক্স — connect রেফারেন্স স্টেবল রাখতে useRef এ সংরক্ষণ করা হয়েছে
+  const connectRef = useRef<() => void>();
+  
   const connect = useCallback(() => {
+    connectRef.current = connect;
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
     try {
@@ -108,7 +112,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
         if (attemptsRef.current < reconnectAttemptsRef.current) {
           attemptsRef.current += 1;
           reconnectTimerRef.current = setTimeout(() => {
-            if (mountedRef.current) connect();
+            if (mountedRef.current) connectRef.current?.();
           }, reconnectIntervalRef.current * attemptsRef.current);
         }
       };

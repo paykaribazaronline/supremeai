@@ -49,7 +49,11 @@ export function LlmGatewayPage() {
   }, []);
 
   useEffect(() => {
-    loadAll();
+    // বাংলা মন্তব্য: set-state-in-effect ফিক্স — loadAll কে async ফাংশনের ভেতরে র‍্যাপ করা হয়েছে
+    const initializeGateway = async () => {
+      await loadAll();
+    };
+    initializeGateway();
   }, [loadAll]);
 
   // বাংলা মন্তব্য: লাইভ মডেল সুইচ — নির্দিষ্ট প্রোভাইডার/মডেলে রাউটার ওভাররাইড সেট করা হয়

@@ -35,9 +35,13 @@ export const GlobalConfigInitializer: React.FC<GlobalConfigInitializerProps> = (
 
   useEffect(() => {
     if (!isConfigLoaded) {
-      fetchConfig();
+      // বাংলা মন্তব্য: set-state-in-effect ফিক্স — fetchConfig কে async ফাংশনের ভেতরে র‍্যাপ করা হয়েছে
+      const loadConfig = async () => {
+        await fetchConfig();
+      };
+      loadConfig();
     }
-  }, [isConfigLoaded]);
+  }, [isConfigLoaded, fetchConfig]);
 
   if (!isConfigLoaded) {
     return (

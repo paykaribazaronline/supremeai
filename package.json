@@ -27,6 +27,7 @@
     "@playwright/test": "^1.42.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "eslint-visitor-keys": "^5.0.1",
     "miniflare": "^2.0.1",
     "prettier": "^3.2.0",
     "turbo": "^2.0.0",
