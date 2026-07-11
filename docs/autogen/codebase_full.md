@@ -1,7 +1,7 @@
 # 🧠 SupremeAI 2.0 Codebase Dump
 # বাংলা মন্তব্য: এটি একটি স্বয়ংক্রিয়ভাবে জেনারেট করা কোডবেস ডাম্প ফাইল যা প্রজেক্টের সামগ্রিক বিশ্লেষণের জন্য ব্যবহৃত হয়।
 
-Generated at: 2026-07-11T09:20:27.480735
+Generated at: 2026-07-11T10:59:17.782922
 
 
 ## File: `pnpm-lock.yaml`
@@ -203524,6 +203524,16 @@ jobs:
           name: supremeai-human-test-report
           path: playwright-report/
           retention-days: 7
+
+  deploy-to-render:
+    name: 🚀 Deploy Backend (Render)
+    needs: [backend-core]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Trigger Render Deploy
+        run: |
+          curl "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
 
   deploy-backend:
     name: 🚀 Deploy Backend (Cloud Run)
