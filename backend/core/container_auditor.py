@@ -77,7 +77,6 @@ class ContainerAuditor:
             logger.error(f"Error in container audit cycle: {e}")
             error_event_bus.emit(ErrorEvent(module="container_auditor", error_type="AUDIT_CYCLE_FAILED", message=str(e)[:200], severity="ERROR"))
 
-
     async def run(self):
         """বাংলা মন্তব্য: Continuous audit loop — Cron-এর পরিবর্তে asyncio loop ব্যবহার করে।"""
         self.running = True
