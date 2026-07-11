@@ -1,4 +1,5 @@
 import uuid
+from datetime import UTC
 from datetime import datetime
 
 from agents.crew_departments import ArchitectureAgent
@@ -35,14 +36,15 @@ class SwarmOrchestrator:
                 "session_id": self.session_id,
                 "log_type": "info",
                 "message": message,
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
             }
             batcher.emit(log_entry)
-            
+
             import asyncio
+
             import psutil
+
             from core.swarm_pubsub import swarm_streamer
-            from datetime import datetime
 
             agent_name = "Orchestrator"
             if "Architecture" in message or "Phase 1:" in message:
@@ -62,23 +64,23 @@ class SwarmOrchestrator:
 
             async def push_stream():
                 await swarm_streamer.broadcast(
-                    event_type="LOG", 
+                    event_type="LOG",
                     payload={
                         "id": log_id,
-                        "timestamp": int(datetime.utcnow().timestamp() * 1000),
+                        "timestamp": int(datetime.now(UTC).timestamp() * 1000),
                         "agentName": agent_name,
                         "message": message,
-                        "level": level
-                    }
+                        "level": level,
+                    },
                 )
                 await swarm_streamer.broadcast(
-                    event_type="METRICS", 
+                    event_type="METRICS",
                     payload={
                         "cpuUsage": psutil.cpu_percent(),
                         "memoryUsage": psutil.virtual_memory().used / (1024 * 1024),
                         "activeAgents": 3,
-                        "errorRate": 0.0
-                    }
+                        "errorRate": 0.0,
+                    },
                 )
 
             try:
