@@ -897,6 +897,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+          lfs: true
       
       - name: 📤 Sync to Secondary Repo (Staging Dispatch)
         if: env.MIRROR_REPO_TOKEN != ''

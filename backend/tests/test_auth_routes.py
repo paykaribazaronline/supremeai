@@ -103,9 +103,10 @@ class TestOptionalCurrentUser:
 
 class TestLoginEndpoint:
     def test_login_returns_501(self, client):
-        resp = client.post("/auth/login", json={"username": "test", "password": "test"})
-        assert resp.status_code == 501
-        assert resp.json()["detail"] == "Direct login is not supported. Use the admin TOTP flow or an OAuth provider."
+        with patch("api.routes.auth.settings.env", "production"):
+            resp = client.post("/auth/login", json={"username": "test", "password": "test"})
+            assert resp.status_code == 501
+            assert resp.json()["detail"] == "Direct login is not supported in production. Use the admin TOTP flow or an OAuth provider."
 
     def test_login_missing_username(self, client):
         resp = client.post("/auth/login", json={"password": "test"})

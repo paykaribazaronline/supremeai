@@ -257,10 +257,11 @@ core_routers = [
     ("api.routes.github", ""),
     ("api.routes.internal", ""),
     ("api.routes.config", ""),
-    ("api.routes.onboarding", ""),
+    ("api.routes.onboarding", "/api"),
     ("api.routes.repos", ""),
     ("api.routes.tools_ops", ""),
     ("api.routes.agents", ""),
+    ("api.routes.admin", ""),
     ("api.routes.tools_registry", ""),
     ("api.routes.preferences", ""),
     ("api.routes.usage_metrics", ""),
@@ -304,6 +305,7 @@ optional_routers = [
     ("api.routes.metrics", ""),
     ("api.routes.cloud_mesh", ""),
     ("api.routes.events", "/api"),
+    ("api.routes.payments", ""),
 ]
 
 for router_path, prefix in optional_routers:
