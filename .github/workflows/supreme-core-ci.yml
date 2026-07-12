@@ -428,8 +428,8 @@ jobs:
         id: pr_review_bot
         working-directory: backend
         run: |
-          echo "## 🤖 PR Review Bot Validation" >> $GITHUB_STEP_SUMMARY
-          poetry run python -c "from tools.pr_reviewer import PRReviewer; reviewer = PRReviewer(); print('PR Reviewer initialized successfully for webhook integration')" || {
+          # বাংলা মন্তব্য: সঠিক ডিরেক্টরি পাথ (tools.code.pr_reviewer) থেকে PRReviewer ইম্পোর্ট করা হচ্ছে।
+          poetry run python -c "from tools.code.pr_reviewer import PRReviewer; reviewer = PRReviewer(); print('PR Reviewer initialized successfully for webhook integration')" || {
             echo "❌ PR Review Bot initialization failed" >> $GITHUB_STEP_SUMMARY
             exit 1
           }
