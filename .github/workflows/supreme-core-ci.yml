@@ -366,7 +366,7 @@ jobs:
         working-directory: backend
         run: |
           echo "## 🚨 Code Smell Detection" >> $GITHUB_STEP_SUMMARY
-          poetry run python -c "from tools.code_smell_detector import CodeSmellDetector; import asyncio; detector = CodeSmellDetector(); result = asyncio.run(detector.scan_directory('backend/tools')); print('Found', result.get('total_issues', 0), 'code smell issues')" || {
+          poetry run python -c "from tools.code_smell_detector import CodeSmellDetector; detector = CodeSmellDetector(); result = detector.analyze_directory('tools'); total = sum(len(v) for v in result.values()); print('Found', total, 'code smell issues')" || {
             echo "❌ Code smell check failed" >> $GITHUB_STEP_SUMMARY
             exit 1
           }
@@ -594,13 +594,22 @@ jobs:
         run: python .github/scripts/generate-ci-report.py --vitest-json apps/studio-client/vitest-report.json --label "Studio Client"
 
       - name: Run Web Chat Vitest with JSON Report
+        if: always()
         run: |
-          SUPREMEAI_API_URL="https://mock-api.supremeai.local" pnpm --dir apps/web-chat exec vitest run --reporter=json --outputFile=vitest-report.json
+          if [ -d "apps/web-chat" ]; then
+            SUPREMEAI_API_URL="https://mock-api.supremeai.local" pnpm --dir apps/web-chat exec vitest run --reporter=json --outputFile=vitest-report.json
+          else
+            echo "web-chat app not found, skipping tests."
+          fi
 
       - name: Add Web Chat Test Results to GitHub Summary
         if: always()
-        continue-on-error: true
-        run: python .github/scripts/generate-ci-report.py --vitest-json apps/web-chat/vitest-report.json --label "Web Chat"
+        run: |
+          if [ -f "apps/web-chat/vitest-report.json" ]; then
+            python .github/scripts/generate-ci-report.py --vitest-json apps/web-chat/vitest-report.json --label "Web Chat"
+          else
+            echo "No web-chat test results to report."
+          fi
  
       - name: Run VS Code Extension Tests
         run: pnpm turbo run test --filter=supremeai-vscode --cache-dir=.turbo
