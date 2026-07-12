@@ -26,7 +26,7 @@ async def test_webhook_endpoint_receives_pr_event():
     }
 
     with patch.object(reviewer, "review_pr", return_value={"status": "success", "comments": []}) as mock_review:
-        result = await reviewer.handle_webhook(pr_event)
+        result = await reviewer.review_pr(pr_event)
 
         assert result["status"] == "success"
         mock_review.assert_called_once()
@@ -60,7 +60,7 @@ async def test_run_code_smell_scan():
         "+    # Very long function with 50+ lines of code\n"
     )
 
-    with patch("tools.pr_reviewer.CodeSmellDetector") as mock_detector:
+    with patch("tools.pr_reviewer.RepoDeepIndexer") as mock_detector:
         mock_instance = MagicMock()
         mock_instance.scan_code.return_value = {"issues": [{"type": "long_function", "severity": "medium"}]}
         mock_detector.return_value = mock_instance

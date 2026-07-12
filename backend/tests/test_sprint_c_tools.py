@@ -159,7 +159,7 @@ class TestStyleLearner:
 
         learner = StyleLearner()
         # Empty dir → should return default guidelines
-        result = await learner.extract_style_guidelines(str(tmp_path))
+        result = await learner.analyze_codebase(str(tmp_path))
         assert "python" in result
 
 

@@ -17,7 +17,7 @@ async def test_generate_contract(mock_blockchain):
     # বাংলা মন্তব্য: Solidity smart contract জেনারেশন টেস্ট
     agent = BlockchainAgent()
 
-    with patch.object(agent, "_get_model_router") as mock_router:
+    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_router:
         mock_router.return_value.async_route_and_generate = AsyncMock(
             return_value={
                 "text": """
@@ -70,7 +70,7 @@ contract VulnerableToken {
 }
 """
 
-    with patch.object(agent, "_get_model_router") as mock_router:
+    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_router:
         mock_router.return_value.async_route_and_generate = AsyncMock(
             return_value={
                 "text": """
@@ -104,7 +104,7 @@ function expensiveLoop(uint256 n) public pure returns (uint256) {
 }
 """
 
-    with patch.object(agent, "_get_model_router") as mock_router:
+    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_router:
         mock_router.return_value.async_route_and_generate = AsyncMock(
             return_value={
                 "text": """
@@ -137,7 +137,7 @@ contract SimpleStorage {
 }
 """
 
-    with patch.object(agent, "_get_model_router") as mock_router:
+    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_router:
         mock_router.return_value.async_route_and_generate = AsyncMock(
             return_value={
                 "text": """
@@ -168,7 +168,7 @@ async def test_erc721_nft_contract(mock_blockchain):
     # বাংলা মন্তব্য: ERC-721 NFT contract জেনারেশন টেস্ট
     agent = BlockchainAgent()
 
-    with patch.object(agent, "_get_model_router") as mock_router:
+    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_router:
         mock_router.return_value.async_route_and_generate = AsyncMock(
             return_value={
                 "text": """
