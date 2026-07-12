@@ -379,11 +379,7 @@ jobs:
         working-directory: backend
         run: |
           echo "## 🤖 PR Review Bot Validation" >> $GITHUB_STEP_SUMMARY
-          poetry run python -c "
-from tools.pr_reviewer import PRReviewer
-reviewer = PRReviewer()
-print('PR Reviewer initialized successfully for webhook integration')
-" || {
+          poetry run python -c "from tools.pr_reviewer import PRReviewer; reviewer = PRReviewer(); print('PR Reviewer initialized successfully for webhook integration')" || {
             echo "❌ PR Review Bot initialization failed" >> $GITHUB_STEP_SUMMARY
             exit 1
           }
