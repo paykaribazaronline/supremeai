@@ -70,58 +70,49 @@ def match_job(job_name: str, patterns: List[str]) -> bool:
 
 def determine_force_flags() -> Dict[str, str]:
     runs = get_recent_workflow_runs()
-    if not runs:
-        print("No previous workflow runs found.")
-
     force_flags = {pkg: "false" for pkg in PACKAGE_MAP}
 
+    # Fetch job statuses for all recent runs at once to reduce API calls
+    run_jobs_cache = {}
+    for run in runs:
+        run_id = run.get("id")
+        if not run_id:
+            continue
+        # Skip dependabot runs so they don't reset failure history
+        actor_login = run.get("actor", {}).get("login", "").lower()
+        if "dependabot" in actor_login or "[bot]" in actor_login:
+            continue
+        run_jobs_cache[run_id] = get_job_statuses(run_id)
+
+    if not run_jobs_cache:
+        print("No processable previous workflow runs found.")
+        return force_flags
+
     for pkg, patterns in PACKAGE_MAP.items():
-        consecutive_failures = 0
-        chain_broken = False
-
-        for run in runs:
-            if chain_broken:
-                break
-
-            run_id = run.get("id")
-            if not run_id:
-                continue
-
-            # Skip dependabot runs so they don't reset failure history
-            actor_login = run.get("actor", {}).get("login", "").lower()
-            if "dependabot" in actor_login or "[bot]" in actor_login:
-                continue
-
-            jobs = get_job_statuses(run_id)
+        has_recent_failure = False
+        # Iterate from most recent to oldest run
+        for run_id in sorted(run_jobs_cache.keys(), reverse=True):
+            jobs = run_jobs_cache[run_id]
             matching_jobs = [job for job in jobs if match_job(job.get("name", ""), patterns)]
+
             if not matching_jobs:
-                # No matching job in this run; ignore and continue searching.
                 continue
 
-            # Prefer the most recent matching job if multiple exist.
             job = matching_jobs[0]
             conclusion = (job.get("conclusion") or "").lower()
 
             if conclusion in FAILED_CONCLUSIONS:
-                consecutive_failures += 1
-                continue
-            if conclusion in SUCCESS_CONCLUSIONS:
-                chain_broken = True
+                # Found a failure, so we must force a retry for this package.
+                has_recent_failure = True
                 break
-            if conclusion in SKIPPED_CONCLUSIONS:
-                # If there was already a previous failure, keep the chain alive.
-                if consecutive_failures > 0:
-                    continue
-                # If we haven't seen a failure yet, this run is not informative.
-                continue
+            elif conclusion in SUCCESS_CONCLUSIONS:
+                # Found a success, so the failure chain is broken. No need to force.
+                has_recent_failure = False
+                break
+            # If skipped, just continue to the next older run to find a conclusive result.
 
-            # Any unhandled conclusion breaks the chain.
-            chain_broken = True
-
-        # Strict retry mode: any recent package failure forces the next run.
-        # This avoids skipping retries after repeated failures and keeps the retry policy strict.
-        if consecutive_failures >= 1:
-            print(f"{pkg}: {consecutive_failures} recent failure(s) detected. Forcing retry.")
+        if has_recent_failure:
+            print(f"{pkg}: A recent failure was detected. Forcing retry.")
             force_flags[pkg] = "true"
         else:
             print(f"{pkg}: no recent failures found.")
