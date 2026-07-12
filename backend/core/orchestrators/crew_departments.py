@@ -50,7 +50,7 @@ class QAAgent(SwarmAgentBase):
     async def verify(self, workspace: SharedWorkspace, user_id: str, model_name: str = "gemini/gemini-1.5-flash"):
         workspace.log("QAAgent: Initiating test suites and static CodeQL scans...")
         # Simulating running ImmuneSystem AST scan and Python validations
-        code_to_test = workspace.work_product.get('generated_code', {}).get("main.py", "")
+        code_to_test = workspace.work_product.get("generated_code", {}).get("main.py", "")
 
         if "import os" in code_to_test or "eval(" in code_to_test:
             workspace.test_results["safe"] = False
@@ -66,21 +66,23 @@ class QAAgent(SwarmAgentBase):
         qa_feedback = await self.call_gateway(sys_prompt, user_prompt, user_id, model_name=model_name)
         workspace.test_results["feedback"] = qa_feedback
 
+
 class GuardianAgent(SwarmAgentBase):
     async def validate(self, workspace: SharedWorkspace, user_id: str, model_name: str = "gemini/gemini-1.5-pro") -> tuple[bool, str]:
         workspace.log("GuardianAgent: Scanning code for agent_rules.json violations...")
         from pathlib import Path
+
         rules_path = Path(__file__).resolve().parent.parent.parent.parent / "agent_rules.json"
         rules_text = ""
         if rules_path.exists():
             with open(rules_path, encoding="utf-8") as f:
                 rules_text = f.read()
-        
+
         sys_prompt = "You are the SupremeAI Guardian Agent. Your task is to check if the provided code violates any of the rules in the `agent_rules.json` file. The rules cover security, clean code, and architecture. If the code is valid and follows all critical rules, reply with the single word 'APPROVED'. If the code violates any rule, reply starting with 'FAILED:' followed by a clear, concise, and actionable list of violations, including the specific rule ID and a suggestion for fixing it."  # noqa: E501
         user_prompt = f"Rules:\n{rules_text}\n\nCode:\n{workspace.work_product.get('generated_code', {}).get('main.py', '')}"
-        
+
         feedback = await self.call_gateway(sys_prompt, user_prompt, user_id, model_name=model_name)
-        
+
         if feedback.strip().startswith("APPROVED"):
             workspace.log("GuardianAgent: Code passed all compliance checks.")
             return True, "APPROVED"
@@ -88,11 +90,13 @@ class GuardianAgent(SwarmAgentBase):
             workspace.log(f"GuardianAgent: Violation found. {feedback}")
             return False, feedback
 
+
 class ResearchAgent(SwarmAgentBase):
     """
     বাংলা মন্তব্য: এই এজেন্টটি রিসার্চ এবং অ্যানালাইসিস সংক্রান্ত কাজ করবে।
     এটি সিস্টেমের Universal Utility Mode-এর একটি অংশ।
     """
+
     async def analyze(self, workspace: SharedWorkspace, user_id: str, model_name: str = "gemini/gemini-1.5-pro"):
         workspace.log("ResearchAgent: Starting analysis and information synthesis...")
         sys_prompt = "You are a world-class research analyst. Analyze the user's prompt, synthesize information, and provide a structured summary."
@@ -100,26 +104,29 @@ class ResearchAgent(SwarmAgentBase):
         workspace.work_product["research_summary"] = analysis_output
         workspace.log("ResearchAgent: Analysis complete.")
 
+
 class ReflectionAgent(SwarmAgentBase):
     async def reflect_and_persist(self, workspace: SharedWorkspace, user_id: str, model_name: str = "gemini/gemini-1.5-flash"):
         workspace.log("ReflectionAgent: Analyzing task outcome to generate experience...")
         sys_prompt = "You are an AI Reflection engine. Analyze the workspace logs and extract what worked, what failed, and suggested improvements. Return JSON with 'what_worked', 'what_failed', 'suggested_improvements'."  # noqa: E501
         user_prompt = f"Logs: {workspace.execution_logs}\nOriginal Prompt: {workspace.original_prompt}"
-        
+
         analysis = await self.call_gateway(sys_prompt, user_prompt, user_id, model_name=model_name)
-        
+
         # Save to ExperienceDatabase
         try:
             from adaptive_engine.experience_db import Experience
             from adaptive_engine.experience_db import ExperienceDatabase
+
             db = ExperienceDatabase()
-            
+
             import json
+
             try:
                 parsed = json.loads(analysis)
             except Exception:  # noqa: BLE001
                 parsed = {"what_worked": [analysis], "what_failed": [], "suggested_improvements": []}
-                
+
             exp = Experience(
                 user_id=user_id,
                 request=workspace.original_prompt,
@@ -127,11 +134,11 @@ class ReflectionAgent(SwarmAgentBase):
                 deployment_logs="\\n".join(workspace.execution_logs),
                 what_worked=parsed.get("what_worked", []),
                 what_failed=parsed.get("what_failed", []),
-                suggested_improvements=parsed.get("suggested_improvements", [])
+                suggested_improvements=parsed.get("suggested_improvements", []),
             )
             db.record_experience(exp)
             workspace.log("ReflectionAgent: Experience successfully saved to Vector DB.")
         except Exception as e:  # noqa: BLE001
             workspace.log(f"ReflectionAgent: Failed to save experience: {e}")
-        
+
         return analysis

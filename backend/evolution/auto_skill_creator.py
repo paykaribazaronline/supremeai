@@ -271,12 +271,9 @@ asyncio.run(run())
             try:
                 from adaptive_engine.experience_db import Experience
                 from adaptive_engine.experience_db import ExperienceDatabase
+
                 exp_db = ExperienceDatabase()
-                exp_db.record_experience(Experience(
-                    request=user_demand,
-                    generated_code=code_block,
-                    result="success"
-                ))
+                exp_db.record_experience(Experience(request=user_demand, generated_code=code_block, result="success"))
             except Exception as exp_e:  # noqa: BLE001
                 logger.warning(f"Failed to record verified skill experience: {exp_e}")
 

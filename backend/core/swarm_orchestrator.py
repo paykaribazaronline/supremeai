@@ -3,8 +3,13 @@
 
 import asyncio
 import uuid
-from core.orchestrators.crew_departments import (ArchitectureAgent, CodeGeneratorAgent, GuardianAgent, QAAgent,
-                                                 ReflectionAgent, ResearchAgent)
+
+from core.orchestrators.crew_departments import ArchitectureAgent
+from core.orchestrators.crew_departments import CodeGeneratorAgent
+from core.orchestrators.crew_departments import GuardianAgent
+from core.orchestrators.crew_departments import QAAgent
+from core.orchestrators.crew_departments import ReflectionAgent
+from core.orchestrators.crew_departments import ResearchAgent
 from models.shared_workspace import SharedWorkspace
 
 
@@ -13,12 +18,15 @@ class CircuitBreakerState:
     OPEN = "OPEN"
     HALF_OPEN = "HALF_OPEN"
 
+
 class CircuitBreakerOpenError(Exception):
     pass
+
 
 class CircuitBreaker:
     def __init__(self, failure_threshold: int = 5, recovery_timeout: float = 30.0):
         from core.circuit_breaker import CircuitBreaker as UnifiedCB
+
         self._cb = UnifiedCB(name="swarm_orch", failure_threshold=failure_threshold, recovery_timeout=recovery_timeout)
         self.state = self._cb.state
 
@@ -37,11 +45,13 @@ class CircuitBreaker:
             self.state = self._cb.state
             raise
 
+
 class SwarmOrchestrator:
     """
     Universal Cognitive Engine (Architecture 2.0)
     এটি এখন শুধু কোড নয়, ইউজারের যেকোনো ইনটেন্ট (Intent) ডিটেক্ট করে DAG তৈরি করে।
     """
+
     def __init__(self):
         # বাংলা মন্তব্য: এজেন্টদের একটি রেজিস্ট্রি তৈরি করা হচ্ছে, যা ডাইনামিক্যালি কল করা যাবে।
         self.agents = {
@@ -81,7 +91,7 @@ class SwarmOrchestrator:
         task_id = str(uuid.uuid4())
         workspace = SharedWorkspace(task_id=task_id, original_prompt=prompt)
         workspace.log(f"SwarmOrchestrator: Initialized swarm DAG for task {task_id}")
-        
+
         # 1. Classify Intent
         # A simple keyword-based classifier for demonstration
         # In a real system, this would be a more sophisticated NLP model.
@@ -97,25 +107,20 @@ class SwarmOrchestrator:
         # 2. Get Dynamic DAG based on intent
         task_graph = await self._get_dag_for_intent(workspace.intent)
         workspace.log(f"SwarmOrchestrator: Constructed DAG with nodes: {list(task_graph.keys())}")
-        
+
         completed_tasks = set()
-        
+
         try:
             while len(completed_tasks) < len(task_graph):
-                ready_tasks = [
-                    task for task, deps in task_graph.items()
-                    if task not in completed_tasks and all(d in completed_tasks for d in deps)
-                ]
+                ready_tasks = [task for task, deps in task_graph.items() if task not in completed_tasks and all(d in completed_tasks for d in deps)]
 
                 if not ready_tasks:
                     # বাংলা মন্তব্য: যদি কোনো রেডি টাস্ক না থাকে, কিন্তু সব টাস্ক শেষ না হয়, তাহলে সম্ভবত একটি সাইকেল বা ভুল গ্রাফ আছে।
                     raise RuntimeError(f"DAG execution error: No ready tasks found, but not all tasks are complete. Completed: {completed_tasks}")
 
                 # বাংলা মন্তব্য: asyncio.gather ব্যবহার করে সব রেডি টাস্ক প্যারালালি এক্সিকিউট করা হচ্ছে।
-                await asyncio.gather(
-                    *(self.agents[task].run(workspace, user_id) for task in ready_tasks if task in self.agents)
-                )
-                
+                await asyncio.gather(*(self.agents[task].run(workspace, user_id) for task in ready_tasks if task in self.agents))
+
                 completed_tasks.update(ready_tasks)
 
         except CircuitBreakerOpenError as e:
