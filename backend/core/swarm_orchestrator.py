@@ -1,3 +1,4 @@
+# FILE_PATH: /home/runner/work/supremeai/supremeai/backend/core/swarm_orchestrator.py
 # Multi-Agent Swarm Orchestrator Engine
 # বাংলা মন্তব্য: মাল্টি-এজেন্ট সিকোয়েন্সিয়াল সোয়ার্ম কোঅর্ডিনেটর ও টাস্ক রানার।
 
@@ -52,7 +53,7 @@ class CircuitBreaker:
             raise
 
 
-class MorphicOrchestrator:
+class SwarmOrchestrator: # Renamed from MorphicOrchestrator to SwarmOrchestrator
     """
     Universal Cognitive Engine (Architecture 2.0)
     এটি এখন শুধু কোড নয়, ইউজারের যেকোনো ইনটেন্ট (Intent) ডিটেক্ট করে DAG তৈরি করে।
@@ -105,18 +106,18 @@ class MorphicOrchestrator:
         যদি কোনো টুল MCP সার্ভারে না থাকে, সিস্টেম নিজেই একটি টুল তৈরি করে নেবে।
         """
         workspace = SharedWorkspace(task_id=str(uuid.uuid4()), original_prompt=f"Synthesize a capability for intent: {intent}")
-        workspace.log(f"MorphicOrchestrator: Synthesizing new capability for intent '{intent}' using DynamicAgentFactory.")
+        workspace.log(f"SwarmOrchestrator: Synthesizing new capability for intent '{intent}' using DynamicAgentFactory.")
 
         synthesized_capability = await self.agent_factory.create_specialized_agent(f"Create a Python script for the task: {intent}")
         if synthesized_capability and "script" in synthesized_capability:
-            workspace.log(f"MorphicOrchestrator: Successfully synthesized new capability: {synthesized_capability.get('agent_name')}")
+            workspace.log(f"SwarmOrchestrator: Successfully synthesized new capability: {synthesized_capability.get('agent_name')}")
             return synthesized_capability
         return None
 
     async def execute_task(self, prompt: str, user_id: str = "default_user_session") -> SharedWorkspace:
         task_id = str(uuid.uuid4())
         workspace = SharedWorkspace(task_id=task_id, original_prompt=prompt)
-        workspace.log(f"MorphicOrchestrator: Initialized swarm DAG for task {task_id}")
+        workspace.log(f"SwarmOrchestrator: Initialized swarm DAG for task {task_id}")
 
         # 1. Classify Intent
         # A simple keyword-based classifier for demonstration
@@ -128,24 +129,24 @@ class MorphicOrchestrator:
             workspace.intent = "research_analysis"
         else:
             workspace.intent = "general_task"
-        workspace.log(f"MorphicOrchestrator: Classified intent as '{workspace.intent}'")
+        workspace.log(f"SwarmOrchestrator: Classified intent as '{workspace.intent}'")
 
         # 2. Universal Glue: MCP থেকে টুলস ডিসকভার করা
         domain = workspace.intent
         available_mcp_tools = await self.mcp_client.discover_tools(domain)
-        workspace.log(f"MorphicOrchestrator: Discovered MCP tools for domain '{domain}': {available_mcp_tools}")
+        workspace.log(f"SwarmOrchestrator: Discovered MCP tools for domain '{domain}': {available_mcp_tools}")
         workspace.work_product["available_tools"] = available_mcp_tools
 
         # 3. Dynamic Synthesis: যদি টুল না পাওয়া যায়, তবে নতুন টুল তৈরি করা
         if not available_mcp_tools or "generic_tool" in available_mcp_tools:
-            workspace.log("MorphicOrchestrator: No specific tool found. Attempting Zero-Shot Synthesis...")
+            workspace.log("SwarmOrchestrator: No specific tool found. Attempting Zero-Shot Synthesis...")
             new_tool = await self._synthesize_tool(workspace.intent, user_id)
             if new_tool:
                 workspace.work_product["available_tools"].append(new_tool)
 
         # 3. Get Dynamic DAG based on intent
         task_graph = await self._get_dag_for_intent(workspace.intent)
-        workspace.log(f"MorphicOrchestrator: Constructed DAG with nodes: {list(task_graph.keys())}")
+        workspace.log(f"SwarmOrchestrator: Constructed DAG with nodes: {list(task_graph.keys())}")
 
         completed_tasks = set()
 
@@ -165,23 +166,23 @@ class MorphicOrchestrator:
             if workspace.intent == "code_generation":
                 max_refinements = 3
                 for i in range(max_refinements):
-                    workspace.log(f"MorphicOrchestrator: Starting Guardian/QA refinement loop, iteration {i + 1}/{max_refinements}")
+                    workspace.log(f"SwarmOrchestrator: Starting Guardian/QA refinement loop, iteration {i + 1}/{max_refinements}")
 
                     # Guardian validation
                     guardian_agent = self.agents["guardian"]
                     is_approved, feedback = await guardian_agent.validate(workspace, user_id)
 
                     if is_approved:
-                        workspace.log("MorphicOrchestrator: Code APPROVED by Guardian. Exiting refinement loop.")
+                        workspace.log("SwarmOrchestrator: Code APPROVED by Guardian. Exiting refinement loop.")
                         break
 
-                    workspace.log("MorphicOrchestrator: Code FAILED Guardian validation. Triggering refinement.")
+                    workspace.log("SwarmOrchestrator: Code FAILED Guardian validation. Triggering refinement.")
 
                     # Refinement by CodeGeneratorAgent
                     coder_agent = self.agents["coder"]
                     await coder_agent.refine(workspace, feedback, user_id)
                 else:  # This else belongs to the for loop, executes if loop finishes without break
-                    workspace.log("MorphicOrchestrator: Max refinement attempts reached. Proceeding with current code.")
+                    workspace.log("SwarmOrchestrator: Max refinement attempts reached. Proceeding with current code.")
 
             # Final reflection step for all intents
             if "reflection" in self.agents:
@@ -189,19 +190,19 @@ class MorphicOrchestrator:
 
         try:
             await self.circuit_breaker.call(_execute_dag)
-            workspace.log("MorphicOrchestrator: Multi-Agent DAG execution completed successfully.")
+            workspace.log("SwarmOrchestrator: Multi-Agent DAG execution completed successfully.")
 
         except CircuitBreakerOpenError as e:
-            workspace.log(f"MorphicOrchestrator: Circuit breaker OPEN — {e}")
+            workspace.log(f"SwarmOrchestrator: Circuit breaker OPEN — {e}")
             workspace.add_error(str(e))
             return workspace
         except Exception as e:  # noqa: BLE001
-            workspace.log(f"MorphicOrchestrator: An unexpected error occurred during DAG execution: {e}")
+            workspace.log(f"SwarmOrchestrator: An unexpected error occurred during DAG execution: {e}")
             workspace.add_error(str(e))
             # বাংলা মন্তব্য: এরর হলেও রিফ্লেকশন চালানোর চেষ্টা করা হবে, যাতে সিস্টেম শিখতে পারে।
             if "reflection" not in completed_tasks:
                 await self.agents["reflection"].reflect_and_persist(workspace, user_id)
             return workspace
 
-        workspace.log("MorphicOrchestrator: Multi-Agent DAG execution completed successfully.")
+        workspace.log("SwarmOrchestrator: Multi-Agent DAG execution completed successfully.")
         return workspace
