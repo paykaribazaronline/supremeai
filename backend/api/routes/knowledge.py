@@ -3,11 +3,13 @@
 API Endpoints for Knowledge Base Interaction.
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from ask_scribe import answer_question
+from fastapi import APIRouter
+from fastapi import Depends
 from pydantic import BaseModel
 
-from ask_scribe import answer_question
 from core.security import get_current_user_or_guest
+
 
 router = APIRouter()
 

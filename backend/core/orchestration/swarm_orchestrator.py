@@ -100,7 +100,7 @@ class MorphicOrchestrator:
         workspace.intent = intent_map.get(route["intent"], "general_task")
         best_provider = route.get("best_provider", "default")
 
-        workspace.log(f"MorphicOrchestrator: Classified intent as '{workspace.intent}' " f"(tier={route.get('tier')}, provider={best_provider})")
+        workspace.log(f"MorphicOrchestrator: Classified intent as '{workspace.intent}' (tier={route.get('tier')}, provider={best_provider})")
         # Store best_provider in workspace for agent consumption
         workspace.work_product["best_provider"] = best_provider
 
