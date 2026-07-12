@@ -102,7 +102,7 @@ jobs:
         run: echo "trivial_change=${{ needs.changes.outputs.docs_only }}" >> $GITHUB_OUTPUT
 
       - uses: actions/checkout@v4
-      - if: needs.changes.outputs.docs_only != 'true'
+        if: needs.changes.outputs.docs_only != 'true'
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
