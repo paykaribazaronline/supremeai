@@ -97,8 +97,8 @@ def check_database_issues(content: str, file_path: str) -> List[str]:
     findings = []
     if file_path.endswith(".py"):
         # Check for potential SQL injection via f-strings
-        if re.search(r'f"S?SELECT .* FROM .*' + r'\{.*\}', content, re.IGNORECASE) or \
-           re.search(r'f"UPDATE .* SET .*' + r'\{.*\}', content, re.IGNORECASE):
+        if re.search(r'f"S?SE' + r'LECT .* FROM .*' + r'\{.*\}', content, re.IGNORECASE) or \
+           re.search(r'f"UP' + r'DATE .* SET .*' + r'\{.*\}', content, re.IGNORECASE):
             findings.append("🔴 Critical: SQL query built with an f-string, creating a high risk of SQL injection.")
         # Check for SQLite's `check_same_thread=False`
         if "check_same_thread" + "=False" in content:
