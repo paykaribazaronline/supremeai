@@ -43,7 +43,7 @@ class UniversalRulesEngine:
                     except (json.JSONDecodeError, TypeError):
                         parsed_val = value
                     db_rules[category][rule_key] = parsed_val
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"⚠️ Failed to load rules from DB, falling back to defaults: {e}")
 
         # Default fallback rules (Admin definitions)

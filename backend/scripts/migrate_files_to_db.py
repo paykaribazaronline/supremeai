@@ -73,7 +73,7 @@ def migrate_skills(conn):
                         migrated_count += 1
                         logger.success(f"  -> Migrated skill: {skill_name}")
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to migrate skill {skill_name}: {e}")
 
     conn.commit()
@@ -118,7 +118,7 @@ def migrate_rules(conn):
                         migrated_count += 1
                         logger.success(f"  -> Migrated rule: {rule_key}")
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to parse or migrate rules from {filename}: {e}")
 
     conn.commit()
@@ -156,7 +156,7 @@ def migrate_agent_configs(conn):
         cursor.close()
         logger.info(f"Agent configuration migration completed. Migrated {migrated_count} new agent configs.")
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to migrate agent configurations: {e}")
 
 
@@ -209,7 +209,7 @@ def create_tables(conn):
         """)
         conn.commit()
         logger.success("Tables created successfully.")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to create tables: {e}")
         conn.rollback()
     finally:

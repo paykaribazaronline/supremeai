@@ -28,12 +28,12 @@ def get_headless_agent_configs() -> dict[str, dict[str, Any]]:
             rows = cur.fetchall()
             if rows:
                 return {row[0]: row[1] for row in rows}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         try:
             from loguru import logger
 
             logger.error(f"Failed to fetch agent configs from DB, falling back to local: {e}")
-        except:
+        except:  # noqa: E722
             pass
 
     agent_settings: dict[str, dict[str, Any]] = {

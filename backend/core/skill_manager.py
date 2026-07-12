@@ -61,7 +61,7 @@ class SkillManager:
                         skill_instance = item()
                         self.register_skill(skill_instance, skill_name)
                         return skill_instance
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Error fetching skill '{skill_name}' from DB: {e}")
 
         logger.info(f"Skill '{skill_name}' not in DB. Querying MCP-Hub...")

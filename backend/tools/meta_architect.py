@@ -30,7 +30,7 @@ class MetaArchitect:
                         # This is a simplified loader. A real implementation would parse markdown.
                         if "gap" in f.read().lower():
                             gaps.append(f"Potential gap context found in: {os.path.basename(doc_path)}")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     logger.warning(f"Could not read strategic doc {doc_path}: {e}")
         metrics = {
             "total_files": 0,

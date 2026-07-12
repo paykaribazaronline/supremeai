@@ -205,7 +205,7 @@ class ToolSynthesizerAgent(SwarmAgentBase):
 
     async def synthesize(self, workspace: SharedWorkspace, user_id: str, model_name: str = "gemini/gemini-1.5-pro"):
         workspace.log("ToolSynthesizerAgent: Starting Zero-Shot Tool Synthesis...")
-        sys_prompt = "You are a master tool builder. Based on a task intent, create a JSON definition for a new tool. The definition must include a name, description, and a list of parameters."
+        sys_prompt = "You are a master tool builder. Based on a task intent, create a JSON definition for a new tool. The definition must include a name, description, and a list of parameters."  # noqa: E501
         user_prompt = f"Create a tool definition for the intent: '{workspace.original_prompt}'. Respond with only the JSON object."
 
         tool_definition_str = await self.call_gateway(sys_prompt, user_prompt, user_id, model_name=model_name)
