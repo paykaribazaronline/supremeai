@@ -3,8 +3,8 @@
 old_path → new_path mapping ব্যবহার করে সব .py ফাইলে find-and-replace চালায়।
 """
 
+import re
 from pathlib import Path
-
 
 IMPORT_MAP = {
     # Security redirects
