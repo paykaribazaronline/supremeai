@@ -46,6 +46,12 @@ def clean_project(root_dir: str):
         "build",
         "dist",
         ".egg-info",
+        "node_modules",
+        ".next",
+        ".vercel",
+        ".astro",
+        "coverage",
+        ".coverage",
     ]
     
     files_removed_count = 0

@@ -97,8 +97,10 @@ def check_database_issues(content: str, file_path: str) -> List[str]:
     findings = []
     if file_path.endswith(".py"):
         # Check for potential SQL injection via f-strings
-        if re.search(r'f"S?SE' + r'LECT .* FROM .*' + r'\{.*\}', content, re.IGNORECASE) or \
-           re.search(r'f"UP' + r'DATE .* SET .*' + r'\{.*\}', content, re.IGNORECASE):
+        if re.search(r'f"S?SE' + r'LECT .*\{.*\}', content, re.IGNORECASE) or \
+           re.search(r'f"UP' + r'DATE .*\{.*\}', content, re.IGNORECASE) or \
+           re.search(r'f"IN' + r'SERT INTO .*\{.*\}', content, re.IGNORECASE) or \
+           re.search(r'f"DE' + r'LETE FROM .*\{.*\}', content, re.IGNORECASE):
             findings.append("🔴 Critical: SQL query built with an f-string, creating a high risk of SQL injection.")
         # Check for SQLite's `check_same_thread=False`
         if "check_same_thread" + "=False" in content:
@@ -180,9 +182,20 @@ def main():
                 continue
 
             file_path = Path(root) / file_name
-            
-            # টেস্ট ফাইলগুলোকে স্ক্যান থেকে বাদ দেওয়া হচ্ছে
+
+            # টেস্ট ফাইলগুলোকে কিছু স্ক্যান থেকে বাদ দেওয়া হচ্ছে, তবে সিক্রেট স্ক্যান করা উচিত
             if is_test_file(file_path):
+                # শুধুমাত্র হার্ডকোডেড সিক্রেট চেক করা হচ্ছে
+                try:
+                    content = file_path.read_text(encoding="utf-8", errors="ignore")
+                    results = find_hardcoded_secrets(content, str(file_path))
+                    if results:
+                        if str(file_path) not in all_findings:
+                            all_findings[str(file_path)] = []
+                        for finding in results:
+                            all_findings[str(file_path)].append(f"L{finding[0]}: {finding[1]}")
+                except Exception: # বাইনারি বা অন্যান্য ফাইল পড়ার সমস্যা উপেক্ষা করা হচ্ছে
+                    pass
                 continue
 
             file_count += 1
