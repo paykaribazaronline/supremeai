@@ -412,6 +412,7 @@ jobs:
         # প্রতিটি ব্যর্থ জবের জন্য auto-fix recommendation তৈরি করে।
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python .github/scripts/ci_smart_summary.py
 
   # ==============================================================================
@@ -597,3 +598,4 @@ jobs:
             echo "**Error Response:** \`$RESPONSE\`" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
+
