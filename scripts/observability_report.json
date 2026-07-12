@@ -2,7 +2,7 @@
     "silent_exceptions": [
         {
             "file": "main.py",
-            "line": 65,
+            "line": 57,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -74,7 +74,7 @@
         },
         {
             "file": "admin\\god.py",
-            "line": 91,
+            "line": 93,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -86,85 +86,13 @@
         },
         {
             "file": "admin\\god.py",
-            "line": 102,
+            "line": 104,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "admin\\god.py",
-            "line": 119,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "agents\\legal_agent.py",
-            "line": 11,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "agents\\legal_agent.py",
-            "line": 120,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "agents\\medical_agent.py",
-            "line": 10,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "agents\\medical_agent.py",
-            "line": 126,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "agents\\research_assistant.py",
-            "line": 35,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "agents\\research_assistant.py",
-            "line": 103,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "agents\\research_assistant.py",
-            "line": 142,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "agents\\trading_agent.py",
-            "line": 45,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "agents\\trading_agent.py",
-            "line": 61,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "agents\\trading_agent.py",
-            "line": 81,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "agents\\trading_agent.py",
-            "line": 39,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "agents\\trading_agent.py",
-            "line": 55,
+            "line": 123,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -230,19 +158,19 @@
         },
         {
             "file": "brain\\gcp_router.py",
-            "line": 55,
+            "line": 56,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "brain\\gcp_router.py",
-            "line": 98,
+            "line": 99,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "brain\\gcp_router.py",
-            "line": 125,
+            "line": 126,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -284,13 +212,13 @@
         },
         {
             "file": "brain\\model_router.py",
-            "line": 131,
+            "line": 132,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "brain\\model_router.py",
-            "line": 215,
+            "line": 220,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -339,12 +267,6 @@
         {
             "file": "brain\\parallel_cloud_router.py",
             "line": 145,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "brain\\swarm_orchestrator.py",
-            "line": 40,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -422,13 +344,19 @@
         },
         {
             "file": "core\\agent_factory.py",
-            "line": 40,
+            "line": 29,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "core\\agent_factory.py",
-            "line": 74,
+            "line": 59,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\agent_factory.py",
+            "line": 93,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -452,19 +380,19 @@
         },
         {
             "file": "core\\app.py",
-            "line": 64,
+            "line": 70,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "core\\app.py",
-            "line": 207,
+            "line": 183,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "core\\app.py",
-            "line": 156,
+            "line": 205,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -477,12 +405,6 @@
         {
             "file": "core\\audit_logger.py",
             "line": 62,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\auth_middleware.py",
-            "line": 123,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -500,19 +422,19 @@
         },
         {
             "file": "core\\auto_remediation.py",
-            "line": 214,
+            "line": 213,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "core\\auto_remediation.py",
-            "line": 262,
+            "line": 261,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "core\\auto_remediation.py",
-            "line": 321,
+            "line": 320,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -524,37 +446,25 @@
         },
         {
             "file": "core\\auto_remediation.py",
-            "line": 294,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\circuit_breaker.py",
-            "line": 50,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\circuit_breaker.py",
-            "line": 66,
+            "line": 293,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "core\\cloud_sandbox_orchestrator.py",
-            "line": 76,
+            "line": 79,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "core\\cloud_sandbox_orchestrator.py",
-            "line": 204,
+            "line": 207,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "core\\cloud_sandbox_orchestrator.py",
-            "line": 165,
+            "line": 168,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -584,7 +494,7 @@
         },
         {
             "file": "core\\config.py",
-            "line": 376,
+            "line": 387,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -613,14 +523,38 @@
             "severity": "WARNING"
         },
         {
-            "file": "core\\discord_bot.py",
-            "line": 42,
+            "file": "core\\container_auditor.py",
+            "line": 36,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\container_auditor.py",
+            "line": 76,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\container_auditor.py",
+            "line": 90,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\container_auditor.py",
+            "line": 61,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "core\\email_service.py",
-            "line": 43,
+            "line": 85,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\email_service.py",
+            "line": 23,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -632,37 +566,19 @@
         },
         {
             "file": "core\\error_remediation.py",
-            "line": 62,
+            "line": 36,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "core\\error_remediation.py",
-            "line": 72,
+            "line": 46,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "core\\error_remediation.py",
-            "line": 90,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\events.py",
-            "line": 66,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\event_bus.py",
-            "line": 169,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\event_bus.py",
-            "line": 153,
+            "line": 64,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -739,12 +655,6 @@
             "severity": "WARNING"
         },
         {
-            "file": "core\\free_tier_tracker.py",
-            "line": 270,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
             "file": "core\\gcp_firestore.py",
             "line": 16,
             "type": "Exception",
@@ -753,66 +663,6 @@
         {
             "file": "core\\gcp_firestore.py",
             "line": 48,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\gcp_pubsub_queue.py",
-            "line": 16,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\gcp_pubsub_queue.py",
-            "line": 47,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\health_monitor.py",
-            "line": 73,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\health_monitor.py",
-            "line": 91,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\honeypot_middleware.py",
-            "line": 179,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\honeypot_middleware.py",
-            "line": 198,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\honeypot_middleware.py",
-            "line": 64,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\honeypot_middleware.py",
-            "line": 139,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\honeypot_middleware.py",
-            "line": 116,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\idempotency_middleware.py",
-            "line": 89,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -854,7 +704,7 @@
         },
         {
             "file": "core\\lifespan.py",
-            "line": 175,
+            "line": 174,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -866,61 +716,31 @@
         },
         {
             "file": "core\\lifespan.py",
-            "line": 210,
+            "line": 220,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "core\\lifespan.py",
-            "line": 234,
+            "line": 237,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "core\\lifespan.py",
-            "line": 251,
+            "line": 252,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "core\\lifespan.py",
-            "line": 266,
+            "line": 268,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "core\\lifespan.py",
-            "line": 282,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\lifespan.py",
-            "line": 298,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\llm_gateway.py",
-            "line": 93,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\llm_gateway.py",
-            "line": 133,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\llm_gateway.py",
-            "line": 264,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\llm_gateway.py",
-            "line": 326,
+            "line": 284,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -933,6 +753,24 @@
         {
             "file": "core\\log_batcher.py",
             "line": 89,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\maintenance_pipeline.py",
+            "line": 104,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\maintenance_pipeline.py",
+            "line": 150,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\maintenance_pipeline.py",
+            "line": 139,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -974,6 +812,24 @@
         },
         {
             "file": "core\\observability_middleware.py",
+            "line": 123,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\observability_middleware.py",
+            "line": 143,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\observability_middleware.py",
+            "line": 161,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\observability_middleware.py",
             "line": 119,
             "type": "Exception",
             "severity": "WARNING"
@@ -991,32 +847,20 @@
             "severity": "WARNING"
         },
         {
+            "file": "core\\playwright_manager.py",
+            "line": 50,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\playwright_manager.py",
+            "line": 57,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
             "file": "core\\rate_limiter.py",
-            "line": 42,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\redis_manager.py",
-            "line": 123,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\redis_manager.py",
-            "line": 134,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\redis_manager.py",
-            "line": 156,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\redis_manager.py",
-            "line": 30,
+            "line": 66,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -1045,98 +889,62 @@
             "severity": "WARNING"
         },
         {
-            "file": "core\\secret_vault.py",
-            "line": 52,
+            "file": "core\\sentinel_agent.py",
+            "line": 75,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
-            "file": "core\\secret_vault.py",
-            "line": 29,
+            "file": "core\\sentinel_agent.py",
+            "line": 93,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
-            "file": "core\\secure_credential_store.py",
+            "file": "core\\sentinel_agent.py",
             "line": 106,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
-            "file": "core\\secure_credential_store.py",
-            "line": 120,
+            "file": "core\\sentinel_agent.py",
+            "line": 64,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
-            "file": "core\\secure_credential_store.py",
-            "line": 141,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\secure_credential_store.py",
-            "line": 152,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\secure_credential_store.py",
-            "line": 168,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\secure_credential_store.py",
-            "line": 96,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\security_vault.py",
-            "line": 30,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\semantic_cache.py",
-            "line": 73,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\semantic_cache.py",
-            "line": 88,
+            "file": "core\\services.py",
+            "line": 92,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "core\\skill_manager.py",
-            "line": 99,
+            "line": 64,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
-            "file": "core\\skill_manager.py",
-            "line": 115,
+            "file": "core\\swarm_orchestrator.py",
+            "line": 198,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
-            "file": "core\\task_queue.py",
-            "line": 40,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\task_queue_enhanced.py",
-            "line": 312,
+            "file": "core\\swarm_pubsub.py",
+            "line": 77,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "core\\task_queue_enhanced.py",
-            "line": 354,
+            "line": 311,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\task_queue_enhanced.py",
+            "line": 353,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -1147,32 +955,14 @@
             "severity": "WARNING"
         },
         {
-            "file": "core\\token_deductor.py",
-            "line": 36,
+            "file": "core\\universal_rules.py",
+            "line": 46,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
-            "file": "core\\token_deductor.py",
-            "line": 51,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\token_deductor.py",
-            "line": 71,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\token_deductor.py",
-            "line": 143,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "core\\token_deductor.py",
-            "line": 206,
+            "file": "core\\universal_rules.py",
+            "line": 93,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -1189,14 +979,44 @@
             "severity": "WARNING"
         },
         {
+            "file": "engine\\memory_middleware.py",
+            "line": 37,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
             "file": "engine\\model_dispatcher.py",
             "line": 59,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
+            "file": "engine\\vector_db.py",
+            "line": 30,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "engine\\worker_node.py",
+            "line": 45,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "engine\\worker_registry.py",
+            "line": 56,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "engine\\worker_registry.py",
+            "line": 52,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
             "file": "evolution\\auto_skill_creator.py",
-            "line": 263,
+            "line": 288,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -1208,7 +1028,13 @@
         },
         {
             "file": "evolution\\auto_skill_creator.py",
-            "line": 167,
+            "line": 178,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "evolution\\auto_skill_creator.py",
+            "line": 277,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -1226,25 +1052,25 @@
         },
         {
             "file": "evolution\\fitness_engine.py",
+            "line": 127,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "evolution\\fitness_engine.py",
             "line": 41,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "evolution\\fitness_engine.py",
-            "line": 130,
+            "line": 134,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "evolution\\fitness_engine.py",
-            "line": 137,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "evolution\\fitness_engine.py",
-            "line": 151,
+            "line": 148,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -1339,8 +1165,14 @@
             "severity": "WARNING"
         },
         {
-            "file": "monitoring\\cost_auditor.py",
-            "line": 23,
+            "file": "scripts\\auto_find_blindspots.py",
+            "line": 34,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "scripts\\auto_find_blindspots.py",
+            "line": 74,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -1375,14 +1207,56 @@
             "severity": "WARNING"
         },
         {
+            "file": "scripts\\migrate_files_to_db.py",
+            "line": 159,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "scripts\\migrate_files_to_db.py",
+            "line": 212,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "scripts\\migrate_files_to_db.py",
+            "line": 76,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "scripts\\migrate_files_to_db.py",
+            "line": 121,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "scripts\\refactor_root_cause.py",
+            "line": 11,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "scripts\\refactor_root_cause.py",
+            "line": 17,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
             "file": "scripts\\seed_tools_registry.py",
             "line": 368,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
-            "file": "services\\github_agent.py",
-            "line": 35,
+            "file": "services\\sandbox_service.py",
+            "line": 23,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "services\\sandbox_service.py",
+            "line": 88,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -1448,25 +1322,31 @@
         },
         {
             "file": "tests\\conftest.py",
-            "line": 160,
+            "line": 186,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tests\\conftest.py",
-            "line": 117,
+            "line": 143,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tests\\conftest.py",
-            "line": 141,
+            "line": 167,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tests\\test_e2e_media.py",
             "line": 20,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tests\\test_rag.py",
+            "line": 36,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -1591,6 +1471,24 @@
             "severity": "WARNING"
         },
         {
+            "file": "tools\\blockchain_agent.py",
+            "line": 41,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\blockchain_agent.py",
+            "line": 120,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\blockchain_agent.py",
+            "line": 144,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
             "file": "tools\\browser_stealth.py",
             "line": 138,
             "type": "Exception",
@@ -1663,12 +1561,6 @@
             "severity": "WARNING"
         },
         {
-            "file": "tools\\cloud_sandbox_orchestrator.py",
-            "line": 69,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
             "file": "tools\\codebase_exporter.py",
             "line": 130,
             "type": "Exception",
@@ -1693,20 +1585,38 @@
             "severity": "WARNING"
         },
         {
-            "file": "tools\\collaborative_editor.py",
-            "line": 230,
+            "file": "tools\\code_smell_detector.py",
+            "line": 612,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\code_smell_detector.py",
+            "line": 630,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\code_smell_detector.py",
+            "line": 638,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\collaborative_editor.py",
-            "line": 161,
+            "line": 247,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\collaborative_editor.py",
-            "line": 191,
+            "line": 162,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\collaborative_editor.py",
+            "line": 192,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -1724,31 +1634,43 @@
         },
         {
             "file": "tools\\comment_thread_ai.py",
-            "line": 105,
+            "line": 97,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\comment_thread_ai.py",
-            "line": 120,
+            "line": 104,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\comment_thread_ai.py",
-            "line": 139,
+            "line": 116,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\comment_thread_ai.py",
-            "line": 153,
+            "line": 130,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\comment_thread_ai.py",
-            "line": 236,
+            "line": 213,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\comment_thread_ai.py",
+            "line": 254,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\comment_thread_ai.py",
+            "line": 391,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -1760,37 +1682,7 @@
         },
         {
             "file": "tools\\comment_thread_ai.py",
-            "line": 414,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "tools\\comment_thread_ai.py",
-            "line": 96,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "tools\\comment_thread_ai.py",
-            "line": 110,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "tools\\comment_thread_ai.py",
-            "line": 125,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "tools\\comment_thread_ai.py",
-            "line": 300,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "tools\\comment_thread_ai.py",
-            "line": 305,
+            "line": 282,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -1838,19 +1730,37 @@
         },
         {
             "file": "tools\\dependency_manager_agent.py",
-            "line": 51,
+            "line": 52,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\diagram_to_architecture.py",
-            "line": 71,
+            "line": 98,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\diagram_to_architecture.py",
-            "line": 140,
+            "line": 123,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\diagram_to_architecture.py",
+            "line": 148,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\diagram_to_architecture.py",
+            "line": 179,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\diagram_to_architecture.py",
+            "line": 203,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -1904,7 +1814,19 @@
         },
         {
             "file": "tools\\game_dev_agent.py",
-            "line": 28,
+            "line": 42,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\game_dev_agent.py",
+            "line": 70,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\game_dev_agent.py",
+            "line": 92,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -1927,62 +1849,104 @@
             "severity": "WARNING"
         },
         {
+            "file": "tools\\github_agent.py",
+            "line": 36,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
             "file": "tools\\git_knowledge_extractor.py",
             "line": 49,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
+            "file": "tools\\headless_agent_registry.py",
+            "line": 31,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\headless_agent_registry.py",
+            "line": 36,
+            "type": "Bare Except",
+            "severity": "WARNING"
+        },
+        {
             "file": "tools\\health_checker.py",
-            "line": 60,
+            "line": 61,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\health_checker.py",
-            "line": 72,
+            "line": 73,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\health_checker.py",
-            "line": 147,
+            "line": 148,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\health_checker.py",
-            "line": 91,
+            "line": 92,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\health_checker.py",
-            "line": 96,
+            "line": 97,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\image_generator.py",
-            "line": 63,
+            "line": 64,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\image_generator.py",
-            "line": 89,
+            "line": 90,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\image_to_code.py",
-            "line": 37,
+            "line": 68,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\image_to_code.py",
-            "line": 46,
+            "line": 77,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\image_to_code.py",
+            "line": 110,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\image_to_code.py",
+            "line": 136,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\image_to_code.py",
+            "line": 161,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\image_to_code.py",
+            "line": 178,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -2036,13 +2000,25 @@
         },
         {
             "file": "tools\\langchain_agent_example.py",
-            "line": 120,
+            "line": 121,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\legal_agent.py",
+            "line": 44,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\legal_agent.py",
+            "line": 111,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\local_code_executor.py",
-            "line": 18,
+            "line": 29,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -2090,25 +2066,25 @@
         },
         {
             "file": "tools\\mcp_cloud_deploy.py",
-            "line": 171,
+            "line": 172,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\mcp_cloud_deploy.py",
-            "line": 237,
+            "line": 238,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\mcp_cloud_deploy.py",
-            "line": 270,
+            "line": 271,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\mcp_cloud_deploy.py",
-            "line": 281,
+            "line": 282,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -2144,85 +2120,85 @@
         },
         {
             "file": "tools\\mcp_supabase.py",
-            "line": 72,
+            "line": 73,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\mcp_supabase.py",
-            "line": 173,
+            "line": 174,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\mcp_supabase.py",
-            "line": 239,
+            "line": 240,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\mcp_supabase.py",
-            "line": 323,
+            "line": 324,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\mcp_supabase.py",
-            "line": 379,
+            "line": 380,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\mcp_supabase.py",
-            "line": 77,
+            "line": 78,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\mcp_supabase.py",
-            "line": 179,
+            "line": 180,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\mcp_supabase.py",
-            "line": 245,
+            "line": 246,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\mcp_supabase.py",
-            "line": 329,
+            "line": 330,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\mcp_supabase.py",
-            "line": 385,
+            "line": 386,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\mcp_supabase.py",
-            "line": 184,
+            "line": 185,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\mcp_supabase.py",
-            "line": 250,
+            "line": 251,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\mcp_supabase.py",
-            "line": 334,
+            "line": 335,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\mcp_supabase.py",
-            "line": 390,
+            "line": 391,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -2234,91 +2210,97 @@
         },
         {
             "file": "tools\\meta_architect.py",
-            "line": 63,
+            "line": 78,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\meta_architect.py",
-            "line": 115,
+            "line": 131,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\meta_architect.py",
-            "line": 147,
+            "line": 163,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\meta_architect.py",
-            "line": 97,
+            "line": 113,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\meta_architect.py",
-            "line": 42,
+            "line": 33,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\meta_architect.py",
-            "line": 102,
+            "line": 57,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\meta_architect.py",
-            "line": 47,
+            "line": 118,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\meta_architect.py",
+            "line": 62,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\monthly_cost_reporter.py",
-            "line": 72,
+            "line": 73,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\multilingual_tts.py",
-            "line": 218,
+            "line": 219,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\multilingual_tts.py",
-            "line": 270,
+            "line": 271,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\multilingual_tts.py",
-            "line": 289,
+            "line": 290,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\multilingual_tts.py",
-            "line": 405,
+            "line": 406,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\multilingual_tts.py",
-            "line": 385,
+            "line": 386,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\multilingual_tts.py",
-            "line": 477,
+            "line": 478,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\multilingual_tts.py",
-            "line": 482,
+            "line": 483,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -2409,6 +2391,18 @@
         {
             "file": "tools\\parallel_agent_executor.py",
             "line": 193,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\parallel_agent_executor.py",
+            "line": 264,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\parallel_agent_executor.py",
+            "line": 285,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -2570,67 +2564,79 @@
         },
         {
             "file": "tools\\pre_commit_ai.py",
-            "line": 83,
+            "line": 89,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\pre_commit_ai.py",
-            "line": 98,
+            "line": 104,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\pre_commit_ai.py",
-            "line": 151,
+            "line": 157,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\pre_commit_ai.py",
-            "line": 167,
+            "line": 173,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\pre_commit_ai.py",
-            "line": 103,
+            "line": 109,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\proxy_manager.py",
-            "line": 33,
+            "line": 34,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\pr_reviewer.py",
-            "line": 139,
+            "line": 137,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\pr_reviewer.py",
-            "line": 182,
+            "line": 163,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\pr_reviewer.py",
-            "line": 198,
+            "line": 196,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\pr_reviewer.py",
-            "line": 129,
+            "line": 244,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\pr_reviewer.py",
-            "line": 134,
+            "line": 258,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\pr_reviewer.py",
+            "line": 274,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\pr_reviewer.py",
+            "line": 135,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -2762,19 +2768,19 @@
         },
         {
             "file": "tools\\skill_recommender.py",
-            "line": 35,
+            "line": 36,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\skill_recommender.py",
-            "line": 80,
+            "line": 82,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\skill_recommender.py",
-            "line": 85,
+            "line": 87,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -2822,103 +2828,97 @@
         },
         {
             "file": "tools\\style_learner.py",
-            "line": 120,
+            "line": 123,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\style_learner.py",
-            "line": 136,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "tools\\style_learner.py",
-            "line": 100,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "tools\\style_learner.py",
-            "line": 90,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "tools\\style_learner.py",
-            "line": 125,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "tools\\style_learner.py",
-            "line": 49,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "tools\\style_learner.py",
-            "line": 95,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "tools\\style_learner.py",
-            "line": 54,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "tools\\telegram_bot.py",
-            "line": 74,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "tools\\telegram_bot.py",
-            "line": 87,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "tools\\telegram_bot.py",
-            "line": 117,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "tools\\telegram_bot.py",
-            "line": 130,
-            "type": "Exception",
-            "severity": "WARNING"
-        },
-        {
-            "file": "tools\\telegram_bot.py",
             "line": 198,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
-            "file": "tools\\telegram_bot.py",
-            "line": 218,
+            "file": "tools\\style_learner.py",
+            "line": 222,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\style_learner.py",
+            "line": 230,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\style_learner.py",
+            "line": 59,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\style_learner.py",
+            "line": 179,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\style_learner.py",
+            "line": 177,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\style_learner.py",
+            "line": 83,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\style_learner.py",
+            "line": 143,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\telegram_bot.py",
-            "line": 257,
+            "line": 75,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\telegram_bot.py",
-            "line": 92,
+            "line": 88,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "tools\\telegram_bot.py",
-            "line": 203,
+            "line": 110,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\telegram_bot.py",
+            "line": 123,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\telegram_bot.py",
+            "line": 191,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\telegram_bot.py",
+            "line": 211,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "tools\\telegram_bot.py",
+            "line": 196,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -3271,6 +3271,318 @@
             "severity": "WARNING"
         },
         {
+            "file": "core\\cache\\multi_layer_cache.py",
+            "line": 91,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\cache\\multi_layer_cache.py",
+            "line": 103,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\cache\\multi_layer_cache.py",
+            "line": 120,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\cache\\multi_layer_cache.py",
+            "line": 146,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\cache\\multi_layer_cache.py",
+            "line": 154,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\cache\\multi_layer_cache.py",
+            "line": 167,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\cache\\redis_manager.py",
+            "line": 28,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\cache\\redis_manager.py",
+            "line": 38,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\cache\\redis_manager.py",
+            "line": 69,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\cache\\semantic_cache.py",
+            "line": 73,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\cache\\semantic_cache.py",
+            "line": 88,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\health\\health_monitor.py",
+            "line": 73,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\health\\health_monitor.py",
+            "line": 91,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\health\\health_probes.py",
+            "line": 30,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\health\\health_probes.py",
+            "line": 46,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\health\\health_probes.py",
+            "line": 63,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\llm\\free_tier_tracker.py",
+            "line": 270,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\llm\\llm_gateway.py",
+            "line": 95,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\llm\\llm_gateway.py",
+            "line": 135,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\llm\\llm_gateway.py",
+            "line": 143,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\llm\\llm_gateway.py",
+            "line": 285,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\llm\\llm_gateway.py",
+            "line": 362,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\llm\\token_deductor.py",
+            "line": 36,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\llm\\token_deductor.py",
+            "line": 51,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\llm\\token_deductor.py",
+            "line": 71,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\llm\\token_deductor.py",
+            "line": 143,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\llm\\token_deductor.py",
+            "line": 206,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\messaging\\events.py",
+            "line": 66,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\messaging\\event_bus.py",
+            "line": 169,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\messaging\\event_bus.py",
+            "line": 153,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\messaging\\gcp_pubsub_queue.py",
+            "line": 16,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\messaging\\gcp_pubsub_queue.py",
+            "line": 47,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\messaging\\nats_messaging.py",
+            "line": 50,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\messaging\\nats_messaging.py",
+            "line": 43,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\messaging\\nats_messaging.py",
+            "line": 72,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\messaging\\nats_messaging.py",
+            "line": 105,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\orchestrators\\crew_departments.py",
+            "line": 189,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\orchestrators\\crew_departments.py",
+            "line": 175,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\security\\auth_middleware.py",
+            "line": 123,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\security\\honeypot_middleware.py",
+            "line": 179,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\security\\honeypot_middleware.py",
+            "line": 198,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\security\\honeypot_middleware.py",
+            "line": 64,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\security\\honeypot_middleware.py",
+            "line": 139,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\security\\honeypot_middleware.py",
+            "line": 116,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\security\\secret_vault.py",
+            "line": 74,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\security\\secret_vault.py",
+            "line": 49,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\security\\secure_credential_store.py",
+            "line": 106,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\security\\secure_credential_store.py",
+            "line": 120,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\security\\secure_credential_store.py",
+            "line": 141,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\security\\secure_credential_store.py",
+            "line": 152,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\security\\secure_credential_store.py",
+            "line": 168,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "core\\security\\secure_credential_store.py",
+            "line": 96,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
             "file": "api\\routes\\admin_dashboard.py",
             "line": 144,
             "type": "Exception",
@@ -3361,20 +3673,32 @@
             "severity": "WARNING"
         },
         {
-            "file": "api\\routes\\byoc_api.py",
-            "line": 73,
+            "file": "api\\routes\\billing_api.py",
+            "line": 246,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "api\\routes\\browser.py",
+            "line": 106,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "api\\routes\\byoc_api.py",
-            "line": 114,
+            "line": 79,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "api\\routes\\byoc_api.py",
+            "line": 120,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "api\\routes\\cdc_webhooks.py",
-            "line": 58,
+            "line": 59,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -3386,19 +3710,19 @@
         },
         {
             "file": "api\\routes\\evolution.py",
-            "line": 60,
+            "line": 77,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "api\\routes\\evolution.py",
-            "line": 148,
+            "line": 179,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "api\\routes\\evolution.py",
-            "line": 165,
+            "line": 196,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -3416,13 +3740,13 @@
         },
         {
             "file": "api\\routes\\internal.py",
-            "line": 50,
+            "line": 49,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "api\\routes\\internal.py",
-            "line": 57,
+            "line": 56,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -3464,31 +3788,43 @@
         },
         {
             "file": "api\\routes\\marketplace_endpoints.py",
-            "line": 31,
+            "line": 97,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "api\\routes\\marketplace_endpoints.py",
-            "line": 37,
+            "line": 103,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "api\\routes\\marketplace_endpoints.py",
+            "line": 166,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "api\\routes\\marketplace_endpoints.py",
+            "line": 191,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "api\\routes\\metrics.py",
-            "line": 68,
+            "line": 67,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "api\\routes\\metrics.py",
-            "line": 182,
+            "line": 181,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "api\\routes\\metrics.py",
-            "line": 197,
+            "line": 196,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -3548,13 +3884,19 @@
         },
         {
             "file": "api\\routes\\session_takeover.py",
-            "line": 42,
+            "line": 37,
             "type": "Exception",
             "severity": "WARNING"
         },
         {
             "file": "api\\routes\\session_takeover.py",
-            "line": 94,
+            "line": 62,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "api\\routes\\session_takeover.py",
+            "line": 114,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -3567,6 +3909,18 @@
         {
             "file": "api\\routes\\sso.py",
             "line": 157,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "api\\routes\\swarm.py",
+            "line": 179,
+            "type": "Exception",
+            "severity": "WARNING"
+        },
+        {
+            "file": "api\\routes\\swarm.py",
+            "line": 38,
             "type": "Exception",
             "severity": "WARNING"
         },
@@ -3693,16 +4047,6 @@
     ],
     "print_statements": [
         {
-            "file": "fix_tests.py",
-            "line": 26,
-            "severity": "INFO"
-        },
-        {
-            "file": "run_roundtrip_tests.py",
-            "line": 26,
-            "severity": "INFO"
-        },
-        {
             "file": "core\\generation_monitor.py",
             "line": 62,
             "severity": "INFO"
@@ -3723,8 +4067,18 @@
             "severity": "INFO"
         },
         {
-            "file": "core\\security_vault.py",
-            "line": 31,
+            "file": "scratch\\fix_tests.py",
+            "line": 41,
+            "severity": "INFO"
+        },
+        {
+            "file": "scratch\\fix_tests_v2.py",
+            "line": 42,
+            "severity": "INFO"
+        },
+        {
+            "file": "scratch\\test_async.py",
+            "line": 10,
             "severity": "INFO"
         },
         {
@@ -3734,6 +4088,26 @@
         },
         {
             "file": "scripts\\load_seed_data.py",
+            "line": 92,
+            "severity": "INFO"
+        },
+        {
+            "file": "scripts\\refactor_root_cause.py",
+            "line": 12,
+            "severity": "INFO"
+        },
+        {
+            "file": "scripts\\refactor_root_cause.py",
+            "line": 18,
+            "severity": "INFO"
+        },
+        {
+            "file": "scripts\\refactor_root_cause.py",
+            "line": 90,
+            "severity": "INFO"
+        },
+        {
+            "file": "scripts\\refactor_root_cause.py",
             "line": 92,
             "severity": "INFO"
         },
@@ -3889,27 +4263,27 @@
         },
         {
             "file": "tools\\langchain_agent_example.py",
-            "line": 115,
+            "line": 116,
             "severity": "INFO"
         },
         {
             "file": "tools\\langchain_agent_example.py",
-            "line": 87,
+            "line": 88,
             "severity": "INFO"
         },
         {
             "file": "tools\\langchain_agent_example.py",
-            "line": 123,
+            "line": 124,
             "severity": "INFO"
         },
         {
             "file": "tools\\langchain_agent_example.py",
-            "line": 119,
+            "line": 120,
             "severity": "INFO"
         },
         {
             "file": "tools\\langchain_agent_example.py",
-            "line": 121,
+            "line": 122,
             "severity": "INFO"
         },
         {
@@ -3934,27 +4308,27 @@
         },
         {
             "file": "tools\\pre_commit_ai.py",
-            "line": 260,
+            "line": 277,
             "severity": "INFO"
         },
         {
             "file": "tools\\pre_commit_ai.py",
-            "line": 262,
+            "line": 279,
             "severity": "INFO"
         },
         {
             "file": "tools\\pre_commit_ai.py",
-            "line": 267,
+            "line": 284,
             "severity": "INFO"
         },
         {
             "file": "tools\\pre_commit_ai.py",
-            "line": 270,
+            "line": 287,
             "severity": "INFO"
         },
         {
             "file": "tools\\pre_commit_ai.py",
-            "line": 273,
+            "line": 290,
             "severity": "INFO"
         },
         {
@@ -4104,7 +4478,7 @@
         },
         {
             "file": "api\\routes\\task_workspace.py",
-            "line": 60,
+            "line": 64,
             "severity": "INFO"
         },
         {

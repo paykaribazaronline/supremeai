@@ -85,8 +85,8 @@ Security Issues Found:
         result = await agent.audit_contract(solidity_code)
 
     assert result is not None
-    assert "issues" in result
-    assert len(result["issues"]) > 0
+    assert "issues_found" in result
+    assert len(result["details"]) > 0
 
 
 @pytest.mark.anyio
