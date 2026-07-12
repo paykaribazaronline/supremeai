@@ -103,21 +103,21 @@ jobs:
       - name: 🚫 Gate 1 — Zero-Gap Stub/Placeholder Data Check
         # বাংলা মন্তব্য: Stub ডেটা পেলে সাথে সাথে পাইপলাইন বন্ধ হয়ে যাবে
         run: |
-          echo "=== Zero-Gap Stub Data Gate ===" >> $GITHUB_STEP_SUMMARY
+          echo "=== Zero-Gap স্টাব ডেটা গেট ===" >> $GITHUB_STEP_SUMMARY
           python scripts/find_stub_data.py --path . --fail-on HIGH
-          echo "✅ PASS: No stub/placeholder patterns detected" >> $GITHUB_STEP_SUMMARY
+          echo "✅ পাস: কোনো স্টাব/প্লেসহোল্ডার প্যাটার্ন পাওয়া যায়নি" >> $GITHUB_STEP_SUMMARY
 
       - name: 🔬 Gate 2 — Ruff Linting (No Silent Bugs)
         # বাংলা মন্তব্য: T201 (print), BLE001 (silent except) rule enforce করা হচ্ছে
         run: |
-          echo "=== Ruff Static Analysis Gate ===" >> $GITHUB_STEP_SUMMARY
+          echo "=== Ruff স্ট্যাটিক অ্যানালাইসিস গেট ===" >> $GITHUB_STEP_SUMMARY
           ruff check backend/ --select=E,W,F,T201,BLE001 --ignore=E501 --no-fix
-          echo "✅ PASS: Ruff linting gate cleared" >> $GITHUB_STEP_SUMMARY
+          echo "✅ পাস: Ruff লিন্টিং গেট ক্লিয়ার" >> $GITHUB_STEP_SUMMARY
 
       - name: 📋 Gate 3 — Observability Check (No httpx without timeout)
         # বাংলা মন্তব্য: timeout ছাড়া httpx.AsyncClient() ব্যবহার করলে fail
         run: |
-          echo "=== HTTP Timeout Audit Gate ===" >> $GITHUB_STEP_SUMMARY
+          echo "=== HTTP টাইমআউট অডিট গেট ===" >> $GITHUB_STEP_SUMMARY
           # grep for httpx.AsyncClient() without timeout parameter
           VIOLATIONS=$(grep -rn "httpx\.AsyncClient()" backend/ --include="*.py" | grep -v "test_" | grep -v ".venv" | wc -l)
           if [ "$VIOLATIONS" -gt 0 ]; then
@@ -125,21 +125,21 @@ jobs:
             grep -rn "httpx\.AsyncClient()" backend/ --include="*.py" | grep -v "test_" | grep -v ".venv"
             exit 1
           fi
-          echo "✅ PASS: All httpx clients have explicit timeouts" >> $GITHUB_STEP_SUMMARY
+          echo "✅ পাস: সব httpx ক্লায়েন্টে নির্দিষ্ট টাইমআউট আছে" >> $GITHUB_STEP_SUMMARY
 
       - name: 🩹 Inline Auto-Fix (On Failure)
         if: failure()
         env:
           GH_TOKEN: ${{ secrets.GH_PAT_FOR_AUTO_FIX }}
         run: |
-          echo "=== Inline Auto-Fix Triggered ===" >> $GITHUB_STEP_SUMMARY
-          echo "Running ruff formatting and fixing..."
+          echo "=== ইনলাইন অটো-ফিক্স শুরু হয়েছে ===" >> $GITHUB_STEP_SUMMARY
+          echo "Ruff ফরম্যাটিং এবং ফিক্স রান করা হচ্ছে..."
           ruff format backend/ || true
           ruff check backend/ --fix || true
           
           git add -u
           if ! git diff --staged --quiet; then
-            echo "🔧 Changes detected, committing fixes..."
+            echo "🔧 পরিবর্তন পাওয়া গেছে, ফিক্সগুলো কমিট করা হচ্ছে..."
             git config --global user.name 'SupremeAI Auto-Fix Bot'
             git config --global user.email 'bot@supremeai.dev'
             git commit -m "fix(ci): Automatically apply lint fixes inline [skip ci]"
@@ -147,14 +147,14 @@ jobs:
             BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
             git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
             
-            echo "🔄 Syncing with remote branch before pushing..."
+            echo "🔄 পুশ করার আগে রিমোট ব্রাঞ্চের সাথে সিঙ্ক করা হচ্ছে..."
             git pull --rebase origin $BRANCH_NAME
             git push origin HEAD:$BRANCH_NAME
             
-            echo "✅ Auto-Fix applied successfully! The pipeline is now self-healed." >> $GITHUB_STEP_SUMMARY
+            echo "✅ অটো-ফিক্স সফলভাবে প্রয়োগ করা হয়েছে! পাইপলাইন এখন সেলফ-হিল্ড।" >> $GITHUB_STEP_SUMMARY
             exit 0
           else
-            echo "❌ No auto-fixable changes found. The failure requires manual intervention." >> $GITHUB_STEP_SUMMARY
+            echo "❌ কোনো অটো-ফিক্সযোগ্য পরিবর্তন পাওয়া যায়নি। ব্যর্থতাটি ম্যানুয়ালি চেক করতে হবে।" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
 
@@ -201,21 +201,21 @@ jobs:
         id: safety_guard
         working-directory: backend
         run: |
-          echo "## 🛡️ Safety Guard Validation" >> $GITHUB_STEP_SUMMARY
+          echo "## 🛡️ সেফটি গার্ড ভ্যালিডেশন" >> $GITHUB_STEP_SUMMARY
           python ../scripts/safety_guard.py --check-only --report-json > safety-report.json 2>&1 || true
           
           # Parse and summarize
           if [ -f safety-report.json ]; then
-            echo "✅ Safety Guard completed - see report" >> $GITHUB_STEP_SUMMARY
+            echo "✅ সেফটি গার্ড সম্পন্ন হয়েছে - রিপোর্ট দেখুন" >> $GITHUB_STEP_SUMMARY
           else
-            echo "⚠️ Safety Guard validation passed" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ সেফটি গার্ড ভ্যালিডেশন পাস করেছে" >> $GITHUB_STEP_SUMMARY
           fi
       
       - name: 🔍 Multi-Model Validator - Security & Logic Check
         id: validator
         working-directory: backend
         run: |
-          echo "## 🔍 Multi-Model Code Validation" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔍 মাল্টি-মডেল কোড ভ্যালিডেশন" >> $GITHUB_STEP_SUMMARY
           python ../scripts/multi_model_validator.py ../backend/core/ --json-output validator-report.json 2>&1 || true
           
           # Check for critical issues
@@ -224,7 +224,7 @@ jobs:
             if [ "$CRITICAL" -gt 0 ]; then
               echo "⚠️ Found $CRITICAL critical issues - review required" >> $GITHUB_STEP_SUMMARY
             else
-              echo "✅ No critical security issues detected" >> $GITHUB_STEP_SUMMARY
+              echo "✅ কোনো ক্রিটিকাল সিকিউরিটি ইস্যু পাওয়া যায়নি" >> $GITHUB_STEP_SUMMARY
             fi
           fi
 
@@ -233,9 +233,9 @@ jobs:
         working-directory: backend
         continue-on-error: true
         run: |
-          echo "## 📊 Knowledge Graph Generation" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 নলেজ গ্রাফ জেনারেশন" >> $GITHUB_STEP_SUMMARY
           python ../scripts/codegraph_integration.py --full --output-dir ../docs/codebase/knowledge_graph 2>&1 || true
-          echo "✅ Knowledge graph updated" >> $GITHUB_STEP_SUMMARY
+          echo "✅ নলেজ গ্রাফ আপডেট করা হয়েছে" >> $GITHUB_STEP_SUMMARY
 
       - name: 📤 Upload Production Readiness Reports
         uses: actions/upload-artifact@v4
@@ -250,9 +250,9 @@ jobs:
       - name: 🚨 Production Readiness Summary
         if: always()
         run: |
-          echo "## ✅ Production Readiness Check Complete" >> $GITHUB_STEP_SUMMARY
+          echo "## ✅ প্রোডাকশন রেডিনেস চেক সম্পন্ন" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Systems Status:" >> $GITHUB_STEP_SUMMARY
+          echo "### সিস্টেম স্ট্যাটাস:" >> $GITHUB_STEP_SUMMARY
           echo "- Safety Guard: ${{ steps.safety_guard.outcome }}" >> $GITHUB_STEP_SUMMARY
           echo "- Multi-Model Validator: ${{ steps.validator.outcome }}" >> $GITHUB_STEP_SUMMARY
           echo "- Codegraph: ${{ steps.codegraph.outcome }}" >> $GITHUB_STEP_SUMMARY
@@ -499,7 +499,7 @@ jobs:
           
           git add -u
           if ! git diff --staged --quiet; then
-            echo "🔧 Changes detected in frontend, committing fixes..."
+            echo "🔧 ফ্রন্টএন্ডে পরিবর্তন পাওয়া গেছে, ফিক্সগুলো কমিট করা হচ্ছে..."
             git config --global user.name 'SupremeAI Auto-Fix Bot'
             git config --global user.email 'bot@supremeai.dev'
             git commit -m "fix(ci): Automatically apply frontend lint fixes inline [skip ci]"
@@ -507,14 +507,14 @@ jobs:
             BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
             git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
             
-            echo "🔄 Syncing with remote branch before pushing..."
+            echo "🔄 পুশ করার আগে রিমোট ব্রাঞ্চের সাথে সিঙ্ক করা হচ্ছে..."
             git pull --rebase origin $BRANCH_NAME
             git push origin HEAD:$BRANCH_NAME
             
-            echo "✅ Frontend Auto-Fix applied successfully! The pipeline is now self-healed." >> $GITHUB_STEP_SUMMARY
+            echo "✅ ফ্রন্টএন্ড অটো-ফিক্স সফলভাবে প্রয়োগ করা হয়েছে! পাইপলাইন এখন সেলফ-হিল্ড।" >> $GITHUB_STEP_SUMMARY
             exit 0
           else
-            echo "❌ No auto-fixable changes could be applied for the frontend." >> $GITHUB_STEP_SUMMARY
+            echo "❌ ফ্রন্টএন্ডের জন্য কোনো অটো-ফিক্সযোগ্য পরিবর্তন প্রয়োগ করা যায়নি।" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
 
