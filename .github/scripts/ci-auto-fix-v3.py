@@ -6,6 +6,8 @@ import hashlib
 import time
 import asyncio
 from datetime import datetime, timezone
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
 import litellm
 from typing import Optional, Tuple
 from dataclasses import dataclass
@@ -379,7 +381,7 @@ def get_ai_fix(error_log: str, file_path: str, comment_char: str) -> str:
     try:
         api_key = os.getenv("SUPREMEAI_API_KEY") or os.getenv("GEMINI_API_KEY")
         if api_key:
-            os.environ["GEMINI_API_KEY"] = api_key
+            os.environ["GEMINI_API_KEY"] = api_key.split(',')[0].strip()
         response = litellm.completion(
             model=target_model,
             messages=[{"role": "user", "content": prompt}],
@@ -522,6 +524,8 @@ def main():
 
     # Map job name containing strings to target configs
     api_key = os.getenv("SUPREMEAI_API_KEY") or os.getenv("GEMINI_API_KEY")
+    if api_key:
+        os.environ["GEMINI_API_KEY"] = api_key.split(',')[0].strip()
     if not api_key:
         print("ERROR: SUPREMEAI_API_KEY or GEMINI_API_KEY is not set.")
         sys.exit(1)

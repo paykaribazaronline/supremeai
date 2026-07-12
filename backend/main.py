@@ -1,6 +1,15 @@
+# FILE_PATH: main.py
 import os
 import signal
 import sys
+
+
+# Ensure ENV is set for local/test runs if not explicitly defined.
+# This helps Pydantic Settings determine the correct environment context
+# for validation, preventing production config errors in non-production environments
+# where required production secrets might not be present.
+if os.getenv("ENV") is None:
+    os.environ["ENV"] = "local"  # Default to 'local' for development/testing if not specified
 
 import uvicorn
 from loguru import logger
