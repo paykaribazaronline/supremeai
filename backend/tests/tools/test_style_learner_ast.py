@@ -12,9 +12,6 @@ async def test_analyze_codebase_ast():
     # বাংলা মন্তব্য: Codebase-এর AST-level pattern বিশ্লেষণ টেস্ট
     learner = StyleLearner()
 
-    with patch("tools.style_learner.settings") as mock_settings:
-        mock_settings.openai_api_key = "test-key"
-
         with patch.object(learner, "_get_model_router") as mock_router:
             mock_router.return_value.async_route_and_generate = AsyncMock(
                 return_value={"text": '{"naming_convention": "snake_case", "function_length": 20, "import_style": "isort"}'}
@@ -37,9 +34,6 @@ async def test_generate_with_style():
     # বাংলা মন্তব্য: ব্যবহারকারীর স্টাইল অনুযায়ী কোড জেনারেট করা হচ্ছে
     learner = StyleLearner()
 
-    with patch("tools.style_learner.settings") as mock_settings:
-        mock_settings.openai_api_key = "test-key"
-
         with patch.object(learner, "_get_model_router") as mock_router:
             mock_router.return_value.async_route_and_generate = AsyncMock(
                 return_value={"text": "def my_snake_case_function():\n    # Generated with user style\n    pass"}
@@ -55,9 +49,6 @@ async def test_generate_with_style():
 async def test_sync_team_style():
     # বাংলা মন্তব্য: টিম স্টাইল সিঙ্ক টেস্ট
     learner = StyleLearner()
-
-    with patch("tools.style_learner.settings") as mock_settings:
-        mock_settings.openai_api_key = "test-key"
 
         with patch.object(learner, "_get_model_router") as mock_router:
             mock_router.return_value.async_route_and_generate = AsyncMock(return_value={"text": '{"team_id": "team_123", "style": "consistent"}'})
@@ -83,9 +74,6 @@ async def test_naming_convention_detection():
         "def another_function():\n    another_var = 2\n    return another_var",
     ]
 
-    with patch("tools.style_learner.settings") as mock_settings:
-        mock_settings.openai_api_key = "test-key"
-
         with patch.object(learner, "_get_model_router") as mock_router:
             mock_router.return_value.async_route_and_generate = AsyncMock(
                 return_value={"text": '{"naming_convention": "snake_case", "confidence": 0.95}'}
@@ -103,9 +91,6 @@ async def test_function_length_preference():
 
     code_samples = ["def short_func():\n    return 1", "def medium_func():\n    a = 1\n    b = 2\n    return a + b"]
 
-    with patch("tools.style_learner.settings") as mock_settings:
-        mock_settings.openai_api_key = "test-key"
-
         with patch.object(learner, "_get_model_router") as mock_router:
             mock_router.return_value.async_route_and_generate = AsyncMock(return_value={"text": '{"avg_function_length": 2, "max_lines": 10}'})
 
@@ -120,9 +105,6 @@ async def test_import_ordering_style():
     learner = StyleLearner()
 
     code_samples = ["import os\nimport sys\nfrom typing import List", "import json\nimport re"]
-
-    with patch("tools.style_learner.settings") as mock_settings:
-        mock_settings.openai_api_key = "test-key"
 
         with patch.object(learner, "_get_model_router") as mock_router:
             mock_router.return_value.async_route_and_generate = AsyncMock(
