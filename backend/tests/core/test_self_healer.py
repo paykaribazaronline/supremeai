@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
-from core.self_healer import SelfHealerService
+from core.health.self_healer import SelfHealerService
 
 
 @pytest.fixture

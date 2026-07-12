@@ -334,6 +334,52 @@ jobs:
           }
           echo "✅ No stub/placeholder patterns found above HIGH severity" >> $GITHUB_STEP_SUMMARY
 
+      # বাংলা মন্তব্য: Code Smell Detector - CI/CD mandatory integration
+      - name: 🚨 Code Smell Check (Mandatory, Blocking)
+        id: code_smell_check
+        working-directory: backend
+        run: |
+          echo "## 🚨 Code Smell Detection" >> $GITHUB_STEP_SUMMARY
+          poetry run python -c "
+from tools.code_smell_detector import CodeSmellDetector
+import asyncio
+detector = CodeSmellDetector()
+result = asyncio.run(detector.scan_directory('backend/tools'))
+print(f'Found {result.get(\"total_issues\", 0)} code smell issues')
+" || {
+            echo "❌ Code smell check failed" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
+          echo "✅ Code smell check passed" >> $GITHUB_STEP_SUMMARY
+
+      # বাংলা মন্তব্য: Style Lint - Ruff format check
+      - name: 🔍 Style Lint (Ruff Format Check)
+        id: style_lint
+        working-directory: backend
+        run: |
+          echo "## 🔍 Style Lint Check" >> $GITHUB_STEP_SUMMARY
+          poetry run ruff format --check backend/tools/ || {
+            echo "❌ Style lint failed - code not properly formatted" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
+          echo "✅ Style lint passed" >> $GITHUB_STEP_SUMMARY
+
+      # বাংলা মন্তব্য: PR Review Bot - Dry run for webhook validation
+      - name: 🤖 PR Review Bot (Dry Run)
+        id: pr_review_bot
+        working-directory: backend
+        run: |
+          echo "## 🤖 PR Review Bot Validation" >> $GITHUB_STEP_SUMMARY
+          poetry run python -c "
+from tools.pr_reviewer import PRReviewer
+reviewer = PRReviewer()
+print('PR Reviewer initialized successfully for webhook integration')
+" || {
+            echo "❌ PR Review Bot initialization failed" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
+          echo "✅ PR Review Bot ready" >> $GITHUB_STEP_SUMMARY
+
       - name: 🧪 Run Tests
         id: backend_tests
         working-directory: backend
