@@ -80,7 +80,7 @@ Reason through the requirements and any previous failure errors. Then output:
                 else:
                     error_msg = test_result["reason"]
                     logger.warning(f"❌ Compilation failed: {error_msg}")
-                    reasoning_history.append(f"Turn {turn} Attempt:\n" f"Thought: {thought}\n" f"Observation: Code compiled with error: {error_msg}")
+                    reasoning_history.append(f"Turn {turn} Attempt:\nThought: {thought}\nObservation: Code compiled with error: {error_msg}")
                     current_error = error_msg
             except (RuntimeError, ValueError, TypeError) as e:
                 logger.error(f"❌ ReAct agent loop exception: {e}")
@@ -105,9 +105,9 @@ Reason through the requirements and any previous failure errors. Then output:
 
     def _extract_code(self, text: str) -> str:
         if "```python" in text:
-            return text.split("```python")[1].split("```")[0].strip()
+            return text.split("```python")[1].split("```", maxsplit=1)[0].strip()
         elif "```" in text:
-            return text.split("```")[1].split("```")[0].strip()
+            return text.split("```")[1].split("```", maxsplit=1)[0].strip()
         return ""
 
     def _test_compile_code(self, code: str) -> dict[str, Any]:

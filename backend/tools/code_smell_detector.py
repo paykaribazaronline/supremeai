@@ -605,7 +605,7 @@ class CodeSmellDetector:
         try:
             os.makedirs(os.path.dirname(hook_path), exist_ok=True)
             with open(hook_path, "w", encoding="utf-8") as f:
-                f.write("#!/bin/sh\n" "# বাংলা মন্তব্য: SupremeAI কোড স্মেল প্রি-কমিট হুক।\n" "python -m tools.code_smell_detector --check || true\n")
+                f.write("#!/bin/sh\n# বাংলা মন্তব্য: SupremeAI কোড স্মেল প্রি-কমিট হুক।\npython -m tools.code_smell_detector --check || true\n")
             os.chmod(hook_path, 0o755)
             logger.success(f"Pre-commit hook installed at {hook_path}")
             return True

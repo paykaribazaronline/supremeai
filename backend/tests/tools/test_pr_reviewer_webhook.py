@@ -37,14 +37,7 @@ async def test_check_style_compliance():
     # বাংলা মন্তব্য: Style compliance check টেস্ট
     reviewer = PRReviewer()
 
-    diff = (
-        "diff --git a/src/main.py b/src/main.py\n"
-        "--- a/src/main.py\n"
-        "+++ b/src/main.py\n"
-        "@@ -1,3 +1,4 @@\n"
-        "+def MyFunction():\n"
-        "+    pass\n"
-    )
+    diff = "diff --git a/src/main.py b/src/main.py\n--- a/src/main.py\n+++ b/src/main.py\n@@ -1,3 +1,4 @@\n+def MyFunction():\n+    pass\n"
 
     with patch("tools.pr_reviewer.settings") as mock_settings:
         mock_settings.code_style_preference = "snake_case"

@@ -313,7 +313,7 @@ class AgentDAGScheduler:
 
     def _topological_sort(self, task_graph: dict[str, DAGNode]) -> list[list[str]]:
         """স্তরভিত্তিক (level-based) টপোলজিক্যাল সর্ট — প্রতিটি স্তর সমান্তরালে চালানো যায়।"""
-        in_degree = {name: 0 for name in task_graph}
+        in_degree = dict.fromkeys(task_graph, 0)
         for name, node in task_graph.items():
             for dep in node.depends_on:
                 if dep in in_degree:
