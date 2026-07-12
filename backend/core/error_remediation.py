@@ -15,6 +15,7 @@ try:
 except ImportError:
     HAS_QDRANT = False
 
+
 class ErrorRemediation:
     def __init__(self) -> None:
         self.qdrant: QdrantClient | None = None

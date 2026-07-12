@@ -89,6 +89,7 @@ def mask_api_key(key: str) -> str:
     middle = parts[2]
     return f"{parts[0]}-{parts[1]}-{middle[:4]}****{middle[-4:]}"
 
+
 def is_safe_url(url: str) -> bool:
     try:
         parsed = urlparse(url)
