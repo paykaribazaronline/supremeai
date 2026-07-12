@@ -515,6 +515,7 @@ class TestSecurityVaultModuleInit:
         monkeypatch.delenv("SUPREMEAI_ENCRYPTION_KEY", raising=False)
 
         monkeypatch.delitem(sys.modules, "core.security_vault", raising=False)
+        monkeypatch.delitem(sys.modules, "core.security.security_vault", raising=False)
 
         with pytest.raises(ValueError, match="CRITICAL: ENCRYPTION_KEY"):
             import core.security_vault  # noqa: F401

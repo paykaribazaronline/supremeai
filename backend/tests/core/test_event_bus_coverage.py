@@ -12,11 +12,11 @@ from unittest.mock import patch
 
 import pytest
 
-from core.event_bus import DeadLetterQueueItem
-from core.event_bus import ErrorContext
-from core.event_bus import ErrorEvent
-from core.event_bus import ErrorEventBus
-from core.event_bus import error_event_bus
+from core.messaging.event_bus import DeadLetterQueueItem
+from core.messaging.event_bus import ErrorContext
+from core.messaging.event_bus import ErrorEvent
+from core.messaging.event_bus import ErrorEventBus
+from core.messaging.event_bus import error_event_bus
 
 
 # -------------------- Fixtures --------------------
@@ -230,7 +230,7 @@ class TestEmit:
 
     def test_emit_without_listeners(self, event_bus, sample_error_event):
         """বাংলা মন্তব্য: Listeners না থাকলেও emit works।"""
-        with patch("core.event_bus.logger") as mock_logger:
+        with patch("core.messaging.event_bus.logger") as mock_logger:
             event_bus.emit(sample_error_event)
             # Should log the event
             mock_logger.error.assert_called_once()
@@ -264,7 +264,7 @@ class TestEmit:
 
     def test_emit_no_running_loop(self, event_bus, sample_error_event):
         """বাংলা মন্তব্য: Running loop না থাকলে sync log works।"""
-        with patch("core.event_bus.logger") as mock_logger:
+        with patch("core.messaging.event_bus.logger") as mock_logger:
             event_bus.emit(sample_error_event)
             # Should complete without error
             assert event_bus._total_emitted == 1
@@ -441,7 +441,7 @@ class TestDispatchAsync:
                 )
             )
 
-        with patch("core.event_bus.logger") as mock_logger:
+        with patch("core.messaging.event_bus.logger") as mock_logger:
             await event_bus._dispatch_async(sample_error_event)
             # Should log critical error
             mock_logger.critical.assert_called_once()
@@ -479,7 +479,7 @@ class TestLogEvent:
             message="Critical failure",
             severity="CRITICAL",
         )
-        with patch("core.event_bus.logger") as mock_logger:
+        with patch("core.messaging.event_bus.logger") as mock_logger:
             event_bus._log_event(event)
             mock_logger.critical.assert_called_once()
 
@@ -490,7 +490,7 @@ class TestLogEvent:
             message="Error occurred",
             severity="ERROR",
         )
-        with patch("core.event_bus.logger") as mock_logger:
+        with patch("core.messaging.event_bus.logger") as mock_logger:
             event_bus._log_event(event)
             mock_logger.error.assert_called_once()
 
@@ -501,7 +501,7 @@ class TestLogEvent:
             message="Warning message",
             severity="WARNING",
         )
-        with patch("core.event_bus.logger") as mock_logger:
+        with patch("core.messaging.event_bus.logger") as mock_logger:
             event_bus._log_event(event)
             mock_logger.warning.assert_called_once()
 
@@ -512,7 +512,7 @@ class TestLogEvent:
             message="Info message",
             severity="INFO",
         )
-        with patch("core.event_bus.logger") as mock_logger:
+        with patch("core.messaging.event_bus.logger") as mock_logger:
             event_bus._log_event(event)
             mock_logger.info.assert_called_once()
 
@@ -530,7 +530,7 @@ class TestLogEvent:
                 env="production",
             ),
         )
-        with patch("core.event_bus.logger") as mock_logger:
+        with patch("core.messaging.event_bus.logger") as mock_logger:
             event_bus._log_event(event)
             log_msg = mock_logger.error.call_args[0][0]
             assert "user-123" in log_msg
@@ -639,7 +639,7 @@ class TestGlobalInstance:
 
     def test_global_instance_is_singleton(self):
         """বাংলা মন্তব্য: Global instance singleton pattern follow করে।"""
-        from core.event_bus import error_event_bus as instance1
-        from core.event_bus import error_event_bus as instance2
+        from core.messaging.event_bus import error_event_bus as instance1
+        from core.messaging.event_bus import error_event_bus as instance2
 
         assert instance1 is instance2
