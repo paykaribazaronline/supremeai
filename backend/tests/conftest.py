@@ -109,6 +109,7 @@ def rbac():
 @pytest.fixture(autouse=True)
 def isolate_env(monkeypatch: pytest.MonkeyPatch):
     import core.config
+
     for key, value in _TEST_ENV_DEFAULTS.items():
         monkeypatch.setenv(key, value)
         try:
