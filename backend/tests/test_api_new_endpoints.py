@@ -149,8 +149,9 @@ def test_config_endpoint_admin_control(monkeypatch):
         lambda key: ["awesome-selfhosted", "libraries.io"] if key == "marketplace.resource_sources" else None,
     )
     monkeypatch.setattr(config_route.db, "set_config", lambda key, value, category="general": None)
-    
+
     from api.routes.admin_dashboard import require_admin_token
+
     app.dependency_overrides[require_admin_token] = lambda: "admin"
 
     resp = client.get("/config/marketplace.resource_sources", headers=auth_headers)
@@ -165,5 +166,5 @@ def test_config_endpoint_admin_control(monkeypatch):
     )
     assert resp.status_code == 200
     assert resp.json()["status"] == "success"
-    
+
     app.dependency_overrides.clear()
