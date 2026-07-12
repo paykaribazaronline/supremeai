@@ -9,7 +9,7 @@ CI/CD অপারেশন (Issue, PR, Auto-fix) সরাসরে চ্য�
 from core.config import settings
 import json
 from enum import StrEnum
-
+import os
 import httpx
 from pydantic import BaseModel, Field, ConfigDict
 from mcp.server.fastmcp import FastMCP
@@ -28,7 +28,7 @@ GITHUB_API_URL = "https://api.github.com"
 
 def _get_github_token() -> str:
     """Get the current GitHub token from environment variables."""
-    return getattr(settings, "github_token", "")
+    return getattr(settings, "github_token", "") or os.getenv("GITHUB_TOKEN", "")
 
 
 class ResponseFormat(StrEnum):

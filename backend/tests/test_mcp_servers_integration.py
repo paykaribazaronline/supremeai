@@ -16,12 +16,29 @@ from pydantic import ValidationError
 # বাংলা মন্তব্য: প্রতিটি টেস্টে এনভায়রনমেন্ট ভ্যারিয়েবল মক করার জন্য ফিক্সচার
 @pytest.fixture(autouse=True)
 def mock_env_vars(monkeypatch):
-    monkeypatch.setenv("SUPABASE_DATABASE_URL", "postgres://localhost/mydb")
-    monkeypatch.setenv("RENDER_API_KEY", "test-render-key")
-    monkeypatch.setenv("RAILWAY_TOKEN", "test-railway-token")
-    monkeypatch.setenv("ORACLE_CLOUD_API_KEY", "test-oracle-key")
-    monkeypatch.setenv("ORACLE_REGION", "us-phoenix-1")
-    monkeypatch.setenv("ADMIN_AUTHORIZED", "true")
+    env_vars = {
+        "SUPABASE_DATABASE_URL": "postgres://localhost/mydb",
+        "RENDER_API_KEY": "test-render-key",
+        "RAILWAY_TOKEN": "test-railway-token",
+        "ORACLE_CLOUD_API_KEY": "test-oracle-key",
+        "ORACLE_REGION": "us-phoenix-1",
+        "ADMIN_AUTHORIZED": "true",
+        "GITHUB_TOKEN": "test-github-token",
+    }
+    from core.config import settings
+    for k, v in env_vars.items():
+        monkeypatch.setenv(k, v)
+        try:
+            if hasattr(settings, k.lower()):
+                setattr(settings, k.lower(), v)
+            elif hasattr(settings, k):
+                setattr(settings, k, v)
+            else:
+                # Handle extra fields properly if Pydantic model allows it
+                if getattr(settings.model_config, "extra", "ignore") == "allow":
+                    setattr(settings, k.lower(), v)
+        except AttributeError:
+            pass
 
 
 # বাংলা মন্তব্য: cloud_deploy_mcp টেস্টস
@@ -570,7 +587,7 @@ class TestSupabaseMCPExtended:
     @pytest.mark.asyncio
     async def test_execute_sql_missing_db_url(self, monkeypatch):
         """Execute SQL এ ডাটাবেস URL না থাকলে ব্যর্থ হয়।"""
-        monkeypatch.setenv("SUPABASE_DATABASE_URL", "")
+        monkeypatch.setattr("tools.mcp_supabase._get_supabase_db_url", lambda: "")
         from tools.mcp_supabase import supabase_execute_sql, ExecuteQueryInput, ResponseFormat
 
         params = ExecuteQueryInput(query="SELECT 1", response_format=ResponseFormat.JSON)
@@ -651,7 +668,7 @@ class TestSupabaseMCPExtended:
     @pytest.mark.asyncio
     async def test_run_migration_missing_db_url(self, monkeypatch):
         """Run Migration এ ডাটাবেস URL না থাকলে ব্যর্থ হয়।"""
-        monkeypatch.setenv("SUPABASE_DATABASE_URL", "")
+        monkeypatch.setattr("tools.mcp_supabase._get_supabase_db_url", lambda: "")
         from tools.mcp_supabase import supabase_run_migration, MigrationInput
 
         params = MigrationInput(migration_name="test", up_sql="CREATE TABLE test (id INT)", down_sql="DROP TABLE test")
@@ -662,6 +679,7 @@ class TestSupabaseMCPExtended:
     @pytest.mark.asyncio
     async def test_run_migration_already_applied(self, monkeypatch):
         """মাইগ্রেশন ইতিমধ্যে আপ্লাই করা হয়েছে।"""
+        monkeypatch.setenv("ADMIN_AUTHORIZED", "true")
         from tools.mcp_supabase import supabase_run_migration, MigrationInput
 
         with patch("tools.mcp_supabase._get_connection") as mock_conn:
@@ -672,6 +690,7 @@ class TestSupabaseMCPExtended:
             params = MigrationInput(migration_name="test", up_sql="CREATE TABLE test (id INT)", down_sql="DROP TABLE test")
             result = await supabase_run_migration(params)
             data = json.loads(result)
+            print("DATA:", data)
             assert "already applied" in data["message"]
 
     @pytest.mark.asyncio
@@ -688,7 +707,7 @@ class TestSupabaseMCPExtended:
     @pytest.mark.asyncio
     async def test_list_tables_missing_db_url(self, monkeypatch):
         """List Tables এ ডাটাবেস URL না থাকলে ব্যর্থ হয়।"""
-        monkeypatch.setenv("SUPABASE_DATABASE_URL", "")
+        monkeypatch.setattr("tools.mcp_supabase._get_supabase_db_url", lambda: "")
         from tools.mcp_supabase import supabase_list_tables
 
         result = await supabase_list_tables()
@@ -1541,9 +1560,11 @@ class TestInputValidation:
             params = CreateTableInput(table_name="logs", columns="id SERIAL PRIMARY KEY", if_not_exists=False)
             result = await supabase_create_table(params)
             data = json.loads(result)
+            print("DATA RETURNED:", data)
             assert data["success"] is True
 
         """মাইগ্রেশন ইতিমধ্যে আপ্লাই করা হয়েছে (ডিটেইলড)।"""
+        monkeypatch.setenv("ADMIN_AUTHORIZED", "true")
         from tools.mcp_supabase import supabase_run_migration, MigrationInput
 
         with patch("tools.mcp_supabase._get_connection") as mock_conn:
@@ -1554,6 +1575,7 @@ class TestInputValidation:
             params = MigrationInput(migration_name="existing_migration", up_sql="CREATE TABLE test (id INT)", down_sql="DROP TABLE test")
             result = await supabase_run_migration(params)
             data = json.loads(result)
+            print("DATA2:", data)
             assert "already applied" in data["message"]
 
         """মাইগ্রেশন সফল হলে DOWN SQL এক্সিকিউট হয় না।"""

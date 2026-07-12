@@ -9,6 +9,7 @@ MCP Server for Cloud Deployment Integration in SupremeAI 2.0.
 from core.config import settings
 import json
 import re
+import os
 from enum import StrEnum
 
 import httpx
@@ -27,19 +28,19 @@ CHARACTER_LIMIT = 25000
 
 
 def _get_render_api_key() -> str:
-    return getattr(settings, "render_api_key", "")
+    return getattr(settings, "render_api_key", "") or os.getenv("RENDER_API_KEY", "")
 
 
 def _get_railway_token() -> str:
-    return getattr(settings, "railway_token", "")
+    return getattr(settings, "railway_token", "") or os.getenv("RAILWAY_TOKEN", "")
 
 
 def _get_oracle_api_key() -> str:
-    return getattr(settings, "oracle_cloud_api_key", "")
+    return getattr(settings, "oracle_cloud_api_key", "") or os.getenv("ORACLE_CLOUD_API_KEY", "")
 
 
 def _get_oracle_region() -> str:
-    region = getattr(settings, "oracle_region", "us-phoenix-1")
+    region = getattr(settings, "oracle_region", "us-phoenix-1") or os.getenv("ORACLE_REGION", "us-phoenix-1")
     if not region:
         return "us-phoenix-1"
     if not re.match(r"^[a-z0-9\-]+$", region):
