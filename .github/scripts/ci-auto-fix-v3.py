@@ -13,6 +13,14 @@ from typing import Optional, Tuple
 from dataclasses import dataclass
 from pathlib import Path
 
+# Fix for Windows console unicode printing
+if sys.stdout.encoding.lower() != 'utf-8':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except AttributeError:
+        pass
+
+
 @dataclass
 class CmdResult:
     stdout: str

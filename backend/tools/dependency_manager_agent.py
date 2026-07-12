@@ -91,6 +91,85 @@ class DependencyManagerAgent:
             "recommendation": "Run 'pip install --upgrade <package>' for each outdated package.",
         }
 
+    def find_and_remove_unused_pip_dependencies(self, project_path: str) -> dict[str, Any]:
+        """
+        Finds and removes unused pip dependencies using deptry and poetry.
+        Assumes it's run in a poetry environment from the backend directory.
+        """
+        logger.info(f"Scanning for unused pip dependencies in {project_path} with deptry...")
+        # Requires `poetry add deptry --group dev`
+        # The command needs to be run from the directory with pyproject.toml
+        # deptry returns a non-zero exit code if it finds issues, so check_exit_code=False
+        find_command = ["poetry", "run", "deptry", ".", "--output-format", "json"]
+
+        # We need to run this from the backend directory
+        original_cwd = os.getcwd()
+        try:
+            os.chdir(project_path)
+            deptry_result = self._run_command(find_command, check_exit_code=False)
+        finally:
+            os.chdir(original_cwd)
+
+        if "error" in deptry_result:
+            return {"success": False, "error": deptry_result["error"]}
+
+        unused_dependencies = [dep["name"] for dep in deptry_result if dep["error"]["code"] == "DEP002"]
+
+        if not unused_dependencies:
+            return {"success": True, "removed_packages": [], "count": 0, "message": "No unused dependencies found."}
+
+        logger.info(f"Found {len(unused_dependencies)} unused dependencies: {', '.join(unused_dependencies)}")
+
+        removed_packages = []
+        for package in unused_dependencies:
+            logger.info(f"Removing unused package '{package}' with poetry...")
+            remove_command = ["poetry", "remove", package]
+            try:
+                os.chdir(project_path)
+                remove_result = self._run_command(remove_command)
+                if "error" not in remove_result:
+                    removed_packages.append(package)
+            finally:
+                os.chdir(original_cwd)
+
+        return {"success": True, "removed_packages": removed_packages, "count": len(removed_packages)}
+
+    def find_and_remove_unused_npm_dependencies(self, project_path: str) -> dict[str, Any]:
+        """
+        Finds and removes unused npm dependencies using depcheck.
+        """
+        logger.info(f"Scanning for unused npm dependencies in {project_path} with depcheck...")
+        # Requires `npm install -g depcheck` or as a dev dependency
+        # depcheck returns non-zero exit code if unused are found.
+        find_command = ["depcheck", "--json", project_path]
+
+        depcheck_result = self._run_command(find_command, check_exit_code=False)
+
+        if "error" in depcheck_result:
+            # depcheck might return an error in stderr even with valid JSON in stdout
+            if "dependencies" not in depcheck_result and "devDependencies" not in depcheck_result:
+                 return {"success": False, "error": depcheck_result["error"]}
+
+        unused_dependencies = depcheck_result.get("dependencies", [])
+
+        if not unused_dependencies:
+            return {"success": True, "removed_packages": [], "count": 0, "message": "No unused npm dependencies found."}
+
+        logger.info(f"Found {len(unused_dependencies)} unused npm dependencies: {', '.join(unused_dependencies)}")
+
+        removed_packages = []
+        for package in unused_dependencies:
+            logger.info(f"Removing unused npm package '{package}'...")
+            # Use --prefix to run npm in the target project directory
+            remove_command = ["npm", "uninstall", package, "--prefix", project_path]
+            # We need to run this without os.chdir
+            remove_result = self._run_command(remove_command)
+            if "error" not in remove_result:
+                removed_packages.append(package)
+
+        return {"success": True, "removed_packages": removed_packages, "count": len(removed_packages)}
+
+
     def check_pip_vulnerabilities(self) -> dict[str, Any]:
         """
         Scans for vulnerabilities in pip packages using pip-audit.

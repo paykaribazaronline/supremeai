@@ -4,11 +4,12 @@ import signal
 import sys
 
 
-# Ensure ENV is set for local/test runs if not explicitly defined.
+# Ensure ENV is set for local/test runs if not explicitly defined or is an empty string.
 # This helps Pydantic Settings determine the correct environment context
 # for validation, preventing production config errors in non-production environments
 # where required production secrets might not be present.
-if os.getenv("ENV") is None:
+# 'not os.getenv("ENV")' handles both None and empty string scenarios.
+if not os.getenv("ENV"):
     os.environ["ENV"] = "local"  # Default to 'local' for development/testing if not specified
 
 import uvicorn
