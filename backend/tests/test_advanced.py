@@ -113,7 +113,7 @@ def test_telegram_bot_handler():
 async def test_task_queue():
     with patch("core.task_queue_enhanced.CELERY_AVAILABLE", False):
         from core.task_queue_enhanced import submit_task, get_task_result
-        
+
         async def mock_task():
             return "done"
 

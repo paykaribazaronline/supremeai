@@ -9,11 +9,11 @@ from core.mcp_client import MCPRegistryClient
 from core.orchestrators.crew_departments import ArchitectureAgent
 from core.orchestrators.crew_departments import CodeGeneratorAgent
 from core.orchestrators.crew_departments import GuardianAgent
-from core.orchestrators.crew_departments import ToolSynthesizerAgent
-from core.orchestrators.crew_departments import ToolExecutorAgent
 from core.orchestrators.crew_departments import QAAgent
 from core.orchestrators.crew_departments import ReflectionAgent
 from core.orchestrators.crew_departments import ResearchAgent
+from core.orchestrators.crew_departments import ToolExecutorAgent
+from core.orchestrators.crew_departments import ToolSynthesizerAgent
 from core.skill_manager import skill_manager
 from core.skills.core_skills import SystemDesignSkill
 from models.shared_workspace import SharedWorkspace
@@ -24,12 +24,15 @@ class CircuitBreakerState:
     OPEN = "OPEN"
     HALF_OPEN = "HALF_OPEN"
 
+
 class CircuitBreakerOpenError(Exception):
     pass
+
 
 class CircuitBreaker:
     def __init__(self, failure_threshold: int = 5, recovery_timeout: float = 30.0):
         from core.circuit_breaker import CircuitBreaker as UnifiedCB
+
         self._cb = UnifiedCB(name="swarm_orch", failure_threshold=failure_threshold, recovery_timeout=recovery_timeout)
         self.state = self._cb.state
 
@@ -47,11 +50,14 @@ class CircuitBreaker:
             self._cb.mark_failure()
             self.state = self._cb.state
             raise
+
+
 class MorphicOrchestrator:
     """
     Universal Cognitive Engine (Architecture 2.0)
     এটি এখন শুধু কোড নয়, ইউজারের যেকোনো ইনটেন্ট (Intent) ডিটেক্ট করে DAG তৈরি করে।
     """
+
     def __init__(self):
         # বাংলা মন্তব্য: এজেন্টদের একটি রেজিস্ট্রি তৈরি করা হচ্ছে, যা ডাইনামিক্যালি কল করা যাবে।
         self.agents = {
@@ -82,7 +88,7 @@ class MorphicOrchestrator:
         if intent == "code_generation":
             return {
                 "architect": [],
-                "coder": ["architect"]
+                "coder": ["architect"],
                 # The guardian_qa_loop and reflection are handled specially below
             }
         elif intent == "research_analysis":
@@ -91,11 +97,7 @@ class MorphicOrchestrator:
                 "reflection": ["researcher"],
             }
         # Default DAG for general tasks
-        return {
-            "executor": [],
-            "researcher": ["executor"],
-            "reflection": ["researcher"]
-        }
+        return {"executor": [], "researcher": ["executor"], "reflection": ["researcher"]}
 
     async def _synthesize_tool(self, intent: str, user_id: str) -> dict | None:
         """
@@ -104,7 +106,7 @@ class MorphicOrchestrator:
         """
         workspace = SharedWorkspace(task_id=str(uuid.uuid4()), original_prompt=f"Synthesize a capability for intent: {intent}")
         workspace.log(f"MorphicOrchestrator: Synthesizing new capability for intent '{intent}' using DynamicAgentFactory.")
-        
+
         synthesized_capability = await self.agent_factory.create_specialized_agent(f"Create a Python script for the task: {intent}")
         if synthesized_capability and "script" in synthesized_capability:
             workspace.log(f"MorphicOrchestrator: Successfully synthesized new capability: {synthesized_capability.get('agent_name')}")
@@ -115,7 +117,7 @@ class MorphicOrchestrator:
         task_id = str(uuid.uuid4())
         workspace = SharedWorkspace(task_id=task_id, original_prompt=prompt)
         workspace.log(f"MorphicOrchestrator: Initialized swarm DAG for task {task_id}")
-        
+
         # 1. Classify Intent
         # A simple keyword-based classifier for demonstration
         # In a real system, this would be a more sophisticated NLP model.
@@ -144,18 +146,16 @@ class MorphicOrchestrator:
         # 3. Get Dynamic DAG based on intent
         task_graph = await self._get_dag_for_intent(workspace.intent)
         workspace.log(f"MorphicOrchestrator: Constructed DAG with nodes: {list(task_graph.keys())}")
-        
+
         completed_tasks = set()
+
         async def _execute_dag():
             # Standard DAG execution for non-loop parts
             while len(completed_tasks) < len(task_graph):
-                ready_tasks = [
-                    task for task, deps in task_graph.items()
-                    if task not in completed_tasks and all(d in completed_tasks for d in deps)
-                ]
+                ready_tasks = [task for task, deps in task_graph.items() if task not in completed_tasks and all(d in completed_tasks for d in deps)]
                 if not ready_tasks:
                     raise RuntimeError(f"DAG execution error: No ready tasks found, but not all tasks are complete. Completed: {completed_tasks}")
-                
+
                 tasks_to_run = [self.agents[task].run(workspace, user_id) for task in ready_tasks if task in self.agents]
                 if tasks_to_run:
                     await asyncio.gather(*tasks_to_run)
@@ -165,22 +165,22 @@ class MorphicOrchestrator:
             if workspace.intent == "code_generation":
                 max_refinements = 3
                 for i in range(max_refinements):
-                    workspace.log(f"MorphicOrchestrator: Starting Guardian/QA refinement loop, iteration {i+1}/{max_refinements}")
-                    
+                    workspace.log(f"MorphicOrchestrator: Starting Guardian/QA refinement loop, iteration {i + 1}/{max_refinements}")
+
                     # Guardian validation
                     guardian_agent = self.agents["guardian"]
                     is_approved, feedback = await guardian_agent.validate(workspace, user_id)
-                    
+
                     if is_approved:
                         workspace.log("MorphicOrchestrator: Code APPROVED by Guardian. Exiting refinement loop.")
                         break
-                    
+
                     workspace.log("MorphicOrchestrator: Code FAILED Guardian validation. Triggering refinement.")
-                    
+
                     # Refinement by CodeGeneratorAgent
                     coder_agent = self.agents["coder"]
                     await coder_agent.refine(workspace, feedback, user_id)
-                else: # This else belongs to the for loop, executes if loop finishes without break
+                else:  # This else belongs to the for loop, executes if loop finishes without break
                     workspace.log("MorphicOrchestrator: Max refinement attempts reached. Proceeding with current code.")
 
             # Final reflection step for all intents

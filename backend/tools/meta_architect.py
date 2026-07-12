@@ -26,7 +26,7 @@ class MetaArchitect:
             logger.info(f"Loading strategic context from {len(strategic_docs)} documents.")
             for doc_path in strategic_docs:
                 try:
-                    with open(doc_path, 'r', encoding='utf-8') as f:
+                    with open(doc_path, encoding="utf-8") as f:
                         # This is a simplified loader. A real implementation would parse markdown.
                         if "gap" in f.read().lower():
                             gaps.append(f"Potential gap context found in: {os.path.basename(doc_path)}")

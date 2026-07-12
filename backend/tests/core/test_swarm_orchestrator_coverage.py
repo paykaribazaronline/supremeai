@@ -25,6 +25,7 @@ def mock_llm_gateway():
         mock_acompletion.return_value = {"choices": [{"message": {"content": '{"name": "mocked_tool", "description": "A mocked tool"}'}}]}
         yield mock_acompletion
 
+
 @pytest.fixture
 def circuit_breaker():
     """CircuitBreaker ইনস্ট্যান্স ফেরত দেয়।"""
@@ -404,7 +405,7 @@ class TestSwarmOrchestratorIntegration:
     async def test_full_successful_execution_flow(self, mock_workspace):
         """বাংলা মন্তব্য: সম্পূর্ণ successful execution flow।"""
         orchestrator = MorphicOrchestrator()
-        
+
         # Override Intent logic so it uses standard DAG
         mock_workspace.intent = "standard_code_generation"
 

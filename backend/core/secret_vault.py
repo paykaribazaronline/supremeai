@@ -84,6 +84,7 @@ class ProductionSecretVault:
             self._cached_secrets[secret_id] = env_fallback
             return env_fallback
         return ""
+
     async def fetch_secret_async(self, secret_id: str) -> str:
         """অ্যাসিঙ্ক ইভেন্ট লুপ ব্লক না করে সিক্রেট ফেচ করার মেথড"""
         import asyncio

@@ -70,7 +70,7 @@ class DynamicAgentFactory:
         await self._save_agent_to_registry(
             name=agent_config.get("agent_name"),
             description=agent_config.get("description", task_description),
-            steps=agent_config.get("script"), # execution_steps এখন script
+            steps=agent_config.get("script"),  # execution_steps এখন script
         )
 
         return agent_config
@@ -83,7 +83,7 @@ class DynamicAgentFactory:
             result = await self.db.execute(stmt)
             existing = result.scalars().first()
             if existing:
-                existing.execution_steps = {"script": steps} # সামঞ্জস্যের জন্য script-কে JSON-এ মোড়ানো হলো
+                existing.execution_steps = {"script": steps}  # সামঞ্জস্যের জন্য script-কে JSON-এ মোড়ানো হলো
                 existing.description = description
             else:
                 new_agent = DynamicAgent(name=name, description=description, execution_steps=steps)
