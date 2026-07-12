@@ -201,6 +201,7 @@ import pytest_asyncio
 
 pytest_plugins = ["pytest_asyncio"]
 
+
 @pytest_asyncio.fixture
 async def async_session():
     from unittest.mock import AsyncMock

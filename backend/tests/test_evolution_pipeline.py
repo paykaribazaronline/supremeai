@@ -10,6 +10,7 @@ from evolution.auto_skill_creator import AutoSkillCreator
 
 from skills.registry import SkillRegistry
 
+
 @pytest.fixture
 def clean_dynamic_skills(tmp_path):
     # Set up temp dir for registry, dynamic and quarantine folders

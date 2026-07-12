@@ -66,6 +66,7 @@ def test_production_mode_fetch_secret_error(monkeypatch, vault_production):
     vault_production.client.getSecret.side_effect = Exception("Infisical error")
 
     import pytest
+
     with pytest.raises(RuntimeError):
         vault_production.fetch_secret("SECRET_ID")
 
