@@ -13,6 +13,8 @@ Dependencies:
 
 import re
 
+from loguru import logger
+
 
 class GenerationMonitor:
     def __init__(self):
@@ -72,7 +74,7 @@ class GenerationMonitor:
         }
 
     def track_agent_call(self, **kwargs):
-        print("--- AGENT CALL ---")  # noqa: T201
+        logger.info("--- AGENT CALL ---")  # noqa: T201
         for key, value in kwargs.items():
-            print(f"{key}: {value}")  # noqa: T201
-        print("--------------------")  # noqa: T201
+            logger.info(f"{key}: {value}")  # noqa: T201
+        logger.info("--------------------")  # noqa: T201

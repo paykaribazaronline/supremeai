@@ -4,6 +4,7 @@ SupremeAI Multi-API & Multi-Account Rotation System
 Complete implementation for intelligent provider switching and account management
 """
 
+from loguru import logger
 import asyncio
 import contextlib
 import hashlib
@@ -819,16 +820,16 @@ async def main():
     for task_type, prompt in tasks:
         result = await rotator.execute_task(task_type, prompt)
         if result:
-            print(  # noqa: T201
+            logger.info(  # noqa: T201
                 f"✅ {task_type.value}: {result['provider']} - {result['result'][:100]}..."
             )
         else:
-            print(f"❌ {task_type.value}: Failed to execute")  # noqa: T201
+            logger.info(f"❌ {task_type.value}: Failed to execute")  # noqa: T201
 
     # Print system status
     status = rotator.get_system_status()
-    print(f"\n📊 System Status: {status['system_health']:.1f}% healthy")  # noqa: T201
-    print(f"Active accounts: {status['active_accounts']}/{status['total_accounts']}")  # noqa: T201
+    logger.info(f"\n📊 System Status: {status['system_health']:.1f}% healthy")  # noqa: T201
+    logger.info(f"Active accounts: {status['active_accounts']}/{status['total_accounts']}")  # noqa: T201
 
 
 if __name__ == "__main__":

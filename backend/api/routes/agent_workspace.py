@@ -3,6 +3,7 @@ import asyncio
 from fastapi import APIRouter
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
+from loguru import logger
 from pydantic import BaseModel
 
 from core.knowledge_base import get_from_memory
@@ -43,7 +44,7 @@ async def execute_agent_command(command: WorkspaceCommand):
         }
 
     # 🔴 Step 2: Premium API Escalation (যদি মেমোরিতে না পায়)
-    print("⚠️ Pattern not recognized. Escalating to Premium AI...")  # noqa: T201
+    logger.info("⚠️ Pattern not recognized. Escalating to Premium AI...")  # noqa: T201
 
     # এখানে আপনার OpenAI বা Claude এপিআই কল করার লজিক বসবে
     # ডামি রেসপন্স (টেস্টিংয়ের জন্য):
@@ -61,7 +62,7 @@ async def commit_to_memory(request: LearnRequest):
     শুধুমাত্র ভেরিফায়েড এবং কাজ করা কোডগুলোই মেমোরি ভল্টে সেভ হবে।
     """
     save_to_memory(request.prompt, request.working_code)
-    print(f"🧠 [Auto-Didact] Verified solution saved for prompt: {request.prompt[:30]}...")  # noqa: T201
+    logger.info(f"🧠 [Auto-Didact] Verified solution saved for prompt: {request.prompt[:30]}...")  # noqa: T201
     return {"status": "success", "message": "Memorized successfully"}
 
 
@@ -99,4 +100,4 @@ async def terminal_stream(websocket: WebSocket):
             await websocket.send_text("[Agent] Processing command in Zero-Cost Environment...\r\n")
 
     except WebSocketDisconnect:
-        print("Terminal client disconnected.")  # noqa: T201
+        logger.info("Terminal client disconnected.")  # noqa: T201

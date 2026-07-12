@@ -1,4 +1,3 @@
-import os
 from core.config import settings
 import subprocess
 import shlex
@@ -71,8 +70,8 @@ class DockerSandbox:
             }
 
         if not self.docker_available:
-            env_name = os.getenv("ENV") or getattr(settings, "env", "").lower()
-            allow_fallback_str = os.getenv("ALLOW_LOCAL_SANDBOX_FALLBACK")
+            env_name = getattr(settings, "env", None) or getattr(settings, "env", "").lower()
+            allow_fallback_str = getattr(settings, "allow_local_sandbox_fallback", None)
             if allow_fallback_str is not None:
                 allow_fallback = allow_fallback_str.lower() == "true"
             else:

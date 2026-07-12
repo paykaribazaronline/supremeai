@@ -220,7 +220,7 @@ import asyncio
 async def run():
     instance = {skill_name}()
     res = await instance.execute({repr(test.input)})
-    print("RESULT:" + json.dumps(res))
+    logger.info("RESULT:" + json.dumps(res))
 
 asyncio.run(run())
 """

@@ -13,11 +13,18 @@ import hashlib
 import litellm
 import logging
 import concurrent.futures
+import threading
 
 import sys
+# Python path-এ backend, scripts এবং root ডিরেক্টরি যোগ করা হচ্ছে যাতে মডিউলগুলো খুঁজে পাওয়া যায়।
 sys.path.insert(0, str(Path(__file__).parent / "backend"))
+sys.path.insert(0, str(Path(__file__).parent / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent))
 from core.config import settings
 import ast
+
+# নলেজ বেস ইনডেক্সার ইম্পোর্ট করা
+from knowledge_indexer import run_indexing as run_knowledge_indexing
 
 # --- Configuration ---
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
@@ -124,6 +131,7 @@ def get_ai_response(prompt: str) -> str:
     Sends a prompt to the configured LLM and returns the response.
     """
 key_index = 0
+api_key_lock = threading.Lock()
 
 def get_ai_response(prompt: str) -> str:
     global key_index
@@ -132,12 +140,12 @@ def get_ai_response(prompt: str) -> str:
         if not api_keys_str:
             logging.error("No Gemini API key found in settings.")
             return ""
-        
+
         keys = [k.strip() for k in api_keys_str.split(',') if k.strip()]
         if not keys:
             logging.error("No valid Gemini API keys found.")
             return ""
-            
+
         import time
         max_retries = 3 * len(keys) # Allow enough retries to cycle through keys
         for attempt in range(max_retries):
@@ -154,12 +162,14 @@ def get_ai_response(prompt: str) -> str:
                 error_msg = str(e)
                 if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg or "RateLimit" in error_msg:
                     logging.warning(f"Rate limit hit with key ending in ...{current_key[-4:]}. Rotating key... (Attempt {attempt+1}/{max_retries})")
-                    key_index += 1 # Rotate to next key
+                    with api_key_lock:
+                        key_index += 1 # Thread-safe rotation to next key
                     time.sleep(2) # Short sleep before trying next key
                     continue
                 elif "403" in error_msg or "PERMISSION_DENIED" in error_msg or "API_KEY_SERVICE_BLOCKED" in error_msg:
                     logging.error(f"API Key ending in ...{current_key[-4:]} is BLOCKED (403). Rotating to next key...")
-                    key_index += 1
+                    with api_key_lock:
+                        key_index += 1
                     continue
                 else:
                     raise e
@@ -197,7 +207,7 @@ def update_file_with_docstring(file_path: Path, content: str, new_docstring: str
     """
     try:
         tree = ast.parse(content)
-        
+
         # Create a new docstring node
         new_docstring_node = ast.Expr(value=ast.Constant(value=new_docstring.strip()))
 
@@ -211,7 +221,7 @@ def update_file_with_docstring(file_path: Path, content: str, new_docstring: str
         else:
             # Insert the new docstring at the top
             tree.body.insert(0, new_docstring_node)
-        
+
         # Add a newline after the docstring if it's not the only thing in the file
         if len(tree.body) > 1:
             tree.body[1].lineno = new_docstring_node.lineno + new_docstring.strip().count('\n') + 3
@@ -263,7 +273,7 @@ def generate_readme_for_dir(dir_path: Path, summaries: dict):
     Generates a README.md file for a directory using summaries of its files.
     """
     logging.info(f"Generating README for directory: {dir_path}")
-    
+
     summary_text = "\n".join([f"### {fname}\n{summary}\n" for fname, summary in summaries.items()])
 
     prompt = README_PROMPT_TEMPLATE.format(dir_path=dir_path, file_summaries=summary_text)
@@ -281,11 +291,11 @@ def process_file(file_path: Path, cache: dict, force: bool, dry_run: bool) -> tu
     if dry_run:
         logging.info(f"[DRY-RUN] Would analyze {file_path}")
         return file_path.name, f"This is a placeholder summary for {file_path.name}."
-    
+
     summary = generate_docstring_for_file(file_path, cache, force)
     return file_path.name, summary
 
-def main(dry_run: bool = False, force: bool = False, workers: int = 4):
+def main(dry_run: bool = False, force: bool = False, workers: int = 4, files: list[str] | None = None):
     """
     Main function to orchestrate the documentation generation process.
     """
@@ -293,15 +303,38 @@ def main(dry_run: bool = False, force: bool = False, workers: int = 4):
         logging.error("FATAL: GEMINI_API_KEY is not set in backend settings.")
         return
 
-    logging.info("Starting AI Scribe: The Codebase Historian...")
-    logging.info(f"Target directories: {TARGET_DIRECTORIES}")
     if dry_run:
         logging.warning("Running in DRY-RUN mode. No files will be modified.")
     if force:
         logging.warning("Running in FORCE mode. All docstrings will be regenerated.")
-    logging.info(f"Using {workers} workers for concurrent processing.")
 
     cache = load_cache()
+
+    if files:
+        # --- Git Hook Mode: Process specific files ---
+        logging.info(f"AI Scribe (Git Hook Mode): Processing {len(files)} changed files...")
+        file_paths = [Path(f) for f in files if Path(f).exists() and Path(f).name not in EXCLUDE_FILES]
+
+        if not file_paths:
+            logging.info("No relevant Python files to process.")
+            return
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
+            future_to_file = {executor.submit(process_file, fp, cache, force, dry_run): fp for fp in file_paths}
+            for future in concurrent.futures.as_completed(future_to_file):
+                try:
+                    future.result()
+                except Exception as e:
+                    logging.error(f"Error processing file in git-hook mode: {e}")
+
+        if not dry_run:
+            save_cache(cache)
+        logging.info("Git hook processing complete. ✨")
+        return
+
+    # --- Full Scan Mode: Process directories ---
+    logging.info("Starting AI Scribe (Full Scan Mode): The Codebase Historian...")
+    logging.info(f"Using {workers} workers for concurrent processing.")
 
     for target_dir in TARGET_DIRECTORIES:
         base_path = Path(target_dir)
@@ -322,7 +355,7 @@ def main(dry_run: bool = False, force: bool = False, workers: int = 4):
 
             file_summaries = {}
             logging.info(f"\n--- Processing Directory: {dir_path} ---")
-            
+
             with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
                 # Submit all file processing tasks to the executor
                 future_to_file = {executor.submit(process_file, fp, cache, force, dry_run): fp for fp in py_files}
@@ -338,6 +371,11 @@ def main(dry_run: bool = False, force: bool = False, workers: int = 4):
 
     if not dry_run:
         save_cache(cache)
+
+    # ধাপ ৩: ডকুমেন্টেশন আপডেট হওয়ার পর নলেজ বেস রি-ইনডেক্স করা
+    if not dry_run:
+        logging.info("\n--- Triggering Knowledge Base Re-indexing ---")
+        run_knowledge_indexing(TARGET_DIRECTORIES)
 
     logging.info("\nHistorian's work complete. The past is now documented. ✨")
 
@@ -359,8 +397,13 @@ if __name__ == "__main__":
         default=4,
         help="Number of concurrent workers to use for processing files."
     )
+    parser.add_argument(
+        "--files",
+        nargs='*',
+        help="Run the script on a specific list of files (used by pre-commit hook)."
+    )
     args = parser.parse_args()
-    main(args.dry_run, args.force, args.workers)
+    main(args.dry_run, args.force, args.workers, args.files)
 
 # --- কিভাবে ব্যবহার করবেন? ---
 #
@@ -392,4 +435,10 @@ if __name__ == "__main__":
 #    একসাথে কতগুলো ফাইল প্রসেস হবে তা নির্ধারণ করতে --workers ফ্ল্যাগ ব্যবহার করুন।
 #    ```bash
 #    python scripts/ai_scribe_historian.py --workers 8
+#    ```
+#
+# ৬. গিট হুক (Git Hook):
+#    `pre-commit` ইনস্টল করা থাকলে, `git commit` করার সময় পরিবর্তিত ফাইলগুলির জন্য এই স্ক্রিপ্টটি স্বয়ংক্রিয়ভাবে চলবে।
+#    ```bash
+#    git commit -m "feat: new feature"
 #    ```

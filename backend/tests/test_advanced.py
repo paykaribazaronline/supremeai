@@ -68,8 +68,8 @@ def test_rag_pipeline():
 @pytest.mark.asyncio
 async def test_browser_agent():
     agent = BrowserAgent()
-    with patch("tools.browser_agent.is_safe_url", return_value=True):
-        with patch("tools.browser_agent.get_global_browser", new_callable=AsyncMock) as mock_browser:
+    with patch("tools.ai_agents.browser_agent.is_safe_url", return_value=True):
+        with patch("tools.ai_agents.browser_agent.get_global_browser", new_callable=AsyncMock) as mock_browser:
             mock_browser.return_value = None
             with patch("httpx.get") as mock_get:
                 mock_resp = MagicMock()
@@ -111,7 +111,7 @@ def test_telegram_bot_handler():
 
 @pytest.mark.asyncio
 async def test_task_queue():
-    with patch("core.task_queue_enhanced.CELERY_AVAILABLE", False):
+    with patch("core.queue.task_queue_enhanced.CELERY_AVAILABLE", False):
         from core.queue.task_queue_enhanced import submit_task, get_task_result
 
         async def mock_task():

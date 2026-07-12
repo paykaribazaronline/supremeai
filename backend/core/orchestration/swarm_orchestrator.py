@@ -162,24 +162,27 @@ class MorphicOrchestrator:
                 await self.agents["reflection"].run(workspace, user_id)
 
         try:
-            from core.observability.telemetry import tracer
+            from core.observability.telemetry import trace_span
 
-            with tracer.start_as_current_span("morphic_orchestrator.execute_task") as span:
-                span.set_attribute("user_id", user_id)
-                span.set_attribute("intent", workspace.intent)
-                if best_provider:
-                    span.set_attribute("provider", best_provider)
+            attributes = {
+                "user_id": user_id,
+                "intent": workspace.intent,
+            }
+            if best_provider:
+                attributes["provider"] = best_provider
+
+            with trace_span("morphic_orchestrator.execute_task", attributes=attributes):
 
                 await self.circuit_breaker.call(_execute_dag)
             # Duplicate log removed here
 
-        except RuntimeError as e:
-            if "is open" not in str(e):
-                raise
-            workspace.log(f"MorphicOrchestrator: Circuit breaker OPEN — {e}")
-            workspace.add_error(str(e))
-            return workspace
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:
+            from core.resilience.circuit_breaker import CircuitBreakerOpenError
+            if isinstance(e, CircuitBreakerOpenError) or "is OPEN" in str(e):
+                workspace.log(f"MorphicOrchestrator: Circuit breaker OPEN — {e}")
+                workspace.add_error(str(e))
+                return workspace
+
             workspace.log(f"MorphicOrchestrator: An unexpected error occurred during DAG execution: {e}")
             workspace.add_error(str(e))
             # বাংলা মন্তব্য: এরর হলেও রিফ্লেকশন চালানোর চেষ্টা করা হবে, যাতে সিস্টেম শিখতে পারে।

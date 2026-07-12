@@ -111,7 +111,7 @@ async def add_funds(
     checkout_id = str(uuid.uuid4())
 
     # বাংলা মন্তব্য: ডাইনামিক অরিজিন ডিটেকশন (Zero-Config)
-    checkout_base = os.getenv("CHECKOUT_BASE_URL")
+    checkout_base = getattr(settings, "checkout_base_url", None)
     if not checkout_base:
         checkout_base = request.headers.get("origin") or request.headers.get("referer", "http://localhost:3000")
     checkout_base = checkout_base.rstrip("/")
@@ -281,7 +281,7 @@ async def sslcommerz_webhook_listener(request: Request, session: AsyncSession = 
         if status_val == "VALID":
             user_id = payload.get("value_a", "default_user_session")
             amount_bdt = float(payload.get("amount", 0))
-            exchange_rate = float(os.getenv("BDT_EXCHANGE_RATE", "0.0085"))
+            exchange_rate = float(getattr(settings, "bdt_exchange_rate", "0.0085"))
             amount_usd = Decimal(str(round(amount_bdt * exchange_rate, 6)))
 
             async with session.begin():

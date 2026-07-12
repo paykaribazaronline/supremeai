@@ -31,7 +31,7 @@ def encrypt_token(plain_text: str) -> str:
     try:
         encrypted_bytes = fernet.encrypt(plain_text.encode("utf-8"))
         return encrypted_bytes.decode("utf-8")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Error encrypting token: {e}")
         error_event_bus.emit(ErrorEvent(module="security_vault", error_type="ENCRYPTION_FAILED", message=str(e)[:200], severity="ERROR"))
         raise RuntimeError("Token encryption failed.") from e
@@ -44,7 +44,7 @@ def decrypt_token(cipher_text: str) -> str:
     try:
         decrypted_bytes = fernet.decrypt(cipher_text.encode("utf-8"))
         return decrypted_bytes.decode("utf-8")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         # বাংলা মন্তব্য: ডিক্রিপশন ফেইল হলে এখন আর সাইলেন্টলি ফেইল করবে না, এরর রেইজ করবে।
         logger.error(f"Error decrypting token: {e}")
         error_event_bus.emit(ErrorEvent(module="security_vault", error_type="DECRYPTION_FAILED", message=str(e)[:200], severity="CRITICAL"))

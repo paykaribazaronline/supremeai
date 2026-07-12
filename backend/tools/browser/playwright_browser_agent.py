@@ -450,7 +450,7 @@ class PlaywrightBrowserAgent:
     # GROQ_CONFIG = {"name": "Groq", "url": "https://chat.groq.com/", "input_selector": 'textarea[aria-label="Prompt"]', "output_selector": '.message-content', "submit_button": 'button[aria-label="Submit"]'}
     # GEMINI_CONFIG = {"name": "Gemini", "url": "https://gemini.google.com/", "input_selector": '.query-input > .input-area > .ql-editor', "output_selector": '.model-response-text .markdown', "submit_button": '.send-button-container > button'}
     # result = agent.cross_verify_prompt("What is the capital of Bangladesh?", GROQ_CONFIG, GEMINI_CONFIG)
-    # print(result)
+    # logger.info(result)
     # agent.stop()
 
     def execute_goal(self, url: str, goal: str, max_steps: int = 10) -> dict[str, Any]:

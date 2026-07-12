@@ -191,7 +191,7 @@ async def websocket_chat_endpoint(
 
             except Exception as e:  # noqa: BLE001
                 # বাংলা মন্তব্য: P1 Fix — সকল exception সম্পূর্ণ log করা হচ্ছে।
-                # আগে শুধু print("❌ [GENERATION ERROR]") ছিল — production debugging অসম্ভব ছিল।
+                # আগে শুধু logger.info("❌ [GENERATION ERROR]") ছিল — production debugging অসম্ভব ছিল।
                 logger.error(
                     f"[WS] Neural pipeline error for user={user_id}: {type(e).__name__}: {e}",
                     exc_info=True,

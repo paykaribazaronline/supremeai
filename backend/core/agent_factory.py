@@ -63,7 +63,7 @@ class DynamicAgentFactory:
             agent_config = {
                 "agent_name": f"AutoAgent_{int(time.time())}",
                 "description": task_description,
-                "script": "print('Error: AI failed to generate a valid script.')",
+                "script": "logger.info('Error: AI failed to generate a valid script.')",
             }
 
         # ডাটাবেজে আজীবনের জন্য সেভ করে রাখা
