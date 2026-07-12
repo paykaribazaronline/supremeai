@@ -6,7 +6,7 @@
   "hosting": [
     {
       "target": "studio",
-      "public": "apps/studio-client/dist",
+      "public": "apps/studio-client/dist-admin",
       "ignore": [
         "firebase.json",
         "**/.*",
