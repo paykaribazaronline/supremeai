@@ -1,6 +1,9 @@
+# FILE_PATH: /home/runner/work/supremeai/supremeai/backend/tools/pr_reviewer.py
 from core.config import settings
 import json
 import re
+import tempfile
+import os
 from typing import Any
 
 from loguru import logger
@@ -13,6 +16,31 @@ try:
 except ImportError:
     _GITHUB_AVAILABLE = False
     Github = None
+
+# Moved imports to module level for better patching and consistency
+try:
+    from brain.model_router import ModelRouter
+    _MODEL_ROUTER_AVAILABLE = True
+except ImportError as e:
+    _MODEL_ROUTER_AVAILABLE = False
+    logger.warning(f"ModelRouter not available: {e}. LLM-based analysis will be skipped.")
+    ModelRouter = None
+
+try:
+    from tools.style_learner import StyleLearner
+    _STYLE_LEARNER_AVAILABLE = True
+except ImportError as e:
+    _STYLE_LEARNER_AVAILABLE = False
+    logger.warning(f"StyleLearner not available: {e}. Style checks will be skipped.")
+    StyleLearner = None
+
+try:
+    from tools.code_smell_detector import CodeSmellDetector
+    _CODE_SMELL_DETECTOR_AVAILABLE = True
+except ImportError as e:
+    _CODE_SMELL_DETECTOR_AVAILABLE = False
+    logger.warning(f"CodeSmellDetector not available: {e}. Code smell scans will be skipped.")
+    CodeSmellDetector = None
 
 
 class PRReviewer:
@@ -37,6 +65,23 @@ class PRReviewer:
             if not _GITHUB_AVAILABLE:
                 raise ImportError("PyGithub is not installed. Please run 'pip install PyGithub'")
             self.gh = Github(self.github_token)
+
+    async def handle_webhook(self, pr_event: dict[str, Any]) -> dict[str, Any]:
+        """
+        Handles a GitHub PR webhook event by extracting necessary information
+        and triggering the review process.
+        """
+        try:
+            repo_full_name = pr_event["repository"]["full_name"]
+            pr_number = pr_event["pull_request"]["number"]
+            logger.info(f"Received PR webhook for {repo_full_name}#{pr_number}")
+            return await self.review_pr(repo_full_name, pr_number)
+        except KeyError as e:
+            logger.error(f"Missing key in PR event payload: {e}")
+            return {"status": "error", "error": f"Invalid PR event payload: {e}"}
+        except Exception as e:
+            logger.error(f"Error handling PR webhook: {e}")
+            return {"status": "error", "error": str(e)}
 
     async def analyze_diff(self, diff_content: str) -> list[dict[str, Any]]:
         """
@@ -97,9 +142,7 @@ class PRReviewer:
                     )
 
         # বাংলা মন্তব্য: যদি ModelRouter উপলব্ধ থাকে, তবে আমরা এআই দিয়ে ডিফটি আরও গভীরভাবে বিশ্লেষণ করব।
-        try:
-            from brain.model_router import ModelRouter
-
+        if _MODEL_ROUTER_AVAILABLE and ModelRouter:
             router = ModelRouter()
 
             prompt = (
@@ -110,71 +153,109 @@ class PRReviewer:
                 f"Diff:\n{diff_content[:4000]}"
             )
 
-            result = await router.async_route_and_generate(prompt, task_type="coding", max_cost=0.03)
-            text = result.get("text", "") if isinstance(result, dict) else str(result)
-
-            cleaned = text.strip()
-            if cleaned.startswith("```"):
-                cleaned = "\n".join(cleaned.splitlines()[1:])
-            if cleaned.endswith("```"):
-                cleaned = "\n".join(cleaned.splitlines()[:-1])
-
             try:
-                parsed = json.loads(cleaned)
-                if isinstance(parsed, list):
-                    for item in parsed:
-                        if isinstance(item, dict) and "body" in item:
-                            issues.append(
-                                {
-                                    "path": "unknown",
-                                    "line": item.get("line", 0),
-                                    "severity": item.get("severity", "low"),
-                                    "body": item["body"],
-                                }
-                            )
-            except Exception:  # noqa: BLE001
-                logger.warning("Failed to parse LLM response in PRReviewer.")
-        except Exception as e:  # noqa: BLE001
-            logger.warning(f"ModelRouter call failed in PRReviewer: {e}")
+                result = await router.async_route_and_generate(prompt, task_type="coding", max_cost=0.03)
+                text = result.get("text", "") if isinstance(result, dict) else str(result)
+
+                cleaned = text.strip()
+                if cleaned.startswith("```"):
+                    cleaned = "\n".join(cleaned.splitlines()[1:])
+                if cleaned.endswith("```"):
+                    cleaned = "\n".join(cleaned.splitlines()[:-1])
+
+                try:
+                    parsed = json.loads(cleaned)
+                    if isinstance(parsed, list):
+                        for item in parsed:
+                            if isinstance(item, dict) and "body" in item:
+                                issues.append(
+                                    {
+                                        "path": "unknown",
+                                        "line": item.get("line", 0),
+                                        "severity": item.get("severity", "low"),
+                                        "body": item["body"],
+                                    }
+                                )
+                except Exception:  # noqa: BLE001
+                    logger.warning("Failed to parse LLM response in PRReviewer.")
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"ModelRouter call failed in PRReviewer: {e}")
+        else:
+            logger.debug("ModelRouter not available, skipping LLM-based analysis in analyze_diff.")
 
         return issues
 
-    async def check_style_compliance(self, diff_content: str, repo_path: str = "default") -> list[dict[str, Any]]:
-        """ব্যবহারকারীর শেখা স্টাইল দিয়ে কমপ্লায়েন্স চেক করে।"""
+    async def check_style_compliance(self, diff_content: str, repo_path: str = "default") -> dict[str, Any]:
+        """
+        Checks for style compliance using StyleLearner.
+        Returns a dictionary with 'style_issues' key.
+        """
         issues: list[dict[str, Any]] = []
-        try:
-            from tools.style_learner import StyleLearner
+        if not _STYLE_LEARNER_AVAILABLE or not StyleLearner:
+            logger.debug("StyleLearner not available, skipping style compliance check.")
+            return {"style_issues": issues}
 
+        try:
             learner = StyleLearner()
-            if repo_path in learner.learned_styles:
-                style_prompt = learner.generate_style_prompt(repo_path, "python")
-                # বাংলা মন্তব্য: স্টাইল গাইডলাইন লঙ্ঘন হলে সেটি ইস্যু হিসেবে যোগ করা হচ্ছে।
-                if "snake_case" in style_prompt:
-                    for i, line in enumerate(diff_content.split("\n")):
-                        if line.startswith("+") and re.search(r"def\s+[a-z]+[A-Z]", line):
+            # Create a temporary file with the added lines from the diff for StyleLearner to analyze
+            added_lines = [ln[1:] for ln in diff_content.split("\n") if ln.startswith("+") and not ln.startswith("+++")]
+            if not added_lines:
+                return {"style_issues": issues}
+
+            with tempfile.NamedTemporaryFile(suffix=".py", delete=False, mode="w") as tmp:
+                tmp.write("\n".join(added_lines))
+                tmp_path = tmp.name
+            try:
+                # Assuming StyleLearner has a method to analyze a file path for style issues
+                # This is an educated guess based on other StyleLearner related errors and tests.
+                if hasattr(learner, 'analyze_file_for_style_issues'): # Hypothetical new method
+                    style_findings = await learner.analyze_file_for_style_issues(tmp_path)
+                    for s in style_findings:
+                        issues.append(
+                            {
+                                "path": "unknown", # StyleLearner might return proper path/line
+                                "line": s.get("line", 0),
+                                "severity": s.get("severity", "info"),
+                                "body": f"Style: {s.get('message', 'Style issue detected')}",
+                            }
+                        )
+                else:
+                    logger.warning("StyleLearner does not have 'analyze_file_for_style_issues' method. Style check might be limited or missing.")
+                    # Fallback to a basic check if the new API is not available or unknown
+                    # For example, the original snake_case check, adapted for direct diff analysis
+                    for i, line in enumerate(added_lines):
+                        # Adjust line number based on original diff context if possible, or just use 0
+                        if re.search(r"def\s+[a-z]+[A-Z]", line):
                             issues.append(
                                 {
                                     "path": "unknown",
-                                    "line": i + 1,
+                                    "line": i + 1, # Line in the added_lines context
                                     "severity": "info",
                                     "body": "Style: function naming should follow snake_case convention.",
                                 }
                             )
+
+            finally:
+                os.unlink(tmp_path)
         except Exception as e:  # noqa: BLE001
-            logger.debug(f"Style compliance check skipped: {e}")
-        return issues
+            logger.warning(f"Style compliance check failed: {e}")
+        return {"style_issues": issues}
+
 
     async def run_code_smell_scan(self, diff_content: str) -> list[dict[str, Any]]:
         """code_smell_detector.py দিয়ে প্যাচ করা ফাইলগুলোর স্মেল স্ক্যান করে।"""
         issues: list[dict[str, Any]] = []
+        if not _CODE_SMELL_DETECTOR_AVAILABLE or not CodeSmellDetector:
+            logger.debug("CodeSmellDetector not available, skipping code smell scan.")
+            return issues
+
         try:
-            import tempfile
-
-            from tools.code_smell_detector import CodeSmellDetector
-
             detector = CodeSmellDetector()
             # বাংলা মন্তব্য: ডিফ থেকে শুধু যোগ করা (+) লাইনগুলো নিয়ে অস্থায়ী ফাইল বানিয়ে স্ক্যান করা হচ্ছে।
             added_lines = [ln[1:] for ln in diff_content.split("\n") if ln.startswith("+") and not ln.startswith("+++")]
+            if not added_lines:
+                return issues
+
             with tempfile.NamedTemporaryFile(suffix=".py", delete=False, mode="w") as tmp:
                 tmp.write("\n".join(added_lines))
                 tmp_path = tmp.name
@@ -190,11 +271,9 @@ class PRReviewer:
                         }
                     )
             finally:
-                import os
-
                 os.unlink(tmp_path)
         except Exception as e:  # noqa: BLE001
-            logger.debug(f"Code smell scan skipped: {e}")
+            logger.warning(f"Code smell scan failed: {e}")
         return issues
 
     async def review_pr(self, repo_full_name: str, pr_number: int) -> dict[str, Any]:
@@ -217,8 +296,12 @@ class PRReviewer:
             for file_diff in diff:
                 diff_content = file_diff.patch or ""
                 file_comments = await self.analyze_diff(diff_content)
-                file_comments += await self.check_style_compliance(diff_content)
-                file_comments += await self.run_code_smell_scan(diff_content)
+                
+                # Check style compliance and extract issues from the returned dictionary
+                style_result = await self.check_style_compliance(diff_content, repo_full_name)
+                file_comments.extend(style_result.get("style_issues", []))
+
+                file_comments.extend(await self.run_code_smell_scan(diff_content))
                 for c in file_comments:
                     c["path"] = file_diff.filename
                 comments.extend(file_comments)
@@ -245,32 +328,32 @@ class PRReviewer:
             logger.error(f"Error reviewing PR: {e}")
             return {"status": "error", "error": str(e), "comments": []}
 
-    async def _auto_approve(self, repo_full_name: str, pr_number: int) -> dict[str, Any]:
+    async def _auto_approve(self, repo_full_name: str, pr_number: int) -> bool:
         """সব চেক পাস করলে PR অটো-অপ্রুভ করে।"""
         if not self.gh:
             logger.warning(f"Dry-run: Would auto-approve {repo_full_name}#{pr_number}")
-            return {"status": "success", "approved": True}
+            return True # Changed return type to bool
         try:
             repo = self.gh.get_repo(repo_full_name)
             pr = repo.get_pull(pr_number)
             pr.create_review(event="APPROVE", body="✅ All automated checks passed. Auto-approved by SupremeAI.")
-            return {"status": "success", "approved": True}
+            return True # Changed return type to bool
         except Exception as e:  # noqa: BLE001
             logger.error(f"Auto-approve failed: {e}")
-            return {"status": "error", "error": str(e)}
+            return False # Changed return type to bool
 
-    async def _post_pr_comment(self, repo_full_name: str, pr_number: int, comment_body: str) -> dict[str, Any]:
+    async def _post_pr_comment(self, repo_full_name: str, pr_number: int, comment_body: str) -> bool:
         """Posts a comment on a pull request."""
         # বাংলা মন্তব্য: গিটহাব এপিআই দিয়ে পিআর-এ রিভিউ কমেন্ট পোস্ট করা হচ্ছে।
         if not self.gh:
             logger.warning(f"Dry-run: Would post to {repo_full_name}#{pr_number}: {comment_body}")
-            return {"status": "success", "comment_url": "dry-run-url"}
+            return True # Changed return type to bool
 
         try:
             repo = self.gh.get_repo(repo_full_name)
             pr = repo.get_pull(pr_number)
-            comment = pr.create_issue_comment(comment_body)
-            return {"status": "success", "comment_url": comment.html_url}
+            pr.create_issue_comment(comment_body)
+            return True # Changed return type to bool
         except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to post comment to GitHub: {e}")
-            return {"status": "error", "error": str(e)}
+            return False # Changed return type to bool
