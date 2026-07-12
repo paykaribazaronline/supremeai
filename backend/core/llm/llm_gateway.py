@@ -400,9 +400,17 @@ def get_llm_gateway() -> "LLMGateway":
 
 def __getattr__(name: str):
     """বাংলা মন্তব্য: টেস্ট কালেকশন ফিক্স — পুরানো টেস্ট ফাইলগুলো যদি মডিউল লেভেলের
-    'llm_gateway' ভ্যারিয়েবল খোঁজে, তবে এই ম্যাজিক মেথডটি ডাইনামিকালি আমাদের
-    Lazy Getter ফাংশনটি সাপ্লাই করবে। এতে ২২টি টেস্ট ফাইল ব্রেক করা ছাড়াই সচল হবে।
+    'llm_gateway' ভ্যারিয়েবল খোঁজে, তবে এই ম্যাজিক মেথডটি ডাইনামিকালি আমাদের
+    Lazy Getter ফাংশনটি সাপ্লাই করবে। এতে ২২টি টেস্ট ফাইল ব্রেক করা ছাড়াই সচল হবে।
+    GatewayManager একটি backward-compat alias — LLMGateway এর পুরানো নাম।
     """
     if name == "llm_gateway":
         return get_llm_gateway()
+    if name == "GatewayManager":
+        return LLMGateway
     raise AttributeError(f"module {__name__} has no attribute {name}")
+
+
+# বাংলা মন্তব্য: Backward-compat alias — পুরানো কোড এবং tests GatewayManager নামে import করে।
+# এই alias না থাকলে 3টি test module collect হবে না।
+GatewayManager = LLMGateway

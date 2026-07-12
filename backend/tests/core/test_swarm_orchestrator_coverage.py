@@ -21,9 +21,11 @@ from core.orchestration.swarm_orchestrator import MorphicOrchestrator
 @pytest.fixture(autouse=True)
 def mock_llm_gateway():
     """Mock the LLM gateway to prevent real network calls."""
-    with patch("core.llm_gateway.llm_gateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
-        mock_acompletion.return_value = {"choices": [{"message": {"content": '{"name": "mocked_tool", "description": "A mocked tool"}'}}]}
-        yield mock_acompletion
+    with patch("core.llm.llm_gateway.get_llm_gateway", new_callable=MagicMock) as mock_gateway_factory:
+        mock_gateway = AsyncMock()
+        mock_gateway.acompletion = AsyncMock(return_value={"choices": [{"message": {"content": '{"name": "mocked_tool", "description": "A mocked tool"}'}}]})
+        mock_gateway_factory.return_value = mock_gateway
+        yield mock_gateway
 
 
 @pytest.fixture

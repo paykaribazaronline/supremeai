@@ -155,7 +155,7 @@ class EvolutionEngine:
                 db.insert_task_history(task, approach, result, False, created_at)
                 supabase_success = True
             else:
-                supabase_success = True
+                logger.warning("Supabase client is not initialized, fallback to SQLite only for failure data.")
         except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to insert failure to Supabase: {e}")
             if evolution_write_failures:

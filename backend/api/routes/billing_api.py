@@ -193,6 +193,7 @@ async def stripe_webhook(request: Request, session: AsyncSession = Depends(get_d
         logger.error(f"Webhook payload validation error: {str(e)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Payload validation failed") from e
 
+    user_id: str | None = None
     try:
         if event["type"] == "payment_intent.succeeded":
             payment_intent = event["data"]["object"]
