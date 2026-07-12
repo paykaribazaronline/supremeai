@@ -13,13 +13,14 @@ from __future__ import annotations
 from core.config import settings
 
 from typing import Any
-import json
+
 
 def get_headless_agent_configs() -> dict[str, dict[str, Any]]:
     """বাংলা মন্তব্য: সব হেডলেস এজেন্টের কনফিগারেশন রিটার্ন করে। (ডাটাবেস থেকে)"""
     try:
         from tools.mcp_supabase import _get_connection
         from loguru import logger
+
         conn = _get_connection()
         if conn:
             cur = conn.cursor()
@@ -30,6 +31,7 @@ def get_headless_agent_configs() -> dict[str, dict[str, Any]]:
     except Exception as e:
         try:
             from loguru import logger
+
             logger.error(f"Failed to fetch agent configs from DB, falling back to local: {e}")
         except:
             pass

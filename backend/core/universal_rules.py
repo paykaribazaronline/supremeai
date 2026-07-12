@@ -27,6 +27,7 @@ class UniversalRulesEngine:
         db_rules = {}
         try:
             from tools.mcp_supabase import _get_connection
+
             conn = _get_connection()
             if conn:
                 cur = conn.cursor()
@@ -35,7 +36,7 @@ class UniversalRulesEngine:
                 for rule_key, category, value in rows:
                     if category not in db_rules:
                         db_rules[category] = {}
-                    
+
                     try:
                         # Attempt to parse value as JSON if possible, else keep as string
                         parsed_val = json.loads(value)

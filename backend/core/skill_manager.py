@@ -41,15 +41,13 @@ class SkillManager:
             return self._skills[skill_name]
 
         logger.info(f"Skill '{skill_name}' not in local registry. Querying Database...")
-        from tools.mcp_supabase import supabase_execute_sql, ExecuteQueryInput, ResponseFormat
-        
+        from tools.mcp_supabase import ExecuteQueryInput
+        from tools.mcp_supabase import ResponseFormat
+        from tools.mcp_supabase import supabase_execute_sql
+
         try:
             query = "SELECT code FROM skills WHERE skill_name = %s AND status = 'active'"
-            res = await supabase_execute_sql(ExecuteQueryInput(
-                query=query, 
-                params=[skill_name],
-                response_format=ResponseFormat.JSON
-            ))
+            res = await supabase_execute_sql(ExecuteQueryInput(query=query, params=[skill_name], response_format=ResponseFormat.JSON))
             data = json.loads(res)
             if "rows" in data and len(data["rows"]) > 0:
                 code_content = data["rows"][0]["code"]
@@ -57,7 +55,7 @@ class SkillManager:
                 # Ensure BaseSkill is available
                 exec_globals = globals().copy()
                 exec(code_content, exec_globals, local_env)
-                
+
                 for item in local_env.values():
                     if isinstance(item, type) and issubclass(item, BaseSkill) and item != BaseSkill:
                         skill_instance = item()

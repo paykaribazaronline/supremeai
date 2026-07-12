@@ -1,13 +1,14 @@
-import os
 import json
-import psycopg2
-import xml.etree.ElementTree as ET
-from loguru import logger
-from typing import Any
+import os
 
 # backend ফোল্ডারের parent ডিরেক্টরিকে sys.path-এ যোগ করা হচ্ছে
 # যাতে core, tools ইত্যাদি মডিউল ইম্পোর্ট করা যায়
 import sys
+import xml.etree.ElementTree as ET
+
+import psycopg2
+from loguru import logger
+
 
 backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, backend_dir)
@@ -55,7 +56,7 @@ def migrate_skills(conn):
             file_path = os.path.join(skills_dir, filename)
 
             try:
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, encoding="utf-8") as f:
                     code = f.read()
                     # একটি সাধারণ ডেসক্রিপশন তৈরি করা হলো
                     description = f"Skill for {skill_name.replace('_', ' ')}. Automatically migrated."
@@ -66,7 +67,7 @@ def migrate_skills(conn):
                         VALUES (%s, %s, %s, 'active', 1)
                         ON CONFLICT (skill_name) DO NOTHING;
                         """,
-                        (skill_name, description, code)
+                        (skill_name, description, code),
                     )
                     if cursor.rowcount > 0:
                         migrated_count += 1
@@ -100,10 +101,10 @@ def migrate_rules(conn):
                 root = tree.getroot()
                 category = os.path.splitext(filename)[0].replace("_context", "")
 
-                for rule_tag in root.findall('rule'):
-                    rule_key = rule_tag.get('key', f"{category}_{migrated_count}")
+                for rule_tag in root.findall("rule"):
+                    rule_key = rule_tag.get("key", f"{category}_{migrated_count}")
                     value = rule_tag.text.strip()
-                    description = rule_tag.get('description', f"Rule for {category}")
+                    description = rule_tag.get("description", f"Rule for {category}")
 
                     cursor.execute(
                         """
@@ -111,7 +112,7 @@ def migrate_rules(conn):
                         VALUES (%s, %s, %s, %s, TRUE)
                         ON CONFLICT (rule_key) DO NOTHING;
                         """,
-                        (rule_key, category, value, description)
+                        (rule_key, category, value, description),
                     )
                     if cursor.rowcount > 0:
                         migrated_count += 1
@@ -145,7 +146,7 @@ def migrate_agent_configs(conn):
                 VALUES (%s, %s, %s, 'active')
                 ON CONFLICT (agent_name) DO NOTHING;
                 """,
-                (agent_name, description, config_json)
+                (agent_name, description, config_json),
             )
             if cursor.rowcount > 0:
                 migrated_count += 1
@@ -213,6 +214,7 @@ def create_tables(conn):
         conn.rollback()
     finally:
         cursor.close()
+
 
 if __name__ == "__main__":
     logger.info("🚀 Starting CODE_TO_DATABASE migration...")
