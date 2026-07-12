@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from backend.core.cloud_sandbox_orchestrator import PersistentSandbox, SandboxSession
+from core.orchestration.cloud_sandbox_orchestrator import PersistentSandbox, SandboxSession
 
 
 # বাংলা মন্তব্য: Mock environment variables for RunPod API
