@@ -56,6 +56,10 @@ Keep it strictly under 300 words. Format the output in Markdown.
 """
 
     try:
+        api_key = os.environ.get("GEMINI_API_KEY", "")
+        if "," in api_key:
+            os.environ["GEMINI_API_KEY"] = api_key.split(",")[0]
+            
         print("Calling LLM via litellm...")
         response = completion(
             model="gemini/gemini-2.5-pro",

@@ -560,7 +560,7 @@ jobs:
 
             **Review করে merge করুন।** কোনো সমস্যা থাকলে এই PR close করুন।
           branch: "chore/auto-changelog-${{ github.run_id }}"
-          base: develop
+          base: main
           labels: "documentation, automated, changelog"
           delete-branch: true
 

@@ -22,6 +22,11 @@ def get_recent_diff():
 
 def call_llm(prompt):
     try:
+        import os
+        api_key = os.environ.get("GEMINI_API_KEY", "")
+        if "," in api_key:
+            os.environ["GEMINI_API_KEY"] = api_key.split(",")[0]
+            
         print("Calling LLM via litellm...")
         response = completion(
             model="gemini/gemini-2.5-pro",
