@@ -1,5 +1,6 @@
 import pytest
 from core.skill_manager import SkillManager
+from core.skills.base import BaseSkill
 
 from evolution.fitness_engine import FitnessEngine
 
@@ -24,33 +25,32 @@ def temp_fitness_env(tmp_path, monkeypatch):
     with open(dummy_skill_dir / "schema.json", "w") as f:
         f.write('{"metadata": {"name": "DummySkill", "version": "1.0.0", "description": "test"}}')
 
-    registry = SkillManager()
-    registry.register_skill(
-        name=skill_name,
-        version="1.0.0",
-        description="test",
-        entry_point=str(dummy_skill_dir / "main.py"),
-        uss={
-            "metadata": {
-                "name": "DummySkill",
-                "version": "1.0.0",
-                "description": "test",
-                "author": "test",
-                "tags": [],
-            },
-            "interface": {
-                "input_schema": {"type": "object"},
-                "output_schema": {"type": "object"},
-            },
-            "execution": {
-                "runtime": "python3.11",
-                "entry_point": "main.execute",
-                "dependencies": [],
-                "timeout_seconds": 30,
-            },
-            "validation": {"tests": [], "security_level": "sandboxed"},
-        },
+    from evolution.fitness_engine import FitnessEngine
+    
+    class MockSkill(BaseSkill):
+        def __init__(self):
+            self.status = "ACTIVE"
+        @property
+        def name(self):
+            return skill_name
+        @property
+        def description(self):
+            return "test"
+        @property
+        def required_permissions(self):
+            return []
+        async def execute(self, **kwargs):
+            return {}
+
+    # Initialize engine before registering skill so we can register it in engine.registry
+    engine = FitnessEngine(
+        metrics_path=str(metrics_path),
+        registry_path=str(registry_path),
+        skills_dir=str(skills_dir),
+        deprecated_dir=str(deprecated_dir),
+        db=None,
     )
+    engine.registry.register_skill(MockSkill())
 
     # Create a Firestore db mock to verify updates
     class FirestoreDocMock:
@@ -79,14 +79,7 @@ def temp_fitness_env(tmp_path, monkeypatch):
             return self.collections[name]
 
     db_mock = FirestoreClientMock()
-
-    engine = FitnessEngine(
-        metrics_path=str(metrics_path),
-        registry_path=str(registry_path),
-        skills_dir=str(skills_dir),
-        deprecated_dir=str(deprecated_dir),
-        db=db_mock,
-    )
+    engine.db = db_mock
 
     return engine, skill_name, skills_dir, deprecated_dir, registry_path, db_mock
 
@@ -152,8 +145,8 @@ def test_evaluate_and_prune_success_threshold(temp_fitness_env):
     assert (temp_fitness_env[3] / skill_name / "main.py").exists()
 
     # Verify status updated to DEPRECATED in registry
-    updated_skill = engine.registry.get_skill(skill_name)
-    assert updated_skill["status"] == "DEPRECATED"
+    updated_skill = engine.registry._skills.get(skill_name)
+    assert getattr(updated_skill, "status", None) == "DEPRECATED"
 
     # Verify firestore document status updated
     db_mock = temp_fitness_env[5]

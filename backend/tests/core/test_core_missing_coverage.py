@@ -531,18 +531,21 @@ class TestSwarmOrchestratorMissingBranches:
         orchestrator = MorphicOrchestrator()
 
         with (
+            patch.object(orchestrator, "_synthesize_tool", new_callable=AsyncMock, return_value={"agent_name": "mocked"}),
             patch.object(orchestrator.agents["architect"], "run", new_callable=AsyncMock) as mock_design,
             patch.object(orchestrator.agents["coder"], "run", new_callable=AsyncMock) as mock_code,
             patch.object(orchestrator.agents["guardian"], "run", new_callable=AsyncMock) as mock_verify,
+            patch.object(orchestrator.agents["guardian"], "validate", new_callable=AsyncMock, return_value=(True, "OK")),
             patch.object(orchestrator.agents["reflection"], "run", new_callable=AsyncMock) as mock_reflection,
+            patch.object(orchestrator.agents["reflection"], "reflect_and_persist", new_callable=AsyncMock) as mock_reflect_persist,
         ):
             # Using an intent that maps to a simpler task graph if we want, but default works if we mock all
             with patch("core.swarm_orchestrator.SharedWorkspace") as mock_workspace:
                 mock_workspace.return_value.intent = "code_generation"
-                workspace = await orchestrator.execute_task("prompt", "uid")
+                workspace = await orchestrator.execute_task("write a python script", "uid")
                 mock_design.assert_called_once()
                 mock_code.assert_called_once()
-                mock_verify.assert_called_once()
+                # mock_verify is guardian.run, which is not called for code_generation. validate is called instead.
                 assert workspace is not None
 
     @pytest.mark.anyio
@@ -1145,15 +1148,17 @@ class TestSecurityUtilsMissingBranches:
 class TestSwarmOrchestratorCircuitBreakerIntegration:
     @pytest.mark.anyio
     async def test_execute_task_handles_circuit_breaker_open(self):
-        from core.swarm_orchestrator import CircuitBreakerOpenError, SwarmOrchestrator
+        from core.swarm_orchestrator import CircuitBreakerOpenError, MorphicOrchestrator
 
-        orchestrator = SwarmOrchestrator()
+        orchestrator = MorphicOrchestrator()
         orchestrator.circuit_breaker.state = "OPEN"
 
-        # Mock the architect.design to raise CircuitBreakerOpenError
-        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock, side_effect=CircuitBreakerOpenError("circuit open")):
-            # The function will raise AttributeError because SharedWorkspace doesn't have add_error()
-            # This is a known bug in the production code (line 88 of swarm_orchestrator.py)
-            # We verify that the circuit breaker error path is reached by checking the log before the error
-            with pytest.raises(AttributeError, match="'SharedWorkspace' object has no attribute 'add_error'"):
-                await orchestrator.execute_task("prompt", "uid")
+        # Mock _synthesize_tool to avoid LLM call
+        with (
+            patch.object(orchestrator, "_synthesize_tool", new_callable=AsyncMock, return_value={"agent_name": "mocked"}),
+            patch.object(orchestrator.agents["architect"], "run", new_callable=AsyncMock, side_effect=CircuitBreakerOpenError("circuit open")),
+            patch.object(orchestrator.agents["reflection"], "reflect_and_persist", new_callable=AsyncMock)
+        ):
+            # We verify that the circuit breaker error path is reached
+            workspace = await orchestrator.execute_task("write a python script", "uid")
+            assert "circuit open" in workspace.errors[0]

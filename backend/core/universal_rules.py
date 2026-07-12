@@ -79,6 +79,20 @@ class UniversalRulesEngine:
                 default_rules[cat].update(rules_dict)
             return default_rules
 
+        # Try to load from file if DB is empty/unavailable
+        if os.path.exists(self.rules_path):
+            try:
+                with open(self.rules_path, encoding="utf-8") as f:
+                    file_rules = json.load(f)
+                    # Merge file_rules with default_rules
+                    for cat, rules_dict in file_rules.items():
+                        if cat not in default_rules:
+                            default_rules[cat] = {}
+                        default_rules[cat].update(rules_dict)
+                    return default_rules
+            except Exception as e:
+                logger.warning(f"Failed to load rules from file, falling back to defaults: {e}")
+
         # Save defaults if not present
         try:
             os.makedirs(os.path.dirname(self.rules_path), exist_ok=True)

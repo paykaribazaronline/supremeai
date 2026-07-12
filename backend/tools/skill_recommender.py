@@ -32,10 +32,12 @@ class SkillRecommender:
         if db.client:
             try:
                 db.client.table("task_history").insert(entry).execute()
+                return
             except Exception as exc:  # noqa: BLE001
                 logger.debug(f"History insert failed: {exc}")
-        else:
-            self._local_history.setdefault(user_id, []).append(entry)
+        
+        # Fallback if DB client is none or insert failed
+        self._local_history.setdefault(user_id, []).append(entry)
 
     def _embedding(self, text: str) -> list[float]:
         text = re.sub(r"\s+", " ", text.lower()).strip()

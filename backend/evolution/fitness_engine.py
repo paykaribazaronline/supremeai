@@ -120,15 +120,12 @@ class FitnessEngine:
         logger.warning(f"⚠️ Skill '{skill_name}' failed fitness evaluation! Score: {score:.2f} (Threshold: {threshold}). Initiating soft pruning...")
 
         # 1. Update Registry status to DEPRECATED
-        skill_data = self.registry.get_skill(skill_name)
-        if skill_data:
-            skill_data["status"] = "DEPRECATED"
-            self.registry.skills["skills"][skill_name] = skill_data
-            try:
-                with open(self.registry.registry_path, "w", encoding="utf-8") as f:
-                    json.dump(self.registry.skills, f, indent=4)
-            except Exception as e:  # noqa: BLE001
-                logger.error(f"Failed to update registry status: {e}")
+        try:
+            skill_data = self.registry._skills.get(skill_name)
+            if skill_data and hasattr(skill_data, "status"):
+                skill_data.status = "DEPRECATED"
+        except Exception as e:
+            logger.error(f"Failed to update registry status: {e}")
 
         # 2. Update Firestore Status
         if self.db is not None:
