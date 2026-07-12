@@ -100,7 +100,7 @@ class TestSettingsValidators:
         monkeypatch.setattr("core.config.secret_vault.fetch_secret", lambda k: f"val-{k}")
         s = Settings()
         assert s.supabase_database_url == "val-SUPABASE_DATABASE_URL_POOLER"
-        assert s.redis_url == "val-REDIS_URL"
+        assert s.redis_url == "redis://val-REDIS_URL"
         assert s.openrouter_api_key == "val-OPENROUTER_API_KEY"
 
 
