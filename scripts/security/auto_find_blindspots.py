@@ -42,7 +42,7 @@ def find_hardcoded_secrets(content: str, file_path: str) -> List[Tuple[int, str]
     for i, line in enumerate(lines, 1):
         # Specific hardcoded password from `blindspots-bangla.md`
         if "supreme-god-" + "password" in line:
-            findings.append((i, "🔴 Critical: Hardcoded 'supreme-god-password' found."))
+            findings.append((i, "🔴 Critical: Hardcoded 'supreme-god-" + "password' found."))
         # Generic patterns for keys and passwords
         if secret_pattern.search(line):
             findings.append((i, "🟠 High: Potential hardcoded secret or API key found."))
