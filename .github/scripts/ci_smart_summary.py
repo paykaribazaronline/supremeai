@@ -313,33 +313,6 @@ def generate_smart_summary() -> str:
 
     return "\n".join(lines)
 
-
-def send_discord_notification(summary_markdown: str):
-    """বাংলা মন্তব্য: ডিসকর্ডে Webhook-এর মাধ্যমে নোটিফিকেশন পাঠায়"""
-    webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
-    if not webhook_url:
-        return
-
-    # Discord-এর 2000 character limit আছে, তাই ছোট করে পাঠাতে হবে
-    # অথবা শুধু title এবং লিংক পাঠানো যেতে পারে
-    discord_text = summary_markdown
-    if len(discord_text) > 2000:
-        discord_text = discord_text[:1900] + "\n\n... (Message truncated. Please check GitHub Step Summary for full details.)"
-
-    payload = {
-        "content": discord_text
-    }
-    
-    try:
-        resp = requests.post(webhook_url, json=payload, timeout=10)
-        if resp.status_code < 400:
-            print("✅ Successfully sent Discord notification.")
-        else:
-            print(f"⚠️ Failed to send Discord notification: {resp.status_code}")
-    except Exception as e:
-        print(f"⚠️ Error sending Discord webhook: {e}")
-
-
 def main() -> int:
     """
     বাংলা মন্তব্য: Main entry point — summary তৈরি করে GITHUB_STEP_SUMMARY-তে লেখে।
@@ -360,8 +333,6 @@ def main() -> int:
     else:
         # Local run এর জন্য stdout-এ প্রিন্ট করা
         print(summary)
-
-    send_discord_notification(summary)
 
     return 0
 
