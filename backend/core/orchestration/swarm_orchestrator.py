@@ -175,7 +175,8 @@ class MorphicOrchestrator:
                 await self.circuit_breaker.call(_execute_dag)
             # Duplicate log removed here
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
+            # বাংলা মন্তব্য: অর্কেস্ট্রেটরের টপ-লেভেলে সব এরর ক্যাচ করার জন্য Exception ব্যবহার করা হয়েছে।
             from core.resilience.circuit_breaker import CircuitBreakerOpenError
 
             if isinstance(e, CircuitBreakerOpenError) or "is OPEN" in str(e):
