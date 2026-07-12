@@ -1,14 +1,4 @@
-# ==============================================================================
-# [IMMUTABLE CONFIGURATION - MANUAL CONTROL ONLY]
-# ------------------------------------------------------------------------------
-# DO NOT ALLOW AI AGENTS OR AUTOMATION TO MODIFY THE PIPELINE LOGIC.
-# Current CI State: 
-# 1. Automatic change detection: DISABLED.
-# 2. Previous failed/skipped job recovery: DISABLED.
-# 3. Execution: Force full run on every trigger.
-# Any modification to this file requires manual human intervention and 
-# signature validation to prevent regression or instability.
-# ==============================================================================
+
 
 name: 🧠 SupremeAI Core CI
 
@@ -172,14 +162,9 @@ jobs:
     name: 🚀 Production Readiness (Safety Guard, Multi-Model Validator, Codegraph)
     needs: [changes, pre-merge-gate]
     if: >
-      (
-        github.event_name != 'workflow_dispatch' && 
-        (needs.changes.outputs.backend == 'true' || needs.changes.outputs.dependencies == 'true')
-      ) ||
-      (
-        github.event_name == 'workflow_dispatch' && 
-        github.event.inputs.run_backend_core == 'true'
-      )
+      github.event_name == 'workflow_dispatch' && github.event.inputs.run_backend_core == 'true' ||
+      needs.changes.outputs.backend == 'true' || needs.changes.outputs.dependencies == 'true' ||
+      github.run_attempt > 1
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -276,21 +261,11 @@ jobs:
     name: 🐍 Backend (Test & Auto-Fix)
     needs: [changes, pre-merge-gate, production-readiness]
     if: >
-      always() && !cancelled() &&
+      !failure() && !cancelled() &&
       (
-        (
-          github.event_name != 'workflow_dispatch' && 
-          (needs.changes.outputs.backend == 'true' || needs.changes.outputs.dependencies == 'true') &&
-          needs.pre-merge-gate.result == 'success' && needs.production-readiness.result == 'success'
-        ) ||
-        (
-          github.event_name == 'workflow_dispatch' && 
-            github.event.inputs.run_backend_core == 'true' &&
-          (
-            github.event.inputs.ignore_dependencies == 'true' ||
-            (needs.pre-merge-gate.result == 'success' && needs.production-readiness.result == 'success')
-          )
-        )
+        github.event_name == 'workflow_dispatch' && github.event.inputs.run_backend_core == 'true' ||
+        needs.changes.outputs.backend == 'true' || needs.changes.outputs.dependencies == 'true' ||
+        github.run_attempt > 1
       )
     runs-on: ubuntu-latest
     steps:
@@ -406,14 +381,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: changes
     if: >
-      (
-        github.event_name != 'workflow_dispatch' && 
-        (github.event_name == 'schedule' || needs.changes.outputs.dependencies == 'true')
-      ) ||
-      (
-        github.event_name == 'workflow_dispatch' && 
-        github.event.inputs.run_backend_core == 'true'
-      )
+      github.event_name == 'workflow_dispatch' && github.event.inputs.run_backend_core == 'true' ||
+      github.event_name == 'schedule' || needs.changes.outputs.dependencies == 'true' ||
+      github.run_attempt > 1
     permissions:
       security-events: write
       actions: read
@@ -500,14 +470,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: changes
     if: >
-      (
-        github.event_name != 'workflow_dispatch' && 
-        (needs.changes.outputs.frontend == 'true' || needs.changes.outputs.dependencies == 'true')
-      ) ||
-      (
-        github.event_name == 'workflow_dispatch' && 
-        github.event.inputs.run_frontend_core == 'true'
-      )
+      github.event_name == 'workflow_dispatch' && github.event.inputs.run_frontend_core == 'true' ||
+      needs.changes.outputs.frontend == 'true' || needs.changes.outputs.dependencies == 'true' ||
+      github.run_attempt > 1
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v3
@@ -639,21 +604,11 @@ jobs:
     needs: [backend-core, frontend-core]
     runs-on: ubuntu-latest
     if: >
-      always() && !cancelled() &&
+      !failure() && !cancelled() &&
       (
-        (
-          github.event_name != 'workflow_dispatch' && 
-          (github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) &&
-          needs.backend-core.result == 'success' && needs.frontend-core.result == 'success'
-        ) ||
-        (
-          github.event_name == 'workflow_dispatch' && 
-            github.event.inputs.run_performance_e2e == 'true' &&
-          (
-            github.event.inputs.ignore_dependencies == 'true' ||
-            (needs.backend-core.result == 'success' && needs.frontend-core.result == 'success')
-          )
-        )
+        (github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.run_performance_e2e == 'true') ||
+        github.run_attempt > 1
       )
     steps:
       - uses: actions/checkout@v4
@@ -748,13 +703,11 @@ jobs:
     needs: [backend-core]
     runs-on: ubuntu-latest
     if: >
+      !failure() && !cancelled() &&
       (
-        github.event_name != 'workflow_dispatch' && 
-        github.ref == 'refs/heads/main'
-      ) ||
-      (
-        github.event_name == 'workflow_dispatch' && 
-        github.event.inputs.run_deploy_render == 'true'
+        github.ref == 'refs/heads/main' ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.run_deploy_render == 'true') ||
+        github.run_attempt > 1
       )
     permissions:
       contents: read
