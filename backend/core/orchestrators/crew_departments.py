@@ -22,7 +22,6 @@ class ArchitectureAgent(SwarmAgentBase):
         user_prompt = f"Design architecture for task: {workspace.original_prompt}"
 
         design_output = await self.call_gateway(sys_prompt, user_prompt, user_id, model_name=model_name)
-        workspace.architecture_design = design_output
         # বাংলা মন্তব্য: ডোমেইন-অ্যাগনস্টিক work_product ব্যবহার করা হচ্ছে।
         workspace.work_product["architecture_design"] = design_output
         workspace.log("ArchitectureAgent: System design blueprint completed.")
@@ -32,21 +31,17 @@ class CodeGeneratorAgent(SwarmAgentBase):
     async def generate_code(self, workspace: SharedWorkspace, user_id: str, model_name: str = "gemini/gemini-1.5-flash"):
         workspace.log("CodeGeneratorAgent: Injecting layout and writing core codes...")
         sys_prompt = "You are an expert backend engineer. Output only clean python code blocks for specified files."
-        user_prompt = f"Design blueprint:\n{workspace.architecture_design}\nGenerate the python code matching this design."
         user_prompt = f"Design blueprint:\n{workspace.work_product.get('architecture_design', '')}\nGenerate the python code matching this design."
 
         code_output = await self.call_gateway(sys_prompt, user_prompt, user_id, model_name=model_name)
-        workspace.generated_code["main.py"] = code_output
         workspace.work_product["generated_code"] = {"main.py": code_output}
         workspace.log("CodeGeneratorAgent: Core files successfully generated.")
 
     async def refine(self, workspace: SharedWorkspace, feedback: str, user_id: str, model_name: str = "gemini/gemini-1.5-flash"):
         workspace.log("CodeGeneratorAgent: Refining code based on Guardian feedback...")
         sys_prompt = "You are an expert backend engineer. Refine the python code based on the feedback."
-        user_prompt = f"Original Code:\n{workspace.generated_code.get('main.py', '')}\nFeedback:\n{feedback}\nGenerate the fixed python code matching the constraints."  # noqa: E501
         user_prompt = f"Original Code:\n{workspace.work_product.get('generated_code', {}).get('main.py', '')}\nFeedback:\n{feedback}\nGenerate the fixed python code matching the constraints."  # noqa: E501
         code_output = await self.call_gateway(sys_prompt, user_prompt, user_id, model_name=model_name)
-        workspace.generated_code["main.py"] = code_output
         workspace.work_product["generated_code"]["main.py"] = code_output
         workspace.log("CodeGeneratorAgent: Code successfully refined.")
 
@@ -55,7 +50,6 @@ class QAAgent(SwarmAgentBase):
     async def verify(self, workspace: SharedWorkspace, user_id: str, model_name: str = "gemini/gemini-1.5-flash"):
         workspace.log("QAAgent: Initiating test suites and static CodeQL scans...")
         # Simulating running ImmuneSystem AST scan and Python validations
-        code_to_test = workspace.generated_code.get("main.py", "")
         code_to_test = workspace.work_product.get('generated_code', {}).get("main.py", "")
 
         if "import os" in code_to_test or "eval(" in code_to_test:
@@ -83,7 +77,6 @@ class GuardianAgent(SwarmAgentBase):
                 rules_text = f.read()
         
         sys_prompt = "You are the SupremeAI Guardian Agent. Your task is to check if the provided code violates any of the rules in the `agent_rules.json` file. The rules cover security, clean code, and architecture. If the code is valid and follows all critical rules, reply with the single word 'APPROVED'. If the code violates any rule, reply starting with 'FAILED:' followed by a clear, concise, and actionable list of violations, including the specific rule ID and a suggestion for fixing it."  # noqa: E501
-        user_prompt = f"Rules:\n{rules_text}\n\nCode:\n{workspace.generated_code.get('main.py', '')}"
         user_prompt = f"Rules:\n{rules_text}\n\nCode:\n{workspace.work_product.get('generated_code', {}).get('main.py', '')}"
         
         feedback = await self.call_gateway(sys_prompt, user_prompt, user_id, model_name=model_name)
@@ -131,7 +124,6 @@ class ReflectionAgent(SwarmAgentBase):
                 user_id=user_id,
                 request=workspace.original_prompt,
                 action_taken=f"Swarm Orchestrator DAG Execution for intent: {workspace.intent}",
-                generated_code=json.dumps(workspace.work_product),
                 deployment_logs="\\n".join(workspace.execution_logs),
                 what_worked=parsed.get("what_worked", []),
                 what_failed=parsed.get("what_failed", []),

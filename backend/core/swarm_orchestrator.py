@@ -3,13 +3,8 @@
 
 import asyncio
 import uuid
-
-from core.orchestrators.crew_departments import ArchitectureAgent
-from core.orchestrators.crew_departments import CodeGeneratorAgent
-from core.orchestrators.crew_departments import GuardianAgent
-from core.orchestrators.crew_departments import QAAgent
-from core.orchestrators.crew_departments import ReflectionAgent
-from core.orchestrators.crew_departments import ResearchAgent
+from core.orchestrators.crew_departments import (ArchitectureAgent, CodeGeneratorAgent, GuardianAgent, QAAgent,
+                                                 ReflectionAgent, ResearchAgent)
 from models.shared_workspace import SharedWorkspace
 
 
@@ -87,14 +82,6 @@ class SwarmOrchestrator:
         workspace = SharedWorkspace(task_id=task_id, original_prompt=prompt)
         workspace.log(f"SwarmOrchestrator: Initialized swarm DAG for task {task_id}")
         
-        # বাংলা মন্তব্য: এখানে টাস্কের DAG (Directed Acyclic Graph) ডিফাইন করা হয়েছে।
-        # প্রতিটি টাস্কের নাম এবং তার নির্ভরশীলতা (dependencies) উল্লেখ করা আছে।
-        task_graph = {
-            "architect": [],
-            "coder": ["architect"],
-            "guardian_qa_loop": ["coder"],
-            "reflection": ["guardian_qa_loop"],
-        }
         # 1. Classify Intent
         # A simple keyword-based classifier for demonstration
         # In a real system, this would be a more sophisticated NLP model.
@@ -126,7 +113,6 @@ class SwarmOrchestrator:
 
                 # বাংলা মন্তব্য: asyncio.gather ব্যবহার করে সব রেডি টাস্ক প্যারালালি এক্সিকিউট করা হচ্ছে।
                 await asyncio.gather(
-                    *(self.run_node(task, workspace, user_id) for task in ready_tasks)
                     *(self.agents[task].run(workspace, user_id) for task in ready_tasks if task in self.agents)
                 )
                 
@@ -141,7 +127,6 @@ class SwarmOrchestrator:
             workspace.add_error(str(e))
             # বাংলা মন্তব্য: এরর হলেও রিফ্লেকশন চালানোর চেষ্টা করা হবে, যাতে সিস্টেম শিখতে পারে।
             if "reflection" not in completed_tasks:
-                await self.run_node("reflection", workspace, user_id)
                 await self.agents["reflection"].reflect_and_persist(workspace, user_id)
             return workspace
 
