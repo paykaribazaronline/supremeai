@@ -378,7 +378,7 @@ jobs:
         working-directory: backend
         run: |
           echo "## 🔍 Style Lint Check" >> $GITHUB_STEP_SUMMARY
-          poetry run ruff format --check backend/tools/ || {
+          poetry run ruff format --check tools/ || {
             echo "❌ Style lint failed - code not properly formatted" >> $GITHUB_STEP_SUMMARY
             exit 1
           }

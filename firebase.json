@@ -6,7 +6,7 @@
   "hosting": [
     {
       "target": "studio",
-      "public": "apps/web-chat/dist",
+      "public": "apps/studio-client/dist",
       "ignore": [
         "firebase.json",
         "**/.*",
