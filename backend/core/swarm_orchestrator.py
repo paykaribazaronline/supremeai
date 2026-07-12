@@ -1,28 +1,30 @@
 # Multi-Agent Swarm Orchestrator Engine
 # বাংলা মন্তব্য: মাল্টি-এজেন্ট সিকোয়েন্সিয়াল সোয়ার্ম কোঅর্ডিনেটর ও টাস্ক রানার।
 
-import time
 import uuid
 
-import asyncio
 from core.orchestrators.crew_departments import ArchitectureAgent
 from core.orchestrators.crew_departments import CodeGeneratorAgent
-from core.orchestrators.crew_departments import QAAgent
 from core.orchestrators.crew_departments import GuardianAgent
+from core.orchestrators.crew_departments import QAAgent
 from core.orchestrators.crew_departments import ReflectionAgent
 from models.shared_workspace import SharedWorkspace
+
 
 class CircuitBreakerState:
     CLOSED = "CLOSED"
     OPEN = "OPEN"
     HALF_OPEN = "HALF_OPEN"
 
+
 class CircuitBreakerOpenError(Exception):
     pass
+
 
 class CircuitBreaker:
     def __init__(self, failure_threshold: int = 5, recovery_timeout: float = 30.0):
         from core.circuit_breaker import CircuitBreaker as UnifiedCB
+
         self._cb = UnifiedCB(name="swarm_orch", failure_threshold=failure_threshold, recovery_timeout=recovery_timeout)
         self.state = self._cb.state
 
@@ -41,6 +43,7 @@ class CircuitBreaker:
             self.state = self._cb.state
             raise
 
+
 class SwarmOrchestrator:
     def __init__(self):
         self.architect = ArchitectureAgent()
@@ -58,31 +61,31 @@ class SwarmOrchestrator:
         try:
             # 1. Architecture Phase
             await self.circuit_breaker.call(self.architect.design, workspace, user_id)
-            
+
             # 2. Code Generation & Guardian Loop
             max_retries = 3
             retries = 0
             valid = False
             feedback = ""
-            
+
             await self.circuit_breaker.call(self.coder.generate_code, workspace, user_id)
-            
+
             while not valid and retries < max_retries:
                 valid, feedback = await self.circuit_breaker.call(self.guardian.validate, workspace, user_id)
                 if not valid:
-                    workspace.log(f"SwarmOrchestrator: Guardian rejected code. Triggering Coder refine (Attempt {retries+1}/{max_retries})")
+                    workspace.log(f"SwarmOrchestrator: Guardian rejected code. Triggering Coder refine (Attempt {retries + 1}/{max_retries})")
                     await self.circuit_breaker.call(self.coder.refine, workspace, feedback, user_id)
                     retries += 1
-                    
+
             if not valid:
                 workspace.log("SwarmOrchestrator: Maximum refine retries reached. Proceeding with warnings.")
-                
+
             # 3. QA Phase
             await self.circuit_breaker.call(self.qa.verify, workspace, user_id)
-            
+
             # 4. Reflection Phase (ZTO Learning Engine)
             await self.circuit_breaker.call(self.reflection.reflect_and_persist, workspace, user_id)
-            
+
         except CircuitBreakerOpenError as e:
             workspace.log(f"SwarmOrchestrator: Circuit breaker OPEN — {e}")
             workspace.add_error(str(e))

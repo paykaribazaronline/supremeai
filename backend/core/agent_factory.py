@@ -16,15 +16,14 @@ class DynamicAgentFactory:
         self.db = db_session
 
     def get_registered_agent(self, agent_name: str) -> dict | None:
-        import os
         from pathlib import Path
-        
+
         registry_path = Path(__file__).resolve().parent / "agent_registry.json"
         if not registry_path.exists():
             return None
-            
+
         try:
-            with open(registry_path, "r", encoding="utf-8") as f:
+            with open(registry_path, encoding="utf-8") as f:
                 registry = json.load(f)
                 return registry.get(agent_name)
         except Exception as e:

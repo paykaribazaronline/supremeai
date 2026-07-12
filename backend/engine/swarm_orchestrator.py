@@ -2,10 +2,10 @@ import uuid
 from datetime import UTC
 from datetime import datetime
 
+from core.log_batcher import batcher
 from core.orchestrators.crew_departments import ArchitectureAgent
 from core.orchestrators.crew_departments import CodeGeneratorAgent
 from core.orchestrators.crew_departments import QAAgent
-from core.log_batcher import batcher
 from models.shared_workspace import SharedWorkspace
 
 

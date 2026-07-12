@@ -6,12 +6,13 @@ import uuid
 from fastapi import APIRouter
 from fastapi import HTTPException
 from fastapi import Request
-from pydantic import BaseModel
 from loguru import logger
+from pydantic import BaseModel
 
 from database.supabase_client import db
 from tools.marketplace_agent import MarketplaceAgent
 from tools.resource_catalog import ResourceCatalog
+
 
 router = APIRouter(prefix="/marketplace", tags=["marketplace"])
 marketplace_agent = MarketplaceAgent()
@@ -26,6 +27,7 @@ DEFAULT_CATALOG_SOURCES = ["awesome-selfhosted", "awesome-python"]
 
 # Legacy Local DB Logic (Merged)
 DB_PATH = os.environ.get("SUPREMEAI_MARKETPLACE_DB", "data/marketplace.db")
+
 
 def _get_conn() -> sqlite3.Connection:
     (os.makedirs(os.path.dirname(DB_PATH), exist_ok=True) if os.path.dirname(DB_PATH) else None)
@@ -48,6 +50,7 @@ def _get_conn() -> sqlite3.Connection:
     conn.commit()
     return conn
 
+
 _seeded = False
 _SEED_INDEX = [
     {
@@ -66,6 +69,7 @@ _SEED_INDEX = [
     },
 ]
 
+
 def _seed(conn: sqlite3.Connection) -> None:
     global _seeded
     if _seeded:
@@ -78,10 +82,11 @@ def _seed(conn: sqlite3.Connection) -> None:
     for item in _SEED_INDEX:
         conn.execute(
             "INSERT INTO skills (id, name, version, description, dependencies, installed, source, installed_at) VALUES (?, ?, ?, ?, ?, 0, ?, ?)",
-            (str(uuid.uuid4()), item["name"], item["version"], item["description"], item["dependencies"], item["source"], now)
+            (str(uuid.uuid4()), item["name"], item["version"], item["description"], item["dependencies"], item["source"], now),
         )
     conn.commit()
     _seeded = True
+
 
 def get_enabled_catalog_sources() -> list[str]:
     if not db.client:
@@ -104,8 +109,10 @@ def get_enabled_catalog_sources() -> list[str]:
     enabled_sources = [src for src in enabled if src in ALLOWED_CATALOG_SOURCES]
     return enabled_sources or DEFAULT_CATALOG_SOURCES
 
+
 def filter_requested_catalog_sources(categories: list[str], enabled_sources: list[str]) -> list[str]:
     return [c for c in categories if c in enabled_sources]
+
 
 class SearchRequest(BaseModel):
     query: str
@@ -113,11 +120,13 @@ class SearchRequest(BaseModel):
     filters: dict | None = None
     installed_only: bool = False
 
+
 class InstallRequest(BaseModel):
     tool_id: str
     target_environment: str = "local"
     sandbox: bool = True
     version: str | None = None
+
 
 @router.post("/search")
 async def search_marketplaces(payload: SearchRequest, request: Request):
@@ -151,13 +160,9 @@ async def search_marketplaces(payload: SearchRequest, request: Request):
                 sql += " AND installed = 1"
             rows = conn.execute(sql, params).fetchall()
             for r in rows:
-                results.append({
-                    "name": r["name"],
-                    "marketplace": "local_db",
-                    "description": r["description"],
-                    "installed": bool(r["installed"]),
-                    "id": r["id"]
-                })
+                results.append(
+                    {"name": r["name"], "marketplace": "local_db", "description": r["description"], "installed": bool(r["installed"]), "id": r["id"]}
+                )
         except Exception as e:
             logger.error(f"Local DB search error: {e}")
         finally:
@@ -166,6 +171,7 @@ async def search_marketplaces(payload: SearchRequest, request: Request):
         return {"status": "success", "tools": results}
     except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(e)) from e
+
 
 @router.post("/install")
 async def install_tool(payload: InstallRequest):

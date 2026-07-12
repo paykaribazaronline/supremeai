@@ -1,13 +1,13 @@
 import hashlib
 import hmac
+import ipaddress
 import os
 import secrets
 import socket
-import ipaddress
-from urllib.parse import urlparse
 from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
+from urllib.parse import urlparse
 
 import jwt
 from fastapi import HTTPException
@@ -88,6 +88,7 @@ def mask_api_key(key: str) -> str:
         return key[:6] + "****"
     middle = parts[2]
     return f"{parts[0]}-{parts[1]}-{middle[:4]}****{middle[-4:]}"
+
 
 def is_safe_url(url: str) -> bool:
     try:

@@ -65,22 +65,23 @@ class QAAgent(SwarmAgentBase):
         qa_feedback = await self.call_gateway(sys_prompt, user_prompt, user_id, model_name=model_name)
         workspace.test_results["feedback"] = qa_feedback
 
+
 class GuardianAgent(SwarmAgentBase):
     async def validate(self, workspace: SharedWorkspace, user_id: str, model_name: str = "gemini/gemini-1.5-pro") -> tuple[bool, str]:
         workspace.log("GuardianAgent: Scanning code for agent_rules.json violations...")
-        import json
         from pathlib import Path
+
         rules_path = Path(__file__).resolve().parent.parent.parent.parent / "agent_rules.json"
         rules_text = ""
         if rules_path.exists():
-            with open(rules_path, "r", encoding="utf-8") as f:
+            with open(rules_path, encoding="utf-8") as f:
                 rules_text = f.read()
 
         sys_prompt = "You are the SupremeAI Guardian Agent. Check if the provided code violates the agent_rules.json rules. If valid, reply exactly 'APPROVED'. If invalid, reply 'FAILED' followed by the reasons and rule IDs."
         user_prompt = f"Rules:\n{rules_text}\n\nCode:\n{workspace.generated_code.get('main.py', '')}"
-        
+
         feedback = await self.call_gateway(sys_prompt, user_prompt, user_id, model_name=model_name)
-        
+
         if feedback.strip().startswith("APPROVED"):
             workspace.log("GuardianAgent: Code passed all compliance checks.")
             return True, "Passed"
@@ -88,25 +89,29 @@ class GuardianAgent(SwarmAgentBase):
             workspace.log(f"GuardianAgent: Violation found. {feedback}")
             return False, feedback
 
+
 class ReflectionAgent(SwarmAgentBase):
     async def reflect_and_persist(self, workspace: SharedWorkspace, user_id: str, model_name: str = "gemini/gemini-1.5-flash"):
         workspace.log("ReflectionAgent: Analyzing task outcome to generate experience...")
         sys_prompt = "You are an AI Reflection engine. Analyze the workspace logs and extract what worked, what failed, and suggested improvements. Return JSON with 'what_worked', 'what_failed', 'suggested_improvements'."
         user_prompt = f"Logs: {workspace.execution_logs}\nOriginal Prompt: {workspace.original_prompt}"
-        
+
         analysis = await self.call_gateway(sys_prompt, user_prompt, user_id, model_name=model_name)
-        
+
         # Save to ExperienceDatabase
         try:
-            from adaptive_engine.experience_db import ExperienceDatabase, Experience
+            from adaptive_engine.experience_db import Experience
+            from adaptive_engine.experience_db import ExperienceDatabase
+
             db = ExperienceDatabase()
-            
+
             import json
+
             try:
                 parsed = json.loads(analysis)
             except:
                 parsed = {"what_worked": [analysis], "what_failed": [], "suggested_improvements": []}
-                
+
             exp = Experience(
                 user_id=user_id,
                 request=workspace.original_prompt,
@@ -115,11 +120,11 @@ class ReflectionAgent(SwarmAgentBase):
                 deployment_logs="\\n".join(workspace.execution_logs),
                 what_worked=parsed.get("what_worked", []),
                 what_failed=parsed.get("what_failed", []),
-                suggested_improvements=parsed.get("suggested_improvements", [])
+                suggested_improvements=parsed.get("suggested_improvements", []),
             )
             db.record_experience(exp)
             workspace.log("ReflectionAgent: Experience successfully saved to Vector DB.")
         except Exception as e:
             workspace.log(f"ReflectionAgent: Failed to save experience: {e}")
-        
+
         return analysis
