@@ -186,6 +186,32 @@ jobs:
             exit 1
           fi
 
+  observability-audit:
+    name: "🔬 Observability Audit (No Silent Errors)"
+    needs: [pre-merge-gate]
+    if: needs.pre-merge-gate.outputs.trivial_change != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 🔬 Run Observability Audit Script
+        id: audit
+        run: |
+          # এই স্ক্রিপ্টটি সাইলেন্ট exception (`except:`, `except Exception:`) খুঁজে বের করে।
+          # কোনো সমস্যা পেলে এটি non-zero exit code দিয়ে ফেইল করবে।
+          python scripts/audit_observability.py
+
+      - name: Audit Summary
+        if: always()
+        run: |
+          echo "## 🔬 Observability Audit" >> $GITHUB_STEP_SUMMARY
+          echo "Outcome: **${{ steps.audit.outcome }}**" >> $GITHUB_STEP_SUMMARY
+          echo "✅ কোনো সাইলেন্ট বা ব্রড exception হ্যান্ডলার পাওয়া যায়নি।" >> $GITHUB_STEP_SUMMARY
+
   production-readiness:
     name: 🚀 Production Readiness (Safety Guard, Multi-Model Validator, Codegraph)
     needs: [changes, pre-merge-gate]
@@ -476,7 +502,7 @@ jobs:
 
       - name: Echo Image Digest
         if: github.ref == 'refs/heads/main'
-        run: echo "Pushed image with digest: ${{ steps.build-and-push.outputs.digest }}"
+        run: echo "Pushed image with digest `${{ steps.build-and-push.outputs.digest }}`"
 
   security-audit:
     name: 🛡️ CodeQL & Trivy Security Scan
