@@ -6,12 +6,13 @@ import uuid
 from fastapi import APIRouter
 from fastapi import HTTPException
 from fastapi import Request
-from pydantic import BaseModel
 from loguru import logger
+from pydantic import BaseModel
 
 from database.supabase_client import db
 from tools.marketplace_agent import MarketplaceAgent
 from tools.resource_catalog import ResourceCatalog
+
 
 router = APIRouter(prefix="/marketplace", tags=["marketplace"])
 marketplace_agent = MarketplaceAgent()
@@ -158,7 +159,7 @@ async def search_marketplaces(payload: SearchRequest, request: Request):
                     "installed": bool(r["installed"]),
                     "id": r["id"]
                 })
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Local DB search error: {e}")
         finally:
             conn.close()
@@ -182,7 +183,7 @@ async def install_tool(payload: InstallRequest):
                 conn.execute("UPDATE skills SET installed = 1, installed_at = ? WHERE id = ?", (__import__("time").time(), local_tool["id"]))
                 conn.commit()
                 return {"success": True, "tool_id": payload.tool_id, "installed": True, "message": "Installed locally via legacy DB."}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Local install error: {e}")
         finally:
             conn.close()

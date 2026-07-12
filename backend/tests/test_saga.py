@@ -15,21 +15,20 @@ def test_saga():
         os.remove(db_path)
         
     engine = EvolutionEngine(db_path=db_path)
-    
-    print("--- Testing Supabase Failure Scenario ---")
+    # Testing Supabase Failure Scenario
     
     # Force db.client to be truthy so it enters the block
     database.supabase_client.db.client = True 
     
     with patch('database.supabase_client.db.insert_task_history', side_effect=Exception('Simulated Supabase Failure')):
         res = engine.learn_from_success('saga_test_task', 'test_approach', 'test_result')
-        print("Saga Response:", res)
+        # Check Saga Response
         
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM task_history WHERE task='saga_test_task'")
         rows = cursor.fetchall()
-        print("SQLite Rows (Should be empty):", rows)
+        # Verify SQLite Rows (Should be empty)
         conn.close()
         
     if os.path.exists(db_path):

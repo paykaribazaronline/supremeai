@@ -101,7 +101,7 @@ class MaintenancePipeline:
                 # In a real scenario, this would trigger a GitHub Actions workflow to rollback the deployment.
                 # For example: call_github_action_webhook("rollback_deployment")
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to run performance regression check: {e}")
 
     async def auto_remediate(self, event=None):

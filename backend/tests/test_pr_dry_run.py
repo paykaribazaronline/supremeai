@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock
 from backend.services.github_agent import create_autonomous_pr
 
 async def test_dry_run_pr():
-    print("Testing create_autonomous_pr in dry-run mode...")
+    # Testing create_autonomous_pr in dry-run mode
     with patch('backend.services.github_agent.httpx.AsyncClient') as mock_client_cls:
         mock_client = MagicMock()
         mock_client_cls.return_value.__aenter__.return_value = mock_client
@@ -39,7 +39,7 @@ async def test_dry_run_pr():
             commit_msg="Test dry run"
         )
         
-        print(f"PR Dry Run Success! Mock PR URL: {pr_url}")
+        # Mock PR Dry Run Successful
 
 if __name__ == "__main__":
     asyncio.run(test_dry_run_pr())

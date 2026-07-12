@@ -1,11 +1,12 @@
 import asyncio
 import json
 import os
-import time
 from pathlib import Path
 
 from loguru import logger
+
 from core.circuit_breaker import CircuitBreaker
+
 
 try:
     from qdrant_client import QdrantClient

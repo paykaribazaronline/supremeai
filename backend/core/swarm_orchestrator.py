@@ -1,16 +1,16 @@
 # Multi-Agent Swarm Orchestrator Engine
 # বাংলা মন্তব্য: মাল্টি-এজেন্ট সিকোয়েন্সিয়াল সোয়ার্ম কোঅর্ডিনেটর ও টাস্ক রানার।
 
-import time
+import asyncio
 import uuid
 
-import asyncio
 from core.orchestrators.crew_departments import ArchitectureAgent
 from core.orchestrators.crew_departments import CodeGeneratorAgent
-from core.orchestrators.crew_departments import QAAgent
 from core.orchestrators.crew_departments import GuardianAgent
+from core.orchestrators.crew_departments import QAAgent
 from core.orchestrators.crew_departments import ReflectionAgent
 from models.shared_workspace import SharedWorkspace
+
 
 class CircuitBreakerState:
     CLOSED = "CLOSED"
@@ -43,49 +43,60 @@ class CircuitBreaker:
 
 class SwarmOrchestrator:
     def __init__(self):
-        self.architect = ArchitectureAgent()
-        self.coder = CodeGeneratorAgent()
-        self.qa = QAAgent()
-        self.guardian = GuardianAgent()
-        self.reflection = ReflectionAgent()
+        # বাংলা মন্তব্য: এজেন্টদের একটি রেজিস্ট্রি তৈরি করা হচ্ছে, যা ডাইনামিক্যালি কল করা যাবে।
+        self.agents = {
+            "architect": ArchitectureAgent(),
+            "coder": CodeGeneratorAgent(),
+            "qa": QAAgent(),
+            "guardian": GuardianAgent(),
+            "reflection": ReflectionAgent(),
+        }
         self.circuit_breaker = CircuitBreaker(failure_threshold=3, recovery_timeout=30.0)
 
     async def execute_task(self, prompt: str, user_id: str = "default_user_session") -> SharedWorkspace:
         task_id = str(uuid.uuid4())
         workspace = SharedWorkspace(task_id=task_id, original_prompt=prompt)
         workspace.log(f"SwarmOrchestrator: Initialized swarm DAG for task {task_id}")
-
+        
+        # বাংলা মন্তব্য: এখানে টাস্কের DAG (Directed Acyclic Graph) ডিফাইন করা হয়েছে।
+        # প্রতিটি টাস্কের নাম এবং তার নির্ভরশীলতা (dependencies) উল্লেখ করা আছে।
+        task_graph = {
+            "architect": [],
+            "coder": ["architect"],
+            "guardian_qa_loop": ["coder"],
+            "reflection": ["guardian_qa_loop"],
+        }
+        
+        completed_tasks = set()
+        
         try:
-            # 1. Architecture Phase
-            await self.circuit_breaker.call(self.architect.design, workspace, user_id)
-            
-            # 2. Code Generation & Guardian Loop
-            max_retries = 3
-            retries = 0
-            valid = False
-            feedback = ""
-            
-            await self.circuit_breaker.call(self.coder.generate_code, workspace, user_id)
-            
-            while not valid and retries < max_retries:
-                valid, feedback = await self.circuit_breaker.call(self.guardian.validate, workspace, user_id)
-                if not valid:
-                    workspace.log(f"SwarmOrchestrator: Guardian rejected code. Triggering Coder refine (Attempt {retries+1}/{max_retries})")
-                    await self.circuit_breaker.call(self.coder.refine, workspace, feedback, user_id)
-                    retries += 1
-                    
-            if not valid:
-                workspace.log("SwarmOrchestrator: Maximum refine retries reached. Proceeding with warnings.")
+            while len(completed_tasks) < len(task_graph):
+                ready_tasks = [
+                    task for task, deps in task_graph.items()
+                    if task not in completed_tasks and all(d in completed_tasks for d in deps)
+                ]
+
+                if not ready_tasks:
+                    # বাংলা মন্তব্য: যদি কোনো রেডি টাস্ক না থাকে, কিন্তু সব টাস্ক শেষ না হয়, তাহলে সম্ভবত একটি সাইকেল বা ভুল গ্রাফ আছে।
+                    raise RuntimeError(f"DAG execution error: No ready tasks found, but not all tasks are complete. Completed: {completed_tasks}")
+
+                # বাংলা মন্তব্য: asyncio.gather ব্যবহার করে সব রেডি টাস্ক প্যারালালি এক্সিকিউট করা হচ্ছে।
+                await asyncio.gather(
+                    *(self.run_node(task, workspace, user_id) for task in ready_tasks)
+                )
                 
-            # 3. QA Phase
-            await self.circuit_breaker.call(self.qa.verify, workspace, user_id)
-            
-            # 4. Reflection Phase (ZTO Learning Engine)
-            await self.circuit_breaker.call(self.reflection.reflect_and_persist, workspace, user_id)
-            
+                completed_tasks.update(ready_tasks)
+
         except CircuitBreakerOpenError as e:
             workspace.log(f"SwarmOrchestrator: Circuit breaker OPEN — {e}")
             workspace.add_error(str(e))
+            return workspace
+        except Exception as e:  # noqa: BLE001
+            workspace.log(f"SwarmOrchestrator: An unexpected error occurred during DAG execution: {e}")
+            workspace.add_error(str(e))
+            # বাংলা মন্তব্য: এরর হলেও রিফ্লেকশন চালানোর চেষ্টা করা হবে, যাতে সিস্টেম শিখতে পারে।
+            if "reflection" not in completed_tasks:
+                await self.run_node("reflection", workspace, user_id)
             return workspace
 
         workspace.log("SwarmOrchestrator: Multi-Agent DAG execution completed successfully.")
