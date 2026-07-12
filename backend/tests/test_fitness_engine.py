@@ -26,19 +26,23 @@ def temp_fitness_env(tmp_path, monkeypatch):
         f.write('{"metadata": {"name": "DummySkill", "version": "1.0.0", "description": "test"}}')
 
     from evolution.fitness_engine import FitnessEngine
-    
+
     class MockSkill(BaseSkill):
         def __init__(self):
             self.status = "ACTIVE"
+
         @property
         def name(self):
             return skill_name
+
         @property
         def description(self):
             return "test"
+
         @property
         def required_permissions(self):
             return []
+
         async def execute(self, **kwargs):
             return {}
 

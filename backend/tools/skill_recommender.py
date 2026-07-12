@@ -35,7 +35,7 @@ class SkillRecommender:
                 return
             except Exception as exc:  # noqa: BLE001
                 logger.debug(f"History insert failed: {exc}")
-        
+
         # Fallback if DB client is none or insert failed
         self._local_history.setdefault(user_id, []).append(entry)
 

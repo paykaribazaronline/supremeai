@@ -1157,7 +1157,7 @@ class TestSwarmOrchestratorCircuitBreakerIntegration:
         with (
             patch.object(orchestrator, "_synthesize_tool", new_callable=AsyncMock, return_value={"agent_name": "mocked"}),
             patch.object(orchestrator.agents["architect"], "run", new_callable=AsyncMock, side_effect=CircuitBreakerOpenError("circuit open")),
-            patch.object(orchestrator.agents["reflection"], "reflect_and_persist", new_callable=AsyncMock)
+            patch.object(orchestrator.agents["reflection"], "reflect_and_persist", new_callable=AsyncMock),
         ):
             # We verify that the circuit breaker error path is reached
             workspace = await orchestrator.execute_task("write a python script", "uid")
