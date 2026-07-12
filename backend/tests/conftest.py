@@ -108,8 +108,18 @@ def rbac():
 
 @pytest.fixture(autouse=True)
 def isolate_env(monkeypatch: pytest.MonkeyPatch):
+    import core.config
     for key, value in _TEST_ENV_DEFAULTS.items():
         monkeypatch.setenv(key, value)
+        try:
+            if hasattr(core.config.settings, key.lower()):
+                setattr(core.config.settings, key.lower(), value)
+            elif hasattr(core.config.settings, key):
+                setattr(core.config.settings, key, value)
+            elif getattr(core.config.settings.model_config, "extra", "ignore") == "allow":
+                setattr(core.config.settings, key.lower(), value)
+        except AttributeError:
+            pass
 
 
 @pytest.fixture(autouse=True, scope="session")
