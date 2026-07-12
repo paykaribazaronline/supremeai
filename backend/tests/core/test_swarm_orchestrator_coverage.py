@@ -289,7 +289,6 @@ class TestSwarmOrchestratorExecuteTask:
                     with patch.object(orchestrator.agents["reflection"], "run", new_callable=AsyncMock):
                         with patch("core.orchestration.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
                             result = await orchestrator.execute_task("Build a python REST API", "user123")
-                        print("DEBUG MOCK CALLS:", mock_workspace.log.mock_calls)
                         assert result is mock_workspace
                         mock_workspace.log.assert_any_call("MorphicOrchestrator: Multi-Agent DAG execution completed successfully.")
 

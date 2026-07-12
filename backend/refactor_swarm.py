@@ -22,13 +22,14 @@ content = content.replace(
 # 3. Update exception catching
 content = content.replace(
     "except CircuitBreakerOpenError as e:",
-    'except RuntimeError as e:\n            if "is open" not in str(e):\n                raise\n            workspace.log(f"MorphicOrchestrator: Circuit breaker OPEN — {e}")\n            workspace.add_error(str(e))\n            return workspace',
+    'except RuntimeError as e:\n            if "is open" not in str(e):\n                raise\n            workspace.log(f"MorphicOrchestrator: Circuit breaker OPEN — {e}")\n            workspace.add_error(str(e))\n            return workspace',  # noqa: E501
 )
 
 # Also remove the duplicate workspace.log that was under except CircuitBreakerOpenError as e
+# বাংলা মন্তব্য: রুফ লিন্টার লাইন লেন্থ চেক এড়াতে noqa মন্তব্য ব্যবহার করা হচ্ছে।
 content = re.sub(
-    r'except RuntimeError as e:\s+if "is open" not in str\(e\):\s+raise\s+workspace\.log\(f"MorphicOrchestrator: Circuit breaker OPEN — \{e\}"\)\s+workspace\.add_error\(str\(e\)\)\s+return workspace\s+workspace\.log.*?return workspace',
-    'except RuntimeError as e:\n            if "is open" not in str(e):\n                raise\n            workspace.log(f"MorphicOrchestrator: Circuit breaker OPEN — {e}")\n            workspace.add_error(str(e))\n            return workspace',
+    r'except RuntimeError as e:\s+if "is open" not in str\(e\):\s+raise\s+workspace\.log\(f"MorphicOrchestrator: Circuit breaker OPEN — \{e\}"\)\s+workspace\.add_error\(str\(e\)\)\s+return workspace\s+workspace\.log.*?return workspace',  # noqa: E501
+    'except RuntimeError as e:\n            if "is open" not in str(e):\n                raise\n            workspace.log(f"MorphicOrchestrator: Circuit breaker OPEN — {e}")\n            workspace.add_error(str(e))\n            return workspace',  # noqa: E501
     content,
     flags=re.DOTALL,
 )
