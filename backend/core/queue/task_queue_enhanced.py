@@ -421,7 +421,7 @@ class TaskQueue:
     ) -> None:
         """বাংলা মন্তব্য: Celery task submit — lazy import and Singleton app instance।"""
         from celery import Celery  # lazy import
-        
+
         if self._celery_app_instance is None:
             self._celery_app_instance = Celery("supremeai_tasks", broker=self.redis_url, backend=self.redis_url)
 

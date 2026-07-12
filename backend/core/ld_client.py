@@ -63,6 +63,7 @@ def get_ld_ai_components():
     try:
         from ldai import AICompletionConfigDefault, LDMessage, ModelConfig
         from ldclient.context import Context
+
         return ld_ai_client, AICompletionConfigDefault, LDMessage, ModelConfig, Context
     except Exception as exc:
         logger.warning(f"LaunchDarkly AI components unavailable: {exc}")

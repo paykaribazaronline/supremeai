@@ -90,7 +90,7 @@ class MorphicOrchestrator:
 
         # 1. Classify Intent using Budget-Aware Routing
         from core.orchestration.agent_orchestrator import budget_aware_route
-        
+
         route = budget_aware_route(prompt=prompt, task_type="general")
         intent_map = {
             "coding": "code_generation",
@@ -101,11 +101,8 @@ class MorphicOrchestrator:
         }
         workspace.intent = intent_map.get(route["intent"], "general_task")
         best_provider = route.get("best_provider", "default")
-        
-        workspace.log(
-            f"MorphicOrchestrator: Classified intent as '{workspace.intent}' "
-            f"(tier={route.get('tier')}, provider={best_provider})"
-        )
+
+        workspace.log(f"MorphicOrchestrator: Classified intent as '{workspace.intent}' " f"(tier={route.get('tier')}, provider={best_provider})")
         # Store best_provider in workspace for agent consumption
         workspace.work_product["best_provider"] = best_provider
 
@@ -168,12 +165,13 @@ class MorphicOrchestrator:
 
         try:
             from core.observability.telemetry import tracer
+
             with tracer.start_as_current_span("morphic_orchestrator.execute_task") as span:
                 span.set_attribute("user_id", user_id)
                 span.set_attribute("intent", workspace.intent)
                 if best_provider:
                     span.set_attribute("provider", best_provider)
-                
+
                 await self.circuit_breaker.call(_execute_dag)
             # Duplicate log removed here
 

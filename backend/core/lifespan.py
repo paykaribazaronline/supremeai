@@ -238,6 +238,7 @@ async def app_lifespan(app):
         sentinel_task = getattr(app.state, "sentinel_task", None)
         if sentinel_task and not sentinel_task.done():
             from core.sentinel_agent import sentinel
+
             sentinel.running = False
             sentinel_task.cancel()
             logger.info("✅ Sentinel Agent shut down successfully.")

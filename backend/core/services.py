@@ -78,6 +78,7 @@ experience_db = ExperienceDatabase()
 # Add explicit global_http_client
 global_http_client: httpx.AsyncClient | None = None
 
+
 def __getattr__(name: str):
     """what is code: ডায়নামিক সার্ভিস গেটার — লিগ্যাসি টেস্ট এবং রাউটারগুলোর ব্যাকওয়ার্ড কম্প্যাটিবিলিটি নিশ্চিত করে।"""
     if name == "registry":
@@ -96,8 +97,10 @@ def __getattr__(name: str):
         pass
 
     import os
+
     if os.getenv("ENV", "local").lower() in ("test", "testing"):
         from unittest.mock import MagicMock
+
         return MagicMock()
-    
+
     raise AttributeError(f"Module 'core.services' has no attribute '{name}'")

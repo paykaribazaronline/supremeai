@@ -112,7 +112,7 @@ async def add_funds(
     await _ensure_wallet(session, user_id)
 
     checkout_id = str(uuid.uuid4())
-    
+
     # বাংলা মন্তব্য: ডাইনামিক অরিজিন ডিটেকশন (Zero-Config)
     checkout_base = os.getenv("CHECKOUT_BASE_URL")
     if not checkout_base:
@@ -249,6 +249,7 @@ async def stripe_webhook(request: Request, session: AsyncSession = Depends(get_d
 
                 try:
                     from core.observability.posthog_client import posthog_client
+
                     posthog_client.capture(
                         distinct_id=user_id or "anonymous",
                         event="subscription_completed",

@@ -35,6 +35,7 @@ class GCPFirestoreVerificationQueue:
         self.db_path = db_path or os.getenv("GCP_FIRESTORE_SQLITE_PATH")
 
         from utils.environment import is_test_environment
+
         is_test = is_test_environment()
         if FIRESTORE_AVAILABLE and self.project_id and not is_test:
             try:
