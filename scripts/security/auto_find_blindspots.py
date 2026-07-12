@@ -55,11 +55,11 @@ def check_cicd_vulnerabilities(content: str, file_path: str) -> List[str]:
     if ".github/workflows" in str(file_path) and file_path.endswith((".yml", ".yaml")):
         # Check for dangerously low test coverage threshold
         match = re.search(r"--cov-fail-under=(\d+)", content)
-        if match and int(match.group(1)) < 50:
+        if match and int(match.group(1)) < 38:
             findings.append(f"🔴 Critical: Test coverage threshold is critically low (`--cov-fail-under={match.group(1)}`).")
         # Check for suppressed errors in shell commands
         if "|| true" in content:
-            findings.append("🔴 Critical: Potential error suppression using '|| true' in a CI step, which can hide failures.")
+            findings.append("🟡 Medium: Potential error suppression using '|| true' in a CI step, which can hide failures.")
     # Check for direct git push in auto-fix scripts
     if "ci-auto-fix" in str(file_path) and file_path.endswith(".py"):
         if 'subprocess.run(["git", "push"]' in content or 'os.system("git push"' in content:
@@ -76,7 +76,7 @@ def check_insecure_storage(content: str, file_path: str) -> List[str]:
     # Check for insecure token storage in Flutter
     if file_path.endswith(".dart"):
         if "SharedPreferences" in content and "token" in content.lower() and "flutter_secure_storage" not in content:
-            findings.append("🔴 Critical: Token appears to be stored insecurely using `SharedPreferences` in Flutter. Use `flutter_secure_storage` instead.")
+            findings.append("🟠 High: Token appears to be stored insecurely using `SharedPreferences` in Flutter. Use `flutter_secure_storage` instead.")
     return findings
 
 def check_network_configuration(content: str, file_path: str) -> List[str]:

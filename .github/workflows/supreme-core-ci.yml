@@ -119,6 +119,13 @@ jobs:
           python scripts/find_stub_data.py --path . --fail-on HIGH
           echo "✅ পাস: কোনো স্টাব/প্লেসহোল্ডার প্যাটার্ন পাওয়া যায়নি" >> $GITHUB_STEP_SUMMARY
 
+      - name: 🛡️ Gate 1.5 — Security Blind Spot Scan
+        if: needs.changes.outputs.docs_only != 'true'
+        run: |
+          echo "=== Security Blind Spot Scan ===" >> $GITHUB_STEP_SUMMARY
+          python scripts/security/auto_find_blindspots.py
+          echo "✅ পাস: কোনো ক্রিটিকাল সিকিউরিটি রিস্ক নেই" >> $GITHUB_STEP_SUMMARY
+
       - name: 🔬 Gate 2 — Ruff Linting (No Silent Bugs)
         if: needs.changes.outputs.docs_only != 'true'
         # বাংলা মন্তব্য: T201 (print), BLE001 (silent except) rule enforce করা হচ্ছে
@@ -396,7 +403,7 @@ jobs:
           SUPABASE_DATABASE_URL: "postgresql://mock_user:mock_pass@localhost:5432/mock_db"
           ADMIN_AUTHORIZED: "true"
         run: |
-          poetry run pytest --md pytest-report.md --cov=core --cov-report=json:coverage.json --cov-report=term-missing --cov-fail-under=25 -q
+          poetry run pytest --md pytest-report.md --cov=core --cov-report=json:coverage.json --cov-report=term-missing --cov-fail-under=38 -q
 
       - name: Add Backend Test Results to GitHub Summary
         if: always()
