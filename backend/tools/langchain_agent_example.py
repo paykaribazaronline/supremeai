@@ -38,7 +38,7 @@ def handle_agent_call_langchain(
     tracker = config.create_tracker()
 
     # বাংলা মন্তব্য: লঞ্চডার্কলি থেকে ডায়নামিক মডেল নির্ধারণ, অন্যথায় ডিফল্ট মডেল ব্যবহার
-    default_model = "gemini-1.5-flash" if getattr(settings, "gemini_api_key", None) else "claude-3-5-sonnet-20241022"
+    default_model = "gemini-2.5-flash" if getattr(settings, "gemini_api_key", None) else "claude-3-5-sonnet-20241022"
     model_name = config.model.name if (config.model and config.model.name) else default_model
 
     # বাংলা মন্তব্য: লঞ্চডার্কলি মডেল প্রোভাইডার প্রিফিক্স (যেমন: "Gemini.") থাকলে তা বাদ দেওয়া হচ্ছে
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     aiclient = LDAIClient(ldclient.get())
     context = Context.builder("user-123").kind("user").build()
 
-    default_model = "gemini-1.5-flash" if getattr(settings, "gemini_api_key", None) else "claude-3-5-sonnet-20241022"
+    default_model = "gemini-2.5-flash" if getattr(settings, "gemini_api_key", None) else "claude-3-5-sonnet-20241022"
     config = aiclient.agent_config(
         "supremes-writing-assistant",
         context,

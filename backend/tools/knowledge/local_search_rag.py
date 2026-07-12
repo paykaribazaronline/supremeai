@@ -1,3 +1,13 @@
+"""Provides a local Retrieval Augmented Generation (RAG) system for AI agents.
+
+This module defines the `LocalSearchRAG` class, which integrates web browsing
+(via `BrowserAgent`) with local persistent storage and retrieval mechanisms.
+It enables agents to perform web searches, fetch and summarize content, and
+store this information for future retrieval. It supports semantic search
+using ChromaDB, with a robust TF-IDF-based fallback for offline or
+unconfigured environments, allowing efficient access to previously gathered
+information to enhance contextual understanding."""
+
 import contextlib
 import json
 from pathlib import Path

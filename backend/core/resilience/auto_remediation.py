@@ -159,7 +159,7 @@ class AutoRemediation:
                     context,
                     default=AICompletionConfigDefault(
                         enabled=True,
-                        model=ModelConfig(name="gemini/gemini-1.5-pro"),
+                        model=ModelConfig(name="gemini/gemini-2.5-pro"),
                         messages=[LDMessage(role="system", content=default_prompt_template)],
                     ),
                     variables=prompt_vars,
@@ -168,10 +168,10 @@ class AutoRemediation:
                 logger.warning(f"LaunchDarkly config evaluation failed, falling back: {exc}")
 
         if config and config.enabled:
-            model_name = config.model.name if config.model else "gemini/gemini-1.5-pro"
+            model_name = config.model.name if config.model else "gemini/gemini-2.5-pro"
             prompt = config.messages[0].content if config.messages else default_prompt_template.format(**prompt_vars)
         else:
-            model_name = "gemini/gemini-1.5-pro"
+            model_name = "gemini/gemini-2.5-pro"
             prompt = default_prompt_template.format(**prompt_vars)
 
         try:

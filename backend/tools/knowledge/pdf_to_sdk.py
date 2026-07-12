@@ -1,3 +1,10 @@
+"""
+Provides tools to extract API specifications from PDF documents and generate client SDKs.
+
+It attempts to parse API endpoint information from PDF text using various extraction libraries
+and can leverage AI models for comprehensive SDK generation, with a fallback to basic SDK scaffolding.
+"""
+
 import os
 import re
 from typing import Any

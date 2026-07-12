@@ -8,9 +8,9 @@ def analyze_docker_bloat():
     max_size_mb = int(os.environ.get("MAX_IMAGE_SIZE_MB", "500"))
     
     # ডকার ইমেজের টোটাল সাইজ বের করা
-    size_cmd = f"docker image inspect {image_name} --format='{{{{.Size}}}}'"
+    size_cmd = ["docker", "image", "inspect", image_name, "--format={{.Size}}"]
     try:
-        size_bytes = int(subprocess.check_output(size_cmd, shell=True).decode('utf-8').strip())
+        size_bytes = int(subprocess.check_output(size_cmd, shell=False).decode('utf-8').strip())
         size_mb = size_bytes / (1024 * 1024)
     except Exception as e:
         print(f"❌ Failed to get image size: {e}")
@@ -26,8 +26,8 @@ def analyze_docker_bloat():
     print("🚨 BLOAT DETECTED! Image size exceeded limit. Initiating AI Autopsy...")
     
     # ডকারের কোন লেয়ারে কত এমবি ডেটা আছে তা বের করা
-    history_cmd = f"docker history {image_name} --no-trunc --format '{{{{.Size}}}}\t{{{{.CreatedBy}}}}'"
-    history_output = subprocess.check_output(history_cmd, shell=True).decode('utf-8')
+    history_cmd = ["docker", "history", image_name, "--no-trunc", "--format", "{{.Size}}\t{{.CreatedBy}}"]
+    history_output = subprocess.check_output(history_cmd, shell=False).decode('utf-8')
 
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
@@ -35,7 +35,7 @@ def analyze_docker_bloat():
         sys.exit(1)
 
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash')
 
     prompt = f"""You are an elite DevSecOps AI. The CI/CD pipeline failed because the Docker image size ({size_mb:.2f} MB) exceeded the limit of {max_size_mb} MB.
     

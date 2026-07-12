@@ -1,3 +1,12 @@
+"""
+Orchestrates the daily learning and evolution process for SupremeAI agents.
+
+This module defines the `DailyLearner` class, responsible for discovering new AI techniques,
+prompt paradigms, and software libraries from external research sources (e.g., ArXiv, GitHub).
+It integrates this discovered knowledge into the system's `EvolutionEngine` to facilitate
+continuous improvement and adaptation of agent capabilities within the SupremeAI ecosystem.
+"""
+
 from typing import Any
 
 from loguru import logger

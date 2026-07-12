@@ -46,7 +46,7 @@ _MODEL_KEY_MAP: dict[str, str] = {
 
 # বাংলা মন্তব্য: Default fallback models — routing_policy.json না থাকলে এগুলো ব্যবহার হবে
 _DEFAULT_FALLBACK_MODELS: list[str] = [
-    "gemini/gemini-1.5-flash",
+    "gemini/gemini-2.5-flash",
     "openrouter/auto",
 ]
 
@@ -163,8 +163,18 @@ class LLMGateway:
         task_type: str,
     ) -> list[str]:
         """বাংলা মন্তব্য: Task type অনুযায়ী fallback chain তৈরি।"""
+        
+        # OpenAI-style Task-to-Model mapping
+        TASK_MODEL_MAP = {
+            "coding": "deepseek/deepseek-coder",
+            "reasoning": "anthropic/claude-3-5-sonnet",
+            "vision": "google/gemini-2.5-pro",
+            "chat": "gemini/gemini-2.5-flash",
+            "general": "gemini/gemini-2.5-flash",
+        }
+        
         difficulty = "easy"
-        if any(kw in task_type.lower() for kw in ("reasoning", "math", "code")):
+        if any(kw in task_type.lower() for kw in ("reasoning", "math", "code", "coding")):
             difficulty = "hard"
         elif any(kw in task_type.lower() for kw in ("agent", "analysis")):
             difficulty = "medium"
@@ -175,6 +185,10 @@ class LLMGateway:
         call_chain: list[str] = []
         if model:
             call_chain.append(model)
+            
+        task_specific_model = TASK_MODEL_MAP.get(task_type.lower())
+        if task_specific_model and task_specific_model not in call_chain:
+            call_chain.append(task_specific_model)
 
         all_models = model_candidates + fallbacks
         if provider:

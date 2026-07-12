@@ -99,6 +99,7 @@ async def get_transaction_history(
 @router.post("/add-funds")
 async def add_funds(
     amount: float,
+    request: Request,
     session: AsyncSession = Depends(get_db_session),
     token_payload: dict = Depends(get_current_user_token),
 ):
@@ -111,7 +112,13 @@ async def add_funds(
     await _ensure_wallet(session, user_id)
 
     checkout_id = str(uuid.uuid4())
-    checkout_base = os.getenv("CHECKOUT_BASE_URL", "http://localhost:3000").rstrip("/")
+    
+    # বাংলা মন্তব্য: ডাইনামিক অরিজিন ডিটেকশন (Zero-Config)
+    checkout_base = os.getenv("CHECKOUT_BASE_URL")
+    if not checkout_base:
+        checkout_base = request.headers.get("origin") or request.headers.get("referer", "http://localhost:3000")
+    checkout_base = checkout_base.rstrip("/")
+
     return {
         "status": "pending",
         "checkout_id": checkout_id,

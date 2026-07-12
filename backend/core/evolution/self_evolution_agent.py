@@ -1,3 +1,14 @@
+"""Manages the autonomous self-evolution of the AI system by monitoring skill fitness,
+triggering refactoring of underperforming skills, and orchestrating the creation of new capabilities.
+
+This module defines the `SelfEvolutionAgent`, which operates on a continuous loop to
+evaluate the performance of existing skills. It identifies skills that fall below
+defined fitness thresholds, initiating refactoring processes or generating new skills
+to address missing functionalities. A critical component is the "Zero-Gap" pipeline,
+which ensures the secure and validated integration of AI-generated code proposals
+through AST security scanning, CI/CD dry runs, and atomic database transactions.
+"""
+
 import asyncio
 import contextlib
 import time

@@ -65,7 +65,7 @@ async def run_guardian():
     
     try:
         response = await llm_gateway.acompletion(
-            model="gemini/gemini-1.5-pro", # Use an advanced model for analysis
+            model="gemini/gemini-2.5-pro", # Use an advanced model for analysis
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}

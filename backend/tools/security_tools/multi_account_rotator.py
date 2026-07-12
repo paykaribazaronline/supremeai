@@ -572,7 +572,7 @@ class MultiAccountRotator:
             },
             "google_ai_studio": {
                 "base_url": "https://generativelanguage.googleapis.com",
-                "models": ["gemini-2.0-flash-exp", "gemini-1.5-pro"],
+                "models": ["gemini-2.0-flash-exp", "gemini-2.5-pro"],
                 "rate_limit_rpm": 15,
                 "rate_limit_tpm": 1000000,
             },

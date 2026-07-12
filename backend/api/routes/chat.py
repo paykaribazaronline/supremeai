@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api/chat", tags=["AI-Orchestration"])
 
 class ChatPayload(BaseModel):
     prompt: str
-    model_name: str = "gemini-1.5-pro"
+    model_name: str = "gemini-2.5-pro"
 
 
 # ⚡ ১. Fully Async Standard Completion with Multi-Layer Caching

@@ -11,7 +11,7 @@ router = APIRouter(prefix="/api/mobile/bff", tags=["mobile-bff"])
 class MobileChatRequest(BaseModel):
     message: str
     history: list[dict[str, str]] = []
-    model_preference: str = "gemini-1.5-flash"
+    model_preference: str = "gemini-2.5-flash"
 
 
 @router.post("/orchestrate")

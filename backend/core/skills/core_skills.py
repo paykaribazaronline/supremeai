@@ -15,7 +15,7 @@ class SystemDesignSkill(BaseSkill):
     def name(self) -> str:
         return "SystemDesignSkill"
 
-    async def execute(self, workspace: SharedWorkspace, user_id: str, model_name: str = "gemini/gemini-1.5-flash", **kwargs: Any) -> Any:
+    async def execute(self, workspace: SharedWorkspace, user_id: str, model_name: str = "gemini/gemini-2.5-flash", **kwargs: Any) -> Any:
         workspace.log(f"{self.name}: Starting system architecture layout analysis...")
         sys_prompt = "You are a lead system architect. Define file structures, component breakdown, and database schemas."
         user_prompt = f"Design architecture for task: {workspace.original_prompt}"

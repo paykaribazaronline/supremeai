@@ -420,7 +420,7 @@ def get_providers():
             "gemini",
             "Google Gemini",
             settings.gemini_api_key,
-            ["gemini-2.0-flash", "gemini-1.5-pro"],
+            ["gemini-2.0-flash", "gemini-2.5-pro"],
         ),
         ("groq", "Groq", settings.groq_api_key, ["llama-3.1-8b", "mixtral-8x7b"]),
         (

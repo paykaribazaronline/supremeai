@@ -1,3 +1,9 @@
+"""
+Provides the `KnowledgeBaseIndexer` for managing a vector-based knowledge base.
+
+This module handles the extraction and indexing of structured and unstructured
+knowledge from Python `seed_data` modules (
+
 from __future__ import annotations
 
 import ast

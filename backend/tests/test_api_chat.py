@@ -74,7 +74,7 @@ async def test_get_completion_generates_response_and_saves_cache(monkeypatch):
     assert result["cached"] is False
     assert result["response"] == "generated:live-prompt"
     assert fake_cache.saved is not None
-    assert fake_cache.saved["model_name"] == "gemini-1.5-pro"
+    assert fake_cache.saved["model_name"] == "gemini-2.5-pro"
 
 
 @pytest.mark.asyncio

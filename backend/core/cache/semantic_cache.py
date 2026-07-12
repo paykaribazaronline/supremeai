@@ -1,3 +1,12 @@
+"""Implements a dynamic, vector-based semantic cache for AI model responses.
+
+This module provides the `SemanticCache` class, which leverages an `ExperienceDatabase`
+(e.g., ChromaDB/Qdrant) as its vector backend. It stores and retrieves AI responses
+based on semantic similarity to input prompts, aiming to reduce redundant model calls.
+A key feature is its database-driven, dynamically configurable cache threshold,
+which adapts based on the task type and can be adjusted by administrators
+without requiring redeployment."""
+
 # Vector Semantic Cache Engine for SupremeAI 2.0
 # বাংলা মন্তব্য: এটি ফায়ারস্টোর বাদ দিয়ে সরাসরি experience_db.py (ChromaDB/Qdrant) ব্যবহার করে এবং ডাইনামিক থ্রেশহোল্ড সেট করে।
 
