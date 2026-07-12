@@ -37,7 +37,9 @@ _SANDBOX_ROOT_WHITELIST: frozenset[str] = frozenset(
         "/run/sandboxes",
         "C:\\tmp\\sandboxes",
         "C:\\temp\\sandboxes",
-    } if platform.system() == "Windows" else {
+    }
+    if platform.system() == "Windows"
+    else {
         "/tmp/sandboxes",
         "/var/tmp/sandboxes",
         "/run/sandboxes",

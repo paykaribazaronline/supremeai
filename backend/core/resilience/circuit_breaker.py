@@ -31,9 +31,11 @@ class CircuitBreakerOpenError(RuntimeError):
 # Test code এই enum import করে state check করে।
 class CircuitBreakerState:
     """State constants for CircuitBreaker."""
+
     CLOSED = "CLOSED"
     OPEN = "OPEN"
     HALF_OPEN = "HALF_OPEN"
+
 
 class CircuitBreaker:
     def __init__(
