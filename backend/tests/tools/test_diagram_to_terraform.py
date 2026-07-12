@@ -17,7 +17,7 @@ async def test_to_terraform(mock_diagram_converter):
     # বাংলা মন্তব্য: Cloud architecture diagram থেকে Terraform HCL জেনারেশন টেস্ট
     converter = DiagramToArchitecture()
 
-    with patch.object(converter, "_get_vision_client") as mock_client:
+    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_client:
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.content = """
@@ -38,7 +38,7 @@ resource "google_compute_instance" "web_server" {
   }
 }
 """
-        mock_client.return_value.chat.completions.create.return_value = mock_response
+        mock_client.return_value = {"text": mock_response.choices[0].message.content}
 
         result = await converter.to_terraform("architecture_diagram.png", cloud_provider="gcp")
 
@@ -52,7 +52,7 @@ async def test_to_kubernetes(mock_diagram_converter):
     # বাংলা মন্তব্য: Architecture diagram থেকে Kubernetes YAML জেনারেশন টেস্ট
     converter = DiagramToArchitecture()
 
-    with patch.object(converter, "_get_vision_client") as mock_client:
+    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_client:
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.content = """
@@ -76,7 +76,7 @@ spec:
         ports:
         - containerPort: 80
 """
-        mock_client.return_value.chat.completions.create.return_value = mock_response
+        mock_client.return_value = {"text": mock_response.choices[0].message.content}
 
         result = await converter.to_kubernetes("architecture_diagram.png")
 
@@ -90,7 +90,7 @@ async def test_to_database_schema(mock_diagram_converter):
     # বাংলা মন্তব্য: ER diagram থেকে SQLAlchemy model জেনারেশন টেস্ট
     converter = DiagramToArchitecture()
 
-    with patch.object(converter, "_get_vision_client") as mock_client:
+    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_client:
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.content = """
@@ -105,7 +105,7 @@ class User(Base):
     name = Column(String(100))
     email = Column(String(255), unique=True)
 """
-        mock_client.return_value.chat.completions.create.return_value = mock_response
+        mock_client.return_value = {"text": mock_response.choices[0].message.content}
 
         result = await converter.to_database_schema("er_diagram.png", orm="sqlalchemy")
 
@@ -119,7 +119,7 @@ async def test_generate_api_spec(mock_diagram_converter):
     # বাংলা মন্তব্য: Flowchart থেকে API spec (OpenAPI) জেনারেশন টেস্ট
     converter = DiagramToArchitecture()
 
-    with patch.object(converter, "_get_vision_client") as mock_client:
+    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_client:
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.content = """
@@ -135,7 +135,7 @@ paths:
         '200':
           description: A list of users
 """
-        mock_client.return_value.chat.completions.create.return_value = mock_response
+        mock_client.return_value = {"text": mock_response.choices[0].message.content}
 
         result = await converter.generate_api_spec("flowchart.png")
 
@@ -149,7 +149,7 @@ async def test_to_docker_compose(mock_diagram_converter):
     # বাংলা মন্তব্য: Architecture diagram থেকে Docker Compose YAML জেনারেশন টেস্ট
     converter = DiagramToArchitecture()
 
-    with patch.object(converter, "_get_vision_client") as mock_client:
+    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_client:
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.content = """
@@ -164,7 +164,7 @@ services:
     environment:
       POSTGRES_PASSWORD: example
 """
-        mock_client.return_value.chat.completions.create.return_value = mock_response
+        mock_client.return_value = {"text": mock_response.choices[0].message.content}
 
         result = await converter.to_docker_compose("architecture_diagram.png")
 
