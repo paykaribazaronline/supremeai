@@ -2,8 +2,8 @@ import time
 
 import httpx
 
-from core.resilience.chaos_engine import chaos_engine
 from core.cache.redis_manager import redis_manager
+from core.resilience.chaos_engine import chaos_engine
 
 
 # Note: Using a safe fallback if supabase_client is not directly importable or missing ping

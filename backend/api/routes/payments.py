@@ -4,7 +4,6 @@ from fastapi import APIRouter
 from fastapi import HTTPException
 from fastapi import Request
 from loguru import logger
-from pydantic import BaseModel
 
 
 try:
@@ -29,12 +28,7 @@ from core.config import settings
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
-from core.gcp_firestore import get_firestore_client
-
-
 from core.billing_plans import CheckoutRequest
-
-
 
 
 @router.post("/checkout")
@@ -96,6 +90,3 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
     except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to create Stripe checkout session: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e
-
-
-

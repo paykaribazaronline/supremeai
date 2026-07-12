@@ -1,12 +1,26 @@
+"""This module implements the `MaintenancePipeline`, acting as the "Immune System" for the SupremeAI ecosystem. It is responsible for continuously monitoring the health and performance of critical backend components such as databases, Redis, and external AI APIs. The pipeline proactively listens for system-wide error events, performs routine health checks, detects potential performance regressions, and attempts automated self-healing remediation actions like switching LLM providers or re-initializing services to ensure the overall stability and resilience of the AI platform.
+
+Key Components:
+- `MaintenancePipeline`: A class that orchestrates continuous health monitoring, processes error events, detects performance issues, and triggers automated remediation strategies to maintain system integrity.
+- `maintenance_pipeline`: A global singleton instance of the `MaintenancePipeline` class, providing a centralized point of control for system health management.
+
+Dependencies:
+- `asyncio`: For managing asynchronous operations and background monitoring tasks.
+- `logging`: For structured logging of health status, warnings, and critical events.
+- `time`: For timestamping health checks and implementing cooldown periods for remediation.
+- `core.messaging.event_bus`: For registering listeners to and emitting system-wide `ErrorEvent`s.
+- `core.health.health_probes`: Provides specific functions to probe the health of internal and external services (e.g., database, Redis, external APIs).
+- `core.cache.redis_manager`: Utilized within remediation logic to interact with Redis, such as updating configuration or re-initializing connections."""
+
 import asyncio
 import logging
 import time
 
-from core.messaging.event_bus import ErrorEvent
-from core.messaging.event_bus import error_event_bus
 from core.health.health_probes import probe_database
 from core.health.health_probes import probe_external_api
 from core.health.health_probes import probe_redis
+from core.messaging.event_bus import ErrorEvent
+from core.messaging.event_bus import error_event_bus
 
 
 logger = logging.getLogger("supremeai.immune_system")

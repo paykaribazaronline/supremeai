@@ -1,3 +1,12 @@
+"""This module centralizes the definition of data models and static configuration for billing and subscription plans within the SupremeAI backend. It provides a standardized structure for initiating checkout requests and a comprehensive list of available subscription tiers, ensuring consistency across payment processing, user management, and feature access services.
+
+Key Components:
+- `CheckoutRequest`: A Pydantic model defining the required parameters for initiating a user checkout process for a specific billing plan.
+- `SUBSCRIPTION_PLANS`: A constant list of dictionaries, each representing a distinct subscription plan with details like ID, name, price, currency, interval, and included features.
+
+Dependencies:
+- `pydantic`: Used for defining `CheckoutRequest` to ensure robust data validation and serialization."""
+
 from pydantic import BaseModel
 
 

@@ -1,3 +1,50 @@
+"""This module defines FastAPI routes for the SupremeAI project's administrative interface, providing secure authentication mechanisms, system monitoring, and configuration management. It supports both traditional password-based and Firebase-authenticated admin logins with Time-based One-Time Password (TOTP) verification, alongside endpoints for observing cloud resource distribution, free-tier usage, token budgets, GCP service health, rules engine management, and available AI skills. This centralizes control and visibility for the AI ecosystem's backend operations.
+
+Key Components:
+- `router`: The FastAPI APIRouter instance for admin-specific endpoints.
+- `_hash_password()`: Hashes a given password using bcrypt.
+- `_verify_password()`: Verifies a plain-text password against a bcrypt hash.
+- `_get_admin_credentials()`: Retrieves the admin password hash from environment variables.
+- `admin_login()`: Handles the initial step of traditional admin login, requiring a TOTP code.
+- `admin_verify()`: Completes traditional admin login by verifying password and TOTP, issuing a JWT.
+- `admin_firebase_login()`: Authenticates administrators via Firebase ID tokens, checks roles, and initiates TOTP flow if needed.
+- `admin_firebase_totp_setup()`: Generates a TOTP secret and provisioning URI for Firebase-authenticated admins.
+- `admin_firebase_totp_verify()`: Verifies a TOTP code for Firebase-authenticated admins, finalizing setup or issuing a JWT.
+- `cloud_distribution()`: Provides statistics on the distribution of requests across LLM providers.
+- `free_tier_status()`: Returns the overall status of free-tier usage.
+- `free_tier_provider_status()`: Returns the free-tier status for a specific LLM provider.
+- `free_tier_pause_provider()`: Pauses a free-tier provider for a specified duration.
+- `free_tier_override_limits()`: Overrides the usage limits for a free-tier provider.
+- `token_budget_stats()`: Provides statistics on token budget consumption.
+- `gcp_health()`: Performs health checks for various Google Cloud Platform services.
+- `gcp_verification_queue_stats()`: Returns statistics for the GCP verification queue.
+- `gcp_pubsub_stats()`: Returns statistics for GCP Pub/Sub.
+- `get_admin_rules()`: Retrieves the current rules from the rules engine.
+- `post_admin_rules()`: Updates the rules within the rules engine.
+- `get_skills()`: Lists available AI skills and their descriptions.
+- `verify_totp_code()`: Verifies a Time-based One-Time Password (TOTP) code.
+- `check_totp()`: An alias for `verify_totp_code()`, used for TOTP verification.
+
+Dependencies:
+- `base64`: For Base32 encoding/decoding in TOTP.
+- `hashlib`: For SHA1 hashing in TOTP.
+- `hmac`: For HMAC-SHA1 in TOTP.
+- `os`: For environment variable access and secure random generation.
+- `struct`: For packing/unpacking binary data in TOTP.
+- `time`: For time-related operations in TOTP and JWT expiration.
+- `fastapi`: For defining API routes and handling HTTP requests/responses.
+- `loguru`: For structured logging.
+- `bcrypt`: (Optional) For secure password hashing and verification.
+- `core.services`: For accessing various core services like parallel router, GCP router, queues, and rules engine.
+- `core.config`: For accessing application settings (e.g., `settings.jwt_secret`, `settings.admin_emails`).
+- `core.messaging.events`: For `get_firebase_auth` to interact with Firebase Admin SDK.
+- `core.gcp_firestore`: For `get_firestore_client` to interact with Firestore for admin user management.
+- `models.admin`: For Pydantic models defining admin request payloads.
+- `jose.jwt`: For encoding JSON Web Tokens (JWTs).
+- `google.cloud.firestore`: For Firestore field deletion.
+- `core.llm.free_tier_tracker`: For managing and monitoring LLM free-tier usage.
+- `core.llm.token_budget`: For managing and monitoring LLM token budgets."""
+
 import base64
 import hashlib
 import hmac
@@ -12,8 +59,8 @@ from loguru import logger
 
 from core import services
 from core.config import settings
-from core.messaging.events import get_firebase_auth
 from core.gcp_firestore import get_firestore_client
+from core.messaging.events import get_firebase_auth
 from models.admin import AdminFirebaseLoginRequest
 from models.admin import AdminFirebaseTotpSetupRequest
 from models.admin import AdminFirebaseTotpVerifyRequest

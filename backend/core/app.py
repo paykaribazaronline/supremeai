@@ -1,3 +1,37 @@
+"""This module serves as the central bootstrapping and configuration point for the SupremeAI FastAPI application. It initializes the core FastAPI instance, applies essential middleware for security, observability, and resilience, configures logging and error tracking, and dynamically loads all API routers, ensuring a robust, production-ready, and fail-fast backend ecosystem for the highly scalable AI project.
+
+Key Components:
+- `InterceptHandler`: A custom logging handler that redirects standard Python logging records to Loguru for centralized and enhanced logging.
+- `_docs_auth()`: A dependency function that authenticates access to the FastAPI documentation using HTTP Basic authentication.
+- `_maybe_docs_auth()`: A utility function that conditionally enables or disables documentation authentication based on application settings and debug mode.
+- `app`: The main FastAPI application instance, meticulously configured with metadata, dependencies, and a comprehensive suite of middleware.
+- `custom_http_exception_handler()`: A custom exception handler that provides a standardized JSON response format for all `HTTPException` instances.
+- `_safe_include_router()`: A robust utility function designed to dynamically import and include FastAPI routers, logging warnings for missing optional routers and critically failing on essential router load errors to ensure application integrity.
+- `health()`: An endpoint that exposes a comprehensive health check, verifying the operational status of critical services like Redis and the configuration of essential API keys.
+- `actuator_health()`: A simple health status endpoint, typically used by external monitoring systems for quick liveness checks.
+- `router_health_check()`: A critical startup check that ensures a minimum number of API routes have been successfully loaded, enforcing a strict fail-fast policy during application initialization.
+
+Dependencies:
+- `core.config`: For accessing application-wide settings and environment variables.
+- `core.lifespan`: Defines the application's startup and shutdown lifecycle events.
+- `core.services`: Provides access to shared application services, such as Redis.
+- `core.admin_routes`: Contains administrative API endpoints for system management.
+- `core.security.*`: Modules for various security features, including API key authentication, general authentication, honeypot detection, and trusted origin validation.
+- `core.observability.observability_middleware`: Integrates observability features into the request lifecycle for monitoring and tracing.
+- `core.messaging.event_bus`: Facilitates event-driven error reporting and communication within the application.
+- `middleware.chaos_injector`: Injects controlled failures for resilience testing and chaos engineering.
+- `middleware.idempotency`: Ensures that repeated requests have the same effect as a single request, preventing unintended side effects.
+- `api.routes.*`: A collection of modules defining the core API endpoints for various SupremeAI functionalities (e.g., agents, tasks, marketplace, tools).
+- `tools.*`: Modules defining API endpoints for optional or external AI tools and integrations.
+- `logging`: Standard Python library for logging.
+- `os`, `sys`, `secrets`, `pathlib`: Standard Python utilities for system interaction, security, and path manipulation.
+- `typing`: Provides support for type hints, enhancing code readability and maintainability.
+- `sentry_sdk`: Integrates Sentry for robust error tracking and performance monitoring.
+- `fastapi`: The high-performance web framework used for building the API.
+- `loguru`: A robust logging library used for enhanced and structured logging.
+- `slowapi`: Provides rate limiting functionality for API endpoints to prevent abuse.
+- `importlib`: Used for dynamic module loading, enabling flexible router inclusion."""
+
 # backend/core/app.py
 # ⚠️ WARNING: DO NOT MOVE THIS FILE. It is heavily integrated into the FastAPI startup lifecycle.
 # Moving this file will break relative paths, imports, and core app bootstrapping across the entire project.
@@ -32,13 +66,13 @@ from loguru import logger
 from core import lifespan
 from core import services
 from core.admin_routes import router as admin_router
-from core.security.api_key_middleware import APIKeyAuthMiddleware
-from core.security.auth_middleware import AuthMiddleware
 from core.config import settings
 from core.messaging.event_bus import ErrorEvent
 from core.messaging.event_bus import error_event_bus
-from core.security.honeypot_middleware import HoneypotMiddleware
 from core.observability.observability_middleware import ObservabilityMiddleware
+from core.security.api_key_middleware import APIKeyAuthMiddleware
+from core.security.auth_middleware import AuthMiddleware
+from core.security.honeypot_middleware import HoneypotMiddleware
 from core.security.origin_validator import TrustedOriginMiddleware
 from middleware.chaos_injector import ChaosInjectorMiddleware
 from middleware.idempotency import IdempotencyMiddleware

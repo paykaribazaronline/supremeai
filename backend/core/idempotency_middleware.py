@@ -30,6 +30,7 @@ class IdempotencyMiddleware:
         বাংলা মন্তব্য: শেয়ার্ড অ্যাসিঙ্ক্রোনাস Redis ক্লায়েন্ট (redis_manager) ব্যবহার করা হচ্ছে।
         """
         from core.cache.redis_manager import redis_manager
+
         return getattr(redis_manager, "client", None)
 
     async def __call__(self, scope, receive, send) -> None:

@@ -1,3 +1,16 @@
+"""This module defines the `ErrorPatternDB` class, a specialized component for managing a persistent SQLite database dedicated to logging, retrieving, and analyzing AI model errors and specific AI mistakes. Within the SupremeAI project, it serves as a crucial feedback mechanism, enabling the system to learn from past failures, identify recurring patterns (e.g., hallucinations), and derive actionable prevention strategies to continuously improve the reliability, accuracy, and robustness of AI agent outputs.
+
+Key Components:
+- `ErrorPatternDB`: Manages an SQLite database to store and retrieve historical data on general AI errors and detailed AI model mistakes.
+- `ErrorPatternDB.log_error()`: Records a general error pattern, its type, and a correction into the `errors` table.
+- `ErrorPatternDB.log_ai_mistake()`: Logs comprehensive details about a specific AI model mistake, including the model, task, original/correct output, root cause, and a prevention strategy, into the `ai_mistakes` table.
+- `ErrorPatternDB.get_prevention_strategy()`: Queries the database to retrieve the most frequently recorded prevention strategy for a given AI model and task type.
+- `ErrorPatternDB.check_pattern()`: Analyzes a given AI output string against known error patterns in the database to identify potential matches and suggest prevention.
+
+Dependencies:
+- `sqlite3`: For interacting with the SQLite database to store and retrieve error patterns and AI mistakes.
+- `datetime`: For generating precise timestamps for all database entries."""
+
 import sqlite3
 from datetime import UTC
 from datetime import datetime

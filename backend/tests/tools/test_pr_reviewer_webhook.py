@@ -56,7 +56,7 @@ async def test_auto_approve_on_clean_pr():
             with patch.object(reviewer, "analyze_diff", return_value=[]):
                 result = await reviewer._auto_approve("owner/repo", 42)
 
-    assert type(result) is dict
+    assert isinstance(result, dict)
 
 
 @pytest.mark.anyio
@@ -75,7 +75,7 @@ async def test_post_pr_comment():
             mock_settings.github_token = "fake-token"
             result = await reviewer._post_pr_comment("owner/repo", 42, "Test comment")
 
-    assert type(result) is dict
+    assert isinstance(result, dict)
 
 
 @pytest.mark.anyio

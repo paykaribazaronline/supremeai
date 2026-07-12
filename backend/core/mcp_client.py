@@ -1,3 +1,14 @@
+"""Provides the `MCPRegistryClient` for discovering and connecting to external Master Control Program (MCP) servers within the SupremeAI ecosystem.
+
+This module, `mcp_client.py`, defines the `MCPRegistryClient`, a foundational component designed to act as the "Real-World Connector" for the SupremeAI project. Its primary role is to facilitate the dynamic identification of agentic tools available across various domains by interacting with external MCP servers. While currently implementing placeholder logic for tool discovery, it lays the essential groundwork for future integration with live MCP servers, enabling the scalable and flexible operation of SupremeAI's diverse agentic capabilities.
+
+Key Components:
+- `MCPRegistryClient`: Manages the discovery and connection to external MCP servers, identifying available agentic tools based on specified domains.
+- `discover_tools()`: Asynchronously retrieves a list of tool names relevant to a given domain, currently utilizing placeholder logic for demonstration and future expansion.
+
+Dependencies:
+- `loguru`: Used for robust and structured logging of client operations and discovery processes."""
+
 from loguru import logger
 
 

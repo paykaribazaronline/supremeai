@@ -1,3 +1,16 @@
+"""This module provides the `GenerationMonitor` class, a crucial component within the SupremeAI project for ensuring the quality, reliability, and consistency of AI-generated content. It offers a suite of tools to monitor various aspects of AI output, including token confidence, the identification and flagging of factual claims for verification, enforcement of source attribution, and detection of potential contradictions within conversational contexts, thereby acting as a vital quality assurance layer.
+
+Key Components:
+- `GenerationMonitor`: Manages various quality assurance checks for AI-generated text, including confidence, factual claims, attribution, and consistency.
+- `track_token_confidence()`: Evaluates the confidence level of individual tokens and flags those below a predefined threshold.
+- `flag_factual_claims()`: Identifies potential factual statements within a given text using regular expressions.
+- `require_source_attribution()`: Checks if identified factual claims in a text are accompanied by explicit source attributions.
+- `check_consistency()`: Compares new text against recent conversation history to detect potential contradictions or inconsistencies.
+- `track_agent_call()`: Logs details of agent calls for monitoring and debugging purposes.
+
+Dependencies:
+- `re`: For regular expression operations used in text analysis."""
+
 import re
 
 

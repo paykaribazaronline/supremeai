@@ -1,3 +1,15 @@
+"""This module defines and manages a centralized allowlist for various "Master Control Program" (MCP) servers and their associated tools within the SupremeAI ecosystem. It provides comprehensive configuration details for launching and interacting with a diverse set of external AI agents and tools (e.g., GitHub, Slack, Gemini CLI, OpenHands, etc.), including their execution commands, required environment variables, and explicitly whitelisted API paths and functionalities. The module also offers utility functions to validate server access and precisely determine which specific tools are permitted for each server, thereby ensuring secure, controlled, and auditable interaction with external capabilities across the SupremeAI platform.
+
+Key Components:
+- `get_mcp_servers()`: Provides a comprehensive dictionary of all whitelisted MCP servers, including their execution commands, environment variables, and explicitly allowed API paths and tools.
+- `MCPAllowlist`: A utility class for validating MCP server access and determining the permissibility of specific tools requested by or for a given server.
+- `MCPAllowlist.validate_server()`: Checks if a specified MCP server is recognized and whitelisted, returning its configuration if found.
+- `MCPAllowlist.allowed_tools()`: Compares a list of requested tools against the officially allowed tools for a given MCP server, identifying any unauthorized requests.
+
+Dependencies:
+- `os`: For accessing environment variables to configure MCP servers.
+- `typing`: For type hinting to improve code readability and maintainability."""
+
 from __future__ import annotations
 
 import os

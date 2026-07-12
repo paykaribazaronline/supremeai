@@ -1,3 +1,25 @@
+"""This module, `skill_manager.py`, serves as the central hub for dynamic skill management within the SupremeAI project.
+It provides robust mechanisms for registering, discovering, and dynamically synthesizing AI skills at runtime,
+supporting both locally defined `BaseSkill` instances and on-the-fly generation of new skill schemas via Large Language Models.
+Furthermore, it integrates with a broader Multi-Agent Communication Protocol (MCP) for distributed skill discovery,
+ensuring the AI ecosystem can adapt and expand its capabilities as needed.
+
+Key Components:
+- `SkillManager`: A class responsible for managing the lifecycle of AI skills, including registration, discovery, and dynamic generation.
+- `register_skill()`: Registers a `BaseSkill` instance with the manager, making it available for use.
+- `get_skill()`: Retrieves a skill by name, searching first in the local registry, then a database, and finally attempting discovery via the MCP.
+- `synthesize_skill_schema()`: Utilizes an LLM to generate a new skill's JSON schema based on a natural language task description.
+- `skill_manager`: A global singleton instance of `SkillManager` for application-wide access to skill management functionalities.
+
+Dependencies:
+- `json`: For parsing and serializing JSON data, particularly for skill schemas.
+- `typing.Any`: For flexible type hinting.
+- `loguru`: For comprehensive and structured logging throughout the skill management process.
+- `core.llm.llm_gateway`: Provides an interface for interacting with Large Language Models for skill synthesis.
+- `core.mcp_client.MCPRegistryClient`: Facilitates communication with the Multi-Agent Communication Protocol registry for skill discovery.
+- `core.skills.base.BaseSkill`: The foundational abstract base class for all skills managed by this system.
+- `tools.mcp.mcp_supabase`: Used for querying and retrieving skill definitions from a Supabase database."""
+
 # backend/core/skill_manager.py
 import json
 from typing import Any

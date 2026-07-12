@@ -1,3 +1,19 @@
+"""This module provides a gRPC client for interacting with the SupremeAI backend's Worker Service, which is responsible for executing tasks, retrieving their status, and logging audit events. It acts as a crucial communication layer, enabling the FastAPI engine to offload complex or long-running operations to a dedicated worker component, likely implemented in Java, thereby ensuring scalability and separation of concerns within the SupremeAI ecosystem.
+
+Key Components:
+- `WorkerGrpcClient`: Manages the gRPC connection and provides methods for interacting with the Worker Service.
+- `WorkerGrpcClient.submit_task()`: Submits a new task to the worker for asynchronous processing, returning a task ID.
+- `WorkerGrpcClient.get_task_status()`: Retrieves the current status and results of a previously submitted task.
+- `WorkerGrpcClient.log_audit_event()`: Sends an audit log event to the worker for recording system activities.
+- `worker_client`: A global instance of `WorkerGrpcClient` for convenient access throughout the application.
+
+Dependencies:
+- `json`: For serializing and deserializing task payloads and results.
+- `logging`: For logging operational information and errors.
+- `grpc`: The core library for gRPC communication.
+- `protos.supreme_engine_pb2`: Generated protobuf message definitions for requests and responses.
+- `protos.supreme_engine_pb2_grpc`: Generated gRPC service stubs for the Worker Service."""
+
 import json
 import logging
 from typing import Any
