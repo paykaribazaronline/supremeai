@@ -1,3 +1,11 @@
+"""
+Module for the `EvolutionReActAgent`, which autonomously generates and refines Python skill scripts.
+
+It employs a ReAct (Reason + Act) and Reflexion loop, leveraging a large language model (LLM)
+to iteratively reason, generate code, and self-correct based on compilation errors or previous failures.
+This agent is central to the SupremeAI's capability for automatic skill evolution.
+"""
+
 # Evolution ReAct Agent for SupremeAI 2.0
 # বাংলা মন্তব্য: এটি স্বয়ংক্রিয়ভাবে নতুন স্কিল তৈরির জন্য ReAct (Reason + Act) এবং Reflexion লুপ পরিচালনা করে।
 

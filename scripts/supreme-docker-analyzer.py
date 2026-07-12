@@ -22,9 +22,9 @@ class SupremeDockerAnalyzer:
 
     def analyze(self):
         # Retrieve image size
-        size_cmd = f"docker image inspect {self.image_name} --format='{{{{.Size}}}}'"
+        size_cmd = ["docker", "image", "inspect", self.image_name, "--format={{.Size}}"]
         try:
-            size_bytes = int(subprocess.check_output(size_cmd, shell=True).decode('utf-8').strip())
+            size_bytes = int(subprocess.check_output(size_cmd, shell=False).decode('utf-8').strip())
             size_mb = size_bytes / (1024 * 1024)
         except Exception as e:
             print(f"❌ Failed to get image size: {e}")
@@ -40,9 +40,9 @@ class SupremeDockerAnalyzer:
             status = "WARN"
 
         # Retrieve large layers
-        history_cmd = f"docker history {self.image_name} --no-trunc --format '{{{{.Size}}}}\t{{{{.CreatedBy}}}}'"
+        history_cmd = ["docker", "history", self.image_name, "--no-trunc", "--format", "{{.Size}}\t{{.CreatedBy}}"]
         try:
-            history_output = subprocess.check_output(history_cmd, shell=True).decode('utf-8')
+            history_output = subprocess.check_output(history_cmd, shell=False).decode('utf-8')
             layers = []
             for line in history_output.strip().split('\n'):
                 if not line:

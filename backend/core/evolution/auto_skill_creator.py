@@ -1,3 +1,8 @@
+"""
+Provides the `AutoSkillCreator` class, the core of the SupremeAI self-evolution engine.
+
+This module orchestrates the autonomous generation, rigorous validation (including security analysis and
+
 import time
 from datetime import UTC
 from datetime import datetime

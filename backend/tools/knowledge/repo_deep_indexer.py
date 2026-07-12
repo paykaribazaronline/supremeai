@@ -1,3 +1,5 @@
+"""Provides a deep indexing tool for code repositories, extracting structural information and code snippets for storage and semantic search."""
+
 import ast
 import os
 from typing import Any

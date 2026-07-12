@@ -9,14 +9,14 @@ DUMMY_LOG_DATA = [
     {
         "task_id": "task-123",
         "task_name": "text_formatting",
-        "model": "gemini-1.5-pro",
+        "model": "gemini-2.5-pro",
         "tokens": 500,
         "latency_ms": 1200,
     },
     {
         "task_id": "task-124",
         "task_name": "complex_analysis",
-        "model": "gemini-1.5-pro",
+        "model": "gemini-2.5-pro",
         "tokens": 8000,
         "latency_ms": 5000,
     },
@@ -30,7 +30,7 @@ DUMMY_LOG_DATA = [
     {
         "task_id": "task-126",
         "task_name": "text_formatting",
-        "model": "gemini-1.5-flash",
+        "model": "gemini-2.5-flash",
         "tokens": 450,
         "latency_ms": 400,
     },
@@ -39,13 +39,13 @@ DUMMY_LOG_DATA = [
 # বাংলা মন্তব্য: কোন কাজের জন্য কোন মডেলগুলো অতিরিক্ত শক্তিশালী (overkill) তা এখানে নির্ধারণ করা হয়েছে।
 OPTIMIZATION_RULES = {
     "text_formatting": {
-        "overkill_models": ["gemini-1.5-pro", "claude-3-opus"],
-        "suggestion": "gemini-1.5-flash or claude-3-haiku",
+        "overkill_models": ["gemini-2.5-pro", "claude-3-opus"],
+        "suggestion": "gemini-2.5-flash or claude-3-haiku",
         "estimated_savings": "70%",
     },
     "simple_classification": {
-        "overkill_models": ["gemini-1.5-pro", "claude-3-opus"],
-        "suggestion": "gemini-1.5-flash",
+        "overkill_models": ["gemini-2.5-pro", "claude-3-opus"],
+        "suggestion": "gemini-2.5-flash",
         "estimated_savings": "60-80%",
     },
 }

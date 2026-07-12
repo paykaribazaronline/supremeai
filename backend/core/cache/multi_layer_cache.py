@@ -1,3 +1,12 @@
+"""Implements a robust, multi-layered caching system for the SupremeAI project.
+
+This module provides the `MultiLayerCache` class, which orchestrates a five-tier caching strategy
+to optimize response times and reduce AI model inference costs. It integrates Redis-based
+exact and prefix matching caches, a semantic cache, and an in-memory LRU session cache.
+Redis clients are initialized lazily to prevent network calls during module import,
+with an in-memory stub fallback for development or unavailable Redis instances.
+The system prioritizes cache hits across layers before falling back to AI model
+
 import hashlib
 from functools import lru_cache
 from typing import Any

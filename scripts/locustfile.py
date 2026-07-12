@@ -69,7 +69,7 @@ class SupremeAILoadTester(HttpUser):
             start_time = time.time()
             with self.client.post(
                 "/api/task/execute",
-                json={"message": prompt, "model_preference": "gemini-1.5-flash"},
+                json={"message": prompt, "model_preference": "gemini-2.5-flash"},
                 headers=headers,
                 catch_response=True
             ) as response:
@@ -103,7 +103,7 @@ class SupremeAILoadTester(HttpUser):
         for _ in range(3):
             res = self.client.post(
                 "/api/task/execute",
-                json={"message": "Critical Orchestration Task", "model_preference": "gemini-1.5-flash"},
+                json={"message": "Critical Orchestration Task", "model_preference": "gemini-2.5-flash"},
                 headers=headers,
                 name="/api/task/execute [Idempotency Spam]"
             )

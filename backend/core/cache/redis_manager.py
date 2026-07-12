@@ -1,3 +1,12 @@
+"""Manages asynchronous interactions with a Redis cache for the SupremeAI ecosystem.
+
+This module provides the `SecureRedisManager` class, a centralized and secure interface for
+general key-value caching and specialized operations, including monitoring the
+health and status of AI agents. It initializes an `aioredis` client using the
+`REDIS_URL` environment variable, implementing a fail-closed mechanism if the
+Redis endpoint is not configured. A singleton instance, `redis_manager`, is
+exposed for application-wide use."""
+
 import json
 import os
 

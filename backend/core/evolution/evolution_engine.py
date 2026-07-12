@@ -1,3 +1,12 @@
+"""Implements the evolutionary learning and adaptation engine for the AI system.
+
+This module is responsible for recording task outcomes, detecting patterns of
+failure (e.g., repeated task failures, underperforming prompts), and
+proposing improvements such as new skills or optimized prompts via LLM
+interaction. It also manages user feedback and persists all evolutionary
+data using a dual-storage strategy (Supabase and local SQLite).
+"""
+
 from __future__ import annotations
 
 import hashlib

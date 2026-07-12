@@ -187,3 +187,10 @@ backend/coverage.json
 test_db_path
 
 scratch/
+
+# Coverage directories
+coverage/
+**/coverage/
+
+# Old archives
+apps/_archive_web-chat/

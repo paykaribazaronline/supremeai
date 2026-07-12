@@ -493,14 +493,14 @@ class PlaywrightBrowserAgent:
                 )
 
                 model_router = ModelRouter()
-                # Use a vision-capable model like gpt-4o or gemini-1.5-pro-vision-latest
+                # Use a vision-capable model like gpt-4o or gemini-2.5-pro-vision-latest
                 vlm_response = asyncio.run(
                     model_router.async_route_and_generate(
                         prompt=vlm_prompt,
                         task_type="vision",
                         image_base64=b64_image,
                         # Force a vision model
-                        model_filter=["gpt-4o", "gemini-1.5-pro-vision-latest"],
+                        model_filter=["gpt-4o", "gemini-2.5-pro-vision-latest"],
                     )
                 )
 

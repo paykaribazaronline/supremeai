@@ -39,7 +39,7 @@ def test_success_callback_logs_without_error():
     response_obj.usage = MagicMock(prompt_tokens=10, completion_tokens=5)
     response_obj._response_metadata = {"api_cost": 0.0012}
     # কোনো এক্সসেপশন ছাড়াই রান করবে
-    callback({"model": "gemini/gemini-1.5-flash"}, response_obj, 0.0, 1.5)
+    callback({"model": "gemini/gemini-2.5-flash"}, response_obj, 0.0, 1.5)
 
 
 def test_success_callback_swallows_exceptions():

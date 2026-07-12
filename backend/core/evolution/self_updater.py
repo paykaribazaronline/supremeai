@@ -1,3 +1,7 @@
+"""Provides a secure mechanism for the SupremeAI system to apply runtime code updates.
+
+This module implements the `SelfUpdater` class, enabling the AI to dynamically patch its own components (hotfixes). It includes critical security features such as path validation to restrict updates within the project directory and an authorization check to prevent unauthorized modifications, facilitating controlled self-evolution."""
+
 from pathlib import Path
 
 from loguru import logger

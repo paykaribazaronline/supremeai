@@ -1,3 +1,13 @@
+"""
+Manages the fitness evaluation and lifecycle of dynamic AI skills.
+
+This module defines the `FitnessEngine` responsible for tracking skill execution
+metrics, calculating performance scores, and automatically deprecating
+or 'soft pruning' underperforming skills. It integrates with skill registries,
+databases, and the file system to manage skill status and deployment,
+ensuring quality control and evolutionary adaptation within the SupremeAI ecosystem.
+"""
+
 import json
 import os
 import shutil
