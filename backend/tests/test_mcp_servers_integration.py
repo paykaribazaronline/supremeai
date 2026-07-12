@@ -26,6 +26,7 @@ def mock_env_vars(monkeypatch):
         "GITHUB_TOKEN": "test-github-token",
     }
     from core.config import settings
+
     for k, v in env_vars.items():
         monkeypatch.setenv(k, v)
         try:
@@ -33,10 +34,9 @@ def mock_env_vars(monkeypatch):
                 setattr(settings, k.lower(), v)
             elif hasattr(settings, k):
                 setattr(settings, k, v)
-            else:
-                # Handle extra fields properly if Pydantic model allows it
-                if getattr(settings.model_config, "extra", "ignore") == "allow":
-                    setattr(settings, k.lower(), v)
+            # Handle extra fields properly if Pydantic model allows it
+            elif getattr(settings.model_config, "extra", "ignore") == "allow":
+                setattr(settings, k.lower(), v)
         except AttributeError:
             pass
 
