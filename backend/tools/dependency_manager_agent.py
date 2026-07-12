@@ -149,7 +149,7 @@ class DependencyManagerAgent:
         if "error" in depcheck_result:
             # depcheck might return an error in stderr even with valid JSON in stdout
             if "dependencies" not in depcheck_result and "devDependencies" not in depcheck_result:
-                 return {"success": False, "error": depcheck_result["error"]}
+                return {"success": False, "error": depcheck_result["error"]}
 
         unused_dependencies = depcheck_result.get("dependencies", [])
 
@@ -169,7 +169,6 @@ class DependencyManagerAgent:
                 removed_packages.append(package)
 
         return {"success": True, "removed_packages": removed_packages, "count": len(removed_packages)}
-
 
     def check_pip_vulnerabilities(self) -> dict[str, Any]:
         """
