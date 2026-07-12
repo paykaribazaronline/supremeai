@@ -61,7 +61,7 @@ class SentinelAgent:
                             else:
                                 ep.last_ping_status = "up"
 
-                        except Exception as e:
+                        except Exception as e:  # noqa: BLE001
                             ep.last_ping_status = "down"
                             ep.last_check_at = datetime.now(UTC)
                             incident = SystemIncident(
@@ -72,7 +72,7 @@ class SentinelAgent:
                             session.add(incident)
 
                 await session.commit()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"[SentinelAgent] Error during monitor_endpoints: {e}")
 
     async def audit_dependencies(self):
@@ -90,7 +90,7 @@ class SentinelAgent:
                 for dep in deps:
                     dep.last_audit_at = datetime.now(UTC)
                 await session.commit()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"[SentinelAgent] Error during audit_dependencies: {e}")
 
     async def trigger_event(self, event_type: str, details: str):
@@ -103,7 +103,7 @@ class SentinelAgent:
                 session.add(incident)
                 await session.commit()
                 logger.info(f"[SentinelAgent] Event-driven incident recorded: {event_type}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"[SentinelAgent] Error triggering event: {e}")
 
     async def run_periodic_loop(self):

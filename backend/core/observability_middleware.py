@@ -158,6 +158,6 @@ class ObservabilityMiddleware:
                         details += f" Exception: {error_type}"
 
                     asyncio.create_task(sentinel.trigger_event(event_type, details))
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     logger.debug(f"Sentinel Agent event trigger failed: {e}")
             # --- END SENTINEL AGENT EVENT TRIGGER ---
