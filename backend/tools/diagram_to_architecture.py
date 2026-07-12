@@ -274,31 +274,31 @@ spec:
     def _mock_schema(self, orm: str) -> str:
         if orm == "prisma":
             return (
-                'model User {\n'
-                '  id    Int    @id @default(autoincrement())\n'
-                '  email String @unique\n'
-                '  posts Post[]\n'
-                '}\n\n'
-                'model Post {\n'
-                '  id       Int    @id @default(autoincrement())\n'
-                '  title    String\n'
-                '  author   User   @relation(fields: [authorId], references: [id])\n'
-                '  authorId Int\n'
-                '}\n'
+                "model User {\n"
+                "  id    Int    @id @default(autoincrement())\n"
+                "  email String @unique\n"
+                "  posts Post[]\n"
+                "}\n\n"
+                "model Post {\n"
+                "  id       Int    @id @default(autoincrement())\n"
+                "  title    String\n"
+                "  author   User   @relation(fields: [authorId], references: [id])\n"
+                "  authorId Int\n"
+                "}\n"
             )
         return (
-            'from sqlalchemy import Column, Integer, String, ForeignKey\n'
-            'from sqlalchemy.orm import relationship\n'
-            'from database.base import Base\n\n'
-            'class User(Base):\n'
+            "from sqlalchemy import Column, Integer, String, ForeignKey\n"
+            "from sqlalchemy.orm import relationship\n"
+            "from database.base import Base\n\n"
+            "class User(Base):\n"
             '    __tablename__ = "users"\n'
-            '    id = Column(Integer, primary_key=True)\n'
-            '    email = Column(String, unique=True)\n'
+            "    id = Column(Integer, primary_key=True)\n"
+            "    email = Column(String, unique=True)\n"
             '    posts = relationship("Post", back_populates="author")\n\n'
-            'class Post(Base):\n'
+            "class Post(Base):\n"
             '    __tablename__ = "posts"\n'
-            '    id = Column(Integer, primary_key=True)\n'
-            '    title = Column(String)\n'
+            "    id = Column(Integer, primary_key=True)\n"
+            "    title = Column(String)\n"
             '    author_id = Column(Integer, ForeignKey("users.id"))\n'
             '    author = relationship("User", back_populates="posts")\n'
         )

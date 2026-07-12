@@ -10,8 +10,10 @@ from core.llm.llm_gateway import LLMGateway
 
 @pytest.fixture
 def mock_image_to_code():
-    with patch("tools.image_to_code.settings") as mock_settings, \
-         patch("tools.image_to_code.ImageToCode._encode_image_file", return_value="dummy_base64"):
+    with (
+        patch("tools.image_to_code.settings") as mock_settings,
+        patch("tools.image_to_code.ImageToCode._encode_image_file", return_value="dummy_base64"),
+    ):
         mock_settings.openai_api_key = "test-key"
         yield
 
@@ -23,7 +25,8 @@ async def test_figma_to_react(mock_image_to_code):
     converter = ImageToCode()
 
     with patch("core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
-        mock_acompletion.return_value = {"text": """
+        mock_acompletion.return_value = {
+            "text": """
 import React from 'react';
 
 export function GeneratedComponent() {
@@ -33,7 +36,8 @@ export function GeneratedComponent() {
         </div>
     );
 }
-"""}
+"""
+        }
 
         result = await converter.figma_to_react("test_image.png", framework="react")
 
@@ -49,7 +53,8 @@ async def test_figma_to_flutter(mock_image_to_code):
     converter = ImageToCode()
 
     with patch("core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
-        mock_acompletion.return_value = {"text": """
+        mock_acompletion.return_value = {
+            "text": """
 import 'package:flutter/material.dart';
 
 class GeneratedWidget extends StatelessWidget {
@@ -61,7 +66,8 @@ class GeneratedWidget extends StatelessWidget {
         );
     }
 }
-"""}
+"""
+        }
 
         result = await converter.figma_to_react("test_image.png", framework="flutter")
 
@@ -77,7 +83,8 @@ async def test_extract_color_palette(mock_image_to_code):
     converter = ImageToCode()
 
     with patch("core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
-        mock_acompletion.return_value = {"text": """
+        mock_acompletion.return_value = {
+            "text": """
 {
     "palette": ["#FF5733", "#33FF57", "#3357FF"],
     "css_variables": {
@@ -85,7 +92,8 @@ async def test_extract_color_palette(mock_image_to_code):
         "secondary": "#33FF57"
     }
 }
-"""}
+"""
+        }
 
         result = await converter.extract_color_palette("test_image.png")
 
@@ -101,7 +109,8 @@ async def test_detect_component_tree(mock_image_to_code):
     converter = ImageToCode()
 
     with patch("core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
-        mock_acompletion.return_value = {"text": """
+        mock_acompletion.return_value = {
+            "text": """
 [
     {
         "name": "Container",
@@ -112,12 +121,11 @@ async def test_detect_component_tree(mock_image_to_code):
         ]
     }
 ]
-"""}
+"""
+        }
 
         result = await converter.detect_component_tree("test_image.png")
 
     assert result is not None
     assert len(result.tree) == 1
     assert result.tree[0]["name"] == "Container"
-
-

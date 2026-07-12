@@ -40,13 +40,13 @@ async def test_dry_run_pr(async_session):
 
         with patch("backend.tools.github_agent.get_user_github_token", return_value="mock_token"):
             pr_url = await create_autonomous_pr(
-            user_id="test_user",
-            repo_name="test/repo",
-            file_path="test.py",
-            code_content="print('hello')",
-            commit_msg="Test dry run",
-            db=async_session,
-        )
+                user_id="test_user",
+                repo_name="test/repo",
+                file_path="test.py",
+                code_content="print('hello')",
+                commit_msg="Test dry run",
+                db=async_session,
+            )
 
         # Mock PR Dry Run Successful
 

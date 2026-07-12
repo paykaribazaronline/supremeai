@@ -17,6 +17,7 @@ from loguru import logger
 
 def _get_jwt_secret() -> str:
     from core.config import settings
+
     secret = settings.jwt_secret
     if not secret:
         logger.critical("FATAL: JWT Secret is missing! Halting boot process.")
@@ -34,6 +35,7 @@ API_KEY_RANDOM_BYTES = 32
 
 def create_access_token(data: dict) -> str:
     from core.config import settings
+
     to_encode = data.copy()
     expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
@@ -56,6 +58,7 @@ def verify_token(token: str) -> dict:
 
 def _get_api_key_signing_secret() -> str:
     from core.config import settings
+
     secret = os.getenv("API_KEY_SIGNING_SECRET") or settings.jwt_secret
     if not secret:
         raise RuntimeError("API_KEY_SIGNING_SECRET or JWT_SECRET must be set")

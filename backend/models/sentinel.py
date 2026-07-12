@@ -1,25 +1,35 @@
-from sqlalchemy import Column, String, Integer, Boolean, Float, Text, ForeignKey, DateTime
+from sqlalchemy import Boolean
+from sqlalchemy import Column
+from sqlalchemy import DateTime
+from sqlalchemy import Integer
+from sqlalchemy import Text
 from sqlalchemy.sql import func
+
 from models.base import Base
-from utils.uuid_gen import UUIDv7, generate_uuid7
+from utils.uuid_gen import UUIDv7
+from utils.uuid_gen import generate_uuid7
+
 
 class SystemDependency(Base):
     """
     Tracking for system dependencies and vulnerability status.
     """
+
     __tablename__ = "system_dependencies"
 
     id = Column(UUIDv7, primary_key=True, default=generate_uuid7)
     package_name = Column(Text, nullable=False)
     current_version = Column(Text, nullable=False)
     latest_version = Column(Text)
-    status = Column(Text, default='healthy')  # healthy, vulnerable, deprecated
+    status = Column(Text, default="healthy")  # healthy, vulnerable, deprecated
     last_audit_at = Column(DateTime(timezone=True), default=func.now())
+
 
 class ApiEndpoint(Base):
     """
     API endpoint health monitor heartbeat.
     """
+
     __tablename__ = "api_endpoints"
 
     id = Column(UUIDv7, primary_key=True, default=generate_uuid7)
@@ -31,10 +41,12 @@ class ApiEndpoint(Base):
     latency_ms = Column(Integer)
     last_check_at = Column(DateTime(timezone=True))
 
+
 class SystemIncident(Base):
     """
     Incident management when things break in the system.
     """
+
     __tablename__ = "system_incidents"
 
     id = Column(UUIDv7, primary_key=True, default=generate_uuid7)

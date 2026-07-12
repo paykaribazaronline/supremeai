@@ -20,9 +20,9 @@ async def test_webhook_endpoint_receives_pr_event():
             "html_url": "https://github.com/owner/repo/pull/42",
             "title": "Test PR",
             "user": {"login": "testuser"},
-            "head": {"ref": "feature-branch"}
+            "head": {"ref": "feature-branch"},
         },
-        "repository": {"full_name": "owner/repo"}
+        "repository": {"full_name": "owner/repo"},
     }
 
     with patch.object(reviewer, "review_pr", return_value={"status": "success", "comments": []}) as mock_review:

@@ -11,6 +11,7 @@ class SelfUpdater:
     Self-Updater module for SupremeAI 2.0.
     Applies patches, updates code modules, and keeps components up-to-date.
     """
+
     def __init__(self, authorized: bool = False):
         self.authorized = authorized
 
@@ -34,16 +35,16 @@ class SelfUpdater:
         if not self.authorized:
             logger.error("Hotfix rejected: updater is not authorized.")
             return False
-            
+
         try:
             # Backup original
             backup_path = target.with_suffix(target.suffix + ".bak")
             original = target.read_text(encoding="utf-8")
             backup_path.write_text(original, encoding="utf-8")
-                
+
             # Write new version
             target.write_text(new_content, encoding="utf-8")
-                
+
             logger.info("Hotfix successfully applied.")
             return True
         except (OSError, PermissionError, UnicodeDecodeError) as e:

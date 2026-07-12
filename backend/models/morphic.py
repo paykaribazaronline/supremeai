@@ -1,13 +1,24 @@
-from sqlalchemy import Column, String, Integer, Boolean, Float, Text, ForeignKey, DateTime
+from sqlalchemy import Boolean
+from sqlalchemy import Column
+from sqlalchemy import DateTime
+from sqlalchemy import Float
+from sqlalchemy import ForeignKey
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy import Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func
+
 from models.base import Base
-from utils.uuid_gen import UUIDv7, generate_uuid7
+from utils.uuid_gen import UUIDv7
+from utils.uuid_gen import generate_uuid7
+
 
 class AgentReflection(Base):
     """
     Agent experience and learning memory.
     """
+
     __tablename__ = "agent_reflections"
 
     id = Column(UUIDv7, primary_key=True, default=generate_uuid7)
@@ -18,10 +29,12 @@ class AgentReflection(Base):
     confidence_score = Column(Float)
     created_at = Column(DateTime(timezone=True), default=func.now())
 
+
 class DynamicCapability(Base):
     """
     Dynamically created tools/skills (On-the-fly synthesis).
     """
+
     __tablename__ = "dynamic_capabilities"
 
     id = Column(UUIDv7, primary_key=True, default=generate_uuid7)
@@ -32,10 +45,12 @@ class DynamicCapability(Base):
     is_auto_generated = Column(Boolean, default=True)
     is_approved = Column(Boolean, default=False)
 
+
 class ExecutionChain(Base):
     """
     Chain of thought log tracking the agent's logic process.
     """
+
     __tablename__ = "execution_chains"
 
     id = Column(UUIDv7, primary_key=True, default=generate_uuid7)

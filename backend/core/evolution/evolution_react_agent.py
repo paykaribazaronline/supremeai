@@ -25,10 +25,10 @@ class EvolutionReActAgent:
 
         for turn in range(1, self.max_reflexion_turns + 1):
             logger.info(f"🔄 [EvolutionReActAgent] ReAct Loop Turn {turn}/{self.max_reflexion_turns}")
-            
+
             # Build prompt with Reasoning History to prevent repeating errors
             history_str = "\n".join(reasoning_history) if reasoning_history else "No previous attempts."
-            
+
             prompt = f"""
 System Prompt:
 You are Aethel, the autonomous SupremeAI Core developer. Your job is to write a single Python class representing a "Skill".
@@ -54,21 +54,21 @@ Reason through the requirements and any previous failure errors. Then output:
 """
             # Turn 1 is hard, Turn 2 is medium/easy (analysis), Turn 3 escalates back to hard (code_generation) to fix complex logical bugs
             task_type = "code_generation" if turn in (1, 3) else "analysis"
-            
+
             try:
                 # Call LLM router
                 response = self.model_router.route_and_generate(prompt, task_type=task_type)
                 response_text = response.get("text", "")
-                
+
                 # Parse thought and code
                 thought = self._extract_thought(response_text)
                 code = self._extract_code(response_text)
-                
+
                 if not code:
                     logger.warning("⚠️ No code block found in LLM output, retrying...")
                     reasoning_history.append(f"Turn {turn} Thought: {thought} | Observation: Failed to generate a valid ```python code block.")
                     continue
-                
+
                 current_code = code
                 logger.info(f"🛠️ Code generated on turn {turn}. Testing code compilation...")
 
@@ -76,34 +76,18 @@ Reason through the requirements and any previous failure errors. Then output:
                 test_result = self._test_compile_code(code)
                 if test_result["passed"]:
                     logger.info("✅ Skill code compilation passed!")
-                    return {
-                        "success": True,
-                        "code": code,
-                        "turns": turn,
-                        "history": reasoning_history,
-                        "thought": thought
-                    }
+                    return {"success": True, "code": code, "turns": turn, "history": reasoning_history, "thought": thought}
                 else:
                     error_msg = test_result["reason"]
                     logger.warning(f"❌ Compilation failed: {error_msg}")
-                    reasoning_history.append(
-                        f"Turn {turn} Attempt:\n"
-                        f"Thought: {thought}\n"
-                        f"Observation: Code compiled with error: {error_msg}"
-                    )
+                    reasoning_history.append(f"Turn {turn} Attempt:\n" f"Thought: {thought}\n" f"Observation: Code compiled with error: {error_msg}")
                     current_error = error_msg
             except (RuntimeError, ValueError, TypeError) as e:
                 logger.error(f"❌ ReAct agent loop exception: {e}")
                 current_error = str(e)
                 reasoning_history.append(f"Turn {turn} Exception: {str(e)}")
 
-        return {
-            "success": False,
-            "code": current_code,
-            "error": current_error,
-            "turns": self.max_reflexion_turns,
-            "history": reasoning_history
-        }
+        return {"success": False, "code": current_code, "error": current_error, "turns": self.max_reflexion_turns, "history": reasoning_history}
 
     def _to_class_name(self, name: str) -> str:
         return "".join(part.capitalize() for part in name.split("_"))

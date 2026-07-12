@@ -1,4 +1,3 @@
-from core.config import settings
 import base64
 import json
 import os

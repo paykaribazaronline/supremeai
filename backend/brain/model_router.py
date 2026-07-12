@@ -138,7 +138,7 @@ class ModelRouter:
         from core.config import settings
 
         if not settings.gemini_api_key and not settings.openrouter_api_key and "pytest" not in sys.modules:
-            # We don't force fallback just because pytest is running, 
+            # We don't force fallback just because pytest is running,
             # so that mocked LLMGateway can be hit during testing.
             import json
 
@@ -203,7 +203,9 @@ class ModelRouter:
 
             # Delegate directly to our new LiteLLM universal gateway
             try:
-                response = await llm_gateway.acompletion(prompt=normalized_prompt, task_type=task_type, provider=best_provider, stream=False, **kwargs)
+                response = await llm_gateway.acompletion(
+                    prompt=normalized_prompt, task_type=task_type, provider=best_provider, stream=False, **kwargs
+                )
                 if response and response.get("success"):
                     breaker.mark_success()
                 else:

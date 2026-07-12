@@ -149,13 +149,14 @@ class ObservabilityMiddleware:
             if status_code >= 500 or duration > 3.0:
                 try:
                     import asyncio
+
                     from core.sentinel_agent import sentinel
-                    
+
                     event_type = "high_latency" if duration > 3.0 else "internal_server_error"
                     details = f"Endpoint {method} {path} resulted in {status_code} in {duration:.2f}s."
                     if error_type:
                         details += f" Exception: {error_type}"
-                    
+
                     asyncio.create_task(sentinel.trigger_event(event_type, details))
                 except Exception as e:
                     logger.debug(f"Sentinel Agent event trigger failed: {e}")

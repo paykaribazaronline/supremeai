@@ -1,7 +1,6 @@
 import asyncio
 import json
 
-from core.theme_pubsub import theme_pubsub
 from fastapi import APIRouter
 from fastapi import HTTPException
 from fastapi import Query
@@ -9,6 +8,7 @@ from fastapi import Request
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
+from core.theme_pubsub import theme_pubsub
 from database.supabase_client import db
 
 

@@ -11,9 +11,10 @@ class DailyLearner:
     Queries paper databases (ArXiv, GitHub) for new prompt paradigms,
     techniques, and software libraries to grow agent skills.
     """
+
     def __init__(self):
         self.engine = EvolutionEngine()
-        
+
     def check_new_techniques(self) -> list[dict[str, Any]]:
         logger.info("Scanning ArXiv/GitHub for agent improvements...")
         discovered = [
@@ -21,14 +22,9 @@ class DailyLearner:
                 "title": "Model Context Protocol Integration Patterns",
                 "type": "protocol",
                 "source": "github:modelcontextprotocol",
-                "status": "integrated"
+                "status": "integrated",
             },
-            {
-                "title": "Reasoning Loop Optimization via LangGraph",
-                "type": "reasoning",
-                "source": "arxiv:2405.0001",
-                "status": "pending_review"
-            }
+            {"title": "Reasoning Loop Optimization via LangGraph", "type": "reasoning", "source": "arxiv:2405.0001", "status": "pending_review"},
         ]
         return discovered
 

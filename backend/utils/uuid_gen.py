@@ -1,11 +1,14 @@
-from uuid6 import uuid7
-from sqlalchemy import types
 import uuid
+
+from sqlalchemy import types
+from uuid6 import uuid7
+
 
 class UUIDv7(types.TypeDecorator):
     """
     Custom SQLAlchemy type for UUIDv7 (Time-ordered UUIDs).
     """
+
     impl = types.Uuid
     cache_ok = True
 
@@ -21,6 +24,7 @@ class UUIDv7(types.TypeDecorator):
         if value is None:
             return value
         return value
+
 
 def generate_uuid7():
     """Generates a UUIDv7."""

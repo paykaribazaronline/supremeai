@@ -1,5 +1,4 @@
 from typing import Any
-from core.config import settings
 
 from loguru import logger
 

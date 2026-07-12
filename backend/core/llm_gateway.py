@@ -8,4 +8,5 @@ from core.llm.llm_gateway import *  # noqa: E402, F403
 
 def __getattr__(name: str):
     import core.llm.llm_gateway as target
+
     return getattr(target, name)

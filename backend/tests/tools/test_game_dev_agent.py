@@ -22,7 +22,8 @@ async def test_generate_unity_script(mock_game_dev):
     agent = GameDevAgent()
 
     with patch("core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
-        mock_acompletion.return_value = {"text": """
+        mock_acompletion.return_value = {
+            "text": """
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -37,12 +38,10 @@ public class PlayerController : MonoBehaviour
         transform.position += movement * speed * Time.deltaTime;
     }
 }
-"""}
+"""
+        }
 
-        result = await agent.generate_unity_script(
-            description="Create a player controller script",
-            script_type="MonoBehaviour"
-        )
+        result = await agent.generate_unity_script(description="Create a player controller script", script_type="MonoBehaviour")
 
     assert result is not None
     assert "PlayerController" in result["code"]
@@ -70,7 +69,8 @@ async def test_gdd_to_code(mock_game_dev):
 """
 
     with patch("core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
-        mock_acompletion.return_value = {"text": """
+        mock_acompletion.return_value = {
+            "text": """
 public class GameManager : MonoBehaviour
 {
     private int score = 0;
@@ -80,7 +80,8 @@ public class GameManager : MonoBehaviour
         score += points;
     }
 }
-"""}
+"""
+        }
 
         result = await agent.gdd_to_code(gdd_text, engine="unity")
 
@@ -95,7 +96,8 @@ async def test_generate_asset_script(mock_game_dev):
     agent = GameDevAgent()
 
     with patch("core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
-        mock_acompletion.return_value = {"text": """
+        mock_acompletion.return_value = {
+            "text": """
 import bpy
 
 # Create a cube
@@ -107,11 +109,10 @@ cube.name = "GeneratedCube"
 mat = bpy.data.materials.new(name="RedMaterial")
 mat.diffuse_color = (1, 0, 0, 1)
 cube.data.materials.append(mat)
-"""}
+"""
+        }
 
-        result = await agent.generate_asset_script(
-            asset_description="Create a red cube with material"
-        )
+        result = await agent.generate_asset_script(asset_description="Create a red cube with material")
 
     assert result is not None
     assert "bpy" in result["blender_script"]
@@ -135,12 +136,14 @@ void Update()
 """
 
     with patch("core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
-        mock_acompletion.return_value = {"text": """
+        mock_acompletion.return_value = {
+            "text": """
 Performance Issues Found:
 1. GameObject.Find() called in loop - use caching instead
 2. Consider using object pooling for enemies
 3. Use GetComponentCache for repeated component access
-"""}
+"""
+        }
 
         result = await agent.profile_game_code(code)
 
@@ -156,7 +159,8 @@ async def test_generate_unity_coroutine():
     agent = GameDevAgent()
 
     with patch("core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
-        mock_acompletion.return_value = {"text": """
+        mock_acompletion.return_value = {
+            "text": """
 using UnityEngine;
 using System.Collections;
 
@@ -168,12 +172,10 @@ public class AsyncLoader : MonoBehaviour
         Debug.Log("Loading complete");
     }
 }
-"""}
+"""
+        }
 
-        result = await agent.generate_unity_script(
-            description="Create a coroutine for async loading",
-            script_type="Coroutine"
-        )
+        result = await agent.generate_unity_script(description="Create a coroutine for async loading", script_type="Coroutine")
 
     assert result is not None
     assert "IEnumerator" in result["code"]
