@@ -31,7 +31,7 @@ class BlockchainAgent:
                 "and include NatSpec comments. Return ONLY the Solidity code, no markdown."
             )
             result = await router.async_route_and_generate(prompt, task_type="coding", max_cost=0.04)
-            code = result.get("text", "") if isinstance(result, dict) else ""
+            code = result.get("text", "") if isinstance(result, dict) else getattr(result, "text", "")
             return {
                 "status": "success",
                 "standard": standard,
@@ -112,7 +112,7 @@ class BlockchainAgent:
                 f"{solidity_code[:4000]}"
             )
             result = await router.async_route_and_generate(prompt, task_type="coding", max_cost=0.04)
-            code = result.get("text", "") if isinstance(result, dict) else ""
+            code = result.get("text", "") if isinstance(result, dict) else getattr(result, "text", "")
             return {
                 "status": "success",
                 "optimized_contract": code.strip(),
@@ -135,7 +135,7 @@ class BlockchainAgent:
                 f"{contract_code[:4000]}"
             )
             result = await router.async_route_and_generate(prompt, task_type="coding", max_cost=0.04)
-            code = result.get("text", "") if isinstance(result, dict) else ""
+            code = result.get("text", "") if isinstance(result, dict) else getattr(result, "text", "")
             return {
                 "status": "success",
                 "test_framework": "hardhat",
