@@ -1,5 +1,5 @@
 import pytest
-from tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
+from core.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
 
 
 @pytest.mark.asyncio

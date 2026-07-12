@@ -97,12 +97,12 @@ class TestProductionReadinessSystems:
     async def test_autocache_integration(self):
         """Autocache Proxy সিমান্টিক ম্যাচিং করে"""
         try:
-            from core.autocache_proxy import AutocacheProxy
-            from core.semantic_cache import SemanticCache
+            from core.cache.autocache_proxy import AutocacheProxy
+            from core.cache.semantic_cache import SemanticCache
         except ImportError:
             pytest.skip("autocache modules not available")
 
-        with patch("core.semantic_cache.SemanticCache") as mock_cache:
+        with patch("core.cache.semantic_cache.SemanticCache") as mock_cache:
             # Mock ক্যাশ আচরণ
             cache_instance = MagicMock()
             cache_instance.get_similar.return_value = None

@@ -2,7 +2,7 @@ from typing import Any
 
 from loguru import logger
 
-from tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
+from core.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
 from tools.local_code_executor import LocalCodeExecutor
 
 

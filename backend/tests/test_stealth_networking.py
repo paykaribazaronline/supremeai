@@ -2,7 +2,7 @@ import pytest
 import os
 from unittest.mock import patch
 from core.config import settings
-from tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
+from core.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
 from tools.proxy_manager import ProxyManager
 from tools.stealth_http_client import StealthHTTPClient
 
