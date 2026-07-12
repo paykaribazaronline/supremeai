@@ -137,10 +137,9 @@ paths:
 """
         mock_client.return_value = {"text": mock_response.choices[0].message.content}
 
-        result = open('flowchart.png', 'w').close(); await converter.generate_api_spec('flowchart.png')
+        result = open("flowchart.png", "w").close()
+        await converter.generate_api_spec("flowchart.png")
 
     assert result is not None
-    assert "openapi" in result.get('openapi_yaml')
-    assert "/users" in result.get('openapi_yaml')
-
-
+    assert "openapi" in result.get("openapi_yaml")
+    assert "/users" in result.get("openapi_yaml")
