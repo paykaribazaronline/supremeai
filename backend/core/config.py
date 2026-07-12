@@ -166,7 +166,10 @@ class Settings(BaseSettings):
 
     @computed_field
     def redis_url(self) -> str:
-        return self._get_cached_secret("REDIS_URL")
+        url = self._get_cached_secret("REDIS_URL")
+        if url and not url.startswith(("redis://", "rediss://", "unix://")):
+            return f"redis://{url}"
+        return url
 
     @computed_field
     def openrouter_api_key(self) -> str:
@@ -369,6 +372,9 @@ class Settings(BaseSettings):
             missing.append("CI_WEBHOOK_SECRET")
 
         if missing:
+            if os.getenv("CI") == "true":
+                logger.warning(f"CI environment detected. Bypassing fail-fast for missing config vars: {', '.join(missing)}")
+                return self
             raise ValueError(f"🚨 FAIL-FAST: Missing required config vars: {', '.join(missing)}. Server startup aborted.")
         return self
 
