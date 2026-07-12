@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from loguru import logger
 from pydantic import BaseModel
 
-from core.auth_middleware import AuthMiddleware
+from core.security.auth_middleware import AuthMiddleware
 from core.config import get_production_env
 from core.rate_limiter import AsyncRateLimiter
 
@@ -101,8 +101,8 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
     # API Key Rotation & Free Tier Tracking Integration
     if any(endpoint in normalized for endpoint in ["chat/completion", "chat/stream", "chat/message"]):
         try:
-            from tools.multi_account_rotator import get_rotator, TaskType
-            from core.free_tier_tracker import get_tracker
+            from tools.security_tools.multi_account_rotator import get_rotator, TaskType
+            from core.llm.free_tier_tracker import get_tracker
 
             tracker = get_tracker()
             rotator = get_rotator()

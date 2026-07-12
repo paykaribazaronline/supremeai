@@ -2,7 +2,7 @@ from typing import Any
 
 from loguru import logger
 
-from core.evolution_engine import EvolutionEngine
+from core.evolution.evolution_engine import EvolutionEngine
 
 
 class DailyLearner:

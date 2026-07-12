@@ -6,8 +6,8 @@ from fastapi import APIRouter
 from fastapi import HTTPException
 from pydantic import BaseModel
 
-from core.audit_logger import AuditLogger
-from core.secure_credential_store import SecureCredentialStore
+from core.observability.audit_logger import AuditLogger
+from core.security.secure_credential_store import SecureCredentialStore
 
 
 audit = AuditLogger()
@@ -482,8 +482,8 @@ def delete_session(session_id: str):
 from fastapi import Depends
 
 from api.routes.admin_dashboard import require_admin_token
-from tools.browser_agent import BrowserAgent
-from tools.browser_agent import BrowseRequest
+from tools.ai_agents.browser_agent import BrowserAgent
+from tools.ai_agents.browser_agent import BrowseRequest
 
 
 _agent = BrowserAgent()
@@ -506,7 +506,7 @@ async def browse(request: BrowseRequest):
 @router.post("/extract", dependencies=[Depends(require_admin_token)])
 async def extract(url: str, extraction_prompt: str):
     """Fetch page and extract structured data with AI (Admin Only)."""
-    from tools.ai_web_extractor import AIWebExtractor
+    from tools.browser.ai_web_extractor import AIWebExtractor
 
     extractor = AIWebExtractor()
     return await extractor.extract_data(url, extraction_prompt)

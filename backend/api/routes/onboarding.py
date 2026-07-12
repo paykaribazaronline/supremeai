@@ -119,7 +119,7 @@ async def complete_onboarding(payload: OnboardingPayload):
     # 3. Optionally store encrypted key in secure_credential_store
     if provider_valid and payload.api_key:
         try:
-            from core.secure_credential_store import SecureCredentialStore
+            from core.security.secure_credential_store import SecureCredentialStore
 
             store = SecureCredentialStore()
             store.set(f"{payload.user_id}:{payload.provider}_api_key", payload.api_key)

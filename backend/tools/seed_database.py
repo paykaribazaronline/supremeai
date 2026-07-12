@@ -14,7 +14,7 @@ base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if base_dir not in sys.path:
     sys.path.append(base_dir)
 
-from tools.local_search_rag import LocalSearchRAG
+from tools.knowledge.local_search_rag import LocalSearchRAG
 
 
 DB_PATH = os.path.join(base_dir, "knowledge_store.db")

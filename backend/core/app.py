@@ -1,4 +1,6 @@
 # backend/core/app.py
+# ⚠️ WARNING: DO NOT MOVE THIS FILE. It is heavily integrated into the FastAPI startup lifecycle.
+# Moving this file will break relative paths, imports, and core app bootstrapping across the entire project.
 # বাংলা মন্তব্য: সম্পূর্ণ রি-ফ্যাক্টর — Fail-Fast, No Suppression, Encapsulated Guards।
 # Missing env variant = sys.exit(1)
 # 100% Strict Typing and production-ready setup.
@@ -30,14 +32,14 @@ from loguru import logger
 from core import lifespan
 from core import services
 from core.admin_routes import router as admin_router
-from core.api_key_middleware import APIKeyAuthMiddleware
-from core.auth_middleware import AuthMiddleware
+from core.security.api_key_middleware import APIKeyAuthMiddleware
+from core.security.auth_middleware import AuthMiddleware
 from core.config import settings
-from core.event_bus import ErrorEvent
-from core.event_bus import error_event_bus
-from core.honeypot_middleware import HoneypotMiddleware
-from core.observability_middleware import ObservabilityMiddleware
-from core.origin_validator import TrustedOriginMiddleware
+from core.messaging.event_bus import ErrorEvent
+from core.messaging.event_bus import error_event_bus
+from core.security.honeypot_middleware import HoneypotMiddleware
+from core.observability.observability_middleware import ObservabilityMiddleware
+from core.security.origin_validator import TrustedOriginMiddleware
 from middleware.chaos_injector import ChaosInjectorMiddleware
 from middleware.idempotency import IdempotencyMiddleware
 
@@ -316,10 +318,10 @@ for router_path, prefix in optional_routers:
     _safe_include_router(app, router_path, prefix)
 
 
-if os.getenv("SUPREMEAI_ENCRYPTION_KEY"):
+if settings.encryption_key and settings.encryption_key.get_secret_value():
     _safe_include_router(app, "api.routes.byoc_api", "")
 else:
-    logger.warning("Universal BYOC router not loaded: SUPREMEAI_ENCRYPTION_KEY missing")
+    logger.warning("Universal BYOC router not loaded: ENCRYPTION_KEY missing")
 
 app.router.lifespan_context = lifespan.app_lifespan
 

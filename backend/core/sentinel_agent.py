@@ -120,17 +120,22 @@ class SentinelAgent:
 
         audit_counter = 0
 
-        while self.running:
-            # 1. Quick Heartbeat (60 seconds)
-            await self.monitor_endpoints()
+        try:
+            while self.running:
+                # 1. Quick Heartbeat (60 seconds)
+                await self.monitor_endpoints()
 
-            # 2. Long Audit (Every 12 hours) - 12h = 720 minutes = 720 iterations of 60s
-            if audit_counter >= 720:
-                await self.audit_dependencies()
-                audit_counter = 0
+                # 2. Long Audit (Every 12 hours) - 12h = 720 minutes = 720 iterations of 60s
+                if audit_counter >= 720:
+                    await self.audit_dependencies()
+                    audit_counter = 0
 
-            audit_counter += 1
-            await asyncio.sleep(60)
+                audit_counter += 1
+                await asyncio.sleep(60)
+        except asyncio.CancelledError:
+            logger.info("[SentinelAgent] Periodic Loop cancelled. Shutting down gracefully.")
+            self._is_active = False
+            raise
 
 
 # Global singleton instance

@@ -5,7 +5,7 @@ import sqlite3
 # Add backend to path
 sys.path.insert(0, os.path.abspath("backend"))
 
-from core.evolution_engine import EvolutionEngine
+from core.evolution.evolution_engine import EvolutionEngine
 from unittest.mock import patch
 import database.supabase_client
 

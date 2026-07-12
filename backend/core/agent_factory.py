@@ -3,7 +3,7 @@ import json
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.llm_gateway import llm_gateway
+from core.llm.llm_gateway import llm_gateway
 from models.dynamic_agent import DynamicAgent
 
 

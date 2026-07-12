@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from tools.legal_agent import LegalAgent
+from tools.ai_agents.legal_agent import LegalAgent
 from core.llm.llm_gateway import LLMGateway
 
 

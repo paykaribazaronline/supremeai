@@ -17,31 +17,31 @@ import pytest
 
 class TestMultilingualTTS:
     def test_detect_language_bangla(self):
-        from tools.multilingual_tts import MultilingualTTS
+        from tools.media.multilingual_tts import MultilingualTTS
 
         tts = MultilingualTTS()
         assert tts._detect_language("আমি বাংলায় কথা বলছি") == "bn"
 
     def test_detect_language_arabic(self):
-        from tools.multilingual_tts import MultilingualTTS
+        from tools.media.multilingual_tts import MultilingualTTS
 
         tts = MultilingualTTS()
         assert tts._detect_language("مرحبا بالعالم") == "ar"
 
     def test_detect_language_english_fallback(self):
-        from tools.multilingual_tts import MultilingualTTS
+        from tools.media.multilingual_tts import MultilingualTTS
 
         tts = MultilingualTTS()
         assert tts._detect_language("Hello world") == "en"
 
     def test_detect_language_japanese(self):
-        from tools.multilingual_tts import MultilingualTTS
+        from tools.media.multilingual_tts import MultilingualTTS
 
         tts = MultilingualTTS()
         assert tts._detect_language("こんにちは") == "ja"
 
     def test_output_path_creates_unique_hash(self):
-        from tools.multilingual_tts import MultilingualTTS
+        from tools.media.multilingual_tts import MultilingualTTS
 
         tts = MultilingualTTS()
         p1 = tts._output_path("hello", "en")
@@ -50,7 +50,7 @@ class TestMultilingualTTS:
         assert p1.endswith(".mp3")
 
     def test_cache_miss_when_no_file(self, tmp_path):
-        from tools.multilingual_tts import MultilingualTTS
+        from tools.media.multilingual_tts import MultilingualTTS
 
         tts = MultilingualTTS()
         result = tts._cache_hit("text that doesn't exist", "en")
@@ -58,7 +58,7 @@ class TestMultilingualTTS:
 
     @pytest.mark.anyio
     async def test_synthesize_no_key_uses_fallback(self):
-        from tools.multilingual_tts import MultilingualTTS
+        from tools.media.multilingual_tts import MultilingualTTS
 
         tts = MultilingualTTS(api_key="")  # No ElevenLabs key
 
@@ -76,7 +76,7 @@ class TestMultilingualTTS:
 
     @pytest.mark.anyio
     async def test_synthesize_elevenlabs_success(self):
-        from tools.multilingual_tts import MultilingualTTS
+        from tools.media.multilingual_tts import MultilingualTTS
 
         tts = MultilingualTTS(api_key="sk-test-key")
 
@@ -94,14 +94,14 @@ class TestMultilingualTTS:
 
     @pytest.mark.anyio
     async def test_get_voices_no_key(self):
-        from tools.multilingual_tts import MultilingualTTS
+        from tools.media.multilingual_tts import MultilingualTTS
 
         tts = MultilingualTTS(api_key="")
         result = await tts.get_voices()
         assert result["status"] == "error"
 
     def test_supported_languages_includes_bangla(self):
-        from tools.multilingual_tts import SUPPORTED_LANGUAGES
+        from tools.media.multilingual_tts import SUPPORTED_LANGUAGES
 
         assert "bn" in SUPPORTED_LANGUAGES
         assert len(SUPPORTED_LANGUAGES) >= 29
@@ -248,40 +248,40 @@ class TestCommentThreadAI:
 
 class TestAutoTestGenerator:
     def test_detect_stack_python(self):
-        from tools.auto_test_generator import _detect_stack
+        from tools.code.auto_test_generator import _detect_stack
 
         assert _detect_stack("utils.py", "") == "python"
 
     def test_detect_stack_typescript(self):
-        from tools.auto_test_generator import _detect_stack
+        from tools.code.auto_test_generator import _detect_stack
 
         assert _detect_stack("Component.tsx", "") == "typescript"
 
     def test_detect_stack_dart(self):
-        from tools.auto_test_generator import _detect_stack
+        from tools.code.auto_test_generator import _detect_stack
 
         assert _detect_stack("login_screen.dart", "") == "dart"
 
     def test_detect_framework_auto(self):
-        from tools.auto_test_generator import _detect_framework
+        from tools.code.auto_test_generator import _detect_framework
 
         assert _detect_framework("python", None) == "pytest"
         assert _detect_framework("typescript", None) == "vitest"
         assert _detect_framework("dart", None) == "flutter_test"
 
     def test_get_test_file_path_python(self):
-        from tools.auto_test_generator import _get_test_file_path
+        from tools.code.auto_test_generator import _get_test_file_path
 
         path = _get_test_file_path("src/utils.py", "python")
         assert path.endswith("test_utils.py")
 
     def test_get_test_file_path_typescript(self):
-        from tools.auto_test_generator import _get_test_file_path
+        from tools.code.auto_test_generator import _get_test_file_path
 
         path = _get_test_file_path("src/Button.tsx", "typescript")
         assert path.endswith("Button.test.tsx")
 
-        from tools.auto_test_generator import _extract_python_symbols
+        from tools.code.auto_test_generator import _extract_python_symbols
 
         result = _extract_python_symbols("def broken(")
         assert result["functions"] == []
@@ -289,7 +289,7 @@ class TestAutoTestGenerator:
 
     @pytest.mark.anyio
     async def test_generate_pytest_code(self):
-        from tools.auto_test_generator import AutoTestGenerator
+        from tools.code.auto_test_generator import AutoTestGenerator
 
         gen = AutoTestGenerator()
         source = """
@@ -330,7 +330,7 @@ class TestDivide:
 
     @pytest.mark.anyio
     async def test_generate_returns_error_on_empty_llm(self):
-        from tools.auto_test_generator import AutoTestGenerator
+        from tools.code.auto_test_generator import AutoTestGenerator
 
         gen = AutoTestGenerator()
         with patch.object(gen, "_llm", new_callable=AsyncMock, return_value=""):
@@ -338,7 +338,7 @@ class TestDivide:
         assert result["status"] == "error"
 
     def test_clean_code_strips_fences(self):
-        from tools.auto_test_generator import AutoTestGenerator
+        from tools.code.auto_test_generator import AutoTestGenerator
 
         gen = AutoTestGenerator()
         code = "```python\nimport pytest\n\ndef test_foo():\n    pass\n```"

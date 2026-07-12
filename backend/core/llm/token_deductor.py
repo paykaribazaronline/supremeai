@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm.exc import StaleDataError
 
-from core.upstash_redis_queue import UpstashRedisQueue
+from core.messaging.upstash_redis_queue import UpstashRedisQueue
 from models.transaction_ledger import TransactionLedgerEntry
 from models.wallet import UserWallet
 

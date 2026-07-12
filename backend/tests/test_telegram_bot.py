@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from tools.telegram_bot import TelegramBotHandler
+from tools.social.telegram_bot import TelegramBotHandler
 
 
 @pytest.fixture
@@ -229,7 +229,7 @@ async def test_run_polling_disabled():
 
 
 def test_create_telegram_router(handler):
-    from tools.telegram_bot import create_telegram_router
+    from tools.social.telegram_bot import create_telegram_router
 
     router = create_telegram_router(handler)
     assert router is not None

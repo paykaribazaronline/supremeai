@@ -4,8 +4,8 @@ import subprocess
 
 from loguru import logger
 
-from core.event_bus import ErrorEvent
-from core.event_bus import error_event_bus
+from core.messaging.event_bus import ErrorEvent
+from core.messaging.event_bus import error_event_bus
 
 
 class ContainerAuditor:

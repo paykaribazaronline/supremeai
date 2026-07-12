@@ -9,10 +9,10 @@ from unittest.mock import patch
 
 import pytest
 
-from core.swarm_orchestrator import CircuitBreaker
-from core.swarm_orchestrator import CircuitBreakerOpenError
-from core.swarm_orchestrator import CircuitBreakerState
-from core.swarm_orchestrator import MorphicOrchestrator
+from core.resilience.circuit_breaker import CircuitBreaker
+from core.resilience.circuit_breaker import CircuitBreakerOpenError
+from core.resilience.circuit_breaker import CircuitBreakerState
+from core.orchestration.swarm_orchestrator import MorphicOrchestrator
 
 
 # -------------------- Fixtures --------------------

@@ -1,4 +1,6 @@
 # backend/core/config.py
+# ⚠️ WARNING: DO NOT MOVE THIS FILE. It is heavily integrated into the FastAPI startup lifecycle.
+# Moving this file will break relative paths, imports, and core configuration loading across the entire project.
 # বাংলা মন্তব্য: সম্পূর্ণ রি-ফ্যাক্টর — Fail-Fast, Zero-Hardcode, Pydantic-Enforced Config Layer।
 # কোনো API Key, hardcoded domain বা threshold এখানে নেই।
 # সব ভ্যালু env var বা GCP Secret Manager থেকে আসে।
@@ -22,7 +24,7 @@ from pydantic import model_validator
 from pydantic_settings import BaseSettings
 from pydantic_settings import SettingsConfigDict
 
-from .secret_vault import secret_vault
+from .security.secret_vault import secret_vault
 
 
 # বাংলা মন্তব্য: pytest environment-এ .env load করা হয় না — test isolation নিশ্চিত।
@@ -43,14 +45,14 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    # বাংলা মন্তব্য: env validate হবে — invalid value = startup crash
+    env: str = Field(default="local", validation_alias="ENV")
+    debug: bool = Field(default=True)
+
     # ── অ্যাপ্লিকেশন মেটাডেটা ──────────────────────────────────────────────
     PROJECT_NAME: str = "SupremeAI 2.0"
     API_V1_STR: str = "/api/v1"
     app_name: str = "SupremeAI 2.0"
-
-    # বাংলা মন্তব্য: env validate হবে — invalid value = startup crash
-    env: str = Field(default="local", validation_alias="ENV")
-    debug: bool = Field(default=True)
     docs_auth_enabled: bool = True
     docs_username: str = "admin"
     docs_password: str = ""
@@ -394,9 +396,7 @@ def get_production_env(var_name: str, default: str | None = None) -> str:
     যেকোনো এনভায়রনমেন্টে কোনো ক্রিটিক্যাল সিক্রেট মিসিং থাকলে সরাসরি হার্ড ক্র্যাশ করবে,
     যাতে সাইলেন্ট ফেইলর প্রতিরোধ করা যায়। ডিফল্ট ভ্যালু পাস করলে মিসিং ক্ষেত্রে fallback ব্যবহার হবে।
     """
-    import os
 
-    from loguru import logger
 
     value = os.getenv(var_name)
     if not value:

@@ -4,14 +4,14 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
-from backend.tools.auto_test_generator import AutoTestGenerator
-from backend.tools.auto_test_generator import TestGenRequest
-from backend.tools.auto_test_generator import TestGenResponse
-from backend.tools.auto_test_generator import _detect_framework
-from backend.tools.auto_test_generator import _detect_stack
-from backend.tools.auto_test_generator import _extract_python_symbols
-from backend.tools.auto_test_generator import _get_test_file_path
-from backend.tools.auto_test_generator import router
+from backend.tools.code.auto_test_generator import AutoTestGenerator
+from backend.tools.code.auto_test_generator import TestGenRequest
+from backend.tools.code.auto_test_generator import TestGenResponse
+from backend.tools.code.auto_test_generator import _detect_framework
+from backend.tools.code.auto_test_generator import _detect_stack
+from backend.tools.code.auto_test_generator import _extract_python_symbols
+from backend.tools.code.auto_test_generator import _get_test_file_path
+from backend.tools.code.auto_test_generator import router
 
 
 @pytest.fixture
@@ -352,7 +352,7 @@ def client(generator):
 
         app = _app
     except Exception:  # noqa: BLE001
-        from backend.tools.auto_test_generator import router as test_router
+        from backend.tools.code.auto_test_generator import router as test_router
         from fastapi import FastAPI
 
         app = FastAPI()
@@ -453,7 +453,7 @@ async def test_batch_generate_save_true(tmp_path, generator):
 
 @pytest.mark.anyio
 async def test_generate_endpoint_success(client):
-    from backend.tools.auto_test_generator import _generator
+    from backend.tools.code.auto_test_generator import _generator
     from fastapi.testclient import TestClient
 
     app = None
@@ -465,7 +465,7 @@ async def test_generate_endpoint_success(client):
         app = None
 
     if app is None:
-        from backend.tools.auto_test_generator import router as test_router
+        from backend.tools.code.auto_test_generator import router as test_router
         from fastapi import FastAPI
 
         app = FastAPI()
@@ -496,7 +496,7 @@ async def test_generate_endpoint_success(client):
 
 @pytest.mark.anyio
 async def test_generate_endpoint_error(client):
-    from backend.tools.auto_test_generator import _generator
+    from backend.tools.code.auto_test_generator import _generator
     from fastapi.testclient import TestClient
 
     app = None
@@ -508,7 +508,7 @@ async def test_generate_endpoint_error(client):
         app = None
 
     if app is None:
-        from backend.tools.auto_test_generator import router as test_router
+        from backend.tools.code.auto_test_generator import router as test_router
         from fastapi import FastAPI
 
         app = FastAPI()
@@ -550,7 +550,7 @@ async def test_generate_file_endpoint(client, generator):
         app = None
 
     if app is None:
-        from backend.tools.auto_test_generator import router as test_router
+        from backend.tools.code.auto_test_generator import router as test_router
         from fastapi import FastAPI
 
         app = FastAPI()

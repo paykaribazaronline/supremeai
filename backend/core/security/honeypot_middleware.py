@@ -8,7 +8,7 @@ import uuid
 from fastapi.responses import JSONResponse
 from loguru import logger
 
-from core.event_bus import ErrorEvent
+from core.messaging.event_bus import ErrorEvent
 
 
 class HoneypotMiddleware:
@@ -118,7 +118,7 @@ class HoneypotMiddleware:
 
             # 4. Fire security event to event bus
             try:
-                from core.event_bus import ErrorEventBus as _EventBus
+                from core.messaging.event_bus import ErrorEventBus as _EventBus
 
                 _bus = _EventBus()
                 _bus.emit(

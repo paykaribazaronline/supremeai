@@ -20,7 +20,7 @@ class AutonomousAgent:
         self.name = name
         self.history: list[dict[str, Any]] = []
         try:
-            from evolution.auto_skill_creator import AutoSkillCreator
+            from core.evolution.auto_skill_creator import AutoSkillCreator
 
             self.skill_creator = AutoSkillCreator()
         except Exception:  # noqa: BLE001

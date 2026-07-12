@@ -20,7 +20,7 @@ import pytest
 class TestBrowserAgent:
     @pytest.mark.asyncio
     async def test_fetch_page_success(self):
-        from tools.browser_agent import BrowserAgent
+        from tools.ai_agents.browser_agent import BrowserAgent
 
         agent = BrowserAgent()
         with patch("tools.browser_agent.is_safe_url", return_value=True):
@@ -37,7 +37,7 @@ class TestBrowserAgent:
 
     @pytest.mark.asyncio
     async def test_fetch_page_error(self):
-        from tools.browser_agent import BrowserAgent
+        from tools.ai_agents.browser_agent import BrowserAgent
         import httpx
 
         agent = BrowserAgent()
@@ -56,7 +56,7 @@ class TestBrowserAgent:
 class TestVoiceCoder:
     @pytest.mark.anyio
     async def test_generate_code_from_instruction(self):
-        from tools.voice_coder import VoiceCoder
+        from tools.code.voice_coder import VoiceCoder
 
         coder = VoiceCoder()
         with patch("brain.model_router.ModelRouter") as mock_router_cls:
@@ -68,7 +68,7 @@ class TestVoiceCoder:
 
     @pytest.mark.anyio
     async def test_classify_and_execute_generate(self):
-        from tools.voice_coder import VoiceCoder
+        from tools.code.voice_coder import VoiceCoder
 
         coder = VoiceCoder()
         with patch.object(coder, "_generate_code_from_instruction", new_callable=AsyncMock) as mock_gen:
@@ -79,7 +79,7 @@ class TestVoiceCoder:
 
     @pytest.mark.anyio
     async def test_classify_and_execute_explain(self):
-        from tools.voice_coder import VoiceCoder
+        from tools.code.voice_coder import VoiceCoder
 
         coder = VoiceCoder()
         with patch.object(coder, "_explain", new_callable=AsyncMock) as mock_exp:
@@ -94,7 +94,7 @@ class TestVoiceCoder:
 class TestAIPairProgrammer:
     @pytest.mark.anyio
     async def test_solve_issue_success(self):
-        from tools.ai_pair_programmer import AIPairProgrammer
+        from tools.code.ai_pair_programmer import AIPairProgrammer
 
         programmer = AIPairProgrammer()
         with patch.object(programmer, "_call_llm", new_callable=AsyncMock) as mock_llm:
@@ -111,7 +111,7 @@ class TestAIPairProgrammer:
 
     @pytest.mark.anyio
     async def test_review_code(self):
-        from tools.ai_pair_programmer import AIPairProgrammer
+        from tools.code.ai_pair_programmer import AIPairProgrammer
 
         programmer = AIPairProgrammer()
         with patch.object(programmer, "_call_llm", new_callable=AsyncMock) as mock_llm:
@@ -126,7 +126,7 @@ class TestAIPairProgrammer:
 
 class TestStyleLearner:
     def test_default_guidelines(self):
-        from tools.style_learner import StyleLearner
+        from tools.learning.style_learner import StyleLearner
 
         learner = StyleLearner()
         guidelines = learner._default_guidelines()
@@ -135,14 +135,14 @@ class TestStyleLearner:
         assert "general_patterns" in guidelines
 
     def test_generate_style_prompt_no_cache(self):
-        from tools.style_learner import StyleLearner
+        from tools.learning.style_learner import StyleLearner
 
         learner = StyleLearner()
         prompt = learner.generate_style_prompt("/nonexistent/repo", "python")
         assert "best practices" in prompt.lower()
 
     def test_generate_style_prompt_with_cache(self):
-        from tools.style_learner import StyleLearner
+        from tools.learning.style_learner import StyleLearner
 
         learner = StyleLearner()
         learner.learned_styles["/my/repo"] = {
@@ -155,7 +155,7 @@ class TestStyleLearner:
 
     @pytest.mark.anyio
     async def test_extract_style_no_files(self, tmp_path):
-        from tools.style_learner import StyleLearner
+        from tools.learning.style_learner import StyleLearner
 
         learner = StyleLearner()
         # Empty dir → should return default guidelines
@@ -168,7 +168,7 @@ class TestStyleLearner:
 
 class TestDiagramToArchitecture:
     def test_mock_output(self):
-        from tools.diagram_to_architecture import DiagramToArchitecture
+        from tools.code.diagram_to_architecture import DiagramToArchitecture
 
         converter = DiagramToArchitecture()
         result = converter._mock_output("aws", "terraform")
@@ -177,7 +177,7 @@ class TestDiagramToArchitecture:
         assert len(result["identified_components"]) > 0
 
     def test_parse_terraform_components(self):
-        from tools.diagram_to_architecture import DiagramToArchitecture
+        from tools.code.diagram_to_architecture import DiagramToArchitecture
 
         converter = DiagramToArchitecture()
         code = """
@@ -193,7 +193,7 @@ module "eks_cluster" {}
 
     @pytest.mark.anyio
     async def test_generate_infrastructure_file_not_found(self):
-        from tools.diagram_to_architecture import DiagramToArchitecture
+        from tools.code.diagram_to_architecture import DiagramToArchitecture
 
         converter = DiagramToArchitecture()
         result = await converter.generate_infrastructure("/nonexistent/diagram.png")

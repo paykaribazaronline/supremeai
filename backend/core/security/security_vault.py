@@ -3,8 +3,8 @@ import os
 from cryptography.fernet import Fernet
 from loguru import logger
 
-from core.event_bus import ErrorEvent
-from core.event_bus import error_event_bus
+from core.messaging.event_bus import ErrorEvent
+from core.messaging.event_bus import error_event_bus
 
 
 # বাংলা মন্তব্য: Module-level key read-এ fail-fast রাখা হচ্ছে, কারণ ক্রিপ্টোগ্রাফি স্টার্টআপেই ফেইল হওয়া উচিত।

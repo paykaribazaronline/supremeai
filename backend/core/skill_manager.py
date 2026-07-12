@@ -4,7 +4,7 @@ from typing import Any
 
 from loguru import logger
 
-from core.llm_gateway import llm_gateway
+from core.llm.llm_gateway import llm_gateway
 from core.mcp_client import MCPRegistryClient
 from core.skills.base import BaseSkill
 
@@ -41,9 +41,9 @@ class SkillManager:
             return self._skills[skill_name]
 
         logger.info(f"Skill '{skill_name}' not in local registry. Querying Database...")
-        from tools.mcp_supabase import ExecuteQueryInput
-        from tools.mcp_supabase import ResponseFormat
-        from tools.mcp_supabase import supabase_execute_sql
+        from tools.mcp.mcp_supabase import ExecuteQueryInput
+        from tools.mcp.mcp_supabase import ResponseFormat
+        from tools.mcp.mcp_supabase import supabase_execute_sql
 
         try:
             query = "SELECT code FROM skills WHERE skill_name = %s AND status = 'active'"

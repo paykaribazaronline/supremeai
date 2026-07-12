@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from tools.style_learner import StyleLearner
+from tools.learning.style_learner import StyleLearner
 
 
 @pytest.mark.anyio

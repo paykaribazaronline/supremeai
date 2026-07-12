@@ -3,7 +3,7 @@ import logging
 from datetime import UTC
 from datetime import datetime
 
-from core.nats_messaging import nats_client
+from core.messaging.nats_messaging import nats_client
 
 
 logger = logging.getLogger(__name__)

@@ -5,7 +5,7 @@ import httpx
 from loguru import logger
 
 from core.config import settings
-from core.upstash_redis_queue import UpstashRedisQueue
+from core.messaging.upstash_redis_queue import UpstashRedisQueue
 
 
 class ParallelCloudRouter:

@@ -20,7 +20,7 @@ except ImportError:
     jwt = None  # type: ignore[assignment]
 
 from core.config import settings
-from core.rbac import UserContext
+from core.security.rbac import UserContext
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])

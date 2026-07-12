@@ -5,9 +5,9 @@ import tempfile
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.audit_logger import AuditLogger
-from tools.cost_auditor import CostAuditor
-from tools.docker_sandbox import DockerSandbox
+from core.observability.audit_logger import AuditLogger
+from tools.billing.cost_auditor import CostAuditor
+from tools.devops.docker_sandbox import DockerSandbox
 from tools.health_checker import HealthChecker
 from tools.plan_sorter import PlanSorter
 

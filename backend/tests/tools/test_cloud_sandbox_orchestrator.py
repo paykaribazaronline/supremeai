@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from backend.core.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
+from backend.core.orchestration.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
 
 
 @pytest.fixture

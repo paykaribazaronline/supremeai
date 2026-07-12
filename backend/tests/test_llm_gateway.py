@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import litellm
 import pytest
 
-from core.llm_gateway import LLMGateway
+from core.llm.llm_gateway import LLMGateway
 
 
 @pytest.fixture(autouse=True)

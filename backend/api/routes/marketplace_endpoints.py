@@ -10,7 +10,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from database.supabase_client import db
-from tools.marketplace_agent import MarketplaceAgent
+from tools.social.marketplace_agent import MarketplaceAgent
 from tools.resource_catalog import ResourceCatalog
 
 

@@ -1,4 +1,4 @@
-from tools.marketplace_agent import MarketplaceAgent
+from tools.social.marketplace_agent import MarketplaceAgent
 
 
 def test_marketplace_search():

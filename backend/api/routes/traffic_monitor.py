@@ -7,7 +7,7 @@ from fastapi import Depends
 from fastapi import HTTPException
 
 from api.routes.admin import get_current_admin
-from core.redis_manager import redis_manager
+from core.cache.redis_manager import redis_manager
 
 
 router = APIRouter(prefix="/api/admin/traffic", tags=["traffic"])

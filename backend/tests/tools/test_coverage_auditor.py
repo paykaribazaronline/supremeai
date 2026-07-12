@@ -2,8 +2,8 @@ from unittest.mock import mock_open
 from unittest.mock import patch
 
 import pytest
-from tools.coverage_auditor import CoverageAuditor
-from tools.coverage_auditor import CoverageGap
+from tools.devops.coverage_auditor import CoverageAuditor
+from tools.devops.coverage_auditor import CoverageGap
 
 
 @pytest.fixture

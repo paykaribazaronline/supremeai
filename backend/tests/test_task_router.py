@@ -14,7 +14,7 @@ import pytest
 
 @pytest.fixture
 def router():
-    from core.task_router import TaskRouter
+    from core.queue.task_router import TaskRouter
 
     return TaskRouter()
 

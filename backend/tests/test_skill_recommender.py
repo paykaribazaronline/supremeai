@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from tools.skill_recommender import SkillRecommender
+from tools.learning.skill_recommender import SkillRecommender
 
 
 @pytest.fixture

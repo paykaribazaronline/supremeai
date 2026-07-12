@@ -71,7 +71,7 @@ import contextlib
 
 import pytest
 
-from core.rbac import RoleBasedAccessControl
+from core.security.rbac import RoleBasedAccessControl
 
 
 _TEST_ENV_DEFAULTS = {

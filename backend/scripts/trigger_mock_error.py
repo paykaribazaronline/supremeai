@@ -5,8 +5,8 @@ import logging
 # Configure logger to output to terminal
 logging.basicConfig(level=logging.WARNING)
 
-from core.event_bus import ErrorEvent  # noqa: E402
-from core.event_bus import error_event_bus  # noqa: E402
+from core.messaging.event_bus import ErrorEvent  # noqa: E402
+from core.messaging.event_bus import error_event_bus  # noqa: E402
 
 
 async def main():

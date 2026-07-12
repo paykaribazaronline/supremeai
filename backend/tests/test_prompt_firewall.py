@@ -2,7 +2,7 @@
 
 import pytest
 
-from core.prompt_firewall import PromptFirewall, pre_flight_scan, classify_intent
+from core.security.prompt_firewall import PromptFirewall, pre_flight_scan, classify_intent
 
 
 def test_enforce_bengali_rules_empty():

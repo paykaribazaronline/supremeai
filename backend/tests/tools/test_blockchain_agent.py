@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from tools.blockchain_agent import BlockchainAgent
+from tools.ai_agents.blockchain_agent import BlockchainAgent
 
 
 @pytest.fixture
@@ -17,10 +17,9 @@ async def test_generate_contract(mock_blockchain):
     # বাংলা মন্তব্য: Solidity smart contract জেনারেশন টেস্ট
     agent = BlockchainAgent()
 
-    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_router:
-        mock_router.return_value.async_route_and_generate = AsyncMock(
-            return_value={
-                "text": """
+    with patch("brain.model_router.ModelRouter.async_route_and_generate", new_callable=AsyncMock) as mock_router:
+        mock_router.return_value = {
+            "text": """
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
@@ -44,8 +43,7 @@ contract MyToken {
     }
 }
 """
-            }
-        )
+        }
 
         result = await agent.generate_contract(description="Create an ERC-20 token contract", standard="ERC20")
 
@@ -64,6 +62,7 @@ contract VulnerableToken {
     mapping(address => uint256) public balanceOf;
 
     function transfer(address to, uint256 amount) public {
+        require(msg.sender == tx.origin);
         balanceOf[msg.sender] -= amount;
         balanceOf[to] += amount;
     }
@@ -105,16 +104,14 @@ function expensiveLoop(uint256 n) public pure returns (uint256) {
 """
 
     with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_router:
-        mock_router.return_value.async_route_and_generate = AsyncMock(
-            return_value={
-                "text": """
+        mock_router.return_value = AsyncMock(return_value={
+            "text": """
 // Optimized version
 function optimizedLoop(uint256 n) public pure returns (uint256) {
     return n * (n - 1) / 2;
 }
 """
-            }
-        )
+        })
 
         result = await agent.optimize_gas(solidity_code)
 
@@ -138,9 +135,8 @@ contract SimpleStorage {
 """
 
     with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_router:
-        mock_router.return_value.async_route_and_generate = AsyncMock(
-            return_value={
-                "text": """
+        mock_router.return_value = AsyncMock(return_value={
+            "text": """
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
@@ -153,8 +149,7 @@ describe("SimpleStorage", function () {
     });
 });
 """
-            }
-        )
+        })
 
         result = await agent.generate_tests(contract_code)
 
@@ -169,9 +164,8 @@ async def test_erc721_nft_contract(mock_blockchain):
     agent = BlockchainAgent()
 
     with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_router:
-        mock_router.return_value.async_route_and_generate = AsyncMock(
-            return_value={
-                "text": """
+        mock_router.return_value = AsyncMock(return_value={
+            "text": """
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
@@ -192,8 +186,7 @@ contract MyNFT is ERC721 {
     }
 }
 """
-            }
-        )
+        })
 
         result = await agent.generate_contract(description="Create an ERC-721 NFT contract", standard="ERC721")
 

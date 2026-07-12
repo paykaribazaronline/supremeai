@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from tools.model_trainer import ModelTrainer
+from tools.learning.model_trainer import ModelTrainer
 
 
 @pytest.mark.anyio

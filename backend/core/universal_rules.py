@@ -26,7 +26,7 @@ class UniversalRulesEngine:
         """Loads rules from secure Database. If not available, uses default rules."""
         db_rules = {}
         try:
-            from tools.mcp_supabase import _get_connection
+            from tools.mcp.mcp_supabase import _get_connection
 
             conn = _get_connection()
             if conn:

@@ -26,7 +26,7 @@ from pydantic import BaseModel
 from core.config import settings
 from models.ci_report import CIReportPayload
 from models.ci_report import create_ci_report
-from tools.cost_auditor import CostAuditor
+from tools.billing.cost_auditor import CostAuditor
 
 
 security = HTTPBearer()
@@ -497,7 +497,7 @@ def set_router_override(payload: RouterOverrideRequest):
 
 @router.get("/codebase/export")
 def get_codebase_export():
-    from tools.codebase_exporter import export_codebase_to_markdown
+    from tools.knowledge.codebase_exporter import export_codebase_to_markdown
 
     try:
         codebase_md = export_codebase_to_markdown("..")
@@ -588,7 +588,7 @@ def trigger_backup():
 
 @router.get("/data-export")
 def get_full_data_export():
-    from tools.codebase_exporter import export_codebase_to_markdown
+    from tools.knowledge.codebase_exporter import export_codebase_to_markdown
 
     try:
         codebase_md = export_codebase_to_markdown("..")

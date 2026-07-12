@@ -5,13 +5,13 @@ from unittest.mock import patch
 
 import pytest
 
-from backend.tools.cot_reasoner import ChainOfThoughtReasoner
-from backend.tools.cot_reasoner import DeepReasoningChain
-from backend.tools.cot_reasoner import Thought
-from backend.tools.cot_reasoner import _eval_node
-from backend.tools.cot_reasoner import _safe_eval_math
-from backend.tools.cot_reasoner import safe_execute
-from backend.tools.cot_reasoner import verify_symbolic_math
+from backend.tools.code.cot_reasoner import ChainOfThoughtReasoner
+from backend.tools.code.cot_reasoner import DeepReasoningChain
+from backend.tools.code.cot_reasoner import Thought
+from backend.tools.code.cot_reasoner import _eval_node
+from backend.tools.code.cot_reasoner import _safe_eval_math
+from backend.tools.code.cot_reasoner import safe_execute
+from backend.tools.code.cot_reasoner import verify_symbolic_math
 
 
 class FakeSympy:
@@ -103,7 +103,7 @@ class TestEvalNode:
     def test_unsupported_operator_raises(self):
         node = ast.parse("1 & 2", mode="eval").body
 
-        with patch.dict("backend.tools.cot_reasoner._ALLOWED_OPERATORS", {}):
+        with patch.dict("backend.tools.code.cot_reasoner._ALLOWED_OPERATORS", {}):
             with pytest.raises(ValueError, match="Unsupported operator"):
                 _eval_node(node)
 
@@ -183,7 +183,7 @@ class TestVerifySymbolicMath:
                 raise RuntimeError("bad")
 
         with patch.dict("sys.modules", {"sympy": FakeSympyRaise()}):
-            with patch("backend.tools.cot_reasoner._safe_eval_math", side_effect=ValueError("bad")):
+            with patch("backend.tools.code.cot_reasoner._safe_eval_math", side_effect=ValueError("bad")):
                 result = verify_symbolic_math("???", "???")
         assert result["is_verified"] is False
         assert "error" in result

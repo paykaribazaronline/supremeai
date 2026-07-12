@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from core.secret_vault import ProductionSecretVault
+from core.security.secret_vault import ProductionSecretVault
 
 
 @pytest.fixture
@@ -19,7 +19,7 @@ def vault_local():
 def vault_production():
     with patch.dict(os.environ, {"ENV": "production", "GCP_PROJECT_ID": "proj-1"}, clear=False):
         mock_client = MagicMock()
-        with patch("core.secret_vault.secretmanager", create=True):
+        with patch("core.security.secret_vault.secretmanager", create=True):
             with patch.object(ProductionSecretVault, "__init__", lambda self: None):
                 v = ProductionSecretVault()
                 v.project_id = "proj-1"

@@ -4,8 +4,8 @@ from typing import Any
 
 from loguru import logger
 
-from core.event_bus import ErrorEvent
-from core.event_bus import error_event_bus
+from core.messaging.event_bus import ErrorEvent
+from core.messaging.event_bus import error_event_bus
 
 
 # বাংলা মন্তব্য: module-level Redis initialization সম্পূর্ণ নিষিদ্ধ।
@@ -71,7 +71,7 @@ class MultiLayerCache:
 
     def _get_semantic_cache(self):
         if self._semantic_cache is None:
-            from core.semantic_cache import SemanticCache
+            from core.cache.semantic_cache import SemanticCache
 
             self._semantic_cache = SemanticCache()
         return self._semantic_cache

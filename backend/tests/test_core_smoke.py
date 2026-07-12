@@ -41,7 +41,7 @@ async def test_llm_gateway_acompletion_monkeypatched(monkeypatch, tmp_path):
     async def fake_acompletion(*args, **kwargs):
         return FakeResponse("mocked-response")
 
-    from core.llm_gateway import LLMGateway
+    from core.llm.llm_gateway import LLMGateway
 
     with patch("litellm.acompletion", new=fake_acompletion):
         with patch("core.cache.semantic_cache.SemanticCache.query_similar", new=AsyncMock(return_value=None)):

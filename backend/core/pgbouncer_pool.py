@@ -1,5 +1,6 @@
 # FILE_PATH: backend/core/pgbouncer_pool.py
 
+import asyncio
 import logging
 
 import asyncpg
@@ -72,6 +73,7 @@ class PgBouncerConnectionPool:
 
 
 _db_pool_instance = None
+_pool_lock = asyncio.Lock()
 
 
 async def get_db_pool() -> PgBouncerConnectionPool:
@@ -87,8 +89,9 @@ async def get_db_pool() -> PgBouncerConnectionPool:
 async def init_db_pool(dsn: str) -> PgBouncerConnectionPool:
     """Initializes the DB pool singleton and returns it."""
     global _db_pool_instance
-    if _db_pool_instance is None:
-        pool = PgBouncerConnectionPool(dsn)
-        await pool.connect()
-        _db_pool_instance = pool
-    return _db_pool_instance
+    async with _pool_lock:
+        if _db_pool_instance is None:
+            pool = PgBouncerConnectionPool(dsn)
+            await pool.connect()
+            _db_pool_instance = pool
+        return _db_pool_instance

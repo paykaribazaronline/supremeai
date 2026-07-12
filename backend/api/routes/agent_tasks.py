@@ -12,7 +12,7 @@ from brain.autonomous_agent import AutonomousAgent
 from brain.langgraph_agent import SupremeOrchestrator
 from brain.model_router import ModelRouter
 from core.generation_monitor import GenerationMonitor
-from core.rbac import RoleBasedAccessControl
+from core.security.rbac import RoleBasedAccessControl
 
 
 agent_router = APIRouter(prefix="/api/v1/agents", tags=["agents"])

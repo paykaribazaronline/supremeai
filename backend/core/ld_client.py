@@ -53,3 +53,17 @@ def init_ld_client() -> "LDAIClient | None":
 
 # গ্লোবাল ক্লায়েন্ট রেফারেন্স (Global Client Reference)
 ld_ai_client = init_ld_client()
+
+
+def get_ld_ai_components():
+    """
+    LaunchDarkly AI components load করে।
+    সব ব্যর্থ হলে (None, None, None, None, None) return করে।
+    """
+    try:
+        from ldai import AICompletionConfigDefault, LDMessage, ModelConfig
+        from ldclient.context import Context
+        return ld_ai_client, AICompletionConfigDefault, LDMessage, ModelConfig, Context
+    except Exception as exc:
+        logger.warning(f"LaunchDarkly AI components unavailable: {exc}")
+        return None, None, None, None, None

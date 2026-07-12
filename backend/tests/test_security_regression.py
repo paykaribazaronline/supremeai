@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 from pydantic import ValidationError
 
-from core.auth_middleware import AuthMiddleware
+from core.security.auth_middleware import AuthMiddleware
 from core.config import Settings
 
 

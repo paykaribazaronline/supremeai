@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import litellm
 import pytest
 
-from core.llm_gateway import LLMGateway
+from core.llm.llm_gateway import LLMGateway
 
 
 @pytest.fixture(autouse=True)
@@ -26,7 +26,7 @@ def test_load_routing_policy_handles_invalid_json(monkeypatch, tmp_path):
     bad.write_text("{ this is : not json", encoding="utf-8")
     monkeypatch.setattr("core.llm_gateway._POLICY_PATH", str(bad))
     gateway = LLMGateway()
-    from core.llm_gateway import _DEFAULT_FALLBACK_MODELS
+    from core.llm.llm_gateway import _DEFAULT_FALLBACK_MODELS
 
     assert gateway.routing_policy == {"complexity_rules": {}, "fallback_chain": list(_DEFAULT_FALLBACK_MODELS)}
 

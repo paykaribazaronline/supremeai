@@ -9,7 +9,7 @@ from loguru import logger
 # Ensure the backend tools can be imported
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from tools.dependency_manager_agent import DependencyManagerAgent
+from tools.code.dependency_manager_agent import DependencyManagerAgent
 
 
 async def main():

@@ -20,8 +20,8 @@ from typing import Any
 from loguru import logger
 
 from core.config import settings
-from core.event_bus import ErrorEvent
-from core.event_bus import error_event_bus
+from core.messaging.event_bus import ErrorEvent
+from core.messaging.event_bus import error_event_bus
 
 
 # ── Security Constants ─────────────────────────────────────────────────────────

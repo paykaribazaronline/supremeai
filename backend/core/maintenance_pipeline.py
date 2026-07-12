@@ -2,11 +2,11 @@ import asyncio
 import logging
 import time
 
-from core.event_bus import ErrorEvent
-from core.event_bus import error_event_bus
-from core.health_probes import probe_database
-from core.health_probes import probe_external_api
-from core.health_probes import probe_redis
+from core.messaging.event_bus import ErrorEvent
+from core.messaging.event_bus import error_event_bus
+from core.health.health_probes import probe_database
+from core.health.health_probes import probe_external_api
+from core.health.health_probes import probe_redis
 
 
 logger = logging.getLogger("supremeai.immune_system")
@@ -115,7 +115,7 @@ class MaintenancePipeline:
 
         if event:
             logger.info(f"Attempting to heal module {event.module} for error {event.error_type}")
-            from core.redis_manager import redis_manager
+            from core.cache.redis_manager import redis_manager
 
             # Simulated checks based on the event payload or type
             # In a real scenario, the event type might be exactly 'llm_provider_down' or 'redis_connection_lost'

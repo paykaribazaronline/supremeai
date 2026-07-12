@@ -69,6 +69,8 @@ pnpm install --frozen-lockfile
 - **packages/ui-components** — Shared UI library
 - **packages/shared-types** — Shared Zod types
 - **tools/vscode-extension** — VS Code extension
+- **backend/core** — Core backend engine (orchestration, security, cache, evolution)
+- **backend/tools** — AI Agent Tools organized by category (12 categories)
 
 ### Dependency Overrides
 The root `package.json` enforces consistent versions across the monorepo:

@@ -43,7 +43,7 @@ class TestSSOIntegrator:
 class TestReferralEngine:
     def test_referral_engine_generates_code(self):
         import database.supabase_client as db_mod
-        from tools.viral_referral_engine import ViralReferralEngine
+        from tools.social.viral_referral_engine import ViralReferralEngine
 
         original = db_mod.db.client
         db_mod.db.client = None
@@ -56,7 +56,7 @@ class TestReferralEngine:
             db_mod.db.client = original
 
     def test_referral_deep_links(self):
-        from tools.viral_referral_engine import ViralReferralEngine
+        from tools.social.viral_referral_engine import ViralReferralEngine
 
         engine = ViralReferralEngine()
         link_fb = engine.generate_deep_link("SUPREME-ABC123", "facebook")
@@ -66,7 +66,7 @@ class TestReferralEngine:
 
     def test_wallet_balance_default(self):
         import database.supabase_client as db_mod
-        from tools.viral_referral_engine import ViralReferralEngine
+        from tools.social.viral_referral_engine import ViralReferralEngine
 
         original = db_mod.db.client
         db_mod.db.client = None

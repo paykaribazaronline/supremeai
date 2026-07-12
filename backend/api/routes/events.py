@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from fastapi import Request
 from sse_starlette.sse import EventSourceResponse
 
-from core.pubsub import global_pubsub
+from core.messaging.pubsub import global_pubsub
 
 
 router = APIRouter(tags=["Events"])

@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 
 from api.dependencies import get_current_user_token
-from core.llm_gateway import llm_gateway
+from core.llm.llm_gateway import llm_gateway
 
 
 router = APIRouter(prefix="/workspace/task", tags=["Supreme Workspace Tasks"])

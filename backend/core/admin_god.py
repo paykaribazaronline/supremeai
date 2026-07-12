@@ -10,8 +10,8 @@ try:
 except Exception:  # pragma: no cover - optional fallback  # noqa: BLE001
     bcrypt = None
 
-from .rbac import RoleBasedAccessControl
-from .rbac import UserContext
+from .security.rbac import RoleBasedAccessControl
+from .security.rbac import UserContext
 from .universal_rules import UniversalRulesEngine
 
 

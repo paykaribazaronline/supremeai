@@ -5,7 +5,7 @@ from pathlib import Path
 
 from loguru import logger
 
-from core.circuit_breaker import CircuitBreaker
+from core.resilience.circuit_breaker import CircuitBreaker
 
 
 try:

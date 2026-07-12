@@ -6,7 +6,7 @@ import uuid
 from datetime import UTC
 from datetime import datetime
 
-from core.nats_messaging import NATSClient
+from core.messaging.nats_messaging import NATSClient
 
 
 logger = logging.getLogger(__name__)

@@ -1,6 +1,6 @@
 import asyncio
 
-from tools.web_fallback_agent import WebFallbackAgent
+from tools.browser.web_fallback_agent import WebFallbackAgent
 
 
 def test_web_fallback():

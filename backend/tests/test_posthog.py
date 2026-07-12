@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from core.posthog_client import posthog_client
+from core.observability.posthog_client import posthog_client
 
 
 @patch("core.posthog_client.logger")

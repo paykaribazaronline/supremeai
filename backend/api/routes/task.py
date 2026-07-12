@@ -26,7 +26,7 @@ from core.prompt_handler import format_unified_chat_prompt
 router = APIRouter()
 
 try:
-    from core.semantic_cache import VectorSemanticCache
+    from core.cache.semantic_cache import VectorSemanticCache
 
     semantic_cache = VectorSemanticCache()
 except ImportError:
@@ -117,15 +117,8 @@ async def get_completion(req: CompletionRequest):
         max_cost=0.005,
     )
 
-    completion_text = raw.get("text", "")
-    if completion_text.strip().startswith("```"):
-        lines = completion_text.strip().splitlines()
-        if len(lines) > 1:
-            if lines[0].startswith("```"):
-                lines = lines[1:]
-            if lines and lines[-1].startswith("```"):
-                lines = lines[:-1]
-            completion_text = "\n".join(lines)
+    from utils.text_helpers import strip_markdown_code_block
+    completion_text = strip_markdown_code_block(raw.get("text", ""))
 
     suggestions = [completion_text] if completion_text else []
     return CompletionResponse(success=True, suggestions=suggestions)
@@ -202,15 +195,9 @@ def format_chat_history(messages: list[dict]) -> str:
 
 
 def format_response(text: str, task_type: str) -> str:
-    # Extracts code blocks to clean markup
     def extract_code(t: str) -> str:
-        if "```" in t:
-            parts = t.split("```")
-            for part in parts[1:]:
-                lines = part.splitlines()
-                if len(lines) > 0:
-                    return "\n".join(lines[1:])
-        return t
+        from utils.text_helpers import strip_markdown_code_block
+        return strip_markdown_code_block(t)
 
     def detect_language(t: str) -> str:
         if "```" in t:

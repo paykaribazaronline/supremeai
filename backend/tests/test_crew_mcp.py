@@ -70,7 +70,7 @@ def test_crew_agent_and_sequential_crew():
 
 
 def test_swarm_orchestrator():
-    from core.swarm_orchestrator import SwarmOrchestrator
+    from core.orchestration.swarm_orchestrator import SwarmOrchestrator
 
     mock_router = MagicMock()
     mock_router.route_and_generate.return_value = {"text": "swarm response"}

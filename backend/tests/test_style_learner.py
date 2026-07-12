@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock, patch
 import pytest
 
-from tools.style_learner import StyleLearner
+from tools.learning.style_learner import StyleLearner
 
 try:
     from brain.model_router import ModelRouter

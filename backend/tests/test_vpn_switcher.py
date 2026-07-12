@@ -1,6 +1,6 @@
 import time
 
-from tools.vpn_switcher import VPNRotator
+from tools.security_tools.vpn_switcher import VPNRotator
 
 
 def test_vpn_rotator_no_endpoints():

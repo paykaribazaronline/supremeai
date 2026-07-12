@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from tools.bangla_voice import BanglaVoice
+from tools.localization.bangla_voice import BanglaVoice
 
 
 def test_bangla_voice_init():

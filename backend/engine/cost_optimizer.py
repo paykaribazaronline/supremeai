@@ -37,7 +37,7 @@ class CostOptimizer:
 
     def _get_best_free_provider(self) -> str | None:
         try:
-            from core.free_tier_tracker import get_tracker
+            from core.llm.free_tier_tracker import get_tracker
 
             self.free_tier_tracker = get_tracker()
             provider = self.free_tier_tracker.get_best_provider()

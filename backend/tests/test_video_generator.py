@@ -3,7 +3,7 @@ import tempfile
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from tools.video_generator import VideoGenerator
+from tools.media.video_generator import VideoGenerator
 
 
 def test_video_generator_stub_fallback():

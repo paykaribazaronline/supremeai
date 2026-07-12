@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from tools.viral_referral_engine import FRAUD_INDICATOR_THRESHOLD, ViralReferralEngine
+from tools.social.viral_referral_engine import FRAUD_INDICATOR_THRESHOLD, ViralReferralEngine
 
 
 class TestViralReferralEngine:

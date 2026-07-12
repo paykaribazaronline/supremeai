@@ -2,8 +2,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from core.auto_remediation import AutoRemediation
-from core.rollback_monitor import RollbackMonitor
+from core.resilience.auto_remediation import AutoRemediation
+from core.resilience.rollback_monitor import RollbackMonitor
 from core.rules_mutator import RulesMutator
 
 

@@ -3,7 +3,7 @@ import shutil
 
 import pytest
 
-from tools.rlhf_pipeline import RLHFPipeline
+from tools.learning.rlhf_pipeline import RLHFPipeline
 
 
 @pytest.fixture

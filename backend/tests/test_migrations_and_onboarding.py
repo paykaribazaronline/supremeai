@@ -208,7 +208,7 @@ class TestOnboardingAPI:
 
 class TestViralReferralEngine:
     def test_generate_referral_code_format(self):
-        from tools.viral_referral_engine import ViralReferralEngine
+        from tools.social.viral_referral_engine import ViralReferralEngine
 
         engine = ViralReferralEngine()
         with patch("tools.viral_referral_engine.db") as mock_db:
@@ -220,7 +220,7 @@ class TestViralReferralEngine:
         assert len(result["code"]) == 16  # SUPREME- + 8 hex chars
 
     def test_generate_deep_link_platforms(self):
-        from tools.viral_referral_engine import ViralReferralEngine
+        from tools.social.viral_referral_engine import ViralReferralEngine
 
         engine = ViralReferralEngine()
         for platform in ["twitter", "facebook", "whatsapp", "telegram", "generic"]:
@@ -228,7 +228,7 @@ class TestViralReferralEngine:
             assert "SUPREME-ABC12345" in link or "invite" in link
 
     def test_calculate_reward_bronze(self):
-        from tools.viral_referral_engine import ViralReferralEngine
+        from tools.social.viral_referral_engine import ViralReferralEngine
 
         engine = ViralReferralEngine()
         with patch("tools.viral_referral_engine.db") as mock_db:
@@ -249,7 +249,7 @@ class TestViralReferralEngine:
     def test_fraud_detection_same_ip(self):
         import time
 
-        from tools.viral_referral_engine import ViralReferralEngine
+        from tools.social.viral_referral_engine import ViralReferralEngine
 
         engine = ViralReferralEngine()
         # Simulate 3 same-IP redemptions in last 7 days

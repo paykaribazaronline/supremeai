@@ -27,18 +27,10 @@ class IdempotencyMiddleware:
 
     async def _get_redis(self):
         """
-        বাংলা মন্তব্য: একটি শেয়ার্ড অ্যাসিঙ্ক্রোনাস Redis ক্লায়েন্ট ইনস্ট্যান্স তৈরি এবং রিটার্ন করে।
-        এই lazy-loading অ্যাপ্রোচটি শুধুমাত্র যখন প্রয়োজন তখনই রিসোর্স ব্যবহার করে।
+        বাংলা মন্তব্য: শেয়ার্ড অ্যাসিঙ্ক্রোনাস Redis ক্লায়েন্ট (redis_manager) ব্যবহার করা হচ্ছে।
         """
-        if self._redis_client is None:
-            if not aioredis:
-                logger.warning("IdempotencyMiddleware: 'redis' package not installed. Middleware will be bypassed.")
-                return None
-            import os
-
-            redis_url = os.getenv("REDIS_URL") or "redis://localhost:6379"
-            self._redis_client = aioredis.from_url(redis_url, decode_responses=True)
-        return self._redis_client
+        from core.cache.redis_manager import redis_manager
+        return getattr(redis_manager, "client", None)
 
     async def __call__(self, scope, receive, send) -> None:
         if scope["type"] != "http":

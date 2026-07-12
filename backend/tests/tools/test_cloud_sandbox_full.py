@@ -6,12 +6,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from core.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
+from core.orchestration.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
 
 # বাংলা মন্তব্য: PersistentSandbox এবং SandboxSession এখনও implement হয়নি।
 # যতক্ষণ পর্যন্ত এই ক্লাসগুলো cloud_sandbox_orchestrator-এ যোগ না হয়, টেস্টগুলো skip করা হবে।
 try:
-    from core.cloud_sandbox_orchestrator import PersistentSandbox, SandboxSession
+    from core.orchestration.cloud_sandbox_orchestrator import PersistentSandbox, SandboxSession
 
     _PERSISTENT_SANDBOX_AVAILABLE = True
 except ImportError:

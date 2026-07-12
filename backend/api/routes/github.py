@@ -5,7 +5,7 @@ from firebase_admin import firestore
 from pydantic import BaseModel
 
 from api.dependencies import get_tenant_db
-from tools.github_agent import GitHubAgent
+from tools.devops.github_agent import GitHubAgent
 from tools.repo_discovery_agent import RepoDiscoveryAgent
 
 

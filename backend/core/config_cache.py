@@ -112,8 +112,8 @@ class ConfigCache:
                 logger.info(f"ConfigCache: Loaded {len(configs)} configs from DB")
             except RuntimeError as e:
                 logger.exception(f"❌ Critical task failure in config_cache.py: {e}")
-                from core.event_bus import ErrorEvent
-                from core.event_bus import error_event_bus
+                from core.messaging.event_bus import ErrorEvent
+                from core.messaging.event_bus import error_event_bus
 
                 error_event_bus.emit(
                     ErrorEvent(

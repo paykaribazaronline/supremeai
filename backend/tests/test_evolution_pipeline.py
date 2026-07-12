@@ -6,7 +6,7 @@ from skill_loader import SkillLoader
 from skills.installer import SkillInstaller
 from core.skill_manager import SkillManager
 
-from evolution.auto_skill_creator import AutoSkillCreator
+from core.evolution.auto_skill_creator import AutoSkillCreator
 
 from skills.registry import SkillRegistry
 

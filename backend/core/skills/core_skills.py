@@ -1,7 +1,7 @@
 # backend/core/skills/core_skills.py
 from typing import Any
 
-from core.llm_gateway import llm_gateway
+from core.llm.llm_gateway import llm_gateway
 from core.skills.base import BaseSkill
 from models.shared_workspace import SharedWorkspace
 

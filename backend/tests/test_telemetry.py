@@ -20,11 +20,11 @@ except ImportError:
     sys.modules["opentelemetry.exporter.otlp.proto.grpc.trace_exporter"] = mock_exporter
     opentelemetry.exporter = mock_exporter
 
-from core.telemetry import _NoOpSpan
-from core.telemetry import _RealSpan
-from core.telemetry import get_tracer
-from core.telemetry import setup_tracing
-from core.telemetry import trace_span
+from core.observability.telemetry import _NoOpSpan
+from core.observability.telemetry import _RealSpan
+from core.observability.telemetry import get_tracer
+from core.observability.telemetry import setup_tracing
+from core.observability.telemetry import trace_span
 
 
 def test_setup_tracing_noop():
