@@ -29,7 +29,11 @@ def mock_llm_gateway():
         )
         mock_gateway_factory.return_value = mock_gateway
         with patch("core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
-            mock_acompletion.return_value = {"text": '{"agent_name": "mocked_agent", "script": "print(\'mock\')"}', "success": True, "choices": [{"message": {"content": '{"name": "mocked_tool", "description": "A mocked tool"}'}}]}
+            mock_acompletion.return_value = {
+                "text": '{"agent_name": "mocked_agent", "script": "print(\'mock\')"}',
+                "success": True,
+                "choices": [{"message": {"content": '{"name": "mocked_tool", "description": "A mocked tool"}'}}],
+            }
             with patch("litellm.acompletion", new_callable=AsyncMock) as mock_litellm:
                 mock_litellm.return_value = MagicMock()
                 yield mock_gateway
