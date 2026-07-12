@@ -1,41 +1,63 @@
 # SupremeAI - Manual Maintenance & Auto-Fixing Pipeline
-# বাংলা মন্তব্য: এই পাইপলাইনটি ম্যানুয়ালি ট্রিগার করা যাবে এবং বিভিন্ন রক্ষণাবেক্ষণ কাজ চালানো যাবে। (সংস্করণ ২.০)
+# বাংলা মন্তব্য: এই পাইপলাইনটি ম্যানুয়ালি ট্রিগার করা যাবে এবং বিভিন্ন রক্ষণাবেক্ষণ কাজ চালানো যাবে। (সংস্করণ ৩.০)
 
 name: "🤖 Manual Maintenance & Auto-Fix"
 
 on:
+  # বাংলা মন্তব্য: প্রতিদিন রাত ২টায় (UTC) স্বয়ংক্রিয়ভাবে Smart Summary চালাবে
+  schedule:
+    - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
-      run_performance_e2e:
-        description: 'Run Performance E2E'
-        type: boolean
-        default: false
-      run_worker_test:
-        description: 'Run Cloudflare Worker Tests'
-        type: boolean
-        default: false
-      run_health_check:
-        description: 'Run Health Check'
+      run_ci_failure_summary:
+        description: '🧠 Smart CI Failure Summary (Core CI-এর ব্যর্থতা বিশ্লেষণ)'
         type: boolean
         default: true
+      run_health_check:
+        description: '🩺 Run Health Check'
+        type: boolean
+        default: false
       run_auto_lint_fix:
-        description: 'Run Auto Lint Fix'
+        description: '🔧 Run Auto Lint Fix (PR তৈরি করবে)'
         type: boolean
         default: false
       run_dependency_scan:
-        description: 'Run Dependency Vulnerability Scan'
+        description: '🔍 Run Dependency Vulnerability Scan'
         type: boolean
         default: false
-      run_security_remediate:
-        description: 'Run Security Remediation'
+      run_outdated_report:
+        description: '📦 Run Outdated Dependency Report'
+        type: boolean
+        default: false
+      run_changelog_generator:
+        description: '📝 Generate Changelog (PR তৈরি করবে)'
+        type: boolean
+        default: false
+      run_cache_purge:
+        description: '🗑️ Purge Redis Cache (Upstash)'
         type: boolean
         default: false
       run_generate_docs:
-        description: 'Generate & Deploy Docs'
+        description: '📚 Generate & Deploy Docs'
+        type: boolean
+        default: false
+      run_performance_e2e:
+        description: '🧪 Run Performance E2E (Playwright)'
+        type: boolean
+        default: false
+      run_worker_test:
+        description: '⚡ Run Cloudflare Worker Tests'
         type: boolean
         default: false
 
-# বাংলা মন্তব্য: প্রতিটি টাস্ককে আলাদা জব-এ ভাগ করা হয়েছে স্বচ্ছতা এবং নির্ভরযোগ্যতার জন্য।
+# বাংলা মন্তব্য: প্রতিটি টাস্ককে আলাদা জব-এ ভাগ করা হয়েছে স্বচ্ছতা এবং নির্ভরযোগ্যতার জন্য।
+
+# বাংলা মন্তব্য: NODE_VERSION এবং PYTHON_VERSION এখানে define করা হয়েছে কারণ এটি
+# maintenance pipeline-এর নিজস্ব env scope। supreme-core-ci থেকে inherit হয় না।
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '24'
+
 jobs:
   # এই জবটি শুধুমাত্র একবার রান হবে এবং সব downstream জব এটি ব্যবহার করবে।
   setup:
@@ -358,3 +380,220 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
+  # ==============================================================================
+  # ⭐ PHASE 2: SMART CI FAILURE SUMMARY
+  # বাংলা মন্তব্য: Core CI ব্যর্থ হলে এই জব GitHub API কল করে বিশ্লেষণ করবে
+  # এবং অ্যাডমিনের জন্য একটি সুন্দর fix guide তৈরি করবে।
+  # প্রতিদিন রাত ২টায় (UTC) বা manually trigger করা যাবে।
+  # ==============================================================================
+  ci-failure-smart-summary:
+    name: 🧠 Smart CI Failure Summary
+    runs-on: ubuntu-latest
+    # বাংলা মন্তব্য: scheduled রানে সবসময় চলবে; manual রানে শুধু যখন input true
+    if: >
+      github.event_name == 'schedule' ||
+      github.event.inputs.run_ci_failure_summary == 'true'
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: 🧠 Run Smart CI Failure Detector
+        # বাংলা মন্তব্য: GitHub API দিয়ে সর্বশেষ ব্যর্থ Core CI রান খুঁজে বের করে
+        # প্রতিটি ব্যর্থ জবের জন্য auto-fix recommendation তৈরি করে।
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python .github/scripts/ci_smart_summary.py
+
+  # ==============================================================================
+  # PHASE 3: UTILITY JOBS
+  # ==============================================================================
+
+  outdated-dependency-report:
+    name: 📦 Outdated Dependency Report
+    runs-on: ubuntu-latest
+    if: github.event.inputs.run_outdated_report == 'true'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - uses: snok/install-poetry@v1
+        with:
+          plugins: poetry-plugin-export
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9.0.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+          cache-dependency-path: '**/pnpm-lock.yaml'
+
+      - name: 📦 Check Outdated Python Dependencies
+        # বাংলা মন্তব্য: পুরনো Python প্যাকেজের তালিকা তৈরি করে Step Summary-তে দেখায়
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          poetry export --without ml,tools --format requirements.txt --output requirements.txt
+          pip install -r requirements.txt
+
+          echo "## 📦 Outdated Python Dependencies" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Package | Current | Latest |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          pip list --outdated --format=columns 2>/dev/null | tail -n +3 | \
+            awk '{printf "| %s | %s | %s |\n", $1, $2, $3}' >> $GITHUB_STEP_SUMMARY || \
+            echo "✅ সব Python প্যাকেজ আপ-টু-ডেট!" >> $GITHUB_STEP_SUMMARY
+
+      - name: 📦 Check Outdated Node.js Dependencies
+        # বাংলা মন্তব্য: পুরনো Node প্যাকেজের তালিকা তৈরি করে
+        run: |
+          pnpm install --frozen-lockfile
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📦 Outdated Node.js Dependencies" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          pnpm outdated --recursive 2>/dev/null >> $GITHUB_STEP_SUMMARY || \
+            echo "✅ সব Node প্যাকেজ আপ-টু-ডেট!" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+  changelog-generator:
+    name: 📝 Changelog Generator (Auto PR)
+    runs-on: ubuntu-latest
+    if: github.event.inputs.run_changelog_generator == 'true'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # বাংলা মন্তব্য: সব commit history দরকার changelog-এর জন্য
+
+      - name: 📝 Generate CHANGELOG.md from Git History
+        # বাংলা মন্তব্য: গত ৩০ দিনের git commit থেকে changelog তৈরি করা হচ্ছে
+        # conventional commits format অনুসরণ করে categorize করা হচ্ছে
+        run: |
+          SINCE_DATE=$(date -d '30 days ago' +%Y-%m-%d 2>/dev/null || date -v-30d +%Y-%m-%d)
+          echo "# 📋 CHANGELOG" > CHANGELOG_NEW.md
+          echo "" >> CHANGELOG_NEW.md
+          echo "## 🗓️ Changes since \`${SINCE_DATE}\`" >> CHANGELOG_NEW.md
+          echo "" >> CHANGELOG_NEW.md
+
+          # Features
+          FEATURES=$(git log --since="$SINCE_DATE" --pretty=format:"- %s (%h)" --grep="^feat" 2>/dev/null)
+          if [ -n "$FEATURES" ]; then
+            echo "### ✨ New Features" >> CHANGELOG_NEW.md
+            echo "$FEATURES" >> CHANGELOG_NEW.md
+            echo "" >> CHANGELOG_NEW.md
+          fi
+
+          # Bug Fixes
+          FIXES=$(git log --since="$SINCE_DATE" --pretty=format:"- %s (%h)" --grep="^fix" 2>/dev/null)
+          if [ -n "$FIXES" ]; then
+            echo "### 🐛 Bug Fixes" >> CHANGELOG_NEW.md
+            echo "$FIXES" >> CHANGELOG_NEW.md
+            echo "" >> CHANGELOG_NEW.md
+          fi
+
+          # CI/CD Changes
+          CI_CHANGES=$(git log --since="$SINCE_DATE" --pretty=format:"- %s (%h)" --grep="^ci" 2>/dev/null)
+          if [ -n "$CI_CHANGES" ]; then
+            echo "### 🔧 CI/CD Changes" >> CHANGELOG_NEW.md
+            echo "$CI_CHANGES" >> CHANGELOG_NEW.md
+            echo "" >> CHANGELOG_NEW.md
+          fi
+
+          # Docs Changes
+          DOCS=$(git log --since="$SINCE_DATE" --pretty=format:"- %s (%h)" --grep="^docs" 2>/dev/null)
+          if [ -n "$DOCS" ]; then
+            echo "### 📚 Documentation" >> CHANGELOG_NEW.md
+            echo "$DOCS" >> CHANGELOG_NEW.md
+            echo "" >> CHANGELOG_NEW.md
+          fi
+
+          # All other commits
+          echo "### 🔄 Other Changes" >> CHANGELOG_NEW.md
+          git log --since="$SINCE_DATE" --pretty=format:"- %s (%h by %an)" \
+            --invert-grep --grep="^feat\|^fix\|^ci\|^docs\|\[skip ci\]" 2>/dev/null | \
+            head -30 >> CHANGELOG_NEW.md || true
+
+          # যদি CHANGELOG.md আগে থেকে থাকে তাহলে merge করা
+          if [ -f CHANGELOG.md ]; then
+            cat CHANGELOG.md >> CHANGELOG_NEW.md
+          fi
+          mv CHANGELOG_NEW.md CHANGELOG.md
+
+          echo "## 📝 Changelog Generated" >> $GITHUB_STEP_SUMMARY
+          echo "✅ গত 30 দিনের commit থেকে CHANGELOG.md তৈরি হয়েছে।" >> $GITHUB_STEP_SUMMARY
+
+      - name: 🤖 Create Changelog Pull Request
+        # বাংলা মন্তব্য: সরাসরি push না করে PR তৈরি করা হচ্ছে — best practice
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "docs: auto-generate CHANGELOG.md [skip ci]"
+          title: "📝 Auto-Generated Changelog Update"
+          body: |
+            ## 📋 Automated Changelog Update
+
+            এই PR-টি `changelog-generator` maintenance job দ্বারা স্বয়ংক্রিয়ভাবে তৈরি করা হয়েছে।
+
+            **গত ৩০ দিনের commits থেকে** নিচের categories-এ changelog আপডেট করা হয়েছে:
+            - ✨ New Features (`feat:`)
+            - 🐛 Bug Fixes (`fix:`)
+            - 🔧 CI/CD Changes (`ci:`)
+            - 📚 Documentation (`docs:`)
+            - 🔄 Other Changes
+
+            **Review করে merge করুন।** কোনো সমস্যা থাকলে এই PR close করুন।
+          branch: "chore/auto-changelog-${{ github.run_id }}"
+          base: develop
+          labels: "documentation, automated, changelog"
+          delete-branch: true
+
+  cache-purge:
+    name: 🗑️ Purge Redis Cache (Upstash)
+    runs-on: ubuntu-latest
+    if: github.event.inputs.run_cache_purge == 'true'
+    steps:
+      - name: 🗑️ Flush Upstash Redis Cache
+        # বাংলা মন্তব্য: Upstash Redis REST API দিয়ে সব stale cache key পরিষ্কার করা হচ্ছে
+        # এটি শুধুমাত্র manual trigger-এ চলবে — কোনো accidental flush এড়াতে
+        env:
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+        run: |
+          if [ -z "$UPSTASH_REDIS_REST_URL" ] || [ -z "$UPSTASH_REDIS_REST_TOKEN" ]; then
+            echo "⚠️ UPSTASH_REDIS_REST_URL বা UPSTASH_REDIS_REST_TOKEN secret সেট নেই।" >> $GITHUB_STEP_SUMMARY
+            echo "Skipping cache purge."
+            exit 0
+          fi
+
+          echo "## 🗑️ Redis Cache Purge" >> $GITHUB_STEP_SUMMARY
+          echo "**Starting cache flush via Upstash REST API...**" >> $GITHUB_STEP_SUMMARY
+
+          RESPONSE=$(curl -s -X POST \
+            "$UPSTASH_REDIS_REST_URL/FLUSHDB" \
+            -H "Authorization: Bearer $UPSTASH_REDIS_REST_TOKEN")
+
+          if echo "$RESPONSE" | grep -q '"result"'; then
+            echo "✅ Redis cache সফলভাবে flush করা হয়েছে।" >> $GITHUB_STEP_SUMMARY
+            echo "**Response:** \`$RESPONSE\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Cache flush ব্যর্থ হয়েছে।" >> $GITHUB_STEP_SUMMARY
+            echo "**Error Response:** \`$RESPONSE\`" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
