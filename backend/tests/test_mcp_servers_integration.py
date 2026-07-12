@@ -690,7 +690,6 @@ class TestSupabaseMCPExtended:
             params = MigrationInput(migration_name="test", up_sql="CREATE TABLE test (id INT)", down_sql="DROP TABLE test")
             result = await supabase_run_migration(params)
             data = json.loads(result)
-            print("DATA:", data)
             assert "already applied" in data["message"]
 
     @pytest.mark.asyncio
@@ -1560,7 +1559,6 @@ class TestInputValidation:
             params = CreateTableInput(table_name="logs", columns="id SERIAL PRIMARY KEY", if_not_exists=False)
             result = await supabase_create_table(params)
             data = json.loads(result)
-            print("DATA RETURNED:", data)
             assert data["success"] is True
 
         """মাইগ্রেশন ইতিমধ্যে আপ্লাই করা হয়েছে (ডিটেইলড)।"""
@@ -1575,7 +1573,6 @@ class TestInputValidation:
             params = MigrationInput(migration_name="existing_migration", up_sql="CREATE TABLE test (id INT)", down_sql="DROP TABLE test")
             result = await supabase_run_migration(params)
             data = json.loads(result)
-            print("DATA2:", data)
             assert "already applied" in data["message"]
 
         """মাইগ্রেশন সফল হলে DOWN SQL এক্সিকিউট হয় না।"""
