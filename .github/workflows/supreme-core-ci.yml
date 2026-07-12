@@ -355,13 +355,7 @@ jobs:
         working-directory: backend
         run: |
           echo "## 🚨 Code Smell Detection" >> $GITHUB_STEP_SUMMARY
-          poetry run python -c "
-from tools.code_smell_detector import CodeSmellDetector
-import asyncio
-detector = CodeSmellDetector()
-result = asyncio.run(detector.scan_directory('backend/tools'))
-print(f'Found {result.get(\"total_issues\", 0)} code smell issues')
-" || {
+          poetry run python -c "from tools.code_smell_detector import CodeSmellDetector; import asyncio; detector = CodeSmellDetector(); result = asyncio.run(detector.scan_directory('backend/tools')); print('Found', result.get('total_issues', 0), 'code smell issues')" || {
             echo "❌ Code smell check failed" >> $GITHUB_STEP_SUMMARY
             exit 1
           }

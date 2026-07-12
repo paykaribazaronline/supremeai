@@ -2,7 +2,7 @@ import urllib.request
 import json
 import os
 
-api_key = "rnd_gEmpPduF8s6icBAWPAdt9fJMLwvf"
+api_key = os.environ.get("RENDER_API_KEY", "")
 service_id = "srv-d991umnaqgkc73fk89o0"
 
 url = f"https://api.render.com/v1/services/{service_id}"

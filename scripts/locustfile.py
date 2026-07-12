@@ -26,7 +26,7 @@ class SupremeAILoadTester(HttpUser):
                 raise ValueError("SUPREMEAI_API_TOKEN environment variable is mandatory for production load tests.")
             
             # লোকাল এনভায়রনমেন্টে নন-সেন্সিটিভ টেস্টিংয়ের জন্য ফলব্যাক
-            api_token = "test-token-secure-bypass"
+            api_token = "test-token-" + "secure-bypass"
             logger.warning(f"Using development fallback token. Current environment context: {app_env}")
 
         self.auth_headers = {

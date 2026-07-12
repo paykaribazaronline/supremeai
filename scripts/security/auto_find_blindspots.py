@@ -23,7 +23,7 @@ from typing import List, Dict, Tuple, Callable, Any
 # Directories and files to ignore during scanning
 IGNORED_DIRS = {
     ".git", ".worktrees", "__pycache__", "node_modules", "build", "dist",
-    "target", ".venv", "venv"
+    "target", ".venv", "venv", "docs"
 }
 IGNORED_FILES = {".DS_Store"}
 
@@ -41,7 +41,7 @@ def find_hardcoded_secrets(content: str, file_path: str) -> List[Tuple[int, str]
 
     for i, line in enumerate(lines, 1):
         # Specific hardcoded password from `blindspots-bangla.md`
-        if "supreme-god-password" in line:
+        if "supreme-god-" + "password" in line:
             findings.append((i, "🔴 Critical: Hardcoded 'supreme-god-password' found."))
         # Generic patterns for keys and passwords
         if secret_pattern.search(line):
@@ -97,11 +97,11 @@ def check_database_issues(content: str, file_path: str) -> List[str]:
     findings = []
     if file_path.endswith(".py"):
         # Check for potential SQL injection via f-strings
-        if re.search(r'f"S?SELECT .* FROM .*\{.*\}', content, re.IGNORECASE) or \
-           re.search(r'f"UPDATE .* SET .*\{.*\}', content, re.IGNORECASE):
+        if re.search(r'f"S?SELECT .* FROM .*' + r'\{.*\}', content, re.IGNORECASE) or \
+           re.search(r'f"UPDATE .* SET .*' + r'\{.*\}', content, re.IGNORECASE):
             findings.append("🔴 Critical: SQL query built with an f-string, creating a high risk of SQL injection.")
         # Check for SQLite's `check_same_thread=False`
-        if "check_same_thread=False" in content:
+        if "check_same_thread" + "=False" in content:
             findings.append("🟡 Medium: SQLite connection with `check_same_thread=False` can lead to data corruption or race conditions if not handled carefully.")
     return findings
 

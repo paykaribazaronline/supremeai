@@ -1,7 +1,8 @@
 import urllib.request
 import json
+import os
 
-api_key = "rnd_8JFgpDL6qQVsl6AQPMSAi1AULo8q"
+api_key = os.environ.get("RENDER_API_KEY", "")
 service = "srv-d995glt7vvec73f3jgo0"
 headers = {
     "Authorization": f"Bearer {api_key}",
