@@ -302,6 +302,8 @@ jobs:
       ADMIN_AUTHORIZED: "true"
       DOCS_PASSWORD: "mock_docs_password"
       SUPREMEAI_ADMIN_PASSWORD_HASH: "$2b$12$mockhashmockhashmockhashmockhashmockhash"
+      STRIPE_API_KEY: "mock_stripe_api_key"
+      STRIPE_WEBHOOK_SECRET: "mock_stripe_webhook_secret"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
