@@ -34,67 +34,67 @@ HEADERS = {
 FIX_MAPPING: dict[str, dict[str, Any]] = {
     "pre-merge-gate": {
         "label": "🚧 Pre-Merge Gate (Iron Curtain)",
-        "likely_cause": "Ruff lint error (`print()`, `BLE001`) অথবা httpx timeout missing",
+        "likely_cause": "Ruff lint এরর (`print()`, `BLE001`) অথবা httpx timeout মিসিং",
         "fix_action": "auto-lint-fix",
-        "fix_label": "🔧 Run `auto-lint-fix`",
+        "fix_label": "🔧 রান করুন `auto-lint-fix`",
         "fixable": True,
-        "fix_description": "Ruff + Black + isort দিয়ে সব lint error auto-fix করবে এবং PR তৈরি করবে।",
+        "fix_description": "Ruff + Black + isort দিয়ে সব lint error অটো-ফিক্স করবে এবং PR তৈরি করবে।",
     },
     "backend-core": {
         "label": "🐍 Backend (Test & Auto-Fix)",
-        "likely_cause": "pytest failure — test assertion error বা import error",
+        "likely_cause": "pytest ব্যর্থতা — test assertion এরর বা import এরর",
         "fix_action": "auto-lint-fix",
-        "fix_label": "🔧 Run `auto-lint-fix`",
+        "fix_label": "🔧 রান করুন `auto-lint-fix`",
         "fixable": True,
-        "fix_description": "Code formatting fix করবে। যদি logic error হয়, logs দেখতে হবে।",
+        "fix_description": "কোড ফরম্যাটিং ঠিক করবে। যদি লজিক এরর হয়, তবে লগ দেখতে হবে।",
     },
     "production-readiness": {
         "label": "🚀 Production Readiness",
-        "likely_cause": "Stub/placeholder data detected অথবা validator critical issue",
+        "likely_cause": "Stub/placeholder ডেটা পাওয়া গেছে অথবা ভ্যালিডেটরে গুরুতর সমস্যা",
         "fix_action": None,
-        "fix_label": "👁️ Manual Review Required",
+        "fix_label": "👁️ ম্যানুয়াল রিভিউ প্রয়োজন",
         "fixable": False,
-        "fix_description": "Stub data manually খুঁজে বের করে সরাতে হবে। কোনো auto-fix নেই।",
+        "fix_description": "Stub ডেটা ম্যানুয়ালি খুঁজে বের করে সরাতে হবে। কোনো অটো-ফিক্স নেই।",
     },
     "security-audit": {
         "label": "🛡️ CodeQL & Trivy Security Scan",
-        "likely_cause": "Dependency CVE found অথবা CodeQL violation",
+        "likely_cause": "ডিপেন্ডেন্সি CVE পাওয়া গেছে অথবা CodeQL ভায়োলেশন",
         "fix_action": "dependency-vulnerability-scan",
-        "fix_label": "🔍 Run `dependency-vulnerability-scan`",
+        "fix_label": "🔍 রান করুন `dependency-vulnerability-scan`",
         "fixable": True,
-        "fix_description": "Full vulnerability scan চালাবে এবং কোন package ঝুঁকিপূর্ণ তা দেখাবে।",
+        "fix_description": "সম্পূর্ণ vulnerability স্ক্যান চালাবে এবং কোন প্যাকেজ ঝুঁকিপূর্ণ তা দেখাবে।",
     },
     "frontend-core": {
         "label": "🌐 Frontend Monorepo (Turbo)",
-        "likely_cause": "TypeScript error, ESLint violation অথবা Vitest failure",
+        "likely_cause": "TypeScript এরর, ESLint ভায়োলেশন অথবা Vitest ব্যর্থতা",
         "fix_action": "auto-lint-fix",
-        "fix_label": "🔧 Run `auto-lint-fix`",
+        "fix_label": "🔧 রান করুন `auto-lint-fix`",
         "fixable": True,
-        "fix_description": "ESLint auto-fix চালাবে এবং PR তৈরি করবে।",
+        "fix_description": "ESLint অটো-ফিক্স চালাবে এবং PR তৈরি করবে।",
     },
     "deploy-to-render": {
         "label": "🚀 Deploy Backend (Render)",
-        "likely_cause": "Render deploy hook failure অথবা Docker build error",
+        "likely_cause": "Render ডিপ্লয় হুক ব্যর্থতা অথবা Docker বিল্ড এরর",
         "fix_action": None,
-        "fix_label": "👁️ Check Render Dashboard",
+        "fix_label": "👁️ Render ড্যাশবোর্ড চেক করুন",
         "fixable": False,
-        "fix_description": "Render dashboard এবং `RENDER_DEPLOY_HOOK_URL` secret চেক করুন।",
+        "fix_description": "Render ড্যাশবোর্ড এবং `RENDER_DEPLOY_HOOK_URL` সিক্রেট চেক করুন।",
     },
     "deploy-frontend-prod": {
         "label": "🌐 Deploy Frontend (Firebase)",
-        "likely_cause": "Firebase deploy token expired অথবা project ID mismatch",
+        "likely_cause": "Firebase ডিপ্লয় টোকেন মেয়াদোত্তীর্ণ অথবা প্রজেক্ট ID ভুল",
         "fix_action": None,
-        "fix_label": "👁️ Check Firebase Config",
+        "fix_label": "👁️ Firebase কনফিগ চেক করুন",
         "fixable": False,
-        "fix_description": "`FIREBASE_TOKEN` এবং `GCP_PROJECT_ID` secret চেক করুন।",
+        "fix_description": "`FIREBASE_TOKEN` এবং `GCP_PROJECT_ID` সিক্রেট চেক করুন।",
     },
     "deploy-to-vercel": {
         "label": "🚀 Deploy User Portal (Vercel)",
-        "likely_cause": "Vercel free tier limit (100/day) অথবা config mismatch",
+        "likely_cause": "Vercel ফ্রি টিয়ার লিমিট (১০০/দিন) অথবা কনফিগ ভুল",
         "fix_action": None,
-        "fix_label": "👁️ Check Vercel Dashboard",
+        "fix_label": "👁️ Vercel ড্যাশবোর্ড চেক করুন",
         "fixable": False,
-        "fix_description": "Vercel daily limit শেষ হয়ে গেছে। ২৪ ঘণ্টা পরে retry করুন।",
+        "fix_description": "Vercel এর ডেইলি লিমিট শেষ হয়ে গেছে। ২৪ ঘণ্টা পরে আবার চেষ্টা করুন।",
     },
 }
 
@@ -147,11 +147,11 @@ def match_job_to_fix(job_name: str) -> dict:
     # Default fallback
     return {
         "label": job_name,
-        "likely_cause": "Unknown — লগ ম্যানুয়ালি চেক করুন",
+        "likely_cause": "অজানা — লগ ম্যানুয়ালি চেক করুন",
         "fix_action": None,
-        "fix_label": "👁️ Manual Review",
+        "fix_label": "👁️ ম্যানুয়াল রিভিউ",
         "fixable": False,
-        "fix_description": "এই জবের কোনো known auto-fix নেই। লগ দেখুন।",
+        "fix_description": "এই জবের কোনো জানা অটো-ফিক্স নেই। লগ দেখুন।",
     }
 
 
@@ -161,19 +161,19 @@ def build_maintenance_dispatch_url(job_input_name: str) -> str:
 
 
 def format_time_ago(iso_time: str) -> str:
-    """ISO time string থেকে 'X minutes ago' ফরম্যাটে কনভার্ট করে।"""
+    """ISO time string থেকে 'X মিনিট আগে' ফরম্যাটে কনভার্ট করে।"""
     try:
         dt = datetime.fromisoformat(iso_time.replace("Z", "+00:00"))
         now = datetime.now(timezone.utc)
         diff = now - dt
         minutes = int(diff.total_seconds() / 60)
         if minutes < 60:
-            return f"{minutes} minutes ago"
+            return f"{minutes} মিনিট আগে"
         hours = minutes // 60
         if hours < 24:
-            return f"{hours} hours ago"
+            return f"{hours} ঘণ্টা আগে"
         days = hours // 24
-        return f"{days} days ago"
+        return f"{days} দিন আগে"
     except Exception:
         return iso_time
 
@@ -197,7 +197,7 @@ def generate_smart_summary() -> str:
     failed_run = get_latest_failed_core_ci_run()
 
     if not failed_run:
-        lines.append("## ✅ All Clear!")
+        lines.append("## ✅ সব ঠিক আছে!")
         lines.append("")
         lines.append("সর্বশেষ Core CI রানে কোনো ব্যর্থতা পাওয়া যায়নি। সব সিস্টেম সচল আছে।")
         return "\n".join(lines)
@@ -210,25 +210,25 @@ def generate_smart_summary() -> str:
     commit_msg = failed_run.get("head_commit", {}).get("message", "")[:80]
     branch = failed_run.get("head_branch", "main")
 
-    lines.append(f"## ❌ Failed Run Detected")
+    lines.append(f"## ❌ ব্যর্থ রান ধরা পড়েছে")
     lines.append("")
-    lines.append(f"| Field | Details |")
-    lines.append(f"|-------|---------|")
-    lines.append(f"| **Run** | [#{run_number}]({run_url}) |")
-    lines.append(f"| **Branch** | `{branch}` |")
-    lines.append(f"| **Failed** | {run_time} |")
-    lines.append(f"| **Triggered by** | {triggered_by} |")
-    lines.append(f"| **Commit** | `{commit_msg}` |")
+    lines.append(f"| ফিল্ড | বিস্তারিত |")
+    lines.append(f"|-------|-----------|")
+    lines.append(f"| **রান** | [#{run_number}]({run_url}) |")
+    lines.append(f"| **ব্রাঞ্চ** | `{branch}` |")
+    lines.append(f"| **ব্যর্থ হয়েছে** | {run_time} |")
+    lines.append(f"| **ট্রিগার করেছেন** | {triggered_by} |")
+    lines.append(f"| **কমিট** | `{commit_msg}` |")
     lines.append("")
 
     # ── Step 2: ব্যর্থ জবগুলো fetch করা
     failed_jobs = get_failed_jobs_for_run(run_id)
 
     if not failed_jobs:
-        lines.append("⚠️ Run is marked failed but no individual failed jobs found (possibly timed out or cancelled).")
+        lines.append("⚠️ রানটি ব্যর্থ হিসেবে চিহ্নিত হয়েছে কিন্তু নির্দিষ্ট কোনো ব্যর্থ জব পাওয়া যায়নি (সম্ভবত টাইম আউট বা বাতিল হয়েছে)।")
         return "\n".join(lines)
 
-    lines.append(f"## 🔍 Failed Jobs ({len(failed_jobs)} found)")
+    lines.append(f"## 🔍 ব্যর্থ জবস ({len(failed_jobs)} টি পাওয়া গেছে)")
     lines.append("")
 
     # ── Step 3: প্রতিটি ব্যর্থ জবের জন্য fix recommendation তৈরি করা
@@ -261,42 +261,42 @@ def generate_smart_summary() -> str:
 
     # ── Auto-fixable jobs
     if fixable_jobs:
-        lines.append("### ✅ Auto-Fixable — Maintenance Pipeline দিয়ে ঠিক করা যাবে")
+        lines.append("### ✅ অটো-ফিক্সযোগ্য — Maintenance Pipeline দিয়ে ঠিক করা যাবে")
         lines.append("")
 
         for info in fixable_jobs:
             fix = info["fix"]
             duration_str = f" _(ran {info['duration']})_" if info["duration"] else ""
             lines.append(f"#### ❌ [{info['name']}]({info['url']}){duration_str}")
-            lines.append(f"- **Likely Cause:** {fix['likely_cause']}")
-            lines.append(f"- **Fix:** {fix['fix_label']}")
-            lines.append(f"- **How:** {fix['fix_description']}")
+            lines.append(f"- **সম্ভাব্য কারণ:** {fix['likely_cause']}")
+            lines.append(f"- **সমাধান:** {fix['fix_label']}")
+            lines.append(f"- **কীভাবে:** {fix['fix_description']}")
             maintenance_url = build_maintenance_dispatch_url(fix.get("fix_action", ""))
-            lines.append(f"- 🔗 **[Click here to run Maintenance Fix]({maintenance_url})**")
-            lines.append(f"  - Workflow: `maintenance_pipeline.yml`")
-            lines.append(f"  - Enable: `{fix['fix_action']}`")
+            lines.append(f"- 🔗 **[Maintenance Fix রান করতে এখানে ক্লিক করুন]({maintenance_url})**")
+            lines.append(f"  - ওয়ার্কফ্লো: `maintenance_pipeline.yml`")
+            lines.append(f"  - এনাবল করুন: `{fix['fix_action']}`")
             lines.append("")
 
     # ── Manual review jobs
     if manual_jobs:
-        lines.append("### 👁️ Manual Review Required — Auto-fix সম্ভব নয়")
+        lines.append("### 👁️ ম্যানুয়াল রিভিউ প্রয়োজন — অটো-ফিক্স সম্ভব নয়")
         lines.append("")
 
         for info in manual_jobs:
             fix = info["fix"]
             duration_str = f" _(ran {info['duration']})_" if info["duration"] else ""
             lines.append(f"#### ❌ [{info['name']}]({info['url']}){duration_str}")
-            lines.append(f"- **Likely Cause:** {fix['likely_cause']}")
-            lines.append(f"- **Action:** {fix['fix_label']}")
-            lines.append(f"- **Details:** {fix['fix_description']}")
+            lines.append(f"- **সম্ভাব্য কারণ:** {fix['likely_cause']}")
+            lines.append(f"- **করণীয়:** {fix['fix_label']}")
+            lines.append(f"- **বিস্তারিত:** {fix['fix_description']}")
             lines.append("")
 
     # ── Quick Action Summary Table
     lines.append("---")
-    lines.append("## 🚀 Quick Action Guide for Admin")
+    lines.append("## 🚀 অ্যাডমিনদের জন্য কুইক অ্যাকশন গাইড")
     lines.append("")
-    lines.append("| Failed Job | Maintenance Action | Fixable? |")
-    lines.append("|------------|-------------------|----------|")
+    lines.append("| ব্যর্থ জব | মেইনটেন্যান্স অ্যাকশন | ফিক্সযোগ্য? |")
+    lines.append("|------------|----------------------|----------|")
 
     for info in fixable_jobs + manual_jobs:
         fix = info["fix"]
@@ -306,10 +306,10 @@ def generate_smart_summary() -> str:
 
     lines.append("")
     maintenance_main_url = f"https://github.com/{REPO}/actions/workflows/maintenance_pipeline.yml"
-    lines.append(f"🔗 **[Open Maintenance Pipeline]({maintenance_main_url})** — উপরের জবগুলো ঠিক করতে এখানে ক্লিক করুন।")
+    lines.append(f"🔗 **[মেইনটেন্যান্স পাইপলাইন খুলুন]({maintenance_main_url})** — উপরের জবগুলো ঠিক করতে এখানে ক্লিক করুন।")
     lines.append("")
     lines.append("---")
-    lines.append("_This report was auto-generated by SupremeAI Smart CI Failure Summary script._")
+    lines.append("_এই রিপোর্টটি SupremeAI Smart CI Failure Summary স্ক্রিপ্ট দ্বারা স্বয়ংক্রিয়ভাবে তৈরি হয়েছে।_")
 
     return "\n".join(lines)
 
