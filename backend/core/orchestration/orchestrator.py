@@ -17,12 +17,11 @@ from fastapi import APIRouter
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from core.observability.telemetry import tracer
-
 # Assuming OpenTelemetry tracer is set up in core.telemetry
 from core.evolution.fitness_engine import FitnessEngine
 from core.evolution.self_evolution_agent import SelfEvolutionAgent
 from core.evolution.skill_graph import EvolutionSkillGraph
+from core.observability.telemetry import tracer
 
 
 logger = logging.getLogger(__name__)
@@ -52,8 +51,8 @@ class Orchestrator:
         # Add budget guardian task
         async def _run_budget_guardian() -> None:
             try:
-                import sys
                 import os
+                import sys
 
                 # Still need to add to sys.path safely if running from backend root
                 script_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
@@ -63,7 +62,7 @@ class Orchestrator:
                 from scripts.orchestrator.auto_budget_guardian import run_budget_guardian_check
 
                 await asyncio.to_thread(run_budget_guardian_check)
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001
                 logger.warning(f"Budget guardian not available. Skipping: {exc}")
 
         self._tasks.append(_run_budget_guardian)

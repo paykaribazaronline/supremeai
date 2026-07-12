@@ -1,6 +1,5 @@
 import os
 import re
-import time
 from typing import Any
 
 from loguru import logger
@@ -230,13 +229,13 @@ class AsyncTaskManager:
                 from core.queue.task_queue_enhanced import EnhancedTaskQueue
 
                 self._queue = EnhancedTaskQueue()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self._queue = None  # graceful fallback
         return self._queue
 
     def create_task(self, task_type: str, payload: dict) -> str:
-        import uuid
         import time
+        import uuid
 
         task_id = str(uuid.uuid4())
 

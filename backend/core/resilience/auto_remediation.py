@@ -1,6 +1,5 @@
 import os
 
-from github import Github
 from loguru import logger
 
 from tools.devops.github_agent import GitHubAgent
@@ -20,8 +19,9 @@ class AutoRemediation:
 
     def _create_github_pr(self, file_path: str, old_code: str, new_code: str, issue: str):
         """GitHub PR creator"""
-        from github import Github
         import os
+
+        from github import Github
 
         token = os.getenv("GITHUB_TOKEN")
         repo_name = os.getenv("GITHUB_REPOSITORY", "paykaribazaronline/supremeai")
@@ -120,7 +120,7 @@ class AutoRemediation:
             pr = await asyncio.to_thread(self._create_github_pr, safe_path, original_code, fixed_code, issue)
             if pr:
                 logger.info(f"Created PR: {pr.html_url}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.warning(f"Failed to create PR: {e}")
 
         return {
