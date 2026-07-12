@@ -9,9 +9,7 @@ from tools.diagram_to_architecture import DiagramToArchitecture
 
 @pytest.fixture
 def mock_diagram_converter():
-    with patch("tools.diagram_to_architecture.settings") as mock_settings:
-        mock_settings.openai_api_key = "test-key"
-        yield
+    yield
 
 
 @pytest.mark.anyio

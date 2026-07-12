@@ -10,9 +10,7 @@ from core.llm.llm_gateway import LLMGateway
 
 @pytest.fixture
 def mock_game_dev():
-    with patch("tools.game_dev_agent.settings") as mock_settings:
-        mock_settings.openai_api_key = "test-key"
-        yield
+    yield
 
 
 @pytest.mark.anyio

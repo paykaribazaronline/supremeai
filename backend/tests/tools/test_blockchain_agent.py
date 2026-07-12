@@ -9,9 +9,7 @@ from tools.blockchain_agent import BlockchainAgent
 
 @pytest.fixture
 def mock_blockchain():
-    with patch("tools.blockchain_agent.settings") as mock_settings:
-        mock_settings.openai_api_key = "test-key"
-        yield
+    yield
 
 
 @pytest.mark.anyio

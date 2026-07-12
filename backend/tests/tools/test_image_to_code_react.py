@@ -10,11 +10,7 @@ from core.llm.llm_gateway import LLMGateway
 
 @pytest.fixture
 def mock_image_to_code():
-    with (
-        patch("tools.image_to_code.settings") as mock_settings,
-        patch("tools.image_to_code.ImageToCode._encode_image_file", return_value="dummy_base64"),
-    ):
-        mock_settings.openai_api_key = "test-key"
+    with patch("tools.image_to_code.ImageToCode._encode_image_file", return_value="dummy_base64"):
         yield
 
 
