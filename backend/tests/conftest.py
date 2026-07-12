@@ -200,4 +200,5 @@ def mock_production_env(monkeypatch):
 @pytest.fixture
 async def async_session():
     from unittest.mock import AsyncMock
+
     yield AsyncMock()

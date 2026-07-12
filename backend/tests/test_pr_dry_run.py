@@ -37,7 +37,12 @@ async def test_dry_run_pr(async_session):
         mock_client.put.return_value = mock_commit_res
 
         pr_url = await create_autonomous_pr(
-            user_id="test_user", repo_name="test/repo", file_path="test.py", code_content="print('hello')", commit_msg="Test dry run", db_session=async_session
+            user_id="test_user",
+            repo_name="test/repo",
+            file_path="test.py",
+            code_content="print('hello')",
+            commit_msg="Test dry run",
+            db_session=async_session,
         )
 
         # Mock PR Dry Run Successful
