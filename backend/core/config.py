@@ -397,7 +397,6 @@ def get_production_env(var_name: str, default: str | None = None) -> str:
     যাতে সাইলেন্ট ফেইলর প্রতিরোধ করা যায়। ডিফল্ট ভ্যালু পাস করলে মিসিং ক্ষেত্রে fallback ব্যবহার হবে।
     """
 
-
     value = os.getenv(var_name)
     if not value:
         if default is not None:

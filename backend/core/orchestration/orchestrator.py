@@ -54,17 +54,18 @@ class Orchestrator:
             try:
                 import sys
                 import os
-                
+
                 # Still need to add to sys.path safely if running from backend root
                 script_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
                 if script_dir not in sys.path:
                     sys.path.append(script_dir)
-                
+
                 from scripts.orchestrator.auto_budget_guardian import run_budget_guardian_check
+
                 await asyncio.to_thread(run_budget_guardian_check)
             except Exception as exc:
                 logger.warning(f"Budget guardian not available. Skipping: {exc}")
-        
+
         self._tasks.append(_run_budget_guardian)
         logger.info("Budget guardian task added to orchestrator")
 

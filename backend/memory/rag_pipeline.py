@@ -52,11 +52,11 @@ class RAGPipeline:
             # Generate hypothetical answer
             hypo_response = await gateway.acompletion(
                 prompt=f"Write a short, hypothetical but factual answer to this query to help find relevant documents: '{query}'",
-                model="gemini/gemini-2.5-flash"
+                model="gemini/gemini-2.5-flash",
             )
             hypothetical_answer = hypo_response.get("text", query)
             logger.debug(f"HyDE generated hypothetical answer for search: {hypothetical_answer[:50]}...")
-            
+
             # Search using the hypothetical answer
             results = self.vector_store.query(hypothetical_answer, n_results=limit)
             context_parts = []

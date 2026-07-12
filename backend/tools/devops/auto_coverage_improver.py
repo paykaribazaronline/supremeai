@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Any
 
 
-
 from loguru import logger
 
 from tools.code.auto_test_generator import AutoTestGenerator
