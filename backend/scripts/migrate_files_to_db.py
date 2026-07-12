@@ -171,14 +171,14 @@ def create_tables(conn):
         DROP TABLE IF EXISTS skills CASCADE;
         DROP TABLE IF EXISTS rules CASCADE;
         DROP TABLE IF EXISTS agent_configs CASCADE;
-        
+
         -- Skills Table
         CREATE TABLE IF NOT EXISTS skills (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             skill_name VARCHAR(255) UNIQUE NOT NULL,
             description TEXT,
             code TEXT NOT NULL,
-            status VARCHAR(50) NOT NULL DEFAULT 'active', 
+            status VARCHAR(50) NOT NULL DEFAULT 'active',
             version INT NOT NULL DEFAULT 1,
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
