@@ -2,7 +2,8 @@
 
 ## Getting Started
 Please read our documentation before starting.
-When creating new branches, make sure to use `git checkout -b feature/name`.
+When creating new branches, make sure to use `git checkout -b feature/name` or `git commit -m "feat: your change"`.
+Remember that Safety Guard rules apply to all code.
 
 ## Testing
 - Run `pnpm backend:test` to test the backend.
