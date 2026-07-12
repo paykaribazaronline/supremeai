@@ -725,38 +725,3 @@ jobs:
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
 
-  canary-deploy:
-    name: "🚀 Canary Deploy Backend (Cloud Run)"
-    runs-on: ubuntu-latest
-    # ম্যানুয়াল ট্রিগার অথবা main ব্রাঞ্চে সফল বিল্ডের পর চলবে
-    if: >
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_deploy_render == 'true') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main')
-    needs: [backend-core, security-audit]
-    # backend-core এবং security-audit সফল হলে তবেই এটি চলবে
-    # deploy-backend এর পরিবর্তে এই জবটি ব্যবহার করা হবে
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: GCP Auth
-        uses: 'google-github-actions/auth@v2'
-        with:
-          credentials_json: '${{ secrets.GCP_SA_KEY }}'
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: 🐤 Run Canary Deployment Script
-        env:
-          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-          GCP_REGION: ${{ vars.GCP_REGION || 'us-central1' }}
-          # CANDIDATE_REVISION: Cloud Build থেকে পাওয়া নতুন রিভিশন এখানে পাস করতে হবে
-          # আপাতত, সর্বশেষ রিভিশন স্বয়ংক্রিয়ভাবে পাওয়ার লজিক canary-deploy.py-তে থাকবে
-          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          ERROR_RATE_THRESHOLD: "0.01" # 1%
-          LATENCY_P99_THRESHOLD_MS: "2000" # 2000ms
-        run: |
-          python .github/scripts/canary-deploy.py
