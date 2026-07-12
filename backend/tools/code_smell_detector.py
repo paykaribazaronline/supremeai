@@ -3,6 +3,7 @@ import json
 import os
 import subprocess
 import tempfile
+import time
 from typing import Any
 
 from loguru import logger
@@ -302,7 +303,7 @@ class CodeSmellDetector:
                         }
                     )
             except (ValueError, SyntaxError, TypeError) as e:
-                # সুনির্দিষ্ট ত্রুটি (Specific exception) ক্যাচ করা হলো, যাতে অপ্রত্যাশিত ত্রুটি লুকিয়ে না যায়
+                # সুনির্দিষ্ট ত্রুটি (Specific exception) ক্যাচ করা হলো, যাতে অপ্রত্যাশিত ত্রুটি লুকিয়ে না যায়
                 logger.warning(f"Radon maintainability index calculation failed for {filepath}: {e}")
             return results
         except ImportError:
@@ -527,3 +528,121 @@ class CodeSmellDetector:
         except (subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
             logger.warning(f"jscpd execution failed: {exc}")
             return {"status": "error", "reason": str(exc)}
+
+    # ------------------------------------------------------------------ #
+    # CI/CD Integration, SARIF, Pre-commit, History Tracking
+    # ------------------------------------------------------------------ #
+    def generate_sarif(self, results: dict[str, list[dict[str, Any]]], repo_uri: str = "file:///supremeai") -> dict[str, Any]:
+        """
+        GitHub Security tab-এ দেখানোর জন্য SARIF রিপোর্ট জেনারেট করে।
+
+        results: analyze_directory()-এর আউটপুট (path -> list of smells)
+        """
+        rules: dict[str, dict[str, str]] = {}
+        sarif_results: list[dict[str, Any]] = []
+
+        severity_map = {
+            "critical": "error",
+            "high": "error",
+            "warning": "warning",
+            "info": "note",
+        }
+
+        for filepath, smells in results.items():
+            if filepath.startswith("_"):
+                continue
+            for smell in smells:
+                rule_id = smell.get("type", "UnknownSmell")
+                if rule_id not in rules:
+                    rules[rule_id] = {
+                        "id": rule_id,
+                        "shortDescription": {"text": smell.get("message", rule_id)},
+                        "helpUri": "https://supremeai.dev/docs/code-smells",
+                    }
+                sarif_results.append(
+                    {
+                        "ruleId": rule_id,
+                        "level": severity_map.get(smell.get("severity", "info"), "note"),
+                        "message": {"text": smell.get("message", "")},
+                        "locations": [
+                            {
+                                "physicalLocation": {
+                                    "artifactLocation": {"uri": filepath},
+                                    "region": {
+                                        "startLine": smell.get("line", 1),
+                                        "endLine": smell.get("end_line", smell.get("line", 1)),
+                                    },
+                                }
+                            }
+                        ],
+                    }
+                )
+
+        return {
+            "version": "2.1.0",
+            "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+            "runs": [
+                {
+                    "tool": {
+                        "driver": {
+                            "name": "SupremeAICodeSmellDetector",
+                            "version": "2.0.0",
+                            "informationUri": repo_uri,
+                            "rules": list(rules.values()),
+                        }
+                    },
+                    "results": sarif_results,
+                }
+            ],
+        }
+
+    def install_pre_commit_hook(self, repo_path: str = ".") -> bool:
+        """প্রি-কমিট হুক ইনস্টল করে যাতে কমিটের আগে স্মেল চেক হয়।"""
+        hook_path = os.path.join(repo_path, ".git", "hooks", "pre-commit")
+        if not os.path.isdir(os.path.join(repo_path, ".git")):
+            logger.warning(f"No git repo found at {repo_path}; skipping pre-commit hook install.")
+            return False
+        try:
+            os.makedirs(os.path.dirname(hook_path), exist_ok=True)
+            with open(hook_path, "w", encoding="utf-8") as f:
+                f.write(
+                    "#!/bin/sh\n"
+                    "# বাংলা মন্তব্য: SupremeAI কোড স্মেল প্রি-কমিট হুক।\n"
+                    "python -m tools.code_smell_detector --check || true\n"
+                )
+            os.chmod(hook_path, 0o755)
+            logger.success(f"Pre-commit hook installed at {hook_path}")
+            return True
+        except Exception as e:  # noqa: BLE001
+            logger.error(f"Failed to install pre-commit hook: {e}")
+            return False
+
+    def track_history(self, results: dict[str, list[dict[str, Any]]], history_file: str = "data/code_smell_history.json") -> dict[str, Any]:
+        """
+        রিপোর্ট ইতিহাস ট্র্যাক করে (কোড কোয়ালিটি সময়ের সাথে ভালো হচ্ছে কিনা)।
+
+        প্রতি রানে মোট স্মেল সংখ্যা সংরক্ষণ করে ট্রেন্ড তৈরি করে।
+        """
+        total_smells = sum(len(v) for k, v in results.items() if not k.startswith("_"))
+        record = {"timestamp": time.time(), "total_smells": total_smells, "files_affected": len(results)}
+
+        history: list[dict[str, Any]] = []
+        try:
+            if os.path.exists(history_file):
+                with open(history_file, encoding="utf-8") as f:
+                    history = json.load(f)
+        except Exception:  # noqa: BLE001
+            history = []
+
+        history.append(record)
+        try:
+            os.makedirs(os.path.dirname(history_file), exist_ok=True)
+            with open(history_file, "w", encoding="utf-8") as f:
+                json.dump(history[-100:], f, indent=2)
+        except Exception as e:  # noqa: BLE001
+            logger.debug(f"History tracking write failed: {e}")
+
+        # বাংলা মন্তব্য: ট্রেন্ড — আগের রানের চেয়ে কম স্মেল হলে উন্নতি।
+        trend = "improving" if len(history) >= 2 and history[-1]["total_smells"] <= history[-2]["total_smells"] else "worsening"
+        record["trend"] = trend
+        return record

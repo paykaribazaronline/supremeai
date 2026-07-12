@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 
 sys.path.append("../..")
-from monitoring.cost_auditor import CostAuditor
+from tools.cost_auditor import CostAuditor
 
 
 class TestCostAuditor:

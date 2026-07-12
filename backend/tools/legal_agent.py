@@ -1,59 +1,114 @@
 from typing import Any
+from core.config import settings
 
 from loguru import logger
 
 
 class LegalAgent:
-    async def generate_document(self, doc_type: str, context: dict[str, str]) -> dict[str, Any]:
-        logger.info(f"Generating legal document: {doc_type}")
-        company = context.get("company_name", "[Company Name]")
-        effective_date = context.get("effective_date", "[Date]")
-        jurisdiction = context.get("jurisdiction", "State of California")
-        doc = f"""
-# {doc_type.upper()}
-**Effective Date:** {effective_date}
-**Jurisdiction:** {jurisdiction}
+    """
+    লিগ্যাল এজেন্ট — চুক্তি তৈরি, ক্লজ বিশ্লেষণ, কমপ্লায়েন্স চেক ও ToS/Privacy Policy জেনারেট করে।
 
-## 1. Introduction
-Welcome to {company}. By accessing or using our services, you agree to be bound by these terms.
+    Devin/Cursor-এর মতো নির্দিষ্ট ডোমেইনে সেরা হওয়ার জন্য:
+      - চুক্তি তৈরি (NDA, Service Agreement, etc.)
+      - ক্লজ বিশ্লেষণ (জুরিসডিকশন অনুযায়ী)
+      - Compliance check (GDPR, BD Digital Security Act, etc.)
+      - Terms of Service / Privacy Policy
+    """
 
-## 2. Definitions
-- "Service" means the software platform provided by {company}.
-- "User" means any individual or entity using the Service.
+    def __init__(self, model: str = "gpt-4o"):
+        self.model = model
+        logger.info(f"Initialized LegalAgent with model {self.model}")
 
-## 3. Liability Limitation
-To the maximum extent permitted by law, {company} shall not be liable for indirect, incidental, or consequential damages.
+    async def generate_contract(self, contract_type: str, parties: list[str], terms: dict[str, str], jurisdiction: str = "BD") -> dict[str, Any]:
+        """চুক্তি তৈরি করে (NDA, Service Agreement, ইত্যাদি)।"""
+        logger.info(f"Generating {contract_type} for jurisdiction {jurisdiction}")
+        parties_str = ", ".join(parties) if parties else "[Party A] and [Party B]"
+        terms_str = "\n".join(f"- {k}: {v}" for k, v in terms.items()) or "- [Specify terms]"
+        try:
+            from brain.model_router import ModelRouter
 
-## 4. Governing Law
-These terms shall be governed by the laws of {jurisdiction}.
-"""
+            router = ModelRouter()
+            prompt = (
+                f"You are a licensed legal drafter. Draft a {contract_type} under the laws of {jurisdiction}. "
+                f"Parties: {parties_str}. Key terms:\n{terms_str}\n"
+                "Return ONLY the legal document text in Markdown, with numbered sections and placeholders "
+                "for dates/signatures."
+            )
+            result = await router.async_route_and_generate(prompt, task_type="legal", max_cost=0.03)
+            doc = result.get("text", "") if isinstance(result, dict) else ""
+            return {
+                "status": "success",
+                "type": contract_type,
+                "jurisdiction": jurisdiction,
+                "document": doc.strip(),
+            }
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"Contract generation failed: {exc}")
+            return {"status": "error", "error": str(exc)}
+
+    async def analyze_clause(self, clause_text: str, jurisdiction: str = "BD") -> dict[str, Any]:
+        """ক্লজ বিশ্লেষণ করে (রিস্ক, আইনি ইমপ্লিকেশন)।"""
+        logger.info(f"Analyzing clause under {jurisdiction} jurisdiction...")
+        # বাংলা মন্তব্য: স্থানীয় হিউরিস্টিক — একতরফা/অসমান অধিকার ক্লজ থাকলে সতর্ক করা হচ্ছে।
+        risks: list[str] = []
+        lowered = clause_text.lower()
+        if "sole discretion" in lowered or "unilateral" in lowered:
+            risks.append("Clause grants unilateral discretion; may be unconscionable under consumer protection law.")
+        if "waive" in lowered and "liability" in lowered:
+            risks.append("Liability waiver detected; enforceability varies by jurisdiction and may be void if gross negligence.")
+        if "indemnify" in lowered:
+            risks.append("Indemnification clause present; ensure mutual scope and caps are defined.")
+        if "governing law" not in lowered and "jurisdiction" not in lowered:
+            risks.append(f"No governing law specified; defaulting to {jurisdiction} courts may be contested.")
         return {
             "status": "success",
-            "type": doc_type,
-            "document": doc.strip(),
+            "jurisdiction": jurisdiction,
+            "risk_count": len(risks),
+            "risks": risks or ["No obvious red-flag clauses detected."],
+            "summary": clause_text[:200],
         }
 
-    async def extract_clauses(self, document_text: str) -> dict[str, Any]:
-        logger.info("Extracting clauses from document...")
-        clauses: dict[str, str] = {
-            "liability": "Not explicitly stated.",
-            "termination": "Not explicitly stated.",
-            "governing_law": "Not explicitly stated.",
-            "confidentiality": "Not explicitly stated.",
-        }
-        lower_text = document_text.lower()
-        for key, phrase in [
-            ("liability", ["liability", "liable", "damages", "indemnify"]),
-            ("termination", ["terminate", "termination", "end of agreement"]),
-            ("governing_law", ["governed by", "governing law", "jurisdiction"]),
-            ("confidentiality", ["confidential", "non-disclosure", "nda"]),
-        ]:
-            for word in phrase:
-                if word in lower_text:
-                    idx = lower_text.index(word)
-                    clauses[key] = document_text[max(0, idx - 50) : idx + 200].strip()
-                    break
+    async def check_compliance(self, document: str, regulation: str) -> dict[str, Any]:
+        """কমপ্লায়েন্স চেক করে (GDPR, BD Digital Security Act, ইত্যাদি)।"""
+        logger.info(f"Checking compliance against {regulation}...")
+        findings: list[dict[str, Any]] = []
+        lowered = document.lower()
+        if regulation.upper() in ("GDPR", "EU"):
+            if "data subject" not in lowered and "personal data" not in lowered:
+                findings.append({"severity": "high", "message": "No reference to data subject rights (GDPR Art. 12-22)."})
+            if "consent" not in lowered:
+                findings.append({"severity": "medium", "message": "No lawful basis / consent mechanism mentioned."})
+        if "BD" in regulation.upper() or "bangladesh" in lowered:
+            if "data protection" not in lowered and "privacy" not in lowered:
+                findings.append({"severity": "medium", "message": "No data protection clause referencing Bangladesh Digital Security Act."})
+        if not findings:
+            findings.append({"severity": "info", "message": f"Document appears consistent with {regulation} baseline requirements."})
         return {
             "status": "success",
-            "clauses": clauses,
+            "regulation": regulation,
+            "findings": findings,
+            "compliant": all(f["severity"] != "high" for f in findings),
         }
+
+    async def generate_tos(self, product_description: str, jurisdiction: str = "BD") -> dict[str, Any]:
+        """Terms of Service / Privacy Policy জেনারেট করে।"""
+        logger.info(f"Generating ToS/Privacy Policy for {jurisdiction}...")
+        try:
+            from brain.model_router import ModelRouter
+
+            router = ModelRouter()
+            prompt = (
+                f"You are a legal compliance expert. Draft a Terms of Service and a Privacy Policy for the "
+                f"following product under {jurisdiction} law: {product_description}. "
+                "Return ONLY the combined legal text in Markdown with clear section headings."
+            )
+            result = await router.async_route_and_generate(prompt, task_type="legal", max_cost=0.03)
+            doc = result.get("text", "") if isinstance(result, dict) else ""
+            return {
+                "status": "success",
+                "jurisdiction": jurisdiction,
+                "document": doc.strip(),
+            }
+        except Exception as exc:  # noqa: BLE001
+            logger.error(f"ToS generation failed: {exc}")
+            return {"status": "error", "error": str(exc)}

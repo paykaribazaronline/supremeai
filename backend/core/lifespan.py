@@ -203,6 +203,10 @@ async def app_lifespan(app):
 
     # Start SupremeAI Immune System zero-cost background probing
     maintenance_pipeline.start_monitoring()
+    
+    # Start the Sentinel Agent
+    from core.sentinel_agent import sentinel
+    asyncio.create_task(sentinel.run_periodic_loop())
 
     yield  # এখানে অ্যাপ্লিকেশন ট্রাফিক রিসিভ করবে
 

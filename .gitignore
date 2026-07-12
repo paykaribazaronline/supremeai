@@ -176,3 +176,12 @@ infrastructure/firebase_functions/**/lib/
 .env
 .vercel
 .env*
+
+# Binaries and Generated Dumps
+render.exe
+render_cli.zip
+render_temp/
+docs/codebase_dump.md
+scripts/observability_report.json
+backend/coverage.json
+test_db_path

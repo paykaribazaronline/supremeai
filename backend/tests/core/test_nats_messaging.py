@@ -11,7 +11,7 @@ import pytest
 
 # Handle missing nats module gracefully
 try:
-    from core.nats_messaging import NATSClient
+    from core.messaging.nats_messaging import NATSClient
 except ModuleNotFoundError:
     pytest.skip("nats module not installed", allow_module_level=True)
 
@@ -182,7 +182,7 @@ class TestPublishEvent:
     async def test_publish_without_connection(self, nats_client):
         """বাংলা মন্তব্য: Connection না থাকলে publish skip হয়।"""
         nats_client.nc = None
-        with patch("core.nats_messaging.logger") as mock_logger:
+        with patch("core.messaging.nats_messaging.logger") as mock_logger:
             await nats_client.publish_event("test.subject", {"data": "test"})
             mock_logger.warning.assert_called_once_with("NATS client is not connected.")
             # publish shouldn't be called
@@ -216,7 +216,7 @@ class TestSubscribe:
     async def test_subscribe_without_connection(self, nats_client):
         """বাংলা মন্তব্য: Connection না থাকলে subscribe skip হয়।"""
         nats_client.nc = None
-        with patch("core.nats_messaging.logger") as mock_logger:
+        with patch("core.messaging.nats_messaging.logger") as mock_logger:
             await nats_client.subscribe("test.subject", lambda x: x)
             mock_logger.warning.assert_called_once_with("NATS client is not connected.")
 
@@ -264,7 +264,7 @@ class TestSubscribe:
         mock_msg = MagicMock()
         mock_msg.data = b"invalid json"
 
-        with patch("core.nats_messaging.logger") as mock_logger:
+        with patch("core.messaging.nats_messaging.logger") as mock_logger:
             await message_handler(mock_msg)
             # Error should be logged, not raised
             mock_logger.error.assert_called_once()
@@ -401,13 +401,13 @@ class TestGlobalInstance:
 
     def test_global_instance_exists(self):
         """বাংলা মন্তব্য: Global instance create করা আছে।"""
-        from core.nats_messaging import nats_client
+        from core.messaging.nats_messaging import nats_client
 
         assert isinstance(nats_client, NATSClient)
 
     def test_global_instance_default_config(self):
         """বাংলা মন্তব্য: Global instance default configuration দিয়ে create করা আছে।"""
-        from core.nats_messaging import nats_client
+        from core.messaging.nats_messaging import nats_client
 
         assert nats_client.url == "nats://localhost:4222"
         assert nats_client.token == "super_secret_token"

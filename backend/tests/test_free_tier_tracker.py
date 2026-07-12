@@ -19,11 +19,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from core.free_tier_tracker import FreeTierTracker
-from core.free_tier_tracker import ProviderBudget
-from core.free_tier_tracker import _DayWindow
-from core.free_tier_tracker import _Window
-from core.free_tier_tracker import get_tracker
+from core.llm.free_tier_tracker import FreeTierTracker
+from core.llm.free_tier_tracker import _DayWindow
+from core.llm.free_tier_tracker import ProviderBudget
+from core.llm.free_tier_tracker import _Window
+from core.llm.free_tier_tracker import get_tracker
 from core.token_budget import TokenBudgetManager
 from core.token_budget import estimate_tokens
 from core.token_budget import get_budget_manager

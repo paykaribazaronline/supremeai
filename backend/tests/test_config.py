@@ -107,7 +107,8 @@ def test_parse_allowed_hosts_empty_string():
     assert Settings.parse_allowed_hosts("") == []
 
 
-def test_cors_origins_production_strips_localhost(monkeypatch):
+@patch("core.config.secret_vault.fetch_secret", side_effect=lambda k: os.environ.get(k) or os.environ.get(k.lower()))
+def test_cors_origins_production_strips_localhost(mock_fetch, monkeypatch):
     monkeypatch.setenv("ENV", "production")
     monkeypatch.setenv("OPENROUTER_API_KEY", "sk-mock-123")
     monkeypatch.setenv("GEMINI_API_KEY", "mock-key")

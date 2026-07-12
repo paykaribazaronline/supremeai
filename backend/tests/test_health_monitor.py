@@ -10,12 +10,12 @@ from unittest.mock import patch
 
 import pytest
 
-from core.health_monitor import HealthMonitor
+from core.health.health_monitor import HealthMonitor
 
 
 @pytest.fixture
 def monitor():
-    with patch.object(HealthMonitor, "_setup_metrics"), patch("core.health_monitor.start_http_server", create=True):
+    with patch.object(HealthMonitor, "_setup_metrics"), patch("core.health.health_monitor.start_http_server", create=True):
         return HealthMonitor(metrics_port=9090)
 
 
@@ -27,7 +27,7 @@ def test_health_monitor_initialization(monitor):
 
 
 def test_health_monitor_initialization_without_prometheus():
-    with patch("core.health_monitor._PROMETHEUS_AVAILABLE", False):
+    with patch("core.health.health_monitor._PROMETHEUS_AVAILABLE", False):
         monitor = HealthMonitor(metrics_port=9090)
     assert not hasattr(monitor, "uptime_seconds")
 
@@ -137,7 +137,7 @@ def test_record_request_duration_prometheus_error(monitor):
 
 
 def test_health_monitor_uptime_increases():
-    with patch.object(HealthMonitor, "_setup_metrics"), patch("core.health_monitor.start_http_server", create=True):
+    with patch.object(HealthMonitor, "_setup_metrics"), patch("core.health.health_monitor.start_http_server", create=True):
         m = HealthMonitor(metrics_port=9091)
     time.sleep(0.01)
     with patch("psutil.cpu_percent", return_value=0.0), patch("psutil.virtual_memory") as mock_vm:

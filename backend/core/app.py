@@ -249,7 +249,7 @@ core_routers = [
     ("api.routes.media", ""),
     ("api.routes.graph", ""),
     ("api.routes.knowledge", ""),
-    # বাংলা মন্তব্য: ফাইলটির নাম marketplace_endpoints.py হওয়ার কারণে রাউটার রেজিস্ট্রেশনে 404 এরর আসছিল, তাই রাউটার পাথ আপডেট করা হলো।
+    # বাংলা মন্তব্য: ফাইলটির নাম marketplace_endpoints.py হওয়ার কারণে রাউটার রেজিস্ট্রেশনে 404 এরর আসছিল, তাই রাউটার পাথ আপডেট করা হলো।
     ("api.routes.marketplace_endpoints", ""),
     ("api.routes.auth", "/api/v1"),
     ("api.routes.onboarding", "/api/v1/onboarding"),
@@ -307,6 +307,9 @@ optional_routers = [
     ("api.routes.events", "/api"),
     ("api.routes.payments", ""),
     ("api.routes.maintenance", "/api/v1"),
+    # বাংলা মন্তব্য: নতুন autonomous engine রাউটারগুলো যুক্ত করা হলো (sandbox + pr-review)।
+    ("api.routes.sandbox_api", ""),
+    ("api.routes.pr_review_api", ""),
 ]
 
 for router_path, prefix in optional_routers:

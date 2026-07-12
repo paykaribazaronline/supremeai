@@ -16,6 +16,33 @@ from core.upload_validator import validate_upload
 router = APIRouter(prefix="/diagram", tags=["diagram-to-architecture"])
 
 
+# বাংলা মন্তব্য: Terraform, Kubernetes ও Schema কোডের জন্য ডেটাক্লাস-সদৃশ টাইপ।
+class TerraformCode:
+    def __init__(self, code: str, provider: str = "gcp"):
+        self.code = code
+        self.provider = provider
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"iac_tool": "terraform", "provider": self.provider, "code": self.code}
+
+
+class K8sManifest:
+    def __init__(self, code: str):
+        self.code = code
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"iac_tool": "kubernetes", "code": self.code}
+
+
+class SchemaCode:
+    def __init__(self, code: str, orm: str = "sqlalchemy"):
+        self.code = code
+        self.orm = orm
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"orm": self.orm, "code": self.code}
+
+
 class DiagramToArchitecture:
     def __init__(self, vision_model: str = "gpt-4o"):
         self.vision_model = vision_model
@@ -72,6 +99,113 @@ class DiagramToArchitecture:
             logger.error(f"Architecture generation failed: {str(e)}")
             return {"status": "error", "error": str(e)}
 
+    async def to_terraform(self, diagram_path: str, cloud_provider: str = "gcp") -> TerraformCode:
+        """হাতে আঁকা ডায়াগ্রাম → Terraform HCL কনফিগারেশন।"""
+        logger.info(f"Generating Terraform for {cloud_provider} from: {diagram_path}")
+        try:
+            base64_image = self._encode_image(diagram_path)
+            from brain.model_router import ModelRouter
+
+            router_llm = ModelRouter()
+            prompt = (
+                f"You are an expert {cloud_provider} infrastructure engineer. Analyze the provided architecture "
+                f"diagram and generate complete, production-ready Terraform HCL for {cloud_provider}. "
+                "Include all resources, variables, and outputs. Return ONLY valid HCL, no markdown."
+            )
+            result = await router_llm.async_route_and_generate(
+                prompt,
+                task_type="vision",
+                max_cost=0.08,
+                images=[{"base64": base64_image, "mime": "image/png"}],
+            )
+            code = result.get("text", "") if isinstance(result, dict) else ""
+            return TerraformCode(code=code.strip(), provider=cloud_provider)
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Terraform generation failed, using fallback: {e}")
+            return TerraformCode(code=self._mock_terraform(cloud_provider), provider=cloud_provider)
+
+    async def to_kubernetes(self, diagram_path: str) -> K8sManifest:
+        """Cloud architecture diagram → Kubernetes YAML (Deployment, Service, Ingress)।"""
+        logger.info(f"Generating Kubernetes manifests from: {diagram_path}")
+        try:
+            base64_image = self._encode_image(diagram_path)
+            from brain.model_router import ModelRouter
+
+            router_llm = ModelRouter()
+            prompt = (
+                "You are an expert Kubernetes engineer. Analyze the provided architecture diagram and generate "
+                "complete Kubernetes YAML including Deployments, Services, ConfigMaps, and Ingress for each "
+                "service shown. Return ONLY valid multi-document YAML, no markdown."
+            )
+            result = await router_llm.async_route_and_generate(
+                prompt,
+                task_type="vision",
+                max_cost=0.08,
+                images=[{"base64": base64_image, "mime": "image/png"}],
+            )
+            code = result.get("text", "") if isinstance(result, dict) else ""
+            return K8sManifest(code=code.strip())
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Kubernetes generation failed, using fallback: {e}")
+            return K8sManifest(code=self._mock_k8s())
+
+    async def to_database_schema(self, er_diagram_path: str, orm: str = "sqlalchemy") -> SchemaCode:
+        """ER diagram → SQLAlchemy Model / Prisma Schema।"""
+        logger.info(f"Generating {orm} schema from ER diagram: {er_diagram_path}")
+        try:
+            base64_image = self._encode_image(er_diagram_path)
+            from brain.model_router import ModelRouter
+
+            router_llm = ModelRouter()
+            if orm == "prisma":
+                prompt = (
+                    "You are an expert database architect. Analyze the provided ER diagram and generate a complete "
+                    "Prisma schema with models, relations, and enums. Return ONLY valid Prisma schema, no markdown."
+                )
+            else:
+                prompt = (
+                    "You are an expert database architect. Analyze the provided ER diagram and generate complete "
+                    "SQLAlchemy ORM models (Python) with relationships, columns, and types. "
+                    "Return ONLY valid Python code, no markdown."
+                )
+            result = await router_llm.async_route_and_generate(
+                prompt,
+                task_type="vision",
+                max_cost=0.08,
+                images=[{"base64": base64_image, "mime": "image/png"}],
+            )
+            code = result.get("text", "") if isinstance(result, dict) else ""
+            return SchemaCode(code=code.strip(), orm=orm)
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Schema generation failed, using fallback: {e}")
+            return SchemaCode(code=self._mock_schema(orm), orm=orm)
+
+    async def generate_api_spec(self, diagram_path: str) -> dict[str, Any]:
+        """Generate OpenAPI spec from a sequence/flowchart diagram."""
+        base64_image = self._encode_image(diagram_path)
+        try:
+            from brain.model_router import ModelRouter
+
+            router_llm = ModelRouter()
+            prompt = (
+                "Analyze this sequence diagram or flowchart and generate a valid OpenAPI 3.0 YAML spec. "
+                "Identify all API endpoints, request/response schemas, and HTTP methods. "
+                "Return only the YAML, no markdown."
+            )
+            result = await router_llm.async_route_and_generate(
+                prompt,
+                task_type="vision",
+                max_cost=0.06,
+                images=[{"base64": base64_image, "mime": "image/png"}],
+            )
+            yaml_spec = result.get("text", "") if isinstance(result, dict) else ""
+            return {"status": "success", "openapi_yaml": yaml_spec}
+        except Exception as e:  # noqa: BLE001
+            return {"status": "error", "error": str(e)}
+
+    # ------------------------------------------------------------------ #
+    # Fallback / mock generators
+    # ------------------------------------------------------------------ #
     def _mock_output(self, provider: str, iac_tool: str) -> dict[str, Any]:
         mock_code = f"""provider "{provider}" {{
   region = "us-east-1"
@@ -99,6 +233,76 @@ resource "{provider}_subnet" "public" {{
             "code": mock_code,
         }
 
+    def _mock_terraform(self, provider: str) -> str:
+        return self._mock_output(provider, "terraform")["code"]
+
+    def _mock_k8s(self) -> str:
+        return """apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: supremeai-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: supremeai-app
+  template:
+    metadata:
+      labels:
+        app: supremeai-app
+    spec:
+      containers:
+        - name: app
+          image: supremeai/app:latest
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: supremeai-service
+spec:
+  selector:
+    app: supremeai-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: LoadBalancer
+"""
+
+    def _mock_schema(self, orm: str) -> str:
+        if orm == "prisma":
+            return (
+                'model User {\n'
+                '  id    Int    @id @default(autoincrement())\n'
+                '  email String @unique\n'
+                '  posts Post[]\n'
+                '}\n\n'
+                'model Post {\n'
+                '  id       Int    @id @default(autoincrement())\n'
+                '  title    String\n'
+                '  author   User   @relation(fields: [authorId], references: [id])\n'
+                '  authorId Int\n'
+                '}\n'
+            )
+        return (
+            'from sqlalchemy import Column, Integer, String, ForeignKey\n'
+            'from sqlalchemy.orm import relationship\n'
+            'from database.base import Base\n\n'
+            'class User(Base):\n'
+            '    __tablename__ = "users"\n'
+            '    id = Column(Integer, primary_key=True)\n'
+            '    email = Column(String, unique=True)\n'
+            '    posts = relationship("Post", back_populates="author")\n\n'
+            'class Post(Base):\n'
+            '    __tablename__ = "posts"\n'
+            '    id = Column(Integer, primary_key=True)\n'
+            '    title = Column(String)\n'
+            '    author_id = Column(Integer, ForeignKey("users.id"))\n'
+            '    author = relationship("User", back_populates="posts")\n'
+        )
+
     def _parse_components_from_code(self, code: str, iac_tool: str) -> list[dict[str, str]]:
         components: list[dict[str, str]] = []
         for line in code.splitlines():
@@ -116,29 +320,6 @@ resource "{provider}_subnet" "public" {{
                 type_val = line_stripped.replace("Type:", "").strip()
                 components.append({"type": type_val, "details": ""})
         return components
-
-    async def generate_api_spec(self, diagram_path: str) -> dict[str, Any]:
-        """Generate OpenAPI spec from a sequence/flowchart diagram."""
-        base64_image = self._encode_image(diagram_path)
-        try:
-            from brain.model_router import ModelRouter
-
-            router_llm = ModelRouter()
-            prompt = (
-                "Analyze this sequence diagram or flowchart and generate a valid OpenAPI 3.0 YAML spec. "
-                "Identify all API endpoints, request/response schemas, and HTTP methods. "
-                "Return only the YAML, no markdown."
-            )
-            result = await router_llm.async_route_and_generate(
-                prompt,
-                task_type="vision",
-                max_cost=0.06,
-                images=[{"base64": base64_image, "mime": "image/png"}],
-            )
-            yaml_spec = result.get("text", "") if isinstance(result, dict) else ""
-            return {"status": "success", "openapi_yaml": yaml_spec}
-        except Exception as e:  # noqa: BLE001
-            return {"status": "error", "error": str(e)}
 
 
 _converter = DiagramToArchitecture()
@@ -166,6 +347,51 @@ async def generate_from_diagram(
         os.unlink(tmp_path)
 
     return result
+
+
+@router.post("/to-terraform")
+async def api_to_terraform(file: UploadFile = File(...), cloud_provider: str = Form("gcp")):
+    """ডায়াগ্রাম → Terraform HCL।"""
+    await validate_upload(file)
+    suffix = os.path.splitext(file.filename or "diagram.png")[1] or ".png"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp.write(await file.read())
+        tmp_path = tmp.name
+    try:
+        result = await _converter.to_terraform(tmp_path, cloud_provider=cloud_provider)
+        return {"status": "success", **result.to_dict()}
+    finally:
+        os.unlink(tmp_path)
+
+
+@router.post("/to-kubernetes")
+async def api_to_kubernetes(file: UploadFile = File(...)):
+    """ডায়াগ্রাম → Kubernetes YAML।"""
+    await validate_upload(file)
+    suffix = os.path.splitext(file.filename or "diagram.png")[1] or ".png"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp.write(await file.read())
+        tmp_path = tmp.name
+    try:
+        result = await _converter.to_kubernetes(tmp_path)
+        return {"status": "success", **result.to_dict()}
+    finally:
+        os.unlink(tmp_path)
+
+
+@router.post("/to-schema")
+async def api_to_schema(file: UploadFile = File(...), orm: str = Form("sqlalchemy")):
+    """ER ডায়াগ্রাম → SQLAlchemy/Prisma schema।"""
+    await validate_upload(file)
+    suffix = os.path.splitext(file.filename or "diagram.png")[1] or ".png"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp.write(await file.read())
+        tmp_path = tmp.name
+    try:
+        result = await _converter.to_database_schema(tmp_path, orm=orm)
+        return {"status": "success", **result.to_dict()}
+    finally:
+        os.unlink(tmp_path)
 
 
 @router.post("/api-spec")

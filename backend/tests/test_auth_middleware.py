@@ -6,9 +6,9 @@ from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from core.auth_middleware import AuthMiddleware
-from core.auth_middleware import _get_bearer_token
-from core.auth_middleware import verify_admin_session_fail_closed
+from core.security.auth_middleware import AuthMiddleware
+from core.security.auth_middleware import _get_bearer_token
+from core.security.auth_middleware import verify_admin_session_fail_closed
 
 
 class TestGetBearerToken:

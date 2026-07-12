@@ -5,15 +5,15 @@ from unittest.mock import patch
 
 import pytest
 
-# Set ENCRYPTION_KEY before importing core.security_vault to avoid import-time crash
+# Set ENCRYPTION_KEY before importing core.security.security_vault to avoid import-time crash
 os.environ.setdefault("ENCRYPTION_KEY", "9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno=")
 
 # Reload in case module was partially imported
-if "core.security_vault" in sys.modules:
-    importlib.reload(sys.modules["core.security_vault"])
+if "core.security.security_vault" in sys.modules:
+    importlib.reload(sys.modules["core.security.security_vault"])
 
-from core.security_vault import encrypt_token, decrypt_token
-from core import security_vault
+from core.security.security_vault import encrypt_token, decrypt_token
+from core.security import security_vault
 
 
 def test_encrypt_token_returns_string():
