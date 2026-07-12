@@ -578,8 +578,9 @@ jobs:
     name: 🚀 Deploy Backend (Render)
     needs: [backend-core]
     runs-on: ubuntu-latest
-    if: >
-      !failure() && !cancelled() &&
+    if: |
+      always() &&
+      needs.backend-core.result != 'failure' && needs.backend-core.result != 'cancelled' && needs.backend-core.result != 'skipped' &&
       (
         github.ref == 'refs/heads/main' ||
         (github.event_name == 'workflow_dispatch' && github.event.inputs.run_deploy_render == 'true') ||
