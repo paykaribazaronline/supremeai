@@ -56,8 +56,8 @@ def send_alert(severity: str, message: str):
                                headers={"Content-Type": "application/json"})
         try:
             _url_req.urlopen(req)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Failed to send Discord alert: {e}")
     log_level = logging.CRITICAL if severity == "critical" else logging.INFO
     logger.log(log_level, message)
 

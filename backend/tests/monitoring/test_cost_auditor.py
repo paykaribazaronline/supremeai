@@ -11,7 +11,7 @@ class TestCostAuditor:
         auditor = CostAuditor()
         assert auditor is not None
 
-    def test_record_call(self):
+    def test_record_call_disabled(self):
         with patch("monitoring.cost_auditor.PROMETHEUS_AVAILABLE", False):
             auditor = CostAuditor()
             auditor.record_call("openai", "gpt-4", 0.05)
