@@ -62,7 +62,7 @@ def test_production_mode_fetch_secret(vault_production):
 
 def test_production_mode_fetch_secret_error(vault_production):
     vault_production.client.getSecret.side_effect = Exception("Infisical error")
-    with patch.dict(os.environ, {"SECRET_ID": ""}, clear=False):
+    with patch.dict(os.environ, {"SECRET_ID": "", "ENV": "production"}, clear=False):
         import pytest
 
         with pytest.raises(RuntimeError):

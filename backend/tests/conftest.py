@@ -188,3 +188,16 @@ def configure_litellm():
 
         logging.warning(f"Exception suppressed: {e}")
     yield
+
+
+@pytest.fixture
+def mock_production_env(monkeypatch):
+    monkeypatch.setenv("ENV", "production")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-mock-123")
+    monkeypatch.setenv("GEMINI_API_KEY", "mock-key")
+
+
+@pytest.fixture
+async def async_session():
+    from unittest.mock import AsyncMock
+    yield AsyncMock()

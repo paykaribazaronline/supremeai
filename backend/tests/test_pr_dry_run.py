@@ -7,7 +7,7 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_dry_run_pr():
+async def test_dry_run_pr(async_session):
     # Testing create_autonomous_pr in dry-run mode
     with patch("backend.services.github_agent.httpx.AsyncClient") as mock_client_cls:
         mock_client = MagicMock()
@@ -37,7 +37,7 @@ async def test_dry_run_pr():
         mock_client.put.return_value = mock_commit_res
 
         pr_url = await create_autonomous_pr(
-            user_id="test_user", repo_name="test/repo", file_path="test.py", code_content="print('hello')", commit_msg="Test dry run"
+            user_id="test_user", repo_name="test/repo", file_path="test.py", code_content="print('hello')", commit_msg="Test dry run", db_session=async_session
         )
 
         # Mock PR Dry Run Successful

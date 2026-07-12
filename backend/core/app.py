@@ -249,7 +249,8 @@ core_routers = [
     ("api.routes.media", ""),
     ("api.routes.graph", ""),
     ("api.routes.knowledge", ""),
-    ("api.routes.marketplace", ""),
+    # বাংলা মন্তব্য: ফাইলটির নাম marketplace_endpoints.py হওয়ার কারণে রাউটার রেজিস্ট্রেশনে 404 এরর আসছিল, তাই রাউটার পাথ আপডেট করা হলো।
+    ("api.routes.marketplace_endpoints", ""),
     ("api.routes.auth", "/api/v1"),
     ("api.routes.onboarding", "/api/v1/onboarding"),
     ("api.routes.evolution", "/api/v1/evolution"),

@@ -65,7 +65,7 @@ async def test_pipeline_success(clean_dynamic_skills, monkeypatch):
     loader, registry, installer = clean_dynamic_skills
 
     async def mock_acompletion(*args, **kwargs):
-        return {"text": json.dumps(MOCK_AI_RESPONSE_JSON)}
+        return {"success": True, "text": json.dumps(MOCK_AI_RESPONSE_JSON)}
 
     with patch("core.llm_gateway.LLMGateway.acompletion", new=mock_acompletion):
         creator = AutoSkillCreator()
@@ -91,7 +91,7 @@ async def test_pipeline_validation_mismatch(clean_dynamic_skills, monkeypatch):
     mismatch_json["code"] = "class SentimentAnalyzer:\n    async def execute(self, kwargs):\n        return {'sentiment': 'negative'}\n"
 
     async def mock_acompletion(*args, **kwargs):
-        return {"text": json.dumps(mismatch_json)}
+        return {"success": True, "text": json.dumps(mismatch_json)}
 
     with patch("core.llm_gateway.LLMGateway.acompletion", new=mock_acompletion):
         creator = AutoSkillCreator()
@@ -116,7 +116,7 @@ async def test_pipeline_invalid_uss_pydantic(clean_dynamic_skills):
     bad_uss_json["schema"]["metadata"]["version"] = "1.0"
 
     async def mock_acompletion(*args, **kwargs):
-        return {"text": json.dumps(bad_uss_json)}
+        return {"success": True, "text": json.dumps(bad_uss_json)}
 
     with patch("core.llm_gateway.LLMGateway.acompletion", new=mock_acompletion):
         creator = AutoSkillCreator()
