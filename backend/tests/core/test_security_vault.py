@@ -36,9 +36,9 @@ def test_decrypt_empty_cipher_text():
     assert decrypt_token("") == ""
 
 
-def test_decrypt_invalid_token_returns_empty():
-    result = decrypt_token("invalid-token")
-    assert result == ""
+def test_decrypt_invalid_token_raises_error():
+    with pytest.raises(ValueError, match="Decryption failed"):
+        decrypt_token("invalid-token")
 
 
 def test_encrypt_token_uses_fernet(monkeypatch):
@@ -60,5 +60,5 @@ def test_decrypt_token_handles_exception(monkeypatch):
 
     # বাংলা মন্তব্য: monkeypatch ব্যবহার করে security_vault.fernet mock করা হলো
     monkeypatch.setattr(security_vault, "fernet", MockFernet())
-    result = decrypt_token("invalid")
-    assert result == ""
+    with pytest.raises(ValueError, match="Decryption failed"):
+        decrypt_token("invalid")

@@ -526,20 +526,24 @@ class TestSecurityVaultModuleInit:
 class TestSwarmOrchestratorMissingBranches:
     @pytest.mark.anyio
     async def test_execute_task_runs_all_agents(self):
-        from core.swarm_orchestrator import SwarmOrchestrator
+        from core.swarm_orchestrator import MorphicOrchestrator
 
-        orchestrator = SwarmOrchestrator()
+        orchestrator = MorphicOrchestrator()
 
         with (
-            patch.object(orchestrator.architect, "design", new_callable=AsyncMock) as mock_design,
-            patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock) as mock_code,
-            patch.object(orchestrator.qa, "verify", new_callable=AsyncMock) as mock_verify,
+            patch.object(orchestrator.agents["architect"], "run", new_callable=AsyncMock) as mock_design,
+            patch.object(orchestrator.agents["coder"], "run", new_callable=AsyncMock) as mock_code,
+            patch.object(orchestrator.agents["guardian"], "run", new_callable=AsyncMock) as mock_verify,
+            patch.object(orchestrator.agents["reflection"], "run", new_callable=AsyncMock) as mock_reflection,
         ):
-            workspace = await orchestrator.execute_task("prompt", "uid")
-            mock_design.assert_called_once()
-            mock_code.assert_called_once()
-            mock_verify.assert_called_once()
-            assert workspace is not None
+            # Using an intent that maps to a simpler task graph if we want, but default works if we mock all
+            with patch("core.swarm_orchestrator.SharedWorkspace") as mock_workspace:
+                mock_workspace.return_value.intent = "code_generation"
+                workspace = await orchestrator.execute_task("prompt", "uid")
+                mock_design.assert_called_once()
+                mock_code.assert_called_once()
+                mock_verify.assert_called_once()
+                assert workspace is not None
 
     @pytest.mark.anyio
     async def test_circuit_breaker_opens_after_threshold(self):

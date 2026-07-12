@@ -9,14 +9,29 @@ class MetaArchitect:
     Self-improving architecture agent.
     Analyzes the codebase, proposes architectural improvements,
     and can implement them autonomously.
+    Analyzes the codebase, proposes architectural improvements based on strategic documents,
+    and can implement them autonomously.
     (Closes Gap #86)
     """
 
     def __init__(self):
         logger.info("Initialized MetaArchitect")
 
-    async def analyze_codebase(self, root_dir: str = ".") -> dict[str, Any]:
+    async def analyze_codebase(self, root_dir: str = ".", strategic_docs: list[str] | None = None) -> dict[str, Any]:
         logger.info(f"Analyzing codebase architecture at {root_dir}")
+
+        # Load strategic context if provided
+        gaps = []
+        if strategic_docs:
+            logger.info(f"Loading strategic context from {len(strategic_docs)} documents.")
+            for doc_path in strategic_docs:
+                try:
+                    with open(doc_path, 'r', encoding='utf-8') as f:
+                        # This is a simplified loader. A real implementation would parse markdown.
+                        if "gap" in f.read().lower():
+                            gaps.append(f"Potential gap context found in: {os.path.basename(doc_path)}")
+                except Exception as e:
+                    logger.warning(f"Could not read strategic doc {doc_path}: {e}")
         metrics = {
             "total_files": 0,
             "total_lines": 0,
@@ -68,6 +83,7 @@ class MetaArchitect:
             "metrics": metrics,
             "issues": issues,
             "suggestions": suggestions,
+            "strategic_gaps_context": gaps,
         }
 
     async def propose_refactor(self, analysis: dict[str, Any]) -> dict[str, Any]:
@@ -83,7 +99,7 @@ class MetaArchitect:
                 f"Analysis: {analysis}"
             )
             result = router.async_route_and_generate(prompt, task_type="reasoning", max_cost=0.03)
-            text = result.get("text", "") if isinstance(result, dict) else ""
+            text = result.get("text", "{}") if isinstance(result, dict) else "{}"
             import json
 
             plan = {}

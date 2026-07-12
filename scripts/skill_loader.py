@@ -8,7 +8,7 @@ root_path = str(Path(__file__).resolve().parent.parent)
 if root_path not in sys.path:
     sys.path.append(root_path)
 
-from core.skill_manager import DynamicSkillManager
+from core.skill_manager import SkillManager
 from skills.installer import SkillInstaller
 from skills.marketplace import SkillMarketplace
 
@@ -94,8 +94,8 @@ class SkillLoader:
     BANNED_BUILTINS = {"eval", "exec", "compile", "__import__", "getattr", "setattr", "delattr", "globals", "locals", "open", "input", "breakpoint"}
 
     """Dynamically discovers and loads skill modules at runtime."""
-    def __init__(self, registry: DynamicSkillManager = None, installer: SkillInstaller = None):
-        self.registry = registry or DynamicSkillManager()
+    def __init__(self, registry: SkillManager = None, installer: SkillInstaller = None):
+        self.registry = registry or SkillManager()
         self.installer = installer or SkillInstaller(self.registry)
         self.marketplace = SkillMarketplace()
         self.skills_dir = Path(__file__).resolve().parent / "skills" / "dynamic"

@@ -26,10 +26,10 @@ class FitnessEngine:
         self.deprecated_dir = deprecated_dir or os.path.join(base_dir, "skills", "deprecated")
         self.db = db
 
-        # Initialize DynamicSkillManager
-        from core.skill_manager import DynamicSkillManager
+        # Initialize SkillManager
+        from core.skill_manager import SkillManager
 
-        self.registry = DynamicSkillManager()
+        self.registry = SkillManager()
 
         self.metrics = self._load_metrics()
 

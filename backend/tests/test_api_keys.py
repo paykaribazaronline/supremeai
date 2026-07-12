@@ -111,27 +111,24 @@ class TestSecurityUtilities:
 
 
 class TestRateLimiter:
-    def test_allows_under_limit(self):
-        rl = AsyncRateLimiter(burst=3)
+    @pytest.mark.asyncio
+    async def test_allows_under_limit(self):
+        rl = AsyncRateLimiter()
         for _ in range(3):
-            assert rl.is_allowed("pref") is True
+            assert await rl.acquire("pref", limit=3, window=60) is True
 
-    def test_blocks_over_limit(self):
-        rl = AsyncRateLimiter(burst=3)
+    @pytest.mark.asyncio
+    async def test_blocks_over_limit(self):
+        rl = AsyncRateLimiter()
         for _ in range(3):
-            rl.is_allowed("pref")
-        assert rl.is_allowed("pref") is False
+            await rl.acquire("pref2", limit=3, window=60)
+        assert await rl.acquire("pref2", limit=3, window=60) is False
 
-    def test_remaining_decreases(self):
-        rl = AsyncRateLimiter(burst=5)
-        rl.is_allowed("pref")
-        rl.is_allowed("pref")
-        assert rl.remaining("pref") == 3
-
-    def test_different_keys_independent(self):
-        rl = AsyncRateLimiter(burst=2)
-        assert rl.is_allowed("pref-a") is True
-        assert rl.is_allowed("pref-b") is True
+    @pytest.mark.asyncio
+    async def test_different_keys_independent(self):
+        rl = AsyncRateLimiter()
+        assert await rl.acquire("pref-a", limit=2, window=60) is True
+        assert await rl.acquire("pref-b", limit=2, window=60) is True
 
 
 class TestRouterStructure:

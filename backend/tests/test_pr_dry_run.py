@@ -3,6 +3,9 @@ from unittest.mock import patch, MagicMock
 from backend.services.github_agent import create_autonomous_pr
 
 
+import pytest
+
+@pytest.mark.asyncio
 async def test_dry_run_pr():
     # Testing create_autonomous_pr in dry-run mode
     with patch("backend.services.github_agent.httpx.AsyncClient") as mock_client_cls:

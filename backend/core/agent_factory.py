@@ -32,20 +32,24 @@ class DynamicAgentFactory:
 
     async def create_specialized_agent(self, task_description: str) -> dict:
         """
-        প্রিমিয়াম এআই ব্যবহার করে ওয়ান-টাইম এজেন্ট স্ক্রিপ্ট বানাবে।
+        বাংলা মন্তব্য: প্রিমিয়াম এআই ব্যবহার করে টাস্কের জন্য একটি এক্সিকিউটেবল পাইথন স্ক্রিপ্ট তৈরি করবে।
+        এটি এখন আর শুধু ব্রাউজার অটোমেশন নয়, বরং যেকোনো কাজের জন্য একটি "Synthesized Skill"।
         """
         logger.info(f"Generating a new autonomous agent for task: {task_description}")
 
         system_prompt = (
-            "You are the SupremeAI Agent Factory. Your job is to output a raw JSON configuration "
-            "and structural flow steps that a Python Playwright browser can execute locally. "
-            "Do not return conversational text, return only valid JSON containing 'agent_name', "
-            "'description', and 'execution_steps' (a list of actions)."
+            "You are the SupremeAI Agent Factory. Your job is to generate a Python script that can solve the given task. "
+            "The script should be self-contained and executable. "
+            "Return a raw JSON object containing 'agent_name', 'description', and 'script' (the Python code as a string). "
+            "Do not return conversational text or markdown codeblocks."
         )
+
+        # আগের execution_steps ভিত্তিক প্রম্পট এখন আরও জেনেরিক পাইথন স্ক্রিপ্টে পরিবর্তিত হয়েছে
+        prompt = f"Create a Python script to solve this task: '{task_description}'"
 
         # প্রিমিয়াম এআই দিয়ে ১ বার খরচ করে এজেন্টের স্ক্রিপ্ট বানিয়ে নেওয়া
         response = await llm_gateway.acompletion(
-            prompt=f"Create a custom browser extraction script for: {task_description}",
+            prompt=prompt,
             system_prompt=system_prompt,
             model_filters=["claude-3-5-sonnet"],
         )
@@ -59,14 +63,14 @@ class DynamicAgentFactory:
             agent_config = {
                 "agent_name": f"AutoAgent_{int(time.time())}",
                 "description": task_description,
-                "execution_steps": [{"action": "navigate", "value": "contextual_url"}],
+                "script": "print('Error: AI failed to generate a valid script.')",
             }
 
         # ডাটাবেজে আজীবনের জন্য সেভ করে রাখা
         await self._save_agent_to_registry(
             name=agent_config.get("agent_name"),
             description=agent_config.get("description", task_description),
-            steps=agent_config.get("execution_steps", []),
+            steps=agent_config.get("script"), # execution_steps এখন script
         )
 
         return agent_config
@@ -79,7 +83,7 @@ class DynamicAgentFactory:
             result = await self.db.execute(stmt)
             existing = result.scalars().first()
             if existing:
-                existing.execution_steps = steps
+                existing.execution_steps = {"script": steps} # সামঞ্জস্যের জন্য script-কে JSON-এ মোড়ানো হলো
                 existing.description = description
             else:
                 new_agent = DynamicAgent(name=name, description=description, execution_steps=steps)

@@ -9,8 +9,10 @@ def workspace():
     return SharedWorkspace(
         task_id="task-1",
         original_prompt="Design a python app",
-        architecture_design="files:\n  main.py",
-        generated_code={"main.py": "print('hi')"},
+        work_product={
+            "architecture_design": "files:\n  main.py",
+            "generated_code": {"main.py": "print('hi')"},
+        },
         test_results={},
         execution_logs=[],
     )
@@ -36,7 +38,7 @@ async def test_qa_agent_verify_blocks_dangerous_code(workspace, monkeypatch):
 
     monkeypatch.setattr(mod, "llm_gateway", FakeGateway())
 
-    workspace.generated_code["main.py"] = "import os\nimport eval"
+    workspace.work_product["generated_code"]["main.py"] = "import os\nimport eval"
     qa = QAAgent()
     await qa.verify(workspace, user_id="u")
     assert workspace.test_results.get("safe") is False
@@ -53,7 +55,7 @@ async def test_qa_agent_verify_passes_clean_code(workspace, monkeypatch):
 
     monkeypatch.setattr(mod, "llm_gateway", FakeGateway())
 
-    workspace.generated_code["main.py"] = "print('hello')"
+    workspace.work_product["generated_code"]["main.py"] = "print('hello')"
     qa = QAAgent()
     await qa.verify(workspace, user_id="u")
     assert workspace.test_results.get("safe") is True

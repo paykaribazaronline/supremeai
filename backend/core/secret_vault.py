@@ -56,15 +56,8 @@ class ProductionSecretVault:
         if secret_id in self._cached_secrets:
             return self._cached_secrets[secret_id]
 
-        env_fallback = os.getenv(secret_id, default)
-        if env_fallback:
-            self._cached_secrets[secret_id] = env_fallback
-            return env_fallback
-
         if not self.client or not self.project_id:
-            if self.env == "production":
-                raise RuntimeError(f"Secret {secret_id} not found and no local fallback allowed in production!")
-            return default if default is not None else ""
+            return self._fallback_to_env(secret_id, default)
 
         try:
             # Fetch from Infisical Project
@@ -80,10 +73,17 @@ class ProductionSecretVault:
             return secret_value
         except Exception as e:  # noqa: BLE001
             logger.warning(f"⚠️ Unable to reach Infisical for {secret_id}: {e}. Using fallback environment.")
-            if self.env == "production":
-                raise RuntimeError(f"Failed to fetch {secret_id} in production: {e}") from e
-            return default if default is not None else ""
+            return self._fallback_to_env(secret_id, default)
 
+    def _fallback_to_env(self, secret_id: str, default: str | None) -> str:
+        """Fallback to environment variable. In production, this is disallowed."""
+        env_fallback = os.getenv(secret_id, default)
+        if self.env == "production" and env_fallback is None:
+            raise RuntimeError(f"Secret '{secret_id}' not found in Infisical and no fallback allowed in production!")
+        if env_fallback is not None:
+            self._cached_secrets[secret_id] = env_fallback
+            return env_fallback
+        return ""
     async def fetch_secret_async(self, secret_id: str) -> str:
         """অ্যাসিঙ্ক ইভেন্ট লুপ ব্লক না করে সিক্রেট ফেচ করার মেথড"""
         import asyncio

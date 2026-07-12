@@ -1,4 +1,5 @@
 import os
+import pytest
 
 
 os.environ.setdefault("OPENROUTER_API_KEY", "")
@@ -6,18 +7,27 @@ os.environ.setdefault("HF_API_KEY", "")
 os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
 
 
-class TestTaskQueueFallback:
-    def test_process_requirement_async_sync_fallback(self):
-        from core.task_queue_enhanced import process_requirement_async
+class TestTaskQueueBasic:
+    @pytest.mark.asyncio
+    async def test_submit_and_get_result(self):
+        from core.task_queue_enhanced import submit_task, get_task_result
+        
+        async def mock_task(project_id, req):
+            return {"status": "completed", "result": f"Processed {req} for {project_id}"}
+            
+        task_id = await submit_task(mock_task, "proj-1", "do something useful here")
+        result = await get_task_result(task_id, timeout=2.0)
+        assert result.status == "completed"
+        assert "Processed" in result.result["result"]
 
-        result = process_requirement_async("proj-1", "do something useful here")
-        assert result["status"] in ("completed", "queued")
-        if result["status"] == "completed":
-            assert "Processed requirement" in result["result"]
-
-    def test_task_queue_result_schema_sync_fallback(self):
-        from core.task_queue_enhanced import process_requirement_async
-
-        result = process_requirement_async("proj-x", "a long description " * 100)
-        assert "status" in result
-        assert result["status"] in ("completed", "queued")
+    @pytest.mark.asyncio
+    async def test_task_failure(self):
+        from core.task_queue_enhanced import submit_task, get_task_result
+        
+        async def failing_task():
+            raise ValueError("Intentional failure")
+            
+        task_id = await submit_task(failing_task)
+        result = await get_task_result(task_id, timeout=2.0)
+        assert result.status == "failed"
+        assert "Intentional failure" in result.error

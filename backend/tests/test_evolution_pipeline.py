@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 from skill_loader import SkillLoader
 from skills.installer import SkillInstaller
-from core.skill_manager import DynamicSkillManager
+from core.skill_manager import SkillManager
 
 from evolution.auto_skill_creator import AutoSkillCreator
 
@@ -12,7 +12,7 @@ from evolution.auto_skill_creator import AutoSkillCreator
 @pytest.fixture
 def clean_dynamic_skills(tmp_path):
     # Set up temp dir for registry, dynamic and quarantine folders
-    registry = DynamicSkillManager()
+    registry = SkillManager()
 
     # Configure custom installer with temp skills_dir
     installer = SkillInstaller(registry=registry, skills_dir=str(tmp_path / "dynamic"))

@@ -1,5 +1,5 @@
 import pytest
-from core.skill_manager import DynamicSkillManager
+from core.skill_manager import SkillManager
 
 from evolution.fitness_engine import FitnessEngine
 
@@ -24,7 +24,7 @@ def temp_fitness_env(tmp_path, monkeypatch):
     with open(dummy_skill_dir / "schema.json", "w") as f:
         f.write('{"metadata": {"name": "DummySkill", "version": "1.0.0", "description": "test"}}')
 
-    registry = DynamicSkillManager()
+    registry = SkillManager()
     registry.register_skill(
         name=skill_name,
         version="1.0.0",

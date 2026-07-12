@@ -12,11 +12,18 @@ import pytest
 from core.swarm_orchestrator import CircuitBreaker
 from core.swarm_orchestrator import CircuitBreakerOpenError
 from core.swarm_orchestrator import CircuitBreakerState
-from core.swarm_orchestrator import SwarmOrchestrator
+from core.swarm_orchestrator import MorphicOrchestrator
 
 
 # -------------------- Fixtures --------------------
 
+
+@pytest.fixture(autouse=True)
+def mock_llm_gateway():
+    """Mock the LLM gateway to prevent real network calls."""
+    with patch("core.llm_gateway.llm_gateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
+        mock_acompletion.return_value = {"choices": [{"message": {"content": '{"name": "mocked_tool", "description": "A mocked tool"}'}}]}
+        yield mock_acompletion
 
 @pytest.fixture
 def circuit_breaker():
@@ -72,16 +79,16 @@ class TestCircuitBreakerInit:
 
     def test_default_initialization(self):
         cb = CircuitBreaker()
-        assert cb.failure_threshold == 5
-        assert cb.recovery_timeout == 30.0
-        assert cb.failures == 0
-        assert cb.last_failure_time is None
+        assert cb._cb.failure_threshold == 5
+        assert cb._cb.recovery_timeout == 30.0
+        assert cb._cb.failures == 0
+        assert cb._cb.last_failure_at is None
         assert cb.state == CircuitBreakerState.CLOSED
 
     def test_custom_initialization(self):
         cb = CircuitBreaker(failure_threshold=10, recovery_timeout=60.0)
-        assert cb.failure_threshold == 10
-        assert cb.recovery_timeout == 60.0
+        assert cb._cb.failure_threshold == 10
+        assert cb._cb.recovery_timeout == 60.0
 
     def test_initial_state_is_closed(self):
         cb = CircuitBreaker()
@@ -100,18 +107,19 @@ class TestCircuitBreakerCall:
 
         assert result == "success"
         assert circuit_breaker.state == CircuitBreakerState.CLOSED
-        assert circuit_breaker.failures == 0
+        assert circuit_breaker._cb.failures == 0
 
     @pytest.mark.asyncio
     async def test_successful_call_resets_failures(self, circuit_breaker):
         """বাংলা মন্তব্য: Success হলে failures reset হয়।"""
-        circuit_breaker.failures = 2
+        circuit_breaker._cb.failures = 2
         circuit_breaker.state = CircuitBreakerState.HALF_OPEN  # Need to be in HALF_OPEN state
+        circuit_breaker._cb.state = CircuitBreakerState.HALF_OPEN
         mock_coro = AsyncMock(return_value="success")
 
         await circuit_breaker.call(mock_coro)
 
-        assert circuit_breaker.failures == 0
+        assert circuit_breaker._cb.failures == 0
         assert circuit_breaker.state == CircuitBreakerState.CLOSED
 
     @pytest.mark.asyncio
@@ -122,8 +130,8 @@ class TestCircuitBreakerCall:
         with pytest.raises(RuntimeError):
             await circuit_breaker.call(mock_coro)
 
-        assert circuit_breaker.failures == 1
-        assert circuit_breaker.last_failure_time is not None
+        assert circuit_breaker._cb.failures == 1
+        assert circuit_breaker._cb.last_failure_at is not None
 
     @pytest.mark.asyncio
     async def test_multiple_failures_under_threshold(self, circuit_breaker):
@@ -134,7 +142,7 @@ class TestCircuitBreakerCall:
             with pytest.raises(RuntimeError):
                 await circuit_breaker.call(mock_coro)
 
-        assert circuit_breaker.failures == 2
+        assert circuit_breaker._cb.failures == 2
         assert circuit_breaker.state == CircuitBreakerState.CLOSED
 
     @pytest.mark.asyncio
@@ -146,14 +154,15 @@ class TestCircuitBreakerCall:
             with pytest.raises(RuntimeError):
                 await circuit_breaker.call(mock_coro)
 
-        assert circuit_breaker.failures == 3
+        assert circuit_breaker._cb.failures == 3
         assert circuit_breaker.state == CircuitBreakerState.OPEN
 
     @pytest.mark.asyncio
     async def test_open_circuit_rejects_calls(self, circuit_breaker):
         """বাংলা মন্তব্য: OPEN state-এ calls reject হয়।"""
         circuit_breaker.state = CircuitBreakerState.OPEN
-        circuit_breaker.last_failure_time = time.time()
+        circuit_breaker._cb.state = CircuitBreakerState.OPEN
+        circuit_breaker._cb.last_failure_at = time.time()
 
         mock_coro = AsyncMock(return_value="success")
 
@@ -164,7 +173,8 @@ class TestCircuitBreakerCall:
     async def test_open_circuit_transitions_to_half_open_after_timeout(self, circuit_breaker):
         """বাংলা মন্তব্য: Recovery timeout পরে OPEN থেকে HALF_OPEN হয়।"""
         circuit_breaker.state = CircuitBreakerState.OPEN
-        circuit_breaker.last_failure_time = time.time() - 31.0  # 31 seconds ago
+        circuit_breaker._cb.state = CircuitBreakerState.OPEN
+        circuit_breaker._cb.opened_at = time.time() - 31.0  # 31 seconds ago
 
         mock_coro = AsyncMock(return_value="success")
 
@@ -178,7 +188,8 @@ class TestCircuitBreakerCall:
     async def test_open_circuit_stays_open_before_timeout(self, circuit_breaker):
         """বাংলা মন্তব্য: Timeout আগে OPEN state maintain করে।"""
         circuit_breaker.state = CircuitBreakerState.OPEN
-        circuit_breaker.last_failure_time = time.time() - 10.0  # 10 seconds ago
+        circuit_breaker._cb.state = CircuitBreakerState.OPEN
+        circuit_breaker._cb.last_failure_at = time.time() - 10.0  # 10 seconds ago
 
         mock_coro = AsyncMock(return_value="success")
 
@@ -191,7 +202,8 @@ class TestCircuitBreakerCall:
     async def test_half_open_success_closes_circuit(self, circuit_breaker):
         """বাংলা মন্তব্য: HALF_OPEN state-এ success হলে CLOSED হয়।"""
         circuit_breaker.state = CircuitBreakerState.HALF_OPEN
-        circuit_breaker.failures = 2
+        circuit_breaker._cb.state = CircuitBreakerState.HALF_OPEN
+        circuit_breaker._cb.failures = 2
 
         mock_coro = AsyncMock(return_value="success")
 
@@ -199,13 +211,14 @@ class TestCircuitBreakerCall:
 
         assert result == "success"
         assert circuit_breaker.state == CircuitBreakerState.CLOSED
-        assert circuit_breaker.failures == 0
+        assert circuit_breaker._cb.failures == 0
 
     @pytest.mark.asyncio
     async def test_half_open_failure_reopens_circuit(self, circuit_breaker):
         """বাংলা মন্তব্য: HALF_OPEN state-এ failure হলে আবার OPEN হয়।"""
         circuit_breaker.state = CircuitBreakerState.HALF_OPEN
-        circuit_breaker.failures = 2
+        circuit_breaker._cb.state = CircuitBreakerState.HALF_OPEN
+        circuit_breaker._cb.failures = 2
 
         mock_coro = AsyncMock(side_effect=RuntimeError("Still failing"))
 
@@ -213,7 +226,7 @@ class TestCircuitBreakerCall:
             await circuit_breaker.call(mock_coro)
 
         assert circuit_breaker.state == CircuitBreakerState.OPEN
-        assert circuit_breaker.failures == 3
+        assert circuit_breaker._cb.failures == 3
 
     @pytest.mark.asyncio
     async def test_call_with_args_and_kwargs(self, circuit_breaker):
@@ -234,18 +247,18 @@ class TestSwarmOrchestratorInit:
 
     def test_initialization(self):
         """বাংলা মন্তব্য: Orchestrator initialize হয় with all agents।"""
-        orchestrator = SwarmOrchestrator()
+        orchestrator = MorphicOrchestrator()
 
-        assert orchestrator.architect is not None
-        assert orchestrator.coder is not None
-        assert orchestrator.qa is not None
+        assert orchestrator.agents.get("architect") is not None
+        assert orchestrator.agents.get("coder") is not None
+        assert orchestrator.agents.get("qa") is not None
         assert orchestrator.circuit_breaker is not None
 
     def test_circuit_breaker_default_config(self):
         """বাংলা মন্তব্য: Circuit breaker default configuration দিয়ে create হয়।"""
-        orchestrator = SwarmOrchestrator()
-        assert orchestrator.circuit_breaker.failure_threshold == 3
-        assert orchestrator.circuit_breaker.recovery_timeout == 30.0
+        orchestrator = MorphicOrchestrator()
+        assert orchestrator.circuit_breaker._cb.failure_threshold == 3
+        assert orchestrator.circuit_breaker._cb.recovery_timeout == 30.0
 
 
 class TestSwarmOrchestratorExecuteTask:
@@ -254,64 +267,66 @@ class TestSwarmOrchestratorExecuteTask:
     @pytest.mark.asyncio
     async def test_successful_task_execution(self, mock_workspace):
         """বাংলা মন্তব্য: সব agents successfully execute হলে completed workspace return হয়।"""
-        orchestrator = SwarmOrchestrator()
+        orchestrator = MorphicOrchestrator()
 
-        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock):
-            with patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock):
-                with patch.object(orchestrator.qa, "verify", new_callable=AsyncMock):
-                    with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
-                        result = await orchestrator.execute_task("Build a REST API", "user123")
+        with patch.object(orchestrator.agents["architect"], "run", new_callable=AsyncMock):
+            with patch.object(orchestrator.agents["coder"], "run", new_callable=AsyncMock):
+                with patch.object(orchestrator.agents["guardian"], "validate", new_callable=AsyncMock, return_value=(True, "")):
+                    with patch.object(orchestrator.agents["reflection"], "run", new_callable=AsyncMock):
+                        with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
+                            result = await orchestrator.execute_task("Build a python REST API", "user123")
 
                         assert result is mock_workspace
-                        mock_workspace.log.assert_any_call("SwarmOrchestrator: Multi-Agent execution graph completed successfully.")
+                        mock_workspace.log.assert_any_call("MorphicOrchestrator: Multi-Agent DAG execution completed successfully.")
 
     @pytest.mark.asyncio
     async def test_task_creates_unique_task_id(self, mock_workspace):
         """বাংলা মন্তব্য: প্রতিটি task-এর unique task_id হয়।"""
-        orchestrator = SwarmOrchestrator()
+        orchestrator = MorphicOrchestrator()
 
-        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock):
-            with patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock):
-                with patch.object(orchestrator.qa, "verify", new_callable=AsyncMock):
+        with patch.object(orchestrator.agents["architect"], "run", new_callable=AsyncMock):
+            with patch.object(orchestrator.agents["coder"], "run", new_callable=AsyncMock):
+                with patch.object(orchestrator.agents["guardian"], "validate", new_callable=AsyncMock, return_value=(True, "")):
                     with patch("core.swarm_orchestrator.SharedWorkspace") as mock_ws_class:
                         mock_ws_class.return_value = mock_workspace
 
-                        await orchestrator.execute_task("Task 1", "user1")
-                        call1_task_id = mock_ws_class.call_args[1]["task_id"]
+                        await orchestrator.execute_task("python Task 1", "user1")
+                        call1_task_id = mock_ws_class.call_args_list[0][1].get("task_id") or mock_ws_class.call_args_list[0][0][0]
 
-                        await orchestrator.execute_task("Task 2", "user2")
-                        call2_task_id = mock_ws_class.call_args[1]["task_id"]
+                        await orchestrator.execute_task("python Task 2", "user2")
+                        call2_task_id = mock_ws_class.call_args_list[1][1].get("task_id") or mock_ws_class.call_args_list[1][0][0]
 
                         assert call1_task_id != call2_task_id
 
     @pytest.mark.asyncio
     async def test_task_logs_initialization(self, mock_workspace):
         """বাংলা মন্তব্য: Task initialization log হয়।"""
-        orchestrator = SwarmOrchestrator()
+        orchestrator = MorphicOrchestrator()
 
-        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock):
-            with patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock):
-                with patch.object(orchestrator.qa, "verify", new_callable=AsyncMock):
+        with patch.object(orchestrator.agents["architect"], "run", new_callable=AsyncMock):
+            with patch.object(orchestrator.agents["coder"], "run", new_callable=AsyncMock):
+                with patch.object(orchestrator.agents["guardian"], "validate", new_callable=AsyncMock, return_value=(True, "")):
                     with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
-                        await orchestrator.execute_task("Test task", "user123")
+                        await orchestrator.execute_task("Test python task", "user123")
 
                         # Verify initialization log was called
                         mock_workspace.log.assert_called()
                         # Check that the log contains the expected message
                         log_calls = [str(call) for call in mock_workspace.log.call_args_list]
-                        assert any("Initialized swarm department" in call for call in log_calls)
+                        assert any("Initialized swarm DAG" in call for call in log_calls)
 
     @pytest.mark.asyncio
     async def test_circuit_breaker_open_returns_workspace(self, mock_workspace):
         """বাংলা মন্তব্য: Circuit breaker OPEN হলে workspace return হয় with error।"""
-        orchestrator = SwarmOrchestrator()
+        orchestrator = MorphicOrchestrator()
 
         # Make circuit breaker open
         orchestrator.circuit_breaker.state = CircuitBreakerState.OPEN
-        orchestrator.circuit_breaker.last_failure_time = time.time()
+        orchestrator.circuit_breaker._cb.state = CircuitBreakerState.OPEN
+        orchestrator.circuit_breaker._cb.last_failure_at = time.time()
 
         with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
-            result = await orchestrator.execute_task("Test task", "user123")
+            result = await orchestrator.execute_task("Test python task", "user123")
 
             assert result is mock_workspace
             # Check that log was called with circuit breaker message
@@ -323,58 +338,57 @@ class TestSwarmOrchestratorExecuteTask:
     @pytest.mark.asyncio
     async def test_architecture_phase_failure(self, mock_workspace):
         """বাংলা মন্তব্য: Architecture phase fail করলে circuit breaker trigger হয়।"""
-        orchestrator = SwarmOrchestrator()
+        orchestrator = MorphicOrchestrator()
 
-        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock, side_effect=RuntimeError("Design failed")):
-            with patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock):
-                with patch.object(orchestrator.qa, "verify", new_callable=AsyncMock):
+        with patch.object(orchestrator.agents["architect"], "run", new_callable=AsyncMock, side_effect=RuntimeError("Design failed")):
+            with patch.object(orchestrator.agents["coder"], "run", new_callable=AsyncMock):
+                with patch.object(orchestrator.agents["guardian"], "validate", new_callable=AsyncMock, return_value=(True, "")):
                     with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
-                        with pytest.raises(RuntimeError):
-                            await orchestrator.execute_task("Test task", "user123")
+                        # The MorphicOrchestrator will catch RuntimeError, run reflection, and return workspace
+                        # To test circuit breaker, we just check if failure was recorded.
+                        await orchestrator.execute_task("Test python task", "user123")
 
                         # Circuit breaker should have recorded the failure
-                        assert orchestrator.circuit_breaker.failures == 1
+                        assert orchestrator.circuit_breaker._cb.failures == 1
 
     @pytest.mark.asyncio
     async def test_code_generation_phase_failure(self, mock_workspace):
         """বাংলা মন্তব্য: Code generation phase fail করলে circuit breaker trigger হয়।"""
-        orchestrator = SwarmOrchestrator()
+        orchestrator = MorphicOrchestrator()
 
-        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock):
-            with patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock, side_effect=RuntimeError("Code gen failed")):
-                with patch.object(orchestrator.qa, "verify", new_callable=AsyncMock):
+        with patch.object(orchestrator.agents["architect"], "run", new_callable=AsyncMock):
+            with patch.object(orchestrator.agents["coder"], "run", new_callable=AsyncMock, side_effect=RuntimeError("Code gen failed")):
+                with patch.object(orchestrator.agents["guardian"], "validate", new_callable=AsyncMock, return_value=(True, "")):
                     with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
-                        with pytest.raises(RuntimeError):
-                            await orchestrator.execute_task("Test task", "user123")
+                        await orchestrator.execute_task("Test python task", "user123")
 
-                        assert orchestrator.circuit_breaker.failures == 1
+                        assert orchestrator.circuit_breaker._cb.failures == 1
 
     @pytest.mark.asyncio
     async def test_qa_phase_failure(self, mock_workspace):
         """বাংলা মন্তব্য: QA phase fail করলে circuit breaker trigger হয়।"""
-        orchestrator = SwarmOrchestrator()
+        orchestrator = MorphicOrchestrator()
 
-        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock):
-            with patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock):
-                with patch.object(orchestrator.qa, "verify", new_callable=AsyncMock, side_effect=RuntimeError("QA failed")):
+        with patch.object(orchestrator.agents["architect"], "run", new_callable=AsyncMock):
+            with patch.object(orchestrator.agents["coder"], "run", new_callable=AsyncMock):
+                with patch.object(orchestrator.agents["guardian"], "validate", new_callable=AsyncMock, side_effect=RuntimeError("QA failed")):
                     with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
-                        with pytest.raises(RuntimeError):
-                            await orchestrator.execute_task("Test task", "user123")
+                        await orchestrator.execute_task("Test python task", "user123")
 
-                        assert orchestrator.circuit_breaker.failures == 1
+                        assert orchestrator.circuit_breaker._cb.failures == 1
 
     @pytest.mark.asyncio
     async def test_default_user_id(self, mock_workspace):
         """বাংলা মন্তব্য: Default user_id 'default_user_session' ব্যবহার হয়।"""
-        orchestrator = SwarmOrchestrator()
+        orchestrator = MorphicOrchestrator()
 
-        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock) as mock_design:
-            with patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock):
-                with patch.object(orchestrator.qa, "verify", new_callable=AsyncMock):
+        with patch.object(orchestrator.agents["architect"], "run", new_callable=AsyncMock) as mock_design:
+            with patch.object(orchestrator.agents["coder"], "run", new_callable=AsyncMock):
+                with patch.object(orchestrator.agents["guardian"], "validate", new_callable=AsyncMock, return_value=(True, "")):
                     with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
-                        await orchestrator.execute_task("Test task")
+                        await orchestrator.execute_task("Test python task")
 
-                        # Verify architect.design was called with default user_id
+                        # Verify architect.run was called with default user_id
                         mock_design.assert_called_once()
                         call_args = mock_design.call_args
                         assert call_args[0][1] == "default_user_session"
@@ -389,21 +403,24 @@ class TestSwarmOrchestratorIntegration:
     @pytest.mark.asyncio
     async def test_full_successful_execution_flow(self, mock_workspace):
         """বাংলা মন্তব্য: সম্পূর্ণ successful execution flow।"""
-        orchestrator = SwarmOrchestrator()
+        orchestrator = MorphicOrchestrator()
+        
+        # Override Intent logic so it uses standard DAG
+        mock_workspace.intent = "standard_code_generation"
 
-        with patch.object(orchestrator.architect, "design", new_callable=AsyncMock) as mock_design:
-            with patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock) as mock_code:
-                with patch.object(orchestrator.qa, "verify", new_callable=AsyncMock) as mock_verify:
+        with patch.object(orchestrator.agents["architect"], "run", new_callable=AsyncMock) as mock_design:
+            with patch.object(orchestrator.agents["coder"], "run", new_callable=AsyncMock) as mock_code:
+                with patch.object(orchestrator.agents["guardian"], "validate", new_callable=AsyncMock, return_value=(True, "")) as mock_guardian:
                     with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
-                        result = await orchestrator.execute_task("Build a microservice", "user456")
+                        result = await orchestrator.execute_task("Build a python microservice", "user456")
 
                         # All three phases should be called
                         mock_design.assert_called_once()
                         mock_code.assert_called_once()
-                        mock_verify.assert_called_once()
+                        mock_guardian.assert_called_once()
 
                         # All should be called with workspace and user_id
-                        for mock_method in [mock_design, mock_code, mock_verify]:
+                        for mock_method in [mock_design, mock_code, mock_guardian]:
                             call_args = mock_method.call_args
                             assert call_args[0][0] is mock_workspace
                             assert call_args[0][1] == "user456"
@@ -411,23 +428,24 @@ class TestSwarmOrchestratorIntegration:
     @pytest.mark.asyncio
     async def test_circuit_breaker_prevents_cascading_failures(self, mock_workspace):
         """বাংলা মন্তব্য: Circuit breaker cascading failures prevent করে।"""
-        orchestrator = SwarmOrchestrator()
+        orchestrator = MorphicOrchestrator()
+        mock_workspace.intent = "standard"
 
         # Simulate multiple failures to open circuit
         for i in range(3):
-            with patch.object(orchestrator.architect, "design", new_callable=AsyncMock, side_effect=RuntimeError("Service down")):
-                with patch.object(orchestrator.coder, "generate_code", new_callable=AsyncMock):
-                    with patch.object(orchestrator.qa, "verify", new_callable=AsyncMock):
+            with patch.object(orchestrator.agents["architect"], "run", new_callable=AsyncMock, side_effect=RuntimeError("Service down")):
+                with patch.object(orchestrator.agents["coder"], "run", new_callable=AsyncMock):
+                    with patch.object(orchestrator.agents["guardian"], "validate", new_callable=AsyncMock, return_value=(True, "")):
                         with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
-                            with pytest.raises(RuntimeError):
-                                await orchestrator.execute_task(f"Task {i}", "user1")
+                            # MorphicOrchestrator intercepts it and adds error to workspace
+                            await orchestrator.execute_task(f"Task python {i}", "user1")
 
         # Circuit should now be open
         assert orchestrator.circuit_breaker.state == CircuitBreakerState.OPEN
 
         # Next call should be rejected immediately
         with patch("core.swarm_orchestrator.SharedWorkspace", return_value=mock_workspace):
-            result = await orchestrator.execute_task("Task after open", "user1")
+            result = await orchestrator.execute_task("Task python after open", "user1")
             # Should return workspace with error, not raise
             assert result is mock_workspace
-            mock_workspace.add_error.assert_called_once()
+            mock_workspace.add_error.assert_called()

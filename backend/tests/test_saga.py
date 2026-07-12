@@ -11,7 +11,7 @@ import database.supabase_client
 
 
 def test_saga():
-    db_path = "test_evolution_saga.db"
+    db_path = os.path.abspath("test_evolution_saga.db")
     if os.path.exists(db_path):
         os.remove(db_path)
 
