@@ -54,7 +54,7 @@ for line in lines:
             pri_val = repo_data.get('priority', 'medium')
             stars_val = repo_data.get('stars', 0)
             
-            sql.append(f"INSERT INTO github_repos (id, name, url, category, purpose, priority, stars) VALUES ('{id_val}', '{name_val}', '{url_val}', '{cat_val}', '{pur_val}', '{pri_val}', {stars_val}) ON CONFLICT (id) DO NOTHING;")
+            sql.append("INSERT INTO github_repos (id, name, url, category, purpose, priority, stars) VALUES ('{}', '{}', '{}', '{}', '{}', '{}', {}) ON CONFLICT (id) DO NOTHING;".format(id_val, name_val, url_val, cat_val, pur_val, pri_val, stars_val))
         repo_data = {}
 
 sql.append('COMMIT;')
