@@ -50,7 +50,7 @@ contract MyToken {
         result = await agent.generate_contract(description="Create an ERC-20 token contract", standard="ERC20")
 
     assert result is not None
-    assert "MyToken" in result.get('contract')
+    assert "MyToken" in result.get("contract")
     assert "solidity" in result.standard.lower()
 
 
@@ -119,7 +119,7 @@ function optimizedLoop(uint256 n) public pure returns (uint256) {
         result = await agent.optimize_gas(solidity_code)
 
     assert result is not None
-    assert "optimized" in result.get('optimized_contract').lower()
+    assert "optimized" in result.get("optimized_contract").lower()
 
 
 @pytest.mark.anyio
@@ -159,8 +159,8 @@ describe("SimpleStorage", function () {
         result = await agent.generate_tests(contract_code)
 
     assert result is not None
-    assert "describe" in result.get('tests')
-    assert "SimpleStorage" in result.get('tests')
+    assert "describe" in result.get("tests")
+    assert "SimpleStorage" in result.get("tests")
 
 
 @pytest.mark.anyio
@@ -198,4 +198,4 @@ contract MyNFT is ERC721 {
         result = await agent.generate_contract(description="Create an ERC-721 NFT contract", standard="ERC721")
 
     assert result is not None
-    assert "ERC721" in result.get('contract')
+    assert "ERC721" in result.get("contract")
