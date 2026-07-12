@@ -43,6 +43,14 @@ class SchemaCode:
         return {"orm": self.orm, "code": self.code}
 
 
+class DockerComposeManifest:
+    def __init__(self, code: str):
+        self.code = code
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"orchestration_tool": "docker-compose", "code": self.code}
+
+
 class DiagramToArchitecture:
     def __init__(self, vision_model: str = "gpt-4o"):
         self.vision_model = vision_model
@@ -182,8 +190,8 @@ class DiagramToArchitecture:
 
     async def generate_api_spec(self, diagram_path: str) -> dict[str, Any]:
         """Generate OpenAPI spec from a sequence/flowchart diagram."""
-        base64_image = self._encode_image(diagram_path)
         try:
+            base64_image = self._encode_image(diagram_path)
             from brain.model_router import ModelRouter
 
             router_llm = ModelRouter()
@@ -201,7 +209,33 @@ class DiagramToArchitecture:
             yaml_spec = result.get("text", "") if isinstance(result, dict) else ""
             return {"status": "success", "openapi_yaml": yaml_spec}
         except Exception as e:  # noqa: BLE001
+            logger.error(f"API spec generation failed: {str(e)}")
             return {"status": "error", "error": str(e)}
+
+    async def to_docker_compose(self, diagram_path: str) -> DockerComposeManifest:
+        """Cloud architecture diagram → Docker Compose YAML."""
+        logger.info(f"Generating Docker Compose manifests from: {diagram_path}")
+        try:
+            base64_image = self._encode_image(diagram_path)
+            from brain.model_router import ModelRouter
+
+            router_llm = ModelRouter()
+            prompt = (
+                "You are an expert DevOps engineer. Analyze the provided architecture diagram and generate "
+                "complete Docker Compose YAML including services, networks, and volumes for each "
+                "component shown. Return ONLY valid multi-document YAML, no markdown."
+            )
+            result = await router_llm.async_route_and_generate(
+                prompt,
+                task_type="vision",
+                max_cost=0.08,
+                images=[{"base64": base64_image, "mime": "image/png"}],
+            )
+            code = result.get("text", "") if isinstance(result, dict) else ""
+            return DockerComposeManifest(code=code.strip())
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Docker Compose generation failed, using fallback: {e}")
+            return DockerComposeManifest(code=self._mock_docker_compose())
 
     # ------------------------------------------------------------------ #
     # Fallback / mock generators
@@ -269,6 +303,36 @@ spec:
       port: 80
       targetPort: 8080
   type: LoadBalancer
+"""
+
+    def _mock_docker_compose(self) -> str:
+        return """version: '3.8'
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/mydatabase
+    depends_on:
+      - db
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=mydatabase
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
 """
 
     def _mock_schema(self, orm: str) -> str:
@@ -407,3 +471,18 @@ async def generate_api_spec(file: UploadFile = File(...)):
     finally:
         os.unlink(tmp_path)
     return result
+
+
+@router.post("/to-docker-compose")
+async def api_to_docker_compose(file: UploadFile = File(...)):
+    """ডায়াগ্রাম → Docker Compose YAML।"""
+    await validate_upload(file)
+    suffix = os.path.splitext(file.filename or "diagram.png")[1] or ".png"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp.write(await file.read())
+        tmp_path = tmp.name
+    try:
+        result = await _converter.to_docker_compose(tmp_path)
+        return {"status": "success", **result.to_dict()}
+    finally:
+        os.unlink(tmp_path)
