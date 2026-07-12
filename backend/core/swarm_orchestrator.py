@@ -1,3 +1,4 @@
+# FILE_PATH: /home/runner/work/supremeai/supremeai/backend/core/swarm_orchestrator.py
 # Multi-Agent Swarm Orchestrator Engine
 # বাংলা মন্তব্য: মাল্টি-এজেন্ট সিকোয়েন্সিয়াল সোয়ার্ম কোঅর্ডিনেটর ও টাস্ক রানার।
 
@@ -52,7 +53,7 @@ class CircuitBreaker:
             raise
 
 
-class MorphicOrchestrator:
+class SwarmOrchestrator: # Renamed MorphicOrchestrator to SwarmOrchestrator
     """
     Universal Cognitive Engine (Architecture 2.0)
     এটি এখন শুধু কোড নয়, ইউজারের যেকোনো ইনটেন্ট (Intent) ডিটেক্ট করে DAG তৈরি করে।
