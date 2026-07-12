@@ -1,3 +1,4 @@
+# FILE_PATH: core/cloud_sandbox_orchestrator.py
 #!/usr/bin/env python3
 """
 Cloud Sandbox Orchestrator
@@ -17,7 +18,7 @@ import httpx
 from loguru import logger
 
 from core.config_proxy import DynamicConfigProxy
-from core.self_healer import SelfHealerService
+from core.health.self_healer import SelfHealerService  # Fixed: DeprecationWarning
 from utils.firestore_helpers import get_firestore_db
 
 
