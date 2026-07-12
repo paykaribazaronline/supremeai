@@ -5,13 +5,15 @@ import os
 import sys
 import requests
 from dotenv import load_dotenv
+from pathlib import Path
 
 # sys.stdout এবং sys.stderr এর জন্য UTF-8 সেট করা হচ্ছে যাতে ইমোজি প্রিন্ট করতে কোনো সমস্যা না হয়।
 sys.stdout.reconfigure(encoding='utf-8')
 sys.stderr.reconfigure(encoding='utf-8')
 
-# .env ফাইল লোড করা হচ্ছে
-load_dotenv()
+# স্ক্রিপ্টের অবস্থান থেকে রুট .env ফাইল লোড করা হচ্ছে
+env_path = Path(__file__).parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 TOKEN = os.getenv("GITHUB_PAT_AUTO_FIX") or os.getenv("GITHUB_TOKEN")
 REPO = "paykaribazaronline/supremeai"
