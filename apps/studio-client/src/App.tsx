@@ -13,6 +13,7 @@ import { AdminShell } from "./pages/admin/AdminShell";
 import { LoginScreen } from './pages/auth/LoginScreen';
 import { RegisterScreen } from './pages/auth/RegisterScreen';
 import { AgentWorkspace } from './pages/AgentWorkspace';
+import { IdeWorkspace } from './pages/IdeWorkspace';
 import { IntegrationsManager } from './pages/IntegrationsManager';
 import { ArchitectTower } from './pages/ArchitectTower';
 import SwarmMap from './components/SwarmMap';
@@ -159,6 +160,11 @@ const AppContent: React.FC = () => {
                 <Route path="/workspace/agent" element={
                   <ProtectedRoute>
                     <AgentWorkspace />
+                  </ProtectedRoute>
+                } />
+                <Route path="/workspace/ide" element={
+                  <ProtectedRoute>
+                    <IdeWorkspace />
                   </ProtectedRoute>
                 } />
                 <Route path="/integrations" element={

@@ -23,14 +23,27 @@ class UniversalRulesEngine:
         self.rules = self._load_rules()
 
     def _load_rules(self) -> dict[str, Any]:
-        """Loads rules from secure JSON file. If file does not exist, uses default rules."""
-        if os.path.exists(self.rules_path):
-            try:
-                with open(self.rules_path, encoding="utf-8") as f:
-                    return json.load(f)
-            except (OSError, json.JSONDecodeError) as e:
-                # Fallback to default in case of corruption
-                logger.error(f"⚠️ Rules file corrupted, falling back to defaults: {e}")
+        """Loads rules from secure Database. If not available, uses default rules."""
+        db_rules = {}
+        try:
+            from tools.mcp_supabase import _get_connection
+            conn = _get_connection()
+            if conn:
+                cur = conn.cursor()
+                cur.execute("SELECT rule_key, category, value FROM rules WHERE is_enabled = TRUE")
+                rows = cur.fetchall()
+                for rule_key, category, value in rows:
+                    if category not in db_rules:
+                        db_rules[category] = {}
+                    
+                    try:
+                        # Attempt to parse value as JSON if possible, else keep as string
+                        parsed_val = json.loads(value)
+                    except (json.JSONDecodeError, TypeError):
+                        parsed_val = value
+                    db_rules[category][rule_key] = parsed_val
+        except Exception as e:
+            logger.error(f"⚠️ Failed to load rules from DB, falling back to defaults: {e}")
 
         # Default fallback rules (Admin definitions)
         default_rules = {
@@ -56,6 +69,14 @@ class UniversalRulesEngine:
                 "hard_stop_at_percent": 100.0,
             },
         }
+
+        if db_rules:
+            # Merge db_rules with default_rules
+            for cat, rules_dict in db_rules.items():
+                if cat not in default_rules:
+                    default_rules[cat] = {}
+                default_rules[cat].update(rules_dict)
+            return default_rules
 
         # Save defaults if not present
         try:

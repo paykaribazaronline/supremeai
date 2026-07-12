@@ -13,10 +13,27 @@ from __future__ import annotations
 from core.config import settings
 
 from typing import Any
-
+import json
 
 def get_headless_agent_configs() -> dict[str, dict[str, Any]]:
-    """বাংলা মন্তব্য: সব হেডলেস এজেন্টের কনফিগারেশন রিটার্ন করে।"""
+    """বাংলা মন্তব্য: সব হেডলেস এজেন্টের কনফিগারেশন রিটার্ন করে। (ডাটাবেস থেকে)"""
+    try:
+        from tools.mcp_supabase import _get_connection
+        from loguru import logger
+        conn = _get_connection()
+        if conn:
+            cur = conn.cursor()
+            cur.execute("SELECT agent_name, config_json FROM agent_configs WHERE status = 'active'")
+            rows = cur.fetchall()
+            if rows:
+                return {row[0]: row[1] for row in rows}
+    except Exception as e:
+        try:
+            from loguru import logger
+            logger.error(f"Failed to fetch agent configs from DB, falling back to local: {e}")
+        except:
+            pass
+
     agent_settings: dict[str, dict[str, Any]] = {
         # bangla: গুগল অফিসিয়াল ফ্রি এআই এজেন্ট, ১০০০ রিকোয়েস্ট/দিন ফ্রি, MCP সাপোর্ট করে
         "gemini-cli": {

@@ -40,9 +40,33 @@ class SkillManager:
             logger.debug(f"Found skill '{skill_name}' in local registry.")
             return self._skills[skill_name]
 
-        logger.info(f"Skill '{skill_name}' not in local registry. Querying MCP-Hub...")
-        # এখানে ভবিষ্যতে MCP থেকে টুল "সিন্থেসিস" বা লোড করার লজিক থাকবে।
-        # আপাতত, একটি প্লেসহোল্ডার চেক করা হচ্ছে।
+        logger.info(f"Skill '{skill_name}' not in local registry. Querying Database...")
+        from tools.mcp_supabase import supabase_execute_sql, ExecuteQueryInput, ResponseFormat
+        
+        try:
+            query = "SELECT code FROM skills WHERE skill_name = %s AND status = 'active'"
+            res = await supabase_execute_sql(ExecuteQueryInput(
+                query=query, 
+                params=[skill_name],
+                response_format=ResponseFormat.JSON
+            ))
+            data = json.loads(res)
+            if "rows" in data and len(data["rows"]) > 0:
+                code_content = data["rows"][0]["code"]
+                local_env = {}
+                # Ensure BaseSkill is available
+                exec_globals = globals().copy()
+                exec(code_content, exec_globals, local_env)
+                
+                for item in local_env.values():
+                    if isinstance(item, type) and issubclass(item, BaseSkill) and item != BaseSkill:
+                        skill_instance = item()
+                        self.register_skill(skill_instance, skill_name)
+                        return skill_instance
+        except Exception as e:
+            logger.error(f"Error fetching skill '{skill_name}' from DB: {e}")
+
+        logger.info(f"Skill '{skill_name}' not in DB. Querying MCP-Hub...")
         mcp_tools = await self.mcp_client.discover_tools(domain=skill_name)
         if mcp_tools and mcp_tools[0] != "generic_tool":
             logger.info(f"Discovered MCP tool for '{skill_name}'. Wrapping as a skill.")
