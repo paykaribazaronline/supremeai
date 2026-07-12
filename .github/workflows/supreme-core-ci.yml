@@ -502,7 +502,7 @@ jobs:
 
       - name: Echo Image Digest
         if: github.ref == 'refs/heads/main'
-        run: echo "Pushed image with digest `${{ steps.build-and-push.outputs.digest }}`"
+        run: echo "Pushed image with digest: ${{ steps.build-and-push.outputs.digest }}"
 
   security-audit:
     name: 🛡️ CodeQL & Trivy Security Scan
