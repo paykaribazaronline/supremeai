@@ -21,6 +21,10 @@ on:
         description: '🔧 Run Auto Lint Fix (PR তৈরি করবে)'
         type: boolean
         default: false
+      run_auto_dependency_upgrade:
+        description: '📦 Run Auto Dependency Upgrade (PR তৈরি করবে)'
+        type: boolean
+        default: false
       run_dependency_scan:
         description: '🔍 Run Dependency Vulnerability Scan'
         type: boolean
@@ -65,6 +69,7 @@ jobs:
     outputs:
       requirements-cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
+      - uses: actions/checkout@v4
       - name: "🐍 Setup Python Environment"
         uses: actions/setup-python@v5
         with:
@@ -138,6 +143,8 @@ jobs:
           isort .
       - name: "🤖 Create Pull Request"
         uses: peter-evans/create-pull-request@v6
+        env:
+          ACTIONS_ALLOW_UNSECURE_NODE_VERSION: 'true'
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore: auto-lint and format with ruff, black, isort"
@@ -214,6 +221,7 @@ jobs:
           python -m pip install --upgrade pip
           poetry export --with dev --without ml,tools --format requirements.txt --output requirements.txt
           pip install --no-cache-dir --disable-pip-version-check -r requirements.txt
+          poetry install --no-root
           
       - name: 🤖 Generate AI Architecture Docs (ADR, DFD, OpenAPI)
         env:
@@ -236,6 +244,13 @@ jobs:
         run: |
           VENV_PYTHON=$(cd backend && poetry env info --path)/bin/python
           $VENV_PYTHON scripts/generate_smart_docs.py
+
+      - name: 🚨 Generate System Incident Report from Logs
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        run: |
+          VENV_PYTHON=$(cd backend && poetry env info --path)/bin/python
+          $VENV_PYTHON scripts/generate_incident_report.py
         
       - name: Commit and Push Docs to Repo
         id: push_docs
@@ -470,6 +485,51 @@ jobs:
             echo "✅ সব Node প্যাকেজ আপ-টু-ডেট!" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
+  auto-dependency-upgrade:
+    name: "📦 Auto Dependency Upgrade (PR)"
+    runs-on: ubuntu-latest
+    needs: outdated-dependency-report
+    if: github.event.inputs.run_auto_dependency_upgrade == 'true'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: snok/install-poetry@v1
+      - name: "⚙️ Install Dependencies & Upgrader Script"
+        run: |
+          pip install poetry requests beautifulsoup4
+          # এখানে একটি নতুন স্ক্রিপ্ট `dependency_upgrader.py` ব্যবহার করা হবে
+
+      - name: "🤖 Run Dependency Upgrade Agent"
+        id: upgrade_agent
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          # এই স্ক্রিপ্টটি `pip list --outdated` এবং `pnpm outdated` কমান্ডের আউটপুট পার্স করবে,
+          # প্রতিটি প্যাকেজের changelog বিশ্লেষণ করে ব্রেকিং চেঞ্জ আছে কিনা তা মূল্যায়ন করবে
+          # এবং কম ঝুঁকিপূর্ণ আপগ্রেডগুলো সম্পাদন করবে।
+          python .github/scripts/dependency_upgrader.py > upgrade_summary.md
+
+      - name: "🤖 Create Dependency Upgrade Pull Request"
+        uses: peter-evans/create-pull-request@v6
+        env:
+          ACTIONS_ALLOW_UNSECURE_NODE_VERSION: 'true'
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(deps): auto-upgrade non-major dependencies"
+          title: "📦 Automated Dependency Upgrade"
+          body: |
+            AI Agent দ্বারা এই PR-টি স্বয়ংক্রিয়ভাবে তৈরি হয়েছে।
+            এতে কম ঝুঁকিপূর্ণ Python ও Node.js প্যাকেজগুলোর আপগ্রেড রয়েছে।
+            **আপগ্রেড সারাংশ:**
+            ${{ steps.upgrade_agent.outputs.summary }}
+          branch: "chore/auto-deps-upgrade-${{ github.run_id }}"
+          labels: "dependencies, automated"
+
   changelog-generator:
     name: 📝 Changelog Generator (Auto PR)
     runs-on: ubuntu-latest
@@ -542,6 +602,8 @@ jobs:
       - name: 🤖 Create Changelog Pull Request
         # বাংলা মন্তব্য: সরাসরি push না করে PR তৈরি করা হচ্ছে — best practice
         uses: peter-evans/create-pull-request@v6
+        env:
+          ACTIONS_ALLOW_UNSECURE_NODE_VERSION: 'true'
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "docs: auto-generate CHANGELOG.md [skip ci]"

@@ -67,6 +67,8 @@ launchdarkly-observability = "^1.0.0"
 redis = ">=5,<9"
 boto3 = "^1.34.0"
 nats-py = "^2.9.0"
+uuid6 = "^2025.0.1"
+pybreaker = "^1.4.1"
 
 [tool.poetry.group.ml.dependencies]
 # ── ML/AI: torch, OCR, whisper, embeddings (~3 GB) ──

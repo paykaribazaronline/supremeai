@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from tools.legal_agent import LegalAgent
+from core.llm.llm_gateway import LLMGateway
 
 
 @pytest.fixture
@@ -15,14 +16,13 @@ def mock_legal():
 
 
 @pytest.mark.anyio
-@pytest.mark.skip(reason="Technical Debt: Missing _get_model_router method. Needs refactoring. Tracked in TECH_DEBT.md")
+@pytest.mark.anyio
 async def test_generate_contract(mock_legal):
     # বাংলা মন্তব্য: চুক্তি (Contract) তৈরি টেস্ট
     agent = LegalAgent()
 
-    with patch.object(agent, "_get_model_router") as mock_router:
-        mock_router.return_value.async_route_and_generate = AsyncMock(return_value={
-            "text": """
+    with patch("core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
+        mock_acompletion.return_value = {"text": """
 # NON-DISCLOSURE AGREEMENT
 
 This Non-Disclosure Agreement ("Agreement") is made between:
@@ -35,8 +35,7 @@ This Non-Disclosure Agreement ("Agreement") is made between:
 3. Governed by laws of Bangladesh
 
 IN WITNESS WHEREOF, the parties have executed this Agreement.
-"""
-        })
+"""}
 
         result = await agent.generate_contract(
             contract_type="NDA",
@@ -45,12 +44,12 @@ IN WITNESS WHEREOF, the parties have executed this Agreement.
         )
 
     assert result is not None
-    assert "NDA" in result.document
-    assert "Non-Disclosure" in result.document
+    assert "NON-DISCLOSURE" in result["document"]
+    assert "Non-Disclosure" in result["document"]
 
 
 @pytest.mark.anyio
-@pytest.mark.skip(reason="Technical Debt: Missing _get_model_router method. Needs refactoring. Tracked in TECH_DEBT.md")
+@pytest.mark.anyio
 async def test_analyze_clause(mock_legal):
     # বাংলা মন্তব্য: ক্লজ (Clause) বিশ্লেষণ টেস্ট
     agent = LegalAgent()
@@ -60,26 +59,24 @@ The party shall not disclose any confidential information for a period of 5 year
 This includes trade secrets, business plans, and technical data.
 """
 
-    with patch.object(agent, "_get_model_router") as mock_router:
-        mock_router.return_value.async_route_and_generate = AsyncMock(return_value={
-            "text": """
+    with patch("core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
+        mock_acompletion.return_value = {"text": """
 Clause Analysis:
 - Type: Confidentiality Clause
 - Duration: 5 years (standard)
 - Risk Level: Low
 - Recommendations: Consider adding specific definitions for "confidential information"
-"""
-        })
+"""}
 
         result = await agent.analyze_clause(clause_text, jurisdiction="BD")
 
     assert result is not None
-    assert "type" in result
-    assert "risk_level" in result
+    assert "risk_count" in result
+    assert "risks" in result
 
 
 @pytest.mark.anyio
-@pytest.mark.skip(reason="Technical Debt: Missing _get_model_router method. Needs refactoring. Tracked in TECH_DEBT.md")
+@pytest.mark.anyio
 async def test_check_compliance(mock_legal):
     # বাংলা মন্তব্য: Compliance check টেস্ট
     agent = LegalAgent()
@@ -91,31 +88,29 @@ Privacy Policy:
 - No third-party sharing without consent
 """
 
-    with patch.object(agent, "_get_model_router") as mock_router:
-        mock_router.return_value.async_route_and_generate = AsyncMock(return_value={
-            "text": """
+    with patch("core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
+        mock_acompletion.return_value = {"text": """
 Compliance Report:
 - GDPR: Compliant (data collection disclosed)
 - CCPA: Compliant (opt-out rights mentioned)
 - Issues: None found
-"""
-        })
+"""}
 
         result = await agent.check_compliance(document, regulation="GDPR")
 
     assert result is not None
-    assert "compliant" in result.status.lower()
+    assert "compliant" in result
+    assert result["compliant"] is True
 
 
 @pytest.mark.anyio
-@pytest.mark.skip(reason="Technical Debt: Missing _get_model_router method. Needs refactoring. Tracked in TECH_DEBT.md")
+@pytest.mark.anyio
 async def test_generate_tos(mock_legal):
     # বাংলা মন্তব্য: Terms of Service জেনারেশন টেস্ট
     agent = LegalAgent()
 
-    with patch.object(agent, "_get_model_router") as mock_router:
-        mock_router.return_value.async_route_and_generate = AsyncMock(return_value={
-            "text": """
+    with patch("core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
+        mock_acompletion.return_value = {"text": """
 # TERMS OF SERVICE
 
 Last Updated: [Date]
@@ -131,8 +126,7 @@ All content is owned by the company.
 
 4. GOVERNING LAW
 These terms are governed by the laws of Bangladesh.
-"""
-        })
+"""}
 
         result = await agent.generate_tos(
             product_description="AI-powered code generation platform",
@@ -140,18 +134,17 @@ These terms are governed by the laws of Bangladesh.
         )
 
     assert result is not None
-    assert "TERMS OF SERVICE" in result.document
+    assert "TERMS OF SERVICE" in result["document"]
 
 
 @pytest.mark.anyio
-@pytest.mark.skip(reason="Technical Debt: Missing _get_model_router method. Needs refactoring. Tracked in TECH_DEBT.md")
+@pytest.mark.anyio
 async def test_generate_privacy_policy(mock_legal):
     # বাংলা মন্তব্য: Privacy Policy জেনারেশন টেস্ট
     agent = LegalAgent()
 
-    with patch.object(agent, "_get_model_router") as mock_router:
-        mock_router.return_value.async_route_and_generate = AsyncMock(return_value={
-            "text": """
+    with patch("core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
+        mock_acompletion.return_value = {"text": """
 # PRIVACY POLICY
 
 We respect your privacy. This policy explains:
@@ -161,8 +154,7 @@ We respect your privacy. This policy explains:
 - Data retention period
 
 Contact: privacy@company.com
-"""
-        })
+"""}
 
         result = await agent.generate_tos(
             product_description="Web application that collects user data",
@@ -170,18 +162,17 @@ Contact: privacy@company.com
         )
 
     assert result is not None
-    assert "PRIVACY" in result.document or "privacy" in result.document.lower()
+    assert "PRIVACY" in result["document"] or "privacy" in result["document"].lower()
 
 
 @pytest.mark.anyio
-@pytest.mark.skip(reason="Technical Debt: Missing _get_model_router method. Needs refactoring. Tracked in TECH_DEBT.md")
+@pytest.mark.anyio
 async def test_legal_document_with_bangladesh_law(mock_legal):
     # বাংলা মন্তব্য: বাংলাদেশের আইন অনুযায়ী ডকুমেন্ট জেনারেশন টেস্ট
     agent = LegalAgent()
 
-    with patch.object(agent, "_get_model_router") as mock_router:
-        mock_router.return_value.async_route_and_generate = AsyncMock(return_value={
-            "text": """
+    with patch("core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
+        mock_acompletion.return_value = {"text": """
 # EMPLOYMENT AGREEMENT
 
 This agreement is governed by Bangladesh Labour Act, 2006.
@@ -191,8 +182,7 @@ Terms:
 - Working hours: 8 hours per day
 - Leave: As per Bangladesh law
 - Termination: 30 days notice
-"""
-        })
+"""}
 
         result = await agent.generate_contract(
             contract_type="Employment",
@@ -201,4 +191,4 @@ Terms:
         )
 
     assert result is not None
-    assert "Bangladesh" in result.document
+    assert "Bangladesh" in result["document"]
