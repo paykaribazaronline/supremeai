@@ -172,12 +172,12 @@ class MorphicOrchestrator:
                 attributes["provider"] = best_provider
 
             with trace_span("morphic_orchestrator.execute_task", attributes=attributes):
-
                 await self.circuit_breaker.call(_execute_dag)
             # Duplicate log removed here
 
         except Exception as e:
             from core.resilience.circuit_breaker import CircuitBreakerOpenError
+
             if isinstance(e, CircuitBreakerOpenError) or "is OPEN" in str(e):
                 workspace.log(f"MorphicOrchestrator: Circuit breaker OPEN — {e}")
                 workspace.add_error(str(e))

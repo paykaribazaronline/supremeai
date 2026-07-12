@@ -14,13 +14,14 @@ router = APIRouter()
 
 class ScribeQuestion(BaseModel):
     """Request model for asking a question to the Scribe."""
+
     question: str
 
 
 @router.post("/knowledge/ask-scribe", tags=["Knowledge Base"])
 async def ask_the_scribe(
     request: ScribeQuestion,
-    user: dict = Depends(get_current_user_or_guest) # Basic security
+    user: dict = Depends(get_current_user_or_guest),  # Basic security
 ):
     """
     Asks a question to the AI Scribe about the codebase.

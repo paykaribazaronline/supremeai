@@ -144,9 +144,7 @@ class CollaborativeEditor:
                 ai_generated_code = f"\n\n# --- AI Generated Code ---\n# Prompt: {prompt}\n{response.get('output', '')}\n"
             else:
                 # ফলব্যাক (যদি Freebuff কাজ না করে)
-                ai_generated_code = (
-                    f"\n\n# --- AI Response ---\n# Executed Prompt: {prompt}\ndef auto_generated_feature():\n    logger.info('Hello from SupremeAI!')\n"
-                )
+                ai_generated_code = f"\n\n# --- AI Response ---\n# Executed Prompt: {prompt}\ndef auto_generated_feature():\n    logger.info('Hello from SupremeAI!')\n"
 
             # বর্তমান স্টেট ফেচ করে শেষে কোড যুক্ত করা
             current_state = await self.get_session_state(session_id)
