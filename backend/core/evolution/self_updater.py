@@ -27,7 +27,7 @@ class SelfUpdater:
         logger.info(f"Applying self-evolution hotfix to {file_path}")
         try:
             target = self._validate_path(file_path)
-        except Exception as e:
+        except (ValueError, OSError) as e:
             logger.error(f"Hotfix path validation failed: {e}")
             return False
 
@@ -46,6 +46,6 @@ class SelfUpdater:
                 
             logger.info("Hotfix successfully applied.")
             return True
-        except Exception as e:
+        except (OSError, PermissionError, UnicodeDecodeError) as e:
             logger.error(f"Failed to apply hotpatch: {e}")
             return False

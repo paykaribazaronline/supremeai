@@ -92,7 +92,7 @@ Reason through the requirements and any previous failure errors. Then output:
                         f"Observation: Code compiled with error: {error_msg}"
                     )
                     current_error = error_msg
-            except Exception as e:
+            except (RuntimeError, ValueError, TypeError) as e:
                 logger.error(f"❌ ReAct agent loop exception: {e}")
                 current_error = str(e)
                 reasoning_history.append(f"Turn {turn} Exception: {str(e)}")
@@ -133,5 +133,5 @@ Reason through the requirements and any previous failure errors. Then output:
             return {"passed": True}
         except SyntaxError as e:
             return {"passed": False, "reason": f"SyntaxError on line {e.lineno}: {e.msg}"}
-        except Exception as e:
+        except (ValueError, OverflowError) as e:
             return {"passed": False, "reason": str(e)}
