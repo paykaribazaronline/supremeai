@@ -60,13 +60,14 @@ def test_production_mode_fetch_secret(vault_production):
     vault_production.client.getSecret.assert_called_once()
 
 
-def test_production_mode_fetch_secret_error(vault_production):
+def test_production_mode_fetch_secret_error(monkeypatch, vault_production):
+    monkeypatch.setenv("ENV", "production")
+    monkeypatch.delenv("SECRET_ID", raising=False)
     vault_production.client.getSecret.side_effect = Exception("Infisical error")
-    with patch.dict(os.environ, {"SECRET_ID": "", "ENV": "production"}, clear=False):
-        import pytest
 
-        with pytest.raises(RuntimeError):
-            vault_production.fetch_secret("SECRET_ID")
+    import pytest
+    with pytest.raises(RuntimeError):
+        vault_production.fetch_secret("SECRET_ID")
 
 
 def test_production_mode_missing_client_and_project(vault_production):

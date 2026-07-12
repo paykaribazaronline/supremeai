@@ -107,23 +107,17 @@ def test_parse_allowed_hosts_empty_string():
     assert Settings.parse_allowed_hosts("") == []
 
 
-@patch.dict(
-    os.environ,
-    {
-        "env": "production",
-        "cors_origins": '["http://127.0.0.1:3000", "https://example.com"]',
-        "SUPREMEAI_JWT_SECRET": "a" * 128,
-        "SUPREMEAI_ADMIN_PASSWORD_HASH": "mock_hash_value_for_test_pass",
-        "ALLOWED_HOSTS": '["api.supremeai.com"]',
-        "STRIPE_API_KEY": "sk_test_123",
-        "STRIPE_WEBHOOK_SECRET": "whsec_123",
-        "OPENROUTER_API_KEY": "sk_test",
-        "GEMINI_API_KEY": "sk_test",
-        "CI_WEBHOOK_SECRET": "supreme-ci-secret-2026",
-    },
-    clear=False,
-)
-def test_cors_origins_production_strips_localhost():
+def test_cors_origins_production_strips_localhost(monkeypatch):
+    monkeypatch.setenv("ENV", "production")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-mock-123")
+    monkeypatch.setenv("GEMINI_API_KEY", "mock-key")
+    monkeypatch.setenv("CORS_ORIGINS", '["http://127.0.0.1:3000", "https://example.com"]')
+    monkeypatch.setenv("SUPREMEAI_JWT_SECRET", "a" * 128)
+    monkeypatch.setenv("SUPREMEAI_ADMIN_PASSWORD_HASH", "mock_hash_value_for_test_pass")
+    monkeypatch.setenv("ALLOWED_HOSTS", '["api.supremeai.com"]')
+    monkeypatch.setenv("STRIPE_API_KEY", "sk_test_123")
+    monkeypatch.setenv("STRIPE_WEBHOOK_SECRET", "whsec_123")
+    monkeypatch.setenv("CI_WEBHOOK_SECRET", "supreme-ci-secret-2026")
     s = Settings()
     assert "http://127.0.0.1:3000" not in s.cors_origins
     assert "https://example.com" in s.cors_origins

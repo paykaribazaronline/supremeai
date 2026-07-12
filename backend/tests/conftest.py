@@ -197,7 +197,11 @@ def mock_production_env(monkeypatch):
     monkeypatch.setenv("GEMINI_API_KEY", "mock-key")
 
 
-@pytest.fixture
+import pytest_asyncio
+
+pytest_plugins = ["pytest_asyncio"]
+
+@pytest_asyncio.fixture
 async def async_session():
     from unittest.mock import AsyncMock
 

@@ -8,11 +8,12 @@ from core.skill_manager import SkillManager
 
 from evolution.auto_skill_creator import AutoSkillCreator
 
+from skills.registry import SkillRegistry
 
 @pytest.fixture
 def clean_dynamic_skills(tmp_path):
     # Set up temp dir for registry, dynamic and quarantine folders
-    registry = SkillManager()
+    registry = SkillRegistry()
 
     # Configure custom installer with temp skills_dir
     installer = SkillInstaller(registry=registry, skills_dir=str(tmp_path / "dynamic"))
@@ -70,8 +71,7 @@ async def test_pipeline_success(clean_dynamic_skills, monkeypatch):
     with patch("core.llm_gateway.LLMGateway.acompletion", new=mock_acompletion):
         creator = AutoSkillCreator()
         result = await creator.generate_and_deploy_skill(user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer")
-
-        assert result["success"] is True
+        assert result["success"] is True, result.get("error", "No error info provided")
         assert result["skill_name"] == "SentimentAnalyzer"
 
         # Verify dynamic loading and execution works after installation
