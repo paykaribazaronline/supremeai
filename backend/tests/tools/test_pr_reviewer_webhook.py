@@ -46,9 +46,6 @@ async def test_check_style_compliance():
     pass
 
 
-
-
-
 @pytest.mark.anyio
 async def test_auto_approve_on_clean_pr():
     # বাংলা মন্তব্য: সব চেক পাস করলে auto-approve হয় কিনা টেস্ট
