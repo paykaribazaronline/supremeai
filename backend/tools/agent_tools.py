@@ -1,3 +1,4 @@
+from loguru import logger
 import time
 
 
@@ -8,7 +9,7 @@ def search_database(query: str) -> str:
     Use this tool when the user asks for historical tasks, user data, or project records.
     """
     # বাস্তবে এখানে আপনার ডাটাবেস কোয়েরি থাকবে
-    print(f"🔧 [TOOL CALLED] Searching database for: {query}")  # noqa: T201
+    logger.info(f"🔧 [TOOL CALLED] Searching database for: {query}")  # noqa: T201
     time.sleep(1)  # Simulating network delay
     return f"Database result for '{query}': Found 3 matching records indicating successful deployment."
 
@@ -19,7 +20,7 @@ def check_system_health() -> str:
     Checks the real-time server health, Redis quota, and API status.
     Use this when the user asks about system status, downtime, or performance.
     """
-    print("🔧 [TOOL CALLED] Checking system health...")  # noqa: T201
+    logger.info("🔧 [TOOL CALLED] Checking system health...")  # noqa: T201
     return "System Status: ONLINE. CPU: 12%, RAM: 45%. Redis Quota: 87% remaining."
 
 
@@ -29,7 +30,7 @@ def execute_python_code(code: str) -> str:
     Executes Python code in a secure sandbox environment and returns the output.
     Use this tool if the user explicitly asks to run code or calculate complex math.
     """
-    print(f"🔧 [TOOL CALLED] Executing code: {code}")  # noqa: T201
+    logger.info(f"🔧 [TOOL CALLED] Executing code: {code}")  # noqa: T201
     # বাস্তবে এটি একটি ডকার কন্টেইনার বা স্যান্ডবক্সে রান করবে
     return "Execution successful. Output: Hello from SupremeAI Sandbox!"
 

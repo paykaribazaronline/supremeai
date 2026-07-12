@@ -1,6 +1,6 @@
 import pytest
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch, Mock
 from core.queue.task_router import TaskRouter
 from core.agent_factory import DynamicAgentFactory
 from models.dynamic_agent import DynamicAgent
@@ -17,9 +17,10 @@ async def test_agent_factory_creates_and_saves_agent():
 
     factory = DynamicAgentFactory(mock_db)
 
+    # Mock LLMGateway.acompletion to return our expected JSON string
     mock_res = {"text": '{"agent_name": "AmazonTracker", "description": "Track prices", "execution_steps": [{"action": "click"}]}'}
 
-    with patch("core.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock, return_value=mock_res):
+    with patch("core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock, return_value=mock_res):
         config = await factory.create_specialized_agent("Track prices on Amazon")
         assert config["agent_name"] == "AmazonTracker"
         assert config["execution_steps"] == [{"action": "click"}]

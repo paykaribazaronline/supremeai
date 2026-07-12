@@ -9,6 +9,9 @@
 import asyncio
 import contextlib
 import json
+
+# ── Security Constants ─────────────────────────────────────────────────────────
+import platform
 import re
 import shutil
 import subprocess
@@ -23,10 +26,6 @@ from core.config import settings
 from core.messaging.event_bus import ErrorEvent
 from core.messaging.event_bus import error_event_bus
 
-
-# ── Security Constants ─────────────────────────────────────────────────────────
-
-import platform
 
 # বাংলা মন্তব্য: Sandbox root whitelist — অনুমোদিত directories শুধু এখানে থাকতে পারে।
 # কেউ SANDBOX_ROOT=/etc/cron.d দিলে startup-এই crash হবে।

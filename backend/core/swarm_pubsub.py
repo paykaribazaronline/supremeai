@@ -100,7 +100,7 @@ class SwarmPubSub:
                     )
                 )
             raise
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"SwarmPubSub subscription error: {e}")
             error_event_bus.emit(
                 ErrorEvent(
@@ -120,7 +120,7 @@ class SwarmPubSub:
             await redis_client.publish("swarm_stream", message)
         except asyncio.CancelledError:
             raise
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"SwarmPubSub broadcast failed: {e}")
             error_event_bus.emit(
                 ErrorEvent(

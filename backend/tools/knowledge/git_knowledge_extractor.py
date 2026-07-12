@@ -11,6 +11,7 @@ Analyzes git history to extract error-fix patterns and architecture learnings.
 Fulfills SK-0065 in autonomous_seed_knowledge.json.
 """
 
+from loguru import logger
 import contextlib
 import json
 import re
@@ -53,13 +54,13 @@ def run_git(args):
     try:
         return subprocess.check_output(["git"] + args, stderr=subprocess.STDOUT).decode("utf-8")
     except Exception as e:  # noqa: BLE001
-        print(f"Error running git: {e}")  # noqa: T201
+        logger.info(f"Error running git: {e}")  # noqa: T201
         return ""
 
 
 def extract_knowledge():
     init_db()
-    print("🔍 Analyzing git log for knowledge extraction...")  # noqa: T201
+    logger.info("🔍 Analyzing git log for knowledge extraction...")  # noqa: T201
     # Get last 50 commits with diffs
     logs = run_git(["log", "-n", "50", "--pretty=format:COMMIT:%H%nSUBJECT:%s%nBODY:%b", "-p"])
 
@@ -95,7 +96,7 @@ def extract_knowledge():
                 body += line + "\n"
 
         if any(kw in subject.lower() for kw in fix_keywords):
-            print(f"  ✨ Found fix pattern in commit {commit_id[:8]}: {subject}")  # noqa: T201
+            logger.info(f"  ✨ Found fix pattern in commit {commit_id[:8]}: {subject}")  # noqa: T201
             files_changed = re.findall(r"diff --git a/(.*?) b/", diff)
 
             entry = {
@@ -123,7 +124,7 @@ def extract_knowledge():
                 knowledge_entries,
             )
             conn.commit()
-        print(  # noqa: T201
+        logger.info(  # noqa: T201
             f"✅ Extracted and stored {len(knowledge_entries)} entries into {DB_PATH}"
         )
 

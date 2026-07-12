@@ -1,6 +1,8 @@
 import json
 import os
 
+from loguru import logger
+
 
 # বাংলা মন্তব্য: টেস্ট ও রিলায়েবিলিটি গেটের জন্য environment overrides fallback নির্ধারণ করা হলো
 BASE_DIR = os.getenv("SUPREMEAI_BASE_DIR") or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -32,4 +34,4 @@ def save_to_memory(prompt: str, solution_code: str):
 
     with open(MEMORY_FILE_PATH, "w") as f:
         json.dump(memory, f, indent=4)
-    print("🧠 [Auto-Didact] New skill learned and saved to memory vault!")  # noqa: T201
+    logger.info("🧠 [Auto-Didact] New skill learned and saved to memory vault!")  # noqa: T201

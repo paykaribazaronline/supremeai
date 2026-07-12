@@ -8,6 +8,7 @@ from fastapi import Query
 from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 from fastapi import status
+from loguru import logger
 
 from core.config import settings
 from core.security import verify_token
@@ -25,12 +26,12 @@ class VoiceConnectionManager:
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
         self.active_connections.append(websocket)
-        print("🟢 [WS] Voice Client Connected to SupremeAI Nexus.")  # noqa: T201
+        logger.info("🟢 [WS] Voice Client Connected to SupremeAI Nexus.")  # noqa: T201
 
     def disconnect(self, websocket: WebSocket):
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
-        print("🔴 [WS] Voice Client Disconnected.")  # noqa: T201
+        logger.info("🔴 [WS] Voice Client Disconnected.")  # noqa: T201
 
     async def _authenticate(self, websocket: WebSocket) -> dict | None:
         token = websocket.query_params.get("token")
@@ -43,7 +44,7 @@ class VoiceConnectionManager:
 
             if isinstance(e, jwt.ExpiredSignatureError):
                 client_host = websocket.client.host if websocket.client else "unknown"
-                print(f"⚠️ [WS Auth] Expired token attempt from {client_host}")  # noqa: T201
+                logger.info(f"⚠️ [WS Auth] Expired token attempt from {client_host}")  # noqa: T201
             return None
 
 
@@ -70,7 +71,7 @@ async def process_audio_with_groq(audio_bytes: bytes) -> str:
             result = response.json()
             return result.get("text", "")
         except Exception as e:  # noqa: BLE001
-            print(f"❌ [Groq STT Error]: {e}")  # noqa: T201
+            logger.info(f"❌ [Groq STT Error]: {e}")  # noqa: T201
             return f"Error processing audio: {str(e)}"
 
 
@@ -94,7 +95,7 @@ async def handle_intent(transcript: str, websocket: WebSocket, start_time: float
         try:
             db.client.table("voice_interactions").insert(log_entry.dict(exclude_none=True)).execute()
         except Exception as db_err:  # noqa: BLE001
-            print(f"⚠️ [DB Logging Error]: {db_err}")  # noqa: T201
+            logger.info(f"⚠️ [DB Logging Error]: {db_err}")  # noqa: T201
 
     # Stream text response back for Web Speech API TTS
     words = supremeai_response.split(" ")
@@ -144,9 +145,9 @@ async def websocket_voice_endpoint(
                             continue
 
                         # 1. Process STT using Groq
-                        print(f"🎙️ [WS] Processing audio buffer ({len(audio_buffer)} bytes)...")  # noqa: T201
+                        logger.info(f"🎙️ [WS] Processing audio buffer ({len(audio_buffer)} bytes)...")  # noqa: T201
                         transcript = await process_audio_with_groq(bytes(audio_buffer))
-                        print(f"🗣️ [User Voice]: {transcript}")  # noqa: T201
+                        logger.info(f"🗣️ [User Voice]: {transcript}")  # noqa: T201
 
                         # Clear buffer for next recording
                         audio_buffer.clear()
@@ -160,19 +161,19 @@ async def websocket_voice_endpoint(
 
                     elif action == "text_chat":
                         transcript = payload.get("text", "")
-                        print(f"💬 [User Text]: {transcript}")  # noqa: T201
+                        logger.info(f"💬 [User Text]: {transcript}")  # noqa: T201
 
                         # Process text intent directly
                         await handle_intent(transcript, websocket, start_time, auth_payload.get("sub", "anonymous"))
                         start_time = time.time()  # Reset timer
 
                 except json.JSONDecodeError:
-                    print("⚠️ [WS] Received invalid text message.")  # noqa: T201
+                    logger.info("⚠️ [WS] Received invalid text message.")  # noqa: T201
 
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:  # noqa: BLE001
-        print(f"❌ [WS Voice Engine Error]: {e}")  # noqa: T201
+        logger.info(f"❌ [WS Voice Engine Error]: {e}")  # noqa: T201
         manager.disconnect(websocket)
         import contextlib
 

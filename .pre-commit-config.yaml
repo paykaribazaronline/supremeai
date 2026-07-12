@@ -1,0 +1,24 @@
+# SupremeAI - Git Pre-commit Hooks Configuration
+# =============================================
+# এই ফাইলটি git commit করার আগে স্বয়ংক্রিয়ভাবে বিভিন্ন কোয়ালিটি চেক চালায়।
+
+repos:
+  # Python কোডের বেসিক ফরম্যাটিং এবং কোয়ালিটি চেক
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  # AI Scribe Historian (আমাদের কাস্টম হুক)
+  - repo: local
+    hooks:
+      - id: ai-scribe-historian
+        name: "🤖 AI Scribe - Auto-Doc Generator"
+        description: "AI Scribe ব্যবহার করে পাইথন ফাইলগুলোর জন্য স্বয়ংক্রিয়ভাবে ডকস্ট্রিং তৈরি ও আপডেট করে।"
+        # poetry env ব্যবহার করার জন্য system language এবং backend ডিরেক্টরি দিয়ে poetry run ব্যবহার করছি
+        entry: poetry -C backend run python ../ai_scribe_historian.py --files
+        language: system
+        types: [python]
+        stages: [commit]

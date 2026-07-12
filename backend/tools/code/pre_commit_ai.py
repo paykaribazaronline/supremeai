@@ -274,17 +274,17 @@ if __name__ == "__main__":
     result = asyncio.run(hook.run_hook(auto_fix=not args.no_fix))
     status = result.get("status", "error")
     if status == "blocked":
-        print("❌ Commit blocked:", result.get("reason"))  # noqa: T201
+        logger.info("❌ Commit blocked:", result.get("reason"))  # noqa: T201
         for issue in result.get("issues", []):
-            print(  # noqa: T201
+            logger.info(  # noqa: T201
                 f"  - {issue.get('path', '?')}:{issue.get('line', '?')} -> {issue.get('body', '')}"
             )
         raise SystemExit(1)
     elif status == "fixed":
-        print("⚠️  Auto-fixed issues. Review and re-commit.")  # noqa: T201
+        logger.info("⚠️  Auto-fixed issues. Review and re-commit.")  # noqa: T201
         raise SystemExit(1)
     elif status == "error":
-        print("❌ Error:", result.get("message"))  # noqa: T201
+        logger.info("❌ Error:", result.get("message"))  # noqa: T201
         raise SystemExit(1)
     else:
-        print("✅ Pre-commit checks passed.")  # noqa: T201
+        logger.info("✅ Pre-commit checks passed.")  # noqa: T201

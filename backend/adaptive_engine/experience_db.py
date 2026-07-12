@@ -72,10 +72,11 @@ class ExperienceDatabase:
                 from qdrant_client.models import Distance
                 from qdrant_client.models import VectorParams
 
-                self.qdrant_client.recreate_collection(
-                    collection_name=self.qdrant_collection,
-                    vectors_config=VectorParams(size=384, distance=Distance.COSINE),
-                )
+                if not self.qdrant_client.collection_exists(collection_name=self.qdrant_collection):
+                    self.qdrant_client.create_collection(
+                        collection_name=self.qdrant_collection,
+                        vectors_config=VectorParams(size=384, distance=Distance.COSINE),
+                    )
             except Exception as exc:  # noqa: BLE001
                 import loguru
 

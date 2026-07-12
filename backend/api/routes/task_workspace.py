@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from fastapi import BackgroundTasks
 from fastapi import Depends
 from fastapi import HTTPException
+from loguru import logger
 from pydantic import BaseModel
 
 from api.dependencies import get_current_user_token
@@ -61,7 +62,7 @@ async def execute_task(payload: TaskPayload, background_tasks: BackgroundTasks, 
         return {"result": result_text, "status": "success"}
 
     except Exception as e:  # noqa: BLE001
-        print(f"❌ Neural Pipeline Error: {str(e)}")  # noqa: T201
+        logger.info(f"❌ Neural Pipeline Error: {str(e)}")  # noqa: T201
         raise HTTPException(status_code=500, detail="Neural connection pipeline error.") from e
 
 

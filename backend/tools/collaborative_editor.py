@@ -145,7 +145,7 @@ class CollaborativeEditor:
             else:
                 # ফলব্যাক (যদি Freebuff কাজ না করে)
                 ai_generated_code = (
-                    f"\n\n# --- AI Response ---\n# Executed Prompt: {prompt}\ndef auto_generated_feature():\n    print('Hello from SupremeAI!')\n"
+                    f"\n\n# --- AI Response ---\n# Executed Prompt: {prompt}\ndef auto_generated_feature():\n    logger.info('Hello from SupremeAI!')\n"
                 )
 
             # বর্তমান স্টেট ফেচ করে শেষে কোড যুক্ত করা
@@ -204,7 +204,7 @@ class CollaborativeEditor:
             async for event in swarm_streamer.subscribe():
                 if f"session_{session_id}" in event:
                     logger.info(f"Received collaboration event: {event}")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Collaboration session error: {e}")
             from core.messaging.event_bus import error_event_bus, ErrorEvent
 

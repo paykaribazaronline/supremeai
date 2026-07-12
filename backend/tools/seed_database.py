@@ -1,3 +1,4 @@
+from loguru import logger
 import hashlib
 import importlib.util
 import os
@@ -34,15 +35,15 @@ def _upsert_fts(conn: sqlite3.Connection, doc_id: str, title: str, content: str,
 
 
 def seed_all():
-    print("Initializing LocalSearchRAG...")  # noqa: T201
+    logger.info("Initializing LocalSearchRAG...")  # noqa: T201
     rag = LocalSearchRAG()
 
     seed_data_dir = os.path.join(base_dir, "tools", "seed_data")
     if not os.path.exists(seed_data_dir):
-        print(f"Error: seed_data directory not found at {seed_data_dir}")  # noqa: T201
+        logger.info(f"Error: seed_data directory not found at {seed_data_dir}")  # noqa: T201
         return
 
-    print("Scanning seed modules...")  # noqa: T201
+    logger.info("Scanning seed modules...")  # noqa: T201
     ids = []
     documents = []
     metadatas = []
@@ -59,7 +60,7 @@ def seed_all():
                 try:
                     spec.loader.exec_module(module)
                 except Exception as e:  # noqa: BLE001
-                    print(f"Failed to load {module_name}: {e}")  # noqa: T201
+                    logger.info(f"Failed to load {module_name}: {e}")  # noqa: T201
                     continue
                 finally:
                     sys.path.pop(0)
@@ -68,7 +69,7 @@ def seed_all():
                     if attr_name.isupper():
                         attr_val = getattr(module, attr_name)
                         if isinstance(attr_val, dict):
-                            print(f"Processing dict '{attr_name}' in {module_name}...")  # noqa: T201
+                            logger.info(f"Processing dict '{attr_name}' in {module_name}...")  # noqa: T201
                             for key, item in attr_val.items():
                                 if not isinstance(item, dict):
                                     continue
@@ -114,18 +115,18 @@ def seed_all():
                                 )
 
     if ids:
-        print(f"Upserting {len(ids)} expert knowledge patterns to ChromaDB...")  # noqa: T201
+        logger.info(f"Upserting {len(ids)} expert knowledge patterns to ChromaDB...")  # noqa: T201
         try:
             rag.collection.upsert(ids=ids, documents=documents, metadatas=metadatas)
-            print("Successfully seeded all SupremeAI 1.0 expert knowledge!")  # noqa: T201
+            logger.info("Successfully seeded all SupremeAI 1.0 expert knowledge!")  # noqa: T201
         except Exception as e:  # noqa: BLE001
-            print(f"ChromaDB Upsert failed: {e}. Writing to fallback index.")  # noqa: T201
+            logger.info(f"ChromaDB Upsert failed: {e}. Writing to fallback index.")  # noqa: T201
             for idx, doc_id in enumerate(ids):
                 rag._index[doc_id] = [metadatas[idx]["title"], documents[idx]]
             rag._store_search("expert_seed", {})
-            print("Successfully seeded to fallback index file.")  # noqa: T201
+            logger.info("Successfully seeded to fallback index file.")  # noqa: T201
 
-        print(f"Writing {len(ids)} entries to SQLite FTS5...")  # noqa: T201
+        logger.info(f"Writing {len(ids)} entries to SQLite FTS5...")  # noqa: T201
         try:
             conn = sqlite3.connect(DB_PATH)
             _init_fts_db(conn)
@@ -139,11 +140,11 @@ def seed_all():
                 )
             conn.commit()
             conn.close()
-            print("Successfully seeded SQLite FTS5 knowledge base.")  # noqa: T201
+            logger.info("Successfully seeded SQLite FTS5 knowledge base.")  # noqa: T201
         except Exception as e:  # noqa: BLE001
-            print(f"SQLite FTS seeding failed: {e}")  # noqa: T201
+            logger.info(f"SQLite FTS seeding failed: {e}")  # noqa: T201
     else:
-        print("No seed data found to import.")  # noqa: T201
+        logger.info("No seed data found to import.")  # noqa: T201
 
 
 if __name__ == "__main__":

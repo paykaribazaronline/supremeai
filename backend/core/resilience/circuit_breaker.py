@@ -42,7 +42,7 @@ class CircuitBreaker:
         self,
         name: str = "default",
         failure_threshold: int = 5,
-        recovery_timeout: float = 20.0,
+        recovery_timeout: float = 30.0,
         half_open_after: float = 10.0,
         redis_queue: Any = None,
     ) -> None:
@@ -61,7 +61,7 @@ class CircuitBreaker:
         self._half_open_in_flight = 0
 
     @property
-    def _cb(self) -> "CircuitBreaker":
+    def _cb(self) -> CircuitBreaker:
         """বাংলা মন্তব্য: Backward-compat alias — tests cb._cb.failures এভাবে access করে।
         এটি self-reference — same object এর একটি view।
         """
@@ -161,7 +161,7 @@ class CircuitBreaker:
 
     async def call(self, func: Callable[..., T], *args: object, **kwargs: object) -> T:
         if not self.allow_request():
-            raise CircuitBreakerOpenError(f"Circuit breaker {self.name} is open")
+            raise CircuitBreakerOpenError(f"Service temporarily unavailable — circuit breaker {self.name!r} is OPEN")
         try:
             result = await func(*args, **kwargs)
             self.mark_success()

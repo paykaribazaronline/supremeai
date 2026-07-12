@@ -16,7 +16,6 @@ Setup:
 """
 
 from __future__ import annotations
-import os
 from core.config import settings
 
 import asyncio
@@ -48,7 +47,7 @@ class TelegramBotHandler:
     }
 
     def __init__(self, task_processor_interface=None) -> None:
-        self.bot_token: str = os.getenv("TELEGRAM_BOT_TOKEN") or getattr(settings, "telegram_bot_token", "")
+        self.bot_token: str = getattr(settings, "telegram_bot_token", None) or getattr(settings, "telegram_bot_token", "")
         self.api_base: str = f"https://api.telegram.org/bot{self.bot_token}"
         self.processor = task_processor_interface
 
@@ -239,7 +238,7 @@ class TelegramBotHandler:
                 else:
                     logger.error(f"Failed to register webhook: {resp.text}")
                     error_event_bus.emit(ErrorEvent(module="telegram_bot", error_type="WEBHOOK_FAILED", message=resp.text[:200], severity="ERROR"))
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Webhook setup exception: {e}")
             from core.messaging.event_bus import error_event_bus, ErrorEvent
 
