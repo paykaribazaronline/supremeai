@@ -2,6 +2,9 @@ import hashlib
 import hmac
 import os
 import secrets
+import socket
+import ipaddress
+from urllib.parse import urlparse
 from datetime import UTC
 from datetime import datetime
 from datetime import timedelta
@@ -85,3 +88,18 @@ def mask_api_key(key: str) -> str:
         return key[:6] + "****"
     middle = parts[2]
     return f"{parts[0]}-{parts[1]}-{middle[:4]}****{middle[-4:]}"
+
+def is_safe_url(url: str) -> bool:
+    try:
+        parsed = urlparse(url)
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+        if hostname == "169.254.169.254" or hostname.endswith(".local"):
+            return False
+        ip = socket.gethostbyname(hostname)
+        ip_obj = ipaddress.ip_address(ip)
+        return not (ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local)
+    except (ValueError, socket.gaierror, OSError) as e:
+        logger.warning(f"URL safety check failed for '{url}': {e}")
+        return False

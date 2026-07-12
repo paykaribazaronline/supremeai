@@ -1092,54 +1092,6 @@ class TestSwarmPubSubMissingBranches:
         assert payload["data"]["theme"] == "dark"
 
 
-# ========================== theme_pubsub.py ==========================
-
-
-class TestThemePubSubMissingBranches:
-    def test_subscribe_creates_queue(self):
-        from core.theme_pubsub import ThemePubSub
-
-        pubsub = ThemePubSub()
-        q = pubsub.subscribe("u1")
-        assert "u1" in pubsub._subscribers
-        assert q in pubsub._subscribers["u1"]
-
-    def test_unsubscribe_removes_queue(self):
-        from core.theme_pubsub import ThemePubSub
-
-        pubsub = ThemePubSub()
-        q = pubsub.subscribe("u1")
-        pubsub.unsubscribe("u1", q)
-        assert "u1" not in pubsub._subscribers
-
-    def test_unsubscribe_keeps_other_queues(self):
-        from core.theme_pubsub import ThemePubSub
-
-        pubsub = ThemePubSub()
-        q1 = pubsub.subscribe("u1")
-        q2 = pubsub.subscribe("u1")
-        pubsub.unsubscribe("u1", q1)
-        assert "u1" in pubsub._subscribers
-        assert q2 in pubsub._subscribers["u1"]
-
-    def test_publish_no_subscribers(self, caplog):
-        from core.theme_pubsub import ThemePubSub
-
-        pubsub = ThemePubSub()
-        pubsub.publish("missing", "dark")
-        assert "Publishing theme update" not in caplog.text
-
-    def test_publish_delivers_to_subscribers(self):
-        from core.theme_pubsub import ThemePubSub
-
-        pubsub = ThemePubSub()
-        q = pubsub.subscribe("u1")
-        pubsub.publish("u1", "dark")
-        msg = q.get_nowait()
-        assert msg["event"] == "theme_changed"
-        assert msg["theme"] == "dark"
-
-
 # ========================== human_behavior.py ==========================
 
 
@@ -1163,22 +1115,22 @@ class TestHumanBehaviorMissingBranches:
 
 class TestSecurityUtilsMissingBranches:
     def test_is_safe_url_rejects_private_ip(self):
-        from core.security_utils import is_safe_url
+        from core.security import is_safe_url
 
         assert is_safe_url("http://192.168.1.1/test") is False
 
     def test_is_safe_url_rejects_localhost(self):
-        from core.security_utils import is_safe_url
+        from core.security import is_safe_url
 
         assert is_safe_url("http://localhost/test") is False
 
     def test_is_safe_url_rejects_metadata_endpoint(self):
-        from core.security_utils import is_safe_url
+        from core.security import is_safe_url
 
         assert is_safe_url("http://169.254.169.254/latest/meta-data/") is False
 
     def test_is_safe_url_accepts_public_url(self):
-        from core.security_utils import is_safe_url
+        from core.security import is_safe_url
 
         assert is_safe_url("https://example.com/test") is True
 

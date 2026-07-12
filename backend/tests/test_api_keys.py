@@ -53,7 +53,7 @@ for _mod in [m for m in list(sys.modules) if m == "core.app" or m.startswith("co
     del sys.modules[_mod]
 
 from api.routes.api_keys import router
-from core.api_key_rate_limiter import APIKeyRateLimiter
+from core.rate_limiter import AsyncRateLimiter
 from core.app import app
 from core.security import API_KEY_PREFIX
 from core.security import generate_api_key
@@ -112,24 +112,24 @@ class TestSecurityUtilities:
 
 class TestRateLimiter:
     def test_allows_under_limit(self):
-        rl = APIKeyRateLimiter(burst=3)
+        rl = AsyncRateLimiter(burst=3)
         for _ in range(3):
             assert rl.is_allowed("pref") is True
 
     def test_blocks_over_limit(self):
-        rl = APIKeyRateLimiter(burst=3)
+        rl = AsyncRateLimiter(burst=3)
         for _ in range(3):
             rl.is_allowed("pref")
         assert rl.is_allowed("pref") is False
 
     def test_remaining_decreases(self):
-        rl = APIKeyRateLimiter(burst=5)
+        rl = AsyncRateLimiter(burst=5)
         rl.is_allowed("pref")
         rl.is_allowed("pref")
         assert rl.remaining("pref") == 3
 
     def test_different_keys_independent(self):
-        rl = APIKeyRateLimiter(burst=2)
+        rl = AsyncRateLimiter(burst=2)
         assert rl.is_allowed("pref-a") is True
         assert rl.is_allowed("pref-b") is True
 

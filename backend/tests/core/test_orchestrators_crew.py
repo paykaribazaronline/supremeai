@@ -1,6 +1,6 @@
 import pytest
 
-from agents.crew_departments import ArchitectureAgent, CodeGeneratorAgent, QAAgent
+from core.orchestrators.crew_departments import ArchitectureAgent, CodeGeneratorAgent, QAAgent
 from models.shared_workspace import SharedWorkspace
 
 
@@ -28,7 +28,7 @@ def test_code_generator_agent_generate_code(workspace):
 
 @pytest.mark.asyncio
 async def test_qa_agent_verify_blocks_dangerous_code(workspace, monkeypatch):
-    from agents import crew_departments as mod
+    from core.orchestrators import crew_departments as mod
 
     class FakeGateway:
         async def acompletion(self, *args, **kwargs):
@@ -45,7 +45,7 @@ async def test_qa_agent_verify_blocks_dangerous_code(workspace, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_qa_agent_verify_passes_clean_code(workspace, monkeypatch):
-    from agents import crew_departments as mod
+    from core.orchestrators import crew_departments as mod
 
     class FakeGateway:
         async def acompletion(self, *args, **kwargs):
@@ -69,7 +69,7 @@ def test_shared_workspace_log():
 
 @pytest.mark.asyncio
 async def test_swarm_agent_base_call_gateway(monkeypatch):
-    from agents import crew_departments as mod
+    from core.orchestrators import crew_departments as mod
 
     class FakeGateway:
         async def acompletion(self, *args, **kwargs):

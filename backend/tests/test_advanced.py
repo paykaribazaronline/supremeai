@@ -110,8 +110,8 @@ def test_telegram_bot_handler():
 
 
 def test_task_queue():
-    with patch("core.task_queue.CELERY_AVAILABLE", False):
-        from core.task_queue import process_requirement_async
+    with patch("core.task_queue_enhanced.CELERY_AVAILABLE", False):
+        from core.task_queue_enhanced import process_requirement_async
 
         res = process_requirement_async("p1", "desc")
         assert "status" in res

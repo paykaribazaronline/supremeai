@@ -6,7 +6,7 @@ from fastapi import Request
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from core.api_key_rate_limiter import APIKeyRateLimiter
+from core.rate_limiter import AsyncRateLimiter
 from core.pgbouncer_pool import get_db_pool
 from core.security import API_KEY_PREFIX
 from core.security import hash_api_key
@@ -20,7 +20,7 @@ from utils.environment import is_test_environment
 class APIKeyAuthMiddleware(BaseHTTPMiddleware):
     def __init__(self, app) -> None:
         super().__init__(app)
-        self.limiter = APIKeyRateLimiter()
+        self.limiter = AsyncRateLimiter()
         self.prefix = API_KEY_PREFIX
 
     async def dispatch(self, request: Request, call_next):

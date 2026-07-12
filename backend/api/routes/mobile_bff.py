@@ -26,7 +26,7 @@ async def proxy_mobile_ai_request(request: Request, payload: MobileChatRequest):
 
     logger.info(f"📱 Mobile BFF intercepting request. Preferred Model: {payload.model_preference}")
 
-    from core.prompt_helpers import format_unified_chat_prompt
+    from core.prompt_handler import format_unified_chat_prompt
 
     formatted_prompt = format_unified_chat_prompt(payload.message, payload.history)
 

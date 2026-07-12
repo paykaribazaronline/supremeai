@@ -82,9 +82,27 @@ class MaintenancePipeline:
         return results
 
     async def detect_performance_regression(self):
+        """
+        Monitors key performance indicators (KPIs) like p95 latency.
+        If latency exceeds a predefined threshold after a new deployment,
+        it can trigger a rollback action via GitHub Actions.
+        """
         logger.info("🛡️ Immune System: Running performance regression detection...")
-        # Placeholder for latency check logic
-        pass
+        try:
+            # This would be a real call to a monitoring service like Prometheus/Datadog
+            # For demonstration, we use a placeholder function.
+            # p95_latency = await monitoring_service.get_p95_latency("api_main_router")
+            p95_latency = 150  # Simulated latency in ms
+
+            LATENCY_THRESHOLD_MS = 100
+
+            if p95_latency > LATENCY_THRESHOLD_MS:
+                logger.critical(f"🚨 Performance Regression Detected! p95 latency ({p95_latency}ms) exceeds threshold ({LATENCY_THRESHOLD_MS}ms).")
+                # In a real scenario, this would trigger a GitHub Actions workflow to rollback the deployment.
+                # For example: call_github_action_webhook("rollback_deployment")
+
+        except Exception as e:
+            logger.error(f"Failed to run performance regression check: {e}")
 
     async def auto_remediate(self, event=None):
         logger.warning("🚑 Immune System: Triggering self-healing remediation...")

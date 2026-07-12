@@ -2,7 +2,7 @@ from typing import Any
 import httpx
 from bs4 import BeautifulSoup
 from loguru import logger
-from core.security_utils import is_safe_url
+from core.security import is_safe_url
 
 
 class WebScraper:

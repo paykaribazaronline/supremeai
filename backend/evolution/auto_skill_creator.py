@@ -52,6 +52,16 @@ class AutoSkillCreator:
         # Initialize FitnessEngine for telemetry
         self.fitness_engine = FitnessEngine(db=self.db)
 
+    def analyze_demand_patterns(self, task_history: list[dict[str, Any]], rules_engine: Any = None) -> list[str]:
+        """
+        Merged from legacy: Analyze task history and rules to find repeating patterns or failures.
+        """
+        pattern_source = []
+        if rules_engine and hasattr(rules_engine, "rules"):
+            pattern_source.extend(rules_engine.rules.get("patterns", {}).get("repeated_tasks", []))
+        failed = list({str(t.get("task")) for t in task_history if t.get("success") is False and t.get("task")})
+        return list(set(pattern_source + failed))
+
     async def generate_and_deploy_skill(self, user_demand: str, skill_name: str) -> dict:
         import json
         import shutil
@@ -256,6 +266,18 @@ asyncio.run(run())
             }
             self.skills_ref.document(skill_name).set(skill_meta)
             logger.info(f"🏆 Deployed dynamic skill '{skill_name}' into Firestore. Ready for live orchestration!")
+
+            # Record successful experience for future pattern matching (Merged from legacy)
+            try:
+                from adaptive_engine.experience_db import ExperienceDatabase, Experience
+                exp_db = ExperienceDatabase()
+                exp_db.record_experience(Experience(
+                    request=user_demand,
+                    generated_code=code_block,
+                    result="success"
+                ))
+            except Exception as exp_e:
+                logger.warning(f"Failed to record verified skill experience: {exp_e}")
 
             latency = time.time() - start_time
             self.fitness_engine.track_execution(skill_name, success=True, latency=latency)

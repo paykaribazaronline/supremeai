@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 
 from loguru import logger
-
+from core.circuit_breaker import CircuitBreaker
 
 try:
     from qdrant_client import QdrantClient
@@ -14,34 +14,6 @@ try:
 except ImportError:
     HAS_QDRANT = False
 
-
-class CircuitBreaker:
-    def __init__(self, failure_threshold: int = 3, recovery_timeout: float = 60.0):
-        self.failure_threshold = failure_threshold
-        self.recovery_timeout = recovery_timeout
-        self.failure_count = 0
-        self.last_failure_time: float | None = None
-        self.state = "closed"
-
-    def allow_request(self) -> bool:
-        if self.state == "open":
-            if self.last_failure_time and (time.monotonic() - self.last_failure_time) >= self.recovery_timeout:
-                self.state = "half-open"
-                return True
-            return False
-        return True
-
-    def record_success(self):
-        self.failure_count = 0
-        self.state = "closed"
-
-    def record_failure(self):
-        self.failure_count += 1
-        self.last_failure_time = time.monotonic()
-        if self.failure_count >= self.failure_threshold:
-            self.state = "open"
-
-
 class ErrorRemediation:
     def __init__(self) -> None:
         self.qdrant: QdrantClient | None = None
@@ -49,7 +21,7 @@ class ErrorRemediation:
             url = os.getenv("QDRANT_URL", "localhost")
             self.qdrant = QdrantClient(url=url, prefer_grpc=False)
 
-        self.circuit_breaker = CircuitBreaker(failure_threshold=3, recovery_timeout=60.0)
+        self.circuit_breaker = CircuitBreaker(name="qdrant", failure_threshold=3, recovery_timeout=60.0)
         self.fallback_path = Path(__file__).parent.parent / "data" / "error_remediation_fallback.json"
         self._ensure_fallback_file()
 
@@ -85,11 +57,11 @@ class ErrorRemediation:
                 return None
             try:
                 result = await operation()
-                self.circuit_breaker.record_success()
+                self.circuit_breaker.mark_success()
                 return result
             except Exception as exc:  # noqa: BLE001
                 last_exception = exc
-                self.circuit_breaker.record_failure()
+                self.circuit_breaker.mark_failure()
                 logger.debug(f"Qdrant lookup attempt {attempt} failed: {exc}")
                 if attempt < max_attempts:
                     await asyncio.sleep(min(base_delay * (2 ** (attempt - 1)), 5.0))

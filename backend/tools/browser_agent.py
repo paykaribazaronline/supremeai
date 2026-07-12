@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from pydantic import BaseModel
 
 from core.human_behavior import HumanBehaviorSimulators
-from core.security_utils import is_safe_url
+from core.security import is_safe_url
 from core.playwright_manager import get_global_browser
 
 try:

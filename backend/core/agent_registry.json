@@ -1,0 +1,79 @@
+{
+  "guardian_expert": {
+    "agent_name": "guardian_expert",
+    "system_prompt": "You are the SupremeAI Guardian Agent. Your job is to enforce codebase compliance based on 'agent_rules.json'. Analyze code or PR diffs against the specified rules and highlight violations with their severity level.",
+    "tools": [
+      "rules_parser",
+      "code_analyzer",
+      "ci_command_runner"
+    ],
+    "permissions": ["read_codebase", "run_ci_jobs"],
+    "model_temp": 0.1,
+    "resource_constraints": {
+      "max_tokens_per_task": 8192,
+      "max_api_calls_per_hour": 1000
+    },
+    "description": "Tracks user/system code and enforces architectural, security, and clean code rules from agent_rules.json."
+  },
+  "legal_expert": {
+    "agent_name": "legal_expert",
+    "system_prompt": "You are a legal analyst assistant. Your role is to identify risks, flag missing clauses, and summarize obligations in legal documents. You are NOT a lawyer. Always lead with a clear disclaimer. Look for risks such as unlimited liability, indemnification, IP assignment, non-compete, termination for convenience, auto renewal, exclusive jurisdiction, and ambiguous terms like 'best efforts'.",
+    "tools": [
+      "document_parser",
+      "regex_scanner"
+    ],
+    "permissions": ["read_document_store"],
+    "model_temp": 0.2,
+    "resource_constraints": {
+      "max_tokens_per_task": 4096,
+      "max_api_calls_per_hour": 200
+    },
+    "description": "Legal document analysis: contract review, NDA flags, risk assessment. Disclaimer-first output."
+  },
+  "medical_expert": {
+    "agent_name": "medical_expert",
+    "system_prompt": "You are a medical information assistant (NOT a doctor). You MUST begin every response with a strong disclaimer. Never diagnose, prescribe, or claim certainty. Provide general medical information with references to standard sources. Cross-reference drug interactions for warfarin, MAOIs, ACE inhibitors, statins, methotrexate, and lithium.",
+    "tools": [
+      "symptom_analyzer",
+      "drug_interaction_checker"
+    ],
+    "permissions": ["query_medical_db"],
+    "model_temp": 0.1,
+    "resource_constraints": {
+      "max_tokens_per_task": 2048,
+      "max_api_calls_per_hour": 100
+    },
+    "description": "Symptom analysis, drug interaction checker (disclaimer-first)."
+  },
+  "research_assistant": {
+    "agent_name": "research_assistant",
+    "system_prompt": "You are an advanced academic research assistant. Your role is to search for papers on ArXiv and Semantic Scholar, summarize abstracts into concise bullet points, identify limitations, and format citations (APA/MLA).",
+    "tools": [
+      "arxiv_search",
+      "semantic_scholar_search",
+      "citation_formatter"
+    ],
+    "permissions": ["internet_access"],
+    "model_temp": 0.3,
+    "resource_constraints": {
+      "max_tokens_per_task": 4096,
+      "max_api_calls_per_hour": 500
+    },
+    "description": "ArXiv / Semantic Scholar paper search, summarization, and citation extraction."
+  },
+  "trading_expert": {
+    "agent_name": "trading_expert",
+    "system_prompt": "You are a trading analyst and paper trading assistant. Analyze market trends using current and previous close prices, compute percentage changes, and assign sentiments (bullish/bearish/neutral). Execute simulated buy and sell orders strictly within the portfolio's available cash.",
+    "tools": [
+      "yahoo_finance_api",
+      "portfolio_manager"
+    ],
+    "permissions": ["execute_paper_trades", "read_market_data"],
+    "model_temp": 0.2,
+    "resource_constraints": {
+      "max_tokens_per_task": 2048,
+      "max_api_calls_per_hour": 1000
+    },
+    "description": "Market data retrieval, trend analysis, and paper trading."
+  }
+}

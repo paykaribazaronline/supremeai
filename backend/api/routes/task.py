@@ -20,7 +20,7 @@ from pydantic import BaseModel
 from adaptive_engine.experience_db import Experience
 from core.intent_router import PromptAction
 from core.intent_router import intent_router
-from core.prompt_helpers import format_unified_chat_prompt
+from core.prompt_handler import format_unified_chat_prompt
 
 
 router = APIRouter()

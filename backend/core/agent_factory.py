@@ -12,8 +12,24 @@ class DynamicAgentFactory:
     এজেন্ট ফ্যাক্টরি যা রিকোয়েস্ট অনুযায়ী ডাইনামিকালি কাস্টম এজেন্ট কনফিগারেশন তৈরি ও ডাটাবেজে রেজিস্ট্রি করে (অ্যাসিনক্রোনাস)।
     """
 
-    def __init__(self, db_session: AsyncSession):
+    def __init__(self, db_session: AsyncSession = None):
         self.db = db_session
+
+    def get_registered_agent(self, agent_name: str) -> dict | None:
+        import os
+        from pathlib import Path
+        
+        registry_path = Path(__file__).resolve().parent / "agent_registry.json"
+        if not registry_path.exists():
+            return None
+            
+        try:
+            with open(registry_path, "r", encoding="utf-8") as f:
+                registry = json.load(f)
+                return registry.get(agent_name)
+        except Exception as e:
+            logger.error(f"Failed to read agent_registry.json: {e}")
+            return None
 
     async def create_specialized_agent(self, task_description: str) -> dict:
         """

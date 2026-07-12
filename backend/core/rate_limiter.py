@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import time
 from typing import TYPE_CHECKING
 
 from loguru import logger
@@ -10,15 +11,38 @@ if TYPE_CHECKING:
     import redis.asyncio
 
 
+class InMemoryFallbackLimiter:
+    """Sliding-window rate limiter scoped per API key prefix as a fallback when Redis is down."""
+
+    def __init__(self, burst: int = 20, window: float = 60.0) -> None:
+        self.burst = burst
+        self.window = window
+        self._hits: dict[str, list[float]] = {}
+
+    def _cleanup(self, key: str, now: float) -> None:
+        self._hits[key] = [t for t in self._hits.get(key, []) if now - t < self.window]
+
+    def is_allowed(self, key: str, limit: int = 6) -> bool:
+        now = time.time()
+        self._cleanup(key, now)
+        hits = self._hits.setdefault(key, [])
+        if len(hits) >= limit:
+            return False
+        hits.append(now)
+        return True
+
+
 class AsyncRateLimiter:
     """
     Async Redis rate limiter using redis.asyncio.
     Pipeline reduces network round-trips.
+    Includes an in-memory fallback (Pre-Deletion Safety Check).
     """
 
     def __init__(self):
         self._redis: redis.asyncio.Redis | None = None
         self._rate_limit_enabled = os.getenv("RATE_LIMIT_ENABLED", "true").lower() in {"true", "1", "yes"}
+        self._fallback_limiter = InMemoryFallbackLimiter()
 
     async def _get_redis(self):
         if self._redis is None:
@@ -31,8 +55,8 @@ class AsyncRateLimiter:
     async def acquire(self, key: str, limit: int, window: int) -> bool:
         if not self._rate_limit_enabled:
             return True
-        client = await self._get_redis()
         try:
+            client = await self._get_redis()
             pipe = client.pipeline()
             pipe.incr(key)
             pipe.expire(key, window)
@@ -40,8 +64,8 @@ class AsyncRateLimiter:
             current = results[0]
             return current <= limit
         except Exception as e:  # noqa: BLE001
-            logger.warning(f"Rate limiter unavailable (fail-open): {e}")
-            return True
+            logger.warning(f"Redis rate limiter unavailable: {e}. Falling back to in-memory rate limiter.")
+            return self._fallback_limiter.is_allowed(key, limit)
 
     async def close(self):
         if self._redis:

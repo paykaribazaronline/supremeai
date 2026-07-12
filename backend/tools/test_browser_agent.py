@@ -9,7 +9,7 @@ import pytest
 from core.playwright_manager import get_global_browser
 from tools.browser_agent import BrowserAgent
 from core.playwright_manager import get_global_browser
-from core.security_utils import is_safe_url
+from core.security import is_safe_url
 
 
 @pytest.fixture(autouse=True)
