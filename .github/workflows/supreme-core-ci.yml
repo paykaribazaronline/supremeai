@@ -4,11 +4,6 @@ name: 🧠 SupremeAI Core CI
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main, develop]
-    paths-ignore: ['**.md', 'docs/**', 'LICENSE', '.gitignore', 'logs/**']
-  pull_request:
-    branches: [main, develop]
     inputs:
       run_pre_merge_gate:
         description: 'Run Pre-Merge Gate'
@@ -34,6 +29,11 @@ on:
         description: 'Force run selected job even if upstream jobs are skipped? (Not for deploy)'
         type: boolean
         default: false
+  push:
+    branches: [main, develop]
+    paths-ignore: ['**.md', 'docs/**', 'LICENSE', '.gitignore', 'logs/**']
+  pull_request:
+    branches: [main, develop]
 
   schedule:
     - cron: '0 0 * * *'
