@@ -6,7 +6,7 @@ import pytest
 from fastapi import HTTPException
 from httpx import AsyncClient
 
-from tools.multilingual_tts import (
+from tools.media.multilingual_tts import (
     MultilingualTTS,
     TTSRequest,
     router,

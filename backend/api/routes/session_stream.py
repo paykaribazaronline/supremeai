@@ -6,7 +6,7 @@ from fastapi import Path
 from fastapi import Request
 from sse_starlette.sse import EventSourceResponse
 
-from core.log_batcher import batcher
+from core.observability.log_batcher import batcher
 
 
 router = APIRouter()

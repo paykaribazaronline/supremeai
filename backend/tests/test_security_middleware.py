@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from starlette.responses import PlainTextResponse
 
-from core.auth_middleware import AuthMiddleware
+from core.security.auth_middleware import AuthMiddleware
 # Rate limiter tests have been migrated to APIKeyRateLimiter and TenantRateLimiter
 
 

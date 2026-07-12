@@ -25,9 +25,9 @@ class TenantAwareFirestore:
 
         self.tenant_id = tenant_id
         # Use existing configured firestore client if available, fallback to default
-        import os
+        from utils.environment import is_test_environment
 
-        if os.getenv("ENV") == "test":
+        if is_test_environment():
 
             class MockFirestore:
                 def collection(self, *args, **kwargs):

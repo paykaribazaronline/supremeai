@@ -59,7 +59,7 @@ class FactualVerifier:
 
     def _init_local_rag(self):
         try:
-            from tools.local_search_rag import LocalSearchRAG
+            from tools.knowledge.local_search_rag import LocalSearchRAG
 
             self.local_rag = LocalSearchRAG()
         except (ImportError, RuntimeError) as e:

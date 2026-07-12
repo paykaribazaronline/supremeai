@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from tools.docker_sandbox import DockerSandbox
+from tools.devops.docker_sandbox import DockerSandbox
 
 
 @pytest.fixture

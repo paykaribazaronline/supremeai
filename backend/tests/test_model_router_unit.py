@@ -2,7 +2,7 @@ import contextlib
 
 import pytest
 
-from core.circuit_breaker import CircuitBreaker
+from core.resilience.circuit_breaker import CircuitBreaker
 
 
 def test_breaker_blocks_after_failures_and_recovers():

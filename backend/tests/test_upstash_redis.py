@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from core.upstash_redis_queue import UpstashRedisQueue
+from core.messaging.upstash_redis_queue import UpstashRedisQueue
 
 
 def test_upstash_redis_not_configured():

@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 import pytest
 
-from core.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
+from core.orchestration.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
 
 
 class TestCloudSandboxOrchestrator:

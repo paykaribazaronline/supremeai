@@ -296,7 +296,7 @@ class TestCostGuardMissingBranches:
 
 class TestEventBusMissingBranches:
     def test_register_listener(self):
-        from core.event_bus import ErrorEventBus
+        from core.messaging.event_bus import ErrorEventBus
 
         bus = ErrorEventBus()
         listener = MagicMock()
@@ -304,7 +304,7 @@ class TestEventBusMissingBranches:
         assert listener in bus._listeners
 
     def test_emit_no_running_loop_runs_directly(self):
-        from core.event_bus import ErrorEvent, ErrorEventBus
+        from core.messaging.event_bus import ErrorEvent, ErrorEventBus
 
         bus = ErrorEventBus()
         listener = AsyncMock()
@@ -325,7 +325,7 @@ class TestEventBusMissingBranches:
 
     @pytest.mark.asyncio
     async def test_emit_async_fires_listeners(self):
-        from core.event_bus import ErrorEvent, ErrorEventBus
+        from core.messaging.event_bus import ErrorEvent, ErrorEventBus
 
         bus = ErrorEventBus()
         listener = AsyncMock()
@@ -345,7 +345,7 @@ class TestEventBusMissingBranches:
 
     @pytest.mark.asyncio
     async def test_emit_async_sync_listener(self):
-        from core.event_bus import ErrorEvent, ErrorEventBus
+        from core.messaging.event_bus import ErrorEvent, ErrorEventBus
 
         bus = ErrorEventBus()
         listener = MagicMock()
@@ -365,7 +365,7 @@ class TestEventBusMissingBranches:
 
     @pytest.mark.asyncio
     async def test_handler_failure_routes_to_dlq(self):
-        from core.event_bus import DeadLetterQueueItem, ErrorEvent, ErrorEventBus
+        from core.messaging.event_bus import DeadLetterQueueItem, ErrorEvent, ErrorEventBus
 
         bus = ErrorEventBus()
         dlq_handler = AsyncMock()
@@ -391,7 +391,7 @@ class TestEventBusMissingBranches:
 
     @pytest.mark.asyncio
     async def test_dlq_full_drops_and_logs_critical(self):
-        from core.event_bus import DeadLetterQueueItem, ErrorEvent, ErrorEventBus
+        from core.messaging.event_bus import DeadLetterQueueItem, ErrorEvent, ErrorEventBus
 
         bus = ErrorEventBus()
         # Pre-fill DLQ to maxsize
@@ -422,7 +422,7 @@ class TestEventBusMissingBranches:
 
     @pytest.mark.asyncio
     async def test_process_dead_letter_queue_returns_items(self):
-        from core.event_bus import DeadLetterQueueItem, ErrorEventBus
+        from core.messaging.event_bus import DeadLetterQueueItem, ErrorEventBus
 
         bus = ErrorEventBus()
         item = DeadLetterQueueItem(event_type="e", handler_name="h", error="err", timestamp=datetime.now(UTC))
@@ -432,7 +432,7 @@ class TestEventBusMissingBranches:
         assert processed[0].retry_count == 1
 
     def test_stats_property(self):
-        from core.event_bus import ErrorEventBus
+        from core.messaging.event_bus import ErrorEventBus
 
         bus = ErrorEventBus()
         stats = bus.stats
@@ -445,7 +445,7 @@ class TestEventBusMissingBranches:
 
 class TestPubSubMissingBranches:
     def test_subscribe_creates_channel(self):
-        from core.pubsub import PubSub
+        from core.messaging.pubsub import PubSub
 
         pubsub = PubSub()
         q = pubsub.subscribe("ch1")
@@ -453,7 +453,7 @@ class TestPubSubMissingBranches:
         assert q in pubsub.subscribers["ch1"]
 
     def test_unsubscribe_removes_channel_when_empty(self):
-        from core.pubsub import PubSub
+        from core.messaging.pubsub import PubSub
 
         pubsub = PubSub()
         q = pubsub.subscribe("ch1")
@@ -461,7 +461,7 @@ class TestPubSubMissingBranches:
         assert "ch1" not in pubsub.subscribers
 
     def test_unsubscribe_nonexistent_channel(self):
-        from core.pubsub import PubSub
+        from core.messaging.pubsub import PubSub
 
         pubsub = PubSub()
         q = MagicMock()
@@ -469,14 +469,14 @@ class TestPubSubMissingBranches:
 
     @pytest.mark.asyncio
     async def test_publish_no_subscribers(self):
-        from core.pubsub import PubSub
+        from core.messaging.pubsub import PubSub
 
         pubsub = PubSub()
         await pubsub.publish("missing", {"msg": 1})
 
     @pytest.mark.asyncio
     async def test_publish_delivers_to_subscribers(self):
-        from core.pubsub import PubSub
+        from core.messaging.pubsub import PubSub
 
         pubsub = PubSub()
         q = pubsub.subscribe("ch1")
@@ -527,7 +527,7 @@ class TestSecurityVaultModuleInit:
 class TestSwarmOrchestratorMissingBranches:
     @pytest.mark.anyio
     async def test_execute_task_runs_all_agents(self):
-        from core.swarm_orchestrator import MorphicOrchestrator
+        from core.orchestration.swarm_orchestrator import MorphicOrchestrator
 
         orchestrator = MorphicOrchestrator()
 
@@ -551,7 +551,7 @@ class TestSwarmOrchestratorMissingBranches:
 
     @pytest.mark.anyio
     async def test_circuit_breaker_opens_after_threshold(self):
-        from core.swarm_orchestrator import CircuitBreaker, CircuitBreakerOpenError, CircuitBreakerState
+        from core.orchestration.swarm_orchestrator import CircuitBreaker, CircuitBreakerOpenError, CircuitBreakerState
 
         cb = CircuitBreaker(failure_threshold=2, recovery_timeout=0.1)
 
@@ -570,7 +570,7 @@ class TestSwarmOrchestratorMissingBranches:
 
     @pytest.mark.anyio
     async def test_circuit_breaker_half_open_after_timeout(self):
-        from core.swarm_orchestrator import CircuitBreaker, CircuitBreakerState
+        from core.orchestration.swarm_orchestrator import CircuitBreaker, CircuitBreakerState
 
         cb = CircuitBreaker(failure_threshold=1, recovery_timeout=0.05)
 
@@ -598,7 +598,7 @@ class TestLLMGatewayMissingBranches:
     @pytest.mark.skip(reason="Technical Debt: CostGuard mock needs update. Tracked in TECH_DEBT.md")
     @pytest.mark.anyio
     async def test_acompletion_cost_guard_check(self, monkeypatch):
-        from core.llm_gateway import LLMGateway
+        from core.llm.llm_gateway import LLMGateway
 
         gateway = LLMGateway()
         gateway.cache = MagicMock()
@@ -628,7 +628,7 @@ class TestLLMGatewayMissingBranches:
 
     @pytest.mark.anyio
     async def test_acompletion_provider_filtering_chain(self):
-        from core.llm_gateway import LLMGateway
+        from core.llm.llm_gateway import LLMGateway
 
         gateway = LLMGateway()
         gateway.cache = MagicMock()
@@ -654,7 +654,7 @@ class TestLLMGatewayMissingBranches:
 
     @pytest.mark.anyio
     async def test_acompletion_messages_list_input(self):
-        from core.llm_gateway import LLMGateway
+        from core.llm.llm_gateway import LLMGateway
 
         gateway = LLMGateway()
         gateway.cache = MagicMock()
@@ -677,7 +677,7 @@ class TestLLMGatewayMissingBranches:
 
     @pytest.mark.anyio
     async def test_acompletion_self_healer_on_failure(self):
-        from core.llm_gateway import LLMGateway
+        from core.llm.llm_gateway import LLMGateway
 
         gateway = LLMGateway()
         gateway.cache = MagicMock()
@@ -703,7 +703,7 @@ class TestLLMGatewayMissingBranches:
             mock_healer.propose_fix.assert_called_once()
 
     def test_get_key_for_model_unknown(self):
-        from core.llm_gateway import LLMGateway
+        from core.llm.llm_gateway import LLMGateway
 
         gateway = LLMGateway()
         assert gateway._get_api_key_for_model("unknown/model") is None
@@ -715,7 +715,7 @@ class TestLLMGatewayMissingBranches:
 class TestLogBatcherMissingBranches:
     @pytest.mark.anyio
     async def test_run_requeues_on_critical_error(self):
-        from core.log_batcher import LogBatcherService
+        from core.observability.log_batcher import LogBatcherService
 
         service = LogBatcherService(flush_interval=0.1, batch_size=2)
         service.running = True
@@ -737,7 +737,7 @@ class TestLogBatcherMissingBranches:
 
     @pytest.mark.anyio
     async def test_run_drains_queue_up_to_batch_size(self):
-        from core.log_batcher import LogBatcherService
+        from core.observability.log_batcher import LogBatcherService
 
         service = LogBatcherService(flush_interval=0.1, batch_size=3)
         service.running = True
@@ -879,7 +879,7 @@ class TestContainerAuditorMissingBranches:
 class TestNATSMessagingMissingBranches:
     def test_init_defaults(self):
         try:
-            from core.nats_messaging import NATSClient
+            from core.messaging.nats_messaging import NATSClient
         except ImportError:
             pytest.skip("nats module not installed")
         client = NATSClient()
@@ -892,7 +892,7 @@ class TestNATSMessagingMissingBranches:
     @pytest.mark.asyncio
     async def test_connect_creates_kv_store(self, monkeypatch):
         try:
-            from core.nats_messaging import NATSClient
+            from core.messaging.nats_messaging import NATSClient
         except ImportError:
             pytest.skip("nats module not installed")
         client = NATSClient()
@@ -913,7 +913,7 @@ class TestNATSMessagingMissingBranches:
     @pytest.mark.asyncio
     async def test_publish_event_skips_when_not_connected(self, caplog):
         try:
-            from core.nats_messaging import NATSClient
+            from core.messaging.nats_messaging import NATSClient
         except ImportError:
             pytest.skip("nats module not installed")
         client = NATSClient()
@@ -923,7 +923,7 @@ class TestNATSMessagingMissingBranches:
     @pytest.mark.asyncio
     async def test_publish_event_publishes_payload(self):
         try:
-            from core.nats_messaging import NATSClient
+            from core.messaging.nats_messaging import NATSClient
         except ImportError:
             pytest.skip("nats module not installed")
         from pydantic import BaseModel
@@ -944,7 +944,7 @@ class TestNATSMessagingMissingBranches:
     @pytest.mark.asyncio
     async def test_subscribe_skips_when_not_connected(self, caplog):
         try:
-            from core.nats_messaging import NATSClient
+            from core.messaging.nats_messaging import NATSClient
         except ImportError:
             pytest.skip("nats module not installed")
         client = NATSClient()
@@ -955,7 +955,7 @@ class TestNATSMessagingMissingBranches:
     @pytest.mark.asyncio
     async def test_register_and_get_worker(self):
         try:
-            from core.nats_messaging import NATSClient
+            from core.messaging.nats_messaging import NATSClient
         except ImportError:
             pytest.skip("nats module not installed")
         client = NATSClient()
@@ -970,7 +970,7 @@ class TestNATSMessagingMissingBranches:
     @pytest.mark.asyncio
     async def test_get_worker_returns_none_on_missing(self):
         try:
-            from core.nats_messaging import NATSClient
+            from core.messaging.nats_messaging import NATSClient
             from nats.js.errors import KeyValueError
         except ImportError:
             pytest.skip("nats module not installed")
@@ -982,7 +982,7 @@ class TestNATSMessagingMissingBranches:
     @pytest.mark.asyncio
     async def test_get_all_workers_returns_empty_when_no_kv(self):
         try:
-            from core.nats_messaging import NATSClient
+            from core.messaging.nats_messaging import NATSClient
         except ImportError:
             pytest.skip("nats module not installed")
         client = NATSClient()
@@ -991,7 +991,7 @@ class TestNATSMessagingMissingBranches:
     @pytest.mark.asyncio
     async def test_get_all_workers_lists_keys(self):
         try:
-            from core.nats_messaging import NATSClient
+            from core.messaging.nats_messaging import NATSClient
         except ImportError:
             pytest.skip("nats module not installed")
         client = NATSClient()
@@ -1150,7 +1150,7 @@ class TestSecurityUtilsMissingBranches:
 class TestSwarmOrchestratorCircuitBreakerIntegration:
     @pytest.mark.anyio
     async def test_execute_task_handles_circuit_breaker_open(self):
-        from core.swarm_orchestrator import CircuitBreakerOpenError, MorphicOrchestrator
+        from core.orchestration.swarm_orchestrator import CircuitBreakerOpenError, MorphicOrchestrator
 
         orchestrator = MorphicOrchestrator()
         orchestrator.circuit_breaker.state = "OPEN"

@@ -1,4 +1,4 @@
-from tools.github_agent import GitHubAgent
+from tools.devops.github_agent import GitHubAgent
 
 
 def test_github_agent_repo_connect():

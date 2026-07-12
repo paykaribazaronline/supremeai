@@ -11,8 +11,8 @@ from utils.firestore_helpers import get_firestore_db
 
 
 try:
-    from tools.fuzz_sandbox import generate_fuzz_payloads
-    from tools.fuzz_sandbox import run_sandbox_ast_check
+    from tools.code.fuzz_sandbox import generate_fuzz_payloads
+    from tools.code.fuzz_sandbox import run_sandbox_ast_check
 except ImportError:  # pragma: no cover
     generate_fuzz_payloads = None
     run_sandbox_ast_check = None

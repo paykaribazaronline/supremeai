@@ -1,4 +1,4 @@
-from tools.email_agent import EmailAgent
+from tools.social.email_agent import EmailAgent
 
 
 def test_email_agent_connection():

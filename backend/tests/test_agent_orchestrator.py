@@ -5,11 +5,11 @@ from unittest.mock import patch
 
 import pytest
 
-from core.agent_orchestrator import AgentCircuitBreaker
-from core.agent_orchestrator import AsyncTaskManager
-from core.agent_orchestrator import SmartSemanticRouter
-from core.agent_orchestrator import budget_aware_route
-from core.agent_orchestrator import route_request
+from core.orchestration.agent_orchestrator import AgentCircuitBreaker
+from core.orchestration.agent_orchestrator import AsyncTaskManager
+from core.orchestration.agent_orchestrator import SmartSemanticRouter
+from core.orchestration.agent_orchestrator import budget_aware_route
+from core.orchestration.agent_orchestrator import route_request
 
 
 @pytest.fixture

@@ -1,7 +1,7 @@
 import pytest
 import litellm
 from unittest.mock import patch, MagicMock
-from core.llm_gateway import llm_gateway
+from core.llm.llm_gateway import llm_gateway
 from utils.firestore_helpers import get_firestore_db
 
 

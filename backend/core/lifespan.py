@@ -1,3 +1,6 @@
+# backend/core/lifespan.py
+# ⚠️ WARNING: DO NOT MOVE THIS FILE. It is heavily integrated into the FastAPI startup lifecycle.
+# Moving this file will break relative paths, imports, and core app lifespan management.
 import asyncio
 import os
 from contextlib import asynccontextmanager
@@ -8,13 +11,13 @@ from loguru import logger
 from core import services
 from core.config import settings
 from core.config_cache import config_cache
-from core.event_bus import ErrorEvent
-from core.event_bus import error_event_bus
+from core.messaging.event_bus import ErrorEvent
+from core.messaging.event_bus import error_event_bus
 from core.maintenance_pipeline import maintenance_pipeline
-from core.orchestrator import Orchestrator
+from core.orchestration.orchestrator import Orchestrator
 from core.pgbouncer_pool import get_db_pool
 from core.pgbouncer_pool import init_db_pool
-from core.redis_manager import redis_manager
+from core.cache.redis_manager import redis_manager
 
 
 async def _ensure_api_key_tables() -> None:
@@ -76,7 +79,7 @@ async def app_lifespan(app):
     logger.info("🌐 Core Infrastructure Bootstrapping Active...")
 
     try:
-        from core.telemetry import setup_tracing
+        from core.observability.telemetry import setup_tracing
 
         # বাংলা মন্তব্য: P2 Fix — startup latency এবং cold start freeze এড়াতে tracing initialization thread-এ offload করা হলো।
         await asyncio.to_thread(setup_tracing)
@@ -151,7 +154,9 @@ async def app_lifespan(app):
         # sys.exit(1) রিমুভ করা হলো যাতে ক্লাউড রান হেলথ চেক পাস করতে পারে
 
     try:
-        pass
+        if getattr(redis_manager, "client", None):
+            await redis_manager.client.ping()
+            logger.info("✅ Redis connection verified successfully.")
     except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to initialize Redis Manager: {e}")
         error_event_bus.emit(
@@ -207,7 +212,7 @@ async def app_lifespan(app):
     # Start the Sentinel Agent
     from core.sentinel_agent import sentinel
 
-    asyncio.create_task(sentinel.run_periodic_loop())
+    app.state.sentinel_task = asyncio.create_task(sentinel.run_periodic_loop())
 
     yield  # এখানে অ্যাপ্লিকেশন ট্রাফিক রিসিভ করবে
 
@@ -228,6 +233,16 @@ async def app_lifespan(app):
                 context={"phase": "shutdown"},
             )
         )
+
+    try:
+        sentinel_task = getattr(app.state, "sentinel_task", None)
+        if sentinel_task and not sentinel_task.done():
+            from core.sentinel_agent import sentinel
+            sentinel.running = False
+            sentinel_task.cancel()
+            logger.info("✅ Sentinel Agent shut down successfully.")
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"Error closing Sentinel Agent: {e}")
 
     try:
         pool = await get_db_pool()
@@ -278,7 +293,7 @@ async def app_lifespan(app):
         )
 
     try:
-        from tools.browser_agent import shutdown_global_browser
+        from tools.ai_agents.browser_agent import shutdown_global_browser
 
         await shutdown_global_browser()
     except Exception as e:  # noqa: BLE001

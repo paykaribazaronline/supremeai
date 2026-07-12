@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, patch, mock_open, MagicMock
 
 import pytest
 
-from backend.tools.multi_account_rotator import (
+from backend.tools.security_tools.multi_account_rotator import (
     Account,
     MultiAccountRotator,
     Provider,

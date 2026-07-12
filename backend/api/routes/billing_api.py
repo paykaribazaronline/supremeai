@@ -20,22 +20,21 @@ from sqlalchemy.orm.exc import StaleDataError
 from api.dependencies import get_current_user_token
 from core.config import settings
 from core.gcp_firestore import get_firestore_client
-from core.token_deductor import TokenDeductor
+from core.llm.token_deductor import TokenDeductor
 from database.session import get_db_session
 from models.wallet import TransactionLedgerEntry
 from models.wallet import UserWallet
 
 
-class CheckoutRequest(BaseModel):
-    price_id: str
-    success_url: str
-    cancel_url: str
+from core.billing_plans import CheckoutRequest
+from core.billing_plans import SUBSCRIPTION_PLANS
 
 
 router = APIRouter(prefix="/api/billing", tags=["Billing & Credit Wallet"])
 token_deductor = TokenDeductor()
 
-stripe.api_key = getattr(settings, "stripe_secret_key", None)
+_raw_stripe_key = settings.stripe_api_key.get_secret_value() if settings.stripe_api_key else None
+stripe.api_key = _raw_stripe_key
 STRIPE_WEBHOOK_SECRET = getattr(settings, "stripe_webhook_secret", None)
 
 
@@ -112,10 +111,11 @@ async def add_funds(
     await _ensure_wallet(session, user_id)
 
     checkout_id = str(uuid.uuid4())
+    checkout_base = os.getenv("CHECKOUT_BASE_URL", "http://localhost:3000").rstrip("/")
     return {
         "status": "pending",
         "checkout_id": checkout_id,
-        "checkout_url": f"https://checkout.supremeai.test/pay/{checkout_id}?amount={amount}",
+        "checkout_url": f"{checkout_base}/pay/{checkout_id}?amount={amount}",
         "message": "Checkout session generated. Complete transaction using checkout_url.",
     }
 
@@ -125,13 +125,7 @@ async def add_funds(
 # ==========================================
 @router.get("/plans")
 async def get_subscription_plans():
-    return {
-        "plans": [
-            {"id": "price_basic_monthly", "name": "Basic Plan", "price": 9.99, "currency": "usd", "interval": "month"},
-            {"id": "price_premium_monthly", "name": "Premium Plan", "price": 49.99, "currency": "usd", "interval": "month"},
-            {"id": "price_enterprise_monthly", "name": "Enterprise Plan", "price": 199.99, "currency": "usd", "interval": "month"},
-        ]
-    }
+    return {"plans": SUBSCRIPTION_PLANS}
 
 
 # ==========================================
@@ -246,6 +240,16 @@ async def stripe_webhook(request: Request, session: AsyncSession = Depends(get_d
                 except Exception as e:  # noqa: BLE001
                     logger.error(f"Failed to update user subscription status in Firestore: {e}")
 
+                try:
+                    from core.observability.posthog_client import posthog_client
+                    posthog_client.capture(
+                        distinct_id=user_id or "anonymous",
+                        event="subscription_completed",
+                        properties={"subscription_id": subscription_id, "price_id": price_id},
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    logger.debug(f"PostHog subscription capture failed: {exc}")
+
     except StaleDataError as e:
         logger.critical(f"Concurrency Failure on Webhook for user {user_id}. Requires manual intervention.")
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Transaction conflict. Please contact support.") from e
@@ -271,7 +275,8 @@ async def sslcommerz_webhook_listener(request: Request, session: AsyncSession = 
         if status_val == "VALID":
             user_id = payload.get("value_a", "default_user_session")
             amount_bdt = float(payload.get("amount", 0))
-            amount_usd = Decimal(str(round(amount_bdt * 0.0085, 6)))
+            exchange_rate = float(os.getenv("BDT_EXCHANGE_RATE", "0.0085"))
+            amount_usd = Decimal(str(round(amount_bdt * exchange_rate, 6)))
 
             async with session.begin():
                 result = await session.execute(select(UserWallet).where(UserWallet.user_id == user_id))

@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from admin.god import AdminGodLayer  # Your existing god.py
 from api.dependencies import get_current_user_token
-from core.self_healer import SelfHealerService
+from core.health.self_healer import SelfHealerService
 from utils.firestore_helpers import get_firestore_db
 
 

@@ -99,7 +99,7 @@ def test_docs_disabled_in_production():
         os.environ["REDIS_URL"] = "redis://mock:6379"
         
         # Mock secret fetching to prevent errors for missing production secrets
-        import core.secret_vault as sv
+        import core.security.secret_vault as sv
         sv.ProductionSecretVault.fetch_secret = lambda self, name: "mock"
         
         import core.app as app_mod

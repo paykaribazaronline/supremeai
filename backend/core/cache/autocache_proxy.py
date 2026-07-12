@@ -8,7 +8,7 @@ from typing import Any
 from loguru import logger
 
 from core.prompt_handler import estimate_tokens
-from core.semantic_cache import SemanticCache
+from core.cache.semantic_cache import SemanticCache
 
 
 class AutocacheProxy:
@@ -172,7 +172,7 @@ def get_autocache() -> AutocacheProxy:
     """গ্লোবাল Autocache ইন্সট্যান্স পান"""
     global _autocache_instance
     if _autocache_instance is None:
-        from core.semantic_cache import SemanticCache
+        from core.cache.semantic_cache import SemanticCache
 
         _autocache_instance = AutocacheProxy(SemanticCache())
     return _autocache_instance

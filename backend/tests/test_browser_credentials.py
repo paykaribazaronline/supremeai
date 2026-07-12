@@ -8,8 +8,8 @@ os.environ.setdefault("OPENROUTER_API_KEY", "")
 os.environ.setdefault("HF_API_KEY", "")
 os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
 from core.app import app as app_mod
-from core.secure_credential_store import SecureCredentialStore
-from core.secure_credential_store import generate_key
+from core.security.secure_credential_store import SecureCredentialStore
+from core.security.secure_credential_store import generate_key
 
 
 client = TestClient(app_mod)

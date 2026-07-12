@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from tools.pr_reviewer import PRReviewer
+from tools.code.pr_reviewer import PRReviewer
 
 
 @pytest.mark.anyio

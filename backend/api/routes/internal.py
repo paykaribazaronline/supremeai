@@ -8,7 +8,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from core.config import settings
-from core.evolution_engine import EvolutionEngine
+from core.evolution.evolution_engine import EvolutionEngine
 
 
 router = APIRouter()

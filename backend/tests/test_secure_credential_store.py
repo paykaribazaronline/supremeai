@@ -8,7 +8,7 @@ os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
 
 class TestSecureCredentialStoreDisable:
     def test_plaintext_when_no_key(self):
-        from core.secure_credential_store import SecureCredentialStore
+        from core.security.secure_credential_store import SecureCredentialStore
         import json
 
         store = SecureCredentialStore()
@@ -20,7 +20,7 @@ class TestSecureCredentialStoreDisable:
         assert json.loads(dec) == data
 
     def test_mask_redacts_sensitive_fields(self):
-        from core.secure_credential_store import SecureCredentialStore
+        from core.security.secure_credential_store import SecureCredentialStore
 
         store = SecureCredentialStore()
         assert store.mask("passwords") == "pass*****"
@@ -28,20 +28,20 @@ class TestSecureCredentialStoreDisable:
         assert store.mask("u") == "****"
 
     def test_mask_no_sensitive_fields(self):
-        from core.secure_credential_store import SecureCredentialStore
+        from core.security.secure_credential_store import SecureCredentialStore
 
         store = SecureCredentialStore()
         assert store.mask("safe") == "****"
 
 
 @pytest.mark.skipif(
-    __import__("core.secure_credential_store", fromlist=["CRYPTO_AVAILABLE"]).CRYPTO_AVAILABLE is False,
+    __import__("core.security.secure_credential_store", fromlist=["CRYPTO_AVAILABLE"]).CRYPTO_AVAILABLE is False,
     reason="cryptography not installed",
 )
 class TestSecureCredentialStoreEncrypted:
     def test_encrypt_decrypt_roundtrip(self, monkeypatch):
-        from core.secure_credential_store import SecureCredentialStore
-        from core.secure_credential_store import generate_key
+        from core.security.secure_credential_store import SecureCredentialStore
+        from core.security.secure_credential_store import generate_key
         import json
 
         key = generate_key()
@@ -55,8 +55,8 @@ class TestSecureCredentialStoreEncrypted:
         assert json.loads(dec) == data
 
     def test_decrypt_plaintext_passthrough(self, monkeypatch):
-        from core.secure_credential_store import SecureCredentialStore
-        from core.secure_credential_store import generate_key
+        from core.security.secure_credential_store import SecureCredentialStore
+        from core.security.secure_credential_store import generate_key
         import json
 
         key = generate_key()
@@ -66,8 +66,8 @@ class TestSecureCredentialStoreEncrypted:
         assert store.decrypt(plain) == plain
 
     def test_encrypt_empty_payload(self, monkeypatch):
-        from core.secure_credential_store import SecureCredentialStore
-        from core.secure_credential_store import generate_key
+        from core.security.secure_credential_store import SecureCredentialStore
+        from core.security.secure_credential_store import generate_key
 
         key = generate_key()
         monkeypatch.setenv("SUPREMEAI_CREDENTIAL_ENC_KEY", key)

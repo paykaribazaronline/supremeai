@@ -9,7 +9,7 @@ from brain.model_router import ModelRouter
 from brain.reasoning_orchestrator import ReasoningOrchestrator
 from core.config import settings
 from core.intent import IntentClassifier
-from tools.vpn_switcher import VPNRotator
+from tools.security_tools.vpn_switcher import VPNRotator
 
 
 class SupremeOrchestrator:

@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from evolution.self_evolution_agent import SelfEvolutionAgent
+from core.evolution.self_evolution_agent import SelfEvolutionAgent
 
 
 @pytest.fixture

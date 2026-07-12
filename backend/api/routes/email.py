@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from fastapi import HTTPException
 from pydantic import BaseModel
 
-from tools.email_agent import EmailAgent
+from tools.social.email_agent import EmailAgent
 
 
 router = APIRouter(prefix="/integrations/email", tags=["email"])

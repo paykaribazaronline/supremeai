@@ -6,7 +6,7 @@ from loguru import logger
 
 from memory.episodic_memory import EpisodicMemory
 from memory.long_term_memory import LongTermMemory
-from tools.cot_reasoner import ChainOfThoughtReasoner
+from tools.code.cot_reasoner import ChainOfThoughtReasoner
 
 
 class ReasoningOrchestrator:

@@ -4,8 +4,8 @@ import pytest
 
 pytest.importorskip("networkx")
 
-from core.orchestrator import Orchestrator
-from evolution.skill_graph import EvolutionSkillGraph
+from core.orchestration.orchestrator import Orchestrator
+from core.evolution.skill_graph import EvolutionSkillGraph
 
 
 def test_type_compatibility():

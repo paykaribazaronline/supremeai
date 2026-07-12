@@ -9,16 +9,16 @@ import pytest
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.evolution_engine import EvolutionEngine
-from core.task_router import TaskRouter
+from core.evolution.evolution_engine import EvolutionEngine
+from core.queue.task_router import TaskRouter
 from memory.chromadb_store import ChromaDBStore
 from memory.rag_pipeline import RAGPipeline
 from memory.sqlite_store import SQLiteMemoryStore
 from tools.api_gateway import APIGateway
-from tools.browser_agent import BrowserAgent
-from tools.computer_agent import ComputerAgent
-from tools.multi_account_rotator import MultiAccountRotator
-from tools.telegram_bot import TelegramBotHandler
+from tools.ai_agents.browser_agent import BrowserAgent
+from tools.ai_agents.computer_agent import ComputerAgent
+from tools.security_tools.multi_account_rotator import MultiAccountRotator
+from tools.social.telegram_bot import TelegramBotHandler
 
 
 def test_task_router():
@@ -112,7 +112,7 @@ def test_telegram_bot_handler():
 @pytest.mark.asyncio
 async def test_task_queue():
     with patch("core.task_queue_enhanced.CELERY_AVAILABLE", False):
-        from core.task_queue_enhanced import submit_task, get_task_result
+        from core.queue.task_queue_enhanced import submit_task, get_task_result
 
         async def mock_task():
             return "done"

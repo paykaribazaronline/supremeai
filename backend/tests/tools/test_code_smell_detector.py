@@ -15,7 +15,7 @@ os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
 
 # Bengali: CodeSmellDetector-এর مختلف মেথড সংক্রান্ত পরীক্ষা
 # এটি কেন্দ্রীয় স্ট্যাটিক অ্যানালাইসিস টুলের কভারেজ বৃদ্ধি করতে সাহায্য করে
-from backend.tools.code_smell_detector import CodeSmellDetector
+from backend.tools.code.code_smell_detector import CodeSmellDetector
 
 
 @pytest.fixture
@@ -206,7 +206,7 @@ class TestDetectDuplicateFunctions:
         code = "def foo():\n    x = 1\n    return x\n\ndef bar():\n    x = 1\n    return x\n"
         tree = ast.parse(code)
         with patch.object(detector, "_normalize", return_value="same_norm"):
-            with patch("backend.tools.code_smell_detector.ast.dump", side_effect=lambda node: "same"):
+            with patch("backend.tools.code.code_smell_detector.ast.dump", side_effect=lambda node: "same"):
                 result = detector._detect_duplicate_functions(tree, "test.py")
         assert len(result) == 1
         assert result[0]["type"] == "Duplicate Code"
@@ -382,7 +382,7 @@ class TestAnalyzeRadon:
         f.write_text("def foo():\n    return 1\n", encoding="utf-8")
 
         with patch.dict(sys.modules, {"radon": fake_radon, "radon.complexity": fake_complexity, "radon.metrics": fake_metrics}):
-            with patch("backend.tools.code_smell_detector.ast.parse") as mock_parse:
+            with patch("backend.tools.code.code_smell_detector.ast.parse") as mock_parse:
                 mock_parse.return_value = ast.parse("def foo():\n    return 1\n")
                 detector._analyze_radon(str(f), None, 10)
         assert mock_parse.call_count >= 1

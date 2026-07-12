@@ -2,7 +2,7 @@ import os
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
-from tools.voice import VoiceInterface
+from tools.media.voice import VoiceInterface
 
 
 def test_voice_interface_stt_missing_file():
@@ -39,7 +39,7 @@ def test_local_ocr_extractor():
     import os
     import tempfile
 
-    from tools.local_ocr_extractor import LocalOCRExtractor
+    from tools.localization.local_ocr_extractor import LocalOCRExtractor
 
     extractor = LocalOCRExtractor()
     assert extractor.languages == ["en", "bn"]

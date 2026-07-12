@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from core.nats_messaging import nats_client
+from core.messaging.nats_messaging import nats_client
 from engine.worker_registry import worker_registry
 from engine.worker_node import SwarmWorkerNode
 

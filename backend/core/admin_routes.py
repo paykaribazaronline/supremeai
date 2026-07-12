@@ -12,7 +12,7 @@ from loguru import logger
 
 from core import services
 from core.config import settings
-from core.events import get_firebase_auth
+from core.messaging.events import get_firebase_auth
 from core.gcp_firestore import get_firestore_client
 from models.admin import AdminFirebaseLoginRequest
 from models.admin import AdminFirebaseTotpSetupRequest
@@ -272,7 +272,7 @@ def cloud_distribution():
 
 @router.get("/admin/free-tier-status")
 def free_tier_status():
-    from core.free_tier_tracker import get_tracker
+    from core.llm.free_tier_tracker import get_tracker
 
     tracker = get_tracker()
     return tracker.get_status()
@@ -282,7 +282,7 @@ def free_tier_status():
 def free_tier_provider_status(provider: str):
     from fastapi import HTTPException
 
-    from core.free_tier_tracker import get_tracker
+    from core.llm.free_tier_tracker import get_tracker
 
     tracker = get_tracker()
     status = tracker.get_provider_status(provider)
@@ -293,7 +293,7 @@ def free_tier_provider_status(provider: str):
 
 @router.post("/admin/free-tier-pause/{provider}")
 def free_tier_pause_provider(provider: str, payload: dict = Body(default={"seconds": 60})):
-    from core.free_tier_tracker import get_tracker
+    from core.llm.free_tier_tracker import get_tracker
 
     seconds = float(payload.get("seconds", 60))
     tracker = get_tracker()
@@ -303,7 +303,7 @@ def free_tier_pause_provider(provider: str, payload: dict = Body(default={"secon
 
 @router.post("/admin/free-tier-override/{provider}")
 def free_tier_override_limits(provider: str, payload: dict = Body(...)):
-    from core.free_tier_tracker import get_tracker
+    from core.llm.free_tier_tracker import get_tracker
 
     tracker = get_tracker()
     tracker.override_limits(provider, payload)
@@ -312,7 +312,7 @@ def free_tier_override_limits(provider: str, payload: dict = Body(...)):
 
 @router.get("/admin/token-budget-stats")
 def token_budget_stats():
-    from core.token_budget import get_budget_manager
+    from core.llm.token_budget import get_budget_manager
 
     manager = get_budget_manager()
     return manager.get_stats()

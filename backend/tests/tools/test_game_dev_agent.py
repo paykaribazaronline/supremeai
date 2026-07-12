@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from tools.game_dev_agent import GameDevAgent
+from tools.ai_agents.game_dev_agent import GameDevAgent
 from core.llm.llm_gateway import LLMGateway
 
 

@@ -9,7 +9,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from database.supabase_client import db as supabase_db
-from tools.codebase_exporter import export_codebase_to_markdown
+from tools.knowledge.codebase_exporter import export_codebase_to_markdown
 
 
 router = APIRouter(prefix="/markdown", tags=["markdown"])

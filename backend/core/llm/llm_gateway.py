@@ -13,13 +13,13 @@ from typing import Any
 
 from loguru import logger
 
-from core.circuit_breaker import CircuitBreaker
+from core.resilience.circuit_breaker import CircuitBreaker
 from core.config import settings
 from core.cost_guard import CostGuard
-from core.event_bus import ErrorEvent
-from core.event_bus import error_event_bus
+from core.messaging.event_bus import ErrorEvent
+from core.messaging.event_bus import error_event_bus
 from core.prompt_handler import normalize_prompt
-from core.self_healer import SelfHealerService
+from core.health.self_healer import SelfHealerService
 from utils.firestore_helpers import get_firestore_db
 
 
@@ -68,7 +68,7 @@ class LLMGateway:
         self._circuit_breakers: dict[str, CircuitBreaker] = {}
 
         # বাংলা মন্তব্য: SemanticCache lazy import — cold start এড়াতে
-        from core.semantic_cache import SemanticCache
+        from core.cache.semantic_cache import SemanticCache
 
         self.cache = SemanticCache()
 

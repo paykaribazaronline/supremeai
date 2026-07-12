@@ -11,7 +11,7 @@ import pytest
 
 @pytest.fixture
 def audit_logger(tmp_path):
-    from core.audit_logger import AuditLogger
+    from core.observability.audit_logger import AuditLogger
 
     db_path = str(tmp_path / "audit_test.db")
     return AuditLogger(db_path), db_path

@@ -24,8 +24,8 @@ from api.dependencies import get_tenant_db
 from core.config import settings
 from core.tenant_db import TenantAwareFirestore
 from database.session import get_db_session
-from evolution.auto_skill_creator import AutoSkillCreator
-from evolution.fitness_engine import FitnessEngine
+from core.evolution.auto_skill_creator import AutoSkillCreator
+from core.evolution.fitness_engine import FitnessEngine
 from models.evolution import CodeProposal
 
 

@@ -11,7 +11,7 @@ from core.code_validator import CodeValidator
 from core.error_pattern_db import ErrorPatternDB
 from core.factual_verifier import FactualVerifier
 from core.generation_monitor import GenerationMonitor
-from core.input_sanitizer import InputSanitizer
+from core.security.input_sanitizer import InputSanitizer
 from core.output_validator import OutputValidator
 
 

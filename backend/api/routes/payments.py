@@ -32,40 +32,9 @@ router = APIRouter(prefix="/payments", tags=["payments"])
 from core.gcp_firestore import get_firestore_client
 
 
-class CheckoutRequest(BaseModel):
-    price_id: str
-    success_url: str
-    cancel_url: str
-    user_id: str
+from core.billing_plans import CheckoutRequest
 
 
-@router.get("/plans")
-async def get_subscription_plans():
-    return {
-        "plans": [
-            {
-                "id": "price_basic_monthly",
-                "name": "Basic Plan",
-                "price": 9.99,
-                "currency": "usd",
-                "interval": "month",
-            },
-            {
-                "id": "price_premium_monthly",
-                "name": "Premium Plan",
-                "price": 49.99,
-                "currency": "usd",
-                "interval": "month",
-            },
-            {
-                "id": "price_enterprise_monthly",
-                "name": "Enterprise Plan",
-                "price": 199.99,
-                "currency": "usd",
-                "interval": "month",
-            },
-        ]
-    }
 
 
 @router.post("/checkout")
@@ -112,7 +81,7 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
             metadata={"price_id": payload.price_id},
         )
         try:
-            from core.posthog_client import posthog_client
+            from core.observability.posthog_client import posthog_client
 
             posthog_client.capture(
                 distinct_id=payload.user_id,
@@ -129,55 +98,4 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@router.post("/webhook")
-async def stripe_webhook(request: Request):
-    payload = await request.body()
-    sig_header = request.headers.get("stripe-signature")
-    endpoint_secret = settings.stripe_webhook_secret.get_secret_value() if settings.stripe_webhook_secret else ""
-    stripe_key = settings.stripe_api_key.get_secret_value() if settings.stripe_api_key else ""
 
-    if not sig_header or not endpoint_secret or not stripe_key:
-        # Mock or fallback behavior for development/testing
-        logger.warning("Stripe webhook credentials missing. Logging webhook call.")
-        return {"status": "ignored", "reason": "configuration_missing"}
-
-    try:
-        stripe.api_key = stripe_key
-        event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-    except Exception as e:  # noqa: BLE001
-        logger.error(f"Webhook signature verification failed: {e}")
-        raise HTTPException(status_code=400, detail="Invalid signature") from e
-
-    if event["type"] == "checkout.session.completed":
-        session = event["data"]["object"]
-        user_id = session.get("client_reference_id")
-        subscription_id = session.get("subscription")
-        price_id = session.get("metadata", {}).get("price_id", "")
-        logger.info(f"Subscription completed for user {user_id}: {subscription_id}")
-
-        db = get_firestore_client()
-        if db and user_id:
-            try:
-                db.collection("admin_users").document(user_id).update(
-                    {
-                        "subscription_status": "active",
-                        "subscription_id": subscription_id,
-                        "plan_id": price_id,
-                    }
-                )
-            except Exception as e:  # noqa: BLE001
-                logger.error(f"Failed to update user subscription status in Firestore: {e}")
-        try:
-            from core.posthog_client import posthog_client
-
-            posthog_client.capture(
-                distinct_id=user_id or "anonymous",
-                event="subscription_completed",
-                properties={"subscription_id": subscription_id, "price_id": price_id},
-            )
-        except Exception as exc:  # noqa: BLE001
-            # বল মনতবয: সাবসকরপশন ইভননথ PostHog-এ পাঠাত বযরথ হল webhook পরসসং চলব;
-            # নরব সযলপর বদল ডবগ লগ কর হল
-            logger.debug(f"PostHog subscription capture failed: {exc}")
-
-    return {"status": "success"}

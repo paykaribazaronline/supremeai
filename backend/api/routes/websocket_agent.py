@@ -8,7 +8,7 @@ from fastapi import WebSocketDisconnect
 from fastapi import status
 from loguru import logger
 
-from core.llm_gateway import llm_gateway
+from core.llm.llm_gateway import llm_gateway
 from core.security import verify_token
 from database.supabase_client import SupabaseDB
 

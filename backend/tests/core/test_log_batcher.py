@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 import asyncio
 from collections import deque
-from core.log_batcher import LogBatcherService, batcher
+from core.observability.log_batcher import LogBatcherService, batcher
 
 
 @pytest.fixture

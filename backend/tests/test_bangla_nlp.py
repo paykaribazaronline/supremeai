@@ -1,4 +1,4 @@
-from tools.bangla_nlp import BengaliNLP
+from tools.localization.bangla_nlp import BengaliNLP
 
 
 def test_bengali_nlp_detection():

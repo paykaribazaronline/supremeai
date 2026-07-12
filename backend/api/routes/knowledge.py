@@ -13,12 +13,12 @@ router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 try:
-    from tools.local_search_rag import LocalSearchRAG as LocalSearchRAGClass
+    from tools.knowledge.local_search_rag import LocalSearchRAG as LocalSearchRAGClass
 except ImportError:
     LocalSearchRAGClass: Any = None
 
 try:
-    from tools.knowledge_base_indexer import KnowledgeBaseIndexer as KnowledgeBaseIndexerClass
+    from tools.knowledge.knowledge_base_indexer import KnowledgeBaseIndexer as KnowledgeBaseIndexerClass
 except ImportError:
     KnowledgeBaseIndexerClass: Any = None
 

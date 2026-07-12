@@ -3,7 +3,7 @@
 import pytest
 
 from core.admin_god import AdminGodLayer
-from core.rbac import UserContext
+from core.security.rbac import UserContext
 
 
 class TestAdminGodLayer:

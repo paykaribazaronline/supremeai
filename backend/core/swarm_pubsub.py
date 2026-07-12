@@ -4,8 +4,8 @@ from collections.abc import AsyncGenerator
 
 from loguru import logger
 
-from core.event_bus import ErrorEvent
-from core.event_bus import error_event_bus
+from core.messaging.event_bus import ErrorEvent
+from core.messaging.event_bus import error_event_bus
 
 
 # বাংলা মন্তব্য: module-level redis.from_url("redis://localhost") সম্পূর্ণ নিষিদ্ধ।

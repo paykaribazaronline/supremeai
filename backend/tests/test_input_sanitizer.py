@@ -1,6 +1,6 @@
 """Tests for core.input_sanitizer.InputSanitizer."""
 
-from core.input_sanitizer import InputSanitizer
+from core.security.input_sanitizer import InputSanitizer
 
 
 def test_detect_ambiguity_vague():

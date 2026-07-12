@@ -6,8 +6,8 @@ from unittest.mock import patch
 
 from loguru import logger
 
-from core.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
-from core.llm_gateway import llm_gateway
+from core.orchestration.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
+from core.llm.llm_gateway import llm_gateway
 from utils.firestore_helpers import get_firestore_db
 
 

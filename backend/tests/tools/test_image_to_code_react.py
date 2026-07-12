@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch, AsyncMock
 
 import pytest
 
-from tools.image_to_code import ImageToCode
+from tools.code.image_to_code import ImageToCode
 from core.llm.llm_gateway import LLMGateway
 
 
