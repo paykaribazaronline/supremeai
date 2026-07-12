@@ -1,3 +1,29 @@
+"""This module, `admin_god.py`, establishes the "Admin God Layer" within the SupremeAI project, serving as the ultimate authority for system-wide administrative control and enforcement. It provides mechanisms for secure admin authentication, immutable audit logging of privileged operations, and the enforcement of "constitutional laws" through a universal rules engine and role-based access control. Its primary role is to ensure that critical system decisions and AI behaviors adhere to non-negotiable administrative policies, preventing unauthorized overrides or jailbreaking attempts, thereby maintaining the integrity and security of the entire AI ecosystem.
+
+Key Components:
+- `GodModeAuditLog`: Manages an immutable, append-only log for all "god mode" related operations, ensuring a comprehensive audit trail.
+- `AdminGodLayer`: The central class providing administrative capabilities, including password verification, session management for privileged access, enforcement of access control, and injection of constitutional rules into AI prompts.
+- `GodModeContext`: A simple context object used to track the session ID during a "god mode" operation.
+- `GodModeAuditLog.record()`: Records a new entry in the `GodModeAuditLog` for an event.
+- `GodModeAuditLog.update()`: Updates an existing session's audit trail (e.g., marking termination).
+- `GodModeAuditLog.get_entries()`: Retrieves all entries from the `GodModeAuditLog`.
+- `AdminGodLayer.verify_admin()`: Verifies the provided raw password against the stored admin hash, logging the attempt.
+- `AdminGodLayer.god_mode_session()`: An asynchronous context manager for managing and auditing "god mode" activation and deactivation.
+- `AdminGodLayer.enforce()`: Enforces role-based access control for specific actions and user contexts, raising `PermissionError` if denied.
+- `AdminGodLayer.enforce_rules()`: Applies universal "constitutional laws" to a given decision context before execution or LLM calls.
+- `AdminGodLayer.inject_prompt_constraints()`: Injects constitutional rules into LLM system prompts to guide AI behavior and prevent jailbreaking.
+
+Dependencies:
+- `os`: For accessing environment variables (e.g., `SUPREMEAI_ADMIN_PASSWORD_HASH`).
+- `secrets`: For generating secure session IDs for audit logs.
+- `contextlib`: For `asynccontextmanager` to create context-managed god mode sessions.
+- `datetime`: For timestamping audit log entries.
+- `typing`: For type hints.
+- `bcrypt`: For secure password hashing and verification (optional fallback).
+- `core.security.rbac`: For role-based access control (`RoleBasedAccessControl`, `UserContext`).
+- `core.universal_rules`: For defining and applying universal system rules (`UniversalRulesEngine`).
+- `core.config`: For accessing application settings (e.g., `app_name`)."""
+
 import os
 import secrets as _secrets
 from contextlib import asynccontextmanager

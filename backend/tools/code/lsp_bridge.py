@@ -1,9 +1,10 @@
-# বাংলা মন্তব্য: VS Code এক্সটেনশনের জন্য Language Server Protocol (LSP) Bridge। 
-# এই মডিউলটি ইউজারের টাইপ করা কোডের আগের ও পরের কনটেক্সট পড়ে 
+# বাংলা মন্তব্য: VS Code এক্সটেনশনের জন্য Language Server Protocol (LSP) Bridge।
+# এই মডিউলটি ইউজারের টাইপ করা কোডের আগের ও পরের কনটেক্সট পড়ে
 # GitHub Copilot-এর মত ডাইনামিক ইনলাইন কোড কমপ্লিশন জেনারেট করে।
 
 from loguru import logger
 from core.llm.llm_gateway import GatewayManager
+
 
 class LanguageServerBridge:
     def __init__(self, gateway: GatewayManager = None):
@@ -21,7 +22,7 @@ class LanguageServerBridge:
         """
         try:
             logger.info(f"Generating LSP inline completion for {file_path}")
-            
+
             # Construct a clear context window for the LLM
             prompt = (
                 f"You are an expert AI pair programmer. Complete the code for the following file: {file_path}\n"
@@ -30,28 +31,24 @@ class LanguageServerBridge:
                 f"<cursor>\n"
                 f"<context_after>\n{suffix}\n</context_after>\n"
             )
-            
+
             # Using deepseek or gemini-flash for fast code generation
-            response = await self.gateway.acompletion(
-                prompt=prompt,
-                model="deepseek/deepseek-coder",
-                task_type="coding",
-                stream=False
-            )
-            
+            response = await self.gateway.acompletion(prompt=prompt, model="deepseek/deepseek-coder", task_type="coding", stream=False)
+
             completion_text = response.get("text", "").strip()
-            
+
             # Cleanup common markdown code blocks if the LLM hallucinated them
             if completion_text.startswith("```"):
                 completion_lines = completion_text.splitlines()
                 if len(completion_lines) > 2:
                     completion_text = "\n".join(completion_lines[1:-1])
-                    
+
             return completion_text
-            
-        except Exception as e:
+
+        except Exception as e:  # noqa: BLE001
             logger.error(f"LSP bridge completion failed: {e}")
             return ""
+
 
 # Singleton instance
 lsp_bridge = LanguageServerBridge()

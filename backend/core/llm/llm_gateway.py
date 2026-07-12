@@ -13,13 +13,13 @@ from typing import Any
 
 from loguru import logger
 
-from core.resilience.circuit_breaker import CircuitBreaker
 from core.config import settings
 from core.cost_guard import CostGuard
+from core.health.self_healer import SelfHealerService
 from core.messaging.event_bus import ErrorEvent
 from core.messaging.event_bus import error_event_bus
 from core.prompt_handler import normalize_prompt
-from core.health.self_healer import SelfHealerService
+from core.resilience.circuit_breaker import CircuitBreaker
 from utils.firestore_helpers import get_firestore_db
 
 
@@ -163,7 +163,7 @@ class LLMGateway:
         task_type: str,
     ) -> list[str]:
         """বাংলা মন্তব্য: Task type অনুযায়ী fallback chain তৈরি।"""
-        
+
         # OpenAI-style Task-to-Model mapping
         TASK_MODEL_MAP = {
             "coding": "deepseek/deepseek-coder",
@@ -172,7 +172,7 @@ class LLMGateway:
             "chat": "gemini/gemini-2.5-flash",
             "general": "gemini/gemini-2.5-flash",
         }
-        
+
         difficulty = "easy"
         if any(kw in task_type.lower() for kw in ("reasoning", "math", "code", "coding")):
             difficulty = "hard"
@@ -185,7 +185,7 @@ class LLMGateway:
         call_chain: list[str] = []
         if model:
             call_chain.append(model)
-            
+
         task_specific_model = TASK_MODEL_MAP.get(task_type.lower())
         if task_specific_model and task_specific_model not in call_chain:
             call_chain.append(task_specific_model)

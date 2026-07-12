@@ -1,3 +1,22 @@
+"""This module defines the `SentinelAgent`, an autonomous background agent crucial for the SupremeAI project's system observability and self-healing capabilities. It periodically monitors the health and performance of configured API endpoints, audits system dependencies, and provides event-driven hooks to record system incidents, thereby ensuring the overall reliability and stability of the AI ecosystem by proactively identifying and logging potential issues.
+
+Key Components:
+- `SentinelAgent`: The core class implementing an autonomous agent responsible for system health monitoring, dependency auditing, and incident management.
+- `monitor_endpoints()`: Asynchronously polls configured API endpoints, records their latency and status, and logs critical `SystemIncident` entries for failures or high latency.
+- `audit_dependencies()`: Performs periodic auditing of system dependencies, updating their last audit time (currently a placeholder for more complex version checking logic).
+- `trigger_event()`: Provides an event-driven interface to immediately record `SystemIncident` entries based on external triggers or middleware events.
+- `run_periodic_loop()`: The main asynchronous loop that orchestrates the periodic execution of endpoint monitoring and dependency auditing tasks, designed to run as part of the application's lifespan.
+- `sentinel`: A global singleton instance of the `SentinelAgent` for consistent access and management throughout the application.
+
+Dependencies:
+- `asyncio`: For asynchronous programming and managing the agent's periodic execution loop.
+- `datetime`: For handling timestamps, calculating latencies, and managing UTC times.
+- `httpx`: An asynchronous HTTP client used for polling external and internal API endpoints.
+- `loguru`: For structured and flexible logging of agent activities and errors.
+- `sqlalchemy`: For asynchronous ORM interactions with the database, specifically for `ApiEndpoint`, `SystemDependency`, and `SystemIncident` models.
+- `database.session`: Internal module providing the asynchronous database session factory (`AsyncSessionLocal`).
+- `models.sentinel`: Internal module defining the ORM models (`ApiEndpoint`, `SystemDependency`, `SystemIncident`) used by the agent for data persistence."""
+
 import asyncio
 from datetime import UTC
 from datetime import datetime

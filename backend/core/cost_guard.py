@@ -1,3 +1,17 @@
+"""This module, `cost_guard.py`, provides a robust mechanism for managing and enforcing budget constraints within the SupremeAI ecosystem. It features the `CostGuard` class, which offers methods for pre-flight budget checks against a database for individual tenants and a tier-based validation system designed to support multi-tier fallback strategies for AI task routing. A global singleton instance ensures easy access and backward compatibility for other modules like `task_router.py`.
+
+Key Components:
+- `CostGuard`: A class responsible for managing and enforcing budget limits for AI operations, including tenant-specific spending and tier-based quota validation.
+- `CostGuard.check_budget()`: An asynchronous method that performs a pre-flight check to determine if a given tenant has sufficient budget for an estimated cost, raising an `HTTPException` if the budget is exceeded or not configured.
+- `CostGuard.validate_budget()`: A method used to validate if a specific AI service tier (e.g., 'economy', 'premium') has available quota for task execution, primarily supporting multi-tier fallback routing logic.
+- `cost_guard`: A global singleton instance of the `CostGuard` class, providing a readily available and consistent budget management utility across the application.
+
+Dependencies:
+- `typing`: Used for type hints, specifically `Any`.
+- `fastapi`: Utilized for raising `HTTPException` to signal budget-related failures to the API client.
+- `loguru`: Employed for structured logging of budget checks, warnings, and errors.
+- `asyncio`: Used internally within `check_budget` to adapt to both synchronous and asynchronous database client methods."""
+
 from typing import Any
 
 from fastapi import HTTPException

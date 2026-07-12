@@ -1,3 +1,14 @@
+"""This module establishes the fundamental `BaseSkill` abstract base class, serving as the core contract for all executable skills within the SupremeAI ecosystem. It mandates that every concrete skill implementation must provide an asynchronous `execute` method, thereby standardizing the interface for agents to interact with and leverage diverse capabilities across the platform. This foundational structure is crucial for maintaining consistency and interoperability among the various agentic tools.
+
+Key Components:
+- `BaseSkill`: An abstract base class that defines the essential interface and contract for all skills, ensuring they adhere to a common structure and implement core execution logic.
+- `BaseSkill.execute()`: An abstract asynchronous method that concrete skill implementations must override to encapsulate their specific operational logic and return a result.
+- `BaseSkill.name`: A property that provides the string name of the skill, typically derived from its class name, for identification purposes.
+
+Dependencies:
+- `abc`: Utilized for defining abstract base classes (`ABC`) and abstract methods (`abstractmethod`), enforcing the skill contract.
+- `typing`: Used for type hinting, specifically `Any`, to indicate flexible input and output types for skill execution."""
+
 from abc import ABC
 from abc import abstractmethod
 from typing import Any

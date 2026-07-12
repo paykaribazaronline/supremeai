@@ -118,6 +118,7 @@ async def get_completion(req: CompletionRequest):
     )
 
     from utils.text_helpers import strip_markdown_code_block
+
     completion_text = strip_markdown_code_block(raw.get("text", ""))
 
     suggestions = [completion_text] if completion_text else []
@@ -197,6 +198,7 @@ def format_chat_history(messages: list[dict]) -> str:
 def format_response(text: str, task_type: str) -> str:
     def extract_code(t: str) -> str:
         from utils.text_helpers import strip_markdown_code_block
+
         return strip_markdown_code_block(t)
 
     def detect_language(t: str) -> str:

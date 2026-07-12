@@ -1,3 +1,17 @@
+"""This module centralizes the initialization and management of the LaunchDarkly AI client for the SupremeAI backend. It provides dynamic feature flagging, experimentation, and observability capabilities for AI-driven features, ensuring flexible control and monitoring of AI models and components. The module gracefully handles missing SDK dependencies and environment configurations, providing a robust integration point for LaunchDarkly services within the highly scalable AI ecosystem.
+
+Key Components:
+- `init_ld_client()`: Initializes the LaunchDarkly AI client, configuring it with an SDK key and integrating observability plugins for telemetry.
+- `ld_ai_client`: The globally accessible instance of the initialized `LDAIClient`, or `None` if initialization fails due to missing keys or SDKs.
+- `get_ld_ai_components()`: Retrieves the initialized LaunchDarkly AI client along with essential AI-related configuration and context classes, returning `None` for unavailable components.
+
+Dependencies:
+- `os`: For accessing environment variables such as `LAUNCHDARKLY_SDK_KEY`, `SERVICE_NAME`, and `SERVICE_VERSION`.
+- `loguru`: For robust and structured logging of client initialization status, warnings, and errors.
+- `ldclient`: The core LaunchDarkly Python SDK, used for general feature flagging and configuration management.
+- `ldai`: The LaunchDarkly AI SDK, providing specific functionalities for AI model management, experimentation, and completion configurations.
+- `ldobserve`: The LaunchDarkly Observability SDK, used for integrating telemetry and monitoring into the LaunchDarkly client."""
+
 # Central LaunchDarkly Client Initialization
 # বাংলা মন্তব্য: লঞ্চডার্কলি এজেন্টস কন্ট্রোল এবং ওপেনটেলিমেট্রি মনিটরিং কনফিগার করার জন্য সেন্ট্রাল ক্লায়েন্ট ফাইল
 
@@ -61,9 +75,12 @@ def get_ld_ai_components():
     সব ব্যর্থ হলে (None, None, None, None, None) return করে।
     """
     try:
-        from ldai import AICompletionConfigDefault, LDMessage, ModelConfig
+        from ldai import AICompletionConfigDefault
+        from ldai import LDMessage
+        from ldai import ModelConfig
         from ldclient.context import Context
+
         return ld_ai_client, AICompletionConfigDefault, LDMessage, ModelConfig, Context
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         logger.warning(f"LaunchDarkly AI components unavailable: {exc}")
         return None, None, None, None, None

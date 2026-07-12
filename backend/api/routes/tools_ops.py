@@ -8,8 +8,8 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 
 from tools.code.code_smell_detector import CodeSmellDetector
-from tools.learning.domain_adapter import DomainAdapter
 from tools.devops.on_premise_deployer import OnPremiseDeployer
+from tools.learning.domain_adapter import DomainAdapter
 from tools.learning.skill_recommender import SkillRecommender
 from tools.security_tools.vulnerability_predictor import VulnerabilityPredictor
 

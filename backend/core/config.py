@@ -1,3 +1,31 @@
+"""This module, `backend.core.config`, serves as the single, authoritative source for all application settings within the SupremeAI project. It implements a robust, "Fail-Fast" configuration layer using Pydantic, ensuring that all critical parameters are loaded from environment variables or a secret manager, with zero hardcoded values. It rigorously validates settings at startup, preventing the application from booting if essential configurations are missing or invalid, thereby guaranteeing a secure and predictable operational environment across all deployment stages.
+
+Key Components:
+- `Settings`: The central Pydantic model that defines and validates all application-wide configuration parameters, fetching secrets and enforcing strict rules for different environments.
+- `settings`: A singleton instance of the `Settings` class, providing global access to the validated application configuration.
+- `get_production_env()`: A utility function for strictly retrieving environment variables, enforcing a fail-fast approach for critical missing values.
+
+Dependencies:
+- `os`: For interacting with the operating system, primarily environment variables.
+- `secrets`: For generating secure random numbers, used for JWT secret fallback.
+- `sys`: For system-specific parameters and functions, used for `sys.exit` and checking `sys.modules` for `pytest`.
+- `pathlib.Path`: For object-oriented filesystem paths, used for locating `.env` files.
+- `typing`: For type hints.
+- `dotenv.load_dotenv`: For loading environment variables from `.env` files.
+- `loguru.logger`: For structured logging, especially for critical configuration errors.
+- `pydantic`: The core library for data validation and settings management.
+- `pydantic_settings.BaseSettings`: Pydantic's base class for managing settings from environment variables.
+- `pydantic_settings.SettingsConfigDict`: Configuration class for `BaseSettings`.
+- `pydantic.Field`: Used to define field properties and validation aliases.
+- `pydantic.PrivateAttr`: Used for private attributes not part of the model's data.
+- `pydantic.SecretStr`: For handling sensitive string data that should not be logged.
+- `pydantic.ValidationInfo`: Provides context during validation.
+- `pydantic.computed_field`: For fields whose values are computed dynamically.
+- `pydantic.field_validator`: Decorator for field-specific validation logic.
+- `pydantic.model_validator`: Decorator for model-level validation logic.
+- `json`: For parsing JSON strings, specifically for `cors_origins`.
+- `core.security.secret_vault`: An internal module responsible for fetching secrets from a secure vault (e.g., GCP Secret Manager)."""
+
 # backend/core/config.py
 # ⚠️ WARNING: DO NOT MOVE THIS FILE. It is heavily integrated into the FastAPI startup lifecycle.
 # Moving this file will break relative paths, imports, and core configuration loading across the entire project.
@@ -396,7 +424,6 @@ def get_production_env(var_name: str, default: str | None = None) -> str:
     যেকোনো এনভায়রনমেন্টে কোনো ক্রিটিক্যাল সিক্রেট মিসিং থাকলে সরাসরি হার্ড ক্র্যাশ করবে,
     যাতে সাইলেন্ট ফেইলর প্রতিরোধ করা যায়। ডিফল্ট ভ্যালু পাস করলে মিসিং ক্ষেত্রে fallback ব্যবহার হবে।
     """
-
 
     value = os.getenv(var_name)
     if not value:

@@ -1,3 +1,18 @@
+"""This module provides a robust, Redis-backed Publish/Subscribe (PubSub) system, `SwarmPubSub`, designed to facilitate real-time event streaming and communication across the SupremeAI ecosystem. It offers a multi-worker safe mechanism for broadcasting and subscribing to a central "swarm_stream" channel, ensuring scalable and decoupled event propagation, with lazy Redis client initialization and comprehensive error handling integrated with the project's central event bus.
+
+Key Components:
+- `SwarmPubSub`: Manages the Redis PubSub client, handling lazy connection, subscription to the "swarm_stream" channel, and broadcasting messages to all active subscribers.
+- `get_swarm_streamer()`: Returns a singleton instance of the `SwarmPubSub` class, ensuring a single, globally accessible point of control for swarm-wide communication.
+- `swarm_streamer`: The globally accessible singleton instance of `SwarmPubSub`, initialized upon module import.
+
+Dependencies:
+- `asyncio`: For asynchronous programming constructs and managing concurrent operations.
+- `json`: For serializing and deserializing event payloads to and from JSON format.
+- `loguru`: For structured logging of operational events and errors within the module.
+- `redis.asyncio`: The asynchronous Redis client library used for PubSub operations.
+- `core.config`: To retrieve application settings, specifically the Redis connection URL.
+- `core.messaging.event_bus`: For emitting structured error events to the central application event bus."""
+
 import asyncio
 import json
 from collections.abc import AsyncGenerator

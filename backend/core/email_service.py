@@ -1,3 +1,23 @@
+"""This module provides a robust and asynchronous email service for the SupremeAI project, centralizing the functionality for sending various transactional emails such as welcome messages, password reset links, and billing notifications. It integrates with an external email API (e.g., Resend) for delivery, leverages application settings for configuration, and reports errors via the internal event bus, ensuring reliable communication with users within the highly scalable AI ecosystem.
+
+Key Components:
+- `EmailService`: Manages the configuration and dispatch of different types of emails through an external API, handling API key retrieval, settings, and error reporting.
+- `email_service`: A module-level instance of `EmailService` for convenient, singleton access throughout the application.
+- `_get_settings()`: Lazily loads application settings from `core.config`, providing a simple fallback for environments where settings might not be available (e.g., certain test setups).
+- `api_key`: Property to retrieve the Resend API key from environment variables, essential for authenticating with the email service.
+- `from_email`: Property to retrieve the sender's email address from environment variables, with a default fallback.
+- `_send_email()`: An internal asynchronous method responsible for making the actual HTTP POST request to the configured email API, handling success/failure logging and error event emission.
+- `send_welcome_email()`: Sends a personalized welcome email to new users, including a link to the SupremeAI studio.
+- `send_password_reset()`: Dispatches a password reset email containing a unique, time-limited reset link.
+- `send_billing_notification()`: Sends a notification regarding upcoming invoices, usage details, and suggestions for cost optimization.
+
+Dependencies:
+- `os`: For accessing environment variables (e.g., `RESEND_API_KEY`, `RESEND_FROM_EMAIL`).
+- `httpx`: For making asynchronous HTTP requests to the external email API.
+- `loguru`: For structured logging of email sending operations, warnings, and errors.
+- `core.messaging.event_bus`: For emitting `ErrorEvent`s when email sending encounters API or network failures.
+- `core.config`: For accessing application-wide settings such as the Resend API URL and the SupremeAI frontend URL."""
+
 import os
 
 import httpx

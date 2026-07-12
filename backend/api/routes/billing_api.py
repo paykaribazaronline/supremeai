@@ -12,22 +12,19 @@ from fastapi import HTTPException
 from fastapi import Request
 from fastapi import status
 from loguru import logger
-from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm.exc import StaleDataError
 
 from api.dependencies import get_current_user_token
+from core.billing_plans import SUBSCRIPTION_PLANS
+from core.billing_plans import CheckoutRequest
 from core.config import settings
 from core.gcp_firestore import get_firestore_client
 from core.llm.token_deductor import TokenDeductor
 from database.session import get_db_session
 from models.wallet import TransactionLedgerEntry
 from models.wallet import UserWallet
-
-
-from core.billing_plans import CheckoutRequest
-from core.billing_plans import SUBSCRIPTION_PLANS
 
 
 router = APIRouter(prefix="/api/billing", tags=["Billing & Credit Wallet"])
@@ -112,7 +109,7 @@ async def add_funds(
     await _ensure_wallet(session, user_id)
 
     checkout_id = str(uuid.uuid4())
-    
+
     # বাংলা মন্তব্য: ডাইনামিক অরিজিন ডিটেকশন (Zero-Config)
     checkout_base = os.getenv("CHECKOUT_BASE_URL")
     if not checkout_base:
@@ -249,6 +246,7 @@ async def stripe_webhook(request: Request, session: AsyncSession = Depends(get_d
 
                 try:
                     from core.observability.posthog_client import posthog_client
+
                     posthog_client.capture(
                         distinct_id=user_id or "anonymous",
                         event="subscription_completed",

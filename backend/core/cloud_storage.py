@@ -1,3 +1,15 @@
+"""This module provides a robust, asynchronous cloud object storage manager for the SupremeAI project, primarily leveraging Supabase Storage. It enables direct uploading of assets to a designated cloud bucket, bypassing local file system operations, which is essential for maintaining data persistence and integrity in serverless or distributed environments. It ensures that all AI-generated or processed assets are securely and reliably stored in the cloud.
+
+Key Components:
+- `CloudStorageManager`: Manages asynchronous interactions with the configured cloud object storage (e.g., Supabase), handling file uploads and public URL generation.
+- `cloud_storage`: A global singleton instance of `CloudStorageManager` for convenient access throughout the application.
+
+Dependencies:
+- `httpx`: For performing asynchronous HTTP requests to the cloud storage API.
+- `fastapi`: For raising standardized HTTP exceptions and status codes in case of storage failures.
+- `core.config`: To retrieve application-wide settings, including cloud storage credentials.
+- `core.logging_config`: For structured logging of storage operations, successes, and errors."""
+
 # বাংলা কমেন্ট: সুপ্রিম-এআই এর ক্লাউড অবজেক্ট স্টোরেজ ম্যানেজার।
 # সার্ভারলেস এনভায়রনমেন্টে ডেটা লস রুখতে এটি লোকাল ফাইল রাইটের বদলে সরাসরি ক্লাউড বাকেটে ফাইল আপলোড ও রিড করে।
 

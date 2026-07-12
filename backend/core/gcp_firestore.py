@@ -1,3 +1,21 @@
+"""This module provides a resilient and scalable verification queue mechanism, designed to manage asynchronous tasks within the SupremeAI project. It primarily utilizes Google Cloud Firestore for high-performance and distributed queuing, with an automatic fallback to a local SQLite database for development, testing, or environments where Firestore is inaccessible. The module offers a unified interface for enqueuing tasks, retrieving pending items, marking tasks as verified, deleting entries, and querying queue statistics, ensuring robust task management across different operational contexts.
+
+Key Components:
+- `GCPFirestoreVerificationQueue`: A class that implements the verification queue, abstracting away the underlying storage mechanism (GCP Firestore or SQLite) and providing methods for task management.
+- `get_firestore_client()`: A deprecated function that returns a Firestore client, now delegating to a shared utility for consistency.
+
+Dependencies:
+- `json`: For serializing and deserializing task payloads and metadata.
+- `os`: For accessing environment variables and managing file paths for the SQLite database.
+- `sqlite3`: The standard library module for the local SQLite database fallback.
+- `uuid`: For generating unique identifiers for queue items when using the SQLite backend.
+- `datetime`: For handling timestamps related to task creation, updates, and verification.
+- `typing`: For type hinting throughout the module.
+- `loguru`: For flexible and structured logging of operational status and warnings.
+- `google.cloud.firestore`: The official Google Cloud client library for interacting with Firestore.
+- `utils.environment`: An internal utility for determining the application's execution environment.
+- `utils.firestore_helpers`: An internal utility providing shared logic for obtaining Firestore client instances."""
+
 import json
 import os
 import sqlite3
@@ -35,6 +53,7 @@ class GCPFirestoreVerificationQueue:
         self.db_path = db_path or os.getenv("GCP_FIRESTORE_SQLITE_PATH")
 
         from utils.environment import is_test_environment
+
         is_test = is_test_environment()
         if FIRESTORE_AVAILABLE and self.project_id and not is_test:
             try:

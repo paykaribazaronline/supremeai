@@ -23,6 +23,7 @@ class SwarmAgentBase:
             return await self.use_skill(skill_name, workspace=workspace, **kwargs)
         except ValueError as e:
             from loguru import logger
+
             logger.warning(f"{self.__class__.__name__}: Skill '{skill_name}' unavailable: {e}. Falling back to direct gateway call.")
             workspace.log(f"Warning: Skill '{skill_name}' unavailable. Using fallback.")
             return None
@@ -97,6 +98,7 @@ class QAAgent(SwarmAgentBase):
         code_to_test = workspace.work_product.get("generated_code", {}).get("main.py", "")
 
         from core.immune_system import ImmuneSystemScanner
+
         scanner = ImmuneSystemScanner()
         scan_result = scanner.scan_code(code_to_test)
 
@@ -136,7 +138,7 @@ class GuardianAgent(SwarmAgentBase):
 
     async def validate(self, workspace: SharedWorkspace, user_id: str, model_name: str = "gemini/gemini-2.5-pro") -> tuple[bool, str]:
         workspace.log("GuardianManager: Orchestrating compliance scan with sub-agents...")
-        code_to_analyze = workspace.work_product.get('generated_code', {}).get('main.py', '')
+        code_to_analyze = workspace.work_product.get("generated_code", {}).get("main.py", "")
         if not code_to_analyze:
             return True, "APPROVED: No code to analyze."
 
@@ -151,15 +153,12 @@ class GuardianAgent(SwarmAgentBase):
         user_prompt_template = f"Analyze this code and report any violations based on your specialty:\n```python\n{code_to_analyze}\n```"
 
         # Run sub-agents in parallel using asyncio.gather for efficiency
-        tasks = [
-            self._run_sub_agent(name, prompt, user_prompt_template, user_id, model_name)
-            for name, prompt in sub_agents.items()
-        ]
-        
+        tasks = [self._run_sub_agent(name, prompt, user_prompt_template, user_id, model_name) for name, prompt in sub_agents.items()]
+
         results = await asyncio.gather(*tasks)
 
         violations = []
-        for agent_name, report in zip(sub_agents.keys(), results):
+        for agent_name, report in zip(sub_agents.keys(), results, strict=False):
             # Check if the report indicates a pass or contains actual findings
             if not any(keyword in report for keyword in ["SECURITY_OK", "QUALITY_OK", "COMPLIANCE_OK", "DOCS_OK"]):
                 violations.append(f"--- VIOLATIONS FROM {agent_name} ---\n{report}")

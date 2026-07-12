@@ -1,3 +1,20 @@
+"""This module provides real-time memory auditing for Docker containers within the SupremeAI ecosystem. It proactively monitors container resource usage, issuing warnings when memory utilization approaches 80% and automatically triggering a termination "kill chain" for containers exceeding 95% memory usage to prevent Out-Of-Memory (OOM) abuse and ensure system stability in a highly scalable environment.
+
+Key Components:
+- `ContainerAuditor`: Manages the continuous monitoring and enforcement of memory limits for Docker containers.
+- `get_container_stats()`: Retrieves real-time memory and other statistics for all running Docker containers.
+- `parse_memory_percent()`: Converts a memory percentage string into a float for numerical comparison.
+- `audit_cycle()`: Executes a single round of container memory checks, logging warnings or initiating container termination as needed.
+- `run()`: Starts the continuous asynchronous loop for periodic container auditing.
+- `stop()`: Signals the continuous audit loop to gracefully terminate.
+
+Dependencies:
+- `asyncio`: For asynchronous programming and running blocking operations in a separate thread.
+- `json`: For parsing JSON output from Docker commands.
+- `subprocess`: For executing external Docker commands like `docker stats` and `docker kill`.
+- `loguru`: For structured and colored logging throughout the auditing process.
+- `core.messaging.event_bus`: For emitting standardized error and warning events to the system's central event bus."""
+
 import asyncio
 import json
 import subprocess

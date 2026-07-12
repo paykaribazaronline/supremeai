@@ -22,10 +22,10 @@ from sqlalchemy.future import select
 from api.dependencies import get_fitness_engine
 from api.dependencies import get_tenant_db
 from core.config import settings
-from core.tenant_db import TenantAwareFirestore
-from database.session import get_db_session
 from core.evolution.auto_skill_creator import AutoSkillCreator
 from core.evolution.fitness_engine import FitnessEngine
+from core.tenant_db import TenantAwareFirestore
+from database.session import get_db_session
 from models.evolution import CodeProposal
 
 

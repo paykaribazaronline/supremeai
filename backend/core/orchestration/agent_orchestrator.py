@@ -1,6 +1,5 @@
 import os
 import re
-import time
 from typing import Any
 
 from loguru import logger
@@ -137,7 +136,7 @@ def route_request(prompt: str, task_type: str = "general") -> "SmartSemanticRout
 
 class AgentCircuitBreaker:
     """Per-agent resource guard + delegates to system-level CB."""
-    
+
     def __init__(self, agent_name: str):
         self.agent_name = agent_name
         self.max_tokens = MAX_AGENT_TOKENS
@@ -146,9 +145,10 @@ class AgentCircuitBreaker:
         self._token_count = 0
         self._locked = False
         self._lock_reason: str | None = None
-        
+
         # 🆕 System-level circuit breaker (Redis-backed):
         from core.resilience.circuit_breaker import CircuitBreaker as SystemCircuitBreaker
+
         self._system_cb = SystemCircuitBreaker(
             name=f"agent_{agent_name}",
             failure_threshold=5,
@@ -170,7 +170,7 @@ class AgentCircuitBreaker:
             self._lock_reason = f"Max tokens ({self.max_tokens}) exceeded"
             return False
         return True
-    
+
     def check_limits(self, tokens: int = 0, iterations: int = 0) -> dict[str, Any]:
         # ✅ System CB-ও check করুন:
         if not self._system_cb.allow_request():
@@ -178,11 +178,11 @@ class AgentCircuitBreaker:
         if self._locked:
             return {"blocked": True, "reason": self._lock_reason}
         return {"blocked": False}
-    
+
     def mark_success(self) -> None:
         """🆕 System CB success signal পাঠান।"""
         self._system_cb.mark_success()
-    
+
     def mark_failure(self) -> None:
         """🆕 System CB failure signal পাঠান।"""
         self._system_cb.mark_failure()
@@ -202,7 +202,7 @@ class AgentCircuitBreaker:
             "max_tokens": self.max_tokens,
             "locked": self._locked,
             "lock_reason": self._lock_reason,
-            "system_cb_state": getattr(self._system_cb, "state", "UNKNOWN")
+            "system_cb_state": getattr(self._system_cb, "state", "UNKNOWN"),
         }
 
 
@@ -218,25 +218,27 @@ class AsyncTaskManager:
     Lightweight facade over EnhancedTaskQueue।
     Test-friendly in-memory fallback সহ।
     """
-    
+
     def __init__(self):
         self._local_tasks: dict[str, dict[str, Any]] = {}  # local state (test/dev)
         self._queue = None  # lazy init
-    
+
     def _get_queue(self):
         if self._queue is None:
             try:
                 from core.queue.task_queue_enhanced import EnhancedTaskQueue
+
                 self._queue = EnhancedTaskQueue()
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self._queue = None  # graceful fallback
         return self._queue
-    
+
     def create_task(self, task_type: str, payload: dict) -> str:
-        import uuid
         import time
+        import uuid
+
         task_id = str(uuid.uuid4())
-        
+
         queue = self._get_queue()
         if queue:
             # ✅ Production: Redis-backed persistent queue
@@ -244,29 +246,29 @@ class AsyncTaskManager:
         else:
             # ✅ Dev/Test: in-memory fallback
             self._local_tasks[task_id] = {
-                "id": task_id, 
+                "id": task_id,
                 "type": task_type,
-                "status": "pending", 
+                "status": "pending",
                 "payload": payload,
                 "progress": 0,
-                "created_at": time.time()
+                "created_at": time.time(),
             }
             self._simulate_task(task_id, task_type)
-        
+
         return task_id
 
     def _simulate_task(self, task_id: str, task_type: str) -> None:
         if task_type in ["video_generation", "image_generation", "long_running"]:
             self._local_tasks[task_id]["status"] = "processing"
             self._local_tasks[task_id]["progress"] = 50
-    
+
     def get_task(self, task_id: str) -> dict[str, Any] | None:
         queue = self._get_queue()
         if queue:
             status = queue.get_task_status(task_id)
             if status:
                 return status
-        
+
         task = self._local_tasks.get(task_id)
         if task:
             return {

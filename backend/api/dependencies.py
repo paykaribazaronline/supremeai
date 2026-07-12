@@ -4,9 +4,9 @@ from fastapi import HTTPException
 from fastapi import Request
 from loguru import logger
 
+from core.evolution.fitness_engine import FitnessEngine
 from core.security import verify_token
 from core.tenant_db import TenantAwareFirestore
-from core.evolution.fitness_engine import FitnessEngine
 
 # শেয়ার্ড ইউটিলিটি — টেস্ট এনভায়রনমেন্ট চেক কেন্দ্রীভূত
 from utils.environment import is_test_environment

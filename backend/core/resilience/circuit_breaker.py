@@ -121,6 +121,7 @@ class CircuitBreaker:
     def _emit_alert(self, status: str) -> None:
         try:
             from datetime import UTC
+
             log_entry = {
                 "id": str(uuid.uuid4()),
                 "session_id": "swarm_health",

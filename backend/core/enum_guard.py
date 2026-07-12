@@ -1,3 +1,20 @@
+"""This module provides a robust mechanism to validate the consistency between Python `enum.Enum` definitions and their corresponding PostgreSQL `ENUM` types at application startup. It plays a critical role in the SupremeAI project by preventing potential runtime errors and data integrity issues that could arise from mismatches between the application's code and the database schema, ensuring a stable and reliable backend for the AI ecosystem.
+
+Key Components:
+- `EnumMismatchError`: A custom exception raised when a discrepancy is found between Python and database enum values.
+- `guard_enum()`: Asynchronously validates a single Python `enum.Enum` against its corresponding PostgreSQL `ENUM` type, querying the database and raising `EnumMismatchError` if any mismatches are detected.
+- `run_enum_guards()`: Orchestrates the startup validation process for all critical enums used across the SupremeAI application's data models, calling `guard_enum` for each.
+
+Dependencies:
+- `enum`: Standard library for creating enumeration types in Python.
+- `loguru`: For structured and flexible logging of validation progress and issues.
+- `sqlalchemy`: For interacting with the PostgreSQL database, specifically for executing raw SQL queries to inspect enum definitions.
+- `database.session`: Provides the SQLAlchemy engine for establishing database connections.
+- `models.agent_session`: Imports `AgentSessionState` and `ControlMode` enums for validation.
+- `models.execution_log`: Imports `LogType` enum for validation.
+- `models.execution_policy`: Imports `PolicyScope` enum for validation.
+- `models.target_platform_credential`: Imports `AuthType` and `CredentialStatus` enums for validation."""
+
 import enum
 
 from loguru import logger

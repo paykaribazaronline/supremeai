@@ -1,3 +1,12 @@
+"""This module centralizes the configuration of the application's logging system using Loguru. It establishes structured logging practices by directing output to both the console (stdout) for real-time monitoring and to a rotating, compressed file for persistent storage and detailed debugging. This setup is crucial for maintaining observability across the SupremeAI ecosystem, aiding in development, operational monitoring, and efficient troubleshooting of its FastAPI backend and various agentic tools.
+
+Key Components:
+- `setup_logging()`: Configures the Loguru logger to output structured logs to both the console and a rotating file, ensuring comprehensive logging for the SupremeAI application.
+
+Dependencies:
+- `sys`: For accessing standard system streams, specifically `sys.stdout` for console logging.
+- `loguru`: The primary external library used for flexible, structured, and production-ready logging."""
+
 import sys
 
 from loguru import logger

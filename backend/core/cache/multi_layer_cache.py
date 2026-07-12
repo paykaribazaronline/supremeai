@@ -7,6 +7,8 @@ Redis clients are initialized lazily to prevent network calls during module impo
 with an in-memory stub fallback for development or unavailable Redis instances.
 The system prioritizes cache hits across layers before falling back to AI model
 
+"""
+
 import hashlib
 from functools import lru_cache
 from typing import Any
