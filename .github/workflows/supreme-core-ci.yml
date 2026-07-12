@@ -101,7 +101,12 @@ jobs:
     steps:
       - name: Set Trivial Change Output
         id: gate-logic
-        run: echo "trivial_change=${{ needs.changes.outputs.docs_only }}" >> $GITHUB_OUTPUT
+        run: |
+          if [[ "${{ needs.changes.outputs.backend }}" == 'false' && "${{ needs.changes.outputs.frontend }}" == 'false' && "${{ needs.changes.outputs.dependencies }}" == 'false' && "${{ needs.changes.outputs.docs_only }}" == 'true' ]]; then
+            echo "trivial_change=true" >> $GITHUB_OUTPUT
+          else
+            echo "trivial_change=false" >> $GITHUB_OUTPUT
+          fi
 
       - uses: actions/checkout@v4
       - name: Set up Python
