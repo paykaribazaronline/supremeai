@@ -20,7 +20,7 @@ class EmailService:
                 from core.config import settings
 
                 self._settings = settings
-            except Exception:
+            except Exception:  # noqa: BLE001
                 # বাংলা মন্তব্য: Settings not available in test env — use a simple fallback
                 import types
 
@@ -82,7 +82,7 @@ class EmailService:
                         )
                     )
                     return False
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             # বাংলা মন্তব্য: Silent Exception রিমুভ করা হলো এবং ErrorEventBus-এ এমিট করা হলো।
             logger.error(f"Exception while sending email: {e}")
             error_event_bus.emit(

@@ -87,7 +87,7 @@ class ContainerAuditor:
             except asyncio.CancelledError:
                 self.running = False
                 raise
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Container audit cycle failed: {e}")
                 error_event_bus.emit(
                     ErrorEvent(
