@@ -3,12 +3,12 @@
 name: 🧠 SupremeAI Core CI
 
 on:
-  push:
-    branches: [main, develop]
-    paths-ignore: ['**.md', 'docs/**', 'LICENSE', '.gitignore', 'logs/**']
-  pull_request:
-    branches: [main, develop]
   workflow_dispatch:
+  # push:
+  #   branches: [main, develop]
+  #   paths-ignore: ['**.md', 'docs/**', 'LICENSE', '.gitignore', 'logs/**']
+  # pull_request:
+  #   branches: [main, develop]
     inputs:
       run_pre_merge_gate:
         description: 'Run Pre-Merge Gate'
