@@ -3,7 +3,7 @@ import json
 import os
 import uuid
 from collections.abc import Callable
-from typing import Any
+from typing import Any, AsyncIterator
 
 from loguru import logger
 
@@ -143,7 +143,7 @@ class ParallelAgentExecutor:
                 startup_timeout=config.get("startup_timeout", 10),
             )
 
-            # বাংলা মонтаজ: এনভায়রনমেন্ট ভেরিয়েবল সেটআপ করা হচ্ছে।
+            # বাংলা মন্তব্য: এনভায়রনমেন্ট ভেরিয়েবল সেটআপ করা হচ্ছে।
             if "env" in config and isinstance(config["env"], dict):
                 for k, v in config["env"].items():
                     os.environ.setdefault(k, v)
@@ -176,7 +176,7 @@ class ParallelAgentExecutor:
 
     async def _publish_state(self, redis, agent_name: str, state: str, **kwargs):
         """Publishes agent state to Redis."""
-        # বাংলা মন্তব্য: এজেন্টের বর্তমান রান-টাইম অবস্থা পাবলিশ করার সময় রেডিস ফলব্যাক চেক হ্যান্ডেল করা হচ্ছে।
+        # বাংলা মন্তব্য: এজেন্টের বর্তমান রান-টাইম অবস্থা পাবলিশ করার সময় রেডিস ফলব্যাক চেক হ্যান্ডেল করা হচ্ছে।
         payload = {
             "agent": agent_name,
             "state": state,
@@ -220,3 +220,132 @@ class ParallelAgentExecutor:
                 logger.error(f"Unexpected exception during gather: {res}")
 
         return final_output
+
+
+class DAGNode:
+    """টাস্ক DAG-এর একটি নোড (node) — এজেন্ট ও তার ডিপেন্ডেন্সি সংরক্ষণ করে।"""
+
+    def __init__(self, name: str, task_def: Any, depends_on: list[str] | None = None):
+        self.name = name
+        self.task_def = task_def
+        self.depends_on = depends_on or []
+        self.result: dict[str, Any] | None = None
+
+
+class AgentDAGScheduler:
+    """
+    ডিপেন্ডেন্সি-সচেতন (dependency-aware) টাস্ক DAG শিডিউলার।
+
+    Devin Gap #2 (Parallel Processing) বন্ধ করতে এটি:
+      - Redis Pub/Sub দিয়ে এজেন্টদের মধ্যে রিয়েল-টাইম যোগাযোগ করে
+      - Shared state: একজন Coder কোড লিখলে Tester সাথে সাথে টেস্ট লিখতে শুরু করে
+      - একাধিক এজেন্টের আউটপুট থেকে ভোটিং (voting) দিয়ে সেরাটি বাছাই করে
+    """
+
+    def __init__(self, redis_client=None, max_concurrent_tasks: int = 10):
+        self.redis_client = redis_client
+        self.max_concurrent_tasks = max_concurrent_tasks
+        self.executor = ParallelAgentExecutor(redis_client=redis_client, max_concurrent_tasks=max_concurrent_tasks)
+        logger.info("Initialized AgentDAGScheduler (dependency-aware scheduling)")
+
+    async def broadcast_state(self, channel: str, state: dict[str, Any]) -> None:
+        """একটি চ্যানেলে এজেন্টের শেয়ার্ড স্টেট পাবলিশ করে।"""
+        if self.redis_client is None:
+            logger.debug(f"[broadcast] {channel}: {state}")
+            return
+        try:
+            import json
+
+            publish = self.redis_client.publish
+            if callable(getattr(publish, "__await__", None)):
+                await publish(channel, json.dumps(state))
+            else:
+                publish(channel, json.dumps(state))
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Failed to broadcast state on {channel}: {e}")
+
+    async def subscribe_to_updates(self, channel: str) -> AsyncIterator[dict[str, Any]]:
+        """একটি চ্যানেল থেকে আপডেট সাবস্ক্রাইব করে (async generator)।"""
+        if self.redis_client is None:
+            return
+        try:
+            pubsub = self.redis_client.pubsub()
+            if callable(getattr(pubsub.subscribe, "__await__", None)):
+                await pubsub.subscribe(channel)
+            else:
+                pubsub.subscribe(channel)
+            import json
+
+            async for message in pubsub.listen():
+                if isinstance(message, dict) and message.get("type") == "message":
+                    try:
+                        yield json.loads(message["data"])
+                    except (json.JSONDecodeError, TypeError):
+                        continue
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Subscription to {channel} ended: {e}")
+            return
+
+    async def execute_dag(self, task_graph: dict[str, DAGNode]) -> dict[str, Any]:
+        """
+        ডিপেন্ডেন্সি অনুযায়ী টপোলজিক্যাল অর্ডারে DAG এক্সিকিউট করে।
+
+        task_graph: {node_name: DAGNode}
+        """
+        ordered = self._topological_sort(task_graph)
+        aggregated: dict[str, Any] = {"nodes": {}, "order": ordered}
+
+        for level in ordered:
+            # বাংলা মন্তব্য: একই লেভেলের নোডগুলো সমান্তরালে (parallel) চালানো হচ্ছে।
+            tasks = {name: task_graph[name].task_def for name in level}
+            results = await self.executor.run_parallel(tasks)
+            for name in level:
+                task_graph[name].result = results.get(name)
+                aggregated["nodes"][name] = results.get(name)
+                # বাংলা মন্তব্য: শেয়ার্ড স্টেট হিসেবে অন্যদের জানানো হচ্ছে।
+                await self.broadcast_state(
+                    "supremeai:dag:updates",
+                    {"node": name, "status": "completed", "result": results.get(name)},
+                )
+
+        aggregated["voted_best"] = self._aggregate_with_voting([n.result for n in task_graph.values()])
+        return aggregated
+
+    def _topological_sort(self, task_graph: dict[str, DAGNode]) -> list[list[str]]:
+        """স্তরভিত্তিক (level-based) টপোলজিক্যাল সর্ট — প্রতিটি স্তর সমান্তরালে চালানো যায়।"""
+        in_degree = {name: 0 for name in task_graph}
+        for name, node in task_graph.items():
+            for dep in node.depends_on:
+                if dep in in_degree:
+                    in_degree[name] += 1
+
+        levels: list[list[str]] = []
+        remaining = dict(in_degree)
+        completed: set[str] = set()
+
+        while remaining:
+            current_level = [n for n, d in remaining.items() if d == 0 and n not in completed]
+            if not current_level:
+                # বাংলা মন্তব্য: সাইক্লিক ডিপেন্ডেন্সি থাকলে বাকিগুলো সরাসরি যোগ করা হচ্ছে।
+                logger.warning("Cyclic dependency detected in DAG; forcing remaining nodes into final level.")
+                current_level = list(remaining.keys())
+            for n in current_level:
+                completed.add(n)
+                del remaining[n]
+            for name, node in task_graph.items():
+                if name in remaining:
+                    for dep in node.depends_on:
+                        if dep in completed:
+                            remaining[name] -= 1
+            levels.append(current_level)
+
+        return levels
+
+    def _aggregate_with_voting(self, results: list[dict[str, Any] | None]) -> dict[str, Any] | None:
+        """একাধিক এজেন্টের আউটপুট থেকে ভোটিং দিয়ে সেরাটি বাছাই করে।"""
+        valid = [r for r in results if isinstance(r, dict) and r.get("status") == "success"]
+        if not valid:
+            return None
+        # বাংলা মন্তব্য: সবচেয়ে বড় আউটপুটকে 'সেরা' ধরা হচ্ছে।
+        best = max(valid, key=lambda r: len(str(r.get("result", ""))))
+        return {"selected_agent": best.get("agent"), "result": best.get("result")}
