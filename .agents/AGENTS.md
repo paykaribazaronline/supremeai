@@ -13,6 +13,8 @@ SupremeAI 2.0 is a multi-cloud AI orchestration platform built on FastAPI with R
 | Directory | Purpose |
 |-----------|---------|
 | `backend/` | FastAPI backend (Python 3.11+, Poetry) |
+| `backend/core/` | Core backend framework (orchestration, resilience, queue, observability) |
+| `backend/tools/` | AI agents and tooling grouped by domain (e.g., ai_agents, browser, code, devops) |
 | `apps/studio-client/` | React/Vite web client |
 | `apps/mobile/` | Flutter mobile app |
 | `tools/vscode-extension/` | VS Code extension |
