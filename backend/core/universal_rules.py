@@ -90,7 +90,7 @@ class UniversalRulesEngine:
                             default_rules[cat] = {}
                         default_rules[cat].update(rules_dict)
                     return default_rules
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Failed to load rules from file, falling back to defaults: {e}")
 
         # Save defaults if not present

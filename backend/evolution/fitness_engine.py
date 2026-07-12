@@ -124,7 +124,7 @@ class FitnessEngine:
             skill_data = self.registry._skills.get(skill_name)
             if skill_data and hasattr(skill_data, "status"):
                 skill_data.status = "DEPRECATED"
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to update registry status: {e}")
 
         # 2. Update Firestore Status
