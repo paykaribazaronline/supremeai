@@ -185,3 +185,5 @@ docs/codebase_dump.md
 scripts/observability_report.json
 backend/coverage.json
 test_db_path
+
+scratch/
