@@ -422,12 +422,12 @@ class TaskQueue:
         """বাংলা মন্তব্য: Celery task submit — lazy import and Singleton app instance।"""
         from celery import Celery  # lazy import
 
-        if self._celery_app_instance is None:
-            self._celery_app_instance = Celery("supremeai_tasks", broker=self.redis_url, backend=self.redis_url)
+        if TaskQueue._celery_app_instance is None:
+            TaskQueue._celery_app_instance = Celery("supremeai_tasks", broker=self.redis_url, backend=self.redis_url)
 
         # বাংলা মন্তব্য: Celery send_task — function reference safe
         await asyncio.to_thread(
-            self._celery_app_instance.send_task,
+            TaskQueue._celery_app_instance.send_task,
             func.__name__,
             args=args,
             kwargs=kwargs,

@@ -21,10 +21,24 @@ SPECIFIC_EXCEPTIONS = (ConnectionError, TimeoutError, ValueError)
 T = TypeVar("T")
 
 
+# বাংলা মন্তব্য: CircuitBreakerOpenError — circuit open হলে raise করা হয়।
+# Tests এবং upstream code এই exception import করতে পারে।
+class CircuitBreakerOpenError(RuntimeError):
+    """Raised when a call is attempted on an OPEN circuit breaker."""
+
+
+# বাংলা মন্তব্য: CircuitBreakerState — circuit breaker state enum।
+# Test code এই enum import করে state check করে।
+class CircuitBreakerState:
+    """State constants for CircuitBreaker."""
+    CLOSED = "CLOSED"
+    OPEN = "OPEN"
+    HALF_OPEN = "HALF_OPEN"
+
 class CircuitBreaker:
     def __init__(
         self,
-        name: str,
+        name: str = "default",
         failure_threshold: int = 5,
         recovery_timeout: float = 20.0,
         half_open_after: float = 10.0,
@@ -43,6 +57,13 @@ class CircuitBreaker:
         self._restore_from_redis()
         self._lock = threading.Lock()
         self._half_open_in_flight = 0
+
+    @property
+    def _cb(self) -> "CircuitBreaker":
+        """বাংলা মন্তব্য: Backward-compat alias — tests cb._cb.failures এভাবে access করে।
+        এটি self-reference — same object এর একটি view।
+        """
+        return self
 
     def _restore_from_redis(self) -> None:
         if not self.redis_queue or not getattr(self.redis_queue, "configured", False):
@@ -138,7 +159,7 @@ class CircuitBreaker:
 
     async def call(self, func: Callable[..., T], *args: object, **kwargs: object) -> T:
         if not self.allow_request():
-            raise RuntimeError(f"Circuit breaker {self.name} is open")
+            raise CircuitBreakerOpenError(f"Circuit breaker {self.name} is open")
         try:
             result = await func(*args, **kwargs)
             self.mark_success()

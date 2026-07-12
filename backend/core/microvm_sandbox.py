@@ -26,11 +26,19 @@ from core.messaging.event_bus import error_event_bus
 
 # ── Security Constants ─────────────────────────────────────────────────────────
 
+import platform
+
 # বাংলা মন্তব্য: Sandbox root whitelist — অনুমোদিত directories শুধু এখানে থাকতে পারে।
 # কেউ SANDBOX_ROOT=/etc/cron.d দিলে startup-এই crash হবে।
 _SANDBOX_ROOT_WHITELIST: frozenset[str] = frozenset(
     {
         "/tmp/sandboxes",  # nosec B108 — whitelisted
+        "/var/tmp/sandboxes",
+        "/run/sandboxes",
+        "C:\\tmp\\sandboxes",
+        "C:\\temp\\sandboxes",
+    } if platform.system() == "Windows" else {
+        "/tmp/sandboxes",
         "/var/tmp/sandboxes",
         "/run/sandboxes",
     }

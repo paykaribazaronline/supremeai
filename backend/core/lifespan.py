@@ -179,6 +179,7 @@ async def app_lifespan(app):
         # sys.exit(1) রিমুভ করা হলো যাতে ক্লাউড রান হেলথ চেক পাস করতে পারে
 
     try:
+        await redis_manager.initialize()
         if getattr(redis_manager, "client", None):
             await redis_manager.client.ping()
             logger.info("✅ Redis connection verified successfully.")

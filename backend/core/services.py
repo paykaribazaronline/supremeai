@@ -4,6 +4,9 @@ from typing import Any
 import httpx
 
 
+global_http_client: httpx.AsyncClient | None = None
+
+
 class ServiceRegistry:
     """
     বাংলা মন্তব্য: P2 Fix — Factory pattern with async initialization.
