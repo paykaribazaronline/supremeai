@@ -164,21 +164,21 @@ jobs:
           echo "Ruff ফরম্যাটিং এবং ফিক্স রান করা হচ্ছে..."
           ruff format backend/ || true
           ruff check backend/ --fix || true
-          
+
           git add -u
           if ! git diff --staged --quiet; then
             echo "🔧 পরিবর্তন পাওয়া গেছে, ফিক্সগুলো কমিট করা হচ্ছে..."
             git config --global user.name 'SupremeAI Auto-Fix Bot'
             git config --global user.email 'bot@supremeai.dev'
             git commit -m "fix(ci): Automatically apply lint fixes inline [skip ci]"
-            
+
             BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
             git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
-            
+
             echo "🔄 পুশ করার আগে রিমোট ব্রাঞ্চের সাথে সিঙ্ক করা হচ্ছে..."
             git pull --rebase origin $BRANCH_NAME
             git push origin HEAD:$BRANCH_NAME
-            
+
             echo "✅ অটো-ফিক্স সফলভাবে প্রয়োগ করা হয়েছে! পাইপলাইন এখন সেলফ-হিল্ড।" >> $GITHUB_STEP_SUMMARY
             exit 0
           else
@@ -257,21 +257,21 @@ jobs:
         run: |
           echo "## 🛡️ সেফটি গার্ড ভ্যালিডেশন" >> $GITHUB_STEP_SUMMARY
           python ../scripts/safety_guard.py --check-only --report-json > safety-report.json 2>&1 || true
-          
+
           # Parse and summarize
           if [ -f safety-report.json ]; then
             echo "✅ সেফটি গার্ড সম্পন্ন হয়েছে - রিপোর্ট দেখুন" >> $GITHUB_STEP_SUMMARY
           else
             echo "⚠️ সেফটি গার্ড ভ্যালিডেশন পাস করেছে" >> $GITHUB_STEP_SUMMARY
           fi
-      
+
       - name: 🔍 Multi-Model Validator - Security & Logic Check
         id: validator
         working-directory: backend
         run: |
           echo "## 🔍 মাল্টি-মডেল কোড ভ্যালিডেশন" >> $GITHUB_STEP_SUMMARY
           python ../scripts/multi_model_validator.py ../backend/core/ --json-output validator-report.json 2>&1 || true
-          
+
           # Check for critical issues
           if [ -f validator-report.json ]; then
             CRITICAL=$(grep -c "risk_level.*CRITICAL" validator-report.json || echo "0")
@@ -338,7 +338,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-      
+
       - name: Setup Poetry
         uses: snok/install-poetry@v1
         with:
@@ -359,14 +359,14 @@ jobs:
           poetry config virtualenvs.create false
           poetry export --with dev --without ml,tools --format requirements.txt --output requirements.txt
           pip install --no-cache-dir --disable-pip-version-check -r requirements.txt
-      
+
       - name: 🩹 Auto-Fix and Format Code
         working-directory: backend
         run: |
           # ১. Ruff দিয়ে এরর ফিক্স এবং ফরম্যাট করা
           python -m ruff check backend/ --fix || true
           poetry run ruff format || true
-          
+
           # ২. গিট চেঞ্জ চেক করে পুশ করা (Self-Healing)
           if [[ -n "$(git status --porcelain)" ]]; then
             echo "🔧 Formatting changes detected! Committing and pushing back..."
@@ -374,20 +374,20 @@ jobs:
             git config user.email "actions@github.com"
             git add .
             git commit -m "style(ci): auto-fix formatting issues 🔧 [skip ci]"
-            
+
             BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
             git remote set-url origin https://x-access-token:${{ secrets.GH_PAT_FOR_AUTO_FIX }}@github.com/${{ github.repository }}.git
-            
+
             git pull --rebase origin $BRANCH_NAME
             git push origin HEAD:$BRANCH_NAME
-            
+
             echo "✅ Auto-Format applied successfully!"
             # নতুন রান ট্রিগার করার জন্য আমরা exit 0 দিয়ে জব পাস করাব
             exit 0
           else
             echo "✅ No formatting changes needed."
           fi
- 
+
       - name: 🚫 Zero-Gap Stub Data Gate
         id: stub_data_gate
         working-directory: backend
@@ -404,8 +404,8 @@ jobs:
         id: code_smell_check
         working-directory: backend
         run: |
-          echo "## 🚨 Code Smell Detection" >> $GITHUB_STEP_SUMMARY
-          poetry run python -c "from tools.code_smell_detector import CodeSmellDetector; detector = CodeSmellDetector(); result = detector.analyze_directory('tools'); total = sum(len(v) for v in result.values()); print('Found', total, 'code smell issues')" || {
+          # বাংলা মন্তব্য: সঠিক ডিরেক্টরি পাথ (tools.code.code_smell_detector) থেকে CodeSmellDetector ইম্পোর্ট করা হচ্ছে।
+          poetry run python -c "from tools.code.code_smell_detector import CodeSmellDetector; detector = CodeSmellDetector(); result = detector.analyze_directory('tools'); total = sum(len(v) for v in result.values()); print('Found', total, 'code smell issues')" || {
             echo "❌ Code smell check failed" >> $GITHUB_STEP_SUMMARY
             exit 1
           }
@@ -518,12 +518,12 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
           languages: 'python, javascript'
-      
+
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:
@@ -588,7 +588,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
           cache-dependency-path: '**/pnpm-lock.yaml'
-      
+
       - name: Install Frontend Dependencies
         env:
           VITE_API_URL: ${{ env.SUPREMEAI_API_URL }}
@@ -616,31 +616,31 @@ jobs:
         run: |
           echo "=== Inline Frontend Auto-Fix Triggered ===" >> $GITHUB_STEP_SUMMARY
           echo "Running ESLint and Prettier auto-fixes..."
-          
+
           # Fix studio-client
           if [ -d "apps/studio-client" ]; then
             pnpm --dir apps/studio-client exec eslint . --fix || true
           fi
-          
+
           # Fix web-chat
           if [ -d "apps/web-chat" ]; then
             pnpm --dir apps/web-chat exec eslint . --fix || true
           fi
-          
+
           git add -u
           if ! git diff --staged --quiet; then
             echo "🔧 ফ্রন্টএন্ডে পরিবর্তন পাওয়া গেছে, ফিক্সগুলো কমিট করা হচ্ছে..."
             git config --global user.name 'SupremeAI Auto-Fix Bot'
             git config --global user.email 'bot@supremeai.dev'
             git commit -m "fix(ci): Automatically apply frontend lint fixes inline [skip ci]"
-            
+
             BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
             git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
-            
+
             echo "🔄 পুশ করার আগে রিমোট ব্রাঞ্চের সাথে সিঙ্ক করা হচ্ছে..."
             git pull --rebase origin $BRANCH_NAME
             git push origin HEAD:$BRANCH_NAME
-            
+
             echo "✅ ফ্রন্টএন্ড অটো-ফিক্স সফলভাবে প্রয়োগ করা হয়েছে! পাইপলাইন এখন সেলফ-হিল্ড।" >> $GITHUB_STEP_SUMMARY
             exit 0
           else
@@ -674,10 +674,10 @@ jobs:
           else
             echo "No web-chat test results to report."
           fi
- 
+
       - name: Run VS Code Extension Tests
         run: pnpm turbo run test --filter=supremeai-vscode --cache-dir=.turbo
- 
+
 
 
       - name: Install Python Dependencies for Frontend Auto-Fix
@@ -730,17 +730,17 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
@@ -749,7 +749,7 @@ jobs:
           tags: |
             type=raw,value=latest
             type=sha
-            
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -765,7 +765,7 @@ jobs:
         run: |
           PRIMARY_HOOK="${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
           BACKUP_HOOK="${{ secrets.RENDER_DEPLOY_HOOK_URL_BACKUP }}"
-          
+
           if [ -n "$PRIMARY_HOOK" ]; then
             echo "Trying primary Render account..."
             if curl -f -s "$PRIMARY_HOOK" > /dev/null; then
@@ -797,7 +797,7 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: GCP Auth
         uses: google-github-actions/auth@v2
         with:
@@ -809,12 +809,12 @@ jobs:
           registry: ${{ vars.GCP_REGION || 'us-central1' }}-docker.pkg.dev
           username: _json_key
           password: ${{ secrets.GCP_SA_KEY }}
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
           driver-opts: image=moby/buildkit:buildx-stable-1
-      
+
       - name: Build & Push API Image
         uses: docker/build-push-action@v5
         with:
@@ -944,14 +944,14 @@ jobs:
     name: 🌐 Deploy Frontend (Firebase)
     needs: [frontend-core, security-audit]
     if: |
-      always() && 
+      always() &&
       github.ref == 'refs/heads/main' &&
       needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled' && needs.frontend-core.result != 'skipped'
     runs-on: ubuntu-latest
     environment: production
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: 📥 Download Frontend Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -970,7 +970,7 @@ jobs:
     needs: [frontend-core, security-audit]
     runs-on: ubuntu-latest
     if: |
-      always() && 
+      always() &&
       github.ref == 'refs/heads/main' &&
       needs.frontend-core.result != 'failure' && needs.frontend-core.result != 'cancelled' && needs.frontend-core.result != 'skipped'
     steps:
@@ -1015,7 +1015,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
           lfs: true
-      
+
       - name: 📤 Sync to Secondary Repo (Staging Dispatch)
         if: env.MIRROR_REPO_TOKEN != ''
         env:
