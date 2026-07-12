@@ -7,7 +7,7 @@ def process_file(filepath: Path):
     try:
         with open(filepath, encoding="utf-8") as f:
             content = f.read()
-    except OSError: # বাংলা মন্তব্য: রূফ লিন্ট এরর এড়াতে specific exception catch করা হচ্ছে
+    except OSError:  # বাংলা মন্তব্য: রূফ লিন্ট এরর এড়াতে specific exception catch করা হচ্ছে
         return
 
     # Skip files that shouldn't use logger
