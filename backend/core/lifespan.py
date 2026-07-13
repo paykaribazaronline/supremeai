@@ -195,7 +195,8 @@ async def app_lifespan(app):
             )
         )
         if os.getenv("ENV") == "production":
-            raise e
+            logger.critical("🔥 PRODUCTION REDIS UNAVAILABLE — running in degraded mode. Redis-dependent features will fallback to memory or fail.")
+            # raise e রিমুভ করা হলো যাতে Render/Cloud Run ফেইল না করে
 
     try:
         orch_inst = Orchestrator()
