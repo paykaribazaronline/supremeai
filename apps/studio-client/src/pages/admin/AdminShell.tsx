@@ -9,21 +9,22 @@ export function AdminShell() {
     adminAuthenticated,
     adminPassword,
     setAdminPassword,
+    adminEmail,
+    setAdminEmail,
     adminError,
     handleAdminLogin,
     otpRequired,
     adminOtp,
     setAdminOtp,
+    totpSetupRequired,
+    totpSecret,
+    provisioningUri,
     handleAdminLogout,
     actionStatus,
     setActionStatus,
   } = useAdminStore();
 
   const { systemConfig } = useStore();
-  const [adminEmail, setAdminEmail] = useState(systemConfig.adminEmail);
-  const [totpSetupRequired] = useState(false);
-  const [totpSecret] = useState("");
-  const [provisioningUri] = useState("");
   const [adminSubTab, setAdminSubTab] = useState<any>("dashboard");
   const [skillQuery, setSkillQuery] = useState("");
   const [skillsList] = useState<any[]>([]);
@@ -55,7 +56,7 @@ export function AdminShell() {
 
   useEffect(() => {
     if (!adminAuthenticated) return;
-    
+
     // TODO: Phase 3 - Implement RBAC check here
     // e.g. const hasAdminRole = checkUserRole('SUPER_ADMIN');
     // if (!hasAdminRole) { ... }
@@ -68,7 +69,7 @@ export function AdminShell() {
         "GCP_REGION": import.meta.env.VITE_GCP_REGION ?? "us-central1"
       });
     };
-    
+
     loadEnvConfig();
 
   }, [adminAuthenticated]);

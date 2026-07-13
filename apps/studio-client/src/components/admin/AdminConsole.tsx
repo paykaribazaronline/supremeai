@@ -64,7 +64,19 @@ export function AdminConsole(props: AdminConsoleProps) {
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-[#030407]">
       {!props.adminAuthenticated ? (
-        <LoginView {...props} />
+        <LoginView
+          adminEmail={props.adminEmail}
+          setAdminEmail={props.adminEmail ? props.setAdminEmail : () => {}} // fallback if needed
+          adminPassword={props.adminPassword}
+          setAdminPassword={props.setAdminPassword}
+          adminError={props.adminError}
+          handleAdminLogin={props.handleAdminLogin}
+          otpRequired={props.otpRequired}
+          adminOtp={props.adminOtp}
+          setAdminOtp={props.setAdminOtp}
+          totpSetupRequired={props.totpSetupRequired}
+          provisioningUri={props.provisioningUri}
+        />
       ) : (
         <AuthenticatedView {...props} />
       )}
