@@ -149,8 +149,35 @@ app = FastAPI(
     docs_url="/docs" if docs_enabled else None,
     redoc_url="/redoc" if docs_enabled else None,
     openapi_url="/openapi.json" if docs_enabled else None,
-    dependencies=docs_auth_dep,
 )
+
+# Protect docs endpoints with basic auth if enabled
+@app.middleware("http")
+async def basic_auth_for_docs_middleware(request: Request, call_next):
+    if settings.docs_auth_enabled and not settings.debug:
+        path = request.url.path
+        if path in {"/docs", "/redoc", "/openapi.json"}:
+            auth = request.headers.get("Authorization")
+            if not auth or not auth.startswith("Basic "):
+                return JSONResponse(
+                    status_code=401,
+                    content={"detail": "Invalid credentials"},
+                    headers={"WWW-Authenticate": "Basic"},
+                )
+            import base64
+            try:
+                decoded = base64.b64decode(auth[6:]).decode("utf-8")
+                username, password = decoded.split(":", 1)
+                if username != settings.docs_username or password != settings.docs_password:
+                    raise ValueError("Mismatch")
+            except Exception:
+                return JSONResponse(
+                    status_code=401,
+                    content={"detail": "Invalid credentials"},
+                    headers={"WWW-Authenticate": "Basic"},
+                )
+    return await call_next(request)
+
 
 # বাংলা মন্তব্য: CORS Configuration. No wildcard allowed.
 app.add_middleware(
