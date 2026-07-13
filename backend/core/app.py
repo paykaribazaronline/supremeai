@@ -172,7 +172,7 @@ async def basic_auth_for_docs_middleware(request: Request, call_next):
                 username, password = decoded.split(":", 1)
                 if username != settings.docs_username or password != settings.docs_password:
                     raise ValueError("Mismatch")
-            except Exception:
+            except Exception:  # noqa: BLE001
                 return JSONResponse(
                     status_code=401,
                     content={"detail": "Invalid credentials"},
