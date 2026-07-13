@@ -89,6 +89,7 @@ def __getattr__(name: str):
 
     # Attempt to resolve from registry
     from core.services import registry
+
     if registry:
         if hasattr(registry, "get_service"):
             svc = registry.get_service(name)
@@ -101,6 +102,7 @@ def __getattr__(name: str):
 
     if os.getenv("ENV", "local").lower() in ("test", "testing"):
         import logging
+
         logging.getLogger(__name__).warning(f"⚠️ Service '{name}' is missing and is being mock injected dynamically in test environment!")
         from unittest.mock import MagicMock
 
