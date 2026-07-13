@@ -443,7 +443,8 @@ class TestVerifyExecution:
         r = ChainOfThoughtReasoner()
         fake_module = MagicMock()
         fake_module.run_restricted = MagicMock(return_value={"result": 42})
-        with patch.dict("sys.modules", {"tools.safe_executor": fake_module}, clear=False):
+        # বাংলা মন্তব্য: মডিউল রিলোকেশন অনুযায়ী মক পাথ tools.code.safe_executor করা হলো।
+        with patch.dict("sys.modules", {"tools.code.safe_executor": fake_module}, clear=False):
             result = r._verify_execution({"exec_code": "x = 1"})
         assert result["success"] is True
 

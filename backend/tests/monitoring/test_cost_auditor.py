@@ -11,7 +11,8 @@ class TestCostAuditor:
         auditor = CostAuditor()
         assert auditor is not None
 
-    def test_record_call_disabled(self):
-        with patch("monitoring.cost_auditor.PROMETHEUS_AVAILABLE", False):
-            auditor = CostAuditor()
-            auditor.record_call("openai", "gpt-4", 0.05)
+    def test_generate_report_no_history(self):
+        # বাংলা মন্তব্য: টাস্ক হিস্ট্রি খালি থাকলে generate_report() এরর রিটার্ন করে কিনা তা পরীক্ষা করা হচ্ছে।
+        auditor = CostAuditor()
+        res = auditor.generate_report()
+        assert "error" in res

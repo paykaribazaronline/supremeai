@@ -18,8 +18,8 @@ class ProxyManager:
         self._load_proxies()
 
     def _load_proxies(self) -> None:
-        # বাংলা মন্তব্য: পরিবেশের ভেরিয়েবল বা কনফিগ ফাইল থেকে প্রক্সি লিস্ট লোড করার লজিক
-        env_proxies = getattr(settings, "supremeai_proxies", None) or getattr(settings, "supremeai_proxies", None)
+        # বাংলা মন্তব্য: সেটিংস ও পরিবেশ ভেরিয়েবল উভয়ের ফলব্যাক প্রক্সি রিড করার জন্য অস.এনভাইরন যোগ করা হলো।
+        env_proxies = getattr(settings, "supremeai_proxies", None) or os.environ.get("SUPREMEAI_PROXIES")
         if env_proxies:
             self.proxies = [p.strip() for p in env_proxies.split(",") if p.strip()]
             logger.info(f"Loaded {len(self.proxies)} proxies from environment.")

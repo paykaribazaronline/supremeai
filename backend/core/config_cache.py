@@ -105,10 +105,19 @@ class ConfigCache:
                     return configs
 
             try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                configs = loop.run_until_complete(_async_load())
-                loop.close()
+                try:
+                    # বাংলা মন্তব্য: রানিং লুপ থাকলে থ্রেড পুলে রান করিয়ে ব্লক করা এড়ানো হচ্ছে।
+                    loop = asyncio.get_running_loop()
+                    import concurrent.futures
+                    with concurrent.futures.ThreadPoolExecutor() as executor:
+                        future = executor.submit(lambda: asyncio.run(_async_load()))
+                        configs = future.result()
+                except RuntimeError:
+                    # No running loop, safe to create and run on current thread
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    configs = loop.run_until_complete(_async_load())
+                    loop.close()
                 logger.info(f"ConfigCache: Loaded {len(configs)} configs from DB")
             except RuntimeError as e:
                 logger.exception(f"❌ Critical task failure in config_cache.py: {e}")
