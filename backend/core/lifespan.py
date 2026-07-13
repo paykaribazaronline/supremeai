@@ -179,7 +179,8 @@ async def app_lifespan(app):
         # sys.exit(1) রিমুভ করা হলো যাতে ক্লাউড রান হেলথ চেক পাস করতে পারে
 
     try:
-        await redis_manager.initialize()
+        # SecureRedisManager is initialized synchronously in __init__.
+        # Just check if the client is connected.
         if getattr(redis_manager, "client", None):
             await redis_manager.client.ping()
             logger.info("✅ Redis connection verified successfully.")
@@ -201,7 +202,6 @@ async def app_lifespan(app):
     try:
         orch_inst = Orchestrator()
         app.state.orchestrator = orch_inst
-        await orch_inst.start()
         logger.info("⚙️ Orchestrator background tasks initialized successfully.")
     except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to initialize Orchestrator: {e}")
@@ -247,10 +247,9 @@ async def app_lifespan(app):
 
     try:
         orchestrator = getattr(app.state, "orchestrator", None)
-        if orchestrator:
-            await orchestrator.stop()
+        # Orchestrator does not have a background loop to stop
     except Exception as e:  # noqa: BLE001
-        logger.error(f"Error closing Orchestrator: {e}")
+        logger.error(f"Error during graceful shutdown: {e}")
         error_event_bus.emit(
             ErrorEvent(
                 module="lifespan",
