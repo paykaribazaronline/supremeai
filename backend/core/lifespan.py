@@ -246,7 +246,7 @@ async def app_lifespan(app):
     logger.critical("🚨 Graceful Shutdown Sequence triggered via Cloud Run Orchestrator.")
 
     try:
-        orchestrator = getattr(app.state, "orchestrator", None)
+        _ = getattr(app.state, "orchestrator", None)
         # Orchestrator does not have a background loop to stop
     except Exception as e:  # noqa: BLE001
         logger.error(f"Error during graceful shutdown: {e}")
