@@ -79,7 +79,11 @@ class ProductionSecretVault:
         """Fallback to environment variable. In production, this is disallowed."""
         env_fallback = os.getenv(secret_id, default)
         if env_fallback is None:
-            raise RuntimeError(f"Secret '{secret_id}' not found in Infisical and no env fallback provided! Fail-closed triggered.")
+            if self.env in ("test", "testing", "ci", "local"):
+                logger.warning(f"⚠️ Mocking missing secret '{secret_id}' for {self.env} environment.")
+                env_fallback = f"mock_{secret_id}"
+            else:
+                raise RuntimeError(f"Secret '{secret_id}' not found in Infisical and no env fallback provided! Fail-closed triggered.")
         self._cached_secrets[secret_id] = env_fallback
         return env_fallback
 
