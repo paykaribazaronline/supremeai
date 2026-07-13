@@ -1,3 +1,4 @@
+# FILE_PATH: /home/runner/work/supremeai/supremeai/backend/core/app.py
 """This module serves as the central bootstrapping and configuration point for the SupremeAI FastAPI application. It initializes the core FastAPI instance, applies essential middleware for security, observability, and resilience, configures logging and error tracking, and dynamically loads all API routers, ensuring a robust, production-ready, and fail-fast backend ecosystem for the highly scalable AI project.
 
 Key Components:
@@ -332,7 +333,12 @@ core_routers = [
     ("api.routes.preferences", ""),
     ("api.routes.usage_metrics", ""),
     ("api.routes.sso", ""),
-    ("api.routes.health", ""),
+    # The 'api.routes.health' router causes a RecursionError in 'core.services.py'
+    # due to a circular import related to 'registry' within the 'core.services' module itself.
+    # Until 'core.services.py' is fixed to correctly define 'registry' without self-recursion,
+    # this router must be excluded to prevent application startup failure.
+    # The application's core health endpoints are already provided by the 'health()' and 'actuator_health()' functions.
+    # ("api.routes.health", ""),
     ("api.routes.api_keys", ""),
     ("api.routes.ci_webhooks", ""),
     ("api.routes.task_workspace", "/api/v1"),
