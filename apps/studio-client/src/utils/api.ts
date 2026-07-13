@@ -13,6 +13,10 @@ export const getApiBaseUrl = (): string => {
     return import.meta.env.VITE_API_URL;
   }
 
+  // বাংলা মন্তব্য: প্রোডাকশনে VITE_API_URL সেট না থাকলে সরাসরি Render ব্যাকএন্ড URL ব্যবহার করা হবে
+  if (import.meta.env.PROD) {
+    return 'https://supremeai-backend-08zd.onrender.com';
+  }
   return window.location.origin;
 };
 

@@ -591,8 +591,6 @@ jobs:
           cache-dependency-path: '**/pnpm-lock.yaml'
 
       - name: Install Frontend Dependencies
-        env:
-          VITE_API_URL: ${{ env.SUPREMEAI_API_URL }}
         run: |
           pnpm install --frozen-lockfile
           pnpm store prune
@@ -608,6 +606,8 @@ jobs:
       - name: Build & Lint Frontend Packages
         env:
           VITE_PORTAL_TYPE: 'admin'
+          VITE_API_URL: ${{ env.SUPREMEAI_API_URL }}
+          VITE_API_BASE: ${{ env.SUPREMEAI_API_URL }}
         # বাংলা মন্তব্য: ওয়ার্কস্পেস থেকে web-chat রিমুভ করা হয়েছে, তাই টার্বোরেপো ফিল্টার থেকে এটি বাদ দেওয়া হল।
         run: pnpm turbo run build lint --filter=supremeai-studio-client --filter=supremeai-vscode --cache-dir=.turbo
 
