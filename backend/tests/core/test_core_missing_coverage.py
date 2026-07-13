@@ -557,7 +557,6 @@ class TestSwarmOrchestratorMissingBranches:
         cb = CircuitBreaker(failure_threshold=2, recovery_timeout=0.1)
 
         async def failing():
-
             raise RuntimeError("fail")
 
         with pytest.raises(RuntimeError):
@@ -578,7 +577,6 @@ class TestSwarmOrchestratorMissingBranches:
         cb = CircuitBreaker(failure_threshold=1, recovery_timeout=0.05)
 
         async def failing():
-
             raise RuntimeError("fail")
 
         with pytest.raises(RuntimeError):

@@ -7,6 +7,7 @@ CI/CD অপারেশন (Issue, PR, Auto-fix) সরাসরে চ্য�
 """
 
 from core.config import settings
+
 # বাংলা মন্তব্য: পরিবেশের ভেরিয়েবল চেক করার জন্য os মডিউল ইমপোর্ট করা হলো
 import os
 import json
@@ -31,7 +32,6 @@ def _get_github_token() -> str:
     """Get the current GitHub token from environment variables."""
     # বাংলা মন্তব্য: settings-এ টোকেন না থাকলে os.environ থেকে রিড করা হবে
     return getattr(settings, "github_token", "") or os.environ.get("GITHUB_TOKEN", "")
-
 
 
 class ResponseFormat(StrEnum):

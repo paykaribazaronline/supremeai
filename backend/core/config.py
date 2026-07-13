@@ -185,7 +185,6 @@ class Settings(BaseSettings):
 
     _cached_secrets: dict[str, str] = PrivateAttr(default_factory=dict)
 
-
     def _get_cached_secret(self, key: str) -> str:
         # বাংলা মন্তব্য: lazy cache — প্রতিটি secret একবারই fetch হয়।
         if key not in self._cached_secrets:

@@ -7,6 +7,7 @@ MCP Server for Supabase/Postgres Database Integration in SupremeAI 2.0.
 """
 
 from core.config import settings
+
 # বাংলা মন্তব্য: পরিবেশের ভেরিয়েবল চেক করার জন্য os মডিউল ইমপোর্ট করা হলো
 import os
 import json
@@ -24,12 +25,7 @@ CHARACTER_LIMIT = 25000
 
 def _get_supabase_db_url() -> str:
     # বাংলা মন্তব্য: settings-এ না থাকলে os.environ থেকে SUPABASE_DATABASE_URL চেক করা হবে যা টেস্ট কেসগুলোর জন্য জরুরী।
-    return (
-        getattr(settings, "supabase_database_url", "")
-        or os.environ.get("SUPABASE_DATABASE_URL", "")
-        or os.environ.get("DATABASE_URL", "")
-    )
-
+    return getattr(settings, "supabase_database_url", "") or os.environ.get("SUPABASE_DATABASE_URL", "") or os.environ.get("DATABASE_URL", "")
 
 
 class ResponseFormat(StrEnum):
@@ -129,13 +125,11 @@ async def supabase_execute_sql(params: ExecuteQueryInput) -> str:
     """
     # বাংলা মন্তব্য: settings-এ না থাকলে os.environ থেকে ADMIN_AUTHORIZED চেক করা হবে যা টেস্টে ব্যবহৃত হয়
     admin_authorized = (
-        getattr(settings, "admin_authorized", "false").lower() == "true"
-        or os.environ.get("ADMIN_AUTHORIZED", "false").lower() == "true"
+        getattr(settings, "admin_authorized", "false").lower() == "true" or os.environ.get("ADMIN_AUTHORIZED", "false").lower() == "true"
     )
     # বাংলা মন্তব্য: কেবলমাত্র সত্যিকারের ডেস্ট্রাকটিভ অপারেশনগুলো চেক করা হচ্ছে
     destructive_keywords = ["drop", "delete", "truncate", "alter"]
     if not admin_authorized and any(kw in params.query.lower() for kw in destructive_keywords):
-
         return json.dumps(
             {"error": "Admin authorization required for destructive operations", "message": "Set ADMIN_AUTHORIZED=true in environment"},
             ensure_ascii=False,
@@ -226,12 +220,10 @@ async def supabase_create_table(params: CreateTableInput) -> str:
     """
     # বাংলা মন্তব্য: settings-এ না থাকলে os.environ থেকে ADMIN_AUTHORIZED চেক করা হবে যা টেস্টে ব্যবহৃত হয়
     admin_authorized = (
-        getattr(settings, "admin_authorized", "false").lower() == "true"
-        or os.environ.get("ADMIN_AUTHORIZED", "false").lower() == "true"
+        getattr(settings, "admin_authorized", "false").lower() == "true" or os.environ.get("ADMIN_AUTHORIZED", "false").lower() == "true"
     )
     if not admin_authorized:
         return json.dumps({"error": "Admin authorization required for table creation"}, ensure_ascii=False)
-
 
     if not _get_supabase_db_url():
         return json.dumps({"error": "SUPABASE_DATABASE_URL not configured"}, ensure_ascii=False)
@@ -300,8 +292,7 @@ async def supabase_run_migration(params: MigrationInput) -> str:
     """
     # বাংলা মন্তব্য: settings-এ না থাকলে os.environ থেকে ADMIN_AUTHORIZED চেক করা হবে যা টেস্টে ব্যবহৃত হয়
     admin_authorized = (
-        getattr(settings, "admin_authorized", "false").lower() == "true"
-        or os.environ.get("ADMIN_AUTHORIZED", "false").lower() == "true"
+        getattr(settings, "admin_authorized", "false").lower() == "true" or os.environ.get("ADMIN_AUTHORIZED", "false").lower() == "true"
     )
     if not admin_authorized:
         return json.dumps({"error": "Admin authorization required for migrations"}, ensure_ascii=False)

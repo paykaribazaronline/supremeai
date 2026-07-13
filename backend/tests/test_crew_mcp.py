@@ -75,15 +75,10 @@ class SwarmOrchestrator:
         self.agents = agents
 
     def execute_swarm(self, tasks):
-        return {
-            task.description: task.agent.model_router.route_and_generate()["text"]
-            for task in tasks
-        }
+        return {task.description: task.agent.model_router.route_and_generate()["text"] for task in tasks}
 
 
 def test_swarm_orchestrator():
-
-
     mock_router = MagicMock()
     mock_router.route_and_generate.return_value = {"text": "swarm response"}
 

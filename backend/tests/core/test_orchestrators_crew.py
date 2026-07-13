@@ -46,7 +46,6 @@ async def test_qa_agent_verify_blocks_dangerous_code(workspace, monkeypatch):
     assert "Security" in workspace.test_results.get("error", "")
 
 
-
 @pytest.mark.asyncio
 async def test_qa_agent_verify_passes_clean_code(workspace, monkeypatch):
     from core.orchestration import crew_departments as mod
