@@ -1,6 +1,9 @@
 # বাংলা মন্তব্য: টেস্ট ও মকিং সহজ করার জন্য সাবমডিউলগুলোকে কোর নেমস্পেসে এক্সপোজ এবং sys.modules এ রেজিস্টার করা হলো
 import sys
 
+from core import evolution
+from core.evolution import auto_skill_creator
+from core.evolution import self_evolution_agent
 from core.llm import free_tier_tracker
 from core.llm import llm_gateway
 from core.messaging import event_bus
@@ -12,9 +15,7 @@ from core.orchestration import agent_orchestrator
 from core.orchestration import swarm_orchestrator
 from core.security import auth_middleware
 from core.security import security_vault
-from core import evolution
-from core.evolution import auto_skill_creator
-from core.evolution import self_evolution_agent
+
 
 sys.modules["core.event_bus"] = event_bus
 sys.modules["core.swarm_orchestrator"] = swarm_orchestrator
