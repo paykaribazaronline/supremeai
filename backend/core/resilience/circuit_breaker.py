@@ -74,10 +74,16 @@ class CircuitBreaker:
             raw = self.redis_queue.get(f"{self._key_prefix}:state")
             if raw:
                 data = json.loads(raw)
-                self.failures = int(data.get("failures", 0))
                 self.state = data.get("state", "CLOSED")
                 self.opened_at = data.get("opened_at")
                 self.last_failure_at = data.get("last_failure_at")
+
+            # Read atomic failures count
+            failures_raw = self.redis_queue.get(f"{self._key_prefix}:failures")
+            if failures_raw:
+                self.failures = int(failures_raw)
+            else:
+                self.failures = data.get("failures", 0) if raw else 0
         except SPECIFIC_EXCEPTIONS as exc:
             # বাংলা মন্তব্য: রেডিস থেকে স্টেট রিস্টোর করার সময় নির্দিষ্ট এররগুলো ক্যাচ করা হয়েছে
             # সমস্যা ট্র্যাক করার জন্য নরমালি ডিবাগ লগ করা হল যত রেডিস সমস্যা দশযমন থাকে
@@ -88,7 +94,6 @@ class CircuitBreaker:
             return
         try:
             data = {
-                "failures": self.failures,
                 "state": self.state,
                 "opened_at": self.opened_at,
                 "last_failure_at": self.last_failure_at,
@@ -127,6 +132,14 @@ class CircuitBreaker:
         self.state = "CLOSED"
         self.opened_at = None
         self.last_failure_at = None
+
+        # Reset failures in redis
+        if self.redis_queue and getattr(self.redis_queue, "configured", False):
+            try:
+                self.redis_queue.delete(f"{self._key_prefix}:failures")
+            except SPECIFIC_EXCEPTIONS as exc:
+                logger.debug(f"CircuitBreaker redis delete failed: {exc}")
+
         self._persist_to_redis()
 
     def mark_failure(self) -> None:
@@ -134,7 +147,18 @@ class CircuitBreaker:
             self._half_open_in_flight = max(0, self._half_open_in_flight - 1)
         now = time.time()
         self.last_failure_at = now
-        self.failures += 1
+
+        # Increment failures atomically via Redis to prevent race conditions
+        if self.redis_queue and getattr(self.redis_queue, "configured", False):
+            try:
+                self.failures = self.redis_queue.incr(f"{self._key_prefix}:failures")
+                self.redis_queue.expire(f"{self._key_prefix}:failures", 600)
+            except SPECIFIC_EXCEPTIONS as exc:
+                logger.debug(f"CircuitBreaker redis INCR failed: {exc}")
+                self.failures += 1
+        else:
+            self.failures += 1
+
         if self.failures >= self.failure_threshold and self.state != "OPEN":
             self.state = "OPEN"
             self.opened_at = now

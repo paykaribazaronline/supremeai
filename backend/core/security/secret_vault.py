@@ -78,12 +78,10 @@ class ProductionSecretVault:
     def _fallback_to_env(self, secret_id: str, default: str | None) -> str:
         """Fallback to environment variable. In production, this is disallowed."""
         env_fallback = os.getenv(secret_id, default)
-        if self.env == "production" and env_fallback is None:
-            raise RuntimeError(f"Secret '{secret_id}' not found in Infisical and no fallback allowed in production!")
-        if env_fallback is not None:
-            self._cached_secrets[secret_id] = env_fallback
-            return env_fallback
-        return ""
+        if env_fallback is None:
+            raise RuntimeError(f"Secret '{secret_id}' not found in Infisical and no env fallback provided! Fail-closed triggered.")
+        self._cached_secrets[secret_id] = env_fallback
+        return env_fallback
 
     async def fetch_secret_async(self, secret_id: str) -> str:
         """অ্যাসিঙ্ক ইভেন্ট লুপ ব্লক না করে সিক্রেট ফেচ করার মেথড"""

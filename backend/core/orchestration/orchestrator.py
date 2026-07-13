@@ -63,7 +63,8 @@ class Orchestrator:
 
                 await asyncio.to_thread(run_budget_guardian_check)
             except Exception as exc:  # noqa: BLE001
-                logger.warning(f"Budget guardian not available. Skipping: {exc}")
+                logger.critical(f"🔥 CRITICAL: Budget guardian failed to load or execute! Enforcing Fail-Closed. Error: {exc}")
+                raise RuntimeError("Budget Guardian failure. Halting orchestrator to prevent financial bleed.") from exc
 
         self._tasks.append(_run_budget_guardian)
         logger.info("Budget guardian task added to orchestrator")
