@@ -57,7 +57,8 @@ def test_breaker_call_success_and_failure():
             asyncio.run(breaker.call(bad))
 
     assert breaker.state == "OPEN"
-    with pytest.raises(RuntimeError, match="open"):
+    # বাংলা মন্তব্য: সার্কিট ব্রেকার মেসেজে OPEN বড় হাতের থাকায় ম্যাচ প্যাটার্ন পরিবর্তন করা হলো।
+    with pytest.raises(RuntimeError, match="OPEN"):
         asyncio.run(breaker.call(ok))
 
 

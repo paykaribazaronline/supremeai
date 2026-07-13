@@ -7,6 +7,8 @@ MCP Server for Cloud Deployment Integration in SupremeAI 2.0.
 """
 
 from core.config import settings
+# বাংলা মন্তব্য: পরিবেশের ভেরিয়েবল চেক করার জন্য os মডিউল ইমপোর্ট করা হলো
+import os
 import json
 import re
 from enum import StrEnum
@@ -27,15 +29,19 @@ CHARACTER_LIMIT = 25000
 
 
 def _get_render_api_key() -> str:
-    return getattr(settings, "render_api_key", "") or getattr(settings, "render_api_key", "")
+    # বাংলা মন্তব্য: settings-এ না থাকলে os.environ থেকে RENDER_API_KEY চেক করা হবে
+    return getattr(settings, "render_api_key", "") or os.environ.get("RENDER_API_KEY", "")
 
 
 def _get_railway_token() -> str:
-    return getattr(settings, "railway_token", "") or getattr(settings, "railway_token", "")
+    # বাংলা মন্তব্য: settings-এ না থাকলে os.environ থেকে RAILWAY_TOKEN চেক করা হবে
+    return getattr(settings, "railway_token", "") or os.environ.get("RAILWAY_TOKEN", "")
 
 
 def _get_oracle_api_key() -> str:
-    return getattr(settings, "oracle_cloud_api_key", "") or getattr(settings, "oracle_cloud_api_key", "")
+    # বাংলা মন্তব্য: settings-এ না থাকলে os.environ থেকে ORACLE_CLOUD_API_KEY চেক করা হবে
+    return getattr(settings, "oracle_cloud_api_key", "") or os.environ.get("ORACLE_CLOUD_API_KEY", "")
+
 
 
 def _get_oracle_region() -> str:

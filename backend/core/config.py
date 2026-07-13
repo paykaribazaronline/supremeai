@@ -180,8 +180,11 @@ class Settings(BaseSettings):
     firecracker_path: str = Field(default="/usr/bin/firecracker", validation_alias="FIRECRACKER_PATH")
     gvisor_path: str = Field(default="/usr/bin/runsc", validation_alias="GVISOR_PATH")
     allow_sandbox_fallback: bool = Field(default=False, validation_alias="ALLOW_SANDBOX_FALLBACK")
+    # বাংলা মন্তব্য: local_code_executor ও docker_sandbox-এর লোকাল ফলব্যাকের জন্য settings ভেরিয়েবল যোগ করা হলো।
+    allow_local_sandbox_fallback: str = Field(default="false", validation_alias="ALLOW_LOCAL_SANDBOX_FALLBACK")
 
     _cached_secrets: dict[str, str] = PrivateAttr(default_factory=dict)
+
 
     def _get_cached_secret(self, key: str) -> str:
         # বাংলা মন্তব্য: lazy cache — প্রতিটি secret একবারই fetch হয়।

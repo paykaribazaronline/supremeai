@@ -117,6 +117,7 @@ async def stripe_webhook_endpoint(request: Request):
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
         return {"status": "success", "event_type": event.get("type")}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.error(f"Webhook signature verification failed: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+        # বাংলা মন্তব্য: এক্সেপশন চেইনিং বজায় রেখে HTTPException রেইজ করা হলো
+        raise HTTPException(status_code=400, detail=str(e)) from e

@@ -16,3 +16,5 @@ We use Python 3.11+, Poetry, Ruff, MyPy, and pytest.
 
 Multi-Model Validator is used to validate LLM responses.
 Autocache is used for performance optimization.
+Codegraph mapping is used for structural dependency checks and code navigation.
+AI Agent orchestrator handles dynamic task execution.

@@ -16,6 +16,8 @@ Setup:
 """
 
 from __future__ import annotations
+# বাংলা মন্তব্য: ওএস মডিউল ইম্পোর্ট করা হলো যাতে os.environ ঠিকমত কাজ করে
+import os
 from core.config import settings
 
 import asyncio
