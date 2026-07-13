@@ -12,7 +12,9 @@ from core.orchestration import agent_orchestrator
 from core.orchestration import swarm_orchestrator
 from core.security import auth_middleware
 from core.security import security_vault
-
+from core import evolution
+from core.evolution import auto_skill_creator
+from core.evolution import self_evolution_agent
 
 sys.modules["core.event_bus"] = event_bus
 sys.modules["core.swarm_orchestrator"] = swarm_orchestrator
@@ -25,6 +27,9 @@ sys.modules["core.free_tier_tracker"] = free_tier_tracker
 sys.modules["core.posthog_client"] = posthog_client
 sys.modules["core.telemetry"] = telemetry
 sys.modules["core.security_vault"] = security_vault
+sys.modules["evolution"] = evolution
+sys.modules["evolution.auto_skill_creator"] = auto_skill_creator
+sys.modules["evolution.self_evolution_agent"] = self_evolution_agent
 
 __all__ = [
     "event_bus",
