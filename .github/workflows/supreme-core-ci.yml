@@ -958,7 +958,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
-          path: apps/studio-client/dist-admin
+          path: .
 
       - name: 🌐 Deploy to Firebase
         run: |
