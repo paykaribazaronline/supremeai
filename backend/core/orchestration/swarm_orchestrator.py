@@ -15,6 +15,7 @@ from core.orchestration.crew_departments import ResearchAgent
 from core.orchestration.crew_departments import ToolExecutorAgent
 from core.orchestration.crew_departments import ToolSynthesizerAgent
 from core.resilience.circuit_breaker import CircuitBreaker
+from core.resilience.circuit_breaker import CircuitBreakerOpenError
 from core.skill_manager import skill_manager
 from core.skills.core_skills import SystemDesignSkill
 from models.shared_workspace import SharedWorkspace
@@ -177,8 +178,7 @@ class MorphicOrchestrator:
 
         except Exception as e:  # noqa: BLE001
             # বাংলা মন্তব্য: অর্কেস্ট্রেটরের টপ-লেভেলে সব এরর ক্যাচ করার জন্য Exception ব্যবহার করা হয়েছে।
-            from core.resilience.circuit_breaker import CircuitBreakerOpenError
-
+            # CircuitBreakerOpenError is already imported at the top, no need for local import.
             if isinstance(e, CircuitBreakerOpenError) or "is OPEN" in str(e):
                 workspace.log(f"MorphicOrchestrator: Circuit breaker OPEN — {e}")
                 workspace.add_error(str(e))
