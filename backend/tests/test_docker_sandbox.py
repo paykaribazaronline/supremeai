@@ -80,6 +80,7 @@ def test_execute_command_local_fallback_success(sandbox, monkeypatch):
     """ডকার না থাকলে লোকাল ফলব্যাক মোডে কমান্ড সফলভাবে চলে কিনা তা পরীক্ষা করে।"""
     # বাংলা মন্তব্য: settings-এ allow_local_sandbox_fallback ট্রু এবং এনভায়রনমেন্ট ডেভেলপমেন্ট সেট করা হচ্ছে
     from core.config import settings
+
     monkeypatch.setattr(settings, "allow_local_sandbox_fallback", "true")
     monkeypatch.setattr(settings, "env", "development")
 
@@ -97,6 +98,7 @@ def test_execute_command_local_fallback_failure(sandbox, monkeypatch):
     """লোকাল ফলব্যাক মোডে কমান্ড ব্যর্থ হলে সঠিকভাবে রিপোর্ট করে কিনা তা পরীক্ষা করে।"""
     # বাংলা মন্তব্য: settings-এ allow_local_sandbox_fallback ট্রু এবং এনভায়রনমেন্ট ডেভেলপমেন্ট সেট করা হচ্ছে
     from core.config import settings
+
     monkeypatch.setattr(settings, "allow_local_sandbox_fallback", "true")
     monkeypatch.setattr(settings, "env", "development")
 
@@ -116,6 +118,7 @@ def test_execute_command_local_fallback_timeout(sandbox, monkeypatch):
     """লোকাল ফলব্যাক মোডে কমান্ড টাইমআউট হলে সঠিকভাবে রিপোর্ট করে কিনা তা পরীক্ষা করে।"""
     # বাংলা মন্তব্য: settings-এ allow_local_sandbox_fallback ট্রু এবং এনভায়রনমেন্ট ডেভেলপমেন্ট সেট করা হচ্ছে
     from core.config import settings
+
     monkeypatch.setattr(settings, "allow_local_sandbox_fallback", "true")
     monkeypatch.setattr(settings, "env", "development")
 
@@ -132,6 +135,7 @@ def test_execute_command_local_fallback_timeout(sandbox, monkeypatch):
 def test_execute_command_no_fallback_in_prod(sandbox, env, monkeypatch):
     """প্রোডাকশন পরিবেশে ডকার ছাড়া লোকাল ফলব্যাক ব্লক করা হচ্ছে কিনা তা পরীক্ষা করে।"""
     from core.config import settings
+
     monkeypatch.setattr(settings, "allow_local_sandbox_fallback", "false")
     monkeypatch.setattr(settings, "env", env)
 
@@ -145,6 +149,7 @@ def test_execute_command_no_fallback_in_prod(sandbox, env, monkeypatch):
 def test_execute_command_no_fallback_if_disallowed(sandbox, monkeypatch):
     """ALLOW_LOCAL_SANDBOX_FALLBACK=false হলে লোকাল ফলব্যাক কাজ করে না, তা পরীক্ষা করে।"""
     from core.config import settings
+
     monkeypatch.setattr(settings, "allow_local_sandbox_fallback", "false")
     monkeypatch.setattr(settings, "env", "development")
 

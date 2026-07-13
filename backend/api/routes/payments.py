@@ -96,6 +96,7 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
 @router.get("/plans")
 async def get_plans():
     from core.billing_plans import SUBSCRIPTION_PLANS
+
     return {"plans": SUBSCRIPTION_PLANS}
 
 

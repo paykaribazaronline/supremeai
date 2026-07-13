@@ -121,7 +121,6 @@ function optimizedLoop(uint256 n) public pure returns (uint256) {
     assert "optimized" in result.get("optimized_contract").lower()
 
 
-
 @pytest.mark.anyio
 async def test_generate_tests(mock_blockchain):
     # বাংলা মন্তব্য: Hardhat/Foundry test suite জেনারেশন টেস্ট

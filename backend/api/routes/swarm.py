@@ -3,6 +3,7 @@ import logging
 import uuid
 from typing import Any
 
+from engine.swarm_orchestrator import SwarmOrchestrator
 from fastapi import APIRouter
 from fastapi import BackgroundTasks
 from fastapi import HTTPException
@@ -13,7 +14,6 @@ from sse_starlette.sse import EventSourceResponse
 
 from core.swarm_pubsub import swarm_streamer
 from engine.forge_compiler import ForgeCompiler
-from engine.swarm_orchestrator import SwarmOrchestrator
 
 
 logger = logging.getLogger(__name__)

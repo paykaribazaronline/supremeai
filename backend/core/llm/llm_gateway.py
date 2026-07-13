@@ -208,7 +208,6 @@ class LLMGateway:
 
         return call_chain
 
-
     async def acompletion(
         self,
         prompt: str | list[dict[str, Any]] | None = None,

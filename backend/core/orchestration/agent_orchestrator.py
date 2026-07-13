@@ -297,7 +297,6 @@ class AsyncTaskManager:
         return self._local_tasks
 
 
-
 async_task_manager = AsyncTaskManager()
 
 
