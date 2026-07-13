@@ -40,7 +40,9 @@ LICENSE
 apps/
 packages/
 tools/
-skills/
+# বাংলা মন্তব্য: skills/ ইচ্ছাকৃতভাবে এখানে অন্তর্ভুক্ত রাখা হয়েছে —
+# core/evolution/auto_skill_creator.py রানটাইমে এটি ইম্পোর্ট করে।
+# skills/
 evolution/
 admin/
 scripts/
