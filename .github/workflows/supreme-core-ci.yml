@@ -607,7 +607,8 @@ jobs:
       - name: Build & Lint Frontend Packages
         env:
           VITE_PORTAL_TYPE: 'admin'
-        run: pnpm turbo run build lint --filter=supremeai-studio-client --filter=@supremeai/web-chat --filter=supremeai-vscode --cache-dir=.turbo
+        # বাংলা মন্তব্য: ওয়ার্কস্পেস থেকে web-chat রিমুভ করা হয়েছে, তাই টার্বোরেপো ফিল্টার থেকে এটি বাদ দেওয়া হল।
+        run: pnpm turbo run build lint --filter=supremeai-studio-client --filter=supremeai-vscode --cache-dir=.turbo
 
       - name: 🩹 Inline Frontend Auto-Fix (On Failure)
         if: failure()
