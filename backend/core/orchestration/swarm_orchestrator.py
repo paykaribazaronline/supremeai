@@ -1,3 +1,4 @@
+# FILE_PATH: /home/runner/work/supremeai/supremeai/backend/core/orchestration/swarm_orchestrator.py
 # Multi-Agent Swarm Orchestrator Engine
 # বাংলা মন্তব্য: মাল্টি-এজেন্ট সিকোয়েন্সিয়াল সোয়ার্ম কোঅর্ডিনেটর ও টাস্ক রানার।
 
@@ -15,6 +16,7 @@ from core.orchestration.crew_departments import ResearchAgent
 from core.orchestration.crew_departments import ToolExecutorAgent
 from core.orchestration.crew_departments import ToolSynthesizerAgent
 from core.resilience.circuit_breaker import CircuitBreaker
+from core.resilience.circuit_breaker import CircuitBreakerOpenError
 from core.skill_manager import skill_manager
 from core.skills.core_skills import SystemDesignSkill
 from models.shared_workspace import SharedWorkspace
@@ -177,8 +179,7 @@ class MorphicOrchestrator:
 
         except Exception as e:  # noqa: BLE001
             # বাংলা মন্তব্য: অর্কেস্ট্রেটরের টপ-লেভেলে সব এরর ক্যাচ করার জন্য Exception ব্যবহার করা হয়েছে।
-            from core.resilience.circuit_breaker import CircuitBreakerOpenError
-
+            # CircuitBreakerOpenError is now imported at the module level
             if isinstance(e, CircuitBreakerOpenError) or "is OPEN" in str(e):
                 workspace.log(f"MorphicOrchestrator: Circuit breaker OPEN — {e}")
                 workspace.add_error(str(e))
