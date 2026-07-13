@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 """
 Provides the `AutoSkillCreator` class, the core of the SupremeAI self-evolution engine.
 
