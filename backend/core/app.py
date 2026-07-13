@@ -151,6 +151,7 @@ app = FastAPI(
     openapi_url="/openapi.json" if docs_enabled else None,
 )
 
+
 # Protect docs endpoints with basic auth if enabled
 @app.middleware("http")
 async def basic_auth_for_docs_middleware(request: Request, call_next):
@@ -165,6 +166,7 @@ async def basic_auth_for_docs_middleware(request: Request, call_next):
                     headers={"WWW-Authenticate": "Basic"},
                 )
             import base64
+
             try:
                 decoded = base64.b64decode(auth[6:]).decode("utf-8")
                 username, password = decoded.split(":", 1)
