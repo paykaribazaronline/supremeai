@@ -511,6 +511,8 @@ class TestKnowledgeBaseMissingBranches:
 
 class TestSecurityVaultModuleInit:
     def test_module_raises_without_encryption_key(self, monkeypatch):
+        # বাংলা মন্তব্য: নতুন STRICT_ENCRYPTION_CHECK ফ্ল্যাগ সেট করে এক্সেপশন রেইজ পাথটি টেস্ট করা হচ্ছে।
+        monkeypatch.setenv("STRICT_ENCRYPTION_CHECK", "true")
         monkeypatch.delenv("ENCRYPTION_KEY", raising=False)
         monkeypatch.delenv("SUPREMEAI_ENCRYPTION_KEY", raising=False)
 
@@ -518,7 +520,8 @@ class TestSecurityVaultModuleInit:
         monkeypatch.delitem(sys.modules, "core.security.security_vault", raising=False)
 
         with pytest.raises(ValueError, match="CRITICAL: ENCRYPTION_KEY"):
-            import core.security_vault  # noqa: F401
+            import core.security.security_vault  # noqa: F401
+
 
 
 # ========================== swarm_orchestrator.py ==========================

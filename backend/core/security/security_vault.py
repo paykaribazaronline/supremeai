@@ -11,15 +11,19 @@ from core.messaging.event_bus import error_event_bus
 # তবে ENCRYPTION_KEY যেন settings থেকে আসে তা নিশ্চিত করতে হবে, আপাতত os.environ.get ব্যবহার করলেও fail-fast আছে।
 ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY")
 if not ENCRYPTION_KEY:
-    error_event_bus.emit(
-        ErrorEvent(
-            module="security_vault",
-            error_type="MISSING_ENCRYPTION_KEY",
-            message="ENCRYPTION_KEY environment variable is missing",
-            severity="CRITICAL",
+    # বাংলা মন্তব্য: টেস্ট ও সিআই পরিবেশে ক্র্যাশ এড়াতে একটি ডামি/এফেমেরাল কী জেনারেট করা হচ্ছে, তবে প্রোডাকশনে ফেইল-ফাস্ট থাকবে।
+    if (os.environ.get("ENV") == "test" or os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true") and os.environ.get("STRICT_ENCRYPTION_CHECK") != "true":
+        ENCRYPTION_KEY = Fernet.generate_key().decode("utf-8")
+    else:
+        error_event_bus.emit(
+            ErrorEvent(
+                module="security_vault",
+                error_type="MISSING_ENCRYPTION_KEY",
+                message="ENCRYPTION_KEY environment variable is missing",
+                severity="CRITICAL",
+            )
         )
-    )
-    raise ValueError("CRITICAL: ENCRYPTION_KEY environment variable is not set. Halting application for security reasons. Fail-Fast!")
+        raise ValueError("CRITICAL: ENCRYPTION_KEY environment variable is not set. Halting application for security reasons. Fail-Fast!")
 
 fernet = Fernet(ENCRYPTION_KEY.encode("utf-8"))
 
