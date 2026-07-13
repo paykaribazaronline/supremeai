@@ -211,7 +211,8 @@ class TestViralReferralEngine:
         from tools.social.viral_referral_engine import ViralReferralEngine
 
         engine = ViralReferralEngine()
-        with patch("tools.viral_referral_engine.db") as mock_db:
+        # বাংলা মন্তব্য: মডিউলের সঠিক পাথ (tools.social.viral_referral_engine) অনুযায়ী মক করা হলো
+        with patch("tools.social.viral_referral_engine.db") as mock_db:
             mock_db.client = None  # Force local store
             with patch.object(engine, "_save_local"), patch.object(engine, "_load_local", return_value={"codes": {}, "wallets": {}}):
                 result = engine.generate_referral_code("user123")
@@ -231,7 +232,8 @@ class TestViralReferralEngine:
         from tools.social.viral_referral_engine import ViralReferralEngine
 
         engine = ViralReferralEngine()
-        with patch("tools.viral_referral_engine.db") as mock_db:
+        # বাংলা মন্তব্য: মডিউলের সঠিক পাথ (tools.social.viral_referral_engine) অনুযায়ী মক করা হলো
+        with patch("tools.social.viral_referral_engine.db") as mock_db:
             mock_db.client = None
             with patch.object(
                 engine,
@@ -262,7 +264,8 @@ class TestViralReferralEngine:
             }
             for i in range(3)
         ]
-        with patch("tools.viral_referral_engine.db") as mock_db:
+        # বাংলা মন্তব্য: মডিউলের সঠিক পাথ (tools.social.viral_referral_engine) অনুযায়ী মক করা হলো
+        with patch("tools.social.viral_referral_engine.db") as mock_db:
             mock_db.client = None
             with patch.object(
                 engine,

@@ -14,10 +14,10 @@ class TestViralReferralEngine:
 
     @pytest.fixture
     def engine(self, tmp_path, monkeypatch):
-        monkeypatch.setattr("tools.viral_referral_engine.db.client", None)
+        monkeypatch.setattr("tools.social.viral_referral_engine.db.client", None)
         mock_settings = MagicMock()
         mock_settings.app_base_url = "https://supremeai.com"
-        monkeypatch.setattr("tools.viral_referral_engine.settings", mock_settings)
+        monkeypatch.setattr("tools.social.viral_referral_engine.settings", mock_settings)
         engine = ViralReferralEngine()
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         return engine
@@ -72,7 +72,7 @@ class TestViralReferralEngine:
         mock_db.table.return_value = mock_table
         mock_table.upsert.return_value.execute.return_value = None
 
-        with patch("tools.viral_referral_engine.db.client", mock_db), patch("tools.viral_referral_engine.settings") as mock_settings:
+        with patch("tools.social.viral_referral_engine.db.client", mock_db), patch("tools.social.viral_referral_engine.settings") as mock_settings:
             mock_settings.app_base_url = "https://supremeai.com"
             result = engine.generate_referral_code("user-123")
         assert result["status"] == "success"
@@ -86,7 +86,7 @@ class TestViralReferralEngine:
         mock_db.table.return_value = mock_table
         mock_table.upsert.side_effect = Exception("DB error")
 
-        with patch("tools.viral_referral_engine.db.client", mock_db), patch("tools.viral_referral_engine.settings") as mock_settings:
+        with patch("tools.social.viral_referral_engine.db.client", mock_db), patch("tools.social.viral_referral_engine.settings") as mock_settings:
             mock_settings.app_base_url = "https://supremeai.com"
             result = engine.generate_referral_code("user-123")
         assert result["status"] == "success"
@@ -106,7 +106,7 @@ class TestViralReferralEngine:
         mock_db.table.return_value = mock_table
         mock_table.select.return_value.eq.return_value.execute.return_value = MagicMock(data=[{"code": "SUPREME-ABC", "referrer_id": "user-456"}])
 
-        with patch("tools.viral_referral_engine.db.client", mock_db):
+        with patch("tools.social.viral_referral_engine.db.client", mock_db):
             codes = engine.list_user_codes("user-456")
         assert len(codes) == 1
         assert codes[0]["code"] == "SUPREME-ABC"
@@ -118,7 +118,7 @@ class TestViralReferralEngine:
         mock_db.table.return_value = mock_table
         mock_table.select.return_value.eq.return_value.execute.side_effect = Exception("DB error")
 
-        with patch("tools.viral_referral_engine.db.client", mock_db):
+        with patch("tools.social.viral_referral_engine.db.client", mock_db):
             codes = engine.list_user_codes("user-456")
         assert codes == []
 
@@ -173,8 +173,8 @@ class TestViralReferralEngine:
         mock_table.insert.return_value.execute.return_value = None
         mock_table.update.return_value.eq.return_value.execute.return_value = None
 
-        with patch("tools.viral_referral_engine.db.client", mock_db):
-            with patch("tools.viral_referral_engine.settings") as mock_settings:
+        with patch("tools.social.viral_referral_engine.db.client", mock_db):
+            with patch("tools.social.viral_referral_engine.settings") as mock_settings:
                 mock_settings.app_base_url = "https://supremeai.com"
                 with patch.object(engine, "_is_fraudulent", return_value=False):
                     with patch.object(engine, "_calculate_reward", return_value={"reward": 10.0, "credit_bonus": 50, "tier": "silver"}):
@@ -219,7 +219,7 @@ class TestViralReferralEngine:
             data=[{"created_at": time.time(), "metadata": {"ip_address": "1.2.3.4"}}] * FRAUD_INDICATOR_THRESHOLD
         )
 
-        with patch("tools.viral_referral_engine.db.client", mock_db):
+        with patch("tools.social.viral_referral_engine.db.client", mock_db):
             result = engine._is_fraudulent("referrer-1", "new-user", {"ip_address": "1.2.3.4"})
         assert result is True
 
@@ -239,7 +239,7 @@ class TestViralReferralEngine:
         mock_db.table.return_value = mock_table
         mock_table.select.return_value.eq.return_value.execute.return_value = MagicMock(count=55)
 
-        with patch("tools.viral_referral_engine.db.client", mock_db):
+        with patch("tools.social.viral_referral_engine.db.client", mock_db):
             reward = engine._calculate_reward("referrer-1")
         assert reward["tier"] == "platinum"
         assert reward["count"] == 55
@@ -254,7 +254,7 @@ class TestViralReferralEngine:
         res.data = [{"id": i} for i in range(55)]
         mock_table.select.return_value.eq.return_value.execute.return_value = res
 
-        with patch("tools.viral_referral_engine.db.client", mock_db):
+        with patch("tools.social.viral_referral_engine.db.client", mock_db):
             reward = engine._calculate_reward("referrer-1")
         assert reward["tier"] == "platinum"
         assert reward["count"] == 55
@@ -276,7 +276,7 @@ class TestViralReferralEngine:
         mock_table.insert.return_value.execute.return_value = None
         mock_table.upsert.return_value.execute.return_value = None
 
-        with patch("tools.viral_referral_engine.db.client", mock_db):
+        with patch("tools.social.viral_referral_engine.db.client", mock_db):
             result = engine._credit_wallet("user-1", 50.0, "bonus")
         assert result["amount"] == 50.0
         assert result["balance"] == 150.0
@@ -348,13 +348,13 @@ class TestViralReferralEngine:
         mock_db.table.return_value = mock_table
         mock_table.insert.return_value.execute.return_value = None
 
-        with patch("tools.viral_referral_engine.db.client", mock_db):
+        with patch("tools.social.viral_referral_engine.db.client", mock_db):
             result = engine.record_social_share("user-1", "CODE-123", "twitter", {})
         assert result["status"] == "success"
 
     @pytest.mark.anyio
     async def test_stripe_payout_not_configured(self, engine):
-        with patch("tools.viral_referral_engine.settings") as mock_settings:
+        with patch("tools.social.viral_referral_engine.settings") as mock_settings:
             mock_settings.stripe_api_key = None
             result = engine._stripe_payout("user-1", 5000)
         assert result["status"] == "skipped"
@@ -367,7 +367,7 @@ class TestViralReferralEngine:
         mock_payout.id = "po_123"
         mock_stripe.Payout.create.return_value = mock_payout
 
-        with patch("tools.viral_referral_engine.settings") as mock_settings, patch.dict("sys.modules", {"stripe": mock_stripe}):
+        with patch("tools.social.viral_referral_engine.settings") as mock_settings, patch.dict("sys.modules", {"stripe": mock_stripe}):
             mock_settings.stripe_api_key = "sk_test_123"
             result = engine._stripe_payout("user-1", 5000)
         assert result["status"] == "success"
@@ -378,7 +378,7 @@ class TestViralReferralEngine:
         mock_stripe = MagicMock()
         mock_stripe.Payout.create.side_effect = Exception("Stripe error")
 
-        with patch("tools.viral_referral_engine.settings") as mock_settings, patch.dict("sys.modules", {"stripe": mock_stripe}):
+        with patch("tools.social.viral_referral_engine.settings") as mock_settings, patch.dict("sys.modules", {"stripe": mock_stripe}):
             mock_settings.stripe_api_key = "sk_test_123"
             result = engine._stripe_payout("user-1", 5000)
         assert result["status"] == "error"
