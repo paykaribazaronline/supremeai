@@ -710,9 +710,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
-          path: |
-            apps/studio-client/dist-admin
-            apps/web-chat/dist
+          path: apps/studio-client/dist-admin
           retention-days: 1
 
   deploy-to-render:
@@ -958,7 +956,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist
-          path: .
+          path: apps/studio-client/dist-admin
 
       - name: 🌐 Deploy to Firebase
         run: |
