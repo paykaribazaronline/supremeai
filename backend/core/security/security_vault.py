@@ -12,7 +12,9 @@ from core.messaging.event_bus import error_event_bus
 ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY")
 if not ENCRYPTION_KEY:
     # বাংলা মন্তব্য: টেস্ট ও সিআই পরিবেশে ক্র্যাশ এড়াতে একটি ডামি/এফেমেরাল কী জেনারেট করা হচ্ছে, তবে প্রোডাকশনে ফেইল-ফাস্ট থাকবে।
-    if (os.environ.get("ENV") == "test" or os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true") and os.environ.get("STRICT_ENCRYPTION_CHECK") != "true":
+    if (os.environ.get("ENV") == "test" or os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true") and os.environ.get(
+        "STRICT_ENCRYPTION_CHECK"
+    ) != "true":
         ENCRYPTION_KEY = Fernet.generate_key().decode("utf-8")
     else:
         error_event_bus.emit(
