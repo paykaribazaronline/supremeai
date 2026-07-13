@@ -291,6 +291,12 @@ class AsyncTaskManager:
             "by_status": statuses,
         }
 
+    # বাংলা মন্তব্য: পুরানো টেস্ট কেসগুলোর সামঞ্জস্য বজায় রাখার জন্য _tasks প্রপার্টি যোগ করা হলো, যা _local_tasks ফেরত দেয়
+    @property
+    def _tasks(self) -> dict[str, dict[str, Any]]:
+        return self._local_tasks
+
+
 
 async_task_manager = AsyncTaskManager()
 

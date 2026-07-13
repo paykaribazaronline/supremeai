@@ -49,7 +49,8 @@ contract MyToken {
 
     assert result is not None
     assert "MyToken" in result.get("contract")
-    assert "solidity" in result.standard.lower()
+    # বাংলা মন্তব্য: result-টি ডিকশনারি হওয়ায় ডট নোটিফিকেশনের বদলে get() ব্যবহার করা হলো এবং 'erc20' অ্যাসার্ট করা হলো।
+    assert "erc20" in result.get("standard").lower()
 
 
 @pytest.mark.anyio
@@ -103,22 +104,22 @@ function expensiveLoop(uint256 n) public pure returns (uint256) {
 }
 """
 
-    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_router:
-        mock_router.return_value = AsyncMock(
-            return_value={
-                "text": """
+    # বাংলা মন্তব্য: new_callable=AsyncMock ব্যবহার করে ডাইরেক্টলি ডিকশনারি রিটার্ন সেট করা হলো
+    with patch("brain.model_router.ModelRouter.async_route_and_generate", new_callable=AsyncMock) as mock_router:
+        mock_router.return_value = {
+            "text": """
 // Optimized version
 function optimizedLoop(uint256 n) public pure returns (uint256) {
     return n * (n - 1) / 2;
 }
 """
-            }
-        )
+        }
 
         result = await agent.optimize_gas(solidity_code)
 
     assert result is not None
     assert "optimized" in result.get("optimized_contract").lower()
+
 
 
 @pytest.mark.anyio
@@ -136,10 +137,10 @@ contract SimpleStorage {
 }
 """
 
-    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_router:
-        mock_router.return_value = AsyncMock(
-            return_value={
-                "text": """
+    # বাংলা মন্তব্য: new_callable=AsyncMock ব্যবহার করে ডাইরেক্টলি ডিকশনারি রিটার্ন সেট করা হলো
+    with patch("brain.model_router.ModelRouter.async_route_and_generate", new_callable=AsyncMock) as mock_router:
+        mock_router.return_value = {
+            "text": """
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
@@ -152,8 +153,7 @@ describe("SimpleStorage", function () {
     });
 });
 """
-            }
-        )
+        }
 
         result = await agent.generate_tests(contract_code)
 
@@ -167,10 +167,10 @@ async def test_erc721_nft_contract(mock_blockchain):
     # বাংলা মন্তব্য: ERC-721 NFT contract জেনারেশন টেস্ট
     agent = BlockchainAgent()
 
-    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_router:
-        mock_router.return_value = AsyncMock(
-            return_value={
-                "text": """
+    # বাংলা মন্তব্য: new_callable=AsyncMock ব্যবহার করে ডাইরেক্টলি ডিকশনারি রিটার্ন সেট করা হলো
+    with patch("brain.model_router.ModelRouter.async_route_and_generate", new_callable=AsyncMock) as mock_router:
+        mock_router.return_value = {
+            "text": """
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
@@ -191,8 +191,7 @@ contract MyNFT is ERC721 {
     }
 }
 """
-            }
-        )
+        }
 
         result = await agent.generate_contract(description="Create an ERC-721 NFT contract", standard="ERC721")
 

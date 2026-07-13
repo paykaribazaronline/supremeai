@@ -47,7 +47,8 @@ class TelegramBotHandler:
     }
 
     def __init__(self, task_processor_interface=None) -> None:
-        self.bot_token: str = getattr(settings, "telegram_bot_token", None) or getattr(settings, "telegram_bot_token", "")
+        # বাংলা মন্তব্য: settings থেকে না পাওয়া গেলে os.environ থেকে fallback রিড করা হবে, যা টেস্ট কেসগুলোর জন্য সুবিধাজনক।
+        self.bot_token: str = getattr(settings, "telegram_bot_token", None) or os.environ.get("TELEGRAM_BOT_TOKEN", "")
         self.api_base: str = f"https://api.telegram.org/bot{self.bot_token}"
         self.processor = task_processor_interface
 

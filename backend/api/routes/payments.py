@@ -90,3 +90,32 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
     except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to create Stripe checkout session: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+# বাংলা মন্তব্য: সাবস্ক্রিপশন প্ল্যানগুলোর লিস্ট প্রদান করার জন্য এন্ডপয়েন্ট
+@router.get("/plans")
+async def get_plans():
+    from core.billing_plans import SUBSCRIPTION_PLANS
+    return {"plans": SUBSCRIPTION_PLANS}
+
+
+# বাংলা মন্তব্য: স্ট্রাইপ ওয়েবহুক ইভেন্ট রিসিভ ও যাচাই করার জন্য এন্ডপয়েন্ট
+@router.post("/webhook")
+async def stripe_webhook_endpoint(request: Request):
+    sig_header = request.headers.get("stripe-signature", "")
+    webhook_secret = None
+    if settings.stripe_webhook_secret:
+        # settings.stripe_webhook_secret is SecretStr, so get its value
+        webhook_secret = settings.stripe_webhook_secret.get_secret_value()
+
+    if not webhook_secret or not sig_header:
+        # কনফিগারেশন না থাকলে ইগনোরড হিসেবে সাড়া দেওয়া হবে
+        return {"status": "ignored"}
+
+    payload = await request.body()
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
+        return {"status": "success", "event_type": event.get("type")}
+    except Exception as e:
+        logger.error(f"Webhook signature verification failed: {e}")
+        raise HTTPException(status_code=400, detail=str(e))

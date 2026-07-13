@@ -161,7 +161,9 @@ class EvolutionEngine:
             if evolution_write_failures:
                 evolution_write_failures.inc()
 
-        if not supabase_success:
+        # বাংলা মন্তব্য: যদি Supabase ক্লায়েন্ট ইনিশিয়ালাইজড থাকে কিন্তু রাইট ফেইল করে, তবেই কেবল সাগা রোলব্যাক (SQLite এভয়েড) করা হবে।
+        # কিন্তু যদি ক্লায়েন্ট না থাকে (যেমন টেস্ট বা লোকাল রান), তবে লোকাল SQLite ডেটা স্টোর চলতে দেওয়া হবে।
+        if not supabase_success and db.client:
             return {"stored": False, "error": "Supabase write failed. Saga rollback: skipping SQLite."}
 
         conn = sqlite3.connect(str(self.db_path), check_same_thread=False)

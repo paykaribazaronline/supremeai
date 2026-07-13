@@ -331,7 +331,8 @@ optional_routers = [
     ("tools.ai_pair_programmer", "/api"),
     ("api.routes.codeflow", ""),
     ("api.routes.feedback", ""),
-    ("tools.multilingual_tts", "/api"),
+    # বাংলা মন্তব্য: সঠিক ডিরেক্টরি (tools.media.multilingual_tts) থেকে লোড করার জন্য পাথ আপডেট করা হলো
+    ("tools.media.multilingual_tts", "/api"),
     ("api.routes.voice", "/api/voice"),
     ("tools.comment_thread_ai", "/api"),
     ("tools.auto_test_generator", "/api"),

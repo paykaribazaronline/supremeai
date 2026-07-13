@@ -191,20 +191,23 @@ class LLMGateway:
             call_chain.append(task_specific_model)
 
         all_models = model_candidates + fallbacks
-        if provider:
-            provider_models = [m for m in all_models if m.startswith(f"{provider}/")]
-            other_models = [m for m in all_models if not m.startswith(f"{provider}/")]
-            all_models = provider_models + other_models
-
         for m in all_models:
             if m not in call_chain:
                 call_chain.append(m)
+
+        # বাংলা মন্তব্য: যদি নির্দিষ্ট কোনো প্রোভাইডার (যেমন 'groq') প্রোভাইড করা হয়, তবে কল চেইনের মডেলগুলো রী-অর্ডার করা হবে
+        # যাতে সেই প্রোভাইডারের মডেলগুলো সবার আগে স্থান পায়।
+        if provider:
+            provider_models = [m for m in call_chain if m.startswith(f"{provider}/")]
+            other_models = [m for m in call_chain if not m.startswith(f"{provider}/")]
+            call_chain = provider_models + other_models
 
         if not call_chain:
             call_chain = list(_DEFAULT_FALLBACK_MODELS)
             logger.warning("[LLMGateway] Empty call chain — using default fallback models.")
 
         return call_chain
+
 
     async def acompletion(
         self,

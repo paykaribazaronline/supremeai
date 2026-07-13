@@ -21,12 +21,15 @@ def test_docker_sandbox_security():
 
 
 def test_docker_sandbox_simulated_run(monkeypatch):
-    monkeypatch.setenv("ALLOW_LOCAL_SANDBOX_FALLBACK", "true")
+    from core.config import settings
+    monkeypatch.setattr(settings, "allow_local_sandbox_fallback", "true")
+    monkeypatch.setattr(settings, "env", "development")
     sandbox = DockerSandbox()
     sandbox.docker_available = False
     res = sandbox.execute_command("echo hello")
     assert res["success"] is True
     assert "hello" in res.get("stdout", "").strip()
+
 
 
 def test_cost_auditor_generation():

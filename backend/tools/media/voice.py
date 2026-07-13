@@ -140,7 +140,8 @@ class VoiceInterface:
         """Stream audio bytes for the given text using the multilingual TTS engine.
         Yields audio chunks as bytes.
         """
-        from backend.tools.multilingual_tts import MultilingualTTS
+        # বাংলা মন্তব্য: সঠিক ডিরেক্টরি অনুযায়ী মডিউল ইম্পোর্ট পাথ আপডেট করা হলো
+        from backend.tools.media.multilingual_tts import MultilingualTTS
 
         tts = MultilingualTTS()
         async for chunk in tts.synthesize_stream(text=text):

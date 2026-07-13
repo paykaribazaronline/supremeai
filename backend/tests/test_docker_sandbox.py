@@ -76,10 +76,15 @@ def test_execute_command_docker_failure(sandbox):
         assert result["simulated"] is False
 
 
-def test_execute_command_local_fallback_success(sandbox):
+def test_execute_command_local_fallback_success(sandbox, monkeypatch):
     """ডকার না থাকলে লোকাল ফলব্যাক মোডে কমান্ড সফলভাবে চলে কিনা তা পরীক্ষা করে।"""
+    # বাংলা মন্তব্য: settings-এ allow_local_sandbox_fallback ট্রু এবং এনভায়রনমেন্ট ডেভেলপমেন্ট সেট করা হচ্ছে
+    from core.config import settings
+    monkeypatch.setattr(settings, "allow_local_sandbox_fallback", "true")
+    monkeypatch.setattr(settings, "env", "development")
+
     sandbox.docker_available = False
-    with patch("os.getenv", return_value="true"), patch("subprocess.run") as mock_run:
+    with patch("subprocess.run") as mock_run:
         mock_run.return_value = MagicMock(returncode=0, stdout="local output", stderr="")
         result = sandbox.execute_command("echo 'local output'")
 
@@ -88,16 +93,18 @@ def test_execute_command_local_fallback_success(sandbox):
         assert result["simulated"] is True
 
 
-def test_execute_command_local_fallback_failure(sandbox):
+def test_execute_command_local_fallback_failure(sandbox, monkeypatch):
     """লোকাল ফলব্যাক মোডে কমান্ড ব্যর্থ হলে সঠিকভাবে রিপোর্ট করে কিনা তা পরীক্ষা করে।"""
+    # বাংলা মন্তব্য: settings-এ allow_local_sandbox_fallback ট্রু এবং এনভায়রনমেন্ট ডেভেলপমেন্ট সেট করা হচ্ছে
+    from core.config import settings
+    monkeypatch.setattr(settings, "allow_local_sandbox_fallback", "true")
+    monkeypatch.setattr(settings, "env", "development")
+
     sandbox.docker_available = False
-    with (
-        patch("os.getenv", return_value="true"),
-        patch(
-            "subprocess.run",
-            side_effect=subprocess.CalledProcessError(127, "cmd", stderr="not found"),
-        ) as mock_run,
-    ):
+    with patch(
+        "subprocess.run",
+        side_effect=subprocess.CalledProcessError(127, "cmd", stderr="not found"),
+    ) as mock_run:
         result = sandbox.execute_command("some_bad_command")
 
         assert result["success"] is False
@@ -105,10 +112,15 @@ def test_execute_command_local_fallback_failure(sandbox):
         assert result["simulated"] is True
 
 
-def test_execute_command_local_fallback_timeout(sandbox):
+def test_execute_command_local_fallback_timeout(sandbox, monkeypatch):
     """লোকাল ফলব্যাক মোডে কমান্ড টাইমআউট হলে সঠিকভাবে রিপোর্ট করে কিনা তা পরীক্ষা করে।"""
+    # বাংলা মন্তব্য: settings-এ allow_local_sandbox_fallback ট্রু এবং এনভায়রনমেন্ট ডেভেলপমেন্ট সেট করা হচ্ছে
+    from core.config import settings
+    monkeypatch.setattr(settings, "allow_local_sandbox_fallback", "true")
+    monkeypatch.setattr(settings, "env", "development")
+
     sandbox.docker_available = False
-    with patch("os.getenv", return_value="true"), patch("subprocess.run", side_effect=subprocess.TimeoutExpired("cmd", 5)) as mock_run:
+    with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("cmd", 5)) as mock_run:
         result = sandbox.execute_command("sleep 10")
 
         assert result["success"] is False
@@ -117,29 +129,27 @@ def test_execute_command_local_fallback_timeout(sandbox):
 
 
 @pytest.mark.parametrize("env", ["production", "staging"])
-def test_execute_command_no_fallback_in_prod(sandbox, env):
+def test_execute_command_no_fallback_in_prod(sandbox, env, monkeypatch):
     """প্রোডাকশন পরিবেশে ডকার ছাড়া লোকাল ফলব্যাক ব্লক করা হচ্ছে কিনা তা পরীক্ষা করে।"""
+    from core.config import settings
+    monkeypatch.setattr(settings, "allow_local_sandbox_fallback", "false")
+    monkeypatch.setattr(settings, "env", env)
+
     sandbox.docker_available = False
-    with patch("os.getenv") as mock_getenv:
-        # getattr(settings, "env", "").lower() -> "production"
-        # getattr(settings, "allow_local_sandbox_fallback", None) -> "false"
-        mock_getenv.side_effect = lambda key, default="": env if key == "ENV" else "false"
+    result = sandbox.execute_command("echo 'test'")
 
-        result = sandbox.execute_command("echo 'test'")
-
-        assert result["success"] is False
-        assert "local execution is disabled for safety" in result["error"]
+    assert result["success"] is False
+    assert "local execution is disabled for safety" in result["error"]
 
 
-def test_execute_command_no_fallback_if_disallowed(sandbox):
+def test_execute_command_no_fallback_if_disallowed(sandbox, monkeypatch):
     """ALLOW_LOCAL_SANDBOX_FALLBACK=false হলে লোকাল ফলব্যাক কাজ করে না, তা পরীক্ষা করে।"""
+    from core.config import settings
+    monkeypatch.setattr(settings, "allow_local_sandbox_fallback", "false")
+    monkeypatch.setattr(settings, "env", "development")
+
     sandbox.docker_available = False
-    with patch("os.getenv") as mock_getenv:
-        # getattr(settings, "env", "").lower() -> "development"
-        # getattr(settings, "allow_local_sandbox_fallback", None) -> "false"
-        mock_getenv.side_effect = lambda key, default="": "development" if key == "ENV" else "false"
+    result = sandbox.execute_command("echo 'test'")
 
-        result = sandbox.execute_command("echo 'test'")
-
-        assert result["success"] is False
-        assert "local execution is disabled for safety" in result["error"]
+    assert result["success"] is False
+    assert "local execution is disabled for safety" in result["error"]
