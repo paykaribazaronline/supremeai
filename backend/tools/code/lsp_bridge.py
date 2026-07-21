@@ -10,7 +10,9 @@ class LanguageServerBridge:
     def __init__(self, gateway: GatewayManager = None):
         self.gateway = gateway or GatewayManager()
 
-    async def get_inline_completion(self, prefix: str, suffix: str, file_path: str) -> str:
+    async def get_inline_completion(
+        self, prefix: str, suffix: str, file_path: str
+    ) -> str:
         """
         Generates contextual inline code completions.
         Args:

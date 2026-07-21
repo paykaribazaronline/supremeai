@@ -25,9 +25,13 @@ async def get_current_user():
 
 @router.post("/generate-upload-url")
 async def get_upload_url(request: UploadRequest, user=Depends(get_current_user)):
-    safe_filename = f"{request.folder}/{user['id']}_{uuid.uuid4().hex}_{request.file_name}"
+    safe_filename = (
+        f"{request.folder}/{user['id']}_{uuid.uuid4().hex}_{request.file_name}"
+    )
 
-    upload_url = storage_client.generate_presigned_upload_url(object_name=safe_filename, file_type=request.file_type)
+    upload_url = storage_client.generate_presigned_upload_url(
+        object_name=safe_filename, file_type=request.file_type
+    )
 
     if not upload_url:
         raise HTTPException(status_code=500, detail="Could not generate upload URL")

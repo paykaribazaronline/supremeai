@@ -137,7 +137,9 @@ ADMIN_ROUTERS: list[tuple[str, str]] = [
 
 # USER_ROUTERS is all other routers
 # বাংলা মন্তব্য: ইউজার এপিআই রাউটারসমূহ
-USER_ROUTERS: list[tuple[str, str]] = [r for r in (core_routers + optional_routers) if r[0] not in _admin_paths]
+USER_ROUTERS: list[tuple[str, str]] = [
+    r for r in (core_routers + optional_routers) if r[0] not in _admin_paths
+]
 
 
 def register_all_routers(app: FastAPI) -> None:

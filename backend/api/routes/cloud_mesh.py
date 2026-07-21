@@ -51,9 +51,13 @@ async def set_defcon(payload: DefconPayload):
     the system into maintenance mode, locking out non-admin traffic.
     """
     if payload.level not in [1, 2, 3, 4, 5]:
-        raise HTTPException(status_code=400, detail="Invalid DEFCON level. Must be 1-5.")
+        raise HTTPException(
+            status_code=400, detail="Invalid DEFCON level. Must be 1-5."
+        )
 
-    logger.warning(f"Setting system to DEFCON {payload.level}. Reason: {payload.reason}")
+    logger.warning(
+        f"Setting system to DEFCON {payload.level}. Reason: {payload.reason}"
+    )
     # Integration with WAF, API gateway limits, and system global states.
     return {
         "status": "success",

@@ -1,6 +1,7 @@
 """Provides a secure mechanism for the SupremeAI system to apply runtime code updates.
 
-This module implements the `SelfUpdater` class, enabling the AI to dynamically patch its own components (hotfixes). It includes critical security features such as path validation to restrict updates within the project directory and an authorization check to prevent unauthorized modifications, facilitating controlled self-evolution."""
+This module implements the `SelfUpdater` class, enabling the AI to dynamically patch its own components (hotfixes). It includes critical security features such as path validation to restrict updates within the project directory and an authorization check to prevent unauthorized modifications, facilitating controlled self-evolution.
+"""
 
 from pathlib import Path
 
@@ -21,7 +22,9 @@ class SelfUpdater:
     def _validate_path(self, file_path: str) -> Path:
         target = Path(file_path).resolve()
         if not str(target).startswith(str(_ALLOWED_BASE_DIR)):
-            raise ValueError(f"Hotfix target '{file_path}' is outside allowed project directory.")
+            raise ValueError(
+                f"Hotfix target '{file_path}' is outside allowed project directory."
+            )
         if not target.exists():
             raise ValueError(f"Target file does not exist: {file_path}")
         return target

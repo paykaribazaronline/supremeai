@@ -10,8 +10,9 @@ current_dir = Path(__file__).parent
 parent_dir = current_dir.parent
 sys.path.insert(0, str(parent_dir))
 
+from typing import Any, Dict, List, Optional
+
 from base_api_client import BaseAPIClient
-from typing import Dict, List, Any, Optional
 
 
 class OssinsightClient(BaseAPIClient):
@@ -21,7 +22,7 @@ class OssinsightClient(BaseAPIClient):
         super().__init__(
             name="ossinsight",
             base_url="https://api.ossinsight.io/v1",
-            data_dir=data_dir
+            data_dir=data_dir,
             # No API key required for basic usage (beta)
         )
 
@@ -32,28 +33,36 @@ class OssinsightClient(BaseAPIClient):
     def parse_data(self, raw_data: Any, endpoint: str) -> List[Dict[str, Any]]:
         """Parse OSS Insight API response into standardized format"""
         if not isinstance(raw_data, dict):
-            self.logger.warning(f"Expected dict response from {endpoint}, got {type(raw_data)}")
+            self.logger.warning(
+                f"Expected dict response from {endpoint}, got {type(raw_data)}"
+            )
             return []
 
         # Handle OSS Insight's specific response format
         # Based on observation: {"type":"sql_endpoint","data":{"columns":[{...}],"rows":[{...}]},"result":{...}}
-        if 'type' in raw_data and raw_data.get('type') == 'sql_endpoint' and 'data' in raw_data:
-            data_section = raw_data['data']
+        if (
+            "type" in raw_data
+            and raw_data.get("type") == "sql_endpoint"
+            and "data" in raw_data
+        ):
+            data_section = raw_data["data"]
 
             # Handle the format where rows are already objects with correct property names
-            if 'rows' in data_section and isinstance(data_section['rows'], list):
-                rows = data_section['rows']
+            if "rows" in data_section and isinstance(data_section["rows"], list):
+                rows = data_section["rows"]
 
                 # Convert rows to dictionaries (they already are, but ensure they have metadata)
                 result = []
                 for row in rows:
                     if isinstance(row, dict):
                         # Add metadata
-                        row['_api_source'] = 'ossinsight'
-                        row['_endpoint'] = endpoint
+                        row["_api_source"] = "ossinsight"
+                        row["_endpoint"] = endpoint
                         result.append(row)
                     else:
-                        self.logger.warning(f"Skipping non-dict row in {endpoint}: {type(row)}")
+                        self.logger.warning(
+                            f"Skipping non-dict row in {endpoint}: {type(row)}"
+                        )
 
                 return result
             else:
@@ -62,13 +71,13 @@ class OssinsightClient(BaseAPIClient):
                     result = []
                     for item in data_section:
                         if isinstance(item, dict):
-                            item['_api_source'] = 'ossinsight'
-                            item['_endpoint'] = endpoint
+                            item["_api_source"] = "ossinsight"
+                            item["_endpoint"] = endpoint
                             result.append(item)
                     return result
                 elif isinstance(data_section, dict):
-                    data_section['_api_source'] = 'ossinsight'
-                    data_section['_endpoint'] = endpoint
+                    data_section["_api_source"] = "ossinsight"
+                    data_section["_endpoint"] = endpoint
                     return [data_section]
         else:
             # Handle standard JSON responses
@@ -80,16 +89,20 @@ class OssinsightClient(BaseAPIClient):
             # Check if it's an object with a 'data' or 'items' or 'list' field
             elif isinstance(raw_data, dict):
                 # Common patterns for API responses
-                if 'data' in raw_data and isinstance(raw_data['data'], list):
-                    data = raw_data['data']
-                elif 'items' in raw_data and isinstance(raw_data['items'], list):
-                    data = raw_data['items']
-                elif 'list' in raw_data and isinstance(raw_data['list'], list):
-                    data = raw_data['list']
-                elif 'repositories' in raw_data and isinstance(raw_data['repositories'], list):
-                    data = raw_data['repositories']
-                elif 'collections' in raw_data and isinstance(raw_data['collections'], list):
-                    data = raw_data['collections']
+                if "data" in raw_data and isinstance(raw_data["data"], list):
+                    data = raw_data["data"]
+                elif "items" in raw_data and isinstance(raw_data["items"], list):
+                    data = raw_data["items"]
+                elif "list" in raw_data and isinstance(raw_data["list"], list):
+                    data = raw_data["list"]
+                elif "repositories" in raw_data and isinstance(
+                    raw_data["repositories"], list
+                ):
+                    data = raw_data["repositories"]
+                elif "collections" in raw_data and isinstance(
+                    raw_data["collections"], list
+                ):
+                    data = raw_data["collections"]
                 else:
                     # Treat the entire object as a single item
                     data = [raw_data]
@@ -99,11 +112,13 @@ class OssinsightClient(BaseAPIClient):
             for item in data:
                 if isinstance(item, dict):
                     # Add metadata
-                    item['_api_source'] = 'ossinsight'
-                    item['_endpoint'] = endpoint
+                    item["_api_source"] = "ossinsight"
+                    item["_endpoint"] = endpoint
                     result.append(item)
                 else:
-                    self.logger.warning(f"Skipping non-dict item in {endpoint}: {type(item)}")
+                    self.logger.warning(
+                        f"Skipping non-dict item in {endpoint}: {type(item)}"
+                    )
 
             return result
 
@@ -120,37 +135,25 @@ def main_ossinsight():
     # Define endpoints to fetch based on OSS Insight API documentation
     endpoints = [
         {
-            'endpoint': 'trends/repos/',
-            'params': {
-                'period': 'daily',
-                'language': 'All'
-            },
-            'name': 'trending_daily_all'
+            "endpoint": "trends/repos/",
+            "params": {"period": "daily", "language": "All"},
+            "name": "trending_daily_all",
         },
         {
-            'endpoint': 'trends/repos/',
-            'params': {
-                'period': 'weekly',
-                'language': 'All'
-            },
-            'name': 'trending_weekly_all'
+            "endpoint": "trends/repos/",
+            "params": {"period": "weekly", "language": "All"},
+            "name": "trending_weekly_all",
         },
         {
-            'endpoint': 'trends/repos/',
-            'params': {
-                'period': 'monthly',
-                'language': 'Python'
-            },
-            'name': 'trending_monthly_python'
+            "endpoint": "trends/repos/",
+            "params": {"period": "monthly", "language": "Python"},
+            "name": "trending_monthly_python",
         },
         {
-            'endpoint': 'repos/pingcap/tidb',  # Example repository
-            'name': 'repo_pingcap_tidb'
+            "endpoint": "repos/pingcap/tidb",  # Example repository
+            "name": "repo_pingcap_tidb",
         },
-        {
-            'endpoint': 'collections/',
-            'name': 'collections_list'
-        }
+        {"endpoint": "collections/", "name": "collections_list"},
     ]
 
     # Run the client

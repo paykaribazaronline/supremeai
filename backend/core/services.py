@@ -113,7 +113,9 @@ def __getattr__(name: str) -> Any:
             return reg._services[name]
 
     if os.getenv("ENV", "local").lower() in ("test", "testing", "ci"):
-        logging.getLogger(__name__).warning(f"⚠️ Service '{name}' is missing and is being mock injected dynamically in test environment!")
+        logging.getLogger(__name__).warning(
+            f"⚠️ Service '{name}' is missing and is being mock injected dynamically in test environment!"
+        )
         try:
             from core.messaging.event_bus import ErrorEvent  # noqa: PLC0415
             from core.messaging.event_bus import error_event_bus

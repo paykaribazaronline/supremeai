@@ -8,7 +8,7 @@ files_to_move = [
     "multi_layer_cache.py",
     "semantic_cache.py",
     "autocache_proxy.py",
-    "redis_manager.py"
+    "redis_manager.py",
 ]
 
 os.makedirs(target_dir, exist_ok=True)

@@ -185,7 +185,11 @@ class PerformanceGuardian:
         self.alerts.extend(alerts)
 
         return {
-            "status": ("healthy" if not any(a.severity == MetricSeverity.CRITICAL for a in alerts) else "degraded"),
+            "status": (
+                "healthy"
+                if not any(a.severity == MetricSeverity.CRITICAL for a in alerts)
+                else "degraded"
+            ),
             "metrics": metrics,
             "alerts": [
                 {
@@ -199,7 +203,9 @@ class PerformanceGuardian:
             "checked_at": datetime.now(UTC).isoformat(),
         }
 
-    async def analyze_bottleneck(self, operation_name: str, duration_ms: float) -> dict[str, Any]:
+    async def analyze_bottleneck(
+        self, operation_name: str, duration_ms: float
+    ) -> dict[str, Any]:
         """
         Analyze performance bottleneck.
 
@@ -250,7 +256,9 @@ class PerformanceGuardian:
                 "error": str(e),
             }
 
-    async def get_scaling_recommendation(self, current_load: float, predicted_load: float) -> dict[str, Any]:
+    async def get_scaling_recommendation(
+        self, current_load: float, predicted_load: float
+    ) -> dict[str, Any]:
         """
         Recommend scaling actions.
 

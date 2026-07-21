@@ -65,7 +65,9 @@ class SemanticCache:
         self.db = ExperienceDatabase()
         logger.info("SemanticCache initialized using ExperienceDatabase vector backend")
 
-    async def query_similar(self, prompt: str, task_type: str = "general") -> CacheEntry | None:
+    async def query_similar(
+        self, prompt: str, task_type: str = "general"
+    ) -> CacheEntry | None:
         try:
             # বাংলা মন্তব্য: কাজের ধরণের ওপর ভিত্তি করে ডাইনামিক থ্রেশহোল্ড সেট করা হচ্ছে
             threshold = get_cache_threshold(task_type)
@@ -73,7 +75,9 @@ class SemanticCache:
             hits = self.db.find_similar(prompt, limit=1, threshold=threshold)
             if hits:
                 best_hit = hits[0]
-                logger.info(f"⚡ [SEMANTIC CACHE HIT] Task: {task_type} | Score: {best_hit['score']:.4f} | Source: {best_hit['source']}")
+                logger.info(
+                    f"⚡ [SEMANTIC CACHE HIT] Task: {task_type} | Score: {best_hit['score']:.4f} | Source: {best_hit['source']}"
+                )
                 return CacheEntry(
                     provider=best_hit.get("source", "chroma"),
                     model="cached_semantic",
@@ -90,10 +94,14 @@ class SemanticCache:
             exp = Experience(
                 request=prompt,
                 generated_code=response if "code" in task_type.lower() else None,
-                action_taken=(response if "code" not in task_type.lower() else "Code Generated"),
+                action_taken=(
+                    response if "code" not in task_type.lower() else "Code Generated"
+                ),
                 result="success",
             )
             self.db.record_experience(exp)
-            logger.info(f"💾 Successfully recorded successful experience pattern for {task_type}")
+            logger.info(
+                f"💾 Successfully recorded successful experience pattern for {task_type}"
+            )
         except Exception as e:  # noqa: BLE001
             logger.error(f"❌ Failed to save experience pattern: {e}")

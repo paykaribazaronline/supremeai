@@ -5,7 +5,8 @@ Key Components:
 
 Dependencies:
 - `sys`: For accessing standard system streams, specifically `sys.stdout` for console logging.
-- `loguru`: The primary external library used for flexible, structured, and production-ready logging."""
+- `loguru`: The primary external library used for flexible, structured, and production-ready logging.
+"""
 
 import sys
 

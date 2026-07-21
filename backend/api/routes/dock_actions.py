@@ -56,7 +56,9 @@ async def run_dock_integration(
 
 
 # --- গিটহাব ইন্টিগ্রেশন লজিক ---
-async def handle_github_push(session_id: str, payload: DockActionPayload, user: dict, sql_db: AsyncSession):
+async def handle_github_push(
+    session_id: str, payload: DockActionPayload, user: dict, sql_db: AsyncSession
+):
     try:
         # ধাপ ১: ইউজারের Vault থেকে গিটহাব টোকেন বের করা
         # গ্যাপ #3 সমাধান: হার্ডকোড করা placeholder টোকেনের বদলে repo-তে যে প্যাটার্ন ইতিমধ্যে
@@ -107,7 +109,9 @@ async def handle_github_push(session_id: str, payload: DockActionPayload, user: 
                 # ইত্যাদি) নীরবে গিলে ফেলে create_file কল করত — ভুল এরর মাস্ক করত এবং অপ্রত্যাশিত
                 # ডুপ্লিকেট/কনফ্লিক্ট রিকোয়েস্ট পাঠানোর ঝুঁকি তৈরি করত।
                 if gh_exc.status == 404:
-                    repo.create_file(file_name, commit_message, file_content, branch="main")
+                    repo.create_file(
+                        file_name, commit_message, file_content, branch="main"
+                    )
                 else:
                     raise
 
@@ -131,9 +135,15 @@ async def handle_github_push(session_id: str, payload: DockActionPayload, user: 
             session_id,
             {"state": "error", "message": f"GitHub API Error (ref: {error_id})"},
         )
-        raise HTTPException(status_code=502, detail=f"GitHub operation failed (ref: {error_id})") from e
+        raise HTTPException(
+            status_code=502, detail=f"GitHub operation failed (ref: {error_id})"
+        ) from e
     except Exception as e:
         error_id = uuid.uuid4().hex[:8]
         logger.error(f"[{error_id}] dock_actions/github push failed: {e}")
-        await push_to_sse(session_id, {"state": "error", "message": f"GitHub Error (ref: {error_id})"})
-        raise HTTPException(status_code=500, detail=f"Internal error (ref: {error_id})") from e
+        await push_to_sse(
+            session_id, {"state": "error", "message": f"GitHub Error (ref: {error_id})"}
+        )
+        raise HTTPException(
+            status_code=500, detail=f"Internal error (ref: {error_id})"
+        ) from e

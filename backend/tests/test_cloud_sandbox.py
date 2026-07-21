@@ -7,7 +7,8 @@ import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from core.orchestration.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
+from core.orchestration.cloud_sandbox_orchestrator import \
+    CloudSandboxOrchestrator
 
 
 class TestCloudSandboxOrchestrator:
@@ -96,7 +97,9 @@ class TestCloudSandboxOrchestrator:
                         "_prepare_creation_payload",
                         return_value={"pod": {"imageName": "ubuntu"}},
                     ):
-                        result = await orchestrator.create_sandbox(spec={"imageName": "ubuntu"})
+                        result = await orchestrator.create_sandbox(
+                            spec={"imageName": "ubuntu"}
+                        )
                         assert result is not None
                         assert result["id"] == "pod-12345"
 
@@ -121,7 +124,9 @@ class TestCloudSandboxOrchestrator:
                 new_callable=AsyncMock,
                 return_value=mock_response,
             ):
-                with patch.object(orchestrator, "_get_endpoint", return_value="/pod-12345/run"):
+                with patch.object(
+                    orchestrator, "_get_endpoint", return_value="/pod-12345/run"
+                ):
                     result = await orchestrator.run_command("pod-12345", "echo hello")
                     assert result is not None
                     assert result["exitCode"] == 0
@@ -137,7 +142,9 @@ class TestCloudSandboxOrchestrator:
             mock_response = MagicMock()
             mock_response.status_code = 500
             mock_response.text = "Internal Server Error"
-            mock_response.raise_for_status.side_effect = httpx.HTTPStatusError("Error", request=MagicMock(), response=mock_response)
+            mock_response.raise_for_status.side_effect = httpx.HTTPStatusError(
+                "Error", request=MagicMock(), response=mock_response
+            )
 
             with patch.object(
                 orchestrator.client,
@@ -145,7 +152,9 @@ class TestCloudSandboxOrchestrator:
                 new_callable=AsyncMock,
                 return_value=mock_response,
             ):
-                with patch.object(orchestrator, "_get_endpoint", return_value="/pod-12345/run"):
+                with patch.object(
+                    orchestrator, "_get_endpoint", return_value="/pod-12345/run"
+                ):
                     result = await orchestrator.run_command("pod-12345", "echo hello")
                     assert result is None
 

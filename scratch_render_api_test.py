@@ -1,11 +1,9 @@
 import os
+
 import requests
 
 RENDER_API_KEY = os.getenv("RENDER_API_KEY")
-headers = {
-    "Authorization": f"Bearer {RENDER_API_KEY}",
-    "Accept": "application/json"
-}
+headers = {"Authorization": f"Bearer {RENDER_API_KEY}", "Accept": "application/json"}
 
 resp = requests.get("https://api.render.com/v1/services?limit=1", headers=headers)
 if resp.status_code == 200:

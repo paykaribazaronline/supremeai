@@ -205,7 +205,9 @@ class AuditLogAnalyzer:
     """Enterprise SIEM-style audit log analyzer for SupremeAI."""
 
     def __init__(self, project_id: str | None = None):
-        self.project_id = project_id or os.getenv("FIRESTORE_PROJECT_ID", "supremeai-prod")
+        self.project_id = project_id or os.getenv(
+            "FIRESTORE_PROJECT_ID", "supremeai-prod"
+        )
         self.environment = os.getenv("SUPREME_ENV", "development")
         self.alerts: list[AnomalyAlert] = []
         self._http: httpx.AsyncClient | None = None
@@ -215,6 +217,7 @@ class AuditLogAnalyzer:
         self._http = httpx.AsyncClient(timeout=10.0)
         try:
             from google.cloud import firestore
+
             self._db = firestore.Client(project=self.project_id)
         except Exception as e:
             logger.warning(f"Firestore not available: {e}")
@@ -224,8 +227,9 @@ class AuditLogAnalyzer:
         if self._http:
             await self._http.aclose()
 
-    async def fetch_logs(self, since: datetime, until: datetime | None = None,
-                          source: str = "firestore") -> list[AuditLogEntry]:
+    async def fetch_logs(
+        self, since: datetime, until: datetime | None = None, source: str = "firestore"
+    ) -> list[AuditLogEntry]:
         """Fetch audit logs from Firestore or BigQuery."""
         until = until or datetime.now(timezone.utc)
         logs: list[AuditLogEntry] = []
@@ -234,8 +238,7 @@ class AuditLogAnalyzer:
             try:
                 collection = self._db.collection("audit_logs")
                 query = (
-                    collection
-                    .where("timestamp", ">=", since)
+                    collection.where("timestamp", ">=", since)
                     .where("timestamp", "<=", until)
                     .order_by("timestamp", direction="DESCENDING")
                     .limit(10000)
@@ -257,11 +260,14 @@ class AuditLogAnalyzer:
         logger.info(f"Fetched {len(logs)} audit logs from {source}")
         return logs
 
-    async def _fetch_from_bigquery(self, since: datetime, until: datetime) -> list[AuditLogEntry]:
+    async def _fetch_from_bigquery(
+        self, since: datetime, until: datetime
+    ) -> list[AuditLogEntry]:
         """Fetch logs from BigQuery warehouse."""
         logs: list[AuditLogEntry] = []
         try:
             from google.cloud import bigquery
+
             client = bigquery.Client(project=self.project_id)
             dataset = os.getenv("BIGQUERY_DATASET", "supremeai_logs")
             query = f"""
@@ -277,17 +283,32 @@ class AuditLogAnalyzer:
             logger.error(f"BigQuery fetch failed: {e}")
         return logs
 
-    def _generate_simulated_logs(self, since: datetime, until: datetime) -> list[AuditLogEntry]:
+    def _generate_simulated_logs(
+        self, since: datetime, until: datetime
+    ) -> list[AuditLogEntry]:
         """Generate realistic simulated logs for testing."""
         import random
+
         logs = []
         current = since
-        event_types = ["auth", "api_call", "data_access", "admin_action", "config_change", "secret_access"]
+        event_types = [
+            "auth",
+            "api_call",
+            "data_access",
+            "admin_action",
+            "config_change",
+            "secret_access",
+        ]
         actions = {
             "auth": ["login", "logout", "mfa_challenge", "password_reset"],
             "api_call": ["get", "post", "put", "delete"],
             "data_access": ["read", "export", "download"],
-            "admin_action": ["user_create", "user_delete", "role_change", "permission_grant"],
+            "admin_action": [
+                "user_create",
+                "user_delete",
+                "role_change",
+                "permission_grant",
+            ],
             "config_change": ["env_update", "feature_flag_toggle", "secret_rotation"],
             "secret_access": ["read", "update", "delete"],
         }
@@ -309,7 +330,9 @@ class AuditLogAnalyzer:
                 status = random.choices(statuses, weights=[0.9, 0.08, 0.02])[0]
 
                 entry = AuditLogEntry(
-                    log_id=hashlib.sha256(f"{current.isoformat()}:{actor}".encode()).hexdigest()[:16],
+                    log_id=hashlib.sha256(
+                        f"{current.isoformat()}:{actor}".encode()
+                    ).hexdigest()[:16],
                     timestamp=current,
                     event_type=event_type,
                     actor_id=actor,
@@ -327,60 +350,75 @@ class AuditLogAnalyzer:
 
             if brute_force_start <= current < brute_force_start + timedelta(minutes=10):
                 for _ in range(random.randint(5, 15)):
-                    logs.append(AuditLogEntry(
-                        log_id=hashlib.sha256(f"{current.isoformat()}:{brute_force_actor}".encode()).hexdigest()[:16],
-                        timestamp=current + timedelta(seconds=random.randint(0, 60)),
+                    logs.append(
+                        AuditLogEntry(
+                            log_id=hashlib.sha256(
+                                f"{current.isoformat()}:{brute_force_actor}".encode()
+                            ).hexdigest()[:16],
+                            timestamp=current
+                            + timedelta(seconds=random.randint(0, 60)),
+                            event_type="auth",
+                            actor_id=brute_force_actor,
+                            actor_type="user",
+                            action="login",
+                            resource="/api/v1/auth/login",
+                            resource_type="auth",
+                            status="failure",
+                            ip_address="203.0.113.45",
+                            country="RU",
+                            lat=55.7558,
+                            lon=37.6173,
+                        )
+                    )
+
+            if current.replace(second=0, microsecond=0) == bd_login.replace(
+                second=0, microsecond=0
+            ):
+                logs.append(
+                    AuditLogEntry(
+                        log_id="bd_login_001",
+                        timestamp=bd_login,
                         event_type="auth",
-                        actor_id=brute_force_actor,
+                        actor_id=normal_user,
                         actor_type="user",
                         action="login",
                         resource="/api/v1/auth/login",
                         resource_type="auth",
-                        status="failure",
-                        ip_address="203.0.113.45",
-                        country="RU",
-                        lat=55.7558,
-                        lon=37.6173,
-                    ))
-
-            if current.replace(second=0, microsecond=0) == bd_login.replace(second=0, microsecond=0):
-                logs.append(AuditLogEntry(
-                    log_id="bd_login_001",
-                    timestamp=bd_login,
-                    event_type="auth",
-                    actor_id=normal_user,
-                    actor_type="user",
-                    action="login",
-                    resource="/api/v1/auth/login",
-                    resource_type="auth",
-                    status="success",
-                    ip_address="103.48.18.1",
-                    country="BD",
-                    lat=23.8103,
-                    lon=90.4125,
-                ))
-            if current.replace(second=0, microsecond=0) == us_login.replace(second=0, microsecond=0):
-                logs.append(AuditLogEntry(
-                    log_id="us_login_001",
-                    timestamp=us_login,
-                    event_type="auth",
-                    actor_id=normal_user,
-                    actor_type="user",
-                    action="login",
-                    resource="/api/v1/auth/login",
-                    resource_type="auth",
-                    status="success",
-                    ip_address="198.51.100.22",
-                    country="US",
-                    lat=40.7128,
-                    lon=-74.0060,
-                ))
+                        status="success",
+                        ip_address="103.48.18.1",
+                        country="BD",
+                        lat=23.8103,
+                        lon=90.4125,
+                    )
+                )
+            if current.replace(second=0, microsecond=0) == us_login.replace(
+                second=0, microsecond=0
+            ):
+                logs.append(
+                    AuditLogEntry(
+                        log_id="us_login_001",
+                        timestamp=us_login,
+                        event_type="auth",
+                        actor_id=normal_user,
+                        actor_type="user",
+                        action="login",
+                        resource="/api/v1/auth/login",
+                        resource_type="auth",
+                        status="success",
+                        ip_address="198.51.100.22",
+                        country="US",
+                        lat=40.7128,
+                        lon=-74.0060,
+                    )
+                )
 
             current += timedelta(minutes=random.randint(1, 10))
 
         return logs
 
-    async def analyze(self, logs: list[AuditLogEntry], mode: str = "realtime") -> list[AnomalyAlert]:
+    async def analyze(
+        self, logs: list[AuditLogEntry], mode: str = "realtime"
+    ) -> list[AnomalyAlert]:
         """Run full anomaly detection pipeline."""
         self.alerts = []
 
@@ -410,12 +448,16 @@ class AuditLogAnalyzer:
         logger.info(f"Analysis complete: {len(self.alerts)} unique anomalies detected")
         return self.alerts
 
-    async def _detect_brute_force(self, logs: list[AuditLogEntry], actor_logs: dict) -> None:
+    async def _detect_brute_force(
+        self, logs: list[AuditLogEntry], actor_logs: dict
+    ) -> None:
         window = timedelta(minutes=15)
         threshold = 10
 
         for actor_id, entries in actor_logs.items():
-            failed_logins = [e for e in entries if e.event_type == "auth" and e.status == "failure"]
+            failed_logins = [
+                e for e in entries if e.event_type == "auth" and e.status == "failure"
+            ]
             if len(failed_logins) < threshold:
                 continue
 
@@ -423,25 +465,41 @@ class AuditLogAnalyzer:
             for i in range(len(failed_logins)):
                 window_end = failed_logins[i].timestamp
                 window_start = window_end - window
-                window_attempts = [e for e in failed_logins if window_start <= e.timestamp <= window_end]
+                window_attempts = [
+                    e
+                    for e in failed_logins
+                    if window_start <= e.timestamp <= window_end
+                ]
 
                 if len(window_attempts) >= threshold:
-                    unique_ips = set(e.ip_address for e in window_attempts if e.ip_address)
-                    self.alerts.append(AnomalyAlert(
-                        alert_id=hashlib.sha256(f"bf:{actor_id}:{window_end.isoformat()}".encode()).hexdigest()[:12],
-                        timestamp=datetime.now(timezone.utc),
-                        severity=AlertSeverity.HIGH,
-                        anomaly_type=AnomalyType.BRUTE_FORCE,
-                        description=f"{len(window_attempts)} failed login attempts by {actor_id} in 15 minutes from {len(unique_ips)} IP(s)",
-                        affected_actors=[actor_id],
-                        affected_resources=["/api/v1/auth/login"],
-                        evidence=window_attempts[:20],
-                        recommended_action="Block IP(s) temporarily, force MFA, notify security team",
-                        compliance_mappings=["SOC2 CC6.1", "ISO27001 A.9.2.1", "GDPR Art.32"],
-                    ))
+                    unique_ips = set(
+                        e.ip_address for e in window_attempts if e.ip_address
+                    )
+                    self.alerts.append(
+                        AnomalyAlert(
+                            alert_id=hashlib.sha256(
+                                f"bf:{actor_id}:{window_end.isoformat()}".encode()
+                            ).hexdigest()[:12],
+                            timestamp=datetime.now(timezone.utc),
+                            severity=AlertSeverity.HIGH,
+                            anomaly_type=AnomalyType.BRUTE_FORCE,
+                            description=f"{len(window_attempts)} failed login attempts by {actor_id} in 15 minutes from {len(unique_ips)} IP(s)",
+                            affected_actors=[actor_id],
+                            affected_resources=["/api/v1/auth/login"],
+                            evidence=window_attempts[:20],
+                            recommended_action="Block IP(s) temporarily, force MFA, notify security team",
+                            compliance_mappings=[
+                                "SOC2 CC6.1",
+                                "ISO27001 A.9.2.1",
+                                "GDPR Art.32",
+                            ],
+                        )
+                    )
                     break
 
-    async def _detect_credential_stuffing(self, logs: list[AuditLogEntry], actor_logs: dict) -> None:
+    async def _detect_credential_stuffing(
+        self, logs: list[AuditLogEntry], actor_logs: dict
+    ) -> None:
         ip_logs = defaultdict(list)
         for log in logs:
             if log.event_type == "auth" and log.status == "failure" and log.ip_address:
@@ -452,23 +510,34 @@ class AuditLogAnalyzer:
                 continue
             unique_actors = set(e.actor_id for e in entries)
             if len(unique_actors) >= 5:
-                self.alerts.append(AnomalyAlert(
-                    alert_id=hashlib.sha256(f"cs:{ip}".encode()).hexdigest()[:12],
-                    timestamp=datetime.now(timezone.utc),
-                    severity=AlertSeverity.CRITICAL,
-                    anomaly_type=AnomalyType.CREDENTIAL_STUFFING,
-                    description=f"Credential stuffing attack from {ip}: {len(entries)} attempts across {len(unique_actors)} accounts",
-                    affected_actors=list(unique_actors)[:10],
-                    affected_resources=["/api/v1/auth/login"],
-                    evidence=entries[:20],
-                    recommended_action="Block IP immediately, enable CAPTCHA, force password resets",
-                    compliance_mappings=["SOC2 CC6.1", "ISO27001 A.9.2.1"],
-                ))
+                self.alerts.append(
+                    AnomalyAlert(
+                        alert_id=hashlib.sha256(f"cs:{ip}".encode()).hexdigest()[:12],
+                        timestamp=datetime.now(timezone.utc),
+                        severity=AlertSeverity.CRITICAL,
+                        anomaly_type=AnomalyType.CREDENTIAL_STUFFING,
+                        description=f"Credential stuffing attack from {ip}: {len(entries)} attempts across {len(unique_actors)} accounts",
+                        affected_actors=list(unique_actors)[:10],
+                        affected_resources=["/api/v1/auth/login"],
+                        evidence=entries[:20],
+                        recommended_action="Block IP immediately, enable CAPTCHA, force password resets",
+                        compliance_mappings=["SOC2 CC6.1", "ISO27001 A.9.2.1"],
+                    )
+                )
 
-    async def _detect_impossible_travel(self, logs: list[AuditLogEntry], actor_logs: dict) -> None:
+    async def _detect_impossible_travel(
+        self, logs: list[AuditLogEntry], actor_logs: dict
+    ) -> None:
         for actor_id, entries in actor_logs.items():
             auth_success = sorted(
-                [e for e in entries if e.event_type == "auth" and e.status == "success" and e.lat and e.lon],
+                [
+                    e
+                    for e in entries
+                    if e.event_type == "auth"
+                    and e.status == "success"
+                    and e.lat
+                    and e.lon
+                ],
                 key=lambda x: x.timestamp,
             )
 
@@ -484,57 +553,96 @@ class AuditLogAnalyzer:
                 speed_kmh = distance_km / time_delta
 
                 if speed_kmh > MAX_GEO_VELOCITY_KMH and distance_km > 500:
-                    self.alerts.append(AnomalyAlert(
-                        alert_id=hashlib.sha256(f"it:{actor_id}:{curr.timestamp.isoformat()}".encode()).hexdigest()[:12],
-                        timestamp=datetime.now(timezone.utc),
-                        severity=AlertSeverity.HIGH,
-                        anomaly_type=AnomalyType.IMPOSSIBLE_TRAVEL,
-                        description=f"Impossible travel detected for {actor_id}: {prev.country} → {curr.country} ({distance_km:.0f}km in {time_delta:.1f}h = {speed_kmh:.0f}km/h)",
-                        affected_actors=[actor_id],
-                        affected_resources=["/api/v1/auth/login"],
-                        evidence=[prev, curr],
-                        recommended_action="Force re-authentication with MFA, notify user, review session",
-                        compliance_mappings=["SOC2 CC6.1", "ISO27001 A.16.1.4", "GDPR Art.32"],
-                    ))
+                    self.alerts.append(
+                        AnomalyAlert(
+                            alert_id=hashlib.sha256(
+                                f"it:{actor_id}:{curr.timestamp.isoformat()}".encode()
+                            ).hexdigest()[:12],
+                            timestamp=datetime.now(timezone.utc),
+                            severity=AlertSeverity.HIGH,
+                            anomaly_type=AnomalyType.IMPOSSIBLE_TRAVEL,
+                            description=f"Impossible travel detected for {actor_id}: {prev.country} → {curr.country} ({distance_km:.0f}km in {time_delta:.1f}h = {speed_kmh:.0f}km/h)",
+                            affected_actors=[actor_id],
+                            affected_resources=["/api/v1/auth/login"],
+                            evidence=[prev, curr],
+                            recommended_action="Force re-authentication with MFA, notify user, review session",
+                            compliance_mappings=[
+                                "SOC2 CC6.1",
+                                "ISO27001 A.16.1.4",
+                                "GDPR Art.32",
+                            ],
+                        )
+                    )
 
     async def _detect_privilege_escalation(self, logs: list[AuditLogEntry]) -> None:
-        escalation_actions = ["role_change", "permission_grant", "admin_promote", "sudo_access"]
+        escalation_actions = [
+            "role_change",
+            "permission_grant",
+            "admin_promote",
+            "sudo_access",
+        ]
         for log in logs:
             if log.action in escalation_actions:
                 if log.actor_type != "admin":
-                    self.alerts.append(AnomalyAlert(
-                        alert_id=hashlib.sha256(f"pe:{log.log_id}".encode()).hexdigest()[:12],
-                        timestamp=datetime.now(timezone.utc),
-                        severity=AlertSeverity.CRITICAL,
-                        anomaly_type=AnomalyType.PRIVILEGE_ESCALATION,
-                        description=f"Unauthorized privilege escalation attempt by {log.actor_id} ({log.actor_type}): {log.action} on {log.resource}",
-                        affected_actors=[log.actor_id],
-                        affected_resources=[log.resource],
-                        evidence=[log],
-                        recommended_action="Revoke elevated permissions immediately, investigate actor, alert security team",
-                        compliance_mappings=["SOC2 CC6.2", "ISO27001 A.9.2.3", "GDPR Art.33"],
-                    ))
+                    self.alerts.append(
+                        AnomalyAlert(
+                            alert_id=hashlib.sha256(
+                                f"pe:{log.log_id}".encode()
+                            ).hexdigest()[:12],
+                            timestamp=datetime.now(timezone.utc),
+                            severity=AlertSeverity.CRITICAL,
+                            anomaly_type=AnomalyType.PRIVILEGE_ESCALATION,
+                            description=f"Unauthorized privilege escalation attempt by {log.actor_id} ({log.actor_type}): {log.action} on {log.resource}",
+                            affected_actors=[log.actor_id],
+                            affected_resources=[log.resource],
+                            evidence=[log],
+                            recommended_action="Revoke elevated permissions immediately, investigate actor, alert security team",
+                            compliance_mappings=[
+                                "SOC2 CC6.2",
+                                "ISO27001 A.9.2.3",
+                                "GDPR Art.33",
+                            ],
+                        )
+                    )
 
-    async def _detect_data_exfiltration(self, logs: list[AuditLogEntry], actor_logs: dict) -> None:
+    async def _detect_data_exfiltration(
+        self, logs: list[AuditLogEntry], actor_logs: dict
+    ) -> None:
         for actor_id, entries in actor_logs.items():
-            data_access = [e for e in entries if e.event_type == "data_access" and e.action in ("export", "download")]
+            data_access = [
+                e
+                for e in entries
+                if e.event_type == "data_access" and e.action in ("export", "download")
+            ]
             if len(data_access) > 50:
                 total_size = sum(e.metadata.get("size_bytes", 0) for e in data_access)
                 if total_size > 100 * 1024 * 1024:
-                    self.alerts.append(AnomalyAlert(
-                        alert_id=hashlib.sha256(f"de:{actor_id}".encode()).hexdigest()[:12],
-                        timestamp=datetime.now(timezone.utc),
-                        severity=AlertSeverity.HIGH,
-                        anomaly_type=AnomalyType.DATA_EXFILTRATION,
-                        description=f"Potential data exfiltration by {actor_id}: {len(data_access)} exports, {total_size / (1024*1024):.1f}MB total",
-                        affected_actors=[actor_id],
-                        affected_resources=list(set(e.resource for e in data_access)),
-                        evidence=data_access[:10],
-                        recommended_action="Suspend account, review access logs, DLP scan",
-                        compliance_mappings=["SOC2 CC6.3", "ISO27001 A.12.4.2", "GDPR Art.5(1)(f)"],
-                    ))
+                    self.alerts.append(
+                        AnomalyAlert(
+                            alert_id=hashlib.sha256(
+                                f"de:{actor_id}".encode()
+                            ).hexdigest()[:12],
+                            timestamp=datetime.now(timezone.utc),
+                            severity=AlertSeverity.HIGH,
+                            anomaly_type=AnomalyType.DATA_EXFILTRATION,
+                            description=f"Potential data exfiltration by {actor_id}: {len(data_access)} exports, {total_size / (1024*1024):.1f}MB total",
+                            affected_actors=[actor_id],
+                            affected_resources=list(
+                                set(e.resource for e in data_access)
+                            ),
+                            evidence=data_access[:10],
+                            recommended_action="Suspend account, review access logs, DLP scan",
+                            compliance_mappings=[
+                                "SOC2 CC6.3",
+                                "ISO27001 A.12.4.2",
+                                "GDPR Art.5(1)(f)",
+                            ],
+                        )
+                    )
 
-    async def _detect_off_hours_access(self, logs: list[AuditLogEntry], actor_logs: dict) -> None:
+    async def _detect_off_hours_access(
+        self, logs: list[AuditLogEntry], actor_logs: dict
+    ) -> None:
         for actor_id, entries in actor_logs.items():
             if actor_id.startswith("user_"):
                 continue
@@ -547,20 +655,26 @@ class AuditLogAnalyzer:
                     off_hours.append(e)
 
             if len(off_hours) > 20:
-                self.alerts.append(AnomalyAlert(
-                    alert_id=hashlib.sha256(f"oha:{actor_id}".encode()).hexdigest()[:12],
-                    timestamp=datetime.now(timezone.utc),
-                    severity=AlertSeverity.MEDIUM,
-                    anomaly_type=AnomalyType.OFF_HOURS_ACCESS,
-                    description=f"{len(off_hours)} off-hours access events by {actor_id} (BD time)",
-                    affected_actors=[actor_id],
-                    affected_resources=list(set(e.resource for e in off_hours)),
-                    evidence=off_hours[:10],
-                    recommended_action="Review with actor, verify business justification",
-                    compliance_mappings=["SOC2 CC7.1", "ISO27001 A.16.1.4"],
-                ))
+                self.alerts.append(
+                    AnomalyAlert(
+                        alert_id=hashlib.sha256(f"oha:{actor_id}".encode()).hexdigest()[
+                            :12
+                        ],
+                        timestamp=datetime.now(timezone.utc),
+                        severity=AlertSeverity.MEDIUM,
+                        anomaly_type=AnomalyType.OFF_HOURS_ACCESS,
+                        description=f"{len(off_hours)} off-hours access events by {actor_id} (BD time)",
+                        affected_actors=[actor_id],
+                        affected_resources=list(set(e.resource for e in off_hours)),
+                        evidence=off_hours[:10],
+                        recommended_action="Review with actor, verify business justification",
+                        compliance_mappings=["SOC2 CC7.1", "ISO27001 A.16.1.4"],
+                    )
+                )
 
-    async def _detect_admin_anomalies(self, logs: list[AuditLogEntry], actor_logs: dict) -> None:
+    async def _detect_admin_anomalies(
+        self, logs: list[AuditLogEntry], actor_logs: dict
+    ) -> None:
         for actor_id, entries in actor_logs.items():
             if actor_id != "admin" and not actor_id.startswith("admin_"):
                 continue
@@ -569,20 +683,28 @@ class AuditLogAnalyzer:
             if len(admin_actions) > ADMIN_LOGIN_THRESHOLD:
                 failed = [e for e in admin_actions if e.status == "failure"]
                 if len(failed) > FAILED_ADMIN_THRESHOLD:
-                    self.alerts.append(AnomalyAlert(
-                        alert_id=hashlib.sha256(f"aa:{actor_id}".encode()).hexdigest()[:12],
-                        timestamp=datetime.now(timezone.utc),
-                        severity=AlertSeverity.HIGH,
-                        anomaly_type=AnomalyType.ADMIN_ANOMALY,
-                        description=f"Admin {actor_id}: {len(admin_actions)} actions, {len(failed)} failures",
-                        affected_actors=[actor_id],
-                        affected_resources=list(set(e.resource for e in admin_actions)),
-                        evidence=failed[:10],
-                        recommended_action="Force admin re-auth, review all admin actions",
-                        compliance_mappings=["SOC2 CC6.2", "ISO27001 A.9.2.3"],
-                    ))
+                    self.alerts.append(
+                        AnomalyAlert(
+                            alert_id=hashlib.sha256(
+                                f"aa:{actor_id}".encode()
+                            ).hexdigest()[:12],
+                            timestamp=datetime.now(timezone.utc),
+                            severity=AlertSeverity.HIGH,
+                            anomaly_type=AnomalyType.ADMIN_ANOMALY,
+                            description=f"Admin {actor_id}: {len(admin_actions)} actions, {len(failed)} failures",
+                            affected_actors=[actor_id],
+                            affected_resources=list(
+                                set(e.resource for e in admin_actions)
+                            ),
+                            evidence=failed[:10],
+                            recommended_action="Force admin re-auth, review all admin actions",
+                            compliance_mappings=["SOC2 CC6.2", "ISO27001 A.9.2.3"],
+                        )
+                    )
 
-    async def _detect_api_abuse(self, logs: list[AuditLogEntry], actor_logs: dict) -> None:
+    async def _detect_api_abuse(
+        self, logs: list[AuditLogEntry], actor_logs: dict
+    ) -> None:
         api_key_logs = defaultdict(list)
         for log in logs:
             if log.actor_type == "api_key" and log.event_type == "api_call":
@@ -590,18 +712,26 @@ class AuditLogAnalyzer:
 
         for api_key, entries in api_key_logs.items():
             if len(entries) > API_RATE_ANOMALY:
-                self.alerts.append(AnomalyAlert(
-                    alert_id=hashlib.sha256(f"api:{api_key}".encode()).hexdigest()[:12],
-                    timestamp=datetime.now(timezone.utc),
-                    severity=AlertSeverity.MEDIUM,
-                    anomaly_type=AnomalyType.API_ABUSE,
-                    description=f"API key {api_key[:8]}... making {len(entries)} requests in window (threshold: {API_RATE_ANOMALY})",
-                    affected_actors=[api_key],
-                    affected_resources=list(set(e.resource for e in entries)),
-                    evidence=entries[:10],
-                    recommended_action="Rate-limit or revoke API key, review usage pattern",
-                    compliance_mappings=["SOC2 CC7.1", "ISO27001 A.12.4.2", "GDPR Art.5(1)(f)"],
-                ))
+                self.alerts.append(
+                    AnomalyAlert(
+                        alert_id=hashlib.sha256(f"api:{api_key}".encode()).hexdigest()[
+                            :12
+                        ],
+                        timestamp=datetime.now(timezone.utc),
+                        severity=AlertSeverity.MEDIUM,
+                        anomaly_type=AnomalyType.API_ABUSE,
+                        description=f"API key {api_key[:8]}... making {len(entries)} requests in window (threshold: {API_RATE_ANOMALY})",
+                        affected_actors=[api_key],
+                        affected_resources=list(set(e.resource for e in entries)),
+                        evidence=entries[:10],
+                        recommended_action="Rate-limit or revoke API key, review usage pattern",
+                        compliance_mappings=[
+                            "SOC2 CC7.1",
+                            "ISO27001 A.12.4.2",
+                            "GDPR Art.5(1)(f)",
+                        ],
+                    )
+                )
 
     async def _detect_secret_access_anomalies(self, logs: list[AuditLogEntry]) -> None:
         secret_access = [e for e in logs if e.event_type == "secret_access"]
@@ -612,35 +742,51 @@ class AuditLogAnalyzer:
         for actor, count in actor_secret_counts.items():
             if count > 10:
                 actor_logs = [e for e in secret_access if e.actor_id == actor]
-                self.alerts.append(AnomalyAlert(
-                    alert_id=hashlib.sha256(f"sa:{actor}".encode()).hexdigest()[:12],
-                    timestamp=datetime.now(timezone.utc),
-                    severity=AlertSeverity.HIGH,
-                    anomaly_type=AnomalyType.SECRET_ACCESS_ANOMALY,
-                    description=f"Actor {actor} accessed secrets {count} times — potential compromise",
-                    affected_actors=[actor],
-                    affected_resources=list(set(e.resource for e in actor_logs)),
-                    evidence=actor_logs[:10],
-                    recommended_action="Rotate all secrets accessed by this actor, investigate",
-                    compliance_mappings=["SOC2 CC6.3", "ISO27001 A.12.4.1", "GDPR Art.32"],
-                ))
+                self.alerts.append(
+                    AnomalyAlert(
+                        alert_id=hashlib.sha256(f"sa:{actor}".encode()).hexdigest()[
+                            :12
+                        ],
+                        timestamp=datetime.now(timezone.utc),
+                        severity=AlertSeverity.HIGH,
+                        anomaly_type=AnomalyType.SECRET_ACCESS_ANOMALY,
+                        description=f"Actor {actor} accessed secrets {count} times — potential compromise",
+                        affected_actors=[actor],
+                        affected_resources=list(set(e.resource for e in actor_logs)),
+                        evidence=actor_logs[:10],
+                        recommended_action="Rotate all secrets accessed by this actor, investigate",
+                        compliance_mappings=[
+                            "SOC2 CC6.3",
+                            "ISO27001 A.12.4.1",
+                            "GDPR Art.32",
+                        ],
+                    )
+                )
 
     async def _detect_config_drift(self, logs: list[AuditLogEntry]) -> None:
         config_changes = [e for e in logs if e.event_type == "config_change"]
         for log in config_changes:
             if log.actor_type not in ("admin", "service"):
-                self.alerts.append(AnomalyAlert(
-                    alert_id=hashlib.sha256(f"cd:{log.log_id}".encode()).hexdigest()[:12],
-                    timestamp=datetime.now(timezone.utc),
-                    severity=AlertSeverity.HIGH,
-                    anomaly_type=AnomalyType.CONFIG_DRIFT,
-                    description=f"Unauthorized config change by {log.actor_id} ({log.actor_type}): {log.action} on {log.resource}",
-                    affected_actors=[log.actor_id],
-                    affected_resources=[log.resource],
-                    evidence=[log],
-                    recommended_action="Revert config change, investigate actor, review change approval process",
-                    compliance_mappings=["SOC2 CC6.6", "ISO27001 A.12.4.1", "GDPR Art.33"],
-                ))
+                self.alerts.append(
+                    AnomalyAlert(
+                        alert_id=hashlib.sha256(
+                            f"cd:{log.log_id}".encode()
+                        ).hexdigest()[:12],
+                        timestamp=datetime.now(timezone.utc),
+                        severity=AlertSeverity.HIGH,
+                        anomaly_type=AnomalyType.CONFIG_DRIFT,
+                        description=f"Unauthorized config change by {log.actor_id} ({log.actor_type}): {log.action} on {log.resource}",
+                        affected_actors=[log.actor_id],
+                        affected_resources=[log.resource],
+                        evidence=[log],
+                        recommended_action="Revert config change, investigate actor, review change approval process",
+                        compliance_mappings=[
+                            "SOC2 CC6.6",
+                            "ISO27001 A.12.4.1",
+                            "GDPR Art.33",
+                        ],
+                    )
+                )
 
     @staticmethod
     def _haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -650,8 +796,10 @@ class AuditLogAnalyzer:
         delta_lat = math.radians(lat2 - lat1)
         delta_lon = math.radians(lon2 - lon1)
 
-        a = (math.sin(delta_lat / 2) ** 2 +
-             math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lon / 2) ** 2)
+        a = (
+            math.sin(delta_lat / 2) ** 2
+            + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lon / 2) ** 2
+        )
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
         return R * c
 
@@ -679,11 +827,13 @@ class AuditLogAnalyzer:
         if self._db:
             for alert in self.alerts:
                 try:
-                    self._db.collection("security_alerts").document(alert.alert_id).set({
-                        **asdict(alert),
-                        "timestamp": datetime.now(timezone.utc),
-                        "environment": self.environment,
-                    })
+                    self._db.collection("security_alerts").document(alert.alert_id).set(
+                        {
+                            **asdict(alert),
+                            "timestamp": datetime.now(timezone.utc),
+                            "environment": self.environment,
+                        }
+                    )
                 except Exception as e:
                     logger.error(f"Failed to write alert to Firestore: {e}")
 
@@ -693,7 +843,13 @@ class AuditLogAnalyzer:
         actor_risk = defaultdict(float)
         for alert in self.alerts:
             for actor in alert.affected_actors:
-                actor_risk[actor] += {"critical": 10, "high": 5, "medium": 2, "low": 0.5, "info": 0}.get(alert.severity.value, 0)
+                actor_risk[actor] += {
+                    "critical": 10,
+                    "high": 5,
+                    "medium": 2,
+                    "low": 0.5,
+                    "info": 0,
+                }.get(alert.severity.value, 0)
 
         resource_access = defaultdict(int)
         for log in logs:
@@ -703,20 +859,27 @@ class AuditLogAnalyzer:
         for framework, controls in COMPLIANCE_CONTROLS.items():
             compliance_summary[framework] = {}
             for control, anomaly_types in controls.items():
-                triggered = [a for a in self.alerts if any(at.value in anomaly_types for at in [a.anomaly_type])]
+                triggered = [
+                    a
+                    for a in self.alerts
+                    if any(at.value in anomaly_types for at in [a.anomaly_type])
+                ]
                 compliance_summary[framework][control] = {
                     "status": "pass" if not triggered else "fail",
                     "triggered_alerts": len(triggered),
-                    "severity": max((a.severity.value for a in triggered), default="info"),
+                    "severity": max(
+                        (a.severity.value for a in triggered), default="info"
+                    ),
                 }
 
-        threat_indicators = list(set(
-            f"{a.anomaly_type.value}:{a.severity.value}"
-            for a in self.alerts
-        ))
+        threat_indicators = list(
+            set(f"{a.anomaly_type.value}:{a.severity.value}" for a in self.alerts)
+        )
 
         return AnalysisReport(
-            report_id=hashlib.sha256(f"{now.isoformat()}:{mode}".encode()).hexdigest()[:12],
+            report_id=hashlib.sha256(f"{now.isoformat()}:{mode}".encode()).hexdigest()[
+                :12
+            ],
             timestamp=now,
             mode=mode,
             window_start=min((l.timestamp for l in logs), default=now),
@@ -758,22 +921,46 @@ class AuditLogAnalyzer:
         ]
         for sev in ["critical", "high", "medium", "low", "info"]:
             count = sum(1 for a in report.alerts if a.severity.value == sev)
-            emoji = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢", "info": "⚪"}.get(sev, "")
+            emoji = {
+                "critical": "🔴",
+                "high": "🟠",
+                "medium": "🟡",
+                "low": "🟢",
+                "info": "⚪",
+            }.get(sev, "")
             lines.append(f"| {emoji} {sev.upper()} | {count} |")
         lines.append("")
 
         if report.alerts:
             lines.append("## 🔍 Detected Anomalies")
-            for alert in sorted(report.alerts, key=lambda a: {"critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0}.get(a.severity.value, 0), reverse=True):
-                emoji = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢", "info": "⚪"}.get(alert.severity.value, "")
-                lines.extend([
-                    f"### {emoji} [{alert.severity.value.upper()}] {alert.anomaly_type.value.replace('_', ' ').title()}",
-                    f"- **Description:** {alert.description}",
-                    f"- **Affected Actors:** {', '.join(alert.affected_actors)}",
-                    f"- **Recommended Action:** {alert.recommended_action}",
-                    f"- **Compliance:** {', '.join(alert.compliance_mappings)}",
-                    "",
-                ])
+            for alert in sorted(
+                report.alerts,
+                key=lambda a: {
+                    "critical": 4,
+                    "high": 3,
+                    "medium": 2,
+                    "low": 1,
+                    "info": 0,
+                }.get(a.severity.value, 0),
+                reverse=True,
+            ):
+                emoji = {
+                    "critical": "🔴",
+                    "high": "🟠",
+                    "medium": "🟡",
+                    "low": "🟢",
+                    "info": "⚪",
+                }.get(alert.severity.value, "")
+                lines.extend(
+                    [
+                        f"### {emoji} [{alert.severity.value.upper()}] {alert.anomaly_type.value.replace('_', ' ').title()}",
+                        f"- **Description:** {alert.description}",
+                        f"- **Affected Actors:** {', '.join(alert.affected_actors)}",
+                        f"- **Recommended Action:** {alert.recommended_action}",
+                        f"- **Compliance:** {', '.join(alert.compliance_mappings)}",
+                        "",
+                    ]
+                )
 
         if report.compliance_summary:
             lines.append("## 📋 Compliance Status")
@@ -781,7 +968,9 @@ class AuditLogAnalyzer:
                 lines.append(f"### {framework.upper()}")
                 for control, status in controls.items():
                     emoji = "✅" if status["status"] == "pass" else "❌"
-                    lines.append(f"- {emoji} **{control}**: {status['status']} ({status['triggered_alerts']} alerts)")
+                    lines.append(
+                        f"- {emoji} **{control}**: {status['status']} ({status['triggered_alerts']} alerts)"
+                    )
                 lines.append("")
 
         lines.append("---\n*Generated by SupremeAI Audit Log Analyzer v2.0.0*")
@@ -793,20 +982,49 @@ async def main() -> int:
         description="SupremeAI Audit Log Analyzer & SIEM Engine",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--mode", choices=["realtime", "batch", "compliance", "anomaly"], required=True,
-                        help="Analysis mode")
-    parser.add_argument("--window", choices=list(TIME_WINDOWS.keys()), default="1h",
-                        help="Time window for realtime/anomaly mode")
-    parser.add_argument("--since", type=str, help="Start time for batch mode (ISO 8601)")
+    parser.add_argument(
+        "--mode",
+        choices=["realtime", "batch", "compliance", "anomaly"],
+        required=True,
+        help="Analysis mode",
+    )
+    parser.add_argument(
+        "--window",
+        choices=list(TIME_WINDOWS.keys()),
+        default="1h",
+        help="Time window for realtime/anomaly mode",
+    )
+    parser.add_argument(
+        "--since", type=str, help="Start time for batch mode (ISO 8601)"
+    )
     parser.add_argument("--until", type=str, help="End time for batch mode (ISO 8601)")
-    parser.add_argument("--source", choices=["firestore", "bigquery", "simulated"], default="simulated",
-                        help="Log source")
-    parser.add_argument("--framework", choices=["soc2", "iso27001", "gdpr", "all"], default="all",
-                        help="Compliance framework")
-    parser.add_argument("--threshold", choices=["3sigma", "2sigma", "manual"], default="3sigma",
-                        help="Anomaly detection threshold")
-    parser.add_argument("--output-dir", type=Path, default=Path("reports/security"), help="Output directory")
-    parser.add_argument("--alert", action="store_true", help="Send alerts for critical/high findings")
+    parser.add_argument(
+        "--source",
+        choices=["firestore", "bigquery", "simulated"],
+        default="simulated",
+        help="Log source",
+    )
+    parser.add_argument(
+        "--framework",
+        choices=["soc2", "iso27001", "gdpr", "all"],
+        default="all",
+        help="Compliance framework",
+    )
+    parser.add_argument(
+        "--threshold",
+        choices=["3sigma", "2sigma", "manual"],
+        default="3sigma",
+        help="Anomaly detection threshold",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=Path("reports/security"),
+        help="Output directory",
+    )
+    parser.add_argument(
+        "--alert", action="store_true", help="Send alerts for critical/high findings"
+    )
     parser.add_argument("--project-id", type=str, help="GCP project ID")
 
     args = parser.parse_args()
@@ -817,10 +1035,22 @@ async def main() -> int:
         since = now - TIME_WINDOWS[args.window]
         until = now
     elif args.mode == "batch":
-        since = datetime.fromisoformat(args.since.replace("Z", "+00:00")) if args.since else now - timedelta(days=1)
-        until = datetime.fromisoformat(args.until.replace("Z", "+00:00")) if args.until else now
+        since = (
+            datetime.fromisoformat(args.since.replace("Z", "+00:00"))
+            if args.since
+            else now - timedelta(days=1)
+        )
+        until = (
+            datetime.fromisoformat(args.until.replace("Z", "+00:00"))
+            if args.until
+            else now
+        )
     elif args.mode in ("compliance", "anomaly"):
-        since = now - timedelta(days=7) if args.mode == "compliance" else now - TIME_WINDOWS[args.window]
+        since = (
+            now - timedelta(days=7)
+            if args.mode == "compliance"
+            else now - TIME_WINDOWS[args.window]
+        )
         until = now
     else:
         since = now - timedelta(hours=1)
@@ -841,10 +1071,14 @@ async def main() -> int:
         if args.alert:
             await analyzer.send_alerts()
 
-        critical_count = len([a for a in alerts if a.severity == AlertSeverity.CRITICAL])
+        critical_count = len(
+            [a for a in alerts if a.severity == AlertSeverity.CRITICAL]
+        )
         high_count = len([a for a in alerts if a.severity == AlertSeverity.HIGH])
         if critical_count > 0 or high_count > 0:
-            logger.error(f"❌ {critical_count} CRITICAL + {high_count} HIGH anomalies detected")
+            logger.error(
+                f"❌ {critical_count} CRITICAL + {high_count} HIGH anomalies detected"
+            )
             return 1
 
     logger.success("✅ Audit log analysis complete — no critical/high anomalies")

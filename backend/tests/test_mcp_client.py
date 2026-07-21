@@ -36,7 +36,11 @@ async def test_mcp_client_filters_by_domain_tags(monkeypatch):
             client = MagicMock()
             client.__aenter__ = AsyncMock(return_value=client)
             client.__aexit__ = AsyncMock(return_value=False)
-            client.get = AsyncMock(return_value=MagicMock(status_code=200, json=MagicMock(return_value={"tools": fake_tools})))
+            client.get = AsyncMock(
+                return_value=MagicMock(
+                    status_code=200, json=MagicMock(return_value={"tools": fake_tools})
+                )
+            )
             client_cls.return_value = client
 
             tools = await c.discover_tools(domain="research_analysis")

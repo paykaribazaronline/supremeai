@@ -73,7 +73,9 @@ def _get_compiled_patterns() -> list[re.Pattern]:
                 # বাংলা মন্তব্য: pattern compile ব্যর্থ হলে তা লগ করা হচ্ছে যাতে সিকিউরিটি রুল কার্যকর না হওয়ার কারণ বোঝা যায়।
                 from core.logger import logger
 
-                logger.error(f"[PromptFirewall] Failed to compile blocked pattern '{p}': {e}")
+                logger.error(
+                    f"[PromptFirewall] Failed to compile blocked pattern '{p}': {e}"
+                )
     return _compiled_patterns
 
 
@@ -94,7 +96,9 @@ class PromptFirewall:
     def __init__(self, gateway: GatewayManager | None = None) -> None:
         self.gateway = gateway or GatewayManager()
         # Model for quick critique — env-driven via settings
-        self.cheap_model: str = settings.claude_openrouter_model or "gemini/gemini-2.5-flash"
+        self.cheap_model: str = (
+            settings.claude_openrouter_model or "gemini/gemini-2.5-flash"
+        )
 
     def enforce_bengali_rules(self, system_prompt: str) -> str:
         """Inject Bengali enforcement header if not already present.
@@ -145,11 +149,15 @@ class PromptFirewall:
                     f"Does the following response violate this principle: '{principle}'?\n\n"
                     f"Response:\n{response_text}\n\nAnswer ONLY with 'YES' or 'NO'."
                 )
-                critique_response = await self.gateway.acompletion(prompt=critique_prompt, model=self.cheap_model)
+                critique_response = await self.gateway.acompletion(
+                    prompt=critique_prompt, model=self.cheap_model
+                )
                 critique_text = critique_response.get("text", "").strip().upper()
 
                 if "YES" in critique_text:
-                    logger.warning(f"Constitutional AI triggered on principle: '{principle}'")
+                    logger.warning(
+                        f"Constitutional AI triggered on principle: '{principle}'"
+                    )
 
                     # 2. Revision phase
                     revision_prompt = (
@@ -157,14 +165,20 @@ class PromptFirewall:
                         f"Please revise it to be compliant while preserving the original intent.\n\n"
                         f"Response:\n{response_text}"
                     )
-                    revised_response = await self.gateway.acompletion(prompt=revision_prompt, model=self.cheap_model)
+                    revised_response = await self.gateway.acompletion(
+                        prompt=revision_prompt, model=self.cheap_model
+                    )
                     return revised_response.get("text", response_text), True
 
             except (ConnectionError, TimeoutError) as exc:
-                logger.error(f"Network error during constitutional filtering for principle '{principle}': {exc}")
+                logger.error(
+                    f"Network error during constitutional filtering for principle '{principle}': {exc}"
+                )
                 continue
             except ValueError as exc:
-                logger.error(f"Invalid response from LLM during constitutional filtering for principle '{principle}': {exc}")
+                logger.error(
+                    f"Invalid response from LLM during constitutional filtering for principle '{principle}': {exc}"
+                )
                 continue
 
         return response_text, False

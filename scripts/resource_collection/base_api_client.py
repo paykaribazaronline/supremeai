@@ -9,28 +9,33 @@ import time
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
+
 import requests
 
 
 class BaseAPIClient(ABC):
     """Base class for all API clients"""
 
-    def __init__(self, name: str, data_dir: Path, base_url: str, api_key: Optional[str] = None):
+    def __init__(
+        self, name: str, data_dir: Path, base_url: str, api_key: Optional[str] = None
+    ):
         self.name = name
         self.data_dir = data_dir
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.api_key = api_key
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.logger = self._setup_logger()
         self.session = requests.Session()
         # Set default headers
-        self.session.headers.update({
-            'Accept': 'application/json',
-            'User-Agent': 'SupremeAI-ResourceCollector/1.0'
-        })
+        self.session.headers.update(
+            {
+                "Accept": "application/json",
+                "User-Agent": "SupremeAI-ResourceCollector/1.0",
+            }
+        )
         if api_key:
-            self.session.headers.update({'Authorization': f'Bearer {api_key}'})
+            self.session.headers.update({"Authorization": f"Bearer {api_key}"})
 
     def _setup_logger(self) -> logging.Logger:
         """Set up logging for the API client"""
@@ -47,7 +52,9 @@ class BaseAPIClient(ABC):
         ch.setLevel(logging.INFO)
 
         # Create formatter
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
         fh.setFormatter(formatter)
         ch.setFormatter(formatter)
 
@@ -68,7 +75,9 @@ class BaseAPIClient(ABC):
         """Parse raw API data into standardized format"""
         pass
 
-    def _make_request(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    def _make_request(
+        self, endpoint: str, params: Optional[Dict[str, Any]] = None
+    ) -> Optional[Dict[str, Any]]:
         """Make HTTP request to API endpoint"""
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
         try:
@@ -86,11 +95,11 @@ class BaseAPIClient(ABC):
     def save_data(self, data: List[Dict[str, Any]], filename: str = None) -> Path:
         """Save parsed data to JSON file"""
         if filename is None:
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"{self.name}_{timestamp}.json"
 
         filepath = self.data_dir / filename
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
         self.logger.info(f"Saved {len(data)} items to {filepath}")
@@ -106,7 +115,7 @@ class BaseAPIClient(ABC):
         latest_file = max(json_files, key=lambda f: f.stat().st_mtime)
 
         try:
-            with open(latest_file, 'r', encoding='utf-8') as f:
+            with open(latest_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
             self.logger.info(f"Loaded {len(data)} items from {latest_file}")
             return data
@@ -133,9 +142,9 @@ class BaseAPIClient(ABC):
             all_data = []
 
             for endpoint_config in endpoints:
-                endpoint = endpoint_config['endpoint']
-                params = endpoint_config.get('params', {})
-                name = endpoint_config.get('name', endpoint.replace('/', '_'))
+                endpoint = endpoint_config["endpoint"]
+                params = endpoint_config.get("params", {})
+                name = endpoint_config.get("name", endpoint.replace("/", "_"))
 
                 self.logger.info(f"Fetching data from endpoint: {endpoint}")
 
@@ -154,9 +163,9 @@ class BaseAPIClient(ABC):
                 # Add source endpoint information to each item
                 for item in parsed_data:
                     if isinstance(item, dict):
-                        item['_source_endpoint'] = endpoint
+                        item["_source_endpoint"] = endpoint
                         if name:
-                            item['_source_name'] = name
+                            item["_source_name"] = name
 
                 all_data.extend(parsed_data)
                 self.logger.info(f"Retrieved {len(parsed_data)} items from {endpoint}")

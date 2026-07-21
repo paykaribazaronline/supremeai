@@ -67,8 +67,12 @@ def _get_pool() -> psycopg2.pool.ThreadedConnectionPool | None:
             )
             return None
         try:
-            _pool = psycopg2.pool.ThreadedConnectionPool(_MIN_CONN, _MAX_CONN, dsn, connect_timeout=10)
-            logger.info(f"persistence.pooled_pg: initialized (max={_MAX_CONN} connections).")
+            _pool = psycopg2.pool.ThreadedConnectionPool(
+                _MIN_CONN, _MAX_CONN, dsn, connect_timeout=10
+            )
+            logger.info(
+                f"persistence.pooled_pg: initialized (max={_MAX_CONN} connections)."
+            )
         except Exception as exc:  # noqa: BLE001
             logger.error(f"persistence.pooled_pg: failed to initialize pool: {exc}")
             _pool_unavailable = True

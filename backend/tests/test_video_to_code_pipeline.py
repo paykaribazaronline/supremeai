@@ -6,14 +6,10 @@ Focus: constants, format detection, and fallback behaviour.
 from __future__ import annotations
 
 import pytest
-from services.video_to_code_pipeline import (
-    FRAME_INTERVAL_SECONDS,
-    MAX_VIDEO_SIZE_MB,
-    VIDEO_CACHE_TTL,
-    UIComponent,
-    VideoFormat,
-    VideoFrameExtractor,
-)
+from services.video_to_code_pipeline import (FRAME_INTERVAL_SECONDS,
+                                             MAX_VIDEO_SIZE_MB,
+                                             VIDEO_CACHE_TTL, UIComponent,
+                                             VideoFormat, VideoFrameExtractor)
 
 
 def test_constants():

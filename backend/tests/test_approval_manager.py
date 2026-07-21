@@ -47,11 +47,9 @@ class TestApproveSkillGeneration:
 
     def test_valid_code_is_approved_and_written(self, clean_skills_dir):
         """সিনট্যাক্টিকালি সঠিক কোড approve হলে ফাইল সত্যিই লেখা হবে, exception ছাড়া।"""
-        from api.routes.approval_manager import (
-            ApproveRequest,
-            _get_allowed_skills_dir,
-            approve_task,
-        )
+        from api.routes.approval_manager import (ApproveRequest,
+                                                 _get_allowed_skills_dir,
+                                                 approve_task)
 
         skill_name = f"test_skill_{uuid.uuid4().hex[:8]}"
         code = "def run():\n    return 'ok'\n"
@@ -135,5 +133,7 @@ class TestAICodeValidatorIntegration:
         from core.code_validator import AICodeValidator
 
         validator = AICodeValidator()
-        result = validator.validate_before_use("def run():\n    return some_undefined_name\n")
+        result = validator.validate_before_use(
+            "def run():\n    return some_undefined_name\n"
+        )
         assert result["can_use"] is False

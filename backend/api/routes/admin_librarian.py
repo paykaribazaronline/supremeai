@@ -30,7 +30,9 @@ async def get_quarantine_queue():
 
 
 @router.post("/process")
-async def process_skill_action(payload: ApprovalRequest, background_tasks: BackgroundTasks):
+async def process_skill_action(
+    payload: ApprovalRequest, background_tasks: BackgroundTasks
+):
     """
     Admin এর অ্যাকশন রিকোয়েস্ট গ্রহণ করে সাথে সাথে ২০০ OK রেসপন্স দেয়।
     ভারী ফাইল অপারেশন এবং ডিস্ক রাইট ব্যাকগ্রাউন্ডে প্রসেস হয়।

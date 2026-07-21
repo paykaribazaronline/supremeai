@@ -19,7 +19,9 @@ class ProxyManager:
 
     def _load_proxies(self) -> None:
         # বাংলা মন্তব্য: সেটিংস ও পরিবেশ ভেরিয়েবল উভয়ের ফলব্যাক প্রক্সি রিড করার জন্য অস.এনভাইরন যোগ করা হলো।
-        env_proxies = getattr(settings, "supremeai_proxies", None) or os.environ.get("SUPREMEAI_PROXIES")
+        env_proxies = getattr(settings, "supremeai_proxies", None) or os.environ.get(
+            "SUPREMEAI_PROXIES"
+        )
         if env_proxies:
             self.proxies = [p.strip() for p in env_proxies.split(",") if p.strip()]
             logger.info(f"Loaded {len(self.proxies)} proxies from environment.")
@@ -30,13 +32,17 @@ class ProxyManager:
                 with open(self.config_path, encoding="utf-8") as f:
                     data = json.load(f)
                     self.proxies = data.get("proxies", [])
-                    logger.info(f"Loaded {len(self.proxies)} proxies from {self.config_path}.")
+                    logger.info(
+                        f"Loaded {len(self.proxies)} proxies from {self.config_path}."
+                    )
             except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to read proxy config: {e}")
 
         # Fallback empty list
         if not self.proxies:
-            logger.warning("No proxies configured. Requests will route via host IP directly.")
+            logger.warning(
+                "No proxies configured. Requests will route via host IP directly."
+            )
 
     def get_next_proxy(self) -> str | None:
         if not self.proxies:
@@ -48,4 +54,6 @@ class ProxyManager:
         return proxy
 
     def report_failed_proxy(self, proxy: str) -> None:
-        logger.warning(f"Proxy failed execution: {proxy}. Rotating connection next step.")
+        logger.warning(
+            f"Proxy failed execution: {proxy}. Rotating connection next step."
+        )

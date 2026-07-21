@@ -187,7 +187,9 @@ class TestAuditCycle:
                     await auditor.audit_cycle()
 
                     mock_logger.error.assert_called_once()
-                    assert "OOM Kill Chain Triggered" in mock_logger.error.call_args[0][0]
+                    assert (
+                        "OOM Kill Chain Triggered" in mock_logger.error.call_args[0][0]
+                    )
                     mock_run.assert_called_once_with(
                         ["docker", "kill", "oom_container"],
                         capture_output=True,
@@ -206,7 +208,11 @@ class TestAuditCycle:
                     await auditor.audit_cycle()
 
                     # OOM error + kill failure error — 2 error logs
-                    error_calls = [c for c in mock_logger.error.call_args_list if "OOM" in c[0][0] or "Failed to kill" in c[0][0]]
+                    error_calls = [
+                        c
+                        for c in mock_logger.error.call_args_list
+                        if "OOM" in c[0][0] or "Failed to kill" in c[0][0]
+                    ]
                     assert len(error_calls) >= 1
 
     @pytest.mark.asyncio
@@ -240,11 +246,16 @@ class TestAuditCycle:
     @pytest.mark.asyncio
     async def test_audit_cycle_exception_handling(self, auditor):
         """বাংলা মন্তব্য: audit_cycle-এ exception হলে run() method handle করে।"""
-        with patch.object(auditor, "get_container_stats", side_effect=RuntimeError("Unexpected")):
+        with patch.object(
+            auditor, "get_container_stats", side_effect=RuntimeError("Unexpected")
+        ):
             with patch("core.container_auditor.logger") as mock_logger:
                 await auditor.audit_cycle()
                 mock_logger.error.assert_called_once()
-                assert "Error in container audit cycle: Unexpected" in mock_logger.error.call_args[0][0]
+                assert (
+                    "Error in container audit cycle: Unexpected"
+                    in mock_logger.error.call_args[0][0]
+                )
                 # Logger may or may not be called depending on implementation
                 # The exception is raised, which is the important part
 
@@ -286,9 +297,13 @@ class TestContainerAuditorIntegration:
 
         with patch.object(auditor, "get_container_stats", return_value=critical_stats):
             with patch("core.container_auditor.logger") as mock_logger:
-                with patch("subprocess.run", return_value=MagicMock(returncode=0)) as mock_run:
+                with patch(
+                    "subprocess.run", return_value=MagicMock(returncode=0)
+                ) as mock_run:
                     await auditor.audit_cycle()
 
                     mock_logger.error.assert_called_once()
-                    assert "OOM Kill Chain Triggered" in mock_logger.error.call_args[0][0]
+                    assert (
+                        "OOM Kill Chain Triggered" in mock_logger.error.call_args[0][0]
+                    )
                     mock_run.assert_called_once()

@@ -104,7 +104,9 @@ def test_set_jwt_secret_raises_in_production_when_missing():
 
 
 def test_set_jwt_secret_keeps_provided_value():
-    assert Settings.set_jwt_secret("real-secret", _info(env="production")) == "real-secret"
+    assert (
+        Settings.set_jwt_secret("real-secret", _info(env="production")) == "real-secret"
+    )
 
 
 # ── validate_debug_mode ──────────────────────────────────

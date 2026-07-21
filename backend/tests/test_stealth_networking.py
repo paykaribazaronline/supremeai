@@ -21,7 +21,9 @@ async def test_production_sandbox_fails_without_docker():
     # Mock docker to fail
     mock_docker = MagicMock()
     mock_docker.from_env.side_effect = Exception("Docker daemon down")
-    with patch.dict(os.environ, {"ENV": "production", "ALLOW_LOCAL_SANDBOX_FALLBACK": "false"}):
+    with patch.dict(
+        os.environ, {"ENV": "production", "ALLOW_LOCAL_SANDBOX_FALLBACK": "false"}
+    ):
         with patch.dict("sys.modules", {"docker": mock_docker}):
             res = await executor.execute_local_code("print('hello')")
 
@@ -34,7 +36,9 @@ async def test_production_sandbox_fails_without_docker():
 
 def test_proxy_manager_rotates_proxies():
     # Setup custom env proxies
-    with patch.dict(os.environ, {"SUPREMEAI_PROXIES": "http://proxy1:8080,http://proxy2:8080"}):
+    with patch.dict(
+        os.environ, {"SUPREMEAI_PROXIES": "http://proxy1:8080,http://proxy2:8080"}
+    ):
         mgr = ProxyManager()
         p1 = mgr.get_next_proxy()
         p2 = mgr.get_next_proxy()

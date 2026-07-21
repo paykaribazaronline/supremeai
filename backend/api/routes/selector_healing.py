@@ -66,14 +66,20 @@ async def make_healing_decision(
 
     from loguru import logger
 
-    logger.info(f"Admin {admin_user.get('sub')} making decision on healing event {event_id}")
+    logger.info(
+        f"Admin {admin_user.get('sub')} making decision on healing event {event_id}"
+    )
 
     try:
         eid = uuid.UUID(event_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid event UUID")  # noqa  # noqa
+        raise HTTPException(
+            status_code=400, detail="Invalid event UUID"
+        )  # noqa  # noqa
 
-    result = await session.execute(select(SelectorHealingEvent).where(SelectorHealingEvent.id == eid))
+    result = await session.execute(
+        select(SelectorHealingEvent).where(SelectorHealingEvent.id == eid)
+    )
     evt = result.scalars().first()
     if not evt:
         raise HTTPException(status_code=404, detail="not found")

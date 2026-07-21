@@ -5,8 +5,9 @@
 import os
 import sys
 import time
+from datetime import datetime, timedelta, timezone
+
 import requests
-from datetime import datetime, timezone, timedelta
 
 # Force stdout/stderr to use UTF-8 to prevent UnicodeEncodeError on Windows terminals when printing emojis
 # বাংলা মন্তব্য: উইন্ডোজ টার্মিনালে ইমোজি প্রিন্ট করার সময় UnicodeEncodeError এড়াতে stdout এবং stderr-কে UTF-8 এ কনফিগার করা হলো।
@@ -21,18 +22,19 @@ SERVICES = [
         "name": "Primary backend",
         "service_id": "srv-d9d3n58js32c738n79k0",
         "url": "https://supremeai-backend.onrender.com",
-        "api_key_env": "RENDER_API_KEY"
+        "api_key_env": "RENDER_API_KEY",
     },
     {
         "name": "Backup backend",
         "service_id": "srv-d9fg48bh523c73f63bb0",
         "url": "https://supremeai-admin.onrender.com",
-        "api_key_env": "RENDER_API_KEY_BACKUP"
-    }
+        "api_key_env": "RENDER_API_KEY_BACKUP",
+    },
 ]
 
 POLL_INTERVAL = 30  # seconds
 TIMEOUT_LIMIT = 900  # 15 minutes (900 seconds)
+
 
 def check_http_health(url, label):
     """
@@ -52,21 +54,21 @@ def check_http_health(url, label):
         print(f"❌ {label} HTTP check failed: {e}")
         return False
 
+
 def monitor_service(service):
     name = service["name"]
     service_id = service["service_id"]
     api_key = os.getenv(service["api_key_env"])
 
     if not api_key:
-        print(f"ℹ️ API key for {name} ({service['api_key_env']}) is not configured. Skipping deploy tracking.")
+        print(
+            f"ℹ️ API key for {name} ({service['api_key_env']}) is not configured. Skipping deploy tracking."
+        )
         # বাংলা মন্তব্য: যদি কোন এপিআই কি না থাকে, তবে আমরা সরাসরি HTTP হেলথ চেক করতে পারি
         # কারণ ডেপ্লয়মেন্ট হয়ত অন্য কোনোভাবে ট্রিগার হয়েছে বা এপিআই কি বাদে চালানো হচ্ছে।
         return check_http_health(service["url"], name)
 
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Accept": "application/json"
-    }
+    headers = {"Authorization": f"Bearer {api_key}", "Accept": "application/json"}
 
     print(f"\n🔍 Tracking latest deploy for {name} (Service ID: {service_id})...")
 
@@ -75,7 +77,9 @@ def monitor_service(service):
     try:
         res = requests.get(deploys_url, headers=headers, timeout=15)
         if res.status_code != 200:
-            print(f"❌ Failed to fetch deploys for {name}: HTTP {res.status_code} - {res.text}")
+            print(
+                f"❌ Failed to fetch deploys for {name}: HTTP {res.status_code} - {res.text}"
+            )
             return False
 
         deploys = res.json()
@@ -95,7 +99,9 @@ def monitor_service(service):
         status = latest_deploy.get("status")
         created_at_str = latest_deploy.get("createdAt")
 
-        print(f"📋 Latest Deploy details: ID={deploy_id}, Status={status}, CreatedAt={created_at_str}")
+        print(
+            f"📋 Latest Deploy details: ID={deploy_id}, Status={status}, CreatedAt={created_at_str}"
+        )
 
         if not created_at_str:
             print(f"⚠️ createdAt timestamp is missing. Checking HTTP health directly.")
@@ -108,7 +114,9 @@ def monitor_service(service):
         now = datetime.now(timezone.utc)
 
         if now - created_at > timedelta(minutes=15):
-            print(f"ℹ️ Latest deploy is older than 15 minutes (created {now - created_at} ago). No recent deploy is active.")
+            print(
+                f"ℹ️ Latest deploy is older than 15 minutes (created {now - created_at} ago). No recent deploy is active."
+            )
             # Check if the service is currently healthy
             return check_http_health(service["url"], name)
 
@@ -125,7 +133,9 @@ def monitor_service(service):
     while True:
         elapsed = time.time() - start_time
         if elapsed > TIMEOUT_LIMIT:
-            print(f"❌ Timeout reached ({TIMEOUT_LIMIT}s) while waiting for deploy {deploy_id} to complete.")
+            print(
+                f"❌ Timeout reached ({TIMEOUT_LIMIT}s) while waiting for deploy {deploy_id} to complete."
+            )
             return False
 
         try:
@@ -138,7 +148,9 @@ def monitor_service(service):
                 else:
                     deploy_data = deploy_info
                 status = deploy_data.get("status", "").lower()
-                print(f"  Deploy {deploy_id} status: {status} (elapsed: {int(elapsed)}s)")
+                print(
+                    f"  Deploy {deploy_id} status: {status} (elapsed: {int(elapsed)}s)"
+                )
 
                 if status == "live":
                     print(f"🎉 Deploy {deploy_id} is now LIVE on Render!")
@@ -153,6 +165,7 @@ def monitor_service(service):
             print(f"⚠️ Polling connection issue: {e}")
 
         time.sleep(POLL_INTERVAL)
+
 
 def main():
     success = False
@@ -169,11 +182,16 @@ def main():
             success = True
 
     if success:
-        print("\n🎉 Deployment verification passed! At least one backend is healthy and responding.")
+        print(
+            "\n🎉 Deployment verification passed! At least one backend is healthy and responding."
+        )
         sys.exit(0)
     else:
-        print("\n❌ Deployment verification FAILED! No backend instances responded successfully.")
+        print(
+            "\n❌ Deployment verification FAILED! No backend instances responded successfully."
+        )
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

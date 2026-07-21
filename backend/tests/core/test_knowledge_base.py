@@ -2,12 +2,15 @@ import json
 import os
 
 import pytest
-from core.knowledge_base import MEMORY_FILE_PATH, get_from_memory, save_to_memory
+from core.knowledge_base import (MEMORY_FILE_PATH, get_from_memory,
+                                 save_to_memory)
 
 
 @pytest.fixture
 def temp_memory_file(tmp_path, monkeypatch):
-    monkeypatch.setattr("core.knowledge_base.MEMORY_FILE_PATH", str(tmp_path / "memory.json"))
+    monkeypatch.setattr(
+        "core.knowledge_base.MEMORY_FILE_PATH", str(tmp_path / "memory.json")
+    )
     with open(str(tmp_path / "memory.json"), "w") as f:
         json.dump({}, f)
     yield str(tmp_path / "memory.json")
@@ -88,7 +91,9 @@ def test_save_to_memory_unicode_prompt(temp_memory_file):
 
 def test_memory_file_path_is_correct():
     assert "memory_vault.json" in MEMORY_FILE_PATH
-    assert os.path.exists(MEMORY_FILE_PATH) or os.path.isdir(os.path.dirname(MEMORY_FILE_PATH))
+    assert os.path.exists(MEMORY_FILE_PATH) or os.path.isdir(
+        os.path.dirname(MEMORY_FILE_PATH)
+    )
 
 
 def test_memory_file_is_json_serializable():
@@ -103,4 +108,6 @@ def test_memory_file_is_overwritten_completely(temp_memory_file):
     save_to_memory("test", "final")
     with open(temp_memory_file) as f:
         data = json.load(f)
-    assert data == {"test": "final"}  # Changed from "valid" to "final" to match actual behavior
+    assert data == {
+        "test": "final"
+    }  # Changed from "valid" to "final" to match actual behavior

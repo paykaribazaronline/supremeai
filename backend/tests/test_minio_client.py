@@ -60,7 +60,9 @@ async def test_download_writes_file(tmp_path):
 async def test_get_presigned_url_returns_url():
     client = MinIOClient()
     mock_minio = MagicMock()
-    mock_minio.presigned_get_object.return_value = "http://localhost:9000/bucket/key?sign=xyz"
+    mock_minio.presigned_get_object.return_value = (
+        "http://localhost:9000/bucket/key?sign=xyz"
+    )
 
     client._client = mock_minio
     url = await client.get_presigned_url("bucket", "key", expires_seconds=3600)

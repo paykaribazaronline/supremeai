@@ -30,7 +30,9 @@ def mock_db_integration():
 @pytest.mark.asyncio
 @patch("core.llm_gateway.get_firestore_db")
 @patch("litellm.acompletion")
-async def test_llm_gateway_self_healer_integration(mock_acompletion, mock_get_firestore_db, mock_db_integration):
+async def test_llm_gateway_self_healer_integration(
+    mock_acompletion, mock_get_firestore_db, mock_db_integration
+):
     db, doc_ref_fixes = mock_db_integration
     mock_get_firestore_db.return_value = db
 

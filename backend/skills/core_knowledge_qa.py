@@ -3,7 +3,8 @@ import logging
 import os
 from typing import Any
 
-from core.resilience.circuit_breaker import CircuitBreaker, CircuitBreakerOpenError
+from core.resilience.circuit_breaker import (CircuitBreaker,
+                                             CircuitBreakerOpenError)
 from google import genai
 from google.genai import types
 
@@ -41,12 +42,16 @@ def _vector_search(query: str, namespace: str) -> list[dict[str, Any]]:
     try:
         from database.supabase_client import db as supabase_db
     except Exception as exc:  # noqa: BLE001
-        logger.warning(f"Supabase client unavailable for knowledge_qa vector search: {exc}")
+        logger.warning(
+            f"Supabase client unavailable for knowledge_qa vector search: {exc}"
+        )
         return []
 
     client = getattr(supabase_db, "client", None)
     if client is None:
-        logger.warning("Supabase client not configured — knowledge_qa returning no results instead of fabricated data.")
+        logger.warning(
+            "Supabase client not configured — knowledge_qa returning no results instead of fabricated data."
+        )
         return []
 
     query_embedding = _generate_embedding(query)
@@ -71,11 +76,18 @@ def _vector_search(query: str, namespace: str) -> list[dict[str, Any]]:
                     for row in response.data
                 ]
         except Exception as exc:  # noqa: BLE001
-            logger.warning(f"pgvector RPC 'match_knowledge_base' failed, falling back to ilike: {exc}")
+            logger.warning(
+                f"pgvector RPC 'match_knowledge_base' failed, falling back to ilike: {exc}"
+            )
 
     try:
         result = (
-            client.table("knowledge_base").select("id, content, source").eq("namespace", namespace).ilike("content", f"%{query}%").limit(5).execute()
+            client.table("knowledge_base")
+            .select("id, content, source")
+            .eq("namespace", namespace)
+            .ilike("content", f"%{query}%")
+            .limit(5)
+            .execute()
         )
         return result.data or []
     except Exception as exc:  # noqa: BLE001
@@ -117,8 +129,12 @@ def execute_tool(payload: dict) -> dict:
         context_str = ""
         citations = []
         for idx, chunk in enumerate(retrieved_chunks, 1):
-            context_str += f"[{idx}] Source: {chunk['source']}\nContent: {chunk['content']}\n\n"
-            citations.append({"citation_id": idx, "source": chunk["source"], "doc_id": chunk["id"]})
+            context_str += (
+                f"[{idx}] Source: {chunk['source']}\nContent: {chunk['content']}\n\n"
+            )
+            citations.append(
+                {"citation_id": idx, "source": chunk["source"], "doc_id": chunk["id"]}
+            )
 
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:

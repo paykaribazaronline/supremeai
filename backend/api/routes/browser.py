@@ -97,7 +97,9 @@ def get_credentials(userId: str = "default"):
     user_creds = []
     for c in CREDENTIALS:
         if c.get("userId") == userId:
-            decrypted = credential_store.decrypt(c.get("ciphertext", ""), c.get("key_ref"))
+            decrypted = credential_store.decrypt(
+                c.get("ciphertext", ""), c.get("key_ref")
+            )
             try:
                 decrypted_dict = json.loads(decrypted)
             except Exception:  # noqa: BLE001
@@ -177,13 +179,21 @@ def get_paused_state():
 
 @router.get("/urls/allowed")
 def get_allowed_urls(userId: str = "default"):
-    allowed = [u for u in URL_PERMISSIONS if u.get("type") == "allowed" and u.get("userId") == userId]
+    allowed = [
+        u
+        for u in URL_PERMISSIONS
+        if u.get("type") == "allowed" and u.get("userId") == userId
+    ]
     return {"urls": allowed}
 
 
 @router.get("/urls/denied")
 def get_denied_urls(userId: str = "default"):
-    denied = [u for u in URL_PERMISSIONS if u.get("type") == "denied" and u.get("userId") == userId]
+    denied = [
+        u
+        for u in URL_PERMISSIONS
+        if u.get("type") == "denied" and u.get("userId") == userId
+    ]
     return {"urls": denied}
 
 

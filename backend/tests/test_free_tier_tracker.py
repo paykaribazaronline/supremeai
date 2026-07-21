@@ -18,19 +18,10 @@ import time
 from unittest.mock import MagicMock, patch
 
 import pytest
-from core.llm.free_tier_tracker import (
-    FreeTierTracker,
-    ProviderBudget,
-    _DayWindow,
-    _Window,
-    get_tracker,
-)
-from core.llm.token_budget import (
-    TokenBudgetManager,
-    estimate_tokens,
-    get_budget_manager,
-    truncate_to_token_limit,
-)
+from core.llm.free_tier_tracker import (FreeTierTracker, ProviderBudget,
+                                        _DayWindow, _Window, get_tracker)
+from core.llm.token_budget import (TokenBudgetManager, estimate_tokens,
+                                   get_budget_manager, truncate_to_token_limit)
 
 # ===========================================================================
 # _Window / _DayWindow unit tests
@@ -256,9 +247,13 @@ class TestTokenBudgetManager:
         m = self._make_manager()
         long_prompt = "word " * 500  # ~625 estimated tokens
         # reserve_output_tokens=False so max_input_tokens=200 is applied directly
-        result, meta = m.prepare_prompt(long_prompt, provider="large_provider", reserve_output_tokens=False)
+        result, meta = m.prepare_prompt(
+            long_prompt, provider="large_provider", reserve_output_tokens=False
+        )
         assert meta["truncated"] is True
-        assert estimate_tokens(result) <= 205  # within 200 + small sentence-boundary buffer
+        assert (
+            estimate_tokens(result) <= 205
+        )  # within 200 + small sentence-boundary buffer
 
     def test_fits_in_budget_true_for_short(self):
         m = self._make_manager()
@@ -300,7 +295,9 @@ async def test_free_tier_tracker_database_loading():
             "is_active": True,
         }
     ]
-    with patch("database.supabase_client.db", mock_db), patch("core.free_tier_tracker.FREE_PROVIDER_PRIORITY", ["custom_provider"]):
+    with patch("database.supabase_client.db", mock_db), patch(
+        "core.free_tier_tracker.FREE_PROVIDER_PRIORITY", ["custom_provider"]
+    ):
         tracker = FreeTierTracker()
         await tracker.load_from_db()
         assert tracker.priority_list == ["custom_provider"]

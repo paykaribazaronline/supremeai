@@ -1,6 +1,6 @@
-import os
 import json
-from typing import Optional, Dict, Any, List
+import os
+from typing import Any, Dict, List, Optional
 
 from loguru import logger
 
@@ -86,9 +86,9 @@ class SkillRegistry:
                         "name": name,
                         "version": version,
                         "description": description,
-                        "category": uss.get("category", "general")
-                        if uss
-                        else "general",
+                        "category": (
+                            uss.get("category", "general") if uss else "general"
+                        ),
                         "parameters_schema": uss.get("parameters", {}) if uss else {},
                         "metadata": uss or {},
                     }

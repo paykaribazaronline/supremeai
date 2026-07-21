@@ -73,10 +73,14 @@ def _compute_embedding(text: str, vector_size: int = 384) -> list[float]:
             if _SENTENCE_TRANSFORMER_MODEL is None:
                 # বাংলা মন্তব্য: Lazy load — all-MiniLM-L6-v2 (384-dim) Qdrant-এর সাথে compatible
                 _SENTENCE_TRANSFORMER_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
-            embedding = _SENTENCE_TRANSFORMER_MODEL.encode(text, normalize_embeddings=True)
+            embedding = _SENTENCE_TRANSFORMER_MODEL.encode(
+                text, normalize_embeddings=True
+            )
             return embedding.tolist()  # type: ignore[union-attr]
         except Exception as exc:  # noqa: BLE001
-            logger.debug(f"sentence-transformers encode failed, falling back to hash embedding: {exc}")
+            logger.debug(
+                f"sentence-transformers encode failed, falling back to hash embedding: {exc}"
+            )
 
     # ── Deterministic hash-based fallback ──────────────────────────────────────
     # বাংলা মন্তব্য: SHA-256-এর প্রতিটি বাইটকে [0,1] রেঞ্জে normalize করে
@@ -120,8 +124,12 @@ class ErrorRemediation:
     def __init__(self) -> None:
         self._qdrant: QdrantClient | None = None
         self._qdrant_initialized: bool = False
-        self.fallback_path = Path(__file__).parent.parent / "data" / "error_remediation_fallback.json"
-        self.circuit_breaker = CircuitBreaker(name="qdrant", failure_threshold=3, recovery_timeout=60.0)
+        self.fallback_path = (
+            Path(__file__).parent.parent / "data" / "error_remediation_fallback.json"
+        )
+        self.circuit_breaker = CircuitBreaker(
+            name="qdrant", failure_threshold=3, recovery_timeout=60.0
+        )
         self._ensure_fallback_file()
 
     # ── Lazy Qdrant initializer ────────────────────────────────────────────────
@@ -157,7 +165,9 @@ class ErrorRemediation:
             self._qdrant_initialized = True
             logger.info(f"✅ Qdrant error remediation client connected ({qdrant_url})")
         except Exception as exc:  # noqa: BLE001
-            logger.warning(f"⚠️ Qdrant initialization failed: {exc}. Using local fallback only.")
+            logger.warning(
+                f"⚠️ Qdrant initialization failed: {exc}. Using local fallback only."
+            )
             self._qdrant = None
             self._qdrant_initialized = True
 
@@ -176,9 +186,13 @@ class ErrorRemediation:
                         distance=QDRANT_DISTANCE or qdrant_models.Distance.COSINE,
                     ),
                 )
-                logger.info(f"✅ Created Qdrant collection '{QDRANT_COLLECTION_NAME}' (size={QDRANT_VECTOR_SIZE})")
+                logger.info(
+                    f"✅ Created Qdrant collection '{QDRANT_COLLECTION_NAME}' (size={QDRANT_VECTOR_SIZE})"
+                )
         except UnexpectedResponse as exc:
-            logger.warning(f"Qdrant collection check failed (may already exist or service unavailable): {exc}")
+            logger.warning(
+                f"Qdrant collection check failed (may already exist or service unavailable): {exc}"
+            )
 
     # ── Fallback file management ───────────────────────────────────────────────
 
@@ -202,7 +216,9 @@ class ErrorRemediation:
                         indent=2,
                     )
         except OSError as e:
-            logger.warning(f"Failed to create fallback file at {self.fallback_path}: {e}")
+            logger.warning(
+                f"Failed to create fallback file at {self.fallback_path}: {e}"
+            )
 
     def _load_local_fallback(self, error_sig: str | None = None) -> str | None:
         """Load a fallback fix from the local JSON file.
@@ -226,7 +242,9 @@ class ErrorRemediation:
 
     # ── Circuit-breaking retry ─────────────────────────────────────────────────
 
-    async def _backoff_retry(self, operation: Callable, max_attempts: int = 3, base_delay: float = 0.5):
+    async def _backoff_retry(
+        self, operation: Callable, max_attempts: int = 3, base_delay: float = 0.5
+    ):
         """Execute an async operation with exponential backoff and circuit breaking.
 
         Args:
@@ -249,12 +267,16 @@ class ErrorRemediation:
             except Exception as exc:  # noqa: BLE001
                 last_exception = exc
                 self.circuit_breaker.mark_failure()
-                logger.debug(f"Qdrant lookup attempt {attempt}/{max_attempts} failed: {exc}")
+                logger.debug(
+                    f"Qdrant lookup attempt {attempt}/{max_attempts} failed: {exc}"
+                )
                 if attempt < max_attempts:
                     await asyncio.sleep(min(base_delay * (2 ** (attempt - 1)), 5.0))
 
         if last_exception is not None:
-            logger.warning(f"Qdrant lookup exhausted {max_attempts} attempts; falling back. Last error: {last_exception}")
+            logger.warning(
+                f"Qdrant lookup exhausted {max_attempts} attempts; falling back. Last error: {last_exception}"
+            )
         return None
 
     # ── Public API ─────────────────────────────────────────────────────────────
@@ -276,7 +298,9 @@ class ErrorRemediation:
         self._init_qdrant()
 
         if not self._qdrant or not self.circuit_breaker.allow_request():
-            reason = "Qdrant unavailable" if not self._qdrant else "Circuit breaker open"
+            reason = (
+                "Qdrant unavailable" if not self._qdrant else "Circuit breaker open"
+            )
             logger.debug(f"{reason}. Using local fallback.")
             error_event_bus.emit(
                 ErrorEvent(
@@ -284,7 +308,9 @@ class ErrorRemediation:
                     error_type="QDRANT_LOOKUP_SKIPPED",
                     message=reason,
                     severity="WARNING",
-                    structured_context=ErrorContext(module="error_remediation", extra={"error_sig": error_sig[:200]}),
+                    structured_context=ErrorContext(
+                        module="error_remediation", extra={"error_sig": error_sig[:200]}
+                    ),
                 )
             )
             return self._load_local_fallback(error_sig)
@@ -304,7 +330,9 @@ class ErrorRemediation:
         if results and results[0].payload:
             fix: str | None = results[0].payload.get("fix")
             if fix:
-                logger.info(f"✅ Found Qdrant remediation (score={results[0].score:.3f})")
+                logger.info(
+                    f"✅ Found Qdrant remediation (score={results[0].score:.3f})"
+                )
                 return fix
 
         error_event_bus.emit(
@@ -313,7 +341,9 @@ class ErrorRemediation:
                 error_type="QDRANT_NO_FIX_FOUND",
                 message="No remediation found in Qdrant for error signature",
                 severity="INFO",
-                structured_context=ErrorContext(module="error_remediation", extra={"error_sig": error_sig[:200]}),
+                structured_context=ErrorContext(
+                    module="error_remediation", extra={"error_sig": error_sig[:200]}
+                ),
             )
         )
         return self._load_local_fallback(error_sig)
@@ -355,7 +385,9 @@ class ErrorRemediation:
                     )
                 ],
             )
-            logger.info(f"✅ Inserted error pattern ({len(embedding)}-dim): {error_sig[:80]}")
+            logger.info(
+                f"✅ Inserted error pattern ({len(embedding)}-dim): {error_sig[:80]}"
+            )
             error_event_bus.emit(
                 ErrorEvent(
                     module="error_remediation",

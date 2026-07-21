@@ -41,22 +41,36 @@ class AuditLogger:
             try:
                 pooled_pg.execute(_PG_SCHEMA)
                 if AuditLogger._batcher is None:
-                    AuditLogger._batcher = WriteBehindBatcher(name="audit_logs", flush_interval=2.0, max_batch=200)
-                logger.info("AuditLogger: using pooled Postgres backend (write-behind batched).")
+                    AuditLogger._batcher = WriteBehindBatcher(
+                        name="audit_logs", flush_interval=2.0, max_batch=200
+                    )
+                logger.info(
+                    "AuditLogger: using pooled Postgres backend (write-behind batched)."
+                )
             except Exception as exc:  # noqa: BLE001
-                logger.error(f"AuditLogger: Postgres schema init failed, falling back to SQLite: {exc}")
+                logger.error(
+                    f"AuditLogger: Postgres schema init failed, falling back to SQLite: {exc}"
+                )
                 self._use_pg = False
 
         if not self._use_pg:
             if db_path is None:
-                memory_db_dir = getattr(settings, "memory_db_dir", None) or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                memory_db_dir = getattr(
+                    settings, "memory_db_dir", None
+                ) or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
                 if memory_db_dir and not os.path.exists(memory_db_dir):
                     os.makedirs(memory_db_dir, exist_ok=True)
-                self.db_path = os.path.join(memory_db_dir, "supreme_memory.db") if memory_db_dir else "supreme_memory.db"
+                self.db_path = (
+                    os.path.join(memory_db_dir, "supreme_memory.db")
+                    if memory_db_dir
+                    else "supreme_memory.db"
+                )
             else:
                 self.db_path = db_path
             self._init_sqlite()
-            logger.warning(f"AuditLogger: running on local SQLite fallback at {self.db_path} — NOT durable across restarts.")
+            logger.warning(
+                f"AuditLogger: running on local SQLite fallback at {self.db_path} — NOT durable across restarts."
+            )
 
     @contextmanager
     def _get_conn(self):
@@ -69,8 +83,7 @@ class AuditLogger:
     def _init_sqlite(self):
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         with self._get_conn() as conn:
-            conn.execute(
-                """
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS audit_logs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     action_type TEXT,
@@ -78,15 +91,18 @@ class AuditLogger:
                     reasoning TEXT,
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """
-            )
+            """)
             conn.commit()
 
     def log_decision(self, action_type: str, decision_details: str, reasoning: str):
         """Logs an autonomous decision or rotation details to the tamper-evident audit trail."""
-        logger.info(f"[AUDIT LOG] {action_type} - Details: {decision_details} - Reason: {reasoning}")
+        logger.info(
+            f"[AUDIT LOG] {action_type} - Details: {decision_details} - Reason: {reasoning}"
+        )
         if self._use_pg and AuditLogger._batcher is not None:
-            AuditLogger._batcher.submit(_INSERT_SQL, (action_type, decision_details, reasoning))
+            AuditLogger._batcher.submit(
+                _INSERT_SQL, (action_type, decision_details, reasoning)
+            )
             return
         try:
             with self._get_conn() as conn:
@@ -104,7 +120,9 @@ class AuditLogger:
                 # Ensure any not-yet-flushed rows are visible before reading.
                 if AuditLogger._batcher is not None:
                     AuditLogger._batcher.flush()
-                return pooled_pg.query_dicts("SELECT * FROM audit_logs ORDER BY timestamp DESC")
+                return pooled_pg.query_dicts(
+                    "SELECT * FROM audit_logs ORDER BY timestamp DESC"
+                )
             except Exception as e:  # noqa: BLE001
                 logger.error(f"Failed to query audit trail from Postgres: {e}")
                 return []

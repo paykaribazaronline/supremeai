@@ -6,7 +6,6 @@ from typing import Dict, List
 
 import requests
 
-
 REPO = os.environ.get("GITHUB_REPOSITORY")
 BRANCH = os.environ.get("GITHUB_REF_NAME")
 CURRENT_RUN_ID = int(os.environ.get("GITHUB_RUN_ID", "0"))
@@ -24,10 +23,20 @@ HEADERS = {
 }
 
 PACKAGE_MAP = {
-    "backend": ["Backend (Test)", "Backend Tests", "Deploy Backend (Render)", "Deploy Backend (Cloud Run)", "Canary Deploy Backend (Cloud Run)"],
-    "frontend": ["Frontend Monorepo (Turbo)", "Deploy Admin Portal (Firebase)", "Deploy User Portal (Vercel)"],
+    "backend": [
+        "Backend (Test)",
+        "Backend Tests",
+        "Deploy Backend (Render)",
+        "Deploy Backend (Cloud Run)",
+        "Canary Deploy Backend (Cloud Run)",
+    ],
+    "frontend": [
+        "Frontend Monorepo (Turbo)",
+        "Deploy Admin Portal (Firebase)",
+        "Deploy User Portal (Vercel)",
+    ],
     "docker_build": ["Build Base Image"],
-    "dependencies": []
+    "dependencies": [],
 }
 
 FAILED_CONCLUSIONS = {"failure", "cancelled", "timed_out"}
@@ -50,7 +59,11 @@ def get_recent_workflow_runs() -> List[Dict]:
     }
     runs_data = api_get("/actions/runs", params=params)
     runs = runs_data.get("workflow_runs", [])
-    return [run for run in runs if run.get("name") == WORKFLOW_NAME and run.get("id") != CURRENT_RUN_ID]
+    return [
+        run
+        for run in runs
+        if run.get("name") == WORKFLOW_NAME and run.get("id") != CURRENT_RUN_ID
+    ]
 
 
 def get_job_statuses(run_id: int) -> List[Dict]:
@@ -91,7 +104,9 @@ def determine_force_flags() -> Dict[str, str]:
         # Iterate from most recent to oldest run
         for run_id in sorted(run_jobs_cache.keys(), reverse=True):
             jobs = run_jobs_cache[run_id]
-            matching_jobs = [job for job in jobs if match_job(job.get("name", ""), patterns)]
+            matching_jobs = [
+                job for job in jobs if match_job(job.get("name", ""), patterns)
+            ]
 
             if not matching_jobs:
                 continue
@@ -120,10 +135,12 @@ def determine_force_flags() -> Dict[str, str]:
 
 
 import base64
+
+
 def main() -> int:
     force_flags = determine_force_flags()
     json_str = json.dumps(force_flags)
-    encoded = base64.b64encode(json_str.encode('utf-8')).decode('utf-8')
+    encoded = base64.b64encode(json_str.encode("utf-8")).decode("utf-8")
     print(f"force_flags (encoded)={encoded}")
     # Write to GITHUB_OUTPUT file instead of using deprecated ::set-output
     github_output = os.environ.get("GITHUB_OUTPUT")

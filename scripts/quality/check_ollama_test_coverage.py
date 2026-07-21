@@ -60,7 +60,9 @@ def bprint(msg: str, color: str = "") -> None:
 
 
 # ── প্রম্পট বিল্ডার ───────────────────────────────────────────────────────────
-def build_generation_prompt(source_code: str, file_path: str, stack: str = "python") -> str:
+def build_generation_prompt(
+    source_code: str, file_path: str, stack: str = "python"
+) -> str:
     return f"""You are a senior Python QA engineer. Generate ONLY the test file. No markdown, no explanation.
 
 REQUIREMENTS:
@@ -111,16 +113,20 @@ def run_pytest_on_file(test_file_path: str) -> dict[str, Any]:
         "--tb=short",
         f"--cov={test_file_path.replace(os.sep, '.').replace('_test.py','').replace('test_','')}",
         "--cov-report=term-missing",
-        "--cov-report=xml:" + str(Path(test_file_path).parent / "coverage_generated.xml"),
+        "--cov-report=xml:"
+        + str(Path(test_file_path).parent / "coverage_generated.xml"),
     ]
     bprint(f"  Running command: {' '.join(cmd)}", YELLOW)
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120, check=False)
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=120, check=False
+        )
         return {
             "returncode": proc.returncode,
             "stdout": proc.stdout,
             "stderr": proc.stderr,
-            "passed": proc.returncode in [0, 5], # 0 = all passed, 5 = no tests collected
+            "passed": proc.returncode
+            in [0, 5],  # 0 = all passed, 5 = no tests collected
         }
     except Exception as exc:
         return {"returncode": -1, "passed": False, "error": str(exc)}
@@ -144,9 +150,13 @@ async def main_async() -> int:
     parser = argparse.ArgumentParser(
         description="Ollama দিয়ে test coverage જનറেশন চেক করে"
     )
-    parser.add_argument("source_file", nargs="?", default="backend/core/circuit_breaker.py")
+    parser.add_argument(
+        "source_file", nargs="?", default="backend/core/circuit_breaker.py"
+    )
     parser.add_argument("model", nargs="?", default="llama3.2:latest")
-    parser.add_argument("--dry-run", action="store_true", help="Only generate, not run tests")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Only generate, not run tests"
+    )
     args = parser.parse_args()
 
     source_path = Path(args.source_file)
@@ -232,7 +242,10 @@ async def main_async() -> int:
     run_result = run_pytest_on_file(str(test_file_path))
 
     bprint(f"  Return code : {run_result['returncode']}")
-    bprint(f"  Passed       : {run_result.get('passed')}", GREEN if run_result.get("passed") else RED)
+    bprint(
+        f"  Passed       : {run_result.get('passed')}",
+        GREEN if run_result.get("passed") else RED,
+    )
 
     if run_result.get("stderr"):
         err_preview = run_result["stderr"][:800]
@@ -256,7 +269,10 @@ async def main_async() -> int:
             return 1
     else:
         if not run_result.get("passed"):
-            bprint("\n⚠️  টেস্ট ফলন Honors দিল, combine করবে না। served track করে দেখুন।", RED)
+            bprint(
+                "\n⚠️  টেস্ট ফলন Honors দিল, combine করবে না। served track করে দেখুন।",
+                RED,
+            )
         if not cov_xml.exists():
             bprint("\n⚠️  coverage.xml generate হল ná, প্যাচেজ Χ مشکل হossible।", RED)
         return 1

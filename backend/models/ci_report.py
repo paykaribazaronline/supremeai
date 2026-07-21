@@ -20,15 +20,21 @@ def now_epoch() -> int:
 class CIReportPayload(BaseModel):
     run_id: int = Field(..., description="GitHub Actions workflow run ID")
     run_number: int = Field(..., description="GitHub Actions workflow run number")
-    event_name: str = Field(..., description="Trigger event name (push, pr, schedule, etc.)")
+    event_name: str = Field(
+        ..., description="Trigger event name (push, pr, schedule, etc.)"
+    )
     actor: str = Field(..., description="GHA runner user/actor who triggered the run")
     workflow_name: str = Field(..., description="Name of the workflow")
     status: str = Field(..., description="Status (success, failure, cancelled, etc.)")
     runtime_seconds: int = Field(..., description="Total execution time in seconds")
     commit_sha: str = Field(..., description="Commit SHA of the run")
     branch: str = Field(..., description="Branch name of the run")
-    jobs_summary: dict[str, Any] | None = Field(default=None, description="Detailed status of all GHA jobs run")
-    error_logs: str | None = Field(default=None, description="Logs/error information for failed runs")
+    jobs_summary: dict[str, Any] | None = Field(
+        default=None, description="Detailed status of all GHA jobs run"
+    )
+    error_logs: str | None = Field(
+        default=None, description="Logs/error information for failed runs"
+    )
 
 
 async def create_ci_report(payload: CIReportPayload) -> dict[str, Any] | None:
@@ -36,7 +42,9 @@ async def create_ci_report(payload: CIReportPayload) -> dict[str, Any] | None:
     pool = await get_db_pool()
 
     # JSONB ফিল্ড হিসেবে jobs_summary কনভার্ট করা হচ্ছে
-    jobs_summary_json = json.dumps(payload.jobs_summary) if payload.jobs_summary else None
+    jobs_summary_json = (
+        json.dumps(payload.jobs_summary) if payload.jobs_summary else None
+    )
 
     row = await pool.fetchrow(
         """

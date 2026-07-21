@@ -22,7 +22,9 @@ class SandboxService:
             logger.error(f"Failed to initialize Docker client: {e}")
             self.client = None
 
-    async def execute_in_docker(self, code: str, language: str = "python") -> dict[str, Any]:
+    async def execute_in_docker(
+        self, code: str, language: str = "python"
+    ) -> dict[str, Any]:
         """
         Executes code in an isolated Docker container with strict timeouts
         to prevent infinite loops.
@@ -35,7 +37,9 @@ class SandboxService:
                 "execution_time_ms": 0,
             }
 
-        logger.info(f"Executing {language} code in Docker Sandbox (timeout: {self.timeout}s)...")
+        logger.info(
+            f"Executing {language} code in Docker Sandbox (timeout: {self.timeout}s)..."
+        )
 
         image = "python:3.11-slim"
         if language != "python":
@@ -65,13 +69,19 @@ class SandboxService:
                 )
 
             # Execute with timeout
-            output_bytes = await asyncio.wait_for(loop.run_in_executor(None, run_container), timeout=self.timeout)
+            output_bytes = await asyncio.wait_for(
+                loop.run_in_executor(None, run_container), timeout=self.timeout
+            )
 
             execution_time = int((asyncio.get_event_loop().time() - start_time) * 1000)
 
             return {
                 "status": "SUCCESS",
-                "stdout": (output_bytes.decode("utf-8") if isinstance(output_bytes, bytes) else str(output_bytes)),
+                "stdout": (
+                    output_bytes.decode("utf-8")
+                    if isinstance(output_bytes, bytes)
+                    else str(output_bytes)
+                ),
                 "stderr": "",
                 "execution_time_ms": execution_time,
             }
@@ -82,15 +92,23 @@ class SandboxService:
                 "status": "TIMEOUT",
                 "stdout": "",
                 "stderr": f"Execution exceeded {self.timeout}s timeout.",
-                "execution_time_ms": int((asyncio.get_event_loop().time() - start_time) * 1000),
+                "execution_time_ms": int(
+                    (asyncio.get_event_loop().time() - start_time) * 1000
+                ),
             }
         except ContainerError as e:
             logger.error(f"Container execution error: {e}")
             return {
                 "status": "FAILED",
                 "stdout": "",
-                "stderr": (str(e.stderr.decode("utf-8")) if getattr(e, "stderr", None) else str(e)),
-                "execution_time_ms": int((asyncio.get_event_loop().time() - start_time) * 1000),
+                "stderr": (
+                    str(e.stderr.decode("utf-8"))
+                    if getattr(e, "stderr", None)
+                    else str(e)
+                ),
+                "execution_time_ms": int(
+                    (asyncio.get_event_loop().time() - start_time) * 1000
+                ),
             }
         except Exception as e:  # noqa: BLE001
             logger.error(f"Sandbox execution failed: {e}")
@@ -98,7 +116,9 @@ class SandboxService:
                 "status": "FAILED",
                 "stdout": "",
                 "stderr": str(e),
-                "execution_time_ms": int((asyncio.get_event_loop().time() - start_time) * 1000),
+                "execution_time_ms": int(
+                    (asyncio.get_event_loop().time() - start_time) * 1000
+                ),
             }
 
 

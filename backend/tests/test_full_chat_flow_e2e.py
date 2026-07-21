@@ -53,7 +53,9 @@ async def test_full_chat_flow_e2e_cache_hit(monkeypatch):
     monkeypatch.setattr("api.routes.chat.multi_layer_cache", fake_cache)
     request = SimpleNamespace(headers={"X-Session-ID": "session-1"})
     payload = ChatPayload(prompt="hello")
-    result = await get_completion(request, payload, db=SimpleNamespace(tenant_id="tenant-1"))
+    result = await get_completion(
+        request, payload, db=SimpleNamespace(tenant_id="tenant-1")
+    )
 
     assert result["cached"] is True
     assert result["response"] == "cached-response"
@@ -71,11 +73,15 @@ async def test_full_chat_flow_e2e_live_generation(monkeypatch):
             raise RuntimeError("boom")
         return {"text": f"generated:{prompt}"}
 
-    monkeypatch.setattr("api.routes.chat.llm_gateway", SimpleNamespace(acompletion=mock_acompletion))
+    monkeypatch.setattr(
+        "api.routes.chat.llm_gateway", SimpleNamespace(acompletion=mock_acompletion)
+    )
 
     request = SimpleNamespace(headers={"X-Session-ID": "session-2"})
     payload = ChatPayload(prompt="live-prompt")
-    result = await get_completion(request, payload, db=SimpleNamespace(tenant_id="tenant-2"))
+    result = await get_completion(
+        request, payload, db=SimpleNamespace(tenant_id="tenant-2")
+    )
 
     assert result["cached"] is False
     assert result["response"] == "generated:live-prompt"
@@ -95,9 +101,13 @@ async def test_full_chat_flow_e2e_streaming(monkeypatch):
 
         return Response()
 
-    monkeypatch.setattr("api.routes.chat.llm_gateway", SimpleNamespace(acompletion=mock_acompletion))
+    monkeypatch.setattr(
+        "api.routes.chat.llm_gateway", SimpleNamespace(acompletion=mock_acompletion)
+    )
     request_payload = ChatPayload(prompt="stream-prompt")
-    response = await stream_chat(request_payload, db=SimpleNamespace(tenant_id="tenant-4"))
+    response = await stream_chat(
+        request_payload, db=SimpleNamespace(tenant_id="tenant-4")
+    )
 
     assert response.media_type == "text/event-stream"
 
@@ -120,7 +130,9 @@ async def test_full_chat_flow_e2e_model_failure(monkeypatch):
     async def mock_acompletion(prompt, task_type, stream):
         raise RuntimeError("boom")
 
-    monkeypatch.setattr("api.routes.chat.llm_gateway", SimpleNamespace(acompletion=mock_acompletion))
+    monkeypatch.setattr(
+        "api.routes.chat.llm_gateway", SimpleNamespace(acompletion=mock_acompletion)
+    )
 
     request = SimpleNamespace(headers={"X-Session-ID": "session-3"})
     payload = ChatPayload(prompt="raise-error")

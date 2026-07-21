@@ -45,7 +45,7 @@ import sys
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 from typing import Any
 
@@ -66,23 +66,25 @@ CURRENCY = "USD"
 
 # Provider budget configurations (monthly, USD)
 DEFAULT_BUDGETS: dict[str, Decimal] = {
-    "render": Decimal("0.00"),      # Free tier
-    "netlify": Decimal("0.00"),     # Free tier
-    "supabase": Decimal("0.00"),    # Free tier
+    "render": Decimal("0.00"),  # Free tier
+    "netlify": Decimal("0.00"),  # Free tier
+    "supabase": Decimal("0.00"),  # Free tier
     "cloudflare": Decimal("0.00"),  # Free tier
     "openrouter": Decimal("5.00"),  # AI API budget
-    "gemini": Decimal("0.00"),      # Free tier (with limits)
-    "deepseek": Decimal("2.00"),    # Low-cost API
-    "groq": Decimal("0.00"),        # Free tier
-    "nvidia": Decimal("0.00"),      # Free tier
-    "huggingface": Decimal("0.00"), # Free tier
-    "firecrawl": Decimal("0.00"),   # Free tier
+    "gemini": Decimal("0.00"),  # Free tier (with limits)
+    "deepseek": Decimal("2.00"),  # Low-cost API
+    "groq": Decimal("0.00"),  # Free tier
+    "nvidia": Decimal("0.00"),  # Free tier
+    "huggingface": Decimal("0.00"),  # Free tier
+    "firecrawl": Decimal("0.00"),  # Free tier
 }
+
 
 # ── Data Models ────────────────────────────────────────────────────────
 @dataclass(frozen=True)
 class CostRecord:
     """Immutable cost record for a single service on a specific date."""
+
     provider: str
     service: str
     date: str  # ISO format YYYY-MM-DD
@@ -100,11 +102,14 @@ class CostRecord:
 @dataclass
 class ProviderSummary:
     """Aggregated cost summary for a single provider."""
+
     provider: str
     total_cost: Decimal = Decimal("0")
     records: list[CostRecord] = field(default_factory=list)
     services: set[str] = field(default_factory=set)
-    daily_costs: dict[str, Decimal] = field(default_factory=lambda: defaultdict(Decimal))
+    daily_costs: dict[str, Decimal] = field(
+        default_factory=lambda: defaultdict(Decimal)
+    )
     budget: Decimal = Decimal("0")
 
     @property
@@ -147,13 +152,23 @@ class ProviderSummary:
     def to_dict(self) -> dict[str, Any]:
         return {
             "provider": self.provider,
-            "total_cost": float(self.total_cost.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
+            "total_cost": float(
+                self.total_cost.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            ),
             "budget": float(self.budget),
             "budget_usage_pct": round(self.budget_usage_pct * 100, 2),
-            "avg_daily": float(self.avg_daily.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
-            "max_daily": float(self.max_daily.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
-            "min_daily": float(self.min_daily.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
-            "std_dev": float(self.std_dev.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
+            "avg_daily": float(
+                self.avg_daily.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            ),
+            "max_daily": float(
+                self.max_daily.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            ),
+            "min_daily": float(
+                self.min_daily.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            ),
+            "std_dev": float(
+                self.std_dev.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            ),
             "services": sorted(list(self.services)),
             "days_until_depletion": self.days_until_budget_depletion,
             "record_count": len(self.records),
@@ -163,6 +178,7 @@ class ProviderSummary:
 @dataclass
 class ForecastResult:
     """Cost forecast for a specific time horizon."""
+
     horizon_days: int
     projected_cost: Decimal
     confidence_interval_low: Decimal
@@ -172,9 +188,19 @@ class ForecastResult:
     def to_dict(self) -> dict[str, Any]:
         return {
             "horizon_days": self.horizon_days,
-            "projected_cost": float(self.projected_cost.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
-            "confidence_low": float(self.confidence_interval_low.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
-            "confidence_high": float(self.confidence_interval_high.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
+            "projected_cost": float(
+                self.projected_cost.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            ),
+            "confidence_low": float(
+                self.confidence_interval_low.quantize(
+                    Decimal("0.01"), rounding=ROUND_HALF_UP
+                )
+            ),
+            "confidence_high": float(
+                self.confidence_interval_high.quantize(
+                    Decimal("0.01"), rounding=ROUND_HALF_UP
+                )
+            ),
             "trend": self.trend,
         }
 
@@ -182,6 +208,7 @@ class ForecastResult:
 @dataclass
 class AnomalyReport:
     """Detected cost anomaly."""
+
     provider: str
     date: str
     expected_cost: Decimal
@@ -193,8 +220,12 @@ class AnomalyReport:
         return {
             "provider": self.provider,
             "date": self.date,
-            "expected_cost": float(self.expected_cost.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
-            "actual_cost": float(self.actual_cost.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
+            "expected_cost": float(
+                self.expected_cost.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            ),
+            "actual_cost": float(
+                self.actual_cost.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            ),
             "deviation_sigma": round(self.deviation_sigma, 2),
             "severity": self.severity,
         }
@@ -203,6 +234,7 @@ class AnomalyReport:
 @dataclass
 class OptimizationRecommendation:
     """Actionable cost optimization recommendation."""
+
     priority: int  # 1 = highest
     category: str
     provider: str
@@ -219,7 +251,11 @@ class OptimizationRecommendation:
             "provider": self.provider,
             "title": self.title,
             "description": self.description,
-            "estimated_savings_usd": float(self.estimated_savings_usd.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
+            "estimated_savings_usd": float(
+                self.estimated_savings_usd.quantize(
+                    Decimal("0.01"), rounding=ROUND_HALF_UP
+                )
+            ),
             "effort": self.effort,
             "automation_ready": self.automation_ready,
         }
@@ -239,7 +275,11 @@ class CostFetcher:
     def _mask_key(self) -> str:
         if not self.api_key:
             return "not_set"
-        return self.api_key[:4] + "****" + self.api_key[-4:] if len(self.api_key) > 8 else "****"
+        return (
+            self.api_key[:4] + "****" + self.api_key[-4:]
+            if len(self.api_key) > 8
+            else "****"
+        )
 
 
 class RenderCostFetcher(CostFetcher):
@@ -249,7 +289,9 @@ class RenderCostFetcher(CostFetcher):
         records: list[CostRecord] = []
         try:
             async with httpx.AsyncClient(timeout=10) as client:
-                headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
+                headers = (
+                    {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
+                )
                 resp = await client.get(
                     "https://api.render.com/v1/services",
                     headers=headers,
@@ -257,17 +299,21 @@ class RenderCostFetcher(CostFetcher):
                 if resp.status_code == 200:
                     services = resp.json()
                     for svc in services:
-                        records.append(CostRecord(
-                            provider="render",
-                            service=svc.get("service", {}).get("name", "unknown"),
-                            date=datetime.now().strftime("%Y-%m-%d"),
-                            cost_usd=Decimal("0.00"),
-                            usage_unit="service_hours",
-                            usage_amount=720.0,
-                            region=svc.get("service", {}).get("region", "oregon"),
-                        ))
+                        records.append(
+                            CostRecord(
+                                provider="render",
+                                service=svc.get("service", {}).get("name", "unknown"),
+                                date=datetime.now().strftime("%Y-%m-%d"),
+                                cost_usd=Decimal("0.00"),
+                                usage_unit="service_hours",
+                                usage_amount=720.0,
+                                region=svc.get("service", {}).get("region", "oregon"),
+                            )
+                        )
                 else:
-                    logger.warning(f"Render API returned {resp.status_code}, using fallback")
+                    logger.warning(
+                        f"Render API returned {resp.status_code}, using fallback"
+                    )
         except Exception as exc:
             logger.warning(f"Render fetch failed ({exc}), using fallback estimation")
         return records
@@ -280,7 +326,9 @@ class NetlifyCostFetcher(CostFetcher):
         records: list[CostRecord] = []
         try:
             async with httpx.AsyncClient(timeout=10) as client:
-                headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
+                headers = (
+                    {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
+                )
                 resp = await client.get(
                     "https://api.netlify.com/api/v1/sites",
                     headers=headers,
@@ -288,15 +336,19 @@ class NetlifyCostFetcher(CostFetcher):
                 if resp.status_code == 200:
                     sites = resp.json()
                     for site in sites:
-                        records.append(CostRecord(
-                            provider="netlify",
-                            service=f"site:{site.get('name', 'unknown')}",
-                            date=datetime.now().strftime("%Y-%m-%d"),
-                            cost_usd=Decimal("0.00"),
-                            usage_unit="bandwidth_gb",
-                            usage_amount=float(site.get("usage", {}).get("bandwidth", 0) or 0),
-                            region="global",
-                        ))
+                        records.append(
+                            CostRecord(
+                                provider="netlify",
+                                service=f"site:{site.get('name', 'unknown')}",
+                                date=datetime.now().strftime("%Y-%m-%d"),
+                                cost_usd=Decimal("0.00"),
+                                usage_unit="bandwidth_gb",
+                                usage_amount=float(
+                                    site.get("usage", {}).get("bandwidth", 0) or 0
+                                ),
+                                region="global",
+                            )
+                        )
         except Exception as exc:
             logger.warning(f"Netlify fetch failed ({exc}), using fallback")
         return records
@@ -309,7 +361,9 @@ class SupabaseCostFetcher(CostFetcher):
         records: list[CostRecord] = []
         try:
             async with httpx.AsyncClient(timeout=10) as client:
-                headers = {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
+                headers = (
+                    {"Authorization": f"Bearer {self.api_key}"} if self.api_key else {}
+                )
                 resp = await client.get(
                     "https://api.supabase.com/v1/projects",
                     headers=headers,
@@ -317,15 +371,17 @@ class SupabaseCostFetcher(CostFetcher):
                 if resp.status_code == 200:
                     projects = resp.json()
                     for proj in projects:
-                        records.append(CostRecord(
-                            provider="supabase",
-                            service=f"db:{proj.get('name', 'unknown')}",
-                            date=datetime.now().strftime("%Y-%m-%d"),
-                            cost_usd=Decimal("0.00"),
-                            usage_unit="db_size_mb",
-                            usage_amount=float(proj.get("db_size", 0) or 0),
-                            region=proj.get("region", "us-east-1"),
-                        ))
+                        records.append(
+                            CostRecord(
+                                provider="supabase",
+                                service=f"db:{proj.get('name', 'unknown')}",
+                                date=datetime.now().strftime("%Y-%m-%d"),
+                                cost_usd=Decimal("0.00"),
+                                usage_unit="db_size_mb",
+                                usage_amount=float(proj.get("db_size", 0) or 0),
+                                region=proj.get("region", "us-east-1"),
+                            )
+                        )
         except Exception as exc:
             logger.warning(f"Supabase fetch failed ({exc}), using fallback")
         return records
@@ -347,15 +403,21 @@ class AICostFetcher(CostFetcher):
                     )
                     if resp.status_code == 200:
                         data = resp.json()
-                        records.append(CostRecord(
-                            provider="openrouter",
-                            service="api_usage",
-                            date=datetime.now().strftime("%Y-%m-%d"),
-                            cost_usd=Decimal(str(data.get("data", {}).get("usage", 0) or 0)),
-                            usage_unit="tokens",
-                            usage_amount=float(data.get("data", {}).get("limit", 0) or 0),
-                            region="global",
-                        ))
+                        records.append(
+                            CostRecord(
+                                provider="openrouter",
+                                service="api_usage",
+                                date=datetime.now().strftime("%Y-%m-%d"),
+                                cost_usd=Decimal(
+                                    str(data.get("data", {}).get("usage", 0) or 0)
+                                ),
+                                usage_unit="tokens",
+                                usage_amount=float(
+                                    data.get("data", {}).get("limit", 0) or 0
+                                ),
+                                region="global",
+                            )
+                        )
             except Exception as exc:
                 logger.warning(f"OpenRouter fetch failed ({exc})")
         return records
@@ -409,14 +471,16 @@ class CostAnalyzer:
                     elif abs(z_score) >= 2.5:
                         severity = "medium"
 
-                    anomalies.append(AnomalyReport(
-                        provider=provider,
-                        date=date,
-                        expected_cost=Decimal(str(mean)),
-                        actual_cost=cost,
-                        deviation_sigma=abs(z_score),
-                        severity=severity,
-                    ))
+                    anomalies.append(
+                        AnomalyReport(
+                            provider=provider,
+                            date=date,
+                            expected_cost=Decimal(str(mean)),
+                            actual_cost=cost,
+                            deviation_sigma=abs(z_score),
+                            severity=severity,
+                        )
+                    )
 
         return sorted(anomalies, key=lambda x: x.deviation_sigma, reverse=True)
 
@@ -434,13 +498,15 @@ class CostAnalyzer:
                 n = len(values)
                 x_mean = (n - 1) / 2
                 y_mean = sum(values) / n
-                slope = sum((i - x_mean) * (v - y_mean) for i, v in enumerate(values)) / sum((i - x_mean) ** 2 for i in range(n))
+                slope = sum(
+                    (i - x_mean) * (v - y_mean) for i, v in enumerate(values)
+                ) / sum((i - x_mean) ** 2 for i in range(n))
 
                 projected = y_mean + slope * (days + n / 2)
                 projected = max(projected, 0)
 
                 std = statistics.stdev(values) if len(values) > 1 else 0
-                margin = 1.96 * std * (days ** 0.5)
+                margin = 1.96 * std * (days**0.5)
 
                 trend = "stable"
                 if slope > 0.01 * y_mean:
@@ -448,13 +514,17 @@ class CostAnalyzer:
                 elif slope < -0.01 * y_mean:
                     trend = "decreasing"
 
-                results.append(ForecastResult(
-                    horizon_days=days,
-                    projected_cost=Decimal(str(projected)),
-                    confidence_interval_low=Decimal(str(max(projected - margin, 0))),
-                    confidence_interval_high=Decimal(str(projected + margin)),
-                    trend=trend,
-                ))
+                results.append(
+                    ForecastResult(
+                        horizon_days=days,
+                        projected_cost=Decimal(str(projected)),
+                        confidence_interval_low=Decimal(
+                            str(max(projected - margin, 0))
+                        ),
+                        confidence_interval_high=Decimal(str(projected + margin)),
+                        trend=trend,
+                    )
+                )
 
         return results
 
@@ -467,54 +537,68 @@ class CostAnalyzer:
             usage_pct = summary.budget_usage_pct
 
             if usage_pct >= 0.9:
-                recommendations.append(OptimizationRecommendation(
-                    priority=priority,
-                    category="budget",
-                    provider=provider,
-                    title=f"{provider.upper()}: Critical budget depletion",
-                    description=f"Budget {usage_pct*100:.1f}% consumed. Consider rate limiting or switching providers.",
-                    estimated_savings_usd=summary.total_cost * Decimal("0.3"),
-                    effort="low",
-                    automation_ready=True,
-                ))
+                recommendations.append(
+                    OptimizationRecommendation(
+                        priority=priority,
+                        category="budget",
+                        provider=provider,
+                        title=f"{provider.upper()}: Critical budget depletion",
+                        description=f"Budget {usage_pct*100:.1f}% consumed. Consider rate limiting or switching providers.",
+                        estimated_savings_usd=summary.total_cost * Decimal("0.3"),
+                        effort="low",
+                        automation_ready=True,
+                    )
+                )
                 priority += 1
             elif usage_pct >= DEFAULT_ALERT_THRESHOLD:
-                recommendations.append(OptimizationRecommendation(
-                    priority=priority,
-                    category="budget",
-                    provider=provider,
-                    title=f"{provider.upper()}: Approaching budget limit",
-                    description=f"Budget {usage_pct*100:.1f}% consumed. Monitor closely.",
-                    estimated_savings_usd=summary.total_cost * Decimal("0.15"),
-                    effort="low",
-                    automation_ready=True,
-                ))
+                recommendations.append(
+                    OptimizationRecommendation(
+                        priority=priority,
+                        category="budget",
+                        provider=provider,
+                        title=f"{provider.upper()}: Approaching budget limit",
+                        description=f"Budget {usage_pct*100:.1f}% consumed. Monitor closely.",
+                        estimated_savings_usd=summary.total_cost * Decimal("0.15"),
+                        effort="low",
+                        automation_ready=True,
+                    )
+                )
                 priority += 1
 
-            if summary.std_dev > summary.avg_daily * Decimal("2") and summary.avg_daily > 0:
-                recommendations.append(OptimizationRecommendation(
-                    priority=priority,
-                    category="optimization",
-                    provider=provider,
-                    title=f"{provider.upper()}: High cost variability detected",
-                    description="Daily costs vary significantly. Consider caching or batching requests.",
-                    estimated_savings_usd=summary.std_dev * Decimal("7"),
-                    effort="medium",
-                    automation_ready=True,
-                ))
+            if (
+                summary.std_dev > summary.avg_daily * Decimal("2")
+                and summary.avg_daily > 0
+            ):
+                recommendations.append(
+                    OptimizationRecommendation(
+                        priority=priority,
+                        category="optimization",
+                        provider=provider,
+                        title=f"{provider.upper()}: High cost variability detected",
+                        description="Daily costs vary significantly. Consider caching or batching requests.",
+                        estimated_savings_usd=summary.std_dev * Decimal("7"),
+                        effort="medium",
+                        automation_ready=True,
+                    )
+                )
                 priority += 1
 
-            if provider in ["render", "netlify", "supabase", "groq", "gemini"] and summary.total_cost == 0:
-                recommendations.append(OptimizationRecommendation(
-                    priority=priority,
-                    category="free_tier",
-                    provider=provider,
-                    title=f"{provider.upper()}: Verify free tier limits",
-                    description="Currently on free tier. Monitor usage to avoid unexpected charges.",
-                    estimated_savings_usd=Decimal("0"),
-                    effort="low",
-                    automation_ready=False,
-                ))
+            if (
+                provider in ["render", "netlify", "supabase", "groq", "gemini"]
+                and summary.total_cost == 0
+            ):
+                recommendations.append(
+                    OptimizationRecommendation(
+                        priority=priority,
+                        category="free_tier",
+                        provider=provider,
+                        title=f"{provider.upper()}: Verify free tier limits",
+                        description="Currently on free tier. Monitor usage to avoid unexpected charges.",
+                        estimated_savings_usd=Decimal("0"),
+                        effort="low",
+                        automation_ready=False,
+                    )
+                )
                 priority += 1
 
         return sorted(recommendations, key=lambda x: x.priority)
@@ -524,8 +608,14 @@ class CostAnalyzer:
         return {
             "generated_at": datetime.now().isoformat(),
             "currency": CURRENCY,
-            "total_cost": float(sum(s.total_cost for s in self.by_provider.values()).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
-            "providers": {name: summary.to_dict() for name, summary in self.by_provider.items()},
+            "total_cost": float(
+                sum(s.total_cost for s in self.by_provider.values()).quantize(
+                    Decimal("0.01"), rounding=ROUND_HALF_UP
+                )
+            ),
+            "providers": {
+                name: summary.to_dict() for name, summary in self.by_provider.items()
+            },
             "anomalies": [a.to_dict() for a in self.detect_anomalies()],
             "forecasts": [f.to_dict() for f in self.forecast(0)],
             "recommendations": [r.to_dict() for r in self.generate_recommendations()],
@@ -544,7 +634,9 @@ class OutputFormatter:
     def to_csv(report: dict[str, Any]) -> str:
         lines = ["provider,total_cost,budget,budget_usage_pct,avg_daily,record_count"]
         for name, data in report.get("providers", {}).items():
-            lines.append(f"{name},{data['total_cost']},{data['budget']},{data['budget_usage_pct']},{data['avg_daily']},{data['record_count']}")
+            lines.append(
+                f"{name},{data['total_cost']},{data['budget']},{data['budget_usage_pct']},{data['avg_daily']},{data['record_count']}"
+            )
         return "\n".join(lines)
 
     @staticmethod
@@ -565,62 +657,70 @@ class OutputFormatter:
             "| Provider | Total Cost | Budget | Usage % | Avg Daily | Days Left |",
             "|----------|-----------|--------|---------|-----------|-----------|",
         ]
-        for name, data in report['providers'].items():
-            days_left = data.get('days_until_depletion', 'N/A')
+        for name, data in report["providers"].items():
+            days_left = data.get("days_until_depletion", "N/A")
             days_str = str(days_left) if days_left is not None else "∞"
             lines.append(
                 f"| {name} | ${data['total_cost']:.2f} | ${data['budget']:.2f} | "
                 f"{data['budget_usage_pct']:.1f}% | ${data['avg_daily']:.2f} | {days_str} |"
             )
 
-        if report['anomalies']:
-            lines.extend([
-                "",
-                "## 🚨 Anomalies Detected",
-                "",
-                "| Provider | Date | Actual | Expected | Sigma | Severity |",
-                "|----------|------|--------|----------|-------|----------|",
-            ])
-            for a in report['anomalies']:
+        if report["anomalies"]:
+            lines.extend(
+                [
+                    "",
+                    "## 🚨 Anomalies Detected",
+                    "",
+                    "| Provider | Date | Actual | Expected | Sigma | Severity |",
+                    "|----------|------|--------|----------|-------|----------|",
+                ]
+            )
+            for a in report["anomalies"]:
                 lines.append(
                     f"| {a['provider']} | {a['date']} | ${a['actual_cost']:.2f} | "
                     f"${a['expected_cost']:.2f} | {a['deviation_sigma']:.2f}σ | {a['severity']} |"
                 )
 
-        if report['forecasts']:
-            lines.extend([
-                "",
-                "## 🔮 Forecasts",
-                "",
-                "| Horizon | Projected | Low | High | Trend |",
-                "|---------|-----------|-----|------|-------|",
-            ])
-            for f in report['forecasts']:
+        if report["forecasts"]:
+            lines.extend(
+                [
+                    "",
+                    "## 🔮 Forecasts",
+                    "",
+                    "| Horizon | Projected | Low | High | Trend |",
+                    "|---------|-----------|-----|------|-------|",
+                ]
+            )
+            for f in report["forecasts"]:
                 lines.append(
                     f"| {f['horizon_days']}d | ${f['projected_cost']:.2f} | "
                     f"${f['confidence_low']:.2f} | ${f['confidence_high']:.2f} | {f['trend']} |"
                 )
 
-        if report['recommendations']:
-            lines.extend([
-                "",
-                "## 💡 Optimization Recommendations",
-                "",
-                "| Priority | Provider | Category | Title | Savings | Effort | Auto |",
-                "|----------|----------|----------|-------|---------|--------|------|",
-            ])
-            for r in report['recommendations']:
-                auto = "✅" if r['automation_ready'] else "❌"
+        if report["recommendations"]:
+            lines.extend(
+                [
+                    "",
+                    "## 💡 Optimization Recommendations",
+                    "",
+                    "| Priority | Provider | Category | Title | Savings | Effort | Auto |",
+                    "|----------|----------|----------|-------|---------|--------|------|",
+                ]
+            )
+            for r in report["recommendations"]:
+                auto = "✅" if r["automation_ready"] else "❌"
                 lines.append(
                     f"| {r['priority']} | {r['provider']} | {r['category']} | {r['title']} | "
                     f"${r['estimated_savings_usd']:.2f} | {r['effort']} | {auto} |"
                 )
 
-        lines.extend([
-            "",
-            "---",
-            "*Generated by SupremeAI Cost Analyzer*",
-        ])
+        lines.extend(
+            [
+                "",
+                "---",
+                "*Generated by SupremeAI Cost Analyzer*",
+            ]
+        )
         return "\n".join(lines)
 
 
@@ -656,7 +756,11 @@ async def send_alert(report: dict[str, Any], threshold: float) -> None:
             async with httpx.AsyncClient(timeout=10) as client:
                 await client.post(
                     f"https://api.telegram.org/bot{bot_token}/sendMessage",
-                    json={"chat_id": chat_id, "text": message, "parse_mode": "Markdown"},
+                    json={
+                        "chat_id": chat_id,
+                        "text": message,
+                        "parse_mode": "Markdown",
+                    },
                 )
             logger.info("Telegram alert sent")
         except Exception as exc:
@@ -670,12 +774,28 @@ async def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("--days", type=int, default=30, help="Analysis period in days")
-    parser.add_argument("--forecast", type=int, default=0, help="Forecast horizon in days (0=all)")
-    parser.add_argument("--alert-threshold", type=float, default=DEFAULT_ALERT_THRESHOLD, help="Budget alert threshold (0.0-1.0)")
-    parser.add_argument("--output", choices=["json", "csv", "markdown", "all"], default="json", help="Output format")
+    parser.add_argument(
+        "--forecast", type=int, default=0, help="Forecast horizon in days (0=all)"
+    )
+    parser.add_argument(
+        "--alert-threshold",
+        type=float,
+        default=DEFAULT_ALERT_THRESHOLD,
+        help="Budget alert threshold (0.0-1.0)",
+    )
+    parser.add_argument(
+        "--output",
+        choices=["json", "csv", "markdown", "all"],
+        default="json",
+        help="Output format",
+    )
     parser.add_argument("--provider", type=str, help="Filter to single provider")
-    parser.add_argument("--detail", action="store_true", help="Show detailed per-record output")
-    parser.add_argument("--sigma", type=float, default=2.0, help="Anomaly detection sigma threshold")
+    parser.add_argument(
+        "--detail", action="store_true", help="Show detailed per-record output"
+    )
+    parser.add_argument(
+        "--sigma", type=float, default=2.0, help="Anomaly detection sigma threshold"
+    )
     parser.add_argument("--save", type=str, help="Save output to file path")
 
     args = parser.parse_args()
@@ -703,24 +823,28 @@ async def main() -> int:
         today = datetime.now()
         for i in range(args.days):
             date = (today - timedelta(days=i)).strftime("%Y-%m-%d")
-            all_records.append(CostRecord(
-                provider="render",
-                service="web_service",
-                date=date,
-                cost_usd=Decimal("0.00"),
-                usage_unit="hours",
-                usage_amount=24.0,
-                region="oregon",
-            ))
-            all_records.append(CostRecord(
-                provider="openrouter",
-                service="api_usage",
-                date=date,
-                cost_usd=Decimal(str(0.05 + (i % 7) * 0.01)),
-                usage_unit="tokens",
-                usage_amount=10000.0,
-                region="global",
-            ))
+            all_records.append(
+                CostRecord(
+                    provider="render",
+                    service="web_service",
+                    date=date,
+                    cost_usd=Decimal("0.00"),
+                    usage_unit="hours",
+                    usage_amount=24.0,
+                    region="oregon",
+                )
+            )
+            all_records.append(
+                CostRecord(
+                    provider="openrouter",
+                    service="api_usage",
+                    date=date,
+                    cost_usd=Decimal(str(0.05 + (i % 7) * 0.01)),
+                    usage_unit="tokens",
+                    usage_amount=10000.0,
+                    region="global",
+                )
+            )
 
     if args.provider:
         all_records = [r for r in all_records if r.provider == args.provider]
@@ -755,7 +879,9 @@ async def main() -> int:
             f.write(formatter.to_markdown(report))
         logger.info("GitHub Step Summary written")
 
-    critical_anomalies = [a for a in report.get("anomalies", []) if a.get("severity") == "critical"]
+    critical_anomalies = [
+        a for a in report.get("anomalies", []) if a.get("severity") == "critical"
+    ]
     if critical_anomalies:
         logger.error(f"🚨 {len(critical_anomalies)} CRITICAL anomalies detected!")
         return 1

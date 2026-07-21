@@ -79,6 +79,8 @@ class TestSkillExecutionPipeline:
         async def mock_synthesize(*args, **kwargs):
             return {"success": True, "skill_name": "NewSkill"}
 
-        monkeypatch.setattr("core.skill_manager.llm_gateway.acompletion", mock_synthesize)
+        monkeypatch.setattr(
+            "core.skill_manager.llm_gateway.acompletion", mock_synthesize
+        )
         result = await manager.synthesize_skill_schema("test task")
         assert result["success"] is True

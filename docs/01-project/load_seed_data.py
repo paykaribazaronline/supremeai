@@ -4,12 +4,13 @@ Load seed data from cloud storage (GCS/S3) at runtime.
 Replaces static seed_data/ in git.
 """
 
-import os
 import json
+import os
+from typing import Any, Dict
+
 import boto3
 from google.cloud import storage
 from loguru import logger
-from typing import Dict, Any
 
 
 class SeedDataLoader:

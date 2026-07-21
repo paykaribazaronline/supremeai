@@ -18,7 +18,9 @@ class BlockchainAgent:
         self.model = model
         logger.info(f"Initialized BlockchainAgent with model {self.model}")
 
-    async def generate_contract(self, description: str, standard: str = "ERC20") -> dict[str, Any]:
+    async def generate_contract(
+        self, description: str, standard: str = "ERC20"
+    ) -> dict[str, Any]:
         """বিবরণ থেকে Solidity smart contract জেনারেট করে।"""
         logger.info(f"Generating {standard} contract for: {description}")
         try:
@@ -30,8 +32,14 @@ class BlockchainAgent:
                 f"{standard} contract implementing: {description}. Use Solidity 0.8.x, OpenZeppelin patterns, "
                 "and include NatSpec comments. Return ONLY the Solidity code, no markdown."
             )
-            result = await router.async_route_and_generate(prompt, task_type="coding", max_cost=0.04)
-            code = result.get("text", "") if isinstance(result, dict) else getattr(result, "text", "")
+            result = await router.async_route_and_generate(
+                prompt, task_type="coding", max_cost=0.04
+            )
+            code = (
+                result.get("text", "")
+                if isinstance(result, dict)
+                else getattr(result, "text", "")
+            )
             return {
                 "status": "success",
                 "standard": standard,
@@ -71,7 +79,10 @@ class BlockchainAgent:
                 }
             )
         if ".call{value" in solidity_code or ".call(" in solidity_code:
-            if "nonReentrant" not in solidity_code and "ReentrancyGuard" not in solidity_code:
+            if (
+                "nonReentrant" not in solidity_code
+                and "ReentrancyGuard" not in solidity_code
+            ):
                 issues.append(
                     {
                         "severity": "high",
@@ -79,7 +90,10 @@ class BlockchainAgent:
                         "message": "Low-level call detected without ReentrancyGuard; possible reentrancy vulnerability.",
                     }
                 )
-        if "pragma solidity ^0.7" in solidity_code or "pragma solidity 0.7" in solidity_code:
+        if (
+            "pragma solidity ^0.7" in solidity_code
+            or "pragma solidity 0.7" in solidity_code
+        ):
             issues.append(
                 {
                     "severity": "high",
@@ -111,8 +125,14 @@ class BlockchainAgent:
                 "Return ONLY the optimized Solidity code, no markdown.\n\n"
                 f"{solidity_code[:4000]}"
             )
-            result = await router.async_route_and_generate(prompt, task_type="coding", max_cost=0.04)
-            code = result.get("text", "") if isinstance(result, dict) else getattr(result, "text", "")
+            result = await router.async_route_and_generate(
+                prompt, task_type="coding", max_cost=0.04
+            )
+            code = (
+                result.get("text", "")
+                if isinstance(result, dict)
+                else getattr(result, "text", "")
+            )
             return {
                 "status": "success",
                 "optimized_contract": code.strip(),
@@ -134,8 +154,14 @@ class BlockchainAgent:
                 "Return ONLY the JavaScript test code, no markdown.\n\n"
                 f"{contract_code[:4000]}"
             )
-            result = await router.async_route_and_generate(prompt, task_type="coding", max_cost=0.04)
-            code = result.get("text", "") if isinstance(result, dict) else getattr(result, "text", "")
+            result = await router.async_route_and_generate(
+                prompt, task_type="coding", max_cost=0.04
+            )
+            code = (
+                result.get("text", "")
+                if isinstance(result, dict)
+                else getattr(result, "text", "")
+            )
             return {
                 "status": "success",
                 "test_framework": "hardhat",

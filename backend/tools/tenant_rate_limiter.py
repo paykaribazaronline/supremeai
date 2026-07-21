@@ -271,7 +271,11 @@ class TenantRateLimiter:
             if not customer_id:
                 logger.debug(f"No Stripe customer for tenant {tenant_id}")
                 return
-            customer_id = customer_id.decode("utf-8") if isinstance(customer_id, bytes) else str(customer_id)
+            customer_id = (
+                customer_id.decode("utf-8")
+                if isinstance(customer_id, bytes)
+                else str(customer_id)
+            )
             stripe.InvoiceItem.create(
                 customer=customer_id,
                 amount=int(amount * 100),

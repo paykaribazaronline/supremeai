@@ -61,7 +61,9 @@ class TestCloudStorageManager:
                 mock_client.post = AsyncMock(return_value=mock_response)
                 mock_client_class.return_value = mock_client
 
-                result = await manager.upload_file_async("test/file.json", b'{"data": "test"}')
+                result = await manager.upload_file_async(
+                    "test/file.json", b'{"data": "test"}'
+                )
                 assert "test.file.json" in result or "supabase" in result
 
     @pytest.mark.anyio
@@ -86,7 +88,9 @@ class TestCloudStorageManager:
                 mock_client_class.return_value = mock_client
 
                 with pytest.raises(HTTPException) as exc_info:
-                    await manager.upload_file_async("test/file.json", b'{"data": "test"}')
+                    await manager.upload_file_async(
+                        "test/file.json", b'{"data": "test"}'
+                    )
 
                 assert exc_info.value.status_code == 400
 
@@ -105,10 +109,14 @@ class TestCloudStorageManager:
                 mock_client = AsyncMock()
                 mock_client.__aenter__ = AsyncMock(return_value=mock_client)
                 mock_client.__aexit__ = AsyncMock(return_value=None)
-                mock_client.post = AsyncMock(side_effect=httpx.HTTPError("Network error"))
+                mock_client.post = AsyncMock(
+                    side_effect=httpx.HTTPError("Network error")
+                )
                 mock_client_class.return_value = mock_client
 
                 with pytest.raises(HTTPException) as exc_info:
-                    await manager.upload_file_async("test/file.json", b'{"data": "test"}')
+                    await manager.upload_file_async(
+                        "test/file.json", b'{"data": "test"}'
+                    )
 
                 assert exc_info.value.status_code == 503

@@ -1,9 +1,9 @@
 # বাংলা মন্তব্য: স্টার্টআপ ও ইম্পোর্ট টাইম কমাতে LazyModule ডিফাইন করা হলো।
 # এটি `sys.modules` এ সাবমডিউলগুলোর ডামি প্রক্সি হিসেবে কাজ করবে এবং প্রথম অ্যাট্রিবিউট অ্যাক্সেসে
 # আসল সাবমডিউল লোড করবে। ফলে `tools` ইম্পোর্ট করলেও হেভি ডিপেন্ডেন্সিগুলো ব্যাকগ্রাউন্ডে অলস (lazy) থাকবে।
+import importlib
 import sys
 import types
-import importlib
 
 
 class LazyModule(types.ModuleType):

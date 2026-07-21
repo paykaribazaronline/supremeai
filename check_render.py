@@ -2,9 +2,10 @@
 # বাংলা মন্তব্য: এই স্ক্রিপ্টটি Render-এর মাল্টিপল অ্যাকাউন্টের সার্ভিস ও ডিপ্লয়মেন্ট স্ট্যাটাস চেক করে।
 # পারফরম্যান্সের উন্নয়নের জন্য ThreadPoolExecutor ব্যবহার করে N+1 সিকোয়েন্সিয়াল কুয়েরির সমস্যা সমাধান করা হয়েছে এবং কনকারেন্টলি স্ট্যাটাস আনা হচ্ছে।
 
-import os
 import logging
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
 import requests
 
 logging.basicConfig(

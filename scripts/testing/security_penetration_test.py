@@ -57,6 +57,7 @@ REPORT_DIR = Path(os.getenv("PENETRATION_REPORT_DIR", "tests/reports/security"))
 @dataclass
 class Vulnerability:
     """বাংলা মন্তব্য: সনাক্তকৃত দুর্বলতা মডেল"""
+
     test_name: str
     severity: str  # CRITICAL, HIGH, MEDIUM, LOW, INFO
     description: str
@@ -68,6 +69,7 @@ class Vulnerability:
 @dataclass
 class PenetrationResult:
     """বাংলা মন্তব্য: পেনিট্রেশন টেস্ট রেজাল্ট মডেল"""
+
     target: str
     timestamp: str
     total_tests: int
@@ -91,9 +93,11 @@ class PenetrationTestOrchestrator:
     @classmethod
     def register_test(cls, name: str):
         """বাংলা মন্তব্য: নতুন টেস্ট কেস রেজিস্টার করার ডেকোরেটর"""
+
         def decorator(func):
             cls.TEST_REGISTRY[name] = func
             return func
+
         return decorator
 
     async def run(self) -> PenetrationResult:
@@ -145,17 +149,19 @@ class PenetrationTestOrchestrator:
             f"**Risk Score:** {result.risk_score}/100",
             f"**Vulnerabilities Found:** {len(result.vulnerabilities)}",
             "",
-            "## Vulnerability Details"
+            "## Vulnerability Details",
         ]
         for v in result.vulnerabilities:
-            md_lines.extend([
-                f"### {v.test_name} — {v.severity}",
-                f"- **Description:** {v.description}",
-                f"- **Expected:** {v.expected}",
-                f"- **Actual:** {v.actual}",
-                f"- **Remediation:** {v.remediation}",
-                ""
-            ])
+            md_lines.extend(
+                [
+                    f"### {v.test_name} — {v.severity}",
+                    f"- **Description:** {v.description}",
+                    f"- **Expected:** {v.expected}",
+                    f"- **Actual:** {v.actual}",
+                    f"- **Remediation:** {v.remediation}",
+                    "",
+                ]
+            )
         md_file.write_text("\n".join(md_lines), encoding="utf-8")
         logger.info(f"📄 Security reports saved: {report_file}, {md_file}")
 
@@ -179,14 +185,16 @@ async def test_security_headers(self: PenetrationTestOrchestrator):
             missing.append("X-Content-Type-Options")
 
         if missing:
-            self.vulnerabilities.append(Vulnerability(
-                test_name="headers",
-                severity="MEDIUM",
-                description=f"Missing vital security headers: {', '.join(missing)}",
-                expected="Secure HTTP response headers enforced",
-                actual=f"Missing: {missing}",
-                remediation="Configure security headers middleware in FastAPI app.",
-            ))
+            self.vulnerabilities.append(
+                Vulnerability(
+                    test_name="headers",
+                    severity="MEDIUM",
+                    description=f"Missing vital security headers: {', '.join(missing)}",
+                    expected="Secure HTTP response headers enforced",
+                    actual=f"Missing: {missing}",
+                    remediation="Configure security headers middleware in FastAPI app.",
+                )
+            )
     except Exception as e:
         logger.warning(f"Header check failed: {e}")
 
@@ -204,14 +212,16 @@ async def test_rate_limiting(self: PenetrationTestOrchestrator):
                 break
 
         if not limit_hit:
-            self.vulnerabilities.append(Vulnerability(
-                test_name="ratelimit",
-                severity="HIGH",
-                description="Endpoint allows excessive requests without rate limit (HTTP 429)",
-                expected="Rate limiter blocks brute-force requests",
-                actual="Allowed 30 consecutive requests with HTTP 200",
-                remediation="Enable TenantRateLimiter middleware for all routes.",
-            ))
+            self.vulnerabilities.append(
+                Vulnerability(
+                    test_name="ratelimit",
+                    severity="HIGH",
+                    description="Endpoint allows excessive requests without rate limit (HTTP 429)",
+                    expected="Rate limiter blocks brute-force requests",
+                    actual="Allowed 30 consecutive requests with HTTP 200",
+                    remediation="Enable TenantRateLimiter middleware for all routes.",
+                )
+            )
     except Exception as e:
         logger.warning(f"Rate limiting check failed: {e}")
 
@@ -222,10 +232,16 @@ async def main():
         description="SupremeAI Penetration Tester — Automated security scanning",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--target", required=True, help="Target URL (e.g. http://localhost:8000)")
-    parser.add_argument("--scope", default="quick", choices=["quick", "full"], help="Testing scope")
+    parser.add_argument(
+        "--target", required=True, help="Target URL (e.g. http://localhost:8000)"
+    )
+    parser.add_argument(
+        "--scope", default="quick", choices=["quick", "full"], help="Testing scope"
+    )
     parser.add_argument("--tests", help="Comma-separated test list to run")
-    parser.add_argument("--report-dir", default=str(REPORT_DIR), help="Report output directory")
+    parser.add_argument(
+        "--report-dir", default=str(REPORT_DIR), help="Report output directory"
+    )
 
     args = parser.parse_args()
 
@@ -258,7 +274,9 @@ async def main():
     if result.vulnerabilities:
         print("\n🔴 VULNERABILITIES FOUND:")
         for v in result.vulnerabilities:
-            emoji = {"CRITICAL": "🔴", "HIGH": "🟠", "MEDIUM": "🟡", "LOW": "🟢"}.get(v.severity, "⚪")
+            emoji = {"CRITICAL": "🔴", "HIGH": "🟠", "MEDIUM": "🟡", "LOW": "🟢"}.get(
+                v.severity, "⚪"
+            )
             print(f"   {emoji} [{v.severity}] {v.test_name}: {v.description}")
     else:
         print("\n✅ No vulnerabilities detected!")
@@ -267,7 +285,9 @@ async def main():
     orchestrator.generate_report(result)
 
     # Exit with error if critical/high vulnerabilities found
-    critical_high = [v for v in result.vulnerabilities if v.severity in ("CRITICAL", "HIGH")]
+    critical_high = [
+        v for v in result.vulnerabilities if v.severity in ("CRITICAL", "HIGH")
+    ]
     if critical_high:
         print(f"\n❌ {len(critical_high)} critical/high vulnerabilities found!")
         sys.exit(1)

@@ -1,5 +1,6 @@
 # scripts/gh_workflow_check.py
 """Check a GitHub Actions run for failed jobs/steps."""
+
 import argparse
 import os
 import sys
@@ -16,7 +17,10 @@ def check_run(run_id: str, repo: str = "paykaribazaronline/supremeai") -> int:
         print("GITHUB_TOKEN not set in environment.", file=sys.stderr)
         return 1
 
-    headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github.v3+json"}
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github.v3+json",
+    }
     url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs"
 
     try:

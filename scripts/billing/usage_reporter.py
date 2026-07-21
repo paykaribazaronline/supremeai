@@ -31,8 +31,7 @@ import json
 import os
 import sys
 from dataclasses import asdict, dataclass, field
-from datetime import UTC
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -105,6 +104,7 @@ class UsageReporter:
         if AsyncSession and self.database_url:
             try:
                 from sqlalchemy.ext.asyncio import create_async_engine
+
                 engine = create_async_engine(self.database_url)
                 self.db_session = AsyncSession(engine)
                 logger.info("Database session initialized")
@@ -114,6 +114,7 @@ class UsageReporter:
         if self.redis_url:
             try:
                 import httpx
+
                 self._http = httpx.AsyncClient(timeout=10.0)
             except Exception as e:
                 logger.warning(f"HTTP client init failed: {e}")
@@ -211,7 +212,9 @@ class UsageReporter:
                     "amount_usd": float(entry.amount_usd),
                     "transaction_type": entry.transaction_type,
                     "description": entry.description,
-                    "timestamp": entry.timestamp.isoformat() if entry.timestamp else None,
+                    "timestamp": (
+                        entry.timestamp.isoformat() if entry.timestamp else None
+                    ),
                 }
                 for entry in entries
             ]
@@ -258,7 +261,9 @@ class UsageReporter:
         ledger_entries = await self.get_ledger_entries(tenant_id, start, end)
 
         total_spend = sum(Decimal(str(e.get("amount_usd", 0))) for e in ledger_entries)
-        topup_count = sum(1 for e in ledger_entries if e.get("transaction_type") == "topup")
+        topup_count = sum(
+            1 for e in ledger_entries if e.get("transaction_type") == "topup"
+        )
         byoc_count = sum(
             1 for e in ledger_entries if e.get("transaction_type") == "byoc_deployment"
         )
@@ -298,9 +303,8 @@ class UsageReporter:
     async def _send_slack_alert(self, tenant_id: str, alerts: list[str]) -> None:
         if not self._http or not self.slack_webhook:
             return
-        message = (
-            f"⚠️ *Billing Usage Alert — Tenant {tenant_id}*\n"
-            + "\n".join(f"• {alert}" for alert in alerts)
+        message = f"⚠️ *Billing Usage Alert — Tenant {tenant_id}*\n" + "\n".join(
+            f"• {alert}" for alert in alerts
         )
         try:
             await self._http.post(self.slack_webhook, json={"text": message})
@@ -309,7 +313,10 @@ class UsageReporter:
 
     def write_json_report(self, report: TenantUsage, output_dir: Path) -> Path:
         output_dir.mkdir(parents=True, exist_ok=True)
-        path = output_dir / f"usage-{report.tenant_id}-{report.period_start.strftime('%Y%m')}.json"
+        path = (
+            output_dir
+            / f"usage-{report.tenant_id}-{report.period_start.strftime('%Y%m')}.json"
+        )
         with open(path, "w", encoding="utf-8") as f:
             json.dump(report.to_dict(), f, indent=2, default=str)
         logger.info(f"JSON report written: {path}")
@@ -317,10 +324,15 @@ class UsageReporter:
 
     def write_markdown_report(self, report: TenantUsage, output_dir: Path) -> Path:
         output_dir.mkdir(parents=True, exist_ok=True)
-        path = output_dir / f"usage-{report.tenant_id}-{report.period_start.strftime('%Y%m')}.md"
+        path = (
+            output_dir
+            / f"usage-{report.tenant_id}-{report.period_start.strftime('%Y%m')}.md"
+        )
         with open(path, "w", encoding="utf-8") as f:
             f.write(f"# 📊 Usage Report — {report.tenant_id}\n\n")
-            f.write(f"**Period:** {report.period_start.date()} to {report.period_end.date()}\n\n")
+            f.write(
+                f"**Period:** {report.period_start.date()} to {report.period_end.date()}\n\n"
+            )
             f.write("## Summary\n\n")
             f.write(f"| Metric | Value |\n")
             f.write(f"| --- | --- |\n")
@@ -372,10 +384,16 @@ async def main() -> int:
     )
     parser.add_argument("--tenant-id", type=str, help="Specific tenant ID to report on")
     parser.add_argument("--scan-all", action="store_true", help="Report on all tenants")
-    parser.add_argument("--period", type=str, required=True, help="Billing period (YYYY-MM or YYYYMM)")
-    parser.add_argument("--format", type=str, choices=["json", "markdown", "both"], default="json")
+    parser.add_argument(
+        "--period", type=str, required=True, help="Billing period (YYYY-MM or YYYYMM)"
+    )
+    parser.add_argument(
+        "--format", type=str, choices=["json", "markdown", "both"], default="json"
+    )
     parser.add_argument("--output-dir", type=Path, default=Path("reports/billing"))
-    parser.add_argument("--dry-run", action="store_true", help="Simulate without writing reports")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Simulate without writing reports"
+    )
 
     args = parser.parse_args()
 
@@ -418,7 +436,9 @@ async def main() -> int:
                 reporter.write_markdown_report(report, args.output_dir)
 
     total_spend = sum(r.total_spend_usd for r in reports)
-    logger.success(f"✅ Reports generated for {len(reports)} tenant(s). Total spend: ${total_spend:.4f}")
+    logger.success(
+        f"✅ Reports generated for {len(reports)} tenant(s). Total spend: ${total_spend:.4f}"
+    )
     return 0
 
 

@@ -90,7 +90,9 @@ class MultilingualTTS:
         self.provider = provider
         self.api_key = api_key or getattr(settings, "elevenlabs_api_key", "")
         self.model_id = "eleven_multilingual_v2"
-        logger.info(f"Initialized MultilingualTTS provider={self.provider} elevenlabs={'yes' if self.api_key else 'no'}")
+        logger.info(
+            f"Initialized MultilingualTTS provider={self.provider} elevenlabs={'yes' if self.api_key else 'no'}"
+        )
 
     # ── Language detection ────────────────────────────────────────────────────
     def _detect_language(self, text: str) -> str:
@@ -103,7 +105,9 @@ class MultilingualTTS:
 
     # ── Caching ───────────────────────────────────────────────────────────────
     def _output_path(self, text: str, lang: str, fmt: str = "mp3") -> str:
-        base_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "tts")
+        base_dir = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "tts"
+        )
         os.makedirs(base_dir, exist_ok=True)
         h = hashlib.sha256(f"{text}:{lang}:{self.provider}".encode()).hexdigest()[:16]
         return os.path.join(base_dir, f"tts_{lang}_{h}.{fmt}")
@@ -147,7 +151,9 @@ class MultilingualTTS:
 
         # Try ElevenLabs first
         if self.api_key and self.provider in ("auto", "elevenlabs"):
-            result = await self._elevenlabs(text, out_path, lang, voice_id, stability, similarity_boost)
+            result = await self._elevenlabs(
+                text, out_path, lang, voice_id, stability, similarity_boost
+            )
             if result["status"] == "success":
                 result["audio_url"] = f"/api/tts/audio/{os.path.basename(out_path)}"
                 return result
@@ -317,7 +323,9 @@ class MultilingualTTS:
             },
         }
         async with httpx.AsyncClient(timeout=60.0) as client:
-            async with client.stream("POST", url, headers=headers, json=payload) as response:
+            async with client.stream(
+                "POST", url, headers=headers, json=payload
+            ) as response:
                 response.raise_for_status()
                 async for chunk in response.aiter_bytes():
                     yield chunk
@@ -378,11 +386,15 @@ class MultilingualTTS:
         # Try ElevenLabs first if API key is available
         if self.api_key and self.provider in ("auto", "elevenlabs"):
             try:
-                async for chunk in self._elevenlabs_stream(text, lang, voice_id, stability, similarity_boost):
+                async for chunk in self._elevenlabs_stream(
+                    text, lang, voice_id, stability, similarity_boost
+                ):
                     yield chunk
                 return  # Success, exit
             except Exception as e:  # noqa: BLE001
-                logger.warning(f"ElevenLabs streaming failed: {e}. Falling back to edge-tts.")
+                logger.warning(
+                    f"ElevenLabs streaming failed: {e}. Falling back to edge-tts."
+                )
 
         # Fallback to edge-tts
         async for chunk in self._edge_tts_stream(text, lang):
@@ -429,15 +441,21 @@ async def synthesize_text(request: TTSRequest):
     )
     if result["status"] == "error":
         raise HTTPException(status_code=503, detail=result.get("error", "TTS failed"))
-    return TTSResponse(**{k: v for k, v in result.items() if k in TTSResponse.__fields__})
+    return TTSResponse(
+        **{k: v for k, v in result.items() if k in TTSResponse.__fields__}
+    )
 
 
 @router.get("/audio/{filename}")
 async def get_audio(filename: str):
     """Serve generated audio file."""
-    base_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "tts")
+    base_dir = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "tts"
+    )
     path = os.path.join(base_dir, filename)
-    if not os.path.exists(path) or not os.path.abspath(path).startswith(os.path.abspath(base_dir)):
+    if not os.path.exists(path) or not os.path.abspath(path).startswith(
+        os.path.abspath(base_dir)
+    ):
         raise HTTPException(status_code=404, detail="Audio file not found")
     return FileResponse(path, media_type="audio/mpeg")
 
@@ -465,7 +483,9 @@ async def list_voices():
 @router.delete("/cache")
 async def clear_cache():
     """Clear TTS audio cache."""
-    base_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "tts")
+    base_dir = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "tts"
+    )
     removed = 0
     if os.path.exists(base_dir):
         for f in os.listdir(base_dir):

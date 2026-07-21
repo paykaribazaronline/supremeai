@@ -48,7 +48,9 @@ class MaintenancePipeline:
             await self.run_health_check()
 
     async def _handle_error_event(self, event):
-        logger.warning(f"🛡️ Immune System received error event: {event.error_type} in {event.module}")
+        logger.warning(
+            f"🛡️ Immune System received error event: {event.error_type} in {event.module}"
+        )
         if event.severity in ("ERROR", "CRITICAL"):
             self.health_score = max(0, self.health_score - 5)
             await self.auto_remediate(event)
@@ -59,8 +61,12 @@ class MaintenancePipeline:
         results = {
             "redis": await probe_redis(),
             "database": await probe_database(),
-            "api_gemini": await probe_external_api("https://generativelanguage.googleapis.com"),
-            "api_openrouter": await probe_external_api("https://openrouter.ai/api/v1/auth/key"),
+            "api_gemini": await probe_external_api(
+                "https://generativelanguage.googleapis.com"
+            ),
+            "api_openrouter": await probe_external_api(
+                "https://openrouter.ai/api/v1/auth/key"
+            ),
             "timestamp": time.time(),
         }
 
@@ -80,7 +86,9 @@ class MaintenancePipeline:
 
         # Trigger circuit breaker event if degraded significantly
         if self.health_score < 70:
-            logger.warning(f"🛡️ Immune System: Health degraded (Score: {self.health_score}). Triggering circuit breaker event.")
+            logger.warning(
+                f"🛡️ Immune System: Health degraded (Score: {self.health_score}). Triggering circuit breaker event."
+            )
             error_event_bus.emit(
                 ErrorEvent(
                     module="maintenance_pipeline",
@@ -92,7 +100,11 @@ class MaintenancePipeline:
                 )
             )
 
-        status = "HEALTHY" if self.health_score > 80 else ("DEGRADED" if self.health_score > 50 else "CRITICAL")
+        status = (
+            "HEALTHY"
+            if self.health_score > 80
+            else ("DEGRADED" if self.health_score > 50 else "CRITICAL")
+        )
         results["status"] = status
         results["health_score"] = self.health_score
         return results
@@ -109,7 +121,9 @@ class MaintenancePipeline:
 
             history = metrics_engine.latency_history
             if not history:
-                logger.info("🛡️ Immune System: Latency logs empty. Skipping regression check.")
+                logger.info(
+                    "🛡️ Immune System: Latency logs empty. Skipping regression check."
+                )
                 return
 
             # বাংলা মন্তব্য: P95 ল্যাটেন্সি গণনা করা।
@@ -121,7 +135,9 @@ class MaintenancePipeline:
 
             LATENCY_THRESHOLD_MS = 500.0  # Dev default threshold 500ms
 
-            logger.info(f"🛡️ Immune System: Current real P95 Latency = {p95_latency:.2f}ms")
+            logger.info(
+                f"🛡️ Immune System: Current real P95 Latency = {p95_latency:.2f}ms"
+            )
             if p95_latency > LATENCY_THRESHOLD_MS:
                 logger.critical(
                     f"🚨 Performance Regression Detected! p95 latency ({p95_latency:.2f}ms) exceeds threshold ({LATENCY_THRESHOLD_MS}ms)."
@@ -141,14 +157,21 @@ class MaintenancePipeline:
             return
 
         if event:
-            logger.info(f"Attempting to heal module {event.module} for error {event.error_type}")
+            logger.info(
+                f"Attempting to heal module {event.module} for error {event.error_type}"
+            )
             from core.cache.redis_manager import redis_manager
 
             # Simulated checks based on the event payload or type
             # In a real scenario, the event type might be exactly 'llm_provider_down' or 'redis_connection_lost'
 
-            if "gemini" in str(event.context).lower() or event.error_type == "system.health.degraded":
-                logger.info("🚑 Auto-Recovery: LLM Provider degraded. Switching active provider to OpenRouter.")
+            if (
+                "gemini" in str(event.context).lower()
+                or event.error_type == "system.health.degraded"
+            ):
+                logger.info(
+                    "🚑 Auto-Recovery: LLM Provider degraded. Switching active provider to OpenRouter."
+                )
                 # Set active_provider in Redis (if redis is up)
                 if redis_manager.client:
                     try:
@@ -167,8 +190,13 @@ class MaintenancePipeline:
                     except Exception as e:  # noqa: BLE001
                         logger.error(f"Failed to switch provider: {e}")
 
-            if "redis" in str(event.context).lower() or event.error_type == "redis_connection_lost":
-                logger.info("🚑 Auto-Recovery: Redis degraded. Attempting to re-initialize pool.")
+            if (
+                "redis" in str(event.context).lower()
+                or event.error_type == "redis_connection_lost"
+            ):
+                logger.info(
+                    "🚑 Auto-Recovery: Redis degraded. Attempting to re-initialize pool."
+                )
                 try:
                     await redis_manager.close()
                     # Re-init would happen here depending on the manager implementation
@@ -185,15 +213,17 @@ class MaintenancePipeline:
             try:
                 import asyncio as _asyncio  # noqa: PLC0415
 
-                from core.evolution.self_evolution_agent import (
-                    SelfEvolutionAgent,
-                )  # noqa: PLC0415
+                from core.evolution.self_evolution_agent import \
+                    SelfEvolutionAgent  # noqa: PLC0415
 
                 # শুধু tick() চালাই, পুরো loop নয় — non-blocking
                 _evo = SelfEvolutionAgent.__new__(SelfEvolutionAgent)
                 if hasattr(_evo, "_tick"):
                     _asyncio.create_task(_evo._tick())
-                    logger.warning(f"🛡️→🧬 Health critical (score={self.health_score}), " "triggered emergency evolution tick.")
+                    logger.warning(
+                        f"🛡️→🧬 Health critical (score={self.health_score}), "
+                        "triggered emergency evolution tick."
+                    )
             except Exception as evo_exc:  # noqa: BLE001
                 logger.debug(f"Evolution trigger skipped: {evo_exc!r}")
 

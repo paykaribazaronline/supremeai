@@ -2,6 +2,7 @@ import re
 import sys
 from pathlib import Path
 
+
 def parse_config_py(file_path: Path) -> set[str]:
     """Extract setting names from config.py Settings class."""
     if not file_path.exists():
@@ -11,7 +12,9 @@ def parse_config_py(file_path: Path) -> set[str]:
     content = file_path.read_text(encoding="utf-8")
 
     # Locate Settings class
-    class_match = re.search(r"class Settings\(BaseSettings\):(.*?)(\n\n\w|\Z)", content, re.DOTALL)
+    class_match = re.search(
+        r"class Settings\(BaseSettings\):(.*?)(\n\n\w|\Z)", content, re.DOTALL
+    )
     if not class_match:
         print("Error: Could not find Settings class in config.py")
         sys.exit(1)
@@ -30,6 +33,7 @@ def parse_config_py(file_path: Path) -> set[str]:
                 settings_vars.add(var_name.upper())
 
     return settings_vars
+
 
 def parse_env_example(file_path: Path) -> set[str]:
     """Extract variable names from .env.example."""
@@ -51,6 +55,7 @@ def parse_env_example(file_path: Path) -> set[str]:
 
     return env_vars
 
+
 def run_audit():
     project_root = Path(__file__).parent.parent
     config_path = project_root / "backend" / "core" / "config.py"
@@ -62,22 +67,34 @@ def run_audit():
 
     # Ignore internal/local Pydantic configurations or those that don't belong in .env
     ignored_keys = {
-        "PROJECT_NAME", "API_V1_STR", "APP_NAME", "CLAUDE_OPENROUTER_MODEL",
-        "ADMIN_RULES_DB", "MEMORY_DB_DIR", "SKILL_REGISTRY_PATH"
+        "PROJECT_NAME",
+        "API_V1_STR",
+        "APP_NAME",
+        "CLAUDE_OPENROUTER_MODEL",
+        "ADMIN_RULES_DB",
+        "MEMORY_DB_DIR",
+        "SKILL_REGISTRY_PATH",
     }
 
     missing_in_env = (config_keys - env_keys) - ignored_keys
 
     if missing_in_env:
         print("\n[!] CONFIG AUDIT FAILED!")
-        print("The following keys are defined in backend/core/config.py but missing in .env.example:")
+        print(
+            "The following keys are defined in backend/core/config.py but missing in .env.example:"
+        )
         for key in sorted(missing_in_env):
             print(f"  - {key}")
-        print("\nAction Required: Please document these environment variables in .env.example.")
+        print(
+            "\nAction Required: Please document these environment variables in .env.example."
+        )
         sys.exit(1)
 
-    print("[x] Configuration audit passed! All Pydantic Settings are aligned with .env.example.")
+    print(
+        "[x] Configuration audit passed! All Pydantic Settings are aligned with .env.example."
+    )
     sys.exit(0)
+
 
 if __name__ == "__main__":
     run_audit()

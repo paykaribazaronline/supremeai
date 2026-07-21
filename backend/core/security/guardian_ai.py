@@ -191,7 +191,8 @@ class PromptInjectionDefender:
     INJECTION_PATTERNS: list[dict[str, Any]] = [
         {
             "name": "ignore_previous",
-            "pattern": r"(?i)(ignore\s+(?:all\s+)?(?:previous|above|prior|earlier)|" r"disregard\s+(?:all\s+)?(?:instructions|prompts|commands))",
+            "pattern": r"(?i)(ignore\s+(?:all\s+)?(?:previous|above|prior|earlier)|"
+            r"disregard\s+(?:all\s+)?(?:instructions|prompts|commands))",
             "severity": ThreatLevel.HIGH,
         },
         {
@@ -203,7 +204,8 @@ class PromptInjectionDefender:
         },
         {
             "name": "jailbreak_dan",
-            "pattern": r"(?i)(DAN|Do\s+Anything\s+Now|jailbreak|" r"developer\s+mode|ignore\s+ethical)",
+            "pattern": r"(?i)(DAN|Do\s+Anything\s+Now|jailbreak|"
+            r"developer\s+mode|ignore\s+ethical)",
             "severity": ThreatLevel.CRITICAL,
         },
         {
@@ -224,7 +226,8 @@ class PromptInjectionDefender:
         },
         {
             "name": "indirect_injection",
-            "pattern": r"(?i)(summarize\s+the\s+following|translate\s+the\s+following|" r"from\s+now\s+on\s+you\s+are)",
+            "pattern": r"(?i)(summarize\s+the\s+following|translate\s+the\s+following|"
+            r"from\s+now\s+on\s+you\s+are)",
             "severity": ThreatLevel.MEDIUM,
         },
     ]
@@ -233,7 +236,8 @@ class PromptInjectionDefender:
     BANGLA_INJECTION_PATTERNS: list[dict[str, Any]] = [
         {
             "name": "bn_ignore_instructions",
-            "pattern": r"(?:আগের|পূর্ববর্তী|উপরের)\s+(?:সব|সমস্ত)\s+(?:নির্দেশনা|ইনস্ট্রাকশন)" r"\s+(?:ভুলে|বাদ দাও|এড়িয়ে যাও)",
+            "pattern": r"(?:আগের|পূর্ববর্তী|উপরের)\s+(?:সব|সমস্ত)\s+(?:নির্দেশনা|ইনস্ট্রাকশন)"
+            r"\s+(?:ভুলে|বাদ দাও|এড়িয়ে যাও)",
             "severity": ThreatLevel.HIGH,
         },
     ]
@@ -369,7 +373,11 @@ class InputSanitizer:
             sanitized = self.pii_detector.redact(text)
 
         # Determine if input is safe
-        critical_threats = [t for t in threats if t.threat_level in {ThreatLevel.CRITICAL, ThreatLevel.HIGH}]
+        critical_threats = [
+            t
+            for t in threats
+            if t.threat_level in {ThreatLevel.CRITICAL, ThreatLevel.HIGH}
+        ]
         should_block = len(critical_threats) > 0
 
         return GuardianResult(
@@ -434,7 +442,8 @@ class OutputSanitizer:
             output_safe=len(threats) == 0,
             threats_detected=threats,
             sanitized_output=sanitized if sanitized != text else None,
-            blocked=len([t for t in threats if t.threat_level == ThreatLevel.CRITICAL]) > 0,
+            blocked=len([t for t in threats if t.threat_level == ThreatLevel.CRITICAL])
+            > 0,
         )
 
 
@@ -446,7 +455,9 @@ class GuardianAI:
         self.input_sanitizer = InputSanitizer()
         self.output_sanitizer = OutputSanitizer()
 
-    async def check_input(self, text: str, user_id: str | None = None) -> GuardianResult:
+    async def check_input(
+        self, text: str, user_id: str | None = None
+    ) -> GuardianResult:
         """Check and sanitize user input."""
         logger.debug(f"Checking input for user {user_id}")
         return await self.input_sanitizer.sanitize(text)

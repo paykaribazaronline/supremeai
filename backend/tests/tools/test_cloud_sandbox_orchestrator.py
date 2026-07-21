@@ -3,9 +3,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from backend.core.orchestration.cloud_sandbox_orchestrator import (
-    CloudSandboxOrchestrator,
-)
+from backend.core.orchestration.cloud_sandbox_orchestrator import \
+    CloudSandboxOrchestrator
 
 
 @pytest.fixture
@@ -62,7 +61,9 @@ async def test_get_sandbox_status(mock_env_runpod):
 async def test_run_command(mock_env_runpod):
     orchestrator = CloudSandboxOrchestrator(provider="runpod")
 
-    mock_resp = _mock_response({"status": "COMPLETED", "exitCode": 0, "stdout": "hello world", "stderr": ""})
+    mock_resp = _mock_response(
+        {"status": "COMPLETED", "exitCode": 0, "stdout": "hello world", "stderr": ""}
+    )
     with patch.object(orchestrator.client, "post", return_value=mock_resp):
         result = await orchestrator.run_command("test_sandbox_id", "echo 'hello world'")
 

@@ -7,14 +7,14 @@ Priority: 🟡 Medium
 
 import json
 import logging
+import os
 import subprocess
 import time
-import os
-from datetime import datetime
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class DeploymentStatus(Enum):
     """Deployment status."""
+
     PENDING = "pending"
     DEPLOYING = "deploying"
     TESTING = "testing"
@@ -34,6 +35,7 @@ class DeploymentStatus(Enum):
 @dataclass
 class DeploymentResult:
     """Result of blue-green deployment."""
+
     deployment_id: str
     status: DeploymentStatus
     blue_active: bool
@@ -55,8 +57,8 @@ class BlueGreenDeployer:
         self.blue_active = True  # Start with blue as active
         self.green_active = False
         self.current_deployment: Optional[DeploymentResult] = None
-        self.health_endpoint = self.config.get('health_endpoint', '/health')
-        self.deployment_timeout = self.config.get('timeout', 300)
+        self.health_endpoint = self.config.get("health_endpoint", "/health")
+        self.deployment_timeout = self.config.get("timeout", 300)
 
     def get_active_environment(self) -> str:
         """Get the currently active environment."""
@@ -71,13 +73,13 @@ class BlueGreenDeployer:
         logger.info("Running pre-deployment checks...")
 
         # Check required environment variables
-        required_vars = ['DEPLOY_TOKEN', 'REGISTRY_URL']
+        required_vars = ["DEPLOY_TOKEN", "REGISTRY_URL"]
         for var in required_vars:
             if not os.environ.get(var):
                 logger.warning(f"Missing environment variable: {var}")
 
         # Check deployment scripts exist
-        deploy_script = self.config.get('deploy_script')
+        deploy_script = self.config.get("deploy_script")
         if deploy_script and not Path(deploy_script).exists():
             logger.error(f"Deploy script not found: {deploy_script}")
             return False
@@ -88,7 +90,7 @@ class BlueGreenDeployer:
         self,
         deployment_id: str,
         image_tag: str,
-        config_overrides: Optional[Dict[str, Any]] = None
+        config_overrides: Optional[Dict[str, Any]] = None,
     ) -> DeploymentResult:
         """Deploy new version to inactive environment."""
         target_env = self.get_inactive_environment()
@@ -102,12 +104,14 @@ class BlueGreenDeployer:
             end_time=None,
             error_message=None,
             health_checks_passed=0,
-            health_checks_total=0
+            health_checks_total=0,
         )
 
         try:
             # Build deployment command
-            deploy_cmd = self._build_deploy_command(target_env, image_tag, config_overrides)
+            deploy_cmd = self._build_deploy_command(
+                target_env, image_tag, config_overrides
+            )
             logger.info(f"Deploying to {target_env}: {deploy_cmd[:50]}...")
 
             # Execute deployment
@@ -116,7 +120,7 @@ class BlueGreenDeployer:
                 shell=True,
                 capture_output=True,
                 text=True,
-                timeout=self.deployment_timeout
+                timeout=self.deployment_timeout,
             )
 
             if proc.returncode != 0:
@@ -141,10 +145,10 @@ class BlueGreenDeployer:
         self,
         environment: str,
         image_tag: str,
-        config_overrides: Optional[Dict[str, Any]] = None
+        config_overrides: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Build deployment command."""
-        base_cmd = self.config.get('deploy_script', 'echo "Deploy simulation"')
+        base_cmd = self.config.get("deploy_script", 'echo "Deploy simulation"')
         config_flag = ""
         if config_overrides:
             config_str = json.dumps(config_overrides)
@@ -152,9 +156,7 @@ class BlueGreenDeployer:
         return f"{base_cmd} --env {environment} --image {image_tag}{config_flag}"
 
     async def run_health_checks(
-        self,
-        environment: str,
-        checks: Optional[List[str]] = None
+        self, environment: str, checks: Optional[List[str]] = None
     ) -> Tuple[int, int]:
         """Run health checks on the deployed environment."""
         import aiohttp
@@ -176,17 +178,15 @@ class BlueGreenDeployer:
                             passed += 1
                             logger.info(f"Health check passed: {url}")
                         else:
-                            logger.warning(f"Health check failed: {url} (status: {response.status})")
+                            logger.warning(
+                                f"Health check failed: {url} (status: {response.status})"
+                            )
             except Exception as e:
                 logger.warning(f"Health check error for {url}: {e}")
 
         return passed, total
 
-    async def switch_traffic(
-        self,
-        deployment_id: str,
-        target_env: str
-    ) -> bool:
+    async def switch_traffic(self, deployment_id: str, target_env: str) -> bool:
         """Switch traffic to the new environment."""
         try:
             # Update load balancer / router configuration
@@ -194,17 +194,13 @@ class BlueGreenDeployer:
             logger.info(f"Switching traffic to {target_env}...")
 
             proc = subprocess.run(
-                switch_cmd,
-                shell=True,
-                capture_output=True,
-                text=True,
-                timeout=60
+                switch_cmd, shell=True, capture_output=True, text=True, timeout=60
             )
 
             if proc.returncode == 0:
                 # Update active state
-                self.blue_active = (target_env == "blue")
-                self.green_active = (target_env == "green")
+                self.blue_active = target_env == "blue"
+                self.green_active = target_env == "green"
                 logger.info(f"Traffic switched to {target_env}")
                 return True
             else:
@@ -217,12 +213,9 @@ class BlueGreenDeployer:
 
     def _build_switch_command(self, environment: str) -> str:
         """Build traffic switch command."""
-        return f"kubectl patch svc/app-router -p '{{\"spec\":{{\"selector\":{{\"version\":\"{environment}\"}}}}}}'"
+        return f'kubectl patch svc/app-router -p \'{{"spec":{{"selector":{{"version":"{environment}"}}}}}}\''
 
-    async def rollback(
-        self,
-        deployment_id: str
-    ) -> bool:
+    async def rollback(self, deployment_id: str) -> bool:
         """Rollback to previous active environment."""
         # Switch back to the other environment
         target_env = self.get_active_environment()
@@ -234,9 +227,7 @@ class BlueGreenDeployer:
         return success
 
     async def run_full_deployment(
-        self,
-        image_tag: str,
-        config_overrides: Optional[Dict[str, Any]] = None
+        self, image_tag: str, config_overrides: Optional[Dict[str, Any]] = None
     ) -> DeploymentResult:
         """Run complete blue-green deployment."""
         deployment_id = f"deploy_{int(time.time())}"
@@ -250,7 +241,7 @@ class BlueGreenDeployer:
             end_time=None,
             error_message=None,
             health_checks_passed=0,
-            health_checks_total=0
+            health_checks_total=0,
         )
 
         # Pre-deployment checks
@@ -261,7 +252,9 @@ class BlueGreenDeployer:
 
         # Deploy to inactive environment
         target_env = self.get_inactive_environment()
-        deployment_result = await self.deploy_to_inactive(deployment_id, image_tag, config_overrides)
+        deployment_result = await self.deploy_to_inactive(
+            deployment_id, image_tag, config_overrides
+        )
 
         if deployment_result.status == DeploymentStatus.FAILED:
             return deployment_result
@@ -289,7 +282,9 @@ class BlueGreenDeployer:
         self.current_deployment = result
         return result
 
-    def save_deployment_report(self, result: DeploymentResult, output_dir: str = "deploy_reports") -> str:
+    def save_deployment_report(
+        self, result: DeploymentResult, output_dir: str = "deploy_reports"
+    ) -> str:
         """Save deployment report."""
         output_path = Path(output_dir)
         output_path.mkdir(exist_ok=True)
@@ -297,19 +292,19 @@ class BlueGreenDeployer:
         report_path = output_path / f"blue_green_deploy_{result.deployment_id}.json"
 
         report = {
-            'deployment_id': result.deployment_id,
-            'status': result.status.value,
-            'active_environment': self.get_active_environment(),
-            'start_time': result.start_time.isoformat(),
-            'end_time': result.end_time.isoformat() if result.end_time else None,
-            'error_message': result.error_message,
-            'health_checks': {
-                'passed': result.health_checks_passed,
-                'total': result.health_checks_total
-            }
+            "deployment_id": result.deployment_id,
+            "status": result.status.value,
+            "active_environment": self.get_active_environment(),
+            "start_time": result.start_time.isoformat(),
+            "end_time": result.end_time.isoformat() if result.end_time else None,
+            "error_message": result.error_message,
+            "health_checks": {
+                "passed": result.health_checks_passed,
+                "total": result.health_checks_total,
+            },
         }
 
-        with open(report_path, 'w') as f:
+        with open(report_path, "w") as f:
             json.dump(report, f, indent=2)
 
         logger.info(f"Deployment report saved to {report_path}")
@@ -321,19 +316,28 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Blue-green zero-downtime deployment")
-    parser.add_argument('--image-tag', required=True, help='Docker image tag to deploy')
-    parser.add_argument('--environment', choices=['blue', 'green'],
-                       help='Target environment (auto-detected if not specified)')
-    parser.add_argument('--timeout', type=int, default=300, help='Deployment timeout in seconds')
-    parser.add_argument('--dry-run', action='store_true', help='Simulate deployment without changes')
+    parser.add_argument("--image-tag", required=True, help="Docker image tag to deploy")
+    parser.add_argument(
+        "--environment",
+        choices=["blue", "green"],
+        help="Target environment (auto-detected if not specified)",
+    )
+    parser.add_argument(
+        "--timeout", type=int, default=300, help="Deployment timeout in seconds"
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Simulate deployment without changes"
+    )
 
     args = parser.parse_args()
 
-    deployer = BlueGreenDeployer({'timeout': args.timeout})
+    deployer = BlueGreenDeployer({"timeout": args.timeout})
 
     async def run():
         if args.dry_run:
-            print(f"DRY RUN: Would deploy {args.image_tag} to {deployer.get_inactive_environment()}")
+            print(
+                f"DRY RUN: Would deploy {args.image_tag} to {deployer.get_inactive_environment()}"
+            )
             return None
 
         result = await deployer.run_full_deployment(args.image_tag)
@@ -342,11 +346,14 @@ def main():
         print(f"\nDeployment Result:")
         print(f"  Status: {result.status.value}")
         print(f"  Active Environment: {deployer.get_active_environment()}")
-        print(f"  Health Checks: {result.health_checks_passed}/{result.health_checks_total}")
+        print(
+            f"  Health Checks: {result.health_checks_passed}/{result.health_checks_total}"
+        )
 
         return result
 
     import asyncio
+
     asyncio.run(run())
 
 

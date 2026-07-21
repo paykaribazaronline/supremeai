@@ -12,18 +12,26 @@ Usage:
 python scripts/security/auto_find_blindspots.py
 """
 
+import json
 import os
 import re
-import json
 from pathlib import Path
-from typing import List, Dict, Tuple, Callable, Any
+from typing import Any, Callable, Dict, List, Tuple
 
 # --- Configuration ---
 
 # Directories and files to ignore during scanning
 IGNORED_DIRS = {
-    ".git", ".worktrees", "__pycache__", "node_modules", "build", "dist",
-    "target", ".venv", "venv", "docs"
+    ".git",
+    ".worktrees",
+    "__pycache__",
+    "node_modules",
+    "build",
+    "dist",
+    "target",
+    ".venv",
+    "venv",
+    "docs",
 }
 IGNORED_FILES = {".DS_Store"}
 
@@ -32,21 +40,30 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 # --- Checker Functions ---
 
+
 def find_hardcoded_secrets(content: str, file_path: str) -> List[Tuple[int, str]]:
     """Finds hardcoded passwords, API keys, or other secrets."""
     findings = []
     lines = content.splitlines()
     # More robust regex to find keys, avoiding variable assignments like `api_key = os.getenv(...)`
-    secret_pattern = re.compile(r'(api_key|secret_key|password|token)\s*[:=]\s*["\']([A-Za-z0-9_/.+-]{16,})["\']', re.IGNORECASE)
+    secret_pattern = re.compile(
+        r'(api_key|secret_key|password|token)\s*[:=]\s*["\']([A-Za-z0-9_/.+-]{16,})["\']',
+        re.IGNORECASE,
+    )
 
     for i, line in enumerate(lines, 1):
         # Specific hardcoded password from `blindspots-bangla.md`
         if "supreme-god-" + "password" in line:
-            findings.append((i, "🔴 Critical: Hardcoded 'supreme-god-" + "password' found."))
+            findings.append(
+                (i, "🔴 Critical: Hardcoded 'supreme-god-" + "password' found.")
+            )
         # Generic patterns for keys and passwords
         if secret_pattern.search(line):
-            findings.append((i, "🟠 High: Potential hardcoded secret or API key found."))
+            findings.append(
+                (i, "🟠 High: Potential hardcoded secret or API key found.")
+            )
     return findings
+
 
 def check_cicd_vulnerabilities(content: str, file_path: str) -> List[str]:
     """Checks for vulnerabilities in CI/CD pipeline configurations."""
@@ -56,28 +73,49 @@ def check_cicd_vulnerabilities(content: str, file_path: str) -> List[str]:
         # Check for dangerously low test coverage threshold
         match = re.search(r"--cov-fail-under=(\d+)", content)
         if match and int(match.group(1)) < 38:
-            findings.append(f"🔴 Critical: Test coverage threshold is critically low (`--cov-fail-under={match.group(1)}`).")
+            findings.append(
+                f"🔴 Critical: Test coverage threshold is critically low (`--cov-fail-under={match.group(1)}`)."
+            )
         # Check for suppressed errors in shell commands
         if "|| true" in content:
-            findings.append("🟡 Medium: Potential error suppression using '|| true' in a CI step, which can hide failures.")
+            findings.append(
+                "🟡 Medium: Potential error suppression using '|| true' in a CI step, which can hide failures."
+            )
     # Check for direct git push in auto-fix scripts
     if "ci-auto-fix" in str(file_path) and file_path.endswith(".py"):
-        if 'subprocess.run(["git", "push"]' in content or 'os.system("git push"' in content:
-            findings.append("🔴 Critical: Script appears to perform a direct `git push`, bypassing PR and review processes.")
+        if (
+            'subprocess.run(["git", "push"]' in content
+            or 'os.system("git push"' in content
+        ):
+            findings.append(
+                "🔴 Critical: Script appears to perform a direct `git push`, bypassing PR and review processes."
+            )
     return findings
+
 
 def check_insecure_storage(content: str, file_path: str) -> List[str]:
     """Checks for insecure storage of tokens in frontend/mobile code."""
     findings = []
     # Check for JWTs in localStorage (for .ts, .js, .tsx files)
     if file_path.endswith((".ts", ".js", ".tsx")):
-        if "localStorage.setItem" in content and ("jwt" in content.lower() or "token" in content.lower()):
-            findings.append("🟠 High: JWT token is being stored in `localStorage`, which is vulnerable to XSS attacks.")
+        if "localStorage.setItem" in content and (
+            "jwt" in content.lower() or "token" in content.lower()
+        ):
+            findings.append(
+                "🟠 High: JWT token is being stored in `localStorage`, which is vulnerable to XSS attacks."
+            )
     # Check for insecure token storage in Flutter
     if file_path.endswith(".dart"):
-        if "SharedPreferences" in content and "token" in content.lower() and "flutter_secure_storage" not in content:
-            findings.append("🟠 High: Token appears to be stored insecurely using `SharedPreferences` in Flutter. Use `flutter_secure_storage` instead.")
+        if (
+            "SharedPreferences" in content
+            and "token" in content.lower()
+            and "flutter_secure_storage" not in content
+        ):
+            findings.append(
+                "🟠 High: Token appears to be stored insecurely using `SharedPreferences` in Flutter. Use `flutter_secure_storage` instead."
+            )
     return findings
+
 
 def check_network_configuration(content: str, file_path: str) -> List[str]:
     """Checks for insecure network configurations, e.g., in Tauri."""
@@ -85,33 +123,51 @@ def check_network_configuration(content: str, file_path: str) -> List[str]:
     if "tauri.conf.json" in str(file_path):
         try:
             config = json.loads(content)
-            scope = config.get("tauri", {}).get("allowlist", {}).get("http", {}).get("scope", [])
+            scope = (
+                config.get("tauri", {})
+                .get("allowlist", {})
+                .get("http", {})
+                .get("scope", [])
+            )
             if "http://*/*" in scope or "https://*/*" in scope:
-                findings.append("🔴 Critical: Tauri network scope is wide open (`*/*`), breaking sandbox security.")
+                findings.append(
+                    "🔴 Critical: Tauri network scope is wide open (`*/*`), breaking sandbox security."
+                )
         except json.JSONDecodeError:
             pass  # Ignore malformed JSON
     return findings
+
 
 def check_database_issues(content: str, file_path: str) -> List[str]:
     """Checks for common database-related security issues."""
     findings = []
     if file_path.endswith(".py"):
         # Check for potential SQL injection via f-strings
-        if re.search(r'f"S?SE' + r'LECT .*\{.*\}', content, re.IGNORECASE) or \
-           re.search(r'f"UP' + r'DATE .*\{.*\}', content, re.IGNORECASE) or \
-           re.search(r'f"IN' + r'SERT INTO .*\{.*\}', content, re.IGNORECASE) or \
-           re.search(r'f"DE' + r'LETE FROM .*\{.*\}', content, re.IGNORECASE):
-            findings.append("🔴 Critical: SQL query built with an f-string, creating a high risk of SQL injection.")
+        if (
+            re.search(r'f"S?SE' + r"LECT .*\{.*\}", content, re.IGNORECASE)
+            or re.search(r'f"UP' + r"DATE .*\{.*\}", content, re.IGNORECASE)
+            or re.search(r'f"IN' + r"SERT INTO .*\{.*\}", content, re.IGNORECASE)
+            or re.search(r'f"DE' + r"LETE FROM .*\{.*\}", content, re.IGNORECASE)
+        ):
+            findings.append(
+                "🔴 Critical: SQL query built with an f-string, creating a high risk of SQL injection."
+            )
         # Check for SQLite's `check_same_thread=False`
         if "check_same_thread" + "=False" in content:
-            findings.append("🟡 Medium: SQLite connection with `check_same_thread=False` can lead to data corruption or race conditions if not handled carefully.")
+            findings.append(
+                "🟡 Medium: SQLite connection with `check_same_thread=False` can lead to data corruption or race conditions if not handled carefully."
+            )
     return findings
+
 
 def check_committed_env_file(file_path: Path) -> List[str]:
     """Checks if a .env file has been committed to the repository."""
     if file_path.name == ".env":
-        return ["🔴 Critical: A `.env` file was found committed to the repository. This may leak production secrets."]
+        return [
+            "🔴 Critical: A `.env` file was found committed to the repository. This may leak production secrets."
+        ]
     return []
+
 
 # List of all checker functions to be executed on file content
 CONTENT_CHECKERS: List[Callable[[str, str], Any]] = [
@@ -123,6 +179,7 @@ CONTENT_CHECKERS: List[Callable[[str, str], Any]] = [
 ]
 
 # --- Main Scan Logic ---
+
 
 def scan_file(file_path: Path) -> List[Tuple[str, str]]:
     """Scans a single file for vulnerabilities and returns findings."""
@@ -139,15 +196,16 @@ def scan_file(file_path: Path) -> List[Tuple[str, str]]:
         for checker_func in CONTENT_CHECKERS:
             results = checker_func(content, str(file_path))
             for finding in results:
-                if isinstance(finding, tuple): # New format with line numbers
+                if isinstance(finding, tuple):  # New format with line numbers
                     findings.append((str(file_path), f"L{finding[0]}: {finding[1]}"))
-                else: # Old format
+                else:  # Old format
                     findings.append((str(file_path), finding))
 
     except Exception as e:
         print(f"⚠️  Could not scan file: {file_path} ({e})")
 
     return findings
+
 
 def is_test_file(file_path: Path) -> bool:
     """
@@ -162,7 +220,9 @@ def is_test_file(file_path: Path) -> bool:
     # সাধারণ টেস্ট ফাইলের প্যাটার্ন
     file_name = file_path.name
     return file_name.startswith("test_") or file_name.endswith(
-        ("_test.py", ".spec.ts", ".test.ts", ".spec.js", ".test.js"))
+        ("_test.py", ".spec.ts", ".test.ts", ".spec.js", ".test.js")
+    )
+
 
 def main():
     """Main function to orchestrate the scanning of the project directory."""
@@ -193,8 +253,12 @@ def main():
                         if str(file_path) not in all_findings:
                             all_findings[str(file_path)] = []
                         for finding in results:
-                            all_findings[str(file_path)].append(f"L{finding[0]}: {finding[1]}")
-                except Exception: # বাইনারি বা অন্যান্য ফাইল পড়ার সমস্যা উপেক্ষা করা হচ্ছে
+                            all_findings[str(file_path)].append(
+                                f"L{finding[0]}: {finding[1]}"
+                            )
+                except (
+                    Exception
+                ):  # বাইনারি বা অন্যান্য ফাইল পড়ার সমস্যা উপেক্ষা করা হচ্ছে
                     pass
                 continue
 
@@ -213,10 +277,14 @@ def main():
 
     print("-" * 80)
     if not all_findings:
-        print(f"✅ Congratulations! Scanned {file_count} files and found no known blind spots.")
+        print(
+            f"✅ Congratulations! Scanned {file_count} files and found no known blind spots."
+        )
     else:
         total_issues = sum(len(issues) for issues in all_findings.values())
-        print(f"🚨 Found {total_issues} potential blind spot(s) across {len(all_findings)} file(s).\n")
+        print(
+            f"🚨 Found {total_issues} potential blind spot(s) across {len(all_findings)} file(s).\n"
+        )
 
         # Sort files alphabetically for consistent output
         for file_path in sorted(all_findings.keys()):
@@ -230,7 +298,9 @@ def main():
     print("🔍 Scan complete.")
 
     if critical_issue_found:
-        print("\n🔥 বিল্ড ব্যর্থ হয়েছে কারণ এক বা একাধিক 'Critical' নিরাপত্তা ঝুঁকি পাওয়া গেছে।")
+        print(
+            "\n🔥 বিল্ড ব্যর্থ হয়েছে কারণ এক বা একাধিক 'Critical' নিরাপত্তা ঝুঁকি পাওয়া গেছে।"
+        )
         exit(1)
 
 

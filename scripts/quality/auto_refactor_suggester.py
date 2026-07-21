@@ -16,16 +16,15 @@ Environment Variables:
 - THRESHOLD_NESTING: Maximum nesting depth before suggesting refactor (default: 4)
 """
 
-import os
 import ast
-from pathlib import Path
-from typing import List, Dict, Any, Optional
 import logging
+import os
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -37,18 +36,21 @@ THRESHOLD_LINES = int(os.getenv("THRESHOLD_LINES", "50"))
 THRESHOLD_PARAMETERS = int(os.getenv("THRESHOLD_PARAMETERS", "5"))
 THRESHOLD_NESTING = int(os.getenv("THRESHOLD_NESTING", "4"))
 
+
 def should_exclude_file(file_path: Path) -> bool:
     """Check if a file should be excluded based on patterns."""
     for pattern in EXCLUDE:
         if "*" in pattern:
             # Simple glob matching
             import fnmatch
+
             if fnmatch.fnmatch(file_path.name, pattern):
                 return True
         else:
             if pattern in str(file_path):
                 return True
     return False
+
 
 def get_python_files() -> List[Path]:
     """Get all Python files to analyze."""
@@ -66,11 +68,13 @@ def get_python_files() -> List[Path]:
 
     return python_files
 
+
 def count_lines_in_node(node: ast.AST, source_lines: List[str]) -> int:
     """Count the number of physical lines in an AST node."""
-    if hasattr(node, 'lineno') and hasattr(node, 'end_lineno'):
+    if hasattr(node, "lineno") and hasattr(node, "end_lineno"):
         return node.end_lineno - node.lineno + 1
     return 0
+
 
 def count_parameters(node: ast.FunctionDef) -> int:
     """Count the number of parameters in a function definition."""
@@ -86,14 +90,25 @@ def count_parameters(node: ast.FunctionDef) -> int:
     count += len(node.args.kwonlyargs)
     return count
 
+
 def calculate_nesting_depth(node: ast.AST, current_depth: int = 0) -> int:
     """Calculate the maximum nesting depth of control structures."""
     max_depth = current_depth
 
     # Increase depth for control flow statements
-    if isinstance(node, (ast.If, ast.For, ast.AsyncFor, ast.While,
-                        ast.With, ast.AsyncWith, ast.Try,
-                        ast.ExceptHandler)):
+    if isinstance(
+        node,
+        (
+            ast.If,
+            ast.For,
+            ast.AsyncFor,
+            ast.While,
+            ast.With,
+            ast.AsyncWith,
+            ast.Try,
+            ast.ExceptHandler,
+        ),
+    ):
         current_depth += 1
 
     # Check children
@@ -103,94 +118,114 @@ def calculate_nesting_depth(node: ast.AST, current_depth: int = 0) -> int:
 
     return max_depth
 
-def analyze_function(func_node: ast.FunctionDef, class_name: Optional[str],
-                    source_lines: List[str], file_path: Path) -> List[Dict[str, Any]]:
+
+def analyze_function(
+    func_node: ast.FunctionDef,
+    class_name: Optional[str],
+    source_lines: List[str],
+    file_path: Path,
+) -> List[Dict[str, Any]]:
     """Analyze a function for refactoring opportunities."""
     suggestions = []
 
     # Get function location
     start_line = func_node.lineno
-    end_line = getattr(func_node, 'end_lineno', start_line)
+    end_line = getattr(func_node, "end_lineno", start_line)
     lines_count = end_line - start_line + 1
 
     # Check function length
     if lines_count > THRESHOLD_LINES:
-        suggestions.append({
-            "type": "Long Function",
-            "priority": "High" if lines_count > THRESHOLD_LINES * 2 else "Medium",
-            "file": str(file_path),
-            "line": start_line,
-            "function": f"{class_name + '.' if class_name else ''}{func_node.name}",
-            "issue": f"Function has {lines_count} lines (threshold: {THRESHOLD_LINES})",
-            "suggestion": "Break down into smaller, focused functions"
-        })
+        suggestions.append(
+            {
+                "type": "Long Function",
+                "priority": "High" if lines_count > THRESHOLD_LINES * 2 else "Medium",
+                "file": str(file_path),
+                "line": start_line,
+                "function": f"{class_name + '.' if class_name else ''}{func_node.name}",
+                "issue": f"Function has {lines_count} lines (threshold: {THRESHOLD_LINES})",
+                "suggestion": "Break down into smaller, focused functions",
+            }
+        )
 
     # Check parameter count
     param_count = count_parameters(func_node)
     if param_count > THRESHOLD_PARAMETERS:
-        suggestions.append({
-            "type": "Too Many Parameters",
-            "priority": "Medium",
-            "file": str(file_path),
-            "line": start_line,
-            "function": f"{class_name + '.' if class_name else ''}{func_node.name}",
-            "issue": f"Function has {param_count} parameters (threshold: {THRESHOLD_PARAMETERS})",
-            "suggestion": "Consider using a data class or dictionary to group related parameters"
-        })
+        suggestions.append(
+            {
+                "type": "Too Many Parameters",
+                "priority": "Medium",
+                "file": str(file_path),
+                "line": start_line,
+                "function": f"{class_name + '.' if class_name else ''}{func_node.name}",
+                "issue": f"Function has {param_count} parameters (threshold: {THRESHOLD_PARAMETERS})",
+                "suggestion": "Consider using a data class or dictionary to group related parameters",
+            }
+        )
 
     # Check nesting depth
     nesting_depth = calculate_nesting_depth(func_node)
     if nesting_depth > THRESHOLD_NESTING:
-        suggestions.append({
-            "type": "Deep Nesting",
-            "priority": "Medium",
-            "file": str(file_path),
-            "line": start_line,
-            "function": f"{class_name + '.' if class_name else ''}{func_node.name}",
-            "issue": f"Function has nesting depth of {nesting_depth} (threshold: {THRESHOLD_NESTING})",
-            "suggestion": "Extract nested blocks into separate functions or use early returns"
-        })
+        suggestions.append(
+            {
+                "type": "Deep Nesting",
+                "priority": "Medium",
+                "file": str(file_path),
+                "line": start_line,
+                "function": f"{class_name + '.' if class_name else ''}{func_node.name}",
+                "issue": f"Function has nesting depth of {nesting_depth} (threshold: {THRESHOLD_NESTING})",
+                "suggestion": "Extract nested blocks into separate functions or use early returns",
+            }
+        )
 
     return suggestions
 
-def analyze_class(class_node: ast.ClassDef, source_lines: List[str],
-                 file_path: Path) -> List[Dict[str, Any]]:
+
+def analyze_class(
+    class_node: ast.ClassDef, source_lines: List[str], file_path: Path
+) -> List[Dict[str, Any]]:
     """Analyze a class for refactoring opportunities."""
     suggestions = []
 
     # Get class location
     start_line = class_node.lineno
-    end_line = getattr(class_node, 'end_lineno', start_line)
+    end_line = getattr(class_node, "end_lineno", start_line)
     lines_count = end_line - start_line + 1
 
     # Count methods
-    method_count = sum(1 for node in class_node.body if isinstance(node, ast.FunctionDef))
+    method_count = sum(
+        1 for node in class_node.body if isinstance(node, ast.FunctionDef)
+    )
 
     # Check class size
     if lines_count > 300:  # Arbitrary large class threshold
-        suggestions.append({
-            "type": "Large Class",
-            "priority": "Medium",
-            "file": str(file_path),
-            "line": start_line,
-            "class": class_node.name,
-            "issue": f"Class has {lines_count} lines and {method_count} methods",
-            "suggestion": "Consider splitting into smaller, more focused classes"
-        })
+        suggestions.append(
+            {
+                "type": "Large Class",
+                "priority": "Medium",
+                "file": str(file_path),
+                "line": start_line,
+                "class": class_node.name,
+                "issue": f"Class has {lines_count} lines and {method_count} methods",
+                "suggestion": "Consider splitting into smaller, more focused classes",
+            }
+        )
 
     # Check for too many methods (God Class symptom)
     if method_count > 20:
-        suggestions.append({
-            "type": "Too Many Methods",
-            "priority": "Medium",
-            "file": str(file_path),
-            "line": start_line,
-            "class": class_node.name,
-            "issue": f"Class has {method_count} methods",
-            "suggestion": "Consider applying Single Responsibility Principle - split into multiple classes"
-        })
+        suggestions.append(
+            {
+                "type": "Too Many Methods",
+                "priority": "Medium",
+                "file": str(file_path),
+                "line": start_line,
+                "class": class_node.name,
+                "issue": f"Class has {method_count} methods",
+                "suggestion": "Consider applying Single Responsibility Principle - split into multiple classes",
+            }
+        )
 
     return suggestions
+
 
 def detect_duplicate_code(file_paths: List[Path]) -> List[Dict[str, Any]]:
     """Detect duplicate code blocks using simple hashing (basic implementation)."""
@@ -206,6 +241,7 @@ def detect_duplicate_code(file_paths: List[Path]) -> List[Dict[str, Any]]:
     # 4. Report similarities above a threshold
 
     return suggestions
+
 
 def analyze_file(file_path: Path) -> List[Dict[str, Any]]:
     """Analyze a single Python file for refactoring opportunities."""
@@ -226,14 +262,10 @@ def analyze_file(file_path: Path) -> List[Dict[str, Any]]:
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef):
             # Top-level function
-            suggestions.extend(
-                analyze_function(node, None, source_lines, file_path)
-            )
+            suggestions.extend(analyze_function(node, None, source_lines, file_path))
         elif isinstance(node, ast.ClassDef):
             # Class
-            suggestions.extend(
-                analyze_class(node, source_lines, file_path)
-            )
+            suggestions.extend(analyze_class(node, source_lines, file_path))
             # Also analyze methods within the class
             for child in node.body:
                 if isinstance(child, ast.FunctionDef):
@@ -242,6 +274,7 @@ def analyze_file(file_path: Path) -> List[Dict[str, Any]]:
                     )
 
     return suggestions
+
 
 def generate_report(suggestions: List[Dict[str, Any]]) -> str:
     """Generate a markdown report of refactoring suggestions."""
@@ -271,12 +304,14 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         by_type[s_type].append(suggestion)
 
     # Sort types by priority and count
-    type_order = sorted(by_type.keys(),
-                       key=lambda t: (
-                           -len([s for s in by_type[t] if s.get("priority") == "High"]),
-                           -len([s for s in by_type[t] if s.get("priority") == "Medium"]),
-                           -len(by_type[t])
-                       ))
+    type_order = sorted(
+        by_type.keys(),
+        key=lambda t: (
+            -len([s for s in by_type[t] if s.get("priority") == "High"]),
+            -len([s for s in by_type[t] if s.get("priority") == "Medium"]),
+            -len(by_type[t]),
+        ),
+    )
 
     report = f"""# Refactoring Suggestions Report
 
@@ -300,9 +335,11 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         suggestions_list = by_type[suggestion_type]
 
         # Count by priority
-        high_count = len([s for s in suggestions_list if s.get('priority') == 'High'])
-        medium_count = len([s for s in suggestions_list if s.get('priority') == 'Medium'])
-        low_count = len([s for s in suggestions_list if s.get('priority') == 'Low'])
+        high_count = len([s for s in suggestions_list if s.get("priority") == "High"])
+        medium_count = len(
+            [s for s in suggestions_list if s.get("priority") == "Medium"]
+        )
+        low_count = len([s for s in suggestions_list if s.get("priority") == "Low"])
 
         priority_text = []
         if high_count > 0:
@@ -312,7 +349,9 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
         if low_count > 0:
             priority_text.append(f"{low_count} Low")
 
-        priority_str = ", ".join(priority_text) if priority_text else "No priority specified"
+        priority_str = (
+            ", ".join(priority_text) if priority_text else "No priority specified"
+        )
 
         report += f"\n## {suggestion_type} ({len(suggestions_list)} items - {priority_str})\n\n"
 
@@ -338,10 +377,7 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
             # Add rows (limit to 50 per section to keep report readable)
             for suggestion in suggestions_list[:50]:
-                row_data = [
-                    suggestion.get("file", ""),
-                    str(suggestion.get("line", ""))
-                ]
+                row_data = [suggestion.get("file", ""), str(suggestion.get("line", ""))]
 
                 if "function" in sample:
                     row_data.append(suggestion.get("function", ""))
@@ -356,10 +392,9 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
                     emoji = priority_emoji.get(priority, "⚪")
                     row_data.append(f"{emoji} {priority}")
 
-                row_data.extend([
-                    suggestion.get("issue", ""),
-                    suggestion.get("suggestion", "")
-                ])
+                row_data.extend(
+                    [suggestion.get("issue", ""), suggestion.get("suggestion", "")]
+                )
 
                 # Escape pipe characters
                 row_data = [str(cell).replace("|", "\\|") for cell in row_data]
@@ -378,14 +413,18 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
             report += "3. Consider using early returns to reduce nesting\n"
         elif suggestion_type == "Too Many Parameters":
             report += "\n### Recommendations:\n"
-            report += "1. Introduce Parameter Object: group related parameters into a class\n"
+            report += (
+                "1. Introduce Parameter Object: group related parameters into a class\n"
+            )
             report += "2. Preserve Whole Object: if parameters come from same object, pass the object\n"
             report += "3. Remove Setting Method: if some parameters are used to set state, use setter methods\n"
         elif suggestion_type == "Deep Nesting":
             report += "\n### Recommendations:\n"
             report += "1. Use guard clauses for early returns\n"
             report += "2. Extract nested logic into separate functions\n"
-            report += "3. Consider using the Strategy Pattern for complex conditional logic\n"
+            report += (
+                "3. Consider using the Strategy Pattern for complex conditional logic\n"
+            )
         elif suggestion_type == "Large Class":
             report += "\n### Recommendations:\n"
             report += "1. Apply Extract Class: group related fields and methods into a new class\n"
@@ -398,6 +437,7 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
             report += "3. Consider using Facade or Mediator patterns if this is a complex interface\n"
 
     return report
+
 
 def main() -> int:
     """Main function to run refactoring analysis."""
@@ -440,9 +480,11 @@ def main() -> int:
     print(f"   💡 Suggestions found: {len(all_suggestions)}")
 
     if all_suggestions:
-        high_priority = len([s for s in all_suggestions if s.get('priority') == 'High'])
-        medium_priority = len([s for s in all_suggestions if s.get('priority') == 'Medium'])
-        low_priority = len([s for s in all_suggestions if s.get('priority') == 'Low'])
+        high_priority = len([s for s in all_suggestions if s.get("priority") == "High"])
+        medium_priority = len(
+            [s for s in all_suggestions if s.get("priority") == "Medium"]
+        )
+        low_priority = len([s for s in all_suggestions if s.get("priority") == "Low"])
         print(f"   🔴 High priority: {high_priority}")
         print(f"   🟡 Medium priority: {medium_priority}")
         print(f"   🟢 Low priority: {low_priority}")
@@ -455,6 +497,8 @@ def main() -> int:
     print("\n✅ Analysis complete!")
     return 0
 
+
 if __name__ == "__main__":
     import sys
+
     sys.exit(main())

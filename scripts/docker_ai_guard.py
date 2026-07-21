@@ -1,7 +1,9 @@
 import os
-import sys
 import subprocess
+import sys
+
 import google.generativeai as genai
+
 
 def analyze_docker_bloat():
     image_name = os.environ.get("IMAGE_NAME", "supremeai-api:test")
@@ -10,7 +12,9 @@ def analyze_docker_bloat():
     # ডকার ইমেজের টোটাল সাইজ বের করা
     size_cmd = ["docker", "image", "inspect", image_name, "--format={{.Size}}"]
     try:
-        size_bytes = int(subprocess.check_output(size_cmd, shell=False).decode('utf-8').strip())
+        size_bytes = int(
+            subprocess.check_output(size_cmd, shell=False).decode("utf-8").strip()
+        )
         size_mb = size_bytes / (1024 * 1024)
     except Exception as e:
         print(f"❌ Failed to get image size: {e}")
@@ -26,16 +30,25 @@ def analyze_docker_bloat():
     print("🚨 BLOAT DETECTED! Image size exceeded limit. Initiating AI Autopsy...")
 
     # ডকারের কোন লেয়ারে কত এমবি ডেটা আছে তা বের করা
-    history_cmd = ["docker", "history", image_name, "--no-trunc", "--format", "{{.Size}}\t{{.CreatedBy}}"]
-    history_output = subprocess.check_output(history_cmd, shell=False).decode('utf-8')
+    history_cmd = [
+        "docker",
+        "history",
+        image_name,
+        "--no-trunc",
+        "--format",
+        "{{.Size}}\t{{.CreatedBy}}",
+    ]
+    history_output = subprocess.check_output(history_cmd, shell=False).decode("utf-8")
 
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        print("❌ GEMINI_API_KEY missing. Failing build due to size bloat without AI analysis.")
+        print(
+            "❌ GEMINI_API_KEY missing. Failing build due to size bloat without AI analysis."
+        )
         sys.exit(1)
 
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-2.5-flash')
+    model = genai.GenerativeModel("gemini-2.5-flash")
 
     prompt = f"""You are an elite DevSecOps AI. The CI/CD pipeline failed because the Docker image size ({size_mb:.2f} MB) exceeded the limit of {max_size_mb} MB.
 
@@ -48,11 +61,11 @@ def analyze_docker_bloat():
 
     response = model.generate_content(prompt)
 
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("🤖 SUPREMEAI DOCKER BLOAT ANALYSIS REPORT")
-    print("="*50)
+    print("=" * 50)
     print(response.text)
-    print("="*50 + "\n")
+    print("=" * 50 + "\n")
 
     # গিটহাব অ্যাকশনস-এ রিপোর্ট দেখানোর জন্য
     with open("bloat_report.md", "w") as f:
@@ -62,6 +75,7 @@ def analyze_docker_bloat():
     # পাইপলাইন ফেইল (Fail) করানো
     print("💀 Failing the GitHub Action pipeline to prevent bloated deployment.")
     sys.exit(1)
+
 
 if __name__ == "__main__":
     analyze_docker_bloat()

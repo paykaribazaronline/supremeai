@@ -29,7 +29,10 @@ def test_load_missing_checkpoint(checkpoint_store):
 
 def test_list_after_save(checkpoint_store):
     for idx in range(3):
-        assert checkpoint_store.save(f"task-{idx}", step_index=idx, state={"idx": idx}) is True
+        assert (
+            checkpoint_store.save(f"task-{idx}", step_index=idx, state={"idx": idx})
+            is True
+        )
 
     all_checkpoints = checkpoint_store.list_all()
     assert len(all_checkpoints) == 3

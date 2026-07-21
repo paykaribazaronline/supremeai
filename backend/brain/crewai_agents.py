@@ -6,7 +6,9 @@ from loguru import logger
 
 
 class CrewTask:
-    def __init__(self, description: str, agent: Optional["CrewAgent"] = None, context: str = ""):
+    def __init__(
+        self, description: str, agent: Optional["CrewAgent"] = None, context: str = ""
+    ):
         self.description = description
         self.agent = agent
         self.context = context

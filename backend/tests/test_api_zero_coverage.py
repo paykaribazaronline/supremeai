@@ -4,10 +4,10 @@ Targets: errors, deps, execution_policies, selector_healing,
 session_stream, simulator_admin, app_admin, app_user.
 """
 
-import pytest
 from unittest.mock import MagicMock
-from fastapi import HTTPException, Request
 
+import pytest
+from fastapi import HTTPException, Request
 
 # ── api.errors ─────────────────────────────────────────────────────────────────
 

@@ -43,7 +43,9 @@ class PgBouncerConnectionPool:
             statement_cache_size=0,
             command_timeout=30,
         )
-        logger.info(f"PgBouncer connection pool initialized (min_size={min_size}, max_size={max_size}, role={os.getenv('SERVICE_ROLE', 'user')}).")
+        logger.info(
+            f"PgBouncer connection pool initialized (min_size={min_size}, max_size={max_size}, role={os.getenv('SERVICE_ROLE', 'user')})."
+        )
 
     async def acquire(self) -> Connection:
         """Acquires a connection from the pool."""
@@ -100,7 +102,9 @@ async def get_db_pool() -> PgBouncerConnectionPool:
     RuntimeError is raised if the pool has not been initialized yet.
     """
     if _db_pool_instance is None:
-        raise RuntimeError("DB pool was accessed before app startup initialized it. Call init_db_pool() explicitly during the FastAPI lifespan.")
+        raise RuntimeError(
+            "DB pool was accessed before app startup initialized it. Call init_db_pool() explicitly during the FastAPI lifespan."
+        )
     return _db_pool_instance
 
 

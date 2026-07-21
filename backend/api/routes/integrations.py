@@ -75,12 +75,16 @@ async def github_callback(
 
     async with httpx.AsyncClient(timeout=15.0) as client:
         # ⏱️ FIX: explicit timeout — default timeout infinite হলে serverless function hang করে বিল বাড়ায়
-        response = await client.post(token_url, json=payload, headers=headers, timeout=30.0)
+        response = await client.post(
+            token_url, json=payload, headers=headers, timeout=30.0
+        )
         data = response.json()
 
     access_token = data.get("access_token")
     if not access_token:
-        logger.warning(f"GitHub OAuth failed for user {user_id}: no access_token in response")
+        logger.warning(
+            f"GitHub OAuth failed for user {user_id}: no access_token in response"
+        )
         return RedirectResponse(
             url=f"{getattr(settings, 'frontend_base_url', 'http://localhost:5173')}/integrations?status=error&message=Failed to get access token"
         )

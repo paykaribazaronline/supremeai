@@ -34,7 +34,8 @@ Dependencies:
 - `pydantic.computed_field`: For fields whose values are computed dynamically.
 - `pydantic.field_validator`: Decorator for field-specific validation logic.
 - `pydantic.model_validator`: Decorator for model-level validation logic.
-- `core.security.secret_vault`: An internal module responsible for fetching secrets from a secure vault (e.g., GCP Secret Manager)."""
+- `core.security.secret_vault`: An internal module responsible for fetching secrets from a secure vault (e.g., GCP Secret Manager).
+"""
 
 # backend/core/config.py
 # ⚠️ WARNING: DO NOT MOVE THIS FILE. It is heavily integrated into the FastAPI startup lifecycle.
@@ -53,14 +54,8 @@ from typing import Any
 
 from dotenv import load_dotenv
 from loguru import logger
-from pydantic import (
-    Field,
-    PrivateAttr,
-    SecretStr,
-    ValidationInfo,
-    field_validator,
-    model_validator,
-)
+from pydantic import (Field, PrivateAttr, SecretStr, ValidationInfo,
+                      field_validator, model_validator)
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .security.secret_vault import secret_vault
@@ -79,7 +74,11 @@ class Settings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_file=(None if "pytest" in sys.modules else ["../.env", ".env", "/etc/secrets/.env", "/etc/secrets/render.env"]),
+        env_file=(
+            None
+            if "pytest" in sys.modules
+            else ["../.env", ".env", "/etc/secrets/.env", "/etc/secrets/render.env"]
+        ),
         extra="ignore",
     )
 
@@ -92,14 +91,18 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     app_name: str = "SupremeAI 2.0"
     docs_auth_enabled: bool = True
-    docs_username: str = Field(default="admin", validation_alias="SUPREMEAI_DOCS_USERNAME")
+    docs_username: str = Field(
+        default="admin", validation_alias="SUPREMEAI_DOCS_USERNAME"
+    )
     docs_password: SecretStr = Field(
         default=SecretStr("dev_password_only"),
         validation_alias="SUPREMEAI_DOCS_PASSWORD",
     )
 
     # ── নেটওয়ার্ক কনফিগ — সব env-driven, কোনো hardcode নেই ────────────────
-    port: int = Field(default=8080, validation_alias="PORT")  # বাংলা: Dockerfile CMD-এর ${PORT:-8080} default-এর সাথে consistent
+    port: int = Field(
+        default=8080, validation_alias="PORT"
+    )  # বাংলা: Dockerfile CMD-এর ${PORT:-8080} default-এর সাথে consistent
     host: str = Field(default="0.0.0.0", validation_alias="HOST")  # noqa: S104
 
     # বাংলা মন্তব্য: CORS origins এখন সম্পূর্ণ env-driven।
@@ -128,7 +131,9 @@ class Settings(BaseSettings):
     service_role: str = Field(default="user", validation_alias="SERVICE_ROLE")
 
     # বাংলা মন্তব্য: JIT OTP over-saturation protection — প্রতি admin প্রতি এই সেকেন্ডে সর্বোচ্চ ১টি OTP।
-    otp_cooldown_seconds: int = Field(default=60, validation_alias="OTP_COOLDOWN_SECONDS")
+    otp_cooldown_seconds: int = Field(
+        default=60, validation_alias="OTP_COOLDOWN_SECONDS"
+    )
 
     # বাংলা মন্তব্য: Admin email list সম্পূর্ণ env-driven
     # (Moved to Security & Auth Config section to avoid duplication)
@@ -152,8 +157,12 @@ class Settings(BaseSettings):
     )
 
     # ── Stripe credentials — SecretStr দিয়ে log-safe ────────────────────────
-    stripe_api_key: SecretStr = Field(default=SecretStr(""), validation_alias="STRIPE_API_KEY")
-    stripe_webhook_secret: SecretStr = Field(default=SecretStr(""), validation_alias="STRIPE_WEBHOOK_SECRET")
+    stripe_api_key: SecretStr = Field(
+        default=SecretStr(""), validation_alias="STRIPE_API_KEY"
+    )
+    stripe_webhook_secret: SecretStr = Field(
+        default=SecretStr(""), validation_alias="STRIPE_WEBHOOK_SECRET"
+    )
 
     # ── LLM rate limit thresholds — সব env-driven, hardcode নেই ─────────────
     gemini_rpm_limit: int = Field(default=9, validation_alias="GEMINI_RPM_LIMIT")
@@ -162,22 +171,38 @@ class Settings(BaseSettings):
     groq_rpm_limit: int = Field(default=28, validation_alias="GROQ_RPM_LIMIT")
     groq_tpm_limit: int = Field(default=28_500, validation_alias="GROQ_TPM_LIMIT")
     groq_rpd_limit: int = Field(default=13_680, validation_alias="GROQ_RPD_LIMIT")
-    openrouter_rpm_limit: int = Field(default=19, validation_alias="OPENROUTER_RPM_LIMIT")
-    openrouter_rpd_limit: int = Field(default=45, validation_alias="OPENROUTER_RPD_LIMIT")
-    cloudflare_rpd_limit: int = Field(default=9_000, validation_alias="CLOUDFLARE_RPD_LIMIT")
+    openrouter_rpm_limit: int = Field(
+        default=19, validation_alias="OPENROUTER_RPM_LIMIT"
+    )
+    openrouter_rpd_limit: int = Field(
+        default=45, validation_alias="OPENROUTER_RPD_LIMIT"
+    )
+    cloudflare_rpd_limit: int = Field(
+        default=9_000, validation_alias="CLOUDFLARE_RPD_LIMIT"
+    )
     nvidia_rpm_limit: int = Field(default=38, validation_alias="NVIDIA_RPM_LIMIT")
     nvidia_tpm_limit: int = Field(default=38_000, validation_alias="NVIDIA_TPM_LIMIT")
-    huggingface_rpm_limit: int = Field(default=18, validation_alias="HUGGINGFACE_RPM_LIMIT")
-    huggingface_rpd_limit: int = Field(default=950, validation_alias="HUGGINGFACE_RPD_LIMIT")
+    huggingface_rpm_limit: int = Field(
+        default=18, validation_alias="HUGGINGFACE_RPM_LIMIT"
+    )
+    huggingface_rpd_limit: int = Field(
+        default=950, validation_alias="HUGGINGFACE_RPD_LIMIT"
+    )
 
     max_prompt_tokens: int = Field(default=4_000, validation_alias="MAX_PROMPT_TOKENS")
-    max_response_tokens: int = Field(default=1_500, validation_alias="MAX_RESPONSE_TOKENS")
+    max_response_tokens: int = Field(
+        default=1_500, validation_alias="MAX_RESPONSE_TOKENS"
+    )
     max_cost_per_task: float = Field(default=0.01, validation_alias="MAX_COST_PER_TASK")
     enable_token_compression: bool = True
 
     # ── Security & Auth Config ──────────────────────────────────────────────
-    admin_emails: list[str] = Field(default_factory=list, validation_alias="ADMIN_EMAILS")
-    supremeai_admin_password_hash: str | None = Field(default=None, validation_alias="SUPREMEAI_ADMIN_PASSWORD_HASH")
+    admin_emails: list[str] = Field(
+        default_factory=list, validation_alias="ADMIN_EMAILS"
+    )
+    supremeai_admin_password_hash: str | None = Field(
+        default=None, validation_alias="SUPREMEAI_ADMIN_PASSWORD_HASH"
+    )
     supremeai_public_paths: list[str] = Field(
         default=[
             "/health",
@@ -210,8 +235,12 @@ class Settings(BaseSettings):
     )
 
     # ── Circuit Breaker Config ───────────────────────────────────────────────
-    circuit_breaker_failure_threshold: int = Field(default=3, validation_alias="CIRCUIT_BREAKER_FAILURE_THRESHOLD")
-    circuit_breaker_cooldown_period: int = Field(default=60, validation_alias="CIRCUIT_BREAKER_COOLDOWN_PERIOD")
+    circuit_breaker_failure_threshold: int = Field(
+        default=3, validation_alias="CIRCUIT_BREAKER_FAILURE_THRESHOLD"
+    )
+    circuit_breaker_cooldown_period: int = Field(
+        default=60, validation_alias="CIRCUIT_BREAKER_COOLDOWN_PERIOD"
+    )
 
     # ── Idempotency Config ───────────────────────────────────────────────
     # বাংলা মন্তব্য: idempotency_critical_paths সম্পূর্ণ env-driven।
@@ -246,43 +275,73 @@ class Settings(BaseSettings):
     memory_db_dir: str = Field(default="", validation_alias="MEMORY_DB_DIR")
     skill_registry_path: str = Field(default="", validation_alias="SKILL_REGISTRY_PATH")
     # বাংলা মন্তব্য: ChromaDB ভেক্টর ডাটাবেসের জন্য কনফিগারেবল পাথ যোগ করা হলো।
-    chromadb_path: str = Field(default="supremeai_knowledge_base", validation_alias="CHROMADB_PATH")
+    chromadb_path: str = Field(
+        default="supremeai_knowledge_base", validation_alias="CHROMADB_PATH"
+    )
 
     # ── Sandbox config — env-driven ──────────────────────────────────────────
-    sandbox_root: str = Field(default="/tmp/sandboxes", validation_alias="SANDBOX_ROOT")  # nosec B108
-    firecracker_path: str = Field(default="/usr/bin/firecracker", validation_alias="FIRECRACKER_PATH")
+    sandbox_root: str = Field(
+        default="/tmp/sandboxes", validation_alias="SANDBOX_ROOT"
+    )  # nosec B108
+    firecracker_path: str = Field(
+        default="/usr/bin/firecracker", validation_alias="FIRECRACKER_PATH"
+    )
     gvisor_path: str = Field(default="/usr/bin/runsc", validation_alias="GVISOR_PATH")
-    allow_sandbox_fallback: bool = Field(default=False, validation_alias="ALLOW_SANDBOX_FALLBACK")
+    allow_sandbox_fallback: bool = Field(
+        default=False, validation_alias="ALLOW_SANDBOX_FALLBACK"
+    )
     # বাংলা মন্তব্য: local_code_executor ও docker_sandbox-এর লোকাল ফলব্যাকের জন্য settings ভেরিয়েবল যোগ করা হলো।
-    allow_local_sandbox_fallback: str = Field(default="false", validation_alias="ALLOW_LOCAL_SANDBOX_FALLBACK")
+    allow_local_sandbox_fallback: str = Field(
+        default="false", validation_alias="ALLOW_LOCAL_SANDBOX_FALLBACK"
+    )
 
     # ── Agent Execution Config — env-driven ─────────────────────────────────
     # বাংলা মন্তব্য: আগে agent_orchestrator.py সরাসরি os.getenv() করত।
     # এখন এই দুটো settings-এর Single Source of Truth থেকে আসে।
     max_agent_tokens: int = Field(default=5000, validation_alias="MAX_AGENT_TOKENS")
-    max_agent_iterations: int = Field(default=5, validation_alias="MAX_AGENT_ITERATIONS")
-    agent_admin_permissions_required: bool = Field(default=True, validation_alias="AGENT_ADMIN_PERMISSIONS_REQUIRED")
+    max_agent_iterations: int = Field(
+        default=5, validation_alias="MAX_AGENT_ITERATIONS"
+    )
+    agent_admin_permissions_required: bool = Field(
+        default=True, validation_alias="AGENT_ADMIN_PERMISSIONS_REQUIRED"
+    )
 
     # ── LLM Cost Config — env-driven ────────────────────────────────────────
     # বাংলা মন্তব্য: আগে llm_gateway.py-এ `estimated_cost = tokens * 0.00001` hardcoded ছিল।
     # এখন এই factor settings থেকে নিয়ন্ত্রিত হয় যা runtime-এ override করা যাবে।
-    llm_cost_per_token: float = Field(default=0.00001, validation_alias="LLM_COST_PER_TOKEN")
+    llm_cost_per_token: float = Field(
+        default=0.00001, validation_alias="LLM_COST_PER_TOKEN"
+    )
 
     # ── Task Queue Config — env-driven ──────────────────────────────────────
     # বাংলা মন্তব্য: task_queue_enhanced.py-এ TTL এবং backend priority এখন config-driven।
-    task_result_ttl_seconds: int = Field(default=3600, validation_alias="TASK_RESULT_TTL_SECONDS")
-    queue_backend_priority: str = Field(default="asyncio,redis,celery,pubsub", validation_alias="QUEUE_BACKEND_PRIORITY")
+    task_result_ttl_seconds: int = Field(
+        default=3600, validation_alias="TASK_RESULT_TTL_SECONDS"
+    )
+    queue_backend_priority: str = Field(
+        default="asyncio,redis,celery,pubsub", validation_alias="QUEUE_BACKEND_PRIORITY"
+    )
 
     # ── Health Check Config — env-driven ────────────────────────────────────
     # বাংলা মন্তব্য: health_monitor.py-এ hardcoded interval এখন config-driven।
-    health_check_interval_seconds: int = Field(default=60, validation_alias="HEALTH_CHECK_INTERVAL_SECONDS")
-    skill_timeout_seconds: int = Field(default=30, validation_alias="SKILL_TIMEOUT_SECONDS")
+    health_check_interval_seconds: int = Field(
+        default=60, validation_alias="HEALTH_CHECK_INTERVAL_SECONDS"
+    )
+    skill_timeout_seconds: int = Field(
+        default=30, validation_alias="SKILL_TIMEOUT_SECONDS"
+    )
 
     # ── Self-Healing Config — env-driven ────────────────────────────────────
     # বাংলা মন্তব্য: self_healer.py-এ human approval loop-এর জন্য config যোগ করা হলো।
-    self_heal_approval_webhook: str = Field(default="", validation_alias="SELF_HEAL_APPROVAL_WEBHOOK")
-    self_heal_approval_timeout_hours: int = Field(default=24, validation_alias="SELF_HEAL_APPROVAL_TIMEOUT_HOURS")
-    auto_remediation_dry_run: bool = Field(default=True, validation_alias="AUTO_REMEDIATION_DRY_RUN")
+    self_heal_approval_webhook: str = Field(
+        default="", validation_alias="SELF_HEAL_APPROVAL_WEBHOOK"
+    )
+    self_heal_approval_timeout_hours: int = Field(
+        default=24, validation_alias="SELF_HEAL_APPROVAL_TIMEOUT_HOURS"
+    )
+    auto_remediation_dry_run: bool = Field(
+        default=True, validation_alias="AUTO_REMEDIATION_DRY_RUN"
+    )
 
     _cached_secrets: dict[str, str] = PrivateAttr(default_factory=dict)
 
@@ -414,14 +473,21 @@ class Settings(BaseSettings):
     def validate_debug_mode(cls, v: Any, info: ValidationInfo) -> bool:
         env = info.data.get("env", "local")
         if env in {"production", "staging"}:
-            if str(v).lower() == "true" and (os.getenv("debug", "").lower() == "true" or os.getenv("DEBUG", "").lower() == "true"):
-                raise ValueError("Explicitly setting debug=True is PROHIBITED in production/staging.")
+            if str(v).lower() == "true" and (
+                os.getenv("debug", "").lower() == "true"
+                or os.getenv("DEBUG", "").lower() == "true"
+            ):
+                raise ValueError(
+                    "Explicitly setting debug=True is PROHIBITED in production/staging."
+                )
             return False
         return bool(v)
 
     @field_validator("docs_password", mode="before")
     @classmethod
-    def validate_docs_password(cls, v: str | SecretStr | None, info: ValidationInfo) -> str | SecretStr:
+    def validate_docs_password(
+        cls, v: str | SecretStr | None, info: ValidationInfo
+    ) -> str | SecretStr:
         if "pytest" in sys.modules:
             return v or ""
         return v or ""
@@ -432,7 +498,9 @@ class Settings(BaseSettings):
         if self.env in {"production", "staging"} and self.docs_auth_enabled:
             pwd = self.docs_password.get_secret_value() if self.docs_password else ""
             if not pwd:
-                raise ValueError(f"{self.env.capitalize()} requires SUPREMEAI_DOCS_PASSWORD to be set if docs_auth_enabled=true.")
+                raise ValueError(
+                    f"{self.env.capitalize()} requires SUPREMEAI_DOCS_PASSWORD to be set if docs_auth_enabled=true."
+                )
         return self
 
     @field_validator(
@@ -466,7 +534,9 @@ class Settings(BaseSettings):
 
                 return _json.loads(v)
             except Exception as e:  # noqa: BLE001
-                logger.error(f"Failed to parse rbac_role_definitions JSON: {e}. Defaulting to empty dictionary.")
+                logger.error(
+                    f"Failed to parse rbac_role_definitions JSON: {e}. Defaulting to empty dictionary."
+                )
                 return {}
         return v or {}
 
@@ -475,7 +545,9 @@ class Settings(BaseSettings):
     def parse_admin_emails(cls, v) -> list[str]:
         if isinstance(v, str):
             v = v.strip()
-            return [email.strip() for email in v.split(",") if email.strip()] if v else []
+            return (
+                [email.strip() for email in v.split(",") if email.strip()] if v else []
+            )
         return v or []
 
     @field_validator("allowed_hosts", mode="before")
@@ -495,7 +567,9 @@ class Settings(BaseSettings):
         if env in {"production", "staging"}:
             v = [h for h in v if h.lower() not in forbidden]
             if not v:
-                raise ValueError(f"{env.capitalize()} requires explicit ALLOWED_HOSTS — localhost/testserver forbidden.")
+                raise ValueError(
+                    f"{env.capitalize()} requires explicit ALLOWED_HOSTS — localhost/testserver forbidden."
+                )
         return v
 
     @field_validator("jwt_secret", mode="before")
@@ -503,14 +577,18 @@ class Settings(BaseSettings):
     def set_jwt_secret(cls, v: str | None, info: ValidationInfo) -> str:
         env = info.data.get("env", "local")
         if not v and env == "production":
-            raise ValueError("🚨 CRITICAL: SUPREMEAI_JWT_SECRET must be explicitly set in all environments. No dummy fallback allowed.")
+            raise ValueError(
+                "🚨 CRITICAL: SUPREMEAI_JWT_SECRET must be explicitly set in all environments. No dummy fallback allowed."
+            )
         return v or secrets.token_hex(64)  # Pytest/non-production fallback
 
     @field_validator("jwt_secret", mode="after")
     @classmethod
     def validate_jwt_secret_strength(cls, v: str, info: ValidationInfo) -> str:
         if len(v) < 64 and "pytest" not in sys.modules:
-            raise ValueError("JWT secret must be >= 64 bytes entropy in all environments.")
+            raise ValueError(
+                "JWT secret must be >= 64 bytes entropy in all environments."
+            )
         weak_secrets = {
             "secret",
             "password",
@@ -531,7 +609,9 @@ class Settings(BaseSettings):
             raise ValueError("supremeai_admin_password_hash must be explicitly set.")
         return v
 
-    @field_validator("cors_origins", "user_cors_origins", "admin_cors_origins", mode="before")
+    @field_validator(
+        "cors_origins", "user_cors_origins", "admin_cors_origins", mode="before"
+    )
     @classmethod
     def parse_cors_origins(cls, v, info: ValidationInfo):
         # বাংলা: import json এখন ফাইলের শীর্ষে সরাসরি করা হয়েছে, প্রতিটি কলে re-import নেই
@@ -545,7 +625,9 @@ class Settings(BaseSettings):
                 return [o.strip() for o in v.split(",") if o.strip()]
         return v or []
 
-    @field_validator("cors_origins", "user_cors_origins", "admin_cors_origins", mode="after")
+    @field_validator(
+        "cors_origins", "user_cors_origins", "admin_cors_origins", mode="after"
+    )
     @classmethod
     def validate_cors_origins(cls, v: list[str], info: ValidationInfo) -> list[str]:
         # Test-isolation guard:
@@ -562,7 +644,9 @@ class Settings(BaseSettings):
                 return v
             v = [o for o in v if "localhost" not in o and "127.0.0.1" not in o]
             if not v:
-                raise ValueError(f"{env.capitalize()} requires at least one non-localhost CORS origin. Set CORS_ORIGINS env var.")
+                raise ValueError(
+                    f"{env.capitalize()} requires at least one non-localhost CORS origin. Set CORS_ORIGINS env var."
+                )
         return v
 
     @model_validator(mode="after")
@@ -570,12 +654,20 @@ class Settings(BaseSettings):
         # বাংলা মন্তব্য: Stripe ভ্যালিডেশন শুধুমাত্র production এবং staging-এ সীমাবদ্ধ রাখা হলো যাতে লোকাল ডেভেলপমেন্টে ডেভলপারদের স্ট্রাইপ কি ছাড়াই রান করতে কোনো সমস্যা না হয়।
         if self.env not in {"production", "staging"}:
             return self
-        stripe_key = self.stripe_api_key.get_secret_value() if self.stripe_api_key else ""
-        stripe_webhook = self.stripe_webhook_secret.get_secret_value() if self.stripe_webhook_secret else ""
+        stripe_key = (
+            self.stripe_api_key.get_secret_value() if self.stripe_api_key else ""
+        )
+        stripe_webhook = (
+            self.stripe_webhook_secret.get_secret_value()
+            if self.stripe_webhook_secret
+            else ""
+        )
         if not stripe_key and "pytest" not in sys.modules:
             raise ValueError("Stripe API key is mandatory in production/staging.")
         if not stripe_webhook and "pytest" not in sys.modules:
-            raise ValueError("Stripe webhook secret is mandatory in production/staging.")
+            raise ValueError(
+                "Stripe webhook secret is mandatory in production/staging."
+            )
         return self
 
     @model_validator(mode="after")
@@ -590,7 +682,9 @@ class Settings(BaseSettings):
         if not self.ci_webhook_secret:
             missing.append("CI_WEBHOOK_SECRET")
         if missing:
-            raise ValueError(f"Missing required production config vars: {', '.join(missing)}")
+            raise ValueError(
+                f"Missing required production config vars: {', '.join(missing)}"
+            )
         return self
 
     @model_validator(mode="after")
@@ -612,9 +706,13 @@ class Settings(BaseSettings):
 
         if missing:
             if os.getenv("CI") == "true":
-                logger.warning(f"CI environment detected. Bypassing fail-fast for missing config vars: {', '.join(missing)}")
+                logger.warning(
+                    f"CI environment detected. Bypassing fail-fast for missing config vars: {', '.join(missing)}"
+                )
                 return self
-            raise ValueError(f"🚨 FAIL-FAST: Missing required config vars: {', '.join(missing)}. Server startup aborted.")
+            raise ValueError(
+                f"🚨 FAIL-FAST: Missing required config vars: {', '.join(missing)}. Server startup aborted."
+            )
         return self
 
 
@@ -624,7 +722,9 @@ class Settings(BaseSettings):
 try:
     settings = Settings()
 except Exception as _boot_exc:  # noqa: BLE001
-    logger.critical(f"🔥 FATAL CONFIG ERROR: {_boot_exc}\nServer startup ABORTED (Fail-Fast applied). Fix the configuration.")
+    logger.critical(
+        f"🔥 FATAL CONFIG ERROR: {_boot_exc}\nServer startup ABORTED (Fail-Fast applied). Fix the configuration."
+    )
     sys.exit(1)
 
 
@@ -638,7 +738,9 @@ def get_production_env(var_name: str, default: str | None = None) -> str:
     if not value:
         if default is not None:
             return default
-        logger.critical(f"❌ CRITICAL CONFIG ERROR: Missing required environment variable '{var_name}'!")
+        logger.critical(
+            f"❌ CRITICAL CONFIG ERROR: Missing required environment variable '{var_name}'!"
+        )
         raise ValueError(f"Configuration Error: {var_name} must be explicitly defined.")
 
     return value

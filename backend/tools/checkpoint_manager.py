@@ -7,7 +7,6 @@ from typing import Any
 from core.persistence import pooled_pg
 from core.persistence.write_behind import WriteBehindBatcher
 from loguru import logger
-
 # শেয়ার্ড ইউটিলিটি — Firestore ও টেস্ট এনভায়রনমেন্ট চেক কেন্দ্রীভূত
 from utils.environment import is_test_environment
 from utils.firestore_helpers import firestore, get_firestore_db
@@ -63,11 +62,17 @@ class CheckpointManager:
             try:
                 pooled_pg.execute(_PG_SCHEMA)
                 if CheckpointManager._batcher is None:
-                    CheckpointManager._batcher = WriteBehindBatcher(name="task_checkpoints", flush_interval=1.0, max_batch=100)
+                    CheckpointManager._batcher = WriteBehindBatcher(
+                        name="task_checkpoints", flush_interval=1.0, max_batch=100
+                    )
                 self.mode = "pg"
-                logger.info("Initialized Postgres CheckpointManager (write-behind batched).")
+                logger.info(
+                    "Initialized Postgres CheckpointManager (write-behind batched)."
+                )
             except Exception as exc:  # noqa: BLE001
-                logger.error(f"Postgres CheckpointManager init failed, falling back: {exc}")
+                logger.error(
+                    f"Postgres CheckpointManager init failed, falling back: {exc}"
+                )
                 self._init_fallback()
         else:
             self._init_fallback()
@@ -82,13 +87,14 @@ class CheckpointManager:
             self.mode = "sqlite"
             self.db_path = "checkpoints.db"
             self._init_sqlite()
-            logger.warning(f"Initialized SQLite CheckpointManager at {self.db_path} — NOT durable across restarts.")
+            logger.warning(
+                f"Initialized SQLite CheckpointManager at {self.db_path} — NOT durable across restarts."
+            )
 
     def _init_sqlite(self):
         conn = sqlite3.connect(self.db_path)
         try:
-            conn.execute(
-                """
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS checkpoints (
                     task_id TEXT PRIMARY KEY,
                     step_index INTEGER,
@@ -96,8 +102,7 @@ class CheckpointManager:
                     created_at TEXT,
                     resumed INTEGER DEFAULT 0
                 )
-            """
-            )
+            """)
             conn.commit()
         finally:
             conn.close()
@@ -108,7 +113,9 @@ class CheckpointManager:
                 # `resumed` intentionally not reset here — ON CONFLICT preserves
                 # whatever value is already in the row, matching prior SQLite semantics
                 # where an existing row's `resumed` flag was read-then-reused.
-                CheckpointManager._batcher.submit(_UPSERT_SQL, (task_id, step_index, json.dumps(state), False))
+                CheckpointManager._batcher.submit(
+                    _UPSERT_SQL, (task_id, step_index, json.dumps(state), False)
+                )
                 return True
             except Exception as exc:  # noqa: BLE001
                 logger.error(f"Failed to save Postgres checkpoint: {exc}")
@@ -118,7 +125,9 @@ class CheckpointManager:
             try:
                 conn = sqlite3.connect(self.db_path)
                 cursor = conn.cursor()
-                cursor.execute("SELECT resumed FROM checkpoints WHERE task_id = ?", (task_id,))
+                cursor.execute(
+                    "SELECT resumed FROM checkpoints WHERE task_id = ?", (task_id,)
+                )
                 row = cursor.fetchone()
                 resumed = row[0] if row else 0
 
@@ -158,7 +167,9 @@ class CheckpointManager:
                     "resumed": resumed,
                 }
             )
-            logger.info(f"Firestore checkpoint saved for task_id={task_id} step={step_index}")
+            logger.info(
+                f"Firestore checkpoint saved for task_id={task_id} step={step_index}"
+            )
             return True
         except Exception as exc:  # noqa: BLE001
             logger.error(f"Failed to save Firestore checkpoint: {exc}")
@@ -213,7 +224,9 @@ class CheckpointManager:
                     created_at=row[3],
                     resumed=bool(row[4]),
                 )
-                cursor.execute("UPDATE checkpoints SET resumed = 1 WHERE task_id = ?", (task_id,))
+                cursor.execute(
+                    "UPDATE checkpoints SET resumed = 1 WHERE task_id = ?", (task_id,)
+                )
                 conn.commit()
                 conn.close()
                 return cp
@@ -248,7 +261,9 @@ class CheckpointManager:
         if self.mode == "pg":
             try:
                 CheckpointManager._batcher.flush()
-                rows = pooled_pg.query("SELECT task_id, step_index, created_at, resumed FROM task_checkpoints ORDER BY created_at DESC")
+                rows = pooled_pg.query(
+                    "SELECT task_id, step_index, created_at, resumed FROM task_checkpoints ORDER BY created_at DESC"
+                )
                 return [
                     {
                         "task_id": r[0],
@@ -266,7 +281,9 @@ class CheckpointManager:
             try:
                 conn = sqlite3.connect(self.db_path)
                 cursor = conn.cursor()
-                cursor.execute("SELECT task_id, step_index, created_at, resumed FROM checkpoints ORDER BY created_at DESC")
+                cursor.execute(
+                    "SELECT task_id, step_index, created_at, resumed FROM checkpoints ORDER BY created_at DESC"
+                )
                 rows = cursor.fetchall()
                 conn.close()
                 return [
@@ -285,7 +302,11 @@ class CheckpointManager:
         if not self._db:
             return []
         try:
-            docs = self._db.collection(self.collection_name).order_by("created_at", direction=firestore.Query.DESCENDING).stream()
+            docs = (
+                self._db.collection(self.collection_name)
+                .order_by("created_at", direction=firestore.Query.DESCENDING)
+                .stream()
+            )
             return [
                 {
                     "task_id": d.id,
@@ -303,7 +324,9 @@ class CheckpointManager:
         if self.mode == "pg":
             try:
                 CheckpointManager._batcher.flush()
-                pooled_pg.execute("DELETE FROM task_checkpoints WHERE task_id = %s", (task_id,))
+                pooled_pg.execute(
+                    "DELETE FROM task_checkpoints WHERE task_id = %s", (task_id,)
+                )
                 return True
             except Exception as exc:  # noqa: BLE001
                 logger.error(f"Failed to clear Postgres checkpoint: {exc}")

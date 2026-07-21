@@ -7,5 +7,6 @@
 # মডিউল >> scripts
 # ============================================================================
 import sys
-sys.stdout.reconfigure(encoding='utf-8')
-print('বাংলা টেস্ট')
+
+sys.stdout.reconfigure(encoding="utf-8")
+print("বাংলা টেস্ট")

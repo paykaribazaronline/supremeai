@@ -24,7 +24,9 @@ async def stream_session(
             # Send initial state or connection confirmed
             yield {
                 "event": "connected",
-                "data": json.dumps({"channel": "system", "data": "connected to stream"}),
+                "data": json.dumps(
+                    {"channel": "system", "data": "connected to stream"}
+                ),
             }
 
             while True:

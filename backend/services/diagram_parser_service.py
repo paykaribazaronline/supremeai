@@ -140,7 +140,9 @@ class PlantUMLParser:
 
     COMPONENT_PATTERN = re.compile(r"\[(.*?)\]\s*(.*)")
     RELATIONSHIP_PATTERN = re.compile(r"(.*)\s*[-.~]+(o*|>)?\s*(.*)")
-    NOTE_PATTERN = re.compile(r"note\s+(right|left|top|bottom)\s+of\s+(\w+)", re.IGNORECASE)
+    NOTE_PATTERN = re.compile(
+        r"note\s+(right|left|top|bottom)\s+of\s+(\w+)", re.IGNORECASE
+    )
 
     @classmethod
     def parse(cls, content: str) -> tuple[list[ComponentNode], list[ComponentEdge]]:
@@ -277,7 +279,9 @@ class VisionAnalyzer:
         stat_str = f"{stat.st_mtime}" if stat else ""
         return f"diagram_vision:{hashlib.sha256((image_path + stat_str).encode()).hexdigest()[:16]}"
 
-    async def analyze(self, image_path: str, diagram_type: DiagramType = DiagramType.IMAGE) -> tuple[list[ComponentNode], list[ComponentEdge]]:
+    async def analyze(
+        self, image_path: str, diagram_type: DiagramType = DiagramType.IMAGE
+    ) -> tuple[list[ComponentNode], list[ComponentEdge]]:
         """
         Analyze an image diagram using vision model.
 
@@ -291,7 +295,9 @@ class VisionAnalyzer:
         cache_key = self._cache_key(image_path)
         cached = await self.cache.get(cache_key)
         if cached:
-            return tuple(ComponentNode(**n) if isinstance(n, dict) else n for n in cached[0]), tuple(
+            return tuple(
+                ComponentNode(**n) if isinstance(n, dict) else n for n in cached[0]
+            ), tuple(
                 ComponentEdge(**e) if isinstance(e, dict) else e for e in cached[1]
             )
 
@@ -345,7 +351,9 @@ class VisionAnalyzer:
                     label=n.get("label", ""),
                     component_type=n.get("type", "component"),
                     properties={},
-                    position=(tuple(n.get("position", (0, 0))) if n.get("position") else None),
+                    position=(
+                        tuple(n.get("position", (0, 0))) if n.get("position") else None
+                    ),
                 )
                 for i, n in enumerate(data.get("nodes", []))
             ]
@@ -385,7 +393,9 @@ class DiagramParserService:
         self.vision = VisionAnalyzer()
         self.cache = get_cache()
 
-    def detect_format(self, content: str | None, filename: str | None = None) -> DiagramType:
+    def detect_format(
+        self, content: str | None, filename: str | None = None
+    ) -> DiagramType:
         """Detect diagram format from content or filename."""
         if content:
             if "graph TD" in content or "graph LR" in content:
@@ -474,7 +484,9 @@ class DiagramParserService:
         except Exception as e:
             return {"status": "error", "error": str(e)}
 
-    def _build_description(self, nodes: list[ComponentNode], edges: list[ComponentEdge]) -> str:
+    def _build_description(
+        self, nodes: list[ComponentNode], edges: list[ComponentEdge]
+    ) -> str:
         """Build human-readable description of diagram."""
         desc = f"Components: {', '.join(n.label for n in nodes)}"
         if edges:

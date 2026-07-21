@@ -28,9 +28,13 @@ app.add_middleware(
 
 if settings.env == "production":
     if not settings.user_cors_origins:
-        raise RuntimeError("🔥 CRITICAL: Production User CORS drift detected. user_cors_origins cannot be empty in production.")
+        raise RuntimeError(
+            "🔥 CRITICAL: Production User CORS drift detected. user_cors_origins cannot be empty in production."
+        )
     if "*" in settings.user_cors_origins:
-        raise RuntimeError("🚨 SECURITY: Wildcard '*' is strictly prohibited in production User CORS. Set USER_CORS_ORIGINS.")
+        raise RuntimeError(
+            "🚨 SECURITY: Wildcard '*' is strictly prohibited in production User CORS. Set USER_CORS_ORIGINS."
+        )
 
 include_user_routers(app)
 router_health_check(app)

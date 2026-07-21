@@ -7,7 +7,8 @@ Key Components:
 - `discover_tools()`: Asynchronously retrieves a list of tool names relevant to a given domain, currently utilizing placeholder logic for demonstration and future expansion.
 
 Dependencies:
-- `loguru`: Used for robust and structured logging of client operations and discovery processes."""
+- `loguru`: Used for robust and structured logging of client operations and discovery processes.
+"""
 
 import httpx
 from core.config import settings
@@ -44,7 +45,11 @@ class MCPRegistryClient:
                         tools = response.json().get("tools", [])
                         # Filter by domain tags if present, otherwise collect all
                         for t in tools:
-                            if not domain or domain in t.get("tags", []) or domain in t.get("name", ""):
+                            if (
+                                not domain
+                                or domain in t.get("tags", [])
+                                or domain in t.get("name", "")
+                            ):
                                 all_tools.append(t["name"])
                 except Exception as exc:  # noqa: BLE001
                     logger.warning(f"MCP server {server_url} request failed: {exc}")

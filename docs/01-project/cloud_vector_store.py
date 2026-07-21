@@ -4,7 +4,8 @@ Replaces local ChromaDB for production.
 """
 
 import os
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
 from loguru import logger
 
 

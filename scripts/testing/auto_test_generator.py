@@ -84,6 +84,7 @@ Generate ONLY the test file content. Start with imports and end with the last te
 @dataclass
 class FunctionInfo:
     """বাংলা মন্তব্য: মডিউল থেকে এক্সট্রাক্ট করা ফাংশন/ক্লাসের তথ্য"""
+
     name: str
     type: str  # function | class | method
     line_start: int
@@ -98,6 +99,7 @@ class FunctionInfo:
 @dataclass
 class TestGenerationResult:
     """বাংলা মন্তব্য: টেস্ট জেনারেশনের ফলাফল"""
+
     target_file: str
     test_file: str
     functions_found: int
@@ -133,8 +135,13 @@ class ASTExtractor:
                 self._process_class(node)
         return self.functions
 
-    def _process_function(self, node: ast.FunctionDef | ast.AsyncFunctionDef,
-                          type_: str, is_async: bool = False, parent: str = "") -> None:
+    def _process_function(
+        self,
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
+        type_: str,
+        is_async: bool = False,
+        parent: str = "",
+    ) -> None:
         """বাংলা মন্তব্য: একক ফাংশন প্রসেস করে"""
         args = [arg.arg for arg in node.args.args if arg.arg not in ("self", "cls")]
         returns = ast.unparse(node.returns) if node.returns else None
@@ -142,8 +149,18 @@ class ASTExtractor:
         # Cyclomatic complexity calculation
         complexity = 1
         for child in ast.walk(node):
-            if isinstance(child, (ast.If, ast.While, ast.For, ast.With,
-                           ast.Assert, ast.ExceptHandler, ast.comprehension)):
+            if isinstance(
+                child,
+                (
+                    ast.If,
+                    ast.While,
+                    ast.For,
+                    ast.With,
+                    ast.Assert,
+                    ast.ExceptHandler,
+                    ast.comprehension,
+                ),
+            ):
                 complexity += 1
 
         name = f"{parent}.{node.name}" if parent else node.name
@@ -252,13 +269,15 @@ class TestGenerator:
             if func.is_private:
                 continue
             test_name = f"test_{func.name.replace('.', '_')}"
-            lines.extend([
-                f"def {test_name}():",
-                f'    """Test {func.name} — auto-generated fallback."""',
-                "    # TODO: Implement actual test logic",
-                "    assert True  # Placeholder",
-                "",
-            ])
+            lines.extend(
+                [
+                    f"def {test_name}():",
+                    f'    """Test {func.name} — auto-generated fallback."""',
+                    "    # TODO: Implement actual test logic",
+                    "    assert True  # Placeholder",
+                    "",
+                ]
+            )
 
         return "\n".join(lines)
 
@@ -279,14 +298,18 @@ class TestRunner:
         test_filename = f"test_{original_path.stem}.py"
 
         # Preserve directory structure
-        relative_dir = original_path.parent.relative_to(Path.cwd()) if original_path.is_absolute() else original_path.parent
+        relative_dir = (
+            original_path.parent.relative_to(Path.cwd())
+            if original_path.is_absolute()
+            else original_path.parent
+        )
         test_dir = self.output_dir / relative_dir
         test_dir.mkdir(parents=True, exist_ok=True)
 
         test_file = test_dir / test_filename
 
         # Add header
-        header = f"\"\"\"\nAuto-generated tests for {original_file}\nGenerated: {datetime.now(UTC).isoformat()}\n\"\"\"\n\n"
+        header = f'"""\nAuto-generated tests for {original_file}\nGenerated: {datetime.now(UTC).isoformat()}\n"""\n\n'
         full_code = header + test_code
 
         test_file.write_text(full_code, encoding="utf-8")
@@ -299,7 +322,9 @@ class TestRunner:
         import subprocess
 
         cmd = [
-            sys.executable, "-m", "pytest",
+            sys.executable,
+            "-m",
+            "pytest",
             test_file,
             "-v",
             "--tb=short",
@@ -435,7 +460,9 @@ class AutoTestGenerator:
         public_functions = [f for f in functions if not f.is_private]
 
         # Generate tests
-        logger.info(f"Generating tests for {file_path} ({len(public_functions)} public functions)")
+        logger.info(
+            f"Generating tests for {file_path} ({len(public_functions)} public functions)"
+        )
         test_code = await self.generator.generate_tests(source_code, file_path)
 
         # Save tests
@@ -464,7 +491,9 @@ class AutoTestGenerator:
 
         return result
 
-    async def process_directory(self, dir_path: str, recursive: bool = True) -> list[TestGenerationResult]:
+    async def process_directory(
+        self, dir_path: str, recursive: bool = True
+    ) -> list[TestGenerationResult]:
         """
         বাংলা মন্তব্য: একটি ডিরেক্টরির সব Python ফাইলের জন্য টেস্ট জেনারেট করে।
         """
@@ -474,13 +503,17 @@ class AutoTestGenerator:
 
         # Exclude test files and common non-source files
         exclude_patterns = [
-            "test_", "__pycache__", ".venv", "node_modules",
-            "conftest.py", "setup.py", "__init__.py",
+            "test_",
+            "__pycache__",
+            ".venv",
+            "node_modules",
+            "conftest.py",
+            "setup.py",
+            "__init__.py",
         ]
 
         source_files = [
-            f for f in py_files
-            if not any(pat in str(f) for pat in exclude_patterns)
+            f for f in py_files if not any(pat in str(f) for pat in exclude_patterns)
         ]
 
         logger.info(f"Found {len(source_files)} source files in {dir_path}")
@@ -488,7 +521,9 @@ class AutoTestGenerator:
         for file in source_files:
             result = await self.process_file(str(file))
             status = "✅" if result.success else "❌"
-            logger.info(f"{status} {file.name} — Coverage: {result.coverage_estimate:.1f}%")
+            logger.info(
+                f"{status} {file.name} — Coverage: {result.coverage_estimate:.1f}%"
+            )
 
         return self.results
 
@@ -498,7 +533,9 @@ class AutoTestGenerator:
         """
         total = len(self.results)
         successful = sum(1 for r in self.results if r.success)
-        avg_coverage = sum(r.coverage_estimate for r in self.results) / total if total else 0
+        avg_coverage = (
+            sum(r.coverage_estimate for r in self.results) / total if total else 0
+        )
         avg_time = sum(r.generation_time for r in self.results) / total if total else 0
 
         lines = [
@@ -534,28 +571,53 @@ class AutoTestGenerator:
 
 # ── CLI ──────────────────────────────────────────────────────────────────────
 
+
 def main() -> None:
     """বাংলা মন্তব্য: CLI entry point — argparse দিয়ে আর্গুমেন্ট পার্স করে"""
     parser = argparse.ArgumentParser(
         description="SupremeAI 2.0 — Auto Test Generator\nAI দিয়ে স্বয়ংক্রিয় টেস্ট জেনারেশন",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--target", "-t", required=True, help="Target Python file or directory")
-    parser.add_argument("--recursive", "-r", action="store_true", help="Process directory recursively")
-    parser.add_argument("--provider", "-p", default=DEFAULT_PROVIDER,
-                        choices=["gemini", "deepseek", "groq", "openai", "anthropic"],
-                        help="LLM provider for test generation")
-    parser.add_argument("--coverage-threshold", "-c", type=float, default=COVERAGE_THRESHOLD,
-                        help="Minimum coverage threshold (%)")
-    parser.add_argument("--output-dir", "-o", type=Path, default=OUTPUT_DIR,
-                        help="Output directory for generated tests")
-    parser.add_argument("--dry-run", action="store_true", help="Generate but don't save tests")
+    parser.add_argument(
+        "--target", "-t", required=True, help="Target Python file or directory"
+    )
+    parser.add_argument(
+        "--recursive", "-r", action="store_true", help="Process directory recursively"
+    )
+    parser.add_argument(
+        "--provider",
+        "-p",
+        default=DEFAULT_PROVIDER,
+        choices=["gemini", "deepseek", "groq", "openai", "anthropic"],
+        help="LLM provider for test generation",
+    )
+    parser.add_argument(
+        "--coverage-threshold",
+        "-c",
+        type=float,
+        default=COVERAGE_THRESHOLD,
+        help="Minimum coverage threshold (%)",
+    )
+    parser.add_argument(
+        "--output-dir",
+        "-o",
+        type=Path,
+        default=OUTPUT_DIR,
+        help="Output directory for generated tests",
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Generate but don't save tests"
+    )
 
     args = parser.parse_args()
 
     # Configure logging
     logger.remove()
-    logger.add(sys.stderr, level="INFO", format="<green>{time:HH:mm:ss}</green> | <level>{level}</level> | {message}")
+    logger.add(
+        sys.stderr,
+        level="INFO",
+        format="<green>{time:HH:mm:ss}</green> | <level>{level}</level> | {message}",
+    )
 
     async def run():
         generator = AutoTestGenerator(provider=args.provider)
@@ -576,7 +638,9 @@ def main() -> None:
                 print(f"Error: {result.error}")
 
         elif target_path.is_dir():
-            results = await generator.process_directory(str(target_path), recursive=args.recursive)
+            results = await generator.process_directory(
+                str(target_path), recursive=args.recursive
+            )
             report = generator.generate_summary_report()
             print(f"\n{'='*60}")
             print(report)

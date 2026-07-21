@@ -1,9 +1,10 @@
 # tests/test_core_immune_system.py
 """Tests for the ImmuneSystem security scanner."""
 
-import pytest
 import ast
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 
 class TestImmuneSystemScanner:
@@ -109,7 +110,7 @@ class TestASTSecurityScanner:
         from backend.core.immune_system import ASTSecurityScanner
 
         scanner = ASTSecurityScanner()
-        assert hasattr(scanner, 'banned_imports')
+        assert hasattr(scanner, "banned_imports")
         assert "os" in scanner.banned_imports
         assert "subprocess" in scanner.banned_imports
 
@@ -118,7 +119,7 @@ class TestASTSecurityScanner:
         from backend.core.immune_system import ASTSecurityScanner
 
         scanner = ASTSecurityScanner()
-        assert hasattr(scanner, 'banned_functions')
+        assert hasattr(scanner, "banned_functions")
         assert "eval" in scanner.banned_functions
         assert "exec" in scanner.banned_functions
 
@@ -127,7 +128,7 @@ class TestASTSecurityScanner:
         from backend.core.immune_system import ASTSecurityScanner
 
         scanner = ASTSecurityScanner()
-        assert hasattr(scanner, 'banned_attributes')
+        assert hasattr(scanner, "banned_attributes")
         assert "__class__" in scanner.banned_attributes
         assert "__builtins__" in scanner.banned_attributes
 

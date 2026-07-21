@@ -20,19 +20,21 @@ Environment Variables:
 """
 
 import os
-import sys
-import string
 import secrets
+import string
+import sys
 from typing import Optional
 
 # Add the backend directory to the path
-backend_dir = os.path.join(os.path.dirname(__file__), '../../backend')
+backend_dir = os.path.join(os.path.dirname(__file__), "../../backend")
 sys.path.insert(0, backend_dir)
+
 
 def generate_secure_token(length: int = 32) -> str:
     """Generate a cryptographically secure random token."""
-    alphabet = string.ascii_letters + string.digits + '!@#$%^&*()_+-=[]{}|;:,.<>?'
-    return ''.join(secrets.choice(alphabet) for _ in range(length))
+    alphabet = string.ascii_letters + string.digits + "!@#$%^&*()_+-=[]{}|;:,.<>?"
+    return "".join(secrets.choice(alphabet) for _ in range(length))
+
 
 def rotate_secret(secret_id: str, project_id: str, value: Optional[str] = None) -> bool:
     """
@@ -63,13 +65,13 @@ def rotate_secret(secret_id: str, project_id: str, value: Optional[str] = None) 
             # Create the secret if it doesn't exist
             secret = {
                 "replication": {"automatic": {}},
-                "labels": {"environment": "production"}
+                "labels": {"environment": "production"},
             }
             client.create_secret(
                 request={
                     "parent": f"projects/{project_id}",
                     "secret_id": secret_id,
-                    "secret": secret
+                    "secret": secret,
                 }
             )
             print(f"✅ Created secret {secret_id}")
@@ -83,13 +85,12 @@ def rotate_secret(secret_id: str, project_id: str, value: Optional[str] = None) 
 
         # Add a new version of the secret
         response = client.add_secret_version(
-            request={
-                "parent": parent,
-                "payload": {"data": value.encode("UTF-8")}
-            }
+            request={"parent": parent, "payload": {"data": value.encode("UTF-8")}}
         )
 
-        print(f"✅ Successfully rotated secret {secret_id} (version: {response.name.split('/')[-1]})")
+        print(
+            f"✅ Successfully rotated secret {secret_id} (version: {response.name.split('/')[-1]})"
+        )
 
         # Optional: Destroy old versions (keep only the last N versions)
         # For simplicity, we'll keep all versions, but in production you might want to limit
@@ -110,6 +111,7 @@ def rotate_secret(secret_id: str, project_id: str, value: Optional[str] = None) 
     except Exception as e:
         print(f"❌ Failed to rotate secret {secret_id}: {e}")
         return False
+
 
 def main() -> None:
     """Main function to rotate secrets based on environment variables."""
@@ -134,7 +136,9 @@ def main() -> None:
     # We'll skip this for simplicity and rotate every time the script runs
     # In a production cron job, you might want to check the last rotation time
 
-    print(f"🔐 Starting secret rotation for {len(secret_ids)} secret(s) in project {project_id}")
+    print(
+        f"🔐 Starting secret rotation for {len(secret_ids)} secret(s) in project {project_id}"
+    )
     print(f"📋 Secrets to rotate: {', '.join(secret_ids)}")
 
     success_count = 0
@@ -146,12 +150,15 @@ def main() -> None:
         if rotate_secret(secret_id, project_id, value):
             success_count += 1
 
-    print(f"\n📊 Rotation complete: {success_count}/{len(secret_ids)} secrets rotated successfully")
+    print(
+        f"\n📊 Rotation complete: {success_count}/{len(secret_ids)} secrets rotated successfully"
+    )
 
     if success_count < len(secret_ids):
         sys.exit(1)
     else:
         print("🎉 All secrets rotated successfully!")
+
 
 if __name__ == "__main__":
     main()

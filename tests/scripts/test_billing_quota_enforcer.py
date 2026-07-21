@@ -10,9 +10,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "scripts" / "billing"))
+sys.path.insert(
+    0, str(Path(__file__).resolve().parent.parent.parent / "scripts" / "billing")
+)
 
-from quota_enforcer import QuotaEnforcer, QuotaStatus, EnforcementReport  # noqa: E402
+from quota_enforcer import (EnforcementReport, QuotaEnforcer,  # noqa: E402
+                            QuotaStatus)
 
 
 @pytest.fixture
@@ -150,7 +153,9 @@ class TestQuotaEnforcerTenantListing:
 
     @pytest.mark.asyncio
     async def test_get_all_tenant_ids_firestore_error(self, mock_firestore):
-        mock_firestore.collection.return_value.stream.side_effect = Exception("firestore error")
+        mock_firestore.collection.return_value.stream.side_effect = Exception(
+            "firestore error"
+        )
         enforcer = QuotaEnforcer()
         enforcer.firestore_client = mock_firestore
         tenant_ids = await enforcer.get_all_tenant_ids()
@@ -167,6 +172,7 @@ class TestQuotaEnforcerWallet:
     @pytest.mark.asyncio
     async def test_get_wallet_found(self, mock_db_session):
         from models.wallet import UserWallet
+
         wallet = UserWallet(
             user_id="t1",
             balance_usd=Decimal("50.0"),
@@ -204,6 +210,7 @@ class TestQuotaEnforcerUsage:
     @pytest.mark.asyncio
     async def test_get_current_usage_with_data(self, mock_db_session):
         from models.wallet import TransactionLedgerEntry
+
         entry = TransactionLedgerEntry(
             transaction_id="tx1",
             user_id="t1",
@@ -266,8 +273,11 @@ class TestQuotaEnforcerEnforcement:
         assert status is None
 
     @pytest.mark.asyncio
-    async def test_check_tenant_quota_within_quota(self, mock_db_session, pricing_tiers_path):
+    async def test_check_tenant_quota_within_quota(
+        self, mock_db_session, pricing_tiers_path
+    ):
         from models.wallet import UserWallet
+
         wallet = UserWallet(
             user_id="t1",
             balance_usd=Decimal("50.0"),
@@ -282,16 +292,20 @@ class TestQuotaEnforcerEnforcement:
         mock_firestore = MagicMock()
         mock_doc = MagicMock()
         mock_doc.exists = False
-        mock_firestore.collection.return_value.document.return_value.collection.return_value.document.return_value.get.return_value = mock_doc
+        mock_firestore.collection.return_value.document.return_value.collection.return_value.document.return_value.get.return_value = (
+            mock_doc
+        )
         enforcer.firestore_client = mock_firestore
         status = await enforcer.check_tenant_quota("t1")
         assert status is not None
         assert status.status == "ok"
 
     @pytest.mark.asyncio
-    async def test_check_tenant_quota_over_quota(self, mock_db_session, pricing_tiers_path):
-        from models.wallet import UserWallet
-        from models.wallet import TransactionLedgerEntry
+    async def test_check_tenant_quota_over_quota(
+        self, mock_db_session, pricing_tiers_path
+    ):
+        from models.wallet import TransactionLedgerEntry, UserWallet
+
         wallet = UserWallet(
             user_id="t1",
             balance_usd=Decimal("150.0"),
@@ -316,7 +330,9 @@ class TestQuotaEnforcerEnforcement:
         mock_firestore = MagicMock()
         mock_doc = MagicMock()
         mock_doc.exists = False
-        mock_firestore.collection.return_value.document.return_value.collection.return_value.document.return_value.get.return_value = mock_doc
+        mock_firestore.collection.return_value.document.return_value.collection.return_value.document.return_value.get.return_value = (
+            mock_doc
+        )
         enforcer.firestore_client = mock_firestore
         status = await enforcer.check_tenant_quota("t1")
         assert status is not None
@@ -325,6 +341,7 @@ class TestQuotaEnforcerEnforcement:
     @pytest.mark.asyncio
     async def test_enforce_all_dry_run(self, mock_db_session, pricing_tiers_path):
         from models.wallet import UserWallet
+
         wallet = UserWallet(
             user_id="t1",
             balance_usd=Decimal("50.0"),
@@ -345,7 +362,9 @@ class TestQuotaEnforcerEnforcement:
             yield mock_doc
 
         mock_firestore.collection.return_value.stream.return_value = _stream()
-        mock_firestore.collection.return_value.document.return_value.collection.return_value.document.return_value.get.return_value = mock_doc
+        mock_firestore.collection.return_value.document.return_value.collection.return_value.document.return_value.get.return_value = (
+            mock_doc
+        )
         enforcer.firestore_client = mock_firestore
         report = await enforcer.enforce_all(notify=False, dry_run=True)
         assert report.scanned_count == 1
@@ -370,7 +389,9 @@ class TestQuotaEnforcerFirestore:
 
     @pytest.mark.asyncio
     async def test_suspend_tenant_error(self, mock_firestore):
-        mock_firestore.collection.return_value.document.return_value.update.side_effect = Exception("firestore error")
+        mock_firestore.collection.return_value.document.return_value.update.side_effect = Exception(
+            "firestore error"
+        )
         enforcer = QuotaEnforcer()
         enforcer.firestore_client = mock_firestore
         result = await enforcer.suspend_tenant("t1")

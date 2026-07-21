@@ -25,7 +25,9 @@ router = APIRouter(
     tags=["Core Admin"],
     dependencies=[Depends(get_current_admin)],
 )
-_db_path = str(Path(__file__).resolve().parent.parent.parent / "data" / "admin_rules.db")
+_db_path = str(
+    Path(__file__).resolve().parent.parent.parent / "data" / "admin_rules.db"
+)
 god_layer = AdminGodLayer(db_path=_db_path)
 
 
@@ -42,11 +44,15 @@ class RuleUpdate(BaseModel):
 
 
 @router.post("/rules")
-async def update_constitutional_rule(payload: RuleUpdate, admin_user: dict = Depends(get_current_admin)):
+async def update_constitutional_rule(
+    payload: RuleUpdate, admin_user: dict = Depends(get_current_admin)
+):
     """Update God.py constitutional rules directly from the Command Center UI"""
     try:
         god_layer.set_rule(payload.key, payload.value)
-        logger.critical(f"🔒 Constitutional rule '{payload.key}' changed to '{payload.value}' by {admin_user.get('sub')}")
+        logger.critical(
+            f"🔒 Constitutional rule '{payload.key}' changed to '{payload.value}' by {admin_user.get('sub')}"
+        )
         return {
             "status": "success",
             "message": f"Rule {payload.key} updated to {payload.value}",
@@ -56,11 +62,15 @@ async def update_constitutional_rule(payload: RuleUpdate, admin_user: dict = Dep
 
 
 @router.post("/actions/{action_type}")
-async def trigger_quick_action(action_type: str, admin_user: dict = Depends(get_current_admin)):
+async def trigger_quick_action(
+    action_type: str, admin_user: dict = Depends(get_current_admin)
+):
     """Trigger 1-click Quick Actions from Dashboard"""
     # Verify if admin actions are currently allowed by god.py
     god_layer.enforce("admin_action")
-    logger.critical(f"🔒 Admin quick-action '{action_type}' requested by {admin_user.get('sub')}")
+    logger.critical(
+        f"🔒 Admin quick-action '{action_type}' requested by {admin_user.get('sub')}"
+    )
 
     # বাংলা মন্তব্য: প্রতিটি কুইক অ্যাকশনের জন্য রিয়েল ইমপ্লিমেন্টেশন করা হয়েছে
     if action_type == "cache":
@@ -93,6 +103,7 @@ async def trigger_quick_action(action_type: str, admin_user: dict = Depends(get_
         # বাংলা মন্তব্য: ডাটাবেস টেবিল স্ক্যান করে JSON ব্যাকআপ ফাইল তৈরি করার ব্যাকগ্রাউন্ড টাস্ক
         try:
             import re
+
             from database.session import get_db_session
             from sqlalchemy import text
 
@@ -101,11 +112,17 @@ async def trigger_quick_action(action_type: str, admin_user: dict = Depends(get_
 
             backup_data = {}
             async for session in get_db_session():
-                result = await session.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema='public'"))
+                result = await session.execute(
+                    text(
+                        "SELECT table_name FROM information_schema.tables WHERE table_schema='public'"
+                    )
+                )
                 tables = [row[0] for row in result.fetchall()]
                 for table in tables:
                     if not _VALID_TABLE_PATTERN.match(table):
-                        logger.warning(f"Skipping table '{table}' due to invalid naming pattern.")
+                        logger.warning(
+                            f"Skipping table '{table}' due to invalid naming pattern."
+                        )
                         continue
                     rows_res = await session.execute(text(f"SELECT * FROM {table}"))
                     columns = rows_res.keys()
@@ -119,7 +136,9 @@ async def trigger_quick_action(action_type: str, admin_user: dict = Depends(get_
             backend_dir = Path(__file__).resolve().parent.parent.parent
             backup_dir = backend_dir / "backup"
             backup_dir.mkdir(parents=True, exist_ok=True)
-            backup_path = backup_dir / f"db_backup_{int(datetime.now(UTC).timestamp())}.json"
+            backup_path = (
+                backup_dir / f"db_backup_{int(datetime.now(UTC).timestamp())}.json"
+            )
 
             with open(backup_path, "w", encoding="utf-8") as f:
                 json.dump(backup_data, f, indent=2)
@@ -150,7 +169,9 @@ async def trigger_quick_action(action_type: str, admin_user: dict = Depends(get_
             }
         except Exception as e:
             logger.error(f"Rollback failed: {e}")
-            raise HTTPException(status_code=500, detail=f"Rollback operation failed: {e}")
+            raise HTTPException(
+                status_code=500, detail=f"Rollback operation failed: {e}"
+            )
 
     else:
         raise HTTPException(status_code=404, detail="Action not found")
@@ -215,7 +236,12 @@ async def reject_fix(
     logger.info(f"Admin {admin_id} rejecting fix {fix_id} for tenant {tenant_id}")
 
     db = get_firestore_db()
-    doc_ref = db.collection("tenants").document(tenant_id).collection("fixes").document(fix_id)
+    doc_ref = (
+        db.collection("tenants")
+        .document(tenant_id)
+        .collection("fixes")
+        .document(fix_id)
+    )
 
     update_data = {
         "status": "rejected",
@@ -236,7 +262,9 @@ class VerifyOtpRequest(BaseModel):
 
 
 @router.post("/verify-otp")
-async def verify_otp(payload: VerifyOtpRequest, admin_user: dict = Depends(get_current_admin)):
+async def verify_otp(
+    payload: VerifyOtpRequest, admin_user: dict = Depends(get_current_admin)
+):
     """Validate a JIT OTP issued by AntiHackingContextMiddleware and promote the
     pending (mismatched) context to trusted, so the admin isn't re-challenged
     on their next request from this IP/fingerprint.
@@ -271,5 +299,7 @@ async def verify_otp(payload: VerifyOtpRequest, admin_user: dict = Depends(get_c
     )
     await redis_manager.client.delete(pending_key)
 
-    logger.info(f"✅ Admin {admin_id} passed OTP verification — context promoted to trusted")
+    logger.info(
+        f"✅ Admin {admin_id} passed OTP verification — context promoted to trusted"
+    )
     return {"status": "verified"}

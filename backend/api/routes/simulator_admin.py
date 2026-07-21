@@ -6,14 +6,9 @@
 from __future__ import annotations
 
 from api.routes.admin import get_current_admin
-from api.routes.simulator import (
-    _IN_MEMORY_KNOWN_USERS,
-    _KNOWN_USERS_SET,
-    _redis,
-    _save_profile,
-    _use_redis,
-    get_or_create_profile,
-)
+from api.routes.simulator import (_IN_MEMORY_KNOWN_USERS, _KNOWN_USERS_SET,
+                                  _redis, _save_profile, _use_redis,
+                                  get_or_create_profile)
 from fastapi import APIRouter, Depends
 
 router = APIRouter(prefix="/api/simulator", tags=["simulator-admin"])
@@ -44,7 +39,9 @@ async def get_all_usage(admin_user: dict = Depends(get_current_admin)):
 
 
 @router.post("/admin/set-quota/{userId}")
-async def admin_set_quota(userId: str, quota: int, admin_user: dict = Depends(get_current_admin)):
+async def admin_set_quota(
+    userId: str, quota: int, admin_user: dict = Depends(get_current_admin)
+):
     profile = await get_or_create_profile(userId)
     profile["installQuota"] = max(1, min(20, quota))
     await _save_profile(userId, profile)

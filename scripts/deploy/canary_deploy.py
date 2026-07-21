@@ -7,14 +7,14 @@ Priority: 🟡 Medium
 
 import json
 import logging
+import os
 import subprocess
 import time
-import os
-from datetime import datetime
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class CanaryStatus(Enum):
     """Canary deployment status."""
+
     PENDING = "pending"
     INITIALIZING = "initializing"
     RAMPLING_UP = "ramping_up"
@@ -36,6 +37,7 @@ class CanaryStatus(Enum):
 @dataclass
 class CanaryStep:
     """Single step in canary deployment."""
+
     step_number: int
     traffic_percentage: int
     start_time: datetime
@@ -55,6 +57,7 @@ class CanaryStep:
 @dataclass
 class CanaryResult:
     """Result of canary deployment."""
+
     deployment_id: str
     status: CanaryStatus
     steps: List[CanaryStep]
@@ -71,21 +74,20 @@ class CanaryDeployer:
 
     # Default traffic ramp steps
     DEFAULT_RAMP_STEPS = [
-        {'percentage': 5, 'duration_minutes': 5},
-        {'percentage': 20, 'duration_minutes': 10},
-        {'percentage': 50, 'duration_minutes': 15},
-        {'percentage': 100, 'duration_minutes': 0},  # Full rollout
+        {"percentage": 5, "duration_minutes": 5},
+        {"percentage": 20, "duration_minutes": 10},
+        {"percentage": 50, "duration_minutes": 15},
+        {"percentage": 100, "duration_minutes": 0},  # Full rollout
     ]
 
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
-        self.service_name = self.config.get('service_name', 'app')
-        self.health_endpoint = self.config.get('health_endpoint', '/health')
-        self.metrics_thresholds = self.config.get('metrics_thresholds', {
-            'error_rate': 0.05,
-            'latency_p95': 500,
-            'cpu_usage': 0.8
-        })
+        self.service_name = self.config.get("service_name", "app")
+        self.health_endpoint = self.config.get("health_endpoint", "/health")
+        self.metrics_thresholds = self.config.get(
+            "metrics_thresholds",
+            {"error_rate": 0.05, "latency_p95": 500, "cpu_usage": 0.8},
+        )
 
     def _build_traffic_shift_command(self, percentage: int) -> List[str]:
         """Build command to set traffic percentage."""
@@ -95,7 +97,11 @@ class CanaryDeployer:
             "patch",
             "vs/" + self.service_name,
             "--type=merge",
-            "-p={\"spec\":{\"http\":[{\"route\":[{\"destination\":{\"host\":\"" + self.service_name + "\"},\"percent\":" + str(percentage) + "}]}]}}"
+            '-p={"spec":{"http":[{"route":[{"destination":{"host":"'
+            + self.service_name
+            + '"},"percent":'
+            + str(percentage)
+            + "}]}]}}",
         ]
 
     def _build_promote_command(self) -> List[str]:
@@ -106,7 +112,11 @@ class CanaryDeployer:
             "patch",
             "vs/" + self.service_name,
             "--type=merge",
-            "-p={\"spec\":{\"http\":[{\"route\":[{\"destination\":{\"host\":\"" + self.service_name + "-canary\"}},{\"destination\":{\"host\":\"" + self.service_name + "-stable\"}}]}]}}"
+            '-p={"spec":{"http":[{"route":[{"destination":{"host":"'
+            + self.service_name
+            + '-canary"}},{"destination":{"host":"'
+            + self.service_name
+            + '-stable"}}]}]}}',
         ]
 
     async def run_health_checks(self, step: int) -> Tuple[int, int]:
@@ -143,10 +153,10 @@ class CanaryDeployer:
         """Fetch current deployment metrics."""
         # Simulated metrics fetch
         return {
-            'error_rate': 0.02,
-            'latency_p95': 250,
-            'cpu_usage': 0.45,
-            'memory_usage': 0.6
+            "error_rate": 0.02,
+            "latency_p95": 250,
+            "cpu_usage": 0.45,
+            "memory_usage": 0.6,
         }
 
     def check_thresholds(self, metrics: Dict[str, float]) -> bool:
@@ -154,15 +164,14 @@ class CanaryDeployer:
         for metric, threshold in self.metrics_thresholds.items():
             if metric in metrics:
                 if metrics[metric] > threshold:
-                    logger.warning(f"Metric {metric} exceeded threshold: {metrics[metric]} > {threshold}")
+                    logger.warning(
+                        f"Metric {metric} exceeded threshold: {metrics[metric]} > {threshold}"
+                    )
                     return False
         return True
 
     async def run_step(
-        self,
-        step_num: int,
-        percentage: int,
-        duration_minutes: int
+        self, step_num: int, percentage: int, duration_minutes: int
     ) -> CanaryStep:
         """Run a single canary step."""
         step = CanaryStep(
@@ -173,7 +182,7 @@ class CanaryDeployer:
             health_checks_passed=0,
             health_checks_total=0,
             metrics={},
-            error_message=None
+            error_message=None,
         )
 
         logger.info(f"Running canary step {step_num}: {percentage}% traffic")
@@ -182,7 +191,9 @@ class CanaryDeployer:
             # Set traffic percentage
             cmd = self._build_traffic_shift_command(percentage)
             # বাংলা মন্তব্য: shell=False ব্যবহার করা হলো এবং কমান্ডটি লিস্ট অব আর্গুমেন্ট হিসেবে পাস করা হচ্ছে।
-            proc = subprocess.run(cmd, shell=False, capture_output=True, text=True, timeout=60)
+            proc = subprocess.run(
+                cmd, shell=False, capture_output=True, text=True, timeout=60
+            )
 
             if proc.returncode != 0:
                 step.error_message = proc.stderr
@@ -220,7 +231,9 @@ class CanaryDeployer:
             # Route all traffic back to stable
             cmd = self._build_traffic_shift_command(0)
             # বাংলা মন্তব্য: shell=False ব্যবহার করা হলো এবং কমান্ডটি লিস্ট অব আর্গুমেন্ট হিসেবে পাস করা হচ্ছে।
-            proc = subprocess.run(cmd, shell=False, capture_output=True, text=True, timeout=60)
+            proc = subprocess.run(
+                cmd, shell=False, capture_output=True, text=True, timeout=60
+            )
 
             if proc.returncode == 0:
                 logger.warning("Canary rollback successful")
@@ -231,9 +244,7 @@ class CanaryDeployer:
         return False
 
     async def run_full_canary(
-        self,
-        image_tag: str,
-        ramp_steps: Optional[List[Dict[str, Any]]] = None
+        self, image_tag: str, ramp_steps: Optional[List[Dict[str, Any]]] = None
     ) -> CanaryResult:
         """Run complete canary deployment."""
         deployment_id = f"canary_{int(time.time())}"
@@ -246,13 +257,13 @@ class CanaryDeployer:
             start_time=datetime.now(),
             end_time=None,
             final_traffic_percentage=0,
-            promoted=False
+            promoted=False,
         )
 
         try:
             for idx, step_config in enumerate(steps):
-                percentage = step_config['percentage']
-                duration = step_config['duration_minutes']
+                percentage = step_config["percentage"]
+                duration = step_config["duration_minutes"]
 
                 step_result = await self.run_step(idx + 1, percentage, duration)
                 result.steps.append(step_result)
@@ -275,7 +286,7 @@ class CanaryDeployer:
                             shell=False,
                             capture_output=True,
                             text=True,
-                            timeout=60
+                            timeout=60,
                         )
                         result.promoted = proc.returncode == 0
                     except Exception:
@@ -293,7 +304,9 @@ class CanaryDeployer:
         result.end_time = datetime.now()
         return result
 
-    def save_report(self, result: CanaryResult, output_dir: str = "deploy_reports") -> str:
+    def save_report(
+        self, result: CanaryResult, output_dir: str = "deploy_reports"
+    ) -> str:
         """Save canary deployment report."""
         output = Path(output_dir)
         output.mkdir(exist_ok=True)
@@ -301,25 +314,25 @@ class CanaryDeployer:
         report_path = output / f"canary_deploy_{result.deployment_id}.json"
 
         report = {
-            'deployment_id': result.deployment_id,
-            'status': result.status.value,
-            'start_time': result.start_time.isoformat(),
-            'end_time': result.end_time.isoformat() if result.end_time else None,
-            'final_traffic_percentage': result.final_traffic_percentage,
-            'promoted': result.promoted,
-            'steps': [
+            "deployment_id": result.deployment_id,
+            "status": result.status.value,
+            "start_time": result.start_time.isoformat(),
+            "end_time": result.end_time.isoformat() if result.end_time else None,
+            "final_traffic_percentage": result.final_traffic_percentage,
+            "promoted": result.promoted,
+            "steps": [
                 {
-                    'step_number': s.step_number,
-                    'traffic_percentage': s.traffic_percentage,
-                    'success_rate': s.success_rate,
-                    'metrics': s.metrics,
-                    'error_message': s.error_message
+                    "step_number": s.step_number,
+                    "traffic_percentage": s.traffic_percentage,
+                    "success_rate": s.success_rate,
+                    "metrics": s.metrics,
+                    "error_message": s.error_message,
                 }
                 for s in result.steps
-            ]
+            ],
         }
 
-        with open(report_path, 'w') as f:
+        with open(report_path, "w") as f:
             json.dump(report, f, indent=2)
 
         logger.info(f"Canary report saved to {report_path}")
@@ -331,13 +344,15 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Canary deployment management")
-    parser.add_argument('--image-tag', required=True, help='Docker image tag to deploy')
-    parser.add_argument('--service-name', default='app', help='Service name')
-    parser.add_argument('--dry-run', action='store_true', help='Simulate without changes')
+    parser.add_argument("--image-tag", required=True, help="Docker image tag to deploy")
+    parser.add_argument("--service-name", default="app", help="Service name")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Simulate without changes"
+    )
 
     args = parser.parse_args()
 
-    deployer = CanaryDeployer({'service_name': args.service_name})
+    deployer = CanaryDeployer({"service_name": args.service_name})
 
     async def run():
         if args.dry_run:
@@ -355,6 +370,7 @@ def main():
         return result
 
     import asyncio
+
     asyncio.run(run())
 
 

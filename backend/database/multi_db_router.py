@@ -74,7 +74,10 @@ class MultiDBRouter:
             for name, config in self.databases.items()
             if (pattern == QueryPattern.READ and not config.read_replica)
             or (pattern == QueryPattern.WRITE and not config.read_replica)
-            or (pattern == QueryPattern.ANALYTICS and config.db_type == DatabaseType.POSTGRES)
+            or (
+                pattern == QueryPattern.ANALYTICS
+                and config.db_type == DatabaseType.POSTGRES
+            )
             or (pattern == QueryPattern.CACHE and config.db_type == DatabaseType.REDIS)
         }
 
@@ -88,7 +91,9 @@ class MultiDBRouter:
         # Select by priority (highest first)
         return max(candidates.items(), key=lambda x: x[1].priority)[0]
 
-    async def route_query(self, query: str, pattern: QueryPattern = QueryPattern.READ) -> dict[str, Any]:
+    async def route_query(
+        self, query: str, pattern: QueryPattern = QueryPattern.READ
+    ) -> dict[str, Any]:
         """
         Route query to appropriate database.
 

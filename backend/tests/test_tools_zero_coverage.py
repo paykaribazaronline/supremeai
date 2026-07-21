@@ -4,7 +4,6 @@ Targets: preference_memory, offline_mode, conversation_manager,
 ensemble_router, bandwidth_optimizer, ai_federation_protocol, meta_architect.
 """
 
-
 # ── preference_memory ──────────────────────────────────────────────────────────
 
 
@@ -105,14 +104,18 @@ class TestEnsembleRouter:
         from tools.ensemble_router import EnsembleRouter
 
         router = EnsembleRouter()
-        ensemble_id = router.create_ensemble(models=["gpt-4", "claude-3"], strategy="majority")
+        ensemble_id = router.create_ensemble(
+            models=["gpt-4", "claude-3"], strategy="majority"
+        )
         assert ensemble_id is not None
 
     def test_route(self):
         from tools.ensemble_router import EnsembleRouter
 
         router = EnsembleRouter()
-        result = router.route(prompt="test", models=["gpt-4", "claude-3"], strategy="majority")
+        result = router.route(
+            prompt="test", models=["gpt-4", "claude-3"], strategy="majority"
+        )
         assert result is not None
 
 

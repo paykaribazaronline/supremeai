@@ -37,7 +37,7 @@ import sys
 import time
 from collections import deque
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta, UTC
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, Optional
 
@@ -70,6 +70,7 @@ CAPACITY_REPORT_FILE = DATA_DIR / "capacity_report.json"
 @dataclass
 class ResourceSnapshot:
     """একটি সময়ে রিসোর্স ব্যবহারের স্ন্যাপশট"""
+
     timestamp: str
     cpu_percent: float
     memory_percent: float
@@ -89,6 +90,7 @@ class ResourceSnapshot:
 @dataclass
 class CapacityRecommendation:
     """স্কেলিং সুপারিশ"""
+
     action: str  # "scale_up", "scale_down", "maintain", "alert"
     reason: str
     confidence: float  # 0.0 - 1.0
@@ -100,6 +102,7 @@ class CapacityRecommendation:
 @dataclass
 class CapacityReport:
     """সম্পূর্ণ ক্যাপাসিটি রিপোর্ট"""
+
     generated_at: str
     overall_status: str  # "healthy", "warning", "critical"
     current_snapshot: ResourceSnapshot
@@ -164,7 +167,9 @@ def _calculate_trends(history: deque[dict[str, Any]]) -> dict[str, Any]:
         }
 
     recent = list(history)[-12:]  # Last hour (12 * 5min)
-    older = list(history)[:-12] if len(history) > 12 else list(history)[: len(history) // 2]
+    older = (
+        list(history)[:-12] if len(history) > 12 else list(history)[: len(history) // 2]
+    )
 
     def _avg(key: str, data: list[dict]) -> float:
         vals = [d.get(key, 0) for d in data if isinstance(d.get(key), (int, float))]
@@ -178,12 +183,30 @@ def _calculate_trends(history: deque[dict[str, Any]]) -> dict[str, Any]:
     lat_older = _avg("api_latency_ms", older)
 
     return {
-        "cpu_trend": "increasing" if cpu_recent > cpu_older * 1.1 else "decreasing" if cpu_recent < cpu_older * 0.9 else "stable",
-        "memory_trend": "increasing" if mem_recent > mem_older * 1.1 else "decreasing" if mem_recent < mem_older * 0.9 else "stable",
-        "latency_trend": "increasing" if lat_recent > lat_older * 1.2 else "decreasing" if lat_recent < lat_older * 0.8 else "stable",
-        "cpu_change_percent": round((cpu_recent - cpu_older) / max(cpu_older, 0.01) * 100, 1),
-        "memory_change_percent": round((mem_recent - mem_older) / max(mem_older, 0.01) * 100, 1),
-        "latency_change_percent": round((lat_recent - lat_older) / max(lat_older, 0.01) * 100, 1),
+        "cpu_trend": (
+            "increasing"
+            if cpu_recent > cpu_older * 1.1
+            else "decreasing" if cpu_recent < cpu_older * 0.9 else "stable"
+        ),
+        "memory_trend": (
+            "increasing"
+            if mem_recent > mem_older * 1.1
+            else "decreasing" if mem_recent < mem_older * 0.9 else "stable"
+        ),
+        "latency_trend": (
+            "increasing"
+            if lat_recent > lat_older * 1.2
+            else "decreasing" if lat_recent < lat_older * 0.8 else "stable"
+        ),
+        "cpu_change_percent": round(
+            (cpu_recent - cpu_older) / max(cpu_older, 0.01) * 100, 1
+        ),
+        "memory_change_percent": round(
+            (mem_recent - mem_older) / max(mem_older, 0.01) * 100, 1
+        ),
+        "latency_change_percent": round(
+            (lat_recent - lat_older) / max(lat_older, 0.01) * 100, 1
+        ),
         "data_points": len(history),
         "analysis_window_hours": len(recent) * 5 / 60,
     }
@@ -213,8 +236,8 @@ def _collect_system_resources() -> dict[str, Any]:
 
         disk = psutil.disk_usage("/")
         resources["disk_percent"] = round(disk.percent, 1)
-        resources["disk_used_gb"] = round(disk.used / (1024 ** 3), 1)
-        resources["disk_total_gb"] = round(disk.total / (1024 ** 3), 1)
+        resources["disk_used_gb"] = round(disk.used / (1024**3), 1)
+        resources["disk_total_gb"] = round(disk.total / (1024**3), 1)
     except ImportError:
         logger.warning("psutil not installed — using fallback values")
         # Fallback: try reading from /proc (Linux only)
@@ -238,7 +261,11 @@ async def _check_api_latency(base_url: str, timeout: float = 5.0) -> tuple[float
             start = time.perf_counter()
             response = await client.get(health_url)
             elapsed_ms = (time.perf_counter() - start) * 1000
-            status = "healthy" if response.status_code == 200 else f"degraded_{response.status_code}"
+            status = (
+                "healthy"
+                if response.status_code == 200
+                else f"degraded_{response.status_code}"
+            )
             return round(elapsed_ms, 2), status
     except httpx.ConnectError:
         return -1.0, "unreachable"
@@ -258,6 +285,7 @@ async def _check_redis_connections() -> Optional[int]:
     try:
         # Try redis-py first
         import redis.asyncio as redis_lib
+
         r = redis_lib.from_url(redis_url, decode_responses=True)
         info = await r.info("clients")
         connected = info.get("connected_clients", 0)
@@ -294,6 +322,7 @@ async def _check_db_connections() -> Optional[int]:
     try:
         # Try asyncpg for direct PostgreSQL
         import asyncpg
+
         conn = await asyncpg.connect(dsn=db_url, timeout=5.0)
         row = await conn.fetchrow(
             "SELECT count(*) as connections FROM pg_stat_activity WHERE datname = current_database()"
@@ -347,96 +376,125 @@ def _generate_recommendations(
 
     # Critical conditions
     if cpu >= critical_threshold or mem >= critical_threshold:
-        recommendations.append(CapacityRecommendation(
-            action="scale_up",
-            reason=f"Critical resource usage: CPU {cpu:.1f}%, Memory {mem:.1f}%",
-            confidence=0.95,
-            estimated_cost_impact="HIGH — may exceed free tier, consider upgrading to Starter ($7/mo)",
-            suggested_replicas=2,
-            suggested_instance_type="starter",
-        ))
+        recommendations.append(
+            CapacityRecommendation(
+                action="scale_up",
+                reason=f"Critical resource usage: CPU {cpu:.1f}%, Memory {mem:.1f}%",
+                confidence=0.95,
+                estimated_cost_impact="HIGH — may exceed free tier, consider upgrading to Starter ($7/mo)",
+                suggested_replicas=2,
+                suggested_instance_type="starter",
+            )
+        )
 
     elif disk >= critical_threshold:
-        recommendations.append(CapacityRecommendation(
-            action="alert",
-            reason=f"Disk usage critical: {disk:.1f}% — log rotation needed",
-            confidence=0.90,
-            estimated_cost_impact="LOW — cleanup logs and temp files",
-        ))
+        recommendations.append(
+            CapacityRecommendation(
+                action="alert",
+                reason=f"Disk usage critical: {disk:.1f}% — log rotation needed",
+                confidence=0.90,
+                estimated_cost_impact="LOW — cleanup logs and temp files",
+            )
+        )
 
     # Warning conditions
     elif cpu >= alert_threshold or mem >= alert_threshold:
-        recommendations.append(CapacityRecommendation(
-            action="scale_up",
-            reason=f"High resource usage: CPU {cpu:.1f}%, Memory {mem:.1f}%",
-            confidence=0.80,
-            estimated_cost_impact="MEDIUM — monitor closely, enable caching",
-            suggested_replicas=1,
-            suggested_instance_type="free_with_caching",
-        ))
+        recommendations.append(
+            CapacityRecommendation(
+                action="scale_up",
+                reason=f"High resource usage: CPU {cpu:.1f}%, Memory {mem:.1f}%",
+                confidence=0.80,
+                estimated_cost_impact="MEDIUM — monitor closely, enable caching",
+                suggested_replicas=1,
+                suggested_instance_type="free_with_caching",
+            )
+        )
 
     # Latency-based recommendations
     if latency > 1000 and status == "healthy":
-        recommendations.append(CapacityRecommendation(
-            action="scale_up",
-            reason=f"High API latency: {latency:.0f}ms — consider async workers",
-            confidence=0.75,
-            estimated_cost_impact="MEDIUM — add background job queue",
-        ))
+        recommendations.append(
+            CapacityRecommendation(
+                action="scale_up",
+                reason=f"High API latency: {latency:.0f}ms — consider async workers",
+                confidence=0.75,
+                estimated_cost_impact="MEDIUM — add background job queue",
+            )
+        )
     elif latency > 500:
-        recommendations.append(CapacityRecommendation(
-            action="maintain",
-            reason=f"Elevated latency: {latency:.0f}ms — monitor trends",
-            confidence=0.60,
-            estimated_cost_impact="NONE — optimize queries first",
-        ))
+        recommendations.append(
+            CapacityRecommendation(
+                action="maintain",
+                reason=f"Elevated latency: {latency:.0f}ms — monitor trends",
+                confidence=0.60,
+                estimated_cost_impact="NONE — optimize queries first",
+            )
+        )
 
     # Trend-based proactive recommendations
-    if trends.get("cpu_trend") == "increasing" and trends.get("cpu_change_percent", 0) > 20:
-        recommendations.append(CapacityRecommendation(
-            action="scale_up",
-            reason=f"CPU trending up {trends['cpu_change_percent']:.1f}% — proactive scaling advised",
-            confidence=0.70,
-            estimated_cost_impact="LOW — preemptive scaling avoids downtime",
-        ))
+    if (
+        trends.get("cpu_trend") == "increasing"
+        and trends.get("cpu_change_percent", 0) > 20
+    ):
+        recommendations.append(
+            CapacityRecommendation(
+                action="scale_up",
+                reason=f"CPU trending up {trends['cpu_change_percent']:.1f}% — proactive scaling advised",
+                confidence=0.70,
+                estimated_cost_impact="LOW — preemptive scaling avoids downtime",
+            )
+        )
 
-    if trends.get("memory_trend") == "increasing" and trends.get("memory_change_percent", 0) > 15:
-        recommendations.append(CapacityRecommendation(
-            action="alert",
-            reason=f"Memory leak suspected: {trends['memory_change_percent']:.1f}% increase",
-            confidence=0.65,
-            estimated_cost_impact="LOW — investigate memory leaks",
-        ))
+    if (
+        trends.get("memory_trend") == "increasing"
+        and trends.get("memory_change_percent", 0) > 15
+    ):
+        recommendations.append(
+            CapacityRecommendation(
+                action="alert",
+                reason=f"Memory leak suspected: {trends['memory_change_percent']:.1f}% increase",
+                confidence=0.65,
+                estimated_cost_impact="LOW — investigate memory leaks",
+            )
+        )
 
     # Render-specific: if free tier nearly exhausted
     render_minutes = snapshot.render_free_minutes_used
     if render_minutes and render_minutes > 40000:  # ~89% of 45,000
-        recommendations.append(CapacityRecommendation(
-            action="alert",
-            reason=f"Render free tier {render_minutes}/45000 minutes used ({render_minutes/45000*100:.1f}%)",
-            confidence=0.85,
-            estimated_cost_impact="HIGH — upgrade to Starter or add secondary instance",
-        ))
+        recommendations.append(
+            CapacityRecommendation(
+                action="alert",
+                reason=f"Render free tier {render_minutes}/45000 minutes used ({render_minutes/45000*100:.1f}%)",
+                confidence=0.85,
+                estimated_cost_impact="HIGH — upgrade to Starter or add secondary instance",
+            )
+        )
 
     # Scale-down opportunity
     if cpu < 20 and mem < 30 and latency < 200 and status == "healthy":
-        if trends.get("cpu_trend") == "stable" and trends.get("memory_trend") == "stable":
-            recommendations.append(CapacityRecommendation(
-                action="scale_down",
-                reason="Resources underutilized — cost optimization possible",
-                confidence=0.50,
-                estimated_cost_impact="SAVINGS — reduce to minimum instance",
-                suggested_replicas=1,
-                suggested_instance_type="free",
-            ))
+        if (
+            trends.get("cpu_trend") == "stable"
+            and trends.get("memory_trend") == "stable"
+        ):
+            recommendations.append(
+                CapacityRecommendation(
+                    action="scale_down",
+                    reason="Resources underutilized — cost optimization possible",
+                    confidence=0.50,
+                    estimated_cost_impact="SAVINGS — reduce to minimum instance",
+                    suggested_replicas=1,
+                    suggested_instance_type="free",
+                )
+            )
 
     if not recommendations:
-        recommendations.append(CapacityRecommendation(
-            action="maintain",
-            reason="All metrics within normal parameters",
-            confidence=0.99,
-            estimated_cost_impact="NONE",
-        ))
+        recommendations.append(
+            CapacityRecommendation(
+                action="maintain",
+                reason="All metrics within normal parameters",
+                confidence=0.99,
+                estimated_cost_impact="NONE",
+            )
+        )
 
     return recommendations
 
@@ -495,7 +553,9 @@ def _write_github_summary(report: CapacityReport) -> None:
     if not summary_file:
         return
 
-    status_emoji = {"healthy": "🟢", "warning": "🟡", "critical": "🔴"}.get(report.overall_status, "⚪")
+    status_emoji = {"healthy": "🟢", "warning": "🟡", "critical": "🔴"}.get(
+        report.overall_status, "⚪"
+    )
 
     lines = [
         f"## {status_emoji} Capacity Planner Report",
@@ -516,19 +576,28 @@ def _write_github_summary(report: CapacityReport) -> None:
     ]
 
     for rec in report.recommendations:
-        emoji = {"scale_up": "⬆️", "scale_down": "⬇️", "maintain": "✅", "alert": "⚠️"}.get(rec.action, "❓")
+        emoji = {
+            "scale_up": "⬆️",
+            "scale_down": "⬇️",
+            "maintain": "✅",
+            "alert": "⚠️",
+        }.get(rec.action, "❓")
         lines.append(f"- {emoji} **{rec.action.upper()}**: {rec.reason}")
-        lines.append(f"  - Confidence: {rec.confidence:.0%} | Cost Impact: {rec.estimated_cost_impact}")
+        lines.append(
+            f"  - Confidence: {rec.confidence:.0%} | Cost Impact: {rec.estimated_cost_impact}"
+        )
 
-    lines.extend([
-        "",
-        "### Render Optimization",
-        f"```",
-        json.dumps(report.render_optimization, indent=2),
-        f"```",
-        "",
-        f"**Next Check:** {report.next_check_due}",
-    ])
+    lines.extend(
+        [
+            "",
+            "### Render Optimization",
+            f"```",
+            json.dumps(report.render_optimization, indent=2),
+            f"```",
+            "",
+            f"**Next Check:** {report.next_check_due}",
+        ]
+    )
 
     try:
         with open(summary_file, "a", encoding="utf-8") as f:
@@ -583,16 +652,20 @@ async def run_capacity_plan(
     )
 
     if verbose:
-        logger.info(f"Snapshot: CPU={snapshot.cpu_percent:.1f}%, MEM={snapshot.memory_percent:.1f}%, "
-                   f"LAT={snapshot.api_latency_ms:.1f}ms, STATUS={snapshot.api_status}")
+        logger.info(
+            f"Snapshot: CPU={snapshot.cpu_percent:.1f}%, MEM={snapshot.memory_percent:.1f}%, "
+            f"LAT={snapshot.api_latency_ms:.1f}ms, STATUS={snapshot.api_status}"
+        )
 
     # Load history and calculate trends
     history = _load_history()
     trends = _calculate_trends(history)
 
     if verbose:
-        logger.info(f"Trends: CPU={trends.get('cpu_trend')}, MEM={trends.get('memory_trend')}, "
-                   f"LAT={trends.get('latency_trend')}")
+        logger.info(
+            f"Trends: CPU={trends.get('cpu_trend')}, MEM={trends.get('memory_trend')}, "
+            f"LAT={trends.get('latency_trend')}"
+        )
 
     # Generate recommendations
     recommendations = _generate_recommendations(
@@ -600,9 +673,17 @@ async def run_capacity_plan(
     )
 
     # Determine overall status
-    if snapshot.cpu_percent >= critical_threshold or snapshot.memory_percent >= critical_threshold or api_status in ("unreachable", "timeout"):
+    if (
+        snapshot.cpu_percent >= critical_threshold
+        or snapshot.memory_percent >= critical_threshold
+        or api_status in ("unreachable", "timeout")
+    ):
         overall_status = "critical"
-    elif snapshot.cpu_percent >= alert_threshold or snapshot.memory_percent >= alert_threshold or snapshot.api_latency_ms > 1000:
+    elif (
+        snapshot.cpu_percent >= alert_threshold
+        or snapshot.memory_percent >= alert_threshold
+        or snapshot.api_latency_ms > 1000
+    ):
         overall_status = "warning"
     else:
         overall_status = "healthy"
@@ -618,7 +699,9 @@ async def run_capacity_plan(
         trends=trends,
         recommendations=recommendations,
         render_optimization=render_tips,
-        next_check_due=(datetime.now(UTC) + timedelta(seconds=DEFAULT_CHECK_INTERVAL)).isoformat(),
+        next_check_due=(
+            datetime.now(UTC) + timedelta(seconds=DEFAULT_CHECK_INTERVAL)
+        ).isoformat(),
     )
 
     # Save history and report
@@ -663,10 +746,14 @@ def _print_report(report: CapacityReport) -> None:
     print(f"  Next Check:      {report.next_check_due}")
     print(f"{'-'*60}")
     print(f"  CPU:             {report.current_snapshot.cpu_percent:.1f}%")
-    print(f"  Memory:          {report.current_snapshot.memory_percent:.1f}% "
-          f"({report.current_snapshot.memory_used_mb:.0f}/{report.current_snapshot.memory_total_mb:.0f} MB)")
-    print(f"  Disk:            {report.current_snapshot.disk_percent:.1f}% "
-          f"({report.current_snapshot.disk_used_gb:.1f}/{report.current_snapshot.disk_total_gb:.1f} GB)")
+    print(
+        f"  Memory:          {report.current_snapshot.memory_percent:.1f}% "
+        f"({report.current_snapshot.memory_used_mb:.0f}/{report.current_snapshot.memory_total_mb:.0f} MB)"
+    )
+    print(
+        f"  Disk:            {report.current_snapshot.disk_percent:.1f}% "
+        f"({report.current_snapshot.disk_used_gb:.1f}/{report.current_snapshot.disk_total_gb:.1f} GB)"
+    )
     print(f"  API Latency:     {report.current_snapshot.api_latency_ms:.1f} ms")
     print(f"  API Status:      {report.current_snapshot.api_status}")
     if report.current_snapshot.redis_connections is not None:
@@ -680,9 +767,16 @@ def _print_report(report: CapacityReport) -> None:
     print(f"{'-'*60}")
     print("  RECOMMENDATIONS:")
     for i, rec in enumerate(report.recommendations, 1):
-        action_color = {"scale_up": "\033[91m", "scale_down": "\033[94m", "maintain": "\033[92m", "alert": "\033[93m"}.get(rec.action, "")
+        action_color = {
+            "scale_up": "\033[91m",
+            "scale_down": "\033[94m",
+            "maintain": "\033[92m",
+            "alert": "\033[93m",
+        }.get(rec.action, "")
         print(f"    {i}. {action_color}{rec.action.upper()}{reset}: {rec.reason}")
-        print(f"       Confidence: {rec.confidence:.0%} | Cost: {rec.estimated_cost_impact}")
+        print(
+            f"       Confidence: {rec.confidence:.0%} | Cost: {rec.estimated_cost_impact}"
+        )
         if rec.suggested_replicas:
             print(f"       Suggested Replicas: {rec.suggested_replicas}")
     print(f"{'-'*60}")
@@ -708,12 +802,29 @@ Examples:
         """,
     )
     parser.add_argument("--url", default=DEFAULT_API_URL, help="Base API URL")
-    parser.add_argument("--alert-threshold", type=float, default=DEFAULT_ALERT_THRESHOLD, help="Alert threshold %")
-    parser.add_argument("--critical-threshold", type=float, default=DEFAULT_CRITICAL_THRESHOLD, help="Critical threshold %")
-    parser.add_argument("--dry-run", action="store_true", help="Don't save history or send alerts")
+    parser.add_argument(
+        "--alert-threshold",
+        type=float,
+        default=DEFAULT_ALERT_THRESHOLD,
+        help="Alert threshold %",
+    )
+    parser.add_argument(
+        "--critical-threshold",
+        type=float,
+        default=DEFAULT_CRITICAL_THRESHOLD,
+        help="Critical threshold %",
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Don't save history or send alerts"
+    )
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     parser.add_argument("--daemon", action="store_true", help="Run continuously")
-    parser.add_argument("--interval", type=int, default=DEFAULT_CHECK_INTERVAL, help="Check interval in seconds (daemon mode)")
+    parser.add_argument(
+        "--interval",
+        type=int,
+        default=DEFAULT_CHECK_INTERVAL,
+        help="Check interval in seconds (daemon mode)",
+    )
 
     args = parser.parse_args()
 
@@ -721,13 +832,15 @@ Examples:
         logger.info(f"🔄 Daemon mode started — checking every {args.interval}s")
         try:
             while True:
-                report = asyncio.run(run_capacity_plan(
-                    base_url=args.url,
-                    alert_threshold=args.alert_threshold,
-                    critical_threshold=args.critical_threshold,
-                    dry_run=args.dry_run,
-                    verbose=args.verbose,
-                ))
+                report = asyncio.run(
+                    run_capacity_plan(
+                        base_url=args.url,
+                        alert_threshold=args.alert_threshold,
+                        critical_threshold=args.critical_threshold,
+                        dry_run=args.dry_run,
+                        verbose=args.verbose,
+                    )
+                )
                 _print_report(report)
                 logger.info(f"Sleeping for {args.interval}s...")
                 time.sleep(args.interval)
@@ -735,13 +848,15 @@ Examples:
             logger.info("Daemon stopped by user")
             return 0
     else:
-        report = asyncio.run(run_capacity_plan(
-            base_url=args.url,
-            alert_threshold=args.alert_threshold,
-            critical_threshold=args.critical_threshold,
-            dry_run=args.dry_run,
-            verbose=args.verbose,
-        ))
+        report = asyncio.run(
+            run_capacity_plan(
+                base_url=args.url,
+                alert_threshold=args.alert_threshold,
+                critical_threshold=args.critical_threshold,
+                dry_run=args.dry_run,
+                verbose=args.verbose,
+            )
+        )
         _print_report(report)
 
     # Exit codes: 0=healthy, 1=warning, 2=critical

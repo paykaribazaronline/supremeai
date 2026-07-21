@@ -1,8 +1,9 @@
 # tests/test_core_rate_limiter.py
 """Tests for rate limiting and async rate limiter functionality."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
 
 
 class TestInMemoryFallbackLimiter:
@@ -78,7 +79,7 @@ class TestAsyncRateLimiter:
 
         limiter = AsyncRateLimiter()
         # close should be callable (may fail due to Redis not configured, but method exists)
-        assert hasattr(limiter, 'close')
+        assert hasattr(limiter, "close")
 
 
 class TestRateLimitMiddleware:

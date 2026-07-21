@@ -17,7 +17,9 @@ async def test_agent_factory_creates_and_saves_agent():
     factory = DynamicAgentFactory(mock_db)
 
     # Mock LLMGateway.acompletion to return our expected JSON string
-    mock_res = {"text": '{"agent_name": "AmazonTracker", "description": "Track prices", "execution_steps": [{"action": "click"}]}'}
+    mock_res = {
+        "text": '{"agent_name": "AmazonTracker", "description": "Track prices", "execution_steps": [{"action": "click"}]}'
+    }
 
     with patch(
         "core.llm.llm_gateway.LLMGateway.acompletion",
@@ -36,7 +38,9 @@ async def test_task_router_dispatches_local_scraping_task():
     """Ensures the TaskRouter correctly dispatches a 'web_scraping_local' task to the local executor."""
     router = TaskRouter()
 
-    router.local_executor.execute_local_code = AsyncMock(return_value={"status": "success", "data": "DOM Result"})
+    router.local_executor.execute_local_code = AsyncMock(
+        return_value={"status": "success", "data": "DOM Result"}
+    )
 
     task_context = {
         "task_type": "web_scraping_local",
@@ -49,4 +53,6 @@ async def test_task_router_dispatches_local_scraping_task():
     assert response["status"] == "success"
     assert response["cost"] == 0.05
     assert response["data"] == "DOM Result"
-    router.local_executor.execute_local_code.assert_called_once_with("print('scraping')")
+    router.local_executor.execute_local_code.assert_called_once_with(
+        "print('scraping')"
+    )

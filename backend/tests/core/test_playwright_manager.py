@@ -46,18 +46,24 @@ class TestGetGlobalBrowser:
     """বাংলা মন্তব্য: get_global_browser() function-এর lazy initialization টেস্ট।"""
 
     @pytest.mark.asyncio
-    async def test_creates_browser_when_none(self, mock_browser, mock_playwright_runner):
+    async def test_creates_browser_when_none(
+        self, mock_browser, mock_playwright_runner
+    ):
         """বাংলা মন্তব্য: First call-এ নতুন browser create হয়।"""
         mock_playwright = AsyncMock()
         mock_playwright.start.return_value = mock_playwright_runner
         mock_playwright_runner.chromium.launch.return_value = mock_browser
 
-        with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
+        with patch(
+            "core.playwright_manager.async_playwright", return_value=mock_playwright
+        ):
             with patch("core.playwright_manager.logger") as mock_logger:
                 browser = await pm.get_global_browser()
 
                 assert browser is mock_browser
-                mock_logger.info.assert_called_once_with("🚀 Starting a new headless Global Chromium instance...")
+                mock_logger.info.assert_called_once_with(
+                    "🚀 Starting a new headless Global Chromium instance..."
+                )
                 mock_playwright_runner.chromium.launch.assert_called_once_with(
                     headless=True,
                     args=[
@@ -88,13 +94,17 @@ class TestGetGlobalBrowser:
                 await pm.get_global_browser()
 
     @pytest.mark.asyncio
-    async def test_browser_launch_with_correct_args(self, mock_browser, mock_playwright_runner):
+    async def test_browser_launch_with_correct_args(
+        self, mock_browser, mock_playwright_runner
+    ):
         """বাংলা মন্তব্য: Browser launch করার সময় সঠিক arguments pass হয়।"""
         mock_playwright = AsyncMock()
         mock_playwright.start.return_value = mock_playwright_runner
         mock_playwright_runner.chromium.launch.return_value = mock_browser
 
-        with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
+        with patch(
+            "core.playwright_manager.async_playwright", return_value=mock_playwright
+        ):
             await pm.get_global_browser()
 
             launch_call = mock_playwright_runner.chromium.launch.call_args
@@ -112,7 +122,9 @@ class TestGetGlobalBrowser:
         mock_playwright.start.return_value = mock_playwright_runner
         mock_playwright_runner.chromium.launch.return_value = mock_browser
 
-        with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
+        with patch(
+            "core.playwright_manager.async_playwright", return_value=mock_playwright
+        ):
             await pm.get_global_browser()
 
             assert pm._global_browser is mock_browser
@@ -139,7 +151,9 @@ class TestShutdownGlobalBrowser:
             mock_playwright_runner.stop.assert_called_once()
             assert pm._global_browser is None
             assert pm._playwright_runner is None
-            mock_logger.info.assert_any_call("✅ All Playwright OS processes terminated cleanly.")
+            mock_logger.info.assert_any_call(
+                "✅ All Playwright OS processes terminated cleanly."
+            )
 
     @pytest.mark.asyncio
     async def test_shutdown_with_no_browser(self):
@@ -184,7 +198,9 @@ class TestShutdownGlobalBrowser:
             assert pm._playwright_runner is None
 
     @pytest.mark.asyncio
-    async def test_shutdown_handles_browser_close_error(self, mock_browser, mock_playwright_runner):
+    async def test_shutdown_handles_browser_close_error(
+        self, mock_browser, mock_playwright_runner
+    ):
         """বাংলা মন্তব্য: Browser close error handle করে runner stop করে।"""
         mock_browser.close = AsyncMock(side_effect=RuntimeError("Browser close failed"))
 
@@ -202,9 +218,13 @@ class TestShutdownGlobalBrowser:
             assert pm._playwright_runner is None
 
     @pytest.mark.asyncio
-    async def test_shutdown_handles_runner_stop_error(self, mock_browser, mock_playwright_runner):
+    async def test_shutdown_handles_runner_stop_error(
+        self, mock_browser, mock_playwright_runner
+    ):
         """বাংলা মন্তব্য: Runner stop error handle করে।"""
-        mock_playwright_runner.stop = AsyncMock(side_effect=RuntimeError("Runner stop failed"))
+        mock_playwright_runner.stop = AsyncMock(
+            side_effect=RuntimeError("Runner stop failed")
+        )
 
         pm._global_browser = mock_browser
         pm._playwright_runner = mock_playwright_runner
@@ -221,7 +241,9 @@ class TestShutdownGlobalBrowser:
             assert pm._playwright_runner is None
 
     @pytest.mark.asyncio
-    async def test_shutdown_handles_os_error(self, mock_browser, mock_playwright_runner):
+    async def test_shutdown_handles_os_error(
+        self, mock_browser, mock_playwright_runner
+    ):
         """বাংলা মন্তব্য: OSError handle করে gracefully।"""
         mock_browser.close = AsyncMock(side_effect=OSError("OS error during close"))
 
@@ -236,7 +258,9 @@ class TestShutdownGlobalBrowser:
             assert pm._playwright_runner is None
 
     @pytest.mark.asyncio
-    async def test_shutdown_handles_connection_error(self, mock_browser, mock_playwright_runner):
+    async def test_shutdown_handles_connection_error(
+        self, mock_browser, mock_playwright_runner
+    ):
         """বাংলা মন্তব্য: ConnectionError handle করে gracefully।"""
         mock_browser.close = AsyncMock(side_effect=ConnectionError("Connection lost"))
 
@@ -251,7 +275,9 @@ class TestShutdownGlobalBrowser:
             assert pm._playwright_runner is None
 
     @pytest.mark.asyncio
-    async def test_shutdown_logs_correct_messages(self, mock_browser, mock_playwright_runner):
+    async def test_shutdown_logs_correct_messages(
+        self, mock_browser, mock_playwright_runner
+    ):
         """বাংলা মন্তব্য: Shutdown process-এ সঠিক log messages print হয়।"""
 
         pm._global_browser = mock_browser
@@ -261,10 +287,16 @@ class TestShutdownGlobalBrowser:
             await pm.shutdown_global_browser()
 
             # Verify all expected log messages
-            mock_logger.info.assert_any_call("🛡️ Initiating Playwright Global Lifespan Cleanup...")
+            mock_logger.info.assert_any_call(
+                "🛡️ Initiating Playwright Global Lifespan Cleanup..."
+            )
             mock_logger.info.assert_any_call("Closing active global Chromium engine...")
-            mock_logger.info.assert_any_call("Stopping playwright runner core context...")
-            mock_logger.info.assert_any_call("✅ All Playwright OS processes terminated cleanly.")
+            mock_logger.info.assert_any_call(
+                "Stopping playwright runner core context..."
+            )
+            mock_logger.info.assert_any_call(
+                "✅ All Playwright OS processes terminated cleanly."
+            )
 
 
 # -------------------- Tests: Integration --------------------
@@ -280,7 +312,9 @@ class TestPlaywrightManagerIntegration:
         mock_playwright.start.return_value = mock_playwright_runner
         mock_playwright_runner.chromium.launch.return_value = mock_browser
 
-        with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
+        with patch(
+            "core.playwright_manager.async_playwright", return_value=mock_playwright
+        ):
             # Create browser
             browser1 = await pm.get_global_browser()
             assert browser1 is mock_browser
@@ -296,13 +330,17 @@ class TestPlaywrightManagerIntegration:
             assert pm._playwright_runner is None
 
     @pytest.mark.asyncio
-    async def test_multiple_sequential_requests(self, mock_browser, mock_playwright_runner):
+    async def test_multiple_sequential_requests(
+        self, mock_browser, mock_playwright_runner
+    ):
         """বাংলা মন্তব্য: Multiple sequential requests একই browser return করে।"""
         mock_playwright = AsyncMock()
         mock_playwright.start.return_value = mock_playwright_runner
         mock_playwright_runner.chromium.launch.return_value = mock_browser
 
-        with patch("core.playwright_manager.async_playwright", return_value=mock_playwright):
+        with patch(
+            "core.playwright_manager.async_playwright", return_value=mock_playwright
+        ):
             # Multiple requests
             browsers = []
             for _ in range(5):

@@ -14,7 +14,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from core.autonoguard_engine import SENSITIVE_OPS, OperationContext, autonoguard_engine
+from core.autonoguard_engine import (SENSITIVE_OPS, OperationContext,
+                                     autonoguard_engine)
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from loguru import logger
@@ -76,7 +77,9 @@ class AutonoGuardMiddleware(BaseHTTPMiddleware):
                 if raw_body:
                     try:
                         payload = json.loads(raw_body)
-                        code_to_scan = payload.get("code") or payload.get("generated_code")
+                        code_to_scan = payload.get("code") or payload.get(
+                            "generated_code"
+                        )
                     except json.JSONDecodeError:
                         pass
             except Exception as exc:  # noqa: BLE001

@@ -57,7 +57,9 @@ class CommandInterpreter:
         self.llm = llm_router or LLMRouter()
         self.cache = get_cache()
 
-    async def interpret(self, natural_query: str, context: dict[str, Any] | None = None) -> str:
+    async def interpret(
+        self, natural_query: str, context: dict[str, Any] | None = None
+    ) -> str:
         """
         Convert natural language to shell command.
 
@@ -68,7 +70,9 @@ class CommandInterpreter:
         Returns:
             Shell command string.
         """
-        cache_key = f"cmd_interp:{hashlib.sha256(natural_query.encode()).hexdigest()[:16]}"
+        cache_key = (
+            f"cmd_interp:{hashlib.sha256(natural_query.encode()).hexdigest()[:16]}"
+        )
         cached = await self.cache.get(cache_key)
         if cached:
             return cached  # type: ignore
@@ -257,7 +261,9 @@ class HeadlessTerminalAgent:
             "node",
         ]
         stripped = text.strip()
-        return any(stripped.startswith(c + " ") or stripped == c for c in cmd_indicators)
+        return any(
+            stripped.startswith(c + " ") or stripped == c for c in cmd_indicators
+        )
 
     async def _run_command(self, command: str) -> CommandResult:
         """Run command safely."""
@@ -269,7 +275,9 @@ class HeadlessTerminalAgent:
             )
 
             try:
-                stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=COMMAND_TIMEOUT)
+                stdout, stderr = await asyncio.wait_for(
+                    process.communicate(), timeout=COMMAND_TIMEOUT
+                )
                 output = (stdout or stderr or b"").decode("utf-8")[:MAX_OUTPUT_SIZE]
                 exit_code = process.returncode or 0
             except TimeoutError:
@@ -326,7 +334,10 @@ class HeadlessTerminalAgent:
 
     async def explain_output(self, output: str) -> str:
         """Explain command output in natural language."""
-        prompt = "Explain the following command output in 1-2 sentences:\n\n" f"{output[:2000]}"
+        prompt = (
+            "Explain the following command output in 1-2 sentences:\n\n"
+            f"{output[:2000]}"
+        )
 
         try:
             result = await self.interpreter.llm.route(

@@ -63,18 +63,21 @@ class ErrorPatternDB:
                     pooled_pg.execute(stmt)
                 logger.info("ErrorPatternDB: using pooled Postgres backend.")
             except Exception as exc:  # noqa: BLE001
-                logger.error(f"ErrorPatternDB: Postgres schema init failed, falling back to SQLite: {exc}")
+                logger.error(
+                    f"ErrorPatternDB: Postgres schema init failed, falling back to SQLite: {exc}"
+                )
                 self._use_pg = False
         if not self._use_pg:
             self._init_sqlite()
-            logger.warning(f"ErrorPatternDB: running on local SQLite fallback at {self.db_path} — NOT durable across restarts.")
+            logger.warning(
+                f"ErrorPatternDB: running on local SQLite fallback at {self.db_path} — NOT durable across restarts."
+            )
 
     # ---------------------------------------------------------------- SQLite fallback (unchanged behavior) ----
     def _init_sqlite(self):
         conn = sqlite3.connect(self.db_path, check_same_thread=False)
         cursor = conn.cursor()
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS errors (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 output TEXT,
@@ -82,10 +85,8 @@ class ErrorPatternDB:
                 correction TEXT,
                 timestamp TEXT
             )
-        """
-        )
-        cursor.execute(
-            """
+        """)
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS ai_mistakes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 model_name TEXT,
@@ -97,8 +98,7 @@ class ErrorPatternDB:
                 prevention_strategy TEXT,
                 timestamp TEXT
             )
-        """
-        )
+        """)
         conn.commit()
         conn.close()
 
@@ -143,7 +143,9 @@ class ErrorPatternDB:
                 )
                 return
             except Exception as exc:  # noqa: BLE001
-                logger.error(f"ErrorPatternDB.log_ai_mistake: Postgres write failed: {exc}")
+                logger.error(
+                    f"ErrorPatternDB.log_ai_mistake: Postgres write failed: {exc}"
+                )
                 return
         conn = sqlite3.connect(self.db_path, check_same_thread=False)
         cursor = conn.cursor()
@@ -164,9 +166,15 @@ class ErrorPatternDB:
                     "task_description LIKE %s GROUP BY prevention_strategy ORDER BY COUNT(*) DESC LIMIT 1",
                     (model, f"%{task_type}%"),
                 )
-                return rows[0][0] if rows else "No historical data - use default validation"
+                return (
+                    rows[0][0]
+                    if rows
+                    else "No historical data - use default validation"
+                )
             except Exception as exc:  # noqa: BLE001
-                logger.error(f"ErrorPatternDB.get_prevention_strategy: Postgres read failed: {exc}")
+                logger.error(
+                    f"ErrorPatternDB.get_prevention_strategy: Postgres read failed: {exc}"
+                )
                 return "No historical data - use default validation"
         conn = sqlite3.connect(self.db_path, check_same_thread=False)
         cursor = conn.cursor()
@@ -189,7 +197,9 @@ class ErrorPatternDB:
                 )
                 return {"known_patterns": rows, "should_prevent": len(rows) > 0}
             except Exception as exc:  # noqa: BLE001
-                logger.error(f"ErrorPatternDB.check_pattern: Postgres read failed: {exc}")
+                logger.error(
+                    f"ErrorPatternDB.check_pattern: Postgres read failed: {exc}"
+                )
                 return {"known_patterns": [], "should_prevent": False}
         conn = sqlite3.connect(self.db_path, check_same_thread=False)
         cursor = conn.cursor()

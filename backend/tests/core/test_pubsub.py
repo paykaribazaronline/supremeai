@@ -75,7 +75,9 @@ async def test_pubsub_redis_unavailable_on_subscribe():
     """🛡️ Redis unavailable প্রকাশনা: যখন Redis URL কনফিগার না থাকে, তখন ক্লিয়ার এরর রিজ থাকতে হবে।"""
     pubsub = SwarmPubSub()
 
-    with patch.object(pubsub, "_get_redis", side_effect=RuntimeError("REDIS_URL is not configured")):
+    with patch.object(
+        pubsub, "_get_redis", side_effect=RuntimeError("REDIS_URL is not configured")
+    ):
         with pytest.raises(RuntimeError, match="REDIS_URL"):
             async for _ in pubsub.subscribe():
                 pass

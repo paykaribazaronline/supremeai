@@ -8,7 +8,6 @@
 import asyncio
 import contextlib
 import json
-
 # ── Security Constants ─────────────────────────────────────────────────────────
 import platform
 import re
@@ -77,7 +76,9 @@ def _validate_sandbox_root(path_str: str) -> Path:
 def _validate_vm_id(vm_id: str) -> str:
     """বাংলা মন্তব্য: vm_id pattern validation — path injection prevent।"""
     if not _VM_ID_PATTERN.match(vm_id):
-        raise ValueError(f"Invalid vm_id '{vm_id}'. Only alphanumeric, hyphen, underscore allowed (max 64 chars).")
+        raise ValueError(
+            f"Invalid vm_id '{vm_id}'. Only alphanumeric, hyphen, underscore allowed (max 64 chars)."
+        )
     return vm_id
 
 
@@ -117,7 +118,9 @@ class MicroVMSandbox:
         self.auto_destroy = True
         self.allow_fallback = settings.allow_sandbox_fallback
 
-        logger.info(f"[MicroVMSandbox] Initialized. sandbox_root={self.sandbox_root} | allow_fallback={self.allow_fallback}")
+        logger.info(
+            f"[MicroVMSandbox] Initialized. sandbox_root={self.sandbox_root} | allow_fallback={self.allow_fallback}"
+        )
 
     @classmethod
     def _generate_vm_id(cls) -> str:
@@ -161,13 +164,17 @@ class MicroVMSandbox:
         ResourceGuard.write_text(config_path, json.dumps(config), encoding="utf-8")
         return config_path
 
-    async def execute_async(self, cmd: str, timeout: int = 30, language: str = "python") -> dict[str, Any]:
+    async def execute_async(
+        self, cmd: str, timeout: int = 30, language: str = "python"
+    ) -> dict[str, Any]:
         """বাংলা মন্তব্য: Secure code execution। Path validation mandatory।"""
         vm_runtime = self._check_microvm_available()
 
         if not vm_runtime:
             if not self.allow_fallback:
-                logger.error("[MicroVMSandbox] No MicroVM runtime available and fallback disabled.")
+                logger.error(
+                    "[MicroVMSandbox] No MicroVM runtime available and fallback disabled."
+                )
                 error_event_bus.emit(
                     ErrorEvent(
                         module="microvm_sandbox",
@@ -205,7 +212,9 @@ class MicroVMSandbox:
             logger.warning(f"[MicroVMSandbox] Execution cancelled for vm_id={vm_id}")
             raise
         except Exception as exc:  # noqa: BLE001
-            logger.exception(f"[MicroVMSandbox] Unexpected error for vm_id={vm_id}: {exc}")
+            logger.exception(
+                f"[MicroVMSandbox] Unexpected error for vm_id={vm_id}: {exc}"
+            )
             error_event_bus.emit(
                 ErrorEvent(
                     module="microvm_sandbox",
@@ -221,7 +230,9 @@ class MicroVMSandbox:
             if self.auto_destroy:
                 self._destroy_vm_dir(vm_dir)
 
-    async def _run_firecracker(self, vm_dir: Path, vm_id: str, timeout: int) -> dict[str, Any]:
+    async def _run_firecracker(
+        self, vm_dir: Path, vm_id: str, timeout: int
+    ) -> dict[str, Any]:
         """বাংলা মন্তব্য: Firecracker run — pathlib.Path দিয়ে args build।"""
         self._create_microvm_config(vm_dir, vm_id)
         api_sock = vm_dir / "api.sock"
@@ -409,7 +420,9 @@ def get_sandbox() -> MicroVMSandbox:
     return _sandbox_instance
 
 
-async def execute_code_securely(code: str, timeout: int = 30, language: str = "python") -> dict[str, Any]:
+async def execute_code_securely(
+    code: str, timeout: int = 30, language: str = "python"
+) -> dict[str, Any]:
     """বাংলা মন্তব্য: Public API — sandbox validate করে code execute করে।"""
     return await get_sandbox().execute_async(code, timeout, language)
 

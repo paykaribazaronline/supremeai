@@ -1,31 +1,42 @@
 #!/usr/bin/env python3
 import os
 import re
+
 import requests
+
 
 def extract_errors(log_text):
     """Extract tracebacks and error messages from log text using regex."""
     errors = []
 
     # Match Python tracebacks
-    traceback_pattern = re.compile(r'(Traceback \(most recent call last\):[\s\S]+?(?:\n\S|$))', re.MULTILINE)
+    traceback_pattern = re.compile(
+        r"(Traceback \(most recent call last\):[\s\S]+?(?:\n\S|$))", re.MULTILINE
+    )
     for match in traceback_pattern.finditer(log_text):
         errors.append(match.group(1).strip())
 
     # Match Pytest failures
-    pytest_pattern = re.compile(r'(_{3,}\s+.*?_{3,}\n[\s\S]+?)(?=\n_{3,}|\Z)', re.MULTILINE)
+    pytest_pattern = re.compile(
+        r"(_{3,}\s+.*?_{3,}\n[\s\S]+?)(?=\n_{3,}|\Z)", re.MULTILINE
+    )
     for match in pytest_pattern.finditer(log_text):
-        if 'E   ' in match.group(1) or 'FAILURES' in match.group(1):
+        if "E   " in match.group(1) or "FAILURES" in match.group(1):
             errors.append(match.group(1).strip())
 
     # Match generic errors if none found
     if not errors:
-        error_pattern = re.compile(r'^.*?(?:Error|Exception|Failed):.*$', re.MULTILINE | re.IGNORECASE)
+        error_pattern = re.compile(
+            r"^.*?(?:Error|Exception|Failed):.*$", re.MULTILINE | re.IGNORECASE
+        )
         for match in error_pattern.finditer(log_text):
             errors.append(match.group(0).strip())
 
     # Return unique truncated errors
-    return list(dict.fromkeys([e[:1000] + ('...' if len(e) > 1000 else '') for e in errors]))[:5]
+    return list(
+        dict.fromkeys([e[:1000] + ("..." if len(e) > 1000 else "") for e in errors])
+    )[:5]
+
 
 def main():
     token = os.environ.get("GITHUB_TOKEN")
@@ -38,12 +49,14 @@ def main():
 
     headers = {
         "Authorization": f"Bearer {token}",
-        "Accept": "application/vnd.github.v3+json"
+        "Accept": "application/vnd.github.v3+json",
     }
 
     # 1. Fetch latest failed run
     print("Fetching latest failed runs...")
-    runs_url = f"https://api.github.com/repos/{repo}/actions/runs?status=failure&per_page=1"
+    runs_url = (
+        f"https://api.github.com/repos/{repo}/actions/runs?status=failure&per_page=1"
+    )
     response = requests.get(runs_url, headers=headers)
     if not response.ok:
         print(f"Failed to fetch runs: {response.status_code}")
@@ -67,11 +80,13 @@ def main():
         print(f"Failed to fetch jobs: {response.status_code}")
         return
 
-    failed_jobs = [j for j in response.json().get("jobs", []) if j["conclusion"] == "failure"]
+    failed_jobs = [
+        j for j in response.json().get("jobs", []) if j["conclusion"] == "failure"
+    ]
 
     summary_lines = [
         f"### 🚨 Smart CI Failure Summary",
-        f"**Workflow:** `{workflow_name}` (Run ID: [{run_id}]({run['html_url']}))\n"
+        f"**Workflow:** `{workflow_name}` (Run ID: [{run_id}]({run['html_url']}))\n",
     ]
 
     if not failed_jobs:
@@ -93,7 +108,9 @@ def main():
                     summary_lines.append(f"**Error {idx}:**")
                     summary_lines.append("```python\n" + err + "\n```")
             else:
-                summary_lines.append("_Could not extract specific error stacktrace from logs._")
+                summary_lines.append(
+                    "_Could not extract specific error stacktrace from logs._"
+                )
         else:
             summary_lines.append(f"_Log download failed ({log_response.status_code})._")
 
@@ -103,6 +120,7 @@ def main():
         f.write("\n".join(summary_lines) + "\n")
 
     print("Smart CI Failure Summary generated successfully.")
+
 
 if __name__ == "__main__":
     main()

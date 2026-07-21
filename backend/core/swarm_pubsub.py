@@ -79,7 +79,9 @@ class SwarmPubSub:
 
         try:
             while True:
-                message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
+                message = await pubsub.get_message(
+                    ignore_subscribe_messages=True, timeout=1.0
+                )
                 if message is not None:
                     yield message["data"].decode("utf-8")
                 await asyncio.sleep(0.01)
@@ -155,7 +157,9 @@ class SwarmPubSub:
             value = await redis_client.get("swarm:halt:global")
             return value is not None
         except Exception as e:  # noqa: BLE001
-            logger.error(f"SwarmPubSub: halt-flag check failed, defaulting to NOT halted: {e}")
+            logger.error(
+                f"SwarmPubSub: halt-flag check failed, defaulting to NOT halted: {e}"
+            )
             error_event_bus.emit(
                 ErrorEvent(
                     module="swarm_pubsub",

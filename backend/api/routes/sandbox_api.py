@@ -68,12 +68,16 @@ async def execute_command(sandbox_id: str, req: ExecuteRequest) -> dict[str, Any
     manager = _get_manager()
     if sandbox_id not in manager._sessions:
         raise HTTPException(status_code=404, detail=f"Sandbox {sandbox_id} not found")
-    result = await manager.execute_in_session(sandbox_id, req.command, timeout=req.timeout)
+    result = await manager.execute_in_session(
+        sandbox_id, req.command, timeout=req.timeout
+    )
     return result
 
 
 @router.get("/{sandbox_id}/logs")
-async def stream_logs(sandbox_id: str, request: Request, command: str, timeout: int = 300):
+async def stream_logs(
+    sandbox_id: str, request: Request, command: str, timeout: int = 300
+):
     """লাইভ লগ স্ট্রিমিং (Server-Sent Events)।"""
     manager = _get_manager()
     if sandbox_id not in manager._sessions:

@@ -70,28 +70,40 @@ MUTANT_TIMEOUT = int(os.getenv("MUTANT_TIMEOUT", "30"))
 MUTATION_OPERATORS = {
     # Arithmetic
     "AOR": {  # Arithmetic Operator Replacement
-        "Add": "Sub", "Sub": "Add",
-        "Mult": "Div", "Div": "Mult",
-        "FloorDiv": "Mult", "Mod": "Mult",
+        "Add": "Sub",
+        "Sub": "Add",
+        "Mult": "Div",
+        "Div": "Mult",
+        "FloorDiv": "Mult",
+        "Mod": "Mult",
         "Pow": "Mult",
     },
     # Comparison
     "COR": {  # Comparison Operator Replacement
-        "Eq": "NotEq", "NotEq": "Eq",
-        "Lt": "LtE", "LtE": "Lt",
-        "Gt": "GtE", "GtE": "Gt",
-        "In": "NotIn", "NotIn": "In",
-        "Is": "IsNot", "IsNot": "Is",
+        "Eq": "NotEq",
+        "NotEq": "Eq",
+        "Lt": "LtE",
+        "LtE": "Lt",
+        "Gt": "GtE",
+        "GtE": "Gt",
+        "In": "NotIn",
+        "NotIn": "In",
+        "Is": "IsNot",
+        "IsNot": "Is",
     },
     # Boolean
     "BOR": {  # Boolean Operator Replacement
-        "And": "Or", "Or": "And",
+        "And": "Or",
+        "Or": "And",
     },
     # Constant
     "CR": {  # Constant Replacement
-        "True": "False", "False": "True",
-        "1": "0", "0": "1",
-        "1.0": "0.0", "0.0": "1.0",
+        "True": "False",
+        "False": "True",
+        "1": "0",
+        "0": "1",
+        "1.0": "0.0",
+        "0.0": "1.0",
     },
     # Unary
     "UOI": {  # Unary Operator Insertion
@@ -102,9 +114,11 @@ MUTATION_OPERATORS = {
 
 # ── Data Models ──────────────────────────────────────────────────────────
 
+
 @dataclass
 class Mutant:
     """বাংলা মন্তব্য: একক mutant-এর তথ্য"""
+
     id: str
     operator: str  # AOR, COR, BOR, etc.
     original_node: str
@@ -134,6 +148,7 @@ class Mutant:
 @dataclass
 class MutationResult:
     """বাংলা মন্তব্য: সম্পূর্ণ mutation test-এর ফলাফল"""
+
     target_file: str
     total_mutants: int = 0
     killed: int = 0
@@ -158,6 +173,7 @@ class MutationResult:
 
 
 # ── AST Mutator ────────────────────────────────────────────────────────────
+
 
 class ASTRewriter(ast.NodeTransformer):
     """
@@ -198,7 +214,9 @@ class ASTRewriter(ast.NodeTransformer):
                     new_op = getattr(ast, new_op_name)()
                     node.ops = [new_op]
                     self.mutated = True
-                    logger.debug(f"COR: {op_name} → {new_op_name} at line {node.lineno}")
+                    logger.debug(
+                        f"COR: {op_name} → {new_op_name} at line {node.lineno}"
+                    )
         return self.generic_visit(node)
 
     def visit_BoolOp(self, node: ast.BoolOp) -> ast.AST:
@@ -282,7 +300,14 @@ class MutantGenerator:
                 self._add_mutant(node, "COR")
             elif isinstance(node, ast.BoolOp):
                 self._add_mutant(node, "BOR")
-            elif isinstance(node, ast.Constant) and node.value in (True, False, 1, 0, 1.0, 0.0):
+            elif isinstance(node, ast.Constant) and node.value in (
+                True,
+                False,
+                1,
+                0,
+                1.0,
+                0.0,
+            ):
                 self._add_mutant(node, "CR")
             elif isinstance(node, ast.If):
                 self._add_mutant(node, "IF_NEG")
@@ -324,12 +349,15 @@ class MutantGenerator:
         temp_dir = Path(tempfile.gettempdir()) / "supremeai_mutants"
         temp_dir.mkdir(exist_ok=True)
 
-        temp_file = temp_dir / f"mutant_{hashlib.sha256(code.encode()).hexdigest()[:12]}.py"
+        temp_file = (
+            temp_dir / f"mutant_{hashlib.sha256(code.encode()).hexdigest()[:12]}.py"
+        )
         temp_file.write_text(code, encoding="utf-8")
         return str(temp_file)
 
 
 # ── Mutant Executor ────────────────────────────────────────────────────────
+
 
 class MutantExecutor:
     """
@@ -337,7 +365,9 @@ class MutantExecutor:
     Test fail করলে mutant "killed", pass করলে "survived"।
     """
 
-    def __init__(self, test_command: list[str] | None = None, timeout: int = MUTANT_TIMEOUT):
+    def __init__(
+        self, test_command: list[str] | None = None, timeout: int = MUTANT_TIMEOUT
+    ):
         self.test_command = test_command or [sys.executable, "-m", "pytest", "-x", "-q"]
         self.timeout = timeout
 
@@ -390,6 +420,7 @@ class MutantExecutor:
 
 # ── Parallel Executor ────────────────────────────────────────────────────────
 
+
 class ParallelMutantExecutor:
     """
     বাংলা মন্তব্য: একাধিক mutant parallel-এ execute করে সময় কমায়।
@@ -398,13 +429,17 @@ class ParallelMutantExecutor:
     def __init__(self, max_workers: int = DEFAULT_PARALLEL):
         self.max_workers = max_workers
 
-    def execute_all(self, mutants: list[Mutant], test_command: list[str] | None = None) -> list[Mutant]:
+    def execute_all(
+        self, mutants: list[Mutant], test_command: list[str] | None = None
+    ) -> list[Mutant]:
         """বাংলা মন্তব্য: সব mutant parallel-এ execute করে"""
         executor = MutantExecutor(test_command)
         results = []
 
         with ProcessPoolExecutor(max_workers=self.max_workers) as pool:
-            futures = {pool.submit(executor.execute, mutant): mutant for mutant in mutants}
+            futures = {
+                pool.submit(executor.execute, mutant): mutant for mutant in mutants
+            }
 
             for future in as_completed(futures):
                 mutant = futures[future]
@@ -421,6 +456,7 @@ class ParallelMutantExecutor:
 
 # ── Report Generator ─────────────────────────────────────────────────────
 
+
 class MutationReportGenerator:
     """বাংলা মন্তব্য: Mutation test report তৈরি করে"""
 
@@ -428,7 +464,9 @@ class MutationReportGenerator:
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def generate(self, result: MutationResult, threshold: float = DEFAULT_THRESHOLD) -> tuple[str, str]:
+    def generate(
+        self, result: MutationResult, threshold: float = DEFAULT_THRESHOLD
+    ) -> tuple[str, str]:
         """বাংলা মন্তব্য: JSON এবং HTML report জেনারেট করে"""
         json_file = self._generate_json(result)
         html_file = self._generate_html(result, threshold)
@@ -453,7 +491,9 @@ class MutationReportGenerator:
         }
 
         file_path = self.output_dir / f"mutation_{datetime.now(UTC):%Y%m%d_%H%M%S}.json"
-        file_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+        file_path.write_text(
+            json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
         return str(file_path)
 
     def _generate_html(self, result: MutationResult, threshold: float) -> str:
@@ -462,8 +502,18 @@ class MutationReportGenerator:
 
         rows = ""
         for m in result.mutants:
-            status_emoji = {"killed": "✅", "survived": "⚠️", "timeout": "⏱️", "error": "❌"}.get(m.status, "❓")
-            status_color = {"killed": "#28a745", "survived": "#ffc107", "timeout": "#fd7e14", "error": "#dc3545"}.get(m.status, "#6c757d")
+            status_emoji = {
+                "killed": "✅",
+                "survived": "⚠️",
+                "timeout": "⏱️",
+                "error": "❌",
+            }.get(m.status, "❓")
+            status_color = {
+                "killed": "#28a745",
+                "survived": "#ffc107",
+                "timeout": "#fd7e14",
+                "error": "#dc3545",
+            }.get(m.status, "#6c757d")
             rows += f"""
             <tr>
                 <td><code>{m.id}</code></td>
@@ -529,12 +579,15 @@ class MutationReportGenerator:
 
 # ── Main Mutation Test Runner ──────────────────────────────────────────────
 
+
 class MutationTestRunner:
     """
     বাংলা মন্তব্য: মূল অরকেস্ট্রেটর। সব mutation testing step একসাথে চালায়।
     """
 
-    def __init__(self, threshold: float = DEFAULT_THRESHOLD, parallel: int = DEFAULT_PARALLEL):
+    def __init__(
+        self, threshold: float = DEFAULT_THRESHOLD, parallel: int = DEFAULT_PARALLEL
+    ):
         self.threshold = threshold
         self.parallel = parallel
         self.report_generator = MutationReportGenerator()
@@ -582,13 +635,18 @@ class MutationTestRunner:
 
         return result
 
-    async def run_directory(self, target_dir: str, recursive: bool = True) -> list[MutationResult]:
+    async def run_directory(
+        self, target_dir: str, recursive: bool = True
+    ) -> list[MutationResult]:
         """বাংলা মন্তব্য: ডিরেক্টরির সব Python ফাইলের জন্য mutation testing চালায়"""
         path = Path(target_dir)
         pattern = "**/*.py" if recursive else "*.py"
         py_files = [
-            f for f in path.glob(pattern)
-            if "test_" not in f.name and "__init__" not in f.name and "conftest" not in f.name
+            f
+            for f in path.glob(pattern)
+            if "test_" not in f.name
+            and "__init__" not in f.name
+            and "conftest" not in f.name
         ]
 
         results = []
@@ -605,7 +663,7 @@ class MutationTestRunner:
         """বাংলা মন্তব্য: কনসোলে ফলাফল প্রিন্ট করে"""
         print(f"\n{'='*60}")
         print(f"🧬 Mutation Test Result: {result.target_file}")
-        print("="*60)
+        print("=" * 60)
         print(f"Total Mutants : {result.total_mutants}")
         print(f"✅ Killed      : {result.killed}")
         print(f"⚠️  Survived    : {result.survived}")
@@ -615,9 +673,13 @@ class MutationTestRunner:
         print(f"⏱️  Duration    : {result.execution_time:.1f}s")
 
         if result.mutation_score >= self.threshold:
-            print(f"\n✅ PASS — Mutation score {result.mutation_score:.1f}% >= threshold {self.threshold}%")
+            print(
+                f"\n✅ PASS — Mutation score {result.mutation_score:.1f}% >= threshold {self.threshold}%"
+            )
         else:
-            print(f"\n❌ FAIL — Mutation score {result.mutation_score:.1f}% < threshold {self.threshold}%")
+            print(
+                f"\n❌ FAIL — Mutation score {result.mutation_score:.1f}% < threshold {self.threshold}%"
+            )
             print("\n💡 Survived mutants indicate weak test coverage:")
             for m in result.mutants:
                 if m.status == "survived":
@@ -629,28 +691,55 @@ class MutationTestRunner:
 
 # ── CLI ──────────────────────────────────────────────────────────────────────
 
+
 def main() -> None:
     """বাংলা মন্তব্য: CLI entry point"""
     parser = argparse.ArgumentParser(
         description="SupremeAI 2.0 — Mutation Testing Engine\nমিউটেশন টেস্টিং দিয়ে টেস্ট কোয়ালিটি মেজার",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--target", "-t", required=True, help="Target Python file or directory")
-    parser.add_argument("--recursive", "-r", action="store_true", help="Process directory recursively")
-    parser.add_argument("--threshold", "-th", type=float, default=DEFAULT_THRESHOLD,
-                        help="Minimum mutation score threshold (%)")
-    parser.add_argument("--parallel", "-p", type=int, default=DEFAULT_PARALLEL,
-                        help="Number of parallel workers")
-    parser.add_argument("--timeout", "-to", type=int, default=MUTANT_TIMEOUT,
-                        help="Timeout per mutant in seconds")
-    parser.add_argument("--test-command", "-cmd", default="",
-                        help="Custom pytest command (comma-separated)")
+    parser.add_argument(
+        "--target", "-t", required=True, help="Target Python file or directory"
+    )
+    parser.add_argument(
+        "--recursive", "-r", action="store_true", help="Process directory recursively"
+    )
+    parser.add_argument(
+        "--threshold",
+        "-th",
+        type=float,
+        default=DEFAULT_THRESHOLD,
+        help="Minimum mutation score threshold (%)",
+    )
+    parser.add_argument(
+        "--parallel",
+        "-p",
+        type=int,
+        default=DEFAULT_PARALLEL,
+        help="Number of parallel workers",
+    )
+    parser.add_argument(
+        "--timeout",
+        "-to",
+        type=int,
+        default=MUTANT_TIMEOUT,
+        help="Timeout per mutant in seconds",
+    )
+    parser.add_argument(
+        "--test-command",
+        "-cmd",
+        default="",
+        help="Custom pytest command (comma-separated)",
+    )
 
     args = parser.parse_args()
 
     logger.remove()
-    logger.add(sys.stderr, level="INFO",
-               format="<green>{time:HH:mm:ss}</green> | <level>{level}</level> | {message}")
+    logger.add(
+        sys.stderr,
+        level="INFO",
+        format="<green>{time:HH:mm:ss}</green> | <level>{level}</level> | {message}",
+    )
 
     async def run():
         runner = MutationTestRunner(threshold=args.threshold, parallel=args.parallel)
@@ -669,16 +758,20 @@ def main() -> None:
                 sys.exit(1)
 
         elif target_path.is_dir():
-            results = await runner.run_directory(str(target_path), recursive=args.recursive)
+            results = await runner.run_directory(
+                str(target_path), recursive=args.recursive
+            )
 
             total_mutants = sum(r.total_mutants for r in results)
             total_killed = sum(r.killed for r in results)
             total_survived = sum(r.survived for r in results)
-            avg_score = sum(r.mutation_score for r in results) / len(results) if results else 0
+            avg_score = (
+                sum(r.mutation_score for r in results) / len(results) if results else 0
+            )
 
             print(f"\n{'='*60}")
             print("🧬 Aggregate Mutation Test Summary")
-            print("="*60)
+            print("=" * 60)
             print(f"Files Tested  : {len(results)}")
             print(f"Total Mutants : {total_mutants}")
             print(f"Killed        : {total_killed}")

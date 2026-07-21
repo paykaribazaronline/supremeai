@@ -36,9 +36,7 @@ import json
 import os
 import sys
 from dataclasses import asdict, dataclass, field
-from datetime import UTC
-from datetime import datetime
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -47,12 +45,10 @@ from loguru import logger
 from sqlalchemy import select
 
 try:
-    from models.wallet import UserWallet
-    from models.wallet import TransactionLedgerEntry
+    from models.wallet import TransactionLedgerEntry, UserWallet
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "backend"))
-    from models.wallet import UserWallet
-    from models.wallet import TransactionLedgerEntry
+    from models.wallet import TransactionLedgerEntry, UserWallet
 
 
 @dataclass
@@ -100,7 +96,12 @@ class QuotaEnforcer:
         if pricing_path:
             self.pricing_path = Path(pricing_path)
         else:
-            default = Path(__file__).resolve().parents[3] / "backend" / "config" / "pricing_tiers.json"
+            default = (
+                Path(__file__).resolve().parents[3]
+                / "backend"
+                / "config"
+                / "pricing_tiers.json"
+            )
             self.pricing_path = default
 
         self.pricing_tiers = self._load_pricing_tiers()
@@ -124,6 +125,7 @@ class QuotaEnforcer:
         if self.project_id:
             try:
                 from google.cloud import firestore
+
                 self.firestore_client = firestore.Client(project=self.project_id)
                 logger.info("Firestore client initialized")
             except Exception as e:
@@ -131,7 +133,9 @@ class QuotaEnforcer:
 
         if self.database_url:
             try:
-                from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+                from sqlalchemy.ext.asyncio import (AsyncSession,
+                                                    create_async_engine)
+
                 engine = create_async_engine(self.database_url)
                 self.db_session = AsyncSession(engine)
                 logger.info("Database session initialized")
@@ -141,7 +145,10 @@ class QuotaEnforcer:
         if self.redis_url:
             try:
                 import redis.asyncio as aioredis
-                self._redis_lock = aioredis.from_url(self.redis_url, socket_connect_timeout=5)
+
+                self._redis_lock = aioredis.from_url(
+                    self.redis_url, socket_connect_timeout=5
+                )
                 await self._redis_lock.ping()
                 logger.info("Redis lock client initialized")
             except Exception as e:
@@ -150,6 +157,7 @@ class QuotaEnforcer:
         if self.slack_webhook or self.discord_webhook:
             try:
                 import httpx
+
                 self._http = httpx.AsyncClient(timeout=10.0)
             except Exception as e:
                 logger.warning(f"HTTP client init failed: {e}")
@@ -302,7 +310,9 @@ class QuotaEnforcer:
                 logger.info(f"[DRY-RUN] Would suspend tenant {tenant_id}")
                 return True
 
-            await tenant_ref.update({"status": "suspended", "suspended_at": datetime.now(UTC).isoformat()})
+            await tenant_ref.update(
+                {"status": "suspended", "suspended_at": datetime.now(UTC).isoformat()}
+            )
             logger.info(f"Tenant {tenant_id} suspended")
             return True
         except Exception as e:
@@ -366,7 +376,9 @@ class QuotaEnforcer:
             if not webhook_url:
                 continue
             try:
-                payload = {"text": message} if label == "Slack" else {"content": message}
+                payload = (
+                    {"text": message} if label == "Slack" else {"content": message}
+                )
                 await self._http.post(webhook_url, json=payload)
                 logger.info(f"Quota alert sent to {label} for {status.tenant_id}")
             except Exception as e:
@@ -387,12 +399,22 @@ async def main() -> int:
         description="SupremeAI Billing Quota Enforcer",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--tenant-id", type=str, help="Check/enforce quota for specific tenant")
-    parser.add_argument("--enforce-all", action="store_true", help="Enforce quotas on all tenants")
-    parser.add_argument("--grace-hours", type=int, default=0, help="Grace period before suspension")
+    parser.add_argument(
+        "--tenant-id", type=str, help="Check/enforce quota for specific tenant"
+    )
+    parser.add_argument(
+        "--enforce-all", action="store_true", help="Enforce quotas on all tenants"
+    )
+    parser.add_argument(
+        "--grace-hours", type=int, default=0, help="Grace period before suspension"
+    )
     parser.add_argument("--pricing-path", type=str, help="Path to pricing_tiers.json")
-    parser.add_argument("--dry-run", action="store_true", help="Simulate without making changes")
-    parser.add_argument("--notify", action="store_true", help="Send alerts for warnings/exceedances")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Simulate without making changes"
+    )
+    parser.add_argument(
+        "--notify", action="store_true", help="Send alerts for warnings/exceedances"
+    )
     parser.add_argument("--output-dir", type=Path, default=Path("reports/billing"))
 
     args = parser.parse_args()
@@ -430,7 +452,9 @@ async def main() -> int:
 
             if status.status == "exceeded" and not args.dry_run:
                 await enforcer.suspend_tenant(args.tenant_id, dry_run=False)
-                logger.warning(f"Tenant {args.tenant_id} suspended due to quota exceedance")
+                logger.warning(
+                    f"Tenant {args.tenant_id} suspended due to quota exceedance"
+                )
                 return 1
             elif status.status == "exceeded" and args.dry_run:
                 logger.warning(f"[DRY-RUN] Would suspend tenant {args.tenant_id}")

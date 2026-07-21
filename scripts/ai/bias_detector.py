@@ -7,13 +7,14 @@ Priority: 🟡 Medium
 
 import json
 import logging
-import numpy as np
-from datetime import datetime
-from typing import Dict, List, Optional, Any, Tuple
+from collections import Counter
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from collections import Counter
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class BiasType(Enum):
     """Types of bias detected."""
+
     GENDER = "gender_bias"
     RACIAL = "racial_bias"
     AGE = "age_bias"
@@ -32,6 +34,7 @@ class BiasType(Enum):
 @dataclass
 class BiasMetric:
     """Bias metric for a protected attribute."""
+
     attribute: str
     bias_type: BiasType
     ratio: float
@@ -44,6 +47,7 @@ class BiasMetric:
 @dataclass
 class BiasDetectionResult:
     """Result of bias detection analysis."""
+
     model_id: str
     timestamp: datetime
     bias_metrics: List[BiasMetric]
@@ -59,22 +63,64 @@ class BiasDetector:
 
     # Protected attribute terms for analysis
     PROTECTED_TERMS = {
-        BiasType.GENDER: ['he', 'she', 'him', 'her', 'male', 'female', 'man', 'woman',
-                         'boy', 'girl', 'mr.', 'mrs.', 'ms.', 'mister', 'miss'],
-        BiasType.RACIAL: ['black', 'white', 'asian', 'hispanic', 'latino', 'african',
-                         'caucasian', 'minority', 'majority', 'ethnic'],
-        BiasType.AGE: ['young', 'old', 'elderly', 'teen', 'senior', 'child', 'adult'],
-        BiasType.RELIGIOUS: ['christian', 'muslim', 'jewish', 'hindu', 'buddhist',
-                            'religion', 'faith', 'worship', 'pray'],
-        BiasType.SOCIOECONOMIC: ['rich', 'poor', 'wealthy', 'expensive', 'cheap',
-                                'luxury', 'budget', 'premium'],
+        BiasType.GENDER: [
+            "he",
+            "she",
+            "him",
+            "her",
+            "male",
+            "female",
+            "man",
+            "woman",
+            "boy",
+            "girl",
+            "mr.",
+            "mrs.",
+            "ms.",
+            "mister",
+            "miss",
+        ],
+        BiasType.RACIAL: [
+            "black",
+            "white",
+            "asian",
+            "hispanic",
+            "latino",
+            "african",
+            "caucasian",
+            "minority",
+            "majority",
+            "ethnic",
+        ],
+        BiasType.AGE: ["young", "old", "elderly", "teen", "senior", "child", "adult"],
+        BiasType.RELIGIOUS: [
+            "christian",
+            "muslim",
+            "jewish",
+            "hindu",
+            "buddhist",
+            "religion",
+            "faith",
+            "worship",
+            "pray",
+        ],
+        BiasType.SOCIOECONOMIC: [
+            "rich",
+            "poor",
+            "wealthy",
+            "expensive",
+            "cheap",
+            "luxury",
+            "budget",
+            "premium",
+        ],
     }
 
     # Fairness thresholds
     FAIRNESS_THRESHOLDS = {
-        'disparate_impact': 0.8,  # Below this indicates bias
-        'statistical_parity': 0.1,  # Difference threshold
-        'demographic_parity': 0.1,
+        "disparate_impact": 0.8,  # Below this indicates bias
+        "statistical_parity": 0.1,  # Difference threshold
+        "demographic_parity": 0.1,
     }
 
     def __init__(self, output_path: str = "bias_reports"):
@@ -82,9 +128,7 @@ class BiasDetector:
         self.output_path.mkdir(exist_ok=True)
 
     def compute_disparate_impact(
-        self,
-        predictions: np.ndarray,
-        protected_attribute_mask: np.ndarray
+        self, predictions: np.ndarray, protected_attribute_mask: np.ndarray
     ) -> float:
         """
         Compute disparate impact ratio.
@@ -94,18 +138,20 @@ class BiasDetector:
         reference_positive_rate = np.mean(predictions[protected_attribute_mask == 0])
 
         if reference_positive_rate == 0:
-            return 1.0 if protected_positive_rate == 0 else float('inf')
+            return 1.0 if protected_positive_rate == 0 else float("inf")
 
         return float(protected_positive_rate / reference_positive_rate)
 
     def compute_statistical_parity_difference(
-        self,
-        predictions: np.ndarray,
-        protected_attribute_mask: np.ndarray
+        self, predictions: np.ndarray, protected_attribute_mask: np.ndarray
     ) -> float:
         """Compute statistical parity difference."""
-        return float(abs(np.mean(predictions[protected_attribute_mask == 1]) -
-                       np.mean(predictions[protected_attribute_mask == 0])))
+        return float(
+            abs(
+                np.mean(predictions[protected_attribute_mask == 1])
+                - np.mean(predictions[protected_attribute_mask == 0])
+            )
+        )
 
     def analyze_text_bias(self, text_samples: List[str]) -> Dict[BiasType, int]:
         """Analyze text samples for bias indicators."""
@@ -113,10 +159,7 @@ class BiasDetector:
         text_lower = [t.lower() for t in text_samples]
 
         for bias_type, terms in self.PROTECTED_TERMS.items():
-            count = sum(
-                sum(1 for term in terms if term in text)
-                for text in text_lower
-            )
+            count = sum(sum(1 for term in terms if term in text) for text in text_lower)
             bias_counts[bias_type] = count
 
         return bias_counts
@@ -126,7 +169,7 @@ class BiasDetector:
         predictions: np.ndarray,
         labels: np.ndarray,
         protected_attributes: Dict[str, np.ndarray],
-        prediction_threshold: float = 0.5
+        prediction_threshold: float = 0.5,
     ) -> List[BiasMetric]:
         """Compute bias metrics for all protected attributes."""
         metrics = []
@@ -135,26 +178,36 @@ class BiasDetector:
         for attr_name, attr_mask in protected_attributes.items():
             sample_size = len(predictions)
 
-            disparate_impact = self.compute_disparate_impact(binary_predictions, attr_mask)
-            stat_parity = self.compute_statistical_parity_difference(binary_predictions, attr_mask)
+            disparate_impact = self.compute_disparate_impact(
+                binary_predictions, attr_mask
+            )
+            stat_parity = self.compute_statistical_parity_difference(
+                binary_predictions, attr_mask
+            )
 
             bias_type = next(
-                (bt for bt in BiasType if bt.value.replace('_bias', '') in attr_name.lower()),
-                BiasType.SOCIOECONOMIC
+                (
+                    bt
+                    for bt in BiasType
+                    if bt.value.replace("_bias", "") in attr_name.lower()
+                ),
+                BiasType.SOCIOECONOMIC,
             )
 
             # Confidence based on sample size
             confidence = min(sample_size / 1000, 1.0)
 
-            metrics.append(BiasMetric(
-                attribute=attr_name,
-                bias_type=bias_type,
-                ratio=disparate_impact,
-                disparate_impact=disparate_impact,
-                statistical_parity=stat_parity,
-                confidence=confidence,
-                sample_size=sample_size
-            ))
+            metrics.append(
+                BiasMetric(
+                    attribute=attr_name,
+                    bias_type=bias_type,
+                    ratio=disparate_impact,
+                    disparate_impact=disparate_impact,
+                    statistical_parity=stat_parity,
+                    confidence=confidence,
+                    sample_size=sample_size,
+                )
+            )
 
         return metrics
 
@@ -164,7 +217,7 @@ class BiasDetector:
         predictions: np.ndarray,
         labels: Optional[np.ndarray] = None,
         protected_attributes: Optional[Dict[str, np.ndarray]] = None,
-        text_samples: Optional[List[str]] = None
+        text_samples: Optional[List[str]] = None,
     ) -> BiasDetectionResult:
         """Run comprehensive bias detection."""
         bias_metrics = []
@@ -172,7 +225,9 @@ class BiasDetector:
 
         # Compute metrics for protected attributes
         if protected_attributes:
-            bias_metrics = self.compute_bias_metrics(predictions, labels or np.array([]), protected_attributes)
+            bias_metrics = self.compute_bias_metrics(
+                predictions, labels or np.array([]), protected_attributes
+            )
 
         # Analyze text bias
         if text_samples:
@@ -185,11 +240,14 @@ class BiasDetector:
 
         # Generate recommendations from metrics
         for metric in bias_metrics:
-            if metric.disparate_impact < self.FAIRNESS_THRESHOLDS['disparate_impact']:
+            if metric.disparate_impact < self.FAIRNESS_THRESHOLDS["disparate_impact"]:
                 recommendations.append(
                     f"High {metric.bias_type.value} detected. Consider reweighing or adversarial debiasing."
                 )
-            if metric.statistical_parity > self.FAIRNESS_THRESHOLDS['statistical_parity']:
+            if (
+                metric.statistical_parity
+                > self.FAIRNESS_THRESHOLDS["statistical_parity"]
+            ):
                 recommendations.append(
                     f"Statistical parity violation for {metric.attribute}. Apply fairness constraints."
                 )
@@ -198,7 +256,10 @@ class BiasDetector:
         if bias_metrics:
             fairness_scores = []
             for m in bias_metrics:
-                score = min(m.disparate_impact / self.FAIRNESS_THRESHOLDS['disparate_impact'], 1.0)
+                score = min(
+                    m.disparate_impact / self.FAIRNESS_THRESHOLDS["disparate_impact"],
+                    1.0,
+                )
                 fairness_scores.append(score)
             overall_score = float(np.mean(fairness_scores))
         else:
@@ -213,7 +274,7 @@ class BiasDetector:
             bias_metrics=bias_metrics,
             overall_fairness_score=overall_score,
             recommendations=recommendations,
-            data_drift_detected=data_drift
+            data_drift_detected=data_drift,
         )
 
     def _check_data_drift(self, predictions: np.ndarray) -> bool:
@@ -224,29 +285,32 @@ class BiasDetector:
 
     def generate_report(self, result: BiasDetectionResult) -> str:
         """Generate bias detection report."""
-        report_path = self.output_path / f"bias_report_{result.model_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        report_path = (
+            self.output_path
+            / f"bias_report_{result.model_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        )
 
         report = {
-            'model_id': result.model_id,
-            'timestamp': result.timestamp.isoformat(),
-            'overall_fairness_score': result.overall_fairness_score,
-            'data_drift_detected': result.data_drift_detected,
-            'bias_metrics': [
+            "model_id": result.model_id,
+            "timestamp": result.timestamp.isoformat(),
+            "overall_fairness_score": result.overall_fairness_score,
+            "data_drift_detected": result.data_drift_detected,
+            "bias_metrics": [
                 {
-                    'attribute': m.attribute,
-                    'bias_type': m.bias_type.value,
-                    'ratio': m.ratio,
-                    'disparate_impact': m.disparate_impact,
-                    'statistical_parity': m.statistical_parity,
-                    'confidence': m.confidence,
-                    'sample_size': m.sample_size
+                    "attribute": m.attribute,
+                    "bias_type": m.bias_type.value,
+                    "ratio": m.ratio,
+                    "disparate_impact": m.disparate_impact,
+                    "statistical_parity": m.statistical_parity,
+                    "confidence": m.confidence,
+                    "sample_size": m.sample_size,
                 }
                 for m in result.bias_metrics
             ],
-            'recommendations': result.recommendations
+            "recommendations": result.recommendations,
         }
 
-        with open(report_path, 'w') as f:
+        with open(report_path, "w") as f:
             json.dump(report, f, indent=2)
 
         logger.info(f"Bias report saved to: {report_path}")
@@ -255,12 +319,14 @@ class BiasDetector:
     def get_fairness_summary(self, result: BiasDetectionResult) -> Dict[str, Any]:
         """Get summary of fairness analysis."""
         return {
-            'model_id': result.model_id,
-            'fairness_score': round(result.overall_fairness_score, 3),
-            'bias_detected': any(m.disparate_impact < self.FAIRNESS_THRESHOLDS['disparate_impact']
-                                for m in result.bias_metrics),
-            'attributes_analyzed': len(result.bias_metrics),
-            'recommendations_count': len(result.recommendations)
+            "model_id": result.model_id,
+            "fairness_score": round(result.overall_fairness_score, 3),
+            "bias_detected": any(
+                m.disparate_impact < self.FAIRNESS_THRESHOLDS["disparate_impact"]
+                for m in result.bias_metrics
+            ),
+            "attributes_analyzed": len(result.bias_metrics),
+            "recommendations_count": len(result.recommendations),
         }
 
 
@@ -269,9 +335,11 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Detect bias in AI models")
-    parser.add_argument('--model-id', required=True, help='Model identifier to analyze')
-    parser.add_argument('--predictions-file', help='Path to predictions JSON file')
-    parser.add_argument('--output-dir', default='bias_reports', help='Output directory for reports')
+    parser.add_argument("--model-id", required=True, help="Model identifier to analyze")
+    parser.add_argument("--predictions-file", help="Path to predictions JSON file")
+    parser.add_argument(
+        "--output-dir", default="bias_reports", help="Output directory for reports"
+    )
 
     args = parser.parse_args()
 
@@ -281,15 +349,15 @@ def main():
     np.random.seed(42)
     predictions = np.random.rand(1000)
     protected_attributes = {
-        'gender_male': np.random.randint(0, 2, 1000),
-        'age_minority': np.random.randint(0, 2, 1000),
+        "gender_male": np.random.randint(0, 2, 1000),
+        "age_minority": np.random.randint(0, 2, 1000),
     }
 
     result = detector.detect_bias(
         model_id=args.model_id,
         predictions=predictions,
         protected_attributes=protected_attributes,
-        text_samples=["Sample text with male and female references", "Another sample"]
+        text_samples=["Sample text with male and female references", "Another sample"],
     )
 
     report_path = detector.generate_report(result)

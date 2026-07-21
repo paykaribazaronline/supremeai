@@ -19,7 +19,9 @@ from loguru import logger
 strict_enabled = os.environ.get("STRICT_ENCRYPTION_CHECK") == "true"
 
 if strict_enabled:
-    ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY") or os.environ.get("SUPREMEAI_ENCRYPTION_KEY")
+    ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY") or os.environ.get(
+        "SUPREMEAI_ENCRYPTION_KEY"
+    )
     if not ENCRYPTION_KEY:
         error_event_bus.emit(
             ErrorEvent(
@@ -30,14 +32,24 @@ if strict_enabled:
                 structured_context=ErrorContext(module="auto_fixed"),
             )
         )
-        raise ValueError("CRITICAL: ENCRYPTION_KEY environment variable is not set. Halting application for security reasons. Fail-Fast!")
+        raise ValueError(
+            "CRITICAL: ENCRYPTION_KEY environment variable is not set. Halting application for security reasons. Fail-Fast!"
+        )
 else:
     # Normal mode: settings.encryption_key থেকে আসে (computed field via secret_vault)
-    ENCRYPTION_KEY = settings.encryption_key.get_secret_value() if settings.encryption_key else os.environ.get("ENCRYPTION_KEY")
+    ENCRYPTION_KEY = (
+        settings.encryption_key.get_secret_value()
+        if settings.encryption_key
+        else os.environ.get("ENCRYPTION_KEY")
+    )
 
     if not ENCRYPTION_KEY:
         # টেস্ট ও সিআই পরিবেশে ক্র্যাশ এড়াতে একটি ডামি/এফেমেরাল কী জেনারেট করা হচ্ছে।
-        if os.environ.get("ENV") in {"test", "testing", "ci"} or os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true":
+        if (
+            os.environ.get("ENV") in {"test", "testing", "ci"}
+            or os.environ.get("CI") == "true"
+            or os.environ.get("GITHUB_ACTIONS") == "true"
+        ):
             ENCRYPTION_KEY = Fernet.generate_key().decode("utf-8")
         else:
             error_event_bus.emit(
@@ -49,7 +61,9 @@ else:
                     structured_context=ErrorContext(module="auto_fixed"),
                 )
             )
-            raise ValueError("CRITICAL: ENCRYPTION_KEY environment variable is not set. Halting application for security reasons. Fail-Fast!")
+            raise ValueError(
+                "CRITICAL: ENCRYPTION_KEY environment variable is not set. Halting application for security reasons. Fail-Fast!"
+            )
 
 
 # Encryption key rotation support.
@@ -63,7 +77,9 @@ _raw_keys = [
 ]
 
 if not _raw_keys:
-    raise ValueError("CRITICAL: No encryption keys configured (ENCRYPTION_KEYS). Fail-Fast!")
+    raise ValueError(
+        "CRITICAL: No encryption keys configured (ENCRYPTION_KEYS). Fail-Fast!"
+    )
 
 _vault = RotatingFernet(_raw_keys)
 

@@ -48,8 +48,12 @@ class WorkspaceContextInput(BaseModel):
         validate_assignment=True,
     )
 
-    project_type: WorkspaceType = Field(..., description="কাজ করা বর্তমান প্রোজেক্টের ধরন")
-    tenant_id: str | None = Field(default=None, description="টেন্যান্ট আইডি (যদি মাল্টি-টেন্যান্ট)")
+    project_type: WorkspaceType = Field(
+        ..., description="কাজ করা বর্তমান প্রোজেক্টের ধরন"
+    )
+    tenant_id: str | None = Field(
+        default=None, description="টেন্যান্ট আইডি (যদি মাল্টি-টেন্যান্ট)"
+    )
 
 
 class ScopedFilePathInput(BaseModel):
@@ -58,7 +62,9 @@ class ScopedFilePathInput(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
     relative_path: str = Field(..., description="কাজ করা ফাইলের রিলেটিভ পাথ")
-    project_type: WorkspaceType | None = Field(default=None, description="প্রোজেক্টের ধরন")
+    project_type: WorkspaceType | None = Field(
+        default=None, description="প্রোজেক্টের ধরন"
+    )
 
 
 _workspace_config: dict[str, Any] = {}
@@ -88,12 +94,22 @@ def _get_workspace_path(project_type: WorkspaceType) -> Path:
     workspace_config = config.get("workspace", {})
 
     path_mapping = {
-        WorkspaceType.ECOMMERCE_BACKEND: workspace_config.get("ecommerce_backend", "backend"),
-        WorkspaceType.ECOMMERCE_FRONTEND: workspace_config.get("ecommerce_frontend", "apps/studio-client"),
-        WorkspaceType.MOBILE_FLUTTER: workspace_config.get("mobile_flutter", "apps/mobile"),
-        WorkspaceType.ANDROID_JAVA: workspace_config.get("android_java", "apps/android"),
+        WorkspaceType.ECOMMERCE_BACKEND: workspace_config.get(
+            "ecommerce_backend", "backend"
+        ),
+        WorkspaceType.ECOMMERCE_FRONTEND: workspace_config.get(
+            "ecommerce_frontend", "apps/studio-client"
+        ),
+        WorkspaceType.MOBILE_FLUTTER: workspace_config.get(
+            "mobile_flutter", "apps/mobile"
+        ),
+        WorkspaceType.ANDROID_JAVA: workspace_config.get(
+            "android_java", "apps/android"
+        ),
         WorkspaceType.ADMIN_PANEL: workspace_config.get("admin_panel", "admin"),
-        WorkspaceType.INFRASTRUCTURE: workspace_config.get("infrastructure", "infrastructure"),
+        WorkspaceType.INFRASTRUCTURE: workspace_config.get(
+            "infrastructure", "infrastructure"
+        ),
     }
 
     path = path_mapping.get(project_type, "backend")
@@ -144,7 +160,9 @@ def _save_workspace_session(project_type: WorkspaceType, tenant_id: str | None =
     session_path = Path(WORKSPACE_SESSION_FILE)
 
     with _session_file_lock(session_path):
-        temp_fd, temp_path = tempfile.mkstemp(dir=str(session_path.parent), prefix=session_path.name + ".tmp")
+        temp_fd, temp_path = tempfile.mkstemp(
+            dir=str(session_path.parent), prefix=session_path.name + ".tmp"
+        )
         try:
             with os.fdopen(temp_fd, "w", encoding="utf-8") as f:
                 f.write(json.dumps(session, indent=2, ensure_ascii=False))
@@ -314,7 +332,10 @@ async def workspace_list_projects() -> str:
     """
     config = _load_workspace_config()
 
-    projects = [{"type": ws_type.value, "path": config.get(ws_type.value, "default")} for ws_type in WorkspaceType]
+    projects = [
+        {"type": ws_type.value, "path": config.get(ws_type.value, "default")}
+        for ws_type in WorkspaceType
+    ]
 
     session_file = Path(WORKSPACE_SESSION_FILE)
     current_session = None
@@ -324,7 +345,9 @@ async def workspace_list_projects() -> str:
         except (json.JSONDecodeError, OSError):
             current_session = None
 
-    return json.dumps({"projects": projects, "current_session": current_session}, ensure_ascii=False)
+    return json.dumps(
+        {"projects": projects, "current_session": current_session}, ensure_ascii=False
+    )
 
 
 if __name__ == "__main__":

@@ -1,10 +1,12 @@
-import os
-import uuid
-import time
-from locust import HttpUser, task, between, tag
 import logging
+import os
+import time
+import uuid
+
+from locust import HttpUser, between, tag, task
 
 logger = logging.getLogger(__name__)
+
 
 class SupremeAILoadTester(HttpUser):
     # ইউজাররা খুব দ্রুত রিকোয়েস্ট পাঠাবে (১০০ms থেকে ৫০০ms ব্যবধানে)
@@ -22,19 +24,25 @@ class SupremeAILoadTester(HttpUser):
         if not api_token:
             if app_env == "production":
                 # বাংলা মন্তব্য: প্রোডাকশনে কোনোভাবেই ফলব্যাক টোকেন চলতে পারে না!
-                logger.critical("CRITICAL: SUPREMEAI_API_TOKEN env var is missing in production environment!")
-                raise ValueError("SUPREMEAI_API_TOKEN environment variable is mandatory for production load tests.")
+                logger.critical(
+                    "CRITICAL: SUPREMEAI_API_TOKEN env var is missing in production environment!"
+                )
+                raise ValueError(
+                    "SUPREMEAI_API_TOKEN environment variable is mandatory for production load tests."
+                )
 
             # লোকাল এনভায়রনমেন্টে নন-সেন্সিটিভ টেস্টিংয়ের জন্য ফলব্যাক
             api_token = "test-token-" + "secure-bypass"
-            logger.warning(f"Using development fallback token. Current environment context: {app_env}")
+            logger.warning(
+                f"Using development fallback token. Current environment context: {app_env}"
+            )
 
         self.auth_headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_token}"
+            "Authorization": f"Bearer {api_token}",
         }
 
-    @tag('stream_stress')
+    @tag("stream_stress")
     @task(2)
     def test_global_httpx_pool_and_sse(self):
         """১. গ্লোবাল HTTPX পুল এবং অ্যাসিঙ্ক ইভেন্ট লুপের স্ট্রেস টেস্ট"""
@@ -42,22 +50,22 @@ class SupremeAILoadTester(HttpUser):
             "/api/task/stream",
             json={"message": "Keep connection alive", "session_id": self.session_id},
             headers=self.auth_headers,
-            catch_response=True
+            catch_response=True,
         ) as response:
             if response.status_code == 200:
                 response.success()
             else:
                 response.failure(f"HTTPX Pool Choked! Status: {response.status_code}")
 
-    @tag('semantic_cache_hit')
+    @tag("semantic_cache_hit")
     @task(3)
     def test_semantic_cache_efficiency(self):
         """২. সিমান্টিক ক্যাশ হিট রেশিও এবং মিলি-সেকেন্ড রেসপন্স টাইম টেস্ট"""
         # কাছাকাছি অর্থের ৩টি প্রম্পট যা SHA-256 ক্যাশকে ফেইল করাবে কিন্তু সিমান্টিক ক্যাশকে হিট করাবে
         semantic_prompts = [
             "আমাকে একটি পাইথন স্ক্রিপ্ট লিখে দাও",
-            "আমাকে একটি পাইথন স্ক্রিপ্ট লিখে দাও। ", # শেষে অতিরিক্ত স্পেস ও দাড়ি
-            "পাইথনে একটি কোড লিখে দাও প্লিজ"        # সম্পূর্ণ ভিন্ন স্ট্রাকচার কিন্তু সেম মিনিং
+            "আমাকে একটি পাইথন স্ক্রিপ্ট লিখে দাও। ",  # শেষে অতিরিক্ত স্পেস ও দাড়ি
+            "পাইথনে একটি কোড লিখে দাও প্লিজ",  # সম্পূর্ণ ভিন্ন স্ট্রাকচার কিন্তু সেম মিনিং
         ]
 
         # প্রথমবার রিকোয়েস্ট পাঠালে ক্যাশ মিস হবে (LLM হিট করবে)
@@ -71,7 +79,7 @@ class SupremeAILoadTester(HttpUser):
                 "/api/task/execute",
                 json={"message": prompt, "model_preference": "gemini-2.5-flash"},
                 headers=headers,
-                catch_response=True
+                catch_response=True,
             ) as response:
                 duration = (time.time() - start_time) * 1000
 
@@ -79,11 +87,17 @@ class SupremeAILoadTester(HttpUser):
                     try:
                         res_json = response.json()
                         # ব্যাকএন্ড যদি সিমান্টিক ক্যাশ থেকে ডাটা দেয় তবে 'source' ফিল্ডে তা থাকার কথা
-                        if res_json.get("source") == "semantic_cache" or "semantic-vector-hit" in str(res_json.get("provider")):
+                        if res_json.get(
+                            "source"
+                        ) == "semantic_cache" or "semantic-vector-hit" in str(
+                            res_json.get("provider")
+                        ):
                             response.success()
                             # ক্যাশ হিট হলে রেসপন্স টাইম সাধারণত ১০-৪০ms এর ভেতর নেমে আসে
                             if duration > 100:
-                                logger.warning(f"⚠️ Cache Hit but High Latency: {duration:.2f}ms")
+                                logger.warning(
+                                    f"⚠️ Cache Hit but High Latency: {duration:.2f}ms"
+                                )
                         else:
                             response.success()
                     except Exception:
@@ -91,7 +105,7 @@ class SupremeAILoadTester(HttpUser):
                 else:
                     response.failure(f"Execution route failed: {response.status_code}")
 
-    @tag('idempotency_race')
+    @tag("idempotency_race")
     @task(1)
     def test_idempotency_race_condition(self):
         """৩. আইডেমপোটেন্সি রেস-কন্ডিশন অ্যাটাক (একই কি দিয়ে স্প্যামিং)"""
@@ -103,9 +117,12 @@ class SupremeAILoadTester(HttpUser):
         for _ in range(3):
             res = self.client.post(
                 "/api/task/execute",
-                json={"message": "Critical Orchestration Task", "model_preference": "gemini-2.5-flash"},
+                json={
+                    "message": "Critical Orchestration Task",
+                    "model_preference": "gemini-2.5-flash",
+                },
                 headers=headers,
-                name="/api/task/execute [Idempotency Spam]"
+                name="/api/task/execute [Idempotency Spam]",
             )
             responses.append(res)
 
@@ -118,8 +135,15 @@ class SupremeAILoadTester(HttpUser):
         if status_codes.count(200) > 1:
             # চেক করা হচ্ছে ২য় ২০০-টি ক্যাশ হিট কি না
             try:
-                cached_hits = [r.json().get("source") == "semantic_cache" or "X-Cache-Lookup" in r.headers for r in responses if r.status_code == 200]
+                cached_hits = [
+                    r.json().get("source") == "semantic_cache"
+                    or "X-Cache-Lookup" in r.headers
+                    for r in responses
+                    if r.status_code == 200
+                ]
                 if not any(cached_hits):
-                    print(f"🚨 CRITICAL FAILURE: Race Condition Exploded! Multiple execution passed: {status_codes}")
+                    print(
+                        f"🚨 CRITICAL FAILURE: Race Condition Exploded! Multiple execution passed: {status_codes}"
+                    )
             except Exception:
                 pass

@@ -17,7 +17,7 @@ def main():
     scrapers = [
         ("awesome-selfhosted", "awesome_selfhosted"),
         ("awesome-go", "awesome_go"),
-        ("awesome-python", "awesome_python")
+        ("awesome-python", "awesome_python"),
     ]
 
     results = []

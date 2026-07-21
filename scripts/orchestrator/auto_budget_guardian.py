@@ -33,26 +33,27 @@ Serverless (Cloud Run, Cloud Functions) পরিবেশে শুধুমা
 """
 
 import os
+# Add the backend directory to the path so we can import from core
+import sys
 import time
 from datetime import datetime
 
-# Add the backend directory to the path so we can import from core
-import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../backend'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../backend"))
 
 from core.free_tier_tracker import get_tracker
 from loguru import logger
 
 # Configuration — ENV vars থেকে কনফিগারেশন নেওয়া হয়
 CHECK_INTERVAL_SECONDS = int(os.getenv("BUDGET_GUARDIAN_INTERVAL", "300"))  # 5 minutes
-THRESHOLD_PERCENT = float(os.getenv("BUDGET_GUARDIAN_THRESHOLD", "0.8"))   # 80%
-PAUSE_DURATION_SECONDS = int(os.getenv("BUDGET_GUARDIAN_PAUSE_DURATION", "3600"))  # 1 hour
+THRESHOLD_PERCENT = float(os.getenv("BUDGET_GUARDIAN_THRESHOLD", "0.8"))  # 80%
+PAUSE_DURATION_SECONDS = int(
+    os.getenv("BUDGET_GUARDIAN_PAUSE_DURATION", "3600")
+)  # 1 hour
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "")
 
 # Setup logging
-logger.configure(
-    handlers=[{"sink": sys.stderr, "level": "INFO"}]
-)
+logger.configure(handlers=[{"sink": sys.stderr, "level": "INFO"}])
+
 
 def send_discord_notification(message: str) -> None:
     """Send a notification to Discord via webhook."""
@@ -62,14 +63,14 @@ def send_discord_notification(message: str) -> None:
 
     try:
         import requests
-        payload = {
-            "content": f"🤖 **SupremeAI Budget Guardian Alert**\n{message}"
-        }
+
+        payload = {"content": f"🤖 **SupremeAI Budget Guardian Alert**\n{message}"}
         response = requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=10)
         response.raise_for_status()
         logger.info("Discord notification sent successfully")
     except Exception as e:
         logger.error(f"Failed to send Discord notification: {e}")
+
 
 def check_and_protect_budgets() -> None:
     """Check all providers and pause those exceeding threshold."""
@@ -85,9 +86,21 @@ def check_and_protect_budgets() -> None:
             continue
 
         # Check each metric against threshold
-        rpm_usage = provider_status["rpm_used"] / provider_status["rpm_limit"] if provider_status["rpm_limit"] > 0 else 0
-        tpm_usage = provider_status["tpm_used"] / provider_status["tpm_limit"] if provider_status["tpm_limit"] > 0 else 0
-        rpd_usage = provider_status["rpd_used"] / provider_status["rpd_limit"] if provider_status["rpd_limit"] > 0 else 0
+        rpm_usage = (
+            provider_status["rpm_used"] / provider_status["rpm_limit"]
+            if provider_status["rpm_limit"] > 0
+            else 0
+        )
+        tpm_usage = (
+            provider_status["tpm_used"] / provider_status["tpm_limit"]
+            if provider_status["tpm_limit"] > 0
+            else 0
+        )
+        rpd_usage = (
+            provider_status["rpd_used"] / provider_status["rpd_limit"]
+            if provider_status["rpd_limit"] > 0
+            else 0
+        )
 
         max_usage = max(rpm_usage, tpm_usage, rpd_usage)
 
@@ -141,10 +154,12 @@ def check_and_protect_budgets() -> None:
         send_discord_notification(msg)
         logger.info(f"Provider {provider} has resumed service")
 
+
 def run_budget_guardian_check() -> None:
     """Execute a single budget guard check - designed to be called by external schedulers."""
-    from core.config_cache import config_cache
     import asyncio
+
+    from core.config_cache import config_cache
 
     now = int(time.time())
 
@@ -152,7 +167,9 @@ def run_budget_guardian_check() -> None:
     try:
         last_run = config_cache.get("budget_guardian_last_run", 0)
         if last_run and now - int(last_run) < 60:
-            logger.info("Budget guardian already ran in the last minute. Skipping duplicate execution.")
+            logger.info(
+                "Budget guardian already ran in the last minute. Skipping duplicate execution."
+            )
             return
 
         asyncio.run(config_cache.set("budget_guardian_last_run", now))
@@ -166,12 +183,16 @@ def run_budget_guardian_check() -> None:
         if DISCORD_WEBHOOK_URL:
             try:
                 import requests
+
                 payload = {
                     "content": f"🆘 **Budget Guardian Check Failed**\n```{str(e)}```"
                 }
                 requests.post(DISCORD_WEBHOOK_URL, json=payload, timeout=10)
             except Exception as notify_err:
-                logger.error(f"Failed to send Discord error notification (non-blocking): {notify_err}")
+                logger.error(
+                    f"Failed to send Discord error notification (non-blocking): {notify_err}"
+                )
+
 
 if __name__ == "__main__":
     logger.info("Starting SupremeAI Stateless Budget Guardian Check...")

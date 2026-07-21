@@ -178,8 +178,12 @@ class TestAdminGodLayer:
         admin_god_layer1 = AdminGodLayer(db_path=path)
         admin_god_layer2 = AdminGodLayer(db_path=path)
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            future1 = executor.submit(admin_god_layer1.set_rule, "test_key", "test_value")
-            future2 = executor.submit(admin_god_layer2.set_rule, "test_key", "test_value")
+            future1 = executor.submit(
+                admin_god_layer1.set_rule, "test_key", "test_value"
+            )
+            future2 = executor.submit(
+                admin_god_layer2.set_rule, "test_key", "test_value"
+            )
             future1.result()
             future2.result()
         os.remove(path)

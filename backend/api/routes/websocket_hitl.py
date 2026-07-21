@@ -20,13 +20,17 @@ class HITLConnectionManager:
         await websocket.accept()
         async with self._lock:
             self.active_connections.add(websocket)
-        logger.info(f"New HITL WebSocket connection. Total connections: {len(self.active_connections)}")
+        logger.info(
+            f"New HITL WebSocket connection. Total connections: {len(self.active_connections)}"
+        )
 
     async def disconnect(self, websocket: WebSocket):
         async with self._lock:
             if websocket in self.active_connections:
                 self.active_connections.remove(websocket)
-        logger.info(f"HITL WebSocket disconnected. Total connections: {len(self.active_connections)}")
+        logger.info(
+            f"HITL WebSocket disconnected. Total connections: {len(self.active_connections)}"
+        )
 
     async def broadcast(self, message: str):
         # কানেকশন ড্রপ বা এরর হ্যান্ডল করার জন্য ব্রডকাস্ট লজিক ইমপ্রুভ করা হয়েছে।
@@ -104,13 +108,17 @@ async def verify_hitl_token(websocket: WebSocket) -> bool:
         token = token[7:]
 
     try:
-        payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+        payload = jwt.decode(
+            token, settings.jwt_secret, algorithms=[settings.jwt_algorithm]
+        )
         role = payload.get("role", "").lower()
 
         # হার্ডকোডেড রোলের বদলে কনফিগারেশন থেকে রোল নেয়া যেতে পারে (আপাতত settings.allowed_hitl_roles ব্যবহার করা হচ্ছে, না থাকলে ডিফল্ট)
         allowed_roles = getattr(settings, "allowed_hitl_roles", ["admin", "supervisor"])
         if role not in allowed_roles:
-            logger.warning(f"HITL WebSocket connection rejected: Insufficient role '{role}'")
+            logger.warning(
+                f"HITL WebSocket connection rejected: Insufficient role '{role}'"
+            )
             return False
         return True
     except jwt.ExpiredSignatureError:

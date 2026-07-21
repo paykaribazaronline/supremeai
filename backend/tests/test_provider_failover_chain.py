@@ -53,7 +53,10 @@ class TestProviderFailoverChain:
             Provider.MOONSHOT: FakeProvider("moonshot"),
         }
         result = await router.route("hello", task_type=TaskType.CHAT)
-        assert "moonshot" in result.content.lower() or "moonshot" in result.provider.lower()
+        assert (
+            "moonshot" in result.content.lower()
+            or "moonshot" in result.provider.lower()
+        )
 
     @pytest.mark.asyncio
     async def test_fallback_on_primary_failure(self, monkeypatch):

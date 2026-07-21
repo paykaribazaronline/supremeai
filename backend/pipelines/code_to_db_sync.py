@@ -72,7 +72,9 @@ class CodeToDBSync:
 
         # Update state
         await self.cache.set(self._file_hashes_key, current_hashes, ttl=SYNC_CACHE_TTL)
-        await self.cache.set(self._last_sync_key, datetime.now(UTC).isoformat(), ttl=SYNC_CACHE_TTL)
+        await self.cache.set(
+            self._last_sync_key, datetime.now(UTC).isoformat(), ttl=SYNC_CACHE_TTL
+        )
 
         return {
             "status": "success",

@@ -22,7 +22,9 @@ class BanglaAiConnector:
             "email": self.credentials.get("email"),
             "password": self.credentials.get("password"),
         }
-        async with httpx.AsyncClient(timeout=httpx.Timeout(15.0, connect=5.0)) as client:
+        async with httpx.AsyncClient(
+            timeout=httpx.Timeout(15.0, connect=5.0)
+        ) as client:
             try:
                 resp = await client.post(f"{self.base_url}/api/login", json=login_data)
                 return resp.status_code == 200
@@ -34,7 +36,9 @@ class BanglaAiConnector:
         """Call /api/generate endpoint asynchronously"""
         url = f"{self.base_url}/api/generate"
         payload = {"prompt": prompt}
-        async with httpx.AsyncClient(timeout=httpx.Timeout(15.0, connect=5.0)) as client:
+        async with httpx.AsyncClient(
+            timeout=httpx.Timeout(15.0, connect=5.0)
+        ) as client:
             try:
                 resp = await client.post(url, json=payload)
                 resp.raise_for_status()

@@ -59,6 +59,8 @@ async def get_config_by_key(key: str, admin: str = Depends(require_admin_token))
 
 # বাংলা মন্তব্য: অ্যাডমিন ট্রাস্টেড এক্সেস কন্ট্রোলের মাধ্যমে নির্দিষ্ট কনফিগ কি আপডেট করার এন্ডপয়েন্ট।
 @router.put("/{key}")
-async def update_config_by_key(key: str, value: Any = Body(...), admin: str = Depends(require_admin_token)):
+async def update_config_by_key(
+    key: str, value: Any = Body(...), admin: str = Depends(require_admin_token)
+):
     db.set_config(key, value)
     return {"status": "success"}

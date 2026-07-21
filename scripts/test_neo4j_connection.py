@@ -1,12 +1,14 @@
 import asyncio
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 from loguru import logger
 
 # Load environment variables
 root_env = Path(__file__).resolve().parents[1] / ".env"
 load_dotenv(root_env)
+
 
 async def test_connection():
     """
@@ -15,6 +17,7 @@ async def test_connection():
     # Import GraphService to test integration with settings config
     # We set PYTHONPATH to include backend/
     import sys
+
     sys.path.append(str(Path(__file__).resolve().parents[1] / "backend"))
 
     from tools.graph_service import GraphService
@@ -41,13 +44,16 @@ async def test_connection():
                 logger.info("✅ SUCCESS: Successfully connected to Neo4j instance!")
                 return True
             else:
-                logger.error("❌ FAILURE: Connection test query returned unexpected result.")
+                logger.error(
+                    "❌ FAILURE: Connection test query returned unexpected result."
+                )
                 return False
     except Exception as e:
         logger.error(f"❌ FAILURE: Failed to connect to Neo4j database. Error: {e}")
         return False
     finally:
         await graph_service.close()
+
 
 if __name__ == "__main__":
     asyncio.run(test_connection())

@@ -6,7 +6,6 @@ log_batcher, self_updater.
 
 import pytest
 
-
 # ── user_profiler ──────────────────────────────────────────────────────────────
 
 
@@ -19,7 +18,7 @@ class TestUserProfiler:
         assert UserMode.PRODUCTION == "PRODUCTION"
 
     def test_user_profile_dataclass(self):
-        from core.user_profiler import UserProfile, UserMode
+        from core.user_profiler import UserMode, UserProfile
 
         profile = UserProfile(user_id="test-123", mode=UserMode.FAST_TRACK)
         assert profile.user_id == "test-123"
@@ -28,7 +27,7 @@ class TestUserProfiler:
         assert profile.preferences == {}
 
     def test_user_profile_default_mode(self):
-        from core.user_profiler import UserProfile, UserMode
+        from core.user_profiler import UserMode, UserProfile
 
         profile = UserProfile(user_id="test-456")
         assert profile.mode == UserMode.FAST_TRACK
@@ -79,7 +78,9 @@ class TestDecisionEngine:
         from core.decision_engine import DecisionEngine
 
         engine = DecisionEngine()
-        result = engine.evaluate(action="delete", user_id="user-1", context={"risk": "high"})
+        result = engine.evaluate(
+            action="delete", user_id="user-1", context={"risk": "high"}
+        )
         assert result is not None
 
 
@@ -146,9 +147,10 @@ class TestSelfUpdater:
         assert updater is not None
 
     def test_apply_hotfix(self):
-        from core.evolution.self_updater import SelfUpdater
-        import tempfile
         import os
+        import tempfile
+
+        from core.evolution.self_updater import SelfUpdater
 
         updater = SelfUpdater()
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:

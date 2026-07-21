@@ -39,7 +39,9 @@ async def handle_github_errors(operation_name: str, repo: str | None = None):
         error_id = uuid.uuid4().hex[:8]
         repo_info = f" for repo={repo}" if repo else ""
         logger.error(f"[{error_id}] github/{operation_name} failed{repo_info}: {e}")
-        raise HTTPException(status_code=502, detail=f"GitHub operation failed (ref: {error_id})") from e
+        raise HTTPException(
+            status_code=502, detail=f"GitHub operation failed (ref: {error_id})"
+        ) from e
 
 
 async def _get_agent(user: dict, sql_db: AsyncSession) -> GitHubAgent:
@@ -48,7 +50,9 @@ async def _get_agent(user: dict, sql_db: AsyncSession) -> GitHubAgent:
         raise HTTPException(status_code=401, detail="Unauthorized")
     token = await get_user_github_token(user_id, sql_db)
     if not token:
-        raise HTTPException(status_code=403, detail="GitHub integration not connected or token invalid.")
+        raise HTTPException(
+            status_code=403, detail="GitHub integration not connected or token invalid."
+        )
     return GitHubAgent(token=token)
 
 
@@ -95,12 +99,16 @@ async def connect_repo(
     user=Depends(get_current_user_token),
     sql_db=Depends(get_db_session),
 ):
-    async with handle_github_errors("connect", f"{payload.repo_owner}/{payload.repo_name}"):
+    async with handle_github_errors(
+        "connect", f"{payload.repo_owner}/{payload.repo_name}"
+    ):
         agent = await _get_agent(user, sql_db)
         inst_id = payload.installation_id if payload.installation_id is not None else ""
         await agent.connect_repo(payload.repo_owner, payload.repo_name, inst_id)
         tenant_ref = db.tenant_root
-        tenant_ref.set({"github_repo": f"{payload.repo_owner}/{payload.repo_name}"}, merge=True)
+        tenant_ref.set(
+            {"github_repo": f"{payload.repo_owner}/{payload.repo_name}"}, merge=True
+        )
         return {
             "status": "success",
             "message": f"Connected to {payload.repo_owner}/{payload.repo_name}",
@@ -140,7 +148,9 @@ async def push_improvements(
         repo = _resolve_repo(payload.repo, db)
         agent = await _get_agent(user, sql_db)
 
-        commit_res = await agent.commit_changes(repo, payload.file_contents, payload.commit_message, payload.branch)
+        commit_res = await agent.commit_changes(
+            repo, payload.file_contents, payload.commit_message, payload.branch
+        )
 
         pr_title = "SupremeAI: Automated Code Improvements"
         pr_body = "AI has analyzed the repository and suggested changes.\n\nNote: Customer approval is required before merging."
@@ -158,14 +168,18 @@ async def push_improvements(
 @router.post("/discover")
 async def discover_repos(payload: DiscoverRequest):
     async with handle_github_errors("discover"):
-        repos = repo_discovery_agent.discover_repos(payload.requirement, payload.tech_stack, payload.criteria)
+        repos = repo_discovery_agent.discover_repos(
+            payload.requirement, payload.tech_stack, payload.criteria
+        )
         return {"status": "success", "repos": repos}
 
 
 @router.post("/implement")
 async def implement_repo(payload: ImplementRequest):
     async with handle_github_errors("implement", payload.repo_url):
-        res = repo_discovery_agent.implement_repo(payload.repo_url, payload.integration_method, payload.target_project)
+        res = repo_discovery_agent.implement_repo(
+            payload.repo_url, payload.integration_method, payload.target_project
+        )
         return res
 
 

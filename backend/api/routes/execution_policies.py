@@ -62,13 +62,19 @@ async def update_policy(
     try:
         pid = uuid.UUID(policy_id)
     except ValueError:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid policy UUID")  # noqa  # noqa
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid policy UUID"
+        )  # noqa  # noqa
 
     try:
-        result = await session.execute(select(ExecutionPolicy).where(ExecutionPolicy.id == pid))
+        result = await session.execute(
+            select(ExecutionPolicy).where(ExecutionPolicy.id == pid)
+        )
         pol = result.scalars().first()
         if not pol:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Policy not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Policy not found"
+            )
 
         # Update fields dynamically if they are provided
         if updates.max_timeout_ms is not None:

@@ -4,9 +4,9 @@
 নিরীহ টেক্সট মিস করে কিনা তা যাচাই করে।
 """
 
+import os
 import re
 import sys
-import os
 
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -22,7 +22,7 @@ def test_detects_real_secrets():
         "sk-" + "a" * 48,
         "rnd_" + "b" * 32,
         "sk_live_" + "c" * 24,
-        'AKIA' + "D" * 16,
+        "AKIA" + "D" * 16,
         '{"type": "service_account", "project_id": "x"}',
         "Authorization: Bearer " + "e" * 40,
         "sk-sup-ABCDEFGHIJKLMNOPQRST",

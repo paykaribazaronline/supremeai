@@ -5,7 +5,6 @@ Targets: cli, langchain_agent_example, bandwidth_optimizer, conversation_manager
 
 from unittest.mock import patch
 
-
 # ── cli ────────────────────────────────────────────────────────────────────────
 
 
@@ -16,8 +15,9 @@ class TestCLI:
         assert tools.cli is not None
 
     def test_parse_args_defaults(self):
-        from tools.cli import parse_args
         import sys
+
+        from tools.cli import parse_args
 
         with patch.object(sys, "argv", ["supremeai"]):
             args = parse_args()

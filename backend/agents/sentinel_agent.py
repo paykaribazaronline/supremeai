@@ -176,7 +176,9 @@ class SentinelAgent:
         self.discord_webhook = os.environ.get("DISCORD_ALERT_WEBHOOK", "")
         logger.info("SentinelAgent initialized")
 
-    async def check_service_health(self, service: str, metrics: dict[str, float]) -> HealthCheck:
+    async def check_service_health(
+        self, service: str, metrics: dict[str, float]
+    ) -> HealthCheck:
         """
         Check service health and trigger alerts.
 
@@ -208,13 +210,21 @@ class SentinelAgent:
         health_score -= len(anomalies) * 0.1
         health_score = max(0.0, health_score)
 
-        status = "healthy" if health_score > 0.8 else "degraded" if health_score > 0.5 else "unhealthy"
+        status = (
+            "healthy"
+            if health_score > 0.8
+            else "degraded" if health_score > 0.5 else "unhealthy"
+        )
 
         # Trigger alerts
         if status != "healthy":
             alert = Alert(
                 service=service,
-                severity=(AlertSeverity.HIGH if status == "unhealthy" else AlertSeverity.MEDIUM),
+                severity=(
+                    AlertSeverity.HIGH
+                    if status == "unhealthy"
+                    else AlertSeverity.MEDIUM
+                ),
                 message=f"Service {service} is {status}",
                 details={"anomalies": anomalies, "health_score": health_score},
                 triggered_at=datetime.now(UTC),

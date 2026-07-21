@@ -1,9 +1,10 @@
 # tests/test_agents_skill_librarian.py
 """Tests for SkillLibrarian - skill quarantine and approval management."""
 
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 
 class TestSkillLibrarian:
@@ -40,9 +41,7 @@ class TestSkillLibrarian:
 
         # Mock the processing
         result = librarian.process_approval(
-            skill_id="test-skill-123",
-            action="approve",
-            ai_patch_code=None
+            skill_id="test-skill-123", action="approve", ai_patch_code=None
         )
 
         assert isinstance(result, dict)
@@ -53,10 +52,7 @@ class TestSkillLibrarian:
 
         librarian = SkillLibrarian()
 
-        result = librarian.process_approval(
-            skill_id="test-skill-456",
-            action="reject"
-        )
+        result = librarian.process_approval(skill_id="test-skill-456", action="reject")
 
         assert isinstance(result, dict)
 
@@ -75,7 +71,7 @@ def secure_function():
         result = librarian.process_approval(
             skill_id="test-skill-789",
             action="approve_with_patch",
-            ai_patch_code=patch_code
+            ai_patch_code=patch_code,
         )
 
         assert isinstance(result, dict)
@@ -104,10 +100,7 @@ class TestSkillGarbageCollector:
 
         gc = SkillGarbageCollector()
 
-        removed = gc.run_daily_cleanup(
-            usage_threshold=5,
-            days_threshold=30
-        )
+        removed = gc.run_daily_cleanup(usage_threshold=5, days_threshold=30)
 
         assert isinstance(removed, list)
 
@@ -141,8 +134,7 @@ class TestMorphicAdapter:
         raw_code = "def my_func(x): return x * 2"
 
         result = adapter.adapt_code_to_contract(
-            raw_code=raw_code,
-            skill_description="A function that doubles input"
+            raw_code=raw_code, skill_description="A function that doubles input"
         )
 
         assert isinstance(result, dict)

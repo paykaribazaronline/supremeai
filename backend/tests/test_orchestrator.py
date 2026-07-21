@@ -50,7 +50,9 @@ async def test_execute_skill_chain_failure_uses_fallback():
     orch = Orchestrator(interval_seconds=300)
 
     orch.skill_graph.update_edge_weight = lambda *args, **kwargs: None
-    orch.skill_graph.get_fallback = lambda skill: ("Compensate_X" if skill == "Skill_B" else None)
+    orch.skill_graph.get_fallback = lambda skill: (
+        "Compensate_X" if skill == "Skill_B" else None
+    )
 
     # Force the internal simulated failure condition for Skill_B
     res = await orch.execute_skill_chain(

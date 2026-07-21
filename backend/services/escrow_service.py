@@ -164,7 +164,9 @@ class EscrowService:
             escrow_data["met_conditions"].append(condition_index)
 
         # Check if all conditions met
-        if escrow_data["met_conditions"] and len(escrow_data["met_conditions"]) >= len(escrow_data.get("conditions", [])):
+        if escrow_data["met_conditions"] and len(escrow_data["met_conditions"]) >= len(
+            escrow_data.get("conditions", [])
+        ):
             escrow_data["status"] = EscrowStatus.CONDITION_MET.value
 
         await self.cache.set(

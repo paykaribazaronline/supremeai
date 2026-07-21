@@ -122,7 +122,11 @@ def has_permission(role: str | Role, required_permission: str | Permission) -> b
     বাংলা: একটি রোলের নির্দিষ্ট পারমিশন আছে কিনা চেক করে।
     """
     try:
-        req_perm_str = required_permission.value if isinstance(required_permission, Permission) else required_permission.lower()
+        req_perm_str = (
+            required_permission.value
+            if isinstance(required_permission, Permission)
+            else required_permission.lower()
+        )
         role_perms = get_role_permissions(role)
 
         # wildcard support
@@ -143,7 +147,9 @@ def has_permission(role: str | Role, required_permission: str | Permission) -> b
 
         return False
     except Exception as exc:  # noqa: BLE001
-        logger.warning(f"Invalid role or permission check: role={role}, permission={required_permission}, error={exc}")
+        logger.warning(
+            f"Invalid role or permission check: role={role}, permission={required_permission}, error={exc}"
+        )
         return False
 
 

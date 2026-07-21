@@ -7,14 +7,15 @@ Priority: 🔴 High
 
 import json
 import logging
-import numpy as np
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass
-from enum import Enum
-import sqlite3
 import pickle
+import sqlite3
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from enum import Enum
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -22,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class DriftType(Enum):
     """Types of model drift detected."""
+
     FEATURE_DRIFT = "feature_drift"
     CONCEPT_DRIFT = "concept_drift"
     PREDICTION_DRIFT = "prediction_drift"
@@ -31,6 +33,7 @@ class DriftType(Enum):
 @dataclass
 class DriftResult:
     """Result of drift detection."""
+
     drift_type: DriftType
     detected: bool
     confidence: float
@@ -49,10 +52,10 @@ class ModelDriftDetector:
         self.db_path = db_path
         self.baseline_stats: Dict[str, Any] = {}
         self.drift_thresholds = {
-            'ks_test_pvalue': 0.05,
-            'psi_threshold': 0.2,
-            'accuracy_drop': 0.1,
-            'prediction_std_change': 2.0
+            "ks_test_pvalue": 0.05,
+            "psi_threshold": 0.2,
+            "accuracy_drop": 0.1,
+            "prediction_std_change": 2.0,
         }
         self._init_db()
 
@@ -60,7 +63,7 @@ class ModelDriftDetector:
         """Initialize SQLite database for drift metrics storage."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        cursor.execute('''
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS drift_metrics (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 model_id TEXT NOT NULL,
@@ -71,15 +74,18 @@ class ModelDriftDetector:
                 timestamp TEXT NOT NULL,
                 details TEXT
             )
-        ''')
+        """)
         conn.commit()
         conn.close()
 
-    def compute_ks_test(self, baseline: np.ndarray, current: np.ndarray) -> Tuple[float, float]:
+    def compute_ks_test(
+        self, baseline: np.ndarray, current: np.ndarray
+    ) -> Tuple[float, float]:
         """Compute Kolmogorov-Smirnov test for distribution drift."""
         statistic, pvalue = None, None
         try:
             from scipy import stats
+
             statistic, pvalue = stats.ks_2samp(baseline, current)
         except ImportError:
             # Fallback implementation without scipy
@@ -92,7 +98,9 @@ class ModelDriftDetector:
 
         return float(statistic), float(pvalue)
 
-    def compute_psi(self, baseline: np.ndarray, current: np.ndarray, buckets: int = 10) -> float:
+    def compute_psi(
+        self, baseline: np.ndarray, current: np.ndarray, buckets: int = 10
+    ) -> float:
         """Compute Population Stability Index (PSI) for feature drift."""
         baseline_percents = np.histogram(baseline, bins=buckets, density=True)[0]
         current_percents = np.histogram(current, bins=buckets, density=True)[0]
@@ -101,49 +109,53 @@ class ModelDriftDetector:
         baseline_percents = np.clip(baseline_percents, 0.0001, None)
         current_percents = np.clip(current_percents, 0.0001, None)
 
-        psi = np.sum((current_percents - baseline_percents) *
-                    np.log(current_percents / baseline_percents))
+        psi = np.sum(
+            (current_percents - baseline_percents)
+            * np.log(current_percents / baseline_percents)
+        )
         return float(abs(psi))
 
     def detect_feature_drift(
-        self,
-        model_id: str,
-        baseline_features: np.ndarray,
-        current_features: np.ndarray
+        self, model_id: str, baseline_features: np.ndarray, current_features: np.ndarray
     ) -> DriftResult:
         """Detect feature distribution drift using PSI."""
         psi = self.compute_psi(baseline_features.flatten(), current_features.flatten())
-        detected = psi > self.drift_thresholds['psi_threshold']
+        detected = psi > self.drift_thresholds["psi_threshold"]
 
         return DriftResult(
             drift_type=DriftType.FEATURE_DRIFT,
             detected=detected,
-            confidence=min(psi / self.drift_thresholds['psi_threshold'], 1.0),
+            confidence=min(psi / self.drift_thresholds["psi_threshold"], 1.0),
             metric_value=psi,
-            threshold=self.drift_thresholds['psi_threshold'],
+            threshold=self.drift_thresholds["psi_threshold"],
             timestamp=datetime.now(),
-            details={'baseline_shape': baseline_features.shape, 'current_shape': current_features.shape}
+            details={
+                "baseline_shape": baseline_features.shape,
+                "current_shape": current_features.shape,
+            },
         )
 
     def detect_prediction_drift(
         self,
         model_id: str,
         baseline_predictions: np.ndarray,
-        current_predictions: np.ndarray
+        current_predictions: np.ndarray,
     ) -> DriftResult:
         """Detect prediction distribution drift."""
         _, pvalue = self.compute_ks_test(baseline_predictions, current_predictions)
-        detected = pvalue < self.drift_thresholds['ks_test_pvalue']
+        detected = pvalue < self.drift_thresholds["ks_test_pvalue"]
 
         return DriftResult(
             drift_type=DriftType.PREDICTION_DRIFT,
             detected=detected,
             confidence=1 - pvalue,
             metric_value=pvalue,
-            threshold=self.drift_thresholds['ks_test_pvalue'],
+            threshold=self.drift_thresholds["ks_test_pvalue"],
             timestamp=datetime.now(),
-            details={'baseline_mean': float(baseline_predictions.mean()),
-                    'current_mean': float(current_predictions.mean())}
+            details={
+                "baseline_mean": float(baseline_predictions.mean()),
+                "current_mean": float(current_predictions.mean()),
+            },
         )
 
     def detect_concept_drift(
@@ -151,40 +163,45 @@ class ModelDriftDetector:
         model_id: str,
         baseline_accuracy: float,
         current_accuracy: float,
-        min_samples: int = 100
+        min_samples: int = 100,
     ) -> DriftResult:
         """Detect concept drift based on accuracy drop."""
         accuracy_drop = baseline_accuracy - current_accuracy
-        detected = accuracy_drop > self.drift_thresholds['accuracy_drop']
+        detected = accuracy_drop > self.drift_thresholds["accuracy_drop"]
 
         return DriftResult(
             drift_type=DriftType.CONCEPT_DRIFT,
             detected=detected,
-            confidence=min(accuracy_drop / self.drift_thresholds['accuracy_drop'], 1.0),
+            confidence=min(accuracy_drop / self.drift_thresholds["accuracy_drop"], 1.0),
             metric_value=accuracy_drop,
-            threshold=self.drift_thresholds['accuracy_drop'],
+            threshold=self.drift_thresholds["accuracy_drop"],
             timestamp=datetime.now(),
-            details={'baseline_accuracy': baseline_accuracy, 'current_accuracy': current_accuracy}
+            details={
+                "baseline_accuracy": baseline_accuracy,
+                "current_accuracy": current_accuracy,
+            },
         )
 
-    def save_baseline(self, model_id: str, features: np.ndarray, predictions: np.ndarray):
+    def save_baseline(
+        self, model_id: str, features: np.ndarray, predictions: np.ndarray
+    ):
         """Save baseline statistics for a model."""
         self.baseline_stats[model_id] = {
-            'features': features,
-            'predictions': predictions,
-            'timestamp': datetime.now()
+            "features": features,
+            "predictions": predictions,
+            "timestamp": datetime.now(),
         }
         # Save to disk
         baseline_path = Path(f"baselines/{model_id}_baseline.pkl")
         baseline_path.parent.mkdir(exist_ok=True)
-        with open(baseline_path, 'wb') as f:
+        with open(baseline_path, "wb") as f:
             pickle.dump(self.baseline_stats[model_id], f)
 
     def load_baseline(self, model_id: str) -> Optional[Dict]:
         """Load baseline statistics for a model."""
         baseline_path = Path(f"baselines/{model_id}_baseline.pkl")
         if baseline_path.exists():
-            with open(baseline_path, 'rb') as f:
+            with open(baseline_path, "rb") as f:
                 return pickle.load(f)
         return None
 
@@ -192,51 +209,62 @@ class ModelDriftDetector:
         """Log drift detection result to database."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        cursor.execute('''
+        cursor.execute(
+            """
             INSERT INTO drift_metrics
             (model_id, drift_type, metric_value, threshold, detected, timestamp, details)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            model_id,
-            result.drift_type.value,
-            result.metric_value,
-            result.threshold,
-            int(result.detected),
-            result.timestamp.isoformat(),
-            json.dumps(result.details)
-        ))
+        """,
+            (
+                model_id,
+                result.drift_type.value,
+                result.metric_value,
+                result.threshold,
+                int(result.detected),
+                result.timestamp.isoformat(),
+                json.dumps(result.details),
+            ),
+        )
         conn.commit()
         conn.close()
 
         if result.detected:
-            logger.warning(f"⚠️ Drift detected for {model_id}: {result.drift_type.value} "
-                          f"(confidence: {result.confidence:.2f})")
+            logger.warning(
+                f"⚠️ Drift detected for {model_id}: {result.drift_type.value} "
+                f"(confidence: {result.confidence:.2f})"
+            )
 
     def run_full_drift_check(
         self,
         model_id: str,
         current_features: np.ndarray,
         current_predictions: np.ndarray,
-        current_accuracy: Optional[float] = None
+        current_accuracy: Optional[float] = None,
     ) -> List[DriftResult]:
         """Run all drift detection checks."""
         results = []
         baseline = self.load_baseline(model_id)
 
         if baseline:
-            results.append(self.detect_feature_drift(
-                model_id, baseline['features'], current_features
-            ))
-            results.append(self.detect_prediction_drift(
-                model_id, baseline['predictions'], current_predictions
-            ))
+            results.append(
+                self.detect_feature_drift(
+                    model_id, baseline["features"], current_features
+                )
+            )
+            results.append(
+                self.detect_prediction_drift(
+                    model_id, baseline["predictions"], current_predictions
+                )
+            )
 
             if current_accuracy:
                 # Calculate baseline accuracy from stored predictions if available
-                baseline_accuracy = baseline.get('accuracy', 0.9)  # Default baseline
-                results.append(self.detect_concept_drift(
-                    model_id, baseline_accuracy, current_accuracy
-                ))
+                baseline_accuracy = baseline.get("accuracy", 0.9)  # Default baseline
+                results.append(
+                    self.detect_concept_drift(
+                        model_id, baseline_accuracy, current_accuracy
+                    )
+                )
 
         for result in results:
             self.log_drift(model_id, result)
@@ -249,13 +277,20 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Detect AI model drift")
-    parser.add_argument('--model-id', required=True, help='Model identifier')
-    parser.add_argument('--check-feature-drift', action='store_true',
-                       help='Check feature distribution drift')
-    parser.add_argument('--check-prediction-drift', action='store_true',
-                       help='Check prediction distribution drift')
-    parser.add_argument('--update-baseline', action='store_true',
-                       help='Update baseline statistics')
+    parser.add_argument("--model-id", required=True, help="Model identifier")
+    parser.add_argument(
+        "--check-feature-drift",
+        action="store_true",
+        help="Check feature distribution drift",
+    )
+    parser.add_argument(
+        "--check-prediction-drift",
+        action="store_true",
+        help="Check prediction distribution drift",
+    )
+    parser.add_argument(
+        "--update-baseline", action="store_true", help="Update baseline statistics"
+    )
 
     args = parser.parse_args()
 
@@ -271,17 +306,16 @@ def main():
         logger.info(f"Baseline updated for model: {args.model_id}")
 
     results = detector.run_full_drift_check(
-        args.model_id,
-        current_features,
-        current_predictions,
-        current_accuracy=0.85
+        args.model_id, current_features, current_predictions, current_accuracy=0.85
     )
 
     print(f"\nDrift Detection Results for {args.model_id}:")
     for result in results:
         status = "DETECTED" if result.detected else "OK"
-        print(f"  {result.drift_type.value}: {status} "
-              f"(confidence: {result.confidence:.2f})")
+        print(
+            f"  {result.drift_type.value}: {status} "
+            f"(confidence: {result.confidence:.2f})"
+        )
 
 
 if __name__ == "__main__":

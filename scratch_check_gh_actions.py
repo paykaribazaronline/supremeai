@@ -1,18 +1,21 @@
-import os
-import requests
 import json
+import os
 import sys
 
-sys.stdout.reconfigure(encoding='utf-8')
+import requests
+
+sys.stdout.reconfigure(encoding="utf-8")
 
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN") or os.getenv("GITHUB_API_TOKEN")
 
 headers = {
     "Authorization": f"token {GITHUB_TOKEN}",
-    "Accept": "application/vnd.github.v3+json"
+    "Accept": "application/vnd.github.v3+json",
 }
 
-url = "https://api.github.com/repos/paykaribazaronline/supremeai/actions/runs?per_page=5"
+url = (
+    "https://api.github.com/repos/paykaribazaronline/supremeai/actions/runs?per_page=5"
+)
 resp = requests.get(url, headers=headers)
 if resp.status_code == 200:
     runs = resp.json().get("workflow_runs", [])

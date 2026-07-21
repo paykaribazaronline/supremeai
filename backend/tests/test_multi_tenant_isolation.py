@@ -60,5 +60,7 @@ class TestMultiTenantIsolation:
     def test_tenant_db_mock_mode_nested_collection(self):
         """Test nested collection access in mock mode."""
         db = TenantAwareFirestore("tenant-1")
-        sub_col = db.tenant_root.collection("items").document("doc-1").collection("subitems")
+        sub_col = (
+            db.tenant_root.collection("items").document("doc-1").collection("subitems")
+        )
         assert sub_col is not None

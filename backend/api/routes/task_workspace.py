@@ -58,8 +58,12 @@ async def execute_task(
 
         # ৩. Generate AI Response
         # বাংলা মন্তব্য: সরাসরি গুগল নেটিভ ক্লায়েন্ট কল না করে ইউনিভার্সাল llm_gateway ব্যবহার করে এপিআই কল করা হচ্ছে
-        response = await llm_gateway.acompletion(prompt=messages_payload, task_type=payload.task_type, stream=False)
-        result_text = response.get("text", "") if isinstance(response, dict) else str(response)
+        response = await llm_gateway.acompletion(
+            prompt=messages_payload, task_type=payload.task_type, stream=False
+        )
+        result_text = (
+            response.get("text", "") if isinstance(response, dict) else str(response)
+        )
 
         # ৫. Save to Supabase (Database - Long Term) - Background Task
         # রেসপন্স যেন ফাস্ট হয়, তাই ডাটাবেসে সেভ করার কাজটি ব্যাকগ্রাউন্ডে দেওয়া হলো
@@ -72,7 +76,9 @@ async def execute_task(
 
     except Exception as e:  # noqa: BLE001
         logger.info(f"❌ Neural Pipeline Error: {str(e)}")  # noqa: T201
-        raise HTTPException(status_code=500, detail="Neural connection pipeline error.") from e
+        raise HTTPException(
+            status_code=500, detail="Neural connection pipeline error."
+        ) from e
 
 
 # ==========================================

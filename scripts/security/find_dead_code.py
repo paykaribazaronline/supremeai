@@ -40,24 +40,33 @@ MIN_CONFIDENCE = 80
 EXCLUDE_PATTERNS = [
     "*/.venv/*",
     "*/__pycache__/*",
-    "*/alembic/*", # Alembic মাইগ্রেশন ফাইলগুলো সাধারণত সরাসরি কল করা হয় না
+    "*/alembic/*",  # Alembic মাইগ্রেশন ফাইলগুলো সাধারণত সরাসরি কল করা হয় না
 ]
+
 
 def main():
     """মূল ফাংশন যা Vulture ব্যবহার করে অব্যবহৃত কোড খুঁজে বের করে।"""
     # স্ক্রিপ্টটি ডেপ্রিকেট করা হয়েছে, auto_dead_code_remover.py ব্যবহারের পরামর্শ দেওয়া হচ্ছে।
     print("⚠️  সতর্কতা: find_dead_code.py ডেপ্রিকেট করা হয়েছে।")
-    print("   দয়া করে আরও উন্নত ফিচারের জন্য `scripts/quality/auto_dead_code_remover.py` ব্যবহার করুন।\n")
+    print(
+        "   দয়া করে আরও উন্নত ফিচারের জন্য `scripts/quality/auto_dead_code_remover.py` ব্যবহার করুন।\n"
+    )
 
     print("🦅 SupremeAI Dead Code Detector শুরু হচ্ছে...")
-    print(f"🎯 স্ক্যান করার পাথ: {[str(p.relative_to(PROJECT_ROOT)) for p in SCAN_PATHS]}")
+    print(
+        f"🎯 স্ক্যান করার পাথ: {[str(p.relative_to(PROJECT_ROOT)) for p in SCAN_PATHS]}"
+    )
     print(f"⚙️ সর্বনিম্ন কনফিডেন্স: {MIN_CONFIDENCE}%\n")
 
     try:
         command = [
-            sys.executable, "-m", "vulture",
-            "--min-confidence", str(MIN_CONFIDENCE),
-            "--exclude", ",".join(EXCLUDE_PATTERNS),
+            sys.executable,
+            "-m",
+            "vulture",
+            "--min-confidence",
+            str(MIN_CONFIDENCE),
+            "--exclude",
+            ",".join(EXCLUDE_PATTERNS),
         ] + [str(p) for p in SCAN_PATHS]
 
         result = subprocess.run(command, capture_output=True, text=True, check=False)
@@ -69,7 +78,9 @@ def main():
             print("-" * 70)
             print(result.stdout.strip())
             print("-" * 70)
-            print("\n💡 পরামর্শ: যদি এগুলো ফলস পজিটিভ হয়, তাহলে সেগুলোকে একটি `.vulture-whitelist.py` ফাইলে যোগ করুন।")
+            print(
+                "\n💡 পরামর্শ: যদি এগুলো ফলস পজিটিভ হয়, তাহলে সেগুলোকে একটি `.vulture-whitelist.py` ফাইলে যোগ করুন।"
+            )
             # CI/CD পাইপলাইনে ব্যর্থতা রিপোর্ট করার জন্য
             # exit(1) # আপাতত কমেন্ট করে রাখা হলো, যাতে বিল্ড ব্লক না হয়।
 
@@ -80,6 +91,7 @@ def main():
     except Exception as e:
         print(f"❌ একটি অপ্রত্যাশিত ত্রুটি ঘটেছে: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

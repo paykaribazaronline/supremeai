@@ -48,9 +48,13 @@ def verify_token(token: str) -> dict:
         payload = jwt.decode(token, _get_jwt_secret(), algorithms=[ALGORITHM])
         return payload
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired") from None
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has expired"
+        ) from None
     except jwt.PyJWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials") from None
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
+        ) from None
 
 
 def _get_api_key_signing_secret() -> str:
@@ -63,7 +67,9 @@ def _get_api_key_signing_secret() -> str:
 
 
 def generate_api_key(prefix: str = API_KEY_PREFIX) -> str:
-    random_part = secrets.token_urlsafe(API_KEY_RANDOM_BYTES).replace("-", "").replace("_", "")
+    random_part = (
+        secrets.token_urlsafe(API_KEY_RANDOM_BYTES).replace("-", "").replace("_", "")
+    )
     key = f"{prefix}-{random_part}"
     parts = key.split("-", 2)
     return f"{parts[0]}-{parts[1]}-{parts[2][:4]}-{parts[2][4:8]}-{parts[2][8:]}"

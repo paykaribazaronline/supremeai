@@ -53,13 +53,17 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
         jwt_secret = settings.jwt_secret
         decoded = jwt.decode(token, jwt_secret, algorithms=["HS256"])
         if decoded.get("role") != "admin":
-            raise HTTPException(status_code=403, detail="Forbidden: User does not have admin role.")
+            raise HTTPException(
+                status_code=403, detail="Forbidden: User does not have admin role."
+            )
         return decoded
     except Exception as e:  # noqa: BLE001
         expected = getattr(settings, "supremeai_api_token", None) or ""
         if expected and secrets.compare_digest(token, expected):
             return {"uid": "admin", "role": "admin"}
-        raise HTTPException(status_code=401, detail=f"Invalid Admin Authorization Token: {str(e)}") from e
+        raise HTTPException(
+            status_code=401, detail=f"Invalid Admin Authorization Token: {str(e)}"
+        ) from e
 
 
 @router.get("/logs")
@@ -73,7 +77,9 @@ async def get_evolution_logs(admin: dict = Depends(require_admin_token)):
     except Exception as exc:  # noqa: BLE001
         # বল মনতবয: Supabase থক লগ আনত বযরথ হল লকল JSONL ফলবযক বযবহত হয়;
         # নরব সযলপ ন কর ডবগ লগ কর হল যত DB সমসয দশযমন থক
-        logger.debug(f"Supabase evolution logs fetch failed, using local fallback: {exc}")
+        logger.debug(
+            f"Supabase evolution logs fetch failed, using local fallback: {exc}"
+        )
 
     base_dir = Path(__file__).resolve().parent.parent.parent
     log_path = base_dir / "backend" / "data" / "evolution_logs.jsonl"
@@ -86,7 +92,9 @@ async def get_evolution_logs(admin: dict = Depends(require_admin_token)):
         return {"logs": logs}
     except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to read evolution logs: {e}")
-        raise HTTPException(status_code=500, detail="Failed to read evolution logs") from e
+        raise HTTPException(
+            status_code=500, detail="Failed to read evolution logs"
+        ) from e
 
 
 class EvolutionRequest(BaseModel):
@@ -95,15 +103,21 @@ class EvolutionRequest(BaseModel):
 
 
 @router.post("/forge")
-async def forge_dynamic_skill(payload: EvolutionRequest, db: TenantAwareFirestore = Depends(get_tenant_db)):
+async def forge_dynamic_skill(
+    payload: EvolutionRequest, db: TenantAwareFirestore = Depends(get_tenant_db)
+):
     """
     On-the-fly AI Skill Generation and Sandbox Deployed Gate.
     """
     creator = AutoSkillCreator(db=db)
-    result = await creator.generate_and_deploy_skill(user_demand=payload.user_demand, skill_name=payload.skill_name)
+    result = await creator.generate_and_deploy_skill(
+        user_demand=payload.user_demand, skill_name=payload.skill_name
+    )
 
     if not result["success"]:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=result["error"])
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=result["error"]
+        )
 
     return result
 
@@ -120,7 +134,9 @@ async def get_swarm_graph():
             {"id": "agent-1", "label": "Code-Optimizer", "type": "agent"},
             {"id": "skill-2", "label": "FastAPI Refactor", "type": "skill"},
         ],
-        "edges": [{"source": "agent-1", "target": "skill-2", "relationship": "teaches"}],
+        "edges": [
+            {"source": "agent-1", "target": "skill-2", "relationship": "teaches"}
+        ],
     }
 
     return current_state
@@ -154,7 +170,9 @@ async def quarantine_skill(
             shutil.move(str(src), str(dst))
             logger.info(f"Skill '{skill_name}' quarantined: {src} -> {dst}")
         else:
-            logger.info(f"Skill '{skill_name}' marked QUARANTINED in registry (no dynamic directory found)")
+            logger.info(
+                f"Skill '{skill_name}' marked QUARANTINED in registry (no dynamic directory found)"
+            )
         base_dir_for_logs = Path(__file__).resolve().parent.parent.parent
         log_path = base_dir_for_logs / "backend" / "data" / "evolution_logs.jsonl"
         try:
@@ -211,7 +229,9 @@ async def list_proposals(
     """
     List all pending AI code proposals for admin review.
     """
-    result = await session.execute(select(CodeProposal).order_by(CodeProposal.created_at.desc()))
+    result = await session.execute(
+        select(CodeProposal).order_by(CodeProposal.created_at.desc())
+    )
     proposals = result.scalars().all()
     # Serialize to keep Pydantic serialization happy
     return [
@@ -240,7 +260,9 @@ async def approve_proposal(
     Manually approve a proposal after security review.
     """
     async with session.begin():
-        result = await session.execute(select(CodeProposal).where(CodeProposal.proposal_id == proposal_id))
+        result = await session.execute(
+            select(CodeProposal).where(CodeProposal.proposal_id == proposal_id)
+        )
         proposal = result.scalars().first()
         if not proposal:
             raise HTTPException(status_code=404, detail="Proposal not found")
@@ -296,7 +318,9 @@ class PerformanceRequest(BaseModel):
 
 
 @router.post("/breed")
-async def breed_agents(payload: BreedRequest, db: AsyncSession = Depends(get_db_session)):
+async def breed_agents(
+    payload: BreedRequest, db: AsyncSession = Depends(get_db_session)
+):
     """Breed new agent genetic offspring from parents."""
     # বাংলা মন্তব্য: জেনেটিক অ্যালগরিদমের মাধ্যমে এজেন্টের জিনোমে ব্রিডিং ও মিউটেশন পরিচালনা এন্ডপয়েন্ট
     config = BreederConfig.from_settings()
@@ -313,7 +337,9 @@ async def breed_agents(payload: BreedRequest, db: AsyncSession = Depends(get_db_
     breeder = AgentBreeder(db, config=config)
     from sqlalchemy import select
 
-    q = select(AgentGenome).where(AgentGenome.agent_name.in_([payload.parent_1, payload.parent_2]))
+    q = select(AgentGenome).where(
+        AgentGenome.agent_name.in_([payload.parent_1, payload.parent_2])
+    )
     r = await db.execute(q)
     genomes = {g.agent_name: g for g in r.scalars().all()}
     if payload.parent_1 not in genomes or payload.parent_2 not in genomes:
@@ -335,7 +361,9 @@ async def breed_agents(payload: BreedRequest, db: AsyncSession = Depends(get_db_
 
 
 @router.post("/evaluate-performance")
-async def evaluate_performance(payload: PerformanceRequest, db: AsyncSession = Depends(get_db_session)):
+async def evaluate_performance(
+    payload: PerformanceRequest, db: AsyncSession = Depends(get_db_session)
+):
     """Evaluate agent performance and trigger alerts if thresholds are breached."""
     # বাংলা মন্তব্য: এজেন্টের কাজের গতি ও নির্ভুলতা বিশ্লেষণ করে কোনো অ্যালার্ট ট্রিগার হচ্ছে কি না তা বের করা
     from models.meta_ai import MetricType, SuggestionAction
@@ -356,10 +384,18 @@ async def evaluate_performance(payload: PerformanceRequest, db: AsyncSession = D
     reports = await oracle.identify_weakest_links([payload.agent_name])
     alerts = []
     for r in reports:
-        if r.agent_name == payload.agent_name and r.suggestion != SuggestionAction.NO_ACTION:
+        if (
+            r.agent_name == payload.agent_name
+            and r.suggestion != SuggestionAction.NO_ACTION
+        ):
             alerts.append(
                 {
-                    "severity": ("critical" if r.suggestion == SuggestionAction.DEPRECATE or r.suggestion == SuggestionAction.REPLACE else "warning"),
+                    "severity": (
+                        "critical"
+                        if r.suggestion == SuggestionAction.DEPRECATE
+                        or r.suggestion == SuggestionAction.REPLACE
+                        else "warning"
+                    ),
                     "recommended_action": r.suggestion.value,
                     "description": r.reasoning,
                 }

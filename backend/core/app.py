@@ -12,13 +12,9 @@ Key Components:
 
 from api.routers import register_all_routers
 from core.admin_routes import router as admin_router
-from core.app_builder import (
-    build_app_shell,
-    router_health_check,
-)
+from core.app_builder import build_app_shell, router_health_check
 from core.config import settings
 from fastapi.middleware.cors import CORSMiddleware
-
 
 # For backward compatibility and test suites
 # বাংলা মন্তব্য: ব্যাকওয়ার্ড কম্প্যাটিবিলিটি এবং টেস্ট কেসের জন্য ডিফল্ট গ্লোবাল অ্যাপ
@@ -40,9 +36,13 @@ app.add_middleware(
 
 if settings.env == "production":
     if not settings.cors_origins:
-        raise RuntimeError("🔥 CRITICAL: Production CORS drift detected. cors_origins cannot be empty in production.")
+        raise RuntimeError(
+            "🔥 CRITICAL: Production CORS drift detected. cors_origins cannot be empty in production."
+        )
     if "*" in settings.cors_origins:
-        raise RuntimeError("🚨 SECURITY: Wildcard '*' is strictly prohibited in production CORS mesh. Set CORS_ORIGINS env var.")
+        raise RuntimeError(
+            "🚨 SECURITY: Wildcard '*' is strictly prohibited in production CORS mesh. Set CORS_ORIGINS env var."
+        )
 
 app.include_router(admin_router)
 register_all_routers(app)

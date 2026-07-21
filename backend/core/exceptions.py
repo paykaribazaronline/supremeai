@@ -25,5 +25,7 @@ class QuotaExceededError(RuntimeError):
     বাংলা মন্তব্য: এলএলএম প্রোভাইডারের কোটা লিমিট ক্রস করলে বা বাজেট ফুরিয়ে গেলে এই এক্সেপশন ফায়ার হয়।
     """
 
-    def __init__(self, message: str = "LLM Provider Rate Limit or Budget Quota Exceeded.") -> None:
+    def __init__(
+        self, message: str = "LLM Provider Rate Limit or Budget Quota Exceeded."
+    ) -> None:
         super().__init__(message)

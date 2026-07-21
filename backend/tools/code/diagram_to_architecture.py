@@ -48,8 +48,12 @@ class DiagramToArchitecture:
         with open(image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode("utf-8")
 
-    async def generate_infrastructure(self, diagram_path: str, provider: str = "aws", iac_tool: str = "terraform") -> dict[str, Any]:
-        logger.info(f"Generating {iac_tool} for {provider} from diagram: {diagram_path}")
+    async def generate_infrastructure(
+        self, diagram_path: str, provider: str = "aws", iac_tool: str = "terraform"
+    ) -> dict[str, Any]:
+        logger.info(
+            f"Generating {iac_tool} for {provider} from diagram: {diagram_path}"
+        )
         try:
             base64_image = self._encode_image(diagram_path)
             ext = os.path.splitext(diagram_path)[1].lower().lstrip(".")
@@ -93,7 +97,9 @@ class DiagramToArchitecture:
             logger.error(f"Architecture generation failed: {str(e)}")
             return {"status": "error", "error": str(e)}
 
-    async def to_terraform(self, diagram_path: str, cloud_provider: str = "gcp") -> TerraformCode:
+    async def to_terraform(
+        self, diagram_path: str, cloud_provider: str = "gcp"
+    ) -> TerraformCode:
         """হাতে আঁকা ডায়াগ্রাম → Terraform HCL কনফিগারেশন।"""
         logger.info(f"Generating Terraform for {cloud_provider} from: {diagram_path}")
         try:
@@ -150,7 +156,9 @@ class DiagramToArchitecture:
             logger.error(f"Kubernetes generation failed: {e}")
             raise RuntimeError(f"Kubernetes generation failed: {e}") from e
 
-    async def to_database_schema(self, er_diagram_path: str, orm: str = "sqlalchemy") -> SchemaCode:
+    async def to_database_schema(
+        self, er_diagram_path: str, orm: str = "sqlalchemy"
+    ) -> SchemaCode:
         """ER diagram → SQLAlchemy Model / Prisma Schema।"""
         logger.info(f"Generating {orm} schema from ER diagram: {er_diagram_path}")
         try:
@@ -207,7 +215,9 @@ class DiagramToArchitecture:
         except Exception as e:  # noqa: BLE001
             return {"status": "error", "error": str(e)}
 
-    def _parse_components_from_code(self, code: str, iac_tool: str) -> list[dict[str, str]]:
+    def _parse_components_from_code(
+        self, code: str, iac_tool: str
+    ) -> list[dict[str, str]]:
         components: list[dict[str, str]] = []
         for line in code.splitlines():
             line_stripped = line.strip()
@@ -246,7 +256,9 @@ async def generate_from_diagram(
         tmp_path = tmp.name
 
     try:
-        result = await _converter.generate_infrastructure(tmp_path, provider=provider, iac_tool=iac_tool)
+        result = await _converter.generate_infrastructure(
+            tmp_path, provider=provider, iac_tool=iac_tool
+        )
     finally:
         os.unlink(tmp_path)
 
@@ -256,7 +268,9 @@ async def generate_from_diagram(
 
 
 @router.post("/to-terraform")
-async def api_to_terraform(file: UploadFile = File(...), cloud_provider: str = Form("gcp")):
+async def api_to_terraform(
+    file: UploadFile = File(...), cloud_provider: str = Form("gcp")
+):
     """ডায়াগ্রাম → Terraform HCL।"""
     await validate_upload(file)
     suffix = os.path.splitext(file.filename or "diagram.png")[1] or ".png"
@@ -267,7 +281,9 @@ async def api_to_terraform(file: UploadFile = File(...), cloud_provider: str = F
         result = await _converter.to_terraform(tmp_path, cloud_provider=cloud_provider)
         return {"status": "success", **result.to_dict()}
     except Exception as e:  # noqa: BLE001
-        raise HTTPException(status_code=502, detail=f"Terraform generation failed: {e}") from e
+        raise HTTPException(
+            status_code=502, detail=f"Terraform generation failed: {e}"
+        ) from e
     finally:
         os.unlink(tmp_path)
 
@@ -284,7 +300,9 @@ async def api_to_kubernetes(file: UploadFile = File(...)):
         result = await _converter.to_kubernetes(tmp_path)
         return {"status": "success", **result.to_dict()}
     except Exception as e:  # noqa: BLE001
-        raise HTTPException(status_code=502, detail=f"Kubernetes generation failed: {e}") from e
+        raise HTTPException(
+            status_code=502, detail=f"Kubernetes generation failed: {e}"
+        ) from e
     finally:
         os.unlink(tmp_path)
 
@@ -301,7 +319,9 @@ async def api_to_schema(file: UploadFile = File(...), orm: str = Form("sqlalchem
         result = await _converter.to_database_schema(tmp_path, orm=orm)
         return {"status": "success", **result.to_dict()}
     except Exception as e:  # noqa: BLE001
-        raise HTTPException(status_code=502, detail=f"Schema generation failed: {e}") from e
+        raise HTTPException(
+            status_code=502, detail=f"Schema generation failed: {e}"
+        ) from e
     finally:
         os.unlink(tmp_path)
 

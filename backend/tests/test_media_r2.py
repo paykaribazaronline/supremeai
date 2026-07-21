@@ -31,7 +31,9 @@ def test_r2_client_generate_presigned_url():
     with patch.dict("os.environ", env_vars):
         with patch("boto3.client") as mock_boto:
             mock_s3 = MagicMock()
-            mock_s3.generate_presigned_url.return_value = "https://r2-real-url.com/mock-bucket/test_file.txt"
+            mock_s3.generate_presigned_url.return_value = (
+                "https://r2-real-url.com/mock-bucket/test_file.txt"
+            )
             mock_boto.return_value = mock_s3
 
             client = R2StorageClient()

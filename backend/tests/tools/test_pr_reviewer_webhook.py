@@ -26,7 +26,9 @@ async def test_webhook_endpoint_receives_pr_event():
         "repository": {"full_name": "owner/repo"},
     }
 
-    with patch.object(reviewer, "review_pr", return_value={"status": "success", "comments": []}) as mock_review:
+    with patch.object(
+        reviewer, "review_pr", return_value={"status": "success", "comments": []}
+    ) as mock_review:
         result = await reviewer.review_pr(pr_event)
 
         assert result["status"] == "success"
@@ -52,8 +54,12 @@ async def test_auto_approve_on_clean_pr():
     # বাংলা মন্তব্য: সব চেক পাস করলে auto-approve হয় কিনা টেস্ট
     reviewer = PRReviewer()
 
-    with patch.object(reviewer, "check_style_compliance", return_value={"style_issues": []}):
-        with patch.object(reviewer, "run_code_smell_scan", return_value={"smell_issues": []}):
+    with patch.object(
+        reviewer, "check_style_compliance", return_value={"style_issues": []}
+    ):
+        with patch.object(
+            reviewer, "run_code_smell_scan", return_value={"smell_issues": []}
+        ):
             with patch.object(reviewer, "analyze_diff", return_value=[]):
                 result = await reviewer._auto_approve("owner/repo", 42)
 
@@ -96,4 +102,7 @@ async def test_security_vulnerability_scan():
     comments = await reviewer.analyze_diff(diff)
 
     assert len(comments) >= 1
-    assert any("password" in c.get("body", "").lower() or c.get("severity") == "critical" for c in comments)
+    assert any(
+        "password" in c.get("body", "").lower() or c.get("severity") == "critical"
+        for c in comments
+    )

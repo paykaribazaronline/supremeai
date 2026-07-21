@@ -35,9 +35,7 @@ import json
 import os
 import sys
 from dataclasses import asdict, dataclass, field
-from datetime import UTC
-from datetime import datetime
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -46,12 +44,10 @@ from loguru import logger
 from sqlalchemy import select
 
 try:
-    from models.wallet import TransactionLedgerEntry
-    from models.wallet import UserWallet
+    from models.wallet import TransactionLedgerEntry, UserWallet
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "backend"))
-    from models.wallet import TransactionLedgerEntry
-    from models.wallet import UserWallet
+    from models.wallet import TransactionLedgerEntry, UserWallet
 
 
 @dataclass
@@ -96,14 +92,18 @@ class FraudDetector:
         self.database_url = os.getenv("DATABASE_URL", "")
         self.project_id = os.getenv("GOOGLE_CLOUD_PROJECT", "")
         self.slack_webhook = os.getenv("SLACK_WEBHOOK_URL", "")
-        self.fraud_spend_threshold = float(os.getenv("FRAUD_SPEND_THRESHOLD", str(threshold)))
+        self.fraud_spend_threshold = float(
+            os.getenv("FRAUD_SPEND_THRESHOLD", str(threshold))
+        )
         self.db_session: Any = None
         self._http = None
 
     async def __aenter__(self) -> FraudDetector:
         if self.database_url:
             try:
-                from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+                from sqlalchemy.ext.asyncio import (AsyncSession,
+                                                    create_async_engine)
+
                 engine = create_async_engine(self.database_url)
                 self.db_session = AsyncSession(engine)
                 logger.info("Database session initialized for fraud detection")
@@ -165,7 +165,9 @@ class FraudDetector:
                     "amount_usd": float(entry.amount_usd),
                     "transaction_type": entry.transaction_type,
                     "description": entry.description,
-                    "timestamp": entry.timestamp.isoformat() if entry.timestamp else None,
+                    "timestamp": (
+                        entry.timestamp.isoformat() if entry.timestamp else None
+                    ),
                 }
                 for entry in entries
             ]
@@ -176,7 +178,9 @@ class FraudDetector:
     def _detect_rapid_microtransactions(
         self, entries: list[dict[str, Any]], tenant_id: str
     ) -> FraudAlert | None:
-        token_entries = [e for e in entries if e.get("transaction_type") == "token_usage"]
+        token_entries = [
+            e for e in entries if e.get("transaction_type") == "token_usage"
+        ]
         if len(token_entries) < 20:
             return None
 
@@ -204,7 +208,10 @@ class FraudDetector:
                 severity="high",
                 description=f"Detected {burst_count} micro-transaction bursts (10+ txns in <5 min)",
                 score=float(burst_count),
-                evidence={"burst_count": burst_count, "total_token_txns": len(token_entries)},
+                evidence={
+                    "burst_count": burst_count,
+                    "total_token_txns": len(token_entries),
+                },
             )
         return None
 
@@ -216,7 +223,9 @@ class FraudDetector:
             ts = e.get("timestamp", "")[:10]
             if not ts:
                 continue
-            daily_spend[ts] = daily_spend.get(ts, Decimal("0")) + Decimal(str(e.get("amount_usd", 0)))
+            daily_spend[ts] = daily_spend.get(ts, Decimal("0")) + Decimal(
+                str(e.get("amount_usd", 0))
+            )
 
         if len(daily_spend) < 2:
             return None
@@ -237,7 +246,10 @@ class FraudDetector:
                 severity="medium",
                 description=f"Spend spike detected (z-score {z_score:.2f}, threshold {self.fraud_spend_threshold})",
                 score=z_score,
-                evidence={"avg_daily_spend": float(avg_spend), "max_daily_spend": float(max_spend)},
+                evidence={
+                    "avg_daily_spend": float(avg_spend),
+                    "max_daily_spend": float(max_spend),
+                },
             )
         return None
 
@@ -245,7 +257,9 @@ class FraudDetector:
         self, entries: list[dict[str, Any]], tenant_id: str
     ) -> FraudAlert | None:
         topup_entries = [e for e in entries if e.get("transaction_type") == "topup"]
-        failed_count = sum(1 for e in topup_entries if "fail" in e.get("description", "").lower())
+        failed_count = sum(
+            1 for e in topup_entries if "fail" in e.get("description", "").lower()
+        )
         if failed_count >= 5:
             return FraudAlert(
                 alert_id=f"failtopup-{tenant_id[:8]}",
@@ -254,17 +268,24 @@ class FraudDetector:
                 severity="high",
                 description=f"Multiple failed top-up attempts: {failed_count}",
                 score=float(failed_count),
-                evidence={"failed_topups": failed_count, "total_topups": len(topup_entries)},
+                evidence={
+                    "failed_topups": failed_count,
+                    "total_topups": len(topup_entries),
+                },
             )
         return None
 
     def _detect_byoc_abuse(
         self, entries: list[dict[str, Any]], tenant_id: str
     ) -> FraudAlert | None:
-        byoc_entries = [e for e in entries if e.get("transaction_type") == "byoc_deployment"]
+        byoc_entries = [
+            e for e in entries if e.get("transaction_type") == "byoc_deployment"
+        ]
         byoc_count = len(byoc_entries)
         if byoc_count > 20:
-            total_byoc_spend = sum(Decimal(str(e.get("amount_usd", 0))) for e in byoc_entries)
+            total_byoc_spend = sum(
+                Decimal(str(e.get("amount_usd", 0))) for e in byoc_entries
+            )
             return FraudAlert(
                 alert_id=f"byoc-{tenant_id[:8]}",
                 tenant_id=tenant_id,
@@ -272,13 +293,14 @@ class FraudDetector:
                 severity="medium",
                 description=f"Unusually high BYOC deployment count: {byoc_count}",
                 score=float(byoc_count),
-                evidence={"byoc_count": byoc_count, "total_byoc_spend": float(total_byoc_spend)},
+                evidence={
+                    "byoc_count": byoc_count,
+                    "total_byoc_spend": float(total_byoc_spend),
+                },
             )
         return None
 
-    async def scan_tenant(
-        self, tenant_id: str, days: int = 30
-    ) -> list[FraudAlert]:
+    async def scan_tenant(self, tenant_id: str, days: int = 30) -> list[FraudAlert]:
         end = datetime.now(UTC)
         start = end - timedelta(days=days)
         entries = await self.get_ledger_entries(tenant_id, start, end)
@@ -366,7 +388,9 @@ async def main() -> int:
     parser.add_argument("--user-id", type=str, help="Scan specific user/tenant")
     parser.add_argument("--scan-all", action="store_true", help="Scan all tenants")
     parser.add_argument("--days", type=int, default=30, help="Lookback window in days")
-    parser.add_argument("--threshold", type=float, default=3.0, help="Z-score threshold for anomalies")
+    parser.add_argument(
+        "--threshold", type=float, default=3.0, help="Z-score threshold for anomalies"
+    )
     parser.add_argument("--output-dir", type=Path, default=Path("reports/billing"))
     parser.add_argument("--alert", action="store_true", help="Send alerts on detection")
 
@@ -387,7 +411,9 @@ async def main() -> int:
             detector.write_report(report, args.output_dir)
 
             if report.summary.get("high_severity", 0) > 0:
-                logger.error(f"❌ {report.summary['high_severity']} HIGH severity alerts detected")
+                logger.error(
+                    f"❌ {report.summary['high_severity']} HIGH severity alerts detected"
+                )
                 return 1
 
         elif args.user_id:

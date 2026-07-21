@@ -8,7 +8,9 @@ from jose import jwt
 
 client = TestClient(app)
 
-mock_token = jwt.encode({"user_id": "test-user-id", "role": "admin"}, settings.jwt_secret, algorithm="HS256")
+mock_token = jwt.encode(
+    {"user_id": "test-user-id", "role": "admin"}, settings.jwt_secret, algorithm="HS256"
+)
 auth_headers = {"Authorization": f"Bearer {mock_token}"}
 
 
@@ -57,6 +59,8 @@ def test_webhook_ignored_if_missing_config():
     # Verify webhook behaves gracefully when credentials/key are missing
     with patch("api.routes.payments.settings.stripe_webhook_secret", new=SecretStr("")):
         headers = {**auth_headers, "stripe-signature": "invalid-sig"}
-        resp = client.post("/payments/webhook", headers=headers, content=b"some-payload")
+        resp = client.post(
+            "/payments/webhook", headers=headers, content=b"some-payload"
+        )
         assert resp.status_code == 200
         assert resp.json()["status"] == "ignored"

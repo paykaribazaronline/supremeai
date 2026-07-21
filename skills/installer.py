@@ -1,9 +1,11 @@
 import os
 import re
-import sys
 import subprocess
+import sys
 from typing import List
+
 from loguru import logger
+
 from .registry import SkillRegistry
 
 _SKILL_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
@@ -132,6 +134,7 @@ class SkillInstaller:
         বাংলা মন্তব্য: মিউটেবল ডিফল্ট আর্গুমেন্ট (List[str] = []) পরিহার করে None সেন্টিনেল প্যাটার্ন ব্যবহার করা হলো।
         """
         import os
+
         actual_deps = list(dependencies) if dependencies is not None else []
 
         if uss:

@@ -2,10 +2,8 @@ from unittest.mock import MagicMock
 
 import pytest
 from core.config_proxy import DynamicConfigProxy
-from core.constants import (
-    get_common_strings_to_ignore,
-    get_default_code_smell_thresholds,
-)
+from core.constants import (get_common_strings_to_ignore,
+                            get_default_code_smell_thresholds)
 
 
 @pytest.fixture

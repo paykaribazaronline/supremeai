@@ -1,8 +1,9 @@
 # tests/test_core_error_handling.py
 """Tests for error handling and remediation systems."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
 
 
 class TestErrorPatternDB:
@@ -32,7 +33,7 @@ class TestErrorPatternDB:
         db.log_error(
             output="TypeError: 'NoneType' object is not subscriptable",
             error_type="TypeError",
-            correction="Add null check before subscripting"
+            correction="Add null check before subscripting",
         )
 
         # Verify it was logged
@@ -47,7 +48,7 @@ class TestErrorPatternDB:
         mistake = {
             "error": "ValueError",
             "output": "Invalid input provided",
-            "context": "string_parsing"
+            "context": "string_parsing",
         }
 
         db.log_ai_mistake(mistake)
@@ -60,8 +61,7 @@ class TestErrorPatternDB:
         db = ErrorPatternDB(db_path=":memory:")
 
         strategy = db.get_prevention_strategy(
-            model="gemini",
-            task_type="code_generation"
+            model="gemini", task_type="code_generation"
         )
 
         # Should return a string or None
@@ -139,10 +139,7 @@ class TestGenerationMonitor:
 
         monitor = GenerationMonitor()
 
-        result = monitor.track_token_confidence(
-            token="def",
-            probability=0.95
-        )
+        result = monitor.track_token_confidence(token="def", probability=0.95)
 
         assert isinstance(result, dict)
 
@@ -165,7 +162,7 @@ class TestGenerationMonitor:
 
         result = monitor.check_consistency(
             new_text="The answer is 42",
-            conversation_history=[{"user": "What is 2+2?", "assistant": "4"}]
+            conversation_history=[{"user": "What is 2+2?", "assistant": "4"}],
         )
 
         assert isinstance(result, dict)

@@ -26,7 +26,9 @@ class TestErrorRemediation:
         """Qdrant ইনস্টল থাকলে ইনিশialization করা হচ্ছে।"""
         _skip_if_no_qdrant()
         mock_qdrant = MagicMock()
-        with patch("core.error_remediation.QdrantClient", return_value=mock_qdrant) as mock_client:
+        with patch(
+            "core.error_remediation.QdrantClient", return_value=mock_qdrant
+        ) as mock_client:
             remediation = ErrorRemediation()
             mock_client.assert_called_once()
             assert remediation.qdrant is mock_qdrant

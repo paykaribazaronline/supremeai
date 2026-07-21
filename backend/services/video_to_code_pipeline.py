@@ -220,7 +220,9 @@ class FrameAnalyzer:
                 for i, item in enumerate(data)
             ]
 
-            await self.cache.set(cache_key, [c.__dict__ for c in components], ttl=VIDEO_CACHE_TTL)
+            await self.cache.set(
+                cache_key, [c.__dict__ for c in components], ttl=VIDEO_CACHE_TTL
+            )
             return components
 
         except Exception as e:
@@ -269,7 +271,9 @@ class CodeGenerator:
 
         prompt = (
             f"You are a UI component generator. Generate a complete {framework} component "
-            f"using {styling} for styling. Component tree:\n" + "\n".join(component_descriptions) + "\n\nReturn only valid code, no markdown."
+            f"using {styling} for styling. Component tree:\n"
+            + "\n".join(component_descriptions)
+            + "\n\nReturn only valid code, no markdown."
         )
 
         try:
@@ -335,7 +339,9 @@ class VideoToCodePipeline:
         # Step 2: Analyze all frames
         all_components: list[UIComponent] = []
         for i, frame in enumerate(frames):
-            components = await self.analyzer.analyze(str(frame), timestamp_seconds=i * interval, framework_hint=framework)
+            components = await self.analyzer.analyze(
+                str(frame), timestamp_seconds=i * interval, framework_hint=framework
+            )
             all_components.extend(components)
 
         # Deduplicate by ID

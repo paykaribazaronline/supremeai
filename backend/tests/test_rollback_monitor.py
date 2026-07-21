@@ -26,7 +26,9 @@ class FakeRedis:
 
 def test_service_name_validation_error():
     m = RollbackMonitor()
-    res = m.record_metrics_and_check("bad name with spaces", latency_ms=10, is_error=False)
+    res = m.record_metrics_and_check(
+        "bad name with spaces", latency_ms=10, is_error=False
+    )
     assert res["status"] == "error"
 
 
@@ -36,7 +38,9 @@ def test_redis_not_configured_skip(monkeypatch):
     # Patch core.services.redis_queue to look unconfigured
     from core import services
 
-    monkeypatch.setattr(services, "redis_queue", MagicMock(configured=False), raising=False)
+    monkeypatch.setattr(
+        services, "redis_queue", MagicMock(configured=False), raising=False
+    )
     res = m.record_metrics_and_check("svc", latency_ms=10, is_error=False)
     assert res["status"] == "ok"
     assert "skipping" in res["message"].lower()

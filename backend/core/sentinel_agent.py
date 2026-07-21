@@ -15,7 +15,8 @@ Dependencies:
 - `loguru`: For structured and flexible logging of agent activities and errors.
 - `sqlalchemy`: For asynchronous ORM interactions with the database, specifically for `ApiEndpoint`, `SystemDependency`, and `SystemIncident` models.
 - `database.session`: Internal module providing the asynchronous database session factory (`AsyncSessionLocal`).
-- `models.sentinel`: Internal module defining the ORM models (`ApiEndpoint`, `SystemDependency`, `SystemIncident`) used by the agent for data persistence."""
+- `models.sentinel`: Internal module defining the ORM models (`ApiEndpoint`, `SystemDependency`, `SystemIncident`) used by the agent for data persistence.
+"""
 
 import asyncio
 from datetime import UTC, datetime
@@ -42,6 +43,7 @@ class SentinelAgent:
         """Validate URL to prevent SSRF attacks - blocks metadata IPs and disallowed schemes."""
         import re
         from urllib.parse import urlparse
+
         from core.config import settings
 
         try:
@@ -51,7 +53,9 @@ class SentinelAgent:
                 return False
             # Block cloud metadata IPs (AWS, GCP, Azure)
             hostname = parsed.hostname or ""
-            if re.match(r"^(169\.254\.169\.|10\.\d+\.|172\.(1[6-9]|2[0-9]|3[01])\.)", hostname):
+            if re.match(
+                r"^(169\.254\.169\.|10\.\d+\.|172\.(1[6-9]|2[0-9]|3[01])\.)", hostname
+            ):
                 return False
             # Block localhost access in production unless it targets the backend port 8080
             # বাংলা মন্তব্য: প্রোডাকশনে লোকালহোস্ট ব্লক করা হচ্ছে, কিন্তু আমাদের নিজস্ব ব্যাকএন্ড পোর্ট ৮০৮০ মনিটর করার জন্য পোলিং এলাও করা হলো।
@@ -88,12 +92,16 @@ class SentinelAgent:
 
                             # SSRF protection
                             if not self._validate_endpoint_url(url):
-                                logger.critical(f"SSRF Blocked: Attempted access to {url}")
+                                logger.critical(
+                                    f"SSRF Blocked: Attempted access to {url}"
+                                )
                                 continue
 
                             # Make the request only after SSRF validation
                             resp = await client.request(ep.method, url)
-                            latency = (datetime.now(UTC) - start_time).total_seconds() * 1000
+                            latency = (
+                                datetime.now(UTC) - start_time
+                            ).total_seconds() * 1000
 
                             ep.latency_ms = int(latency)
                             ep.last_check_at = datetime.now(UTC)
@@ -138,7 +146,9 @@ class SentinelAgent:
         import json
         import shutil
 
-        logger.info("[SentinelAgent] Running dependency audit via system environment tools...")
+        logger.info(
+            "[SentinelAgent] Running dependency audit via system environment tools..."
+        )
 
         # Check if pip-audit is available, fallback to pip list --outdated
         audit_cmd = None
@@ -171,14 +181,21 @@ class SentinelAgent:
                     # Depending on command output structure (dict or list)
                     is_vuln = False
                     if isinstance(vulnerabilities, list):
-                        is_vuln = any(v.get("name", "").lower() == dep.package_name.lower() for v in vulnerabilities)
+                        is_vuln = any(
+                            v.get("name", "").lower() == dep.package_name.lower()
+                            for v in vulnerabilities
+                        )
                     elif isinstance(vulnerabilities, dict):
-                        is_vuln = dep.package_name in vulnerabilities.get("dependencies", {})
+                        is_vuln = dep.package_name in vulnerabilities.get(
+                            "dependencies", {}
+                        )
 
                     if is_vuln:
                         dep.status = "vulnerable"
                         # Trigger immediate remediation alert
-                        logger.error(f"[SentinelAgent] Flagged security risk: package {dep.package_name} is vulnerable!")
+                        logger.error(
+                            f"[SentinelAgent] Flagged security risk: package {dep.package_name} is vulnerable!"
+                        )
                         await self.trigger_event(
                             "SECURITY_RISK",
                             f"Dependency {dep.package_name} failed security scan.",
@@ -202,7 +219,9 @@ class SentinelAgent:
                 )
                 session.add(incident)
                 await session.commit()
-                logger.info(f"[SentinelAgent] Event-driven incident recorded: {event_type}")
+                logger.info(
+                    f"[SentinelAgent] Event-driven incident recorded: {event_type}"
+                )
         except Exception as e:  # noqa: BLE001
             logger.error(f"[SentinelAgent] Error triggering event: {e}")
 
@@ -212,11 +231,15 @@ class SentinelAgent:
         Uses a basic active flag to prevent multiple executions if workers > 1.
         """
         if self._is_active:
-            logger.warning("[SentinelAgent] Agent already active, skipping duplicate startup.")
+            logger.warning(
+                "[SentinelAgent] Agent already active, skipping duplicate startup."
+            )
             return
 
         self._is_active = True
-        logger.info("[SentinelAgent] Starting Periodic Loop (Heartbeat: 60s, Audit: 12h)...")
+        logger.info(
+            "[SentinelAgent] Starting Periodic Loop (Heartbeat: 60s, Audit: 12h)..."
+        )
 
         audit_counter = 0
 
@@ -233,7 +256,9 @@ class SentinelAgent:
                 audit_counter += 1
                 await asyncio.sleep(60)
         except asyncio.CancelledError:
-            logger.info("[SentinelAgent] Periodic Loop cancelled. Shutting down gracefully.")
+            logger.info(
+                "[SentinelAgent] Periodic Loop cancelled. Shutting down gracefully."
+            )
             self._is_active = False
             raise
 

@@ -2,7 +2,8 @@
 import logging
 import os
 
-from core.resilience.circuit_breaker import CircuitBreaker, CircuitBreakerOpenError
+from core.resilience.circuit_breaker import (CircuitBreaker,
+                                             CircuitBreakerOpenError)
 from google import genai
 from google.genai import types
 

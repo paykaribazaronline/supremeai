@@ -24,7 +24,9 @@ class DecisionEngine:
             }
 
         if risk_flags:
-            logger.info(f"DecisionEngine: risk flags present {risk_flags}, routing to review")
+            logger.info(
+                f"DecisionEngine: risk flags present {risk_flags}, routing to review"
+            )
             return {
                 "action": "review",
                 "confidence": 0.5,

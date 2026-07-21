@@ -35,9 +35,13 @@ class SecureRedisManager:
                 decode_responses=True,
             )
             self._client = aioredis.Redis(connection_pool=pool)
-            logger.info("⚡ Serverless Upstash Redis REST Provider Active with Connection Pool (limit=20).")
+            logger.info(
+                "⚡ Serverless Upstash Redis REST Provider Active with Connection Pool (limit=20)."
+            )
         else:
-            logger.critical("🔥 CRITICAL: Serverless Redis Endpoint Missing! System entering Fail-Closed state.")
+            logger.critical(
+                "🔥 CRITICAL: Serverless Redis Endpoint Missing! System entering Fail-Closed state."
+            )
         self._initialized = True
 
     @property
@@ -67,7 +71,9 @@ class SecureRedisManager:
             logger.error(f"❌ Upstash Cache Read Operation Failed for {key}: {exc}")
             return None
 
-    async def incrbyfloat(self, key: str, amount: float, ex_seconds: int = 86400) -> float:
+    async def incrbyfloat(
+        self, key: str, amount: float, ex_seconds: int = 86400
+    ) -> float:
         """Atomic increment for floats (used by CostGuard)."""
         if not self.client:
             return 0.0
@@ -76,10 +82,14 @@ class SecureRedisManager:
             await self.client.expire(key, ex_seconds)
             return float(result)
         except Exception as exc:  # noqa: BLE001
-            logger.error(f"❌ Redis Cache INCRBYFLOAT Operation Failed for {key}: {exc}")
+            logger.error(
+                f"❌ Redis Cache INCRBYFLOAT Operation Failed for {key}: {exc}"
+            )
             return 0.0
 
-    async def set_agent_heartbeat(self, agent_id: str, status: str, latency_ms: int, ttl: int = 5) -> bool:
+    async def set_agent_heartbeat(
+        self, agent_id: str, status: str, latency_ms: int, ttl: int = 5
+    ) -> bool:
         """এজেন্ট হার্টবিট সেট করার মেথড।"""
         if not self.client:
             return False
@@ -100,7 +110,9 @@ class SecureRedisManager:
             for agent_id, raw_val in zip(agent_ids, res_data, strict=False):
                 if raw_val:
                     try:
-                        health_data[agent_id] = json.loads(raw_val) if isinstance(raw_val, str) else raw_val
+                        health_data[agent_id] = (
+                            json.loads(raw_val) if isinstance(raw_val, str) else raw_val
+                        )
                     except json.JSONDecodeError:
                         health_data[agent_id] = {"status": "dead", "latency": 0}
                 else:
@@ -128,7 +140,9 @@ class IdempotencyUnavailableError(Exception):
 import contextvars
 
 # Dictionary mapping key to unique lock token
-_lock_tokens: contextvars.ContextVar[dict[str, str] | None] = contextvars.ContextVar("_lock_tokens", default=None)
+_lock_tokens: contextvars.ContextVar[dict[str, str] | None] = contextvars.ContextVar(
+    "_lock_tokens", default=None
+)
 
 # Idempotency Helper Functions (Task 8.6)
 _RELEASE_LUA = """
@@ -140,15 +154,21 @@ end
 """
 
 
-async def acquire_idempotency_lock(key: str, ttl: int = 120, fail_closed: bool = True) -> bool:
+async def acquire_idempotency_lock(
+    key: str, ttl: int = 120, fail_closed: bool = True
+) -> bool:
     """
     বাংলা মন্তব্য: fail_closed=True হলে Redis না থাকলে বা ফেইল করলে IdempotencyUnavailableError রেইজ হবে।
     fail_closed=False হলে এটি সাইলেন্টলি fail-open হয়ে True রিটার্ন করবে।
     """
     if not redis_manager.client:
         if fail_closed:
-            raise IdempotencyUnavailableError("Redis অনুপলব্ধ — idempotency guarantee দেওয়া যাচ্ছে না।")
-        logger.warning(f"Idempotency lock for '{key}' skipped — Redis unavailable, fail-open mode.")
+            raise IdempotencyUnavailableError(
+                "Redis অনুপলব্ধ — idempotency guarantee দেওয়া যাচ্ছে না।"
+            )
+        logger.warning(
+            f"Idempotency lock for '{key}' skipped — Redis unavailable, fail-open mode."
+        )
         return True
     try:
         # SET NX EX - atomic lock acquisition with unique value
@@ -165,7 +185,9 @@ async def acquire_idempotency_lock(key: str, ttl: int = 120, fail_closed: bool =
     except Exception as e:  # noqa: BLE001
         logger.error(f"Idempotency lock failed for '{key}': {e}")
         if fail_closed:
-            raise IdempotencyUnavailableError(f"Redis error during lock acquisition: {e}") from e
+            raise IdempotencyUnavailableError(
+                f"Redis error during lock acquisition: {e}"
+            ) from e
         return True
 
 
@@ -191,7 +213,9 @@ async def release_idempotency_lock(key: str) -> bool:
         return False
 
 
-async def cache_response_and_release_lock(key: str, response: str, ttl: int = 86400) -> None:
+async def cache_response_and_release_lock(
+    key: str, response: str, ttl: int = 86400
+) -> None:
     if not redis_manager.client:
         return
     try:

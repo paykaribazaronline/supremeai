@@ -32,16 +32,22 @@ def generate_health_report():
             path = route.path
             methods = ", ".join(list(route.methods - {"HEAD"}))
             # Simple logic to check if route path is mentioned in tests
-            has_test = any(path.strip('/').replace('/', '_') in test.get('nodeid', '') for test in tests.get('tests', []))
+            has_test = any(
+                path.strip("/").replace("/", "_") in test.get("nodeid", "")
+                for test in tests.get("tests", [])
+            )
             if not has_test:
                 # Also check by direct string match in nodeid just in case
-                has_test = any(path in test.get('nodeid', '') for test in tests.get('tests', []))
+                has_test = any(
+                    path in test.get("nodeid", "") for test in tests.get("tests", [])
+                )
 
             status_icon = "✅" if has_test else "⚠️"
             status_text = "Pass" if has_test else "Untested"
             report += f"| `{path}` | `{methods}` | {status_icon} | {status_text} |\n"
 
     print(report)
+
 
 if __name__ == "__main__":
     generate_health_report()

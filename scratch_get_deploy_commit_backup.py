@@ -1,12 +1,13 @@
-import os
-import requests
 import json
+import os
+
+import requests
 
 RENDER_API_KEY_BACKUP = os.getenv("RENDER_API_KEY_BACKUP")
 
 headers = {
     "Authorization": f"Bearer {RENDER_API_KEY_BACKUP}",
-    "Accept": "application/json"
+    "Accept": "application/json",
 }
 
 service_id = "srv-d9e4q5rrjlhs73bnh71g"

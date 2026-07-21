@@ -68,9 +68,11 @@ API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
 
 # ── Test Configuration Registry ──────────────────────────────────────────
 
+
 @dataclass
 class TestSuite:
     """বাংলা মন্তব্য: টেস্ট স্যুটের কনফিগারেশন"""
+
     name: str
     description: str
     test_files: list[str]
@@ -141,6 +143,7 @@ TEST_SUITES: dict[str, TestSuite] = {
 
 # ── Service Health Checker ─────────────────────────────────────────────────
 
+
 class ServiceHealthChecker:
     """
     বাংলা মন্তব্য: টেস্ট রান করার আগে সব ডিপেন্ডেন্সি সার্ভিসের হেলথ চেক করে।
@@ -154,6 +157,7 @@ class ServiceHealthChecker:
         """বাংলা মন্তব্য: Firestore connectivity check"""
         try:
             from google.cloud import firestore
+
             if emulator:
                 os.environ["FIRESTORE_EMULATOR_HOST"] = FIRESTORE_EMULATOR_HOST
             client = firestore.Client(project="test-project")
@@ -170,6 +174,7 @@ class ServiceHealthChecker:
         """বাংলা মন্তব্য: Redis কানেকশন চেক করে"""
         try:
             import redis.asyncio as aioredis
+
             client = aioredis.from_url(REDIS_TEST_URL)
             await client.ping()
             await client.close()
@@ -185,6 +190,7 @@ class ServiceHealthChecker:
         """বাংলা মন্তব্য: API server রানিং কিনা চেক করে"""
         try:
             import httpx
+
             async with httpx.AsyncClient() as client:
                 response = await client.get(f"{API_BASE_URL}/health", timeout=5.0)
                 healthy = response.status_code == 200
@@ -201,8 +207,11 @@ class ServiceHealthChecker:
         """বাংলা মন্তব্য: Kafka broker কানেক্টিভিটি চেক (optional)"""
         try:
             from kafka import KafkaProducer
-            producer = KafkaProducer(bootstrap_servers="localhost:9092",
-                                     value_serializer=lambda v: json.dumps(v).encode())
+
+            producer = KafkaProducer(
+                bootstrap_servers="localhost:9092",
+                value_serializer=lambda v: json.dumps(v).encode(),
+            )
             producer.close()
             self.services["kafka"] = True
             logger.info("✅ Kafka connected")
@@ -229,6 +238,7 @@ class ServiceHealthChecker:
 
 
 # ── Test Environment Manager ───────────────────────────────────────────────
+
 
 class TestEnvironmentManager:
     """
@@ -265,12 +275,14 @@ class TestEnvironmentManager:
 
         for temp_dir in self.temp_dirs:
             import shutil
+
             shutil.rmtree(temp_dir, ignore_errors=True)
 
     async def _start_firestore_emulator(self) -> None:
         """বাংলা মন্তব্য: Firestore emulator স্টার্ট করে (যদি না চলে)"""
         try:
             import socket
+
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             result = sock.connect_ex(("localhost", 8080))
             sock.close()
@@ -278,7 +290,13 @@ class TestEnvironmentManager:
             if result != 0:  # Not running
                 logger.info("Starting Firestore emulator...")
                 proc = subprocess.Popen(
-                    ["gcloud", "emulators", "firestore", "start", "--host-port=localhost:8080"],
+                    [
+                        "gcloud",
+                        "emulators",
+                        "firestore",
+                        "start",
+                        "--host-port=localhost:8080",
+                    ],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                 )
@@ -291,6 +309,7 @@ class TestEnvironmentManager:
         """বাংলা মন্তব্য: Redis test database (DB 15) ক্লিয়ার করে"""
         try:
             import redis.asyncio as aioredis
+
             client = aioredis.from_url(REDIS_TEST_URL)
             await client.flushdb()
             await client.close()
@@ -300,6 +319,7 @@ class TestEnvironmentManager:
 
 
 # ── Test Executor ──────────────────────────────────────────────────────────
+
 
 class TestExecutor:
     """
@@ -323,22 +343,26 @@ class TestExecutor:
         for test_file in self.suite.test_files:
             cmd.append(test_file)
 
-        cmd.extend([
-            "-v",
-            "--tb=short",
-            f"--timeout={self.suite.timeout}",
-        ])
+        cmd.extend(
+            [
+                "-v",
+                "--tb=short",
+                f"--timeout={self.suite.timeout}",
+            ]
+        )
 
         if self.parallel > 1:
             cmd.extend(["-n", str(self.parallel), "--dist", "loadgroup"])
 
         if self.coverage:
-            cmd.extend([
-                "--cov=backend",
-                "--cov-report=term-missing",
-                "--cov-report=html:tests/reports/coverage",
-                "--cov-report=json:tests/reports/coverage.json",
-            ])
+            cmd.extend(
+                [
+                    "--cov=backend",
+                    "--cov-report=term-missing",
+                    "--cov-report=html:tests/reports/coverage",
+                    "--cov-report=json:tests/reports/coverage.json",
+                ]
+            )
 
         env = os.environ.copy()
         env["SUPREMEAI_TEST_ENV"] = self.env
@@ -391,6 +415,7 @@ class TestExecutor:
 
 
 # ── Report Generator ─────────────────────────────────────────────────────
+
 
 class ReportGenerator:
     """
@@ -445,7 +470,9 @@ class ReportGenerator:
 </body>
 </html>"""
 
-        html_file = self.output_dir / f"report_{suite}_{datetime.now(UTC):%Y%m%d_%H%M%S}.html"
+        html_file = (
+            self.output_dir / f"report_{suite}_{datetime.now(UTC):%Y%m%d_%H%M%S}.html"
+        )
         html_file.write_text(html, encoding="utf-8")
         logger.info(f"HTML report saved: {html_file}")
         return str(html_file)
@@ -459,8 +486,13 @@ class ReportGenerator:
             "results": results,
         }
 
-        json_file = self.output_dir / f"report_{results.get('suite', 'unknown')}_{datetime.now(UTC):%Y%m%d_%H%M%S}.json"
-        json_file.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+        json_file = (
+            self.output_dir
+            / f"report_{results.get('suite', 'unknown')}_{datetime.now(UTC):%Y%m%d_%H%M%S}.json"
+        )
+        json_file.write_text(
+            json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
         logger.info(f"JSON report saved: {json_file}")
         return str(json_file)
 
@@ -469,8 +501,12 @@ class ReportGenerator:
         total = len(all_results)
         passed = sum(1 for r in all_results if r.get("success"))
         failed = total - passed
-        avg_time = sum(r.get("elapsed_time", 0) for r in all_results) / total if total else 0
-        avg_coverage = sum(r.get("coverage", 0) for r in all_results) / total if total else 0
+        avg_time = (
+            sum(r.get("elapsed_time", 0) for r in all_results) / total if total else 0
+        )
+        avg_coverage = (
+            sum(r.get("coverage", 0) for r in all_results) / total if total else 0
+        )
 
         summary = f"""
 ╔══════════════════════════════════════════════════════════════╗
@@ -489,6 +525,7 @@ class ReportGenerator:
 
 
 # ── Integration Test Runner (Main Class) ─────────────────────────────────
+
 
 class IntegrationTestRunner:
     """
@@ -546,29 +583,52 @@ class IntegrationTestRunner:
 
 # ── CLI ──────────────────────────────────────────────────────────────────────
 
+
 def main() -> None:
     """বাংলা মন্তব্য: CLI entry point"""
     parser = argparse.ArgumentParser(
         description="SupremeAI 2.0 — Integration Test Runner\nE2E টেস্ট অটোমেশন",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--env", "-e", default=DEFAULT_ENV,
-                        choices=["test", "staging", "production"],
-                        help="Test environment")
-    parser.add_argument("--suite", "-s", default=DEFAULT_SUITE,
-                        help=f"Test suite(s) — comma-separated. Available: {', '.join(TEST_SUITES.keys())}")
-    parser.add_argument("--parallel", "-p", type=int, default=DEFAULT_PARALLEL,
-                        help="Number of parallel workers")
-    parser.add_argument("--coverage", "-c", action="store_true", default=COVERAGE_ENABLED,
-                        help="Enable coverage reporting")
-    parser.add_argument("--list-suites", "-l", action="store_true",
-                        help="List available test suites")
+    parser.add_argument(
+        "--env",
+        "-e",
+        default=DEFAULT_ENV,
+        choices=["test", "staging", "production"],
+        help="Test environment",
+    )
+    parser.add_argument(
+        "--suite",
+        "-s",
+        default=DEFAULT_SUITE,
+        help=f"Test suite(s) — comma-separated. Available: {', '.join(TEST_SUITES.keys())}",
+    )
+    parser.add_argument(
+        "--parallel",
+        "-p",
+        type=int,
+        default=DEFAULT_PARALLEL,
+        help="Number of parallel workers",
+    )
+    parser.add_argument(
+        "--coverage",
+        "-c",
+        action="store_true",
+        default=COVERAGE_ENABLED,
+        help="Enable coverage reporting",
+    )
+    parser.add_argument(
+        "--list-suites", "-l", action="store_true", help="List available test suites"
+    )
 
     args = parser.parse_args()
 
     logger.remove()
-    logger.add(sys.stderr, level="INFO",
-               format="<green>{time:HH:mm:ss}</green> | <level>{level}</level> | {message}")
+    logger.add(
+        sys.stderr,
+        level="INFO",
+        format="<green>{time:HH:mm:ss}</green> | <level>{level}</level> | {message}",
+    )
 
     if args.list_suites:
         print("\n📋 Available Test Suites:")

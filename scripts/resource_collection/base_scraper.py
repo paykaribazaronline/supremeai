@@ -6,12 +6,12 @@ Provides common functionality for scraping various awesome lists and resource si
 import json
 import logging
 import time
+import urllib.error
+import urllib.request
 from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional
-import urllib.request
-import urllib.error
+from typing import Any, Dict, List, Optional
 
 
 class BaseResourceScraper(ABC):
@@ -38,7 +38,9 @@ class BaseResourceScraper(ABC):
         ch.setLevel(logging.INFO)
 
         # Create formatter
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
         fh.setFormatter(formatter)
         ch.setFormatter(formatter)
 
@@ -65,7 +67,7 @@ class BaseResourceScraper(ABC):
             filename = f"{self.name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
 
         filepath = self.data_dir / filename
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
         self.logger.info(f"Saved {len(data)} items to {filepath}")
@@ -81,7 +83,7 @@ class BaseResourceScraper(ABC):
         latest_file = max(json_files, key=lambda f: f.stat().st_mtime)
 
         try:
-            with open(latest_file, 'r', encoding='utf-8') as f:
+            with open(latest_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
             self.logger.info(f"Loaded {len(data)} items from {latest_file}")
             return data
@@ -133,46 +135,53 @@ class AwesomeListScraper(BaseResourceScraper):
         try:
             self.logger.info(f"Fetching README from {self.readme_url}")
             with urllib.request.urlopen(self.readme_url) as response:
-                return response.read().decode('utf-8')
+                return response.read().decode("utf-8")
         except urllib.error.URLError as e:
             self.logger.error(f"Failed to fetch README: {e}")
             return None
 
     def parse_data(self, content: str) -> List[Dict[str, Any]]:
         """Parse awesome list README into structured data"""
-        lines = content.split('\n')
+        lines = content.split("\n")
         categories = {}
         current_category = None
 
         for line in lines:
             # Check for category heading (## Category Name)
-            if line.startswith('## '):
+            if line.startswith("## "):
                 current_category = line[3:].strip()
                 categories[current_category] = []
             # Check for list item that looks like: - [name](url) - description
-            elif current_category and line.strip().startswith('- ['):
+            elif current_category and line.strip().startswith("- ["):
                 # Extract the part between - [ and ]
                 import re
-                match = re.match(r'\s*-\s*\[([^\]]+)\]\(([^)]+)\)\s*-\s*(.+)', line.strip())
+
+                match = re.match(
+                    r"\s*-\s*\[([^\]]+)\]\(([^)]+)\)\s*-\s*(.+)", line.strip()
+                )
                 if match:
                     name, url, description = match.groups()
-                    categories[current_category].append({
-                        "name": name.strip(),
-                        "url": url.strip(),
-                        "description": description.strip(),
-                        "category": current_category
-                    })
-                else:
-                    # Try without description
-                    match = re.match(r'\s*-\s*\[([^\]]+)\]\(([^)]+)\)', line.strip())
-                    if match:
-                        name, url = match.groups()
-                        categories[current_category].append({
+                    categories[current_category].append(
+                        {
                             "name": name.strip(),
                             "url": url.strip(),
-                            "description": "",
-                            "category": current_category
-                        })
+                            "description": description.strip(),
+                            "category": current_category,
+                        }
+                    )
+                else:
+                    # Try without description
+                    match = re.match(r"\s*-\s*\[([^\]]+)\]\(([^)]+)\)", line.strip())
+                    if match:
+                        name, url = match.groups()
+                        categories[current_category].append(
+                            {
+                                "name": name.strip(),
+                                "url": url.strip(),
+                                "description": "",
+                                "category": current_category,
+                            }
+                        )
 
         # Flatten the structure
         all_items = []
