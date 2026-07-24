@@ -5,10 +5,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from tools.social.viral_referral_engine import (
-    FRAUD_INDICATOR_THRESHOLD,
-    ViralReferralEngine,
-)
+from tools.social.viral_referral_engine import (FRAUD_INDICATOR_THRESHOLD,
+                                                ViralReferralEngine)
 
 
 class TestViralReferralEngine:
@@ -19,7 +17,9 @@ class TestViralReferralEngine:
         monkeypatch.setattr("tools.social.viral_referral_engine.db.client", None)
         mock_settings = MagicMock()
         mock_settings.app_base_url = "https://supremeai.com"
-        monkeypatch.setattr("tools.social.viral_referral_engine.settings", mock_settings)
+        monkeypatch.setattr(
+            "tools.social.viral_referral_engine.settings", mock_settings
+        )
         engine = ViralReferralEngine()
         engine._local_store = lambda: os.path.join(str(tmp_path), "referrals.json")
         return engine
@@ -36,7 +36,9 @@ class TestViralReferralEngine:
 
     @pytest.mark.anyio
     async def test_load_local_empty(self, engine, tmp_path):
-        engine._local_store = lambda: os.path.join(str(tmp_path), "nonexistent", "referrals.json")
+        engine._local_store = lambda: os.path.join(
+            str(tmp_path), "nonexistent", "referrals.json"
+        )
         data = engine._load_local()
         assert data == {"codes": {}, "wallets": {}}
 
@@ -112,7 +114,9 @@ class TestViralReferralEngine:
         mock_db = MagicMock()
         mock_table = MagicMock()
         mock_db.table.return_value = mock_table
-        mock_table.select.return_value.eq.return_value.execute.return_value = MagicMock(data=[{"code": "SUPREME-ABC", "referrer_id": "user-456"}])
+        mock_table.select.return_value.eq.return_value.execute.return_value = MagicMock(
+            data=[{"code": "SUPREME-ABC", "referrer_id": "user-456"}]
+        )
 
         with patch("tools.social.viral_referral_engine.db.client", mock_db):
             codes = engine.list_user_codes("user-456")
@@ -124,7 +128,9 @@ class TestViralReferralEngine:
         mock_db = MagicMock()
         mock_table = MagicMock()
         mock_db.table.return_value = mock_table
-        mock_table.select.return_value.eq.return_value.execute.side_effect = Exception("DB error")
+        mock_table.select.return_value.eq.return_value.execute.side_effect = Exception(
+            "DB error"
+        )
 
         with patch("tools.social.viral_referral_engine.db.client", mock_db):
             codes = engine.list_user_codes("user-456")
@@ -202,7 +208,9 @@ class TestViralReferralEngine:
                             "tier": "silver",
                         },
                     ):
-                        result = await engine.process_signup("new-user-123", "SUPREME-ABC", {})
+                        result = await engine.process_signup(
+                            "new-user-123", "SUPREME-ABC", {}
+                        )
         assert result["status"] == "success"
         assert result["referrer_id"] == "referrer-1"
 
@@ -215,7 +223,9 @@ class TestViralReferralEngine:
             engine.generate_referral_code("referrer-1")["code"],
             {"ip_address": "1.2.3.4"},
         )
-        result = engine._is_fraudulent("referrer-1", "new-user-2", {"ip_address": "5.6.7.8"})
+        result = engine._is_fraudulent(
+            "referrer-1", "new-user-2", {"ip_address": "5.6.7.8"}
+        )
         assert result is False
 
     @pytest.mark.anyio
@@ -234,8 +244,12 @@ class TestViralReferralEngine:
         device = "device-123"
         for i in range(FRAUD_INDICATOR_THRESHOLD):
             code = engine.generate_referral_code("referrer-1")["code"]
-            await engine.process_signup(f"new-user-{i}", code, {"device_fingerprint": device})
-        result = engine._is_fraudulent("referrer-1", "new-user-new", {"device_fingerprint": device})
+            await engine.process_signup(
+                f"new-user-{i}", code, {"device_fingerprint": device}
+            )
+        result = engine._is_fraudulent(
+            "referrer-1", "new-user-new", {"device_fingerprint": device}
+        )
         assert result is True
 
     @pytest.mark.anyio
@@ -244,11 +258,14 @@ class TestViralReferralEngine:
         mock_table = MagicMock()
         mock_db.table.return_value = mock_table
         mock_table.select.return_value.eq.return_value.execute.return_value = MagicMock(
-            data=[{"created_at": time.time(), "metadata": {"ip_address": "1.2.3.4"}}] * FRAUD_INDICATOR_THRESHOLD
+            data=[{"created_at": time.time(), "metadata": {"ip_address": "1.2.3.4"}}]
+            * FRAUD_INDICATOR_THRESHOLD
         )
 
         with patch("tools.social.viral_referral_engine.db.client", mock_db):
-            result = engine._is_fraudulent("referrer-1", "new-user", {"ip_address": "1.2.3.4"})
+            result = engine._is_fraudulent(
+                "referrer-1", "new-user", {"ip_address": "1.2.3.4"}
+            )
         assert result is True
 
     @pytest.mark.anyio
@@ -265,7 +282,9 @@ class TestViralReferralEngine:
         mock_db = MagicMock()
         mock_table = MagicMock()
         mock_db.table.return_value = mock_table
-        mock_table.select.return_value.eq.return_value.execute.return_value = MagicMock(count=55)
+        mock_table.select.return_value.eq.return_value.execute.return_value = MagicMock(
+            count=55
+        )
 
         with patch("tools.social.viral_referral_engine.db.client", mock_db):
             reward = engine._calculate_reward("referrer-1")
@@ -300,7 +319,9 @@ class TestViralReferralEngine:
         mock_db = MagicMock()
         mock_table = MagicMock()
         mock_db.table.return_value = mock_table
-        mock_table.select.return_value.eq.return_value.execute.return_value = MagicMock(data=[{"user_id": "user-1", "balance": 100.0}])
+        mock_table.select.return_value.eq.return_value.execute.return_value = MagicMock(
+            data=[{"user_id": "user-1", "balance": 100.0}]
+        )
         mock_table.insert.return_value.execute.return_value = None
         mock_table.upsert.return_value.execute.return_value = None
 
@@ -423,8 +444,12 @@ class TestViralReferralEngine:
     @pytest.mark.anyio
     async def test_credit_stripe_payout_below_threshold(self, engine):
         with (
-            patch.object(engine, "_get_wallet", return_value={"user_id": "u1", "balance": 10.0}),
-            patch.object(engine, "_credit_wallet", return_value={"balance": 15.0, "amount": 5.0}),
+            patch.object(
+                engine, "_get_wallet", return_value={"user_id": "u1", "balance": 10.0}
+            ),
+            patch.object(
+                engine, "_credit_wallet", return_value={"balance": 15.0, "amount": 5.0}
+            ),
         ):
             result = engine._credit_stripe_payout("u1", {"reward": 5.0})
         assert result["status"] == "credited"
@@ -432,7 +457,9 @@ class TestViralReferralEngine:
     @pytest.mark.anyio
     async def test_credit_stripe_payout_above_threshold(self, engine):
         with (
-            patch.object(engine, "_get_wallet", return_value={"user_id": "u1", "balance": 50.0}),
+            patch.object(
+                engine, "_get_wallet", return_value={"user_id": "u1", "balance": 50.0}
+            ),
             patch.object(
                 engine,
                 "_credit_wallet",
@@ -451,7 +478,9 @@ class TestViralReferralEngine:
     @pytest.mark.anyio
     async def test_credit_stripe_payout_stripe_failure(self, engine):
         with (
-            patch.object(engine, "_get_wallet", return_value={"user_id": "u1", "balance": 50.0}),
+            patch.object(
+                engine, "_get_wallet", return_value={"user_id": "u1", "balance": 50.0}
+            ),
             patch.object(
                 engine,
                 "_credit_wallet",

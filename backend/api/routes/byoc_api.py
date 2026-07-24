@@ -5,12 +5,11 @@ import os
 import uuid
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
-from loguru import logger
-
 from api.dependencies import get_current_user_token
 from byoc.cloud_connector import GCPCredentialManager
 from byoc.container_orchestrator import ContainerOrchestrator
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from loguru import logger
 from models.byoc_payloads import BYOCCredentialsPayload, BYOCDeployRequest
 from models.deployment_logs import DeploymentJob
 
@@ -56,7 +55,9 @@ async def save_credentials(
             "provider": payload.provider,
         }
     except Exception as e:  # noqa: BLE001
-        raise HTTPException(status_code=500, detail=f"Failed to encrypt credentials: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail=f"Failed to encrypt credentials: {str(e)}"
+        ) from e
 
 
 # ==========================================
@@ -74,7 +75,9 @@ async def deploy_container(
     user_id = token_payload.get("sub")
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid token")
-    user_tier = token_payload.get("plan_id", "free")  # প্রোডাকশনে সেশন ও সাবস্ক্রিপশন টিয়ার থেকে আসবে
+    user_tier = token_payload.get(
+        "plan_id", "free"
+    )  # প্রোডাকশনে সেশন ও সাবস্ক্রিপশন টিয়ার থেকে আসবে
 
     # Load quota limits
     # বাংলা মন্তব্য: রাউট লেভেলেই কোটা চেক করে রিকোয়েস্ট ফিল্টার করা হচ্ছে যাতে ওভারফ্লো না হয়
@@ -89,7 +92,11 @@ async def deploy_container(
         user_limits = {"max_containers": 1, "max_memory": "256Mi", "max_cpu": "500m"}
 
     # Count active containers (simulation check)
-    current_active = sum(1 for job in active_jobs.values() if job.user_id == user_id and job.status == "success")
+    current_active = sum(
+        1
+        for job in active_jobs.values()
+        if job.user_id == user_id and job.status == "success"
+    )
     if current_active >= user_limits["max_containers"]:
         raise HTTPException(
             status_code=403,
@@ -126,7 +133,9 @@ async def deploy_container(
             if res.get("status") == "deployed":
                 job.status = "success"
                 job.finished_at = datetime.now(UTC)
-                job.service_url = f"https://byoc-skill-{payload.skill_name}-mock-url.a.run.app"
+                job.service_url = (
+                    f"https://byoc-skill-{payload.skill_name}-mock-url.a.run.app"
+                )
                 job.logs.append("✅ Cloud Run deployment finished successfully.")
             else:
                 job.status = "failed"

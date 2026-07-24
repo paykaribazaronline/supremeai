@@ -3,11 +3,10 @@ import os
 import re
 from typing import Any
 
-from loguru import logger
-from pydantic import BaseModel
-
 from core.config import settings
 from core.messaging.event_bus import ErrorContext
+from loguru import logger
+from pydantic import BaseModel
 
 MAX_AGENT_TOKENS = settings.max_agent_tokens
 MAX_AGENT_ITERATIONS = settings.max_agent_iterations
@@ -20,7 +19,9 @@ try:
     _free_tier_available = True
 except ImportError:
     _free_tier_available = False
-    logger.warning("[Orchestrator] free_tier_tracker not available — budget-aware routing disabled")
+    logger.warning(
+        "[Orchestrator] free_tier_tracker not available — budget-aware routing disabled"
+    )
 
 TIER_KEYWORDS = {
     1: [
@@ -85,7 +86,9 @@ def route_request(prompt: str, task_type: str = "general") -> "SmartSemanticRout
             reasoning=f"Explicit task_type={task_type}",
         )
 
-    if "VISION" in upper_task or any(ext in prompt_lower for ext in [".png", ".jpg", ".jpeg", ".pdf"]):
+    if "VISION" in upper_task or any(
+        ext in prompt_lower for ext in [".png", ".jpg", ".jpeg", ".pdf"]
+    ):
         return SmartSemanticRouter(
             intent="vision",
             requires_expensive=True,
@@ -94,7 +97,11 @@ def route_request(prompt: str, task_type: str = "general") -> "SmartSemanticRout
         )
 
     if _matches_any(prompt_lower, TIER_KEYWORDS[1]):
-        intent = "coding" if _matches_any(prompt_lower, TIER_KEYWORDS[1][:10]) else "reasoning"
+        intent = (
+            "coding"
+            if _matches_any(prompt_lower, TIER_KEYWORDS[1][:10])
+            else "reasoning"
+        )
         return SmartSemanticRouter(
             intent=intent,
             requires_expensive=True,
@@ -149,9 +156,8 @@ class AgentCircuitBreaker:
         self._lock_reason: str | None = None
 
         # 🆕 System-level circuit breaker (Redis-backed):
-        from core.resilience.circuit_breaker import (
-            CircuitBreaker as SystemCircuitBreaker,
-        )
+        from core.resilience.circuit_breaker import \
+            CircuitBreaker as SystemCircuitBreaker
 
         self._system_cb = SystemCircuitBreaker(
             name=f"agent_{agent_name}",
@@ -230,7 +236,10 @@ class AsyncTaskManager:
         # বাংলা মন্তব্য: pytest রান করার সময় স্বয়ংক্রিয়ভাবে ইন-মেমোরি টাস্ক ম্যানেজার ব্যবহার করতে sys.modules চেক করা হচ্ছে।
         import sys
 
-        self._allow_memory_fallback = os.getenv("ENV", "production") in ("dev", "test", "local") or "pytest" in sys.modules
+        self._allow_memory_fallback = (
+            os.getenv("ENV", "production") in ("dev", "test", "local")
+            or "pytest" in sys.modules
+        )
 
     def _get_queue(self):
         # বাংলা মন্তব্য: টেস্ট ও লোকাল রান টাইমে ফলব্যাক নিশ্চিত করার জন্য সরাসরি None রিটার্ন করা হলো।
@@ -251,8 +260,11 @@ class AsyncTaskManager:
                     )
                 else:
                     # প্রোডাকশনে silently fallback করা যাবে না — জোরে ব্যর্থ হও, চুপচাপ ডেটা হারানোর চেয়ে
-                    logger.critical(f"[AsyncTaskManager] Task queue backend failed to initialize in production: {exc}")
-                    from core.messaging.event_bus import ErrorEvent, error_event_bus
+                    logger.critical(
+                        f"[AsyncTaskManager] Task queue backend failed to initialize in production: {exc}"
+                    )
+                    from core.messaging.event_bus import (ErrorEvent,
+                                                          error_event_bus)
 
                     error_event_bus.emit(
                         ErrorEvent(
@@ -263,7 +275,9 @@ class AsyncTaskManager:
                             structured_context=ErrorContext(module="auto_fixed"),
                         )
                     )
-                    raise RuntimeError(f"Task queue unavailable in production (ENV={os.getenv('ENV')}): {exc}") from exc
+                    raise RuntimeError(
+                        f"Task queue unavailable in production (ENV={os.getenv('ENV')}): {exc}"
+                    ) from exc
         return self._queue
 
     def create_task(self, task_type: str, payload: dict) -> str:
@@ -368,7 +382,9 @@ def budget_aware_route(
                     f"tier={semantic_route.tier}, best_free_provider={best_provider}"
                 )
             else:
-                logger.warning("[Orchestrator] budget_aware_route: all free providers exhausted")
+                logger.warning(
+                    "[Orchestrator] budget_aware_route: all free providers exhausted"
+                )
         except Exception as exc:  # noqa: BLE001
             logger.warning(f"[Orchestrator] budget_aware_route failed: {exc}")
 
@@ -405,7 +421,9 @@ class SupremeAgentOrchestrator:
     def __init__(self, agents_registry: list[Any]):
         self.agents = agents_registry
 
-    async def dispatch_swarm_parallel(self, task_payload: dict[str, Any]) -> list[dict[str, Any]]:
+    async def dispatch_swarm_parallel(
+        self, task_payload: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """
         🛡️ Auditor Fix: Silent sub-agent crash trapping eliminated.
         Parallel thread exceptions no longer swallowed; clear diagnostic isolation.
@@ -434,9 +452,13 @@ class SupremeAgentOrchestrator:
             if res and isinstance(res, dict) and "output" in res:
                 validated_responses.append(res)
             else:
-                logger.warning(f"⚠️ [MALFORMED_AGENT_RESPONSE]: Agent '{agent_name}' returned invalid signature packet.")
+                logger.warning(
+                    f"⚠️ [MALFORMED_AGENT_RESPONSE]: Agent '{agent_name}' returned invalid signature packet."
+                )
 
         if not validated_responses:
-            raise SwarmOrchestrationError("CRITICAL: All decentralized swarm agents failed to execute the baseline matrix.")
+            raise SwarmOrchestrationError(
+                "CRITICAL: All decentralized swarm agents failed to execute the baseline matrix."
+            )
 
         return validated_responses

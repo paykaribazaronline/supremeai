@@ -29,7 +29,9 @@ class ChromaDBStore:
     Provides add_document, add_documents, query, update, delete, and count APIs.
     """
 
-    def __init__(self, db_path: str = None, collection_name: str = "supremeai_knowledge"):
+    def __init__(
+        self, db_path: str = None, collection_name: str = "supremeai_knowledge"
+    ):
         if db_path is None:
             base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             db_path = os.path.join(base_dir, "data", "chromadb_store")
@@ -105,7 +107,9 @@ class ChromaDBStore:
     # ------------------------------------------------------------------
     # CRUD
     # ------------------------------------------------------------------
-    def add_document(self, doc_id: str, text: str, metadata: dict[str, Any] = None) -> None:
+    def add_document(
+        self, doc_id: str, text: str, metadata: dict[str, Any] = None
+    ) -> None:
         self.add_documents([{"id": doc_id, "text": text, "metadata": metadata or {}}])
 
     def add_documents(self, documents: list[dict[str, Any]]) -> None:
@@ -125,7 +129,9 @@ class ChromaDBStore:
                 self._collection.upsert(ids=ids, documents=texts, metadatas=metadatas)
                 return
             except Exception as e:  # noqa: BLE001
-                _logger.warning(f"ChromaDB upsert failed, falling back to local storage: {e}")
+                _logger.warning(
+                    f"ChromaDB upsert failed, falling back to local storage: {e}"
+                )
         for doc in documents:
             doc_id = doc.get("id") or str(uuid.uuid4())
             text = doc.get("text") or doc.get("content") or ""
@@ -137,7 +143,9 @@ class ChromaDBStore:
             }
         self._save_fallback()
 
-    def add_document_incremental(self, doc_id: str, text: str, metadata: dict[str, Any] = None) -> bool:
+    def add_document_incremental(
+        self, doc_id: str, text: str, metadata: dict[str, Any] = None
+    ) -> bool:
         """Add or update document only if content hash changed (Bangla: ইনক্রিমেন্টাল ইনডেক্সিং).
 
         Returns:
@@ -153,34 +161,60 @@ class ChromaDBStore:
         if self._collection is not None:
             try:
                 existing = self._collection.get(ids=[doc_id], include=["metadatas"])
-                if existing and existing.get("metadatas") and len(existing["metadatas"]) > 0:
+                if (
+                    existing
+                    and existing.get("metadatas")
+                    and len(existing["metadatas"]) > 0
+                ):
                     old_hash = existing["metadatas"][0].get("content_hash")
                     if old_hash == content_hash:
-                        _logger.debug(f"Skipping indexing for unchanged document {doc_id}")
+                        _logger.debug(
+                            f"Skipping indexing for unchanged document {doc_id}"
+                        )
                         return False
             except Exception:  # noqa: BLE001
                 pass
 
         elif doc_id in self._fallback_docs:
-            old_hash = self._fallback_docs[doc_id].get("metadata", {}).get("content_hash")
+            old_hash = (
+                self._fallback_docs[doc_id].get("metadata", {}).get("content_hash")
+            )
             if old_hash == content_hash:
                 return False
 
         self.add_document(doc_id=doc_id, text=text, metadata=meta)
         return True
 
-    def query(self, query_text: str, n_results: int = 5, where: dict[str, Any] = None) -> list[tuple[str, float, dict[str, Any]]]:
+    def query(
+        self, query_text: str, n_results: int = 5, where: dict[str, Any] = None
+    ) -> list[tuple[str, float, dict[str, Any]]]:
         if self._collection is not None:
             try:
-                results = self._collection.query(query_texts=[query_text], n_results=n_results)
+                results = self._collection.query(
+                    query_texts=[query_text], n_results=n_results
+                )
                 matches: list[tuple[str, float, dict[str, Any]]] = []
                 if results and results.get("ids") and results["ids"][0]:
                     for idx, doc_id in enumerate(results["ids"][0]):
-                        distance = results["distances"][0][idx] if results.get("distances") else 0.0
+                        distance = (
+                            results["distances"][0][idx]
+                            if results.get("distances")
+                            else 0.0
+                        )
                         score = float(1.0 - distance)
-                        meta = results["metadatas"][0][idx] if results.get("metadatas") else {}
-                        doc_text = results["documents"][0][idx] if results.get("documents") else ""
-                        matches.append((doc_id, score, {"text": doc_text, "metadata": meta}))
+                        meta = (
+                            results["metadatas"][0][idx]
+                            if results.get("metadatas")
+                            else {}
+                        )
+                        doc_text = (
+                            results["documents"][0][idx]
+                            if results.get("documents")
+                            else ""
+                        )
+                        matches.append(
+                            (doc_id, score, {"text": doc_text, "metadata": meta})
+                        )
                     return matches
             except Exception as e:  # noqa: BLE001
                 _logger.warning(f"ChromaDB query failed, falling back to TF-IDF: {e}")
@@ -219,7 +253,9 @@ class ChromaDBStore:
                     return {
                         "id": doc_id,
                         "text": result["documents"][0],
-                        "metadata": (result["metadatas"][0] if result.get("metadatas") else {}),
+                        "metadata": (
+                            result["metadatas"][0] if result.get("metadatas") else {}
+                        ),
                     }
             except Exception as e:  # noqa: BLE001
                 _logger.warning(f"ChromaDB get_document failed for {doc_id}: {e}")

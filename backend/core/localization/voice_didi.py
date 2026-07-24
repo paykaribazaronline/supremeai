@@ -278,7 +278,11 @@ Respond ONLY with the intent name (single word from the list above).
         }
 
         action_def = action_map.get(intent, {"action": "unknown", "needs": []})
-        missing = [need for need in action_def["needs"] if not any(e.get("type") == need for e in entities)]
+        missing = [
+            need
+            for need in action_def["needs"]
+            if not any(e.get("type") == need for e in entities)
+        ]
 
         return {
             "action": action_def["action"],

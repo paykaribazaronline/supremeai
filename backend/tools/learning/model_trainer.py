@@ -3,9 +3,8 @@ import uuid
 from typing import Any
 
 import httpx
-from loguru import logger
-
 from core.config import settings
+from loguru import logger
 
 
 class ModelTrainer:
@@ -15,20 +14,26 @@ class ModelTrainer:
             self.provider = provider
         elif getattr(settings, "runpod_api_key", None):
             self.provider = "runpod"
-        elif getattr(settings, "modal_token_id", None) and getattr(settings, "modal_token_secret", None):
+        elif getattr(settings, "modal_token_id", None) and getattr(
+            settings, "modal_token_secret", None
+        ):
             self.provider = "modal"
         else:
             self.provider = "local"
         logger.info(f"Initialized ModelTrainer with provider {self.provider}")
 
-    async def trigger_lora_finetune(self, dataset_path: str, base_model: str = "llama3-8b") -> dict[str, Any]:
+    async def trigger_lora_finetune(
+        self, dataset_path: str, base_model: str = "llama3-8b"
+    ) -> dict[str, Any]:
         if not os.path.exists(dataset_path):
             # Ensure the directory exists
             os.makedirs(os.path.dirname(dataset_path) or ".", exist_ok=True)
             with open(dataset_path, "w") as f:
                 f.write('{"prompt": "hello", "completion": "world"}')
 
-        logger.info(f"Triggering {base_model} LoRA fine-tune on {self.provider} using {dataset_path}")
+        logger.info(
+            f"Triggering {base_model} LoRA fine-tune on {self.provider} using {dataset_path}"
+        )
         job_id = f"ft-job-{uuid.uuid4().hex[:8]}"
 
         if self.provider == "runpod":
@@ -121,8 +126,14 @@ class ModelTrainer:
                         return {"status": status, "job_id": job_id, "raw_status": data}
 
                 # বাংলা মন্তব্য: non-200 response — fabricated "completed" এর বদলে honest "unknown" (Patch 23 fix)
-                logger.warning(f"RunPod status check for {job_id} returned HTTP {resp.status_code}")
-                return {"status": "unknown", "job_id": job_id, "message": "Could not verify job status"}
+                logger.warning(
+                    f"RunPod status check for {job_id} returned HTTP {resp.status_code}"
+                )
+                return {
+                    "status": "unknown",
+                    "job_id": job_id,
+                    "message": "Could not verify job status",
+                }
 
         if self.provider == "local":
             # বাংলা মন্তব্য: local training কখনো বাস্তবে চালানো হয়নি (simulation-only) —
@@ -133,14 +144,22 @@ class ModelTrainer:
                 "message": "Local training is simulated only — no real checkpoint was produced. Configure RUNPOD_API_KEY or MODAL credentials for real training.",
             }
 
-        return {"status": "unknown", "job_id": job_id, "message": "Unable to verify job status for this provider"}
+        return {
+            "status": "unknown",
+            "job_id": job_id,
+            "message": "Unable to verify job status for this provider",
+        }
 
-    async def learn_from_execution_failure(self, fingerprint: str, trace_stack: str, fix_applied: str) -> bool:
+    async def learn_from_execution_failure(
+        self, fingerprint: str, trace_stack: str, fix_applied: str
+    ) -> bool:
         """
         বাংলা মন্তব্য: ব্যর্থ হওয়া এক্সিকিউশন এবং তার সাকসেসফুল প্যাচ মেমোরিতে ইনডেক্স করা যাতে পরবর্তীতে সেলফ-হিলিং ফাস্ট হয়।
         """
         try:
-            logger.info(f"ModelTrainer: Learned fix pattern for fingerprint {fingerprint[:8]}")
+            logger.info(
+                f"ModelTrainer: Learned fix pattern for fingerprint {fingerprint[:8]}"
+            )
             return True
         except Exception as exc:
             logger.error(f"ModelTrainer learn_from_execution_failure failed: {exc}")

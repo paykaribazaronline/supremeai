@@ -1,15 +1,16 @@
 import time
 
-from fastapi.testclient import TestClient
-
 from core.app import app
+from fastapi.testclient import TestClient
 
 client = TestClient(app)
 
 
 def test_markdown_export_async_flow():
     # 1. Trigger export job
-    response = client.post("/api/v1/markdown/export", json={"root_dir": ".", "git_diff_only": False})
+    response = client.post(
+        "/api/v1/markdown/export", json={"root_dir": ".", "git_diff_only": False}
+    )
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "success"
@@ -49,7 +50,9 @@ def test_markdown_compare():
 
 
 def test_markdown_share():
-    response = client.post("/api/v1/markdown/share", json={"markdown": "# Test", "target_ai": "claude"})
+    response = client.post(
+        "/api/v1/markdown/share", json={"markdown": "# Test", "target_ai": "claude"}
+    )
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "success"

@@ -21,11 +21,15 @@ DB_PATH = os.path.join(base_dir, "knowledge_store.db")
 
 
 def _init_fts_db(conn: sqlite3.Connection) -> None:
-    conn.execute("CREATE VIRTUAL TABLE IF NOT EXISTS knowledge_fts USING fts5(title, content, source, tokenize='unicode61')")
+    conn.execute(
+        "CREATE VIRTUAL TABLE IF NOT EXISTS knowledge_fts USING fts5(title, content, source, tokenize='unicode61')"
+    )
     conn.commit()
 
 
-def _upsert_fts(conn: sqlite3.Connection, doc_id: str, title: str, content: str, source: str) -> None:
+def _upsert_fts(
+    conn: sqlite3.Connection, doc_id: str, title: str, content: str, source: str
+) -> None:
     conn.execute(
         "INSERT INTO knowledge_fts(rowid, title, content, source) VALUES (?, ?, ?, ?) "
         "ON CONFLICT(rowid) DO UPDATE SET title=excluded.title, content=excluded.content, source=excluded.source",
@@ -39,7 +43,9 @@ def seed_all():
 
     seed_data_dir = os.path.join(base_dir, "tools", "seed_data")
     if not os.path.exists(seed_data_dir):
-        logger.info(f"Error: seed_data directory not found at {seed_data_dir}")  # noqa: T201
+        logger.info(
+            f"Error: seed_data directory not found at {seed_data_dir}"
+        )  # noqa: T201
         return
 
     logger.info("Scanning seed modules...")  # noqa: T201
@@ -52,7 +58,9 @@ def seed_all():
             module_name = filename[:-3]
             module_path = os.path.join(seed_data_dir, filename)
 
-            spec = importlib.util.spec_from_file_location(f"tools.seed_data.{module_name}", module_path)
+            spec = importlib.util.spec_from_file_location(
+                f"tools.seed_data.{module_name}", module_path
+            )
             if spec and spec.loader:
                 module = importlib.util.module_from_spec(spec)
                 sys.path.insert(0, seed_data_dir)
@@ -68,7 +76,9 @@ def seed_all():
                     if attr_name.isupper():
                         attr_val = getattr(module, attr_name)
                         if isinstance(attr_val, dict):
-                            logger.info(f"Processing dict '{attr_name}' in {module_name}...")  # noqa: T201
+                            logger.info(
+                                f"Processing dict '{attr_name}' in {module_name}..."
+                            )  # noqa: T201
                             for key, item in attr_val.items():
                                 if not isinstance(item, dict):
                                     continue
@@ -83,11 +93,17 @@ def seed_all():
                                 if "fix" in item:
                                     doc_content += f"Solution/Fix: {item['fix']}\n"
                                 if "description" in item:
-                                    doc_content += f"Description: {item['description']}\n"
+                                    doc_content += (
+                                        f"Description: {item['description']}\n"
+                                    )
                                 if "when_to_use" in item:
-                                    doc_content += f"When to use: {item['when_to_use']}\n"
+                                    doc_content += (
+                                        f"When to use: {item['when_to_use']}\n"
+                                    )
                                 if "code_example" in item:
-                                    doc_content += f"Code Example:\n{item['code_example']}\n"
+                                    doc_content += (
+                                        f"Code Example:\n{item['code_example']}\n"
+                                    )
                                 if "do" in item:
                                     doc_content += f"DO: {', '.join(item['do']) if isinstance(item['do'], list) else item['do']}\n"
                                 if "dont" in item:
@@ -95,9 +111,7 @@ def seed_all():
                                 if "content" in item:
                                     doc_content += f"Content: {item['content']}\n"
                                 if "solutions" in item:
-                                    doc_content += (
-                                        f"Solutions: {', '.join(item['solutions']) if isinstance(item['solutions'], list) else item['solutions']}\n"
-                                    )
+                                    doc_content += f"Solutions: {', '.join(item['solutions']) if isinstance(item['solutions'], list) else item['solutions']}\n"
 
                                 doc_id = hashlib.md5(
                                     f"{module_name}_{key}".encode(),
@@ -117,12 +131,18 @@ def seed_all():
                                 )
 
     if ids:
-        logger.info(f"Upserting {len(ids)} expert knowledge patterns to ChromaDB...")  # noqa: T201
+        logger.info(
+            f"Upserting {len(ids)} expert knowledge patterns to ChromaDB..."
+        )  # noqa: T201
         try:
             rag.collection.upsert(ids=ids, documents=documents, metadatas=metadatas)
-            logger.info("Successfully seeded all SupremeAI 1.0 expert knowledge!")  # noqa: T201
+            logger.info(
+                "Successfully seeded all SupremeAI 1.0 expert knowledge!"
+            )  # noqa: T201
         except Exception as e:  # noqa: BLE001
-            logger.info(f"ChromaDB Upsert failed: {e}. Writing to fallback index.")  # noqa: T201
+            logger.info(
+                f"ChromaDB Upsert failed: {e}. Writing to fallback index."
+            )  # noqa: T201
             for idx, doc_id in enumerate(ids):
                 rag._index[doc_id] = [metadatas[idx]["title"], documents[idx]]
             rag._store_search("expert_seed", {})

@@ -1,5 +1,4 @@
 import pytest
-
 from reports.optimization_engine import OptimizationEngine
 
 

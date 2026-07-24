@@ -17,9 +17,8 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import Enum
 
-from loguru import logger
-
 from core.cache import get_cache
+from loguru import logger
 
 # ── Constants ────────────────────────────────────────────────────────────────
 ESCROW_TTL = 30 * 24 * 3600  # 30 days
@@ -165,7 +164,9 @@ class EscrowService:
             escrow_data["met_conditions"].append(condition_index)
 
         # Check if all conditions met
-        if escrow_data["met_conditions"] and len(escrow_data["met_conditions"]) >= len(escrow_data.get("conditions", [])):
+        if escrow_data["met_conditions"] and len(escrow_data["met_conditions"]) >= len(
+            escrow_data.get("conditions", [])
+        ):
             escrow_data["status"] = EscrowStatus.CONDITION_MET.value
 
         await self.cache.set(

@@ -13,7 +13,9 @@ from unittest.mock import MagicMock, patch
 
 def create_mock_module(name, is_package=False):
     m = MagicMock()
-    m.__spec__ = importlib.machinery.ModuleSpec(name=name, loader=MagicMock(), is_package=is_package)
+    m.__spec__ = importlib.machinery.ModuleSpec(
+        name=name, loader=MagicMock(), is_package=is_package
+    )
     if is_package:
         m.__path__ = []
     return m
@@ -40,7 +42,9 @@ sys.modules["pinecone"] = create_mock_module("pinecone", is_package=True)
 sys.modules["chromadb"] = create_mock_module("chromadb", is_package=True)
 sys.modules["chromadb.config"] = create_mock_module("chromadb.config")
 sys.modules["chromadb.utils"] = create_mock_module("chromadb.utils", is_package=True)
-sys.modules["chromadb.utils.embedding_functions"] = create_mock_module("chromadb.utils.embedding_functions")
+sys.modules["chromadb.utils.embedding_functions"] = create_mock_module(
+    "chromadb.utils.embedding_functions"
+)
 sys.modules["cachetools"] = create_mock_module("cachetools", is_package=True)
 sys.modules["nats"] = create_mock_module("nats", is_package=True)
 sys.modules["nats.aio"] = create_mock_module("nats.aio", is_package=True)
@@ -50,7 +54,9 @@ sys.modules["docker"] = create_mock_module("docker", is_package=True)
 sys.modules["docker.errors"] = create_mock_module("docker.errors")
 
 # ✅ SECURITY: Use explicit test-only placeholders that cannot be mistaken for real credentials.
-os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "TEST_ONLY_SUPREMEAI_ENCRYPTION_KEY_DO_NOT_USE_IN_PROD"
+os.environ["SUPREMEAI_ENCRYPTION_KEY"] = (
+    "TEST_ONLY_SUPREMEAI_ENCRYPTION_KEY_DO_NOT_USE_IN_PROD"
+)
 os.environ["ENCRYPTION_KEY"] = "TEST_ONLY_ENCRYPTION_KEY_DO_NOT_USE_IN_PROD"
 os.environ["STRIPE_API_KEY"] = "TEST_ONLY_STRIPE_API_KEY"
 os.environ["STRIPE_WEBHOOK_SECRET"] = "TEST_ONLY_STRIPE_WEBHOOK_SECRET"
@@ -132,7 +138,6 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/dev/null"
 
 
 import pytest
-
 from core.security.rbac import RoleBasedAccessControl
 
 _TEST_ENV_DEFAULTS = {
@@ -185,7 +190,9 @@ def isolate_env(monkeypatch: pytest.MonkeyPatch):
                 setattr(core.config.settings, key.lower(), value)
             elif hasattr(core.config.settings, key):
                 setattr(core.config.settings, key, value)
-            elif getattr(core.config.settings.model_config, "extra", "ignore") == "allow":
+            elif (
+                getattr(core.config.settings.model_config, "extra", "ignore") == "allow"
+            ):
                 setattr(core.config.settings, key.lower(), value)
         except AttributeError:
             pass
@@ -193,7 +200,8 @@ def isolate_env(monkeypatch: pytest.MonkeyPatch):
 
 @pytest.fixture(autouse=True)
 def override_auth():
-    from api.dependencies import get_current_user_token, verify_autonomous_agent_token
+    from api.dependencies import (get_current_user_token,
+                                  verify_autonomous_agent_token)
     from core.app import app
 
     app.dependency_overrides[get_current_user_token] = lambda: {
@@ -272,7 +280,9 @@ def anyio_backend():
     return "asyncio"
 
 
-@pytest_asyncio.fixture(autouse=True, scope="session")  # বাংলা: টেস্ট রান টাইম কমাতে session scope ব্যবহার করা হচ্ছে
+@pytest_asyncio.fixture(
+    autouse=True, scope="session"
+)  # বাংলা: টেস্ট রান টাইম কমাতে session scope ব্যবহার করা হচ্ছে
 async def setup_test_database():
     import sqlalchemy.dialects.sqlite as sqlite_dialect  # noqa: F401
     from sqlalchemy.dialects.postgresql import JSONB
@@ -290,13 +300,19 @@ async def setup_test_database():
     # বাংলা: wallet.py তে UserWallet ও TransactionLedgerEntry (SQLAlchemy) আছে — সরাসরি ইম্পোর্ট করো
 
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)  # à¦ªà¦°à¦¿à¦·à§à¦•à¦¾à¦° à¦¶à§à¦°à§ à¦¨à¦¿à¦¶à§à¦šà¦¿à¦¤ à¦•à¦°à¦¤à§‡
+        await conn.run_sync(
+            Base.metadata.drop_all
+        )  # à¦ªà¦°à¦¿à¦·à§à¦•à¦¾à¦° à¦¶à§à¦°à§ à¦¨à¦¿à¦¶à§à¦šà¦¿à¦¤ à¦•à¦°à¦¤à§‡
         try:
-            await conn.run_sync(Base.metadata.create_all)  # à¦¸à¦¬ à¦Ÿà§‡à¦¬à¦¿à¦² à¦¤à§ˆà¦°à¦¿
+            await conn.run_sync(
+                Base.metadata.create_all
+            )  # à¦¸à¦¬ à¦Ÿà§‡à¦¬à¦¿à¦² à¦¤à§ˆà¦°à¦¿
         except Exception as e:  # noqa: BLE001
             import warnings
 
-            warnings.warn(f"Test database setup skipped due to schema issue: {e}", stacklevel=2)
+            warnings.warn(
+                f"Test database setup skipped due to schema issue: {e}", stacklevel=2
+            )
     yield
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
@@ -341,7 +357,9 @@ def mock_supabase():
 
     with (
         patch("database.supabase_client.create_client") as mock_create,
-        patch("database.supabase_client.SupabaseDB.__init__", return_value=None) as mock_init,
+        patch(
+            "database.supabase_client.SupabaseDB.__init__", return_value=None
+        ) as mock_init,
     ):
         mock_db = MagicMock()
         mock_db.client = MagicMock()
@@ -360,5 +378,7 @@ def mock_network():
     # সব ধরণের আউটগোয়িং নেটওয়ার্ক কল ব্লক করুন
     import respx
 
-    with respx.mock(base_url="https://mock.supabase.co", assert_all_mocked=False) as respx_mock:
+    with respx.mock(
+        base_url="https://mock.supabase.co", assert_all_mocked=False
+    ) as respx_mock:
         yield respx_mock

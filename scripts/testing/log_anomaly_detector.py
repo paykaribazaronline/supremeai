@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 SupremeAI 2.0 — Log Anomaly Detector 🔍
 ========================================
@@ -25,10 +24,11 @@ import re
 import sys
 import time
 from collections import Counter, deque
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 from loguru import logger
@@ -70,7 +70,7 @@ except ImportError:
 
 try:
     import torch
-    import torch.nn as nn
+    from torch import nn
 
     TORCH_AVAILABLE = True
 except ImportError:
@@ -82,6 +82,7 @@ except ImportError:
 @dataclass
 class LogEntry:
     """একটি লগ এন্ট্রির স্ট্রাকচার।"""
+
     timestamp: str
     level: str
     source: str
@@ -93,6 +94,7 @@ class LogEntry:
 @dataclass
 class AnomalyReport:
     """এনোমালি রিপোর্ট।"""
+
     id: str
     timestamp: str
     log_entry: LogEntry
@@ -108,6 +110,7 @@ class AnomalyReport:
 @dataclass
 class PatternTemplate:
     """Regex pattern template for known log types."""
+
     name: str
     regex: str
     severity: str
@@ -201,7 +204,9 @@ class LogFeatureExtractor:
             msg.count(" "),  # Whitespace density
             ord(entry.message[0]) if entry.message else 0,  # First char ASCII
             hash(entry.source) % 1000,  # Source hash
-            {"DEBUG": 0, "INFO": 1, "WARNING": 2, "ERROR": 3, "CRITICAL": 4}.get(entry.level.upper(), 1),
+            {"DEBUG": 0, "INFO": 1, "WARNING": 2, "ERROR": 3, "CRITICAL": 4}.get(
+                entry.level.upper(), 1
+            ),
         ]
         return np.array(features, dtype=np.float32)
 
@@ -233,11 +238,15 @@ class LogFeatureExtractor:
 class LSTMDetector(nn.Module if TORCH_AVAILABLE else object):
     """LSTM-based sequence anomaly detector for temporal log patterns."""
 
-    def __init__(self, input_size: int = 63, hidden_size: int = 64, num_layers: int = 2):
+    def __init__(
+        self, input_size: int = 63, hidden_size: int = 64, num_layers: int = 2
+    ):
         if not TORCH_AVAILABLE:
             return
         super().__init__()
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, dropout=0.2)
+        self.lstm = nn.LSTM(
+            input_size, hidden_size, num_layers, batch_first=True, dropout=0.2
+        )
         self.fc = nn.Linear(hidden_size, input_size)
         self.criterion = nn.MSELoss()
 
@@ -252,7 +261,13 @@ class LSTMAnomalyEngine:
     def __init__(self, sequence_length: int = LSTM_SEQUENCE_LENGTH):
         self.sequence_length = sequence_length
         self.model: LSTMDetector | None = None
-        self.device = torch.device("cuda" if TORCH_AVAILABLE and torch.cuda.is_available() else "cpu") if TORCH_AVAILABLE else None
+        self.device = (
+            torch.device(
+                "cuda" if TORCH_AVAILABLE and torch.cuda.is_available() else "cpu"
+            )
+            if TORCH_AVAILABLE
+            else None
+        )
         self._buffer: deque[np.ndarray] = deque(maxlen=sequence_length)
         self._trained = False
 
@@ -275,14 +290,16 @@ class LSTMAnomalyEngine:
         for epoch in range(epochs):
             total_loss = 0
             for i in range(len(dataset)):
-                seq = dataset[i:i+1]
+                seq = dataset[i : i + 1]
                 self.optimizer.zero_grad()
                 output = self.model(seq)
                 loss = self.model.criterion(output, seq)
                 loss.backward()
                 self.optimizer.step()
                 total_loss += loss.item()
-            logger.info(f"🧠 LSTM Epoch {epoch+1}/{epochs}, Loss: {total_loss/len(dataset):.4f}")
+            logger.info(
+                f"🧠 LSTM Epoch {epoch+1}/{epochs}, Loss: {total_loss/len(dataset):.4f}"
+            )
 
         self._trained = True
 
@@ -348,7 +365,9 @@ class LogAnomalyDetector:
                 return pattern
         return None
 
-    def _statistical_anomaly(self, entry: LogEntry, features: np.ndarray) -> tuple[bool, float]:
+    def _statistical_anomaly(
+        self, entry: LogEntry, features: np.ndarray
+    ) -> tuple[bool, float]:
         """Z-score based statistical anomaly detection."""
         if len(self._feature_window) < 10:
             return False, 0.0
@@ -401,7 +420,7 @@ class LogAnomalyDetector:
             sequences = []
             arr = np.array([f.flatten() for f in self._feature_window])
             for i in range(len(arr) - LSTM_SEQUENCE_LENGTH):
-                sequences.append(arr[i:i + LSTM_SEQUENCE_LENGTH])
+                sequences.append(arr[i : i + LSTM_SEQUENCE_LENGTH])
             self.lstm_engine.train(sequences)
             logger.info("✅ LSTM retrained")
 
@@ -422,7 +441,9 @@ class LogAnomalyDetector:
         pattern = self._pattern_match(entry)
         if pattern:
             report = AnomalyReport(
-                id=hashlib.sha256(f"{entry.timestamp}:{entry.message[:50]}".encode()).hexdigest()[:16],
+                id=hashlib.sha256(
+                    f"{entry.timestamp}:{entry.message[:50]}".encode()
+                ).hexdigest()[:16],
                 timestamp=datetime.now(timezone.utc).isoformat(),
                 log_entry=entry,
                 anomaly_score=1.0,
@@ -440,7 +461,9 @@ class LogAnomalyDetector:
         is_stat_anomaly, z_score = self._statistical_anomaly(entry, features)
         if is_stat_anomaly:
             report = AnomalyReport(
-                id=hashlib.sha256(f"{entry.timestamp}:{entry.message[:50]}".encode()).hexdigest()[:16],
+                id=hashlib.sha256(
+                    f"{entry.timestamp}:{entry.message[:50]}".encode()
+                ).hexdigest()[:16],
                 timestamp=datetime.now(timezone.utc).isoformat(),
                 log_entry=entry,
                 anomaly_score=min(z_score / 5.0, 1.0),
@@ -459,7 +482,9 @@ class LogAnomalyDetector:
             is_iso_anomaly, iso_score = self._isolation_anomaly(features.reshape(1, -1))
             if is_iso_anomaly:
                 report = AnomalyReport(
-                    id=hashlib.sha256(f"{entry.timestamp}:{entry.message[:50]}".encode()).hexdigest()[:16],
+                    id=hashlib.sha256(
+                        f"{entry.timestamp}:{entry.message[:50]}".encode()
+                    ).hexdigest()[:16],
                     timestamp=datetime.now(timezone.utc).isoformat(),
                     log_entry=entry,
                     anomaly_score=min(iso_score, 1.0),
@@ -477,7 +502,9 @@ class LogAnomalyDetector:
         lstm_error, lstm_score = self.lstm_engine.predict(features)
         if lstm_score > 0.7:
             report = AnomalyReport(
-                id=hashlib.sha256(f"{entry.timestamp}:{entry.message[:50]}".encode()).hexdigest()[:16],
+                id=hashlib.sha256(
+                    f"{entry.timestamp}:{entry.message[:50]}".encode()
+                ).hexdigest()[:16],
                 timestamp=datetime.now(timezone.utc).isoformat(),
                 log_entry=entry,
                 anomaly_score=lstm_score,
@@ -502,7 +529,9 @@ class LogAnomalyDetector:
                 reports.append(report)
         return reports
 
-    def get_recent_anomalies(self, n: int = 50, severity: str | None = None) -> list[AnomalyReport]:
+    def get_recent_anomalies(
+        self, n: int = 50, severity: str | None = None
+    ) -> list[AnomalyReport]:
         """Get recent anomaly reports."""
         reports = list(self._reports)[-n:]
         if severity:
@@ -522,8 +551,17 @@ class LogAnomalyDetector:
             },
         }
 
-    def add_custom_pattern(self, name: str, regex: str, severity: str, description: str, description_bn: str) -> None:
-        self.patterns.append(PatternTemplate(name, regex, severity, description, description_bn))
+    def add_custom_pattern(
+        self,
+        name: str,
+        regex: str,
+        severity: str,
+        description: str,
+        description_bn: str,
+    ) -> None:
+        self.patterns.append(
+            PatternTemplate(name, regex, severity, description, description_bn)
+        )
         self._save_state()
         logger.info(f"➕ Custom pattern added: {name}")
 
@@ -537,7 +575,9 @@ class LogStreamHandler:
         self._running = False
         self._tasks: list[asyncio.Task] = []
 
-    async def tail_file(self, filepath: Path, callback: Callable[[AnomalyReport], Any] | None = None) -> None:
+    async def tail_file(
+        self, filepath: Path, callback: Callable[[AnomalyReport], Any] | None = None
+    ) -> None:
         """Async tail -f equivalent for log files."""
         if not filepath.exists():
             logger.error(f"❌ Log file not found: {filepath}")
@@ -589,10 +629,19 @@ class LogStreamHandler:
             raw_line=line[:1000],
         )
 
-    async def tail_journal(self, service: str = "supremeai", callback: Callable | None = None) -> None:
+    async def tail_journal(
+        self, service: str = "supremeai", callback: Callable | None = None
+    ) -> None:
         """Tail systemd journal for a service."""
         proc = await asyncio.create_subprocess_exec(
-            "journalctl", "-u", f"{service}.service", "-f", "-n", "0", "-o", "json",
+            "journalctl",
+            "-u",
+            f"{service}.service",
+            "-f",
+            "-n",
+            "0",
+            "-o",
+            "json",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
@@ -603,7 +652,9 @@ class LogStreamHandler:
             try:
                 data = json.loads(line.decode())
                 entry = LogEntry(
-                    timestamp=data.get("__REALTIME_TIMESTAMP", datetime.now(timezone.utc).isoformat()),
+                    timestamp=data.get(
+                        "__REALTIME_TIMESTAMP", datetime.now(timezone.utc).isoformat()
+                    ),
                     level=data.get("PRIORITY", "INFO"),
                     source=data.get("SYSLOG_IDENTIFIER", service),
                     message=data.get("MESSAGE", ""),
@@ -615,7 +666,9 @@ class LogStreamHandler:
             except json.JSONDecodeError:
                 continue
 
-    def start(self, sources: list[Path | str], callback: Callable | None = None) -> None:
+    def start(
+        self, sources: list[Path | str], callback: Callable | None = None
+    ) -> None:
         self._running = True
         for source in sources:
             if isinstance(source, Path):
@@ -659,7 +712,7 @@ async def demo():
         )
         report = detector.analyze(entry)
         if report:
-            print(f"\n🚨 ANOMALY DETECTED!")
+            print("\n🚨 ANOMALY DETECTED!")
             print(f"   Type: {report.anomaly_type}")
             print(f"   Severity: {report.severity}")
             print(f"   Score: {report.anomaly_score:.3f}")
@@ -678,7 +731,9 @@ def main():
     parser = argparse.ArgumentParser(description="SupremeAI Log Anomaly Detector")
     parser.add_argument("--demo", action="store_true", help="Run demo")
     parser.add_argument("--tail", type=Path, help="Tail a log file")
-    parser.add_argument("--service", default="supremeai", help="Systemd service to tail")
+    parser.add_argument(
+        "--service", default="supremeai", help="Systemd service to tail"
+    )
     parser.add_argument("--stats", action="store_true", help="Show statistics")
     args = parser.parse_args()
 

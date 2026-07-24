@@ -5,7 +5,9 @@ import textwrap
 
 
 def _run(code: str) -> subprocess.CompletedProcess:
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    project_root = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    )
     backend_root = os.path.join(project_root, "backend")
     env = os.environ.copy()
     env["PYTHONPATH"] = os.pathsep.join([project_root, backend_root])
@@ -16,8 +18,7 @@ def _run(code: str) -> subprocess.CompletedProcess:
     env.pop("SUPABASE_KEY", None)
     env.pop("SUPABASE_SECRET_KEY", None)
 
-    gcp_mock_code = textwrap.dedent(
-        """
+    gcp_mock_code = textwrap.dedent("""
         import sys
         from unittest.mock import MagicMock
         import google.auth
@@ -38,8 +39,7 @@ def _run(code: str) -> subprocess.CompletedProcess:
 
         # Patch Supabase client to prevent database network calls
         sys.modules['database.supabase_client'] = MagicMock()
-        """
-    )
+        """)
     full_code = gcp_mock_code + "\n" + code
 
     return subprocess.run(
@@ -53,8 +53,7 @@ def _run(code: str) -> subprocess.CompletedProcess:
 
 
 def test_docs_visible_in_local():
-    code = textwrap.dedent(
-        """
+    code = textwrap.dedent("""
         import os
         os.environ["ENV"] = "local"
         os.environ["OPENROUTER_API_KEY"] = "sk"
@@ -71,15 +70,13 @@ def test_docs_visible_in_local():
         assert client.get("/docs").status_code == 200
         assert client.get("/redoc").status_code == 200
         assert client.get("/openapi.json").status_code == 200
-        """
-    )
+        """)
     result = _run(code)
     assert result.returncode == 0, result.stdout + result.stderr
 
 
 def test_docs_disabled_in_production():
-    code = textwrap.dedent(
-        """
+    code = textwrap.dedent("""
         import os
         os.environ["ENV"] = "production"
         os.environ["DEBUG"] = "false"
@@ -110,7 +107,6 @@ def test_docs_disabled_in_production():
         assert client.get("/docs").status_code == 404
         assert client.get("/redoc").status_code == 404
         assert client.get("/openapi.json").status_code == 404
-        """
-    )
+        """)
     result = _run(code)
     assert result.returncode == 0, result.stdout + result.stderr

@@ -7,10 +7,9 @@ import re
 import time
 import uuid
 
+from core.messaging.event_bus import ErrorContext, ErrorEvent
 from fastapi.responses import JSONResponse
 from loguru import logger
-
-from core.messaging.event_bus import ErrorContext, ErrorEvent
 
 
 class HoneypotMiddleware:
@@ -40,10 +39,14 @@ class HoneypotMiddleware:
         from core.rules_mutator import RulesMutator
 
         if RulesMutator().is_ip_blocked(hacker_ip):
-            logger.warning(f"Honeypot: Blocked request from blacklisted IP: {hacker_ip}")
+            logger.warning(
+                f"Honeypot: Blocked request from blacklisted IP: {hacker_ip}"
+            )
             response = JSONResponse(
                 status_code=403,
-                content={"detail": "Forbidden: Access denied due to security policy violations."},
+                content={
+                    "detail": "Forbidden: Access denied due to security policy violations."
+                },
             )
             await response(scope, receive, send)
             return
@@ -75,22 +78,33 @@ class HoneypotMiddleware:
         query_str = scope.get("query_string", b"").decode("utf-8", errors="ignore")
 
         # Check query string and body for malicious signatures
-        is_malicious = any(sig.search(body_str) or sig.search(query_str) for sig in self.attack_signatures)
+        is_malicious = any(
+            sig.search(body_str) or sig.search(query_str)
+            for sig in self.attack_signatures
+        )
 
         if is_malicious:
             # P0 Fix: হ্যাকার ডিটেক্টেড — Immediate auto-block
             logger.warning(f"🕷️ Malicious payload from {hacker_ip}. Auto-blocking...")
 
             # 1. Immediately block IP via RulesMutator
-            RulesMutator().block_ip(hacker_ip, reason="honeypot_malicious_payload_detected")
+            RulesMutator().block_ip(
+                hacker_ip, reason="honeypot_malicious_payload_detected"
+            )
 
             # 2. Log threat intelligence to Firestore
-            self._log_threat_intelligence(hacker_ip, body_str or query_str, scope.get("path", ""))
+            self._log_threat_intelligence(
+                hacker_ip, body_str or query_str, scope.get("path", "")
+            )
 
             # 3. Set distributed block in Redis with 1 hour TTL
             import core.services as app_mod
 
-            if hasattr(app_mod, "redis_queue") and app_mod.redis_queue and app_mod.redis_queue.configured:
+            if (
+                hasattr(app_mod, "redis_queue")
+                and app_mod.redis_queue
+                and app_mod.redis_queue.configured
+            ):
                 try:
                     # Set honeypot block key with 1 hour TTL
                     block_entry = {
@@ -142,7 +156,9 @@ class HoneypotMiddleware:
                     )
                 )
             except Exception as exc:  # noqa: BLE001
-                logger.debug(f"Event bus emit failed during honeypot block (suppressed by design): {exc}")
+                logger.debug(
+                    f"Event bus emit failed during honeypot block (suppressed by design): {exc}"
+                )
 
             # 5. Return RFC 2324 (418 I'm a teapot) — اطلاعات-লীন রেসপন্স
             response = JSONResponse(
@@ -168,7 +184,9 @@ class HoneypotMiddleware:
             loop = asyncio.get_running_loop()
             # বাংলা মন্তব্য: P1 Fix — run_in_executor নিজেই Future রিটার্ন করে।
             # asyncio.ensure_future() দিয়ে double-wrap করা নিষিদ্ধ — Python 3.10+ DeprecationWarning দেয়।
-            future = loop.run_in_executor(None, self._persist_threat_intel, ip, payload, endpoint)
+            future = loop.run_in_executor(
+                None, self._persist_threat_intel, ip, payload, endpoint
+            )
 
             def _on_done(fut):
                 exc = fut.exception()

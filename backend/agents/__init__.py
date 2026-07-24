@@ -41,12 +41,8 @@ __all__ = [
 ]
 
 # Re-export ephemeral executor types for convenience
-from agents.ephemeral_executor import (
-    ExecutionResult,
-    ExecutionStatus,
-    ResourceQuota,
-    SecurityScanner,
-)
+from agents.ephemeral_executor import (ExecutionResult, ExecutionStatus,
+                                       ResourceQuota, SecurityScanner)
 
 # Lazy registry for agent discovery
 _AGENT_REGISTRY: dict[str, type] = {

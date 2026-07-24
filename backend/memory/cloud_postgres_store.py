@@ -18,7 +18,9 @@ class CloudPostgresStore:
     """
 
     def __init__(self):
-        self.conn_string = os.getenv("DATABASE_URL", os.getenv("SUPABASE_DATABASE_URL", ""))
+        self.conn_string = os.getenv(
+            "DATABASE_URL", os.getenv("SUPABASE_DATABASE_URL", "")
+        )
         self._init_tables()
 
     def _get_conn(self):
@@ -27,8 +29,7 @@ class CloudPostgresStore:
     def _init_tables(self):
         """Initialize tables if not exist."""
         with self._get_conn() as conn, conn.cursor() as cur:
-            cur.execute(
-                """
+            cur.execute("""
                     CREATE TABLE IF NOT EXISTS task_history (
                         id SERIAL PRIMARY KEY,
                         task_type VARCHAR(50),
@@ -40,10 +41,8 @@ class CloudPostgresStore:
                         success BOOLEAN DEFAULT true,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
-                """
-            )
-            cur.execute(
-                """
+                """)
+            cur.execute("""
                     CREATE TABLE IF NOT EXISTS conversation_context (
                         id SERIAL PRIMARY KEY,
                         session_id VARCHAR(100),
@@ -53,10 +52,8 @@ class CloudPostgresStore:
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
-                """
-            )
-            cur.execute(
-                """
+                """)
+            cur.execute("""
                     CREATE TABLE IF NOT EXISTS verification_queue (
                         id SERIAL PRIMARY KEY,
                         email_target VARCHAR(255),
@@ -65,8 +62,7 @@ class CloudPostgresStore:
                         processed BOOLEAN DEFAULT false,
                         received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
-                """
-            )
+                """)
             conn.commit()
             logger.info("PostgreSQL tables initialized")
 
@@ -109,7 +105,9 @@ class CloudPostgresStore:
             result = cur.fetchone()
             return dict(result) if result else None
 
-    def update_conversation(self, session_id: str, messages: list[dict], summary: str = ""):
+    def update_conversation(
+        self, session_id: str, messages: list[dict], summary: str = ""
+    ):
         """Update or create conversation context."""
         from psycopg2.extras import Json
 
@@ -130,8 +128,7 @@ class CloudPostgresStore:
     def get_stats(self) -> dict[str, Any]:
         """Get system statistics."""
         with self._get_conn() as conn, conn.cursor() as cur:
-            cur.execute(
-                """
+            cur.execute("""
                     SELECT
                         COUNT(*) as total_tasks,
                         AVG(cost) as avg_cost,
@@ -139,8 +136,7 @@ class CloudPostgresStore:
                         AVG(latency_ms) as avg_latency,
                         COUNT(CASE WHEN success THEN 1 END)::FLOAT / COUNT(*) * 100 as success_rate
                     FROM task_history
-                """
-            )
+                """)
             result = cur.fetchone()
             return dict(result) if result else {}
 

@@ -93,7 +93,9 @@ def test_execute_command_local_fallback_success(sandbox, monkeypatch):
 
     sandbox.docker_available = False
     with patch("subprocess.run") as mock_run:
-        mock_run.return_value = MagicMock(returncode=0, stdout="local output", stderr="")
+        mock_run.return_value = MagicMock(
+            returncode=0, stdout="local output", stderr=""
+        )
         result = sandbox.execute_command("echo 'local output'")
 
         assert result["success"] is True
@@ -130,7 +132,9 @@ def test_execute_command_local_fallback_timeout(sandbox, monkeypatch):
     monkeypatch.setattr(settings, "env", "development")
 
     sandbox.docker_available = False
-    with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("cmd", 5)) as mock_run:
+    with patch(
+        "subprocess.run", side_effect=subprocess.TimeoutExpired("cmd", 5)
+    ) as mock_run:
         result = sandbox.execute_command("sleep 10")
 
         assert result["success"] is False

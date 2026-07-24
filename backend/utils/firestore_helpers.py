@@ -11,7 +11,6 @@ import os
 from typing import Any
 
 from loguru import logger
-
 from utils.environment import is_test_environment
 
 # Firestore SDK প্রাপ্যতা যাচাই — একবারই চেক হয়, বারবার try/except লাগে না
@@ -47,7 +46,12 @@ def get_firestore_db(project_id: str | None = None) -> Any | None:
     if not FIRESTORE_AVAILABLE:
         return None
 
-    resolved_project = project_id or os.getenv("GCP_PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT") or "supremeai-a"
+    resolved_project = (
+        project_id
+        or os.getenv("GCP_PROJECT_ID")
+        or os.getenv("GOOGLE_CLOUD_PROJECT")
+        or "supremeai-a"
+    )
 
     # ক্যাশ চেক — আগেই তৈরি থাকলে সেটাই রিটার্ন
     if resolved_project in _client_cache:

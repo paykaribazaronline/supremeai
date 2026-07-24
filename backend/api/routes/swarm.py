@@ -3,16 +3,15 @@ import logging
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
-from pydantic import BaseModel, Field
-from sse_starlette.sse import EventSourceResponse
-
 from api.routes.admin import get_current_admin
 from core.orchestration.swarm_orchestrator import SwarmOrchestrator
 from core.swarm_pubsub import swarm_streamer
 from database.session import get_db_session
 from engine.forge_compiler import ForgeCompiler
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from models.patch_telemetry import PatchTelemetry
+from pydantic import BaseModel, Field
+from sse_starlette.sse import EventSourceResponse
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +58,9 @@ async def _save_telemetry_to_db(data: dict):
             await session.commit()
             logger.info(f"Telemetry persisted to DB: {data.get('patch_id', 'Unknown')}")
         except Exception:
-            logger.exception(f"Failed to persist telemetry for patch {data.get('patch_id', 'Unknown')}")
+            logger.exception(
+                f"Failed to persist telemetry for patch {data.get('patch_id', 'Unknown')}"
+            )
             raise
 
 
@@ -68,17 +69,23 @@ class PatchTelemetryPayload(BaseModel):
     patch_id: str = Field(..., description="Unique ID for the generated patch")
     file_path: str = Field(..., description="Path of the healed file")
     status: str = Field(..., description="'ACCEPTED', 'REJECTED', or 'MODIFIED'")
-    similarity_score: float = Field(..., description="Levenshtein similarity score (0.0 to 1.0)")
+    similarity_score: float = Field(
+        ..., description="Levenshtein similarity score (0.0 to 1.0)"
+    )
 
 
 @router.post("/telemetry/patch-result", status_code=202)
-async def record_patch_telemetry(payload: PatchTelemetryPayload, background_tasks: BackgroundTasks):
+async def record_patch_telemetry(
+    payload: PatchTelemetryPayload, background_tasks: BackgroundTasks
+):
     """
     Receives telemetry on whether the user accepted, rejected, or modified the Swarm's proposed fix.
     """
     background_tasks.add_task(_save_telemetry_to_db, payload.model_dump())
 
-    logger.info(f"Telemetry received: Patch {payload.patch_id} was {payload.status} with score {payload.similarity_score}")
+    logger.info(
+        f"Telemetry received: Patch {payload.patch_id} was {payload.status} with score {payload.similarity_score}"
+    )
     return {"message": "Telemetry recorded"}
 
 
@@ -88,7 +95,9 @@ async def halt_swarm(admin_user: dict = Depends(get_current_admin)):
     সত্যিকারের ব্যাকএন্ড কাউন্টারপার্ট। আগে এই এন্ডপয়েন্টটি existই করত না, তাই বাটন
     চাপলে শুধু UI-তে অ্যানিমেশন হতো, কোনো এজেন্ট আসলে থামত না।
     """
-    await swarm_streamer.set_halt(reason=f"manual_stop_by:{admin_user.get('sub', 'unknown')}")
+    await swarm_streamer.set_halt(
+        reason=f"manual_stop_by:{admin_user.get('sub', 'unknown')}"
+    )
     await swarm_streamer.broadcast(
         event_type="CIRCUIT_OPEN",
         payload={
@@ -142,7 +151,9 @@ async def execute_healing(payload: SelfHealingRequest, request: Request):
     Please fix the error and provide the corrected complete code content.
     """
 
-    orchestrator = SwarmOrchestrator(user_id="vscode_agent", session_id=session_id, task_prompt=task_prompt)
+    orchestrator = SwarmOrchestrator(
+        user_id="vscode_agent", session_id=session_id, task_prompt=task_prompt
+    )
 
     # Execute swarm with 0 retries for speed in VS Code context
     workspace = await orchestrator.execute(max_retries=0)
@@ -182,12 +193,16 @@ class FlowEdge(BaseModel):
     id: str = Field(..., description="Unique ID of the edge")
     source: str = Field(..., description="Source node ID")
     target: str = Field(..., description="Target node ID")
-    animated: bool | None = Field(default=False, description="Whether the edge is animated")
+    animated: bool | None = Field(
+        default=False, description="Whether the edge is animated"
+    )
 
 
 class ForgePayload(BaseModel):
     name: str = Field(..., description="Name of the custom swarm flow")
-    description: str | None = Field(default="", description="Optional description of the swarm's purpose")
+    description: str | None = Field(
+        default="", description="Optional description of the swarm's purpose"
+    )
     nodes: list[FlowNode]
     edges: list[FlowEdge]
 
@@ -198,7 +213,9 @@ async def save_forge_swarm(payload: ForgePayload):
     Saves the visual swarm layout (nodes and edges) from the Evolution Forge.
     """
     try:
-        logger.info(f"Received Forge payload for Swarm: {payload.name} with {len(payload.nodes)} nodes.")
+        logger.info(
+            f"Received Forge payload for Swarm: {payload.name} with {len(payload.nodes)} nodes."
+        )
 
         return {
             "status": "success",
@@ -211,7 +228,9 @@ async def save_forge_swarm(payload: ForgePayload):
         }
     except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to save Forge Swarm: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error while saving swarm blueprint") from e
+        raise HTTPException(
+            status_code=500, detail="Internal server error while saving swarm blueprint"
+        ) from e
 
 
 async def run_swarm_execution_async(execution_plan):
@@ -240,7 +259,9 @@ async def run_swarm_execution_async(execution_plan):
 
 
 @router.post("/forge/{flow_id}/execute", status_code=202)
-async def execute_forge_flow(flow_id: str, payload: ForgePayload, background_tasks: BackgroundTasks):
+async def execute_forge_flow(
+    flow_id: str, payload: ForgePayload, background_tasks: BackgroundTasks
+):
     try:
         execution_plan = ForgeCompiler.compile_and_sort(
             [n.model_dump() for n in payload.nodes],

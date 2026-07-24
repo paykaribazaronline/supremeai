@@ -43,11 +43,15 @@ class SupabaseStore(SQLiteMemoryStore):
                         url = self.database_url.rstrip("/")
 
                 if not url:
-                    raise RuntimeError("Unable to derive a valid Supabase URL. Set SUPABASE_URL or use a direct Supabase DB URL.")
+                    raise RuntimeError(
+                        "Unable to derive a valid Supabase URL. Set SUPABASE_URL or use a direct Supabase DB URL."
+                    )
 
                 key = os.getenv("SUPABASE_KEY", "")
                 if not key:
-                    raise RuntimeError("SUPABASE_KEY is required for Supabase client initialization")
+                    raise RuntimeError(
+                        "SUPABASE_KEY is required for Supabase client initialization"
+                    )
 
                 self._supabase_client = create_client(url, key)
             except Exception as exc:  # noqa: BLE001
@@ -68,12 +72,19 @@ class SupabaseStore(SQLiteMemoryStore):
             self.get_session_messages(session_id)
             for msg in messages:
                 if isinstance(msg, dict):
-                    self.save_message(session_id, msg.get("role", "user"), msg.get("content", ""))
+                    self.save_message(
+                        session_id, msg.get("role", "user"), msg.get("content", "")
+                    )
 
     def get_conversation(self, session_id: str) -> list:
         if self._provider == "supabase":
             client = self._get_supabase_client()
-            result = client.table("conversations").select("messages").eq("session_id", session_id).execute()
+            result = (
+                client.table("conversations")
+                .select("messages")
+                .eq("session_id", session_id)
+                .execute()
+            )
             rows = result.data
             if rows:
                 return json.loads(rows[0]["messages"])
@@ -152,7 +163,14 @@ class SupabaseStore(SQLiteMemoryStore):
                         },
                     ).execute()
                     if response.data:
-                        return [(json.loads(row["content"]) if isinstance(row["content"], str) else row["content"]) for row in response.data]
+                        return [
+                            (
+                                json.loads(row["content"])
+                                if isinstance(row["content"], str)
+                                else row["content"]
+                            )
+                            for row in response.data
+                        ]
             except Exception as e:
                 try:
                     from loguru import logger
@@ -164,8 +182,20 @@ class SupabaseStore(SQLiteMemoryStore):
             # বাংলা মন্তব্য: রেজিলিয়েন্স ফলব্যাক - ভেক্টর সার্চ কাজ না করলে সাধারণ ilike সাবস্ট্রিং সার্চ চালানো হবে।
             try:
                 client = self._get_supabase_client()
-                result = client.table("learned_facts").select("content").ilike("content", f"%{query}%").execute()
-                return [(json.loads(row["content"]) if isinstance(row["content"], str) else row["content"]) for row in result.data]
+                result = (
+                    client.table("learned_facts")
+                    .select("content")
+                    .ilike("content", f"%{query}%")
+                    .execute()
+                )
+                return [
+                    (
+                        json.loads(row["content"])
+                        if isinstance(row["content"], str)
+                        else row["content"]
+                    )
+                    for row in result.data
+                ]
             except Exception as e:
                 try:
                     from loguru import logger

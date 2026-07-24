@@ -18,17 +18,18 @@ Dependencies:
 - `core.llm.llm_gateway`: Provides an interface for interacting with Large Language Models for skill synthesis.
 - `core.mcp_client.MCPRegistryClient`: Facilitates communication with the Multi-Agent Communication Protocol registry for skill discovery.
 - `core.skills.base.BaseSkill`: The foundational abstract base class for all skills managed by this system.
-- `tools.mcp.mcp_supabase`: Used for querying and retrieving skill definitions from a Supabase database."""
+- `tools.mcp.mcp_supabase`: Used for querying and retrieving skill definitions from a Supabase database.
+"""
 
 # backend/core/skill_manager.py
 import json
 from typing import Any
 
-from loguru import logger
-
 from core.llm.llm_gateway import llm_gateway
 from core.mcp_client import MCPRegistryClient
 from core.skills.base import BaseSkill
+from loguru import logger
+
 from tools.code.fuzz_sandbox import SecurityError, run_sandbox_ast_check
 
 
@@ -64,14 +65,13 @@ class SkillManager:
             return self._skills[skill_name]
 
         logger.info(f"Skill '{skill_name}' not in local registry. Querying Database...")
-        from tools.mcp.mcp_supabase import (
-            ExecuteQueryInput,
-            ResponseFormat,
-            supabase_execute_sql,
-        )
+        from tools.mcp.mcp_supabase import (ExecuteQueryInput, ResponseFormat,
+                                            supabase_execute_sql)
 
         try:
-            query = "SELECT code FROM skills WHERE skill_name = %s AND status = 'active'"
+            query = (
+                "SELECT code FROM skills WHERE skill_name = %s AND status = 'active'"
+            )
             res = await supabase_execute_sql(
                 ExecuteQueryInput(
                     query=query,
@@ -94,10 +94,16 @@ class SkillManager:
                 try:
                     ast_ok = run_sandbox_ast_check(code_content)
                 except SecurityError as sec_exc:
-                    logger.error(f"🚨 Blocked unsafe skill code for '{skill_name}': {sec_exc}")
-                    raise ValueError(f"Skill '{skill_name}' failed security validation and was not loaded.") from sec_exc
+                    logger.error(
+                        f"🚨 Blocked unsafe skill code for '{skill_name}': {sec_exc}"
+                    )
+                    raise ValueError(
+                        f"Skill '{skill_name}' failed security validation and was not loaded."
+                    ) from sec_exc
                 if not ast_ok:
-                    raise ValueError(f"Skill '{skill_name}' has invalid/unparseable code and was not loaded.")
+                    raise ValueError(
+                        f"Skill '{skill_name}' has invalid/unparseable code and was not loaded."
+                    )
 
                 # --- নিরাপত্তা গেট ২: ন্যূনতম, লক-ডাউন করা exec namespace ---
                 # `globals().copy()` এই মডিউলের সব ইম্পোর্ট (llm_gateway, MCPRegistryClient, logger
@@ -136,7 +142,11 @@ class SkillManager:
                 )
 
                 for item in local_env.values():
-                    if isinstance(item, type) and issubclass(item, BaseSkill) and item != BaseSkill:
+                    if (
+                        isinstance(item, type)
+                        and issubclass(item, BaseSkill)
+                        and item != BaseSkill
+                    ):
                         skill_instance = item()
                         self.register_skill(skill_instance, skill_name)
                         return skill_instance
@@ -163,7 +173,9 @@ class SkillManager:
         বাংলা মন্তব্য: LLM ব্যবহার করে একটি নতুন স্কিলের JSON স্কিমা তৈরি করে।
         এটি আগের get_or_create_skill এর মূল লজিকটি ধারণ করে।
         """
-        logger.warning("🚀 [DB Miss] Unique task scenario. Escalating to Claude-3.5-Sonnet for Skill Generation...")
+        logger.warning(
+            "🚀 [DB Miss] Unique task scenario. Escalating to Claude-3.5-Sonnet for Skill Generation..."
+        )
 
         system_prompt = (
             "You are SupremeAI's Skill Architect. Your sole job is to generate a reusable, structural "
@@ -194,16 +206,24 @@ class SkillManager:
         raw_text = response.get("text", "{}").strip()
         if raw_text.startswith("```"):
             lines = raw_text.splitlines()
-            raw_text = "\n".join(lines[1:-1] if lines.startswith("```") and lines[-1].startswith("```") else lines)
+            raw_text = "\n".join(
+                lines[1:-1]
+                if lines.startswith("```") and lines[-1].startswith("```")
+                else lines
+            )
             raw_text = "\n".join(lines).strip()
 
         try:
             new_skill = json.loads(raw_text)
-            logger.success(f"Synthesized new skill schema: '{new_skill.get('skill_name')}'")
+            logger.success(
+                f"Synthesized new skill schema: '{new_skill.get('skill_name')}'"
+            )
             return new_skill
         except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to parse synthesized skill schema: {str(e)}")
-            raise ValueError("Invalid JSON configuration from Skill Factory.")  # noqa: B904
+            raise ValueError(
+                "Invalid JSON configuration from Skill Factory."
+            )  # noqa: B904
 
 
 # Global singleton instance

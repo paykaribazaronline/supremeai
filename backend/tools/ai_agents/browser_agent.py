@@ -2,12 +2,11 @@ import asyncio
 from typing import Any
 
 from bs4 import BeautifulSoup
-from loguru import logger
-from pydantic import BaseModel
-
 from core.human_behavior import HumanBehaviorSimulators
 from core.playwright_manager import get_global_browser
 from core.security import is_safe_url
+from loguru import logger
+from pydantic import BaseModel
 
 try:
     from playwright.async_api import async_playwright
@@ -41,7 +40,9 @@ class BrowserAgent:
         if not callable(async_playwright):
             return {"status": "failed", "error": "Playwright is not installed"}
 
-        logger.info(f"🎬 Initializing Dynamic Recipe Interpreter with {len(steps)} steps.")
+        logger.info(
+            f"🎬 Initializing Dynamic Recipe Interpreter with {len(steps)} steps."
+        )
 
         extracted_data = {}
 
@@ -65,7 +66,9 @@ class BrowserAgent:
                 # যদি ইনিশিয়াল কোনো ইউআরএল দেওয়া থাকে, প্রথমে সেখানে নেভিগেট করবে
                 if initial_url:
                     logger.info(f"Navigating to initial target: {initial_url}")
-                    await page.goto(initial_url, wait_until="networkidle", timeout=30000)
+                    await page.goto(
+                        initial_url, wait_until="networkidle", timeout=30000
+                    )
 
                 # 🔄 ডায়নামিক রেসিপি লুপ স্টার্ট
                 for index, step in enumerate(steps):
@@ -73,13 +76,19 @@ class BrowserAgent:
                     selector = step.get("selector")
                     value = step.get("value")
 
-                    logger.debug(f"Processing Recipe Step [{index + 1}]: Action='{action}'")
+                    logger.debug(
+                        f"Processing Recipe Step [{index + 1}]: Action='{action}'"
+                    )
 
                     if action == "navigate":
-                        await page.goto(step["url"], wait_until="networkidle", timeout=30000)
+                        await page.goto(
+                            step["url"], wait_until="networkidle", timeout=30000
+                        )
 
                     elif action == "click":
-                        await HumanBehaviorSimulators.natural_mouse_move_and_click(page, selector)
+                        await HumanBehaviorSimulators.natural_mouse_move_and_click(
+                            page, selector
+                        )
 
                     elif action == "type":
                         # স্মার্ট ক্ল্যাম্পিং: বড় টেক্সট হলে ডিরেক্ট পেস্ট/ফিল করবে, ছোট হলে হিউম্যান টাইপিং
@@ -87,27 +96,37 @@ class BrowserAgent:
                             await page.wait_for_selector(selector, state="visible")
                             await page.fill(selector, str(value))
                         else:
-                            await HumanBehaviorSimulators.natural_type(page, selector, str(value))
+                            await HumanBehaviorSimulators.natural_type(
+                                page, selector, str(value)
+                            )
 
                     elif action == "wait":
                         # যদি ভ্যালু সংখ্যা হয় তবে সেকেন্ড স্লিপ করবে, টেক্সট হলে সিলেক্টর visible হওয়া পর্যন্ত ওয়েট করবে
                         if str(value).isdigit():
                             await asyncio.sleep(float(value))
                         else:
-                            await page.wait_for_selector(str(value), state="visible", timeout=15000)
+                            await page.wait_for_selector(
+                                str(value), state="visible", timeout=15000
+                            )
 
                     elif action == "extract":
-                        await page.wait_for_selector(selector, state="visible", timeout=10000)
+                        await page.wait_for_selector(
+                            selector, state="visible", timeout=10000
+                        )
 
                         # যদি টেবিল ডেটা বা মাল্টিপল এলিমেন্ট স্ক্র্যাপ করতে বলা হয়
                         if step.get("type") == "list":
                             elements = await page.query_selector_all(selector)
-                            extracted_data[selector] = [await el.inner_text() for el in elements]
+                            extracted_data[selector] = [
+                                await el.inner_text() for el in elements
+                            ]
                         else:
                             # ডিফল্ট সিঙ্গেল এলিমেন্ট টেক্সট এক্সট্রাকশন
                             extracted_data[selector] = await page.inner_text(selector)
 
-                        logger.success(f"Successfully extracted target data node from: {selector}")
+                        logger.success(
+                            f"Successfully extracted target data node from: {selector}"
+                        )
 
                 # সমস্ত স্টেপ সফলভাবে শেষ হলে
                 return {"status": "success", "data": extracted_data}

@@ -4,12 +4,13 @@ Load seed data from cloud storage (GCS/S3) at runtime.
 Replaces static seed_data/ in git.
 """
 
-import os
 import json
+import os
+from typing import Any
+
 import boto3
 from google.cloud import storage
 from loguru import logger
-from typing import Dict, Any
 
 
 class SeedDataLoader:
@@ -23,7 +24,7 @@ class SeedDataLoader:
         self.bucket = os.getenv("SEED_STORAGE_BUCKET", "supremeai-seed-data")
         self.local_path = "data/seed_data"
 
-    def load_from_gcs(self, blob_name: str) -> Dict[str, Any]:
+    def load_from_gcs(self, blob_name: str) -> dict[str, Any]:
         """Load seed data from Google Cloud Storage."""
         try:
             client = storage.Client()
@@ -35,7 +36,7 @@ class SeedDataLoader:
             logger.error(f"GCS load failed: {e}")
             return self._local_fallback(blob_name)
 
-    def load_from_s3(self, key: str) -> Dict[str, Any]:
+    def load_from_s3(self, key: str) -> dict[str, Any]:
         """Load seed data from AWS S3."""
         try:
             s3 = boto3.client("s3")
@@ -45,7 +46,7 @@ class SeedDataLoader:
             logger.error(f"S3 load failed: {e}")
             return self._local_fallback(key)
 
-    def _local_fallback(self, name: str) -> Dict[str, Any]:
+    def _local_fallback(self, name: str) -> dict[str, Any]:
         """Fallback to local file."""
         path = f"{self.local_path}/{name}.json"
         if os.path.exists(path):
@@ -54,7 +55,7 @@ class SeedDataLoader:
         logger.warning(f"Seed data not found: {name}")
         return {}
 
-    def load_all(self) -> Dict[str, Any]:
+    def load_all(self) -> dict[str, Any]:
         """Load all seed data categories."""
         categories = [
             "ai_ml",

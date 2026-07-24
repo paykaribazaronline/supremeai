@@ -92,7 +92,9 @@ class ConsentRecord:
             "ip_address": self.ip_address,
             "user_agent": self.user_agent,
             "version": self.version,
-            "withdrawn_at": (self.withdrawn_at.isoformat() if self.withdrawn_at else None),
+            "withdrawn_at": (
+                self.withdrawn_at.isoformat() if self.withdrawn_at else None
+            ),
         }
 
     def is_valid(self) -> bool:
@@ -167,7 +169,9 @@ class GDPRChecker:
         """Initialize GDPR checker."""
         self.db = get_firestore_client()
 
-    def check_lawful_basis(self, user_id: str, purpose: str) -> ComplianceViolation | None:
+    def check_lawful_basis(
+        self, user_id: str, purpose: str
+    ) -> ComplianceViolation | None:
         """Check if processing has lawful basis."""
         # Check for consent
         consent = self._get_consent(user_id, ConsentType.DATA_PROCESSING)
@@ -182,7 +186,9 @@ class GDPRChecker:
             )
         return None
 
-    def check_data_minimization(self, data_fields: list[str], purpose: str) -> ComplianceViolation | None:
+    def check_data_minimization(
+        self, data_fields: list[str], purpose: str
+    ) -> ComplianceViolation | None:
         """Check data minimization principle."""
         excessive_fields = self._identify_excessive_fields(data_fields, purpose)
         if excessive_fields:
@@ -196,7 +202,9 @@ class GDPRChecker:
             )
         return None
 
-    def check_retention_limit(self, data_age_days: int, data_type: str) -> ComplianceViolation | None:
+    def check_retention_limit(
+        self, data_age_days: int, data_type: str
+    ) -> ComplianceViolation | None:
         """Check if data is retained beyond necessary period."""
         limits = {
             "session_logs": 30,
@@ -232,10 +240,16 @@ class GDPRChecker:
             )
         return None
 
-    def _get_consent(self, user_id: str, consent_type: ConsentType) -> ConsentRecord | None:
+    def _get_consent(
+        self, user_id: str, consent_type: ConsentType
+    ) -> ConsentRecord | None:
         """Get consent record from database."""
         try:
-            doc = self.db.collection("consents").document(f"{user_id}_{consent_type.value}").get()
+            doc = (
+                self.db.collection("consents")
+                .document(f"{user_id}_{consent_type.value}")
+                .get()
+            )
             if doc.exists:
                 data = doc.to_dict()
                 return ConsentRecord(
@@ -243,7 +257,11 @@ class GDPRChecker:
                     consent_type=ConsentType(data["consent_type"]),
                     granted=data["granted"],
                     granted_at=datetime.fromisoformat(data["granted_at"]),
-                    expires_at=(datetime.fromisoformat(data["expires_at"]) if data.get("expires_at") else None),
+                    expires_at=(
+                        datetime.fromisoformat(data["expires_at"])
+                        if data.get("expires_at")
+                        else None
+                    ),
                     version=data.get("version", "1.0"),
                 )
         except Exception as e:  # noqa: BLE001
@@ -265,7 +283,12 @@ class GDPRChecker:
     def _get_pending_deletion_requests(self, user_id: str) -> list[dict[str, Any]]:
         """Get pending deletion requests."""
         try:
-            docs = self.db.collection("deletion_requests").where("user_id", "==", user_id).where("status", "==", "pending").stream()
+            docs = (
+                self.db.collection("deletion_requests")
+                .where("user_id", "==", user_id)
+                .where("status", "==", "pending")
+                .stream()
+            )
             return [d.to_dict() for d in docs]
         except Exception as e:  # noqa: BLE001
             logger.error(f"Error fetching deletion requests: {e}")
@@ -360,7 +383,9 @@ class DigitalSecurityActChecker:
     def _check_incident_response_plan(self) -> bool:
         """Check if incident response plan exists."""
         try:
-            doc = self.db.collection("system_config").document("incident_response").get()
+            doc = (
+                self.db.collection("system_config").document("incident_response").get()
+            )
             return doc.exists
         except Exception as e:  # noqa: BLE001
             logger.error(f"Incident response check failed: {e}")
@@ -400,15 +425,21 @@ class ConsentManager:
         )
 
         # Store in Firestore
-        self.db.collection("consents").document(f"{user_id}_{consent_type.value}").set(record.to_dict())
+        self.db.collection("consents").document(f"{user_id}_{consent_type.value}").set(
+            record.to_dict()
+        )
 
         logger.info(f"Consent recorded: {user_id} - {consent_type.value} = {granted}")
         return record
 
-    def withdraw_consent(self, user_id: str, consent_type: ConsentType) -> ConsentRecord | None:
+    def withdraw_consent(
+        self, user_id: str, consent_type: ConsentType
+    ) -> ConsentRecord | None:
         """Withdraw user consent."""
         try:
-            doc_ref = self.db.collection("consents").document(f"{user_id}_{consent_type.value}")
+            doc_ref = self.db.collection("consents").document(
+                f"{user_id}_{consent_type.value}"
+            )
             doc = doc_ref.get()
             if doc.exists:
                 data = doc.to_dict()
@@ -431,7 +462,9 @@ class ConsentManager:
         """Get complete consent status for a user."""
         status = {}
         try:
-            docs = self.db.collection("consents").where("user_id", "==", user_id).stream()
+            docs = (
+                self.db.collection("consents").where("user_id", "==", user_id).stream()
+            )
             for doc in docs:
                 data = doc.to_dict()
                 c_type = data.get("consent_type")
@@ -455,11 +488,17 @@ class DataRetentionPolicy:
         cutoff_date = datetime.now(UTC) - timedelta(days=retention_days)
         count = 0
         try:
-            docs = self.db.collection(data_type).where("created_at", "<", cutoff_date.isoformat()).stream()
+            docs = (
+                self.db.collection(data_type)
+                .where("created_at", "<", cutoff_date.isoformat())
+                .stream()
+            )
             for doc in docs:
                 doc.reference.delete()
                 count += 1
-            logger.info(f"Enforced retention for {data_type}: Deleted {count} records older than {retention_days} days.")
+            logger.info(
+                f"Enforced retention for {data_type}: Deleted {count} records older than {retention_days} days."
+            )
         except Exception as e:  # noqa: BLE001
             logger.error(f"Error enforcing retention on {data_type}: {e}")
         return count
@@ -492,7 +531,9 @@ class ComplianceBot:
         if lawful_basis_violation:
             violations.append(lawful_basis_violation)
 
-        data_minimization_violation = self.gdpr.check_data_minimization(data_fields, purpose)
+        data_minimization_violation = self.gdpr.check_data_minimization(
+            data_fields, purpose
+        )
         if data_minimization_violation:
             violations.append(data_minimization_violation)
 
@@ -526,7 +567,9 @@ class ComplianceBot:
                 recommendations.append(v.remediation)
 
         if overall_compliant:
-            recommendations.append("Continue current data practices. Keep monitoring regulations.")
+            recommendations.append(
+                "Continue current data practices. Keep monitoring regulations."
+            )
 
         return ComplianceReport(
             overall_compliant=overall_compliant,

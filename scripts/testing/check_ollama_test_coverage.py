@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Ollama Test Coverage Analyzer
 ==============================
@@ -25,20 +24,19 @@ from __future__ import annotations
 
 import argparse
 import ast
+import builtins
 import importlib
 import importlib.util
 import inspect
 import json
 import os
-import re
-import subprocess
 import sys
 import textwrap
 import time
 import unittest
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 # বাংলা মন্তব্য: SupremeAI core-এর সাথে কম্প্যাটিবিলিটি
@@ -86,7 +84,11 @@ DEFAULT_CONFIG = {
         },
         "ps": {
             "models": [
-                {"name": "llama3.2:latest", "size": 5000000000, "expires_at": "2024-12-31T23:59:59Z"}
+                {
+                    "name": "llama3.2:latest",
+                    "size": 5000000000,
+                    "expires_at": "2024-12-31T23:59:59Z",
+                }
             ]
         },
     },
@@ -117,6 +119,7 @@ DEFAULT_CONFIG = {
 @dataclass
 class CoverageResult:
     """Represents a single coverage metric."""
+
     name: str
     covered: int
     total: int
@@ -128,34 +131,44 @@ class CoverageResult:
 @dataclass
 class TestResult:
     """Represents the result of a test run."""
+
     test_name: str
     status: str  # "passed", "failed", "skipped", "error"
     duration: float
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 @dataclass
 class AnalysisReport:
     """Complete analysis report."""
+
     timestamp: str
     project_root: str
     total_tests: int = 0
     passed_tests: int = 0
     failed_tests: int = 0
     skipped_tests: int = 0
-    line_coverage: CoverageResult = field(default_factory=lambda: CoverageResult("lines", 0, 0, 0.0, 80.0, False))
-    branch_coverage: CoverageResult = field(default_factory=lambda: CoverageResult("branches", 0, 0, 0.0, 70.0, False))
-    function_coverage: CoverageResult = field(default_factory=lambda: CoverageResult("functions", 0, 0, 0.0, 80.0, False))
-    ollama_endpoints_tested: List[str] = field(default_factory=list)
-    missing_coverage: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    test_results: List[TestResult] = field(default_factory=list)
+    line_coverage: CoverageResult = field(
+        default_factory=lambda: CoverageResult("lines", 0, 0, 0.0, 80.0, False)
+    )
+    branch_coverage: CoverageResult = field(
+        default_factory=lambda: CoverageResult("branches", 0, 0, 0.0, 70.0, False)
+    )
+    function_coverage: CoverageResult = field(
+        default_factory=lambda: CoverageResult("functions", 0, 0, 0.0, 80.0, False)
+    )
+    ollama_endpoints_tested: list[str] = field(default_factory=list)
+    missing_coverage: list[str] = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
+    test_results: list[TestResult] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     def to_json(self, indent: int = 2) -> str:
-        return json.dumps(self.to_dict(), indent=indent, ensure_ascii=False, default=str)
+        return json.dumps(
+            self.to_dict(), indent=indent, ensure_ascii=False, default=str
+        )
 
 
 # ─── Ollama Mock Server ────────────────────────────────────────────────────────
@@ -165,19 +178,21 @@ class OllamaMockClient:
     without requiring a running Ollama instance.
     """
 
-    def __init__(self, config: Optional[Dict] = None):
+    def __init__(self, config: dict | None = None):
         self.config = config or DEFAULT_CONFIG["mock_responses"]
-        self.call_history: List[Dict[str, Any]] = []
-        self._raise_on_endpoint: Optional[str] = None
+        self.call_history: list[dict[str, Any]] = []
+        self._raise_on_endpoint: str | None = None
         self._latency_ms: int = 10
 
     def _record_call(self, endpoint: str, **kwargs):
         """Record API call for verification."""
-        self.call_history.append({
-            "endpoint": endpoint,
-            "args": kwargs,
-            "timestamp": time.time(),
-        })
+        self.call_history.append(
+            {
+                "endpoint": endpoint,
+                "args": kwargs,
+                "timestamp": time.time(),
+            }
+        )
 
     def _simulate_latency(self):
         """Simulate network latency."""
@@ -192,7 +207,7 @@ class OllamaMockClient:
         self._latency_ms = ms
 
     # ─── Core API Methods ─────────────────────────────────────────────────────
-    def generate(self, model: str, prompt: str, **kwargs) -> Dict[str, Any]:
+    def generate(self, model: str, prompt: str, **kwargs) -> dict[str, Any]:
         """Mock /api/generate endpoint."""
         self._record_call("generate", model=model, prompt=prompt, **kwargs)
         self._simulate_latency()
@@ -200,7 +215,9 @@ class OllamaMockClient:
             raise ConnectionError("Mocked Ollama connection failure")
         return self.config.get("generate", {}).copy()
 
-    def chat(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
+    def chat(
+        self, model: str, messages: builtins.list[dict], **kwargs
+    ) -> dict[str, Any]:
         """Mock /api/chat endpoint."""
         self._record_call("chat", model=model, messages=messages, **kwargs)
         self._simulate_latency()
@@ -208,7 +225,7 @@ class OllamaMockClient:
             raise ConnectionError("Mocked Ollama connection failure")
         return self.config.get("chat", {}).copy()
 
-    def embeddings(self, model: str, prompt: str, **kwargs) -> Dict[str, Any]:
+    def embeddings(self, model: str, prompt: str, **kwargs) -> dict[str, Any]:
         """Mock /api/embeddings endpoint."""
         self._record_call("embeddings", model=model, prompt=prompt, **kwargs)
         self._simulate_latency()
@@ -216,7 +233,7 @@ class OllamaMockClient:
             raise ConnectionError("Mocked Ollama connection failure")
         return self.config.get("embeddings", {}).copy()
 
-    def list(self) -> Dict[str, Any]:
+    def list(self) -> dict[str, Any]:
         """Mock /api/tags endpoint (list models)."""
         self._record_call("list")
         self._simulate_latency()
@@ -233,7 +250,7 @@ class OllamaMockClient:
         response = self.config.get("pull", {}).copy()
         yield response
 
-    def ps(self) -> Dict[str, Any]:
+    def ps(self) -> dict[str, Any]:
         """Mock /api/ps endpoint (running models)."""
         self._record_call("ps")
         self._simulate_latency()
@@ -255,7 +272,7 @@ class OllamaMockClient:
         self._simulate_latency()
         return True
 
-    def show(self, model: str) -> Dict[str, Any]:
+    def show(self, model: str) -> dict[str, Any]:
         """Mock /api/show endpoint."""
         self._record_call("show", model=model)
         self._simulate_latency()
@@ -270,7 +287,7 @@ class OllamaMockClient:
                 "families": ["llama"],
                 "parameter_size": "7B",
                 "quantization_level": "Q4_0",
-            }
+            },
         }
 
     def create(self, model: str, modelfile: str, **kwargs) -> bool:
@@ -285,19 +302,21 @@ class AsyncOllamaMockClient(OllamaMockClient):
 
     import asyncio
 
-    async def generate(self, model: str, prompt: str, **kwargs) -> Dict[str, Any]:
+    async def generate(self, model: str, prompt: str, **kwargs) -> dict[str, Any]:
         await self.asyncio.sleep(self._latency_ms / 1000.0)
         return super().generate(model, prompt, **kwargs)
 
-    async def chat(self, model: str, messages: List[Dict], **kwargs) -> Dict[str, Any]:
+    async def chat(
+        self, model: str, messages: builtins.list[dict], **kwargs
+    ) -> dict[str, Any]:
         await self.asyncio.sleep(self._latency_ms / 1000.0)
         return super().chat(model, messages, **kwargs)
 
-    async def embeddings(self, model: str, prompt: str, **kwargs) -> Dict[str, Any]:
+    async def embeddings(self, model: str, prompt: str, **kwargs) -> dict[str, Any]:
         await self.asyncio.sleep(self._latency_ms / 1000.0)
         return super().embeddings(model, prompt, **kwargs)
 
-    async def list(self) -> Dict[str, Any]:
+    async def list(self) -> dict[str, Any]:
         await self.asyncio.sleep(self._latency_ms / 1000.0)
         return super().list()
 
@@ -305,7 +324,7 @@ class AsyncOllamaMockClient(OllamaMockClient):
         await self.asyncio.sleep(self._latency_ms / 1000.0)
         yield super().pull(model, **kwargs).__next__()
 
-    async def ps(self) -> Dict[str, Any]:
+    async def ps(self) -> dict[str, Any]:
         await self.asyncio.sleep(self._latency_ms / 1000.0)
         return super().ps()
 
@@ -317,7 +336,7 @@ class AsyncOllamaMockClient(OllamaMockClient):
         await self.asyncio.sleep(self._latency_ms / 1000.0)
         return super().copy(source, destination)
 
-    async def show(self, model: str) -> Dict[str, Any]:
+    async def show(self, model: str) -> dict[str, Any]:
         await self.asyncio.sleep(self._latency_ms / 1000.0)
         return super().show(model)
 
@@ -333,10 +352,10 @@ class OllamaPatcher:
     Ensures tests run without a real Ollama server.
     """
 
-    def __init__(self, mock_client: Optional[OllamaMockClient] = None):
+    def __init__(self, mock_client: OllamaMockClient | None = None):
         self.mock_client = mock_client or OllamaMockClient()
-        self._patches: List[Any] = []
-        self._original_modules: Dict[str, Any] = {}
+        self._patches: list[Any] = []
+        self._original_modules: dict[str, Any] = {}
 
     def __enter__(self):
         """Apply patches when entering context."""
@@ -385,10 +404,10 @@ class OllamaUsageAnalyzer(ast.NodeVisitor):
     """
 
     def __init__(self):
-        self.ollama_imports: Set[str] = set()
-        self.ollama_calls: Dict[str, List[Tuple[int, str]]] = {}
+        self.ollama_imports: set[str] = set()
+        self.ollama_calls: dict[str, list[tuple[int, str]]] = {}
         self.async_usage: bool = False
-        self.error_handling: Dict[str, List[int]] = {}
+        self.error_handling: dict[str, list[int]] = {}
 
     def visit_Import(self, node: ast.Import):
         for alias in node.names:
@@ -405,12 +424,27 @@ class OllamaUsageAnalyzer(ast.NodeVisitor):
     def visit_Call(self, node: ast.Call):
         if isinstance(node.func, ast.Attribute):
             method_name = node.func.attr
-            if method_name in ["generate", "chat", "embeddings", "list",
-                               "pull", "ps", "delete", "copy", "show", "create"]:
+            if method_name in [
+                "generate",
+                "chat",
+                "embeddings",
+                "list",
+                "pull",
+                "ps",
+                "delete",
+                "copy",
+                "show",
+                "create",
+            ]:
                 line = node.lineno
                 if method_name not in self.ollama_calls:
                     self.ollama_calls[method_name] = []
-                self.ollama_calls[method_name].append((line, ast.unparse(node) if hasattr(ast, 'unparse') else method_name))
+                self.ollama_calls[method_name].append(
+                    (
+                        line,
+                        ast.unparse(node) if hasattr(ast, "unparse") else method_name,
+                    )
+                )
         self.generic_visit(node)
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef):
@@ -421,7 +455,12 @@ class OllamaUsageAnalyzer(ast.NodeVisitor):
         for handler in node.handlers:
             if handler.type and isinstance(handler.type, ast.Name):
                 exc_name = handler.type.id
-                if exc_name in ["ConnectionError", "TimeoutError", "OllamaError", "Exception"]:
+                if exc_name in [
+                    "ConnectionError",
+                    "TimeoutError",
+                    "OllamaError",
+                    "Exception",
+                ]:
                     if exc_name not in self.error_handling:
                         self.error_handling[exc_name] = []
                     self.error_handling[exc_name].append(node.lineno)
@@ -435,18 +474,26 @@ class OllamaTestRunner:
     Works without a running Ollama server by using mocks.
     """
 
-    def __init__(self, project_root: str, config: Optional[Dict] = None):
+    def __init__(self, project_root: str, config: dict | None = None):
         self.project_root = Path(project_root).resolve()
         self.config = config or DEFAULT_CONFIG
         self.report = AnalysisReport(
             timestamp=time.strftime("%Y-%m-%d %H:%M:%S"),
             project_root=str(self.project_root),
         )
-        self._console_width = min(100, os.get_terminal_size().columns) if sys.stdout.isatty() else 80
+        self._console_width = (
+            min(100, os.get_terminal_size().columns) if sys.stdout.isatty() else 80
+        )
 
     def log(self, message: str, level: str = "info"):
         """Bilingual logging with emoji indicators."""
-        prefix = {"info": "ℹ️", "success": "✅", "warning": "⚠️", "error": "❌", "debug": "🔧"}.get(level, "ℹ️")
+        prefix = {
+            "info": "ℹ️",
+            "success": "✅",
+            "warning": "⚠️",
+            "error": "❌",
+            "debug": "🔧",
+        }.get(level, "ℹ️")
         print(f"{prefix} {message}")
 
     def _print_banner(self):
@@ -459,12 +506,12 @@ class OllamaTestRunner:
         """
         print(banner)
 
-    def _print_separator(self, char: str = "─", length: Optional[int] = None):
+    def _print_separator(self, char: str = "─", length: int | None = None):
         """Print a separator line."""
         length = length or self._console_width
         print(char * length)
 
-    def discover_test_files(self) -> List[Path]:
+    def discover_test_files(self) -> list[Path]:
         """Discover all test files related to Ollama."""
         test_files = []
         patterns = self.config.get("test_patterns", DEFAULT_CONFIG["test_patterns"])
@@ -489,8 +536,8 @@ class OllamaTestRunner:
                 if "import ollama" in content or "from ollama" in content:
                     tree = ast.parse(content)
                     has_tests = any(
-                        isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and
-                        node.name.startswith("test_")
+                        isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                        and node.name.startswith("test_")
                         for node in ast.walk(tree)
                     )
                     if has_tests:
@@ -518,7 +565,7 @@ class OllamaTestRunner:
 
         return analyzer
 
-    def run_tests_with_mock(self, test_files: List[Path]) -> List[TestResult]:
+    def run_tests_with_mock(self, test_files: list[Path]) -> list[TestResult]:
         """Run tests using the mock Ollama client."""
         results = []
 
@@ -549,31 +596,38 @@ class OllamaTestRunner:
                                 obj_start = time.time()
                                 obj()
                                 obj_duration = time.time() - obj_start
-                                results.append(TestResult(
-                                    test_name=f"{test_file.name}::{name}",
-                                    status="passed",
-                                    duration=obj_duration,
-                                ))
+                                results.append(
+                                    TestResult(
+                                        test_name=f"{test_file.name}::{name}",
+                                        status="passed",
+                                        duration=obj_duration,
+                                    )
+                                )
                             except Exception as e:
-                                results.append(TestResult(
-                                    test_name=f"{test_file.name}::{name}",
-                                    status="failed",
-                                    duration=time.time() - obj_start,
-                                    error_message=str(e),
-                                ))
+                                results.append(
+                                    TestResult(
+                                        test_name=f"{test_file.name}::{name}",
+                                        status="failed",
+                                        duration=time.time() - obj_start,
+                                        error_message=str(e),
+                                    )
+                                )
 
                 except Exception as e:
-                    results.append(TestResult(
-                        test_name=str(test_file),
-                        status="error",
-                        duration=0.0,
-                        error_message=str(e),
-                    ))
+                    results.append(
+                        TestResult(
+                            test_name=str(test_file),
+                            status="error",
+                            duration=0.0,
+                            error_message=str(e),
+                        )
+                    )
 
         return results
 
-    def calculate_coverage(self, analyzer: OllamaUsageAnalyzer,
-                           test_results: List[TestResult]) -> AnalysisReport:
+    def calculate_coverage(
+        self, analyzer: OllamaUsageAnalyzer, test_results: list[TestResult]
+    ) -> AnalysisReport:
         """Calculate coverage metrics based on analysis and test results."""
         report = self.report
 
@@ -583,8 +637,18 @@ class OllamaTestRunner:
         report.skipped_tests = sum(1 for r in test_results if r.status == "skipped")
         report.test_results = test_results
 
-        all_endpoints = {"generate", "chat", "embeddings", "list",
-                         "pull", "ps", "delete", "copy", "show", "create"}
+        all_endpoints = {
+            "generate",
+            "chat",
+            "embeddings",
+            "list",
+            "pull",
+            "ps",
+            "delete",
+            "copy",
+            "show",
+            "create",
+        }
         tested_endpoints = set()
 
         for result in test_results:
@@ -638,25 +702,39 @@ class OllamaTestRunner:
 
         return report
 
-    def _generate_recommendations(self, report: AnalysisReport,
-                                   analyzer: OllamaUsageAnalyzer) -> List[str]:
+    def _generate_recommendations(
+        self, report: AnalysisReport, analyzer: OllamaUsageAnalyzer
+    ) -> list[str]:
         """Generate actionable recommendations."""
         recs = []
 
         if report.missing_coverage:
-            recs.append(f"Add tests for missing endpoints: {', '.join(report.missing_coverage)}")
+            recs.append(
+                f"Add tests for missing endpoints: {', '.join(report.missing_coverage)}"
+            )
 
         if not report.line_coverage.passed:
-            recs.append(f"Line coverage ({report.line_coverage.percentage}%) is below threshold ({report.line_coverage.threshold}%). Add more unit tests.")
+            recs.append(
+                f"Line coverage ({report.line_coverage.percentage}%) is below threshold ({report.line_coverage.threshold}%). Add more unit tests."
+            )
 
-        if analyzer.async_usage and "async" not in str(report.ollama_endpoints_tested).lower():
-            recs.append("Async Ollama usage detected but no async tests found. Add async test cases.")
+        if (
+            analyzer.async_usage
+            and "async" not in str(report.ollama_endpoints_tested).lower()
+        ):
+            recs.append(
+                "Async Ollama usage detected but no async tests found. Add async test cases."
+            )
 
         if not analyzer.error_handling:
-            recs.append("No error handling detected for Ollama calls. Add try/except blocks and test failure scenarios.")
+            recs.append(
+                "No error handling detected for Ollama calls. Add try/except blocks and test failure scenarios."
+            )
 
         if not recs:
-            recs.append("Coverage looks good! Consider adding integration tests with a real Ollama instance in staging.")
+            recs.append(
+                "Coverage looks good! Consider adding integration tests with a real Ollama instance in staging."
+            )
 
         return recs
 
@@ -679,10 +757,16 @@ class OllamaTestRunner:
         print("\n📈 COVERAGE METRICS")
         self._print_separator()
 
-        for cov in [report.line_coverage, report.branch_coverage, report.function_coverage]:
+        for cov in [
+            report.line_coverage,
+            report.branch_coverage,
+            report.function_coverage,
+        ]:
             status = "✅ PASS" if cov.passed else "❌ FAIL"
             bar = self._progress_bar(cov.percentage)
-            print(f"  {cov.name.upper():12} {bar} {cov.percentage:5.1f}%  ({status}, threshold: {cov.threshold}%)")
+            print(
+                f"  {cov.name.upper():12} {bar} {cov.percentage:5.1f}%  ({status}, threshold: {cov.threshold}%)"
+            )
 
         self._print_separator()
         print("\n🔌 OLLAMA ENDPOINTS TESTED")
@@ -715,7 +799,9 @@ class OllamaTestRunner:
                         print(f"    Error: {tr.error_message[:200]}")
 
         self._print_separator("═")
-        print(f"\n🏁 Analysis Complete | Exit Code: {0 if self._is_pass(report) else 1}")
+        print(
+            f"\n🏁 Analysis Complete | Exit Code: {0 if self._is_pass(report) else 1}"
+        )
         self._print_separator("═")
 
     def _progress_bar(self, percentage: float, width: int = 20) -> str:
@@ -726,10 +812,12 @@ class OllamaTestRunner:
 
     def _is_pass(self, report: AnalysisReport) -> bool:
         """Determine if the analysis passes all thresholds."""
-        return (report.line_coverage.passed and
-                report.branch_coverage.passed and
-                report.function_coverage.passed and
-                report.failed_tests == 0)
+        return (
+            report.line_coverage.passed
+            and report.branch_coverage.passed
+            and report.function_coverage.passed
+            and report.failed_tests == 0
+        )
 
     def save_json_report(self, report: AnalysisReport, output_path: str):
         """Save report as JSON for CI/CD integration."""
@@ -849,7 +937,9 @@ class OllamaTestRunner:
 
         self.log("🔬 Analyzing source code for Ollama usage patterns...")
         analyzer = self.analyze_source_files()
-        self.log(f"Detected {len(analyzer.ollama_calls)} endpoint call(s) in source", "info")
+        self.log(
+            f"Detected {len(analyzer.ollama_calls)} endpoint call(s) in source", "info"
+        )
 
         self.log(DEFAULT_CONFIG["english_messages"]["running"])
         test_results = self.run_tests_with_mock(test_files)
@@ -975,14 +1065,35 @@ def main():
           %(prog)s --self-test            # Run built-in tests only
         """),
     )
-    parser.add_argument("--root", "-r", default=".", help="Project root directory (default: current dir)")
-    parser.add_argument("--threshold", "-t", type=float, default=80.0, help="Coverage threshold % (default: 80)")
-    parser.add_argument("--branch-threshold", "-b", type=float, default=70.0, help="Branch coverage threshold %")
+    parser.add_argument(
+        "--root",
+        "-r",
+        default=".",
+        help="Project root directory (default: current dir)",
+    )
+    parser.add_argument(
+        "--threshold",
+        "-t",
+        type=float,
+        default=80.0,
+        help="Coverage threshold % (default: 80)",
+    )
+    parser.add_argument(
+        "--branch-threshold",
+        "-b",
+        type=float,
+        default=70.0,
+        help="Branch coverage threshold %",
+    )
     parser.add_argument("--json", "-j", metavar="PATH", help="Save JSON report to file")
     parser.add_argument("--html", metavar="PATH", help="Save HTML report to file")
-    parser.add_argument("--self-test", action="store_true", help="Run built-in unit tests only")
+    parser.add_argument(
+        "--self-test", action="store_true", help="Run built-in unit tests only"
+    )
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
-    parser.add_argument("--lang", choices=["en", "bn"], default="en", help="Output language (en/bn)")
+    parser.add_argument(
+        "--lang", choices=["en", "bn"], default="en", help="Output language (en/bn)"
+    )
 
     args = parser.parse_args()
 

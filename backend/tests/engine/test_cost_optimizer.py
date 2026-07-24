@@ -56,6 +56,10 @@ class TestCostOptimizer:
     @pytest.mark.asyncio
     async def test_get_optimal_route_complex_free(self):
         optimizer = CostOptimizer()
-        with patch.object(optimizer, "_get_best_free_provider", return_value="anthropic"):
-            result = await optimizer.get_optimal_route({"prompt": "implement architecture"}, "free")
+        with patch.object(
+            optimizer, "_get_best_free_provider", return_value="anthropic"
+        ):
+            result = await optimizer.get_optimal_route(
+                {"prompt": "implement architecture"}, "free"
+            )
             assert result.startswith("anthropic")

@@ -1,17 +1,19 @@
 import json
 import os
 import sys
-import urllib.request
 import urllib.error
-from datetime import datetime, timezone, timedelta
+import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 
-RENDER_FREE_MINUTES = 500          # Render free tier monthly limit
-THRESHOLD_PERCENT   = 95           # Activate GHA build if usage >= 95%
-CACHE_FILE          = "render_minutes_cache.json"
+RENDER_FREE_MINUTES = 500  # Render free tier monthly limit
+THRESHOLD_PERCENT = 95  # Activate GHA build if usage >= 95%
+CACHE_FILE = "render_minutes_cache.json"
+
 
 def now_utc() -> datetime:
     return datetime.now(timezone.utc)
+
 
 def get_billing_cycle_start(deploys: list, env_var_name: str, default_day: int) -> str:
     """
@@ -25,7 +27,7 @@ def get_billing_cycle_start(deploys: list, env_var_name: str, default_day: int) 
     env_val = os.environ.get(env_var_name, "")
     if env_val.isdigit():
         billing_day = int(env_val)
-        
+
     if billing_day is None and deploys:
         # Auto-detect billing day from oldest deploy
         dates = []
@@ -39,10 +41,12 @@ def get_billing_cycle_start(deploys: list, env_var_name: str, default_day: int) 
             try:
                 dt = datetime.fromisoformat(oldest_str.replace("Z", "+00:00"))
                 billing_day = dt.day
-                print(f"[AUTO] Auto-detected billing day from oldest deploy: {billing_day} (from {oldest_str[:10]})")
+                print(
+                    f"[AUTO] Auto-detected billing day from oldest deploy: {billing_day} (from {oldest_str[:10]})"
+                )
             except Exception:
                 pass
-                
+
     if billing_day is None:
         billing_day = default_day
         print(f"[INFO] Using default billing day: {billing_day}")
@@ -50,44 +54,67 @@ def get_billing_cycle_start(deploys: list, env_var_name: str, default_day: int) 
     n = now_utc()
     if n.day >= billing_day:
         try:
-            start = n.replace(day=billing_day, hour=0, minute=0, second=0, microsecond=0)
+            start = n.replace(
+                day=billing_day, hour=0, minute=0, second=0, microsecond=0
+            )
         except ValueError:
             import calendar
+
             last_day = calendar.monthrange(n.year, n.month)[1]
             start = n.replace(day=last_day, hour=0, minute=0, second=0, microsecond=0)
     else:
         prev_month = n.month - 1 if n.month > 1 else 12
-        prev_year  = n.year if n.month > 1 else n.year - 1
+        prev_year = n.year if n.month > 1 else n.year - 1
         try:
-            start = n.replace(year=prev_year, month=prev_month, day=billing_day,
-                              hour=0, minute=0, second=0, microsecond=0)
+            start = n.replace(
+                year=prev_year,
+                month=prev_month,
+                day=billing_day,
+                hour=0,
+                minute=0,
+                second=0,
+                microsecond=0,
+            )
         except ValueError:
             import calendar
+
             last_day = calendar.monthrange(prev_year, prev_month)[1]
-            start = n.replace(year=prev_year, month=prev_month, day=last_day,
-                              hour=0, minute=0, second=0, microsecond=0)
+            start = n.replace(
+                year=prev_year,
+                month=prev_month,
+                day=last_day,
+                hour=0,
+                minute=0,
+                second=0,
+                microsecond=0,
+            )
 
     return start.isoformat().replace("+00:00", "Z"), billing_day
 
+
 def format_local_dt(iso_str: str) -> str:
     try:
-        dt = datetime.strptime(iso_str[:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
+        dt = datetime.strptime(iso_str[:19], "%Y-%m-%dT%H:%M:%S").replace(
+            tzinfo=timezone.utc
+        )
         return dt.strftime("%Y-%m-%d %H:%M UTC")
     except Exception:
         return iso_str
 
+
 def fetch_deploys(api_key: str, service_id: str) -> list[dict]:
     url = f"https://api.render.com/v1/services/{service_id}/deploys?limit=100"
-    req = urllib.request.Request(url, headers={
-        "Authorization": f"Bearer {api_key}",
-        "Accept": "application/json"
-    })
+    req = urllib.request.Request(
+        url,
+        headers={"Authorization": f"Bearer {api_key}", "Accept": "application/json"},
+    )
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
             return json.loads(resp.read())
     except Exception as e:
         print(f"[WARN] Render API fetch failed: {e}", file=sys.stderr)
         return []
+
 
 def calc_usage(deploys: list[dict], month_start: str) -> dict:
     total_minutes = 0.0
@@ -96,9 +123,9 @@ def calc_usage(deploys: list[dict], month_start: str) -> dict:
 
     for item in deploys:
         deploy = item.get("deploy", item)
-        created  = deploy.get("createdAt", "")
+        created = deploy.get("createdAt", "")
         finished = deploy.get("finishedAt", "")
-        status   = deploy.get("status", "")
+        status = deploy.get("status", "")
         deploy_id = deploy.get("id", "unknown")
 
         if not created or not finished:
@@ -118,14 +145,16 @@ def calc_usage(deploys: list[dict], month_start: str) -> dict:
             daily_breakdown[day_key] = daily_breakdown.get(day_key, 0.0) + duration_min
             total_minutes += duration_min
 
-            deploy_log.append({
-                "id": deploy_id,
-                "date": day_key,
-                "started_at": format_local_dt(created),
-                "finished_at": format_local_dt(finished),
-                "duration_min": round(duration_min, 2),
-                "status": status,
-            })
+            deploy_log.append(
+                {
+                    "id": deploy_id,
+                    "date": day_key,
+                    "started_at": format_local_dt(created),
+                    "finished_at": format_local_dt(finished),
+                    "duration_min": round(duration_min, 2),
+                    "status": status,
+                }
+            )
         except Exception as e:
             print(f"[WARN] Parse error for deploy {deploy_id}: {e}", file=sys.stderr)
 
@@ -136,6 +165,7 @@ def calc_usage(deploys: list[dict], month_start: str) -> dict:
         "deploy_log": deploy_log,
     }
 
+
 def load_cache() -> dict:
     p = Path(CACHE_FILE)
     if p.exists():
@@ -145,11 +175,12 @@ def load_cache() -> dict:
             pass
     return {}
 
+
 def main():
     # Configure stdout/stderr encodings
     try:
-        sys.stdout.reconfigure(encoding='utf-8')
-        sys.stderr.reconfigure(encoding='utf-8')
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
     except AttributeError:
         pass
 
@@ -158,14 +189,15 @@ def main():
         if Path(path).exists():
             try:
                 from dotenv import load_dotenv
+
                 load_dotenv(path)
             except ImportError:
                 pass
 
     api_key_primary = os.environ.get("RENDER_API_KEY", "")
-    api_key_backup  = os.environ.get("RENDER_API_KEY_BACKUP", "")
-    primary_svc_id  = os.environ.get("PRIMARY_SVC_ID", "srv-d9d3n58js32c738n79k0")
-    backup_svc_id   = os.environ.get("BACKUP_SVC_ID", "srv-d9fg48bh523c73f63bb0")
+    api_key_backup = os.environ.get("RENDER_API_KEY_BACKUP", "")
+    primary_svc_id = os.environ.get("PRIMARY_SVC_ID", "srv-d9d3n58js32c738n79k0")
+    backup_svc_id = os.environ.get("BACKUP_SVC_ID", "srv-d9fg48bh523c73f63bb0")
 
     current_time = now_utc().strftime("%Y-%m-%d %H:%M UTC")
     print(f"[INFO] Checking Render quota at: {current_time}\n")
@@ -173,7 +205,7 @@ def main():
     # Fetch deploys first to allow auto-detection of billing days
     primary_deploys = []
     backup_deploys = []
-    
+
     if api_key_primary:
         primary_deploys = fetch_deploys(api_key_primary, primary_svc_id)
     if api_key_backup:
@@ -181,7 +213,9 @@ def main():
 
     # Detect cycle start dates
     p_start, p_day = get_billing_cycle_start(primary_deploys, "RENDER_BILLING_DAY", 17)
-    b_start, b_day = get_billing_cycle_start(backup_deploys, "RENDER_BILLING_DAY_BACKUP", 21)
+    b_start, b_day = get_billing_cycle_start(
+        backup_deploys, "RENDER_BILLING_DAY_BACKUP", 21
+    )
 
     print(f"[DATE] Primary billing cycle started: {p_start[:10]} (day {p_day})")
     print(f"[DATE] Backup billing cycle started:  {b_start[:10]} (day {b_day})\n")
@@ -222,11 +256,13 @@ def main():
             print(f"   {day}: {combined_daily[day]:6.1f} min  {bar}")
 
     threshold_minutes = RENDER_FREE_MINUTES * (THRESHOLD_PERCENT / 100)
-    use_github_build  = total_minutes >= threshold_minutes
+    use_github_build = total_minutes >= threshold_minutes
     pct_used = (total_minutes / RENDER_FREE_MINUTES) * 100
     remaining = max(0.0, RENDER_FREE_MINUTES - total_minutes)
 
-    print(f"\n[REPORT] Total: {total_minutes:.1f} / {RENDER_FREE_MINUTES} min ({pct_used:.1f}%)")
+    print(
+        f"\n[REPORT] Total: {total_minutes:.1f} / {RENDER_FREE_MINUTES} min ({pct_used:.1f}%)"
+    )
     print(f"[REPORT] Remaining: {remaining:.1f} min")
     print(f"[REPORT] Threshold: {threshold_minutes:.0f} min ({THRESHOLD_PERCENT}%)")
     print(f"[REPORT] GitHub build mode: {'ACTIVE' if use_github_build else 'inactive'}")
@@ -262,6 +298,7 @@ def main():
             f.write(f"checked_at={current_time}\n")
 
     sys.exit(0)
+
 
 if __name__ == "__main__":
     main()

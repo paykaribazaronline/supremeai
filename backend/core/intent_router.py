@@ -142,7 +142,11 @@ class IntentRouter:
         text = prompt.lower()
         scores: dict[str, int] = {}
         for action_name, cfg in ACTION_PATTERNS.items():
-            score = sum(1 for kw in cfg["keywords"] if re.search(r"(^|\W)" + re.escape(kw) + r"(\W|$)", text))
+            score = sum(
+                1
+                for kw in cfg["keywords"]
+                if re.search(r"(^|\W)" + re.escape(kw) + r"(\W|$)", text)
+            )
             if score > 0:
                 scores[action_name] = score
 
@@ -170,7 +174,11 @@ class IntentRouter:
         elif best == "research":
             payload["query"] = prompt.strip()
         elif best == "deploy":
-            payload["target"] = "firebase" if "firebase" in text else "vercel" if "vercel" in text else "cloud_run"
+            payload["target"] = (
+                "firebase"
+                if "firebase" in text
+                else "vercel" if "vercel" in text else "cloud_run"
+            )
         elif best == "settings_change":
             payload["changes"] = self._extract_setting_changes(text)
 

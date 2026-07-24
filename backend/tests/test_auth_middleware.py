@@ -4,12 +4,8 @@ import secrets
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
-from core.security.auth_middleware import (
-    AuthMiddleware,
-    _get_bearer_token,
-    verify_admin_session_fail_closed,
-)
+from core.security.auth_middleware import (AuthMiddleware, _get_bearer_token,
+                                           verify_admin_session_fail_closed)
 
 
 class TestGetBearerToken:
@@ -168,9 +164,8 @@ class TestVerifyAdminSessionFailClosed:
 
     def test_missing_jwt_secret(self):
         """JWT সিক্রেট ছাড়াই রিকোয়েস্ট রিজেক্স করা হচ্ছে।"""
-        from fastapi import HTTPException
-
         from core.config import settings
+        from fastapi import HTTPException
 
         mock_request = MagicMock()
         mock_request.headers.get.return_value = "Bearer test-token"

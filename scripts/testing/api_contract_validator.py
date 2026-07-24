@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 ============================================================================
 SupremeAI 2.0 — API Contract Validator
@@ -39,11 +38,8 @@ import hashlib
 import json
 import os
 import random
-import re
-import string
 import sys
 import time
-from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -51,7 +47,7 @@ from typing import Any
 
 import httpx
 import yaml
-from jsonschema import Draft7Validator, ValidationError
+from jsonschema import Draft7Validator
 from loguru import logger
 
 # বাংলা মন্তব্য: sys.path হ্যাক এড়াতে ক্লিন ইমপোর্ট
@@ -59,7 +55,6 @@ try:
     from backend.core.config import settings
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-    from backend.core.config import settings
 
 
 # ── Configuration ──────────────────────────────────────────────────────────
@@ -85,13 +80,17 @@ BANGLA_TEST_DATA = {
 
 # ── Data Models ──────────────────────────────────────────────────────────
 
+
 @dataclass
 class ContractViolation:
     """বাংলা মন্তব্য: API contract violation-এর তথ্য"""
+
     id: str
     endpoint: str
     method: str
-    violation_type: str  # schema_mismatch | missing_field | type_error | breaking_change | etc.
+    violation_type: (
+        str  # schema_mismatch | missing_field | type_error | breaking_change | etc.
+    )
     severity: str  # CRITICAL | HIGH | MEDIUM | LOW
     expected: str
     actual: str
@@ -119,6 +118,7 @@ class ContractViolation:
 @dataclass
 class ValidationResult:
     """বাংলা মন্তব্য: সম্পূর্ণ validation-এর ফলাফল"""
+
     spec_file: str
     base_url: str
     violations: list[ContractViolation] = field(default_factory=list)
@@ -141,6 +141,7 @@ class ValidationResult:
 
 
 # ── OpenAPI Parser ─────────────────────────────────────────────────────────
+
 
 class OpenAPIParser:
     """
@@ -171,7 +172,9 @@ class OpenAPIParser:
         self._extract_security()
         self._extract_endpoints()
 
-        logger.info(f"Parsed OpenAPI spec: {self.spec.get('info', {}).get('title', 'Unknown')}")
+        logger.info(
+            f"Parsed OpenAPI spec: {self.spec.get('info', {}).get('title', 'Unknown')}"
+        )
         logger.info(f"  Version: {self.spec.get('info', {}).get('version', 'Unknown')}")
         logger.info(f"  Endpoints: {len(self.endpoints)}")
         logger.info(f"  Schemas: {len(self.schemas)}")
@@ -204,7 +207,9 @@ class OpenAPIParser:
                         "parameters": operation.get("parameters", []),
                         "request_body": operation.get("requestBody", {}),
                         "responses": operation.get("responses", {}),
-                        "security": operation.get("security", self.spec.get("security", [])),
+                        "security": operation.get(
+                            "security", self.spec.get("security", [])
+                        ),
                         "tags": operation.get("tags", []),
                     }
                     self.endpoints.append(endpoint)
@@ -238,6 +243,7 @@ class OpenAPIParser:
 
 # ── Schema Validator ─────────────────────────────────────────────────────────
 
+
 class SchemaValidator:
     """
     বাংলা মন্তব্য: Request/response payload JSON Schema দিয়ে validate করে।
@@ -248,7 +254,9 @@ class SchemaValidator:
         self.parser = parser
         self.violations: list[ContractViolation] = []
 
-    def validate_request(self, endpoint: dict[str, Any], payload: dict[str, Any]) -> list[ContractViolation]:
+    def validate_request(
+        self, endpoint: dict[str, Any], payload: dict[str, Any]
+    ) -> list[ContractViolation]:
         """বাংলা মন্তব্য: Request body schema validate করে"""
         request_body = endpoint.get("request_body", {})
         if not request_body:
@@ -265,7 +273,9 @@ class SchemaValidator:
             payload, resolved_schema, endpoint["path"], endpoint["method"], "request"
         )
 
-    def validate_response(self, endpoint: dict[str, Any], status_code: str, payload: dict[str, Any]) -> list[ContractViolation]:
+    def validate_response(
+        self, endpoint: dict[str, Any], status_code: str, payload: dict[str, Any]
+    ) -> list[ContractViolation]:
         """বাংলা মন্তব্য: Response body schema validate করে"""
         responses = endpoint.get("responses", {})
         response = responses.get(status_code, responses.get("default", {}))
@@ -278,10 +288,21 @@ class SchemaValidator:
 
         resolved_schema = self.parser.resolve_schema(json_schema)
         return self._validate_against_schema(
-            payload, resolved_schema, endpoint["path"], endpoint["method"], f"response_{status_code}"
+            payload,
+            resolved_schema,
+            endpoint["path"],
+            endpoint["method"],
+            f"response_{status_code}",
         )
 
-    def _validate_against_schema(self, data: Any, schema: dict[str, Any], endpoint: str, method: str, context: str) -> list[ContractViolation]:
+    def _validate_against_schema(
+        self,
+        data: Any,
+        schema: dict[str, Any],
+        endpoint: str,
+        method: str,
+        context: str,
+    ) -> list[ContractViolation]:
         """বাংলা মন্তব্য: jsonschema দিয়ে validate করে এবং violations রেকর্ড করে"""
         violations = []
 
@@ -326,7 +347,16 @@ class SchemaValidator:
         """বাংলা মন্তব্য: OpenAPI schema-কে JSON Schema format-এ কনভার্ট করে"""
         result = dict(schema)
 
-        for key in ["nullable", "discriminator", "readOnly", "writeOnly", "xml", "externalDocs", "example", "deprecated"]:
+        for key in [
+            "nullable",
+            "discriminator",
+            "readOnly",
+            "writeOnly",
+            "xml",
+            "externalDocs",
+            "example",
+            "deprecated",
+        ]:
             result.pop(key, None)
 
         if schema.get("nullable") and "type" in schema:
@@ -338,7 +368,11 @@ class SchemaValidator:
                 result[key] = self._openapi_to_jsonschema(value)
             elif isinstance(value, list):
                 result[key] = [
-                    self._openapi_to_jsonschema(item) if isinstance(item, dict) else item
+                    (
+                        self._openapi_to_jsonschema(item)
+                        if isinstance(item, dict)
+                        else item
+                    )
                     for item in value
                 ]
 
@@ -350,13 +384,16 @@ class SchemaValidator:
 
 # ── Live API Tester ────────────────────────────────────────────────────────
 
+
 class LiveAPITester:
     """
     বাংলা মন্তব্য: Live API endpoints-এর বিরুদ্ধে spec validate করে।
     Real request পাঠিয়ে response schema match চেক করে।
     """
 
-    def __init__(self, base_url: str, parser: OpenAPIParser, validator: SchemaValidator):
+    def __init__(
+        self, base_url: str, parser: OpenAPIParser, validator: SchemaValidator
+    ):
         self.base_url = base_url.rstrip("/")
         self.parser = parser
         self.validator = validator
@@ -404,39 +441,48 @@ class LiveAPITester:
                 response_data = {"_raw": response.text}
 
             status_code = str(response.status_code)
-            violations = self.validator.validate_response(endpoint, status_code, response_data)
+            violations = self.validator.validate_response(
+                endpoint, status_code, response_data
+            )
 
             documented_codes = list(endpoint.get("responses", {}).keys())
-            if status_code not in documented_codes and "default" not in documented_codes:
-                self.violations.append(ContractViolation(
-                    id=self._generate_id(),
-                    endpoint=path,
-                    method=method.upper(),
-                    violation_type="undocumented_status_code",
-                    severity="MEDIUM",
-                    expected=f"One of: {documented_codes}",
-                    actual=status_code,
-                    path="",
-                    message=f"Undocumented status code {status_code} returned",
-                    remediation="Add this status code to the OpenAPI spec or fix the endpoint",
-                ))
+            if (
+                status_code not in documented_codes
+                and "default" not in documented_codes
+            ):
+                self.violations.append(
+                    ContractViolation(
+                        id=self._generate_id(),
+                        endpoint=path,
+                        method=method.upper(),
+                        violation_type="undocumented_status_code",
+                        severity="MEDIUM",
+                        expected=f"One of: {documented_codes}",
+                        actual=status_code,
+                        path="",
+                        message=f"Undocumented status code {status_code} returned",
+                        remediation="Add this status code to the OpenAPI spec or fix the endpoint",
+                    )
+                )
 
             self.violations.extend(violations)
             return violations
 
         except Exception as e:
-            self.violations.append(ContractViolation(
-                id=self._generate_id(),
-                endpoint=path,
-                method=method.upper(),
-                violation_type="request_failed",
-                severity="LOW",
-                expected="successful request",
-                actual=str(e),
-                path="",
-                message=f"Request failed: {e}",
-                remediation="Check endpoint availability and network connectivity",
-            ))
+            self.violations.append(
+                ContractViolation(
+                    id=self._generate_id(),
+                    endpoint=path,
+                    method=method.upper(),
+                    violation_type="request_failed",
+                    severity="LOW",
+                    expected="successful request",
+                    actual=str(e),
+                    path="",
+                    message=f"Request failed: {e}",
+                    remediation="Check endpoint availability and network connectivity",
+                )
+            )
             return []
 
     def _generate_test_payload(self, endpoint: dict[str, Any]) -> dict[str, Any]:
@@ -458,7 +504,9 @@ class LiveAPITester:
             if param.get("in") == "query":
                 name = param["name"]
                 param_schema = param.get("schema", {})
-                params[name] = self._generate_value_from_type(param_schema.get("type", "string"), param_schema)
+                params[name] = self._generate_value_from_type(
+                    param_schema.get("type", "string"), param_schema
+                )
         return params
 
     def _generate_from_schema(self, schema: dict[str, Any]) -> Any:
@@ -515,7 +563,10 @@ class LiveAPITester:
                 return random.choice(BANGLA_TEST_DATA["names"])
             return "test123"
 
-        if "bangla" in schema.get("description", "").lower() or "bn" in schema.get("title", "").lower():
+        if (
+            "bangla" in schema.get("description", "").lower()
+            or "bn" in schema.get("title", "").lower()
+        ):
             return random.choice(BANGLA_TEST_DATA["messages"])
 
         return "test_string"
@@ -527,16 +578,19 @@ class LiveAPITester:
             "integer": lambda: schema.get("example", 42),
             "number": lambda: schema.get("example", 3.14),
             "boolean": lambda: schema.get("example", True),
-            "array": lambda: [],
-            "object": lambda: {},
+            "array": list,
+            "object": dict,
         }
         return generators.get(type_, lambda: "test")()
 
     def _generate_id(self) -> str:
-        return f"LIVE-{hashlib.sha256(str(time.time()).encode()).hexdigest()[:8].upper()}"
+        return (
+            f"LIVE-{hashlib.sha256(str(time.time()).encode()).hexdigest()[:8].upper()}"
+        )
 
 
 # ── Breaking Change Detector ─────────────────────────────────────────────
+
 
 class BreakingChangeDetector:
     """
@@ -565,13 +619,15 @@ class BreakingChangeDetector:
 
         removed = old_paths - new_paths
         for path in removed:
-            self.changes.append({
-                "type": "endpoint_removed",
-                "severity": "CRITICAL",
-                "path": path,
-                "message": f"Endpoint {path} was removed",
-                "remediation": "Do not remove endpoints in minor/patch versions. Deprecate first.",
-            })
+            self.changes.append(
+                {
+                    "type": "endpoint_removed",
+                    "severity": "CRITICAL",
+                    "path": path,
+                    "message": f"Endpoint {path} was removed",
+                    "remediation": "Do not remove endpoints in minor/patch versions. Deprecate first.",
+                }
+            )
 
     def _check_removed_methods(self) -> None:
         """বাংলা মন্তব্য: মুছে ফেলা HTTP methods চেক করে"""
@@ -579,14 +635,16 @@ class BreakingChangeDetector:
             new_path_item = self.new_spec.get("paths", {}).get(path, {})
             for method in ["get", "post", "put", "patch", "delete"]:
                 if method in old_path_item and method not in new_path_item:
-                    self.changes.append({
-                        "type": "method_removed",
-                        "severity": "CRITICAL",
-                        "path": path,
-                        "method": method.upper(),
-                        "message": f"{method.upper()} {path} was removed",
-                        "remediation": "Do not remove methods in minor/patch versions.",
-                    })
+                    self.changes.append(
+                        {
+                            "type": "method_removed",
+                            "severity": "CRITICAL",
+                            "path": path,
+                            "method": method.upper(),
+                            "message": f"{method.upper()} {path} was removed",
+                            "remediation": "Do not remove methods in minor/patch versions.",
+                        }
+                    )
 
     def _check_schema_changes(self) -> None:
         """বাংলা মন্তব্য: Schema type changes চেক করে"""
@@ -600,20 +658,24 @@ class BreakingChangeDetector:
 
             self._compare_schemas(schema_name, old_schema, new_schema)
 
-    def _compare_schemas(self, schema_name: str, old: dict[str, Any], new: dict[str, Any], path: str = "") -> None:
+    def _compare_schemas(
+        self, schema_name: str, old: dict[str, Any], new: dict[str, Any], path: str = ""
+    ) -> None:
         """বাংলা মন্তব্য: Recursive schema comparison"""
         old_type = old.get("type", "")
         new_type = new.get("type", "")
 
         if old_type and new_type and old_type != new_type:
-            self.changes.append({
-                "type": "field_type_changed",
-                "severity": "HIGH",
-                "schema": schema_name,
-                "path": path,
-                "message": f"Type changed from {old_type} to {new_type}",
-                "remediation": "Do not change field types in minor versions.",
-            })
+            self.changes.append(
+                {
+                    "type": "field_type_changed",
+                    "severity": "HIGH",
+                    "schema": schema_name,
+                    "path": path,
+                    "message": f"Type changed from {old_type} to {new_type}",
+                    "remediation": "Do not change field types in minor versions.",
+                }
+            )
 
         old_props = old.get("properties", {})
         new_props = new.get("properties", {})
@@ -621,7 +683,9 @@ class BreakingChangeDetector:
         for prop_name, old_prop in old_props.items():
             new_prop = new_props.get(prop_name)
             if new_prop:
-                self._compare_schemas(schema_name, old_prop, new_prop, f"{path}.{prop_name}")
+                self._compare_schemas(
+                    schema_name, old_prop, new_prop, f"{path}.{prop_name}"
+                )
 
     def _check_required_field_changes(self) -> None:
         """বাংলা মন্তব্য: নতুন required fields যোগ করা হয়েছে কিনা চেক করে"""
@@ -635,14 +699,16 @@ class BreakingChangeDetector:
 
             added = new_required - old_required
             for field in added:
-                self.changes.append({
-                    "type": "required_field_added",
-                    "severity": "HIGH",
-                    "schema": schema_name,
-                    "field": field,
-                    "message": f"Required field '{field}' added to {schema_name}",
-                    "remediation": "Do not add required fields in minor/patch versions.",
-                })
+                self.changes.append(
+                    {
+                        "type": "required_field_added",
+                        "severity": "HIGH",
+                        "schema": schema_name,
+                        "field": field,
+                        "message": f"Required field '{field}' added to {schema_name}",
+                        "remediation": "Do not add required fields in minor/patch versions.",
+                    }
+                )
 
     def _check_enum_changes(self) -> None:
         """বাংলা মন্তব্য: Enum values মুছে ফেলা হয়েছে কিনা চেক করে"""
@@ -656,30 +722,37 @@ class BreakingChangeDetector:
 
             self._compare_enums(schema_name, old_schema, new_schema)
 
-    def _compare_enums(self, schema_name: str, old: dict[str, Any], new: dict[str, Any], path: str = "") -> None:
+    def _compare_enums(
+        self, schema_name: str, old: dict[str, Any], new: dict[str, Any], path: str = ""
+    ) -> None:
         """বাংলা মন্তব্য: Recursive enum comparison"""
         old_enum = set(old.get("enum", []))
         new_enum = set(new.get("enum", []))
 
         removed = old_enum - new_enum
         for value in removed:
-            self.changes.append({
-                "type": "enum_value_removed",
-                "severity": "MEDIUM",
-                "schema": schema_name,
-                "path": path,
-                "value": value,
-                "message": f"Enum value '{value}' removed from {schema_name}",
-                "remediation": "Do not remove enum values in minor versions.",
-            })
+            self.changes.append(
+                {
+                    "type": "enum_value_removed",
+                    "severity": "MEDIUM",
+                    "schema": schema_name,
+                    "path": path,
+                    "value": value,
+                    "message": f"Enum value '{value}' removed from {schema_name}",
+                    "remediation": "Do not remove enum values in minor versions.",
+                }
+            )
 
         for prop_name, old_prop in old.get("properties", {}).items():
             new_prop = new.get("properties", {}).get(prop_name, {})
             if new_prop:
-                self._compare_enums(schema_name, old_prop, new_prop, f"{path}.{prop_name}")
+                self._compare_enums(
+                    schema_name, old_prop, new_prop, f"{path}.{prop_name}"
+                )
 
 
 # ── Payload Fuzzer ─────────────────────────────────────────────────────────
+
 
 class PayloadFuzzer:
     """
@@ -699,7 +772,9 @@ class PayloadFuzzer:
         if self.client:
             await self.client.aclose()
 
-    async def fuzz_endpoint(self, endpoint: dict[str, Any], count: int = FUZZ_COUNT) -> list[dict[str, Any]]:
+    async def fuzz_endpoint(
+        self, endpoint: dict[str, Any], count: int = FUZZ_COUNT
+    ) -> list[dict[str, Any]]:
         """বাংলা মন্তব্য: একক endpoint-এ fuzzing চালায়"""
         path = endpoint["path"]
         method = endpoint["method"].lower()
@@ -719,34 +794,40 @@ class PayloadFuzzer:
                     continue
 
                 if response.status_code >= 500:
-                    self.findings.append({
-                        "type": "server_crash",
-                        "severity": "HIGH",
-                        "endpoint": path,
-                        "method": method.upper(),
-                        "status": response.status_code,
-                        "payload": payload,
-                        "response": response.text[:500],
-                    })
+                    self.findings.append(
+                        {
+                            "type": "server_crash",
+                            "severity": "HIGH",
+                            "endpoint": path,
+                            "method": method.upper(),
+                            "status": response.status_code,
+                            "payload": payload,
+                            "response": response.text[:500],
+                        }
+                    )
 
                 elif response.status_code < 400:
                     if self._is_obviously_invalid(payload):
-                        self.findings.append({
-                            "type": "validation_bypass",
-                            "severity": "MEDIUM",
-                            "endpoint": path,
-                            "method": method.upper(),
-                            "payload": payload,
-                            "message": "Invalid payload accepted without error",
-                        })
+                        self.findings.append(
+                            {
+                                "type": "validation_bypass",
+                                "severity": "MEDIUM",
+                                "endpoint": path,
+                                "method": method.upper(),
+                                "payload": payload,
+                                "message": "Invalid payload accepted without error",
+                            }
+                        )
 
             except Exception as e:
-                self.findings.append({
-                    "type": "request_exception",
-                    "severity": "LOW",
-                    "endpoint": path,
-                    "error": str(e),
-                })
+                self.findings.append(
+                    {
+                        "type": "request_exception",
+                        "severity": "LOW",
+                        "endpoint": path,
+                        "error": str(e),
+                    }
+                )
 
         return self.findings
 
@@ -783,7 +864,11 @@ class PayloadFuzzer:
             return self._fuzz_integer(schema, fuzz_type)
 
         elif schema_type == "boolean":
-            return random.choice([True, False, "true", "false", 1, 0, None]) if fuzz_type == "invalid" else random.choice([True, False])
+            return (
+                random.choice([True, False, "true", "false", 1, 0, None])
+                if fuzz_type == "invalid"
+                else random.choice([True, False])
+            )
 
         elif schema_type == "array":
             if fuzz_type == "invalid":
@@ -802,13 +887,19 @@ class PayloadFuzzer:
             return "x" * (max_len + 1)
 
         elif fuzz_type == "invalid":
-            return random.choice([
-                None, 123, True, [], {},
-                "<script>alert(1)</script>",
-                "' OR '1'='1",
-                "\\x00",
-                "A" * 100000,
-            ])
+            return random.choice(
+                [
+                    None,
+                    123,
+                    True,
+                    [],
+                    {},
+                    "<script>alert(1)</script>",
+                    "' OR '1'='1",
+                    "\\x00",
+                    "A" * 100000,
+                ]
+            )
 
         elif fuzz_type == "extreme":
             return random.choice(BANGLA_TEST_DATA["messages"]) + "\\u0000\\x00<script>"
@@ -827,10 +918,12 @@ class PayloadFuzzer:
             return 0
 
         elif fuzz_type == "invalid":
-            return random.choice([None, "not_a_number", 3.14, True, [], "999999999999999999999999999"])
+            return random.choice(
+                [None, "not_a_number", 3.14, True, [], "999999999999999999999999999"]
+            )
 
         elif fuzz_type == "extreme":
-            return random.choice([2**31, -2**31, 2**63, -2**63])
+            return random.choice([2**31, -(2**31), 2**63, -(2**63)])
 
         return schema.get("example", 42)
 
@@ -838,12 +931,17 @@ class PayloadFuzzer:
         """বাংলা মন্তব্য: payload স্পষ্টভাবে invalid কিনা চেক করে"""
         payload_str = json.dumps(payload)
         invalid_indicators = [
-            "<script>", "' OR '", "\\x00", "null", "None",
+            "<script>",
+            "' OR '",
+            "\\x00",
+            "null",
+            "None",
         ]
         return any(ind in payload_str for ind in invalid_indicators)
 
 
 # ── Report Generator ─────────────────────────────────────────────────────
+
 
 class ContractReportGenerator:
     """বাংলা মন্তব্য: Validation report তৈরি করে"""
@@ -878,11 +976,18 @@ class ContractReportGenerator:
         }
 
         file_path = self.output_dir / f"contract_{datetime.now(UTC):%Y%m%d_%H%M%S}.json"
-        file_path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+        file_path.write_text(
+            json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
         return str(file_path)
 
     def _generate_html(self, result: ValidationResult) -> str:
-        severity_colors = {"CRITICAL": "#dc3545", "HIGH": "#fd7e14", "MEDIUM": "#ffc107", "LOW": "#17a2b8"}
+        severity_colors = {
+            "CRITICAL": "#dc3545",
+            "HIGH": "#fd7e14",
+            "MEDIUM": "#ffc107",
+            "LOW": "#17a2b8",
+        }
 
         rows = ""
         for v in result.violations:
@@ -924,6 +1029,7 @@ th {{ background: #21262d; }}
 
 # ── Main Validator ──────────────────────────────────────────────────────────
 
+
 class APIContractValidator:
     """
     বাংলা মন্তব্য: মূল অরকেস্ট্রেটর। সব validation কম্পোনেন্ট একসাথে চালায়।
@@ -935,24 +1041,31 @@ class APIContractValidator:
         self.result = ValidationResult(spec_file=spec_path, base_url=base_url)
         self.report_generator = ContractReportGenerator()
 
-    async def validate(self, test_live: bool = False, check_breaking: str | None = None, fuzz: bool = False) -> ValidationResult:
+    async def validate(
+        self,
+        test_live: bool = False,
+        check_breaking: str | None = None,
+        fuzz: bool = False,
+    ) -> ValidationResult:
         """বাংলা মন্তব্য: সম্পূর্ণ validation pipeline চালায়"""
         parser = OpenAPIParser(self.spec_path)
         try:
             parser.parse()
         except Exception as e:
-            self.result.violations.append(ContractViolation(
-                id="SPEC-001",
-                endpoint=self.spec_path,
-                method="PARSE",
-                violation_type="spec_parse_error",
-                severity="CRITICAL",
-                expected="valid OpenAPI spec",
-                actual=str(e),
-                path="",
-                message=f"Failed to parse OpenAPI spec: {e}",
-                remediation="Fix YAML/JSON syntax errors in the spec file",
-            ))
+            self.result.violations.append(
+                ContractViolation(
+                    id="SPEC-001",
+                    endpoint=self.spec_path,
+                    method="PARSE",
+                    violation_type="spec_parse_error",
+                    severity="CRITICAL",
+                    expected="valid OpenAPI spec",
+                    actual=str(e),
+                    path="",
+                    message=f"Failed to parse OpenAPI spec: {e}",
+                    remediation="Fix YAML/JSON syntax errors in the spec file",
+                )
+            )
             return self.result
 
         self.result.schemas_validated = len(parser.schemas)
@@ -976,18 +1089,22 @@ class APIContractValidator:
                 for endpoint in parser.endpoints[:5]:
                     findings = await fuzzer.fuzz_endpoint(endpoint)
                     for finding in findings:
-                        self.result.violations.append(ContractViolation(
-                            id=f"FUZZ-{hashlib.sha256(str(time.time()).encode()).hexdigest()[:8].upper()}",
-                            endpoint=finding.get("endpoint", ""),
-                            method=finding.get("method", ""),
-                            violation_type=finding.get("type", "fuzz_finding"),
-                            severity=finding.get("severity", "MEDIUM"),
-                            expected="proper validation",
-                            actual=finding.get("response", str(finding.get("payload", ""))),
-                            path="",
-                            message=finding.get("message", str(finding)),
-                            remediation="Improve input validation and error handling",
-                        ))
+                        self.result.violations.append(
+                            ContractViolation(
+                                id=f"FUZZ-{hashlib.sha256(str(time.time()).encode()).hexdigest()[:8].upper()}",
+                                endpoint=finding.get("endpoint", ""),
+                                method=finding.get("method", ""),
+                                violation_type=finding.get("type", "fuzz_finding"),
+                                severity=finding.get("severity", "MEDIUM"),
+                                expected="proper validation",
+                                actual=finding.get(
+                                    "response", str(finding.get("payload", ""))
+                                ),
+                                path="",
+                                message=finding.get("message", str(finding)),
+                                remediation="Improve input validation and error handling",
+                            )
+                        )
             finally:
                 await fuzzer.cleanup()
 
@@ -999,18 +1116,20 @@ class APIContractValidator:
                 self.result.breaking_changes = detector.detect()
 
                 for change in self.result.breaking_changes:
-                    self.result.violations.append(ContractViolation(
-                        id=f"BREAK-{hashlib.sha256(change['message'].encode()).hexdigest()[:8].upper()}",
-                        endpoint=change.get("path", ""),
-                        method=change.get("method", ""),
-                        violation_type=change["type"],
-                        severity=change["severity"],
-                        expected="backward compatibility",
-                        actual=change["message"],
-                        path=change.get("schema", ""),
-                        message=change["message"],
-                        remediation=change["remediation"],
-                    ))
+                    self.result.violations.append(
+                        ContractViolation(
+                            id=f"BREAK-{hashlib.sha256(change['message'].encode()).hexdigest()[:8].upper()}",
+                            endpoint=change.get("path", ""),
+                            method=change.get("method", ""),
+                            violation_type=change["type"],
+                            severity=change["severity"],
+                            expected="backward compatibility",
+                            actual=change["message"],
+                            path=change.get("schema", ""),
+                            message=change["message"],
+                            remediation=change["remediation"],
+                        )
+                    )
             except Exception as e:
                 logger.warning(f"Breaking change check failed: {e}")
 
@@ -1022,24 +1141,50 @@ class APIContractValidator:
 
 # ── CLI ──────────────────────────────────────────────────────────────────────
 
+
 def main() -> None:
     """বাংলা মন্তব্য: CLI entry point"""
     parser = argparse.ArgumentParser(
         description="SupremeAI 2.0 — API Contract Validator\nAPI কন্ট্রাক্ট ভ্যালিডেশন ও ব্রেকিং চেঞ্জ ডিটেকশন",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--spec", "-s", default=DEFAULT_SPEC_PATH, help="OpenAPI spec file path")
-    parser.add_argument("--base-url", "-u", default=DEFAULT_BASE_URL, help="Base URL for live testing")
-    parser.add_argument("--test-live", "-t", action="store_true", help="Test against live API")
-    parser.add_argument("--check-breaking", "-b", help="Compare with previous spec version for breaking changes")
+    parser.add_argument(
+        "--spec", "-s", default=DEFAULT_SPEC_PATH, help="OpenAPI spec file path"
+    )
+    parser.add_argument(
+        "--base-url", "-u", default=DEFAULT_BASE_URL, help="Base URL for live testing"
+    )
+    parser.add_argument(
+        "--test-live", "-t", action="store_true", help="Test against live API"
+    )
+    parser.add_argument(
+        "--check-breaking",
+        "-b",
+        help="Compare with previous spec version for breaking changes",
+    )
     parser.add_argument("--fuzz", "-f", action="store_true", help="Run payload fuzzing")
-    parser.add_argument("--fuzz-count", type=int, default=FUZZ_COUNT, help="Number of fuzz payloads per endpoint")
-    parser.add_argument("--output-dir", "-o", type=Path, default=REPORT_DIR, help="Report output directory")
+    parser.add_argument(
+        "--fuzz-count",
+        type=int,
+        default=FUZZ_COUNT,
+        help="Number of fuzz payloads per endpoint",
+    )
+    parser.add_argument(
+        "--output-dir",
+        "-o",
+        type=Path,
+        default=REPORT_DIR,
+        help="Report output directory",
+    )
 
     args = parser.parse_args()
 
     logger.remove()
-    logger.add(sys.stderr, level="INFO", format="<green>{time:HH:mm:ss}</green> | <level>{level}</level> | {message}")
+    logger.add(
+        sys.stderr,
+        level="INFO",
+        format="<green>{time:HH:mm:ss}</green> | <level>{level}</level> | {message}",
+    )
 
     async def run():
         validator = APIContractValidator(args.spec, args.base_url)
@@ -1053,7 +1198,7 @@ def main() -> None:
 
         print(f"\n{'='*60}")
         print("📋 API Contract Validation Summary")
-        print("="*60)
+        print("=" * 60)
         print(f"Spec: {result.spec_file}")
         print(f"Endpoints: {result.endpoints_tested}")
         print(f"Schemas: {result.schemas_validated}")
@@ -1061,7 +1206,7 @@ def main() -> None:
         print(f"  CRITICAL: {result.critical_count}")
         print(f"  HIGH: {result.high_count}")
         print(f"Valid: {'✅ YES' if result.is_valid else '❌ NO'}")
-        print(f"\nReports:")
+        print("\nReports:")
         print(f"  JSON: {json_file}")
         print(f"  HTML: {html_file}")
 

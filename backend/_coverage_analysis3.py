@@ -53,7 +53,9 @@ for fpath, finfo in files.items():
         pct = finfo["covered_lines"] / finfo["num_statements"] * 100
         if pct < 20:
             norm = normalize_path(fpath)
-            low_coverage.append((pct, finfo["num_statements"], finfo["covered_lines"], norm))
+            low_coverage.append(
+                (pct, finfo["num_statements"], finfo["covered_lines"], norm)
+            )
 low_coverage.sort(key=lambda x: (-x[1], x[0]))  # largest first, then lowest %
 for pct, stmts, covered, fpath in low_coverage[:30]:
     pass
@@ -65,7 +67,9 @@ for fpath, finfo in files.items():
         if pct < 50:
             norm = normalize_path(fpath)
             missing = finfo["num_statements"] - finfo["covered_lines"]
-            needs_work.append((missing, pct, finfo["num_statements"], finfo["covered_lines"], norm))
+            needs_work.append(
+                (missing, pct, finfo["num_statements"], finfo["covered_lines"], norm)
+            )
 needs_work.sort(reverse=True)
 for missing, pct, stmts, covered, fpath in needs_work[:30]:
     pass

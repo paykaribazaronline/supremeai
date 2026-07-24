@@ -135,7 +135,9 @@ class SwarmCoordinationAgent(BaseSkill):
         self._running = False
         self._heartbeat_interval = float(os.getenv("SWARM_HEARTBEAT_INTERVAL", "5.0"))
         self._default_consensus = float(os.getenv("SWARM_DEFAULT_CONSENSUS", "0.66"))
-        self._byzantine_tolerance = float(os.getenv("SWARM_BYZANTINE_TOLERANCE", "0.33"))
+        self._byzantine_tolerance = float(
+            os.getenv("SWARM_BYZANTINE_TOLERANCE", "0.33")
+        )
         self._loop_task: asyncio.Task[Any] | None = None
         self._heartbeat_task: asyncio.Task[Any] | None = None
 
@@ -207,7 +209,9 @@ class SwarmCoordinationAgent(BaseSkill):
     def _prune_stale_agents(self) -> None:
         """Remove agents that missed heartbeats."""
         timeout = float(os.getenv("SWARM_AGENT_TIMEOUT", "30.0"))
-        stale = [aid for aid, agent in self._agents.items() if not agent.is_healthy(timeout)]
+        stale = [
+            aid for aid, agent in self._agents.items() if not agent.is_healthy(timeout)
+        ]
         for aid in stale:
             del self._agents[aid]
 
@@ -251,12 +255,18 @@ class SwarmCoordinationAgent(BaseSkill):
     def _select_agents(self, task: SwarmTask) -> list[SwarmAgent]:
         """Select least-loaded agents matching task requirements."""
         required_caps = set(task.payload.get("required_capabilities", []))
-        eligible = [agent for agent in self._agents.values() if agent.is_healthy() and required_caps.issubset(set(agent.capabilities))]
+        eligible = [
+            agent
+            for agent in self._agents.values()
+            if agent.is_healthy() and required_caps.issubset(set(agent.capabilities))
+        ]
         # Sort by load factor ascending
         eligible.sort(key=lambda a: a.load_factor)
         return eligible[: task.required_agents]
 
-    async def _dispatch_to_agent(self, task: SwarmTask, agent: SwarmAgent) -> dict[str, Any]:
+    async def _dispatch_to_agent(
+        self, task: SwarmTask, agent: SwarmAgent
+    ) -> dict[str, Any]:
         """Send task to an agent and collect result."""
         try:
             # In real impl, this would be an RPC or message queue
@@ -308,12 +318,16 @@ class SwarmCoordinationAgent(BaseSkill):
 
     async def submit_task(self, payload: dict[str, Any], **kwargs: Any) -> str:
         """Submit a new task to the swarm queue."""
-        task_id = hashlib.sha256(f"{json.dumps(payload, sort_keys=True)}:{time.time()}".encode()).hexdigest()[:16]
+        task_id = hashlib.sha256(
+            f"{json.dumps(payload, sort_keys=True)}:{time.time()}".encode()
+        ).hexdigest()[:16]
         task = SwarmTask(
             task_id=task_id,
             payload=payload,
             required_agents=kwargs.get("required_agents", 3),
-            consensus_threshold=kwargs.get("consensus_threshold", self._default_consensus),
+            consensus_threshold=kwargs.get(
+                "consensus_threshold", self._default_consensus
+            ),
             timeout_seconds=kwargs.get("timeout_seconds", 30.0),
         )
         await self._task_queue.put(task)

@@ -1,6 +1,8 @@
 import os
 import sys
+
 import requests
+
 
 def main():
     repo = os.environ.get("GITHUB_REPOSITORY")
@@ -13,7 +15,7 @@ def main():
     url = f"https://api.github.com/repos/{repo}/actions/runs"
     headers = {
         "Authorization": f"Bearer {token}",
-        "Accept": "application/vnd.github.v3+json"
+        "Accept": "application/vnd.github.v3+json",
     }
 
     print(f"Fetching workflow runs for {repo}...")
@@ -60,7 +62,10 @@ def main():
 
         if "dependabot" in actor_login.lower():
             dependabot_runs.append(run)
-        elif "github-actions" in actor_login.lower() or actor_login.lower() == "supremeai-bot":
+        elif (
+            "github-actions" in actor_login.lower()
+            or actor_login.lower() == "supremeai-bot"
+        ):
             autofix_runs.append(run)
         elif actor_type == "Bot" or "[bot]" in actor_login.lower():
             other_bot_runs.append(run)
@@ -99,6 +104,7 @@ def main():
 
     print(f"Cleanup finished. Deleted {deleted_count} workflow runs.")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

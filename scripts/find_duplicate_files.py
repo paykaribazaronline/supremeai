@@ -6,9 +6,9 @@ test_root = "backend/tests"
 hashes = defaultdict(list)
 for root, _, files in os.walk(test_root):
     for f in files:
-        if f.endswith('.py'):
+        if f.endswith(".py"):
             path = os.path.join(root, f)
-            h = hashlib.md5(open(path, 'rb').read()).hexdigest()
+            h = hashlib.md5(open(path, "rb").read()).hexdigest()
             hashes[h].append(path)
 
 for h, paths in hashes.items():

@@ -11,11 +11,10 @@ This module tests:
 
 from unittest.mock import patch
 
+from core.security.origin_validator import TrustedOriginMiddleware
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from starlette.responses import PlainTextResponse
-
-from core.security.origin_validator import TrustedOriginMiddleware
 
 
 class TestTrustedOriginMiddleware:
@@ -83,7 +82,9 @@ class TestTrustedOriginMiddleware:
         def test_endpoint():
             return PlainTextResponse("ok")
 
-        with patch("core.security.origin_validator.settings") as mock_settings, patch("os.getenv", return_value="production"):
+        with patch("core.security.origin_validator.settings") as mock_settings, patch(
+            "os.getenv", return_value="production"
+        ):
             mock_settings.cors_origins = ["https://trusted.example.com"]
             mock_settings.supremeai_public_paths = []
             mock_settings.allowed_hosts = ["trusted.example.com"]
@@ -109,7 +110,9 @@ class TestTrustedOriginMiddleware:
         def test_endpoint():
             return PlainTextResponse("ok")
 
-        with patch("core.security.origin_validator.settings") as mock_settings, patch("os.getenv", return_value="production"):
+        with patch("core.security.origin_validator.settings") as mock_settings, patch(
+            "os.getenv", return_value="production"
+        ):
             mock_settings.cors_origins = ["https://trusted.example.com"]
             mock_settings.supremeai_public_paths = []
             mock_settings.allowed_hosts = ["trusted.example.com"]
@@ -135,7 +138,9 @@ class TestTrustedOriginMiddleware:
         def test_endpoint():
             return PlainTextResponse("ok")
 
-        with patch("core.security.origin_validator.settings") as mock_settings, patch("os.getenv", return_value="production"):
+        with patch("core.security.origin_validator.settings") as mock_settings, patch(
+            "os.getenv", return_value="production"
+        ):
             mock_settings.cors_origins = ["https://trusted.example.com"]
             mock_settings.supremeai_public_paths = []
             mock_settings.allowed_hosts = ["trusted.example.com"]
@@ -153,7 +158,10 @@ class TestTrustedOriginMiddleware:
 
             # Check CORS headers
             assert "Access-Control-Allow-Origin" in resp.headers
-            assert resp.headers["Access-Control-Allow-Origin"] == "https://trusted.example.com"
+            assert (
+                resp.headers["Access-Control-Allow-Origin"]
+                == "https://trusted.example.com"
+            )
 
     def test_blocks_malicious_host(self):
         """Test that malicious host header is blocked."""
@@ -163,7 +171,9 @@ class TestTrustedOriginMiddleware:
         def test_endpoint():
             return PlainTextResponse("ok")
 
-        with patch("core.security.origin_validator.settings") as mock_settings, patch("os.getenv", return_value="production"):
+        with patch("core.security.origin_validator.settings") as mock_settings, patch(
+            "os.getenv", return_value="production"
+        ):
             mock_settings.cors_origins = []
             mock_settings.supremeai_public_paths = []
             mock_settings.allowed_hosts = ["trusted.example.com"]
@@ -188,7 +198,9 @@ class TestTrustedOriginMiddleware:
         def test_endpoint():
             return PlainTextResponse("ok")
 
-        with patch("core.security.origin_validator.settings") as mock_settings, patch("os.getenv", return_value="production"):
+        with patch("core.security.origin_validator.settings") as mock_settings, patch(
+            "os.getenv", return_value="production"
+        ):
             mock_settings.cors_origins = []
             mock_settings.supremeai_public_paths = []
             mock_settings.allowed_hosts = ["example.com"]
@@ -213,7 +225,9 @@ class TestTrustedOriginMiddleware:
         def test_endpoint():
             return PlainTextResponse("ok")
 
-        with patch("core.security.origin_validator.settings") as mock_settings, patch("os.getenv", return_value="production"):
+        with patch("core.security.origin_validator.settings") as mock_settings, patch(
+            "os.getenv", return_value="production"
+        ):
             mock_settings.cors_origins = ["https://trusted.example.com"]
             mock_settings.supremeai_public_paths = []
             mock_settings.allowed_hosts = ["example.com"]

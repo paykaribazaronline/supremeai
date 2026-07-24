@@ -83,10 +83,9 @@ class ConfigCache:
         """একমাত্র DB-load পথ — সবসময় বর্তমান event loop-এই চলে, নতুন থ্রেড/লুপ তৈরি করে না।"""
         configs = dict(DEFAULT_CONFIGS)
         try:
-            from sqlalchemy import select
-
             from database.session import AsyncSessionLocal
             from models.system_config import SystemConfig
+            from sqlalchemy import select
 
             async with AsyncSessionLocal() as session:
                 stmt = select(SystemConfig).where(SystemConfig.is_active)
@@ -94,7 +93,9 @@ class ConfigCache:
                 for row in result.scalars().all():
                     configs[row.key] = row.value
             logger.info(f"ConfigCache: Loaded {len(configs)} configs from DB")
-        except Exception as exc:  # noqa: BLE001 — DB down হলেও app চলতে থাকুক, defaults দিয়ে
+        except (
+            Exception
+        ) as exc:  # noqa: BLE001 — DB down হলেও app চলতে থাকুক, defaults দিয়ে
             logger.warning(f"ConfigCache: DB load failed, using defaults: {exc}")
         return configs
 
@@ -113,7 +114,9 @@ class ConfigCache:
         try:
             new_cache = asyncio.run(self._load_from_db_async())
         except Exception as exc:  # noqa: BLE001
-            logger.warning(f"ConfigCache: DB load failed during sync bootstrap, using defaults: {exc}")
+            logger.warning(
+                f"ConfigCache: DB load failed during sync bootstrap, using defaults: {exc}"
+            )
             new_cache = dict(DEFAULT_CONFIGS)
         with self._lock:
             self._cache = new_cache
@@ -170,10 +173,9 @@ class ConfigCache:
         """
         কনফিগ ভ্যালু সেট করে — DB-তেও persist করে + cache update করে।
         """
-        from sqlalchemy import select
-
         from database.session import AsyncSessionLocal
         from models.system_config import SystemConfig
+        from sqlalchemy import select
 
         try:
             async with AsyncSessionLocal() as session:

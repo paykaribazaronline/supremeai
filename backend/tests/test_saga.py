@@ -26,7 +26,9 @@ def test_saga():
         "database.supabase_client.db.insert_task_history",
         side_effect=Exception("Simulated Supabase Failure"),
     ):
-        res = engine.learn_from_success("saga_test_task", "test_approach", "test_result")
+        res = engine.learn_from_success(
+            "saga_test_task", "test_approach", "test_result"
+        )
         # Check Saga Response
 
         conn = sqlite3.connect(db_path)

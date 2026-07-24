@@ -8,7 +8,6 @@ import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from core.email_service import EmailService
 
 
@@ -48,13 +47,17 @@ class TestEmailService:
             assert email == "noreply@supremeai.dev"
 
     def test_from_email_from_env(self, email_service):
-        with patch.dict(os.environ, {"RESEND_FROM_EMAIL": "test@example.com"}, clear=False):
+        with patch.dict(
+            os.environ, {"RESEND_FROM_EMAIL": "test@example.com"}, clear=False
+        ):
             email = email_service.from_email
             assert email == "test@example.com"
 
     @pytest.mark.asyncio
     async def test_send_welcome_email(self, email_service):
-        with patch.object(email_service, "_send_email", new_callable=AsyncMock) as mock_send:
+        with patch.object(
+            email_service, "_send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = {"status": "sent", "id": "email-123"}
             result = await email_service.send_welcome_email(
                 to_email="user@example.com",
@@ -65,7 +68,9 @@ class TestEmailService:
 
     @pytest.mark.asyncio
     async def test_send_password_reset(self, email_service):
-        with patch.object(email_service, "_send_email", new_callable=AsyncMock) as mock_send:
+        with patch.object(
+            email_service, "_send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = {"status": "sent"}
             result = await email_service.send_password_reset(
                 to_email="user@example.com",
@@ -75,7 +80,9 @@ class TestEmailService:
 
     @pytest.mark.asyncio
     async def test_send_billing_notification(self, email_service):
-        with patch.object(email_service, "_send_email", new_callable=AsyncMock) as mock_send:
+        with patch.object(
+            email_service, "_send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = {"status": "sent"}
             result = await email_service.send_billing_notification(
                 to_email="user@example.com",

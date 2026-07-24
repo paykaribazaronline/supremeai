@@ -17,7 +17,9 @@ class ResourceGuard:
     # Dynamically determine sandbox root similar to microvm_sandbox
     import platform
 
-    _default_sandbox = "C:\\tmp\\sandboxes" if platform.system() == "Windows" else "/tmp/sandboxes"
+    _default_sandbox = (
+        "C:\\tmp\\sandboxes" if platform.system() == "Windows" else "/tmp/sandboxes"
+    )
     SANDBOX_ROOT = Path(os.getenv("SANDBOX_ROOT", _default_sandbox)).resolve()
 
     @classmethod
@@ -31,7 +33,9 @@ class ResourceGuard:
         # 1. Reject paths that explicitly try to use '..'
         # Even though resolve() cleans it, we proactively reject malicious intent.
         if ".." in str(path):
-            logger.critical(f"[ResourceGuard] Path traversal attempt detected: {requested_path}")
+            logger.critical(
+                f"[ResourceGuard] Path traversal attempt detected: {requested_path}"
+            )
             raise PermissionError("Path traversal ('..') is strictly prohibited.")
 
         # 2. Resolve the path to its absolute, canonical form (resolves symlinks)
@@ -44,7 +48,9 @@ class ResourceGuard:
 
         # 3. Check if the resolved path starts with any of the allowed roots
         allowed = False
-        github_workspace = Path(os.getenv("GITHUB_WORKSPACE", "/__w/supremeai/supremeai")).resolve()
+        github_workspace = Path(
+            os.getenv("GITHUB_WORKSPACE", "/__w/supremeai/supremeai")
+        ).resolve()
         allowed_roots = [
             cls.PROJECT_ROOT,
             cls.PERSISTENT_DATA_DIR,
@@ -62,8 +68,12 @@ class ResourceGuard:
                 continue
 
         if not allowed:
-            logger.critical(f"[ResourceGuard] Unauthorized access attempt to external path: {resolved_path}")
-            raise PermissionError(f"Access to path '{resolved_path}' is denied. Outside of allowed scopes.")
+            logger.critical(
+                f"[ResourceGuard] Unauthorized access attempt to external path: {resolved_path}"
+            )
+            raise PermissionError(
+                f"Access to path '{resolved_path}' is denied. Outside of allowed scopes."
+            )
 
         return resolved_path
 
@@ -74,7 +84,9 @@ class ResourceGuard:
         return safe_path.read_text(encoding=encoding)
 
     @classmethod
-    def write_text(cls, requested_path: str | Path, content: str, encoding: str = "utf-8") -> None:
+    def write_text(
+        cls, requested_path: str | Path, content: str, encoding: str = "utf-8"
+    ) -> None:
         """Securely write a text file."""
         safe_path = cls.verify_path(requested_path)
         safe_path.write_text(content, encoding=encoding)

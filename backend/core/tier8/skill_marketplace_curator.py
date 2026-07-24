@@ -18,12 +18,11 @@ from enum import Enum, auto
 from pathlib import Path
 from typing import Any, ClassVar
 
-from loguru import logger
-
 # বাংলা মন্তব্য: `backend.core.*` → `core.*` fix — Docker WORKDIR=/app/backend
 from core.base import BaseSkill
 from core.llm.llm_gateway import LLMGateway, get_llm_gateway
 from core.observability.telemetry import get_tracer, trace_span
+from loguru import logger
 
 
 class ListingStatus(Enum):
@@ -159,7 +158,9 @@ class SkillMarketplaceCurator(BaseSkill):
         self._subscriptions: dict[str, set[str]] = {}  # user_id -> set of listing_ids
         self._skill_registry: dict[str, type[BaseSkill]] = {}
         self._running = False
-        self._auto_curate = os.getenv("MARKETPLACE_AUTO_CURATE", "true").lower() == "true"
+        self._auto_curate = (
+            os.getenv("MARKETPLACE_AUTO_CURATE", "true").lower() == "true"
+        )
         self._min_rating_threshold = float(os.getenv("MARKETPLACE_MIN_RATING", "3.0"))
         self._review_required = int(os.getenv("MARKETPLACE_REVIEW_REQUIRED", "3"))
         self._task: asyncio.Task[Any] | None = None
@@ -227,7 +228,11 @@ class SkillMarketplaceCurator(BaseSkill):
     async def _auto_review_pending(self) -> None:
         """Use LLM to auto-review pending listings."""
         llm = await self._get_llm()
-        pending = [lid for lid, listing in self._listings.items() if listing.status == ListingStatus.PENDING_REVIEW]
+        pending = [
+            lid
+            for lid, listing in self._listings.items()
+            if listing.status == ListingStatus.PENDING_REVIEW
+        ]
         for lid in pending:
             listing = self._listings[lid]
             prompt = (
@@ -263,13 +268,17 @@ class SkillMarketplaceCurator(BaseSkill):
             and listing.rating < self._min_rating_threshold
         ]
         for lid in to_remove:
-            self._listings[lid] = self._listings[lid].with_status(ListingStatus.DEPRECATED)
+            self._listings[lid] = self._listings[lid].with_status(
+                ListingStatus.DEPRECATED
+            )
 
     async def _generate_trending_report(self) -> None:
         """Generate a trending skills report (logged, not stored)."""
         trending = sorted(
             self._listings.values(),
-            key=lambda listing: (listing.download_count * 0.5 + listing.rating * listing.review_count),
+            key=lambda listing: (
+                listing.download_count * 0.5 + listing.rating * listing.review_count
+            ),
             reverse=True,
         )[:10]
         with self._tracer.start_as_current_span("marketplace.trending") as span:
@@ -286,7 +295,9 @@ class SkillMarketplaceCurator(BaseSkill):
         tags: list[str],
     ) -> str:
         """Publish a new skill listing."""
-        listing_id = hashlib.sha256(f"{skill_name}:{author}:{version}:{time.time()}".encode()).hexdigest()[:16]
+        listing_id = hashlib.sha256(
+            f"{skill_name}:{author}:{version}:{time.time()}".encode()
+        ).hexdigest()[:16]
         listing = SkillListing(
             listing_id=listing_id,
             skill_name=skill_name,
@@ -294,12 +305,18 @@ class SkillMarketplaceCurator(BaseSkill):
             author=author,
             version=version,
             tags=tuple(tags),
-            status=(ListingStatus.PENDING_REVIEW if self._auto_curate else ListingStatus.PUBLISHED),
+            status=(
+                ListingStatus.PENDING_REVIEW
+                if self._auto_curate
+                else ListingStatus.PUBLISHED
+            ),
         )
         self._listings[listing_id] = listing
         return listing_id
 
-    async def rate_listing(self, listing_id: str, rating: float, user_id: str) -> dict[str, Any]:
+    async def rate_listing(
+        self, listing_id: str, rating: float, user_id: str
+    ) -> dict[str, Any]:
         """Rate a skill listing."""
         if listing_id not in self._listings:
             return {"error": "listing_not_found"}
@@ -316,14 +333,19 @@ class SkillMarketplaceCurator(BaseSkill):
         self._listings[listing_id] = self._listings[listing_id].with_download()
         return {"status": "subscribed", "listing_id": listing_id}
 
-    async def search(self, query: str, tags: list[str] | None = None) -> list[dict[str, Any]]:
+    async def search(
+        self, query: str, tags: list[str] | None = None
+    ) -> list[dict[str, Any]]:
         """Search listings by name, description, or tags."""
         results = []
         query_lower = query.lower()
         for listing in self._listings.values():
             if listing.status != ListingStatus.PUBLISHED:
                 continue
-            match = query_lower in listing.skill_name.lower() or query_lower in listing.description.lower()
+            match = (
+                query_lower in listing.skill_name.lower()
+                or query_lower in listing.description.lower()
+            )
             if tags and not set(tags).issubset(set(listing.tags)):
                 match = False
             if match:
@@ -339,10 +361,16 @@ class SkillMarketplaceCurator(BaseSkill):
         """Return trending skill listings."""
         trending = sorted(
             self._listings.values(),
-            key=lambda listing: (listing.download_count * 0.5 + listing.rating * listing.review_count),
+            key=lambda listing: (
+                listing.download_count * 0.5 + listing.rating * listing.review_count
+            ),
             reverse=True,
         )[:limit]
-        return [listing.to_dict() for listing in trending if listing.status == ListingStatus.PUBLISHED]
+        return [
+            listing.to_dict()
+            for listing in trending
+            if listing.status == ListingStatus.PUBLISHED
+        ]
 
     async def _log_error(self, context: str, message: str) -> None:
         with self._tracer.start_as_current_span("marketplace.error") as span:
@@ -392,7 +420,11 @@ class SkillMarketplaceCurator(BaseSkill):
             return {
                 "running": self._running,
                 "listings": len(self._listings),
-                "published": sum(1 for listing in self._listings.values() if listing.status == ListingStatus.PUBLISHED),
+                "published": sum(
+                    1
+                    for listing in self._listings.values()
+                    if listing.status == ListingStatus.PUBLISHED
+                ),
                 "subscribers": len(self._subscriptions),
             }
         return {"status": "unknown_action", "action": action}

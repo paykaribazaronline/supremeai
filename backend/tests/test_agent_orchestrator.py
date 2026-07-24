@@ -3,14 +3,11 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import pytest
-
-from core.orchestration.agent_orchestrator import (
-    AgentCircuitBreaker,
-    AsyncTaskManager,
-    SmartSemanticRouter,
-    budget_aware_route,
-    route_request,
-)
+from core.orchestration.agent_orchestrator import (AgentCircuitBreaker,
+                                                   AsyncTaskManager,
+                                                   SmartSemanticRouter,
+                                                   budget_aware_route,
+                                                   route_request)
 
 
 @pytest.fixture
@@ -221,7 +218,9 @@ def test_async_task_manager_simulate_image():
 
 
 def test_smart_semantic_router_model():
-    router = SmartSemanticRouter(intent="test_intent", requires_expensive=True, tier=2, reasoning="test")
+    router = SmartSemanticRouter(
+        intent="test_intent", requires_expensive=True, tier=2, reasoning="test"
+    )
     assert router.intent == "test_intent"
     assert router.requires_expensive is True
     assert router.tier == 2

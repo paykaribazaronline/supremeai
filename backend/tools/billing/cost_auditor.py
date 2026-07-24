@@ -1,7 +1,6 @@
 import os
 
 from loguru import logger
-
 from memory.sqlite_store import SQLiteMemoryStore
 
 
@@ -56,7 +55,9 @@ class CostAuditor:
             plt.tight_layout()
             plt.savefig(image_report_path, dpi=150)
             plt.close()
-            logger.info(f"Cost reports generated. Image: {image_report_path}, Text: {text_report_path}")
+            logger.info(
+                f"Cost reports generated. Image: {image_report_path}, Text: {text_report_path}"
+            )
         except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to generate cost report image: {e}")
 

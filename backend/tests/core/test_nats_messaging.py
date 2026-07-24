@@ -72,7 +72,9 @@ class TestConnect:
     """বাংলা মন্তব্য: connect() method-এর connection logic এবং error handling টেস্ট।"""
 
     @pytest.mark.asyncio
-    async def test_successful_connection_with_token(self, nats_client, mock_nats_connection):
+    async def test_successful_connection_with_token(
+        self, nats_client, mock_nats_connection
+    ):
         """বাংলা মন্তব্য: Token সহ সফল connection establish হয়।"""
         mock_nc, mock_js = mock_nats_connection
         mock_kv = AsyncMock()
@@ -81,7 +83,9 @@ class TestConnect:
         with patch("nats.connect", return_value=mock_nc) as mock_connect:
             await nats_client.connect()
 
-            mock_connect.assert_called_once_with(servers=["nats://localhost:4222"], token="test_token")
+            mock_connect.assert_called_once_with(
+                servers=["nats://localhost:4222"], token="test_token"
+            )
             assert nats_client.nc is mock_nc
             assert nats_client.js is mock_js
             assert nats_client.kv_store is mock_kv
@@ -104,7 +108,9 @@ class TestConnect:
             assert "token" not in call_kwargs or call_kwargs.get("token") is None
 
     @pytest.mark.asyncio
-    async def test_connection_creates_kv_store_if_not_exists(self, nats_client, mock_nats_connection):
+    async def test_connection_creates_kv_store_if_not_exists(
+        self, nats_client, mock_nats_connection
+    ):
         """বাংলা মন্তব্য: KV store না থাকলে create_key_value() call হয়।"""
         mock_nc, mock_js = mock_nats_connection
         mock_js.key_value.side_effect = Exception("Bucket not found")

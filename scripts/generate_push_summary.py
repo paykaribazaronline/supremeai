@@ -5,33 +5,39 @@ Generates a markdown summary of git differences from the latest push using LLM.
 Saves the summary as a Markdown file and maintains a rolling window of the last 20 pushes.
 """
 
-import subprocess
-import os
 import glob
+import os
+import subprocess
+
 from litellm import completion
 
 SUMMARY_DIR = "docs/autogen/summaries"
 LATEST_SUMMARY = "docs/autogen/LATEST-PUSH-SUMMARY.md"
 MAX_FILES = 20
 
+
 def get_git_diff():
     try:
         # Get diff of the most recent commit
         diff = subprocess.check_output(
-            ['git', 'diff', 'HEAD~1', 'HEAD'],
-            text=True,
-            errors='replace'
+            ["git", "diff", "HEAD~1", "HEAD"], text=True, errors="replace"
         )
         return diff
     except subprocess.CalledProcessError as e:
         print(f"Error generating git diff: {e}")
         return ""
 
+
 def get_latest_commit_hash():
     try:
-        return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip().decode('utf-8')
+        return (
+            subprocess.check_output(["git", "rev-parse", "--short", "HEAD"])
+            .strip()
+            .decode("utf-8")
+        )
     except Exception:
         return "unknown"
+
 
 def generate_summary(diff_content):
     if not diff_content.strip():
@@ -68,16 +74,20 @@ Keep it strictly under 300 words. Format the output in Markdown.
         return response.choices[0].message.content
     except Exception as e:
         print(f"LLM Generation Error: {e}")
-        return f"### Push Summary\nFailed to generate summary via LLM: {str(e)}"
+        return f"### Push Summary\nFailed to generate summary via LLM: {e!s}"
+
 
 def manage_history():
-    files = sorted(glob.glob(os.path.join(SUMMARY_DIR, "PUSH-SUMMARY-*.md")), key=os.path.getmtime)
+    files = sorted(
+        glob.glob(os.path.join(SUMMARY_DIR, "PUSH-SUMMARY-*.md")), key=os.path.getmtime
+    )
 
     if len(files) > MAX_FILES:
-        files_to_remove = files[:len(files) - MAX_FILES]
+        files_to_remove = files[: len(files) - MAX_FILES]
         for f in files_to_remove:
             print(f"Removing old summary: {f}")
             os.remove(f)
+
 
 def main():
     os.makedirs(SUMMARY_DIR, exist_ok=True)
@@ -103,6 +113,7 @@ def main():
     print(f"Updated {LATEST_SUMMARY}")
 
     manage_history()
+
 
 if __name__ == "__main__":
     main()

@@ -28,9 +28,8 @@ from typing import Any
 
 import psycopg2
 import psycopg2.pool
-from loguru import logger
-
 from core.config import settings
+from loguru import logger
 
 # Deliberately small: these 4 subsystems are secondary telemetry/state, not
 # primary request traffic. They must never meaningfully compete with the
@@ -68,8 +67,12 @@ def _get_pool() -> psycopg2.pool.ThreadedConnectionPool | None:
             )
             return None
         try:
-            _pool = psycopg2.pool.ThreadedConnectionPool(_MIN_CONN, _MAX_CONN, dsn, connect_timeout=10)
-            logger.info(f"persistence.pooled_pg: initialized (max={_MAX_CONN} connections).")
+            _pool = psycopg2.pool.ThreadedConnectionPool(
+                _MIN_CONN, _MAX_CONN, dsn, connect_timeout=10
+            )
+            logger.info(
+                f"persistence.pooled_pg: initialized (max={_MAX_CONN} connections)."
+            )
         except Exception as exc:  # noqa: BLE001
             logger.error(f"persistence.pooled_pg: failed to initialize pool: {exc}")
             _pool_unavailable = True

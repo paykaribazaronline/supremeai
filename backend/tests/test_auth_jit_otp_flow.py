@@ -8,18 +8,9 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
-from core.otp_router import (
-    CHANNEL_DISCORD,
-    CHANNEL_EMAIL,
-    CHANNEL_TELEGRAM,
-    CHANNEL_WHATSAPP,
-    _mask,
-    _sanitize_error,
-    get_active_channel,
-    send_otp,
-    set_active_channel,
-)
+from core.otp_router import (CHANNEL_DISCORD, CHANNEL_EMAIL, CHANNEL_TELEGRAM,
+                             CHANNEL_WHATSAPP, _mask, _sanitize_error,
+                             get_active_channel, send_otp, set_active_channel)
 
 
 class TestJITOTPFlow:
@@ -111,13 +102,17 @@ class TestJITOTPFlow:
             patch("core.otp_router.settings") as mock_settings,
             patch("httpx.AsyncClient") as mock_client,
         ):
-            mock_settings.discord_otp_webhook_url = MagicMock(get_secret_value=MagicMock(return_value="https://discord.webhook"))
+            mock_settings.discord_otp_webhook_url = MagicMock(
+                get_secret_value=MagicMock(return_value="https://discord.webhook")
+            )
             mock_response = MagicMock()
             mock_response.status_code = 204
 
             client_instance = AsyncMock()
             client_instance.post = AsyncMock(return_value=mock_response)
-            mock_client.return_value.__aenter__ = AsyncMock(return_value=client_instance)
+            mock_client.return_value.__aenter__ = AsyncMock(
+                return_value=client_instance
+            )
             mock_client.return_value.__aexit__ = AsyncMock()
 
             from core.otp_router import _send_discord
@@ -152,7 +147,9 @@ class TestJITOTPFlow:
 
             client_instance = AsyncMock()
             client_instance.post = AsyncMock(return_value=mock_response)
-            mock_client.return_value.__aenter__ = AsyncMock(return_value=client_instance)
+            mock_client.return_value.__aenter__ = AsyncMock(
+                return_value=client_instance
+            )
             mock_client.return_value.__aexit__ = AsyncMock()
 
             from core.otp_router import _send_email
@@ -176,7 +173,9 @@ class TestJITOTPFlow:
             ),
             patch("core.otp_router.redis_manager", mock_redis),
         ):
-            mock_settings.discord_otp_webhook_url = MagicMock(get_secret_value=MagicMock(return_value="https://discord.webhook"))
+            mock_settings.discord_otp_webhook_url = MagicMock(
+                get_secret_value=MagicMock(return_value="https://discord.webhook")
+            )
             result = await send_otp("admin-123", "123456", {})
         assert result is True
 
@@ -190,12 +189,16 @@ class TestJITOTPFlow:
                 new_callable=AsyncMock,
                 return_value=False,
             ),
-            patch("core.otp_router._send_email", new_callable=AsyncMock, return_value=True),
+            patch(
+                "core.otp_router._send_email", new_callable=AsyncMock, return_value=True
+            ),
             patch("core.otp_router.redis_manager", None),
         ):
             mock_api_key = MagicMock()
             mock_api_key.get_secret_value = MagicMock(return_value="test-key")
-            mock_settings.discord_otp_webhook_url = MagicMock(get_secret_value=MagicMock(return_value="https://discord.webhook"))
+            mock_settings.discord_otp_webhook_url = MagicMock(
+                get_secret_value=MagicMock(return_value="https://discord.webhook")
+            )
             mock_settings.resend_api_key = mock_api_key
             mock_settings.admin_notification_email = "admin@example.com"
             result = await send_otp("admin-123", "123456", {})

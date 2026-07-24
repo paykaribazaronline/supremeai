@@ -3,11 +3,11 @@ import os
 import sqlite3
 import uuid
 
+from database.supabase_client import db
 from fastapi import APIRouter, HTTPException, Request
 from loguru import logger
 from pydantic import BaseModel
 
-from database.supabase_client import db
 from tools.resource_catalog import ResourceCatalog
 from tools.social.marketplace_agent import MarketplaceAgent
 
@@ -27,11 +27,14 @@ DB_PATH = os.environ.get("SUPREMEAI_MARKETPLACE_DB", "data/marketplace.db")
 
 
 def _get_conn() -> sqlite3.Connection:
-    (os.makedirs(os.path.dirname(DB_PATH), exist_ok=True) if os.path.dirname(DB_PATH) else None)
+    (
+        os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+        if os.path.dirname(DB_PATH)
+        else None
+    )
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
-    conn.execute(
-        """
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS skills (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
@@ -42,8 +45,7 @@ def _get_conn() -> sqlite3.Connection:
             source TEXT NOT NULL DEFAULT 'builtin',
             installed_at REAL
         )
-        """
-    )
+        """)
     conn.commit()
     return conn
 
@@ -117,7 +119,9 @@ def get_enabled_catalog_sources() -> list[str]:
     return enabled_sources or DEFAULT_CATALOG_SOURCES
 
 
-def filter_requested_catalog_sources(categories: list[str], enabled_sources: list[str]) -> list[str]:
+def filter_requested_catalog_sources(
+    categories: list[str], enabled_sources: list[str]
+) -> list[str]:
     return [c for c in categories if c in enabled_sources]
 
 
@@ -142,7 +146,9 @@ async def search_marketplaces(payload: SearchRequest, request: Request):
         filters = payload.filters if payload.filters is not None else {}
 
         # 1. Search Remote Marketplaces
-        results = marketplace_agent.search_marketplaces(payload.query, categories, filters)
+        results = marketplace_agent.search_marketplaces(
+            payload.query, categories, filters
+        )
 
         enabled_sources = get_enabled_catalog_sources()
         catalog_sources = filter_requested_catalog_sources(categories, enabled_sources)
@@ -151,7 +157,9 @@ async def search_marketplaces(payload: SearchRequest, request: Request):
 
         http_client = getattr(request.app.state, "http_client", None)
         async with ResourceCatalog(http_client=http_client) as catalog:
-            resource_results = await catalog.search(payload.query, sources=catalog_sources, limit=5)
+            resource_results = await catalog.search(
+                payload.query, sources=catalog_sources, limit=5
+            )
 
         if resource_results:
             results.extend(resource_results)
@@ -223,7 +231,9 @@ async def install_tool(payload: InstallRequest):
             conn.close()
 
         # Fallback to Agent Remote Installation
-        res = marketplace_agent.install_tool(payload.tool_id, payload.target_environment, payload.sandbox)
+        res = marketplace_agent.install_tool(
+            payload.tool_id, payload.target_environment, payload.sandbox
+        )
         return res
     except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=str(e)) from e

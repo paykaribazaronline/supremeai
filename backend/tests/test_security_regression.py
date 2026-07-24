@@ -4,10 +4,9 @@ import os
 from unittest.mock import patch
 
 import pytest
-from pydantic import ValidationError
-
 from core.config import Settings
 from core.security.auth_middleware import AuthMiddleware
+from pydantic import ValidationError
 
 
 @pytest.mark.anyio
@@ -21,7 +20,9 @@ async def test_production_jwt_secret_required():
                 openrouter_api_key="valid",
                 gemini_api_key="valid",
             )
-    assert "SUPREMEAI_JWT_SECRET must be explicitly set in all environments" in str(excinfo.value)
+    assert "SUPREMEAI_JWT_SECRET must be explicitly set in all environments" in str(
+        excinfo.value
+    )
 
 
 @pytest.mark.skip(reason="Needs update")
@@ -41,7 +42,11 @@ def test_auth_middleware_rejects_invalid_api_token():
     client = TestClient(app)
 
     # Setup expected API token env var and test that an invalid token (like 'test-token') gets 401
-    with patch.dict(os.environ, {"SUPREMEAI_API_TOKEN": "super-secure-production-api-token"}):
-        resp = client.get("/api/task/execute", headers={"Authorization": "Bearer test-token"})
+    with patch.dict(
+        os.environ, {"SUPREMEAI_API_TOKEN": "super-secure-production-api-token"}
+    ):
+        resp = client.get(
+            "/api/task/execute", headers={"Authorization": "Bearer test-token"}
+        )
         assert resp.status_code == 401
         assert resp.json()["detail"] == "Invalid or missing API token."

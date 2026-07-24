@@ -2,13 +2,11 @@
 import logging
 import shutil
 import tarfile
-
 # datetime class এবং timedelta উভয়ই import করা হচ্ছে — utcnow() ব্যবহারের জন্য
 from datetime import datetime, timedelta
 from pathlib import Path
 
 from core.utils.time_utils import utc_now
-
 # বাংলা মন্তব্য: রেন্ডার ডকার লেআউটের সাথে সামঞ্জস্যপূর্ণ রাখতে backend. ইম্পোর্ট রুট সরিয়ে দেওয়া হয়েছে
 from schemas.skill_index import SkillIndexManager
 from schemas.skill_manifest import SkillManifest, SkillStatus
@@ -32,7 +30,9 @@ class SkillGarbageCollector:
             "mcp_router",
         ]
 
-    def run_daily_cleanup(self, usage_threshold: int = 5, days_threshold: int = 30) -> list[str]:
+    def run_daily_cleanup(
+        self, usage_threshold: int = 5, days_threshold: int = 30
+    ) -> list[str]:
         """কম ব্যবহৃত স্কিলগুলো আইডেন্টিফাই করে এবং গ্রেস পিরিয়ড ও আর্কাইভ এনফোর্স করে।"""
         index = self.index_manager.load_index()
         now = datetime.utcnow()
@@ -53,7 +53,9 @@ class SkillGarbageCollector:
             if isinstance(last_used_raw, str):
                 try:
                     last_used = datetime.fromisoformat(
-                        last_used_raw.replace("Z", "+00:00").rstrip("+00:00") if last_used_raw.endswith("Z") else last_used_raw
+                        last_used_raw.replace("Z", "+00:00").rstrip("+00:00")
+                        if last_used_raw.endswith("Z")
+                        else last_used_raw
                     )
                 except ValueError:
                     # Parse করতে না পারলে খুব পুরনো ধরে নাও
@@ -67,7 +69,9 @@ class SkillGarbageCollector:
                     # ⚠️ ধাপ ১: সরাসরি ডিলেট না করে Deprecated Pending করা ও নোটিফিকেশন
                     manifest.status = SkillStatus.DEPRECATED_PENDING
                     self.index_manager.update_skill(manifest)
-                    logger.info(f"⚠️ [GC WARNING] Skill '{skill_id}' marked as DEPRECATED_PENDING. Grace period started.")
+                    logger.info(
+                        f"⚠️ [GC WARNING] Skill '{skill_id}' marked as DEPRECATED_PENDING. Grace period started."
+                    )
 
                 elif manifest.status == SkillStatus.DEPRECATED_PENDING:
                     # 📦 ধাপ ২: গ্রেস পিরিয়ড পার হলে নিরাপদ রিকভারেবল আর্কাইভ তৈরি
@@ -88,7 +92,9 @@ class SkillGarbageCollector:
                             json.dump(global_index, f, indent=4)
 
                     purged_skills.append(skill_id)
-                    logger.info(f"✨ [GC PURGE] Stale asset '{skill_id}' successfully archived and cleared.")
+                    logger.info(
+                        f"✨ [GC PURGE] Stale asset '{skill_id}' successfully archived and cleared."
+                    )
 
         return purged_skills
 
@@ -98,6 +104,8 @@ class SkillGarbageCollector:
         if not target_path.exists():
             return
 
-        archive_file = self.archive_dir / f"{skill_id}_{utc_now().strftime('%Y%m%d')}.tar.gz"
+        archive_file = (
+            self.archive_dir / f"{skill_id}_{utc_now().strftime('%Y%m%d')}.tar.gz"
+        )
         with tarfile.open(archive_file, "w:gz") as tar:
             tar.add(target_path, arcname=skill_id)

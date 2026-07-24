@@ -1,7 +1,6 @@
 from unittest.mock import MagicMock
 
 import pytest
-
 from adaptive_engine.experience_db import Experience, ExperienceDatabase
 from adaptive_engine.intent_parser import IntentParser
 from adaptive_engine.platform_learner import PlatformLearner
@@ -35,8 +34,7 @@ def test_platform_registry():
 
 def test_intent_parser():
     fake_router = MagicMock()
-    fake_router.route_and_generate.return_value = {
-        "text": """
+    fake_router.route_and_generate.return_value = {"text": """
         {
           "app_type": "blog",
           "features": ["auth", "comments"],
@@ -46,8 +44,7 @@ def test_intent_parser():
           "deployment_target": "vercel",
           "clarification_question": null
         }
-        """
-    }
+        """}
 
     parser = IntentParser(fake_router)
     spec = parser.parse_intent("I want a react blog deployed to Vercel")
@@ -87,8 +84,7 @@ async def test_platform_learner():
 
     # Mock async_route_and_generate
     async def mock_async_route_and_generate(*args, **kwargs):
-        return {
-            "text": """
+        return {"text": """
             {
               "display_name": "Cool Cloud",
               "category": "cloud",
@@ -98,8 +94,7 @@ async def test_platform_learner():
               "sdk_code": "class CoolCloudClient:\\n    pass",
               "api_endpoints": {"deploy": "/v1/deploy"}
             }
-            """
-        }
+            """}
 
     fake_router.async_route_and_generate = mock_async_route_and_generate
 

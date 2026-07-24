@@ -30,12 +30,20 @@ class SkillLibrarian:
     def list_quarantine_queue(self) -> list[dict[str, Any]]:
         """কোয়ারেন্টাইনে থাকা পেন্ডিং স্কিলগুলোর মেটাডেটা তালিকা রিটার্ন করে।"""
         index = self.index_manager.load_index()
-        return [meta for meta in index.values() if meta.get("status") == SkillStatus.QUARANTINE]
+        return [
+            meta
+            for meta in index.values()
+            if meta.get("status") == SkillStatus.QUARANTINE
+        ]
 
-    def process_approval(self, skill_id: str, action: str, ai_patch_code: str | None = None) -> dict[str, Any]:
+    def process_approval(
+        self, skill_id: str, action: str, ai_patch_code: str | None = None
+    ) -> dict[str, Any]:
         """Admin এর নির্দেশ অনুযায়ী স্কিল স্থানান্তর ও অনুমোদন গেটওয়ে এনফোর্স করে।"""
         try:
-            logger.info(f"⚡ Background execution started for Skill: {skill_id} | Action: {action}")
+            logger.info(
+                f"⚡ Background execution started for Skill: {skill_id} | Action: {action}"
+            )
             index = self.index_manager.load_index()
             if skill_id not in index:
                 return {
@@ -82,7 +90,9 @@ class SkillLibrarian:
 
         except Exception as e:
             # ব্যাকগ্রাউন্ড ফেইলর সাইলেন্টলি লগ করা হচ্ছে যাতে থ্রেড বা সার্ভার ক্র্যাশ না করে
-            logger.error(f"❌ Critical failure in librarian background loop for skill {skill_id}: {str(e)}")
+            logger.error(
+                f"❌ Critical failure in librarian background loop for skill {skill_id}: {str(e)}"
+            )
 
             # ব্যর্থতার অ্যালার্ট ডিসকর্ডে পাঠানো হচ্ছে (যদি কনফিগার করা থাকে)
             self._send_discord_message(
@@ -111,7 +121,9 @@ class SkillLibrarian:
     def _send_discord_message(self, content: str):
         """Native urllib ব্যবহার করে কোনো এক্সটার্নাল ডিপেনডেন্সি ছাড়াই নোটিফিকেশন পাঠায়"""
         if not self.webhook_url:
-            logger.warning("Discord Webhook URL not configured. Skipping webhook dispatch.")
+            logger.warning(
+                "Discord Webhook URL not configured. Skipping webhook dispatch."
+            )
             return
 
         try:
@@ -127,6 +139,10 @@ class SkillLibrarian:
             # নেটওয়ার্ক হ্যান্ডশেক ফায়ার
             with urllib.request.urlopen(req) as response:
                 if response.status not in [200, 204]:
-                    logger.error(f"Discord Webhook returned invalid status code: {response.status}")
+                    logger.error(
+                        f"Discord Webhook returned invalid status code: {response.status}"
+                    )
         except Exception as net_err:
-            logger.error(f"Failed to transmit payload to Discord Webhook channel: {str(net_err)}")
+            logger.error(
+                f"Failed to transmit payload to Discord Webhook channel: {str(net_err)}"
+            )

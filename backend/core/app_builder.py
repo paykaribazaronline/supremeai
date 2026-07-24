@@ -17,21 +17,12 @@ import sys
 from typing import Any
 
 import sentry_sdk
-from fastapi import Depends, FastAPI, HTTPException, Request, status
-from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from loguru import logger
-
 from api.errors import api_error_handler
-from api.middleware import (
-    ChaosInjectorMiddleware,
-    IdempotencyMiddleware,
-    RequestIdMiddleware,
-    ResponseStandardizationMiddleware,
-    SupremeContextMiddleware,
-    TenantExtractionMiddleware,
-)
+from api.middleware import (ChaosInjectorMiddleware, IdempotencyMiddleware,
+                            RequestIdMiddleware,
+                            ResponseStandardizationMiddleware,
+                            SupremeContextMiddleware,
+                            TenantExtractionMiddleware)
 from core import lifespan, services
 from core.config import settings
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
@@ -44,6 +35,11 @@ from core.security.autonoguard_middleware import AutonoGuardMiddleware
 from core.security.honeypot_middleware import HoneypotMiddleware
 from core.security.origin_validator import TrustedOriginMiddleware
 from core.startup_validator import StartupValidator
+from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from loguru import logger
 
 
 class InterceptHandler(logging.Handler):
@@ -58,7 +54,9 @@ class InterceptHandler(logging.Handler):
         while frame and frame.f_code.co_filename == logging.__file__:
             frame = frame.f_back
             depth += 1
-        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+        logger.opt(depth=depth, exception=record.exc_info).log(
+            level, record.getMessage()
+        )
 
 
 logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
@@ -81,9 +79,9 @@ else:
 
 def _docs_auth(credentials: HTTPBasicCredentials = Depends(security)) -> str:
     """Authenticate docs access via HTTP Basic."""
-    correct = secrets.compare_digest(credentials.username, settings.docs_username) and secrets.compare_digest(
-        credentials.password, settings.docs_password
-    )
+    correct = secrets.compare_digest(
+        credentials.username, settings.docs_username
+    ) and secrets.compare_digest(credentials.password, settings.docs_password)
     if not correct:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -116,7 +114,9 @@ tags_metadata = [
 def supremeai_dynamic_rate_evaluator(request: Request) -> str:
     """ডাইনামিক rate key: JWT role বা IP fallback অনুযায়ী limiter বাউন্ডারি বাছাই করে।"""
     user = getattr(request.state, "user", None)
-    user_role = user.get("role", "Standard_User") if isinstance(user, dict) else "Standard_User"
+    user_role = (
+        user.get("role", "Standard_User") if isinstance(user, dict) else "Standard_User"
+    )
     client_ip = request.client.host if request.client else "unknown"
     if user_role in {"Admin", "admin"}:
         return f"admin:{client_ip}"
@@ -129,7 +129,9 @@ class RateLimitExceeded(Exception):
     """Rate limit exceeded — ক্লায়েন্টকে 429 রিটার্ন করতে।"""
 
 
-async def _rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
+async def _rate_limit_exceeded_handler(
+    request: Request, exc: RateLimitExceeded
+) -> JSONResponse:
     return JSONResponse(status_code=429, content={"detail": "Rate limit exceeded"})
 
 
@@ -162,7 +164,9 @@ async def check_native_rate_limit(
         _, count, _ = await pipe.execute()
 
         if count >= max_requests:
-            raise RateLimitExceeded(f"Rate limit exceeded for {client_ip}: {count} requests in {window_seconds}s")
+            raise RateLimitExceeded(
+                f"Rate limit exceeded for {client_ip}: {count} requests in {window_seconds}s"
+            )
 
         await redis_manager.client.zadd(key, {str(now): now})
         return True
@@ -173,7 +177,9 @@ async def check_native_rate_limit(
         return False
 
 
-def build_app_shell(title: str = "SupremeAI API", docs_url: str | None = "/docs") -> FastAPI:
+def build_app_shell(
+    title: str = "SupremeAI API", docs_url: str | None = "/docs"
+) -> FastAPI:
     """Builds the base FastAPI shell with shared configuration, middleware, and exception handlers.
 
     বাংলা মন্তব্য: কোর FastAPI অ্যাপ সেল যা মিডলওয়্যার এবং এক্সেপশন হ্যান্ডলারগুলো ইনিশিয়ালাইজ করে।
@@ -193,7 +199,9 @@ def build_app_shell(title: str = "SupremeAI API", docs_url: str | None = "/docs"
     )
 
     @fastapi_app.middleware("http")
-    async def basic_auth_for_docs_middleware(request: Request, call_next: Any) -> JSONResponse:  # noqa: ANN401
+    async def basic_auth_for_docs_middleware(
+        request: Request, call_next: Any
+    ) -> JSONResponse:  # noqa: ANN401
         """Protect docs with Basic Auth if enabled."""
         if settings.docs_auth_enabled and not settings.debug:
             path = request.url.path
@@ -208,7 +216,10 @@ def build_app_shell(title: str = "SupremeAI API", docs_url: str | None = "/docs"
                 try:
                     decoded = base64.b64decode(auth[6:]).decode("utf-8")
                     username, password = decoded.split(":", 1)
-                    if username != settings.docs_username or password != settings.docs_password:
+                    if (
+                        username != settings.docs_username
+                        or password != settings.docs_password
+                    ):
                         raise ValueError("Mismatch")
                 except (ValueError, UnicodeDecodeError):
                     return JSONResponse(
@@ -220,7 +231,9 @@ def build_app_shell(title: str = "SupremeAI API", docs_url: str | None = "/docs"
 
     # বাংলা মন্তব্য: রিকোয়েস্ট ট্রেসিংয়ের সুবিধার্থে কোরিলেশন আইডি জেনারেট করার মিডলওয়্যার যোগ করা হলো।
     fastapi_app.add_middleware(RequestContextMiddleware)  # 1 - Always first
-    fastapi_app.add_middleware(GZipMiddleware, minimum_size=1000)  # 2 - Decode body early
+    fastapi_app.add_middleware(
+        GZipMiddleware, minimum_size=1000
+    )  # 2 - Decode body early
     fastapi_app.add_middleware(RequestIdMiddleware)  # 3
     fastapi_app.add_middleware(TrustedOriginMiddleware)  # 4
     fastapi_app.add_middleware(SupremeContextMiddleware)  # 5
@@ -240,7 +253,9 @@ def build_app_shell(title: str = "SupremeAI API", docs_url: str | None = "/docs"
     fastapi_app.add_exception_handler(HTTPException, api_error_handler)
 
     if isinstance(RateLimitExceeded, type) and issubclass(RateLimitExceeded, Exception):
-        fastapi_app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+        fastapi_app.add_exception_handler(
+            RateLimitExceeded, _rate_limit_exceeded_handler
+        )
 
     @fastapi_app.get("/")
     async def root() -> dict[str, Any]:
@@ -276,7 +291,11 @@ def build_app_shell(title: str = "SupremeAI API", docs_url: str | None = "/docs"
             redis_ok = True
 
         api_keys_ok = bool(
-            settings.openrouter_api_key or settings.gemini_api_key or settings.deepseek_api_key or settings.groq_api_key or settings.nvidia_api_key
+            settings.openrouter_api_key
+            or settings.gemini_api_key
+            or settings.deepseek_api_key
+            or settings.groq_api_key
+            or settings.nvidia_api_key
         )
         # বাংলা মন্তব্য: নির্ভরযোগ্যতা এবং স্টার্টআপ ভ্যালিডেশন মেট্রিক্স হেলথ চেকে যুক্ত করা হলো।
         startup_status = StartupValidator.last_status()
@@ -321,7 +340,11 @@ def build_app_shell(title: str = "SupremeAI API", docs_url: str | None = "/docs"
             redis_ok = True
 
         api_keys_ok = bool(
-            settings.openrouter_api_key or settings.gemini_api_key or settings.deepseek_api_key or settings.groq_api_key or settings.nvidia_api_key
+            settings.openrouter_api_key
+            or settings.gemini_api_key
+            or settings.deepseek_api_key
+            or settings.groq_api_key
+            or settings.nvidia_api_key
         )
 
         subsystems = {
@@ -336,7 +359,8 @@ def build_app_shell(title: str = "SupremeAI API", docs_url: str | None = "/docs"
         return {
             "status": "ok" if all_ok else "degraded",
             "version": "2.0.0",
-            "uptime_seconds": _time.time() - _time.time(),  # placeholder — track actual startup time
+            "uptime_seconds": _time.time()
+            - _time.time(),  # placeholder — track actual startup time
             "subsystems": subsystems,
         }
 
@@ -344,7 +368,9 @@ def build_app_shell(title: str = "SupremeAI API", docs_url: str | None = "/docs"
     return fastapi_app
 
 
-def router_health_check(fastapi_app: FastAPI, expected_count: int | None = None) -> None:
+def router_health_check(
+    fastapi_app: FastAPI, expected_count: int | None = None
+) -> None:
     """Fail-fast if fewer than minimum routes loaded.
 
     বাংলা মন্তব্য: স্টার্টআপে রাউটার লোডিং ভ্যালিডেশন। মিনিমাম রুট চেক করে ফেইল-ফাস্ট নিশ্চিত করে।

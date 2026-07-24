@@ -12,16 +12,22 @@ class RepoDiscoveryAgent:
     def __init__(self, token: str = None):
         self.token = token or ""
         if not self.token:
-            logger.warning("RepoDiscoveryAgent initialized without a token; real API operations disabled.")
+            logger.warning(
+                "RepoDiscoveryAgent initialized without a token; real API operations disabled."
+            )
         else:
             logger.info("RepoDiscoveryAgent initialized with token.")
 
     def _require_token(self) -> str:
         if not self.token:
-            raise RuntimeError("GitHub token is required for repository discovery and integration.")
+            raise RuntimeError(
+                "GitHub token is required for repository discovery and integration."
+            )
         return self.token
 
-    def discover_repos(self, requirement: str, tech_stack: list, criteria: dict) -> list:
+    def discover_repos(
+        self, requirement: str, tech_stack: list, criteria: dict
+    ) -> list:
         logger.info(f"Discovering repos for '{requirement}' using stack {tech_stack}")
 
         # টোকেন না থাকলে কুয়েরি না পাঠিয়ে ডামি রিটার্ন করে যাতে লোকাল এনভায়রনমেন্টে ক্র্যাশ না হয়
@@ -75,7 +81,9 @@ class RepoDiscoveryAgent:
                         )
                     return repos
                 else:
-                    logger.error(f"GitHub API Error: {response.status_code} - {response.text}")
+                    logger.error(
+                        f"GitHub API Error: {response.status_code} - {response.text}"
+                    )
         except Exception as exc:  # noqa: BLE001
             logger.error(f"Repo search failed: {exc}")
 
@@ -83,7 +91,9 @@ class RepoDiscoveryAgent:
 
     def analyze_compatibility(self, repo_name: str, target_project_deps: dict) -> dict:
         token = self.token or ""
-        logger.info(f"Analyzing compatibility for {repo_name} against {target_project_deps}")
+        logger.info(
+            f"Analyzing compatibility for {repo_name} against {target_project_deps}"
+        )
 
         # Real compatibility logic by looking up the repo package.json / requirements.txt if token available
         if token:
@@ -101,26 +111,36 @@ class RepoDiscoveryAgent:
                         import json
 
                         content_b64 = response.json().get("content", "")
-                        package_data = json.loads(base64.b64decode(content_b64).decode("utf-8"))
+                        package_data = json.loads(
+                            base64.b64decode(content_b64).decode("utf-8")
+                        )
                         repo_deps = package_data.get("dependencies", {})
 
                         # Find overlapping version conflicts
                         conflicts = []
                         for dep, ver in repo_deps.items():
-                            if dep in target_project_deps and target_project_deps[dep] != ver:
-                                conflicts.append(f"Version mismatch for {dep}: target has {target_project_deps[dep]}, repo needs {ver}")
+                            if (
+                                dep in target_project_deps
+                                and target_project_deps[dep] != ver
+                            ):
+                                conflicts.append(
+                                    f"Version mismatch for {dep}: target has {target_project_deps[dep]}, repo needs {ver}"
+                                )
 
                         return {
                             "compatible": len(conflicts) == 0,
                             "conflicts": conflicts,
-                            "license_ok": "gpl" not in package_data.get("license", "").lower(),
+                            "license_ok": "gpl"
+                            not in package_data.get("license", "").lower(),
                             "estimated_bundle_size": "Dynamic size lookup pending",
                             "risk_level": "medium" if conflicts else "low",
                             "reason": "Repository package.json dependencies verified.",
                             "token_prefix": token[:4] + "****",
                         }
             except Exception as exc:  # noqa: BLE001
-                logger.warning(f"Static compatibility analysis failed, falling back: {exc}")
+                logger.warning(
+                    f"Static compatibility analysis failed, falling back: {exc}"
+                )
 
         return {
             "compatible": True,
@@ -133,7 +153,9 @@ class RepoDiscoveryAgent:
         }
 
     def implement_repo(self, repo_url: str, method: str, target_project: str) -> dict:
-        logger.info(f"Implementing repo {repo_url} via method '{method}' into {target_project}")
+        logger.info(
+            f"Implementing repo {repo_url} via method '{method}' into {target_project}"
+        )
         # In future this triggers code modification via AST / file writer
         return {
             "status": "success",

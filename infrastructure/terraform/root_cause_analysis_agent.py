@@ -1,8 +1,8 @@
 # backend/analysis/root_cause_analysis_agent.py
 
-import re
 import json
-from typing import List, Dict, Any, Optional
+import re
+from typing import Any
 
 # Placeholder for external clients
 # from backend.clients.github_client import GitHubClient # এটি একটি বাস্তব ক্লায়েন্ট হবে
@@ -23,7 +23,7 @@ class RootCauseAnalysisAgent:
         llm_client: Any,
         db_pool: Any,
         git_client: Any,
-        github_client: Optional[Any] = None,
+        github_client: Any | None = None,
     ):
         """
         Initializes the agent with necessary clients.
@@ -45,7 +45,7 @@ class RootCauseAnalysisAgent:
             re.compile(r"status=5\d{2}"),
         ]
 
-    async def _parse_logs(self, log_files: List[str]) -> List[Dict[str, Any]]:
+    async def _parse_logs(self, log_files: list[str]) -> list[dict[str, Any]]:
         """
         Parses log files to extract structured error information.
         This can be expanded to support various log formats (JSON, plain text, etc.).
@@ -76,7 +76,7 @@ class RootCauseAnalysisAgent:
         print(f"Found {len(structured_logs)} relevant log entries.")
         return structured_logs
 
-    async def _parse_traces(self, trace_files: List[str]) -> List[Dict[str, Any]]:
+    async def _parse_traces(self, trace_files: list[str]) -> list[dict[str, Any]]:
         """
         Parses distributed tracing files (e.g., from OpenTelemetry, Jaeger)
         to identify high-latency spans or error-prone services.
@@ -106,7 +106,7 @@ class RootCauseAnalysisAgent:
 
     async def _get_context_from_git(
         self, file_path: str, line_number: int
-    ) -> Optional[Dict[str, str]]:
+    ) -> dict[str, str] | None:
         """
         Uses 'git blame' to find the last commit and author related to a specific line of code.
 
@@ -125,8 +125,8 @@ class RootCauseAnalysisAgent:
             return None
 
     async def analyze(
-        self, incident_id: str, log_files: List[str], trace_files: List[str]
-    ) -> Dict[str, Any]:
+        self, incident_id: str, log_files: list[str], trace_files: list[str]
+    ) -> dict[str, Any]:
         """
         Main analysis pipeline. It orchestrates parsing, context gathering, and AI-driven diagnosis.
 
@@ -177,8 +177,8 @@ class RootCauseAnalysisAgent:
         return analysis_result
 
     def create_github_issue(
-        self, incident_id: str, analysis_result: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+        self, incident_id: str, analysis_result: dict[str, Any]
+    ) -> dict[str, Any] | None:
         """
         Creates a GitHub issue based on the analysis result.
 

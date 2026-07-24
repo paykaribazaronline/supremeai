@@ -56,7 +56,9 @@ class StyleLearner:
                 PY_LANG = Language("build/my-languages.so", "python")
             except Exception:  # noqa: BLE001
                 # বাংলা মন্তব্য: prebuilt language না থাকলে AST বিশ্লেষণ বাদ দেওয়া হচ্ছে।
-                logger.debug("tree-sitter python grammar not compiled; skipping AST analysis.")
+                logger.debug(
+                    "tree-sitter python grammar not compiled; skipping AST analysis."
+                )
                 return patterns
 
             parser = Parser()
@@ -71,7 +73,9 @@ class StyleLearner:
             skipped_ast_files: list[str] = []
 
             for root, _, files in os.walk(repo_path):
-                if any(x in root for x in [".venv", "node_modules", "__pycache__", ".git"]):
+                if any(
+                    x in root for x in [".venv", "node_modules", "__pycache__", ".git"]
+                ):
                     continue
                 for file in files:
                     if not file.endswith(".py"):
@@ -93,7 +97,11 @@ class StyleLearner:
                                 name = name_node.text.decode("utf-8")
                                 if "_" in name:
                                     snake += 1
-                                elif name and name[0].islower() and any(c.isupper() for c in name):
+                                elif (
+                                    name
+                                    and name[0].islower()
+                                    and any(c.isupper() for c in name)
+                                ):
                                     camel += 1
                             # ফাংশন লেন্থ (লাইন সংখ্যা)
                             start = node.start_point[0]
@@ -110,17 +118,25 @@ class StyleLearner:
                                                     break
 
             if snake + camel > 0:
-                patterns["naming_convention"] = "snake_case" if snake >= camel else "camelCase"
+                patterns["naming_convention"] = (
+                    "snake_case" if snake >= camel else "camelCase"
+                )
             if func_lengths:
                 avg_len = sum(func_lengths) / len(func_lengths)
-                patterns["function_length_preference"] = "short" if avg_len < 30 else ("medium" if avg_len < 60 else "long")
+                patterns["function_length_preference"] = (
+                    "short" if avg_len < 30 else ("medium" if avg_len < 60 else "long")
+                )
                 patterns["avg_function_lines"] = round(avg_len, 1)
             if func_count > 0:
-                patterns["comment_style"] = "docstring" if docstring_count >= func_count * 0.5 else "inline"
+                patterns["comment_style"] = (
+                    "docstring" if docstring_count >= func_count * 0.5 else "inline"
+                )
                 patterns["docstring_coverage"] = round(docstring_count / func_count, 2)
 
             if skipped_ast_files:
-                logger.warning(f"[StyleLearner] Skipped AST parsing for {len(skipped_ast_files)} files. Samples: {skipped_ast_files[:3]}")
+                logger.warning(
+                    f"[StyleLearner] Skipped AST parsing for {len(skipped_ast_files)} files. Samples: {skipped_ast_files[:3]}"
+                )
 
         except ImportError:
             logger.debug("tree-sitter not installed; using heuristic fallback.")
@@ -154,7 +170,9 @@ class StyleLearner:
                 break
 
         if skipped_sample_files:
-            logger.warning(f"[StyleLearner] Skipped reading {len(skipped_sample_files)} files for sampling. Samples: {skipped_sample_files[:3]}")
+            logger.warning(
+                f"[StyleLearner] Skipped reading {len(skipped_sample_files)} files for sampling. Samples: {skipped_sample_files[:3]}"
+            )
 
         if code_samples:
             try:
@@ -168,7 +186,9 @@ class StyleLearner:
                     "Do not include any markdown or explanation.\n\n"
                     f"Code:\n{combined[:5000]}"
                 )
-                result = await router_llm.async_route_and_generate(prompt, task_type="coding", max_cost=0.03)
+                result = await router_llm.async_route_and_generate(
+                    prompt, task_type="coding", max_cost=0.03
+                )
                 text = result.get("text", "") if isinstance(result, dict) else ""
                 try:
                     cleaned = text.strip()
@@ -201,7 +221,9 @@ class StyleLearner:
 
             router_llm = ModelRouter()
             full_prompt = f"{style_prompt}\n\nTask: {prompt}\nReturn only the code."
-            result = await router_llm.async_route_and_generate(full_prompt, task_type="coding", max_cost=0.03)
+            result = await router_llm.async_route_and_generate(
+                full_prompt, task_type="coding", max_cost=0.03
+            )
             code = result.get("text", "") if isinstance(result, dict) else ""
             return {"status": "success", "code": code.strip(), "style_injected": True}
         except Exception as e:  # noqa: BLE001
@@ -230,7 +252,9 @@ class StyleLearner:
                 return
         except Exception as persist_err:  # noqa: BLE001
             # বাংলা মন্তব্য: Supabase persist ব্যর্থ হলে warning দেওয়া হচ্ছে যাতে DB সমস্যাটি অগোচরে না থাকে।
-            logger.warning(f"[StyleLearner] Supabase style persist failed for {repo_path}: {persist_err}. Falling back to local storage.")
+            logger.warning(
+                f"[StyleLearner] Supabase style persist failed for {repo_path}: {persist_err}. Falling back to local storage."
+            )
         # Local fallback
         try:
             os.makedirs("data/styles", exist_ok=True)
@@ -284,7 +308,9 @@ _learner = StyleLearner()
 async def learn_style(request: StyleRequest):
     """Extract and persist coding style from a repository path."""
     if not os.path.isdir(request.repo_path):
-        raise HTTPException(status_code=400, detail=f"Path not found: {request.repo_path}")
+        raise HTTPException(
+            status_code=400, detail=f"Path not found: {request.repo_path}"
+        )
     guidelines = await _learner.analyze_codebase(request.repo_path)
     return {"status": "success", "guidelines": guidelines}
 
@@ -293,7 +319,9 @@ async def learn_style(request: StyleRequest):
 async def generate_styled(request: StyleRequest):
     """Generate code following the learned style for a repo/user."""
     if not os.path.isdir(request.repo_path):
-        raise HTTPException(status_code=400, detail=f"Path not found: {request.repo_path}")
+        raise HTTPException(
+            status_code=400, detail=f"Path not found: {request.repo_path}"
+        )
     result = await _learner.generate_with_style(request.repo_path, request.repo_path)
     return result
 

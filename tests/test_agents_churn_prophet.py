@@ -1,9 +1,9 @@
 # tests/test_agents_churn_prophet.py
 """Tests for ChurnProphet - user behavior analysis and retention prediction."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
-from datetime import datetime, timedelta
 
 
 class TestBehavioralScorer:
@@ -23,7 +23,7 @@ class TestBehavioralScorer:
         custom_weights = {
             "login_frequency": 0.5,
             "session_duration": 0.3,
-            "feature_usage": 0.2
+            "feature_usage": 0.2,
         }
         scorer = BehavioralScorer(weights=custom_weights)
 
@@ -39,7 +39,7 @@ class TestBehavioralScorer:
             "login_count": 10,
             "session_count": 5,
             "average_session_minutes": 15,
-            "features_used": ["chat", "search"]
+            "features_used": ["chat", "search"],
         }
 
         score = scorer.calculate(user_signals, {})
@@ -52,7 +52,7 @@ class TestUserSegment:
 
     def test_segment_regular_user(self):
         """Test regular user segmentation."""
-        from backend.agents.churn_prophet import UserSegment, BehavioralScorer
+        from backend.agents.churn_prophet import BehavioralScorer
 
         scorer = BehavioralScorer()
 
@@ -72,7 +72,7 @@ class TestChurnRiskScore:
         score = ChurnRiskScore(
             risk_level="low",
             confidence=0.85,
-            factors=["High engagement", "Regular logins"]
+            factors=["High engagement", "Regular logins"],
         )
 
         assert score.risk_level == "low"
@@ -97,7 +97,7 @@ class TestChurnProphet:
     @pytest.fixture
     def mock_llm_router(self):
         """Mock LLM router for testing."""
-        with patch('backend.agents.churn_prophet.LLMRouter') as mock:
+        with patch("backend.agents.churn_prophet.LLMRouter") as mock:
             instance = MagicMock()
             mock.return_value = instance
             yield instance
@@ -114,7 +114,7 @@ class TestChurnProphet:
         """Test user analysis."""
         from backend.agents.churn_prophet import ChurnProphet
 
-        with patch('backend.agents.churn_prophet.TenantAwareFirestore') as mock_db:
+        with patch("backend.agents.churn_prophet.TenantAwareFirestore") as mock_db:
             mock_db_instance = AsyncMock()
             mock_db.return_value = mock_db_instance
 
@@ -131,8 +131,7 @@ class TestChurnProphet:
 
             try:
                 result = await prophet.analyze_user(
-                    tenant_id="test-tenant",
-                    user_id="test-user"
+                    tenant_id="test-tenant", user_id="test-user"
                 )
                 assert isinstance(result, object)
             except Exception:
@@ -144,13 +143,12 @@ class TestChurnProphet:
         """Test batch user analysis."""
         from backend.agents.churn_prophet import ChurnProphet
 
-        with patch('backend.agents.churn_prophet.TenantAwareFirestore'):
+        with patch("backend.agents.churn_prophet.TenantAwareFirestore"):
             prophet = ChurnProphet()
 
             try:
                 results = await prophet.batch_analyze(
-                    tenant_id="test-tenant",
-                    user_ids=["user1", "user2", "user3"]
+                    tenant_id="test-tenant", user_ids=["user1", "user2", "user3"]
                 )
                 assert isinstance(results, list)
             except Exception:

@@ -5,12 +5,11 @@ from logging.config import fileConfig
 # বাংলা মন্তব্য: প্রোজেক্টের রুট পাথ যুক্ত করা হচ্ছে যাতে core.config মডিউলটি ইম্পোর্ট করা যায়
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from sqlalchemy import engine_from_config, pool
-
 # Import all models to ensure they are registered with Base.metadata before autogenerate
 from alembic import context
 from core.config import settings
 from models.base import Base
+from sqlalchemy import engine_from_config, pool
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

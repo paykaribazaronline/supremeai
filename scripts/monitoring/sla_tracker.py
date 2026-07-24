@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 scripts/monitoring/sla_tracker.py
 ==================================
@@ -45,10 +44,8 @@ import os
 import statistics
 import sys
 import time
-from collections import defaultdict
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
-from decimal import Decimal, ROUND_HALF_UP
 from enum import Enum
 from typing import Any
 
@@ -98,6 +95,7 @@ class SLABreachSeverity(Enum):
 @dataclass(frozen=True)
 class SLIMetric:
     """Single metric measurement."""
+
     timestamp: datetime
     service: str
     metric_type: str
@@ -114,6 +112,7 @@ class SLIMetric:
 @dataclass
 class SLODefinition:
     """Service Level Objective definition."""
+
     name: str
     description: str
     target_value: float
@@ -137,6 +136,7 @@ class SLODefinition:
 @dataclass
 class SLAResult:
     """SLA compliance result for a service."""
+
     service: str
     slo_name: str
     target: float
@@ -170,6 +170,7 @@ class SLAResult:
 @dataclass
 class ServiceHealth:
     """Aggregated health status for a service."""
+
     service: str
     tier: ServiceTier
     overall_status: str
@@ -193,6 +194,7 @@ class ServiceHealth:
 @dataclass
 class Incident:
     """Detected SLA breach incident."""
+
     id: str
     service: str
     slo_name: str
@@ -217,27 +219,94 @@ class Incident:
 
 # ── SLO Registry ───────────────────────────────────────────────────────
 SLO_REGISTRY: list[SLODefinition] = [
-    SLODefinition("api_availability", "API endpoint availability", 99.9, "%", ServiceTier.CRITICAL, 60),
-    SLODefinition("api_latency_p99", "API P99 response time", 2000, "ms", ServiceTier.CRITICAL, 60),
-    SLODefinition("api_error_rate", "API error rate", 0.1, "%", ServiceTier.CRITICAL, 60),
-    SLODefinition("api_throughput", "API requests per second", 10.0, "rps", ServiceTier.CRITICAL, 60),
-
-    SLODefinition("ai_availability", "AI provider availability", 99.5, "%", ServiceTier.HIGH, 60),
-    SLODefinition("ai_latency_p99", "AI response P99 latency", 5000, "ms", ServiceTier.HIGH, 60),
-    SLODefinition("ai_error_rate", "AI provider error rate", 1.0, "%", ServiceTier.HIGH, 60),
-
-    SLODefinition("db_availability", "Database availability", 99.99, "%", ServiceTier.CRITICAL, 60),
-    SLODefinition("db_query_p99", "Database query P99 latency", 100, "ms", ServiceTier.CRITICAL, 60),
-    SLODefinition("db_connection_pool", "DB connection pool utilization", 80.0, "%", ServiceTier.CRITICAL, 60),
-
-    SLODefinition("ws_availability", "WebSocket availability", 99.5, "%", ServiceTier.HIGH, 60),
-    SLODefinition("ws_message_latency", "WebSocket message latency", 500, "ms", ServiceTier.HIGH, 60),
-
-    SLODefinition("ci_success_rate", "CI pipeline success rate", 95.0, "%", ServiceTier.MEDIUM, 1440),
-    SLODefinition("ci_duration_p95", "CI pipeline P95 duration", 600, "seconds", ServiceTier.MEDIUM, 1440),
-
-    SLODefinition("frontend_lcp", "Largest Contentful Paint", 2500, "ms", ServiceTier.MEDIUM, 1440),
-    SLODefinition("frontend_cls", "Cumulative Layout Shift", 0.1, "score", ServiceTier.MEDIUM, 1440),
+    SLODefinition(
+        "api_availability",
+        "API endpoint availability",
+        99.9,
+        "%",
+        ServiceTier.CRITICAL,
+        60,
+    ),
+    SLODefinition(
+        "api_latency_p99", "API P99 response time", 2000, "ms", ServiceTier.CRITICAL, 60
+    ),
+    SLODefinition(
+        "api_error_rate", "API error rate", 0.1, "%", ServiceTier.CRITICAL, 60
+    ),
+    SLODefinition(
+        "api_throughput",
+        "API requests per second",
+        10.0,
+        "rps",
+        ServiceTier.CRITICAL,
+        60,
+    ),
+    SLODefinition(
+        "ai_availability", "AI provider availability", 99.5, "%", ServiceTier.HIGH, 60
+    ),
+    SLODefinition(
+        "ai_latency_p99", "AI response P99 latency", 5000, "ms", ServiceTier.HIGH, 60
+    ),
+    SLODefinition(
+        "ai_error_rate", "AI provider error rate", 1.0, "%", ServiceTier.HIGH, 60
+    ),
+    SLODefinition(
+        "db_availability", "Database availability", 99.99, "%", ServiceTier.CRITICAL, 60
+    ),
+    SLODefinition(
+        "db_query_p99",
+        "Database query P99 latency",
+        100,
+        "ms",
+        ServiceTier.CRITICAL,
+        60,
+    ),
+    SLODefinition(
+        "db_connection_pool",
+        "DB connection pool utilization",
+        80.0,
+        "%",
+        ServiceTier.CRITICAL,
+        60,
+    ),
+    SLODefinition(
+        "ws_availability", "WebSocket availability", 99.5, "%", ServiceTier.HIGH, 60
+    ),
+    SLODefinition(
+        "ws_message_latency",
+        "WebSocket message latency",
+        500,
+        "ms",
+        ServiceTier.HIGH,
+        60,
+    ),
+    SLODefinition(
+        "ci_success_rate",
+        "CI pipeline success rate",
+        95.0,
+        "%",
+        ServiceTier.MEDIUM,
+        1440,
+    ),
+    SLODefinition(
+        "ci_duration_p95",
+        "CI pipeline P95 duration",
+        600,
+        "seconds",
+        ServiceTier.MEDIUM,
+        1440,
+    ),
+    SLODefinition(
+        "frontend_lcp", "Largest Contentful Paint", 2500, "ms", ServiceTier.MEDIUM, 1440
+    ),
+    SLODefinition(
+        "frontend_cls",
+        "Cumulative Layout Shift",
+        0.1,
+        "score",
+        ServiceTier.MEDIUM,
+        1440,
+    ),
 ]
 
 
@@ -253,7 +322,9 @@ class APICollector(MetricCollector):
     """Collect metrics from SupremeAI API endpoints."""
 
     def __init__(self, base_urls: list[str] | None = None):
-        self.base_urls = base_urls or [os.getenv("BACKEND_URL", "http://localhost:8000")]
+        self.base_urls = base_urls or [
+            os.getenv("BACKEND_URL", "http://localhost:8000")
+        ]
 
     async def collect(self) -> list[SLIMetric]:
         metrics: list[SLIMetric] = []
@@ -266,43 +337,53 @@ class APICollector(MetricCollector):
                     resp = await client.get(f"{base_url}{API_HEALTH_PATH}")
                 latency_ms = (time.perf_counter() - start) * 1000
 
-                metrics.append(SLIMetric(
-                    timestamp=now,
-                    service=f"api:{base_url}",
-                    metric_type="availability",
-                    value=100.0 if resp.status_code == 200 else 0.0,
-                    unit="%",
-                ))
-                metrics.append(SLIMetric(
-                    timestamp=now,
-                    service=f"api:{base_url}",
-                    metric_type="latency",
-                    value=latency_ms,
-                    unit="ms",
-                ))
-                metrics.append(SLIMetric(
-                    timestamp=now,
-                    service=f"api:{base_url}",
-                    metric_type="error_rate",
-                    value=0.0 if resp.status_code == 200 else 100.0,
-                    unit="%",
-                ))
+                metrics.append(
+                    SLIMetric(
+                        timestamp=now,
+                        service=f"api:{base_url}",
+                        metric_type="availability",
+                        value=100.0 if resp.status_code == 200 else 0.0,
+                        unit="%",
+                    )
+                )
+                metrics.append(
+                    SLIMetric(
+                        timestamp=now,
+                        service=f"api:{base_url}",
+                        metric_type="latency",
+                        value=latency_ms,
+                        unit="ms",
+                    )
+                )
+                metrics.append(
+                    SLIMetric(
+                        timestamp=now,
+                        service=f"api:{base_url}",
+                        metric_type="error_rate",
+                        value=0.0 if resp.status_code == 200 else 100.0,
+                        unit="%",
+                    )
+                )
             except Exception as exc:
                 logger.warning(f"API health check failed for {base_url}: {exc}")
-                metrics.append(SLIMetric(
-                    timestamp=now,
-                    service=f"api:{base_url}",
-                    metric_type="availability",
-                    value=0.0,
-                    unit="%",
-                ))
-                metrics.append(SLIMetric(
-                    timestamp=now,
-                    service=f"api:{base_url}",
-                    metric_type="error_rate",
-                    value=100.0,
-                    unit="%",
-                ))
+                metrics.append(
+                    SLIMetric(
+                        timestamp=now,
+                        service=f"api:{base_url}",
+                        metric_type="availability",
+                        value=0.0,
+                        unit="%",
+                    )
+                )
+                metrics.append(
+                    SLIMetric(
+                        timestamp=now,
+                        service=f"api:{base_url}",
+                        metric_type="error_rate",
+                        value=100.0,
+                        unit="%",
+                    )
+                )
 
         return metrics
 
@@ -350,37 +431,45 @@ class AIProviderCollector(MetricCollector):
                     latency_ms = 0
                     is_up = True
 
-                metrics.append(SLIMetric(
-                    timestamp=now,
-                    service=f"ai:{name}",
-                    metric_type="availability",
-                    value=100.0 if is_up else 0.0,
-                    unit="%",
-                ))
-                if latency_ms > 0:
-                    metrics.append(SLIMetric(
+                metrics.append(
+                    SLIMetric(
                         timestamp=now,
                         service=f"ai:{name}",
-                        metric_type="latency",
-                        value=latency_ms,
-                        unit="ms",
-                    ))
+                        metric_type="availability",
+                        value=100.0 if is_up else 0.0,
+                        unit="%",
+                    )
+                )
+                if latency_ms > 0:
+                    metrics.append(
+                        SLIMetric(
+                            timestamp=now,
+                            service=f"ai:{name}",
+                            metric_type="latency",
+                            value=latency_ms,
+                            unit="ms",
+                        )
+                    )
             except Exception as exc:
                 logger.warning(f"AI provider check failed for {name}: {exc}")
-                metrics.append(SLIMetric(
-                    timestamp=now,
-                    service=f"ai:{name}",
-                    metric_type="availability",
-                    value=0.0,
-                    unit="%",
-                ))
-                metrics.append(SLIMetric(
-                    timestamp=now,
-                    service=f"ai:{name}",
-                    metric_type="error_rate",
-                    value=100.0,
-                    unit="%",
-                ))
+                metrics.append(
+                    SLIMetric(
+                        timestamp=now,
+                        service=f"ai:{name}",
+                        metric_type="availability",
+                        value=0.0,
+                        unit="%",
+                    )
+                )
+                metrics.append(
+                    SLIMetric(
+                        timestamp=now,
+                        service=f"ai:{name}",
+                        metric_type="error_rate",
+                        value=100.0,
+                        unit="%",
+                    )
+                )
 
         return metrics
 
@@ -399,22 +488,26 @@ class DatabaseCollector(MetricCollector):
                 data = resp.json() if resp.status_code == 200 else {}
 
             db_status = data.get("database", "unknown")
-            metrics.append(SLIMetric(
-                timestamp=now,
-                service="db:supabase",
-                metric_type="availability",
-                value=100.0 if db_status == "connected" else 0.0,
-                unit="%",
-            ))
+            metrics.append(
+                SLIMetric(
+                    timestamp=now,
+                    service="db:supabase",
+                    metric_type="availability",
+                    value=100.0 if db_status == "connected" else 0.0,
+                    unit="%",
+                )
+            )
         except Exception as exc:
             logger.warning(f"DB health check failed: {exc}")
-            metrics.append(SLIMetric(
-                timestamp=now,
-                service="db:supabase",
-                metric_type="availability",
-                value=0.0,
-                unit="%",
-            ))
+            metrics.append(
+                SLIMetric(
+                    timestamp=now,
+                    service="db:supabase",
+                    metric_type="availability",
+                    value=0.0,
+                    unit="%",
+                )
+            )
 
         return metrics
 
@@ -433,13 +526,16 @@ class SLAEngine:
         cutoff = datetime.now() - timedelta(days=7)
         self.metrics = [m for m in self.metrics if m.timestamp > cutoff]
 
-    def calculate_slo(self, slo: SLODefinition, window_minutes: int | None = None) -> SLAResult:
+    def calculate_slo(
+        self, slo: SLODefinition, window_minutes: int | None = None
+    ) -> SLAResult:
         """Calculate SLO compliance for a specific objective."""
         window = window_minutes or slo.window_minutes
         cutoff = datetime.now() - timedelta(minutes=window)
 
         relevant = [
-            m for m in self.metrics
+            m
+            for m in self.metrics
             if m.metric_type in slo.name and m.timestamp > cutoff
         ]
 
@@ -461,19 +557,33 @@ class SLAEngine:
 
         if "availability" in slo.name:
             actual = statistics.mean(values)
-            compliance = (actual / slo.target_value) * 100 if slo.target_value > 0 else 0
+            compliance = (
+                (actual / slo.target_value) * 100 if slo.target_value > 0 else 0
+            )
         elif "latency" in slo.name or "duration" in slo.name or "lcp" in slo.name:
-            actual = max(values) if "p99" in slo.name or "p95" in slo.name else statistics.mean(values)
+            actual = (
+                max(values)
+                if "p99" in slo.name or "p95" in slo.name
+                else statistics.mean(values)
+            )
             compliance = (slo.target_value / actual) * 100 if actual > 0 else 100
         elif "error_rate" in slo.name or "cls" in slo.name:
             actual = statistics.mean(values)
-            compliance = ((slo.target_value - actual) / slo.target_value) * 100 if slo.target_value > 0 else 100
+            compliance = (
+                ((slo.target_value - actual) / slo.target_value) * 100
+                if slo.target_value > 0
+                else 100
+            )
         elif "throughput" in slo.name:
             actual = statistics.mean(values)
-            compliance = (actual / slo.target_value) * 100 if slo.target_value > 0 else 0
+            compliance = (
+                (actual / slo.target_value) * 100 if slo.target_value > 0 else 0
+            )
         else:
             actual = statistics.mean(values)
-            compliance = (actual / slo.target_value) * 100 if slo.target_value > 0 else 0
+            compliance = (
+                (actual / slo.target_value) * 100 if slo.target_value > 0 else 0
+            )
 
         compliance = max(0, min(100, compliance))
         is_compliant = compliance >= 100
@@ -493,7 +603,11 @@ class SLAEngine:
                 severity = SLABreachSeverity.WARNING
 
         service_key = f"{slo.name}"
-        if severity in [SLABreachSeverity.MINOR, SLABreachSeverity.MAJOR, SLABreachSeverity.CRITICAL]:
+        if severity in [
+            SLABreachSeverity.MINOR,
+            SLABreachSeverity.MAJOR,
+            SLABreachSeverity.CRITICAL,
+        ]:
             if service_key not in self._active_incidents:
                 incident = Incident(
                     id=f"INC-{datetime.now().strftime('%Y%m%d-%H%M%S')}-{slo.name}",
@@ -509,7 +623,9 @@ class SLAEngine:
             if service_key in self._active_incidents:
                 incident = self._active_incidents.pop(service_key)
                 incident.resolved_at = datetime.now()
-                incident.duration_seconds = int((incident.resolved_at - incident.started_at).total_seconds())
+                incident.duration_seconds = int(
+                    (incident.resolved_at - incident.started_at).total_seconds()
+                )
 
         return SLAResult(
             service=slo.name.split("_")[0],
@@ -549,20 +665,32 @@ class SLAEngine:
 
             services[service_name].slo_results.append(result)
 
-            if any(r.severity == SLABreachSeverity.CRITICAL for r in services[service_name].slo_results):
+            if any(
+                r.severity == SLABreachSeverity.CRITICAL
+                for r in services[service_name].slo_results
+            ):
                 services[service_name].overall_status = "unhealthy"
-            elif any(r.severity in [SLABreachSeverity.MAJOR, SLABreachSeverity.MINOR] for r in services[service_name].slo_results):
+            elif any(
+                r.severity in [SLABreachSeverity.MAJOR, SLABreachSeverity.MINOR]
+                for r in services[service_name].slo_results
+            ):
                 services[service_name].overall_status = "degraded"
 
         for service_name, health in services.items():
-            avail_results = [r for r in health.slo_results if "availability" in r.slo_name]
+            avail_results = [
+                r for r in health.slo_results if "availability" in r.slo_name
+            ]
             if avail_results:
                 health.uptime_pct = statistics.mean([r.actual for r in avail_results])
             health.last_check = datetime.now()
-            health.incident_count_24h = len([
-                i for i in self.incidents
-                if i.service == service_name and i.started_at > datetime.now() - timedelta(hours=24)
-            ])
+            health.incident_count_24h = len(
+                [
+                    i
+                    for i in self.incidents
+                    if i.service == service_name
+                    and i.started_at > datetime.now() - timedelta(hours=24)
+                ]
+            )
 
         active_incidents = [i for i in self.incidents if i.resolved_at is None]
 
@@ -570,11 +698,29 @@ class SLAEngine:
             "generated_at": datetime.now().isoformat(),
             "services": {name: svc.to_dict() for name, svc in services.items()},
             "active_incidents": [i.to_dict() for i in active_incidents],
-            "resolved_incidents_24h": len([i for i in self.incidents if i.resolved_at and i.resolved_at > datetime.now() - timedelta(hours=24)]),
+            "resolved_incidents_24h": len(
+                [
+                    i
+                    for i in self.incidents
+                    if i.resolved_at
+                    and i.resolved_at > datetime.now() - timedelta(hours=24)
+                ]
+            ),
             "overall_compliance": {
-                "critical": len([s for s in services.values() if s.tier == ServiceTier.CRITICAL and s.overall_status == "healthy"]),
-                "total_critical": len([s for s in services.values() if s.tier == ServiceTier.CRITICAL]),
-                "all_healthy": all(s.overall_status == "healthy" for s in services.values()),
+                "critical": len(
+                    [
+                        s
+                        for s in services.values()
+                        if s.tier == ServiceTier.CRITICAL
+                        and s.overall_status == "healthy"
+                    ]
+                ),
+                "total_critical": len(
+                    [s for s in services.values() if s.tier == ServiceTier.CRITICAL]
+                ),
+                "all_healthy": all(
+                    s.overall_status == "healthy" for s in services.values()
+                ),
             },
         }
 
@@ -612,7 +758,11 @@ async def send_sla_alert(report: dict[str, Any]) -> None:
             async with httpx.AsyncClient(timeout=10) as client:
                 await client.post(
                     f"https://api.telegram.org/bot{bot_token}/sendMessage",
-                    json={"chat_id": chat_id, "text": message, "parse_mode": "Markdown"},
+                    json={
+                        "chat_id": chat_id,
+                        "text": message,
+                        "parse_mode": "Markdown",
+                    },
                 )
             logger.info("SLA Telegram alert sent")
         except Exception as exc:
@@ -639,19 +789,25 @@ def format_markdown(report: dict[str, Any]) -> str:
     ]
 
     for name, svc in report["services"].items():
-        status_emoji = "🟢" if svc["overall_status"] == "healthy" else "🟡" if svc["overall_status"] == "degraded" else "🔴"
+        status_emoji = (
+            "🟢"
+            if svc["overall_status"] == "healthy"
+            else "🟡" if svc["overall_status"] == "degraded" else "🔴"
+        )
         lines.append(
             f"| {name} | {svc['tier']} | {status_emoji} {svc['overall_status']} | "
             f"{svc['uptime_pct']:.2f}% | {svc['incident_count_24h']} |"
         )
 
-    lines.extend([
-        "",
-        "## 📋 SLO Details",
-        "",
-        "| Service | SLO | Target | Actual | Compliance | Budget Left | Status |",
-        "|---------|-----|--------|--------|------------|-------------|--------|",
-    ])
+    lines.extend(
+        [
+            "",
+            "## 📋 SLO Details",
+            "",
+            "| Service | SLO | Target | Actual | Compliance | Budget Left | Status |",
+            "|---------|-----|--------|--------|------------|-------------|--------|",
+        ]
+    )
 
     for name, svc in report["services"].items():
         for slo in svc["slo_results"]:
@@ -663,13 +819,15 @@ def format_markdown(report: dict[str, Any]) -> str:
             )
 
     if report["active_incidents"]:
-        lines.extend([
-            "",
-            "## 🚨 Active Incidents",
-            "",
-            "| ID | Service | SLO | Severity | Started | Duration |",
-            "|----|---------|-----|----------|---------|----------|",
-        ])
+        lines.extend(
+            [
+                "",
+                "## 🚨 Active Incidents",
+                "",
+                "| ID | Service | SLO | Severity | Started | Duration |",
+                "|----|---------|-----|----------|---------|----------|",
+            ]
+        )
         for inc in report["active_incidents"]:
             duration = "ongoing"
             lines.append(
@@ -677,11 +835,13 @@ def format_markdown(report: dict[str, Any]) -> str:
                 f"{inc['severity']} | {inc['started_at']} | {duration} |"
             )
 
-    lines.extend([
-        "",
-        "---",
-        "*Generated by SupremeAI SLA Tracker*",
-    ])
+    lines.extend(
+        [
+            "",
+            "---",
+            "*Generated by SupremeAI SLA Tracker*",
+        ]
+    )
 
     return "\n".join(lines)
 
@@ -718,9 +878,18 @@ async def main() -> int:
     parser.add_argument("--days", type=int, default=7, help="Report window in days")
     parser.add_argument("--provider", type=str, help="Filter to specific provider")
     parser.add_argument("--slo", type=str, help="Filter to specific SLO")
-    parser.add_argument("--watch", action="store_true", help="Continuous monitoring mode")
-    parser.add_argument("--interval", type=int, default=60, help="Watch interval in seconds")
-    parser.add_argument("--output", choices=["json", "markdown"], default="markdown", help="Output format")
+    parser.add_argument(
+        "--watch", action="store_true", help="Continuous monitoring mode"
+    )
+    parser.add_argument(
+        "--interval", type=int, default=60, help="Watch interval in seconds"
+    )
+    parser.add_argument(
+        "--output",
+        choices=["json", "markdown"],
+        default="markdown",
+        help="Output format",
+    )
     parser.add_argument("--save", type=str, help="Save output to file")
 
     args = parser.parse_args()
@@ -745,14 +914,16 @@ async def main() -> int:
 
         if args.provider:
             report["services"] = {
-                k: v for k, v in report["services"].items()
+                k: v
+                for k, v in report["services"].items()
                 if args.provider.lower() in k.lower()
             }
 
         if args.slo:
             for svc in report["services"].values():
                 svc["slo_results"] = [
-                    r for r in svc["slo_results"]
+                    r
+                    for r in svc["slo_results"]
                     if args.slo.lower() in r["slo_name"].lower()
                 ]
 
@@ -776,8 +947,7 @@ async def main() -> int:
             logger.info("GitHub Step Summary written")
 
         critical = any(
-            i.get("severity") == "critical"
-            for i in report.get("active_incidents", [])
+            i.get("severity") == "critical" for i in report.get("active_incidents", [])
         )
         return 1 if critical else 0
 

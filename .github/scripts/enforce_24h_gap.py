@@ -4,8 +4,10 @@
 # গ্রেসফুল স্কিপিং লজিক বসানো হয়েছে — should_run আউটপুটের মাধ্যমে gatekeeper জবকে সিগন্যাল দেওয়া হয়।
 import os
 import sys
+from datetime import datetime, timedelta, timezone
+
 import requests
-from datetime import datetime, timezone, timedelta
+
 
 def set_output(name, value):
     """গিটহাব অ্যাকশনস-এ আউটপুট সেট করার হেল্পার ফাংশন"""
@@ -13,6 +15,7 @@ def set_output(name, value):
     if github_output:
         with open(github_output, "a") as f:
             f.write(f"{name}={value}\n")
+
 
 def main():
     if os.environ.get("GITHUB_EVENT_NAME") != "schedule":
@@ -33,7 +36,7 @@ def main():
     url = f"https://api.github.com/repos/{repo}/actions/runs"
     headers = {
         "Authorization": f"Bearer {token}",
-        "Accept": "application/vnd.github.v3+json"
+        "Accept": "application/vnd.github.v3+json",
     }
 
     resp = requests.get(url, headers=headers, params={"per_page": 20})
@@ -57,24 +60,33 @@ def main():
             continue
 
         if conclusion == "failure":
-            print(f"Previous run ({run['id']}) failed. Allowing this scheduled run as a retry.")
+            print(
+                f"Previous run ({run['id']}) failed. Allowing this scheduled run as a retry."
+            )
             set_output("should_run", "true")
             return 0
 
         created_at_str = run["created_at"]
-        created_at = datetime.strptime(created_at_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        created_at = datetime.strptime(created_at_str, "%Y-%m-%dT%H:%M:%SZ").replace(
+            tzinfo=timezone.utc
+        )
 
         diff = now - created_at
 
         if diff < timedelta(hours=24):
-            print(f"Previous run ({run['id']}) started at {created_at_str}, which is {diff} ago.")
+            print(
+                f"Previous run ({run['id']}) started at {created_at_str}, which is {diff} ago."
+            )
             print("Gracefully skipping this scheduled run to save free minutes.")
-            set_output("should_run", "false")  # বাংলা মন্তব্য: গিটহাবকে সিগন্যাল দিচ্ছে স্কিপ করার জন্য
+            set_output(
+                "should_run", "false"
+            )  # বাংলা মন্তব্য: গিটহাবকে সিগন্যাল দিচ্ছে স্কিপ করার জন্য
             return 0
 
     print("No valid previous runs found. Minimum 24-hour gap met. Proceeding.")
     set_output("should_run", "true")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

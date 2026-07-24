@@ -19,7 +19,9 @@ try:
 except ImportError:
     _HAS_FIRESTORE = False
     firestore = None  # type: ignore[assignment]
-    logger.warning("google.cloud.firestore not available — tenant DB will use mock/test mode only")
+    logger.warning(
+        "google.cloud.firestore not available — tenant DB will use mock/test mode only"
+    )
 
 
 class TenantAwareFirestore:
@@ -30,7 +32,9 @@ class TenantAwareFirestore:
 
     def __init__(self, tenant_id: str):
         if not tenant_id:
-            logger.critical("🚨 SECURITY BREACH: Attempted to initialize DB without a tenant_id!")
+            logger.critical(
+                "🚨 SECURITY BREACH: Attempted to initialize DB without a tenant_id!"
+            )
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Database access denied: Missing tenant isolation context.",
@@ -85,13 +89,17 @@ class TenantAwareFirestore:
             if client is not None:
                 return client
         except Exception:  # noqa: BLE001
-            logger.debug("get_firestore_client() failed, falling back to direct firestore.Client()")
+            logger.debug(
+                "get_firestore_client() failed, falling back to direct firestore.Client()"
+            )
 
         # বাংলা মন্তব্য: firestore module exists কিনা check করে তবেই কল
         if _HAS_FIRESTORE:
             return firestore.Client()  # type: ignore[union-attr]
         # No Firestore available — raise a clear error instead of NameError
-        raise RuntimeError("Firestore client not available. Install google-cloud-firestore or run in test environment.")
+        raise RuntimeError(
+            "Firestore client not available. Install google-cloud-firestore or run in test environment."
+        )
 
     def collection(self, collection_name: str):
         """ট্যানান্টের নিজস্ব সাব-কালেকশন রিটার্ন করবে"""

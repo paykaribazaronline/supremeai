@@ -18,7 +18,9 @@ class ConversationManager:
         }
         return session_id
 
-    def add_message(self, session_id: str, role: str, content: str, max_history: int = 10):
+    def add_message(
+        self, session_id: str, role: str, content: str, max_history: int = 10
+    ):
         if session_id not in self.sessions:
             raise ValueError(f"Invalid session {session_id}")
         if len(content) > 4000:
@@ -28,7 +30,9 @@ class ConversationManager:
         if len(session["history"]) > max_history:
             old_msg = session["history"].pop(0)
             prev = session.get("summary", "")
-            session["summary"] = f"{prev} [{old_msg['role']}: {old_msg['content'][:60]}...]".strip()
+            session["summary"] = (
+                f"{prev} [{old_msg['role']}: {old_msg['content'][:60]}...]".strip()
+            )
             if len(session["summary"]) > 2000:
                 session["summary"] = session["summary"][:2000]
         if role == "user":
@@ -39,7 +43,9 @@ class ConversationManager:
                     "with",
                     "have",
                 }:
-                    session["entities"][word.lower()] = session["entities"].get(word.lower(), 0) + 1
+                    session["entities"][word.lower()] = (
+                        session["entities"].get(word.lower(), 0) + 1
+                    )
 
     def get_context(self, session_id: str) -> list[dict[str, str]]:
         if session_id not in self.sessions:
@@ -47,6 +53,8 @@ class ConversationManager:
         session = self.sessions[session_id]
         context: list[dict[str, str]] = []
         if session.get("summary"):
-            context.append({"role": "system", "content": f"Previous context: {session['summary']}"})
+            context.append(
+                {"role": "system", "content": f"Previous context: {session['summary']}"}
+            )
         context.extend(session["history"])
         return context

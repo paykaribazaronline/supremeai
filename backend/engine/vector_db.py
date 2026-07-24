@@ -29,7 +29,9 @@ class VectorDatabaseClient:
         # services.py এই module কে import করলে সরাসরি top-level import ঝুঁকিপূর্ণ।
         self._exp_db = None
         self.degraded: bool = False
-        _logger.debug("VectorDatabaseClient initialised (free-tier adapter, shared experience_db)")
+        _logger.debug(
+            "VectorDatabaseClient initialised (free-tier adapter, shared experience_db)"
+        )
 
     def _get_exp_db(self):
         """Lazily fetch the shared experience_db singleton from core.services."""
@@ -42,11 +44,16 @@ class VectorDatabaseClient:
                 if getattr(self._exp_db, "vector_backend_degraded", False):
                     self.degraded = True
             except Exception as exc:  # noqa: BLE001
-                _logger.error(f"VectorDatabaseClient: failed to fetch shared experience_db — " f"memory will be DEGRADED. error={exc!r}")
+                _logger.error(
+                    f"VectorDatabaseClient: failed to fetch shared experience_db — "
+                    f"memory will be DEGRADED. error={exc!r}"
+                )
                 self.degraded = True
         return self._exp_db
 
-    async def save_experience(self, vector: list[float], metadata: dict[str, Any]) -> None:
+    async def save_experience(
+        self, vector: list[float], metadata: dict[str, Any]
+    ) -> None:
         """
         Saves an experience into the shared memory pool.
         বাংলা মন্তব্য: vector argument এখন ignore করা হচ্ছে — experience_db নিজেই
@@ -56,11 +63,15 @@ class VectorDatabaseClient:
         exp_db = self._get_exp_db()
         if exp_db is None:
             self.degraded = True
-            _logger.error("save_experience() skipped: shared experience_db unavailable (DEGRADED). " "Experience NOT persisted.")
+            _logger.error(
+                "save_experience() skipped: shared experience_db unavailable (DEGRADED). "
+                "Experience NOT persisted."
+            )
             return
 
         try:
-            from adaptive_engine.experience_db import Experience  # noqa: PLC0415
+            from adaptive_engine.experience_db import \
+                Experience  # noqa: PLC0415
 
             exp = Experience(
                 request=metadata.get("request", metadata.get("patch_id", "")),
@@ -72,12 +83,18 @@ class VectorDatabaseClient:
             )
             # বাংলা মন্তব্য: blocking SQLite write — thread-এ offload করা হচ্ছে
             await asyncio.to_thread(exp_db.record_experience, exp)
-            _logger.debug(f"🧠 Saved neural memory experience via shared pool: {metadata.get('patch_id', 'n/a')}")
+            _logger.debug(
+                f"🧠 Saved neural memory experience via shared pool: {metadata.get('patch_id', 'n/a')}"
+            )
         except Exception as exc:  # noqa: BLE001
             self.degraded = True
-            _logger.error(f"save_experience() failed (experience NOT persisted, DEGRADED): {exc!r}")
+            _logger.error(
+                f"save_experience() failed (experience NOT persisted, DEGRADED): {exc!r}"
+            )
 
-    async def find_similar_experiences(self, vector: list[float], top_k: int = 3) -> list[dict[str, Any]]:
+    async def find_similar_experiences(
+        self, vector: list[float], top_k: int = 3
+    ) -> list[dict[str, Any]]:
         """
         Retrieves past experiences from the shared free-tier vector backend.
         বাংলা মন্তব্য: vector argument ignore করা হয় — experience_db.find_similar()
@@ -86,7 +103,10 @@ class VectorDatabaseClient:
         exp_db = self._get_exp_db()
         if exp_db is None:
             self.degraded = True
-            _logger.error("find_similar_experiences() skipped: shared experience_db unavailable " "(DEGRADED, not 'no matches found').")
+            _logger.error(
+                "find_similar_experiences() skipped: shared experience_db unavailable "
+                "(DEGRADED, not 'no matches found')."
+            )
             return []
 
         # বাংলা মন্তব্য: vector argument থেকে raw query text বের করার কোনো উপায় নেই,
@@ -95,7 +115,9 @@ class VectorDatabaseClient:
         query_text = vector if isinstance(vector, str) else ""  # type: ignore[assignment]
 
         if not query_text:
-            _logger.debug("find_similar_experiences(): no query text available, returning empty.")
+            _logger.debug(
+                "find_similar_experiences(): no query text available, returning empty."
+            )
             return []
 
         try:
@@ -115,7 +137,9 @@ class VectorDatabaseClient:
             ]
         except Exception as exc:  # noqa: BLE001
             self.degraded = True
-            _logger.error(f"find_similar_experiences() failed (returning empty, DEGRADED state): {exc!r}")
+            _logger.error(
+                f"find_similar_experiences() failed (returning empty, DEGRADED state): {exc!r}"
+            )
             return []
 
 

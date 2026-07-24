@@ -1,9 +1,8 @@
 import uuid
 
+from core.config import settings
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-
-from core.config import settings
 from storage.r2_storage_client import R2StorageClient
 
 # বাংলা মন্তব্য: ক্লায়েন্টের জন্য প্রে-সাইনড আপলোড ইউআরএল জেনারেট করার এন্ডপয়েন্ট।
@@ -26,9 +25,13 @@ async def get_current_user():
 
 @router.post("/generate-upload-url")
 async def get_upload_url(request: UploadRequest, user=Depends(get_current_user)):
-    safe_filename = f"{request.folder}/{user['id']}_{uuid.uuid4().hex}_{request.file_name}"
+    safe_filename = (
+        f"{request.folder}/{user['id']}_{uuid.uuid4().hex}_{request.file_name}"
+    )
 
-    upload_url = storage_client.generate_presigned_upload_url(object_name=safe_filename, file_type=request.file_type)
+    upload_url = storage_client.generate_presigned_upload_url(
+        object_name=safe_filename, file_type=request.file_type
+    )
 
     if not upload_url:
         raise HTTPException(status_code=500, detail="Could not generate upload URL")

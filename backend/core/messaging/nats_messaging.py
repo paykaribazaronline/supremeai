@@ -42,7 +42,9 @@ class NATSClient:
     async def connect(self):
         """Establishes connection to NATS with Token Auth and enables JetStream."""
         if nats is None:
-            logger.warning("[NATS] Optional dependency 'nats' is not installed. Skipping NATS connection.")
+            logger.warning(
+                "[NATS] Optional dependency 'nats' is not installed. Skipping NATS connection."
+            )
             return
 
         try:
@@ -119,7 +121,9 @@ class NATSClient:
                 keys = await self.kv_store.keys()
             except Exception as keys_err:  # noqa: BLE001
                 # বাংলা মন্তব্য: KV store key list পেতে ব্যর্থ — swarm routing এ খালি list ফেরাবে
-                logger.error(f"[NATS] Failed to list worker keys from KV store: {keys_err!r}")
+                logger.error(
+                    f"[NATS] Failed to list worker keys from KV store: {keys_err!r}"
+                )
                 return workers
             skipped: list[str] = []
             for key in keys:
@@ -129,9 +133,13 @@ class NATSClient:
                 except Exception as entry_err:  # noqa: BLE001
                     # বাংলা মন্তব্য: একটি key পার্স ব্যর্থ হলেও বাকিগুলো চলতে থাকবে
                     skipped.append(key)
-                    logger.warning(f"[NATS] Skipped malformed worker entry '{key}': {entry_err!r}")
+                    logger.warning(
+                        f"[NATS] Skipped malformed worker entry '{key}': {entry_err!r}"
+                    )
             if skipped:
-                logger.warning(f"[NATS] {len(skipped)} worker entries skipped due to errors: {skipped}")
+                logger.warning(
+                    f"[NATS] {len(skipped)} worker entries skipped due to errors: {skipped}"
+                )
         return workers
 
 

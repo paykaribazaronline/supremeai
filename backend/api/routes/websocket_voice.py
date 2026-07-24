@@ -3,12 +3,11 @@ import json
 import time
 
 import httpx
-from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect, status
-from loguru import logger
-
 from core.config import settings
 from core.security import verify_token
 from database.supabase_client import db
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect, status
+from loguru import logger
 from models.voice_interaction import VoiceInteractionLog
 
 router = APIRouter(prefix="/ws", tags=["Voice Engine Stream"])
@@ -39,7 +38,9 @@ class VoiceConnectionManager:
 
             if isinstance(e, jwt.ExpiredSignatureError):
                 client_host = websocket.client.host if websocket.client else "unknown"
-                logger.info(f"⚠️ [WS Auth] Expired token attempt from {client_host}")  # noqa: T201
+                logger.info(
+                    f"⚠️ [WS Auth] Expired token attempt from {client_host}"
+                )  # noqa: T201
             return None
 
 
@@ -61,7 +62,9 @@ async def process_audio_with_groq(audio_bytes: bytes) -> str:
 
     async with httpx.AsyncClient(timeout=10.0) as client:
         try:
-            response = await client.post(url, headers=headers, files=files, data=data, timeout=10.0)
+            response = await client.post(
+                url, headers=headers, files=files, data=data, timeout=10.0
+            )
             response.raise_for_status()
             result = response.json()
             return result.get("text", "")
@@ -70,18 +73,20 @@ async def process_audio_with_groq(audio_bytes: bytes) -> str:
             return f"Error processing audio: {str(e)}"
 
 
-async def handle_intent(transcript: str, websocket: WebSocket, start_time: float, user_id: str):
+async def handle_intent(
+    transcript: str, websocket: WebSocket, start_time: float, user_id: str
+):
     # Intent Router
     transcript_clean = transcript.strip()
 
     # Check if it's a command
     if transcript_clean.startswith("/"):
-        supremeai_response = f"Executing system command: {transcript_clean}... Authorization confirmed."
+        supremeai_response = (
+            f"Executing system command: {transcript_clean}... Authorization confirmed."
+        )
     else:
         # Natural Language Processing (Simulating conversational Groq/LLM)
-        supremeai_response = (
-            f"Hello! You said: '{transcript_clean}'. I am Aethel, your SupremeAI orchestrator. How can I assist you with the cluster today?"
-        )
+        supremeai_response = f"Hello! You said: '{transcript_clean}'. I am Aethel, your SupremeAI orchestrator. How can I assist you with the cluster today?"
 
     # Log to database
     if db.client:
@@ -93,7 +98,9 @@ async def handle_intent(transcript: str, websocket: WebSocket, start_time: float
             latency_ms=latency_ms,
         )
         try:
-            db.client.table("voice_interactions").insert(log_entry.dict(exclude_none=True)).execute()
+            db.client.table("voice_interactions").insert(
+                log_entry.dict(exclude_none=True)
+            ).execute()
         except Exception as db_err:  # noqa: BLE001
             logger.info(f"⚠️ [DB Logging Error]: {db_err}")  # noqa: T201
 
@@ -145,7 +152,9 @@ async def websocket_voice_endpoint(
                             continue
 
                         # 1. Process STT using Groq
-                        logger.info(f"🎙️ [WS] Processing audio buffer ({len(audio_buffer)} bytes)...")  # noqa: T201
+                        logger.info(
+                            f"🎙️ [WS] Processing audio buffer ({len(audio_buffer)} bytes)..."
+                        )  # noqa: T201
                         transcript = await process_audio_with_groq(bytes(audio_buffer))
                         logger.info(f"🗣️ [User Voice]: {transcript}")  # noqa: T201
 
@@ -153,7 +162,9 @@ async def websocket_voice_endpoint(
                         audio_buffer.clear()
 
                         # Send transcript to UI
-                        await websocket.send_json({"type": "transcript", "text": transcript})
+                        await websocket.send_json(
+                            {"type": "transcript", "text": transcript}
+                        )
 
                         # 2. Intent Router
                         await handle_intent(

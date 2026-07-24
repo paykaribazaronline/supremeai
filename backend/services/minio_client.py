@@ -19,9 +19,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from loguru import logger
-
 from core.cache import get_cache
+from loguru import logger
 
 # ── Constants ────────────────────────────────────────────────────────────────
 URL_CACHE_TTL = 3600  # 1 hour
@@ -117,7 +116,9 @@ class MinIOClient:
             }
 
         try:
-            result = client.fput_object(bucket, key, file_path, content_type=content_type)
+            result = client.fput_object(
+                bucket, key, file_path, content_type=content_type
+            )
 
             return {
                 "status": "success",
@@ -161,7 +162,9 @@ class MinIOClient:
 
         try:
             if self._timedelta:
-                url = client.presigned_get_object(bucket, key, expires=self._timedelta(seconds=expires_seconds))
+                url = client.presigned_get_object(
+                    bucket, key, expires=self._timedelta(seconds=expires_seconds)
+                )
                 await self.cache.set(cache_key, url, ttl=URL_CACHE_TTL)
                 return url
         except Exception as e:
@@ -209,7 +212,9 @@ class MinIOClient:
             logger.error(f"Bucket setup failed: {e}")
             return False
 
-    async def list_objects(self, bucket: str, prefix: str | None = None) -> list[StoredObject]:
+    async def list_objects(
+        self, bucket: str, prefix: str | None = None
+    ) -> list[StoredObject]:
         """List objects in bucket."""
         client = self._get_client()
         if not client:

@@ -163,7 +163,9 @@ class TestDetectBroadExceptions:
         assert result == []
 
     def test_specific_exception_ignored(self, detector):
-        code = "def foo():\n    try:\n        pass\n    except ValueError:\n        pass\n"
+        code = (
+            "def foo():\n    try:\n        pass\n    except ValueError:\n        pass\n"
+        )
         tree = ast.parse(code)
         result = detector._detect_broad_exceptions(tree, "test.py")
         assert result == []
@@ -248,12 +250,16 @@ class TestAnalyzePythonFile:
         assert any(s["type"] == "Long Method" for s in result)
 
     def test_large_class_detected(self, detector, tmp_path):
-        methods = "\n".join(f"    def method_{i}(self):\n        pass" for i in range(25))
+        methods = "\n".join(
+            f"    def method_{i}(self):\n        pass" for i in range(25)
+        )
         src = f"class BigClass:\n{methods}\n"
         f = tmp_path / "bigclass.py"
         f.write_text(src, encoding="utf-8")
         result = detector.analyze_python_file(str(f), {"class_methods": 20})
-        assert any(s["type"] == "Large Class" and s["class"] == "BigClass" for s in result)
+        assert any(
+            s["type"] == "Large Class" and s["class"] == "BigClass" for s in result
+        )
 
     def test_syntax_error_reported(self, detector, tmp_path):
         f = tmp_path / "bad.py"
@@ -375,7 +381,10 @@ class TestAnalyzeRadon:
         ):
             tree = ast.parse("def foo():\n    return 1\n")
             result = detector._analyze_radon("test.py", tree, 10)
-        assert any(s["type"] == "High Complexity (radon)" and s.get("complexity") == 20 for s in result)
+        assert any(
+            s["type"] == "High Complexity (radon)" and s.get("complexity") == 20
+            for s in result
+        )
 
     def test_low_maintainability_detected(self, detector):
         fake_radon, fake_complexity, fake_metrics = _make_fake_radon(
@@ -393,7 +402,10 @@ class TestAnalyzeRadon:
         ):
             tree = ast.parse("def foo():\n    return 1\n")
             result = detector._analyze_radon("test.py", tree, 10)
-        assert any(s["type"] == "Low Maintainability" and "30.0" in s.get("message", "") for s in result)
+        assert any(
+            s["type"] == "Low Maintainability" and "30.0" in s.get("message", "")
+            for s in result
+        )
 
     def test_reparses_when_tree_none(self, detector, tmp_path):
         fake_radon, fake_complexity, fake_metrics = _make_fake_radon(
@@ -412,7 +424,9 @@ class TestAnalyzeRadon:
                 "radon.metrics": fake_metrics,
             },
         ):
-            with patch("backend.tools.code.code_smell_detector.ast.parse") as mock_parse:
+            with patch(
+                "backend.tools.code.code_smell_detector.ast.parse"
+            ) as mock_parse:
                 mock_parse.return_value = ast.parse("def foo():\n    return 1\n")
                 detector._analyze_radon(str(f), None, 10)
         assert mock_parse.call_count >= 1
@@ -484,7 +498,9 @@ class TestConstructorAvailability:
         assert d.pylint_available is False
 
     def test_check_radon_true_when_available(self):
-        with patch.dict(sys.modules, {"radon": MagicMock(), "radon.complexity": MagicMock()}):
+        with patch.dict(
+            sys.modules, {"radon": MagicMock(), "radon.complexity": MagicMock()}
+        ):
             assert CodeSmellDetector()._check_radon() is True
 
     def test_check_radon_false_when_missing(self):

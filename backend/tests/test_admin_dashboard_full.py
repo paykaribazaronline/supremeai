@@ -22,33 +22,17 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
+from api.routes.admin_dashboard import (RouterOverrideRequest, UserUpdate,
+                                        _acquire_env_lock, _release_env_lock,
+                                        create_user, delete_user,
+                                        get_cost_caps, get_costs, get_env_etag,
+                                        get_health_map, get_metrics,
+                                        get_model_router, get_providers,
+                                        get_users, load_cost_caps, load_users,
+                                        logs_stream, save_cost_caps,
+                                        save_users, set_router_override,
+                                        trigger_deploy, update_cost_caps)
 from fastapi import HTTPException
-
-from api.routes.admin_dashboard import (
-    UserUpdate,
-    RouterOverrideRequest,
-    _acquire_env_lock,
-    _release_env_lock,
-    get_costs,
-    get_cost_caps,
-    get_env_etag,
-    get_health_map,
-    get_metrics,
-    get_model_router,
-    get_providers,
-    get_users,
-    load_cost_caps,
-    load_users,
-    save_cost_caps,
-    save_users,
-    set_router_override,
-    trigger_deploy,
-    update_cost_caps,
-    create_user,
-    delete_user,
-    logs_stream,
-)
-
 
 # ── Helpers ────────────────────────────────────────────────────────────
 
@@ -97,7 +81,9 @@ class TestLoadSaveUsers:
     def test_load_users_existing_file(self, temp_users_file):
         """File exists → loads from file."""
         with open(temp_users_file, "w") as f:
-            json.dump([{"username": "custom", "role": "Admin", "permissions": ["all"]}], f)
+            json.dump(
+                [{"username": "custom", "role": "Admin", "permissions": ["all"]}], f
+            )
         users = load_users()
         assert len(users) == 1
         assert users[0]["username"] == "custom"
@@ -139,7 +125,9 @@ class TestUserCRUD:
 
     def test_create_user_updates_existing(self, temp_users_file):
         """Creating an existing user updates them."""
-        user = UserUpdate(username="admin", role="SuperAdmin", permissions=["all", "delete"])
+        user = UserUpdate(
+            username="admin", role="SuperAdmin", permissions=["all", "delete"]
+        )
         result = create_user(user)
         assert result["status"] == "success"
         assert "updated" in result["message"]
@@ -169,7 +157,9 @@ class TestGetCosts:
         """CostAuditor returns no text_report → returns unavailable message."""
         with patch("api.routes.admin_dashboard.CostAuditor") as mock_cls:
             mock_auditor = MagicMock()
-            mock_auditor.generate_report.return_value = {"text_report": str(tmp_path / "nonexistent.md")}
+            mock_auditor.generate_report.return_value = {
+                "text_report": str(tmp_path / "nonexistent.md")
+            }
             mock_cls.return_value = mock_auditor
             result = get_costs()
         assert result["status"] == "ok"
@@ -181,7 +171,9 @@ class TestGetCosts:
         report_file.write_text("# Cost Report\nSome content")
         with patch("api.routes.admin_dashboard.CostAuditor") as mock_cls:
             mock_auditor = MagicMock()
-            mock_auditor.generate_report.return_value = {"text_report": str(report_file)}
+            mock_auditor.generate_report.return_value = {
+                "text_report": str(report_file)
+            }
             mock_cls.return_value = mock_auditor
             result = get_costs()
         assert result["status"] == "ok"
@@ -220,7 +212,9 @@ class TestGetHealthMap:
 
         monkeypatch.setattr(settings, "gcp_project_id", "my-project")
         monkeypatch.setattr(settings, "gcp_region", "us-east1")
-        monkeypatch.setattr(settings, "upstash_redis_rest_url", "https://redis.upstash.com")
+        monkeypatch.setattr(
+            settings, "upstash_redis_rest_url", "https://redis.upstash.com"
+        )
         monkeypatch.setattr(settings, "supabase_database_url", "postgresql://db")
         result = get_health_map()
         assert result["gcp"]["status"] == "healthy"
@@ -332,7 +326,9 @@ class TestModelRouter:
 
     def test_set_router_override(self):
         """Sets override and returns success."""
-        payload = RouterOverrideRequest(provider="openrouter", model="gpt-4o", remaining_requests=100)
+        payload = RouterOverrideRequest(
+            provider="openrouter", model="gpt-4o", remaining_requests=100
+        )
         result = set_router_override(payload)
         assert result["status"] == "success"
         assert result["override"]["provider"] == "openrouter"
@@ -345,7 +341,9 @@ class TestModelRouter:
 class TestCodebaseExport:
     def test_export_success(self):
         """Export succeeds → returns markdown."""
-        with patch("api.routes.admin_dashboard.export_codebase_to_markdown") as mock_export:
+        with patch(
+            "api.routes.admin_dashboard.export_codebase_to_markdown"
+        ) as mock_export:
             mock_export.return_value = "# Codebase\nSome markdown"
             result = get_codebase_export()
         assert result["success"] is True
@@ -353,7 +351,9 @@ class TestCodebaseExport:
 
     def test_export_failure(self):
         """Export fails → raises HTTPException 500."""
-        with patch("api.routes.admin_dashboard.export_codebase_to_markdown") as mock_export:
+        with patch(
+            "api.routes.admin_dashboard.export_codebase_to_markdown"
+        ) as mock_export:
             mock_export.side_effect = RuntimeError("Export failed")
             with pytest.raises(HTTPException) as exc_info:
                 get_codebase_export()
@@ -556,12 +556,17 @@ class TestLogsStream:
         """Log file exists → yields log lines."""
         log_file = tmp_path / "app.log"
         log_file.write_text("line1\nline2\nline3\n")
-        with patch("os.path.exists", side_effect=lambda p: p == str(log_file) or p == "logs/app.log"):
+        with patch(
+            "os.path.exists",
+            side_effect=lambda p: p == str(log_file) or p == "logs/app.log",
+        ):
             with patch("builtins.open", create=True) as mock_open:
                 mock_open.return_value = MagicMock(
                     __enter__=MagicMock(
                         return_value=MagicMock(
-                            readlines=MagicMock(return_value=["line1\n", "line2\n", "line3\n"]),
+                            readlines=MagicMock(
+                                return_value=["line1\n", "line2\n", "line3\n"]
+                            ),
                             readline=MagicMock(return_value=""),
                             seek=MagicMock(),
                             close=MagicMock(),

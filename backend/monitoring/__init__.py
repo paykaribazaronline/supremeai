@@ -36,11 +36,15 @@ def init_observability():
                 environment=os.getenv("ENV", "production"),
             )
             _sentry_initialized = True
-            logger.info("📡 [Observability] Sentry Real-Time Error Tracking Initialized.")
+            logger.info(
+                "📡 [Observability] Sentry Real-Time Error Tracking Initialized."
+            )
         except Exception as e:
             logger.warning(f"⚠️ [Observability] Failed to initialize Sentry: {e}")
     else:
-        logger.info("ℹ️ [Observability] Running with Loguru central logging (SENTRY_DSN not configured or already active).")
+        logger.info(
+            "ℹ️ [Observability] Running with Loguru central logging (SENTRY_DSN not configured or already active)."
+        )
 
 
 def track_exception(error: Exception, context: dict[str, Any] | None = None):
@@ -77,7 +81,11 @@ class PerformanceTimer:
     def __exit__(self, exc_type, exc_val, exc_tb):
         duration = round((time.time() - self.start_time) * 1000, 2)
         if exc_type:
-            logger.error(f"⏱️ [Metrics] {self.operation_name} FAILED after {duration}ms: {exc_val}")
-            track_exception(exc_val, {"operation": self.operation_name, "duration_ms": duration})
+            logger.error(
+                f"⏱️ [Metrics] {self.operation_name} FAILED after {duration}ms: {exc_val}"
+            )
+            track_exception(
+                exc_val, {"operation": self.operation_name, "duration_ms": duration}
+            )
         else:
             logger.info(f"⏱️ [Metrics] {self.operation_name} completed in {duration}ms")

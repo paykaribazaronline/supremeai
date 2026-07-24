@@ -17,7 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 class VPNRotator:
-    def __init__(self, endpoints: list[str] | None = None, current_index: int = 0) -> None:
+    def __init__(
+        self, endpoints: list[str] | None = None, current_index: int = 0
+    ) -> None:
         self.endpoints = [item.strip() for item in (endpoints or []) if item.strip()]
         self.current_index = current_index
         self.history: list[dict[str, Any]] = []
@@ -126,7 +128,9 @@ class VPNRotator:
             return {"proxy": None, "source": "free", "reason": "httpx not installed"}
         try:
             async with httpx.AsyncClient(timeout=5) as client:
-                resp = await client.get("https://www.proxy-list.download/api/v1/get?type=https")
+                resp = await client.get(
+                    "https://www.proxy-list.download/api/v1/get?type=https"
+                )
                 text = resp.text.strip().splitlines()
                 if text:
                     return {"proxy": secrets.choice(text).strip(), "source": "free"}
@@ -137,7 +141,9 @@ class VPNRotator:
     async def get_premium_proxy(self, use_case: str) -> dict[str, Any]:
         if not HAS_HTTPX:
             return {"proxy": None, "source": "premium", "reason": "httpx not installed"}
-        config_path = getattr(settings, "premium_proxy_config", "config/premium_proxy.json")
+        config_path = getattr(
+            settings, "premium_proxy_config", "config/premium_proxy.json"
+        )
         try:
             with open(config_path, encoding="utf-8") as fh:
                 cfg = json.load(fh)

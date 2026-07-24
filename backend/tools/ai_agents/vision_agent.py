@@ -3,9 +3,8 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from loguru import logger
-
 from core.messaging.event_bus import ErrorContext
+from loguru import logger
 
 
 class VisionAgent:
@@ -23,7 +22,10 @@ class VisionAgent:
         try:
             reader = easyocr.Reader(self.languages, gpu=False)
             raw_results = reader.readtext(image_path, detail=1, paragraph=False)
-            text_lines = [{"text": text, "confidence": confidence} for (_bbox, text, confidence) in raw_results]
+            text_lines = [
+                {"text": text, "confidence": confidence}
+                for (_bbox, text, confidence) in raw_results
+            ]
             full_text = "\n".join(item["text"] for item in text_lines)
             return {
                 "success": True,
@@ -56,9 +58,18 @@ class VisionAgent:
         if not result.get("success"):
             return result
         lines = result.get("lines", [])
-        chart_hints = [ln["text"] for ln in lines if any(k in ln["text"].lower() for k in ["data", "axis", "value", "x:", "y:", "legend", "label"])]
+        chart_hints = [
+            ln["text"]
+            for ln in lines
+            if any(
+                k in ln["text"].lower()
+                for k in ["data", "axis", "value", "x:", "y:", "legend", "label"]
+            )
+        ]
         structured = dict(result.get("structured", {}))
-        structured.update({"chart_hints": chart_hints, "estimated_labels": len(chart_hints)})
+        structured.update(
+            {"chart_hints": chart_hints, "estimated_labels": len(chart_hints)}
+        )
         return {
             "success": True,
             "text": result["text"],
@@ -122,7 +133,9 @@ class VisionAgent:
                     context={"action": "extract_pdf_text_pdfplumber"},
                 )
             )
-        logger.warning("Neither PyMuPDF nor pdfplumber is available for PDF extraction.")
+        logger.warning(
+            "Neither PyMuPDF nor pdfplumber is available for PDF extraction."
+        )
         stub_path = os.path.splitext(pdf_path)[0] + ".txt"
         if os.path.exists(stub_path):
             with open(stub_path, encoding="utf-8") as f:

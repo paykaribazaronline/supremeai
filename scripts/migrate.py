@@ -1,9 +1,11 @@
 import os
+
 import psycopg2
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
+
 
 def run_migrations():
     # Fetch database connection string
@@ -34,7 +36,9 @@ def run_migrations():
             print(f"[Error] Pooler connection failed: {e}")
 
     if not conn:
-        print("[Error] Could not connect to any database connection string. Please check internet connection or database credentials.")
+        print(
+            "[Error] Could not connect to any database connection string. Please check internet connection or database credentials."
+        )
         return
 
     conn.autocommit = True
@@ -51,13 +55,16 @@ def run_migrations():
     )
 
     import sys
+
     start_from = sys.argv[1] if len(sys.argv) > 1 else ""
     if start_from:
         if start_from in migration_files:
-            migration_files = migration_files[migration_files.index(start_from):]
+            migration_files = migration_files[migration_files.index(start_from) :]
             print(f"[Info] Resuming migrations from: {start_from}")
         else:
-            print(f"[Error] Start migration file '{start_from}' not found in migrations folder.")
+            print(
+                f"[Error] Start migration file '{start_from}' not found in migrations folder."
+            )
             conn.close()
             return
 
@@ -81,6 +88,7 @@ def run_migrations():
 
     conn.close()
     print("[Info] Database connection closed.")
+
 
 if __name__ == "__main__":
     run_migrations()

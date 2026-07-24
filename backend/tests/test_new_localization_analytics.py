@@ -7,12 +7,12 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.evolution.agent_breeder import AgentBreeder, BreederConfig
 from core.evolution.performance_oracle import OracleConfig, PerformanceOracle
 from core.localization.bhasha_bot import BhashaBot
 from core.localization.voice_didi import VoiceDidi
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from tools.analytics.churn_prophet import ChurnProphet
 from tools.analytics.insight_mage import InsightMage
 
@@ -57,7 +57,9 @@ async def test_voice_didi_command():
     bot = BhashaBot(model_router=router)
     didi = VoiceDidi(model_router=router, bhasha_bot=bot)
 
-    res = await didi.process_voice_command(audio_duration_ms=5000, transcript_hint="ami bhat khai")
+    res = await didi.process_voice_command(
+        audio_duration_ms=5000, transcript_hint="ami bhat khai"
+    )
     assert res["success"] is True
     assert res["intent"] == "order"
     assert res["confidence"] == 0.95
@@ -168,7 +170,9 @@ async def test_insight_mage():
     # Mock Firestore time-series fetch
     mock_time_series = ([100.0, 110.0, 105.0, 95.0, 150.0], [])
 
-    mock_report = {"content": "## Summary\nThe sales are showing an upward trend of 15%."}
+    mock_report = {
+        "content": "## Summary\nThe sales are showing an upward trend of 15%."
+    }
 
     with (
         patch.object(
@@ -183,6 +187,8 @@ async def test_insight_mage():
             return_value=mock_report,
         ),
     ):
-        res = await mage.generate_report("tenant_123", "sales_data", "revenue", force_refresh=True)
+        res = await mage.generate_report(
+            "tenant_123", "sales_data", "revenue", force_refresh=True
+        )
         assert res is not None
         assert "Summary" in res.sections[0]["title"]

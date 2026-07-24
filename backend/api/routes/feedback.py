@@ -7,11 +7,10 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
+from core.feedback_loop import FeedbackLoop
 from fastapi import APIRouter, HTTPException
 from loguru import logger
 from pydantic import BaseModel
-
-from core.feedback_loop import FeedbackLoop
 
 DB_PATH = Path("data/feedback.db")
 _feedback_loop = FeedbackLoop()
@@ -21,16 +20,14 @@ def _ensure_db() -> None:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     try:
-        conn.execute(
-            """
+        conn.execute("""
             CREATE TABLE IF NOT EXISTS feedback_events (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 event_type TEXT NOT NULL,
                 payload TEXT NOT NULL,
                 created_at REAL NOT NULL
             )
-            """
-        )
+            """)
         conn.commit()
     finally:
         conn.close()
@@ -55,7 +52,9 @@ async def feedback_lifespan(router: APIRouter):
     yield
 
 
-router = APIRouter(prefix="/api/feedback", tags=["feedback"], lifespan=feedback_lifespan)
+router = APIRouter(
+    prefix="/api/feedback", tags=["feedback"], lifespan=feedback_lifespan
+)
 
 
 class FeedbackEvent(BaseModel):
@@ -76,7 +75,9 @@ async def ingest(event: FeedbackEvent) -> FeedbackResponse:
         if handled.get("stored"):
             _persist_feedback(event.event_type, payload)
             return FeedbackResponse(success=True)
-        raise HTTPException(status_code=400, detail=handled.get("reason", "Unsupported feedback type"))
+        raise HTTPException(
+            status_code=400, detail=handled.get("reason", "Unsupported feedback type")
+        )
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001

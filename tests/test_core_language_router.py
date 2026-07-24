@@ -1,9 +1,6 @@
 # tests/test_core_language_router.py
 """Tests for language routing and detection functionality."""
 
-import pytest
-from unittest.mock import MagicMock, patch
-
 
 class TestLanguageRouter:
     """Test language detection and routing."""
@@ -56,10 +53,7 @@ class TestLanguageRouter:
 
         router = LanguageRouter()
 
-        result = router.route(
-            text="আমি কীভাবে এআই ব্যবহার করব?",
-            task_type="general"
-        )
+        result = router.route(text="আমি কীভাবে এআই ব্যবহার করব?", task_type="general")
 
         assert isinstance(result, dict)
 
@@ -69,10 +63,7 @@ class TestLanguageRouter:
 
         router = LanguageRouter()
 
-        result = router.route_by_language(
-            text="Test text",
-            detected_lang="en"
-        )
+        result = router.route_by_language(text="Test text", detected_lang="en")
 
         assert isinstance(result, dict)
 
@@ -113,7 +104,9 @@ class TestIntentRouter:
 
         router = IntentRouter()
 
-        operations = router._extract_operations("Delete the temp files and create new folder")
+        operations = router._extract_operations(
+            "Delete the temp files and create new folder"
+        )
 
         assert isinstance(operations, list)
 
@@ -123,7 +116,9 @@ class TestIntentRouter:
 
         router = IntentRouter()
 
-        changes = router._extract_setting_changes("Change theme to dark mode and language to English")
+        changes = router._extract_setting_changes(
+            "Change theme to dark mode and language to English"
+        )
 
         assert isinstance(changes, list)
 
@@ -136,9 +131,7 @@ class TestPromptAction:
         from backend.core.intent_router import PromptAction
 
         action = PromptAction(
-            action_type="test",
-            target_module="test_module",
-            payload={"key": "value"}
+            action_type="test", target_module="test_module", payload={"key": "value"}
         )
 
         assert action.action_type == "test"

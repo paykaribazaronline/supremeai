@@ -22,18 +22,17 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import jwt
-from loguru import logger
-from pydantic import BaseModel, Field
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.config import settings
 from core.evolution.agent_breeder import AgentBreeder, BreederConfig
 from core.evolution.performance_oracle import OracleConfig, PerformanceOracle
 from database.session import get_db_session
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import jwt
+from loguru import logger
 from models.meta_ai import AgentGenome, BreedingPool, MetricType
+from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/meta-ai", tags=["layer-6-meta-ai"])
 
@@ -145,12 +144,16 @@ async def run_breeding_cycle(
             # Explicit parents
             from sqlalchemy import select
 
-            q = select(AgentGenome).where(AgentGenome.agent_name.in_([request.parent_a, request.parent_b]))
+            q = select(AgentGenome).where(
+                AgentGenome.agent_name.in_([request.parent_a, request.parent_b])
+            )
             r = await db.execute(q)
             genomes = {g.agent_name: g for g in r.scalars().all()}
 
             if request.parent_a not in genomes or request.parent_b not in genomes:
-                missing = [p for p in [request.parent_a, request.parent_b] if p not in genomes]
+                missing = [
+                    p for p in [request.parent_a, request.parent_b] if p not in genomes
+                ]
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Parent genome(s) not found: {missing}",
@@ -278,7 +281,9 @@ async def get_agent_stats(
     """Get agent performance stats."""
     _require_admin(credentials)
     oracle = PerformanceOracle(db, config=OracleConfig.from_settings())
-    stats = await oracle.get_agent_stats(agent_name=agent, lookback_hours=lookback_hours)
+    stats = await oracle.get_agent_stats(
+        agent_name=agent, lookback_hours=lookback_hours
+    )
     return AgentStatsResponse(agent_name=agent, stats=stats)
 
 
@@ -338,5 +343,7 @@ async def get_top_performers(
     """Get top-N performing agents."""
     _require_admin(credentials)
     oracle = PerformanceOracle(db, config=OracleConfig.from_settings())
-    performers = await oracle.get_top_performers(limit=limit, lookback_hours=lookback_hours)
+    performers = await oracle.get_top_performers(
+        limit=limit, lookback_hours=lookback_hours
+    )
     return TopPerformerResponse(top_performers=performers)

@@ -34,7 +34,9 @@ def process_file(filepath: Path, dry_run: bool = False):
     # This is a complex multiline replacement, for now we will inject an import at the top
     # and use regex to replace basic `except Exception:` that just has `pass`.
 
-    pass_pattern = re.compile(r"(except\s+Exception(\s+as\s+\w+)?:\s*\n\s*)pass", re.MULTILINE)
+    pass_pattern = re.compile(
+        r"(except\s+Exception(\s+as\s+\w+)?:\s*\n\s*)pass", re.MULTILINE
+    )
 
     def replacer(match):
         prefix = match.group(1)

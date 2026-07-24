@@ -5,17 +5,18 @@ import re
 import tempfile
 from typing import Any
 
+from core.upload_validator import validate_upload
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from loguru import logger
-
-from core.upload_validator import validate_upload
 
 router = APIRouter(prefix="/tools", tags=["tools", "image-to-code"])
 
 
 # বাংলা মন্তব্য: কম্পোনেন্ট কোড, কালার থিম ও কম্পোনেন্ট হায়ারার্কির জন্য ডেটাক্লাস-সদৃশ টাইপ।
 class ComponentCode:
-    def __init__(self, framework: str, code: str, component_name: str = "GeneratedComponent"):
+    def __init__(
+        self, framework: str, code: str, component_name: str = "GeneratedComponent"
+    ):
         self.framework = framework
         self.code = code
         self.component_name = component_name
@@ -59,7 +60,9 @@ class ImageToCode:
         with open(image_path, "rb") as image_file:
             return self._encode_image_bytes(image_file.read())
 
-    async def generate_code_from_bytes(self, image_bytes: bytes, framework: str = "react", styling: str = "tailwind") -> dict[str, Any]:
+    async def generate_code_from_bytes(
+        self, image_bytes: bytes, framework: str = "react", styling: str = "tailwind"
+    ) -> dict[str, Any]:
         logger.info(f"Generating {framework} code with {styling} for uploaded image")
         try:
             base64_image = self._encode_image_bytes(image_bytes)
@@ -68,8 +71,12 @@ class ImageToCode:
             logger.error(f"Image to Code generation failed: {str(e)}")
             return {"status": "error", "error": str(e)}
 
-    async def generate_code(self, image_path: str, framework: str = "react", styling: str = "tailwind") -> dict[str, Any]:
-        logger.info(f"Generating {framework} code with {styling} for image: {image_path}")
+    async def generate_code(
+        self, image_path: str, framework: str = "react", styling: str = "tailwind"
+    ) -> dict[str, Any]:
+        logger.info(
+            f"Generating {framework} code with {styling} for image: {image_path}"
+        )
         try:
             base64_image = self._encode_image_file(image_path)
             return await self._call_vision_model(base64_image, framework, styling)
@@ -77,13 +84,17 @@ class ImageToCode:
             logger.error(f"Image to Code generation failed: {str(e)}")
             return {"status": "error", "error": str(e)}
 
-    async def figma_to_react(self, image_path: str, framework: str = "react", styling: str = "tailwind") -> ComponentCode:
+    async def figma_to_react(
+        self, image_path: str, framework: str = "react", styling: str = "tailwind"
+    ) -> ComponentCode:
         """
         Figma/UI screenshot → pixel-perfect React/Flutter component তৈরি করে।
 
         framework: "react" বা "flutter"
         """
-        logger.info(f"Converting Figma/UI screenshot to {framework} component: {image_path}")
+        logger.info(
+            f"Converting Figma/UI screenshot to {framework} component: {image_path}"
+        )
         try:
             base64_image = self._encode_image_file(image_path)
             if framework.lower() == "flutter":
@@ -104,7 +115,9 @@ class ImageToCode:
                 match = re.search(r"class\s+(\w+)", code)
                 if match:
                     component_name = match.group(1)
-            return ComponentCode(framework=framework, code=code.strip(), component_name=component_name)
+            return ComponentCode(
+                framework=framework, code=code.strip(), component_name=component_name
+            )
         except Exception as e:  # noqa: BLE001
             # ✅ FIXED: previously returned an empty-code ComponentCode disguised as a
             # normal result; now the failure is surfaced so the router returns a real error.
@@ -180,7 +193,9 @@ class ImageToCode:
             raise RuntimeError("Vision model returned an empty response.")
         return text
 
-    async def _call_vision_model(self, base64_image: str, framework: str, styling: str) -> dict[str, Any]:
+    async def _call_vision_model(
+        self, base64_image: str, framework: str, styling: str
+    ) -> dict[str, Any]:
         try:
             from brain.model_router import ModelRouter
 
@@ -232,7 +247,9 @@ async def api_image_to_code(
         if not contents:
             raise HTTPException(status_code=400, detail="Empty file provided")
 
-        result = await image_to_code_tool.generate_code_from_bytes(contents, framework=framework, styling=styling)
+        result = await image_to_code_tool.generate_code_from_bytes(
+            contents, framework=framework, styling=styling
+        )
         if result.get("status") == "error":
             raise HTTPException(status_code=500, detail=result.get("error"))
 
@@ -255,10 +272,14 @@ async def api_figma_to_component(
         tmp.write(await file.read())
         tmp_path = tmp.name
     try:
-        component = await image_to_code_tool.figma_to_react(tmp_path, framework=framework, styling=styling)
+        component = await image_to_code_tool.figma_to_react(
+            tmp_path, framework=framework, styling=styling
+        )
         return {"status": "success", **component.to_dict()}
     except Exception as e:  # noqa: BLE001
-        raise HTTPException(status_code=502, detail=f"Component generation failed: {e}") from e
+        raise HTTPException(
+            status_code=502, detail=f"Component generation failed: {e}"
+        ) from e
     finally:
         os.unlink(tmp_path)
 
@@ -275,7 +296,9 @@ async def api_extract_palette(file: UploadFile = File(...)):
         theme = await image_to_code_tool.extract_color_palette(tmp_path)
         return {"status": "success", **theme.to_dict()}
     except Exception as e:  # noqa: BLE001
-        raise HTTPException(status_code=502, detail=f"Palette extraction failed: {e}") from e
+        raise HTTPException(
+            status_code=502, detail=f"Palette extraction failed: {e}"
+        ) from e
     finally:
         os.unlink(tmp_path)
 
@@ -292,6 +315,8 @@ async def api_detect_tree(file: UploadFile = File(...)):
         hierarchy = await image_to_code_tool.detect_component_tree(tmp_path)
         return {"status": "success", **hierarchy.to_dict()}
     except Exception as e:  # noqa: BLE001
-        raise HTTPException(status_code=502, detail=f"Component tree detection failed: {e}") from e
+        raise HTTPException(
+            status_code=502, detail=f"Component tree detection failed: {e}"
+        ) from e
     finally:
         os.unlink(tmp_path)

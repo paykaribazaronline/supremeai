@@ -6,12 +6,8 @@ from __future__ import annotations
 
 import pytest
 
-from tools.agent_tools import (
-    SUPREME_TOOLS,
-    check_system_health,
-    execute_python_code,
-    search_database,
-)
+from tools.agent_tools import (SUPREME_TOOLS, check_system_health,
+                               execute_python_code, search_database)
 
 
 class TestSearchDatabase:

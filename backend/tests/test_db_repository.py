@@ -3,7 +3,6 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
-
 from core.db_repository import SmartDataRepository
 
 
@@ -37,7 +36,9 @@ class FakeFirebase:
         self.exists = exists
 
     def collection(self, collection_name: str):
-        return FakeFirebaseDocRef(collection_name, should_error=self.should_error, exists=self.exists)
+        return FakeFirebaseDocRef(
+            collection_name, should_error=self.should_error, exists=self.exists
+        )
 
 
 class FakeSupabaseTable:
@@ -90,6 +91,8 @@ async def test_get_document_with_fallback_returns_none_when_both_down():
     class BrokenSupabase:
         pass
 
-    repo = SmartDataRepository(firebase_client=firebase, supabase_client=BrokenSupabase())
+    repo = SmartDataRepository(
+        firebase_client=firebase, supabase_client=BrokenSupabase()
+    )
     result = await repo.get_document_with_fallback("users", "abc")
     assert result is None

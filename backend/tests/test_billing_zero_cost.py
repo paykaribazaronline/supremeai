@@ -9,8 +9,8 @@ from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from core.billing_plans import SUBSCRIPTION_PLANS
+
 from tools.tenant_rate_limiter import TenantRateLimiter
 
 

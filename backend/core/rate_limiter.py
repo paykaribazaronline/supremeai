@@ -3,9 +3,8 @@ from __future__ import annotations
 import os
 import time
 
-from loguru import logger
-
 from core.cache.redis_manager import redis_manager
+from loguru import logger
 
 
 class InMemoryFallbackLimiter:
@@ -44,7 +43,9 @@ class AsyncRateLimiter:
     """
 
     def __init__(self) -> None:
-        self._rate_limit_enabled: bool = os.getenv("RATE_LIMIT_ENABLED", "true").lower() in {
+        self._rate_limit_enabled: bool = os.getenv(
+            "RATE_LIMIT_ENABLED", "true"
+        ).lower() in {
             "true",
             "1",
             "yes",
@@ -65,7 +66,9 @@ class AsyncRateLimiter:
             current = results[0]
             return current <= limit
         except Exception as e:  # noqa: BLE001
-            logger.warning(f"Redis rate limiter unavailable: {e}. Falling back to in-memory limiter (degraded mode).")
+            logger.warning(
+                f"Redis rate limiter unavailable: {e}. Falling back to in-memory limiter (degraded mode)."
+            )
             return self._fallback_limiter.is_allowed(key, limit=limit)
 
     async def acquire_tenant(self, tenant_id: str, tier: str = "free") -> bool:

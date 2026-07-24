@@ -7,7 +7,11 @@ path = os.path.join(base, "backend/api/routes/traffic_monitor.py")
 with open(path, encoding="utf-8") as f:
     content = f.read()
     has_depends = "Depends" in content
-    has_admin_auth = "get_current_admin" in content or "require_admin" in content or "verify_admin" in content
+    has_admin_auth = (
+        "get_current_admin" in content
+        or "require_admin" in content
+        or "verify_admin" in content
+    )
 
 # Check auth.py role assignment
 path = os.path.join(base, "backend/api/routes/auth.py")
@@ -113,7 +117,11 @@ path = os.path.join(base, "scripts/codegraph_integration.py")
 with open(path, encoding="utf-8") as f:
     content = f.read()
     has_logger_debug = "logger.debug" in content and "logger.warning" in content
-    has_except_bare_pass = "except: pass" in content or "except:    pass" in content or "except:  pass" in content
+    has_except_bare_pass = (
+        "except: pass" in content
+        or "except:    pass" in content
+        or "except:  pass" in content
+    )
 
 # Check execution_policies.py for admin Depends
 path = os.path.join(base, "backend/api/routes/execution_policies.py")
@@ -125,4 +133,8 @@ with open(path, encoding="utf-8") as f:
 path = os.path.join(base, "backend/api/routes/selector_healing.py")
 with open(path, encoding="utf-8") as f:
     content = f.read()
-    has_admin_depends = "get_current_admin" in content or "require_admin" in content or "verify_admin" in content
+    has_admin_depends = (
+        "get_current_admin" in content
+        or "require_admin" in content
+        or "verify_admin" in content
+    )

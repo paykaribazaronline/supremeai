@@ -82,7 +82,9 @@ class TestDecisionEngine:
         from core.decision_engine import DecisionEngine
 
         engine = DecisionEngine()
-        result = asyncio.run(engine.decide({"action": "delete", "user_id": "user-1", "risk": "high"}))
+        result = asyncio.run(
+            engine.decide({"action": "delete", "user_id": "user-1", "risk": "high"})
+        )
         assert result is not None
 
 

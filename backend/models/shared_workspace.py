@@ -16,7 +16,9 @@ class SharedWorkspace(BaseModel):
     )
     test_results: dict[str, Any] = Field(default_factory=dict)
     execution_logs: list[str] = Field(default_factory=list)
-    errors: list[str] = Field(default_factory=list, description="Errors encountered during execution")
+    errors: list[str] = Field(
+        default_factory=list, description="Errors encountered during execution"
+    )
     # বাংলা মন্তব্য: প্রতিটি কাজের জন্য নির্ধারিত ইনটেন্ট এখানে সংরক্ষণ করা হবে, যা অর্কেস্ট্রেটরকে সঠিক DAG তৈরিতে সাহায্য করবে।
     intent: str = Field(
         default="general_task",

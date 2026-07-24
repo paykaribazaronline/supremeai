@@ -3,12 +3,11 @@
 বাংলা মন্তব্য: অ্যাডমিন এপিআই এন্ট্রি পয়েন্ট যা শুধুমাত্র অ্যাডমিন প্যানেল এবং সিকিউরিটি রাউটগুলো এক্সপোজ করে।
 """
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
 from api.routers import include_admin_routers
 from core.app_builder import build_app_shell, router_health_check
 from core.config import settings
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from middleware.anti_hacking import AntiHackingContextMiddleware
 
 app: FastAPI = build_app_shell(title="SupremeAI Admin API")
@@ -20,13 +19,17 @@ if settings.env == "production":
     if not settings.admin_cors_origins:
         from loguru import logger
 
-        logger.warning("⚠️ Production Admin CORS drift detected. Auto-populating default trusted admin origins.")
+        logger.warning(
+            "⚠️ Production Admin CORS drift detected. Auto-populating default trusted admin origins."
+        )
         settings.admin_cors_origins = [
             "https://supremeai-admin.web.app",
             "https://supremeai-backend.onrender.com",
         ]
     if "*" in settings.admin_cors_origins:
-        raise RuntimeError("🚨 SECURITY: Wildcard '*' is strictly prohibited in production Admin CORS. Set ADMIN_CORS_ORIGINS.")
+        raise RuntimeError(
+            "🚨 SECURITY: Wildcard '*' is strictly prohibited in production Admin CORS. Set ADMIN_CORS_ORIGINS."
+        )
 
 app.add_middleware(
     CORSMiddleware,

@@ -18,7 +18,8 @@ Dependencies:
 - `re`: For regular expression operations, particularly in text and math parsing.
 - `httpx`: For making asynchronous HTTP requests to external web search APIs.
 - `sympy`: (Optional) For advanced symbolic mathematical evaluation.
-- `tools.knowledge.local_search_rag`: (Optional) For local RAG-based factual verification."""
+- `tools.knowledge.local_search_rag`: (Optional) For local RAG-based factual verification.
+"""
 
 import ast
 import contextlib
@@ -84,7 +85,9 @@ class FactualVerifier:
 
             self.local_rag = LocalSearchRAG()
         except (ImportError, RuntimeError) as e:
-            _logger.warning(f"LocalSearchRAG not available or failed to initialize, RAG-based verification disabled: {e}")
+            _logger.warning(
+                f"LocalSearchRAG not available or failed to initialize, RAG-based verification disabled: {e}"
+            )
             self.local_rag = None
 
     def verify_with_local_rag(self, claim: str) -> dict:
@@ -116,7 +119,9 @@ class FactualVerifier:
                 "method": "no_matches",
             }
         except Exception as e:  # noqa: BLE001
-            _logger.warning(f"RAG verification failed for claim: {claim[:50]}... error: {e}")
+            _logger.warning(
+                f"RAG verification failed for claim: {claim[:50]}... error: {e}"
+            )
             return {
                 "claim": claim,
                 "is_verified": False,

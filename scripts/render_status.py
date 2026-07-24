@@ -1,6 +1,7 @@
 """Production-grade Render service/deploy status checker.
 Replaces: check_render.py, check_logs.py (root-level scratch scripts).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -45,22 +46,39 @@ def fetch_services(session: requests.Session, account: RenderAccount) -> list[di
     if not account.api_key:
         logger.warning("No API key set for %s — skipping.", account.label)
         return []
-    headers = {"Authorization": f"Bearer {account.api_key}", "Accept": "application/json"}
+    headers = {
+        "Authorization": f"Bearer {account.api_key}",
+        "Accept": "application/json",
+    }
     try:
-        resp = session.get(f"{RENDER_API_BASE}/services?limit=10", headers=headers, timeout=REQUEST_TIMEOUT)
+        resp = session.get(
+            f"{RENDER_API_BASE}/services?limit=10",
+            headers=headers,
+            timeout=REQUEST_TIMEOUT,
+        )
         resp.raise_for_status()
         return [item.get("service", {}) for item in resp.json()]
     except requests.exceptions.Timeout:
         logger.error("[%s] Request timed out after %ss", account.label, REQUEST_TIMEOUT)
     except requests.exceptions.HTTPError as e:
-        logger.error("[%s] HTTP %s: %s", account.label, e.response.status_code, e.response.text[:200])
+        logger.error(
+            "[%s] HTTP %s: %s",
+            account.label,
+            e.response.status_code,
+            e.response.text[:200],
+        )
     except requests.exceptions.RequestException as e:
         logger.error("[%s] Network error: %s", account.label, e)
     return []
 
 
-def fetch_latest_deploy(session: requests.Session, account: RenderAccount, service_id: str) -> dict | None:
-    headers = {"Authorization": f"Bearer {account.api_key}", "Accept": "application/json"}
+def fetch_latest_deploy(
+    session: requests.Session, account: RenderAccount, service_id: str
+) -> dict | None:
+    headers = {
+        "Authorization": f"Bearer {account.api_key}",
+        "Accept": "application/json",
+    }
     try:
         resp = session.get(
             f"{RENDER_API_BASE}/services/{service_id}/deploys?limit=1",
@@ -71,7 +89,9 @@ def fetch_latest_deploy(session: requests.Session, account: RenderAccount, servi
         deploys = resp.json()
         return deploys[0].get("deploy", {}) if deploys else None
     except requests.exceptions.RequestException as e:
-        logger.error("[%s] Could not fetch deploys for %s: %s", account.label, service_id, e)
+        logger.error(
+            "[%s] Could not fetch deploys for %s: %s", account.label, service_id, e
+        )
         return None
 
 
@@ -89,7 +109,9 @@ def main() -> int:
         RenderAccount("Backup", os.getenv("RENDER_API_KEY_BACKUP")),
     ]
     if not any(a.api_key for a in accounts):
-        logger.error("No RENDER_API_KEY / RENDER_API_KEY_BACKUP set in environment. Aborting.")
+        logger.error(
+            "No RENDER_API_KEY / RENDER_API_KEY_BACKUP set in environment. Aborting."
+        )
         return 1
 
     session = _build_session()
@@ -101,7 +123,11 @@ def main() -> int:
         if not services and account.api_key:
             had_failure = True
         for service in services:
-            name, s_type, s_id = service.get("name", "?"), service.get("type", "?"), service.get("id")
+            name, s_type, s_id = (
+                service.get("name", "?"),
+                service.get("type", "?"),
+                service.get("id"),
+            )
             state = "Suspended" if service.get("suspended") == "suspended" else "Active"
             url = service.get("serviceDetails", {}).get("url", "N/A")
             logger.info("%s | %s | %s | %s", name, s_type, state, url)

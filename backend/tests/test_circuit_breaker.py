@@ -4,8 +4,9 @@ import asyncio
 import time
 
 import pytest
-
-from core.resilience.circuit_breaker import CircuitBreaker, CircuitBreakerState, CircuitBreakerOpenError
+from core.resilience.circuit_breaker import (CircuitBreaker,
+                                             CircuitBreakerOpenError,
+                                             CircuitBreakerState)
 
 
 class FakeRedis:
@@ -82,7 +83,9 @@ def test_mark_success_closes():
     assert cb.state == "CLOSED"
 
 
-@pytest.mark.skip(reason="CircuitBreaker does not support redis_queue parameter — skipping redis persistence test")
+@pytest.mark.skip(
+    reason="CircuitBreaker does not support redis_queue parameter — skipping redis persistence test"
+)
 def test_redis_persistence():
     redis = FakeRedis()
     cb = CircuitBreaker("svc", failure_threshold=2, redis_queue=redis)

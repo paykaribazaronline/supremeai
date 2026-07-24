@@ -56,11 +56,10 @@ from datetime import datetime
 from pathlib import Path
 
 # Windows কনসোলে ইউনিকোড ক্যারেক্টার (ইমোজি ও বাংলা) প্রিন্ট করার সময় UnicodeEncodeError এড়াতে stdout এবং stderr-কে utf-8 এনকোডিংয়ে রিকনফিগার করা হয়েছে।
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8')
-if hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr.reconfigure(encoding='utf-8')
-
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
 
 
 # =============================================================================
@@ -70,56 +69,124 @@ if hasattr(sys.stderr, 'reconfigure'):
 
 IGNORE_DIRS = {
     # ভার্সন কন্ট্রোল এবং IDE
-    ".git", ".svn", ".hg",
-    ".vscode", ".idea", ".gemini",
+    ".git",
+    ".svn",
+    ".hg",
+    ".vscode",
+    ".idea",
+    ".gemini",
     # ডিপেন্ডেন্সি
-    "node_modules", "venv", ".venv", "env", "virtualenv",
+    "node_modules",
+    "venv",
+    ".venv",
+    "env",
+    "virtualenv",
     # পাইথন ক্যাশ
-    "__pycache__", ".pytest_cache",
+    "__pycache__",
+    ".pytest_cache",
     # বিল্ড আউটপুট
-    "dist", "build", "out", "target", "bin", "obj",
-    "dist-admin", "dist-user", "dist-mobile",
-    ".next", ".nuxt", ".svelte-kit", ".turbo",
+    "dist",
+    "build",
+    "out",
+    "target",
+    "bin",
+    "obj",
+    "dist-admin",
+    "dist-user",
+    "dist-mobile",
+    ".next",
+    ".nuxt",
+    ".svelte-kit",
+    ".turbo",
     # লগ
-    "logs", "log",
+    "logs",
+    "log",
     # অটো-জেনারেটেড ডকস
     "autogen",
     # কভারেজ
-    "htmlcov", ".coverage",
+    "htmlcov",
+    ".coverage",
 }
 
 IGNORE_FILE_PATTERNS = [
     # সিক্রেট ফাইল (কখনো এক্সপোর্ট করবেন না)
-    ".env", ".env.*", "*.env", "render.env",
+    ".env",
+    ".env.*",
+    "*.env",
+    "render.env",
     # পাইথন বাইনারি
-    "*.pyc", "*.pyo", "*.pyd",
+    "*.pyc",
+    "*.pyo",
+    "*.pyd",
     # লক ফাইল
-    "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "poetry.lock",
+    "package-lock.json",
+    "yarn.lock",
+    "pnpm-lock.yaml",
+    "poetry.lock",
     # ইমেজ ফাইল
-    "*.jpg", "*.jpeg", "*.png", "*.gif", "*.svg", "*.ico", "*.webp", "*.bmp", "*.tiff",
+    "*.jpg",
+    "*.jpeg",
+    "*.png",
+    "*.gif",
+    "*.svg",
+    "*.ico",
+    "*.webp",
+    "*.bmp",
+    "*.tiff",
     # ভিডিও/অডিও
-    "*.mp4", "*.mp3", "*.wav", "*.ogg", "*.webm", "*.avi", "*.mov",
+    "*.mp4",
+    "*.mp3",
+    "*.wav",
+    "*.ogg",
+    "*.webm",
+    "*.avi",
+    "*.mov",
     # ডকুমেন্ট
-    "*.pdf", "*.doc", "*.docx", "*.xls", "*.xlsx", "*.ppt", "*.pptx",
+    "*.pdf",
+    "*.doc",
+    "*.docx",
+    "*.xls",
+    "*.xlsx",
+    "*.ppt",
+    "*.pptx",
     # আর্কাইভ/কম্প্রেসড
-    "*.zip", "*.tar", "*.gz", "*.rar", "*.7z", "*.tar.gz",
+    "*.zip",
+    "*.tar",
+    "*.gz",
+    "*.rar",
+    "*.7z",
+    "*.tar.gz",
     # বাইনারি/কম্পাইলড
-    "*.exe", "*.dll", "*.so", "*.dylib", "*.wasm",
+    "*.exe",
+    "*.dll",
+    "*.so",
+    "*.dylib",
+    "*.wasm",
     # ডেটাবেস
-    "*.sqlite", "*.sqlite3", "*.db",
+    "*.sqlite",
+    "*.sqlite3",
+    "*.db",
     # লগ ফাইল
-    "*.log", "temp_*.txt",
+    "*.log",
+    "temp_*.txt",
     # পুরানো codebase export ফাইল
-    "*codebase*.md", "full_codebase*.md", "codebase_full*.md",
-    "*_codebase.md", "backend_codebase.md", "frontend_codebase.md",
+    "*codebase*.md",
+    "full_codebase*.md",
+    "codebase_full*.md",
+    "*_codebase.md",
+    "backend_codebase.md",
+    "frontend_codebase.md",
     # টার্বো ক্যাশ
     "*.tar.zst",
     # মিনিফাইড JS
-    "*.min.js", "*.min.css",
+    "*.min.js",
+    "*.min.css",
     # Compiled assets
-    "*.chunk.js", "*.bundle.js",
+    "*.chunk.js",
+    "*.bundle.js",
     # সিস্টেম ফাইল
-    ".DS_Store", "Thumbs.db",
+    ".DS_Store",
+    "Thumbs.db",
 ]
 
 # ফাইল এক্সটেনশন থেকে কোড ল্যাঙ্গুয়েজ ম্যাপিং (সিনট্যাক্স হাইলাইটিংয়ের জন্য)
@@ -227,10 +294,13 @@ def export_codebase(root_dir: str, output_file: str, scope: str = "full") -> dic
         # ডিরেক্টরি ট্রি ওয়াক করুন
         for dirpath, dirnames, filenames in os.walk(scan_dir):
             # ইগনোরড ডিরেক্টরিগুলো ছেঁটে ফেলুন (in-place modification দরকার)
-            dirnames[:] = sorted([
-                d for d in dirnames
-                if not is_ignored(os.path.join(dirpath, d), root_dir)
-            ])
+            dirnames[:] = sorted(
+                [
+                    d
+                    for d in dirnames
+                    if not is_ignored(os.path.join(dirpath, d), root_dir)
+                ]
+            )
 
             for filename in sorted(filenames):
                 filepath = os.path.join(dirpath, filename)
@@ -297,7 +367,7 @@ def main():
 
   # ভিন্ন প্রজেক্ট রুট:
   python scripts/export_codebase.py --root C:/other_project --output C:/out.md
-        """
+        """,
     )
 
     # প্রজেক্ট রুট — ডিফল্ট এই স্ক্রিপ্টের দুই লেভেল উপরে

@@ -3,9 +3,8 @@ from __future__ import annotations
 from typing import Any
 
 import httpx
-from loguru import logger
-
 from core.config import settings
+from loguru import logger
 
 
 class VideoGenerator:
@@ -108,7 +107,9 @@ class VideoGenerator:
                         output_path=output_path,
                         tried={*tried, "runway"},
                     )
-                raise RuntimeError(f"Runway generation failed and no fallback succeeded: {exc}")
+                raise RuntimeError(
+                    f"Runway generation failed and no fallback succeeded: {exc}"
+                )
 
         if provider == "kling":
             if not self.kling_api_key:
@@ -127,6 +128,10 @@ class VideoGenerator:
                         output_path=output_path,
                         tried={*tried, "kling"},
                     )
-                raise RuntimeError(f"Kling generation failed and no fallback succeeded: {exc}")
+                raise RuntimeError(
+                    f"Kling generation failed and no fallback succeeded: {exc}"
+                )
 
-        raise ValueError(f"Unknown provider: {provider!r}. Use 'runway', 'kling', or 'auto'.")
+        raise ValueError(
+            f"Unknown provider: {provider!r}. Use 'runway', 'kling', or 'auto'."
+        )

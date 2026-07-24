@@ -2,7 +2,6 @@ from datetime import datetime
 from unittest.mock import MagicMock
 
 import pytest
-
 from core.config_proxy import DynamicConfigProxy
 
 
@@ -60,7 +59,9 @@ async def test_dynamic_config_proxy_raises_runtime_error_on_db_failure(mock_db):
 
     proxy = DynamicConfigProxy("tenant-123", mock_db)
 
-    with pytest.raises(RuntimeError, match="Failed to refresh config from DB: DB Connection Timeout"):
+    with pytest.raises(
+        RuntimeError, match="Failed to refresh config from DB: DB Connection Timeout"
+    ):
         await proxy.get("DEFAULT_CODE_SMELL_THRESHOLDS")
 
 

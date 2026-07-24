@@ -1,11 +1,10 @@
+from api.routes.admin import get_current_admin
+from database.session import get_db_session
 from fastapi import APIRouter, Depends, HTTPException
+from models.selector_healing_event import SelectorHealingEvent
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-
-from api.routes.admin import get_current_admin
-from database.session import get_db_session
-from models.selector_healing_event import SelectorHealingEvent
 
 router = APIRouter(
     prefix="/api/admin/selector-healing",
@@ -67,14 +66,20 @@ async def make_healing_decision(
 
     from loguru import logger
 
-    logger.info(f"Admin {admin_user.get('sub')} making decision on healing event {event_id}")
+    logger.info(
+        f"Admin {admin_user.get('sub')} making decision on healing event {event_id}"
+    )
 
     try:
         eid = uuid.UUID(event_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid event UUID")  # noqa  # noqa
+        raise HTTPException(
+            status_code=400, detail="Invalid event UUID"
+        )  # noqa  # noqa
 
-    result = await session.execute(select(SelectorHealingEvent).where(SelectorHealingEvent.id == eid))
+    result = await session.execute(
+        select(SelectorHealingEvent).where(SelectorHealingEvent.id == eid)
+    )
     evt = result.scalars().first()
     if not evt:
         raise HTTPException(status_code=404, detail="not found")

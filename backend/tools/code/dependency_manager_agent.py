@@ -24,7 +24,9 @@ class DependencyManagerAgent:
         except ImportError:
             self.pr_pipeline = None
 
-    def _run_command(self, command: list[str], check_exit_code: bool = True) -> dict[str, Any]:
+    def _run_command(
+        self, command: list[str], check_exit_code: bool = True
+    ) -> dict[str, Any]:
         """Runs a command and returns its JSON output."""
         try:
             result = subprocess.run(
@@ -92,12 +94,16 @@ class DependencyManagerAgent:
             "recommendation": "Run 'pip install --upgrade <package>' for each outdated package.",
         }
 
-    def find_and_remove_unused_pip_dependencies(self, project_path: str) -> dict[str, Any]:
+    def find_and_remove_unused_pip_dependencies(
+        self, project_path: str
+    ) -> dict[str, Any]:
         """
         Finds and removes unused pip dependencies using deptry and poetry.
         Assumes it's run in a poetry environment from the backend directory.
         """
-        logger.info(f"Scanning for unused pip dependencies in {project_path} with deptry...")
+        logger.info(
+            f"Scanning for unused pip dependencies in {project_path} with deptry..."
+        )
         # Requires `poetry add deptry --group dev`
         # The command needs to be run from the directory with pyproject.toml
         # deptry returns a non-zero exit code if it finds issues, so check_exit_code=False
@@ -114,7 +120,9 @@ class DependencyManagerAgent:
         if "error" in deptry_result:
             return {"success": False, "error": deptry_result["error"]}
 
-        unused_dependencies = [dep["name"] for dep in deptry_result if dep["error"]["code"] == "DEP002"]
+        unused_dependencies = [
+            dep["name"] for dep in deptry_result if dep["error"]["code"] == "DEP002"
+        ]
 
         if not unused_dependencies:
             return {
@@ -124,7 +132,9 @@ class DependencyManagerAgent:
                 "message": "No unused dependencies found.",
             }
 
-        logger.info(f"Found {len(unused_dependencies)} unused dependencies: {', '.join(unused_dependencies)}")
+        logger.info(
+            f"Found {len(unused_dependencies)} unused dependencies: {', '.join(unused_dependencies)}"
+        )
 
         removed_packages = []
         for package in unused_dependencies:
@@ -144,11 +154,15 @@ class DependencyManagerAgent:
             "count": len(removed_packages),
         }
 
-    def find_and_remove_unused_npm_dependencies(self, project_path: str) -> dict[str, Any]:
+    def find_and_remove_unused_npm_dependencies(
+        self, project_path: str
+    ) -> dict[str, Any]:
         """
         Finds and removes unused npm dependencies using depcheck.
         """
-        logger.info(f"Scanning for unused npm dependencies in {project_path} with depcheck...")
+        logger.info(
+            f"Scanning for unused npm dependencies in {project_path} with depcheck..."
+        )
         # Requires `npm install -g depcheck` or as a dev dependency
         # depcheck returns non-zero exit code if unused are found.
         find_command = ["depcheck", "--json", project_path]
@@ -157,7 +171,10 @@ class DependencyManagerAgent:
 
         if "error" in depcheck_result:
             # depcheck might return an error in stderr even with valid JSON in stdout
-            if "dependencies" not in depcheck_result and "devDependencies" not in depcheck_result:
+            if (
+                "dependencies" not in depcheck_result
+                and "devDependencies" not in depcheck_result
+            ):
                 return {"success": False, "error": depcheck_result["error"]}
 
         unused_dependencies = depcheck_result.get("dependencies", [])
@@ -170,7 +187,9 @@ class DependencyManagerAgent:
                 "message": "No unused npm dependencies found.",
             }
 
-        logger.info(f"Found {len(unused_dependencies)} unused npm dependencies: {', '.join(unused_dependencies)}")
+        logger.info(
+            f"Found {len(unused_dependencies)} unused npm dependencies: {', '.join(unused_dependencies)}"
+        )
 
         removed_packages = []
         for package in unused_dependencies:
@@ -224,13 +243,17 @@ class DependencyManagerAgent:
         # The summary is in the 'metadata' or 'summary' field
         return {"success": True, "audit_results": vuln_data}
 
-    async def auto_update_and_pr(self, repo_path: str, package_name: str, package_manager: str = "pip"):
+    async def auto_update_and_pr(
+        self, repo_path: str, package_name: str, package_manager: str = "pip"
+    ):
         """Automates updating a dependency and creating a PR."""
         if not self.pr_pipeline:
             logger.error("AutoPRPipeline is not available. Cannot create PR.")
             return {"status": "error", "message": "AutoPRPipeline not found."}
 
-        logger.info(f"Attempting to auto-update '{package_name}' using {package_manager} in {repo_path}")
+        logger.info(
+            f"Attempting to auto-update '{package_name}' using {package_manager} in {repo_path}"
+        )
 
         # Define update command
         if package_manager == "pip":

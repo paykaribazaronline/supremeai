@@ -3,15 +3,21 @@
 from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
-from starlette.responses import JSONResponse
-
 from core.security.origin_validator import TrustedOriginMiddleware
+from starlette.responses import JSONResponse
 
 
 class TestTrustedOriginMiddleware:
     """Tests for TrustedOriginMiddleware."""
 
-    def _make_request(self, method="GET", path="/api/test", headers=None, origin=None, client_host="127.0.0.1"):
+    def _make_request(
+        self,
+        method="GET",
+        path="/api/test",
+        headers=None,
+        origin=None,
+        client_host="127.0.0.1",
+    ):
         """Helper to create a mock request."""
         request = MagicMock()
         request.method = method
@@ -39,7 +45,9 @@ class TestTrustedOriginMiddleware:
     async def test_options_preflight_allowed_origin(self):
         app = AsyncMock()
         middleware = TrustedOriginMiddleware(app)
-        request = self._make_request(method="OPTIONS", origin="https://supremeai-admin.web.app")
+        request = self._make_request(
+            method="OPTIONS", origin="https://supremeai-admin.web.app"
+        )
         response = await middleware.dispatch(request, app)
         assert response.status_code == 200
 
@@ -81,11 +89,21 @@ class TestTrustedOriginMiddleware:
     async def test_blocked_unauthorized_origin(self):
         app = AsyncMock()
         middleware = TrustedOriginMiddleware(app)
-        request = self._make_request(path="/api/protected", origin="http://evil-hacker.com", client_host="10.0.0.5")
-        request.headers = {"host": "api.supremeai.com", "Origin": "http://evil-hacker.com"}
+        request = self._make_request(
+            path="/api/protected",
+            origin="http://evil-hacker.com",
+            client_host="10.0.0.5",
+        )
+        request.headers = {
+            "host": "api.supremeai.com",
+            "Origin": "http://evil-hacker.com",
+        }
 
         with patch.dict("os.environ", {"ENV": "production"}):
-            with patch("core.security.origin_validator.TrustedOriginMiddleware.allowed_origins", new_callable=PropertyMock) as mock_origins:
+            with patch(
+                "core.security.origin_validator.TrustedOriginMiddleware.allowed_origins",
+                new_callable=PropertyMock,
+            ) as mock_origins:
                 mock_origins.return_value = {"https://trusted.com"}
                 with patch("core.security.origin_validator.settings") as mock_settings:
                     mock_settings.supremeai_public_paths = ["/health"]
@@ -101,7 +119,10 @@ class TestTrustedOriginMiddleware:
         request = self._make_request(origin="https://trusted.com")
 
         with patch.dict("os.environ", {"ENV": "production"}):
-            with patch("core.security.origin_validator.TrustedOriginMiddleware.allowed_origins", new_callable=PropertyMock) as mock_origins:
+            with patch(
+                "core.security.origin_validator.TrustedOriginMiddleware.allowed_origins",
+                new_callable=PropertyMock,
+            ) as mock_origins:
                 mock_origins.return_value = {"https://trusted.com"}
                 response = await middleware.dispatch(request, app)
                 app.assert_awaited_once()

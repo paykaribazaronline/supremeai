@@ -2,9 +2,8 @@ from datetime import UTC, datetime
 from typing import Any
 
 import httpx
-from loguru import logger
-
 from core.config import settings
+from loguru import logger
 
 
 class GCPCloudRunRouter:
@@ -17,9 +16,13 @@ class GCPCloudRunRouter:
         service_name: str | None = None,
         timeout: float = 30.0,
     ):
-        self.base_url = (base_url or getattr(settings, "gcp_cloud_run_url", "")).rstrip("/")
+        self.base_url = (base_url or getattr(settings, "gcp_cloud_run_url", "")).rstrip(
+            "/"
+        )
         self.region = region or getattr(settings, "gcp_region", "us-central1")
-        self.service_name = service_name or getattr(settings, "gcp_service_name", "supremeai-api")
+        self.service_name = service_name or getattr(
+            settings, "gcp_service_name", "supremeai-api"
+        )
         self.timeout = timeout
 
     @property

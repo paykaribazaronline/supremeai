@@ -42,22 +42,33 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
         decoded = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
     except Exception as e:  # noqa: BLE001
         # বাংলা মন্তব্য: সিকিউরিটি ইনফরমেশন লিক এড়াতে জেনেরিক এরর মেসেজ রিটার্ন করা হচ্ছে।
-        raise HTTPException(status_code=401, detail="Invalid token. Please re-authenticate.") from e
+        raise HTTPException(
+            status_code=401, detail="Invalid token. Please re-authenticate."
+        ) from e
 
-    if decoded.get("user_id") != payload.user_id and decoded.get("sub") != payload.user_id:
+    if (
+        decoded.get("user_id") != payload.user_id
+        and decoded.get("sub") != payload.user_id
+    ):
         raise HTTPException(status_code=403, detail="User mismatch")
 
     try:
         stripe_key = settings.stripe_api_key
         if not stripe_key:
-            is_production = os.environ.get("SUPREMEAI_ENV", "local").lower() == "production"
+            is_production = (
+                os.environ.get("SUPREMEAI_ENV", "local").lower() == "production"
+            )
             if is_production:
-                logger.critical("🚨 STRIPE PAYMENT GATEWAY MISCONFIGURED: API key missing in production")
+                logger.critical(
+                    "🚨 STRIPE PAYMENT GATEWAY MISCONFIGURED: API key missing in production"
+                )
                 raise HTTPException(
                     status_code=503,
                     detail="Payment processing unavailable: Stripe not configured",
                 )
-            logger.warning("Stripe API key not set — returning 503 Service Unavailable (no mock)")
+            logger.warning(
+                "Stripe API key not set — returning 503 Service Unavailable (no mock)"
+            )
             raise HTTPException(
                 status_code=503,
                 detail="Stripe not configured. Payment processing unavailable in non-production environments.",
@@ -94,7 +105,9 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
     except Exception as e:  # noqa: BLE001
         logger.error(f"Failed to create Stripe checkout session: {e}")
         # বাংলা মন্তব্য: সিকিউরিটি ইনফরমেশন লিক এড়াতে জেনেরিক এরর মেসেজ রিটার্ন করা হচ্ছে।
-        raise HTTPException(status_code=500, detail="Payment processing error. Please contact support.") from e
+        raise HTTPException(
+            status_code=500, detail="Payment processing error. Please contact support."
+        ) from e
 
 
 # বাংলা মন্তব্য: সাবস্ক্রিপশন প্ল্যানগুলোর লিস্ট প্রদান করার জন্য এন্ডপয়েন্ট
@@ -139,4 +152,6 @@ async def stripe_webhook_endpoint(request: Request):
     except Exception as e:  # noqa: BLE001
         logger.error(f"Webhook signature verification failed: {e}")
         # বাংলা মন্তব্য: সিকিউরিটি ইনফরমেশন লিক এড়াতে জেনেরিক এরর মেসেজ রিটার্ন করা হচ্ছে।
-        raise HTTPException(status_code=400, detail="Webhook payload validation failed") from e
+        raise HTTPException(
+            status_code=400, detail="Webhook payload validation failed"
+        ) from e

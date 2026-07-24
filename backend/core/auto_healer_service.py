@@ -81,10 +81,15 @@ class AutoHealerService:
     async def _check_database(self) -> None:
         """PostgreSQL pool health check এবং auto-heal।"""
         try:
-            from core.health.health_probes import probe_database  # noqa: PLC0415
+            from core.health.health_probes import \
+                probe_database  # noqa: PLC0415
 
             result = await probe_database()
-            db_up = result.get("status") == "up" if isinstance(result, dict) else bool(result)
+            db_up = (
+                result.get("status") == "up"
+                if isinstance(result, dict)
+                else bool(result)
+            )
         except Exception as exc:  # noqa: BLE001
             db_up = False
             logger.warning(f"🚑 DB probe raised exception: {exc!r}")
@@ -109,7 +114,8 @@ class AutoHealerService:
         logger.warning("🚑 Attempting DB pool reset (self-healing)...")
         try:
             from core.config import settings  # noqa: PLC0415
-            from core.pgbouncer_pool import close_db_pool, init_db_pool  # noqa: PLC0415
+            from core.pgbouncer_pool import (close_db_pool,  # noqa: PLC0415
+                                             init_db_pool)
 
             await close_db_pool()
             await asyncio.sleep(2)  # brief backoff
@@ -128,7 +134,11 @@ class AutoHealerService:
             from core.health.health_probes import probe_redis  # noqa: PLC0415
 
             result = await probe_redis()
-            redis_up = result.get("status") == "up" if isinstance(result, dict) else bool(result)
+            redis_up = (
+                result.get("status") == "up"
+                if isinstance(result, dict)
+                else bool(result)
+            )
         except Exception as exc:  # noqa: BLE001
             redis_up = False
             logger.warning(f"🚑 Redis probe raised exception: {exc!r}")
@@ -179,7 +189,9 @@ class AutoHealerService:
         last = self._last_heal_time.get(subsystem, 0.0)
         return (time.monotonic() - last) >= self.HEAL_COOLDOWN_SECONDS
 
-    async def attempt_code_mutation_heal(self, fingerprint: str, exc: Exception) -> bool:
+    async def attempt_code_mutation_heal(
+        self, fingerprint: str, exc: Exception
+    ) -> bool:
         """
         বাংলা মন্তব্য: ফিঙ্গারপ্রিন্ট ধরে কোড হিলিং চেষ্টা — Depth <= 3 চেক এবং ব্যর্থ হলে Git Revert ও HITL ট্রাইগার করা।
         """
@@ -189,10 +201,14 @@ class AutoHealerService:
         current_depth = self._fingerprint_depth.get(fingerprint, 0) + 1
         self._fingerprint_depth[fingerprint] = current_depth
 
-        logger.info(f"AutoHealer Mutation Attempt: Fingerprint={fingerprint[:12]} Depth={current_depth}/3")
+        logger.info(
+            f"AutoHealer Mutation Attempt: Fingerprint={fingerprint[:12]} Depth={current_depth}/3"
+        )
 
         if current_depth > 3:
-            logger.critical(f"AutoHealer MAX MUTATION DEPTH EXCEEDED for {fingerprint[:12]}. Triggering Automated Git Revert & HITL Alert!")
+            logger.critical(
+                f"AutoHealer MAX MUTATION DEPTH EXCEEDED for {fingerprint[:12]}. Triggering Automated Git Revert & HITL Alert!"
+            )
 
             # বাংলা মন্তব্য: আগে এখানে শুধু broadcast হতো, প্রকৃত git revert কখনো ট্রিগার হতো না —
             # এখন rollback_monitor-এর প্রকৃত revert মেথড কল করা হচ্ছে (Patch 21 fix)
@@ -200,7 +216,9 @@ class AutoHealerService:
             try:
                 from core.resilience.rollback_monitor import RollbackMonitor
 
-                revert_success = await RollbackMonitor().execute_automatic_rollback(fingerprint=fingerprint, reason=f"mutation_depth_exceeded: {exc}")
+                revert_success = await RollbackMonitor().execute_automatic_rollback(
+                    fingerprint=fingerprint, reason=f"mutation_depth_exceeded: {exc}"
+                )
             except Exception as revert_err:  # noqa: BLE001
                 logger.error(f"AutoHealer: Git revert execution failed: {revert_err}")
 
@@ -212,7 +230,11 @@ class AutoHealerService:
                     {
                         "fingerprint": fingerprint,
                         "error": str(exc),
-                        "action": "git_revert_triggered" if revert_success else "git_revert_FAILED",
+                        "action": (
+                            "git_revert_triggered"
+                            if revert_success
+                            else "git_revert_FAILED"
+                        ),
                         "depth": current_depth,
                     },
                 )
@@ -220,11 +242,15 @@ class AutoHealerService:
                 logger.warning(f"AutoHealer: PubSub broadcast skipped ({b_err})")
 
             if not revert_success:
-                logger.critical(f"🚨 AutoHealer: Git revert FAILED for {fingerprint[:12]} — codebase may still be in broken state!")
+                logger.critical(
+                    f"🚨 AutoHealer: Git revert FAILED for {fingerprint[:12]} — codebase may still be in broken state!"
+                )
             return False
 
         # Simulate hotfix attempt
-        logger.info(f"AutoHealer JIT Hotfix applied for {fingerprint[:12]} (Attempt #{current_depth})")
+        logger.info(
+            f"AutoHealer JIT Hotfix applied for {fingerprint[:12]} (Attempt #{current_depth})"
+        )
         return True
 
     def get_status(self) -> dict[str, Any]:
@@ -233,7 +259,9 @@ class AutoHealerService:
             "running": self._running,
             "failure_counts": dict(self.failure_counts),
             "fingerprint_depths": getattr(self, "_fingerprint_depth", {}),
-            "last_heal_times": {k: time.monotonic() - v for k, v in self._last_heal_time.items()},
+            "last_heal_times": {
+                k: time.monotonic() - v for k, v in self._last_heal_time.items()
+            },
         }
 
 

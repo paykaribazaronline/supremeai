@@ -27,7 +27,7 @@ except ImportError:
     from core.config import settings
 
 # --- Configuration ---
-logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
+logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 # এই ডিরেক্টরিগুলো থেকে ডকুমেন্টেশন ইনডেক্স করা হবে
 TARGET_DIRECTORIES = ["backend/core", "backend/tools"]
@@ -44,9 +44,9 @@ sentence_transformer_ef = embedding_functions.SentenceTransformerEmbeddingFuncti
 
 client = chromadb.PersistentClient(path=DB_PATH)
 collection = client.get_or_create_collection(
-    name=COLLECTION_NAME,
-    embedding_function=sentence_transformer_ef
+    name=COLLECTION_NAME, embedding_function=sentence_transformer_ef
 )
+
 
 def get_docstrings_from_file(file_path: Path) -> list[tuple[str, str]]:
     """Extracts module, function, and class docstrings from a Python file."""
@@ -68,6 +68,7 @@ def get_docstrings_from_file(file_path: Path) -> list[tuple[str, str]]:
     except Exception as e:
         logging.warning(f"Could not parse {file_path}: {e}")
     return docs
+
 
 def run_indexing(target_dirs: list[str] = TARGET_DIRECTORIES):
     """
@@ -92,6 +93,7 @@ def run_indexing(target_dirs: list[str] = TARGET_DIRECTORIES):
         logging.info(f"✅ Indexing complete! Knowledge base stored in '{DB_PATH}'.")
     else:
         logging.info("No new docstrings found to index.")
+
 
 if __name__ == "__main__":
     run_indexing()

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║  SUPREMEAI — Secrets Rotation Manager                                        ║
@@ -44,7 +43,6 @@ import json
 import os
 import secrets
 import sys
-import tempfile
 import time
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -163,7 +161,9 @@ class SecretsRotationManager:
     async def _authenticate(self) -> None:
         """Authenticate with Infisical Machine Identity."""
         if not self.client_id or not self.client_secret:
-            logger.warning("Missing Infisical credentials. Rotation manager will run in dry-run mode.")
+            logger.warning(
+                "Missing Infisical credentials. Rotation manager will run in dry-run mode."
+            )
             return
 
         try:
@@ -187,7 +187,11 @@ class SecretsRotationManager:
                     resp = await self._http.get(
                         f"{INFISICAL_API_URL}/v3/secrets/raw/{secret_type.value}",
                         headers={"Authorization": f"Bearer {self.infisical_token}"},
-                        params={"workspaceId": self.project_id, "environment": self.environment, "secretPath": path},
+                        params={
+                            "workspaceId": self.project_id,
+                            "environment": self.environment,
+                            "secretPath": path,
+                        },
                     )
                     if resp.status_code == 200:
                         data = resp.json().get("secret", {})
@@ -195,7 +199,11 @@ class SecretsRotationManager:
                         version = str(data.get("version", "1"))
                         created = self._parse_iso(data.get("createdAt"))
                     else:
-                        val, version, created = "dummy_val", "1", datetime.now(timezone.utc)
+                        val, version, created = (
+                            "dummy_val",
+                            "1",
+                            datetime.now(timezone.utc),
+                        )
                 else:
                     val, version, created = "dummy_val", "1", datetime.now(timezone.utc)
 
@@ -230,13 +238,17 @@ class SecretsRotationManager:
 
         return secrets_meta
 
-    async def rotate_secret(self, secret_type: SecretType, dry_run: bool = False) -> bool:
+    async def rotate_secret(
+        self, secret_type: SecretType, dry_run: bool = False
+    ) -> bool:
         """Perform automated rotation with health checks and rollout verification."""
         start_time = time.perf_counter()
         logger.info(f"Starting rotation for: {secret_type.value}")
 
         event = RotationEvent(
-            event_id=hashlib.sha256(f"{secret_type.value}:{time.time()}".encode()).hexdigest()[:12],
+            event_id=hashlib.sha256(
+                f"{secret_type.value}:{time.time()}".encode()
+            ).hexdigest()[:12],
             secret_type=secret_type,
             timestamp=datetime.now(timezone.utc),
             action="rotate_start",
@@ -257,20 +269,26 @@ class SecretsRotationManager:
             event.new_hash = hashlib.sha256(new_value.encode()).hexdigest()
 
             if dry_run:
-                logger.info(f"[DRY-RUN] Would update Infisical secret {secret_type.value}")
+                logger.info(
+                    f"[DRY-RUN] Would update Infisical secret {secret_type.value}"
+                )
                 event.action = "rotate_complete"
                 event.duration_ms = (time.perf_counter() - start_time) * 1000
                 self.report.events.append(event)
                 return True
 
             await self._update_infisical_secret(secret_type, new_value)
-            logger.info(f"Updated secret {secret_type.value} in Infisical. Triggering rollout...")
+            logger.info(
+                f"Updated secret {secret_type.value} in Infisical. Triggering rollout..."
+            )
 
             if not await self._trigger_rollout(secret_type):
                 raise RuntimeError("Failed to trigger service rollout")
 
             if not await self._verify_new_secret(secret_type, new_value):
-                logger.error("New secret propagation verification failed. Initiating rollback...")
+                logger.error(
+                    "New secret propagation verification failed. Initiating rollback..."
+                )
                 event.rollback_triggered = True
                 if old_value:
                     await self._rollback(secret_type, old_value)
@@ -279,7 +297,9 @@ class SecretsRotationManager:
             event.action = "rotate_complete"
             event.duration_ms = (time.perf_counter() - start_time) * 1000
             self.report.events.append(event)
-            await self._write_audit_log(event.event_id, secret_type, event.old_hash, event.new_hash, "success")
+            await self._write_audit_log(
+                event.event_id, secret_type, event.old_hash, event.new_hash, "success"
+            )
             logger.success(f"Successfully rotated and verified {secret_type.value}")
             return True
 
@@ -288,7 +308,9 @@ class SecretsRotationManager:
             event.error_message = str(e)
             event.duration_ms = (time.perf_counter() - start_time) * 1000
             self.report.events.append(event)
-            await self._write_audit_log(event.event_id, secret_type, event.old_hash, event.new_hash, "failed")
+            await self._write_audit_log(
+                event.event_id, secret_type, event.old_hash, event.new_hash, "failed"
+            )
             logger.error(f"Rotation failed for {secret_type.value}: {e}")
             return False
 
@@ -326,7 +348,9 @@ class SecretsRotationManager:
             return f"whsec_{secrets.token_urlsafe(32).replace('-', '').replace('_', '')[:32]}"
 
         elif secret_type == SecretType.RESEND_API_KEY:
-            return f"re_{secrets.token_urlsafe(32).replace('-', '').replace('_', '')[:48]}"
+            return (
+                f"re_{secrets.token_urlsafe(32).replace('-', '').replace('_', '')[:48]}"
+            )
 
         elif secret_type == SecretType.DISCORD_WEBHOOK:
             return f"https://discord.com/api/webhooks/{secrets.randbits(64)}/{secrets.token_urlsafe(32)}"
@@ -338,7 +362,9 @@ class SecretsRotationManager:
             return secrets.token_urlsafe(32)
 
         elif secret_type == SecretType.OPENAI_API_KEY:
-            return f"sk-{secrets.token_urlsafe(32).replace('-', '').replace('_', '')[:48]}"
+            return (
+                f"sk-{secrets.token_urlsafe(32).replace('-', '').replace('_', '')[:48]}"
+            )
 
         elif secret_type == SecretType.ADMIN_API_KEY:
             return f"supreme_admin_{secrets.token_urlsafe(32).replace('-', '').replace('_', '')[:32]}"
@@ -368,7 +394,9 @@ class SecretsRotationManager:
             logger.error(f"Failed to get secret {secret_type.value}: {e}")
             return None
 
-    async def _update_infisical_secret(self, secret_type: SecretType, new_value: str) -> None:
+    async def _update_infisical_secret(
+        self, secret_type: SecretType, new_value: str
+    ) -> None:
         """Atomically update secret in Infisical."""
         if not self.infisical_token:
             raise RuntimeError("Not authenticated with Infisical")
@@ -394,7 +422,11 @@ class SecretsRotationManager:
         """Signal Cloud Run / Firebase to pick up new secrets."""
         logger.info(f"Signaling rollout for {secret_type.value}...")
         gcloud_cmd = [
-            "gcloud", "run", "services", "update", "supremeai-backend",
+            "gcloud",
+            "run",
+            "services",
+            "update",
+            "supremeai-backend",
             f"--update-secrets={secret_type.value}={secret_type.value}:latest",
             f"--region={os.getenv('GCP_REGION', 'us-central1')}",
             f"--project={os.getenv('GCP_PROJECT_ID', 'supremeai-prod')}",
@@ -406,16 +438,26 @@ class SecretsRotationManager:
             return True
         return True
 
-    async def _verify_new_secret(self, secret_type: SecretType, expected_value: str) -> bool:
+    async def _verify_new_secret(
+        self, secret_type: SecretType, expected_value: str
+    ) -> bool:
         """Verify the new secret is active by reading it back."""
         await asyncio.sleep(3)
         fetched = await self._get_secret_value(secret_type)
-        if fetched and hashlib.sha256(fetched.encode()).hexdigest() == hashlib.sha256(expected_value.encode()).hexdigest():
+        if (
+            fetched
+            and hashlib.sha256(fetched.encode()).hexdigest()
+            == hashlib.sha256(expected_value.encode()).hexdigest()
+        ):
             return True
         for delay in [5, 10, 20]:
             await asyncio.sleep(delay)
             fetched = await self._get_secret_value(secret_type)
-            if fetched and hashlib.sha256(fetched.encode()).hexdigest() == hashlib.sha256(expected_value.encode()).hexdigest():
+            if (
+                fetched
+                and hashlib.sha256(fetched.encode()).hexdigest()
+                == hashlib.sha256(expected_value.encode()).hexdigest()
+            ):
                 return True
         return False
 
@@ -429,6 +471,7 @@ class SecretsRotationManager:
         """Pre-rotation system health check."""
         try:
             import redis.asyncio as aioredis
+
             redis_url = os.getenv("REDIS_URL", "")
             if redis_url:
                 r = aioredis.from_url(redis_url, socket_connect_timeout=5)
@@ -439,6 +482,7 @@ class SecretsRotationManager:
 
         try:
             from google.cloud import firestore
+
             db = firestore.Client()
             db.collection("_health").document("check").get()
         except Exception as e:
@@ -446,22 +490,31 @@ class SecretsRotationManager:
 
         return True
 
-    async def _write_audit_log(self, event_id: str, secret_type: SecretType,
-                               old_hash: str | None, new_hash: str | None, status: str) -> None:
+    async def _write_audit_log(
+        self,
+        event_id: str,
+        secret_type: SecretType,
+        old_hash: str | None,
+        new_hash: str | None,
+        status: str,
+    ) -> None:
         """Write rotation event to Firestore audit collection."""
         try:
             from google.cloud import firestore
+
             db = firestore.Client(project=self.project_id)
-            db.collection(FIRESTORE_AUDIT_COLLECTION).document(event_id).set({
-                "secret_type": secret_type.value,
-                "environment": self.environment,
-                "old_hash_prefix": old_hash[:16] if old_hash else None,
-                "new_hash_prefix": new_hash[:16] if new_hash else None,
-                "status": status,
-                "timestamp": firestore.SERVER_TIMESTAMP,
-                "performed_by": "supremeai-secrets-manager",
-                "project_id": self.project_id,
-            })
+            db.collection(FIRESTORE_AUDIT_COLLECTION).document(event_id).set(
+                {
+                    "secret_type": secret_type.value,
+                    "environment": self.environment,
+                    "old_hash_prefix": old_hash[:16] if old_hash else None,
+                    "new_hash_prefix": new_hash[:16] if new_hash else None,
+                    "status": status,
+                    "timestamp": firestore.SERVER_TIMESTAMP,
+                    "performed_by": "supremeai-secrets-manager",
+                    "project_id": self.project_id,
+                }
+            )
         except Exception as e:
             logger.error(f"Failed to write audit log: {e}")
 
@@ -469,13 +522,33 @@ class SecretsRotationManager:
         """Generate comprehensive rotation report."""
         self.report.summary = {
             "total_checked": len(self.report.secrets_checked),
-            "healthy": sum(1 for s in self.report.secrets_checked if s.status == RotationStatus.HEALTHY),
-            "warning": sum(1 for s in self.report.secrets_checked if s.status == RotationStatus.WARNING),
-            "critical": sum(1 for s in self.report.secrets_checked if s.status == RotationStatus.CRITICAL),
-            "rotations_attempted": len([e for e in self.report.events if "rotate" in e.action]),
-            "rotations_success": len([e for e in self.report.events if e.action == "rotate_complete"]),
-            "rotations_failed": len([e for e in self.report.events if e.action == "rotate_failed"]),
-            "rollbacks_triggered": len([e for e in self.report.events if e.rollback_triggered]),
+            "healthy": sum(
+                1
+                for s in self.report.secrets_checked
+                if s.status == RotationStatus.HEALTHY
+            ),
+            "warning": sum(
+                1
+                for s in self.report.secrets_checked
+                if s.status == RotationStatus.WARNING
+            ),
+            "critical": sum(
+                1
+                for s in self.report.secrets_checked
+                if s.status == RotationStatus.CRITICAL
+            ),
+            "rotations_attempted": len(
+                [e for e in self.report.events if "rotate" in e.action]
+            ),
+            "rotations_success": len(
+                [e for e in self.report.events if e.action == "rotate_complete"]
+            ),
+            "rotations_failed": len(
+                [e for e in self.report.events if e.action == "rotate_failed"]
+            ),
+            "rollbacks_triggered": len(
+                [e for e in self.report.events if e.rollback_triggered]
+            ),
         }
         return asdict(self.report)
 
@@ -525,16 +598,31 @@ async def main() -> int:
         description="SupremeAI Secrets Rotation Manager",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--dry-run", action="store_true", help="Simulate without making changes")
-    parser.add_argument("--check-all", action="store_true", help="Check status of all secrets")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Simulate without making changes"
+    )
+    parser.add_argument(
+        "--check-all", action="store_true", help="Check status of all secrets"
+    )
     parser.add_argument("--rotate", type=str, help="Rotate specific secret by type")
-    parser.add_argument("--rotate-all", action="store_true", help="Rotate all expired/warning secrets")
-    parser.add_argument("--force", action="store_true", help="Force rotation even if healthy")
+    parser.add_argument(
+        "--rotate-all", action="store_true", help="Rotate all expired/warning secrets"
+    )
+    parser.add_argument(
+        "--force", action="store_true", help="Force rotation even if healthy"
+    )
     parser.add_argument("--audit", action="store_true", help="Show audit trail")
     parser.add_argument("--days", type=int, default=30, help="Audit history days")
     parser.add_argument("--report", action="store_true", help="Generate status report")
-    parser.add_argument("--output-dir", type=Path, default=Path("reports/security"), help="Output directory")
-    parser.add_argument("--alert", action="store_true", help="Send alerts after operation")
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=Path("reports/security"),
+        help="Output directory",
+    )
+    parser.add_argument(
+        "--alert", action="store_true", help="Send alerts after operation"
+    )
 
     args = parser.parse_args()
 
@@ -546,7 +634,9 @@ async def main() -> int:
         if args.check_all or args.report:
             secrets_meta = await manager.discover_secrets()
             for meta in secrets_meta:
-                emoji = {"healthy": "✅", "warning": "⚠️", "critical": "🚨"}.get(meta.status.value, "❓")
+                emoji = {"healthy": "✅", "warning": "⚠️", "critical": "🚨"}.get(
+                    meta.status.value, "❓"
+                )
                 logger.info(
                     f"{emoji} {meta.secret_type.value:30s} | "
                     f"Status: {meta.status.value:10s} | "
@@ -574,10 +664,18 @@ async def main() -> int:
             await manager.send_status_alert()
 
         if args.check_all or args.rotate_all:
-            critical_count = sum(1 for s in manager.report.secrets_checked if s.status == RotationStatus.CRITICAL)
-            failed_count = len([e for e in manager.report.events if e.action == "rotate_failed"])
+            critical_count = sum(
+                1
+                for s in manager.report.secrets_checked
+                if s.status == RotationStatus.CRITICAL
+            )
+            failed_count = len(
+                [e for e in manager.report.events if e.action == "rotate_failed"]
+            )
             if critical_count > 0 or failed_count > 0:
-                logger.error(f"❌ {critical_count} critical secrets, {failed_count} failed rotations")
+                logger.error(
+                    f"❌ {critical_count} critical secrets, {failed_count} failed rotations"
+                )
                 return 1
 
     logger.success("✅ Secrets rotation manager completed successfully")

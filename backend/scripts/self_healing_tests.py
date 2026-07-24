@@ -66,7 +66,9 @@ def _quarantine_and_diagnose(state: HealingState, reason: str):
 
     quarantine_dir = Path("data/quarantine")
     quarantine_dir.mkdir(parents=True, exist_ok=True)
-    report_file = quarantine_dir / f"diagnostic_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    report_file = (
+        quarantine_dir / f"diagnostic_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    )
 
     report = {
         "reason": reason,
@@ -79,10 +81,14 @@ def _quarantine_and_diagnose(state: HealingState, reason: str):
     with open(report_file, "w") as f:
         json.dump(report, f, indent=2)
 
-    loguru.logger.error(f"[Quarantine] Skill isolated due to {reason}. Diagnostic report saved to {report_file}")
+    loguru.logger.error(
+        f"[Quarantine] Skill isolated due to {reason}. Diagnostic report saved to {report_file}"
+    )
 
 
-async def run_healing_loop(code: str, tests: str, max_retries: int = 3) -> dict[str, Any]:
+async def run_healing_loop(
+    code: str, tests: str, max_retries: int = 3
+) -> dict[str, Any]:
     state = HealingState()
     state.code = code
     state.tests = tests
@@ -91,7 +97,9 @@ async def run_healing_loop(code: str, tests: str, max_retries: int = 3) -> dict[
     while state.retries < max_retries:
         try:
             # Enforce strict 5 second timeout on each healing iteration
-            state = await asyncio.wait_for(_single_healing_iteration(state), timeout=5.0)
+            state = await asyncio.wait_for(
+                _single_healing_iteration(state), timeout=5.0
+            )
 
             if state.result == "vulnerable":
                 _quarantine_and_diagnose(state, "CWE Vulnerability Detected")

@@ -19,7 +19,11 @@ def is_test_environment() -> bool:
     """
     if os.getenv("ENV", "").lower() in {"production", "staging"}:
         return False
-    return "pytest" in sys.modules or os.getenv("CI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"
+    return (
+        "pytest" in sys.modules
+        or os.getenv("CI") == "true"
+        or os.getenv("GITHUB_ACTIONS") == "true"
+    )
 
 
 def is_admin_authorized() -> bool:

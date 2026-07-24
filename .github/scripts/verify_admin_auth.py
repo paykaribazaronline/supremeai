@@ -26,8 +26,12 @@ def verify_admin_routers() -> int:
         return 0
 
     error_count = 0
-    router_regex = re.compile(r"APIRouter\s*\([^)]*prefix\s*=\s*['\"]/?(?:api/)?admin", re.IGNORECASE)
-    auth_dependency_regex = re.compile(r"dependencies\s*=\s*\[\s*Depends\(", re.IGNORECASE)
+    router_regex = re.compile(
+        r"APIRouter\s*\([^)]*prefix\s*=\s*['\"]/?(?:api/)?admin", re.IGNORECASE
+    )
+    auth_dependency_regex = re.compile(
+        r"dependencies\s*=\s*\[\s*Depends\(", re.IGNORECASE
+    )
 
     for root, _, files in os.walk(routes_dir):
         for file in files:

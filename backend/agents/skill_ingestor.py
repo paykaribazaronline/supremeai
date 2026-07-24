@@ -13,7 +13,6 @@ from typing import Any
 
 # বাংলা মন্তব্য: রেন্ডার ডকার লেআউটের সাথে সামঞ্জস্যপূর্ণ রাখতে backend. ইম্পোর্ট রুট সরিয়ে দেওয়া হয়েছে
 from agents.morphic_adapter import MorphicAdapter
-
 from sandbox.docker_sandbox import DockerSandbox
 from schemas.skill_index import SkillIndexManager
 from schemas.skill_manifest import SkillManifest, SkillStatus
@@ -69,7 +68,9 @@ class SkillIngestor:
         except SyntaxError:
             return False, "Invalid Python syntax."
 
-    def ingest_mcp_skill(self, manifest: SkillManifest, zip_url: str, entry_file: str, test_payload: str) -> dict[str, Any]:
+    def ingest_mcp_skill(
+        self, manifest: SkillManifest, zip_url: str, entry_file: str, test_payload: str
+    ) -> dict[str, Any]:
         # 🛡️ ১. কঠোর Path Traversal এবং Injection ব্লকিং
         if not re.match(r"^[a-zA-Z0-9_]+$", manifest.skill_id):
             return {"success": False, "detail": "Malicious Skill ID pattern blocked."}
@@ -101,7 +102,9 @@ class SkillIngestor:
                     base_path = Path(os.path.abspath(skill_staging_dir))
 
                     if not target_path.resolve().is_relative_to(base_path.resolve()):
-                        raise PermissionError("🛑 Zip-Slip Malicious Payload Detected and Defused!")
+                        raise PermissionError(
+                            "🛑 Zip-Slip Malicious Payload Detected and Defused!"
+                        )
 
                 archive.extractall(path=skill_staging_dir)
 
@@ -117,8 +120,12 @@ class SkillIngestor:
                 return {"success": False, "detail": f"Static Failure: {static_msg}"}
 
             # ---- MORPHIC ADAPTATION LAYER START ----
-            logger.info(f"🧬 [MORPHIC ENGINE] Triggering AI Refactoring for skill: {manifest.skill_id}")
-            morphic_res = self.morphic_adapter.adapt_code_to_contract(raw_code=code_content, skill_description=manifest.description)
+            logger.info(
+                f"🧬 [MORPHIC ENGINE] Triggering AI Refactoring for skill: {manifest.skill_id}"
+            )
+            morphic_res = self.morphic_adapter.adapt_code_to_contract(
+                raw_code=code_content, skill_description=manifest.description
+            )
 
             if not morphic_res["success"]:
                 manifest.status = SkillStatus.REJECTED
@@ -132,7 +139,9 @@ class SkillIngestor:
             manifest.status = SkillStatus.QUARANTINE
             self.index_manager.update_skill(manifest)
 
-            sandbox_res = self.sandbox.run_quarantine_test(skill_staging_dir, entry_file, test_payload)
+            sandbox_res = self.sandbox.run_quarantine_test(
+                skill_staging_dir, entry_file, test_payload
+            )
 
             if sandbox_res["exit_code"] == 0:
                 # 🔄 ৩. Staging to Quarantine Safe Move (ওভাররাইট পলিসি সহ)

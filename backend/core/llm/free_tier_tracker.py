@@ -21,11 +21,10 @@ from dataclasses import dataclass  # noqa: E402
 from dataclasses import field  # noqa: E402
 from typing import Any  # noqa: E402
 
-from loguru import logger  # noqa: E402
-
 from core.config import settings  # noqa: E402
 from core.messaging.event_bus import ErrorEvent  # noqa: E402
 from core.messaging.event_bus import error_event_bus  # noqa: E402
+from loguru import logger  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Free-tier limit configuration for each provider
@@ -180,7 +179,9 @@ class ProviderBudget:
         rpd_safe_limit = int(self.limits["rpd"] * safety_threshold_pct)
 
         if self._rpm_window.count >= rpm_safe_limit:
-            logger.warning(f"[FreeTier Predictive] {self.provider} RPM velocity approaching limit ({self._rpm_window.count}/{self.limits['rpm']})")
+            logger.warning(
+                f"[FreeTier Predictive] {self.provider} RPM velocity approaching limit ({self._rpm_window.count}/{self.limits['rpm']})"
+            )
             return False
         if self._tpm_window.token_sum >= tpm_safe_limit:
             logger.warning(
@@ -188,7 +189,9 @@ class ProviderBudget:
             )
             return False
         if self._rpd_window.count >= rpd_safe_limit:
-            logger.warning(f"[FreeTier Predictive] {self.provider} RPD velocity approaching limit ({self._rpd_window.count}/{self.limits['rpd']})")
+            logger.warning(
+                f"[FreeTier Predictive] {self.provider} RPD velocity approaching limit ({self._rpd_window.count}/{self.limits['rpd']})"
+            )
             return False
         return True
 
@@ -221,7 +224,9 @@ class ProviderBudget:
             "rpd_limit": self.limits["rpd"],
             "rpd_remaining": max(0, self.limits["rpd"] - self._rpd_window.count),
             "available": self.is_available(),
-            "paused_until": (self._paused_until if self._paused_until > time.time() else None),
+            "paused_until": (
+                self._paused_until if self._paused_until > time.time() else None
+            ),
             "rpd_resets_in_seconds": self._rpd_window.seconds_until_oldest_expires(),
         }
 
@@ -253,7 +258,9 @@ class FreeTierTracker:
     ) -> None:
         env_overrides = getattr(settings, "provider_limits_override", {})
 
-        def _deep_merge_limits(*sources: dict[str, dict[str, int]]) -> dict[str, dict[str, int]]:
+        def _deep_merge_limits(
+            *sources: dict[str, dict[str, int]]
+        ) -> dict[str, dict[str, int]]:
             # বাংলা মন্তব্য: প্রতিটি provider-এর জন্য rpm/tpm/rpd আলাদাভাবে মার্জ করা হয় —
             # partial override যেন পুরো dict উড়িয়ে না দেয় (VULN-05 fix)
             merged: dict[str, dict[str, int]] = {}
@@ -266,7 +273,8 @@ class FreeTierTracker:
         self.priority_list = list(FREE_PROVIDER_PRIORITY)
 
         self._budgets: dict[str, ProviderBudget] = {
-            provider: ProviderBudget(provider, provider_limits) for provider, provider_limits in limits.items()
+            provider: ProviderBudget(provider, provider_limits)
+            for provider, provider_limits in limits.items()
         }
 
     async def load_from_db(self) -> None:
@@ -305,7 +313,8 @@ class FreeTierTracker:
             except Exception as e:  # noqa: BLE001
                 logger.debug(f"Failed to fetch provider configs from Supabase: {e}")
                 try:
-                    from core.messaging.event_bus import ErrorEvent, error_event_bus
+                    from core.messaging.event_bus import (ErrorEvent,
+                                                          error_event_bus)
 
                     error_event_bus.emit(
                         ErrorEvent(
@@ -400,7 +409,9 @@ class FreeTierTracker:
 
     def get_status(self) -> dict[str, Any]:
         """Return full usage status for all providers (for admin dashboard)."""
-        statuses = {provider: budget.remaining() for provider, budget in self._budgets.items()}
+        statuses = {
+            provider: budget.remaining() for provider, budget in self._budgets.items()
+        }
         available_providers = [p for p, s in statuses.items() if s["available"]]
         return {
             "available_providers": available_providers,
@@ -426,7 +437,9 @@ class FreeTierTracker:
 _tracker: FreeTierTracker | None = None
 
 
-def get_tracker(custom_limits: dict[str, dict[str, int]] | None = None) -> FreeTierTracker:
+def get_tracker(
+    custom_limits: dict[str, dict[str, int]] | None = None,
+) -> FreeTierTracker:
     """Return the module-level singleton FreeTierTracker."""
     global _tracker
     if _tracker is None:

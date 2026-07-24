@@ -4,7 +4,8 @@ Replaces local ChromaDB for production.
 """
 
 import os
-from typing import Dict, Any, List
+from typing import Any
+
 from loguru import logger
 
 
@@ -38,7 +39,7 @@ class CloudVectorStore:
                 self.client = QdrantClient(url=url, api_key=api_key)
                 logger.info("Qdrant client connected")
 
-    def upsert(self, vectors: List[Dict[str, Any]], namespace: str = "default"):
+    def upsert(self, vectors: list[dict[str, Any]], namespace: str = "default"):
         """Upsert vectors to cloud store."""
         if not self.index:
             logger.warning("Vector store not initialized")
@@ -53,8 +54,8 @@ class CloudVectorStore:
             return False
 
     def query(
-        self, vector: List[float], top_k: int = 5, namespace: str = "default"
-    ) -> List[Dict]:
+        self, vector: list[float], top_k: int = 5, namespace: str = "default"
+    ) -> list[dict]:
         """Query similar vectors."""
         if not self.index:
             return []

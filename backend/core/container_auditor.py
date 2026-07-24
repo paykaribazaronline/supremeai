@@ -21,10 +21,9 @@ import asyncio  # noqa: E402
 import json  # noqa: E402
 import subprocess  # noqa: E402
 
-from loguru import logger  # noqa: E402
-
 from core.messaging.event_bus import ErrorEvent  # noqa: E402
 from core.messaging.event_bus import error_event_bus  # noqa: E402
+from loguru import logger  # noqa: E402
 
 
 class ContainerAuditor:
@@ -39,7 +38,9 @@ class ContainerAuditor:
     def get_container_stats(self) -> list:
         try:
             cmd = ["docker", "stats", "--no-stream", "--format", "{{ json . }}"]
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=10, check=False)
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=10, check=False
+            )
             if result.returncode != 0:
                 logger.error(f"Failed to fetch docker stats: {result.stderr}")
                 error_event_bus.emit(
@@ -88,7 +89,9 @@ class ContainerAuditor:
                 mem_perc = self.parse_memory_percent(mem_perc_str)
 
                 if mem_perc >= 95.0:
-                    logger.error(f"🚨 OOM Kill Chain Triggered: Container {name} is at {mem_perc}%. Terminating...")
+                    logger.error(
+                        f"🚨 OOM Kill Chain Triggered: Container {name} is at {mem_perc}%. Terminating..."
+                    )
                     try:
                         subprocess.run(
                             ["docker", "kill", name],
@@ -109,7 +112,9 @@ class ContainerAuditor:
                             )
                         )
                 elif mem_perc >= 80.0:
-                    logger.warning(f"⚠️ Memory Warning: Container {name} is nearing capacity at {mem_perc}%.")
+                    logger.warning(
+                        f"⚠️ Memory Warning: Container {name} is nearing capacity at {mem_perc}%."
+                    )
         except asyncio.CancelledError:
             raise
         except Exception as e:  # noqa: BLE001
