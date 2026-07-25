@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # ============================================================================
 # ফাইল >> ফাইল
 # প্রকল্প >> SupremeAI 2.0
@@ -7,5 +6,6 @@
 # মডিউল >> scripts
 # ============================================================================
 import sys
-sys.stdout.reconfigure(encoding='utf-8')
-print('বাংলা টেস্ট')
+
+sys.stdout.reconfigure(encoding="utf-8")
+print("বাংলা টেস্ট")

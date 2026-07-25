@@ -27,7 +27,9 @@ def test_connect_imap_verifies_real_login_and_rejects_bad_credentials():
     mock_imap.__exit__.return_value = False
 
     with patch("tools.social.email_agent.imaplib.IMAP4_SSL", return_value=mock_imap):
-        result = agent.connect_imap("imap.example.com", 993, "test@example.com", "wrong-password")
+        result = agent.connect_imap(
+            "imap.example.com", 993, "test@example.com", "wrong-password"
+        )
 
     assert result is False
     assert agent.connected is False
@@ -37,15 +39,21 @@ def test_connect_imap_success_stores_encrypted_credentials():
     # বাংলা মন্তব্য: credential এনক্রিপশন টেস্ট করার জন্য পরিবেশ ভ্যারিয়েবলে টেস্ট এনক্রিপশন কী সেট করা হলো।
     with patch.dict(
         "os.environ",
-        {"SUPREMEAI_CREDENTIAL_ENC_KEY": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="},
+        {
+            "SUPREMEAI_CREDENTIAL_ENC_KEY": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+        },
     ):
         agent = EmailAgent()
         mock_imap = MagicMock()
         mock_imap.__enter__.return_value = mock_imap
         mock_imap.__exit__.return_value = False
 
-        with patch("tools.social.email_agent.imaplib.IMAP4_SSL", return_value=mock_imap):
-            result = agent.connect_imap("imap.example.com", 993, "test@example.com", "correct-password")
+        with patch(
+            "tools.social.email_agent.imaplib.IMAP4_SSL", return_value=mock_imap
+        ):
+            result = agent.connect_imap(
+                "imap.example.com", 993, "test@example.com", "correct-password"
+            )
 
         assert result is True
         assert agent.connected is True

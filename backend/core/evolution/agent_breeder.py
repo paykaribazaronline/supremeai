@@ -21,13 +21,13 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 import litellm
-from loguru import logger
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.config import settings
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
-from models.meta_ai import AgentGenome, AgentOffspring, AgentStatus, BreedingPool
+from loguru import logger
+from models.meta_ai import (AgentGenome, AgentOffspring, AgentStatus,
+                            BreedingPool)
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 # ────────────────────────────────
 # Configuration (settings-driven, zero hardcode)
@@ -55,7 +55,9 @@ class BreederConfig:
             tournament_size=getattr(settings, "breeder_tournament_size", 3),
             max_generations=getattr(settings, "breeder_max_generations", 50),
             llm_temperature=getattr(settings, "breeder_llm_temperature", 0.3),
-            llm_model_name=getattr(settings, "breeder_llm_model", "gemini/gemini-1.5-flash"),
+            llm_model_name=getattr(
+                settings, "breeder_llm_model", "gemini/gemini-1.5-flash"
+            ),
         )
 
 
@@ -103,7 +105,9 @@ class UniformCrossover:
         for key in all_keys:
             if key in parent_a and key in parent_b:
                 # 50% chance from either parent
-                child[key] = copy.deepcopy(parent_a[key] if random.random() < 0.5 else parent_b[key])  # noqa: S311
+                child[key] = copy.deepcopy(
+                    parent_a[key] if random.random() < 0.5 else parent_b[key]
+                )  # noqa: S311
             elif key in parent_a:
                 child[key] = copy.deepcopy(parent_a[key])
             else:
@@ -147,7 +151,9 @@ class GaussianMutation:
                     random.shuffle(value)
                 else:
                     # Trim to 80-120% of original
-                    target_len = max(1, int(len(value) * random.uniform(0.8, 1.2)))  # noqa: S311
+                    target_len = max(
+                        1, int(len(value) * random.uniform(0.8, 1.2))
+                    )  # noqa: S311
                     if len(value) > target_len:
                         value[:] = value[:target_len]
 
@@ -168,7 +174,11 @@ class GaussianMutation:
                 messages=[{"role": "user", "content": prompt}],
                 temperature=self._llm_temperature,
                 max_tokens=1024,
-                api_key=(settings.gemini_api_key.split(",")[0].strip() if settings.gemini_api_key else None),
+                api_key=(
+                    settings.gemini_api_key.split(",")[0].strip()
+                    if settings.gemini_api_key
+                    else None
+                ),
             )
             refined = response.choices[0].message.content.strip()
             return refined if len(refined) > 5 else text
@@ -285,20 +295,30 @@ class AgentBreeder:
         """
         if random.random() > self._config.crossover_rate:  # noqa: S311
             # No crossover: clone fittest parent
-            fittest = parent_a if parent_a.fitness_score >= parent_b.fitness_score else parent_b
+            fittest = (
+                parent_a
+                if parent_a.fitness_score >= parent_b.fitness_score
+                else parent_b
+            )
             child_chromosome = copy.deepcopy(fittest.chromosome)
             crossover_method = "clone_elite"
         else:
-            child_chromosome = await self._crossover.crossover(parent_a.chromosome, parent_b.chromosome)
+            child_chromosome = await self._crossover.crossover(
+                parent_a.chromosome, parent_b.chromosome
+            )
             crossover_method = "uniform"
 
         # Mutation
-        child_chromosome = await self._mutation.mutate(child_chromosome, self._config.mutation_rate)
+        child_chromosome = await self._mutation.mutate(
+            child_chromosome, self._config.mutation_rate
+        )
 
         # Generate unique offspring name
         if not offspring_name:
             offspring_name = (
-                f"{parent_a.agent_name}_{parent_b.agent_name}_" f"g{max(parent_a.generation, parent_b.generation) + 1}_" f"{secrets.token_hex(4)}"
+                f"{parent_a.agent_name}_{parent_b.agent_name}_"
+                f"g{max(parent_a.generation, parent_b.generation) + 1}_"
+                f"{secrets.token_hex(4)}"
             )
 
         offspring = AgentOffspring(
@@ -315,7 +335,10 @@ class AgentBreeder:
         self._db.add(offspring)
         await self._db.commit()
 
-        logger.info(f"Created offspring: {offspring_name} via {crossover_method} " f"(parents: {parent_a.agent_name}, {parent_b.agent_name})")
+        logger.info(
+            f"Created offspring: {offspring_name} via {crossover_method} "
+            f"(parents: {parent_a.agent_name}, {parent_b.agent_name})"
+        )
         return offspring
 
     # ── Evaluation ──
@@ -390,7 +413,10 @@ class AgentBreeder:
         if offspring.fitness_score <= parent_fitness:
             offspring.evaluation_status = "rejected"
             await self._db.commit()
-            logger.info(f"Offspring {offspring.offspring_name} rejected: " f"fit={offspring.fitness_score:.3f} <= parent={parent_fitness:.3f}")
+            logger.info(
+                f"Offspring {offspring.offspring_name} rejected: "
+                f"fit={offspring.fitness_score:.3f} <= parent={parent_fitness:.3f}"
+            )
             return None
 
         # Create new active genome
@@ -410,7 +436,10 @@ class AgentBreeder:
         offspring.evaluation_status = "promoted"
         await self._db.commit()
 
-        logger.info(f"PROMOTED {offspring.offspring_name} to generation {new_genome.generation} " f"with fitness {new_genome.fitness_score:.3f}")
+        logger.info(
+            f"PROMOTED {offspring.offspring_name} to generation {new_genome.generation} "
+            f"with fitness {new_genome.fitness_score:.3f}"
+        )
         return new_genome
 
     # ── High-level: Full breeding cycle ──

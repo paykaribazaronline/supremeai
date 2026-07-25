@@ -4,9 +4,8 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from loguru import logger
-
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
+from loguru import logger
 
 
 class SelfHealerService:
@@ -74,7 +73,9 @@ class SelfHealerService:
         ]
         for keyword in dangerous_keywords:
             if keyword in proposed_fix:
-                raise ValueError(f"Dangerous keyword '{keyword}' detected in proposed fix. Rejected by Safety Filter.")
+                raise ValueError(
+                    f"Dangerous keyword '{keyword}' detected in proposed fix. Rejected by Safety Filter."
+                )
 
     async def propose_fix(
         self,
@@ -125,7 +126,9 @@ class SelfHealerService:
         else:
             doc_ref.set(fix_data)
 
-        logger.info(f"Generated auto-fix {fix_id} for trace {trace_id} (Status: pending_review)")
+        logger.info(
+            f"Generated auto-fix {fix_id} for trace {trace_id} (Status: pending_review)"
+        )
 
         # Broadcast real-time HITL Review Required event to WebSockets
         try:
@@ -181,12 +184,20 @@ class RemediationPipeline:
         sandbox_result = await self._run_in_sandbox(proposed_fix)
 
         if not sandbox_result.get("tests_passed"):
-            return await self._reject(tenant_id, proposed_fix, sandbox_result.get("log", ""))
+            return await self._reject(
+                tenant_id, proposed_fix, sandbox_result.get("log", "")
+            )
 
-        if impact_score <= self.AUTO_APPLY_THRESHOLD and sandbox_result.get("tests_passed"):
-            return await self._apply_and_pr(tenant_id, error_pattern, proposed_fix, impact_score, dependency_tree)
+        if impact_score <= self.AUTO_APPLY_THRESHOLD and sandbox_result.get(
+            "tests_passed"
+        ):
+            return await self._apply_and_pr(
+                tenant_id, error_pattern, proposed_fix, impact_score, dependency_tree
+            )
 
-        return await self.self_healer.propose_fix(tenant_id, error_pattern, proposed_fix, impact_score, dependency_tree)
+        return await self.self_healer.propose_fix(
+            tenant_id, error_pattern, proposed_fix, impact_score, dependency_tree
+        )
 
     async def _run_in_sandbox(self, fix_code: str) -> dict[str, Any]:
         """
@@ -234,9 +245,13 @@ except Exception as e:
         impact_score: float,
         dependency_tree: list[str],
     ) -> str:
-        logger.info(f"Auto-applying fix for {tenant_id} and preparing PR. Impact score: {impact_score}")
+        logger.info(
+            f"Auto-applying fix for {tenant_id} and preparing PR. Impact score: {impact_score}"
+        )
         # Mimic applying the patch and generating a PR (logic from auto_remediation)
-        fix_id = await self.self_healer.propose_fix(tenant_id, error_pattern, fix_code, impact_score, dependency_tree)
+        fix_id = await self.self_healer.propose_fix(
+            tenant_id, error_pattern, fix_code, impact_score, dependency_tree
+        )
         # Apply the logic: update db status to applied
         if self._db:
             doc_ref = self._db.collection(f"tenants/{tenant_id}/fixes").document(fix_id)
@@ -257,7 +272,9 @@ async def _self_healer_error_listener(event: ErrorEvent):
     """
     If an error meets the criteria, it can trigger the self healer's propose_fix logic.
     """
-    logger.info(f"SelfHealer triggered by event from {event.module}: {event.error_type}")
+    logger.info(
+        f"SelfHealer triggered by event from {event.module}: {event.error_type}"
+    )
 
 
 # বাংলা মন্তব্য: লিসেনার রেজিস্ট্রেশন এখন মডিউল লেভেলে নেই — এটি ইম্পোর্ট সাইড ইফেক্ট তৈরি করত।

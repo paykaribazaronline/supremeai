@@ -105,7 +105,9 @@ def standalone_function():
         py_file.write_text(SAMPLE_PYTHON_CODE, encoding="utf-8")
         indexer.seed_dir = str(tmp_path)
 
-        with patch.object(indexer.vector_store, "add_documents", side_effect=Exception("DB error")):
+        with patch.object(
+            indexer.vector_store, "add_documents", side_effect=Exception("DB error")
+        ):
             result = indexer.index_seed_data(str(tmp_path))
         assert len(result["errors"]) > 0
 
@@ -169,7 +171,9 @@ def standalone_function():
 
     def test_record_search_feedback_with_rating(self, indexer):
         indexer.vector_store.query.return_value = []
-        feedback = indexer.record_search_feedback("session-1", "query", top_k=1, rating=4.0)
+        feedback = indexer.record_search_feedback(
+            "session-1", "query", top_k=1, rating=4.0
+        )
         assert feedback["user_rating"] == 4.0
 
     def test_record_thumbs_helpful(self, indexer):
@@ -242,7 +246,9 @@ def standalone_function():
         indexer.vector_store.collection_name = "test"
         indexer.vector_store._init_chroma = MagicMock()
 
-        with patch.object(indexer, "index_seed_data", return_value={"indexed": 5}) as mock_index:
+        with patch.object(
+            indexer, "index_seed_data", return_value={"indexed": 5}
+        ) as mock_index:
             result = indexer.rebuild_index()
         assert "indexed" in result
         mock_index.assert_called_once()
@@ -252,7 +258,9 @@ def standalone_function():
         indexer.vector_store._fallback_docs = MagicMock()
         indexer.vector_store._save_fallback = MagicMock()
 
-        with patch.object(indexer, "index_seed_data", return_value={"indexed": 3}) as mock_index:
+        with patch.object(
+            indexer, "index_seed_data", return_value={"indexed": 3}
+        ) as mock_index:
             result = indexer.rebuild_index()
         assert "indexed" in result
         mock_index.assert_called_once()

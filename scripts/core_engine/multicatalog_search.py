@@ -5,15 +5,16 @@ Provides unified search across all collected resource catalogs
 
 import json
 import logging
-from datetime import datetime
-from pathlib import Path
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from pathlib import Path
+from typing import Any
 
 
 class CatalogSource(Enum):
     """Enumeration of available catalog sources"""
+
     AWESOME_SELFHOSTED = "awesome-selfhosted"
     AWESOME_GO = "awesome-go"
     AWESOME_PYTHON = "awesome-python"
@@ -24,15 +25,16 @@ class CatalogSource(Enum):
 @dataclass
 class SearchResult:
     """Represents a search result from any catalog"""
+
     id: str
     name: str
     description: str
     source: CatalogSource
-    category: Optional[str] = None
-    url: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    category: str | None = None
+    url: str | None = None
+    metadata: dict[str, Any] | None = None
     relevance_score: float = 0.0
-    matched_fields: List[str] = None
+    matched_fields: list[str] = None
 
     def __post_init__(self):
         if self.metadata is None:
@@ -61,8 +63,8 @@ class MultiCatalogSearchEngine:
             self.data_root = Path(data_root)
 
         self.logger = self._setup_logger()
-        self.index: Dict[CatalogSource, List[Dict[str, Any]]] = {}
-        self.last_indexed: Dict[CatalogSource, datetime] = {}
+        self.index: dict[CatalogSource, list[dict[str, Any]]] = {}
+        self.last_indexed: dict[CatalogSource, datetime] = {}
         self._build_index()
 
     def _setup_logger(self) -> logging.Logger:
@@ -74,7 +76,7 @@ class MultiCatalogSearchEngine:
         if not logger.handlers:
             handler = logging.StreamHandler()
             formatter = logging.Formatter(
-                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
             )
             handler.setFormatter(formatter)
             logger.addHandler(handler)
@@ -85,7 +87,7 @@ class MultiCatalogSearchEngine:
         """Get the filesystem path for a catalog source"""
         return self.data_root / source.value
 
-    def _load_catalog_data(self, source: CatalogSource) -> List[Dict[str, Any]]:
+    def _load_catalog_data(self, source: CatalogSource) -> list[dict[str, Any]]:
         """
         Load all data files for a given catalog source
 
@@ -108,17 +110,26 @@ class MultiCatalogSearchEngine:
 
         for json_file in json_files:
             try:
-                with open(json_file, 'r', encoding='utf-8') as f:
+                with open(json_file, "r", encoding="utf-8") as f:
                     data = json.load(f)
 
                 # Handle both single objects and arrays
                 if isinstance(data, dict):
                     # Check if it's a single item or a collection with standard keys
-                    if any(key in data for key in ['name', 'id', 'repo_name', 'collection_name']):
+                    if any(
+                        key in data
+                        for key in ["name", "id", "repo_name", "collection_name"]
+                    ):
                         all_items.append(data)
                     else:
                         # Might be a wrapper object, look for common array keys
-                        for key in ['data', 'items', 'results', 'repositories', 'collections']:
+                        for key in [
+                            "data",
+                            "items",
+                            "results",
+                            "repositories",
+                            "collections",
+                        ]:
                             if key in data and isinstance(data[key], list):
                                 all_items.extend(data[key])
                                 break
@@ -128,7 +139,9 @@ class MultiCatalogSearchEngine:
                 elif isinstance(data, list):
                     all_items.extend(data)
                 else:
-                    self.logger.warning(f"Unexpected data type in {json_file}: {type(data)}")
+                    self.logger.warning(
+                        f"Unexpected data type in {json_file}: {type(data)}"
+                    )
 
             except Exception as e:
                 self.logger.error(f"Error loading {json_file}: {e}")
@@ -162,7 +175,7 @@ class MultiCatalogSearchEngine:
         total_items = sum(len(items) for items in self.index.values())
         self.logger.info(f"Index build complete. Total items: {total_items}")
 
-    def refresh_index(self, source: Optional[CatalogSource] = None):
+    def refresh_index(self, source: CatalogSource | None = None):
         """
         Refresh the index for a specific source or all sources
 
@@ -184,11 +197,8 @@ class MultiCatalogSearchEngine:
             )
 
     def _calculate_relevance(
-        self,
-        item: Dict[str, Any],
-        query: str,
-        fields_to_search: List[str] = None
-    ) -> tuple[float, List[str]]:
+        self, item: dict[str, Any], query: str, fields_to_search: list[str] = None
+    ) -> tuple[float, list[str]]:
         """
         Calculate relevance score for an item against a query
 
@@ -197,7 +207,7 @@ class MultiCatalogSearchEngine:
         """
         if fields_to_search is None:
             # Default fields to search
-            fields_to_search = ['name', 'description', 'repo_name', 'collection_name']
+            fields_to_search = ["name", "description", "repo_name", "collection_name"]
 
         query_lower = query.lower()
         score = 0.0
@@ -228,10 +238,10 @@ class MultiCatalogSearchEngine:
     def search(
         self,
         query: str,
-        sources: List[CatalogSource] = None,
+        sources: list[CatalogSource] = None,
         limit: int = 50,
-        min_score: float = 0.1
-    ) -> List[SearchResult]:
+        min_score: float = 0.1,
+    ) -> list[SearchResult]:
         """
         Search across catalog sources
 
@@ -250,7 +260,9 @@ class MultiCatalogSearchEngine:
         if sources is None:
             sources = list(CatalogSource)
 
-        self.logger.info(f"Searching for: '{query}' across {[s.value for s in sources]}")
+        self.logger.info(
+            f"Searching for: '{query}' across {[s.value for s in sources]}"
+        )
 
         all_results = []
 
@@ -263,13 +275,16 @@ class MultiCatalogSearchEngine:
                 continue
 
             # Determine fields to search based on source
-            fields_to_search = ['name', 'description']
+            fields_to_search = ["name", "description"]
             if source == CatalogSource.AWESOME_SELFHOSTED:
-                fields_to_search.extend(['category'])
-            elif source == CatalogSource.AWESOME_GO or source == CatalogSource.AWESOME_PYTHON:
-                fields_to_search.extend(['repo_name'])  # if present
+                fields_to_search.extend(["category"])
+            elif (
+                source == CatalogSource.AWESOME_GO
+                or source == CatalogSource.AWESOME_PYTHON
+            ):
+                fields_to_search.extend(["repo_name"])  # if present
             elif source == CatalogSource.OSSINSIGHT:
-                fields_to_search.extend(['name'])  # collections have 'name' field
+                fields_to_search.extend(["name"])  # collections have 'name' field
 
             # Search through items
             for item in items:
@@ -280,31 +295,29 @@ class MultiCatalogSearchEngine:
                 if score >= min_score:
                     # Extract common fields with fallbacks
                     name = (
-                        item.get('name') or
-                        item.get('repo_name') or
-                        item.get('collection_name') or
-                        item.get('id', 'unknown')
+                        item.get("name")
+                        or item.get("repo_name")
+                        or item.get("collection_name")
+                        or item.get("id", "unknown")
                     )
 
                     description = (
-                        item.get('description') or
-                        item.get('repo_description') or
-                        ''
+                        item.get("description") or item.get("repo_description") or ""
                     )
 
                     # Get category if available
-                    category = item.get('category')
+                    category = item.get("category")
 
                     # Get URL if available
                     url = (
-                        item.get('url') or
-                        item.get('repo_url') or
-                        item.get('html_url') or
-                        ''
+                        item.get("url")
+                        or item.get("repo_url")
+                        or item.get("html_url")
+                        or ""
                     )
 
                     result = SearchResult(
-                        id=str(item.get('id', '')),
+                        id=str(item.get("id", "")),
                         name=str(name),
                         description=str(description),
                         source=source,
@@ -312,7 +325,7 @@ class MultiCatalogSearchEngine:
                         url=url,
                         metadata=item,  # Store full item as metadata
                         relevance_score=score,
-                        matched_fields=matched_fields
+                        matched_fields=matched_fields,
                     )
 
                     all_results.append(result)
@@ -329,7 +342,7 @@ class MultiCatalogSearchEngine:
 
         return limited_results
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get statistics about the indexed data"""
         stats = {}
         total_items = 0
@@ -337,15 +350,18 @@ class MultiCatalogSearchEngine:
         for source in CatalogSource:
             count = len(self.index.get(source, []))
             stats[source.value] = {
-                'item_count': count,
-                'last_indexed': self.last_indexed.get(source, None)
+                "item_count": count,
+                "last_indexed": self.last_indexed.get(source, None),
             }
             total_items += count
 
-        stats['total_items'] = total_items
-        stats['index_age_seconds'] = {
-            source.value: (datetime.now() - self.last_indexed.get(source, datetime.now())).total_seconds()
-            for source in CatalogSource if source in self.last_indexed
+        stats["total_items"] = total_items
+        stats["index_age_seconds"] = {
+            source.value: (
+                datetime.now() - self.last_indexed.get(source, datetime.now())
+            ).total_seconds()
+            for source in CatalogSource
+            if source in self.last_indexed
         }
 
         return stats
@@ -364,7 +380,7 @@ def demo_search():
     stats = engine.get_stats()
     print("\nIndex Statistics:")
     for source, info in stats.items():
-        if source != 'total_items' and source != 'index_age_seconds':
+        if source != "total_items" and source != "index_age_seconds":
             print(f"  {source}: {info['item_count']} items")
     print(f"  Total: {stats['total_items']} items")
 
@@ -377,7 +393,7 @@ def demo_search():
         "api",
         "authentication",
         "monitoring",
-        "testing"
+        "testing",
     ]
 
     for query in test_queries:
@@ -389,7 +405,11 @@ def demo_search():
                 print(f"  {i}. [{result.source.value}] {result.name}")
                 print(f"     Score: {result.relevance_score:.2f}")
                 if result.description:
-                    desc = result.description[:100] + "..." if len(result.description) > 100 else result.description
+                    desc = (
+                        result.description[:100] + "..."
+                        if len(result.description) > 100
+                        else result.description
+                    )
                     print(f"     Description: {desc}")
                 if result.category:
                     print(f"     Category: {result.category}")

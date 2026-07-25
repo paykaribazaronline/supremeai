@@ -21,9 +21,7 @@ class SupremeAILoadTestUser(HttpUser):
     def on_start(self):
         """ইউজার বুট হওয়ার সময় ভ্যালিড এনভায়রনমেন্ট সিক্রেট টোকেন লোড করবে"""
         # প্রডাকশনে পুশ করার সময় secrets বা env থেকে আসল ভ্যালিড টেস্ট টোকেনটি এখানে বসাবে
-        self.auth_token = (
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0X3VzZXIiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MDQxNTM2MDB9.s1MP9mE1Jq_xV8u_D5-uF..."
-        )
+        self.auth_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0ZXN0X3VzZXIiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3MDQxNTM2MDB9.s1MP9mE1Jq_xV8u_D5-uF..."
         self.headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.auth_token}",
@@ -33,11 +31,15 @@ class SupremeAILoadTestUser(HttpUser):
     def fetch_skills(self):
         """GET /api/skills এন্ডপয়েন্টের ল্যাটেন্সি এবং ডিবি পুল টেস্ট"""
         # timeout=(connect_timeout, read_timeout) কড়াভাবে মেইনটেইন করা হয়েছে
-        with self.client.get("/api/skills", headers=self.headers, timeout=(5, 10), catch_response=True) as response:
+        with self.client.get(
+            "/api/skills", headers=self.headers, timeout=(5, 10), catch_response=True
+        ) as response:
             if response.status_code == 200:
                 response.success()
             else:
-                response.failure(f"Failed to fetch skills: {response.status_code} - {response.text}")
+                response.failure(
+                    f"Failed to fetch skills: {response.status_code} - {response.text}"
+                )
 
     @task(1)
     def execute_and_stream_task(self):
@@ -61,7 +63,9 @@ class SupremeAILoadTestUser(HttpUser):
             catch_response=True,
         ) as response:
             if response.status_code not in [200, 201, 202]:
-                response.failure(f"Task submission failed: {response.status_code} - {response.text}")
+                response.failure(
+                    f"Task submission failed: {response.status_code} - {response.text}"
+                )
                 return
             response.success()
 
@@ -77,7 +81,9 @@ class SupremeAILoadTestUser(HttpUser):
                 catch_response=True,
             ) as sse_response:
                 if sse_response.status_code != 200:
-                    sse_response.failure(f"SSE Gate Blocked: {sse_response.status_code}")
+                    sse_response.failure(
+                        f"SSE Gate Blocked: {sse_response.status_code}"
+                    )
                     return
 
                 # রিয়েল-টাইম চাঙ্ক বাফার রিড লুপ

@@ -19,7 +19,9 @@ class ChaosEngine:
         if random.random() > 0.05:  # noqa: S311
             return
 
-        fault_type = random.choice(["latency", "timeout", "cache_evict", "llm_down"])  # noqa: S311
+        fault_type = random.choice(
+            ["latency", "timeout", "cache_evict", "llm_down"]
+        )  # noqa: S311
         if fault_type == "latency":
             logger.warning("💉 Chaos: Injecting 2s latency to simulate network spike")
             await asyncio.sleep(2)

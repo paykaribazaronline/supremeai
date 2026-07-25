@@ -4,7 +4,6 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from core.security.secret_vault import ProductionSecretVault
 
 
@@ -16,7 +15,9 @@ def vault_local():
 
 @pytest.fixture
 def vault_production():
-    with patch.dict(os.environ, {"ENV": "production", "GCP_PROJECT_ID": "proj-1"}, clear=False):
+    with patch.dict(
+        os.environ, {"ENV": "production", "GCP_PROJECT_ID": "proj-1"}, clear=False
+    ):
         mock_client = MagicMock()
         with patch("core.security.secret_vault.secretmanager", create=True):
             with patch.object(ProductionSecretVault, "__init__", lambda self: None):
@@ -34,7 +35,9 @@ def test_local_mode_initialization(vault_local):
 
 
 def test_fetch_secret_from_env(vault_local):
-    with patch.dict(os.environ, {"MY_SECRET": "env_value"}, clear=False):  # pragma: allowlist secret
+    with patch.dict(
+        os.environ, {"MY_SECRET": "env_value"}, clear=False
+    ):  # pragma: allowlist secret
         assert vault_local.fetch_secret("MY_SECRET") == "env_value"
 
 

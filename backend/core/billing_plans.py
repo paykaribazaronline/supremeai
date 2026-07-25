@@ -5,7 +5,8 @@ Key Components:
 - `SUBSCRIPTION_PLANS`: A constant list of dictionaries, each representing a distinct subscription plan with details like ID, name, price, currency, interval, and included features.
 
 Dependencies:
-- `pydantic`: Used for defining `CheckoutRequest` to ensure robust data validation and serialization."""  # noqa: E501
+- `pydantic`: Used for defining `CheckoutRequest` to ensure robust data validation and serialization.
+"""  # noqa: E501
 
 from pydantic import BaseModel
 

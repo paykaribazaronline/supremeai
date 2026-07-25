@@ -6,6 +6,7 @@
 
 import importlib
 from typing import Any
+
 from loguru import logger
 
 
@@ -25,6 +26,14 @@ def lazy_import(module_name: str, package_hint: str | None = None) -> Any:
     try:
         return importlib.import_module(module_name)
     except ImportError as exc:
-        hint = f" Please install it via 'poetry install --with {package_hint}'." if package_hint else ""
-        logger.warning(f"⚠️ [LazyLoader] Optional package '{module_name}' is not available in light mode.{hint}")
-        raise RuntimeError(f"Package '{module_name}' is required for this feature but not installed.{hint}") from exc
+        hint = (
+            f" Please install it via 'poetry install --with {package_hint}'."
+            if package_hint
+            else ""
+        )
+        logger.warning(
+            f"⚠️ [LazyLoader] Optional package '{module_name}' is not available in light mode.{hint}"
+        )
+        raise RuntimeError(
+            f"Package '{module_name}' is required for this feature but not installed.{hint}"
+        ) from exc

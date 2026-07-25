@@ -5,7 +5,6 @@ import os
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
 from api.routes import session_takeover
 
 
@@ -21,7 +20,9 @@ async def test_verify_takeover_token_rejects_replay_when_redis_available(monkeyp
     # প্রথমবার consume সফল (True), দ্বিতীয়বার token আগেই ব্যবহৃত (None/False)
     fake_redis.set.side_effect = [True, None]
 
-    with patch.object(session_takeover, "_redis_client", AsyncMock(return_value=fake_redis)):
+    with patch.object(
+        session_takeover, "_redis_client", AsyncMock(return_value=fake_redis)
+    ):
         first = await session_takeover.verify_takeover_token("tok_abc123")
         second = await session_takeover.verify_takeover_token("tok_abc123")
 

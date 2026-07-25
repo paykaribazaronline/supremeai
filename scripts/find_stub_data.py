@@ -22,30 +22,41 @@ import re
 import sys
 from pathlib import Path
 
-
 # 🚨 Stub প্যাটার্ন — এগুলো কোডবেসে থাকা মানে ফিচার production-ready না
 STUB_PATTERNS: list[tuple[str, str, str]] = [
     # (pattern_name, regex, severity)
-    ("simulated_api_key", r'simulated_api_key_\w+', "CRITICAL"),
+    ("simulated_api_key", r"simulated_api_key_\w+", "CRITICAL"),
     ("test_user_id", r'user_id\s*=\s*["\']test_user_id["\']', "CRITICAL"),
-    ("placeholder_token", r'YOUR_DECRYPTED_TOKEN_HERE', "CRITICAL"),
-    ("placeholder_api_key", r'YOUR_API_KEY_HERE', "CRITICAL"),
-    ("placeholder_secret", r'YOUR_SECRET_HERE', "CRITICAL"),
-    ("dummy_email", r'recovery@yourdomain\.com', "HIGH"),
-    ("dummy_domain", r'@yourdomain\.com', "HIGH"),
-    ("simulate_saving", r'Simulate saving to database', "HIGH"),
-    ("simulate_saving_comment", r'# Simulate saving', "HIGH"),
-    ("fake_response", r'Mock different responses based on provider', "MEDIUM"),
-    ("placeholder_implementation", r'placeholder implementation', "MEDIUM"),
+    ("placeholder_token", r"YOUR_DECRYPTED_TOKEN_HERE", "CRITICAL"),
+    ("placeholder_api_key", r"YOUR_API_KEY_HERE", "CRITICAL"),
+    ("placeholder_secret", r"YOUR_SECRET_HERE", "CRITICAL"),
+    ("dummy_email", r"recovery@yourdomain\.com", "HIGH"),
+    ("dummy_domain", r"@yourdomain\.com", "HIGH"),
+    ("simulate_saving", r"Simulate saving to database", "HIGH"),
+    ("simulate_saving_comment", r"# Simulate saving", "HIGH"),
+    ("fake_response", r"Mock different responses based on provider", "MEDIUM"),
+    ("placeholder_implementation", r"placeholder implementation", "MEDIUM"),
     ("stub_response", r'return f"Response from.*:.*\.\.\."', "MEDIUM"),
-    ("hardcoded_localhost_redirect", r'redirect_uri\s*=\s*["\']http://localhost:8000', "MEDIUM"),
-    ("hardcoded_localhost_frontend", r'RedirectResponse\(url=["\']http://localhost:5173', "MEDIUM"),
-    ("mock_data_constant", r'\bconst\s+MOCK_[A-Z_]+\s*[:=]', "HIGH"),
-    ("mock_data_constant_py", r'^\s*MOCK_[A-Z_]+\s*[:=]\s*\[', "HIGH"),
-    ("hardcoded_mock_pr_url", r'["\']https://github\.com/[^"\']*/pull/\d+["\']', "CRITICAL"),
-    ("mock_commit_hash", r'mock_commit_hash', "CRITICAL"),
-    ("simulating_action_log", r'[Ss]imulat(e|ing)\s+(git\s+)?commit', "HIGH"),
-    ("todo_replace_mock", r'TODO.*(replace|remove).*mock', "MEDIUM"),
+    (
+        "hardcoded_localhost_redirect",
+        r'redirect_uri\s*=\s*["\']http://localhost:8000',
+        "MEDIUM",
+    ),
+    (
+        "hardcoded_localhost_frontend",
+        r'RedirectResponse\(url=["\']http://localhost:5173',
+        "MEDIUM",
+    ),
+    ("mock_data_constant", r"\bconst\s+MOCK_[A-Z_]+\s*[:=]", "HIGH"),
+    ("mock_data_constant_py", r"^\s*MOCK_[A-Z_]+\s*[:=]\s*\[", "HIGH"),
+    (
+        "hardcoded_mock_pr_url",
+        r'["\']https://github\.com/[^"\']*/pull/\d+["\']',
+        "CRITICAL",
+    ),
+    ("mock_commit_hash", r"mock_commit_hash", "CRITICAL"),
+    ("simulating_action_log", r"[Ss]imulat(e|ing)\s+(git\s+)?commit", "HIGH"),
+    ("todo_replace_mock", r"TODO.*(replace|remove).*mock", "MEDIUM"),
 ]
 
 
@@ -86,11 +97,14 @@ def is_excepted(filepath: str, pattern_name: str) -> bool:
         return True
 
     import fnmatch
+
     for file_glob, excepted_pattern in ALLOWED_EXCEPTIONS:
         if pattern_name != excepted_pattern:
             continue
         # fnmatch ব্যবহার করে সঠিকভাবে glob ও ওয়াইল্ডকার্ড ম্যাচ করা হচ্ছে
-        if fnmatch.fnmatch(filepath, file_glob) or fnmatch.fnmatch(filepath, f"*/{file_glob}"):
+        if fnmatch.fnmatch(filepath, file_glob) or fnmatch.fnmatch(
+            filepath, f"*/{file_glob}"
+        ):
             return True
         if file_glob in filepath:
             return True
@@ -116,20 +130,30 @@ def scan_file(filepath: str) -> list[dict]:
 
             if re.search(regex, line):
                 if not is_excepted(filepath, pattern_name):
-                    findings.append({
-                        "file": filepath,
-                        "line": i,
-                        "pattern": pattern_name,
-                        "severity": severity,
-                        "snippet": line.strip()[:120],
-                    })
+                    findings.append(
+                        {
+                            "file": filepath,
+                            "line": i,
+                            "pattern": pattern_name,
+                            "severity": severity,
+                            "snippet": line.strip()[:120],
+                        }
+                    )
     return findings
 
 
 def scan_directory(root_dir: str, exclude_dirs: list[str] | None = None) -> list[dict]:
     """একটি ডিরেক্টরি রিকার্সিভলি স্ক্যান করে এবং অপ্রয়োজনীয় ডিরেক্টরি এড়ায় (prune করে)।"""
     if exclude_dirs is None:
-        exclude_dirs = [".venv", "node_modules", "__pycache__", ".git", ".agent", "docs", "infrastructure"]
+        exclude_dirs = [
+            ".venv",
+            "node_modules",
+            "__pycache__",
+            ".git",
+            ".agent",
+            "docs",
+            "infrastructure",
+        ]
 
     all_findings: list[dict] = []
 
@@ -140,7 +164,19 @@ def scan_directory(root_dir: str, exclude_dirs: list[str] | None = None) -> list
 
         for file in files:
             filepath = Path(root) / file
-            if filepath.suffix in {".py", ".ts", ".tsx", ".js", ".jsx", ".java", ".kt", ".yaml", ".yml", ".json", ".md"}:
+            if filepath.suffix in {
+                ".py",
+                ".ts",
+                ".tsx",
+                ".js",
+                ".jsx",
+                ".java",
+                ".kt",
+                ".yaml",
+                ".yml",
+                ".json",
+                ".md",
+            }:
                 findings = scan_file(str(filepath))
                 all_findings.extend(findings)
 
@@ -159,7 +195,15 @@ def main():
     parser.add_argument(
         "--exclude",
         nargs="*",
-        default=[".venv", "node_modules", "__pycache__", ".git", ".agent", "docs", "infrastructure"],
+        default=[
+            ".venv",
+            "node_modules",
+            "__pycache__",
+            ".git",
+            ".agent",
+            "docs",
+            "infrastructure",
+        ],
         help="এক্সক্লুড করার ডিরেক্টরি",
     )
     parser.add_argument(
@@ -199,25 +243,44 @@ def main():
     print()
 
     for f in findings:
-        sev_icon = {"CRITICAL": "[CRITICAL]", "HIGH": "[HIGH]", "MEDIUM": "[MEDIUM]", "LOW": "[LOW]"}
+        sev_icon = {
+            "CRITICAL": "[CRITICAL]",
+            "HIGH": "[HIGH]",
+            "MEDIUM": "[MEDIUM]",
+            "LOW": "[LOW]",
+        }
         # বাংলা মন্তব্য: উইন্ডোজ কনসোলে কোনো ডিকোড না হওয়া ক্যারেক্টার থাকলে তা হ্যান্ডেল করার জন্য backslashreplace ব্যবহার করা হলো।
-        safe_pattern = f['pattern'].encode(sys.stdout.encoding or 'utf-8', errors='replace').decode(sys.stdout.encoding or 'utf-8')
-        safe_file = f['file'].encode(sys.stdout.encoding or 'utf-8', errors='replace').decode(sys.stdout.encoding or 'utf-8')
-        safe_snippet = f['snippet'].encode(sys.stdout.encoding or 'utf-8', errors='replace').decode(sys.stdout.encoding or 'utf-8')
+        safe_pattern = (
+            f["pattern"]
+            .encode(sys.stdout.encoding or "utf-8", errors="replace")
+            .decode(sys.stdout.encoding or "utf-8")
+        )
+        safe_file = (
+            f["file"]
+            .encode(sys.stdout.encoding or "utf-8", errors="replace")
+            .decode(sys.stdout.encoding or "utf-8")
+        )
+        safe_snippet = (
+            f["snippet"]
+            .encode(sys.stdout.encoding or "utf-8", errors="replace")
+            .decode(sys.stdout.encoding or "utf-8")
+        )
         print(f"  {sev_icon.get(f['severity'], '[INFO]')} {safe_pattern}")
         print(f"     File: {safe_file}:{f['line']}")
         print(f"     Code: {safe_snippet}")
         print()
 
     # Determine if we should fail
-    max_severity = min(
-        severity_order.get(f["severity"], 3) for f in findings
-    )
+    max_severity = min(severity_order.get(f["severity"], 3) for f in findings)
     if max_severity <= fail_threshold:
-        print(f"[FAIL] FAIL — Found stub patterns at or above '{args.fail_on}' severity")
+        print(
+            f"[FAIL] FAIL — Found stub patterns at or above '{args.fail_on}' severity"
+        )
         sys.exit(1)
     else:
-        print(f"[WARN] WARNING — Found stub patterns below '{args.fail_on}' severity threshold (not failing)")
+        print(
+            f"[WARN] WARNING — Found stub patterns below '{args.fail_on}' severity threshold (not failing)"
+        )
         sys.exit(0)
 
 

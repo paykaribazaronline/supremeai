@@ -1,7 +1,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from models.shared_workspace import SharedWorkspace
 
 
@@ -58,7 +57,9 @@ async def test_swarm_orchestrator_execute_task(mock_agents):
         new_callable=AsyncMock,
         return_value={"agent_name": "mocked"},
     ):
-        result = await orchestrator.execute_task("write a python script", user_id="user1")
+        result = await orchestrator.execute_task(
+            "write a python script", user_id="user1"
+        )
 
     from core.orchestration.swarm_orchestrator import ExecutionResult
 

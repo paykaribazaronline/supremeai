@@ -8,11 +8,10 @@ import uuid
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.evolution.agent_breeder import AgentBreeder, BreederConfig
 from core.evolution.performance_oracle import OracleConfig, PerformanceOracle
 from models.meta_ai import AgentGenome, AgentStatus, MetricType
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.mark.asyncio
@@ -69,10 +68,14 @@ async def test_meta_ai_models_and_logic():
 
     # Test promotion
     promoted = await breeder.promote_if_elite(offspring, p1, p2)
-    assert promoted is None  # since offspring fitness is 0.5 by default which is <= parent fitness 0.8
+    assert (
+        promoted is None
+    )  # since offspring fitness is 0.5 by default which is <= parent fitness 0.8
 
     # Verify PerformanceOracle
     oracle = PerformanceOracle(db_mock, config=OracleConfig.from_settings())
-    metric = await oracle.record_metric("test_agent", MetricType.RESPONSE_TIME_MS, 150.0, "ms")
+    metric = await oracle.record_metric(
+        "test_agent", MetricType.RESPONSE_TIME_MS, 150.0, "ms"
+    )
     assert metric.agent_name == "test_agent"
     assert metric.value == 150.0

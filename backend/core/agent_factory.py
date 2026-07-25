@@ -1,10 +1,9 @@
 import json
 
-from loguru import logger
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.llm.llm_gateway import llm_gateway
+from loguru import logger
 from models.dynamic_agent import DynamicAgent
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class DynamicAgentFactory:
@@ -69,7 +68,11 @@ class DynamicAgentFactory:
         # ডাটাবেজে আজীবনের জন্য সেভ করে রাখা
         # বাংলা মন্তব্য: script (str) কে JSON-compatible dict-এ মোড়ানো হচ্ছে — type mismatch fix
         script_content = agent_config.get("script", "")
-        steps_data = {"script": script_content} if isinstance(script_content, str) else script_content
+        steps_data = (
+            {"script": script_content}
+            if isinstance(script_content, str)
+            else script_content
+        )
         await self._save_agent_to_registry(
             name=agent_config.get("agent_name"),
             description=agent_config.get("description", task_description),
@@ -78,7 +81,9 @@ class DynamicAgentFactory:
 
         return agent_config
 
-    async def _save_agent_to_registry(self, name: str, description: str, steps: str | dict | list):
+    async def _save_agent_to_registry(
+        self, name: str, description: str, steps: str | dict | list
+    ):
         try:
             from sqlalchemy import select
 
@@ -86,13 +91,19 @@ class DynamicAgentFactory:
             result = await self.db.execute(stmt)
             existing = result.scalars().first()
             if existing:
-                existing.execution_steps = {"script": steps}  # সামঞ্জস্যের জন্য script-কে JSON-এ মোড়ানো হলো
+                existing.execution_steps = {
+                    "script": steps
+                }  # সামঞ্জস্যের জন্য script-কে JSON-এ মোড়ানো হলো
                 existing.description = description
             else:
-                new_agent = DynamicAgent(name=name, description=description, execution_steps=steps)
+                new_agent = DynamicAgent(
+                    name=name, description=description, execution_steps=steps
+                )
                 self.db.add(new_agent)
             await self.db.commit()
-            logger.success(f"🧠 [AgentFactory] New skill learned and registered: '{name}'")
+            logger.success(
+                f"🧠 [AgentFactory] New skill learned and registered: '{name}'"
+            )
         except Exception as exc:  # noqa: BLE001
             await self.db.rollback()
             logger.error(f"Failed to save dynamic agent to registry: {exc}")

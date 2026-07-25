@@ -19,13 +19,12 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from typing import Any
-from collections.abc import Callable, Coroutine
-
-from loguru import logger
 
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
+from loguru import logger
 
 
 @dataclass
@@ -85,7 +84,9 @@ class AgentSupervisor:
             restart_delay: Initial delay before restart (doubles on each failure).
         """
         if name in self._agents and not self._agents[name].done():
-            logger.warning(f"Agent '{name}' is already running. Skipping duplicate start.")
+            logger.warning(
+                f"Agent '{name}' is already running. Skipping duplicate start."
+            )
             return
 
         self._health[name] = AgentHealth(
@@ -159,7 +160,8 @@ class AgentSupervisor:
                 logger.info(f"✅ All {len(self._agents)} agents shut down gracefully.")
             except TimeoutError:
                 logger.warning(
-                    f"⚠️ Agent shutdown timed out after {timeout}s. " f"Remaining: {sum(1 for t in self._agents.values() if not t.done())} agents."
+                    f"⚠️ Agent shutdown timed out after {timeout}s. "
+                    f"Remaining: {sum(1 for t in self._agents.values() if not t.done())} agents."
                 )
             except asyncio.CancelledError:
                 pass
@@ -252,7 +254,9 @@ class AgentSupervisor:
                 health.last_error = str(exc)
                 health.status = "failed"
 
-                logger.error(f"❌ Agent '{name}' failed (attempt #{restart_count}): {exc}")
+                logger.error(
+                    f"❌ Agent '{name}' failed (attempt #{restart_count}): {exc}"
+                )
 
                 # Emit error event
                 try:
@@ -275,7 +279,10 @@ class AgentSupervisor:
 
                 # Check max restarts
                 if restart_count >= max_restarts:
-                    logger.critical(f"🔥 Agent '{name}' exceeded max restarts ({max_restarts}). " f"Giving up permanently.")
+                    logger.critical(
+                        f"🔥 Agent '{name}' exceeded max restarts ({max_restarts}). "
+                        f"Giving up permanently."
+                    )
                     health.status = "failed_permanent"
                     try:
                         error_event_bus.emit(
@@ -298,7 +305,10 @@ class AgentSupervisor:
 
                 # Exponential backoff before restart
                 delay = min(restart_delay * (2 ** (restart_count - 1)), 30.0)
-                logger.info(f"🔄 Restarting agent '{name}' in {delay:.1f}s " f"(attempt {restart_count}/{max_restarts})...")
+                logger.info(
+                    f"🔄 Restarting agent '{name}' in {delay:.1f}s "
+                    f"(attempt {restart_count}/{max_restarts})..."
+                )
                 await asyncio.sleep(delay)
 
         # Cleanup
@@ -324,7 +334,10 @@ class AgentSupervisor:
                 if task and task.done() and not task.cancelled():
                     # Task died without triggering our exception handler
                     # (e.g., if the coroutine returned normally but shouldn't have)
-                    logger.warning(f"⚠️ Agent '{name}' task completed unexpectedly. " f"Status was '{health.status}'.")
+                    logger.warning(
+                        f"⚠️ Agent '{name}' task completed unexpectedly. "
+                        f"Status was '{health.status}'."
+                    )
                     health.status = "failed"
                     health.last_error = "Task completed unexpectedly"
 
@@ -332,7 +345,10 @@ class AgentSupervisor:
                 if health.last_heartbeat > 0:
                     time_since_heartbeat = time.time() - health.last_heartbeat
                     if time_since_heartbeat > dead_threshold:
-                        logger.warning(f"⚠️ Agent '{name}' has no heartbeat for " f"{time_since_heartbeat:.0f}s (threshold: {dead_threshold}s).")
+                        logger.warning(
+                            f"⚠️ Agent '{name}' has no heartbeat for "
+                            f"{time_since_heartbeat:.0f}s (threshold: {dead_threshold}s)."
+                        )
 
     async def start_monitor(self, check_interval: int = 30) -> None:
         """Start the background health monitor."""

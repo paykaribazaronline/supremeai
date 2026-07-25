@@ -2,11 +2,13 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
+from core.resilience.circuit_breaker import (CircuitBreaker,
+                                             CircuitBreakerOpenError)
 from tenacity import RetryError, retry, stop_after_attempt, wait_exponential
 
-from core.resilience.circuit_breaker import CircuitBreaker, CircuitBreakerOpenError
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
 # --- সার্কিট ব্রেকার কনফিগারেশন ---
 # কোনো ফাংশন ৩ বার ব্যর্থ হলে সার্কিট "open" হবে এবং পরবর্তী ৩০ সেকেন্ডের জন্য সেই ফাংশনে কোনো কল যেতে দেবে না।
@@ -64,20 +66,30 @@ if __name__ == "__main__":
     except (RetryError, CircuitBreakerOpenError) as e:
         logging.error(f"ত্রুটি: {e}")
 
-    logging.info("\n--- পরিস্থিতি ২: সার্ভিস অস্থায়ীভাবে ফেইল করছে (কিন্তু রিট্রাই করে সফল হবে) ---")
+    logging.info(
+        "\n--- পরিস্থিতি ২: সার্ভিস অস্থায়ীভাবে ফেইল করছে (কিন্তু রিট্রাই করে সফল হবে) ---"
+    )
     # এখানে আমরা এমন একটি পরিস্থিতি তৈরি করছি যেখানে প্রথমবার ফেইল করলেও দ্বিতীয়বার সফল হবে।
     # এই উদাহরণটি দেখানোর জন্য সরাসরি resilient_call ব্যবহার না করে ম্যানুয়ালি দেখানো হলো।
 
-    logging.info("\n--- পরিস্থিতি ৩: সার্ভিস স্থায়ীভাবে ফেইল করছে (সার্কিট ব্রেকার ওপেন হবে) ---")
+    logging.info(
+        "\n--- পরিস্থিতি ৩: সার্ভিস স্থায়ীভাবে ফেইল করছে (সার্কিট ব্রেকার ওপেন হবে) ---"
+    )
     try:
         # এই কলটি ৩ বার রিট্রাই করার পর চূড়ান্তভাবে ফেইল করবে
         resilient_call(service.unstable_operation, should_fail=True)
     except (RetryError, CircuitBreakerOpenError) as e:
-        logging.error(f"চূড়ান্ত ত্রুটি: {e}. সার্কিট ব্রেকার এখন '{db_breaker.state.name}' অবস্থায় আছে।")
+        logging.error(
+            f"চূড়ান্ত ত্রুটি: {e}. সার্কিট ব্রেকার এখন '{db_breaker.state.name}' অবস্থায় আছে।"
+        )
 
-    logging.info("\n--- পরিস্থিতি ৪: সার্কিট ব্রেকার 'open' থাকা অবস্থায় পুনরায় কল করার চেষ্টা ---")
+    logging.info(
+        "\n--- পরিস্থিতি ৪: সার্কিট ব্রেকার 'open' থাকা অবস্থায় পুনরায় কল করার চেষ্টা ---"
+    )
     try:
         resilient_call(service.unstable_operation, should_fail=True)
     except CircuitBreakerOpenError as e:
         logging.warning(f"সার্কিট ওপেন থাকায় কলটি ব্লক করা হয়েছে: {e}")
-        logging.info(f"ব্রেকার রিসেট হতে আর {db_breaker.recovery_timeout} সেকেন্ড অপেক্ষা করতে হবে।")
+        logging.info(
+            f"ব্রেকার রিসেট হতে আর {db_breaker.recovery_timeout} সেকেন্ড অপেক্ষা করতে হবে।"
+        )

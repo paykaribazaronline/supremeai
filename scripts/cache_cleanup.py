@@ -1,6 +1,7 @@
 import os
 import sys
 
+
 def main():
     print("Running cache cleanup...")
     redis_url = os.getenv("REDIS_URL")
@@ -10,6 +11,7 @@ def main():
 
     try:
         import redis
+
         r = redis.from_url(redis_url)
         r.ping()
         print("Connected to Redis. Cache cleanup placeholder complete.")
@@ -17,6 +19,7 @@ def main():
         print(f"Error during cache cleanup: {e}", file=sys.stderr)
         return 1
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

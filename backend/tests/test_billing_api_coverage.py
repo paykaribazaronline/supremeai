@@ -69,7 +69,9 @@ class TestBillingTopUp:
         payload = TopUpRequest(amount=50.0, currency="USD")
 
         with patch("api.routes.billing_api.stripe") as mock_stripe:
-            mock_stripe.checkout.Session.create.return_value = MagicMock(url="https://checkout.stripe.com/test")
+            mock_stripe.checkout.Session.create.return_value = MagicMock(
+                url="https://checkout.stripe.com/test"
+            )
             result = top_up(payload, mock_request)
 
         assert "checkout_url" in result
@@ -116,7 +118,9 @@ class TestBillingWebhook:
         )
         mock_request.headers = {"stripe-signature": "test-sig"}
 
-        with patch("api.routes.billing_api.stripe.Webhook.construct_event") as mock_construct:
+        with patch(
+            "api.routes.billing_api.stripe.Webhook.construct_event"
+        ) as mock_construct:
             mock_event = MagicMock()
             mock_event.type = "checkout.session.completed"
             mock_event.data.object.client_reference_id = "test-user"
@@ -129,12 +133,13 @@ class TestBillingWebhook:
 
     def test_webhook_invalid_signature(self):
         """Invalid webhook signature should raise 400."""
+        from api.routes.billing_api import stripe_webhook
         from stripe.error import SignatureVerificationError
 
-        from api.routes.billing_api import stripe_webhook
-
         mock_request = MagicMock()
-        mock_request.body = AsyncMock(return_value=b'{"type": "checkout.session.completed"}')
+        mock_request.body = AsyncMock(
+            return_value=b'{"type": "checkout.session.completed"}'
+        )
         mock_request.headers = {"stripe-signature": "bad-sig"}
 
         with patch(

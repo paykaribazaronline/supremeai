@@ -19,18 +19,18 @@ Environment Variables:
 - SERVICE_NAME: Name of this service instance (default: "SupremeAI-Standup")
 """
 
-import sys
-import os
-import time
-import schedule
-from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Any
 import logging
+import os
+import sys
+import time
+from datetime import datetime, timedelta, timezone
+from typing import Any
+
+import schedule
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -44,6 +44,7 @@ INCLUDE_METRICS = os.getenv("INCLUDE_METRICS", "true").lower() == "true"
 INCLUDE_ERRORS = os.getenv("INCLUDE_ERRORS", "true").lower() == "true"
 SERVICE_NAME = os.getenv("SERVICE_NAME", "SupremeAI-Standup")
 
+
 def save_standup_report(report_content: str) -> bool:
     """Saves the generated standup report to a shared location for the dashboard."""
     logger.info("Saving daily standup report for the admin dashboard.")
@@ -52,7 +53,9 @@ def save_standup_report(report_content: str) -> bool:
         # For now, we'll save it to a local file.
         report_dir = "/app/data/reports"
         os.makedirs(report_dir, exist_ok=True)
-        report_path = os.path.join(report_dir, f"standup_{datetime.now(timezone.utc).strftime('%Y-%m-%d')}.md")
+        report_path = os.path.join(
+            report_dir, f"standup_{datetime.now(timezone.utc).strftime('%Y-%m-%d')}.md"
+        )
         with open(report_path, "w", encoding="utf-8") as f:
             f.write(report_content)
         logger.info(f"Standup report saved to {report_path}")
@@ -60,6 +63,7 @@ def save_standup_report(report_content: str) -> bool:
     except Exception as e:
         logger.error(f"Failed to save standup report: {e}")
         return False
+
 
 def send_standup(message: str) -> bool:
     """Generate and save the standup report for the dashboard."""
@@ -71,7 +75,8 @@ def send_standup(message: str) -> bool:
         logger.error("Failed to store standup report.")
         return False
 
-def get_yesterday_stats() -> Dict[str, Any]:
+
+def get_yesterday_stats() -> dict[str, Any]:
     """Get statistics for yesterday."""
     # In a real implementation, this would query your databases, logging systems, etc.
     # For this example, we'll return mock data
@@ -96,25 +101,32 @@ def get_yesterday_stats() -> Dict[str, Any]:
             {"endpoint": "/api/v1/embed", "count": 3100, "avg_time": 85},
             {"endpoint": "/api/v1/analyze", "count": 1800, "avg_time": 220},
             {"endpoint": "/api/v1/generate", "count": 1200, "avg_time": 350},
-            {"endpoint": "/api/v1/translate", "count": 1150, "avg_time": 95}
+            {"endpoint": "/api/v1/translate", "count": 1150, "avg_time": 95},
         ],
         "error_summary": [
             {"type": "RateLimitError", "count": 120, "message": "Too many requests"},
-            {"type": "ValidationError", "count": 95, "message": "Invalid input parameters"},
+            {
+                "type": "ValidationError",
+                "count": 95,
+                "message": "Invalid input parameters",
+            },
             {"type": "InternalError", "count": 75, "message": "Internal server error"},
             {"type": "TimeoutError", "count": 40, "message": "Request timeout"},
-            {"type": "AuthError", "count": 20, "message": "Authentication failed"}
+            {"type": "AuthError", "count": 20, "message": "Authentication failed"},
         ],
         "system_events": [
             {"time": "02:15", "event": "Deployed version 2.1.0 to production"},
             {"time": "14:30", "event": "Scaled up frontend due to traffic spike"},
-            {"time": "22:45", "event": "Completed daily backup successfully"}
-        ]
+            {"time": "22:45", "event": "Completed daily backup successfully"},
+        ],
     }
 
     return stats
 
-def format_feedback_card(title: str, items: List[Dict[str, Any]], item_format_func) -> str:
+
+def format_feedback_card(
+    title: str, items: list[dict[str, Any]], item_format_func
+) -> str:
     """Format a section of the report with a title and list of items."""
     if not items:
         return ""
@@ -124,17 +136,23 @@ def format_feedback_card(title: str, items: List[Dict[str, Any]], item_format_fu
         section += f"- {item_format_func(item)}\n"
     return section
 
-def format_endpoint_stat(item: Dict[str, Any]) -> str:
-    """Format an endpoint statistics item."""
-    return f"`{item['endpoint']}`: {item['count']:,} requests (avg {item['avg_time']}ms)"
 
-def format_error_item(item: Dict[str, Any]) -> str:
+def format_endpoint_stat(item: dict[str, Any]) -> str:
+    """Format an endpoint statistics item."""
+    return (
+        f"`{item['endpoint']}`: {item['count']:,} requests (avg {item['avg_time']}ms)"
+    )
+
+
+def format_error_item(item: dict[str, Any]) -> str:
     """Format an error summary item."""
     return f"**{item['type']}**: {item['count']} occurrences - {item['message']}"
 
-def format_event_item(item: Dict[str, Any]) -> str:
+
+def format_event_item(item: dict[str, Any]) -> str:
     """Format a system event item."""
     return f"**{item['time']}**: {item['event']}"
+
 
 def generate_standup_message() -> str:
     """Generate the daily standup message."""
@@ -160,25 +178,19 @@ Good morning! Here's what happened in the SupremeAI system yesterday:
     # Add metrics section if enabled
     if INCLUDE_METRICS:
         message += format_feedback_card(
-            "🔥 Top Endpoints by Usage",
-            stats["top_endpoints"],
-            format_endpoint_stat
+            "🔥 Top Endpoints by Usage", stats["top_endpoints"], format_endpoint_stat
         )
 
     # Add errors section if enabled
     if INCLUDE_ERRORS and stats.get("error_summary"):
         message += format_feedback_card(
-            "❌ Error Summary",
-            stats["error_summary"],
-            format_error_item
+            "❌ Error Summary", stats["error_summary"], format_error_item
         )
 
     # Add system events
     if stats.get("system_events"):
         message += format_feedback_card(
-            "⚙️ System Events",
-            stats["system_events"],
-            format_event_item
+            "⚙️ System Events", stats["system_events"], format_event_item
         )
 
     # Footer
@@ -190,24 +202,29 @@ Good morning! Here's what happened in the SupremeAI system yesterday:
 
     return message
 
+
 def run_scheduler() -> None:
     """Run the scheduler loop."""
     # Schedule the daily standup
     schedule.every().day.at(f"{STANDUP_HOUR:02d}:{STANDUP_MINUTE:02d}").do(
         lambda: send_standup(generate_standup_message())
-    ).timezone = timezone(timedelta(hours=int(TIMEZONE))) if TIMEZONE != "UTC" else timezone.utc
+    ).timezone = (
+        timezone(timedelta(hours=int(TIMEZONE))) if TIMEZONE != "UTC" else timezone.utc
+    )
 
-    print(f"⏰ Scheduled daily standup for {STANDUP_HOUR:02d}:{STANDUP_MINUTE:02d} {TIMEZONE}")
+    print(
+        f"⏰ Scheduled daily standup for {STANDUP_HOUR:02d}:{STANDUP_MINUTE:02d} {TIMEZONE}"
+    )
 
     # Send an immediate test run if requested
     if os.getenv("RUN_NOW", "false").lower() == "true":
         print("🚀 Running immediate test...")
         message = generate_standup_message()
-        print("\n" + "="*50)
+        print("\n" + "=" * 50)
         print("TEST MESSAGE:")
-        print("="*50)
+        print("=" * 50)
         print(message)
-        print("="*50)
+        print("=" * 50)
 
         # Actually send it if not just testing
         if os.getenv("SEND_NOW", "false").lower() == "true":
@@ -226,13 +243,18 @@ def run_scheduler() -> None:
     except Exception as e:
         logger.error(f"Error in scheduler: {e}")
 
+
 def main() -> int:
     """Main function."""
     print("📅 Starting Daily Standup Bot...")
     print("🔧 Configuration:")
     print(f"   • Scheduled time: {STANDUP_HOUR:02d}:{STANDUP_MINUTE:02d} {TIMEZONE}")
-    print(f"   • Discord webhook: {'✅ Configured' if DISCORD_WEBHOOK_URL else '❌ Not configured'}")
-    print(f"   • Slack webhook: {'✅ Configured' if SLACK_WEBHOOK_URL else '❌ Not configured'}")
+    print(
+        f"   • Discord webhook: {'✅ Configured' if DISCORD_WEBHOOK_URL else '❌ Not configured'}"
+    )
+    print(
+        f"   • Slack webhook: {'✅ Configured' if SLACK_WEBHOOK_URL else '❌ Not configured'}"
+    )
     print(f"   • Include metrics: {'✅ Yes' if INCLUDE_METRICS else '❌ No'}")
     print(f"   • Include errors: {'✅ Yes' if INCLUDE_ERRORS else '❌ No'}")
 
@@ -250,6 +272,7 @@ def main() -> int:
 
     print("👋 Standup bot stopped")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

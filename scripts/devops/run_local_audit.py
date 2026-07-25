@@ -1,4 +1,3 @@
-# ruff: noqa: E501
 """
 SupremeAI 2.0 — Local AI Audit Runner
 =====================================
@@ -27,24 +26,34 @@ Check for:
 Output your findings clearly in GitHub-style Markdown with Section 4 (Vulnerabilities) and Section 5 (Recommended Delta Patches).
 """
 
+
 def audit_file_with_ollama(markdown_path: Path, model_name: str = "llama3.2") -> str:
     """
     Executes audit using local Ollama instance (HTTP API).
     বাংলা মন্তব্য: লোকাল Ollama HTTP API ব্যবহার করে অফলাইনে সম্পূর্ণ ফ্রিতে অডিট সম্পন্ন করে।
     """
     file_content = markdown_path.read_text(encoding="utf-8", errors="ignore")
-    prompt = f"{AUDIT_SYSTEM_PROMPT}\n\n---\n\nAUDIT DOCUMENT CONTENT:\n\n{file_content}"
+    prompt = (
+        f"{AUDIT_SYSTEM_PROMPT}\n\n---\n\nAUDIT DOCUMENT CONTENT:\n\n{file_content}"
+    )
 
     url = "http://localhost:11434/api/generate"
-    payload = json.dumps({"model": model_name, "prompt": prompt, "stream": False}).encode("utf-8")
+    payload = json.dumps(
+        {"model": model_name, "prompt": prompt, "stream": False}
+    ).encode("utf-8")
 
-    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(
+        url, data=payload, headers={"Content-Type": "application/json"}
+    )
     try:
         with urllib.request.urlopen(req, timeout=300) as response:
             res_data = json.loads(response.read().decode("utf-8"))
             return res_data.get("response", "No response received from Ollama.")
     except Exception as exc:
-        return f"Ollama execution error: {exc}. Ensure Ollama is running (`ollama serve`)."
+        return (
+            f"Ollama execution error: {exc}. Ensure Ollama is running (`ollama serve`)."
+        )
+
 
 def audit_file_with_gemini_api(markdown_path: Path, api_key: str) -> str:
     """
@@ -54,16 +63,24 @@ def audit_file_with_gemini_api(markdown_path: Path, api_key: str) -> str:
     file_content = markdown_path.read_text(encoding="utf-8", errors="ignore")
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
 
-    payload = json.dumps({
-        "contents": [{
-            "parts": [
-                {"text": AUDIT_SYSTEM_PROMPT},
-                {"text": f"Document File: {markdown_path.name}\n\n{file_content}"}
+    payload = json.dumps(
+        {
+            "contents": [
+                {
+                    "parts": [
+                        {"text": AUDIT_SYSTEM_PROMPT},
+                        {
+                            "text": f"Document File: {markdown_path.name}\n\n{file_content}"
+                        },
+                    ]
+                }
             ]
-        }]
-    }).encode("utf-8")
+        }
+    ).encode("utf-8")
 
-    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(
+        url, data=payload, headers={"Content-Type": "application/json"}
+    )
     try:
         with urllib.request.urlopen(req, timeout=120) as response:
             res_data = json.loads(response.read().decode("utf-8"))
@@ -74,7 +91,12 @@ def audit_file_with_gemini_api(markdown_path: Path, api_key: str) -> str:
     except Exception as exc:
         return f"Gemini API execution error: {exc}"
 
-def run_local_audit(target_part: str = "PART_03_MULTI_DB_OUTBOX.md", provider: str = "ollama", model: str = "llama3.2") -> None:
+
+def run_local_audit(
+    target_part: str = "PART_03_MULTI_DB_OUTBOX.md",
+    provider: str = "ollama",
+    model: str = "llama3.2",
+) -> None:
     """
     Reads markdown file and runs local LLM audit.
     বাংলা মন্তব্য: অডিট ফাইলটি লোকাল ডিভাইস থেকে পেস্ট না করে স্ক্রিপ্টের মাধ্যমে অটো রান করায়।
@@ -86,7 +108,9 @@ def run_local_audit(target_part: str = "PART_03_MULTI_DB_OUTBOX.md", provider: s
         print(f"Error: Target audit file {target_file} does not exist.")
         return
 
-    print(f"🚀 Running Local AI Audit on: {target_file.name} (Provider: {provider}, Model: {model})...")
+    print(
+        f"🚀 Running Local AI Audit on: {target_file.name} (Provider: {provider}, Model: {model})..."
+    )
 
     if provider.lower() == "ollama":
         result = audit_file_with_ollama(target_file, model_name=model)
@@ -104,10 +128,17 @@ def run_local_audit(target_part: str = "PART_03_MULTI_DB_OUTBOX.md", provider: s
     report_path.write_text(result, encoding="utf-8")
     print(f"✅ Local Audit Completed! Saved findings report to: {report_path}")
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SupremeAI Local AI Audit Runner")
-    parser.add_argument("--file", default="PART_03_MULTI_DB_OUTBOX.md", help="Audit markdown file name in modular_audits/")
-    parser.add_argument("--provider", default="ollama", choices=["ollama", "gemini"], help="AI Provider")
+    parser.add_argument(
+        "--file",
+        default="PART_03_MULTI_DB_OUTBOX.md",
+        help="Audit markdown file name in modular_audits/",
+    )
+    parser.add_argument(
+        "--provider", default="ollama", choices=["ollama", "gemini"], help="AI Provider"
+    )
     parser.add_argument("--model", default="llama3.2", help="Ollama model name")
     args = parser.parse_args()
 

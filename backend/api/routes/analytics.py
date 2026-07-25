@@ -67,7 +67,9 @@ async def predict_churn(
         model_version=payload.model_version,
     )
     if not result.get("success", False):
-        raise HTTPException(status_code=400, detail=result.get("details", "Failed to predict churn"))
+        raise HTTPException(
+            status_code=400, detail=result.get("details", "Failed to predict churn")
+        )
     return result
 
 

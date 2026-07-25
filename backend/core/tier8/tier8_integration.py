@@ -15,12 +15,9 @@ from typing import Any
 from core.health.health_monitor import get_health_monitor
 from core.messaging.event_bus import EventBus
 from core.services import ServiceRegistry
-from core.tier8 import (
-    get_agent_evolution_engine,
-    get_self_improvement_agent,
-    get_skill_marketplace_curator,
-    get_swarm_coordination_agent,
-)
+from core.tier8 import (get_agent_evolution_engine, get_self_improvement_agent,
+                        get_skill_marketplace_curator,
+                        get_swarm_coordination_agent)
 
 
 async def init_tier8(registry: ServiceRegistry | None = None) -> dict[str, Any]:
@@ -62,10 +59,14 @@ async def init_tier8(registry: ServiceRegistry | None = None) -> dict[str, Any]:
 
     # Wire into health monitor
     health = get_health_monitor()
-    health.register_probe("tier8_self_improve", lambda: self_improve.execute(action="status"))
+    health.register_probe(
+        "tier8_self_improve", lambda: self_improve.execute(action="status")
+    )
     health.register_probe("tier8_evolution", lambda: evolution.execute(action="status"))
     health.register_probe("tier8_swarm", lambda: swarm.execute(action="status"))
-    health.register_probe("tier8_marketplace", lambda: marketplace.execute(action="status"))
+    health.register_probe(
+        "tier8_marketplace", lambda: marketplace.execute(action="status")
+    )
 
     # Subscribe to event bus for cross-agent communication
     event_bus = EventBus()

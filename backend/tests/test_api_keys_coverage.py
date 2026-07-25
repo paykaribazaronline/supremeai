@@ -57,7 +57,9 @@ class TestListAPIKeys:
         mock_request.state.user = {"sub": "test-user"}
 
         with patch("api.routes.api_keys.get_api_keys_by_user") as mock_get:
-            mock_get.return_value = [{"id": "key-1", "name": "Test Key", "masked_key": "sk-test...xyz"}]
+            mock_get.return_value = [
+                {"id": "key-1", "name": "Test Key", "masked_key": "sk-test...xyz"}
+            ]
             result = list_api_keys(mock_request)
 
         assert len(result) == 1

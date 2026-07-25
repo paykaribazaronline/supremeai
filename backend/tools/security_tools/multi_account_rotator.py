@@ -22,11 +22,15 @@ from core.config_cache import config_cache
 from core.utils.time_utils import utc_now
 
 # Security: Allowed providers whitelist
-ALLOWED_PROVIDERS = frozenset(["groq", "deepseek", "google_ai_studio", "openai", "anthropic", "cohere"])
+ALLOWED_PROVIDERS = frozenset(
+    ["groq", "deepseek", "google_ai_studio", "openai", "anthropic", "cohere"]
+)
 
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -152,7 +156,9 @@ class MultiAccountRotator:
         self.task_preferences: dict[TaskType, list[str]] = {}
         self.load_config()
 
-    async def _wait_for_verification(self, email: str, timeout: int = 10) -> dict[str, Any] | None:
+    async def _wait_for_verification(
+        self, email: str, timeout: int = 10
+    ) -> dict[str, Any] | None:
         # Try Firestore first
         try:
             from google.cloud import firestore
@@ -196,7 +202,9 @@ class MultiAccountRotator:
                     conn = sqlite3.connect(db_path)
                     conn.row_factory = sqlite3.Row
                     cursor = conn.cursor()
-                    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='verification_queue'")
+                    cursor.execute(
+                        "SELECT name FROM sqlite_master WHERE type='table' AND name='verification_queue'"
+                    )
                     if cursor.fetchone():
                         cursor.execute(
                             "SELECT * FROM verification_queue WHERE email_target = ? AND processed = 0 ORDER BY timestamp DESC LIMIT 1",
@@ -231,10 +239,14 @@ class MultiAccountRotator:
         """
         # Security: Validate provider_name against whitelist
         if provider_name not in ALLOWED_PROVIDERS:
-            logger.error(f"[SUPREME-AI] Invalid provider: {provider_name}. Must be in {ALLOWED_PROVIDERS}")
+            logger.error(
+                f"[SUPREME-AI] Invalid provider: {provider_name}. Must be in {ALLOWED_PROVIDERS}"
+            )
             return False
 
-        logger.info(f"[SUPREME-AI] Initiating autonomous identity creation for {provider_name}")
+        logger.info(
+            f"[SUPREME-AI] Initiating autonomous identity creation for {provider_name}"
+        )
 
         from playwright.async_api import async_playwright
 
@@ -251,8 +263,7 @@ class MultiAccountRotator:
 
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS verification_queue (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 sender TEXT,
@@ -263,8 +274,7 @@ class MultiAccountRotator:
                 processed INTEGER DEFAULT 0,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """
-        )
+        """)
         cursor.execute(
             "INSERT INTO verification_queue (sender, subject, email_target, code, link) VALUES (?, ?, ?, ?, ?)",
             (
@@ -296,41 +306,65 @@ class MultiAccountRotator:
                     await page.click('button[id="signup-button"]')
                     logger.info(f"[SUPREME-AI] Submitted signup form for {new_email}")
                 except Exception as form_err:  # noqa: BLE001
-                    logger.warning(f"[SUPREME-AI] Form filling warning/error (continuing): {form_err}")
+                    logger.warning(
+                        f"[SUPREME-AI] Form filling warning/error (continuing): {form_err}"
+                    )
 
                 # Wait for verification (Firestore with SQLite fallback)
-                verification_data = await self._wait_for_verification(new_email, timeout=10)
+                verification_data = await self._wait_for_verification(
+                    new_email, timeout=10
+                )
 
                 if verification_data:
-                    logger.info(f"[SUPREME-AI] Verification data received for {new_email}!")
+                    logger.info(
+                        f"[SUPREME-AI] Verification data received for {new_email}!"
+                    )
 
                     try:
                         if verification_data.get("code"):
                             otp_code = verification_data["code"]
-                            logger.info(f"[SUPREME-AI] OTP code: {otp_code}. Attempting to enter OTP.")
+                            logger.info(
+                                f"[SUPREME-AI] OTP code: {otp_code}. Attempting to enter OTP."
+                            )
                             await page.fill('input[id="otp-code"]', otp_code)
                             await page.click('button[id="verify-otp-button"]')
-                            logger.info("[SUPREME-AI] Entered OTP and submitted for verification.")
+                            logger.info(
+                                "[SUPREME-AI] Entered OTP and submitted for verification."
+                            )
                         elif verification_data.get("link"):
                             verification_link = verification_data["link"]
-                            logger.info(f"[SUPREME-AI] Verification link: {verification_link}. Navigating to link.")
+                            logger.info(
+                                f"[SUPREME-AI] Verification link: {verification_link}. Navigating to link."
+                            )
                             await page.goto(verification_link)
                             logger.info("[SUPREME-AI] Navigated to verification link.")
                     except Exception as verify_err:  # noqa: BLE001
-                        logger.warning(f"[SUPREME-AI] Verification filling warning/error (continuing): {verify_err}")
+                        logger.warning(
+                            f"[SUPREME-AI] Verification filling warning/error (continuing): {verify_err}"
+                        )
 
                     with contextlib.suppress(Exception):
-                        await page.wait_for_selector("text=Account Created Successfully", timeout=2000)
-                    logger.info(f"[SUPREME-AI] Account creation confirmed for {new_email}.")
+                        await page.wait_for_selector(
+                            "text=Account Created Successfully", timeout=2000
+                        )
+                    logger.info(
+                        f"[SUPREME-AI] Account creation confirmed for {new_email}."
+                    )
 
                     # Add to rotator registry - use SHA-256 for secure ID generation
                     account_id = f"{provider_name}-{hashlib.sha256(f'{new_email}{time.time()}'.encode()).hexdigest()[:12]}"
 
                     # বাংলা মন্তব্য: ড্যাশবোর্ড থেকে প্লেরাইট দিয়ে রিয়েল এপিআই কী স্ক্র্যাপ করার চেষ্টা করা হচ্ছে
-                    extracted_api_key = await self._extract_api_key_from_dashboard(page, provider_name)
+                    extracted_api_key = await self._extract_api_key_from_dashboard(
+                        page, provider_name
+                    )
 
                     # বাংলা মন্তব্য: কী এক্সট্রাকশন ব্যর্থ হলে status pending_key_extraction এ রাখা হবে, যাতে অকেজো ডেটা দিয়ে রোটেশন পুল ভেঙে না যায়।
-                    status = ProviderStatus.ACTIVE if extracted_api_key else ProviderStatus.PENDING_KEY_EXTRACTION
+                    status = (
+                        ProviderStatus.ACTIVE
+                        if extracted_api_key
+                        else ProviderStatus.PENDING_KEY_EXTRACTION
+                    )
 
                     new_acc = Account(
                         id=account_id,
@@ -358,12 +392,16 @@ class MultiAccountRotator:
                     self.save_config()
                     return True
                 else:
-                    logger.error(f"[SUPREME-AI] No verification data received for {new_email} within timeout.")
+                    logger.error(
+                        f"[SUPREME-AI] No verification data received for {new_email} within timeout."
+                    )
                     return False
             except asyncio.CancelledError:
                 raise
             except Exception as e:  # noqa: BLE001
-                logger.error(f"[SUPREME-AI] Playwright automation failed for {provider_name}: {e}")
+                logger.error(
+                    f"[SUPREME-AI] Playwright automation failed for {provider_name}: {e}"
+                )
                 return False
             finally:
                 await browser.close()
@@ -432,7 +470,9 @@ class MultiAccountRotator:
                             account_data["status"] = ProviderStatus.MAINTENANCE
                         elif status_str == "pending_key_extraction":
                             # বাংলা মন্তব্য: অ্যাকাউন্টের কী এক্সট্রাকশন পেন্ডিং স্ট্যাটাস লোড করা হলো।
-                            account_data["status"] = ProviderStatus.PENDING_KEY_EXTRACTION
+                            account_data["status"] = (
+                                ProviderStatus.PENDING_KEY_EXTRACTION
+                            )
 
             provider = Provider(**provider_data)
             self.providers[provider.name] = provider
@@ -484,7 +524,9 @@ class MultiAccountRotator:
         """Add a new account to a provider"""
         # Security: Validate provider_name against whitelist
         if provider_name not in ALLOWED_PROVIDERS:
-            raise ValueError(f"Invalid provider: {provider_name}. Must be in {ALLOWED_PROVIDERS}")
+            raise ValueError(
+                f"Invalid provider: {provider_name}. Must be in {ALLOWED_PROVIDERS}"
+            )
 
         # Security: Validate email format
         if not email or "@" not in email:
@@ -502,7 +544,9 @@ class MultiAccountRotator:
             self._create_provider_if_missing(provider_name)
 
         if provider_name not in self.providers:
-            raise ValueError(f"Provider {provider_name} not found even after creation attempt")
+            raise ValueError(
+                f"Provider {provider_name} not found even after creation attempt"
+            )
 
         provider = self.providers[provider_name]
 
@@ -524,10 +568,14 @@ class MultiAccountRotator:
         """Create a basic provider configuration using ConfigCache DB fallback"""
         # Security: Validate provider_name against whitelist
         if provider_name not in ALLOWED_PROVIDERS:
-            raise ValueError(f"Invalid provider: {provider_name}. Must be in {ALLOWED_PROVIDERS}")
+            raise ValueError(
+                f"Invalid provider: {provider_name}. Must be in {ALLOWED_PROVIDERS}"
+            )
 
         # Fetch dynamically from ConfigCache (which falls back to defaults or DB)
-        base_url = config_cache.get(f"provider_base_url_{provider_name}", f"https://api.{provider_name}.com")
+        base_url = config_cache.get(
+            f"provider_base_url_{provider_name}", f"https://api.{provider_name}.com"
+        )
         models = config_cache.get(f"provider_models_{provider_name}", ["default-model"])
 
         # We can also dynamically fetch rate limits if we want, or default them
@@ -548,7 +596,9 @@ class MultiAccountRotator:
         self.providers[provider_name] = provider
         logger.info(f"Created missing provider: {provider_name}")
 
-    async def _extract_api_key_from_dashboard(self, page, provider_name: str) -> str | None:
+    async def _extract_api_key_from_dashboard(
+        self, page, provider_name: str
+    ) -> str | None:
         """
         post-signup dashboard page থেকে DOM selector দিয়ে real API key extract করার চেষ্টা করে।
         """
@@ -574,20 +624,28 @@ class MultiAccountRotator:
 
                         if raw and hasattr(raw, "strip") and len(raw.strip()) > 8:
                             api_key = raw.strip()
-                            logger.info(f"[ROTATOR] Extracted API key for {provider_name} (length: {len(api_key)}) from selector '{selector}'")
+                            logger.info(
+                                f"[ROTATOR] Extracted API key for {provider_name} (length: {len(api_key)}) from selector '{selector}'"
+                            )
                             return api_key
                 except asyncio.CancelledError:
                     raise
                 except Exception as sel_err:  # noqa: BLE001
-                    logger.debug(f"[ROTATOR] Selector '{selector}' failed extraction: {sel_err}")
+                    logger.debug(
+                        f"[ROTATOR] Selector '{selector}' failed extraction: {sel_err}"
+                    )
                     continue
 
-            logger.warning(f"[ROTATOR] Could not extract API key for {provider_name} from dashboard. Admin must add it manually.")
+            logger.warning(
+                f"[ROTATOR] Could not extract API key for {provider_name} from dashboard. Admin must add it manually."
+            )
             return None
         except asyncio.CancelledError:
             raise
         except Exception as exc:  # noqa: BLE001
-            logger.warning(f"[ROTATOR] API key extraction failed for {provider_name}: {exc}")
+            logger.warning(
+                f"[ROTATOR] API key extraction failed for {provider_name}: {exc}"
+            )
             return None
 
     def _get_provider_metadata(self, provider_name: str) -> dict:
@@ -630,7 +688,9 @@ class MultiAccountRotator:
             },
         )
 
-    def get_best_provider_for_task(self, task_type: TaskType, requirements: dict = None) -> tuple[Provider, Account] | None:
+    def get_best_provider_for_task(
+        self, task_type: TaskType, requirements: dict = None
+    ) -> tuple[Provider, Account] | None:
         """Get the best provider and account for a specific task"""
         logger.info(f"Looking for provider/account for task: {task_type}")
 
@@ -656,7 +716,9 @@ class MultiAccountRotator:
         logger.info(f"Mapped task key: {task_key}")
 
         if task_key not in self.task_preferences:
-            logger.warning(f"No task preferences found for {task_key}, using all providers")
+            logger.warning(
+                f"No task preferences found for {task_key}, using all providers"
+            )
             # Default to first available
             preferred_providers = list(self.providers.keys())
         else:
@@ -676,14 +738,20 @@ class MultiAccountRotator:
                 continue
 
             available_accounts = provider.get_available_accounts()
-            logger.info(f"Provider {provider_name} has {len(available_accounts)} available accounts")
+            logger.info(
+                f"Provider {provider_name} has {len(available_accounts)} available accounts"
+            )
 
             account = provider.get_best_account()
             if account:
-                logger.info(f"Selected account {account.id} for provider {provider_name}")
+                logger.info(
+                    f"Selected account {account.id} for provider {provider_name}"
+                )
                 # Check if meets requirements
                 if self._meets_requirements(provider, account, requirements):
-                    logger.info(f"Account meets requirements, returning {provider_name}/{account.id}")
+                    logger.info(
+                        f"Account meets requirements, returning {provider_name}/{account.id}"
+                    )
                     return provider, account
             else:
                 logger.warning(f"No best account found for provider {provider_name}")
@@ -691,7 +759,9 @@ class MultiAccountRotator:
         logger.error("No available provider/account found")
         return None
 
-    def _meets_requirements(self, provider: Provider, account: Account, requirements: dict) -> bool:
+    def _meets_requirements(
+        self, provider: Provider, account: Account, requirements: dict
+    ) -> bool:
         """Check if provider/account meets specific requirements"""
         # Check cost requirements
         if "max_cost_per_token" in requirements:
@@ -699,7 +769,10 @@ class MultiAccountRotator:
                 return False
 
         # Check model requirements
-        if "required_model" in requirements and requirements["required_model"] not in provider.models:
+        if (
+            "required_model" in requirements
+            and requirements["required_model"] not in provider.models
+        ):
             return False
 
         # Check speed requirements (rough estimate)
@@ -709,7 +782,9 @@ class MultiAccountRotator:
 
         return True
 
-    async def execute_task(self, task_type: TaskType, prompt: str, **kwargs) -> dict | None:
+    async def execute_task(
+        self, task_type: TaskType, prompt: str, **kwargs
+    ) -> dict | None:
         """Execute a task using the best available provider/account"""
         provider_account = self.get_best_provider_for_task(task_type, kwargs)
 
@@ -744,7 +819,9 @@ class MultiAccountRotator:
             # Try failover to another account/provider
             return await self._failover_execute(task_type, prompt, **kwargs)
 
-    async def _call_api(self, provider: Provider, account: Account, prompt: str, **kwargs) -> str:
+    async def _call_api(
+        self, provider: Provider, account: Account, prompt: str, **kwargs
+    ) -> str:
         """
         বাংলা মন্তব্য: আসল প্রোভাইডার API কল এখন কেন্দ্রীয় LLMGateway দিয়ে সম্পন্ন করা হচ্ছে।
         অ্যাকাউন্টের API কী ডাইনামিকালি ইনজেক্ট করা হয়।
@@ -756,9 +833,13 @@ class MultiAccountRotator:
             gateway = get_llm_gateway()
 
             # বাংলা মন্তব্য: প্রোভাইডারের প্রথম এভেইলেবল মডেলটি নেওয়া হচ্ছে যদি না kwargs-এ সুনির্দিষ্ট মডেল দেওয়া থাকে।
-            model = kwargs.get("model") or (provider.models[0] if provider.models else None)
+            model = kwargs.get("model") or (
+                provider.models[0] if provider.models else None
+            )
             if not model:
-                raise ValueError(f"Provider '{provider.name}'-এর জন্য কোনো মডেল নির্ধারিত নেই।")
+                raise ValueError(
+                    f"Provider '{provider.name}'-এর জন্য কোনো মডেল নির্ধারিত নেই।"
+                )
 
             # বাংলা মন্তব্য: litellm গেটওয়ের acompletion কল করা হচ্ছে এবং rotator থেকে এপিআই কী পাস হচ্ছে।
             response = await gateway.acompletion(
@@ -778,7 +859,9 @@ class MultiAccountRotator:
             logger.error(f"[ROTATOR] LLM Gateway API call failed: {e}")
             raise
 
-    async def _failover_execute(self, task_type: TaskType, prompt: str, **kwargs) -> dict | None:
+    async def _failover_execute(
+        self, task_type: TaskType, prompt: str, **kwargs
+    ) -> dict | None:
         """Execute task with failover logic"""
         # Try other providers/accounts
         tried_providers = set()
@@ -816,7 +899,9 @@ class MultiAccountRotator:
     def get_system_status(self) -> dict:
         """Get comprehensive system status"""
         total_accounts = sum(len(p.accounts) for p in self.providers.values())
-        active_accounts = sum(len(p.get_available_accounts()) for p in self.providers.values())
+        active_accounts = sum(
+            len(p.get_available_accounts()) for p in self.providers.values()
+        )
 
         provider_status = {}
         for name, provider in self.providers.items():
@@ -844,7 +929,9 @@ class MultiAccountRotator:
             "total_providers": len(self.providers),
             "total_accounts": total_accounts,
             "active_accounts": active_accounts,
-            "system_health": ((active_accounts / total_accounts * 100) if total_accounts > 0 else 0),
+            "system_health": (
+                (active_accounts / total_accounts * 100) if total_accounts > 0 else 0
+            ),
             "providers": provider_status,
         }
 
@@ -878,7 +965,9 @@ async def main():
         rotator.add_account("deepseek", "test3@supremeai.com", test_deepseek_key_1)
 
     if not any([test_groq_key_1, test_groq_key_2, test_deepseek_key_1]):
-        logger.warning("[ROTATOR] No test API keys found in environment. Set TEST_GROQ_KEY_1, TEST_GROQ_KEY_2, or TEST_DEEPSEEK_KEY_1 to test.")
+        logger.warning(
+            "[ROTATOR] No test API keys found in environment. Set TEST_GROQ_KEY_1, TEST_GROQ_KEY_2, or TEST_DEEPSEEK_KEY_1 to test."
+        )
         return
 
     # Execute some test tasks
@@ -899,8 +988,12 @@ async def main():
 
     # Print system status
     status = rotator.get_system_status()
-    logger.info(f"\n📊 System Status: {status['system_health']:.1f}% healthy")  # noqa: T201
-    logger.info(f"Active accounts: {status['active_accounts']}/{status['total_accounts']}")  # noqa: T201
+    logger.info(
+        f"\n📊 System Status: {status['system_health']:.1f}% healthy"
+    )  # noqa: T201
+    logger.info(
+        f"Active accounts: {status['active_accounts']}/{status['total_accounts']}"
+    )  # noqa: T201
 
 
 if __name__ == "__main__":

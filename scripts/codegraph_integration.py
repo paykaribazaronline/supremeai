@@ -6,6 +6,7 @@ import json
 import subprocess
 from pathlib import Path
 from typing import Any
+
 from loguru import logger
 
 
@@ -32,9 +33,7 @@ class CodeGraphGenerator:
         try:
             # pydeps ব্যবহার করে ডিপেন্ডেন্সি ম্যাপ তৈরি করুন
             subprocess.run(
-                ["pip", "install", "pydeps", "-q"],
-                timeout=30,
-                capture_output=True
+                ["pip", "install", "pydeps", "-q"], timeout=30, capture_output=True
             )
 
             subprocess.run(
@@ -43,12 +42,12 @@ class CodeGraphGenerator:
                     "backend/core",
                     "--dot",
                     "--show",
-                    f"--output={self.output_dir}/module_graph.dot"
+                    f"--output={self.output_dir}/module_graph.dot",
                 ],
                 cwd=self.repo_root,
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=30,
             )
 
             logger.info("✅ Module dependency graph generated")
@@ -56,7 +55,7 @@ class CodeGraphGenerator:
             return {
                 "type": "module_dependency",
                 "output_file": str(self.output_dir / "module_graph.dot"),
-                "status": "success"
+                "status": "success",
             }
 
         except Exception as e:
@@ -71,7 +70,7 @@ class CodeGraphGenerator:
             "imports": {},
             "class_hierarchy": {},
             "function_calls": {},
-            "data_flow": {}
+            "data_flow": {},
         }
 
         try:
@@ -93,7 +92,7 @@ class CodeGraphGenerator:
                 "type": "code_relationships",
                 "output_file": str(output_file),
                 "relationships_count": sum(len(v) for v in relationships.values()),
-                "status": "success"
+                "status": "success",
             }
 
         except Exception as e:
@@ -108,7 +107,10 @@ class CodeGraphGenerator:
 
             # ইমপোর্ট স্টেটমেন্ট খুঁজুন
             import re
-            imports = re.findall(r"^(?:from|import)\s+(.+?)(?:\s+import|\s*$)", content, re.MULTILINE)
+
+            imports = re.findall(
+                r"^(?:from|import)\s+(.+?)(?:\s+import|\s*$)", content, re.MULTILINE
+            )
 
             rel_path = file_path.relative_to(self.repo_root)
             if imports:
@@ -125,7 +127,7 @@ class CodeGraphGenerator:
             "changed_files": changed_files,
             "potentially_affected": [],
             "risk_level": "LOW",
-            "recommendations": []
+            "recommendations": [],
         }
 
         try:
@@ -138,13 +140,17 @@ class CodeGraphGenerator:
             impact["potentially_affected"] = list(set(impact["potentially_affected"]))
 
             # রিস্ক লেভেল নির্ধারণ করুন
-            if any("auth" in f or "security" in f for f in impact["potentially_affected"]):
+            if any(
+                "auth" in f or "security" in f for f in impact["potentially_affected"]
+            ):
                 impact["risk_level"] = "HIGH"
                 impact["recommendations"].append("Run security validation")
 
             if len(impact["potentially_affected"]) > 10:
                 impact["risk_level"] = "HIGH"
-                impact["recommendations"].append("Wide-spread changes - increase test coverage")
+                impact["recommendations"].append(
+                    "Wide-spread changes - increase test coverage"
+                )
 
             return impact
 
@@ -169,7 +175,9 @@ class CodeGraphGenerator:
                         if module_name in f.read():
                             dependents.append(str(py_file.relative_to(self.repo_root)))
                 except (OSError, UnicodeDecodeError) as file_err:
-                    logger.warning(f"Could not read file {py_file} to scan dependencies: {file_err}")
+                    logger.warning(
+                        f"Could not read file {py_file} to scan dependencies: {file_err}"
+                    )
                 except Exception as file_err:
                     logger.error(f"Unexpected error reading file {py_file}: {file_err}")
 
@@ -188,7 +196,7 @@ class CodeGraphGenerator:
             "key_files": [],
             "api_endpoints": [],
             "database_models": [],
-            "configuration": []
+            "configuration": [],
         }
 
         try:
@@ -197,7 +205,7 @@ class CodeGraphGenerator:
                 "backend/core/app.py",
                 "backend/core/config.py",
                 "backend/api/**/*.py",
-                "backend/models/**/*.py"
+                "backend/models/**/*.py",
             ]
 
             for pattern in key_patterns:
@@ -227,7 +235,7 @@ class CodeGraphGenerator:
 
         results = {
             "timestamp": str(Path(self.repo_root).stat().st_mtime),
-            "components": {}
+            "components": {},
         }
 
         # সব জেনারেশন রান করুন

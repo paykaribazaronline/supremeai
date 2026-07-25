@@ -1,5 +1,6 @@
-import yaml
 import os
+
+import yaml
 
 files = [
     ".github/workflows/monorepo_ci_cd.yml",

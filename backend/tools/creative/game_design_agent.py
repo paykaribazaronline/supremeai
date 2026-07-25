@@ -63,7 +63,9 @@ class GameDesignAgent(BaseSkill):
             platform=payload.get("platform", self._DEFAULT_PLATFORM),
             target_audience=payload.get("target_audience", "general"),
             max_players=self._clamp(payload.get("max_players", 1), 1, 64),
-            session_length_min=self._clamp(payload.get("session_length_min", 30), 5, 240),
+            session_length_min=self._clamp(
+                payload.get("session_length_min", 30), 5, 240
+            ),
             narrative_language=payload.get("narrative_language", "en"),
         )
 
@@ -71,7 +73,9 @@ class GameDesignAgent(BaseSkill):
         # বাংলা মন্তব্য: ইউনিক গেম ডিজাইন ডকুমেন্ট আইডি
         return f"gdd_{uuid.uuid4().hex[:12]}"
 
-    async def _enqueue(self, job_id: str, spec: GameDesignSpec, raw: dict[str, Any]) -> None:
+    async def _enqueue(
+        self, job_id: str, spec: GameDesignSpec, raw: dict[str, Any]
+    ) -> None:
         # বাংলা মন্তব্য: কিউতে টাস্ক পুশ করা
         task = {
             "job_id": job_id,

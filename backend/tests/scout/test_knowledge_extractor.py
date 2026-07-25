@@ -22,7 +22,9 @@ class TestKnowledgeExtractor:
         with patch.object(ke_module, "HAS_ST", True):
             mock_model = MagicMock()
             mock_model.return_value.encode.return_value.tolist.return_value = [0.1, 0.2]
-            with patch.object(ke_module, "SentenceTransformer", mock_model, create=True):
+            with patch.object(
+                ke_module, "SentenceTransformer", mock_model, create=True
+            ):
                 extractor = ke_module.KnowledgeExtractor()
                 result = asyncio.run(extractor.extract("test content"))
                 assert len(result) == 1

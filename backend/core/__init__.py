@@ -52,7 +52,9 @@ def __getattr__(name: str) -> Any:
             return module
         except ImportError as exc:
             # বাংলা মন্তব্য: ইম্পোর্ট ব্যর্থ হলে AttributeError রেইজ করি — ডিবাগিং সহজ হয়
-            raise AttributeError(f"Failed to lazy-import '{name}' from '{module_path}': {exc}") from exc
+            raise AttributeError(
+                f"Failed to lazy-import '{name}' from '{module_path}': {exc}"
+            ) from exc
 
     # বাংলা মন্তব্য: পুরানো sys.modules রেজিস্ট্রেশন চেক — backward compatibility
     if name in sys.modules:

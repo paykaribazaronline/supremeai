@@ -1,9 +1,8 @@
 import threading
 import time
 
-from loguru import logger
-
 from database.supabase_client import db
+from loguru import logger
 
 
 class LogBatcherError(Exception):
@@ -45,7 +44,9 @@ class SupremeLogBatcher:
                 db.append_evolution_log(log)
 
             self._last_flush_time = time.time()
-            logger.debug(f"Successfully flushed {len(batch_to_process)} system logs to infrastructure ledger.")
+            logger.debug(
+                f"Successfully flushed {len(batch_to_process)} system logs to infrastructure ledger."
+            )
 
         except Exception as e:
             with self._lock:

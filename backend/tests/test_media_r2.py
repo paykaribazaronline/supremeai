@@ -31,7 +31,9 @@ def test_r2_client_generate_presigned_url():
     with patch.dict("os.environ", env_vars):
         with patch("boto3.client") as mock_boto:
             mock_s3 = MagicMock()
-            mock_s3.generate_presigned_url.return_value = "https://r2-real-url.com/mock-bucket/test_file.txt"
+            mock_s3.generate_presigned_url.return_value = (
+                "https://r2-real-url.com/mock-bucket/test_file.txt"
+            )
             mock_boto.return_value = mock_s3
 
             client = R2StorageClient()
@@ -44,9 +46,8 @@ def test_r2_client_generate_presigned_url():
 
 def test_media_route_generate_upload_url():
     # বাংলা মন্তব্য: FastAPI টেস্ট ক্লায়েন্ট ব্যবহার করে সরাসরি এপিআই এন্ডপয়েন্ট টেস্ট করা হচ্ছে।
-    from fastapi.testclient import TestClient
-
     from core.app import app
+    from fastapi.testclient import TestClient
 
     with TestClient(app) as test_client:
         payload = {

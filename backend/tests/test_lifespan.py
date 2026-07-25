@@ -15,7 +15,6 @@ import contextlib
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from core.lifespan import _ensure_api_key_tables, app_lifespan
 
 
@@ -41,13 +40,25 @@ def _apply_common_patches(stack: contextlib.ExitStack) -> dict:
     """সব common patches একটি ExitStack-এ enter করে mocks-এর dict রিটার্ন করো।"""
     mocks = {}
 
-    mocks["validate"] = stack.enter_context(patch("core.lifespan.StartupValidator.validate", new_callable=AsyncMock))
-    mocks["reliability"] = stack.enter_context(patch("core.lifespan.ReliabilityController.initialize", new_callable=AsyncMock))
+    mocks["validate"] = stack.enter_context(
+        patch("core.lifespan.StartupValidator.validate", new_callable=AsyncMock)
+    )
+    mocks["reliability"] = stack.enter_context(
+        patch("core.lifespan.ReliabilityController.initialize", new_callable=AsyncMock)
+    )
     # setup_tracing locally imported — সঠিক patch path ব্যবহার করতে হবে
-    stack.enter_context(patch("core.observability.telemetry.setup_tracing", return_value=None))
-    mocks["init_db_pool"] = stack.enter_context(patch("core.lifespan.init_db_pool", new_callable=AsyncMock))
-    mocks["ensure_api_keys"] = stack.enter_context(patch("core.lifespan._ensure_api_key_tables", new_callable=AsyncMock))
-    mocks["config_refresh"] = stack.enter_context(patch("core.lifespan.config_cache.refresh_async", new_callable=AsyncMock))
+    stack.enter_context(
+        patch("core.observability.telemetry.setup_tracing", return_value=None)
+    )
+    mocks["init_db_pool"] = stack.enter_context(
+        patch("core.lifespan.init_db_pool", new_callable=AsyncMock)
+    )
+    mocks["ensure_api_keys"] = stack.enter_context(
+        patch("core.lifespan._ensure_api_key_tables", new_callable=AsyncMock)
+    )
+    mocks["config_refresh"] = stack.enter_context(
+        patch("core.lifespan.config_cache.refresh_async", new_callable=AsyncMock)
+    )
     mocks["redis_manager"] = stack.enter_context(patch("core.lifespan.redis_manager"))
     # Redis ping-এর জন্য mock return value সেট করো
     mock_ping = AsyncMock()
@@ -61,7 +72,9 @@ def _apply_common_patches(stack: contextlib.ExitStack) -> dict:
     mocks["services"] = stack.enter_context(patch("core.lifespan.services"))
 
     # Mock httpx.AsyncClient so it doesn't create real connections
-    mocks["httpx_client"] = stack.enter_context(patch("core.lifespan.httpx.AsyncClient", return_value=AsyncMock()))
+    mocks["httpx_client"] = stack.enter_context(
+        patch("core.lifespan.httpx.AsyncClient", return_value=AsyncMock())
+    )
 
     # Services HTTP client mock (legacy, but keep for compatibility)
     mocks["services"].global_http_client = mocks["httpx_client"].return_value
@@ -145,7 +158,9 @@ class TestAppLifespan:
 
             mock_pool = AsyncMock()
             mock_pool.close = AsyncMock()
-            mock_get_pool = stack.enter_context(patch("core.lifespan.get_db_pool", new_callable=AsyncMock))
+            mock_get_pool = stack.enter_context(
+                patch("core.lifespan.get_db_pool", new_callable=AsyncMock)
+            )
             mock_get_pool.return_value = mock_pool
 
             mock_orch = MagicMock()
@@ -164,11 +179,15 @@ class TestAppLifespan:
         with contextlib.ExitStack() as stack:
             mocks = _apply_common_patches(stack)
 
-            stack.enter_context(patch("asyncio.wait_for", side_effect=asyncio.CancelledError))
+            stack.enter_context(
+                patch("asyncio.wait_for", side_effect=asyncio.CancelledError)
+            )
 
             mock_pool = AsyncMock()
             mock_pool.close = AsyncMock()
-            mock_get_pool = stack.enter_context(patch("core.lifespan.get_db_pool", new_callable=AsyncMock))
+            mock_get_pool = stack.enter_context(
+                patch("core.lifespan.get_db_pool", new_callable=AsyncMock)
+            )
             mock_get_pool.return_value = mock_pool
 
             mock_orch = MagicMock()
@@ -187,17 +206,29 @@ class TestAppLifespan:
         mock_app = MagicMock()
 
         with contextlib.ExitStack() as stack:
-            stack.enter_context(patch("core.lifespan.StartupValidator.validate", new_callable=AsyncMock))
+            stack.enter_context(
+                patch("core.lifespan.StartupValidator.validate", new_callable=AsyncMock)
+            )
             stack.enter_context(
                 patch(
                     "core.lifespan.ReliabilityController.initialize",
                     new_callable=AsyncMock,
                 )
             )
-            stack.enter_context(patch("core.observability.telemetry.setup_tracing", return_value=None))
-            stack.enter_context(patch("core.lifespan.init_db_pool", new_callable=AsyncMock))
-            stack.enter_context(patch("core.lifespan._ensure_api_key_tables", new_callable=AsyncMock))
-            stack.enter_context(patch("core.lifespan.config_cache.refresh_async", new_callable=AsyncMock))
+            stack.enter_context(
+                patch("core.observability.telemetry.setup_tracing", return_value=None)
+            )
+            stack.enter_context(
+                patch("core.lifespan.init_db_pool", new_callable=AsyncMock)
+            )
+            stack.enter_context(
+                patch("core.lifespan._ensure_api_key_tables", new_callable=AsyncMock)
+            )
+            stack.enter_context(
+                patch(
+                    "core.lifespan.config_cache.refresh_async", new_callable=AsyncMock
+                )
+            )
             mock_redis = stack.enter_context(patch("core.lifespan.redis_manager"))
             mock_redis.client.ping = AsyncMock()
             # Redis close-এ error simulate করো

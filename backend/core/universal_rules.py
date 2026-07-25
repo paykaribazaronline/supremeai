@@ -135,7 +135,9 @@ class UniversalRulesEngine:
             conn = _get_connection()
             if conn:
                 cur = conn.cursor()
-                cur.execute("SELECT rule_key, category, value FROM rules WHERE is_enabled = TRUE")
+                cur.execute(
+                    "SELECT rule_key, category, value FROM rules WHERE is_enabled = TRUE"
+                )
                 rows = cur.fetchall()
                 cur.close()
                 for rule_key, category, value in rows:
@@ -149,7 +151,9 @@ class UniversalRulesEngine:
                         parsed_val = value
                     db_rules[category][rule_key] = parsed_val
         except Exception as e:  # noqa: BLE001
-            logger.error(f"⚠️ Failed to load rules from DB, falling back to defaults: {e}")
+            logger.error(
+                f"⚠️ Failed to load rules from DB, falling back to defaults: {e}"
+            )
         finally:
             if conn:
                 try:  # noqa
@@ -254,7 +258,9 @@ class UniversalRulesEngine:
                             target2.update(rules_dict)
                     return default_rules
             except Exception as e:  # noqa: BLE001
-                logger.warning(f"Failed to load rules from file, falling back to defaults: {e}")
+                logger.warning(
+                    f"Failed to load rules from file, falling back to defaults: {e}"
+                )
 
         # Save defaults if not present
         try:
@@ -296,7 +302,9 @@ class UniversalRulesEngine:
         """
         # Check for source citation or uncertainty acknowledgment
         has_source = "<source>" in response or "source:" in response.lower()
-        has_uncertainty = "I need to perform a search" in response or "I don't know" in response
+        has_uncertainty = (
+            "I need to perform a search" in response or "I don't know" in response
+        )
         return has_source or has_uncertainty
 
     def check_production_ready(self, code_contains_mocks: bool) -> bool:
@@ -326,7 +334,9 @@ class UniversalRulesEngine:
         ]
         for pattern in pii_patterns:
             if re.search(pattern, prompt):
-                logger.warning("⚠️ PII detected in prompt — should be masked before LLM call (CPS-001)")
+                logger.warning(
+                    "⚠️ PII detected in prompt — should be masked before LLM call (CPS-001)"
+                )
                 return False
         return True
 
@@ -339,7 +349,9 @@ class UniversalRulesEngine:
         input_has_bangla = any("\u0980" <= c <= "\u09ff" for c in input_text)
         output_has_bangla = any("\u0980" <= c <= "\u09ff" for c in output_text)
         if input_has_bangla and not output_has_bangla:
-            logger.warning("⚠️ Customer wrote in Bangla but response is not in Bangla (BLE-001/QG-004)")
+            logger.warning(
+                "⚠️ Customer wrote in Bangla but response is not in Bangla (BLE-001/QG-004)"
+            )
             return False
         return True
 
@@ -360,11 +372,15 @@ class UniversalRulesEngine:
         ]
         for pattern in incomplete_patterns:
             if re.search(pattern, code, re.IGNORECASE):
-                logger.warning(f"⚠️ Incomplete code pattern detected: {pattern} (CODE-002)")
+                logger.warning(
+                    f"⚠️ Incomplete code pattern detected: {pattern} (CODE-002)"
+                )
                 return False
         return True
 
-    def get_provider_for_task(self, task_lang: str = "en", task_type: str = "chat") -> str:
+    def get_provider_for_task(
+        self, task_lang: str = "en", task_type: str = "chat"
+    ) -> str:
         """
         PSI-001~004: Provider Selection Intelligence.
         Task ভাষা ও ধরন দেখে সঠিক AI provider select করে।
@@ -394,19 +410,34 @@ class UniversalRulesEngine:
         if has_bangla:
             return "BANGLA_SPECIFIC"
         # Technical keywords
-        if any(kw in prompt_lower for kw in ["code", "error", "debug", "fix", "python", "function", "api"]):
+        if any(
+            kw in prompt_lower
+            for kw in ["code", "error", "debug", "fix", "python", "function", "api"]
+        ):
             return "TECHNICAL"
         # Support keywords
-        if any(kw in prompt_lower for kw in ["help", "issue", "problem", "not working", "support"]):
+        if any(
+            kw in prompt_lower
+            for kw in ["help", "issue", "problem", "not working", "support"]
+        ):
             return "SUPPORT"
         # Research keywords
-        if any(kw in prompt_lower for kw in ["what is", "explain", "how does", "define", "research"]):
+        if any(
+            kw in prompt_lower
+            for kw in ["what is", "explain", "how does", "define", "research"]
+        ):
             return "RESEARCH"
         # Analytical keywords
-        if any(kw in prompt_lower for kw in ["analyze", "data", "report", "chart", "insight", "trend"]):
+        if any(
+            kw in prompt_lower
+            for kw in ["analyze", "data", "report", "chart", "insight", "trend"]
+        ):
             return "ANALYTICAL"
         # Creative keywords
-        if any(kw in prompt_lower for kw in ["write", "create", "generate", "design", "idea", "suggest"]):
+        if any(
+            kw in prompt_lower
+            for kw in ["write", "create", "generate", "design", "idea", "suggest"]
+        ):
             return "CREATIVE"
         return "CONVERSATIONAL"
 
@@ -447,7 +478,9 @@ class UniversalRulesEngine:
 
             if decision_context["cost"] > max_cost:
                 decision_context["blocked"] = True
-                decision_context["reason"] = f"Exceeds Universal Rule: Max cost per task ({max_cost})"
+                decision_context["reason"] = (
+                    f"Exceeds Universal Rule: Max cost per task ({max_cost})"
+                )
 
         # Cine Mandatory Rule Checks - Cine-এর অবশ্যক রুলস
         # AGENT-101: Token budget check
@@ -457,13 +490,19 @@ class UniversalRulesEngine:
                 decision_context["reason"] = "Context Token Budget exceeded (AGENT-101)"
 
         # PROD-118: Production-ready check
-        if decision_context.get("is_production", False) and self.rules.get("production_policy", {}).get("no_mocks", True):
+        if decision_context.get("is_production", False) and self.rules.get(
+            "production_policy", {}
+        ).get("no_mocks", True):
             if decision_context.get("contains_mocks", False):
                 decision_context["blocked"] = True
-                decision_context["reason"] = "Production code must not contain mocks (PROD-118)"
+                decision_context["reason"] = (
+                    "Production code must not contain mocks (PROD-118)"
+                )
 
         # LANG-115/116: Bangla comments check
-        decision_context["bangla_comments_required"] = self.rules.get("language_policy", {}).get("bangla_comments", True)
+        decision_context["bangla_comments_required"] = self.rules.get(
+            "language_policy", {}
+        ).get("bangla_comments", True)
 
         # ── NEW RULES ENFORCEMENT ──────────────────────────────────────────────
 
@@ -471,11 +510,15 @@ class UniversalRulesEngine:
         if "task_lang" in decision_context or "task_type" in decision_context:
             task_lang = decision_context.get("task_lang", "en")
             task_type = decision_context.get("task_type", "chat")
-            decision_context["recommended_provider"] = self.get_provider_for_task(task_lang, task_type)
+            decision_context["recommended_provider"] = self.get_provider_for_task(
+                task_lang, task_type
+            )
 
         # TCL-001: Task classification
         if "prompt" in decision_context and "task_class" not in decision_context:
-            decision_context["task_class"] = self.classify_task(decision_context["prompt"])
+            decision_context["task_class"] = self.classify_task(
+                decision_context["prompt"]
+            )
 
         # CPS-001: PII check in prompt — block if PII found
         if "prompt" in decision_context:
@@ -483,7 +526,9 @@ class UniversalRulesEngine:
             if security.get("mask_pii_before_llm", True):
                 if not self.check_pii_in_prompt(decision_context["prompt"]):
                     decision_context["pii_warning"] = True
-                    decision_context["reason"] = "PII detected in prompt — mask before sending to LLM (CPS-001)"
+                    decision_context["reason"] = (
+                        "PII detected in prompt — mask before sending to LLM (CPS-001)"
+                    )
 
         # QG-004 / BLE-001: Language match check
         if "input_text" in decision_context and "output_text" in decision_context:
@@ -498,7 +543,9 @@ class UniversalRulesEngine:
             code_ok = self.check_code_completeness(decision_context["generated_code"])
             if not code_ok:
                 decision_context["blocked"] = True
-                decision_context["reason"] = "Incomplete code pattern detected (CODE-002) — complete the implementation"
+                decision_context["reason"] = (
+                    "Incomplete code pattern detected (CODE-002) — complete the implementation"
+                )
 
         # SHE-002: Auto-escalate after 3 failures
         consecutive_failures = decision_context.get("consecutive_failures", 0)
@@ -506,12 +553,16 @@ class UniversalRulesEngine:
         max_retry = customer_policy.get("max_retry_before_escalate", 3)
         if consecutive_failures >= max_retry:
             decision_context["escalate_to_human"] = True
-            decision_context["escalation_reason"] = f"Customer faced {consecutive_failures} consecutive failures (SHE-002)"
+            decision_context["escalation_reason"] = (
+                f"Customer faced {consecutive_failures} consecutive failures (SHE-002)"
+            )
 
         # CPS-006: Harmful request detection flag
         if decision_context.get("is_harmful_request", False):
             decision_context["blocked"] = True
-            decision_context["reason"] = "এই ধরনের সাহায্য করা আমার পক্ষে সম্ভব নয়। (CPS-006)"
+            decision_context["reason"] = (
+                "এই ধরনের সাহায্য করা আমার পক্ষে সম্ভব নয়। (CPS-006)"
+            )
 
         # QG gate summary — সব gate এর ফলাফল
         quality_gates = self.rules.get("quality_gates", {})

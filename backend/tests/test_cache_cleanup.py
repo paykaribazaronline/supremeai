@@ -9,7 +9,9 @@ from unittest.mock import MagicMock, patch
 
 # Load tools/cache_cleanup.py from the project root (no __init__.py in tools/)
 _PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-_SPEC = importlib.util.spec_from_file_location("cache_cleanup", os.path.join(_PROJECT_ROOT, "tools", "cache_cleanup.py"))
+_SPEC = importlib.util.spec_from_file_location(
+    "cache_cleanup", os.path.join(_PROJECT_ROOT, "tools", "cache_cleanup.py")
+)
 cache_cleanup = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(cache_cleanup)
 
@@ -85,14 +87,20 @@ def test_clear_stale_cache_deletes_keys():
     """REDIS_URL set, keys found → deletes and returns count."""
     os.environ["REDIS_URL"] = "redis://localhost:6379/0"
     mock_client = MagicMock()
-    mock_client.scan_iter.return_value = ["temp_cache:a", "temp_cache:b", "temp_cache:c"]
+    mock_client.scan_iter.return_value = [
+        "temp_cache:a",
+        "temp_cache:b",
+        "temp_cache:c",
+    ]
 
     with patch.object(cache_cleanup, "redis") as mock_redis:
         mock_redis.from_url.return_value = mock_client
         result = cache_cleanup.clear_stale_cache()
 
     assert result == 3
-    mock_client.delete.assert_called_once_with("temp_cache:a", "temp_cache:b", "temp_cache:c")
+    mock_client.delete.assert_called_once_with(
+        "temp_cache:a", "temp_cache:b", "temp_cache:c"
+    )
 
 
 def test_clear_stale_cache_scan_fallback():

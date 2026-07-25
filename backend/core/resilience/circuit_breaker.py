@@ -14,9 +14,8 @@ from collections.abc import Awaitable, Callable
 from enum import StrEnum
 from typing import Any, TypeVar
 
-from loguru import logger
-
 from core.config import settings
+from loguru import logger
 
 T = TypeVar("T")
 
@@ -40,7 +39,9 @@ class CircuitBreakerOpenError(RuntimeError):
     def __init__(self, name: str, state: CircuitBreakerState) -> None:
         self.name = name
         self.state = state
-        super().__init__(f"Circuit breaker '{name}' is {state.value}. Request rejected.")
+        super().__init__(
+            f"Circuit breaker '{name}' is {state.value}. Request rejected."
+        )
 
 
 class CircuitBreaker:
@@ -67,8 +68,12 @@ class CircuitBreaker:
         **kwargs: Any,
     ) -> None:
         self.name = name
-        self.failure_threshold = failure_threshold or settings.circuit_breaker_failure_threshold
-        self.recovery_timeout = float(recovery_timeout or settings.circuit_breaker_cooldown_period)
+        self.failure_threshold = (
+            failure_threshold or settings.circuit_breaker_failure_threshold
+        )
+        self.recovery_timeout = float(
+            recovery_timeout or settings.circuit_breaker_cooldown_period
+        )
 
         self.state: CircuitBreakerState = CircuitBreakerState.CLOSED
         self.failure_count: int = 0
@@ -126,12 +131,16 @@ class CircuitBreaker:
         with self._lock:
             if self.state == CircuitBreakerState.OPEN:
                 if self._should_attempt_recovery():
-                    logger.info(f"Circuit breaker '{self.name}' transitioning to HALF_OPEN for recovery test")
+                    logger.info(
+                        f"Circuit breaker '{self.name}' transitioning to HALF_OPEN for recovery test"
+                    )
                     self.state = CircuitBreakerState.HALF_OPEN
                     self._recovery_in_progress = True
                 else:
                     err = CircuitBreakerOpenError(self.name, self.state)
-                    logger.error(f"Circuit breaker '{self.name}' rejected request - state: {self.state.value}")
+                    logger.error(
+                        f"Circuit breaker '{self.name}' rejected request - state: {self.state.value}"
+                    )
                     raise err
             elif self.state == CircuitBreakerState.HALF_OPEN:
                 if self._recovery_in_progress:
@@ -144,17 +153,23 @@ class CircuitBreaker:
             self._mark_success()
             return result
         except (ConnectionError, TimeoutError, OSError) as exc:
-            logger.warning(f"Circuit breaker '{self.name}' caught recoverable error: {exc}")
+            logger.warning(
+                f"Circuit breaker '{self.name}' caught recoverable error: {exc}"
+            )
             self._mark_failure()
             raise
         except CircuitBreakerOpenError:
             raise
         except Exception as exc:
-            logger.opt(exception=True).error(f"Circuit breaker '{self.name}' caught unexpected error type={type(exc).__name__}")
+            logger.opt(exception=True).error(
+                f"Circuit breaker '{self.name}' caught unexpected error type={type(exc).__name__}"
+            )
             self._mark_failure()
             raise
 
-    async def acall(self, func: Callable[..., Awaitable[T]], *args: Any, **kwargs: Any) -> T:
+    async def acall(
+        self, func: Callable[..., Awaitable[T]], *args: Any, **kwargs: Any
+    ) -> T:
         """Execute an async function with circuit breaker protection.
 
         বাংলা: সার্কিট ব্রেকার প্রোটেকশন সহ অ্যাসিঙ্ক্রোনাস ফাংশন এক্সিকিউট করে।
@@ -167,12 +182,16 @@ class CircuitBreaker:
         with self._lock:
             if self.state == CircuitBreakerState.OPEN:
                 if self._should_attempt_recovery():
-                    logger.info(f"Circuit breaker '{self.name}' transitioning to HALF_OPEN for recovery test")
+                    logger.info(
+                        f"Circuit breaker '{self.name}' transitioning to HALF_OPEN for recovery test"
+                    )
                     self.state = CircuitBreakerState.HALF_OPEN
                     self._recovery_in_progress = True
                 else:
                     err = CircuitBreakerOpenError(self.name, self.state)
-                    logger.error(f"Circuit breaker '{self.name}' rejected request - state: {self.state.value}")
+                    logger.error(
+                        f"Circuit breaker '{self.name}' rejected request - state: {self.state.value}"
+                    )
                     raise err
             elif self.state == CircuitBreakerState.HALF_OPEN:
                 if self._recovery_in_progress:
@@ -185,13 +204,17 @@ class CircuitBreaker:
             self._mark_success()
             return result
         except (ConnectionError, TimeoutError, OSError) as exc:
-            logger.warning(f"Circuit breaker '{self.name}' caught recoverable error: {exc}")
+            logger.warning(
+                f"Circuit breaker '{self.name}' caught recoverable error: {exc}"
+            )
             self._mark_failure()
             raise
         except CircuitBreakerOpenError:
             raise
         except Exception as exc:
-            logger.opt(exception=True).error(f"Circuit breaker '{self.name}' caught unexpected error type={type(exc).__name__}")
+            logger.opt(exception=True).error(
+                f"Circuit breaker '{self.name}' caught unexpected error type={type(exc).__name__}"
+            )
             self._mark_failure()
             raise
 
@@ -206,7 +229,9 @@ class CircuitBreaker:
             self.last_success_time = time.monotonic()
 
             if self.state == CircuitBreakerState.HALF_OPEN:
-                logger.info(f"Circuit breaker '{self.name}' recovered — transitioning to CLOSED")
+                logger.info(
+                    f"Circuit breaker '{self.name}' recovered — transitioning to CLOSED"
+                )
                 self.state = CircuitBreakerState.CLOSED
                 # বাংলা মন্তব্য: সফলভাবে CLOSED হলে opened_at রিসেট করা হচ্ছে
                 self.opened_at = None
@@ -222,8 +247,13 @@ class CircuitBreaker:
             self.success_count = 0
             self.last_failure_time = time.monotonic()
 
-            if self.failure_count >= self.failure_threshold and self.state != CircuitBreakerState.OPEN:
-                logger.warning(f"Circuit breaker '{self.name}' opened after {self.failure_count} consecutive failures")
+            if (
+                self.failure_count >= self.failure_threshold
+                and self.state != CircuitBreakerState.OPEN
+            ):
+                logger.warning(
+                    f"Circuit breaker '{self.name}' opened after {self.failure_count} consecutive failures"
+                )
                 self.state = CircuitBreakerState.OPEN
                 # বাংলা মন্তব্য: সার্কিট খোলার সময় opened_at সেট করা হচ্ছে
                 # যাতে _should_attempt_recovery() সঠিকভাবে কাজ করে এবং টেস্টে ম্যানিপুলেট করা যায়
@@ -294,7 +324,9 @@ class CircuitBreaker:
         with self._lock:
             if self.state == CircuitBreakerState.OPEN:
                 if self._should_attempt_recovery():
-                    logger.info(f"Circuit breaker '{self.name}' transitioning to HALF_OPEN for recovery test")
+                    logger.info(
+                        f"Circuit breaker '{self.name}' transitioning to HALF_OPEN for recovery test"
+                    )
                     self.state = CircuitBreakerState.HALF_OPEN
                     self._recovery_in_progress = True
                     return True
@@ -328,4 +360,6 @@ class DynamicCircuitBreaker(CircuitBreaker):
                 )
             elif current_load < 0.3 and error_rate < 0.01:
                 self.failure_threshold = min(10, self.failure_threshold + 1)
-                logger.info(f"🟢 [DynamicCircuitBreaker:{self.name}] Low system load/error. Increased failure_threshold to {self.failure_threshold}")
+                logger.info(
+                    f"🟢 [DynamicCircuitBreaker:{self.name}] Low system load/error. Increased failure_threshold to {self.failure_threshold}"
+                )

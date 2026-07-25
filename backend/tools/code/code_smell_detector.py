@@ -18,7 +18,9 @@ class CodeSmellDetector:
     def __init__(self):
         self.radon_available = self._check_radon()
         self.pylint_available = self._check_pylint()
-        logger.info(f"CodeSmellDetector initialized (radon={self.radon_available}, pylint={self.pylint_available})")
+        logger.info(
+            f"CodeSmellDetector initialized (radon={self.radon_available}, pylint={self.pylint_available})"
+        )
 
     def _check_radon(self) -> bool:
         try:
@@ -40,14 +42,23 @@ class CodeSmellDetector:
         for child in ast.walk(node):
             if isinstance(
                 child,
-                ast.If | ast.IfExp | ast.For | ast.While | ast.ExceptHandler | ast.With | ast.Assert | ast.BoolOp,
+                ast.If
+                | ast.IfExp
+                | ast.For
+                | ast.While
+                | ast.ExceptHandler
+                | ast.With
+                | ast.Assert
+                | ast.BoolOp,
             ):
                 complexity += 1
             if isinstance(child, ast.BoolOp):
                 complexity += len(child.values) - 1
         return complexity
 
-    def analyze_python_file(self, filepath: str, thresholds: dict[str, int] | None = None) -> list[dict[str, Any]]:
+    def analyze_python_file(
+        self, filepath: str, thresholds: dict[str, int] | None = None
+    ) -> list[dict[str, Any]]:
         if not os.path.exists(filepath):
             return []
 
@@ -118,7 +129,9 @@ class CodeSmellDetector:
                             }
                         )
 
-                    return_count = sum(1 for child in ast.walk(node) if isinstance(child, ast.Return))
+                    return_count = sum(
+                        1 for child in ast.walk(node) if isinstance(child, ast.Return)
+                    )
                     if return_count > 7:
                         smells.append(
                             {
@@ -133,7 +146,11 @@ class CodeSmellDetector:
                         )
 
                 if isinstance(node, ast.ClassDef):
-                    methods = sum(1 for child in ast.iter_child_nodes(node) if isinstance(child, ast.FunctionDef | ast.AsyncFunctionDef))
+                    methods = sum(
+                        1
+                        for child in ast.iter_child_nodes(node)
+                        if isinstance(child, ast.FunctionDef | ast.AsyncFunctionDef)
+                    )
                     if methods > class_methods_threshold:
                         smells.append(
                             {
@@ -190,7 +207,9 @@ class CodeSmellDetector:
 
         return smells
 
-    def _detect_duplicate_functions(self, tree: ast.AST, filepath: str) -> list[dict[str, Any]]:
+    def _detect_duplicate_functions(
+        self, tree: ast.AST, filepath: str
+    ) -> list[dict[str, Any]]:
         smells: list[dict[str, Any]] = []
         bodies: dict[str, list[dict[str, Any]]] = {}
         for node in ast.walk(tree):
@@ -220,7 +239,9 @@ class CodeSmellDetector:
                 )
         return smells
 
-    def _detect_broad_exceptions(self, tree: ast.AST, file_path: str) -> list[dict[str, Any]]:
+    def _detect_broad_exceptions(
+        self, tree: ast.AST, file_path: str
+    ) -> list[dict[str, Any]]:
         """Detects broad exception handlers like `except Exception:` or bare `except:`."""
         smells: list[dict[str, Any]] = []
         for node in ast.walk(tree):
@@ -259,7 +280,9 @@ class CodeSmellDetector:
         dump = re.sub(r"\d+", "0", dump)
         return dump
 
-    def _analyze_radon(self, filepath: str, tree: ast.AST | None, threshold: int) -> list[dict[str, Any]]:
+    def _analyze_radon(
+        self, filepath: str, tree: ast.AST | None, threshold: int
+    ) -> list[dict[str, Any]]:
         try:
             from radon.complexity import cc_visit
             from radon.metrics import mi_visit
@@ -295,14 +318,18 @@ class CodeSmellDetector:
                     )
             except (ValueError, SyntaxError, TypeError) as e:
                 # সুনির্দিষ্ট ত্রুটি (Specific exception) ক্যাচ করা হলো, যাতে অপ্রত্যাশিত ত্রুটি লুকিয়ে না যায়
-                logger.warning(f"Radon maintainability index calculation failed for {filepath}: {e}")
+                logger.warning(
+                    f"Radon maintainability index calculation failed for {filepath}: {e}"
+                )
             return results
         except ImportError:
             return []
         except SyntaxError:
             return []
 
-    def analyze_directory(self, directory_path: str, thresholds: dict[str, int] | None = None) -> dict[str, list[dict[str, Any]]]:
+    def analyze_directory(
+        self, directory_path: str, thresholds: dict[str, int] | None = None
+    ) -> dict[str, list[dict[str, Any]]]:
         results: dict[str, list[dict[str, Any]]] = {}
         if not os.path.isdir(directory_path):
             return results
@@ -330,7 +357,9 @@ class CodeSmellDetector:
 
         return results
 
-    def analyze_js_ts_file(self, filepath: str, thresholds: dict[str, int] | None = None) -> list[dict[str, Any]]:
+    def analyze_js_ts_file(
+        self, filepath: str, thresholds: dict[str, int] | None = None
+    ) -> list[dict[str, Any]]:
         if not os.path.exists(filepath):
             return []
         smells: list[dict[str, Any]] = []
@@ -368,7 +397,9 @@ class CodeSmellDetector:
                     func_count += 1
                     if "(" in stripped:
                         params = stripped.split("(")[1].split(")")[0]
-                        if len([p.strip() for p in params.split(",") if p.strip()]) > max_params and not stripped.startswith("//"):
+                        if len(
+                            [p.strip() for p in params.split(",") if p.strip()]
+                        ) > max_params and not stripped.startswith("//"):
                             big_param_funcs += 1
                 if in_func:
                     current_func_lines += 1
@@ -416,7 +447,9 @@ class CodeSmellDetector:
             logger.error(f"Failed to analyze JS/TS file {filepath}: {e}")
         return smells
 
-    def _analyze_pylint_directory(self, directory_path: str) -> dict[str, list[dict[str, Any]]]:
+    def _analyze_pylint_directory(
+        self, directory_path: str
+    ) -> dict[str, list[dict[str, Any]]]:
         output: dict[str, list[dict[str, Any]]] = {}
         with tempfile.TemporaryDirectory() as tmpdir:
             rcfile = os.path.join(tmpdir, ".pylintrc")
@@ -427,12 +460,16 @@ class CodeSmellDetector:
                 abs_dir = os.path.abspath(directory_path)
                 base_dir = os.path.abspath(os.getcwd())
                 if not abs_dir.startswith(base_dir) or ".." in directory_path:
-                    logger.error(f"Security Alert: Path traversal attempt blocked for {directory_path}")
+                    logger.error(
+                        f"Security Alert: Path traversal attempt blocked for {directory_path}"
+                    )
                     return output
 
                 import shlex
 
-                cmd = shlex.split(f"pylint --output-format=json --rcfile={shlex.quote(rcfile)} {shlex.quote(directory_path)}")
+                cmd = shlex.split(
+                    f"pylint --output-format=json --rcfile={shlex.quote(rcfile)} {shlex.quote(directory_path)}"
+                )
                 proc = subprocess.run(
                     cmd,
                     capture_output=True,
@@ -448,10 +485,16 @@ class CodeSmellDetector:
                         continue
                     output.setdefault(path, []).append(
                         {
-                            "type": item.get("symbol") or item.get("message-id", "pylint"),
+                            "type": item.get("symbol")
+                            or item.get("message-id", "pylint"),
                             "line": item.get("line", 0),
                             "message": item.get("message", ""),
-                            "severity": ("warning" if item.get("type") in ("convention", "refactor", "warning") else "critical"),
+                            "severity": (
+                                "warning"
+                                if item.get("type")
+                                in ("convention", "refactor", "warning")
+                                else "critical"
+                            ),
                             "source": "pylint",
                         }
                     )
@@ -489,12 +532,16 @@ class CodeSmellDetector:
             abs_dir = os.path.abspath(directory_path)
             base_dir = os.path.abspath(os.getcwd())
             if not abs_dir.startswith(base_dir) or ".." in directory_path:
-                logger.error(f"Security Alert: Path traversal attempt blocked for {directory_path}")
+                logger.error(
+                    f"Security Alert: Path traversal attempt blocked for {directory_path}"
+                )
                 return {"status": "blocked", "reason": "Path traversal detected"}
 
             import shlex
 
-            cmd = shlex.split(f"jscpd {shlex.quote(directory_path)} --silent --format json --min-lines 5 --min-tokens 50")
+            cmd = shlex.split(
+                f"jscpd {shlex.quote(directory_path)} --silent --format json --min-lines 5 --min-tokens 50"
+            )
             proc = subprocess.run(
                 cmd,
                 capture_output=True,
@@ -557,7 +604,9 @@ class CodeSmellDetector:
                 sarif_results.append(
                     {
                         "ruleId": rule_id,
-                        "level": severity_map.get(smell.get("severity", "info"), "note"),
+                        "level": severity_map.get(
+                            smell.get("severity", "info"), "note"
+                        ),
                         "message": {"text": smell.get("message", "")},
                         "locations": [
                             {
@@ -565,7 +614,9 @@ class CodeSmellDetector:
                                     "artifactLocation": {"uri": filepath},
                                     "region": {
                                         "startLine": smell.get("line", 1),
-                                        "endLine": smell.get("end_line", smell.get("line", 1)),
+                                        "endLine": smell.get(
+                                            "end_line", smell.get("line", 1)
+                                        ),
                                     },
                                 }
                             }
@@ -595,12 +646,16 @@ class CodeSmellDetector:
         """প্রি-কমিট হুক ইনস্টল করে যাতে কমিটের আগে স্মেল চেক হয়।"""
         hook_path = os.path.join(repo_path, ".git", "hooks", "pre-commit")
         if not os.path.isdir(os.path.join(repo_path, ".git")):
-            logger.warning(f"No git repo found at {repo_path}; skipping pre-commit hook install.")
+            logger.warning(
+                f"No git repo found at {repo_path}; skipping pre-commit hook install."
+            )
             return False
         try:
             os.makedirs(os.path.dirname(hook_path), exist_ok=True)
             with open(hook_path, "w", encoding="utf-8") as f:
-                f.write("#!/bin/sh\n# বাংলা মন্তব্য: SupremeAI কোড স্মেল প্রি-কমিট হুক।\npython -m tools.code_smell_detector --check || true\n")
+                f.write(
+                    "#!/bin/sh\n# বাংলা মন্তব্য: SupremeAI কোড স্মেল প্রি-কমিট হুক।\npython -m tools.code_smell_detector --check || true\n"
+                )
             os.chmod(hook_path, 0o755)  # noqa: S103
             logger.success(f"Pre-commit hook installed at {hook_path}")
             return True
@@ -643,6 +698,11 @@ class CodeSmellDetector:
             logger.debug(f"History tracking write failed: {e}")
 
         # বাংলা মন্তব্য: ট্রেন্ড — আগের রানের চেয়ে কম স্মেল হলে উন্নতি।
-        trend = "improving" if len(history) >= 2 and history[-1]["total_smells"] <= history[-2]["total_smells"] else "worsening"
+        trend = (
+            "improving"
+            if len(history) >= 2
+            and history[-1]["total_smells"] <= history[-2]["total_smells"]
+            else "worsening"
+        )
         record["trend"] = trend
         return record

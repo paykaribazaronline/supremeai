@@ -3,12 +3,11 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from fastapi import Request
-from loguru import logger
-
 from core.failure_fingerprint import make_fingerprint
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 from core.request_context import get_correlation_id
+from fastapi import Request
+from loguru import logger
 
 
 class ReliabilityController:
@@ -79,7 +78,9 @@ class ReliabilityController:
                         fp = key.replace(cls._REDIS_KEY_PREFIX, "")
                         result[fp] = data.get("count", 0)
                     except Exception as exc:  # noqa: BLE001
-                        logger.debug(f"Failed to parse persisted fingerprint {key}: {exc}")
+                        logger.debug(
+                            f"Failed to parse persisted fingerprint {key}: {exc}"
+                        )
                         continue
             return result
         except Exception as exc:  # noqa: BLE001
@@ -95,7 +96,9 @@ class ReliabilityController:
             return {}
 
     @classmethod
-    async def register_failure(cls, request: Request | None, exception: Exception) -> Any:
+    async def register_failure(
+        cls, request: Request | None, exception: Exception
+    ) -> Any:
         fingerprint = make_fingerprint(exception)
         corr_id = "unknown"
         if request and hasattr(request.state, "correlation_id"):
@@ -109,7 +112,9 @@ class ReliabilityController:
         count = cls._failures[fingerprint]
         await cls._persist_fingerprint(fingerprint, count)
 
-        logger.warning(f"⚠️ Registered failure {fingerprint} under correlation {corr_id} (count={count})")
+        logger.warning(
+            f"⚠️ Registered failure {fingerprint} under correlation {corr_id} (count={count})"
+        )
 
         class FailureContext:
             def __init__(self, c_id, f_print):

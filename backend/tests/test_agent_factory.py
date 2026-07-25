@@ -9,7 +9,6 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from core.agent_factory import DynamicAgentFactory
 
 
@@ -26,11 +25,15 @@ def factory(mock_db_session):
 def test_get_registered_agent_found(factory, tmp_path):
     """Test get_registered_agent returns agent config when found in registry."""
     agent_data = {"name": "test-agent", "description": "A test agent"}
-    registry_path = Path(__file__).resolve().parent.parent / "core" / "agent_registry.json"
+    registry_path = (
+        Path(__file__).resolve().parent.parent / "core" / "agent_registry.json"
+    )
 
     # Create a temporary registry
     test_registry = {"test-agent": agent_data}
-    with patch.object(Path, "exists", return_value=True), patch("builtins.open", MagicMock()) as mock_open:
+    with patch.object(Path, "exists", return_value=True), patch(
+        "builtins.open", MagicMock()
+    ) as mock_open:
         mock_file = MagicMock()
         mock_file.__enter__.return_value.read.return_value = json.dumps(test_registry)
         mock_open.return_value = mock_file
@@ -41,7 +44,9 @@ def test_get_registered_agent_found(factory, tmp_path):
 
 def test_get_registered_agent_not_found(factory):
     """Test get_registered_agent returns None when agent not in registry."""
-    with patch.object(Path, "exists", return_value=True), patch("builtins.open", MagicMock()) as mock_open:
+    with patch.object(Path, "exists", return_value=True), patch(
+        "builtins.open", MagicMock()
+    ) as mock_open:
         mock_file = MagicMock()
         mock_file.__enter__.return_value.read.return_value = json.dumps({})
         mock_open.return_value = mock_file
@@ -59,7 +64,9 @@ def test_get_registered_agent_no_registry(factory):
 
 def test_get_registered_agent_bad_json(factory):
     """Test get_registered_agent returns None on JSON parse error."""
-    with patch.object(Path, "exists", return_value=True), patch("builtins.open", MagicMock()) as mock_open:
+    with patch.object(Path, "exists", return_value=True), patch(
+        "builtins.open", MagicMock()
+    ) as mock_open:
         mock_file = MagicMock()
         mock_file.__enter__.return_value.read.return_value = "invalid json{{{"
         mock_open.return_value = mock_file

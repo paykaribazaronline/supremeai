@@ -2,9 +2,9 @@ import json
 from unittest.mock import patch
 
 import pytest
+from core.evolution.auto_skill_creator import AutoSkillCreator
 from skill_loader import SkillLoader
 
-from core.evolution.auto_skill_creator import AutoSkillCreator
 from skills.installer import SkillInstaller
 from skills.registry import SkillRegistry
 
@@ -22,7 +22,9 @@ def clean_dynamic_skills(tmp_path):
     loader.skills_dir.mkdir(parents=True, exist_ok=True)
 
     # Mock SkillInstaller constructor to return our temp configured installer
-    with patch("core.evolution.auto_skill_creator.SkillInstaller", return_value=installer):
+    with patch(
+        "core.evolution.auto_skill_creator.SkillInstaller", return_value=installer
+    ):
         yield loader, registry, installer
 
 
@@ -69,7 +71,9 @@ async def test_pipeline_success(clean_dynamic_skills, monkeypatch):
 
     with patch("core.llm.llm_gateway.llm_gateway.acompletion", new=mock_acompletion):
         creator = AutoSkillCreator()
-        result = await creator.generate_and_deploy_skill(user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer")
+        result = await creator.generate_and_deploy_skill(
+            user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer"
+        )
         assert result["success"] is True, result.get("error", "No error info provided")
         assert result["skill_name"] == "SentimentAnalyzer"
 
@@ -87,14 +91,18 @@ async def test_pipeline_validation_mismatch(clean_dynamic_skills, monkeypatch):
 
     # Modify mock JSON so that execute return value mismatch validation expected output
     mismatch_json = MOCK_AI_RESPONSE_JSON.copy()
-    mismatch_json["code"] = "class SentimentAnalyzer:\n    async def execute(self, kwargs):\n        return {'sentiment': 'negative'}\n"
+    mismatch_json["code"] = (
+        "class SentimentAnalyzer:\n    async def execute(self, kwargs):\n        return {'sentiment': 'negative'}\n"
+    )
 
     async def mock_acompletion(*args, **kwargs):
         return {"success": True, "text": json.dumps(mismatch_json)}
 
     with patch("core.llm.llm_gateway.llm_gateway.acompletion", new=mock_acompletion):
         creator = AutoSkillCreator()
-        result = await creator.generate_and_deploy_skill(user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer")
+        result = await creator.generate_and_deploy_skill(
+            user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer"
+        )
 
         assert result["success"] is False
         assert "Validation test 1 failed" in result["error"]
@@ -120,7 +128,9 @@ async def test_pipeline_invalid_uss_pydantic(clean_dynamic_skills, monkeypatch):
 
     with patch("core.llm.llm_gateway.llm_gateway.acompletion", new=mock_acompletion):
         creator = AutoSkillCreator()
-        result = await creator.generate_and_deploy_skill(user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer")
+        result = await creator.generate_and_deploy_skill(
+            user_demand="Analyze reviews sentiment", skill_name="SentimentAnalyzer"
+        )
 
         assert result["success"] is False
         assert "USS Validation Exception" in result["error"]

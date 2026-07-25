@@ -2,11 +2,10 @@ import asyncio
 import json
 
 import redis.asyncio as redis
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from loguru import logger
-
 from core.config import settings
 from core.messaging.event_bus import ErrorContext
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from loguru import logger
 
 router = APIRouter(prefix="/collaborate", tags=["collaborative-editor"])
 
@@ -21,7 +20,9 @@ class CollaborativeEditor:
         redis_url_setting = getattr(settings, "redis_url", "")
         redis_url = redis_url_setting if redis_url_setting else "redis://localhost:6379"
         self.redis = redis.from_url(redis_url, decode_responses=True)
-        logger.info("Initialized CollaborativeEditor with Redis Pub/Sub and State Persistence")
+        logger.info(
+            "Initialized CollaborativeEditor with Redis Pub/Sub and State Persistence"
+        )
 
     async def get_session_state(self, session_id: str) -> dict:
         """বাংলা মন্তব্য: Redis থেকে সেশনের বর্তমান ডকুমেন্ট স্টেট এবং AI কার্সরের অবস্থান নিয়ে আসবে।"""
@@ -36,7 +37,9 @@ class CollaborativeEditor:
 
         return {
             "document_state": state.get("document_state", ""),
-            "ai_cursor": json.loads(state.get("ai_cursor", '{"position": 0, "status": "idle"}')),
+            "ai_cursor": json.loads(
+                state.get("ai_cursor", '{"position": 0, "status": "idle"}')
+            ),
         }
 
     async def update_session_state(self, session_id: str, updates: dict):
@@ -44,7 +47,9 @@ class CollaborativeEditor:
         state_key = f"supremeai:state:{session_id}"
         await self.redis.hset(state_key, mapping=updates)
 
-    async def connect_client(self, session_id: str, client_id: str, websocket: WebSocket):
+    async def connect_client(
+        self, session_id: str, client_id: str, websocket: WebSocket
+    ):
         await websocket.accept()
 
         if session_id not in self.local_sessions:
@@ -58,13 +63,17 @@ class CollaborativeEditor:
 
         # বাংলা মন্তব্য: ইউজার কানেক্ট হওয়ার সাথে সাথে Redis থেকে সর্বশেষ স্টেট ফেচ করে তাকে পাঠানো
         current_state = await self.get_session_state(session_id)
-        await websocket.send_text(json.dumps({"type": "sync_state", "state": current_state}))
+        await websocket.send_text(
+            json.dumps({"type": "sync_state", "state": current_state})
+        )
 
     async def disconnect_client(self, session_id: str, client_id: str):
         if session_id in self.local_sessions:
             if client_id in self.local_sessions[session_id]:
                 del self.local_sessions[session_id][client_id]
-                logger.info(f"Client {client_id} disconnected from local session {session_id}")
+                logger.info(
+                    f"Client {client_id} disconnected from local session {session_id}"
+                )
 
             # বাংলা মন্তব্য: এই কন্টেইনারে সেশনের আর কোনো ইউজার না থাকলে লিসেনার বন্ধ করে মেমোরি বাঁচানো হবে
             if not self.local_sessions[session_id]:
@@ -72,7 +81,9 @@ class CollaborativeEditor:
                 if session_id in self.redis_listeners:
                     self.redis_listeners[session_id].cancel()
                     del self.redis_listeners[session_id]
-                    logger.info(f"Stopped Redis listener for session {session_id} on this instance")
+                    logger.info(
+                        f"Stopped Redis listener for session {session_id} on this instance"
+                    )
 
     async def broadcast(self, session_id: str, message: dict, sender_id: str = None):
         """বাংলা মন্তব্য: মেসেজটি সরাসরি লোকাল সকেটে না পাঠিয়ে, Redis চ্যানেলে পাবলিশ করা হচ্ছে।"""
@@ -82,7 +93,9 @@ class CollaborativeEditor:
         channel = f"supremeai:collab:{session_id}"
         await self.redis.publish(channel, json.dumps(message))
 
-    async def broadcast_delta(self, session_id: str, delta: dict, sender_id: str = None):
+    async def broadcast_delta(
+        self, session_id: str, delta: dict, sender_id: str = None
+    ):
         """বাংলা মন্তব্য: CRDT মার্জিং লজিক এবং স্টেট পারসিস্টেন্স"""
         current_state = await self.get_session_state(session_id)
         doc_state = current_state["document_state"]
@@ -117,7 +130,9 @@ class CollaborativeEditor:
         current_state = await self.get_session_state(session_id)
         ai_cursor = current_state.get("ai_cursor", {"position": 0})
         ai_cursor["status"] = "processing"
-        await self.update_session_state(session_id, {"ai_cursor": json.dumps(ai_cursor)})
+        await self.update_session_state(
+            session_id, {"ai_cursor": json.dumps(ai_cursor)}
+        )
 
         # ২. ফ্রন্টএন্ডে "AI is typing..." অ্যানিমেশন চালু করার সিগন্যাল পাঠানো
         message = {"type": "ai_response", "prompt": prompt, "status": "processing"}
@@ -130,14 +145,17 @@ class CollaborativeEditor:
         """বাংলা মন্তব্য: Freebuff বা AI মডেলকে দিয়ে কোড লিখিয়ে এডিটরে পুশ করা হবে।"""
         try:
             # আমরা এখানে CloudSandboxOrchestrator ব্যবহার করছি Freebuff কে কল করার জন্য
-            from tools.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
+            from tools.cloud_sandbox_orchestrator import \
+                CloudSandboxOrchestrator
 
             orchestrator = CloudSandboxOrchestrator()
 
             logger.info(f"Asking Freebuff/AI to generate code for: {prompt}")
 
             # AI কে দিয়ে কোড জেনারেট করানো (আপাতত আপনার Freebuff ইন্টিগ্রেশন মেথড কল করছি)
-            response = await orchestrator.delegate_to_freebuff(prompt=f"Write python code for: {prompt}")
+            response = await orchestrator.delegate_to_freebuff(
+                prompt=f"Write python code for: {prompt}"
+            )
 
             # জেনারেট হওয়া কোড এক্সট্র্যাক্ট করা
             if response.get("status") == "success":
@@ -188,14 +206,18 @@ class CollaborativeEditor:
                                 try:
                                     await ws.send_text(data)
                                 except Exception as e:  # noqa: BLE001
-                                    logger.error(f"Error sending to local client {client_id}: {e}")
+                                    logger.error(
+                                        f"Error sending to local client {client_id}: {e}"
+                                    )
         except asyncio.CancelledError:
             await pubsub.unsubscribe(channel)
             logger.info(f"Unsubscribed from Redis channel: {channel}")
 
     async def start_collaboration_session(self, session_id: str):
         """বাংলা মন্তব্য: while True: sleep() পোলিং লুপ বাদ দিয়ে PubSub/SSE Event-Driven মডেলে মাইগ্রেট করা হলো।"""
-        logger.info(f"Starting collaborative session for {session_id} using Redis PubSub.")
+        logger.info(
+            f"Starting collaborative session for {session_id} using Redis PubSub."
+        )
         try:
             from core.swarm_pubsub import swarm_streamer
 
@@ -232,7 +254,9 @@ async def websocket_collab(websocket: WebSocket, session_id: str, client_id: str
                 msg_type = message.get("type")
 
                 if msg_type == "delta":
-                    await editor_manager.broadcast_delta(session_id, message.get("delta", {}), client_id)
+                    await editor_manager.broadcast_delta(
+                        session_id, message.get("delta", {}), client_id
+                    )
                 elif msg_type == "ai_request":
                     prompt = message.get("prompt", "")
                     await editor_manager.trigger_ai_edit(session_id, prompt, client_id)
@@ -251,5 +275,7 @@ async def websocket_collab(websocket: WebSocket, session_id: str, client_id: str
     except WebSocketDisconnect:
         await editor_manager.disconnect_client(session_id, client_id)
     except Exception as e:  # noqa: BLE001
-        logger.error(f"WebSocket error in session {session_id} for client {client_id}: {e}")
+        logger.error(
+            f"WebSocket error in session {session_id} for client {client_id}: {e}"
+        )
         await editor_manager.disconnect_client(session_id, client_id)

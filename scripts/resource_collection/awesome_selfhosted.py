@@ -19,7 +19,7 @@ class AwesomeSelfHostedScraper(AwesomeListScraper):
         super().__init__(
             name="awesome-selfhosted",
             repo_url="https://github.com/awesome-selfhosted/awesome-selfhosted",
-            data_dir=data_dir
+            data_dir=data_dir,
         )
 
 

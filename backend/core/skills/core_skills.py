@@ -30,7 +30,9 @@ class SystemDesignSkill(BaseSkill):
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": user_prompt},
         ]
-        resp = await llm_gateway.acompletion(model=model_name, messages=messages, user_id=user_id)
+        resp = await llm_gateway.acompletion(
+            model=model_name, messages=messages, user_id=user_id
+        )
         return resp.get("choices", [{}])[0].get("message", {}).get("content", "")
 
 
@@ -59,7 +61,9 @@ class CodeGenerationSkill(BaseSkill):
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": user_prompt},
         ]
-        resp = await llm_gateway.acompletion(model=model_name, messages=messages, user_id=user_id)
+        resp = await llm_gateway.acompletion(
+            model=model_name, messages=messages, user_id=user_id
+        )
         return resp.get("choices", [{}])[0].get("message", {}).get("content", "")
 
 
@@ -88,7 +92,9 @@ class StaticAnalysisSkill(BaseSkill):
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": user_prompt},
         ]
-        resp = await llm_gateway.acompletion(model=model_name, messages=messages, user_id=user_id)
+        resp = await llm_gateway.acompletion(
+            model=model_name, messages=messages, user_id=user_id
+        )
         return resp.get("choices", [{}])[0].get("message", {}).get("content", "")
 
 
@@ -117,7 +123,9 @@ class ResearchSkill(BaseSkill):
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": user_prompt},
         ]
-        resp = await llm_gateway.acompletion(model=model_name, messages=messages, user_id=user_id)
+        resp = await llm_gateway.acompletion(
+            model=model_name, messages=messages, user_id=user_id
+        )
         return resp.get("choices", [{}])[0].get("message", {}).get("content", "")
 
 
@@ -146,7 +154,9 @@ class ToolSynthesisSkill(BaseSkill):
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": user_prompt},
         ]
-        resp = await llm_gateway.acompletion(model=model_name, messages=messages, user_id=user_id)
+        resp = await llm_gateway.acompletion(
+            model=model_name, messages=messages, user_id=user_id
+        )
         return resp.get("choices", [{}])[0].get("message", {}).get("content", "")
 
 
@@ -175,7 +185,9 @@ class ToolExecutionSkill(BaseSkill):
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": user_prompt},
         ]
-        resp = await llm_gateway.acompletion(model=model_name, messages=messages, user_id=user_id)
+        resp = await llm_gateway.acompletion(
+            model=model_name, messages=messages, user_id=user_id
+        )
         return resp.get("choices", [{}])[0].get("message", {}).get("content", "")
 
 

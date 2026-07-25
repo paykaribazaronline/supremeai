@@ -5,7 +5,6 @@ Tests for core/code_validator.py — AICodeValidator & CodeValidator
 from __future__ import annotations
 
 import pytest
-
 from core.code_validator import AICodeValidator, CodeValidator
 
 

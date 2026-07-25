@@ -2,7 +2,6 @@ import json
 from unittest.mock import AsyncMock
 
 import pytest
-
 from core.skill_manager import SkillManager
 
 
@@ -10,7 +9,13 @@ from core.skill_manager import SkillManager
 async def test_skill_manager_blocks_unsafe_code(monkeypatch):
     mgr = SkillManager()
 
-    unsafe_code = "import os\n" "class X(BaseSkill):\n" "    name='x'\n" "    async def run(self, **kwargs):\n" "        return os.getcwd()\n"
+    unsafe_code = (
+        "import os\n"
+        "class X(BaseSkill):\n"
+        "    name='x'\n"
+        "    async def run(self, **kwargs):\n"
+        "        return os.getcwd()\n"
+    )
 
     # Patch the local import used inside get_skill
     monkeypatch.setattr(
@@ -22,7 +27,9 @@ async def test_skill_manager_blocks_unsafe_code(monkeypatch):
     def _raise(_):
         raise Exception("blocked")
 
-    monkeypatch.setattr("core.skill_manager.run_sandbox_ast_check", _raise, raising=False)
+    monkeypatch.setattr(
+        "core.skill_manager.run_sandbox_ast_check", _raise, raising=False
+    )
 
     with pytest.raises(ValueError):
         await mgr.get_skill("skill_x")
@@ -32,14 +39,22 @@ async def test_skill_manager_blocks_unsafe_code(monkeypatch):
 async def test_skill_manager_loads_safe_code_from_db(monkeypatch):
     mgr = SkillManager()
 
-    safe_code = "\n" "class MySkill(BaseSkill):\n" "    name = 'skill_y'\n" "    async def run(self, **kwargs):\n" "        return {'ok': True}\n"
+    safe_code = (
+        "\n"
+        "class MySkill(BaseSkill):\n"
+        "    name = 'skill_y'\n"
+        "    async def run(self, **kwargs):\n"
+        "        return {'ok': True}\n"
+    )
 
     monkeypatch.setattr(
         "tools.mcp.mcp_supabase.supabase_execute_sql",
         AsyncMock(return_value=json.dumps({"rows": [{"code": safe_code}]})),
         raising=False,
     )
-    monkeypatch.setattr("core.skill_manager.run_sandbox_ast_check", lambda _: True, raising=False)
+    monkeypatch.setattr(
+        "core.skill_manager.run_sandbox_ast_check", lambda _: True, raising=False
+    )
 
     skill = await mgr.get_skill("skill_y")
     assert skill is not None
@@ -55,8 +70,12 @@ async def test_skill_manager_db_miss_uses_mcp_discovery_generic_tool(monkeypatch
         AsyncMock(return_value=json.dumps({"rows": []})),
         raising=False,
     )
-    monkeypatch.setattr("core.skill_manager.run_sandbox_ast_check", lambda _: True, raising=False)
-    monkeypatch.setattr(mgr.mcp_client, "discover_tools", AsyncMock(return_value=["generic_tool"]))
+    monkeypatch.setattr(
+        "core.skill_manager.run_sandbox_ast_check", lambda _: True, raising=False
+    )
+    monkeypatch.setattr(
+        mgr.mcp_client, "discover_tools", AsyncMock(return_value=["generic_tool"])
+    )
 
     with pytest.raises(ValueError):
         await mgr.get_skill("unknown_skill")

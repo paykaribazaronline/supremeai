@@ -3,14 +3,10 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from api.routes.admin_dashboard import (_in_memory_jwt_blacklist,
+                                        admin_rate_limit, require_admin_token)
 from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
-
-from api.routes.admin_dashboard import (
-    _in_memory_jwt_blacklist,
-    admin_rate_limit,
-    require_admin_token,
-)
 
 
 class TestRequireAdminToken:
@@ -18,36 +14,37 @@ class TestRequireAdminToken:
 
     def test_valid_admin_token(self):
         """Valid admin JWT should be accepted."""
-        from jose import jwt
-
         from core.config import settings
+        from jose import jwt
 
         payload = {"uid": "admin-user", "role": "admin", "jti": "token-123"}
         token = jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
 
-        result = require_admin_token(HTTPAuthorizationCredentials(credentials=token, scheme="Bearer"))
+        result = require_admin_token(
+            HTTPAuthorizationCredentials(credentials=token, scheme="Bearer")
+        )
         assert result["uid"] == "admin-user"
         assert result["role"] == "admin"
 
     def test_non_admin_role_raises_401(self):
         """Token without admin role must be rejected with 401."""
-        from jose import jwt
-
         from core.config import settings
+        from jose import jwt
 
         payload = {"uid": "user", "role": "user"}
         token = jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
 
         with pytest.raises(HTTPException) as exc_info:
-            require_admin_token(HTTPAuthorizationCredentials(credentials=token, scheme="Bearer"))
+            require_admin_token(
+                HTTPAuthorizationCredentials(credentials=token, scheme="Bearer")
+            )
 
         assert exc_info.value.status_code == 401
 
     def test_revoked_jti_raises_401(self):
         """Revoked jti must raise 401 from in-memory blacklist."""
-        from jose import jwt
-
         from core.config import settings
+        from jose import jwt
 
         payload = {"uid": "admin", "role": "admin", "jti": "revoked-token"}
         token = jwt.encode(payload, settings.jwt_secret, algorithm="HS256")
@@ -55,7 +52,9 @@ class TestRequireAdminToken:
         _in_memory_jwt_blacklist.add("revoked-token")
         try:
             with pytest.raises(HTTPException) as exc_info:
-                require_admin_token(HTTPAuthorizationCredentials(credentials=token, scheme="Bearer"))
+                require_admin_token(
+                    HTTPAuthorizationCredentials(credentials=token, scheme="Bearer")
+                )
             assert exc_info.value.status_code == 401
         finally:
             _in_memory_jwt_blacklist.discard("revoked-token")
@@ -63,7 +62,11 @@ class TestRequireAdminToken:
     def test_invalid_token_raises_401(self):
         """Malformed token should raise 401."""
         with pytest.raises(HTTPException) as exc_info:
-            require_admin_token(HTTPAuthorizationCredentials(credentials="not-a-valid-token", scheme="Bearer"))
+            require_admin_token(
+                HTTPAuthorizationCredentials(
+                    credentials="not-a-valid-token", scheme="Bearer"
+                )
+            )
         assert exc_info.value.status_code == 401
 
     def test_fallback_api_token_auth(self):
@@ -74,8 +77,12 @@ class TestRequireAdminToken:
         if not expected:
             pytest.skip("supremeai_api_token not configured")
 
-        with patch("api.routes.admin_dashboard.jwt.decode", side_effect=Exception("bad")):
-            result = require_admin_token(HTTPAuthorizationCredentials(credentials=expected, scheme="Bearer"))
+        with patch(
+            "api.routes.admin_dashboard.jwt.decode", side_effect=Exception("bad")
+        ):
+            result = require_admin_token(
+                HTTPAuthorizationCredentials(credentials=expected, scheme="Bearer")
+            )
         assert result["role"] == "admin"
 
 

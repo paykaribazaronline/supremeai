@@ -7,12 +7,11 @@ This module provides shared error models and a centralized handler.
 
 from __future__ import annotations
 
+from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from loguru import logger
 from pydantic import BaseModel
-
-from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 
 
 class APIErrorDetail(BaseModel):

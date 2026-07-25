@@ -21,11 +21,10 @@ from enum import Enum
 from typing import Any
 from urllib.parse import quote_plus
 
-from loguru import logger
-
 from core.cache import get_cache
 from core.evolution.evolution_engine import EvolutionEngine
 from core.llm_router import LLMRouter
+from loguru import logger
 
 # ── Constants ────────────────────────────────────────────────────────────────
 LEARNER_CACHE_TTL = 1800  # 30 minutes
@@ -95,7 +94,9 @@ class GoalDecomposer:
         raw = f"goal_decomp:{objective.strip().lower()}"
         return f"learner:{hashlib.sha256(raw.encode()).hexdigest()[:20]}"
 
-    async def decompose(self, objective: str, force_refresh: bool = False) -> list[SubGoal]:
+    async def decompose(
+        self, objective: str, force_refresh: bool = False
+    ) -> list[SubGoal]:
         """
         Decompose an objective into sub-goals.
 
@@ -285,12 +286,16 @@ class ResearchScanner:
         if self.session is None:
             import aiohttp
 
-            self.session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15))
+            self.session = aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(total=15)
+            )
         return self.session
 
     async def scan_arxiv(self, topics: list[str]) -> list[dict[str, Any]]:
         """Query ArXiv for recent papers on given topics."""
-        cache_key = f"arxiv_scan:{hashlib.sha256(str(topics).encode()).hexdigest()[:16]}"
+        cache_key = (
+            f"arxiv_scan:{hashlib.sha256(str(topics).encode()).hexdigest()[:16]}"
+        )
         cached = await self.cache.get(cache_key)
         if cached:
             return cached
@@ -324,7 +329,9 @@ class ResearchScanner:
 
     async def scan_github(self, topics: list[str]) -> list[dict[str, Any]]:
         """Query GitHub for trending repositories on given topics."""
-        cache_key = f"github_scan:{hashlib.sha256(str(topics).encode()).hexdigest()[:16]}"
+        cache_key = (
+            f"github_scan:{hashlib.sha256(str(topics).encode()).hexdigest()[:16]}"
+        )
         cached = await self.cache.get(cache_key)
         if cached:
             return cached
@@ -420,7 +427,9 @@ class DailyLearner:
         self.active_goals: dict[str, list[SubGoal]] = {}
         logger.info("DailyLearner initialized with full autonomy pipeline")
 
-    async def learn_and_plan(self, objective: str, force_refresh: bool = False) -> dict[str, Any]:
+    async def learn_and_plan(
+        self, objective: str, force_refresh: bool = False
+    ) -> dict[str, Any]:
         """
         Full autonomy cycle: decompose → research → prioritize → plan.
 
@@ -461,7 +470,11 @@ class DailyLearner:
         ]
         sorted_goals = sorted(
             sub_goals,
-            key=lambda sg: (priority_order.index(sg.priority) if sg.priority in priority_order else 99),
+            key=lambda sg: (
+                priority_order.index(sg.priority)
+                if sg.priority in priority_order
+                else 99
+            ),
         )
 
         total_effort = sum(sg.estimated_effort for sg in sub_goals)
@@ -473,10 +486,18 @@ class DailyLearner:
             "total_estimated_effort_minutes": total_effort,
             "execution_strategy": "parallel_within_batch_sequential_across_dependencies",
             "priority_breakdown": {
-                "critical": sum(1 for sg in sub_goals if sg.priority == LearningPriority.CRITICAL),
-                "high": sum(1 for sg in sub_goals if sg.priority == LearningPriority.HIGH),
-                "medium": sum(1 for sg in sub_goals if sg.priority == LearningPriority.MEDIUM),
-                "low": sum(1 for sg in sub_goals if sg.priority == LearningPriority.LOW),
+                "critical": sum(
+                    1 for sg in sub_goals if sg.priority == LearningPriority.CRITICAL
+                ),
+                "high": sum(
+                    1 for sg in sub_goals if sg.priority == LearningPriority.HIGH
+                ),
+                "medium": sum(
+                    1 for sg in sub_goals if sg.priority == LearningPriority.MEDIUM
+                ),
+                "low": sum(
+                    1 for sg in sub_goals if sg.priority == LearningPriority.LOW
+                ),
             },
         }
 
@@ -527,7 +548,9 @@ class DailyLearner:
 
         return unique
 
-    async def run_daily_evolution(self, task_history: list[dict[str, Any]]) -> dict[str, Any]:
+    async def run_daily_evolution(
+        self, task_history: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         """
         Run the full daily evolution cycle.
         Maintains backward compatibility with EvolutionEngine caller interface.
@@ -541,7 +564,9 @@ class DailyLearner:
             latest = task_history[-1].get("objective", "")
             if latest:
                 plan = await self.learn_and_plan(latest)
-                logger.info(f"Auto-decomposed '{latest[:50]}' into {len(plan['sub_goals'])} sub-goals")
+                logger.info(
+                    f"Auto-decomposed '{latest[:50]}' into {len(plan['sub_goals'])} sub-goals"
+                )
 
         # Run evolution engine (backward compatible)
         result = await self.engine.run_daily_evolution(task_history)

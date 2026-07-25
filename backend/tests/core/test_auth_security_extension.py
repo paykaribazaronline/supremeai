@@ -3,14 +3,10 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from core.security.auth_middleware import (AuthMiddleware, _decode_jwt,
+                                           _is_public_path,
+                                           verify_admin_session_fail_closed)
 from pydantic import SecretStr
-
-from core.security.auth_middleware import (
-    AuthMiddleware,
-    _decode_jwt,
-    _is_public_path,
-    verify_admin_session_fail_closed,
-)
 
 
 class TestDecodeJwtEdgeCases:
@@ -112,7 +108,9 @@ class TestAuthMiddlewareAdvanced:
             "path": "/api/protected",
             "headers": [],
         }
-        with patch("core.security.auth_middleware.is_test_environment", return_value=False):
+        with patch(
+            "core.security.auth_middleware.is_test_environment", return_value=False
+        ):
             await middleware(scope, MagicMock(), send)
             mock_app.assert_not_called()
             assert send.await_count >= 1
@@ -128,7 +126,9 @@ class TestAuthMiddlewareAdvanced:
             "path": "/api/protected",
             "headers": [(b"authorization", b"Bearer invalid-jwt-token")],
         }
-        with patch("core.security.auth_middleware.is_test_environment", return_value=False):
+        with patch(
+            "core.security.auth_middleware.is_test_environment", return_value=False
+        ):
             await middleware(scope, MagicMock(), send)
             mock_app.assert_not_called()
 
@@ -143,7 +143,9 @@ class TestAuthMiddlewareAdvanced:
             "path": "/api/protected",
             "headers": [(b"authorization", b"Bearer wrong-token")],
         }
-        with patch("core.security.auth_middleware.is_test_environment", return_value=False):
+        with patch(
+            "core.security.auth_middleware.is_test_environment", return_value=False
+        ):
             await middleware(scope, MagicMock(), send)
             mock_app.assert_not_called()
 

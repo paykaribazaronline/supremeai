@@ -7,7 +7,9 @@ def test_is_ip_blocked_when_redis_not_configured(monkeypatch):
     rm = RulesMutator()
     from core import services
 
-    monkeypatch.setattr(services, "redis_queue", MagicMock(configured=False), raising=False)
+    monkeypatch.setattr(
+        services, "redis_queue", MagicMock(configured=False), raising=False
+    )
     assert rm.is_ip_blocked("1.2.3.4") is False
 
 

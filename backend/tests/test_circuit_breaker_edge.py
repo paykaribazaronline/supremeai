@@ -4,12 +4,9 @@ import asyncio
 import time
 
 import pytest
-
-from core.resilience.circuit_breaker import (
-    CircuitBreaker,
-    CircuitBreakerOpenError,
-    CircuitBreakerState,
-)
+from core.resilience.circuit_breaker import (CircuitBreaker,
+                                             CircuitBreakerOpenError,
+                                             CircuitBreakerState)
 
 
 class TestCircuitBreakerEdgeCases:
@@ -211,7 +208,9 @@ class TestCircuitBreakerEdgeCases:
         assert cb.state == CircuitBreakerState.CLOSED
 
     def test_allow_request_recovery_transition_sets_recovery(self):
-        cb = CircuitBreaker("recovery-transition", failure_threshold=1, recovery_timeout=0.01)
+        cb = CircuitBreaker(
+            "recovery-transition", failure_threshold=1, recovery_timeout=0.01
+        )
         cb.mark_failure()
         time.sleep(0.02)
         assert cb.allow_request() is True

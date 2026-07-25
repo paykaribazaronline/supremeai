@@ -1,9 +1,8 @@
 from typing import Any
 
+from core.orchestration.agent_orchestrator import async_task_manager
 from fastapi import APIRouter
 from pydantic import BaseModel
-
-from core.orchestration.agent_orchestrator import async_task_manager
 
 router = APIRouter(prefix="/api/task", tags=["async-task"])
 

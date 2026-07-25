@@ -5,11 +5,10 @@ Tests for models — SQLAlchemy model definitions
 from __future__ import annotations
 
 import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-
 from models.base import Base
 from models.dynamic_agent import DynamicAgent
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 
 class TestBase:
@@ -67,7 +66,9 @@ class TestDynamicAgent:
             session.commit()
 
         with Session(engine) as session:
-            retrieved = session.query(DynamicAgent).filter_by(name="persisted-agent").first()
+            retrieved = (
+                session.query(DynamicAgent).filter_by(name="persisted-agent").first()
+            )
             assert retrieved is not None
             assert retrieved.description == "Will be saved"
             assert retrieved.execution_steps == {"action": "test"}

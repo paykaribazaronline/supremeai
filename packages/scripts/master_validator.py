@@ -62,17 +62,24 @@ class MasterValidator:
         # JWT Secret — backend/core/config.py: SUPREMEAI_JWT_SECRET (fail-closed)
         jwt = self._env("SUPREMEAI_JWT_SECRET")
         if not jwt:
-            self.errors.append("Missing critical environment variable: SUPREMEAI_JWT_SECRET")
+            self.errors.append(
+                "Missing critical environment variable: SUPREMEAI_JWT_SECRET"
+            )
         elif len(jwt) < 64:
             self.errors.append(
                 f"SUPREMEAI_JWT_SECRET must be >= 64 bytes (current: {len(jwt)}). "
                 "Config rejects weak secrets in all environments."
             )
         elif jwt.lower() in WEAK_JWT_SECRETS:
-            self.errors.append("SUPREMEAI_JWT_SECRET is a known weak secret - change it immediately.")
+            self.errors.append(
+                "SUPREMEAI_JWT_SECRET is a known weak secret - change it immediately."
+            )
 
         # Database — SUPABASE_DATABASE_URL or SUPABASE_DATABASE_URL_POOLER
-        if not (self._env("SUPABASE_DATABASE_URL") or self._env("SUPABASE_DATABASE_URL_POOLER")):
+        if not (
+            self._env("SUPABASE_DATABASE_URL")
+            or self._env("SUPABASE_DATABASE_URL_POOLER")
+        ):
             self.errors.append(
                 "Missing database URL: set SUPABASE_DATABASE_URL or SUPABASE_DATABASE_URL_POOLER"
             )
@@ -123,7 +130,9 @@ class MasterValidator:
             await client.ping()
             await client.aclose()
             print(f"{GREEN}Distributed Cache Online{RESET}")
-        except Exception as e:  # noqa: BLE001 - readiness check must never crash the scan
+        except (
+            Exception
+        ) as e:  # noqa: BLE001 - readiness check must never crash the scan
             self.errors.append(f"Redis connection failed: {e}")
 
     async def run_all(self):

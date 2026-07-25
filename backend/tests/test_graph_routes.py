@@ -1,6 +1,5 @@
-from fastapi.testclient import TestClient
-
 from core.app import app
+from fastapi.testclient import TestClient
 
 # বাংলা মন্তব্য: এপিআই এন্ডপয়েন্টটি ড্রাই-রান মোডে সঠিক নোড ও এজ ফরম্যাট দিচ্ছে কিনা তা যাচাই করা।
 
@@ -21,7 +20,10 @@ def test_get_skill_graph_dry_run(valid_auth_headers):
 
 def test_get_learning_path_dry_run(valid_auth_headers):
     # বাংলা মন্তব্য: দুটি স্কিলের মধ্যে ড্রাই-রান মোডে পাথ ফাইন্ডিং চেক
-    response = client.get("/api/v1/graph/path?start_skill=Python&end_skill=FastAPI", headers=valid_auth_headers)
+    response = client.get(
+        "/api/v1/graph/path?start_skill=Python&end_skill=FastAPI",
+        headers=valid_auth_headers,
+    )
     assert response.status_code == 200
 
     data = response.json()

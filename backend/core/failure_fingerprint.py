@@ -10,7 +10,11 @@ def _normalize_message(msg: str) -> str:
     সরিয়ে ফেলা হচ্ছে যাতে একই root-cause error বারবার একই fingerprint পায় (Patch 22 fix)।
     """
     msg = re.sub(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?\b", "<IP>", msg)
-    msg = re.sub(r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b", "<UUID>", msg)
+    msg = re.sub(
+        r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b",
+        "<UUID>",
+        msg,
+    )
     msg = re.sub(r"\b0x[0-9a-fA-F]+\b", "<HEX>", msg)
     msg = re.sub(r"\d+(\.\d+)?", "<N>", msg)
     return msg

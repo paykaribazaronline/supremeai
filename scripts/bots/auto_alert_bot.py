@@ -18,18 +18,18 @@ Environment Variables:
 - SERVICE_NAME: Name of this service instance (default: "SupremeAI-Bot")
 """
 
-import sys
-import os
-import time
 import json
-import requests
-from datetime import datetime, timezone
 import logging
+import os
+import sys
+import time
+from datetime import datetime, timezone
+
+import requests
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -42,6 +42,7 @@ BUDGET_ALERT_THRESHOLD = float(os.getenv("BUDGET_ALERT_THRESHOLD", "0.8"))  # 80
 SYSTEM_HEALTH_CHECK_URL = os.getenv("SYSTEM_HEALTH_CHECK_URL")
 SERVICE_NAME = os.getenv("SERVICE_NAME", "SupremeAI-Bot")
 
+
 def record_event_to_db(message: str, title: str, alert_type: str) -> bool:
     """Records an event to the database for the new Admin Dashboard."""
     logger.info(f"Recording event: [{alert_type.upper()}] {title} - {message}")
@@ -51,17 +52,23 @@ def record_event_to_db(message: str, title: str, alert_type: str) -> bool:
         log_path = "/app/data/dashboard_events.jsonl"
         os.makedirs(os.path.dirname(log_path), exist_ok=True)
         with open(log_path, "a") as f:
-            f.write(json.dumps({
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "type": alert_type,
-                "title": title,
-                "message": message,
-                "source": SERVICE_NAME
-            }) + "\n")
+            f.write(
+                json.dumps(
+                    {
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "type": alert_type,
+                        "title": title,
+                        "message": message,
+                        "source": SERVICE_NAME,
+                    }
+                )
+                + "\n"
+            )
         return True
     except Exception as e:
         logger.error(f"Failed to record event to DB: {e}")
         return False
+
 
 def send_alert(message: str, title: str = None, alert_type: str = "info") -> bool:
     """Records an alert to the internal system for the dashboard."""
@@ -70,12 +77,14 @@ def send_alert(message: str, title: str = None, alert_type: str = "info") -> boo
         return False
     return record_event_to_db(message, title, alert_type)
 
+
 def check_budget_alerts() -> bool:
     """Check for budget-related alerts."""
     try:
         # Import the budget guardian to check status
         import sys
-        sys.path.append('/app/scripts/orchestrator')
+
+        sys.path.append("/app/scripts/orchestrator")
         from auto_budget_guardian import get_tracker
 
         tracker = get_tracker()
@@ -85,9 +94,21 @@ def check_budget_alerts() -> bool:
 
         for provider_name, provider_status in status["providers"].items():
             # Check each metric against threshold
-            rpm_usage = provider_status["rpm_used"] / provider_status["rpm_limit"] if provider_status["rpm_limit"] > 0 else 0
-            tpm_usage = provider_status["tpm_used"] / provider_status["tpm_limit"] if provider_status["tpm_limit"] > 0 else 0
-            rpd_usage = provider_status["rpd_used"] / provider_status["rpd_limit"] if provider_status["rpd_limit"] > 0 else 0
+            rpm_usage = (
+                provider_status["rpm_used"] / provider_status["rpm_limit"]
+                if provider_status["rpm_limit"] > 0
+                else 0
+            )
+            tpm_usage = (
+                provider_status["tpm_used"] / provider_status["tpm_limit"]
+                if provider_status["tpm_limit"] > 0
+                else 0
+            )
+            rpd_usage = (
+                provider_status["rpd_used"] / provider_status["rpd_limit"]
+                if provider_status["rpd_limit"] > 0
+                else 0
+            )
 
             max_usage = max(rpm_usage, tpm_usage, rpd_usage)
 
@@ -111,6 +132,7 @@ def check_budget_alerts() -> bool:
         logger.error(f"Error checking budget alerts: {e}")
         return False
 
+
 def check_system_health() -> bool:
     """Check system health via HTTP endpoint."""
     if not SYSTEM_HEALTH_CHECK_URL:
@@ -132,13 +154,14 @@ def check_system_health() -> bool:
     except requests.exceptions.RequestException as e:
         alert_msg = (
             f"🏥 **System Health Alert**\n"
-            f"Failed to reach health check endpoint: {str(e)}\n"
+            f"Failed to reach health check endpoint: {e!s}\n"
             f"URL: {SYSTEM_HEALTH_CHECK_URL}"
         )
         return send_alert(alert_msg, "System Health Issue", "error")
     except Exception as e:
         logger.error(f"Error checking system health: {e}")
         return False
+
 
 def check_log_errors() -> bool:
     """Check for recent errors in application logs."""
@@ -150,6 +173,7 @@ def check_log_errors() -> bool:
 
     # Placeholder implementation
     return False
+
 
 def send_startup_notification() -> bool:
     """Send a notification that the bot has started."""
@@ -164,10 +188,12 @@ def send_startup_notification() -> bool:
 
     return send_alert(message, "Alert Bot Started", "info")
 
+
 def send_shutdown_notification() -> bool:
     """Send a notification that the bot is stopping."""
     message = f"🛑 **{SERVICE_NAME} Stopped**\nMonitoring has ceased."
     return send_alert(message, "Alert Bot Stopped", "info")
+
 
 def main() -> int:
     """Main monitoring loop."""
@@ -175,9 +201,13 @@ def main() -> int:
     print("🔧 Configuration:")
     print(f"   • Check interval: {CHECK_INTERVAL} seconds")
     print(f"   • Budget alert threshold: {BUDGET_ALERT_THRESHOLD*100}%")
-    print(f"   • Discord alerts: {'✅ Enabled' if DISCORD_WEBHOOK_URL else '❌ Disabled'}")
+    print(
+        f"   • Discord alerts: {'✅ Enabled' if DISCORD_WEBHOOK_URL else '❌ Disabled'}"
+    )
     print(f"   • Slack alerts: {'✅ Enabled' if SLACK_WEBHOOK_URL else '❌ Disabled'}")
-    print(f"   • System health check: {'✅ Enabled' if SYSTEM_HEALTH_CHECK_URL else '❌ Disabled'}")
+    print(
+        f"   • System health check: {'✅ Enabled' if SYSTEM_HEALTH_CHECK_URL else '❌ Disabled'}"
+    )
 
     # Send startup notification
     if ALERTS_ENABLED:
@@ -185,7 +215,9 @@ def main() -> int:
 
     try:
         while True:
-            print(f"🔍 [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Checking for alerts...")
+            print(
+                f"🔍 [{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Checking for alerts..."
+            )
 
             alerts_triggered = False
 
@@ -216,7 +248,11 @@ def main() -> int:
     except Exception as e:
         logger.error(f"Unexpected error in alert bot: {e}")
         if ALERTS_ENABLED:
-            send_alert(f"💥 **{SERVICE_NAME} Crashed**\n```{str(e)}```", "Alert Bot Error", "error")
+            send_alert(
+                f"💥 **{SERVICE_NAME} Crashed**\n```{e!s}```",
+                "Alert Bot Error",
+                "error",
+            )
         return 1
     finally:
         # Send shutdown notification
@@ -225,6 +261,7 @@ def main() -> int:
 
     print("👋 Alert bot stopped")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

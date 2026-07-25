@@ -1,11 +1,10 @@
 import asyncio
 from collections import deque
 
-from loguru import logger
-from sqlalchemy import insert
-
 from database.session import get_db_session
+from loguru import logger
 from models.execution_log import ExecutionLog
+from sqlalchemy import insert
 
 
 class LogBatcherService:
@@ -70,7 +69,9 @@ class LogBatcherService:
         while self.running:
             try:
                 # Wait for at least one item, up to flush_interval
-                item = await asyncio.wait_for(self.queue.get(), timeout=self.flush_interval)
+                item = await asyncio.wait_for(
+                    self.queue.get(), timeout=self.flush_interval
+                )
                 self.buffer.append(item)
 
                 # Drain queue up to batch_size

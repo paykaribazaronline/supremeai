@@ -4,10 +4,10 @@ import os
 import time
 import uuid
 
-from loguru import logger
-
-from api.routes.metrics import record_error, record_request, record_request_duration
+from api.routes.metrics import (record_error, record_request,
+                                record_request_duration)
 from core.observability.telemetry import trace_span
+from loguru import logger
 
 
 class ObservabilityMiddleware:
@@ -16,8 +16,12 @@ class ObservabilityMiddleware:
 
         # Redis traffic monitoring is expensive. We sample and bound background tasks.
         # Long-run safety: avoid cardinality/cost explosions and unbounded task growth.
-        self._redis_traffic_sampling_rate = float(os.getenv("REDIS_TRAFFIC_METRICS_SAMPLING_RATE", "0.05"))
-        self._redis_traffic_max_background_tasks = int(os.getenv("REDIS_TRAFFIC_MAX_BACKGROUND_TASKS", "50"))
+        self._redis_traffic_sampling_rate = float(
+            os.getenv("REDIS_TRAFFIC_METRICS_SAMPLING_RATE", "0.05")
+        )
+        self._redis_traffic_max_background_tasks = int(
+            os.getenv("REDIS_TRAFFIC_MAX_BACKGROUND_TASKS", "50")
+        )
         self._redis_metric_fail_count = 0
 
     async def __call__(self, scope, receive, send) -> None:
@@ -43,9 +47,15 @@ class ObservabilityMiddleware:
         from starlette.requests import Request
 
         request = Request(scope)
-        authenticated_user = getattr(request.state, "user", None) if hasattr(request, "state") else None
+        authenticated_user = (
+            getattr(request.state, "user", None) if hasattr(request, "state") else None
+        )
         if authenticated_user:
-            user_id = authenticated_user.get("sub") or authenticated_user.get("user_id") or user_id
+            user_id = (
+                authenticated_user.get("sub")
+                or authenticated_user.get("user_id")
+                or user_id
+            )
 
         if not trace_id:
             trace_id = f"00-{uuid.uuid4().hex}-0000000000000001-01"
@@ -104,7 +114,9 @@ class ObservabilityMiddleware:
                     },
                 )
             except Exception as exc:  # noqa: BLE001
-                logger.debug(f"PostHog capture failed in observability middleware: {exc}")
+                logger.debug(
+                    f"PostHog capture failed in observability middleware: {exc}"
+                )
 
             # --- START REDIS TRAFFIC MONITORING ---
             try:
@@ -137,13 +149,21 @@ class ObservabilityMiddleware:
                                     "duration": duration,
                                     "error": error_type,
                                 }
-                                await redis_manager.client.lpush(minute_key, json.dumps(payload))
-                                await redis_manager.client.expire(minute_key, 86400)  # 24 hours retention
+                                await redis_manager.client.lpush(
+                                    minute_key, json.dumps(payload)
+                                )
+                                await redis_manager.client.expire(
+                                    minute_key, 86400
+                                )  # 24 hours retention
                             except Exception as redis_err:  # noqa: BLE001
                                 self._redis_metric_fail_count += 1
-                                if self._redis_metric_fail_count == 1 or self._redis_metric_fail_count % 10 == 0:
+                                if (
+                                    self._redis_metric_fail_count == 1
+                                    or self._redis_metric_fail_count % 10 == 0
+                                ):
                                     logger.warning(
-                                        "[Observability] Redis traffic metric write failed " "(total failures: %s): %r",
+                                        "[Observability] Redis traffic metric write failed "
+                                        "(total failures: %s): %r",
                                         self._redis_metric_fail_count,
                                         redis_err,
                                     )
@@ -173,7 +193,9 @@ class ObservabilityMiddleware:
                         }
                     )
             except Exception as exc:  # noqa: BLE001
-                logger.debug(f"Evolution log persistence failed in observability middleware: {exc}")
+                logger.debug(
+                    f"Evolution log persistence failed in observability middleware: {exc}"
+                )
 
             # --- START SENTINEL AGENT EVENT TRIGGER ---
             if status_code >= 500 or duration > 3.0:
@@ -182,12 +204,16 @@ class ObservabilityMiddleware:
 
                     from core.sentinel_agent import sentinel
 
-                    event_type = "high_latency" if duration > 3.0 else "internal_server_error"
+                    event_type = (
+                        "high_latency" if duration > 3.0 else "internal_server_error"
+                    )
                     details = f"Endpoint {method} {path} resulted in {status_code} in {duration:.2f}s."
                     if error_type:
                         details += f" Exception: {error_type}"
 
-                    task = asyncio.create_task(sentinel.trigger_event(event_type, details))
+                    task = asyncio.create_task(
+                        sentinel.trigger_event(event_type, details)
+                    )
                     self.app._background_tasks.add(task)
                     task.add_done_callback(self.app._background_tasks.discard)
                 except Exception as e:  # noqa: BLE001

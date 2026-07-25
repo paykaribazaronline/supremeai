@@ -3,11 +3,11 @@ from __future__ import annotations
 import os
 from typing import Any
 
+from api.dependencies import get_current_user_token
 from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 from pydantic import BaseModel
 
-from api.dependencies import get_current_user_token
 from tools.code.code_smell_detector import CodeSmellDetector
 from tools.devops.on_premise_deployer import OnPremiseDeployer
 from tools.learning.domain_adapter import DomainAdapter
@@ -24,12 +24,16 @@ def _require_admin(payload: dict = Depends(get_current_user_token)) -> dict:
     এখন প্রতিটি এন্ডপয়েন্টে admin-role JWT বাধ্যতামূলক করা হলো।
     """
     if payload.get("role") != "admin":
-        logger.warning(f"🚫 Unauthorized tools-ops access attempt by {payload.get('sub', 'unknown')}")
+        logger.warning(
+            f"🚫 Unauthorized tools-ops access attempt by {payload.get('sub', 'unknown')}"
+        )
         raise HTTPException(status_code=403, detail="Admin access required")
     return payload
 
 
-router = APIRouter(prefix="/tools", tags=["tools-ops"], dependencies=[Depends(_require_admin)])
+router = APIRouter(
+    prefix="/tools", tags=["tools-ops"], dependencies=[Depends(_require_admin)]
+)
 
 
 class SmellCheckRequest(BaseModel):
@@ -112,9 +116,13 @@ async def smell_check(payload: SmellCheckRequest):
         result = detector.analyze_directory(payload.path, thresholds=payload.thresholds)
         all_smells = [smell for smells in result.values() for smell in smells]
     else:
-        all_smells = detector.analyze_python_file(payload.path, thresholds=payload.thresholds)
+        all_smells = detector.analyze_python_file(
+            payload.path, thresholds=payload.thresholds
+        )
         if payload.path.endswith((".js", ".ts", ".jsx", ".tsx")):
-            all_smells.extend(detector.analyze_js_ts_file(payload.path, thresholds=payload.thresholds))
+            all_smells.extend(
+                detector.analyze_js_ts_file(payload.path, thresholds=payload.thresholds)
+            )
 
     by_severity: dict[str, int] = {"critical": 0, "warning": 0, "info": 0}
     for s in all_smells:
@@ -141,14 +149,18 @@ async def vulnerability_check(payload: VulnCheckRequest):
 @router.post("/skills/recommend", response_model=SkillRecResponse)
 async def recommend_skills(payload: SkillRecRequest):
     recommender = SkillRecommender()
-    result = recommender.record_and_recommend(payload.user_id, payload.task_description, top_k=payload.top_k)
+    result = recommender.record_and_recommend(
+        payload.user_id, payload.task_description, top_k=payload.top_k
+    )
     return SkillRecResponse(**result)
 
 
 @router.post("/domain/adapt", response_model=DomainAdaptResponse)
 async def domain_adapt(payload: DomainAdaptRequest):
     adapter = DomainAdapter()
-    result = adapter.adapt_request(payload.domain, payload.prompt, context=payload.context)
+    result = adapter.adapt_request(
+        payload.domain, payload.prompt, context=payload.context
+    )
     return DomainAdaptResponse(
         domain=payload.domain,
         response=result.get("response", ""),

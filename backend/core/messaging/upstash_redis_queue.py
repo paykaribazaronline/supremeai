@@ -3,9 +3,8 @@ from __future__ import annotations
 from typing import Any
 
 import httpx
-from loguru import logger
-
 from core.config import settings
+from loguru import logger
 
 
 class UpstashRedisQueue:
@@ -15,7 +14,9 @@ class UpstashRedisQueue:
         token: str | None = None,
         timeout: float = 10.0,
     ) -> None:
-        self.rest_url = (rest_url or getattr(settings, "upstash_redis_rest_url", "") or "").rstrip("/")
+        self.rest_url = (
+            rest_url or getattr(settings, "upstash_redis_rest_url", "") or ""
+        ).rstrip("/")
         self.token = token or getattr(settings, "upstash_redis_rest_token", "") or ""
         self.timeout = timeout
         # বাংলা মন্তব্য: Upstash Rest Queue ক্লায়েন্টে সর্বোচ্চ ১০টি কানেকশন এবং ৫টি কিপ-অলাইভ কানেকশনের সীমা যুক্ত করা হলো।
@@ -34,7 +35,9 @@ class UpstashRedisQueue:
 
     def _request(self, *args: str) -> dict[str, Any]:
         if not self._client:
-            raise RuntimeError("UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are not configured")
+            raise RuntimeError(
+                "UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are not configured"
+            )
         response = self._client.post(
             self.rest_url,
             headers={"Authorization": f"Bearer {self.token}"},

@@ -4,10 +4,10 @@ Performance Benchmark for SupremeAI 2.0
 Measures API latency, throughput, and resource usage.
 """
 
-import time
-import statistics
 import argparse
+import statistics
 import sys
+import time
 
 try:
     import httpx
@@ -53,12 +53,18 @@ def benchmark_endpoint(base_url: str, path: str, num_requests: int = 50):
 def main():
     parser = argparse.ArgumentParser(description="SupremeAI Performance Benchmark")
     parser.add_argument("--url", default="http://127.0.0.1:8000", help="Base API URL")
-    parser.add_argument("--requests", type=int, default=50, help="Number of requests per endpoint")
-    parser.add_argument("--endpoints", nargs="+", default=[
-        "/health",
-        "/api/v1/metrics",
-        "/api/v1/repos?limit=10",
-    ])
+    parser.add_argument(
+        "--requests", type=int, default=50, help="Number of requests per endpoint"
+    )
+    parser.add_argument(
+        "--endpoints",
+        nargs="+",
+        default=[
+            "/health",
+            "/api/v1/metrics",
+            "/api/v1/repos?limit=10",
+        ],
+    )
     args = parser.parse_args()
 
     print(f"Benchmarking {args.url} with {args.requests} requests per endpoint...")

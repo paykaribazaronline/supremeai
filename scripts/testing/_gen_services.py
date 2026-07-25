@@ -15,15 +15,11 @@ from __future__ import annotations
 
 import argparse
 import ast
-import importlib.util
-import inspect
-import os
 import re
 import sys
-import textwrap
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any
 
 
 # ── ANSI Colors ──────────────────────────────────────────────────────────────
@@ -47,14 +43,14 @@ class FieldSpec:
     default: Any = None
     has_default: bool = False
     is_optional: bool = False
-    validators: List[str] = field(default_factory=list)
+    validators: list[str] = field(default_factory=list)
 
 
 @dataclass
 class ModelSpec:
     name: str
-    fields: List[FieldSpec] = field(default_factory=list)
-    base_classes: List[str] = field(default_factory=list)
+    fields: list[FieldSpec] = field(default_factory=list)
+    base_classes: list[str] = field(default_factory=list)
     has_id: bool = False
     id_type: str = "str"
     is_enum: bool = False
@@ -64,7 +60,7 @@ class ModelSpec:
 class SchemaParser:
     """Parse Pydantic models from Python source files using AST."""
 
-    TYPE_ALIASES: Dict[str, str] = {
+    TYPE_ALIASES: dict[str, str] = {
         "str": "str",
         "int": "int",
         "float": "float",
@@ -110,7 +106,7 @@ class SchemaParser:
     def _is_optional(self, type_str: str) -> bool:
         return type_str.startswith("Optional[") or "None" in type_str
 
-    def _get_default(self, node: Optional[ast.expr]) -> Tuple[Any, bool]:
+    def _get_default(self, node: ast.expr | None) -> tuple[Any, bool]:
         if node is None:
             return None, False
         if isinstance(node, ast.Constant):
@@ -125,8 +121,8 @@ class SchemaParser:
             return {}, True
         return None, True
 
-    def parse_models(self) -> List[ModelSpec]:
-        models: List[ModelSpec] = []
+    def parse_models(self) -> list[ModelSpec]:
+        models: list[ModelSpec] = []
         for node in ast.walk(self.tree):
             if isinstance(node, ast.ClassDef):
                 # Detect Pydantic models
@@ -136,7 +132,9 @@ class SchemaParser:
                     if isinstance(base, ast.Name)
                 )
                 is_enum = any(
-                    base.id == "Enum" for base in node.bases if isinstance(base, ast.Name)
+                    base.id == "Enum"
+                    for base in node.bases
+                    if isinstance(base, ast.Name)
                 )
 
                 if not (is_pydantic or is_enum):
@@ -144,14 +142,14 @@ class SchemaParser:
 
                 spec = ModelSpec(
                     name=node.name,
-                    base_classes=[
-                        self._extract_type_str(b) for b in node.bases
-                    ],
+                    base_classes=[self._extract_type_str(b) for b in node.bases],
                     is_enum=is_enum,
                 )
 
                 for item in node.body:
-                    if isinstance(item, ast.AnnAssign) and isinstance(item.target, ast.Name):
+                    if isinstance(item, ast.AnnAssign) and isinstance(
+                        item.target, ast.Name
+                    ):
                         field_name = item.target.id
                         type_str = self._extract_type_str(item.annotation)
                         default, has_default = self._get_default(item.value)
@@ -159,15 +157,19 @@ class SchemaParser:
                         # Detect ID field
                         if field_name in ("id", "uuid", "pk", "uid"):
                             spec.has_id = True
-                            spec.id_type = type_str.replace("Optional[", "").replace("]", "")
+                            spec.id_type = type_str.replace("Optional[", "").replace(
+                                "]", ""
+                            )
 
-                        spec.fields.append(FieldSpec(
-                            name=field_name,
-                            py_type=type_str,
-                            default=default,
-                            has_default=has_default,
-                            is_optional=self._is_optional(type_str),
-                        ))
+                        spec.fields.append(
+                            FieldSpec(
+                                name=field_name,
+                                py_type=type_str,
+                                default=default,
+                                has_default=has_default,
+                                is_optional=self._is_optional(type_str),
+                            )
+                        )
 
                 models.append(spec)
         return models
@@ -794,7 +796,12 @@ class Test{model_name}Service:
             "list": "[]",
             "dict": "{}",
         }
-        base_type = field.py_type.replace("Optional[", "").replace("]", "").replace("List[", "").replace("Dict[", "")
+        base_type = (
+            field.py_type.replace("Optional[", "")
+            .replace("]", "")
+            .replace("List[", "")
+            .replace("Dict[", "")
+        )
         return type_map.get(base_type, '"sample_value"')
 
 
@@ -811,24 +818,36 @@ Examples:
         """,
     )
     parser.add_argument("--schema", "-s", type=Path, help="Single Pydantic schema file")
-    parser.add_argument("--from-dir", "-d", type=Path, help="Directory containing schema files")
-    parser.add_argument("--output", "-o", type=Path, default=Path("backend/services"), help="Output directory")
-    parser.add_argument("--with-tests", "-t", action="store_true", help="Generate test files")
+    parser.add_argument(
+        "--from-dir", "-d", type=Path, help="Directory containing schema files"
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=Path,
+        default=Path("backend/services"),
+        help="Output directory",
+    )
+    parser.add_argument(
+        "--with-tests", "-t", action="store_true", help="Generate test files"
+    )
     parser.add_argument("--dry-run", action="store_true", help="Print without writing")
-    parser.add_argument("--force", "-f", action="store_true", help="Overwrite existing files")
+    parser.add_argument(
+        "--force", "-f", action="store_true", help="Overwrite existing files"
+    )
 
     args = parser.parse_args()
 
     if not args.schema and not args.from_dir:
         parser.error("Either --schema or --from-dir required")
 
-    schemas: List[Path] = []
+    schemas: list[Path] = []
     if args.schema:
         schemas = [args.schema]
     else:
         schemas = list(args.from_dir.rglob("*.py"))
 
-    log(f"🔧 SupremeAI Service Scaffolding Engine", Colors.CYAN)
+    log("🔧 SupremeAI Service Scaffolding Engine", Colors.CYAN)
     log(f"   Schemas: {len(schemas)} file(s)", Colors.CYAN)
     log(f"   Output:  {args.output.resolve()}", Colors.CYAN)
     log(f"   Tests:   {'Yes' if args.with_tests else 'No'}", Colors.CYAN)
@@ -859,7 +878,9 @@ Examples:
             if model.is_enum:
                 continue  # Skip enums for now
 
-            service_code = ServiceTemplate.generate_service_class(model, str(schema_path))
+            service_code = ServiceTemplate.generate_service_class(
+                model, str(schema_path)
+            )
             test_code = ServiceTemplate.generate_test_class(model, str(schema_path))
 
             svc_filename = f"{ServiceTemplate._to_snake(model.name)}_service.py"
@@ -880,7 +901,9 @@ Examples:
                     log(f"  ✅ Service: {svc_path}", Colors.GREEN)
                     total_services += 1
                 else:
-                    log(f"  ⏭️  Service exists (use --force): {svc_path}", Colors.YELLOW)
+                    log(
+                        f"  ⏭️  Service exists (use --force): {svc_path}", Colors.YELLOW
+                    )
 
                 if args.with_tests:
                     test_path.parent.mkdir(parents=True, exist_ok=True)
@@ -889,9 +912,15 @@ Examples:
                         log(f"  ✅ Test:    {test_path}", Colors.GREEN)
                         total_tests += 1
                     else:
-                        log(f"  ⏭️  Test exists (use --force): {test_path}", Colors.YELLOW)
+                        log(
+                            f"  ⏭️  Test exists (use --force): {test_path}",
+                            Colors.YELLOW,
+                        )
 
-    log(f"\n🏁 Complete: {total_services} services, {total_tests} tests generated.", Colors.GREEN)
+    log(
+        f"\n🏁 Complete: {total_services} services, {total_tests} tests generated.",
+        Colors.GREEN,
+    )
     return 0
 
 

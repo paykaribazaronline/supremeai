@@ -35,7 +35,9 @@ def _handle_sigterm(signum: int, frame: object) -> None:  # noqa: ANN401
     SupremeAI FastAPI shutdown is handled by Uvicorn + `lifespan.app_lifespan`.
     This handler must NOT force `sys.exit()` because that can bypass lifespan teardown.
     """
-    logger.info(f"🚨 Signal received ({signum}). Initiating graceful shutdown via Uvicorn/FastAPI lifespan...")
+    logger.info(
+        f"🚨 Signal received ({signum}). Initiating graceful shutdown via Uvicorn/FastAPI lifespan..."
+    )
     # Best-effort observability: let operators know shutdown intent was triggered.
     os.environ["UVICORN_SHUTDOWN_REQUESTED"] = "1"
     # Do not block here; return control to Uvicorn so it can run shutdown hooks.
@@ -83,7 +85,9 @@ def run_server() -> None:
                 logger.warning(f"Failed to report error to Sentry: {sentry_exc}")
         sys.exit(1)
     except OSError as exc:
-        logger.critical(f"Server failed to start (port/bind error on {settings.host}:{port}): {exc}")
+        logger.critical(
+            f"Server failed to start (port/bind error on {settings.host}:{port}): {exc}"
+        )
         if settings.sentry_dsn:
             try:
                 import sentry_sdk

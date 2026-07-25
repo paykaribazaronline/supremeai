@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 """
 SupremeAI Codebase Cleaner & Formatter
@@ -71,7 +70,10 @@ def clean_project(root_dir: str):
                     bprint(f"  ❌ '{dir_path}' মুছতে সমস্যা হয়েছে: {e}", RED)
 
     if dirs_removed_count > 0:
-        bprint(f"\n✅ মোট {dirs_removed_count}টি অপ্রয়োজনীয় ডিরেক্টরি মুছে ফেলা হয়েছে।", GREEN)
+        bprint(
+            f"\n✅ মোট {dirs_removed_count}টি অপ্রয়োজনীয় ডিরেক্টরি মুছে ফেলা হয়েছে।",
+            GREEN,
+        )
     else:
         bprint("\n✅ কোনো অপ্রয়োজনীয় ডিরেক্টরি পাওয়া যায়নি।", GREEN)
 
@@ -82,14 +84,24 @@ def format_code(root_dir: str):
 
     try:
         bprint("  - Ruff Formatter চালানো হচ্ছে...", YELLOW)
-        subprocess.run(["ruff", "format", root_dir], check=True, capture_output=True, text=True)
+        subprocess.run(
+            ["ruff", "format", root_dir], check=True, capture_output=True, text=True
+        )
 
         bprint("  - Ruff Linter (auto-fix) চালানো হচ্ছে...", YELLOW)
-        subprocess.run(["ruff", "check", root_dir, "--fix"], check=True, capture_output=True, text=True)
+        subprocess.run(
+            ["ruff", "check", root_dir, "--fix"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
 
         bprint("\n✅ কোড সফলভাবে ফরম্যাট এবং লিন্ট করা হয়েছে।", GREEN)
     except FileNotFoundError:
-        bprint("❌ 'ruff' কমান্ড পাওয়া যায়নি। Ruff ইনস্টল করা আছে কিনা তা নিশ্চিত করুন (`pip install ruff`)", RED)
+        bprint(
+            "❌ 'ruff' কমান্ড পাওয়া যায়নি। Ruff ইনস্টল করা আছে কিনা তা নিশ্চিত করুন (`pip install ruff`)",
+            RED,
+        )
         sys.exit(1)
     except subprocess.CalledProcessError as e:
         bprint(f"❌ ফরম্যাটিং বা লিন্টিং-এ সমস্যা হয়েছে:\n{e.stderr}", RED)
@@ -97,8 +109,15 @@ def format_code(root_dir: str):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="SupremeAI Codebase Cleaner & Formatter.")
-    parser.add_argument("--action", choices=["clean", "format", "all"], default="all", help="কোন কাজটি চালাবেন: clean, format, or all (default)")
+    parser = argparse.ArgumentParser(
+        description="SupremeAI Codebase Cleaner & Formatter."
+    )
+    parser.add_argument(
+        "--action",
+        choices=["clean", "format", "all"],
+        default="all",
+        help="কোন কাজটি চালাবেন: clean, format, or all (default)",
+    )
     args = parser.parse_args()
 
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))

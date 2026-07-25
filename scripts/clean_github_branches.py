@@ -1,10 +1,11 @@
 import os
 import sys
+
 import requests
 from dotenv import load_dotenv
 
-if sys.stdout.encoding.lower() != 'utf-8':
-    sys.stdout.reconfigure(encoding='utf-8')
+if sys.stdout.encoding.lower() != "utf-8":
+    sys.stdout.reconfigure(encoding="utf-8")
 
 # Load .env
 load_dotenv()
@@ -15,10 +16,11 @@ REPO_OWNER = "paykaribazaronline"
 REPO_NAME = "supremeai"
 HEADERS = {
     "Authorization": f"token {TOKEN}",
-    "Accept": "application/vnd.github.v3+json"
+    "Accept": "application/vnd.github.v3+json",
 }
 
 KEEP_BRANCHES = ["main", "master", "develop"]
+
 
 def get_all_branches():
     branches = []
@@ -46,9 +48,11 @@ def get_all_branches():
 
     return branches
 
+
 def delete_branch(branch_name):
     url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/git/refs/heads/{branch_name}"
     import time
+
     for _ in range(3):
         try:
             response = requests.delete(url, headers=HEADERS)
@@ -60,11 +64,14 @@ def delete_branch(branch_name):
                 print(f"✅ Already deleted: {branch_name}")
                 return
             else:
-                print(f"❌ Failed to delete {branch_name}: {response.status_code} {response.text}")
+                print(
+                    f"❌ Failed to delete {branch_name}: {response.status_code} {response.text}"
+                )
                 time.sleep(1)
         except Exception as e:
             print(f"Connection aborted for {branch_name}, retrying... {e}")
             time.sleep(2)
+
 
 if __name__ == "__main__":
     print(f"Fetching branches for {REPO_OWNER}/{REPO_NAME}...")

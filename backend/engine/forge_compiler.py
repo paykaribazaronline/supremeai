@@ -7,7 +7,9 @@ logger = logging.getLogger(__name__)
 
 class ForgeCompiler:
     @staticmethod
-    def compile_and_sort(nodes: list[dict[str, Any]], edges: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def compile_and_sort(
+        nodes: list[dict[str, Any]], edges: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """
         Parses React Flow nodes and edges, validates DAG properties,
         and returns the linear execution sequence.
@@ -40,6 +42,8 @@ class ForgeCompiler:
 
         if len(execution_order) != len(nodes):
             logger.critical("FATAL: Circular dependency detected in Visual Swarm Flow!")
-            raise ValueError("Circular dependency detected! Flow must be a strict Directed Acyclic Graph (DAG).")
+            raise ValueError(
+                "Circular dependency detected! Flow must be a strict Directed Acyclic Graph (DAG)."
+            )
 
         return execution_order

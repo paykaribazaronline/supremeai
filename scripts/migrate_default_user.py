@@ -7,9 +7,10 @@ backend_dir = Path(__file__).parent.parent / "backend"
 sys.path.insert(0, str(backend_dir))
 
 from database.session import async_session_maker
-from models.wallet import UserWallet, TransactionLedgerEntry
-from sqlalchemy.future import select
 from loguru import logger
+from models.wallet import TransactionLedgerEntry, UserWallet
+from sqlalchemy.future import select
+
 
 async def migrate_default_user(new_user_id: str):
     async with async_session_maker() as session:
@@ -25,13 +26,18 @@ async def migrate_default_user(new_user_id: str):
 
             # Update Ledgers
             result = await session.execute(
-                select(TransactionLedgerEntry).where(TransactionLedgerEntry.user_id == "default_user_session")
+                select(TransactionLedgerEntry).where(
+                    TransactionLedgerEntry.user_id == "default_user_session"
+                )
             )
             entries = result.scalars().all()
             for entry in entries:
                 entry.user_id = new_user_id
 
-            logger.info(f"Migrated {len(wallets)} wallets and {len(entries)} transaction entries.")
+            logger.info(
+                f"Migrated {len(wallets)} wallets and {len(entries)} transaction entries."
+            )
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

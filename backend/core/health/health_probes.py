@@ -1,7 +1,6 @@
 import time
 
 import httpx
-
 from core.cache.redis_manager import redis_manager
 from core.resilience.chaos_engine import chaos_engine
 

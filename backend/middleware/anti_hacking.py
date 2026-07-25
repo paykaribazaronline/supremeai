@@ -13,13 +13,12 @@ import json
 import os
 import secrets
 
-from fastapi import Request
-from fastapi.responses import JSONResponse
-from starlette.middleware.base import BaseHTTPMiddleware
-
 from core.cache.redis_manager import redis_manager
 from core.config import settings
 from core.otp_router import send_otp
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 
 _CONTEXT_KEY_PREFIX = "security:last_context:"
 _CONTEXT_TTL = int(os.getenv("SECURITY_CONTEXT_TTL", "86400"))
@@ -48,7 +47,9 @@ class AntiHackingContextMiddleware(BaseHTTPMiddleware):
         }
         request.state.security_signal = signal
 
-        admin_id = getattr(getattr(request.state, "user", None), "get", lambda *_: None)("sub")
+        admin_id = getattr(
+            getattr(request.state, "user", None), "get", lambda *_: None
+        )("sub")
         if admin_id:
             if redis_manager and redis_manager.client:
                 key = f"{_CONTEXT_KEY_PREFIX}{admin_id}"
@@ -58,17 +59,27 @@ class AntiHackingContextMiddleware(BaseHTTPMiddleware):
                 mismatch = False
                 caution = False
                 if last:
-                    ip_country_mismatch = last.get("ip") != signal["ip"] or last.get("country") != signal["country"]
+                    ip_country_mismatch = (
+                        last.get("ip") != signal["ip"]
+                        or last.get("country") != signal["country"]
+                    )
                     last_fp = last.get("fingerprint")
                     if last_fp and last_fp != "unknown":
                         # বাংলা মন্তব্য: ফিঙ্গারপ্রিন্ট মিললে আইপি পরিবর্তন হলেও ওটিপি লাগবে না (ভিপিএন/মোবাইল নেটওয়ার্কের জন্য)
-                        mismatch = ip_country_mismatch and (last_fp != signal["fingerprint"])
+                        mismatch = ip_country_mismatch and (
+                            last_fp != signal["fingerprint"]
+                        )
                     else:
                         mismatch = ip_country_mismatch
 
                     if mismatch:
-                        same_ua = last.get("ua") not in (None, "unknown") and last.get("ua") == signal["ua"]
-                        same_subnet = bool(signal["ip"]) and _octet3(last.get("ip", "")) == _octet3(signal["ip"])
+                        same_ua = (
+                            last.get("ua") not in (None, "unknown")
+                            and last.get("ua") == signal["ua"]
+                        )
+                        same_subnet = bool(signal["ip"]) and _octet3(
+                            last.get("ip", "")
+                        ) == _octet3(signal["ip"])
                         if same_ua or same_subnet:
                             caution = True
                             mismatch = False
@@ -76,23 +87,35 @@ class AntiHackingContextMiddleware(BaseHTTPMiddleware):
                 if caution:
                     from loguru import logger as _logger
 
-                    _logger.info(f"CAUTION: partial context match for admin {admin_id} (same_ua/subnet, no OTP fired): {signal} vs last {last}")
+                    _logger.info(
+                        f"CAUTION: partial context match for admin {admin_id} (same_ua/subnet, no OTP fired): {signal} vs last {last}"
+                    )
                     if redis_manager and redis_manager.client:
-                        await redis_manager.client.lpush(f"{_CAUTION_LOG_PREFIX}{admin_id}", json.dumps(signal))
-                        await redis_manager.client.ltrim(f"{_CAUTION_LOG_PREFIX}{admin_id}", 0, 49)
-                        await redis_manager.client.expire(f"{_CAUTION_LOG_PREFIX}{admin_id}", _CAUTION_LOG_TTL)
+                        await redis_manager.client.lpush(
+                            f"{_CAUTION_LOG_PREFIX}{admin_id}", json.dumps(signal)
+                        )
+                        await redis_manager.client.ltrim(
+                            f"{_CAUTION_LOG_PREFIX}{admin_id}", 0, 49
+                        )
+                        await redis_manager.client.expire(
+                            f"{_CAUTION_LOG_PREFIX}{admin_id}", _CAUTION_LOG_TTL
+                        )
 
                 if mismatch:
                     cooldown_key = f"{_OTP_COOLDOWN_PREFIX}{admin_id}"
                     cooldown_active = False
                     if redis_manager and redis_manager.client:
-                        acquired = await redis_manager.client.set(cooldown_key, "1", nx=True, ex=settings.otp_cooldown_seconds)
+                        acquired = await redis_manager.client.set(
+                            cooldown_key, "1", nx=True, ex=settings.otp_cooldown_seconds
+                        )
                         cooldown_active = not bool(acquired)
 
                     if cooldown_active:
                         from loguru import logger as _logger2
 
-                        _logger2.info(f"OTP cooldown active for admin {admin_id} - suppressing duplicate send/notification.")
+                        _logger2.info(
+                            f"OTP cooldown active for admin {admin_id} - suppressing duplicate send/notification."
+                        )
                         request.state.security_otp_pending = True
                         if settings.enforce_anti_hacking:
                             return JSONResponse(
@@ -102,7 +125,9 @@ class AntiHackingContextMiddleware(BaseHTTPMiddleware):
                                     "detail": "OTP verification required — check your configured channel.",
                                 },
                             )
-                        await redis_manager.set_cache(key, json.dumps(signal), ex_seconds=_CONTEXT_TTL)
+                        await redis_manager.set_cache(
+                            key, json.dumps(signal), ex_seconds=_CONTEXT_TTL
+                        )
                         return await call_next(request)
 
                     code = f"{secrets.randbelow(900000) + 100000}"
@@ -127,8 +152,12 @@ class AntiHackingContextMiddleware(BaseHTTPMiddleware):
                     # alert-only: log and continue
                     from loguru import logger
 
-                    logger.warning(f"🔓 [ALERT-ONLY] Context mismatch for admin {admin_id}: {signal} vs last {last}")
+                    logger.warning(
+                        f"🔓 [ALERT-ONLY] Context mismatch for admin {admin_id}: {signal} vs last {last}"
+                    )
 
-                await redis_manager.set_cache(key, json.dumps(signal), ex_seconds=_CONTEXT_TTL)
+                await redis_manager.set_cache(
+                    key, json.dumps(signal), ex_seconds=_CONTEXT_TTL
+                )
 
         return await call_next(request)

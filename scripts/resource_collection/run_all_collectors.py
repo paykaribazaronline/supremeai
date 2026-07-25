@@ -33,7 +33,7 @@ def run_collector(script_path: str, description: str) -> bool:
             cwd="C:/Users/n/supremeai/supremeai_2.0",  # Set working directory to project root
             capture_output=True,
             text=True,
-            timeout=300  # 5 minute timeout
+            timeout=300,  # 5 minute timeout
         )
 
         # Print output
@@ -67,7 +67,10 @@ def main():
     # Define collectors to run
     collectors = [
         # Scrapers
-        ("scripts/resource_collection/awesome_selfhosted.py", "Awesome Self-Hosted Scraper"),
+        (
+            "scripts/resource_collection/awesome_selfhosted.py",
+            "Awesome Self-Hosted Scraper",
+        ),
         ("scripts/resource_collection/awesome_go.py", "Awesome Go Scraper"),
         ("scripts/resource_collection/awesome_python.py", "Awesome Python Scraper"),
         # API Clients

@@ -14,10 +14,9 @@ import json
 from datetime import UTC, datetime
 from typing import Any
 
+from core.cache.redis_manager import redis_manager
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-
-from core.cache.redis_manager import redis_manager
 
 router = APIRouter(prefix="/api/simulator", tags=["simulator"])
 
@@ -180,7 +179,9 @@ async def install_app(req: InstallRequest, userId: str = "default"):
     if profile["activeInstalls"] >= profile["installQuota"]:
         raise HTTPException(status_code=400, detail="Install quota exceeded")
 
-    existing = next((a for a in profile["installedApps"] if a["appId"] == req.appId), None)
+    existing = next(
+        (a for a in profile["installedApps"] if a["appId"] == req.appId), None
+    )
     if existing:
         return {
             "success": True,
@@ -215,7 +216,9 @@ async def install_app(req: InstallRequest, userId: str = "default"):
 async def uninstall_app(appId: str, userId: str = "default"):
     profile = await get_or_create_profile(userId)
     initial_len = len(profile["installedApps"])
-    profile["installedApps"] = [a for a in profile["installedApps"] if a["appId"] != appId]
+    profile["installedApps"] = [
+        a for a in profile["installedApps"] if a["appId"] != appId
+    ]
     if len(profile["installedApps"]) < initial_len:
         profile["activeInstalls"] -= 1
     await _save_profile(userId, profile)

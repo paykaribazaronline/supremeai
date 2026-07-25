@@ -13,14 +13,9 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
-from core.security.secret_hunter import (
-    AISecretAnalyzer,
-    GitleaksRunner,
-    SecretFinding,
-    SecretHunter,
-    SecretReport,
-)
+from core.security.secret_hunter import (AISecretAnalyzer, GitleaksRunner,
+                                         SecretFinding, SecretHunter,
+                                         SecretReport)
 
 # --- SecretFinding Tests ---
 
@@ -96,7 +91,9 @@ class TestGitleaksRunner:
         """Test scanning a file containing a secret."""
         runner = GitleaksRunner()
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False, encoding="utf-8") as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".py", delete=False, encoding="utf-8"
+        ) as f:
             f.write('api_key = "AKIAIOSFODNN7EXAMPLE"\n')
             f.flush()
             file_path = Path(f.name)
@@ -114,7 +111,9 @@ class TestGitleaksRunner:
         """Test scanning a file without secrets."""
         runner = GitleaksRunner()
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False, encoding="utf-8") as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".py", delete=False, encoding="utf-8"
+        ) as f:
             f.write('def hello():\n    print("hello world")\n')
             f.flush()
             file_path = Path(f.name)
@@ -150,7 +149,9 @@ class TestGitleaksRunner:
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create a file with non-watched extension
             other_file = Path(tmpdir) / "data.bin"
-            other_file.write_text("binary content with AKIAIOSFODNN7EXAMPLE", encoding="utf-8")
+            other_file.write_text(
+                "binary content with AKIAIOSFODNN7EXAMPLE", encoding="utf-8"
+            )
 
             findings = runner.scan_directory(Path(tmpdir), extensions={".py", ".js"})
 
@@ -165,7 +166,9 @@ class TestGitleaksRunner:
             hidden_dir = Path(tmpdir) / ".hidden"
             hidden_dir.mkdir()
             hidden_file = hidden_dir / "config.py"
-            hidden_file.write_text('api_key = "AKIAIOSFODNN7EXAMPLE"\n', encoding="utf-8")
+            hidden_file.write_text(
+                'api_key = "AKIAIOSFODNN7EXAMPLE"\n', encoding="utf-8"
+            )
 
             findings = runner.scan_directory(Path(tmpdir))
 
@@ -196,9 +199,7 @@ class TestAISecretAnalyzer:
 
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
-        mock_response.choices[
-            0
-        ].message.content = (
+        mock_response.choices[0].message.content = (
             '{"is_true_positive": true, "secret_type": "API Key", "severity": "critical", "confidence": 0.95, "remediation": "Remove the key"}'
         )
 
@@ -231,7 +232,9 @@ class TestAISecretAnalyzer:
 
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
-        mock_response.choices[0].message.content = '{"is_true_positive": false, "secret_type": "placeholder", "severity": "low", "confidence": 0.1}'
+        mock_response.choices[0].message.content = (
+            '{"is_true_positive": false, "secret_type": "placeholder", "severity": "low", "confidence": 0.1}'
+        )
 
         with patch(
             "core.security.secret_hunter.llm_gateway.acompletion",
@@ -271,9 +274,13 @@ class TestSecretHunter:
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create a file with a secret
             secret_file = Path(tmpdir) / "config.py"
-            secret_file.write_text('api_key = "ghp_test1234567890abcdef"\n', encoding="utf-8")
+            secret_file.write_text(
+                'api_key = "ghp_test1234567890abcdef"\n', encoding="utf-8"
+            )
 
-            with patch.object(hunter.ai_analyzer, "analyze_finding", new_callable=AsyncMock) as mock_analyze:
+            with patch.object(
+                hunter.ai_analyzer, "analyze_finding", new_callable=AsyncMock
+            ) as mock_analyze:
                 # Make analyze_finding return the finding with info severity for testing
                 mock_analyze.return_value = SecretFinding(
                     rule_id="github-token",
@@ -286,7 +293,9 @@ class TestSecretHunter:
                     severity="high",
                 )
 
-                report = await hunter.scan_codebase(tmpdir, use_ai=True, min_severity="low")
+                report = await hunter.scan_codebase(
+                    tmpdir, use_ai=True, min_severity="low"
+                )
 
         assert isinstance(report, SecretReport)
         assert report.total_files >= 1
@@ -298,9 +307,13 @@ class TestSecretHunter:
 
         with tempfile.TemporaryDirectory() as tmpdir:
             secret_file = Path(tmpdir) / "config.py"
-            secret_file.write_text('api_key = "ghp_test1234567890abcdef"\n', encoding="utf-8")
+            secret_file.write_text(
+                'api_key = "ghp_test1234567890abcdef"\n', encoding="utf-8"
+            )
 
-            report = await hunter.scan_codebase(tmpdir, use_ai=False, min_severity="low")
+            report = await hunter.scan_codebase(
+                tmpdir, use_ai=False, min_severity="low"
+            )
 
         assert isinstance(report, SecretReport)
 

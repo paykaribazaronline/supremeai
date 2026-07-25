@@ -7,11 +7,8 @@ import redis.asyncio as redis
 import yaml
 from loguru import logger
 
-from .tools import (
-    check_env_secrets_sync,
-    check_infrastructure_drift,
-    check_redis_connection,
-)
+from .tools import (check_env_secrets_sync, check_infrastructure_drift,
+                    check_redis_connection)
 
 
 class SyncGuardAgent:
@@ -36,7 +33,9 @@ class SyncGuardAgent:
         audit_report = {"status": "SYNC_OK", "issues": []}
 
         # 1. Check Infrastructure Blueprint Sync
-        infra_status = await check_infrastructure_drift("github.com/paykaribazaronline/supremeai")
+        infra_status = await check_infrastructure_drift(
+            "github.com/paykaribazaronline/supremeai"
+        )
         if infra_status["status"] != "matched":
             audit_report["status"] = "SYNC_FAILED"
             audit_report["issues"].append("Infrastructure Blueprint Drift Detected.")
@@ -46,7 +45,9 @@ class SyncGuardAgent:
         env_status = await check_env_secrets_sync(required_env_keys)
         if env_status["status"] != "synced":
             audit_report["status"] = "SYNC_FAILED"
-            audit_report["issues"].append(f"Missing Env Secrets: {env_status['missing']}")
+            audit_report["issues"].append(
+                f"Missing Env Secrets: {env_status['missing']}"
+            )
 
         # 3. Check Message Broker (Upstash Redis)
         redis_alive = await check_redis_connection(os.getenv("REDIS_URL", "dummy_url"))
@@ -63,13 +64,19 @@ class SyncGuardAgent:
                 redis_url = os.getenv("REDIS_URL")
                 if redis_url:
                     redis_client = redis.from_url(redis_url)
-                    await redis_client.publish("supremeai:alerts:syncguard", json.dumps(audit_report))
+                    await redis_client.publish(
+                        "supremeai:alerts:syncguard", json.dumps(audit_report)
+                    )
                     await redis_client.aclose()
-                    logger.info(f"📡 [{self.name}] Broadcasted SYNC_FAILED alert to Swarm.")
+                    logger.info(
+                        f"📡 [{self.name}] Broadcasted SYNC_FAILED alert to Swarm."
+                    )
             except Exception as e:
                 logger.warning(f"⚠️ [{self.name}] Failed to broadcast alert: {e}")
         else:
-            logger.info(f"✅ [{self.name}] AUDIT PASSED. System is 100% synchronized and ready for scaling.")
+            logger.info(
+                f"✅ [{self.name}] AUDIT PASSED. System is 100% synchronized and ready for scaling."
+            )
 
         return audit_report
 

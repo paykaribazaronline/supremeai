@@ -8,9 +8,9 @@ import logging
 from typing import Any
 
 from memory.chromadb_store import ChromaDBStore
+from memory.cloud_postgres_store import CloudPostgresStore
 from memory.sqlite_store import SQLiteStore
 from memory.supabase_store import SupabaseStore
-from memory.cloud_postgres_store import CloudPostgresStore
 
 logger = logging.getLogger("supremeai.unified_db")
 
@@ -41,7 +41,12 @@ class UnifiedDBManager:
 
         বাংলা মন্তব্য: একক মেথড কলে সুনির্দিষ্ট রেকর্ডকে সকল যুক্ত ডাটাবেসে একসাথে সেভ করে।
         """
-        results = {"supabase": False, "sqlite": False, "chroma": False, "postgres": False}
+        results = {
+            "supabase": False,
+            "sqlite": False,
+            "chroma": False,
+            "postgres": False,
+        }
 
         # 1. Save to SQLite local cache
         try:
@@ -82,7 +87,9 @@ class UnifiedDBManager:
 
         return results
 
-    async def get_record(self, collection: str, record_id: str) -> dict[str, Any] | None:
+    async def get_record(
+        self, collection: str, record_id: str
+    ) -> dict[str, Any] | None:
         """Retrieve record with fallback strategy (SQLite -> Supabase -> Postgres).
 
         বাংলা মন্তব্য: ফাইলটের ওপর ভিত্তি করে পর্যায়ক্রমে লোকাল সিঙ্ক থেকে ডাটা ফেচ করে।

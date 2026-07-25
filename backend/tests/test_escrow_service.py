@@ -8,7 +8,6 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock
 
 import pytest
-
 from services.escrow_service import Escrow, EscrowService, EscrowStatus
 
 
@@ -112,7 +111,9 @@ class TestEscrowService:
 
     def test_update_escrow_status(self, service):
         created = service.create_escrow_sync("p1", "p2", 100.0, "USD", [])
-        updated = service.update_escrow_status_sync(created.escrow_id, EscrowStatus.FUNDED)
+        updated = service.update_escrow_status_sync(
+            created.escrow_id, EscrowStatus.FUNDED
+        )
         assert updated is not None
         assert updated.status == EscrowStatus.FUNDED
 
@@ -128,17 +129,25 @@ class TestEscrowService:
 
     def test_escrow_full_lifecycle(self, service):
         # Create
-        escrow = service.create_escrow_sync("payer", "payee", 500.0, "USD", ["approval"])
+        escrow = service.create_escrow_sync(
+            "payer", "payee", 500.0, "USD", ["approval"]
+        )
         assert escrow.status == EscrowStatus.PENDING
 
         # Fund
-        escrow = service.update_escrow_status_sync(escrow.escrow_id, EscrowStatus.FUNDED)
+        escrow = service.update_escrow_status_sync(
+            escrow.escrow_id, EscrowStatus.FUNDED
+        )
         assert escrow.status == EscrowStatus.FUNDED
 
         # Condition met
-        escrow = service.update_escrow_status_sync(escrow.escrow_id, EscrowStatus.CONDITION_MET)
+        escrow = service.update_escrow_status_sync(
+            escrow.escrow_id, EscrowStatus.CONDITION_MET
+        )
         assert escrow.status == EscrowStatus.CONDITION_MET
 
         # Release
-        escrow = service.update_escrow_status_sync(escrow.escrow_id, EscrowStatus.RELEASED)
+        escrow = service.update_escrow_status_sync(
+            escrow.escrow_id, EscrowStatus.RELEASED
+        )
         assert escrow.status == EscrowStatus.RELEASED

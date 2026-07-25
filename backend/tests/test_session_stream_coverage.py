@@ -12,9 +12,8 @@ class TestStreamSession:
     @pytest.mark.asyncio
     async def test_stream_session_returns_sse_response(self):
         """stream_session should return EventSourceResponse."""
-        from sse_starlette.sse import EventSourceResponse
-
         from api.routes.session_stream import stream_session
+        from sse_starlette.sse import EventSourceResponse
 
         mock_request = MagicMock()
         mock_request.is_disconnected = AsyncMock(return_value=True)

@@ -30,8 +30,15 @@ from collections import defaultdict
 from pathlib import Path
 
 SKIP_DIRS = {
-    "node_modules", ".git", "venv", "__pycache__", ".venv",
-    "archive", "dist", "build", ".turbo",
+    "node_modules",
+    ".git",
+    "venv",
+    "__pycache__",
+    ".venv",
+    "archive",
+    "dist",
+    "build",
+    ".turbo",
 }
 CODE_EXTS = (".py",)
 SRC_EXTS = (".py", ".ts", ".tsx", ".js", ".jsx")
@@ -77,7 +84,12 @@ def scan_python(root: Path) -> dict:
                 naive_datetime.append(f"{rel}:{i}")
             if any(x in line for x in ("TODO", "FIXME", "XXX", "HACK")):
                 todo_fixmes.append(f"{rel}:{i}: {line.strip()[:100]}")
-            if "print(" in line and "/tests/" not in rel and "test_" not in path.name and "/scripts/" not in rel:
+            if (
+                "print(" in line
+                and "/tests/" not in rel
+                and "test_" not in path.name
+                and "/scripts/" not in rel
+            ):
                 print_statements.append(f"{rel}:{i}: {line.strip()[:100]}")
 
         try:
@@ -90,7 +102,9 @@ def scan_python(root: Path) -> dict:
             if isinstance(node, ast.FunctionDef):
                 for default in list(node.args.defaults) + list(node.args.kw_defaults):
                     if isinstance(default, (ast.List, ast.Dict, ast.Set)):
-                        mutable_defaults.append(f"{rel}:{node.lineno}: def {node.name}(...)")
+                        mutable_defaults.append(
+                            f"{rel}:{node.lineno}: def {node.name}(...)"
+                        )
             if isinstance(node, ast.ExceptHandler):
                 if len(node.body) == 1 and isinstance(node.body[0], ast.Pass):
                     except_pass.append(f"{rel}:{node.lineno}")
@@ -101,14 +115,19 @@ def scan_python(root: Path) -> dict:
                         # Getter/Setter/Deleter জোড়া বাদ দিয়ে ডুপ্লিকেট খোঁজা (False Positive এড়াতে)
                         is_property_accessor = False
                         for dec in item.decorator_list:
-                            if isinstance(dec, ast.Attribute) and dec.attr in ("setter", "deleter"):
+                            if isinstance(dec, ast.Attribute) and dec.attr in (
+                                "setter",
+                                "deleter",
+                            ):
                                 is_property_accessor = True
                                 break
                         if is_property_accessor:
                             continue
 
                         if item.name in seen:
-                            duplicate_methods.append(f"{rel}:{item.lineno}: class {node.name} redefines method '{item.name}' (first at line {seen[item.name]})")
+                            duplicate_methods.append(
+                                f"{rel}:{item.lineno}: class {node.name} redefines method '{item.name}' (first at line {seen[item.name]})"
+                            )
                         else:
                             seen[item.name] = item.lineno
 
@@ -148,7 +167,11 @@ def scan_secrets(root: Path) -> list[str]:
         if "/tests/" in rel or rel.startswith("tests/"):
             continue  # টেস্ট mock value বাদ — false positive কমাতে
         for i, line in enumerate(src.splitlines(), 1):
-            if SECRET_RE.search(line) and "os.environ" not in line and "getenv" not in line:
+            if (
+                SECRET_RE.search(line)
+                and "os.environ" not in line
+                and "getenv" not in line
+            ):
                 hits.append(f"{rel}:{i}")
     return hits
 
@@ -187,11 +210,13 @@ def main() -> int:
     print(f"TODO/FIXME/HACK comments:   {len(report['todo_fixmes'])}")
 
     if args.json:
-        Path(args.json).write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+        Path(args.json).write_text(
+            json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
         try:
             print(f"\nJSON report saved to: {args.json}")
         except UnicodeEncodeError:
-            print(f"\nJSON report saved successfully.")
+            print("\nJSON report saved successfully.")
 
     if args.fail_on_syntax_error and report["syntax_errors"]:
         print("\n❌ Syntax error detected - CI failing.")

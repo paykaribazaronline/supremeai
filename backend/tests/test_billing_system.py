@@ -11,10 +11,9 @@ os.environ["STRIPE_WEBHOOK_SECRET"] = "whsec_test"
 from decimal import Decimal
 from unittest.mock import patch
 
-from fastapi.testclient import TestClient
-
 from core.app import app
 from database.session import get_db_session
+from fastapi.testclient import TestClient
 from models.wallet import UserWallet
 
 client = TestClient(app)
@@ -117,7 +116,9 @@ async def test_token_deductor_deducts_main_balance(mock_db_session):
     from api.routes.billing_api import token_deductor
 
     # 1000 input, 1000 output. Pricing tiers: input: 0.0015, output: 0.0020. Total: 0.0035 USD
-    res = await token_deductor.deduct_tokens(mock_db_session, "default_user_session", 1000, 1000, "gemini-2.5-pro")
+    res = await token_deductor.deduct_tokens(
+        mock_db_session, "default_user_session", 1000, 1000, "gemini-2.5-pro"
+    )
     assert res is True
     assert mock_db_session._wallet.balance_usd == Decimal("4.996500")
     assert len(mock_db_session.added) == 1
@@ -128,7 +129,9 @@ async def test_token_deductor_insufficient_funds(mock_db_session):
     from api.routes.billing_api import token_deductor
 
     mock_db_session._wallet.balance_usd = Decimal("0.000000")
-    res = await token_deductor.deduct_tokens(mock_db_session, "default_user_session", 1000, 1000, "gemini-2.5-pro")
+    res = await token_deductor.deduct_tokens(
+        mock_db_session, "default_user_session", 1000, 1000, "gemini-2.5-pro"
+    )
     assert res is False
 
 

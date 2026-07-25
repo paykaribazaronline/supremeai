@@ -13,20 +13,18 @@ Author: SupremeAI Core
 Date: July 18, 2026
 """
 
+import argparse
 import ast
-import os
-import sys
+import concurrent.futures
+import datetime
+import hashlib
 import json
 import logging
-import argparse
-import hashlib
-import concurrent.futures
+import sys
 import threading
-import datetime
-from pathlib import Path
-from dataclasses import dataclass, field, asdict
-from typing import Any
 from collections import defaultdict
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
 
 import litellm
 
@@ -41,14 +39,11 @@ except ImportError:
     from core.config import settings
 
 # --- Configuration ---
-logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
+logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 litellm.set_verbose = False
 litellm.max_retries = 3
-litellm.retry_strategy = {
-    "wait_time": 16,
-    "allowed_exceptions": [Exception]
-}
+litellm.retry_strategy = {"wait_time": 16, "allowed_exceptions": [Exception]}
 
 CACHE_FILE = Path(__file__).parent / ".refactor_wiz_cache.json"
 TARGET_DIRECTORIES = ["backend/core", "backend/tools"]
@@ -57,20 +52,27 @@ EXCLUDE_FILES = {"__init__.py", "refactor_wiz.py", "ai_scribe_historian.py"}
 
 # --- LLM Infrastructure ---
 
+
 class LLMCallError(Exception):
     """সব রিট্রাই শেষে LLM কল ব্যর্থ হলে এই এরর রেইজ হবে।"""
+
 
 key_index = 0
 api_key_lock = threading.Lock()
 
 
-def get_ai_response(prompt: str, temperature: float = 0.3, max_retries_per_key: int = 3, retry_backoff_seconds: float = 2.0) -> str:
+def get_ai_response(
+    prompt: str,
+    temperature: float = 0.3,
+    max_retries_per_key: int = 3,
+    retry_backoff_seconds: float = 2.0,
+) -> str:
     global key_index
     api_keys_str = settings.gemini_api_key
     if not api_keys_str:
         raise LLMCallError("settings.gemini_api_key কনফিগার করা নেই।")
 
-    keys = [k.strip() for k in api_keys_str.split(',') if k.strip()]
+    keys = [k.strip() for k in api_keys_str.split(",") if k.strip()]
     if not keys:
         raise LLMCallError("কোনো বৈধ Gemini API key পাওয়া যায়নি।")
 
@@ -84,29 +86,40 @@ def get_ai_response(prompt: str, temperature: float = 0.3, max_retries_per_key: 
                 model=settings.gemini_model_name,
                 messages=[{"content": prompt, "role": "user"}],
                 temperature=temperature,
-                api_key=current_key
+                api_key=current_key,
             )
             return response.choices[0].message.content or ""
         except Exception as e:
             last_error = e
             error_msg = str(e)
-            recoverable = any(code in error_msg for code in (
-                "429", "RESOURCE_EXHAUSTED", "RateLimit", "403",
-                "PERMISSION_DENIED", "API_KEY_SERVICE_BLOCKED"
-            ))
+            recoverable = any(
+                code in error_msg
+                for code in (
+                    "429",
+                    "RESOURCE_EXHAUSTED",
+                    "RateLimit",
+                    "403",
+                    "PERMISSION_DENIED",
+                    "API_KEY_SERVICE_BLOCKED",
+                )
+            )
             if not recoverable:
                 raise
 
-            logging.warning(f"Key ending in ...{current_key[-4:]} failed (attempt {attempt+1}/{max_retries}), rotating key...")
+            logging.warning(
+                f"Key ending in ...{current_key[-4:]} failed (attempt {attempt+1}/{max_retries}), rotating key..."
+            )
             with api_key_lock:
                 key_index += 1
             import time
+
             time.sleep(retry_backoff_seconds * (2 ** (attempt // len(keys))))
 
     raise LLMCallError(f"সব API key দিয়ে চেষ্টার পরও ব্যর্থ: {last_error}")
 
 
 # --- Data Structures ---
+
 
 @dataclass
 class DebtItem:
@@ -156,6 +169,7 @@ class FileDebtReport:
 
 # --- AST Metrics Collector ---
 
+
 class MetricsVisitor(ast.NodeVisitor):
     """
     বাংলা মন্তব্য: ফাংশন-লেভেল মেট্রিক্স কালেক্ট করে — সাইক্লোম্যাটিক কমপ্লেক্সিটি, নেস্টিং ডেপ্থ, ইত্যাদি।
@@ -203,7 +217,10 @@ class MetricsVisitor(ast.NodeVisitor):
             line_start=node.lineno,
             line_end=node.end_lineno or node.lineno,
             length=(node.end_lineno or node.lineno) - node.lineno,
-            arg_count=len(node.args.args) + len(node.args.kwonlyargs) + (1 if node.args.vararg else 0) + (1 if node.args.kwarg else 0),
+            arg_count=len(node.args.args)
+            + len(node.args.kwonlyargs)
+            + (1 if node.args.vararg else 0)
+            + (1 if node.args.kwarg else 0),
             return_count=0,
             complexity=1,  # Base complexity
             nested_depth=0,
@@ -257,91 +274,106 @@ def collect_metrics(file_path: Path) -> tuple[MetricsVisitor, list[str]]:
 
 # --- Debt Detection Engine ---
 
-def detect_debts(file_path: Path, visitor: MetricsVisitor, lines: list[str]) -> list[DebtItem]:
+
+def detect_debts(
+    file_path: Path, visitor: MetricsVisitor, lines: list[str]
+) -> list[DebtItem]:
     debts: list[DebtItem] = []
 
     # RW001: High cyclomatic complexity
     for func in visitor.functions:
         if func.complexity > 10:
-            debts.append(DebtItem(
-                rule_id="RW001",
-                category="Complexity",
-                severity="HIGH",
-                message=f"Function '{func.name}' has approximate cyclomatic complexity of {func.complexity}. Refactor into smaller helpers.",
-                line=func.line_start,
-                metric_value=str(func.complexity),
-                suggestion="Extract nested conditionals into private helper methods."
-            ))
+            debts.append(
+                DebtItem(
+                    rule_id="RW001",
+                    category="Complexity",
+                    severity="HIGH",
+                    message=f"Function '{func.name}' has approximate cyclomatic complexity of {func.complexity}. Refactor into smaller helpers.",
+                    line=func.line_start,
+                    metric_value=str(func.complexity),
+                    suggestion="Extract nested conditionals into private helper methods.",
+                )
+            )
 
     # RW002: Long function
     for func in visitor.functions:
         if func.length > 40:
-            debts.append(DebtItem(
-                rule_id="RW002",
-                category="Size",
-                severity="MEDIUM",
-                message=f"Function '{func.name}' spans {func.length} lines.",
-                line=func.line_start,
-                metric_value=str(func.length),
-                suggestion="Apply Extract Method to isolate logical sections."
-            ))
+            debts.append(
+                DebtItem(
+                    rule_id="RW002",
+                    category="Size",
+                    severity="MEDIUM",
+                    message=f"Function '{func.name}' spans {func.length} lines.",
+                    line=func.line_start,
+                    metric_value=str(func.length),
+                    suggestion="Apply Extract Method to isolate logical sections.",
+                )
+            )
 
     # RW006: Deep nesting
     for func in visitor.functions:
         if func.nested_depth > 3:
-            debts.append(DebtItem(
-                rule_id="RW006",
-                category="Complexity",
-                severity="MEDIUM",
-                message=f"Function '{func.name}' has nesting depth of {func.nested_depth}.",
-                line=func.line_start,
-                metric_value=str(func.nested_depth),
-                suggestion="Use early returns or extract nested blocks into functions."
-            ))
+            debts.append(
+                DebtItem(
+                    rule_id="RW006",
+                    category="Complexity",
+                    severity="MEDIUM",
+                    message=f"Function '{func.name}' has nesting depth of {func.nested_depth}.",
+                    line=func.line_start,
+                    metric_value=str(func.nested_depth),
+                    suggestion="Use early returns or extract nested blocks into functions.",
+                )
+            )
 
     # RW007: Long parameter list
     for func in visitor.functions:
         if func.arg_count > 5:
-            debts.append(DebtItem(
-                rule_id="RW007",
-                category="Interface",
-                severity="LOW",
-                message=f"Function '{func.name}' accepts {func.arg_count} parameters.",
-                line=func.line_start,
-                metric_value=str(func.arg_count),
-                suggestion="Introduce a parameter object or builder pattern."
-            ))
+            debts.append(
+                DebtItem(
+                    rule_id="RW007",
+                    category="Interface",
+                    severity="LOW",
+                    message=f"Function '{func.name}' accepts {func.arg_count} parameters.",
+                    line=func.line_start,
+                    metric_value=str(func.arg_count),
+                    suggestion="Introduce a parameter object or builder pattern.",
+                )
+            )
 
     # RW008: God class
     if len(visitor.classes) == 1 and len(visitor.functions) > 20:
-        debts.append(DebtItem(
-            rule_id="RW008",
-            category="Architecture",
-            severity="HIGH",
-            message=f"Possible God Class detected with {len(visitor.functions)} methods.",
-            line=1,
-            metric_value=str(len(visitor.functions)),
-            suggestion="Split responsibilities into multiple collaborator classes."
-        ))
+        debts.append(
+            DebtItem(
+                rule_id="RW008",
+                category="Architecture",
+                severity="HIGH",
+                message=f"Possible God Class detected with {len(visitor.functions)} methods.",
+                line=1,
+                metric_value=str(len(visitor.functions)),
+                suggestion="Split responsibilities into multiple collaborator classes.",
+            )
+        )
 
     # RW009: Duplicate code blocks (simple heuristic: identical line sequences of >= 4 lines)
     block_map: dict[tuple[str, ...], list[int]] = defaultdict(list)
     for i in range(len(lines) - 3):
-        block = tuple(line.strip() for line in lines[i:i+4])
+        block = tuple(line.strip() for line in lines[i : i + 4])
         if len(block[0]) > 10:  # Ignore trivial short lines
             block_map[block].append(i + 1)
 
     for block, line_nums in block_map.items():
         if len(line_nums) > 1:
-            debts.append(DebtItem(
-                rule_id="RW009",
-                category="Duplication",
-                severity="MEDIUM",
-                message=f"Duplicate 4-line block found at lines {line_nums}. Consider extracting a shared function.",
-                line=line_nums[0],
-                metric_value=str(len(line_nums)),
-                suggestion="Apply Extract Function to eliminate duplication."
-            ))
+            debts.append(
+                DebtItem(
+                    rule_id="RW009",
+                    category="Duplication",
+                    severity="MEDIUM",
+                    message=f"Duplicate 4-line block found at lines {line_nums}. Consider extracting a shared function.",
+                    line=line_nums[0],
+                    metric_value=str(len(line_nums)),
+                    suggestion="Apply Extract Function to eliminate duplication.",
+                )
+            )
             # Limit duplicate warnings to avoid noise
             if len([d for d in debts if d.rule_id == "RW009"]) >= 3:
                 break
@@ -377,6 +409,7 @@ Given the following file's code and detected metrics, produce a safe, step-by-st
 Refactoring Plan:
 """
 
+
 def generate_ai_plan(file_path: Path, metrics: dict, debts: list[DebtItem]) -> str:
     # বাংলা মন্তব্য: এআই জেনারেটেড রিফ্যাক্টরিং প্ল্যান।
     content = file_path.read_text(encoding="utf-8")
@@ -408,7 +441,7 @@ def save_cache(cache: dict):
 
 
 def get_file_hash(content: str) -> str:
-    return hashlib.sha256(content.encode('utf-8')).hexdigest()
+    return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
 
 # --- Report Generation ---
@@ -435,14 +468,18 @@ def generate_markdown_report(reports: list[FileDebtReport], output_path: Path):
     for r in reports:
         debt_count = len(r.debts)
         comp = r.metrics.get("avg_complexity", 0)
-        lines.append(f"| `{r.file_path}` | {r.refactoring_priority}/10 | {debt_count} | {comp} |")
+        lines.append(
+            f"| `{r.file_path}` | {r.refactoring_priority}/10 | {debt_count} | {comp} |"
+        )
 
-    lines.extend([
-        "",
-        "---",
-        "",
-        "## Refactoring Plans by File",
-    ])
+    lines.extend(
+        [
+            "",
+            "---",
+            "",
+            "## Refactoring Plans by File",
+        ]
+    )
 
     for r in reports:
         if not r.debts and not r.ai_plan:
@@ -463,7 +500,9 @@ def generate_markdown_report(reports: list[FileDebtReport], output_path: Path):
             lines.append("| Rule | Severity | Category | Line | Message | Suggestion |")
             lines.append("|------|----------|----------|------|---------|------------|")
             for d in sorted(r.debts, key=lambda x: (x.line, x.severity)):
-                lines.append(f"| `{d.rule_id}` | {d.severity} | {d.category} | {d.line} | {d.message} | {d.suggestion} |")
+                lines.append(
+                    f"| `{d.rule_id}` | {d.severity} | {d.category} | {d.line} | {d.message} | {d.suggestion} |"
+                )
             lines.append("")
 
         if r.ai_plan:
@@ -489,7 +528,9 @@ def generate_markdown_report(reports: list[FileDebtReport], output_path: Path):
 
 
 # --- Main Orchestrator ---
-def process_file(file_path: Path, cache: dict, force: bool, use_ai: bool) -> FileDebtReport | None:
+def process_file(
+    file_path: Path, cache: dict, force: bool, use_ai: bool
+) -> FileDebtReport | None:
     # বাংলা মন্তব্য: ফাইল অ্যানালাইসিস এবং মেট্রিক্স সংরক্ষণ প্রক্রিয়া।
     logging.info(f"Analyzing: {file_path}")
     content = file_path.read_text(encoding="utf-8")
@@ -497,7 +538,11 @@ def process_file(file_path: Path, cache: dict, force: bool, use_ai: bool) -> Fil
 
     cache_key = str(file_path)
     # বাংলা মন্তব্য: ক্যাশ কি চেক করা হচ্ছে 'file_hash' এর মাধ্যমে।
-    if not force and cache_key in cache and cache[cache_key].get("file_hash") == content_hash:
+    if (
+        not force
+        and cache_key in cache
+        and cache[cache_key].get("file_hash") == content_hash
+    ):
         logging.info(f"Skipping {file_path} (cached).")
         c = cache[cache_key]
         return FileDebtReport(
@@ -516,7 +561,11 @@ def process_file(file_path: Path, cache: dict, force: bool, use_ai: bool) -> Fil
         "function_count": len(visitor.functions),
         "class_count": len(visitor.classes),
         "import_count": len(visitor.imports),
-        "avg_complexity": round(sum(f.complexity for f in visitor.functions) / max(len(visitor.functions), 1), 1),
+        "avg_complexity": round(
+            sum(f.complexity for f in visitor.functions)
+            / max(len(visitor.functions), 1),
+            1,
+        ),
         "functions": [f.name for f in visitor.functions],
     }
 
@@ -543,7 +592,14 @@ def process_file(file_path: Path, cache: dict, force: bool, use_ai: bool) -> Fil
     return report
 
 
-def main(dry_run: bool = False, force: bool = False, workers: int = 4, use_ai: bool = True, files: list[str] | None = None, output: str = "refactor_wiz_report.md"):
+def main(
+    dry_run: bool = False,
+    force: bool = False,
+    workers: int = 4,
+    use_ai: bool = True,
+    files: list[str] | None = None,
+    output: str = "refactor_wiz_report.md",
+):
     if not settings.gemini_api_key:
         logging.error("FATAL: GEMINI_API_KEY is not set in backend settings.")
         return
@@ -557,7 +613,11 @@ def main(dry_run: bool = False, force: bool = False, workers: int = 4, use_ai: b
     reports: list[FileDebtReport] = []
 
     if files:
-        file_paths = [Path(f) for f in files if Path(f).exists() and Path(f).name not in EXCLUDE_FILES]
+        file_paths = [
+            Path(f)
+            for f in files
+            if Path(f).exists() and Path(f).name not in EXCLUDE_FILES
+        ]
     else:
         file_paths = []
         for target_dir in TARGET_DIRECTORIES:
@@ -573,11 +633,14 @@ def main(dry_run: bool = False, force: bool = False, workers: int = 4, use_ai: b
         logging.info("No files to analyze.")
         return
 
-    logging.info(f"RefactorWiz analyzing {len(file_paths)} file(s) with {workers} workers...")
+    logging.info(
+        f"RefactorWiz analyzing {len(file_paths)} file(s) with {workers} workers..."
+    )
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         future_to_file = {
-            executor.submit(process_file, fp, cache, force, use_ai): fp for fp in file_paths
+            executor.submit(process_file, fp, cache, force, use_ai): fp
+            for fp in file_paths
         }
         for future in concurrent.futures.as_completed(future_to_file):
             try:
@@ -596,12 +659,26 @@ def main(dry_run: bool = False, force: bool = False, workers: int = 4, use_ai: b
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="RefactorWiz: Technical debt detection & refactoring planner")
-    parser.add_argument("--dry-run", action="store_true", help="Run without writing cache or reports.")
+    parser = argparse.ArgumentParser(
+        description="RefactorWiz: Technical debt detection & refactoring planner"
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Run without writing cache or reports."
+    )
     parser.add_argument("--force", action="store_true", help="Ignore cache.")
-    parser.add_argument("-w", "--workers", type=int, default=4, help="Concurrent workers.")
-    parser.add_argument("--no-ai", action="store_true", help="Disable AI planning (metrics only).")
-    parser.add_argument("-o", "--output", type=str, default="refactor_wiz_report.md", help="Output report path.")
+    parser.add_argument(
+        "-w", "--workers", type=int, default=4, help="Concurrent workers."
+    )
+    parser.add_argument(
+        "--no-ai", action="store_true", help="Disable AI planning (metrics only)."
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        default="refactor_wiz_report.md",
+        help="Output report path.",
+    )
     parser.add_argument("--files", nargs="*", help="Specific files to analyze.")
     args = parser.parse_args()
 

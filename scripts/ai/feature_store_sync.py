@@ -5,15 +5,15 @@ Synchronizes features between different stores and data sources.
 Priority: 🟢 Low
 """
 
+import asyncio
+import hashlib
 import json
 import logging
-import hashlib
-from datetime import datetime
-from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
-import asyncio
+from typing import Any
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class SyncStatus(Enum):
     """Synchronization status."""
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -31,6 +32,7 @@ class SyncStatus(Enum):
 @dataclass
 class Feature:
     """Feature definition."""
+
     feature_id: str
     name: str
     description: str
@@ -38,13 +40,14 @@ class Feature:
     source: str
     version: str
     last_updated: datetime
-    checksum: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    checksum: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class SyncResult:
     """Result of feature synchronization."""
+
     source: str
     destination: str
     feature_id: str
@@ -52,7 +55,7 @@ class SyncResult:
     timestamp: datetime
     record_count: int
     size_bytes: int
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 class FeatureStoreSync:
@@ -62,42 +65,40 @@ class FeatureStoreSync:
 
     def __init__(
         self,
-        source_config: Optional[Dict[str, Any]] = None,
-        destination_config: Optional[Dict[str, Any]] = None
+        source_config: dict[str, Any] | None = None,
+        destination_config: dict[str, Any] | None = None,
     ):
         self.source_config = source_config or {}
         self.destination_config = destination_config or {}
-        self.sync_history: List[SyncResult] = []
+        self.sync_history: list[SyncResult] = []
 
     def _compute_checksum(self, data: Any) -> str:
         """Compute checksum for data integrity."""
         data_str = json.dumps(data, sort_keys=True, default=str)
         return hashlib.md5(data_str.encode()).hexdigest()
 
-    def _get_feature_schema(self, feature: Feature) -> Dict[str, Any]:
+    def _get_feature_schema(self, feature: Feature) -> dict[str, Any]:
         """Extract feature schema for validation."""
         return {
-            'name': feature.name,
-            'data_type': feature.data_type,
-            'source': feature.source,
-            'version': feature.version,
-            'fields': feature.metadata.get('fields', [])
+            "name": feature.name,
+            "data_type": feature.data_type,
+            "source": feature.source,
+            "version": feature.version,
+            "fields": feature.metadata.get("fields", []),
         }
 
     async def fetch_from_source(
-        self,
-        query: Optional[str] = None,
-        feature_ids: Optional[List[str]] = None
-    ) -> List[Feature]:
+        self, query: str | None = None, feature_ids: list[str] | None = None
+    ) -> list[Feature]:
         """Fetch features from source store."""
         features = []
 
         # Simulate fetching from different source types
-        if self.source_config.get('type') == 'redis':
+        if self.source_config.get("type") == "redis":
             features = await self._fetch_from_redis(query, feature_ids)
-        elif self.source_config.get('type') == 'bigquery':
+        elif self.source_config.get("type") == "bigquery":
             features = await self._fetch_from_bigquery(query, feature_ids)
-        elif self.source_config.get('type') == 's3':
+        elif self.source_config.get("type") == "s3":
             features = await self._fetch_from_s3(query, feature_ids)
         else:
             # Default: simulate local store
@@ -107,111 +108,113 @@ class FeatureStoreSync:
         return features
 
     async def _fetch_from_redis(
-        self,
-        query: Optional[str] = None,
-        feature_ids: Optional[List[str]] = None
-    ) -> List[Feature]:
+        self, query: str | None = None, feature_ids: list[str] | None = None
+    ) -> list[Feature]:
         """Fetch features from Redis."""
         try:
             import redis.asyncio as redis
+
             client = redis.Redis(
-                host=self.source_config.get('host', 'localhost'),
-                port=self.source_config.get('port', 6379),
-                db=self.source_config.get('db', 0)
+                host=self.source_config.get("host", "localhost"),
+                port=self.source_config.get("port", 6379),
+                db=self.source_config.get("db", 0),
             )
             # Implementation would connect and fetch features
             features = []
             for fid in feature_ids or []:
                 data = await client.hgetall(f"feature:{fid}")
                 if data:
-                    features.append(Feature(
-                        feature_id=fid,
-                        name=data.get(b'name', fid.encode()).decode(),
-                        description=data.get(b'description', b'').decode(),
-                        data_type=data.get(b'data_type', b'unknown').decode(),
-                        source='redis',
-                        version=data.get(b'version', b'1.0').decode(),
-                        last_updated=datetime.now(),
-                        checksum=data.get(b'checksum', b'').decode()
-                    ))
+                    features.append(
+                        Feature(
+                            feature_id=fid,
+                            name=data.get(b"name", fid.encode()).decode(),
+                            description=data.get(b"description", b"").decode(),
+                            data_type=data.get(b"data_type", b"unknown").decode(),
+                            source="redis",
+                            version=data.get(b"version", b"1.0").decode(),
+                            last_updated=datetime.now(),
+                            checksum=data.get(b"checksum", b"").decode(),
+                        )
+                    )
             return features
         except ImportError:
             logger.warning("Redis not available, using simulated data")
             return []
 
     async def _fetch_from_bigquery(
-        self,
-        query: Optional[str] = None,
-        feature_ids: Optional[List[str]] = None
-    ) -> List[Feature]:
+        self, query: str | None = None, feature_ids: list[str] | None = None
+    ) -> list[Feature]:
         """Fetch features from BigQuery."""
         # Implementation would use google-cloud-bigquery
         logger.warning("BigQuery fetch requires google-cloud-bigquery package")
         return []
 
     async def _fetch_from_s3(
-        self,
-        query: Optional[str] = None,
-        feature_ids: Optional[List[str]] = None
-    ) -> List[Feature]:
+        self, query: str | None = None, feature_ids: list[str] | None = None
+    ) -> list[Feature]:
         """Fetch features from S3."""
         # Implementation would use boto3
         logger.warning("S3 fetch requires boto3 package")
         return []
 
     async def _fetch_from_local(
-        self,
-        feature_ids: Optional[List[str]] = None
-    ) -> List[Feature]:
+        self, feature_ids: list[str] | None = None
+    ) -> list[Feature]:
         """Fetch features from local storage (simulation)."""
         # Generate simulated features
         features = []
         for i in range(5):
-            fid = f"feature_{i}" if not feature_ids else (feature_ids[i] if i < len(feature_ids) else f"feature_{i}")
-            features.append(Feature(
-                feature_id=fid,
-                name=f"Feature {i}",
-                description=f"Simulated feature {i}",
-                data_type="float",
-                source="local",
-                version="1.0",
-                last_updated=datetime.now(),
-                checksum=self._compute_checksum({"data": list(range(100))})
-            ))
+            fid = (
+                f"feature_{i}"
+                if not feature_ids
+                else (feature_ids[i] if i < len(feature_ids) else f"feature_{i}")
+            )
+            features.append(
+                Feature(
+                    feature_id=fid,
+                    name=f"Feature {i}",
+                    description=f"Simulated feature {i}",
+                    data_type="float",
+                    source="local",
+                    version="1.0",
+                    last_updated=datetime.now(),
+                    checksum=self._compute_checksum({"data": list(range(100))}),
+                )
+            )
         return features
 
     async def push_to_destination(
-        self,
-        features: List[Feature],
-        destination_type: Optional[str] = None
-    ) -> List[SyncResult]:
+        self, features: list[Feature], destination_type: str | None = None
+    ) -> list[SyncResult]:
         """Push features to destination store."""
         results = []
-        dest_type = destination_type or self.destination_config.get('type', 'local')
+        dest_type = destination_type or self.destination_config.get("type", "local")
 
         for feature in features:
             try:
-                if dest_type == 'redis':
+                if dest_type == "redis":
                     result = await self._push_to_redis(feature)
-                elif dest_type == 'bigquery':
+                elif dest_type == "bigquery":
                     result = await self._push_to_bigquery(feature)
-                elif dest_type == 's3':
+                elif dest_type == "s3":
                     result = await self._push_to_s3(feature)
                 else:
                     result = await self._push_to_local(feature)
 
                 results.append(result)
             except Exception as e:
-                results.append(SyncResult(
-                    source=feature.source,
-                    destination=dest_type,
-                    feature_id=feature.feature_id,
-                    status=SyncStatus.FAILED,
-                    timestamp=datetime.now(),
-                    record_count=0,
-                    size_bytes=0,
-                    error_message=str(e)
-                ))
+                results.append(
+                    SyncResult(
+                        source=feature.source,
+                        destination=dest_type,
+                        feature_id=feature.feature_id,
+                        status=SyncStatus.FAILED,
+                        timestamp=datetime.now(),
+                        record_count=0,
+                        size_bytes=0,
+                        error_message=str(e),
+                    )
+                )
 
         return results
 
@@ -219,38 +222,42 @@ class FeatureStoreSync:
         """Push feature to Redis."""
         try:
             import redis.asyncio as redis
+
             client = redis.Redis(
-                host=self.destination_config.get('host', 'localhost'),
-                port=self.destination_config.get('port', 6379),
-                db=self.destination_config.get('db', 0)
+                host=self.destination_config.get("host", "localhost"),
+                port=self.destination_config.get("port", 6379),
+                db=self.destination_config.get("db", 0),
             )
-            await client.hset(f"feature:{feature.feature_id}", mapping={
-                'name': feature.name,
-                'description': feature.description,
-                'data_type': feature.data_type,
-                'source': feature.source,
-                'version': feature.version,
-                'checksum': feature.checksum or ''
-            })
+            await client.hset(
+                f"feature:{feature.feature_id}",
+                mapping={
+                    "name": feature.name,
+                    "description": feature.description,
+                    "data_type": feature.data_type,
+                    "source": feature.source,
+                    "version": feature.version,
+                    "checksum": feature.checksum or "",
+                },
+            )
             return SyncResult(
                 source=feature.source,
-                destination='redis',
+                destination="redis",
                 feature_id=feature.feature_id,
                 status=SyncStatus.COMPLETED,
                 timestamp=datetime.now(),
                 record_count=1,
-                size_bytes=len(str(feature.metadata))
+                size_bytes=len(str(feature.metadata)),
             )
         except Exception as e:
             return SyncResult(
                 source=feature.source,
-                destination='redis',
+                destination="redis",
                 feature_id=feature.feature_id,
                 status=SyncStatus.FAILED,
                 timestamp=datetime.now(),
                 record_count=0,
                 size_bytes=0,
-                error_message=str(e)
+                error_message=str(e),
             )
 
     async def _push_to_bigquery(self, feature: Feature) -> SyncResult:
@@ -258,13 +265,13 @@ class FeatureStoreSync:
         logger.warning("BigQuery push requires google-cloud-bigquery package")
         return SyncResult(
             source=feature.source,
-            destination='bigquery',
+            destination="bigquery",
             feature_id=feature.feature_id,
             status=SyncStatus.SKIPPED,
             timestamp=datetime.now(),
             record_count=0,
             size_bytes=0,
-            error_message="BigQuery client not configured"
+            error_message="BigQuery client not configured",
         )
 
     async def _push_to_s3(self, feature: Feature) -> SyncResult:
@@ -272,48 +279,50 @@ class FeatureStoreSync:
         logger.warning("S3 push requires boto3 package")
         return SyncResult(
             source=feature.source,
-            destination='s3',
+            destination="s3",
             feature_id=feature.feature_id,
             status=SyncStatus.SKIPPED,
             timestamp=datetime.now(),
             record_count=0,
             size_bytes=0,
-            error_message="S3 client not configured"
+            error_message="S3 client not configured",
         )
 
     async def _push_to_local(self, feature: Feature) -> SyncResult:
         """Push feature to local storage."""
-        output_dir = Path(self.destination_config.get('path', 'synced_features'))
+        output_dir = Path(self.destination_config.get("path", "synced_features"))
         output_dir.mkdir(exist_ok=True)
 
         feature_path = output_dir / f"{feature.feature_id}.json"
-        with open(feature_path, 'w') as f:
-            json.dump({
-                'feature_id': feature.feature_id,
-                'name': feature.name,
-                'description': feature.description,
-                'data_type': feature.data_type,
-                'source': feature.source,
-                'version': feature.version,
-                'last_updated': feature.last_updated.isoformat(),
-                'checksum': feature.checksum
-            }, f, indent=2)
+        with open(feature_path, "w") as f:
+            json.dump(
+                {
+                    "feature_id": feature.feature_id,
+                    "name": feature.name,
+                    "description": feature.description,
+                    "data_type": feature.data_type,
+                    "source": feature.source,
+                    "version": feature.version,
+                    "last_updated": feature.last_updated.isoformat(),
+                    "checksum": feature.checksum,
+                },
+                f,
+                indent=2,
+            )
 
         return SyncResult(
             source=feature.source,
-            destination='local',
+            destination="local",
             feature_id=feature.feature_id,
             status=SyncStatus.COMPLETED,
             timestamp=datetime.now(),
             record_count=1,
-            size_bytes=feature_path.stat().st_size
+            size_bytes=feature_path.stat().st_size,
         )
 
     async def run_sync(
-        self,
-        feature_ids: Optional[List[str]] = None,
-        query: Optional[str] = None
-    ) -> Tuple[List[Feature], List[SyncResult]]:
+        self, feature_ids: list[str] | None = None, query: str | None = None
+    ) -> tuple[list[Feature], list[SyncResult]]:
         """Run full synchronization pipeline."""
         # Fetch features
         features = await self.fetch_from_source(query=query, feature_ids=feature_ids)
@@ -324,7 +333,7 @@ class FeatureStoreSync:
         self.sync_history.extend(results)
         return features, results
 
-    def get_sync_summary(self) -> Dict[str, Any]:
+    def get_sync_summary(self) -> dict[str, Any]:
         """Get summary of sync results."""
         if not self.sync_history:
             return {"status": "no_sync_performed"}
@@ -336,39 +345,41 @@ class FeatureStoreSync:
         total_bytes = sum(r.size_bytes for r in self.sync_history)
 
         return {
-            'total_features': len(self.sync_history),
-            'status_distribution': status_counts,
-            'total_bytes_synced': total_bytes,
-            'success_rate': status_counts.get('completed', 0) / len(self.sync_history),
-            'failed_syncs': status_counts.get('failed', 0),
-            'skipped_syncs': status_counts.get('skipped', 0)
+            "total_features": len(self.sync_history),
+            "status_distribution": status_counts,
+            "total_bytes_synced": total_bytes,
+            "success_rate": status_counts.get("completed", 0) / len(self.sync_history),
+            "failed_syncs": status_counts.get("failed", 0),
+            "skipped_syncs": status_counts.get("skipped", 0),
         }
 
-    def save_sync_report(self, output_path: Optional[str] = None) -> str:
+    def save_sync_report(self, output_path: str | None = None) -> str:
         """Save synchronization report."""
-        output = Path(output_path or 'sync_reports')
+        output = Path(output_path or "sync_reports")
         output.mkdir(exist_ok=True)
 
-        report_path = output / f"sync_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        report_path = (
+            output / f"sync_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        )
 
         report = {
-            'timestamp': datetime.now().isoformat(),
-            'summary': self.get_sync_summary(),
-            'details': [
+            "timestamp": datetime.now().isoformat(),
+            "summary": self.get_sync_summary(),
+            "details": [
                 {
-                    'source': r.source,
-                    'destination': r.destination,
-                    'feature_id': r.feature_id,
-                    'status': r.status.value,
-                    'record_count': r.record_count,
-                    'size_bytes': r.size_bytes,
-                    'error_message': r.error_message
+                    "source": r.source,
+                    "destination": r.destination,
+                    "feature_id": r.feature_id,
+                    "status": r.status.value,
+                    "record_count": r.record_count,
+                    "size_bytes": r.size_bytes,
+                    "error_message": r.error_message,
                 }
                 for r in self.sync_history
-            ]
+            ],
         }
 
-        with open(report_path, 'w') as f:
+        with open(report_path, "w") as f:
             json.dump(report, f, indent=2)
 
         logger.info(f"Sync report saved to: {report_path}")
@@ -376,10 +387,10 @@ class FeatureStoreSync:
 
 
 async def sync_feature_stores(
-    source_config: Optional[Dict[str, Any]] = None,
-    destination_config: Optional[Dict[str, Any]] = None,
-    feature_ids: Optional[List[str]] = None
-) -> Dict[str, Any]:
+    source_config: dict[str, Any] | None = None,
+    destination_config: dict[str, Any] | None = None,
+    feature_ids: list[str] | None = None,
+) -> dict[str, Any]:
     """Convenience function to run feature store synchronization."""
     sync = FeatureStoreSync(source_config, destination_config)
     features, results = await sync.run_sync(feature_ids)
@@ -392,19 +403,31 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Synchronize feature stores")
-    parser.add_argument('--source-type', choices=['redis', 'bigquery', 's3', 'local'],
-                       default='local', help='Source store type')
-    parser.add_argument('--dest-type', choices=['redis', 'bigquery', 's3', 'local'],
-                       default='local', help='Destination store type')
-    parser.add_argument('--features', nargs='*', help='Specific feature IDs to sync')
-    parser.add_argument('--output-dir', default='sync_reports', help='Output directory for reports')
+    parser.add_argument(
+        "--source-type",
+        choices=["redis", "bigquery", "s3", "local"],
+        default="local",
+        help="Source store type",
+    )
+    parser.add_argument(
+        "--dest-type",
+        choices=["redis", "bigquery", "s3", "local"],
+        default="local",
+        help="Destination store type",
+    )
+    parser.add_argument("--features", nargs="*", help="Specific feature IDs to sync")
+    parser.add_argument(
+        "--output-dir", default="sync_reports", help="Output directory for reports"
+    )
 
     args = parser.parse_args()
 
-    source_config = {'type': args.source_type}
-    dest_config = {'type': args.dest_type, 'path': args.output_dir}
+    source_config = {"type": args.source_type}
+    dest_config = {"type": args.dest_type, "path": args.output_dir}
 
-    summary = asyncio.run(sync_feature_stores(source_config, dest_config, args.features))
+    summary = asyncio.run(
+        sync_feature_stores(source_config, dest_config, args.features)
+    )
 
     print("\nFeature Store Sync Summary:")
     for key, value in summary.items():

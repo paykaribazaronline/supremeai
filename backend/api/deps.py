@@ -9,13 +9,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import Depends, HTTPException, Request
-from loguru import logger
-
 from api.errors import raise_unauthorized
 from core.error_bus import with_error_bus
 from core.evolution.fitness_engine import FitnessEngine
 from core.tenant_db import TenantAwareFirestore
+from fastapi import Depends, HTTPException, Request
+from loguru import logger
 from utils.environment import is_test_environment
 
 _fitness_engine = FitnessEngine()

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-import os
 import json
+import os
 import subprocess
+
 
 def upgrade_python_deps():
     print("Checking Python dependencies via Poetry...")
@@ -11,7 +12,7 @@ def upgrade_python_deps():
             ["poetry", "show", "-o", "--json"],
             cwd="backend",
             capture_output=True,
-            text=True
+            text=True,
         )
         if result.returncode != 0:
             return "Failed to run poetry show"
@@ -27,8 +28,8 @@ def upgrade_python_deps():
             latest = pkg.get("latest", "0.0.0")
 
             # SemVer check: Only upgrade if major version is the same
-            curr_major = current.split('.')[0] if '.' in current else current
-            latest_major = latest.split('.')[0] if '.' in latest else latest
+            curr_major = current.split(".")[0] if "." in current else current
+            latest_major = latest.split(".")[0] if "." in latest else latest
 
             if curr_major == latest_major and current != latest:
                 print(f"Upgrading {name} from {current} to {latest}")
@@ -42,6 +43,7 @@ def upgrade_python_deps():
     except Exception as e:
         return f"Error upgrading Python deps: {e}"
 
+
 def upgrade_node_deps(path, label):
     print(f"Checking Node dependencies via pnpm in {path}...")
     try:
@@ -53,7 +55,7 @@ def upgrade_node_deps(path, label):
             ["pnpm", "outdated", "--format", "json"],
             cwd=path,
             capture_output=True,
-            text=True
+            text=True,
         )
 
         try:
@@ -66,8 +68,8 @@ def upgrade_node_deps(path, label):
             current = info.get("current", "0.0.0")
             latest = info.get("latest", "0.0.0")
 
-            curr_major = current.split('.')[0] if '.' in current else current
-            latest_major = latest.split('.')[0] if '.' in latest else latest
+            curr_major = current.split(".")[0] if "." in current else current
+            latest_major = latest.split(".")[0] if "." in latest else latest
 
             if curr_major == latest_major and current != latest:
                 print(f"Upgrading {name} from {current} to {latest}")
@@ -80,6 +82,7 @@ def upgrade_node_deps(path, label):
 
     except Exception as e:
         return f"Error upgrading Node deps in {label}: {e}"
+
 
 def main():
     summary = []
@@ -96,7 +99,7 @@ def main():
         summary.append(upgrade_node_deps("apps/studio-client", "Frontend"))
 
     summary_text = "\n".join(summary)
-    print(summary_text) # Output to stdout for redirection
+    print(summary_text)  # Output to stdout for redirection
 
     # Write to GITHUB_OUTPUT for next steps
     github_output = os.environ.get("GITHUB_OUTPUT")
@@ -106,6 +109,7 @@ def main():
             f.write("summary<<EOF\n")
             f.write(summary_text + "\n")
             f.write("EOF\n")
+
 
 if __name__ == "__main__":
     main()

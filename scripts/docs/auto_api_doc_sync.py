@@ -14,17 +14,17 @@ Environment Variables:
 - UPDATE_README: Whether to update the main README with API overview (default: true)
 """
 
-import os
 import json
-import requests
-from pathlib import Path
-from typing import Dict, Any, List
 import logging
+import os
+from pathlib import Path
+from typing import Any
+
+import requests
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,8 @@ OPENAPI_ENDPOINT = os.getenv("OPENAPI_ENDPOINT", "/openapi.json")
 OUTPUT_DIR = os.getenv("OUTPUT_DIR", "docs/06-api")
 UPDATE_README = os.getenv("UPDATE_README", "true").lower() == "true"
 
-def fetch_openapi_spec() -> Dict[str, Any]:
+
+def fetch_openapi_spec() -> dict[str, Any]:
     """Fetch OpenAPI specification from the API."""
     url = f"{API_URL.rstrip('/')}{OPENAPI_ENDPOINT}"
     try:
@@ -45,7 +46,8 @@ def fetch_openapi_spec() -> Dict[str, Any]:
         logger.error(f"Failed to fetch OpenAPI spec from {url}: {e}")
         raise
 
-def format_parameters(parameters: List[Dict]) -> str:
+
+def format_parameters(parameters: list[dict]) -> str:
     """Format OpenAPI parameters into Markdown."""
     if not parameters:
         return ""
@@ -59,13 +61,16 @@ def format_parameters(parameters: List[Dict]) -> str:
         schema = param.get("schema", {})
         param_type = schema.get("type", "string")
         required = "Yes" if param.get("required", False) else "No"
-        description = param.get("description", "").replace("|", "\\|").replace("\n", " ")
+        description = (
+            param.get("description", "").replace("|", "\\|").replace("\n", " ")
+        )
 
         md += f"| {name} | {location} | {param_type} | {required} | {description} |\n"
 
     return md
 
-def format_request_body(content: Dict) -> str:
+
+def format_request_body(content: dict) -> str:
     """Format OpenAPI request body into Markdown."""
     if not content:
         return ""
@@ -78,7 +83,8 @@ def format_request_body(content: Dict) -> str:
 
     return "_Request body content_"
 
-def format_responses(responses: Dict) -> str:
+
+def format_responses(responses: dict) -> str:
     """Format OpenAPI responses into Markdown."""
     if not responses:
         return "_No documented responses_"
@@ -100,7 +106,8 @@ def format_responses(responses: Dict) -> str:
 
     return md
 
-def generate_api_markdown(spec: Dict[str, Any]) -> str:
+
+def generate_api_markdown(spec: dict[str, Any]) -> str:
     """Generate Markdown documentation from OpenAPI spec."""
     info = spec.get("info", {})
     title = info.get("title", "SupremeAI API")
@@ -190,6 +197,7 @@ def generate_api_markdown(spec: Dict[str, Any]) -> str:
 
     return md
 
+
 def update_main_readme(api_md: str) -> None:
     """Update the main README.md with API documentation section."""
     readme_path = Path("README.md")
@@ -221,6 +229,7 @@ def update_main_readme(api_md: str) -> None:
 
     except Exception as e:
         logger.error(f"Failed to update README.md: {e}")
+
 
 def main() -> None:
     """Main function to synchronize API documentation."""
@@ -256,6 +265,7 @@ def main() -> None:
         return 1
 
     return 0
+
 
 if __name__ == "__main__":
     exit(main())

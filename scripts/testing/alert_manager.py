@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 SupremeAI 2.0 — Alert Manager 🚨
 =================================
@@ -26,7 +25,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from enum import StrEnum
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import requests
 from loguru import logger
@@ -51,10 +50,10 @@ REQUEST_TIMEOUT = int(os.getenv("HTTP_TIMEOUT_SECONDS", "15"))
 
 
 class AlertSeverity(StrEnum):
-    CRITICAL = "critical"   # P0 — Immediate action required
-    WARNING = "warning"     # P1 — Action needed soon
-    INFO = "info"           # P2 — Awareness
-    DEBUG = "debug"         # P3 — Verbose logging
+    CRITICAL = "critical"  # P0 — Immediate action required
+    WARNING = "warning"  # P1 — Action needed soon
+    INFO = "info"  # P2 — Awareness
+    DEBUG = "debug"  # P3 — Verbose logging
 
 
 class AlertChannel(StrEnum):
@@ -69,6 +68,7 @@ class AlertChannel(StrEnum):
 @dataclass
 class Alert:
     """একটি এলার্টের সম্পূর্ণ রেপ্রেজেন্টেশন।"""
+
     id: str
     timestamp: str
     severity: AlertSeverity
@@ -92,6 +92,7 @@ class Alert:
 @dataclass
 class ChannelConfig:
     """Channel-specific configuration."""
+
     enabled: bool = True
     min_severity: AlertSeverity = AlertSeverity.INFO
     rate_limit_per_minute: int = 30
@@ -122,7 +123,9 @@ class AlertDeduplicator:
                 return False
             self._recent[h] = now
             # Cleanup old entries
-            self._recent = {k: v for k, v in self._recent.items() if now - v < self.window}
+            self._recent = {
+                k: v for k, v in self._recent.items() if now - v < self.window
+            }
             return True
 
 
@@ -139,10 +142,10 @@ class DiscordProvider:
             return False
 
         color_map = {
-            AlertSeverity.CRITICAL: 0xFF0000,   # Red
-            AlertSeverity.WARNING: 0xFFA500,    # Orange
-            AlertSeverity.INFO: 0x58A6FF,       # Blue
-            AlertSeverity.DEBUG: 0x808080,       # Gray
+            AlertSeverity.CRITICAL: 0xFF0000,  # Red
+            AlertSeverity.WARNING: 0xFFA500,  # Orange
+            AlertSeverity.INFO: 0x58A6FF,  # Blue
+            AlertSeverity.DEBUG: 0x808080,  # Gray
         }
 
         embed = {
@@ -153,8 +156,16 @@ class DiscordProvider:
                 {"name": "☁️ Source", "value": alert.source, "inline": True},
                 {"name": "📊 Metric", "value": alert.metric, "inline": True},
                 {"name": "🔢 Value", "value": f"{alert.value:.2f}", "inline": True},
-                {"name": "🎯 Threshold", "value": f"{alert.threshold:.2f}", "inline": True},
-                {"name": "📝 Bengali", "value": alert.message_bn[:1024], "inline": False},
+                {
+                    "name": "🎯 Threshold",
+                    "value": f"{alert.threshold:.2f}",
+                    "inline": True,
+                },
+                {
+                    "name": "📝 Bengali",
+                    "value": alert.message_bn[:1024],
+                    "inline": False,
+                },
             ],
             "footer": {"text": f"SupremeAI Alert Manager | ID: {alert.id[:8]}"},
             "timestamp": alert.timestamp,
@@ -162,7 +173,11 @@ class DiscordProvider:
 
         payload = {
             "embeds": [embed],
-            "content": f"<@&admin> **{alert.severity.upper()}** — `{alert.source}`" if alert.severity in (AlertSeverity.CRITICAL, AlertSeverity.WARNING) else None,
+            "content": (
+                f"<@&admin> **{alert.severity.upper()}** — `{alert.source}`"
+                if alert.severity in (AlertSeverity.CRITICAL, AlertSeverity.WARNING)
+                else None
+            ),
         }
 
         try:
@@ -198,23 +213,35 @@ class SlackProvider:
         }.get(alert.severity, "#808080")
 
         payload = {
-            "attachments": [{
-                "color": color,
-                "title": f"🚨 {alert.severity.upper()}: {alert.title}",
-                "text": alert.message,
-                "fields": [
-                    {"title": "Source", "value": alert.source, "short": True},
-                    {"title": "Metric", "value": alert.metric, "short": True},
-                    {"title": "Value", "value": f"{alert.value:.2f}", "short": True},
-                    {"title": "Threshold", "value": f"{alert.threshold:.2f}", "short": True},
-                ],
-                "footer": f"SupremeAI Alert Manager | {alert.id[:8]}",
-                "ts": int(time.time()),
-            }]
+            "attachments": [
+                {
+                    "color": color,
+                    "title": f"🚨 {alert.severity.upper()}: {alert.title}",
+                    "text": alert.message,
+                    "fields": [
+                        {"title": "Source", "value": alert.source, "short": True},
+                        {"title": "Metric", "value": alert.metric, "short": True},
+                        {
+                            "title": "Value",
+                            "value": f"{alert.value:.2f}",
+                            "short": True,
+                        },
+                        {
+                            "title": "Threshold",
+                            "value": f"{alert.threshold:.2f}",
+                            "short": True,
+                        },
+                    ],
+                    "footer": f"SupremeAI Alert Manager | {alert.id[:8]}",
+                    "ts": int(time.time()),
+                }
+            ]
         }
 
         try:
-            resp = requests.post(self.webhook_url, json=payload, timeout=REQUEST_TIMEOUT)
+            resp = requests.post(
+                self.webhook_url, json=payload, timeout=REQUEST_TIMEOUT
+            )
             resp.raise_for_status()
             logger.info(f"✅ Slack alert sent: {alert.title}")
             return True
@@ -226,9 +253,15 @@ class SlackProvider:
 class EmailProvider:
     """Email alert provider via SMTP or SendGrid API."""
 
-    def __init__(self, smtp_host: str = "", smtp_port: int = 587,
-                 username: str = "", password: str = "",
-                 from_addr: str = "", sendgrid_api_key: str = ""):
+    def __init__(
+        self,
+        smtp_host: str = "",
+        smtp_port: int = 587,
+        username: str = "",
+        password: str = "",
+        from_addr: str = "",
+        sendgrid_api_key: str = "",
+    ):
         self.smtp_host = smtp_host
         self.smtp_port = smtp_port
         self.username = username
@@ -251,14 +284,20 @@ class EmailProvider:
             "from": {"email": self.from_addr},
             "subject": f"[{alert.severity.upper()}] SupremeAI: {alert.title}",
             "content": [
-                {"type": "text/plain", "value": f"{alert.message}\n\n---\nবাংলা:\n{alert.message_bn}\n\nAlert ID: {alert.id}"},
+                {
+                    "type": "text/plain",
+                    "value": f"{alert.message}\n\n---\nবাংলা:\n{alert.message_bn}\n\nAlert ID: {alert.id}",
+                },
                 {"type": "text/html", "value": self._html_body(alert)},
             ],
         }
         try:
             resp = requests.post(
                 "https://api.sendgrid.com/v3/mail/send",
-                headers={"Authorization": f"Bearer {self.sendgrid_api_key}", "Content-Type": "application/json"},
+                headers={
+                    "Authorization": f"Bearer {self.sendgrid_api_key}",
+                    "Content-Type": "application/json",
+                },
                 json=payload,
                 timeout=REQUEST_TIMEOUT,
             )
@@ -271,9 +310,10 @@ class EmailProvider:
 
     async def _send_smtp(self, alert: Alert) -> bool:
         try:
-            import aiosmtplib
             from email.mime.multipart import MIMEMultipart
             from email.mime.text import MIMEText
+
+            import aiosmtplib
 
             msg = MIMEMultipart("alternative")
             msg["Subject"] = f"[{alert.severity.upper()}] SupremeAI: {alert.title}"
@@ -298,7 +338,12 @@ class EmailProvider:
             return False
 
     def _html_body(self, alert: Alert) -> str:
-        color = {"critical": "#FF0000", "warning": "#FFA500", "info": "#58A6FF", "debug": "#808080"}.get(alert.severity, "#808080")
+        color = {
+            "critical": "#FF0000",
+            "warning": "#FFA500",
+            "info": "#58A6FF",
+            "debug": "#808080",
+        }.get(alert.severity, "#808080")
         return f"""
         <html><body style="font-family:Segoe UI,sans-serif;background:#0d1117;color:#c9d1d9;padding:20px;">
         <div style="max-width:600px;margin:0 auto;border:1px solid #30363d;border-radius:12px;overflow:hidden;">
@@ -323,7 +368,9 @@ class EmailProvider:
 class SMSProvider:
     """SMS alert provider via Twilio."""
 
-    def __init__(self, account_sid: str = "", auth_token: str = "", from_number: str = ""):
+    def __init__(
+        self, account_sid: str = "", auth_token: str = "", from_number: str = ""
+    ):
         self.account_sid = account_sid
         self.auth_token = auth_token
         self.from_number = from_number
@@ -342,6 +389,7 @@ class SMSProvider:
 
         try:
             from twilio.rest import Client
+
             client = Client(self.account_sid, self.auth_token)
 
             for recipient in alert.recipients:
@@ -424,7 +472,9 @@ class WebhookProvider:
         }
 
         try:
-            resp = requests.post(self.url, json=payload, headers=self.headers, timeout=REQUEST_TIMEOUT)
+            resp = requests.post(
+                self.url, json=payload, headers=self.headers, timeout=REQUEST_TIMEOUT
+            )
             resp.raise_for_status()
             logger.info(f"✅ Webhook alert sent: {alert.title}")
             return True
@@ -448,12 +498,15 @@ class AlertManager:
     def _init_providers(self) -> None:
         """Initialize providers from environment/config."""
         # Discord
-        discord_url = os.getenv("DISCORD_WEBHOOK_URL", getattr(settings, "discord_webhook_url", ""))
+        discord_url = os.getenv(
+            "DISCORD_WEBHOOK_URL", getattr(settings, "discord_webhook_url", "")
+        )
         if discord_url:
             self.providers[AlertChannel.DISCORD] = DiscordProvider(discord_url)
             self.configs[AlertChannel.DISCORD] = ChannelConfig(
-                enabled=True, min_severity=AlertSeverity.INFO,
-                recipients=["#alerts-channel"]
+                enabled=True,
+                min_severity=AlertSeverity.INFO,
+                recipients=["#alerts-channel"],
             )
 
         # Slack
@@ -461,7 +514,8 @@ class AlertManager:
         if slack_url:
             self.providers[AlertChannel.SLACK] = SlackProvider(slack_url)
             self.configs[AlertChannel.SLACK] = ChannelConfig(
-                enabled=True, min_severity=AlertSeverity.WARNING,
+                enabled=True,
+                min_severity=AlertSeverity.WARNING,
             )
 
         # Email
@@ -477,7 +531,8 @@ class AlertManager:
                 sendgrid_api_key=sendgrid_key,
             )
             self.configs[AlertChannel.EMAIL] = ChannelConfig(
-                enabled=True, min_severity=AlertSeverity.WARNING,
+                enabled=True,
+                min_severity=AlertSeverity.WARNING,
                 recipients=os.getenv("ALERT_EMAILS", "").split(","),
             )
 
@@ -490,16 +545,20 @@ class AlertManager:
                 from_number=os.getenv("TWILIO_FROM_NUMBER", ""),
             )
             self.configs[AlertChannel.SMS] = ChannelConfig(
-                enabled=True, min_severity=AlertSeverity.CRITICAL,
+                enabled=True,
+                min_severity=AlertSeverity.CRITICAL,
                 recipients=os.getenv("ALERT_PHONES", "").split(","),
             )
 
         # PagerDuty
         pd_key = os.getenv("PAGERDUTY_ROUTING_KEY", "")
         if pd_key:
-            self.providers[AlertChannel.PAGERDUTY] = PagerDutyProvider(routing_key=pd_key)
+            self.providers[AlertChannel.PAGERDUTY] = PagerDutyProvider(
+                routing_key=pd_key
+            )
             self.configs[AlertChannel.PAGERDUTY] = ChannelConfig(
-                enabled=True, min_severity=AlertSeverity.CRITICAL,
+                enabled=True,
+                min_severity=AlertSeverity.CRITICAL,
             )
 
         # Generic Webhook
@@ -510,7 +569,8 @@ class AlertManager:
                 headers={"X-SupremeAI-Source": "alert-manager"},
             )
             self.configs[AlertChannel.WEBHOOK] = ChannelConfig(
-                enabled=True, min_severity=AlertSeverity.INFO,
+                enabled=True,
+                min_severity=AlertSeverity.INFO,
             )
 
         logger.info(f"🔔 AlertManager initialized with {len(self.providers)} channels")
@@ -528,9 +588,13 @@ class AlertManager:
         try:
             data = {
                 "last_updated": datetime.now(timezone.utc).isoformat(),
-                "alerts": [asdict(a) for a in self.alert_history[-500:]],  # Keep last 500
+                "alerts": [
+                    asdict(a) for a in self.alert_history[-500:]
+                ],  # Keep last 500
             }
-            ALERT_STATE_FILE.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
+            ALERT_STATE_FILE.write_text(
+                json.dumps(data, indent=2, default=str), encoding="utf-8"
+            )
         except Exception as e:
             logger.warning(f"⚠️ Failed to save alert state: {e}")
 
@@ -573,7 +637,9 @@ class AlertManager:
         )
         return alert
 
-    async def send(self, alert: Alert, channels: list[AlertChannel] | None = None) -> dict[str, bool]:
+    async def send(
+        self, alert: Alert, channels: list[AlertChannel] | None = None
+    ) -> dict[str, bool]:
         """Send alert to specified channels with deduplication and severity filtering."""
         if not await self.deduplicator.should_send(alert):
             return {"deduplicated": True}
@@ -592,8 +658,15 @@ class AlertManager:
                 continue
 
             # Severity filter
-            severity_order = [AlertSeverity.DEBUG, AlertSeverity.INFO, AlertSeverity.WARNING, AlertSeverity.CRITICAL]
-            if severity_order.index(alert.severity) < severity_order.index(config.min_severity):
+            severity_order = [
+                AlertSeverity.DEBUG,
+                AlertSeverity.INFO,
+                AlertSeverity.WARNING,
+                AlertSeverity.CRITICAL,
+            ]
+            if severity_order.index(alert.severity) < severity_order.index(
+                config.min_severity
+            ):
                 results[channel.value] = False
                 continue
 
@@ -723,6 +796,7 @@ async def demo():
 
 def main():
     import argparse
+
     parser = argparse.ArgumentParser(description="SupremeAI Alert Manager")
     parser.add_argument("--demo", action="store_true", help="Run demo alert")
     parser.add_argument("--stats", action="store_true", help="Show alert statistics")

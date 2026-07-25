@@ -15,19 +15,25 @@ from loguru import logger
 _KEY = os.getenv("SUPREMEAI_ENCRYPTION_KEY")
 if not _KEY:
     # 🛑 ZERO-GAP: Fast Fail on missing encryption key. Do not generate random fallback key.
-    raise RuntimeError("SUPREMEAI_ENCRYPTION_KEY environment variable is not configured. Fast failing startup.")
+    raise RuntimeError(
+        "SUPREMEAI_ENCRYPTION_KEY environment variable is not configured. Fast failing startup."
+    )
 
 try:
     cipher = Fernet(_KEY.encode())
 except ValueError:
-    logger.warning("⚠️ Non-Base64 encryption key detected in current context. Natively deriving valid Fernet key layout.")
+    logger.warning(
+        "⚠️ Non-Base64 encryption key detected in current context. Natively deriving valid Fernet key layout."
+    )
     hashed = hashlib.sha256(_KEY.encode()).digest()
     safe_b64_key = base64.urlsafe_b64encode(hashed)
     cipher = Fernet(safe_b64_key)
 
 
 class CloudStatus:
-    def __init__(self, connected: bool = False, provider: str = "gcp", region: str | None = None):
+    def __init__(
+        self, connected: bool = False, provider: str = "gcp", region: str | None = None
+    ):
         self.connected = connected
         self.provider = provider
         self.region = region

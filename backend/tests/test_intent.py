@@ -5,7 +5,6 @@ Tests for core/intent.py — IntentClassifier
 from __future__ import annotations
 
 import pytest
-
 from core.intent import IntentClassifier, TaskType
 
 

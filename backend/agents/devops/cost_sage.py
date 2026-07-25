@@ -51,7 +51,9 @@ except ImportError:
     requests = None
 
 # --- Configuration ---
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+)
 logger = logging.getLogger("costsage")
 
 COST_DB_FILE = Path(__file__).parent / ".costsage_db.json"
@@ -154,7 +156,9 @@ class UsageTracker:
                 "last_updated": datetime.datetime.now(datetime.UTC).isoformat(),
                 "records": [asdict(r) for r in self.records],
             }
-            self.db_file.write_text(json.dumps(data, indent=2, default=str), encoding="utf-8")
+            self.db_file.write_text(
+                json.dumps(data, indent=2, default=str), encoding="utf-8"
+            )
         except Exception as e:  # noqa: BLE001
             logger.warning(f"⚠️ Failed to save cost DB: {e}")
 
@@ -169,7 +173,9 @@ class UsageTracker:
     ):
         # বাংলা মন্তব্য: এপিআই ইউসেজ রেকর্ড সিস্টেমে সেভ করা।
         if cost_usd is None:
-            cost_usd = self._calculate_cost(provider, model_or_service, input_tokens, output_tokens)
+            cost_usd = self._calculate_cost(
+                provider, model_or_service, input_tokens, output_tokens
+            )
 
         record = UsageRecord(
             timestamp=datetime.datetime.now(datetime.UTC).isoformat(),
@@ -184,7 +190,9 @@ class UsageTracker:
         self._save_db()
         logger.info(f"💰 Recorded: {provider}/{model_or_service} — ${cost_usd:.4f}")
 
-    def _calculate_cost(self, provider: str, model: str, input_tokens: int, output_tokens: int) -> float:
+    def _calculate_cost(
+        self, provider: str, model: str, input_tokens: int, output_tokens: int
+    ) -> float:
         rates = DEFAULT_COST_RATES.get(provider, {})
         model_rates = rates.get(model, {})
         if not model_rates:
@@ -195,12 +203,16 @@ class UsageTracker:
         return input_cost + output_cost
 
     def get_cost_summary(self, days: int = 30) -> dict[str, Any]:
-        cutoff = (datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=days)).isoformat()
+        cutoff = (
+            datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=days)
+        ).isoformat()
         recent = [r for r in self.records if r.timestamp >= cutoff]
 
         total_cost = sum(r.cost_usd for r in recent)
         by_provider = defaultdict(float)
-        by_model = defaultdict(lambda: {"cost": 0.0, "calls": 0, "input_tokens": 0, "output_tokens": 0})
+        by_model = defaultdict(
+            lambda: {"cost": 0.0, "calls": 0, "input_tokens": 0, "output_tokens": 0}
+        )
 
         for r in recent:
             by_provider[r.provider] += r.cost_usd
@@ -227,7 +239,9 @@ class UsageTracker:
 class BudgetManager:
     """Manages monthly budgets and sends alerts."""
 
-    def __init__(self, config_file: Path = BUDGET_CONFIG_FILE, tracker: UsageTracker = None):
+    def __init__(
+        self, config_file: Path = BUDGET_CONFIG_FILE, tracker: UsageTracker = None
+    ):
         self.config_file = config_file
         self.tracker = tracker or UsageTracker()
         self.budgets: dict[str, BudgetConfig] = {}
@@ -268,7 +282,11 @@ class BudgetManager:
 
         for provider, budget in self.budgets.items():
             spent = by_provider.get(provider, 0.0)
-            pct = (spent / budget.monthly_limit_usd) * 100 if budget.monthly_limit_usd > 0 else 0
+            pct = (
+                (spent / budget.monthly_limit_usd) * 100
+                if budget.monthly_limit_usd > 0
+                else 0
+            )
 
             status = {
                 "provider": provider,
@@ -289,7 +307,9 @@ class BudgetManager:
                 status["severity"] = "warning"
                 status["alert_triggered"] = True
                 if not budget.alert_sent:
-                    logger.warning(f"⚠️ BUDGET WARNING: {provider} — {pct:.1f}% reached")
+                    logger.warning(
+                        f"⚠️ BUDGET WARNING: {provider} — {pct:.1f}% reached"
+                    )
                     budget.alert_sent = True
             else:
                 budget.alert_sent = False
@@ -318,18 +338,26 @@ class OptimizationEngine:
             cheaper = self._find_cheaper_alternative(model["model"])
             if cheaper:
                 potential_savings = model["cost"] * 0.7
-                suggestions.append(f"🔄 **Model Downgrade**: `{model['model']}` → `{cheaper}` could save ~${potential_savings:.2f}/month")
+                suggestions.append(
+                    f"🔄 **Model Downgrade**: `{model['model']}` → `{cheaper}` could save ~${potential_savings:.2f}/month"
+                )
 
         high_repeat = [m for m in top_models if m["calls"] > 100]
         for model in high_repeat[:2]:
-            suggestions.append(f"💾 **Enable Caching**: `{model['model']}` has {model['calls']} calls. Save ~${model['cost'] * 0.3:.2f}/month.")
+            suggestions.append(
+                f"💾 **Enable Caching**: `{model['model']}` has {model['calls']} calls. Save ~${model['cost'] * 0.3:.2f}/month."
+            )
 
         by_provider = summary["by_provider"]
         if by_provider.get("render", 0) > 20:
-            suggestions.append("☁️ **Render Optimization**: Consider auto-suspend for dev/staging services.")
+            suggestions.append(
+                "☁️ **Render Optimization**: Consider auto-suspend for dev/staging services."
+            )
 
         if not suggestions:
-            suggestions.append("✅ Cost usage is optimized. No major savings opportunities detected.")
+            suggestions.append(
+                "✅ Cost usage is optimized. No major savings opportunities detected."
+            )
         return suggestions
 
     def _find_cheaper_alternative(self, model: str) -> str | None:
@@ -362,7 +390,9 @@ class CostReporter:
             trend = "📊 First period — establishing baseline."
 
         return CostReport(
-            period_start=(datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=days)).isoformat(),
+            period_start=(
+                datetime.datetime.now(datetime.UTC) - datetime.timedelta(days=days)
+            ).isoformat(),
             period_end=datetime.datetime.now(datetime.UTC).isoformat(),
             total_cost_usd=summary["total_cost_usd"],
             breakdown_by_provider=summary["by_provider"],
@@ -381,17 +411,30 @@ class CostReporter:
             f"💵 Total Cost: ${report.total_cost_usd:.2f}\n",
             "📊 Provider Breakdown:",
         ]
-        for provider, cost in sorted(report.breakdown_by_provider.items(), key=lambda x: -x[1]):
+        for provider, cost in sorted(
+            report.breakdown_by_provider.items(), key=lambda x: -x[1]
+        ):
             lines.append(f"   • {provider}: ${cost:.2f}")
 
         lines.append("\n💡 Optimization Suggestions:")
         for i, s in enumerate(report.optimization_suggestions, 1):
             lines.append(f"   {i}. {s}")
 
-        lines.append(f"\n📈 Trend: {report.trend_analysis}\n\n" + "=" * 60 + "\n💰 সুপ্রিমএআই খরচ রিপোর্ট — কস্টসেজ\n" + "=" * 60)
-        lines.append(f"📅 সময়কাল: {report.period_start[:10]} → {report.period_end[:10]}")
-        lines.append(f"💵 মোট খরচ: ${report.total_cost_usd:.2f}\n\n📊 প্রভাইডার ভিত্তিক খরচ:")
-        for provider, cost in sorted(report.breakdown_by_provider.items(), key=lambda x: -x[1]):
+        lines.append(
+            f"\n📈 Trend: {report.trend_analysis}\n\n"
+            + "=" * 60
+            + "\n💰 সুপ্রিমএআই খরচ রিপোর্ট — কস্টসেজ\n"
+            + "=" * 60
+        )
+        lines.append(
+            f"📅 সময়কাল: {report.period_start[:10]} → {report.period_end[:10]}"
+        )
+        lines.append(
+            f"💵 মোট খরচ: ${report.total_cost_usd:.2f}\n\n📊 প্রভাইডার ভিত্তিক খরচ:"
+        )
+        for provider, cost in sorted(
+            report.breakdown_by_provider.items(), key=lambda x: -x[1]
+        ):
             lines.append(f"   • {provider}: ${cost:.2f}")
 
         return "\n".join(lines)
@@ -411,10 +454,16 @@ class CostSage:
         output_tokens: int,
         metadata: dict | None = None,
     ):
-        self.tracker.record_usage(provider, model, input_tokens, output_tokens, metadata=metadata)
+        self.tracker.record_usage(
+            provider, model, input_tokens, output_tokens, metadata=metadata
+        )
 
-    def record_infrastructure_cost(self, provider: str, service: str, cost_usd: float, metadata: dict | None = None):
-        self.tracker.record_usage(provider, service, cost_usd=cost_usd, metadata=metadata)
+    def record_infrastructure_cost(
+        self, provider: str, service: str, cost_usd: float, metadata: dict | None = None
+    ):
+        self.tracker.record_usage(
+            provider, service, cost_usd=cost_usd, metadata=metadata
+        )
 
     def get_report(self, days: int = 30) -> str:
         report = self.reporter.generate_report(days=days)

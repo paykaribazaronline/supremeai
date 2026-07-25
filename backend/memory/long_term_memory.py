@@ -25,7 +25,9 @@ class MemoryManager:
         self.db_client = db.client
         logger.info("Initialized MemoryManager.")
 
-    async def add_memory(self, learning: str, url: str, metadata: dict[str, Any] | None = None):
+    async def add_memory(
+        self, learning: str, url: str, metadata: dict[str, Any] | None = None
+    ):
         """
         Adds a new learning to the long-term memory.
         """
@@ -118,7 +120,9 @@ class LongTermMemory:
         """Build a simple human-readable context string from stored facts and summaries."""
         parts: list[str] = []
         if self._summaries:
-            parts.append("Summary: " + "; ".join(item["content"] for item in self._summaries))
+            parts.append(
+                "Summary: " + "; ".join(item["content"] for item in self._summaries)
+            )
         if self._facts:
             parts.append("Facts: " + "; ".join(item["content"] for item in self._facts))
         return "\n".join(parts) if parts else "No memory available."

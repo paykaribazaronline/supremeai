@@ -23,9 +23,8 @@ import asyncio
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from loguru import logger
-
 from core.utils.time_utils import utc_now
+from loguru import logger
 
 
 class DynamicConfigProxy:
@@ -44,7 +43,9 @@ class DynamicConfigProxy:
 
     async def _refresh_cache(self):
         try:
-            doc_ref = self._db.collection(f"tenants/{self._tenant_id}/config/runtime").document("settings")
+            doc_ref = self._db.collection(
+                f"tenants/{self._tenant_id}/config/runtime"
+            ).document("settings")
 
             # handle both sync and async get() based on the db client
             if asyncio.iscoroutinefunction(doc_ref.get):

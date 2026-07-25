@@ -59,7 +59,11 @@ class TestMigrationFiles:
 
     def test_tenant_schema_has_required_tables(self):
         # বাংলা মন্তব্য: রিনেম করা মাইগ্রেশন ১০ ফাইলটি utf-8 এনকোডিং দিয়ে রিড করা হচ্ছে
-        content = (MIGRATIONS_DIR / "10_tenant_sso_offline.sql").read_text(encoding="utf-8").lower()
+        content = (
+            (MIGRATIONS_DIR / "10_tenant_sso_offline.sql")
+            .read_text(encoding="utf-8")
+            .lower()
+        )
         required_tables = [
             "tenant_limits",
             "sso_configs",
@@ -67,7 +71,9 @@ class TestMigrationFiles:
             "tenant_usage",
         ]
         for table in required_tables:
-            assert table in content, f"Missing table: {table} in 10_tenant_sso_offline.sql"
+            assert (
+                table in content
+            ), f"Missing table: {table} in 10_tenant_sso_offline.sql"
 
     def test_referral_schema_has_indexes(self):
         content = (MIGRATIONS_DIR / "06_referral_system.sql").read_text().upper()
@@ -75,7 +81,9 @@ class TestMigrationFiles:
 
     def test_tenant_schema_has_billing_tier_check(self):
         # বাংলা মন্তব্য: রিনেম করা মাইগ্রেশন ১০ ফাইলটি utf-8 এনকোডিং দিয়ে রিড করা হচ্ছে
-        content = (MIGRATIONS_DIR / "10_tenant_sso_offline.sql").read_text(encoding="utf-8")
+        content = (MIGRATIONS_DIR / "10_tenant_sso_offline.sql").read_text(
+            encoding="utf-8"
+        )
         assert "free" in content
         assert "enterprise" in content
         assert "CHECK" in content.upper()
@@ -129,7 +137,8 @@ class TestOnboardingAPI:
         assert result is False
 
     def test_save_user_preferences_local_fallback(self, tmp_path):
-        from api.routes.onboarding import OnboardingPayload, _save_user_preferences
+        from api.routes.onboarding import (OnboardingPayload,
+                                           _save_user_preferences)
 
         payload = OnboardingPayload(
             user_id="test-user-123",
@@ -150,7 +159,8 @@ class TestOnboardingAPI:
 
     @pytest.mark.anyio
     async def test_complete_onboarding_endpoint(self):
-        from api.routes.onboarding import OnboardingPayload, complete_onboarding
+        from api.routes.onboarding import (OnboardingPayload,
+                                           complete_onboarding)
 
         payload = OnboardingPayload(
             user_id="test-user",
@@ -175,7 +185,8 @@ class TestOnboardingAPI:
 
     @pytest.mark.anyio
     async def test_onboarding_invalid_key_still_succeeds(self):
-        from api.routes.onboarding import OnboardingPayload, complete_onboarding
+        from api.routes.onboarding import (OnboardingPayload,
+                                           complete_onboarding)
 
         payload = OnboardingPayload(
             user_id="test-user",
@@ -208,7 +219,9 @@ class TestViralReferralEngine:
         # বাংলা মন্তব্য: মডিউলের সঠিক পাথ (tools.social.viral_referral_engine) অনুযায়ী মক করা হলো
         with patch("tools.social.viral_referral_engine.db") as mock_db:
             mock_db.client = None  # Force local store
-            with patch.object(engine, "_save_local"), patch.object(engine, "_load_local", return_value={"codes": {}, "wallets": {}}):
+            with patch.object(engine, "_save_local"), patch.object(
+                engine, "_load_local", return_value={"codes": {}, "wallets": {}}
+            ):
                 result = engine.generate_referral_code("user123")
         assert result["status"] == "success"
         assert result["code"].startswith("SUPREME-")
@@ -266,7 +279,9 @@ class TestViralReferralEngine:
                 "_load_local",
                 return_value={"codes": {}, "wallets": {}, "redemptions": fake_history},
             ):
-                is_fraud = engine._is_fraudulent("u1", "new_victim", {"ip_address": "1.2.3.4"})
+                is_fraud = engine._is_fraudulent(
+                    "u1", "new_victim", {"ip_address": "1.2.3.4"}
+                )
         assert is_fraud is True
 
 
@@ -279,7 +294,9 @@ class TestTenantRateLimiter:
 
         p = pathlib.Path(__file__).parent.parent / "tools" / "tenant_rate_limiter.py"
         assert p.exists(), "tenant_rate_limiter.py must exist"
-        assert p.stat().st_size > 1000, "tenant_rate_limiter.py appears too small (stub?)"
+        assert (
+            p.stat().st_size > 1000
+        ), "tenant_rate_limiter.py appears too small (stub?)"
 
     def test_rate_limiter_has_class(self):
         import ast

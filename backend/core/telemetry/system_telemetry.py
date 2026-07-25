@@ -1,10 +1,9 @@
 import asyncio
 
 import psutil
-from loguru import logger
-
 from core.messaging.event_bus import error_event_bus
 from core.swarm_pubsub import swarm_streamer
+from loguru import logger
 
 
 async def run_system_telemetry_loop(interval_seconds: int = 5) -> None:

@@ -13,14 +13,9 @@ import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
-from core.autonoguard_engine import (
-    SENSITIVE_OPS,
-    AutonoGuardEngine,
-    ChurnDetection,
-    OperationContext,
-    autonoguard_engine,
-)
+from core.autonoguard_engine import (SENSITIVE_OPS, AutonoGuardEngine,
+                                     ChurnDetection, OperationContext,
+                                     autonoguard_engine)
 
 # --- OperationContext Tests ---
 
@@ -218,7 +213,9 @@ class TestAutonoGuardEngine:
         """Test operation enforcement when anti-hacking disabled."""
         engine = AutonoGuardEngine()
 
-        with patch("core.autonoguard_engine.ANTI_HACKING_ENABLED", False), patch.object(engine, "scan_for_threats", return_value={"safe": True}):
+        with patch("core.autonoguard_engine.ANTI_HACKING_ENABLED", False), patch.object(
+            engine, "scan_for_threats", return_value={"safe": True}
+        ):
             allowed, error = await engine.enforce_operation(
                 admin_id="admin-123",
                 ip="192.168.1.1",
