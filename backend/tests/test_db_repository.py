@@ -28,7 +28,7 @@ class FakeFirebaseDocRef:
         return FakeDoc(self.exists, {"id": self.doc_id, "value": "primary"})
 
     def document(self, doc_id: str):
-        return self
+        return FakeFirebaseDocRef(doc_id, should_error=self.should_error, exists=self.exists)
 
 
 class FakeFirebase:
@@ -70,7 +70,7 @@ async def test_fetch_from_primary_async_doc_returns_document():
     repo = SmartDataRepository(firebase_client=firebase, supabase_client=supabase)
 
     result = await repo.get_document_with_fallback("users", "abc")
-    assert result == {"id": "users", "value": "primary"}
+    assert result == {"id": "abc", "value": "primary"}
 
 
 @pytest.mark.asyncio

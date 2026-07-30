@@ -44,14 +44,18 @@ class SmartDataRepository:
             # Firebase Client check and fetch
             if hasattr(self.firebase, "collection"):
                 doc_ref = self.firebase.collection(collection).document(doc_id)
-                if inspect.iscoroutinefunction(doc_ref.get):
-                    doc = await doc_ref.get()
+                doc_func = getattr(doc_ref, "get", None)
+                if callable(doc_func):
+                    try:
+                        res = doc_func()
+                        if inspect.isawaitable(res):
+                            doc = await res
+                        else:
+                            doc = res
+                    except Exception as exc:
+                        raise PrimaryDatabaseDownException(str(exc)) from exc
                 else:
-                    res = doc_ref.get()
-                    if inspect.isawaitable(res):
-                        doc = await res
-                    else:
-                        doc = res
+                    raise PrimaryDatabaseDownException("doc_ref.get is not callable")
 
                 if not doc.exists:
                     return None
@@ -69,7 +73,7 @@ class SmartDataRepository:
         try:
             # Try to fetch from Firebase
             return await self._fetch_from_primary(table_name, doc_id)
-        except PrimaryDatabaseDownException:
+        except (PrimaryDatabaseDownException, TypeError):
             logging.critical("🚨 FIREBASE IS DOWN! Circuit Breaker Tripped. Falling back to Supabase.")
             try:
                 # If Supabase client has the execute API (standard Supabase-py)
