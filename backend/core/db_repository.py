@@ -1,3 +1,4 @@
+import inspect
 import logging
 import re
 from typing import Any
@@ -43,19 +44,22 @@ class SmartDataRepository:
             # Firebase Client check and fetch
             if hasattr(self.firebase, "collection"):
                 doc_ref = self.firebase.collection(collection).document(doc_id)
-                # Check if it has async get or normal get
-                import inspect
-
                 if inspect.iscoroutinefunction(doc_ref.get):
                     doc = await doc_ref.get()
                 else:
-                    doc = doc_ref.get()
+                    res = doc_ref.get()
+                    if inspect.isawaitable(res):
+                        doc = await res
+                    else:
+                        doc = res
 
                 if not doc.exists:
                     return None
                 return doc.to_dict()
             else:
                 raise PrimaryDatabaseDownException("Firebase client not initialized or missing collection method")
+        except PrimaryDatabaseDownException:
+            raise
         except Exception as e:  # noqa: BLE001
             logging.warning(f"⚠️ Firebase unreachable ({str(e)}). Retrying...")
             raise PrimaryDatabaseDownException(str(e)) from e
@@ -65,7 +69,7 @@ class SmartDataRepository:
         try:
             # Try to fetch from Firebase
             return await self._fetch_from_primary(table_name, doc_id)
-        except PrimaryDatabaseDownException:
+        except (PrimaryDatabaseDownException, TypeError):
             logging.critical("🚨 FIREBASE IS DOWN! Circuit Breaker Tripped. Falling back to Supabase.")
             try:
                 # If Supabase client has the execute API (standard Supabase-py)

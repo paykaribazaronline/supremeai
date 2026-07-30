@@ -121,6 +121,7 @@ def test_docs_visible_in_local():
         os.environ["ALLOW_TEST_ORIGIN_BYPASS"] = "true"
         os.environ["CORS_ORIGINS"] = '["*"]'
         os.environ["ALLOWED_HOSTS"] = '["*"]'
+        os.environ["DOCS_AUTH_ENABLED"] = "false"
 
         import core.config as config_mod
         new_s = config_mod.Settings()
