@@ -92,12 +92,28 @@ experience_db = ExperienceDatabase()
 global_http_client: httpx.AsyncClient | None = None
 
 
-@with_error_bus("__getattr__")
 def __getattr__(name: str) -> Any:
-    """Dynamic service getter — ensures legacy test and router backward compatibility."""
+    """Dynamic service getter — ensures legacy test and router backward compatibility.
+
+    বাংলা: dunder attribute probe (যেমন `__path__`, `__all__`) সবসময় স্বাভাবিক,
+    প্রত্যাশিত ঘটনা — Python-এর নিজস্ব import/inspect মেশিনারি নিয়মিতভাবে এগুলো চেক
+    করে দেখে এই মডিউলটা একটা প্যাকেজ কিনা। আগে পুরো ফাংশনটাই `@with_error_bus` দিয়ে
+    wrap করা ছিল, ফলে প্রতিটা dunder-probe-এর স্বাভাবিক AttributeError-ও একটা
+    "application error" হিসেবে error_event_bus-এ রিপোর্ট হচ্ছিল। প্রতি ~৫ সেকেন্ডে এটা
+    ঘটায় error-pattern-detector সেটাকে "AttributeError x3 → CRITICAL" ধরে নিয়ে
+    self-healing/emergency-evolution ট্রিগার করছিল — যেটা নিজেই আরেকটা বাগের
+    (fitness_engine মিসিং) কারণে ক্র্যাশ করে, এবং পুরো চক্রটা অনন্তকাল ধরে রিপিট হয়
+    (production লগে এটাই মূল কারণ ছিল)। তাই dunder short-circuit-টা এখন
+    error-bus-wrapped অংশের বাইরে রাখা হলো, যাতে এটা কখনো error হিসেবে রিপোর্ট না হয়।
+    """
     if name.startswith("__") and name.endswith("__"):
         raise AttributeError(f"Module 'core.services' has no attribute '{name}'")
+    return _get_service_attr(name)
 
+
+@with_error_bus("__getattr__")
+def _get_service_attr(name: str) -> Any:
+    """Actual service-lookup logic — only reached for real (non-dunder) attribute names."""
     if name == "registry":
         raise AttributeError("Registry not initialized")
 

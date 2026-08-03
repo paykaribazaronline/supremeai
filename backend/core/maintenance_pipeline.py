@@ -202,8 +202,15 @@ class MaintenancePipeline:
                     SelfEvolutionAgent,
                 )
 
-                # শুধু tick() চালাই, পুরো loop নয় — non-blocking
-                _evo = SelfEvolutionAgent.__new__(SelfEvolutionAgent)
+                # বাংলা: আগে এখানে SelfEvolutionAgent.__new__(SelfEvolutionAgent) দিয়ে
+                # instance বানানো হতো, যেটা __init__() সম্পূর্ণ স্কিপ করে দেয় — ফলে
+                # fitness_engine (ও অন্য সব attribute) কখনো সেট হতো না, আর প্রতিটা
+                # _tick() কল AttributeError দিয়ে ক্র্যাশ করত (production লগে দেখা
+                # "Task exception was never retrieved... 'fitness_engine'" এর মূল কারণ)।
+                # SelfEvolutionAgent.__init__() নিজে থেকে কোনো continuous loop চালু করে
+                # না — সেটা শুধু .start() কল করলেই শুরু হয় — তাই স্বাভাবিক constructor
+                # ব্যবহার করলেও "শুধু tick(), পুরো loop নয়" এই উদ্দেশ্য অক্ষুণ্ণ থাকে।
+                _evo = SelfEvolutionAgent()
                 if hasattr(_evo, "_tick"):
                     from core.utils.background_tasks import track_task
 

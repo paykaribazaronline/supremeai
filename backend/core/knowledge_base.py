@@ -9,9 +9,29 @@ DATA_DIR = os.getenv("SUPREMEAI_DATA_DIR") or os.path.join(BASE_DIR, "data")
 MEMORY_FILE_PATH = os.getenv("SUPREMEAI_MEMORY_FILE_PATH") or os.path.join(DATA_DIR, "memory_vault.json")
 
 # ফাইল না থাকলে তৈরি করে নিবে
-if not os.path.exists(DATA_DIR):
-    os.makedirs(DATA_DIR)
-if not os.path.exists(MEMORY_FILE_PATH):
+# বাংলা: Render-এর মতো প্ল্যাটফর্মে /app read-only হতে পারে (persistent disk মাউন্ট না
+# থাকলে) — আগে এখানে os.makedirs() unconditionally, কোনো try/except ছাড়া কল হতো, যেটা
+# PermissionError দিয়ে ক্র্যাশ করত import-time-এই, আর ফলে এই মডিউল import করা প্রতিটা
+# router (যেমন agent_workspace) পুরোপুরি load হতে ব্যর্থ হতো। এখন writable না হলে
+# /tmp-এ fallback করা হয় (admin/god.py-তে যেভাবে করা হয়েছে, সেই একই প্যাটার্ন)।
+try:
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR)
+except PermissionError:
+    logger.warning(f"Permission denied creating directory for {DATA_DIR}. Falling back to /tmp/data.")
+    DATA_DIR = os.path.join("/tmp", "data")
+    MEMORY_FILE_PATH = os.getenv("SUPREMEAI_MEMORY_FILE_PATH") or os.path.join(DATA_DIR, "memory_vault.json")
+    os.makedirs(DATA_DIR, exist_ok=True)
+
+try:
+    if not os.path.exists(MEMORY_FILE_PATH):
+        with open(MEMORY_FILE_PATH, "w") as f:
+            json.dump({}, f)
+except PermissionError:
+    logger.warning(f"Permission denied writing {MEMORY_FILE_PATH}. Falling back to /tmp/data.")
+    DATA_DIR = os.path.join("/tmp", "data")
+    os.makedirs(DATA_DIR, exist_ok=True)
+    MEMORY_FILE_PATH = os.path.join(DATA_DIR, "memory_vault.json")
     with open(MEMORY_FILE_PATH, "w") as f:
         json.dump({}, f)
 
