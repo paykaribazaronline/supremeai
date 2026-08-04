@@ -37,7 +37,12 @@ class SelfImprovingAgent:
         self.logger = get_logger(__name__)
 
     async def process_feedback(
-        self, user_id: str, request: str, response: str, feedback: str, rating: float | None = None
+        self,
+        user_id: str,
+        request: str,
+        response: str,
+        feedback: str,
+        rating: float | None = None,
     ) -> bool:
         """Process user feedback and apply improvements."""
         try:
@@ -82,7 +87,9 @@ class SelfImprovingAgent:
             areas_to_improve = self.identify_improvement_areas(experience)
 
             # Generate improvement suggestions
-            suggestions = await self.generate_improvement_suggestions(experience, areas_to_improve, feedback_analysis)
+            suggestions = await self.generate_improvement_suggestions(
+                experience, areas_to_improve, feedback_analysis
+            )
 
             # Apply improvements
             for suggestion in suggestions:
@@ -98,7 +105,10 @@ class SelfImprovingAgent:
         # Check for common issues
         if "error" in (experience.get("response") or "").lower():
             areas.append("error_handling")
-        if len(experience.get("response") or "") < 50 and "error" not in (experience.get("response") or "").lower():
+        if (
+            len(experience.get("response") or "") < 50
+            and "error" not in (experience.get("response") or "").lower()
+        ):
             areas.append("response_completeness")
         if (experience.get("feedback") or "").lower().find("slow") != -1:
             areas.append("performance")
@@ -194,7 +204,9 @@ class SelfImprovingAgent:
             adjustments = {}
 
         # Apply adjustment (example: increase reliability weighting)
-        adjustments["reliability_weight"] = adjustments.get("reliability_weight", 0.4) + 0.1
+        adjustments["reliability_weight"] = (
+            adjustments.get("reliability_weight", 0.4) + 0.1
+        )
         # Cap at 0.8 to prevent over-adjustment
         adjustments["reliability_weight"] = min(adjustments["reliability_weight"], 0.8)
 
@@ -249,7 +261,9 @@ class SelfImprovingAgent:
 
         self.redis_client.setex(key, 86400, json.dumps(improvements))
 
-    async def update_performance_metrics(self, experience: dict, feedback_analysis: dict):
+    async def update_performance_metrics(
+        self, experience: dict, feedback_analysis: dict
+    ):
         """Update system performance metrics based on experience."""
         # Calculate metrics from experience
         accuracy = feedback_analysis.get("accuracy_score", 0.5)
@@ -273,7 +287,9 @@ class SelfImprovingAgent:
 
         # Store metrics in Redis for monitoring
         metrics_key = "performance_metrics"
-        recent_metrics = [m.__dict__ for m in self.performance_history[-10:]]  # Last 10 metrics
+        recent_metrics = [
+            m.__dict__ for m in self.performance_history[-10:]
+        ]  # Last 10 metrics
         self.redis_client.setex(metrics_key, 3600, json.dumps(recent_metrics))
 
     async def apply_proactive_improvements(self):
@@ -283,7 +299,9 @@ class SelfImprovingAgent:
 
         if len(recent_experiences) >= 10:
             # Analyze patterns
-            avg_rating = sum(float(exp.get("rating", 0)) for exp in recent_experiences) / len(recent_experiences)
+            avg_rating = sum(
+                float(exp.get("rating", 0)) for exp in recent_experiences
+            ) / len(recent_experiences)
 
             if avg_rating < 3.5:  # Low average rating
                 # Trigger system-wide improvement process
@@ -307,7 +325,9 @@ class SelfImprovingAgent:
 
     async def trigger_system_wide_improvement(self):
         """Trigger system-wide improvement based on poor performance."""
-        self.logger.info("Triggering system-wide improvement due to low performance metrics")
+        self.logger.info(
+            "Triggering system-wide improvement due to low performance metrics"
+        )
 
         # Store improvement trigger in Redis
         key = "system_improvement_trigger"
@@ -353,9 +373,15 @@ class FeedbackAnalyzer:
         feedback_lower = feedback.lower() if feedback else ""
 
         # Count positive and negative keywords
-        positive_count = sum(1 for word in self.positive_keywords if word in feedback_lower)
-        negative_count = sum(1 for word in self.negative_keywords if word in feedback_lower)
-        neutral_count = sum(1 for word in self.neutral_keywords if word in feedback_lower)
+        positive_count = sum(
+            1 for word in self.positive_keywords if word in feedback_lower
+        )
+        negative_count = sum(
+            1 for word in self.negative_keywords if word in feedback_lower
+        )
+        neutral_count = sum(
+            1 for word in self.neutral_keywords if word in feedback_lower
+        )
 
         # Determine sentiment
         if positive_count > negative_count:
@@ -386,7 +412,9 @@ class FeedbackAnalyzer:
 
         # Estimate accuracy from feedback
         accuracy_indicators = ["correct", "right", "accurate", "precise", "exact"]
-        accuracy_count = sum(1 for word in accuracy_indicators if word in feedback_lower)
+        accuracy_count = sum(
+            1 for word in accuracy_indicators if word in feedback_lower
+        )
         accuracy_score = min(accuracy_count / max(word_count, 1) * 5, 1.0)  # Cap at 1.0
 
         return {
@@ -396,7 +424,11 @@ class FeedbackAnalyzer:
             "neutral_score": neutral_score,
             "satisfaction_score": satisfaction_score,
             "accuracy_score": accuracy_score,
-            "keyword_counts": {"positive": positive_count, "negative": negative_count, "neutral": neutral_count},
+            "keyword_counts": {
+                "positive": positive_count,
+                "negative": negative_count,
+                "neutral": neutral_count,
+            },
         }
 
 

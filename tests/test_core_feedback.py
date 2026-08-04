@@ -2,7 +2,6 @@
 """Tests for feedback loop and learning system."""
 
 import pytest
-from unittest.mock import MagicMock, patch
 
 
 class TestFeedbackLoop:
@@ -21,8 +20,7 @@ class TestFeedbackLoop:
 
         loop = FeedbackLoop()
         result = loop.record_edit(
-            file_path="test.py",
-            diff_summary="Changed function signature"
+            file_path="test.py", diff_summary="Changed function signature"
         )
 
         assert isinstance(result, dict)
@@ -33,8 +31,7 @@ class TestFeedbackLoop:
 
         loop = FeedbackLoop()
         result = loop.record_suggestion_feedback(
-            accepted=True,
-            context={"task": "code_generation"}
+            accepted=True, context={"task": "code_generation"}
         )
 
         assert isinstance(result, dict)
@@ -45,8 +42,7 @@ class TestFeedbackLoop:
 
         loop = FeedbackLoop()
         result = loop.record_suggestion_feedback(
-            accepted=False,
-            context={"task": "code_generation"}
+            accepted=False, context={"task": "code_generation"}
         )
 
         assert isinstance(result, dict)
@@ -57,8 +53,7 @@ class TestFeedbackLoop:
 
         loop = FeedbackLoop()
         result = loop.record_error_report(
-            error=Exception("Test error"),
-            context={"operation": "test"}
+            error=Exception("Test error"), context={"operation": "test"}
         )
 
         assert isinstance(result, dict)
@@ -96,10 +91,8 @@ class TestCallbackQueryHandler:
         from backend.core.feedback_loop import FeedbackLoop
 
         loop = FeedbackLoop()
-        result = loop.handle_feedback({
-            "type": "rating",
-            "value": 5,
-            "comment": "Great work!"
-        })
+        result = loop.handle_feedback(
+            {"type": "rating", "value": 5, "comment": "Great work!"}
+        )
 
         assert isinstance(result, dict)

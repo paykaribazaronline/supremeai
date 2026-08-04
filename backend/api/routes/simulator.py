@@ -10,15 +10,14 @@ Falls back to in-memory dicts if Redis is unavailable (e.g. in test environments
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import json
 from datetime import UTC, datetime
 from typing import Any
 
+from core.cache.redis_manager import redis_manager
+from core.error_bus import with_error_bus
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-
-from core.cache.redis_manager import redis_manager
 
 router = APIRouter(prefix="/api/simulator", tags=["simulator"])
 
@@ -52,19 +51,29 @@ _IN_MEMORY_KNOWN_USERS: set[str] = set()
 
 class DeviceUpdateRequest(BaseModel):
     type: str
-    osVersion: str | None = None  # -- camelCase required to match frontend JSON API contract
-    screenResolution: str | None = None  # -- camelCase required to match frontend JSON API contract
-    densityDpi: int | None = None  # -- camelCase required to match frontend JSON API contract
+    osVersion: str | None = (
+        None  # -- camelCase required to match frontend JSON API contract
+    )
+    screenResolution: str | None = (
+        None  # -- camelCase required to match frontend JSON API contract
+    )
+    densityDpi: int | None = (
+        None  # -- camelCase required to match frontend JSON API contract
+    )
 
 
 class ProfileUpdateRequest(BaseModel):
-    installQuota: int | None = None  # -- camelCase required to match frontend JSON API contract
+    installQuota: int | None = (
+        None  # -- camelCase required to match frontend JSON API contract
+    )
     device: DeviceUpdateRequest | None = None
 
 
 class InstallRequest(BaseModel):
     appId: str  # -- camelCase required to match frontend JSON API contract
-    deviceProfile: str | None = "PIXEL_6"  # -- camelCase required to match frontend JSON API contract
+    deviceProfile: str | None = (
+        "PIXEL_6"  # -- camelCase required to match frontend JSON API contract
+    )
 
 
 @with_error_bus("_use_redis")
@@ -186,7 +195,9 @@ async def install_app(req: InstallRequest, userId: str = "default"):
     if profile["activeInstalls"] >= profile["installQuota"]:
         raise HTTPException(status_code=400, detail="Install quota exceeded")
 
-    existing = next((a for a in profile["installedApps"] if a["appId"] == req.appId), None)
+    existing = next(
+        (a for a in profile["installedApps"] if a["appId"] == req.appId), None
+    )
     if existing:
         return {
             "success": True,
@@ -221,7 +232,9 @@ async def install_app(req: InstallRequest, userId: str = "default"):
 async def uninstall_app(appId: str, userId: str = "default"):
     profile = await get_or_create_profile(userId)
     initial_len = len(profile["installedApps"])
-    profile["installedApps"] = [a for a in profile["installedApps"] if a["appId"] != appId]
+    profile["installedApps"] = [
+        a for a in profile["installedApps"] if a["appId"] != appId
+    ]
     if len(profile["installedApps"]) < initial_len:
         profile["activeInstalls"] -= 1
     await _save_profile(userId, profile)

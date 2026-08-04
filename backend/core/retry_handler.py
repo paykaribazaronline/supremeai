@@ -153,7 +153,9 @@ def retry_with_budget(
                 if attempt > 0:  # First attempt doesn't require budget
                     has_budget = await global_retry_budget.consume()
                     if not has_budget:
-                        logger.warning(f"রিট্রাই বাজেট শেষ: ফাংশন '{func.__name__}' এর জন্য আর রিট্রাই করা যাবে না")
+                        logger.warning(
+                            f"রিট্রাই বাজেট শেষ: ফাংশন '{func.__name__}' এর জন্য আর রিট্রাই করা যাবে না"
+                        )
                         break
 
                 try:
@@ -193,9 +195,13 @@ def retry_with_budget(
 
             for attempt in range(max_retries + 1):
                 # For sync functions, we'll call the async budget checker
-                has_budget = asyncio.run(global_retry_budget.consume()) if attempt > 0 else True
+                has_budget = (
+                    asyncio.run(global_retry_budget.consume()) if attempt > 0 else True
+                )
                 if attempt > 0 and not has_budget:
-                    logger.warning(f"রিট্রাই বাজেট শেষ: ফাংশন '{func.__name__}' এর জন্য আর রিট্রাই করা যাবে না")
+                    logger.warning(
+                        f"রিট্রাই বাজেট শেষ: ফাংশন '{func.__name__}' এর জন্য আর রিট্রাই করা যাবে না"
+                    )
                     break
 
                 try:

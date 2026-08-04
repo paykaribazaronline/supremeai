@@ -44,7 +44,9 @@ class MetricsCollector:
         self._security_events = defaultdict(int)
         self._active_connections = 0
 
-    async def increment_counter(self, metric_name: str, value: int = 1, labels: dict[str, str] | None = None):
+    async def increment_counter(
+        self, metric_name: str, value: int = 1, labels: dict[str, str] | None = None
+    ):
         """Increment a counter metric."""
         labels = labels or {}
         key = f"{metric_name}:{sorted(labels.items())!s}"
@@ -54,7 +56,9 @@ class MetricsCollector:
                 self._metrics[key] = 0
             self._metrics[key] += value
 
-    async def set_gauge(self, metric_name: str, value: float, labels: dict[str, str] | None = None):
+    async def set_gauge(
+        self, metric_name: str, value: float, labels: dict[str, str] | None = None
+    ):
         """Set a gauge metric value."""
         labels = labels or {}
         key = f"{metric_name}:{sorted(labels.items())!s}"
@@ -62,7 +66,9 @@ class MetricsCollector:
         async with self._lock:
             self._metrics[key] = value
 
-    async def observe_histogram(self, metric_name: str, value: float, labels: dict[str, str] | None = None):
+    async def observe_histogram(
+        self, metric_name: str, value: float, labels: dict[str, str] | None = None
+    ):
         """Record a histogram observation."""
         labels = labels or {}
         key = f"{metric_name}:{sorted(labels.items())!s}"
@@ -76,7 +82,9 @@ class MetricsCollector:
         """Start a timer for measuring duration."""
         self._start_times[timer_id] = time.time()
 
-    async def stop_timer(self, timer_id: str, metric_name: str, labels: dict[str, str] | None = None):
+    async def stop_timer(
+        self, timer_id: str, metric_name: str, labels: dict[str, str] | None = None
+    ):
         """Stop a timer and record the duration."""
         if timer_id in self._start_times:
             duration = time.time() - self._start_times[timer_id]
@@ -86,9 +94,15 @@ class MetricsCollector:
         return None
 
     # Application-specific metrics
-    async def record_request(self, endpoint: str, method: str = "GET", status_code: int = 200):
+    async def record_request(
+        self, endpoint: str, method: str = "GET", status_code: int = 200
+    ):
         """Record an incoming request."""
-        labels = {"endpoint": endpoint, "method": method, "status_code": str(status_code)}
+        labels = {
+            "endpoint": endpoint,
+            "method": method,
+            "status_code": str(status_code),
+        }
         await self.increment_counter("http_requests_total", 1, labels)
         self._request_counts[(endpoint, method, status_code)] += 1
 
@@ -98,7 +112,9 @@ class MetricsCollector:
         await self.increment_counter("errors_total", 1, labels)
         self._error_counts[(error_type, endpoint)] += 1
 
-    async def record_db_query(self, operation: str, duration: float, success: bool = True):
+    async def record_db_query(
+        self, operation: str, duration: float, success: bool = True
+    ):
         """Record a database query performance."""
         labels = {"operation": operation, "success": str(success)}
         await self.observe_histogram("db_query_duration_seconds", duration, labels)
@@ -114,7 +130,9 @@ class MetricsCollector:
         await self.increment_counter("cache_misses_total", 1)
         self._cache_stats["misses"] += 1
 
-    async def record_ai_model_usage(self, model_name: str, tokens_used: int, cost_usd: float):
+    async def record_ai_model_usage(
+        self, model_name: str, tokens_used: int, cost_usd: float
+    ):
         """Record AI model usage and cost."""
         labels = {"model": model_name}
         await self.increment_counter("ai_model_requests_total", 1, labels)
@@ -138,7 +156,10 @@ class MetricsCollector:
         # This would typically integrate with a time-series database
         # For now, returning current counts
         total_requests = sum(self._request_counts.values())
-        return {"total_requests": total_requests, "timeframe_minutes": timeframe_minutes}
+        return {
+            "total_requests": total_requests,
+            "timeframe_minutes": timeframe_minutes,
+        }
 
     async def get_cache_performance(self) -> dict[str, float]:
         """Get cache performance metrics."""
@@ -159,7 +180,9 @@ class MetricsCollector:
         return {
             "avg_query_time": avg_time,
             "query_count": len(self._db_query_times),
-            "slow_queries": len([t for t in self._db_query_times if t > 1.0]),  # >1s is slow
+            "slow_queries": len(
+                [t for t in self._db_query_times if t > 1.0]
+            ),  # >1s is slow
         }
 
     async def get_ai_cost_metrics(self) -> dict[str, float]:
@@ -186,7 +209,8 @@ class MetricsCollector:
             "database_performance": db_perf,
             "ai_costs": ai_costs,
             "security_events": security_events,
-            "uptime_minutes": (time.time() - getattr(self, "_start_time", time.time())) / 60,
+            "uptime_minutes": (time.time() - getattr(self, "_start_time", time.time()))
+            / 60,
         }
 
     def __enter__(self):
@@ -204,7 +228,9 @@ metrics_collector = MetricsCollector()
 
 
 # Convenience functions for easy metric recording
-async def record_api_request(endpoint: str, method: str = "GET", status_code: int = 200):
+async def record_api_request(
+    endpoint: str, method: str = "GET", status_code: int = 200
+):
     """Convenience function to record an API request."""
     await metrics_collector.record_request(endpoint, method, status_code)
 
@@ -237,6 +263,8 @@ async def start_operation_timer(operation_id: str):
     await metrics_collector.start_timer(operation_id)
 
 
-async def end_operation_timer(operation_id: str, metric_name: str, labels: dict[str, str] | None = None):
+async def end_operation_timer(
+    operation_id: str, metric_name: str, labels: dict[str, str] | None = None
+):
     """End timing an operation and record the duration."""
     return await metrics_collector.stop_timer(operation_id, metric_name, labels)

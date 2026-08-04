@@ -11,7 +11,6 @@ import ast
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 # Configuration
 SCAN_DIRS = ["backend", "apps", "scripts", "packages", "tools"]
@@ -76,7 +75,9 @@ class BroadExceptionVisitor(ast.NodeVisitor):
 
     def visit_ExceptHandler(self, node: ast.ExceptHandler) -> None:
         """Visit exception handlers."""
-        if node.type is None or (isinstance(node.type, ast.Name) and node.type.id == "Exception"):
+        if node.type is None or (
+            isinstance(node.type, ast.Name) and node.type.id == "Exception"
+        ):
             # Found broad except
             self.broad_exceptions.append(
                 BroadException(
@@ -135,7 +136,9 @@ def find_broad_exceptions(file_path: str) -> list[BroadException]:
         # Enhance with line content and context
         for exc in visitor.broad_exceptions:
             exc.file_path = file_path
-            exc.line_content = lines[exc.line_number - 1] if exc.line_number <= len(lines) else ""
+            exc.line_content = (
+                lines[exc.line_number - 1] if exc.line_number <= len(lines) else ""
+            )
 
             # Get context (3 lines before and after)
             start = max(0, exc.line_number - 4)
@@ -181,7 +184,9 @@ def _suggest_exceptions_from_context(context: str) -> list[str]:
 
     # HTTP/Network
     if "requests." in context or "fetch(" in context:
-        suggestions.update(["requests.RequestException", "ConnectionError", "TimeoutError"])
+        suggestions.update(
+            ["requests.RequestException", "ConnectionError", "TimeoutError"]
+        )
 
     # Type conversions
     if "int(" in context or "float(" in context:
@@ -260,8 +265,12 @@ def main() -> None:
     parser.add_argument("--scan", type=str, help="Scan specific directory")
     parser.add_argument("--file", type=str, help="Scan specific file")
     parser.add_argument("--output", type=str, help="Output report to JSON file")
-    parser.add_argument("--suggest-refactor", action="store_true", help="Suggest refactored code")
-    parser.add_argument("--min-confidence", type=float, default=0.0, help="Minimum confidence threshold")
+    parser.add_argument(
+        "--suggest-refactor", action="store_true", help="Suggest refactored code"
+    )
+    parser.add_argument(
+        "--min-confidence", type=float, default=0.0, help="Minimum confidence threshold"
+    )
 
     args = parser.parse_args()
 
@@ -278,7 +287,9 @@ def main() -> None:
                 all_exceptions.extend(scan_directory(scan_dir))
 
     # Filter by confidence
-    all_exceptions = [exc for exc in all_exceptions if exc.confidence >= args.min_confidence]
+    all_exceptions = [
+        exc for exc in all_exceptions if exc.confidence >= args.min_confidence
+    ]
 
     print(f"\n🔍 Found {len(all_exceptions)} broad exception handlers\n")
 
@@ -299,9 +310,9 @@ def main() -> None:
 
             if args.suggest_refactor:
                 refactored = generate_refactored_code(exc)
-                print(f"\n  Suggested refactor:")
+                print("\n  Suggested refactor:")
                 print(f"    {refactored}")
-                print(f"    # TODO: Add specific exception handling")
+                print("    # TODO: Add specific exception handling")
 
     # Export if requested
     if args.output:
@@ -317,7 +328,11 @@ def main() -> None:
                         "content": exc.line_content.strip(),
                         "suggestions": exc.suggested_exceptions,
                         "confidence": exc.confidence,
-                        "refactored_code": generate_refactored_code(exc) if args.suggest_refactor else None,
+                        "refactored_code": (
+                            generate_refactored_code(exc)
+                            if args.suggest_refactor
+                            else None
+                        ),
                     }
                     for exc in exceptions
                 ]
@@ -331,7 +346,7 @@ def main() -> None:
         print(f"\n📝 Report exported to {args.output}")
 
     # Summary
-    print(f"\n📊 Summary:")
+    print("\n📊 Summary:")
     print(f"  Total broad exceptions: {len(all_exceptions)}")
     print(f"  Files affected: {len(by_file)}")
 

@@ -30,35 +30,23 @@ Bengali:
 রোডম্যাপের অংশ হিসেবে সব কোর কম্পোনেন্টের প্রধান একীকরণ প্যাকেজ
 """
 
-from .accessibility.wcag_compliance import (
-    AccessibilityComplianceEngine,
-    AccessibilityIssue,
-    ColorContrastChecker,
-    HTMLAccessibilityChecker,
-    WCAGGuideline,
-    WCAGLevel,
-    WCAGPrinciple,
-)
-from .deployment.production_deploy import (
-    ConfigManager,
-    DeploymentConfig,
-    DeploymentEnvironment,
-    DeploymentManager,
-    DeploymentStatus,
-    HealthChecker,
-    ImageBuilder,
-    ProductionDeploymentSystem,
-)
-
+from .accessibility.wcag_compliance import (AccessibilityComplianceEngine,
+                                            AccessibilityIssue,
+                                            ColorContrastChecker,
+                                            HTMLAccessibilityChecker,
+                                            WCAGGuideline, WCAGLevel,
+                                            WCAGPrinciple)
+from .deployment.production_deploy import (ConfigManager, DeploymentConfig,
+                                           DeploymentEnvironment,
+                                           DeploymentManager, DeploymentStatus,
+                                           HealthChecker, ImageBuilder,
+                                           ProductionDeploymentSystem)
 # Import all core components
-from .optimization.performance_optimizer import (
-    AsyncLRUCache,
-    LRUCache,
-    OptimizationLevel,
-    PerformanceOptimizer,
-    get_performance_optimizer,
-    performance_monitor,
-)
+from .optimization.performance_optimizer import (AsyncLRUCache, LRUCache,
+                                                 OptimizationLevel,
+                                                 PerformanceOptimizer,
+                                                 get_performance_optimizer,
+                                                 performance_monitor)
 
 # বাংলা মন্তব্য: core.testing.qa_suite নিজে aiohttp আমদানি করে (একটা optional/dev-only
 # dependency — production API path কখনো এটা ব্যবহার করে না)। কিন্তু এই ব্লকটা আগে
@@ -69,19 +57,10 @@ from .optimization.performance_optimizer import (
 # আছে। এখানে একই প্যাটার্ন প্রয়োগ করা হলো যাতে QA-স্যুট ছাড়াই বাকি core.* সাবমডিউল
 # (cache, config, otp_router ইত্যাদি) স্বাভাবিকভাবে import হতে পারে।
 try:
-    from .testing.qa_suite import (
-        ChaosEngineer,
-        IntegrationTestRunner,
-        PerformanceTester,
-        QASuite,
-        SecurityTester,
-        TestCase,
-        TestCategory,
-        TestPriority,
-        TestResult,
-        TestSuite,
-        UnitTestGenerator,
-    )
+    from .testing.qa_suite import (ChaosEngineer, IntegrationTestRunner,
+                                   PerformanceTester, QASuite, SecurityTester,
+                                   TestCase, TestCategory, TestPriority,
+                                   TestResult, TestSuite, UnitTestGenerator)
 
     QA_SUITE_AVAILABLE = True
 except ImportError:
@@ -113,31 +92,14 @@ except ImportError:
 # নামগুলো None হয়ে যায়, বাকি পুরো অ্যাপ স্বাভাবিকভাবে import/চলতে পারে।
 try:
     from evolution import (  # Digital Twin; Continual Learning; Adversarial Defense; Neural-Symbolic Integration; Federated Learning; Theory of Mind; Temporal Abstraction
-        EWC,
-        AdversarialDefenseSystem,
-        AdversarialTrainer,
-        AggregationMethod,
-        DefenseConfig,
-        DigitalTwinWorldModel,
-        EWCConfig,
-        EWCTrainer,
-        FederatedLearningCoordinator,
-        FLConfig,
-        ImpactSimulator,
-        MathematicalReasoningEngine,
-        NeuralSymbolicConfig,
-        NeuralSymbolicIntegrator,
-        OnlineEWC,
-        RemediationEngine,
-        SystemTopologyMapper,
-        TemporalAbstractionConfig,
-        TemporalAbstractionSystem,
-        TemporalGranularity,
-        TheoryOfMindSystem,
-        ToMConfig,
-        ToMLevel,
-        get_digital_twin_model,
-    )
+        EWC, AdversarialDefenseSystem, AdversarialTrainer, AggregationMethod,
+        DefenseConfig, DigitalTwinWorldModel, EWCConfig, EWCTrainer,
+        FederatedLearningCoordinator, FLConfig, ImpactSimulator,
+        MathematicalReasoningEngine, NeuralSymbolicConfig,
+        NeuralSymbolicIntegrator, OnlineEWC, RemediationEngine,
+        SystemTopologyMapper, TemporalAbstractionConfig,
+        TemporalAbstractionSystem, TemporalGranularity, TheoryOfMindSystem,
+        ToMConfig, ToMLevel, get_digital_twin_model)
 
     EVOLUTION_COMPONENTS_AVAILABLE = True
 except ImportError:
@@ -286,7 +248,9 @@ def run_complete_system_test():
     print("✓ Adversarial Defense System:", type(system["defense_system"]).__name__)
     print("✓ Neural-Symbolic System:", type(system["neural_symbolic"]).__name__)
     print("✓ Theory of Mind System:", type(system["theory_of_mind"]).__name__)
-    print("✓ Temporal Abstraction System:", type(system["temporal_abstraction"]).__name__)
+    print(
+        "✓ Temporal Abstraction System:", type(system["temporal_abstraction"]).__name__
+    )
     print("✓ Performance Optimizer:", type(system["performance_optimizer"]).__name__)
     print("✓ Accessibility Engine:", type(system["accessibility_engine"]).__name__)
     print("✓ QA Suite:", type(system["qa_suite"]).__name__)

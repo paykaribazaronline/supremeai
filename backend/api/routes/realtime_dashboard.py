@@ -12,15 +12,14 @@ Channels:
     - alerts.emergency   — Critical system alerts
 """
 
-from core.error_bus import with_error_bus
 import asyncio
 import json
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
-from loguru import logger
-
+from core.error_bus import with_error_bus
 from core.security import verify_token
 from core.swarm_pubsub import get_swarm_streamer
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
+from loguru import logger
 
 router = APIRouter(prefix="/ws", tags=["Real-time Dashboard"])
 
@@ -44,7 +43,9 @@ class DashboardWebSocketManager:
             "channels": set(),  # Which channels the client wants to receive
             "connected_at": asyncio.get_event_loop().time(),
         }
-        logger.info(f"📈 Dashboard WebSocket connected for user {user_auth.get('sub', 'unknown')}")
+        logger.info(
+            f"📈 Dashboard WebSocket connected for user {user_auth.get('sub', 'unknown')}"
+        )
 
         # Start subscription task if not already running
         if self.subscription_task is None or self.subscription_task.done():
@@ -97,7 +98,10 @@ class DashboardWebSocketManager:
                         # Map event types to channels
                         event_channel = self._get_event_channel(event_type)
 
-                        if event_channel in interested_channels or "all" in interested_channels:
+                        if (
+                            event_channel in interested_channels
+                            or "all" in interested_channels
+                        ):
                             try:
                                 # Forward the message to the client
                                 await self.send_personal_message(websocket, raw_message)
@@ -127,7 +131,12 @@ class DashboardWebSocketManager:
             return "metrics.update"
 
         # Log events
-        elif event_type.startswith("log.") or event_type in ["log_entry", "error_log", "info_log", "debug_log"]:
+        elif event_type.startswith("log.") or event_type in [
+            "log_entry",
+            "error_log",
+            "info_log",
+            "debug_log",
+        ]:
             return "logs.stream"
 
         # Job events
@@ -140,7 +149,11 @@ class DashboardWebSocketManager:
             return "jobs.status"
 
         # Alert events
-        elif event_type.startswith("alert.") or event_type in ["critical_alert", "security_alert", "emergency_alert"]:
+        elif event_type.startswith("alert.") or event_type in [
+            "critical_alert",
+            "security_alert",
+            "emergency_alert",
+        ]:
             return "alerts.emergency"
 
         # Default to misc for other events
@@ -208,21 +221,35 @@ async def websocket_dashboard_endpoint(websocket: WebSocket):
                     if channel:
                         dashboard_manager.add_channel_subscription(websocket, channel)
                         await dashboard_manager.send_personal_message(
-                            websocket, json.dumps({"type": "subscription_ack", "channel": channel})
+                            websocket,
+                            json.dumps(
+                                {"type": "subscription_ack", "channel": channel}
+                            ),
                         )
 
                 elif command == "unsubscribe":
                     channel = client_message.get("channel")
                     if channel:
-                        dashboard_manager.remove_channel_subscription(websocket, channel)
+                        dashboard_manager.remove_channel_subscription(
+                            websocket, channel
+                        )
                         await dashboard_manager.send_personal_message(
-                            websocket, json.dumps({"type": "unsubscription_ack", "channel": channel})
+                            websocket,
+                            json.dumps(
+                                {"type": "unsubscription_ack", "channel": channel}
+                            ),
                         )
 
                 elif command == "ping":
                     # Respond to ping with pong
                     await dashboard_manager.send_personal_message(
-                        websocket, json.dumps({"type": "pong", "timestamp": asyncio.get_event_loop().time()})
+                        websocket,
+                        json.dumps(
+                            {
+                                "type": "pong",
+                                "timestamp": asyncio.get_event_loop().time(),
+                            }
+                        ),
                     )
 
             except json.JSONDecodeError:

@@ -8,7 +8,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-
 from core.llm_router import LLMRouter, Provider, TaskType, TokenBudget
 
 
@@ -56,7 +55,10 @@ class TestProviderFailoverChain:
         mock_settings.GEMINI_API_KEY = "test"
         mock_settings.HF_SPACE_URL = "https://mock-hf-space-url"
         monkeypatch.setattr("core.llm_router.settings", mock_settings)
-        monkeypatch.setattr("core.llm_router.get_tracker", lambda: MagicMock(is_available=lambda x: True))
+        monkeypatch.setattr(
+            "core.llm_router.get_tracker",
+            lambda: MagicMock(is_available=lambda x: True),
+        )
         router = LLMRouter()
         router.providers = {
             Provider.MOONSHOT: FakeProvider("moonshot"),
@@ -68,9 +70,14 @@ class TestProviderFailoverChain:
             cost_sensitive=False,
             use_cache=False,
         )
-        assert "moonshot" in result.content.lower() or "moonshot" in result.provider.lower()
+        assert (
+            "moonshot" in result.content.lower()
+            or "moonshot" in result.provider.lower()
+        )
 
-    @pytest.mark.skip(reason="Flaky event loop cleanup in pytest-xdist async context; skipped to avoid pipeline waste")
+    @pytest.mark.skip(
+        reason="Flaky event loop cleanup in pytest-xdist async context; skipped to avoid pipeline waste"
+    )
     @pytest.mark.asyncio
     async def test_fallback_on_primary_failure(self, monkeypatch):
         """Test fallback to secondary provider when primary fails."""
@@ -84,7 +91,10 @@ class TestProviderFailoverChain:
         mock_settings.GEMINI_API_KEY = "test"
         mock_settings.HF_SPACE_URL = "https://mock-hf-space-url"
         monkeypatch.setattr("core.llm_router.settings", mock_settings)
-        monkeypatch.setattr("core.llm_router.get_tracker", lambda: MagicMock(is_available=lambda x: True))
+        monkeypatch.setattr(
+            "core.llm_router.get_tracker",
+            lambda: MagicMock(is_available=lambda x: True),
+        )
         router = LLMRouter()
         router.providers = {
             Provider.MOONSHOT: FakeProvider("moonshot", fail=True),

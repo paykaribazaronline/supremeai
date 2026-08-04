@@ -77,7 +77,12 @@ def mock_external_apis():
         mock_post.return_value.status_code = 200
         mock_post.return_value.json.return_value = {}
 
-        yield {"get": mock_get, "post": mock_post, "put": mock_put, "delete": mock_delete}
+        yield {
+            "get": mock_get,
+            "post": mock_post,
+            "put": mock_put,
+            "delete": mock_delete,
+        }
 
 
 # বাংলা: event_loop fixture সরানো হয়েছে।

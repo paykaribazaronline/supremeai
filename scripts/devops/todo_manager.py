@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import re
 import sys
 import time
@@ -54,22 +53,59 @@ SEVERITY_ICONS: dict[str, str] = {
     "LOW": "🔵",
 }
 
-SKIP_DIRS: frozenset[str] = frozenset({
-    "__pycache__", ".git", ".venv", "venv", "node_modules",
-    ".mypy_cache", ".pytest_cache", ".ruff_cache", "dist", "build",
-    "htmlcov", ".worktrees", "_archive", "scratch",
-})
+SKIP_DIRS: frozenset[str] = frozenset(
+    {
+        "__pycache__",
+        ".git",
+        ".venv",
+        "venv",
+        "node_modules",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        "dist",
+        "build",
+        "htmlcov",
+        ".worktrees",
+        "_archive",
+        "scratch",
+    }
+)
 
-SCAN_EXTENSIONS: frozenset[str] = frozenset({
-    ".py", ".js", ".ts", ".jsx", ".tsx", ".go", ".rs", ".java",
-    ".kt", ".swift", ".cpp", ".c", ".h", ".hpp", ".cs", ".rb",
-    ".php", ".sh", ".yaml", ".yml", ".json", ".toml", ".md", ".sql",
-})
+SCAN_EXTENSIONS: frozenset[str] = frozenset(
+    {
+        ".py",
+        ".js",
+        ".ts",
+        ".jsx",
+        ".tsx",
+        ".go",
+        ".rs",
+        ".java",
+        ".kt",
+        ".swift",
+        ".cpp",
+        ".c",
+        ".h",
+        ".hpp",
+        ".cs",
+        ".rb",
+        ".php",
+        ".sh",
+        ".yaml",
+        ".yml",
+        ".json",
+        ".toml",
+        ".md",
+        ".sql",
+    }
+)
 
 
 @dataclass
 class TodoItem:
     """Represents a single TODO/FIXME/HACK item found in the codebase."""
+
     tag: str
     severity: str
     message: str
@@ -83,6 +119,7 @@ class TodoItem:
 @dataclass
 class ScanResult:
     """Aggregated scan results."""
+
     total_count: int = 0
     items: list[TodoItem] = field(default_factory=list)
     by_severity: dict[str, int] = field(default_factory=lambda: defaultdict(int))
@@ -154,7 +191,13 @@ class TodoManager:
         result.total_count = len(result.items)
         result.scan_time_seconds = time.time() - start_time
         severity_order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}
-        result.items.sort(key=lambda x: (severity_order.get(x.severity, 99), x.file_path, x.line_number))
+        result.items.sort(
+            key=lambda x: (
+                severity_order.get(x.severity, 99),
+                x.file_path,
+                x.line_number,
+            )
+        )
         return result
 
     def format_terminal_summary(self, result: ScanResult) -> str:
@@ -172,7 +215,9 @@ class TodoManager:
 
         lines.append("\nTop Technical Debt Items:")
         for item in result.items[:10]:
-            lines.append(f"  [{item.severity}] {item.tag} {item.file_path}:L{item.line_number} — {item.message[:60]}")
+            lines.append(
+                f"  [{item.severity}] {item.tag} {item.file_path}:L{item.line_number} — {item.message[:60]}"
+            )
 
         lines.append("=" * 60)
         return "\n".join(lines)
@@ -196,19 +241,32 @@ class TodoManager:
             lines.append("|---|---|---|---|")
             for item in group:
                 clean_msg = item.message.replace("|", "\\|")
-                lines.append(f"| `{item.tag}` | `{item.file_path}` | L{item.line_number} | {clean_msg} |")
+                lines.append(
+                    f"| `{item.tag}` | `{item.file_path}` | L{item.line_number} | {clean_msg} |"
+                )
             lines.append("")
 
         return "\n".join(lines)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="SupremeAI TODO & Technical Debt Manager")
+    parser = argparse.ArgumentParser(
+        description="SupremeAI TODO & Technical Debt Manager"
+    )
     subparsers = parser.add_subparsers(dest="subcommand", help="Command to run")
 
-    scan_parser = subparsers.add_parser("scan", help="Scan codebase for TODO/FIXME tags")
-    scan_parser.add_argument("--dir", type=str, help="Target directory (relative to root)")
-    scan_parser.add_argument("--format", choices=["cli", "markdown", "json"], default="cli", help="Report output format")
+    scan_parser = subparsers.add_parser(
+        "scan", help="Scan codebase for TODO/FIXME tags"
+    )
+    scan_parser.add_argument(
+        "--dir", type=str, help="Target directory (relative to root)"
+    )
+    scan_parser.add_argument(
+        "--format",
+        choices=["cli", "markdown", "json"],
+        default="cli",
+        help="Report output format",
+    )
     scan_parser.add_argument("--output", type=str, help="Save report to file path")
 
     args = parser.parse_args()
@@ -218,7 +276,9 @@ def main() -> None:
 
     fmt = getattr(args, "format", "cli")
     if fmt == "json":
-        report = json.dumps([item.to_dict() for item in result.items], indent=2, ensure_ascii=False)
+        report = json.dumps(
+            [item.to_dict() for item in result.items], indent=2, ensure_ascii=False
+        )
     elif fmt == "markdown":
         report = manager.format_markdown_report(result)
     else:

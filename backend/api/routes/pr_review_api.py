@@ -32,7 +32,9 @@ class WebhookPayload(BaseModel):
     pull_request: dict[str, Any] | None = None
 
 
-def _verify_signature(payload: bytes, signature: str | None, secret: str | None) -> bool:
+def _verify_signature(
+    payload: bytes, signature: str | None, secret: str | None
+) -> bool:
     """GitHub webhook signature যাচাই করে (HMAC-SHA256)।"""
     if not secret:
         return True  # বাংলা মন্তব্য: secret কনফিগ না থাকলে স্কিপ করা হচ্ছে (dev mode)।
@@ -67,7 +69,11 @@ async def github_webhook(request: Request):
     repo = event.get("repository")
 
     # বাংলা মন্তব্য: শুধুমাত্র PR opened/ready_for_review/synchronize ইভেন্টে রিভিউ করা হচ্ছে।
-    if action not in ("opened", "ready_for_review", "synchronize", "reopened") or not pr or not repo:
+    if (
+        action not in ("opened", "ready_for_review", "synchronize", "reopened")
+        or not pr
+        or not repo
+    ):
         return {"status": "ignored", "action": action}
 
     repo_full_name = repo.get("full_name", "")

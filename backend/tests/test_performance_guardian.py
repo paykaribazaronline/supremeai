@@ -51,7 +51,9 @@ async def test_check_health_builds_alerts(monkeypatch):
 async def test_analyze_bottleneck_uses_llm_and_cache(monkeypatch):
     pg = PerformanceGuardian()
 
-    pg.collector.collect_system_metrics = MagicMock(return_value={"cpu_percent": 1.0, "memory_percent": 2.0})
+    pg.collector.collect_system_metrics = MagicMock(
+        return_value={"cpu_percent": 1.0, "memory_percent": 2.0}
+    )
 
     pg.cache.get = AsyncMock(return_value=None)
     pg.cache.set = AsyncMock(return_value=True)

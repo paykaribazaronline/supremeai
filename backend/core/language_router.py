@@ -62,9 +62,15 @@ class LanguageRouter:
             "reason": f"Detected language '{language}', routed to provider '{provider}'",
         }
 
-    def route_by_language(self, text: str, detected_lang: str | None = None) -> dict[str, Any]:
+    def route_by_language(
+        self, text: str, detected_lang: str | None = None
+    ) -> dict[str, Any]:
         language = detected_lang or self.detect(text)
-        model = self.LANGUAGE_MODEL_MAP.get(language) or self.LANGUAGE_MODEL_FALLBACK.get(language) or "openrouter"
+        model = (
+            self.LANGUAGE_MODEL_MAP.get(language)
+            or self.LANGUAGE_MODEL_FALLBACK.get(language)
+            or "openrouter"
+        )
         return {
             "language": language,
             "model": model,

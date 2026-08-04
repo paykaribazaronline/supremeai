@@ -1,7 +1,6 @@
+from database.supabase_client import db
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
-
-from database.supabase_client import db
 
 router = APIRouter(prefix="/api/v1/tools-registry", tags=["tools-registry"])
 
@@ -67,5 +66,7 @@ async def update_tool(tool_id: str, payload: ToolUpdate):
 async def delete_tool(tool_id: str):
     if not db.client:
         raise HTTPException(status_code=503, detail="Database not configured")
-    db.client.table("tools_registry").update({"status": "archived"}).eq("id", tool_id).execute()
+    db.client.table("tools_registry").update({"status": "archived"}).eq(
+        "id", tool_id
+    ).execute()
     return {"status": "success", "message": "Tool archived"}

@@ -51,8 +51,14 @@ if __name__ == "__main__":
     for t in targets:
         if t in files:
             s = files[t]["summary"]
-            status = "LOW" if s["percent_covered"] < 50 else "MEDIUM" if s["percent_covered"] < 80 else "GOOD"
-            logger.info(f"  {status:6s} | {s['percent_covered']:5.1f}% | {s['num_statements']:5d} stmts | {t}")
+            status = (
+                "LOW"
+                if s["percent_covered"] < 50
+                else "MEDIUM" if s["percent_covered"] < 80 else "GOOD"
+            )
+            logger.info(
+                f"  {status:6s} | {s['percent_covered']:5.1f}% | {s['num_statements']:5d} stmts | {t}"
+            )
         else:
             logger.info(f"  MISS  |  N/A  |  N/A  | {t}")
 

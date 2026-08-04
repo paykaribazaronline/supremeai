@@ -24,7 +24,9 @@ if '@patch("core.security.api_key_middleware.AsyncRateLimiter.acquire"' not in c
     )
 
 # 3. Add `mock_acquire` argument to all test methods
-content = re.sub(r"def test_([a-zA-Z0-9_]+)\(self\):", r"def test_\1(self, mock_acquire):", content)
+content = re.sub(
+    r"def test_([a-zA-Z0-9_]+)\(self\):", r"def test_\1(self, mock_acquire):", content
+)
 
 
 # 4. Set mock_acquire.return_value inside each test method
@@ -36,7 +38,9 @@ def set_mock_return(match):
         return func_header + "\n        mock_acquire.return_value = True"
 
 
-content = re.sub(r"    def test_([a-zA-Z0-9_]+)\(self, mock_acquire\):", set_mock_return, content)
+content = re.sub(
+    r"    def test_([a-zA-Z0-9_]+)\(self, mock_acquire\):", set_mock_return, content
+)
 
 with open("tests/test_api_key_middleware.py", "w", encoding="utf-8") as f:
     f.write(content)

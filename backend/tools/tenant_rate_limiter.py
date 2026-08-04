@@ -1,9 +1,8 @@
 import time
 from typing import Any
 
-from loguru import logger
-
 from core.config import settings
+from loguru import logger
 
 
 class TenantRateLimiter:
@@ -291,7 +290,9 @@ class TenantRateLimiter:
                         description=f"SupremeAI tenant {tenant_id}",
                     )
                     customer_id = new_customer.id
-                    logger.info(f"Created Stripe customer {customer_id} for tenant {tenant_id}")
+                    logger.info(
+                        f"Created Stripe customer {customer_id} for tenant {tenant_id}"
+                    )
                     # বাংলা মন্তব্য: নতুন customer ID Redis-এ ক্যাশ করা হচ্ছে ভবিষ্যতের জন্য
                     if self.queue:
                         await self.queue.set(
@@ -300,7 +301,11 @@ class TenantRateLimiter:
                             ttl=86400,  # 24 ঘণ্টা cache
                         )
             else:
-                customer_id = customer_id.decode("utf-8") if isinstance(customer_id, bytes) else str(customer_id)
+                customer_id = (
+                    customer_id.decode("utf-8")
+                    if isinstance(customer_id, bytes)
+                    else str(customer_id)
+                )
 
             stripe.InvoiceItem.create(
                 customer=customer_id,

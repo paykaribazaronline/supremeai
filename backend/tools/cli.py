@@ -24,10 +24,14 @@ console = Console()
 @cli_app.command()
 def ask(
     task: str = typer.Option(..., "--task", "-t", help="Task prompt for the agent"),
-    task_type: str = typer.Option("general", "--type", "-y", help="Task type (coding, image_generation, etc.)"),
+    task_type: str = typer.Option(
+        "general", "--type", "-y", help="Task type (coding, image_generation, etc.)"
+    ),
 ):
     """Asks SupremeAI 2.0 to solve a task in single execution mode."""
-    console.print(f"[bold blue]Submitting task to SupremeAI Master Orchestrator:[/bold blue] {task}")
+    console.print(
+        f"[bold blue]Submitting task to SupremeAI Master Orchestrator:[/bold blue] {task}"
+    )
 
     rules = UniversalRulesEngine()
     admin = AdminGodLayer(rules)
@@ -36,11 +40,15 @@ def ask(
     response = orchestrator.execute_task(task, task_type)
 
     if "Blocked" in response.get("result", ""):
-        console.print(f"[bold red]EXECUTION BLOCKED:[/bold red] {response.get('result')}")
+        console.print(
+            f"[bold red]EXECUTION BLOCKED:[/bold red] {response.get('result')}"
+        )
     else:
         console.print("[bold green]Response Result:[/bold green]")
         console.print(response.get("result", "No response output."))
-        console.print(f"[yellow]Cost accumulated: ${response.get('cost', 0.0)}[/yellow]")
+        console.print(
+            f"[yellow]Cost accumulated: ${response.get('cost', 0.0)}[/yellow]"
+        )
 
 
 @cli_app.command()
@@ -49,10 +57,16 @@ def repl():
 
     বাংলা মন্তব্য: যেকোনো GUI ছাড়াই সোজা টার্মিনাল থেকে ইন্টারঅ্যাক্টিভ AI এজেন্ট সেশন চালু করে।
     """
-    console.print("[bold cyan]════════════════════════════════════════════════════════════════[/bold cyan]")
-    console.print("[bold green]🤖 SupremeAI 2.0 Headless Terminal Agent Mode (Zero-Cost Active)[/bold green]")
+    console.print(
+        "[bold cyan]════════════════════════════════════════════════════════════════[/bold cyan]"
+    )
+    console.print(
+        "[bold green]🤖 SupremeAI 2.0 Headless Terminal Agent Mode (Zero-Cost Active)[/bold green]"
+    )
     console.print("[dim]Type 'exit' or 'quit' to terminate session.[/dim]")
-    console.print("[bold cyan]════════════════════════════════════════════════════════════════[/bold cyan]\n")
+    console.print(
+        "[bold cyan]════════════════════════════════════════════════════════════════[/bold cyan]\n"
+    )
 
     rules = UniversalRulesEngine()
     admin = AdminGodLayer(rules)
@@ -67,7 +81,9 @@ def repl():
                 console.print("[bold red]Session ended. Goodbye![/bold red]")
                 break
 
-            with console.status("[bold cyan]Thinking & Executing (Zero-Cost Routing)...[/bold cyan]"):
+            with console.status(
+                "[bold cyan]Thinking & Executing (Zero-Cost Routing)...[/bold cyan]"
+            ):
                 response = orchestrator.execute_task(user_input, "general")
 
             console.print("[bold green]Agent Response:[/bold green]")

@@ -8,9 +8,8 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from loguru import logger
-
 from core.cache.redis_manager import redis_manager
+from loguru import logger
 
 AUDIT_PREFIX = "audit:event:"
 AUDIT_LIST_PREFIX = "audit:recent:"
@@ -36,18 +35,24 @@ async def log_security_event(
     }
 
     # Structured log output
-    logger.bind(event_type=event_type, severity=severity).info(f"🛡️ Security Event: {event_type} | User: {user_id}")
+    logger.bind(event_type=event_type, severity=severity).info(
+        f"🛡️ Security Event: {event_type} | User: {user_id}"
+    )
 
     # Redis persistence
     if redis_manager and getattr(redis_manager, "client", None):
         try:
             payload = json.dumps(event, default=str)
             pipe = redis_manager.client.pipeline()
-            pipe.setex(f"{AUDIT_PREFIX}{event_id}", 86400 * 30, payload)  # 30 days retention
+            pipe.setex(
+                f"{AUDIT_PREFIX}{event_id}", 86400 * 30, payload
+            )  # 30 days retention
             pipe.lpush(AUDIT_LIST_PREFIX, payload)
             pipe.ltrim(AUDIT_LIST_PREFIX, 0, MAX_RECENT_EVENTS - 1)
             await pipe.execute()
         except Exception as exc:
-            logger.warning(f"⚠️ Failed to persist security audit event {event_id}: {exc}")
+            logger.warning(
+                f"⚠️ Failed to persist security audit event {event_id}: {exc}"
+            )
 
     return event_id

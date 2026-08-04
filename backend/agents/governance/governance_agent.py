@@ -3,7 +3,6 @@ Governance Agent for SupremeAI 2.0
 Manages access controls, decision-making oversight, and policy enforcement.
 """
 
-from core.error_bus import with_error_bus
 import asyncio
 import json
 import logging
@@ -13,6 +12,7 @@ from datetime import datetime
 from typing import Any
 
 from core.cache.redis_manager import redis_manager
+from core.error_bus import with_error_bus
 from core.llm.token_deductor import TokenDeductor
 from core.utils.background_tasks import track_task
 
@@ -62,7 +62,11 @@ class GovernanceAgent:
         # Initialize default policies
         self.default_policies = {
             "critical_actions_require_approval": True,
-            "admin_privileges_required_for": ["delete_data", "modify_config", "manage_users"],
+            "admin_privileges_required_for": [
+                "delete_data",
+                "modify_config",
+                "manage_users",
+            ],
             "rate_limit_thresholds": {
                 "high_risk": 5,  # per minute
                 "medium_risk": 20,
@@ -141,7 +145,12 @@ class GovernanceAgent:
                     else "Insufficient permissions for low-risk action"
                 )
             elif risk_level == "medium_risk":
-                if has_permission and user_role in ["user", "manager", "director", "executive"]:
+                if has_permission and user_role in [
+                    "user",
+                    "manager",
+                    "director",
+                    "executive",
+                ]:
                     allowed = True
                     reason = "Medium-risk action permitted for authorized role"
                 else:
@@ -183,7 +192,11 @@ class GovernanceAgent:
             )
 
     async def record_decision(
-        self, user_id: str, decision_type: str, decision_data: dict[str, Any], requires_approval: bool = True
+        self,
+        user_id: str,
+        decision_type: str,
+        decision_data: dict[str, Any],
+        requires_approval: bool = True,
     ) -> DecisionRecord:
         """
         Record a decision for governance oversight.
@@ -202,7 +215,10 @@ class GovernanceAgent:
 
             # Determine if approval is required based on risk
             risk_level = self.action_risk_levels.get(decision_type, "medium_risk")
-            approval_required = requires_approval or risk_level in ["high_risk", "medium_risk"]
+            approval_required = requires_approval or risk_level in [
+                "high_risk",
+                "medium_risk",
+            ]
 
             decision_record = DecisionRecord(
                 decision_id=decision_id,
@@ -236,7 +252,9 @@ class GovernanceAgent:
             logger.error(f"Error recording decision: {e}")
             raise
 
-    async def approve_decision(self, decision_id: str, approver_id: str, approval_reason: str = "") -> bool:
+    async def approve_decision(
+        self, decision_id: str, approver_id: str, approval_reason: str = ""
+    ) -> bool:
         """
         Approve a pending decision.
 
@@ -261,17 +279,23 @@ class GovernanceAgent:
 
             # Verify approver has appropriate permissions
             approver_role = await self._get_user_role(approver_id)
-            decision_risk = self.action_risk_levels.get(decision.decision_type, "medium_risk")
+            decision_risk = self.action_risk_levels.get(
+                decision.decision_type, "medium_risk"
+            )
 
             approval_allowed = False
             if decision_risk in self.default_policies["approval_hierarchy"]:
-                allowed_roles = self.default_policies["approval_hierarchy"][decision_risk]
+                allowed_roles = self.default_policies["approval_hierarchy"][
+                    decision_risk
+                ]
                 approval_allowed = approver_role in allowed_roles
             else:
                 approval_allowed = True  # Default to allow if not specified
 
             if not approval_allowed:
-                logger.warning(f"User {approver_id} with role {approver_role} cannot approve {decision_risk} decision")
+                logger.warning(
+                    f"User {approver_id} with role {approver_role} cannot approve {decision_risk} decision"
+                )
                 return False
 
             # Update the decision record
@@ -284,7 +308,11 @@ class GovernanceAgent:
             # Log the approval
             await self._log_governance_event(
                 "decision_approved",
-                {"decision_id": decision_id, "approver_id": approver_id, "approval_reason": approval_reason},
+                {
+                    "decision_id": decision_id,
+                    "approver_id": approver_id,
+                    "approval_reason": approval_reason,
+                },
             )
 
             return True
@@ -293,7 +321,9 @@ class GovernanceAgent:
             logger.error(f"Error approving decision: {e}")
             return False
 
-    async def enforce_policy(self, user_id: str, action: str, context: dict[str, Any] | None = None) -> dict[str, Any]:
+    async def enforce_policy(
+        self, user_id: str, action: str, context: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Enforce governance policies for an action.
 
@@ -317,9 +347,9 @@ class GovernanceAgent:
 
             # Check if action requires approval
             risk_level = self.action_risk_levels.get(action, "medium_risk")
-            requires_approval = policies.get("critical_actions_require_approval", True) and action in policies.get(
-                "admin_privileges_required_for", []
-            )
+            requires_approval = policies.get(
+                "critical_actions_require_approval", True
+            ) and action in policies.get("admin_privileges_required_for", [])
 
             # Determine if user has sufficient privileges
             has_privileges = True
@@ -327,23 +357,30 @@ class GovernanceAgent:
                 has_privileges = user_role in ["admin", "director", "executive"]
 
             result = {
-                "action_permitted": has_privileges and rate_limit_result["within_limit"],
+                "action_permitted": has_privileges
+                and rate_limit_result["within_limit"],
                 "requires_approval": requires_approval,
                 "risk_level": risk_level,
                 "user_role": user_role,
                 "has_privileges": has_privileges,
                 "rate_limit_info": rate_limit_result,
-                "policy_compliant": has_privileges and rate_limit_result["within_limit"],
+                "policy_compliant": has_privileges
+                and rate_limit_result["within_limit"],
                 "next_action": (
                     "proceed"
-                    if (has_privileges and rate_limit_result["within_limit"] and not requires_approval)
+                    if (
+                        has_privileges
+                        and rate_limit_result["within_limit"]
+                        and not requires_approval
+                    )
                     else "review"
                 ),
             }
 
             # Log policy enforcement
             await self._log_governance_event(
-                "policy_enforced", {"user_id": user_id, "action": action, "result": result}
+                "policy_enforced",
+                {"user_id": user_id, "action": action, "result": result},
             )
 
             return result
@@ -378,7 +415,9 @@ class GovernanceAgent:
         """Check if user is within rate limits for an action."""
         try:
             risk_level = self.action_risk_levels.get(action, "medium_risk")
-            threshold = self.default_policies["rate_limit_thresholds"].get(risk_level, 20)
+            threshold = self.default_policies["rate_limit_thresholds"].get(
+                risk_level, 20
+            )
 
             # Create a key for this user-action combination
             rate_key = f"rate_limit:{user_id}:{action}:{datetime.utcnow().strftime('%Y%m%d%H%M')}"  # per-minute
@@ -390,7 +429,9 @@ class GovernanceAgent:
             within_limit = current_count < threshold
 
             # Increment the counter
-            await redis_manager.set_with_ttl(rate_key, str(current_count + 1), ttl=60)  # 1 minute TTL
+            await redis_manager.set_with_ttl(
+                rate_key, str(current_count + 1), ttl=60
+            )  # 1 minute TTL
 
             return {
                 "within_limit": within_limit,
@@ -417,7 +458,11 @@ class GovernanceAgent:
                 "decision_data": decision.decision_data,
                 "approval_required": decision.approval_required,
                 "approved_by": decision.approved_by,
-                "approval_timestamp": decision.approval_timestamp.isoformat() if decision.approval_timestamp else None,
+                "approval_timestamp": (
+                    decision.approval_timestamp.isoformat()
+                    if decision.approval_timestamp
+                    else None
+                ),
                 "status": decision.status,
                 "timestamp": decision.timestamp.isoformat(),
             }
@@ -496,7 +541,11 @@ class GovernanceAgent:
     async def _log_governance_event(self, event_type: str, data: dict[str, Any]):
         """Log a governance event."""
         try:
-            log_entry = {"type": event_type, "data": data, "timestamp": datetime.utcnow().isoformat()}
+            log_entry = {
+                "type": event_type,
+                "data": data,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
 
             await self._add_to_audit_log(log_entry)
         except Exception as e:
@@ -547,7 +596,9 @@ governance_agent = GovernanceAgent()
 # বাংলা: import-time-এ event loop না থাকলে RuntimeError এড়ানো হয়, আর টাস্কের রেফারেন্স ট্র্যাক করে
 # রাখা হয় যাতে GC হয়ে মাঝপথে বাতিল না হয়ে যায় (RUF006)।
 try:
-    track_task(asyncio.get_running_loop().create_task(governance_agent.initialize_policies()))
+    track_task(
+        asyncio.get_running_loop().create_task(governance_agent.initialize_policies())
+    )
 except RuntimeError:
     logger.debug(
         "No running event loop at import time; skipping eager policy init "

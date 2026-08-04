@@ -34,9 +34,8 @@ class TestRequireAdmin:
 
     def test_require_admin_non_admin_role(self):
         """_require_admin should raise 403 for non-admin role."""
-        from fastapi import HTTPException
-
         from api.routes.meta_ai import _require_admin
+        from fastapi import HTTPException
 
         mock_credentials = MagicMock()
         mock_credentials.credentials = "user_token"
@@ -69,9 +68,8 @@ class TestRequireAdmin:
 
     def test_require_admin_invalid_token(self):
         """_require_admin should raise 401 for invalid token."""
-        from fastapi import HTTPException
-
         from api.routes.meta_ai import _require_admin
+        from fastapi import HTTPException
 
         mock_credentials = MagicMock()
         mock_credentials.credentials = "invalid_token"

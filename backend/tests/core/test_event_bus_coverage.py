@@ -7,14 +7,9 @@ from datetime import UTC, datetime
 from unittest.mock import patch
 
 import pytest
-
-from core.messaging.event_bus import (
-    DeadLetterQueueItem,
-    ErrorContext,
-    ErrorEvent,
-    ErrorEventBus,
-    error_event_bus,
-)
+from core.messaging.event_bus import (DeadLetterQueueItem, ErrorContext,
+                                      ErrorEvent, ErrorEventBus,
+                                      error_event_bus)
 
 # -------------------- Fixtures --------------------
 
@@ -147,7 +142,11 @@ class TestErrorEventBusInit:
     """বাংলা মন্তব্য: ErrorEventBus initialization টেস্ট।"""
 
     def test_initialization(self, event_bus):
-        assert len(event_bus._listeners) == 0 or event_bus._listeners == {} or isinstance(event_bus._listeners, dict)
+        assert (
+            len(event_bus._listeners) == 0
+            or event_bus._listeners == {}
+            or isinstance(event_bus._listeners, dict)
+        )
         assert event_bus._dead_letter_handlers == []
         assert event_bus._total_emitted == 0
         assert event_bus._total_dlq_items == 0
@@ -248,7 +247,9 @@ class TestEmit:
         assert received_events[0] is sample_error_event
 
     @pytest.mark.asyncio
-    async def test_emit_with_failing_listener_adds_to_dlq(self, event_bus, sample_error_event):
+    async def test_emit_with_failing_listener_adds_to_dlq(
+        self, event_bus, sample_error_event
+    ):
         """বাংলা মন্তব্য: Failing listener-এ DLQ-তে item add হয়।"""
 
         def failing_listener(event):
@@ -281,7 +282,9 @@ class TestEmitAsync:
         assert event_bus._total_emitted == 1
 
     @pytest.mark.asyncio
-    async def test_emit_async_dispatches_to_listeners(self, event_bus, sample_error_event):
+    async def test_emit_async_dispatches_to_listeners(
+        self, event_bus, sample_error_event
+    ):
         """বাংলা মন্তব্য: emit_async listeners-এ dispatch করে।"""
         received_events = []
 
@@ -295,7 +298,9 @@ class TestEmitAsync:
         assert received_events[0] is sample_error_event
 
     @pytest.mark.asyncio
-    async def test_emit_async_with_multiple_listeners(self, event_bus, sample_error_event):
+    async def test_emit_async_with_multiple_listeners(
+        self, event_bus, sample_error_event
+    ):
         """বাংলা মন্তব্য: Multiple listeners-এ concurrently dispatch হয়।"""
         received = []
 
@@ -319,7 +324,9 @@ class TestSafeInvoke:
     """বাংলা মন্তব্য: _safe_invoke() method টেস্ট।"""
 
     @pytest.mark.asyncio
-    async def test_safe_invoke_sync_listener_success(self, event_bus, sample_error_event):
+    async def test_safe_invoke_sync_listener_success(
+        self, event_bus, sample_error_event
+    ):
         """বাংলা মন্তব্য: Sync listener successfully invoke হয়।"""
 
         def sync_listener(event):
@@ -329,7 +336,9 @@ class TestSafeInvoke:
         assert result == "success"
 
     @pytest.mark.asyncio
-    async def test_safe_invoke_async_listener_success(self, event_bus, sample_error_event):
+    async def test_safe_invoke_async_listener_success(
+        self, event_bus, sample_error_event
+    ):
         """বাংলা মন্তব্য: Async listener successfully invoke হয়।"""
 
         async def async_listener(event):
@@ -349,7 +358,9 @@ class TestSafeInvoke:
         assert isinstance(result, RuntimeError)
 
     @pytest.mark.asyncio
-    async def test_safe_invoke_cancelled_error_raised(self, event_bus, sample_error_event):
+    async def test_safe_invoke_cancelled_error_raised(
+        self, event_bus, sample_error_event
+    ):
         """বাংলা মন্তব্য: CancelledError re-raise হয়।"""
 
         async def cancelled_listener(event):
@@ -372,7 +383,9 @@ class TestDispatchAsync:
         # Should complete without error
 
     @pytest.mark.asyncio
-    async def test_dispatch_with_successful_listeners(self, event_bus, sample_error_event):
+    async def test_dispatch_with_successful_listeners(
+        self, event_bus, sample_error_event
+    ):
         """বাংলা মন্তব্য: সব listeners successfully invoke হয়।"""
         results = []
 
@@ -389,7 +402,9 @@ class TestDispatchAsync:
         assert len(results) == 2
 
     @pytest.mark.asyncio
-    async def test_dispatch_with_failing_listener_adds_to_dlq(self, event_bus, sample_error_event):
+    async def test_dispatch_with_failing_listener_adds_to_dlq(
+        self, event_bus, sample_error_event
+    ):
         """বাংলা মন্তব্য: Failing listener-এ DLQ-তে item add হয়।"""
 
         def failing_listener(event):
@@ -402,7 +417,9 @@ class TestDispatchAsync:
         assert event_bus.dead_letter_queue_size == 1
 
     @pytest.mark.asyncio
-    async def test_dispatch_calls_dead_letter_handlers(self, event_bus, sample_error_event):
+    async def test_dispatch_calls_dead_letter_handlers(
+        self, event_bus, sample_error_event
+    ):
         """বাংলা মন্তব্য: DLQ item add হলে dead letter handlers call হয়।"""
         handler_calls = []
 
@@ -445,7 +462,9 @@ class TestDispatchAsync:
             mock_logger.critical.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_dispatch_isolates_listener_failures(self, event_bus, sample_error_event):
+    async def test_dispatch_isolates_listener_failures(
+        self, event_bus, sample_error_event
+    ):
         """বাংলা মন্তব্য: একটি listener failure অন্য listeners-কে affect করে না।"""
         results = []
 

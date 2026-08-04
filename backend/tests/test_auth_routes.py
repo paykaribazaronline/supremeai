@@ -4,18 +4,11 @@ from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
+from api.routes.auth import (LoginRequest, MeResponse, TokenResponse,
+                             UserContext, create_access_token,
+                             optional_current_user, router)
 from fastapi import FastAPI
 from pydantic import ValidationError
-
-from api.routes.auth import (
-    LoginRequest,
-    MeResponse,
-    TokenResponse,
-    UserContext,
-    create_access_token,
-    optional_current_user,
-    router,
-)
 
 
 @pytest.fixture
@@ -31,7 +24,10 @@ class TestCreateAccessToken:
     def test_create_access_token_returns_string(self):
         mock_jwt = MagicMock()
         mock_jwt.encode.return_value = "token_string"
-        with patch("api.routes.auth.jwt", mock_jwt), patch("api.routes.auth.SECRET_KEY", "test_secret"):
+        with (
+            patch("api.routes.auth.jwt", mock_jwt),
+            patch("api.routes.auth.SECRET_KEY", "test_secret"),
+        ):
             token = create_access_token({"sub": "user1", "role": "admin"})
         assert token == "token_string"
         mock_jwt.encode.assert_called_once()
@@ -41,7 +37,10 @@ class TestCreateAccessToken:
 
     def test_create_access_token_with_expires_delta(self):
         mock_jwt = MagicMock()
-        with patch("api.routes.auth.jwt", mock_jwt), patch("api.routes.auth.SECRET_KEY", "test_secret"):
+        with (
+            patch("api.routes.auth.jwt", mock_jwt),
+            patch("api.routes.auth.SECRET_KEY", "test_secret"),
+        ):
             create_access_token({"sub": "u"}, expires_delta=timedelta(minutes=30))
         assert mock_jwt.encode.call_args.kwargs["algorithm"] == "HS256"
 
@@ -107,7 +106,9 @@ class TestLoginEndpoint:
     @pytest.mark.skip(reason="Needs update")
     def test_login_returns_501(self, client):
         with patch("api.routes.auth.settings.env", "production"):
-            resp = client.post("/auth/login", json={"username": "test", "password": "test"})
+            resp = client.post(
+                "/auth/login", json={"username": "test", "password": "test"}
+            )
             assert resp.status_code == 501
             assert (
                 resp.json()["detail"]
@@ -165,7 +166,9 @@ class TestMeEndpoint:
     async def test_me_with_valid_token(self, client):
         with patch("api.routes.auth.jwt") as mock_jwt:
             mock_jwt.decode.return_value = {"sub": "user1", "role": "admin"}
-            resp = client.get("/auth/me", headers={"Authorization": f"Bearer {'valid'}.token"})
+            resp = client.get(
+                "/auth/me", headers={"Authorization": f"Bearer {'valid'}.token"}
+            )
         assert resp.status_code == 200
         data = resp.json()
         assert data["user_id"] == "user1"
@@ -176,7 +179,9 @@ class TestMeEndpoint:
     async def test_me_with_invalid_token(self, client):
         with patch("api.routes.auth.jwt") as mock_jwt:
             mock_jwt.decode.side_effect = Exception("bad token")
-            resp = client.get("/auth/me", headers={"Authorization": f"Bearer {'bad'}.token"})
+            resp = client.get(
+                "/auth/me", headers={"Authorization": f"Bearer {'bad'}.token"}
+            )
         assert resp.status_code == 401
 
 

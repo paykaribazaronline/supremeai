@@ -20,14 +20,15 @@ from pathlib import Path
 backend_dir = Path(__file__).parent.parent.parent / "backend"
 sys.path.insert(0, str(backend_dir))
 
+
 def seed_database() -> None:
     """Seed the database with initial data."""
     try:
         # Import the necessary modules from your application
         # This will depend on your actual ORM and setup
         # For example, if using SQLAlchemy:
-        from core.database import init_db, SessionLocal
-        from core.models import User, Skill, Config
+        from core.database import SessionLocal, init_db
+        from core.models import Config, Skill, User
         from core.security import get_password_hash
 
         # Initialize database connection
@@ -41,9 +42,11 @@ def seed_database() -> None:
                 # Create admin user
                 admin_user = User(
                     email=admin_email,
-                    hashed_password=get_password_hash("SecureRandomPassword123!"),  # Should be changed on first login
+                    hashed_password=get_password_hash(
+                        "SecureRandomPassword123!"
+                    ),  # Should be changed on first login
                     is_admin=True,
-                    is_active=True
+                    is_active=True,
                 )
                 db.add(admin_user)
                 print("✅ Created admin user")
@@ -54,9 +57,21 @@ def seed_database() -> None:
             skill_count = db.query(Skill).count()
             if skill_count == 0:
                 default_skills = [
-                    {"name": "text_generation", "description": "Generate text from prompts", "category": "generation"},
-                    {"name": "text_summarization", "description": "Summarize long texts", "category": "transformation"},
-                    {"name": "question_answering", "description": "Answer questions based on context", "category": "reasoning"},
+                    {
+                        "name": "text_generation",
+                        "description": "Generate text from prompts",
+                        "category": "generation",
+                    },
+                    {
+                        "name": "text_summarization",
+                        "description": "Summarize long texts",
+                        "category": "transformation",
+                    },
+                    {
+                        "name": "question_answering",
+                        "description": "Answer questions based on context",
+                        "category": "reasoning",
+                    },
                     # Add more default skills as needed
                 ]
                 for skill_data in default_skills:
@@ -70,8 +85,16 @@ def seed_database() -> None:
             config_count = db.query(Config).count()
             if config_count == 0:
                 default_configs = [
-                    {"key": "system_maintenance_mode", "value": "false", "description": "Whether the system is in maintenance mode"},
-                    {"key": "max_concurrent_requests", "value": "100", "description": "Maximum number of concurrent requests"},
+                    {
+                        "key": "system_maintenance_mode",
+                        "value": "false",
+                        "description": "Whether the system is in maintenance mode",
+                    },
+                    {
+                        "key": "max_concurrent_requests",
+                        "value": "100",
+                        "description": "Maximum number of concurrent requests",
+                    },
                     # Add more default configs as needed
                 ]
                 for config_data in default_configs:
@@ -94,11 +117,14 @@ def seed_database() -> None:
 
     except ImportError as e:
         print(f"❌ Failed to import application modules: {e}")
-        print("Make sure you're running this from the project root and the backend is in your PYTHONPATH")
+        print(
+            "Make sure you're running this from the project root and the backend is in your PYTHONPATH"
+        )
         sys.exit(1)
     except Exception as e:
         print(f"❌ Unexpected error: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     seed_database()

@@ -5,26 +5,59 @@
 """
 
 import os
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 # ফাইল এক্সটেনশন যা ডকুমেন্ট করতে হবে (বাংলা মন্তব্য: প্রজেক্টের প্রয়োজনীয় সব এক্সটেনশন)
 DOCUMENT_EXTENSIONS = {
-    '.py', '.ts', '.tsx', '.js', '.jsx',
-    '.dart', '.yml', '.yaml', '.json',
-    '.toml', '.lock', '.md', '.sql',
-    '.go', '.rs', '.java', '.rb', '.cpp', '.c'
+    ".py",
+    ".ts",
+    ".tsx",
+    ".js",
+    ".jsx",
+    ".dart",
+    ".yml",
+    ".yaml",
+    ".json",
+    ".toml",
+    ".lock",
+    ".md",
+    ".sql",
+    ".go",
+    ".rs",
+    ".java",
+    ".rb",
+    ".cpp",
+    ".c",
 }
 
 # এড়িয়ে যাওয়ার ফোল্ডার (বাংলা মন্তব্য: যেসব ফোল্ডার আমাদের ডকুমেন্টে অন্তর্ভুক্ত করার প্রয়োজন নেই, রাস্টের target ডিরেক্টরি সহ)
 IGNORE_DIRS = {
-    '.git', 'node_modules', '.venv', '.env',
-    '.docusaurus', 'docs', '.next', 'dist',
-    'build', 'out', '__pycache__', '.pytest_cache',
-    '.mypy_cache', 'venv', 'env', '.idea',
-    '.vscode', 'coverage', 'logs', 'artifacts', 'brain', '.agents',
-    'target'
+    ".git",
+    "node_modules",
+    ".venv",
+    ".env",
+    ".docusaurus",
+    "docs",
+    ".next",
+    "dist",
+    "build",
+    "out",
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    "venv",
+    "env",
+    ".idea",
+    ".vscode",
+    "coverage",
+    "logs",
+    "artifacts",
+    "brain",
+    ".agents",
+    "target",
 }
+
 
 def should_skip_path(path_str: str) -> bool:
     """পাথ স্কিপ করা উচিত কিনা চেক করুন (বাংলা মন্তব্য: পাথ পার্টস চেক করে ডট ফোল্ডার ও ইগনোর লিস্টের ফোল্ডারগুলো স্কিপ করার ফাংশন)"""
@@ -32,9 +65,10 @@ def should_skip_path(path_str: str) -> bool:
     for part in parts:
         if part in IGNORE_DIRS:
             return True
-        if part.startswith('.') and part != '.github':
+        if part.startswith(".") and part != ".github":
             return True
     return False
+
 
 def generate_full_codebase_markdown():
     # ডিরেক্টরি সেটআপ (বাংলা মন্তব্য: docs/autogen/full ডিরেক্টরি তৈরি করা হচ্ছে)
@@ -62,16 +96,18 @@ def generate_full_codebase_markdown():
                 continue
 
             try:
-                content = file_path.read_text(encoding='utf-8', errors='replace')
+                content = file_path.read_text(encoding="utf-8", errors="replace")
                 rel_path = file_path.relative_to(".")
 
-                file_size = len(content.encode('utf-8'))
+                file_size = len(content.encode("utf-8"))
                 total_size += file_size
 
                 # ফাইলে অ্যাপেন্ড করা (বাংলা মন্তব্য: প্রতিটি ফাইলের কোড ফরম্যাট সহ যোগ করা হচ্ছে)
                 full_dump_content += f"\n## File: `{rel_path}`\n"
                 full_dump_content += f"**Size:** {file_size:,} bytes  \n"
-                full_dump_content += f"**Path:** [file:///{file_path.absolute().as_posix()}]\n\n"
+                full_dump_content += (
+                    f"**Path:** [file:///{file_path.absolute().as_posix()}]\n\n"
+                )
                 full_dump_content += f"```{file_path.suffix[1:]}\n{content}\n```\n"
 
                 file_count += 1
@@ -79,8 +115,11 @@ def generate_full_codebase_markdown():
                 print(f"Skipped {file_path}: {e}")
 
     # রাইট করা (বাংলা মন্তব্য: সব কনটেন্টকে codebase_full.md ফাইলে রাইট করা হচ্ছে)
-    output_file_path.write_text(full_dump_content, encoding='utf-8')
-    print(f"Successfully documented {file_count} files ({total_size:,} bytes) into {output_file_path}")
+    output_file_path.write_text(full_dump_content, encoding="utf-8")
+    print(
+        f"Successfully documented {file_count} files ({total_size:,} bytes) into {output_file_path}"
+    )
+
 
 if __name__ == "__main__":
     generate_full_codebase_markdown()

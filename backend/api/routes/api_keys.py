@@ -6,25 +6,19 @@ from __future__ import annotations
 
 import time
 
+from core.rate_limiter import AsyncRateLimiter
+from core.security import (generate_api_key, hash_api_key, mask_api_key,
+                           verify_api_key)
 from fastapi import APIRouter, HTTPException, Request, status
 from loguru import logger
-from pydantic import BaseModel, Field, field_validator
-
-from core.rate_limiter import AsyncRateLimiter
-from core.security import generate_api_key, hash_api_key, mask_api_key, verify_api_key
 from models.api_key import create_api_key as db_create_api_key
-from models.api_key import (
-    delete_api_key,
-    get_all_api_keys,
-    get_api_key_by_id,
-    get_api_key_usage,
-    get_api_key_usage_stats,
-    get_api_keys_by_user,
-    record_api_key_event,
-    record_api_key_usage,
-)
+from models.api_key import (delete_api_key, get_all_api_keys,
+                            get_api_key_by_id, get_api_key_usage,
+                            get_api_key_usage_stats, get_api_keys_by_user,
+                            record_api_key_event, record_api_key_usage)
 from models.api_key import revoke_api_key as db_revoke_api_key
 from models.api_key import rotate_api_key as db_rotate_api_key
+from pydantic import BaseModel, Field, field_validator
 
 router = APIRouter(prefix="/api/api-keys", tags=["api-keys"])
 limiter = AsyncRateLimiter()
@@ -37,7 +31,9 @@ class CreateAPIKeyRequest(BaseModel):
     user_id: str = Field(..., min_length=1, description="Owner user ID (email or uid)")
     name: str = Field(..., min_length=1, max_length=255)
     rate_limit_rps: int = Field(default=6, ge=1, le=1000)
-    expires_in_days: int | None = Field(default=None, ge=1, description="Expires in N days, null = no expiry")
+    expires_in_days: int | None = Field(
+        default=None, ge=1, description="Expires in N days, null = no expiry"
+    )
 
     @field_validator("user_id", "name", mode="before")
     @classmethod
@@ -191,7 +187,9 @@ async def rotate_key(key_id: int, req: RotateAPIKeyRequest, request: Request):
     if not updated:
         raise HTTPException(status_code=500, detail="Failed to rotate key")
 
-    await record_api_key_event(key_id, "rotated", f"Grace period: {req.grace_period_hours}h")
+    await record_api_key_event(
+        key_id, "rotated", f"Grace period: {req.grace_period_hours}h"
+    )
     logger.info(f"API key rotated: {key_id}")
     return {
         "status": "rotated",
@@ -287,7 +285,11 @@ async def create_api_key(
 
 
 async def revoke_api_key(key_id: int | str, request: Request | None = None):
-    kid = int(key_id) if isinstance(key_id, int | str) and str(key_id).isdigit() else key_id
+    kid = (
+        int(key_id)
+        if isinstance(key_id, int | str) and str(key_id).isdigit()
+        else key_id
+    )
     if request is not None and isinstance(kid, int):
         return await revoke_key(kid, request)
     return await db_revoke_api_key(kid if isinstance(kid, int) else 0)
@@ -299,7 +301,11 @@ async def rotate_api_key(
     new_key_masked: str = "",
     new_key_prefix: str = "",
 ):
-    kid = int(key_id) if isinstance(key_id, int | str) and str(key_id).isdigit() else key_id
+    kid = (
+        int(key_id)
+        if isinstance(key_id, int | str) and str(key_id).isdigit()
+        else key_id
+    )
     if request is not None and isinstance(kid, int):
         req = RotateAPIKeyRequest(old_key="")
         return await rotate_key(kid, req, request)

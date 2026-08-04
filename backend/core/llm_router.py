@@ -31,12 +31,13 @@ from .cache import get_redis_client
 from .config import settings
 from .exceptions import LLMProviderError, QuotaExceededError
 from .llm.free_tier_tracker import get_tracker
-from .llm.llm_gateway import get_llm_gateway  # Enhanced LLM gateway for integration
+from .llm.llm_gateway import \
+    get_llm_gateway  # Enhanced LLM gateway for integration
 from .logging import get_logger
 from .metrics import counter, timed
-from .resilience.circuit_breaker import (
-    CircuitBreaker as circuit_breaker,
-)  # -- used as a decorator (@circuit_breaker(...)) below, lowercase is the intended convention for decorators
+from .resilience.circuit_breaker import \
+    CircuitBreaker as \
+    circuit_breaker  # -- used as a decorator (@circuit_breaker(...)) below, lowercase is the intended convention for decorators
 from .resilience.circuit_breaker_manager import get_shared_circuit_breaker
 
 
@@ -143,11 +144,36 @@ FALLBACK_CHAINS: dict[TaskType, list[Provider]] = {
         Provider.GEMINI,
         Provider.OLLAMA,
     ],
-    TaskType.CODE: [Provider.DEEPSEEK, Provider.HUGGINGFACE_SPACE, Provider.GEMINI, Provider.OLLAMA],
-    TaskType.BENGALI: [Provider.MOONSHOT, Provider.HUGGINGFACE_SPACE, Provider.GEMINI, Provider.OLLAMA],
-    TaskType.SUMMARIZE: [Provider.DEEPSEEK, Provider.MOONSHOT, Provider.HUGGINGFACE_SPACE, Provider.OLLAMA],
-    TaskType.TRANSLATE: [Provider.MOONSHOT, Provider.GEMINI, Provider.HUGGINGFACE_SPACE, Provider.OLLAMA],
-    TaskType.CLASSIFY: [Provider.DEEPSEEK, Provider.MOONSHOT, Provider.HUGGINGFACE_SPACE, Provider.OLLAMA],
+    TaskType.CODE: [
+        Provider.DEEPSEEK,
+        Provider.HUGGINGFACE_SPACE,
+        Provider.GEMINI,
+        Provider.OLLAMA,
+    ],
+    TaskType.BENGALI: [
+        Provider.MOONSHOT,
+        Provider.HUGGINGFACE_SPACE,
+        Provider.GEMINI,
+        Provider.OLLAMA,
+    ],
+    TaskType.SUMMARIZE: [
+        Provider.DEEPSEEK,
+        Provider.MOONSHOT,
+        Provider.HUGGINGFACE_SPACE,
+        Provider.OLLAMA,
+    ],
+    TaskType.TRANSLATE: [
+        Provider.MOONSHOT,
+        Provider.GEMINI,
+        Provider.HUGGINGFACE_SPACE,
+        Provider.OLLAMA,
+    ],
+    TaskType.CLASSIFY: [
+        Provider.DEEPSEEK,
+        Provider.MOONSHOT,
+        Provider.HUGGINGFACE_SPACE,
+        Provider.OLLAMA,
+    ],
     TaskType.EMBEDDING: [Provider.GEMINI, Provider.OLLAMA],  # Prefer free/OSS
 }
 
@@ -259,8 +285,12 @@ class MoonshotProvider:
         data = resp.json()
         return data["choices"][0]["message"]["content"]
 
-    async def _stream_completion(self, payload: dict[str, Any]) -> AsyncGenerator[StreamChunk, None]:
-        async with self.client.stream("POST", "/chat/completions", json=payload) as resp:
+    async def _stream_completion(
+        self, payload: dict[str, Any]
+    ) -> AsyncGenerator[StreamChunk, None]:
+        async with self.client.stream(
+            "POST", "/chat/completions", json=payload
+        ) as resp:
             resp.raise_for_status()
             async for line in resp.aiter_lines():
                 if line.startswith("data: "):
@@ -317,7 +347,9 @@ class DeepSeekProvider:
             "max_tokens": max_tokens,
             "temperature": temperature,
             "stream": stream,
-            "response_format": ({"type": "json_object"} if kwargs.get("json_mode", False) else None),
+            "response_format": (
+                {"type": "json_object"} if kwargs.get("json_mode", False) else None
+            ),
         }
         payload = {k: v for k, v in payload.items() if v is not None}
         payload.update(kwargs)
@@ -330,8 +362,12 @@ class DeepSeekProvider:
         data = resp.json()
         return data["choices"][0]["message"]["content"]
 
-    async def _stream_completion(self, payload: dict[str, Any]) -> AsyncGenerator[StreamChunk, None]:
-        async with self.client.stream("POST", "/chat/completions", json=payload) as resp:
+    async def _stream_completion(
+        self, payload: dict[str, Any]
+    ) -> AsyncGenerator[StreamChunk, None]:
+        async with self.client.stream(
+            "POST", "/chat/completions", json=payload
+        ) as resp:
             resp.raise_for_status()
             async for line in resp.aiter_lines():
                 if line.startswith("data: "):
@@ -398,8 +434,12 @@ class TogetherProvider:
         data = resp.json()
         return data["choices"][0]["message"]["content"]
 
-    async def _stream_completion(self, payload: dict[str, Any]) -> AsyncGenerator[StreamChunk, None]:
-        async with self.client.stream("POST", "/chat/completions", json=payload) as resp:
+    async def _stream_completion(
+        self, payload: dict[str, Any]
+    ) -> AsyncGenerator[StreamChunk, None]:
+        async with self.client.stream(
+            "POST", "/chat/completions", json=payload
+        ) as resp:
             resp.raise_for_status()
             async for line in resp.aiter_lines():
                 if line.startswith("data: "):
@@ -479,13 +519,19 @@ class OllamaProvider:
 
     def __init__(self) -> None:
         raw_url = getattr(settings, "OLLAMA_URL", "http://localhost:11434")
-        self.base_url = str(raw_url) if isinstance(raw_url, str | bytes) else "http://localhost:11434"
+        self.base_url = (
+            str(raw_url)
+            if isinstance(raw_url, str | bytes)
+            else "http://localhost:11434"
+        )
         self.client = httpx.AsyncClient(
             base_url=self.base_url,
             timeout=httpx.Timeout(120.0, connect=5.0),
         )
         raw_model = getattr(settings, "OLLAMA_MODEL", "qwen2.5:0.5b")
-        self.model = str(raw_model) if isinstance(raw_model, str | bytes) else "qwen2.5:0.5b"
+        self.model = (
+            str(raw_model) if isinstance(raw_model, str | bytes) else "qwen2.5:0.5b"
+        )
 
     @timed("llm.ollama.latency")
     async def acompletion(
@@ -516,7 +562,9 @@ class OllamaProvider:
         data = resp.json()
         return data.get("response", "")
 
-    async def _stream_completion(self, payload: dict[str, Any]) -> AsyncGenerator[StreamChunk, None]:
+    async def _stream_completion(
+        self, payload: dict[str, Any]
+    ) -> AsyncGenerator[StreamChunk, None]:
         async with self.client.stream("POST", "/api/generate", json=payload) as resp:
             resp.raise_for_status()
             async for line in resp.aiter_lines():
@@ -539,7 +587,9 @@ class OllamaProvider:
         except Exception as exc:
             # বাংলা: Ollama local provider health probe ব্যর্থতা।
             # Ollama না চললে এটা সাধারণ — debug স্তরে লগ করা হয়েছে।
-            logger.debug(f"OllamaProvider health check failed (local provider may be offline): {exc}")
+            logger.debug(
+                f"OllamaProvider health check failed (local provider may be offline): {exc}"
+            )
             return False
 
 
@@ -551,17 +601,31 @@ class HuggingFaceSpaceProvider:
     def __init__(self) -> None:
         # বাংলা মন্তব্ব: getattr থেকে আসা value যদি MagicMock বা non-string হয়, তাহলে str() এ convert করা হচ্ছে
         # যাতে httpx.AsyncClient(base_url=...) TypeError না throw করে
-        raw_url = getattr(settings, "HF_SPACE_URL", "https://supremeai-hf-space.hf.space/v1/chat/completions")
+        raw_url = getattr(
+            settings,
+            "HF_SPACE_URL",
+            "https://supremeai-hf-space.hf.space/v1/chat/completions",
+        )
         self.api_url = str(raw_url) if not isinstance(raw_url, str) else raw_url
         raw_key = getattr(settings, "HF_API_KEY", None)
-        self.api_key = str(raw_key) if raw_key is not None and not isinstance(raw_key, str) else raw_key
+        self.api_key = (
+            str(raw_key)
+            if raw_key is not None and not isinstance(raw_key, str)
+            else raw_key
+        )
         headers = {"Content-Type": "application/json"}
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
         self.client = httpx.AsyncClient(
-            base_url=self.api_url.rsplit("/v1", 1)[0] if "/v1" in self.api_url else self.api_url,
+            base_url=(
+                self.api_url.rsplit("/v1", 1)[0]
+                if "/v1" in self.api_url
+                else self.api_url
+            ),
             headers=headers,
-            timeout=httpx.Timeout(120.0, connect=10.0),  # Longer timeout for HuggingFace Space
+            timeout=httpx.Timeout(
+                120.0, connect=10.0
+            ),  # Longer timeout for HuggingFace Space
         )
 
     @timed("llm.hf_space.latency")
@@ -590,7 +654,11 @@ class HuggingFaceSpaceProvider:
             "stream": stream,
         }
         payload.update(
-            {k: v for k, v in kwargs.items() if k not in ["messages", "max_tokens", "temperature", "stream"]}
+            {
+                k: v
+                for k, v in kwargs.items()
+                if k not in ["messages", "max_tokens", "temperature", "stream"]
+            }
         )
 
         if stream:
@@ -601,8 +669,12 @@ class HuggingFaceSpaceProvider:
         data = resp.json()
         return data["choices"][0]["message"]["content"]
 
-    async def _stream_completion(self, payload: dict[str, Any]) -> AsyncGenerator[StreamChunk, None]:
-        async with self.client.stream("POST", "/v1/chat/completions", json=payload) as resp:
+    async def _stream_completion(
+        self, payload: dict[str, Any]
+    ) -> AsyncGenerator[StreamChunk, None]:
+        async with self.client.stream(
+            "POST", "/v1/chat/completions", json=payload
+        ) as resp:
             resp.raise_for_status()
             async for line in resp.aiter_lines():
                 if line.startswith("data: "):
@@ -623,13 +695,17 @@ class HuggingFaceSpaceProvider:
             resp = await self.client.get("/models", timeout=10.0)
             return resp.status_code == 200
         except Exception as exc:  # Try health endpoint as alternative
-            logger.debug(f"HuggingFaceSpaceProvider /info check failed, trying /health: {exc}")
+            logger.debug(
+                f"HuggingFaceSpaceProvider /info check failed, trying /health: {exc}"
+            )
             try:
                 resp = await self.client.get("/health", timeout=10.0)
                 return resp.status_code == 200
             except Exception as health_exc:
                 # বাংলা: HuggingFace Space উভয় endpoint-ই অনুপলব্ধ।
-                logger.debug(f"HuggingFaceSpaceProvider health check failed: {health_exc}")
+                logger.debug(
+                    f"HuggingFaceSpaceProvider health check failed: {health_exc}"
+                )
                 return False
 
 
@@ -700,7 +776,9 @@ class LLMRouter:
         self.cache = get_redis_client()
         self.normalizer = BengaliNormalizer()
         self.rules = _get_rules_engine()  # Cine rules for all AI models
-        self.enhanced_gateway = get_llm_gateway()  # Integrated with enhanced LLM Gateway
+        self.enhanced_gateway = (
+            get_llm_gateway()
+        )  # Integrated with enhanced LLM Gateway
         # Initialize circuit breaker manager for router
         self._circuit_breaker_manager = get_shared_circuit_breaker
 
@@ -732,8 +810,12 @@ class LLMRouter:
             chain = []
 
         # Add fallback chain - শুধু ফ্রি/ওপেন সোর্স প্রথমে আনা হবে
-        for provider in FALLBACK_CHAINS.get(task_type, [Provider.MOONSHOT, Provider.GEMINI, Provider.OLLAMA]):
-            if provider not in chain and task_type in PROVIDER_CAPABILITIES.get(provider, []):
+        for provider in FALLBACK_CHAINS.get(
+            task_type, [Provider.MOONSHOT, Provider.GEMINI, Provider.OLLAMA]
+        ):
+            if provider not in chain and task_type in PROVIDER_CAPABILITIES.get(
+                provider, []
+            ):
                 chain.append(provider)
 
         # Cost-sensitive: sort by cost - ZERO-108: Zero Cost Policy
@@ -748,7 +830,12 @@ class LLMRouter:
         # বাংলা মন্তব্ব: free-tier ট্র্যাকার দিয়ে real RPM/TPM/RPD budget চেক করে
         # exhausted প্রোভাইডার চেইন থেকে বাদ দেওয়া হচ্ছে
         tracker = get_tracker()
-        chain = [p for p in chain if _FREE_TIER_TRACKED.get(p) is None or tracker.is_available(_FREE_TIER_TRACKED[p])]
+        chain = [
+            p
+            for p in chain
+            if _FREE_TIER_TRACKED.get(p) is None
+            or tracker.is_available(_FREE_TIER_TRACKED[p])
+        ]
 
         return chain
 
@@ -777,7 +864,11 @@ class LLMRouter:
         Route prompt to optimal LLM provider with automatic fallback.
         সকল রুলস যাচাই করে এবং মেনে চালায়।
         """
-        task = TaskType(task_type) if task_type in [t.value for t in TaskType] else TaskType.CHAT
+        task = (
+            TaskType(task_type)
+            if task_type in [t.value for t in TaskType]
+            else TaskType.CHAT
+        )
 
         # AGENT-101: Check token budget before processing
         estimated_tokens = self._estimate_tokens(prompt) + max_tokens
@@ -797,7 +888,9 @@ class LLMRouter:
             logger.debug("bengali_normalized", original_length=len(prompt))
 
         # Check cache - AI-094: Semantic Caching
-        cache_key = self._cache_key(prompt, task.value, max_tokens=max_tokens, temperature=temperature)
+        cache_key = self._cache_key(
+            prompt, task.value, max_tokens=max_tokens, temperature=temperature
+        )
         if use_cache and not stream and self.cache is not None:
             cached_result = await self.cache.get(cache_key)
             if cached_result:
@@ -846,7 +939,9 @@ class LLMRouter:
             # Circuit breaker check - using shared circuit breaker
             cb = self._get_or_create_circuit_breaker(provider_name.value)
             if not cb.allow_request():
-                logger.warning(f"Provider {provider_name.value} circuit breaker OPEN. Skipping...")
+                logger.warning(
+                    f"Provider {provider_name.value} circuit breaker OPEN. Skipping..."
+                )
                 continue
 
             # Health check (lightweight)
@@ -864,7 +959,9 @@ class LLMRouter:
                 )
 
                 if stream:
-                    return self._stream_with_fallback(provider, prompt, max_tokens, temperature, chain, **kwargs)
+                    return self._stream_with_fallback(
+                        provider, prompt, max_tokens, temperature, chain, **kwargs
+                    )
 
                 result = await provider.acompletion(
                     prompt,
@@ -878,7 +975,9 @@ class LLMRouter:
                 if isinstance(result, dict):
                     result = result.get("text") or result.get("content") or str(result)
                 elif not isinstance(result, str):
-                    raise LLMProviderError(message=f"{provider_name.value} returned non-str for non-stream request")
+                    raise LLMProviderError(
+                        message=f"{provider_name.value} returned non-str for non-stream request"
+                    )
 
                 # AGENT-104: Check for hallucination policy
                 if self.rules:
@@ -888,7 +987,8 @@ class LLMRouter:
                 latency = (time.perf_counter() - start_time) * 1000
                 tokens = estimated_input + self._estimate_tokens(result)
                 cost = (tokens / 1000) * (
-                    PROVIDER_COSTS[provider_name][0] * 0.3 + PROVIDER_COSTS[provider_name][1] * 0.7
+                    PROVIDER_COSTS[provider_name][0] * 0.3
+                    + PROVIDER_COSTS[provider_name][1] * 0.7
                 )
 
                 self.budget.consume(tokens)
@@ -929,7 +1029,10 @@ class LLMRouter:
 
             except Exception as exc:
                 last_error = exc
-                is_rate_limited = isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code == 429
+                is_rate_limited = (
+                    isinstance(exc, httpx.HTTPStatusError)
+                    and exc.response.status_code == 429
+                )
                 logger.warning(
                     "provider_failed",
                     provider=provider_name.value,
@@ -948,10 +1051,14 @@ class LLMRouter:
                     retry_after = 60.0
                     if isinstance(exc, httpx.HTTPStatusError):
                         try:
-                            retry_after = float(exc.response.headers.get("retry-after", 60.0))
+                            retry_after = float(
+                                exc.response.headers.get("retry-after", 60.0)
+                            )
                         except (ValueError, TypeError):
                             retry_after = 60.0
-                    get_tracker().mark_rate_limited(tracked_key, pause_seconds=retry_after)
+                    get_tracker().mark_rate_limited(
+                        tracked_key, pause_seconds=retry_after
+                    )
                 continue
 
         # All providers failed - SELF-113: Self-Healing
@@ -983,7 +1090,9 @@ class LLMRouter:
         try:
             # Call astream if available, else acompletion
             if hasattr(primary, "astream") and callable(primary.astream):
-                stream_gen = await primary.astream(prompt, max_tokens=max_tokens, temperature=temperature, **kwargs)
+                stream_gen = await primary.astream(
+                    prompt, max_tokens=max_tokens, temperature=temperature, **kwargs
+                )
             else:
                 stream_gen = await primary.acompletion(
                     prompt,
@@ -1001,7 +1110,11 @@ class LLMRouter:
             else:
                 yield StreamChunk(str(stream_gen), provider=primary.name)
         except Exception as exc:
-            p_name = primary.name.value if hasattr(primary.name, "value") else str(primary.name)
+            p_name = (
+                primary.name.value
+                if hasattr(primary.name, "value")
+                else str(primary.name)
+            )
             logger.warning("stream_failed", provider=p_name, error=str(exc))
             # Try next provider in chain - AI-96: Fallback Mechanisms
             for fallback_name in chain[1:]:
@@ -1010,7 +1123,10 @@ class LLMRouter:
                     logger.info("stream_fallback", to=fallback_name.value)
                     if hasattr(fallback, "astream") and callable(fallback.astream):
                         fallback_gen = await fallback.astream(
-                            prompt, max_tokens=max_tokens, temperature=temperature, **kwargs
+                            prompt,
+                            max_tokens=max_tokens,
+                            temperature=temperature,
+                            **kwargs,
                         )
                     else:
                         fallback_gen = await fallback.acompletion(
@@ -1074,8 +1190,13 @@ class LLMRouter:
                 "used_today": self.budget.used_today,
                 "remaining": self.budget.daily_limit - self.budget.used_today,
             },
-            "provider_costs": {p.value: {"input": c[0], "output": c[1]} for p, c in PROVIDER_COSTS.items()},
-            "rules_enforced": (self.rules.validate_critical_rules() if self.rules else []),
+            "provider_costs": {
+                p.value: {"input": c[0], "output": c[1]}
+                for p, c in PROVIDER_COSTS.items()
+            },
+            "rules_enforced": (
+                self.rules.validate_critical_rules() if self.rules else []
+            ),
         }
 
 
@@ -1212,7 +1333,9 @@ class HFKeyRotator:
     def __init__(self, keys: list[str] | None = None) -> None:
         key_list = keys if keys is not None else getattr(settings, "hf_api_keys", [])
         if not key_list:
-            logger.warning("⚠️ No HF_API_KEYS provided! Swarm requests may fallback or fail.")
+            logger.warning(
+                "⚠️ No HF_API_KEYS provided! Swarm requests may fallback or fail."
+            )
             self._cycle = None
         else:
             self._cycle = itertools.cycle(key_list)
@@ -1250,25 +1373,63 @@ class HFSwarmRouter:
         prompt_lower = prompt.lower()
 
         # Vision / Image Task Detection
-        if any(kw in prompt_lower for kw in ["image", "photo", "picture", "screenshot", "diagram", "ocr"]):
+        if any(
+            kw in prompt_lower
+            for kw in ["image", "photo", "picture", "screenshot", "diagram", "ocr"]
+        ):
             return "vision"
 
         # Coding Task Detection
         if any(
-            kw in prompt_lower for kw in ["code", "python", "def ", "function", "bug", "sql", "javascript", "class "]
+            kw in prompt_lower
+            for kw in [
+                "code",
+                "python",
+                "def ",
+                "function",
+                "bug",
+                "sql",
+                "javascript",
+                "class ",
+            ]
         ):
             return "coding"
 
         # Logic / Reasoning / Math Task Detection
-        if any(kw in prompt_lower for kw in ["solve", "math", "equation", "logic", "calculate", "proof", "reason"]):
+        if any(
+            kw in prompt_lower
+            for kw in [
+                "solve",
+                "math",
+                "equation",
+                "logic",
+                "calculate",
+                "proof",
+                "reason",
+            ]
+        ):
             return "reasoning"
 
         # Creative Task Detection
-        if any(kw in prompt_lower for kw in ["story", "poem", "song", "lyrics", "script", "creative", "write a story"]):
+        if any(
+            kw in prompt_lower
+            for kw in [
+                "story",
+                "poem",
+                "song",
+                "lyrics",
+                "script",
+                "creative",
+                "write a story",
+            ]
+        ):
             return "creative"
 
         # Fast Draft Speculative Decoding Detection
-        if any(kw in prompt_lower for kw in ["fast", "draft", "quick answer", "autocomplete"]):
+        if any(
+            kw in prompt_lower
+            for kw in ["fast", "draft", "quick answer", "autocomplete"]
+        ):
             return "draft"
 
         # Master Complex Task Detection
@@ -1277,26 +1438,46 @@ class HFSwarmRouter:
 
         return "general"
 
-    def route_and_generate(self, prompt: str, parameters: dict[str, Any] | None = None) -> dict[str, Any]:
+    def route_and_generate(
+        self, prompt: str, parameters: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """বাংলা মন্তব্য: ডিটেক্টেড মডেল এবং রোটেশন এপিআই কী ব্যবহার করে ইনফ্যারেন্স সম্পন্ন করে।"""
         task_type = self.classify_task(prompt)
         target_model = self.model_map.get(task_type, self.model_map["general"])
 
         active_key = key_rotator.get_key()
-        headers = {"Authorization": f"Bearer {active_key}" if active_key else "", "Content-Type": "application/json"}
+        headers = {
+            "Authorization": f"Bearer {active_key}" if active_key else "",
+            "Content-Type": "application/json",
+        }
 
         endpoint = f"{self.base_url}{target_model}"
-        payload = {"inputs": prompt, "parameters": parameters or {"max_new_tokens": 512, "temperature": 0.7}}
+        payload = {
+            "inputs": prompt,
+            "parameters": parameters or {"max_new_tokens": 512, "temperature": 0.7},
+        }
 
         logger.info(f"🔀 [Router] Task: '{task_type}' | Target Model: '{target_model}'")
 
         try:
-            response = requests.post(endpoint, headers=headers, json=payload, timeout=30)
+            response = requests.post(
+                endpoint, headers=headers, json=payload, timeout=30
+            )
             response.raise_for_status()
-            return {"status": "success", "task": task_type, "model": target_model, "output": response.json()}
+            return {
+                "status": "success",
+                "task": task_type,
+                "model": target_model,
+                "output": response.json(),
+            }
         except Exception as e:
             logger.error(f"❌ Inference error for model {target_model}: {e!s}")
-            return {"status": "error", "task": task_type, "model": target_model, "error": str(e)}
+            return {
+                "status": "error",
+                "task": task_type,
+                "model": target_model,
+                "error": str(e),
+            }
 
 
 hf_swarm_router = HFSwarmRouter()

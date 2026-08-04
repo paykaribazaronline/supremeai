@@ -25,7 +25,9 @@ class MemoryManager:
         self.db_client = db.client
         logger.info("Initialized MemoryManager.")
 
-    async def add_memory(self, learning: str, url: str, metadata: dict[str, Any] | None = None):
+    async def add_memory(
+        self, learning: str, url: str, metadata: dict[str, Any] | None = None
+    ):
         """
         Adds a new learning to the long-term memory.
         """
@@ -118,16 +120,23 @@ class LongTermMemory:
         """Build a simple human-readable context string from stored facts and summaries."""
         parts: list[str] = []
         if self._summaries:
-            parts.append("Summary: " + "; ".join(item["content"] for item in self._summaries))
+            parts.append(
+                "Summary: " + "; ".join(item["content"] for item in self._summaries)
+            )
         if self._facts:
             parts.append("Facts: " + "; ".join(item["content"] for item in self._facts))
         return "\n".join(parts) if parts else "No memory available."
 
-    def store_user_preference(self, user_id: str, key: str, value: Any) -> dict[str, Any]:
+    def store_user_preference(
+        self, user_id: str, key: str, value: Any
+    ) -> dict[str, Any]:
         """Store a personalized user preference in long-term memory."""
         pref_fact = f"User Preference [{user_id}] {key}: {value}"
         return self.remember_fact(
-            content=pref_fact, category=f"user_pref_{user_id}", importance=0.9, source="user_setting"
+            content=pref_fact,
+            category=f"user_pref_{user_id}",
+            importance=0.9,
+            source="user_setting",
         )
 
     def get_context_for_user(self, user_id: str) -> str:
@@ -137,4 +146,6 @@ class LongTermMemory:
         all_facts = user_facts + general_facts
         if not all_facts:
             return f"User context for {user_id}: Default settings."
-        return f"User context for {user_id}:\n" + "\n".join(f"- {f['content']}" for f in all_facts)
+        return f"User context for {user_id}:\n" + "\n".join(
+            f"- {f['content']}" for f in all_facts
+        )

@@ -32,17 +32,42 @@ class SmartModelRouter:
             return "bengali"
 
         # Code detection
-        code_keywords = ["def ", "class ", "function", "code", "python", "javascript", "sql", "bug", "refactor"]
+        code_keywords = [
+            "def ",
+            "class ",
+            "function",
+            "code",
+            "python",
+            "javascript",
+            "sql",
+            "bug",
+            "refactor",
+        ]
         if any(kw in prompt_lower for kw in code_keywords):
             return "code"
 
         # Math detection
-        math_keywords = ["calculate", "equation", "integral", "derivative", "matrix", "probability"]
+        math_keywords = [
+            "calculate",
+            "equation",
+            "integral",
+            "derivative",
+            "matrix",
+            "probability",
+        ]
         if any(kw in prompt_lower for kw in math_keywords):
             return "math"
 
         # Reasoning detection
-        reasoning_keywords = ["why", "architecture", "tradeoff", "strategy", "compare", "design", "plan"]
+        reasoning_keywords = [
+            "why",
+            "architecture",
+            "tradeoff",
+            "strategy",
+            "compare",
+            "design",
+            "plan",
+        ]
         if any(kw in prompt_lower for kw in reasoning_keywords):
             return "reasoning"
 
@@ -62,5 +87,7 @@ class SmartModelRouter:
             "routing_confidence": 0.95,
         }
 
-        logger.info(f"Smart Model Router: Intent '{intent}' -> Routed to model '{target_model}'")
+        logger.info(
+            f"Smart Model Router: Intent '{intent}' -> Routed to model '{target_model}'"
+        )
         return routing_decision

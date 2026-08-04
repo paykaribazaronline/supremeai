@@ -43,7 +43,9 @@ def main():
             for doc_id, score, doc_data in results:
                 meta = doc_data.get("metadata", {})
                 snippet = doc_data.get("text", "")[:120].replace("\n", " ")
-                print(f"   [FOUND] ID: {doc_id} | Similarity Score: {score:.4f} | Category: {meta.get('category', 'N/A')}")
+                print(
+                    f"   [FOUND] ID: {doc_id} | Similarity Score: {score:.4f} | Category: {meta.get('category', 'N/A')}"
+                )
                 print(f"      Snippet: {snippet}...")
         else:
             print("   [NOT FOUND] No vector match found.")

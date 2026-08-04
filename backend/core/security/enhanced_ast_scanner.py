@@ -52,7 +52,10 @@ class EnhancedASTScanner(ast.NodeVisitor):
             re.compile(r"Path\s*\(.*\+"),
         ],
         "hardcoded_secrets": [
-            re.compile(r"(password|secret|key|token)\s*=\s*['\"][^'\"]{10,}['\"]", re.IGNORECASE),
+            re.compile(
+                r"(password|secret|key|token)\s*=\s*['\"][^'\"]{10,}['\"]",
+                re.IGNORECASE,
+            ),
             re.compile(r"api_key\s*=\s*['\"][^'\"]{10,}['\"]", re.IGNORECASE),
         ],
         "insecure_deserialization": [
@@ -161,11 +164,17 @@ class EnhancedASTScanner(ast.NodeVisitor):
             for pattern in patterns:
                 for match in pattern.finditer(self.code):
                     line_num = self.code[: match.start()].count("\n") + 1
-                    line_content = self.lines[line_num - 1] if line_num <= len(self.lines) else ""
+                    line_content = (
+                        self.lines[line_num - 1] if line_num <= len(self.lines) else ""
+                    )
 
                     self.issues.append(
                         SecurityIssue(
-                            severity="critical" if category in {"sql_injection", "command_injection"} else "high",
+                            severity=(
+                                "critical"
+                                if category in {"sql_injection", "command_injection"}
+                                else "high"
+                            ),
                             category=category,
                             description=f"Pattern match: {pattern.pattern}",
                             file_path=self.file_path,
@@ -185,7 +194,9 @@ class EnhancedASTScanner(ast.NodeVisitor):
     ) -> None:
         """Add a security issue to the findings."""
         line_num = getattr(node, "lineno", 0)
-        code_snippet = self.lines[line_num - 1].strip() if 0 < line_num <= len(self.lines) else ""
+        code_snippet = (
+            self.lines[line_num - 1].strip() if 0 < line_num <= len(self.lines) else ""
+        )
 
         self.issues.append(
             SecurityIssue(
@@ -286,7 +297,9 @@ class SecurityScanner:
 
         return all_issues
 
-    def generate_report(self, issues: list[SecurityIssue] | None = None) -> dict[str, Any]:
+    def generate_report(
+        self, issues: list[SecurityIssue] | None = None
+    ) -> dict[str, Any]:
         """Generate a comprehensive security report.
 
         Args:

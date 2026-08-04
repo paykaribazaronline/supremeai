@@ -10,19 +10,25 @@ Analyzes recent git changes and generates/updates:
 
 import subprocess
 from pathlib import Path
+
 from litellm import completion
+
 
 def get_recent_diff():
     try:
         # Get diff of the most recent push (or just HEAD~1 if not available)
-        diff = subprocess.check_output(['git', 'diff', 'HEAD~1', 'HEAD'], text=True, errors='replace')
+        diff = subprocess.check_output(
+            ["git", "diff", "HEAD~1", "HEAD"], text=True, errors="replace"
+        )
         return diff
     except subprocess.CalledProcessError:
         return ""
 
+
 def call_llm(prompt):
     try:
         import os
+
         api_key = os.environ.get("GEMINI_API_KEY", "")
         if "," in api_key:
             os.environ["GEMINI_API_KEY"] = api_key.split(",")[0]
@@ -31,12 +37,13 @@ def call_llm(prompt):
         response = completion(
             model="gemini/gemini-2.5-pro",
             messages=[{"role": "user", "content": prompt}],
-            timeout=60
+            timeout=60,
         )
         return response.choices[0].message.content
     except Exception as e:
         print(f"LLM Generation Error: {e}")
         return ""
+
 
 def generate_adr(diff):
     print("Generating ADR...")
@@ -51,11 +58,12 @@ Git Diff:
     result = call_llm(prompt)
     if "NO_ADR_NEEDED" not in result and result.strip():
         # Find a suitable filename
-        adr_count = len(list(Path('.').glob('ADR-*.md'))) + 1
+        adr_count = len(list(Path(".").glob("ADR-*.md"))) + 1
         filename = f"ADR-{adr_count:03d}-auto-generated.md"
         with open(filename, "w", encoding="utf-8") as f:
             f.write(result)
         print(f"Created {filename}")
+
 
 def generate_diagrams(diff):
     print("Generating Mermaid Diagrams (DFD & Sequence)...")
@@ -74,12 +82,13 @@ Git Diff:
 """
     result = call_llm(prompt)
     if "```mermaid" in result:
-        diagram_count = len(list(Path('.').glob('DIAGRAM-*.md'))) + 1
+        diagram_count = len(list(Path(".").glob("DIAGRAM-*.md"))) + 1
         filename = f"DIAGRAM-{diagram_count:03d}-auto-generated.md"
         content = f"# Auto-Generated Architecture Diagrams\n\n{result}"
         with open(filename, "w", encoding="utf-8") as f:
             f.write(content)
         print(f"Created {filename}")
+
 
 def update_threat_model(diff):
     print("Updating Threat Model...")
@@ -106,6 +115,7 @@ Git Diff:
                 f.write(result)
             print("Created THREAT-MODEL-auto-generated.md")
 
+
 def main():
     diff = get_recent_diff()
     if not diff.strip():
@@ -115,6 +125,7 @@ def main():
     generate_adr(diff)
     generate_diagrams(diff)
     update_threat_model(diff)
+
 
 if __name__ == "__main__":
     main()

@@ -5,10 +5,10 @@ GitHub Actions Failure Fixer for SupremeAI Agents.
 """
 
 import os
-import sys
 import subprocess
-import shutil
+import sys
 from pathlib import Path
+
 
 def fix_observability_issues():
     """
@@ -20,7 +20,9 @@ def fix_observability_issues():
     script_path = Path("scripts/audit_observability.py")
     if script_path.exists():
         print("Running observability audit...")
-        result = subprocess.run([sys.executable, str(script_path)], capture_output=True, text=True)
+        result = subprocess.run(
+            [sys.executable, str(script_path)], capture_output=True, text=True
+        )
         if result.returncode != 0:
             print(f"❌ Observability audit failed: {result.stdout} {result.stderr}")
         else:
@@ -45,10 +47,14 @@ def fix_test_environment():
 
     # Try to install dependencies if needed
     try:
-        result = subprocess.run([sys.executable, "-m", "pip", "show", "poetry"], capture_output=True)
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "show", "poetry"], capture_output=True
+        )
         if result.returncode != 0:
             print("Installing poetry...")
-            subprocess.run([sys.executable, "-m", "pip", "install", "poetry"], check=True)
+            subprocess.run(
+                [sys.executable, "-m", "pip", "install", "poetry"], check=True
+            )
 
         # Install dependencies with poetry
         print("Installing dependencies with poetry...")
@@ -60,10 +66,23 @@ def fix_test_environment():
     print("Running quick test to check test environment...")
     try:
         # Run a single simple test to verify the test environment works
-        result = subprocess.run([
-            sys.executable, "-m", "pytest",
-            "tests/", "-k", "test_", "--maxfail=1", "-v", "--tb=short", "-x"
-        ], capture_output=True, text=True, timeout=60)
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "tests/",
+                "-k",
+                "test_",
+                "--maxfail=1",
+                "-v",
+                "--tb=short",
+                "-x",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
 
         if result.returncode == 0:
             print("✅ Quick test passed - test environment is working")
@@ -91,7 +110,7 @@ def fix_redis_and_database_issues():
         backend_path / "pytest.ini",
         backend_path / "pyproject.toml",
         backend_path / "conftest.py",
-        *(backend_path / "tests").rglob("*conftest*.py")
+        *(backend_path / "tests").rglob("*conftest*.py"),
     ]
 
     # Check if we need to create/update test config for Redis mocking
@@ -148,7 +167,11 @@ def fix_specific_test_issues():
         if test_dir.exists():
             for test_file in test_dir.rglob("test_*.py"):
                 content = test_file.read_text()
-                if "redis" in content.lower() or "database" in content.lower() or "connection" in content.lower():
+                if (
+                    "redis" in content.lower()
+                    or "database" in content.lower()
+                    or "connection" in content.lower()
+                ):
                     problematic_tests.append(test_file)
 
     if problematic_tests:
@@ -159,7 +182,9 @@ def fix_specific_test_issues():
 
 def main():
     print("🚀 GitHub Actions Failure Fixer")
-    print("This script will attempt to fix common issues causing GitHub Actions failures.\n")
+    print(
+        "This script will attempt to fix common issues causing GitHub Actions failures.\n"
+    )
 
     # Run fixes in order
     fix_observability_issues()
@@ -169,7 +194,9 @@ def main():
 
     print("\n✅ GitHub Actions failure fixes completed!")
     print("\n💡 Next steps:")
-    print("   1. Run 'python scripts/audit_observability.py' to verify observability fixes")
+    print(
+        "   1. Run 'python scripts/audit_observability.py' to verify observability fixes"
+    )
     print("   2. Run 'cd backend && python -m pytest tests/ --maxfail=3' to test fixes")
     print("   3. Commit and push changes to trigger a new GitHub Actions run")
 

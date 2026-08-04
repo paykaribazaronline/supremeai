@@ -10,7 +10,9 @@ class FreebuffClient:
         self.binary_path = binary_path
 
     async def delegate_task(self, command_args: list) -> dict:
-        logger.info(f"📡 Delegating asynchronous workload to external CLI tool: {self.binary_path}")
+        logger.info(
+            f"📡 Delegating asynchronous workload to external CLI tool: {self.binary_path}"
+        )
         try:
             proc = await asyncio.create_subprocess_exec(
                 self.binary_path,

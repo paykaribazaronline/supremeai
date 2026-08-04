@@ -7,14 +7,14 @@ Priority: 🔴 High
 
 import json
 import logging
+import os
 import subprocess
 import time
-import os
-from datetime import datetime
-from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
+from typing import Any
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class DRRTestType(Enum):
     """Disaster recovery test types."""
+
     FIREWALL_TEST = "firewall_test"
     REGION_FAILBACK = "region_failback"
     DATABASE_RESTORE = "database_restore"
@@ -31,6 +32,7 @@ class DRRTestType(Enum):
 
 class TestStatus(Enum):
     """Test status."""
+
     PENDING = "pending"
     RUNNING = "running"
     PASSED = "passed"
@@ -41,27 +43,29 @@ class TestStatus(Enum):
 @dataclass
 class DRTestStep:
     """Single step in DR test."""
+
     step_name: str
     test_type: DRRTestType
     status: TestStatus
     start_time: datetime
-    end_time: Optional[datetime]
+    end_time: datetime | None
     output: str
-    error_message: Optional[str]
+    error_message: str | None
     duration_seconds: float = 0.0
 
 
 @dataclass
 class DRTestResult:
     """Result of DR test."""
+
     test_id: str
     status: TestStatus
     start_time: datetime
-    end_time: Optional[datetime]
-    steps: List[DRTestStep]
+    end_time: datetime | None
+    steps: list[DRTestStep]
     recovery_time_minutes: float
     success_rate: float
-    recommendations: List[str]
+    recommendations: list[str]
 
 
 class DisasterRecoveryTester:
@@ -69,11 +73,11 @@ class DisasterRecoveryTester:
     Automates disaster recovery testing procedures.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
-        self.backup_path = Path(config.get('backup_path', 'backups'))
-        self.max_recovery_time = config.get('max_recovery_time_minutes', 30)
-        self.test_timeout = config.get('test_timeout_seconds', 300)
+        self.backup_path = Path(config.get("backup_path", "backups"))
+        self.max_recovery_time = config.get("max_recovery_time_minutes", 30)
+        self.test_timeout = config.get("test_timeout_seconds", 300)
 
     def _create_test_id(self) -> str:
         """Create unique test ID."""
@@ -87,16 +91,18 @@ class DisasterRecoveryTester:
             status=TestStatus.RUNNING,
             start_time=datetime.now(),
             end_time=None,
-            output=""
+            output="",
         )
 
         try:
             # Check security group configurations
             cmd = "terraform show -json 2>/dev/null || echo 'no tf state'"
-            proc = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=30)
+            proc = subprocess.run(
+                cmd, shell=True, capture_output=True, text=True, timeout=30
+            )
 
             # Verify critical ports are restricted
-            if '0.0.0.0/0' in proc.stdout:
+            if "0.0.0.0/0" in proc.stdout:
                 step.status = TestStatus.FAILED
                 step.error_message = "Wide open CIDR found in security rules"
             else:
@@ -119,12 +125,12 @@ class DisasterRecoveryTester:
             status=TestStatus.RUNNING,
             start_time=datetime.now(),
             end_time=None,
-            output=""
+            output="",
         )
 
         try:
             # Check multi-region configuration
-            regions_config = self.config.get('regions', ['us-east-1', 'us-west-2'])
+            regions_config = self.config.get("regions", ["us-east-1", "us-west-2"])
 
             for region in regions_config:
                 # Check if region has active resources
@@ -149,14 +155,16 @@ class DisasterRecoveryTester:
             status=TestStatus.RUNNING,
             start_time=datetime.now(),
             end_time=None,
-            output=""
+            output="",
         )
 
         try:
             # Check backup existence
-            backup_files = list(self.backup_path.rglob('*.sql')) + \
-                          list(self.backup_path.rglob('*.dump')) + \
-                          list(self.backup_path.rglob('*.bak'))
+            backup_files = (
+                list(self.backup_path.rglob("*.sql"))
+                + list(self.backup_path.rglob("*.dump"))
+                + list(self.backup_path.rglob("*.bak"))
+            )
 
             if backup_files:
                 step.output = f"Found {len(backup_files)} backup files"
@@ -167,7 +175,9 @@ class DisasterRecoveryTester:
 
                 if backup_age_hours > 24:
                     step.status = TestStatus.WARNING
-                    step.error_message = f"Latest backup is {backup_age_hours:.1f} hours old"
+                    step.error_message = (
+                        f"Latest backup is {backup_age_hours:.1f} hours old"
+                    )
                 else:
                     step.status = TestStatus.PASSED
             else:
@@ -194,12 +204,12 @@ class DisasterRecoveryTester:
             status=TestStatus.RUNNING,
             start_time=datetime.now(),
             end_time=None,
-            output=""
+            output="",
         )
 
         try:
             # Check backup configuration
-            backup_enabled = os.environ.get('BACKUP_ENABLED', 'true').lower() == 'true'
+            backup_enabled = os.environ.get("BACKUP_ENABLED", "true").lower() == "true"
 
             if backup_enabled:
                 step.status = TestStatus.PASSED
@@ -224,7 +234,7 @@ class DisasterRecoveryTester:
             status=TestStatus.RUNNING,
             start_time=datetime.now(),
             end_time=None,
-            output=""
+            output="",
         )
 
         try:
@@ -242,8 +252,7 @@ class DisasterRecoveryTester:
         return step
 
     async def run_full_dr_test(
-        self,
-        test_types: Optional[List[DRRTestType]] = None
+        self, test_types: list[DRRTestType] | None = None
     ) -> DRTestResult:
         """Run complete disaster recovery test suite."""
         test_id = self._create_test_id()
@@ -274,11 +283,17 @@ class DisasterRecoveryTester:
         status = TestStatus.PASSED if not failed_steps else TestStatus.FAILED
 
         # Calculate recovery time (simulated)
-        recovery_time = min((sum(s.duration_seconds for s in all_steps) / 60),
-                           self.max_recovery_time)
+        recovery_time = min(
+            (sum(s.duration_seconds for s in all_steps) / 60), self.max_recovery_time
+        )
 
         # Calculate success rate
-        success_rate = sum(1 for s in all_steps if s.status in [TestStatus.PASSED]) / len(all_steps) if all_steps else 0
+        success_rate = (
+            sum(1 for s in all_steps if s.status in [TestStatus.PASSED])
+            / len(all_steps)
+            if all_steps
+            else 0
+        )
 
         # Generate recommendations
         for step in all_steps:
@@ -301,39 +316,41 @@ class DisasterRecoveryTester:
             steps=all_steps,
             recovery_time_minutes=recovery_time,
             success_rate=success_rate,
-            recommendations=recommendations
+            recommendations=recommendations,
         )
 
-    def generate_report(self, result: DRTestResult) -> Dict[str, Any]:
+    def generate_report(self, result: DRTestResult) -> dict[str, Any]:
         """Generate DR test report."""
         return {
-            'test_id': result.test_id,
-            'status': result.status.value,
-            'start_time': result.start_time.isoformat(),
-            'end_time': result.end_time.isoformat() if result.end_time else None,
-            'recovery_time_minutes': result.recovery_time_minutes,
-            'success_rate': result.success_rate,
-            'recommendations': result.recommendations,
-            'steps': [
+            "test_id": result.test_id,
+            "status": result.status.value,
+            "start_time": result.start_time.isoformat(),
+            "end_time": result.end_time.isoformat() if result.end_time else None,
+            "recovery_time_minutes": result.recovery_time_minutes,
+            "success_rate": result.success_rate,
+            "recommendations": result.recommendations,
+            "steps": [
                 {
-                    'step_name': s.step_name,
-                    'test_type': s.test_type.value,
-                    'status': s.status.value,
-                    'duration_seconds': s.duration_seconds,
-                    'error_message': s.error_message
+                    "step_name": s.step_name,
+                    "test_type": s.test_type.value,
+                    "status": s.status.value,
+                    "duration_seconds": s.duration_seconds,
+                    "error_message": s.error_message,
                 }
                 for s in result.steps
-            ]
+            ],
         }
 
-    def save_report(self, report: Dict[str, Any], output_path: Optional[str] = None) -> str:
+    def save_report(
+        self, report: dict[str, Any], output_path: str | None = None
+    ) -> str:
         """Save DR test report."""
-        output = Path(output_path or 'dr_test_reports')
+        output = Path(output_path or "dr_test_reports")
         output.mkdir(exist_ok=True)
 
         report_file = output / f"dr_test_{report['test_id']}.json"
 
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(report, f, indent=2)
 
         logger.info(f"DR test report saved to: {report_file}")
@@ -345,12 +362,22 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Disaster recovery testing")
-    parser.add_argument('--output-dir', default='dr_test_reports', help='Output directory')
-    parser.add_argument('--full-test', action='store_true', help='Run all DR tests')
-    parser.add_argument('--test-type', nargs='+',
-                       choices=['firewall_test', 'region_failback', 'database_restore',
-                              'backup_recovery', 'network_partition'],
-                       help='Specific test types to run')
+    parser.add_argument(
+        "--output-dir", default="dr_test_reports", help="Output directory"
+    )
+    parser.add_argument("--full-test", action="store_true", help="Run all DR tests")
+    parser.add_argument(
+        "--test-type",
+        nargs="+",
+        choices=[
+            "firewall_test",
+            "region_failback",
+            "database_restore",
+            "backup_recovery",
+            "network_partition",
+        ],
+        help="Specific test types to run",
+    )
 
     args = parser.parse_args()
 
@@ -365,20 +392,21 @@ def main():
         report = tester.generate_report(result)
         report_file = tester.save_report(report, args.output_dir)
 
-        print(f"\nDisaster Recovery Test Results:")
+        print("\nDisaster Recovery Test Results:")
         print(f"  Test ID: {result.test_id}")
         print(f"  Status: {result.status.value}")
         print(f"  Recovery Time: {result.recovery_time_minutes:.1f} minutes")
         print(f"  Success Rate: {result.success_rate * 100:.1f}%")
 
         if result.recommendations:
-            print(f"\nRecommendations:")
+            print("\nRecommendations:")
             for rec in result.recommendations[:5]:
                 print(f"  • {rec}")
 
         return result
 
     import asyncio
+
     asyncio.run(run())
 
 

@@ -20,12 +20,13 @@ Ripple-Effect Guard: this module is additive. It does not touch
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import atexit
 import os
 import threading
 from contextlib import contextmanager
 from typing import Any
+
+from core.error_bus import with_error_bus
 
 # psycopg2 মডিউল না থাকলে যেন সার্ভিস ক্র্যাশ না করে, সে জন্য সেফ ইমপোর্ট ফলব্যাক ব্যবহার করা হলো।
 try:
@@ -33,9 +34,8 @@ try:
     import psycopg2.pool
 except ImportError:
     psycopg2 = None
-from loguru import logger
-
 from core.config import settings
+from loguru import logger
 
 # Deliberately small: these 4 subsystems are secondary telemetry/state, not
 # primary request traffic. They must never meaningfully compete with the
@@ -75,8 +75,12 @@ def _get_pool() -> Any:
             )
             return None
         try:
-            _pool = psycopg2.pool.ThreadedConnectionPool(_MIN_CONN, _MAX_CONN, dsn, connect_timeout=10)
-            logger.info(f"persistence.pooled_pg: initialized (max={_MAX_CONN} connections).")
+            _pool = psycopg2.pool.ThreadedConnectionPool(
+                _MIN_CONN, _MAX_CONN, dsn, connect_timeout=10
+            )
+            logger.info(
+                f"persistence.pooled_pg: initialized (max={_MAX_CONN} connections)."
+            )
         except Exception as exc:
             logger.error(f"persistence.pooled_pg: failed to initialize pool: {exc}")
             _pool_unavailable = True

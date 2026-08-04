@@ -25,7 +25,9 @@ class DockerSandbox:
             raise ValueError("Invalid entry file name after sanitization")
         return safe_name
 
-    def run_quarantine_test(self, staging_path: Path, entry_file: str, test_payload: str) -> dict[str, Any]:
+    def run_quarantine_test(
+        self, staging_path: Path, entry_file: str, test_payload: str
+    ) -> dict[str, Any]:
         """
         Default-deny network এবং Read-only মাউন্টে একটি পাইথন ফাইল স্যান্ডবক্সে রান করায়।
         """
@@ -162,7 +164,9 @@ class DockerSandbox:
             }
 
         except subprocess.TimeoutExpired:
-            logger.error(f"❌ Sandbox execution timed out after {self.timeout_seconds}s limit.")
+            logger.error(
+                f"❌ Sandbox execution timed out after {self.timeout_seconds}s limit."
+            )
             return {
                 "exit_code": 124,
                 "stdout": "",

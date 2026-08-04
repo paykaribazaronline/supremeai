@@ -23,7 +23,9 @@ class AIWebExtractor:
                 f"Content: {page_data.get('content', '')[:2000]}\n\n"
                 "Return a clean JSON object with the extracted data."
             )
-            result = await router.async_route_and_generate(prompt, task_type="reasoning", max_cost=0.02)
+            result = await router.async_route_and_generate(
+                prompt, task_type="reasoning", max_cost=0.02
+            )
             extracted = result.get("text", "") if isinstance(result, dict) else ""
             return {
                 "success": True,

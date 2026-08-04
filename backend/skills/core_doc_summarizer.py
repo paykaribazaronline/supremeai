@@ -13,7 +13,8 @@ except ImportError:
     genai = None  # type: ignore[assignment]
     types = None  # type: ignore[assignment]
 
-from core.resilience.circuit_breaker import CircuitBreaker, CircuitBreakerOpenError
+from core.resilience.circuit_breaker import (CircuitBreaker,
+                                             CircuitBreakerOpenError)
 
 logger = logging.getLogger("supremeai.skills.doc_summarizer")
 

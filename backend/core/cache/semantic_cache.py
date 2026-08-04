@@ -12,11 +12,10 @@ without requiring redeployment."""
 # Vector Semantic Cache Engine for SupremeAI 2.0
 # বাংলা মন্তব্য: এটি ফায়ারস্টোর বাদ দিয়ে সরাসরি experience_db.py (ChromaDB/Qdrant) ব্যবহার করে এবং ডাইনামিক থ্রেশহোল্ড সেট করে।
 
-from loguru import logger
-
 from adaptive_engine.experience_db import Experience, ExperienceDatabase
 from core.config_cache import config_cache
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
+from loguru import logger
 
 # বাংলা মন্তব্য: ক্যাশ পলিসি — এখন প্রকৃত অর্থে Database-Driven!
 # get_cache_threshold() ConfigCache থেকে value নেয়, যা SystemConfig DB টেবিলে persist করে।
@@ -70,7 +69,9 @@ class SemanticCache:
         logger.info("SemanticCache initialized using ExperienceDatabase vector backend")
 
     @with_error_bus("query_similar")
-    async def query_similar(self, prompt: str, task_type: str = "general") -> CacheEntry | None:
+    async def query_similar(
+        self, prompt: str, task_type: str = "general"
+    ) -> CacheEntry | None:
         try:
             # বাংলা মন্তব্য: কাজের ধরণের ওপর ভিত্তি করে ডাইনামিক থ্রেশহোল্ড সেট করা হচ্ছে
             threshold = get_cache_threshold(task_type)
@@ -95,7 +96,9 @@ class SemanticCache:
                     error_type="CACHE_LOOKUP_FAILURE",
                     message=f"SemanticCache lookup failed: {e}",
                     severity="WARNING",
-                    structured_context=ErrorContext(module="semantic_cache", env="production"),
+                    structured_context=ErrorContext(
+                        module="semantic_cache", env="production"
+                    ),
                     context={
                         "task_type": task_type,
                         "prompt_preview": prompt[:100] if prompt else "",
@@ -111,11 +114,15 @@ class SemanticCache:
             exp = Experience(
                 request=prompt,
                 generated_code=response if "code" in task_type.lower() else None,
-                action_taken=(response if "code" not in task_type.lower() else "Code Generated"),
+                action_taken=(
+                    response if "code" not in task_type.lower() else "Code Generated"
+                ),
                 result="success",
             )
             self.db.record_experience(exp)
-            logger.info(f"💾 Successfully recorded successful experience pattern for {task_type}")
+            logger.info(
+                f"💾 Successfully recorded successful experience pattern for {task_type}"
+            )
         except Exception as e:
             logger.error(f"❌ Failed to save experience pattern: {e}")
             error_event_bus.emit(
@@ -124,7 +131,9 @@ class SemanticCache:
                     error_type="CACHE_WRITE_FAILURE",
                     message=f"Failed to save experience pattern: {e}",
                     severity="WARNING",
-                    structured_context=ErrorContext(module="semantic_cache", env="production"),
+                    structured_context=ErrorContext(
+                        module="semantic_cache", env="production"
+                    ),
                     context={
                         "task_type": task_type,
                         "prompt_preview": prompt[:100] if prompt else "",

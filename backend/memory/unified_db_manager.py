@@ -98,7 +98,9 @@ class UnifiedDBManager:
 
         return results
 
-    async def get_record(self, collection: str, record_id: str) -> dict[str, Any] | None:
+    async def get_record(
+        self, collection: str, record_id: str
+    ) -> dict[str, Any] | None:
         """Retrieve record with fallback strategy (SQLite -> Supabase -> Postgres).
 
         বাংলা মন্তব্য: ফাইলটের ওপর ভিত্তি করে পর্যায়ক্রমে লোকাল সিঙ্ক থেকে ডাটা ফেচ করে।
@@ -109,7 +111,9 @@ class UnifiedDBManager:
             if record:
                 return record
         except Exception as e:
-            logger.warning(f"[UnifiedDB] SQLite lookup failed for {record_id}, falling back: {e}")
+            logger.warning(
+                f"[UnifiedDB] SQLite lookup failed for {record_id}, falling back: {e}"
+            )
 
         # Secondary lookup: Cloud Supabase
         try:

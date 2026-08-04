@@ -31,9 +31,13 @@ class SelfReflectionLoop:
         reflection = {
             "is_correct": is_success,
             "success_factor": (
-                "Validated via automated checks and clean output." if is_success else "Execution error encountered."
+                "Validated via automated checks and clean output."
+                if is_success
+                else "Execution error encountered."
             ),
-            "bottleneck_analysis": "None" if is_success else f"Failure detail: {error_details}",
+            "bottleneck_analysis": (
+                "None" if is_success else f"Failure detail: {error_details}"
+            ),
             "future_prevention_strategy": (
                 "Maintain current optimal pattern and record in episodic memory."
                 if is_success

@@ -18,7 +18,9 @@ class VoiceService:
     def __init__(self, tts_provider: str = "auto"):
         self.tts_provider = tts_provider
 
-    async def speech_to_text(self, audio_bytes: bytes, filename: str = "input.wav") -> dict[str, Any]:
+    async def speech_to_text(
+        self, audio_bytes: bytes, filename: str = "input.wav"
+    ) -> dict[str, Any]:
         """
         Transcribe raw audio bytes to text string.
         """

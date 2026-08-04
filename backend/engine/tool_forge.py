@@ -18,7 +18,9 @@ class ToolForge:
     def __init__(self):
         self._synthesized_tools: dict[str, dict[str, Any]] = {}
 
-    async def synthesize_tool(self, tool_name: str, task_description: str, code_snippet: str) -> bool:
+    async def synthesize_tool(
+        self, tool_name: str, task_description: str, code_snippet: str
+    ) -> bool:
         """
         Synthesize and register a dynamic helper tool.
         """
@@ -34,7 +36,9 @@ class ToolForge:
                 "description": task_description,
                 "code": code_snippet,
             }
-            logger.info(f"Tool Forge successfully synthesized dynamic tool: '{tool_name}'")
+            logger.info(
+                f"Tool Forge successfully synthesized dynamic tool: '{tool_name}'"
+            )
             return True
         except Exception as e:
             logger.error(f"Failed to synthesize tool '{tool_name}': {e}")

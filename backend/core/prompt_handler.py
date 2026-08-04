@@ -21,7 +21,9 @@ def estimate_tokens(text: str | list[dict[str, Any]]) -> int:
     return len(normalized_text) // 4
 
 
-def format_unified_chat_prompt(message: str, history: list[dict[str, str]] | None = None) -> str:
+def format_unified_chat_prompt(
+    message: str, history: list[dict[str, str]] | None = None
+) -> str:
     """
     Centralized prompt builder for unifying chat history with the current task.
     Prevents context loss and DRY violations across multiple routers.

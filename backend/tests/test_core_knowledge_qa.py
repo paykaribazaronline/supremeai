@@ -14,7 +14,10 @@ try:
     root_skills = os.path.normpath(os.path.join(backend_path, "..", "skills")).lower()
     root_dir = os.path.normpath(os.path.join(backend_path, "..")).lower()
     sys.path = [
-        p for p in sys.path if os.path.normpath(p).lower() != root_skills and os.path.normpath(p).lower() != root_dir
+        p
+        for p in sys.path
+        if os.path.normpath(p).lower() != root_skills
+        and os.path.normpath(p).lower() != root_dir
     ]
     sys.modules.pop("skills", None)
 
@@ -35,7 +38,9 @@ def test_vector_search_returns_empty_when_supabase_not_configured():
     fake_db = MagicMock()
     fake_db.client = None
     with patch("database.supabase_client.db", fake_db):
-        result = core_knowledge_qa._vector_search("what is the office timing", "public_sops")
+        result = core_knowledge_qa._vector_search(
+            "what is the office timing", "public_sops"
+        )
     assert result == []
 
 
@@ -56,18 +61,26 @@ def test_vector_search_uses_real_rpc_not_hardcoded_dict():
 
     with (
         patch("database.supabase_client.db", fake_db),
-        patch.object(core_knowledge_qa, "_generate_embedding", return_value=[0.1] * 1536),
+        patch.object(
+            core_knowledge_qa, "_generate_embedding", return_value=[0.1] * 1536
+        ),
     ):
-        result = core_knowledge_qa._vector_search("any arbitrary query text", "public_sops")
+        result = core_knowledge_qa._vector_search(
+            "any arbitrary query text", "public_sops"
+        )
 
     fake_client.rpc.assert_called_once()
-    assert result == [{"id": "doc_99", "content": "Real retrieved content", "source": "Real Source"}]
+    assert result == [
+        {"id": "doc_99", "content": "Real retrieved content", "source": "Real Source"}
+    ]
 
 
 def test_execute_tool_returns_no_documents_message_when_nothing_found():
     fake_db = MagicMock()
     fake_db.client = None
     with patch("database.supabase_client.db", fake_db):
-        result = core_knowledge_qa.execute_tool({"user_role": "Standard_User", "query": "anything"})
+        result = core_knowledge_qa.execute_tool(
+            {"user_role": "Standard_User", "query": "anything"}
+        )
     assert result["success"] is True
     assert result["result"]["citations"] == []

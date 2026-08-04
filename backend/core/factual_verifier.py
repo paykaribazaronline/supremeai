@@ -17,7 +17,8 @@ Dependencies:
 - `re`: For regular expression operations, particularly in text and math parsing.
 - `httpx`: For making asynchronous HTTP requests to external web search APIs.
 - `sympy`: (Optional) For advanced symbolic mathematical evaluation.
-- `tools.knowledge.local_search_rag`: (Optional) For local RAG-based factual verification."""
+- `tools.knowledge.local_search_rag`: (Optional) For local RAG-based factual verification.
+"""
 
 import ast
 import logging
@@ -118,7 +119,9 @@ class FactualVerifier:
                 "method": "no_matches",
             }
         except Exception as e:
-            _logger.warning(f"RAG verification failed for claim: {claim[:50]}... error: {e}")
+            _logger.warning(
+                f"RAG verification failed for claim: {claim[:50]}... error: {e}"
+            )
             return {
                 "claim": claim,
                 "is_verified": False,
@@ -128,7 +131,11 @@ class FactualVerifier:
             }
 
     async def verify_with_web_search(self, claim: str) -> dict:
-        if "france" in claim.lower() and "paris" in claim.lower() and self._ddgs is None:
+        if (
+            "france" in claim.lower()
+            and "paris" in claim.lower()
+            and self._ddgs is None
+        ):
             return {
                 "claim": claim,
                 "is_verified": True,
@@ -225,7 +232,9 @@ class FactualVerifier:
                 try:
                     is_correct = abs(expr.evalf() - claimed.evalf()) < 1e-9
                 except Exception as exc:
-                    _logger.exception(f"Numeric verification failed for expression: {exc}")
+                    _logger.exception(
+                        f"Numeric verification failed for expression: {exc}"
+                    )
             result_bool = bool(is_correct)
             return {
                 "is_correct": result_bool,

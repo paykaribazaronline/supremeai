@@ -2,7 +2,6 @@ import os
 import shutil
 
 import pytest
-
 from brain.smart_router import get_self_sovereign_router
 from brain.supreme_learning_engine import SupremeLearningEngine
 from core.llm.llm_gateway_with_learning import LLMGatewayWithLearning
@@ -33,7 +32,9 @@ def test_learning_engine_pattern_learning():
     engine = SupremeLearningEngine(data_dir=TEST_DATA_DIR)
 
     # Initial state
-    can_ans, conf, pattern = engine.can_answer_independently("How do I format JSON in Python?")
+    can_ans, conf, pattern = engine.can_answer_independently(
+        "How do I format JSON in Python?"
+    )
     assert can_ans is False
     assert conf == 0.0
 
@@ -61,7 +62,9 @@ def test_learning_engine_pattern_learning():
     assert conf >= 0.75
     assert pattern is not None
 
-    res = engine.generate_independent_response("How do I format JSON in Python?", pattern)
+    res = engine.generate_independent_response(
+        "How do I format JSON in Python?", pattern
+    )
     assert "json" in res.lower() or "dumps" in res.lower()
 
 
@@ -79,14 +82,21 @@ async def test_llm_gateway_with_learning(monkeypatch):
     monkeypatch.setattr(gateway.router, "async_generate", mock_async_generate)
 
     # First attempt: calls external
-    resp1 = await gateway.acompletion(model="gpt-4o", messages=[{"role": "user", "content": "Explain async Python"}])
+    resp1 = await gateway.acompletion(
+        model="gpt-4o", messages=[{"role": "user", "content": "Explain async Python"}]
+    )
     assert "[SupremeAI Brain]" not in resp1
     assert "Step one" in resp1
 
     # Reinforce 15 times
     for _ in range(15):
-        await gateway.acompletion(model="gpt-4o", messages=[{"role": "user", "content": "Explain async Python"}])
+        await gateway.acompletion(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": "Explain async Python"}],
+        )
 
     # Subsequent attempt: answers independently
-    resp2 = await gateway.acompletion(model="gpt-4o", messages=[{"role": "user", "content": "Explain async Python"}])
+    resp2 = await gateway.acompletion(
+        model="gpt-4o", messages=[{"role": "user", "content": "Explain async Python"}]
+    )
     assert "[SupremeAI Brain]" in resp2

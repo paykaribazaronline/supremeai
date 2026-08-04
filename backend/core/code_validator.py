@@ -45,7 +45,11 @@ class AICodeValidator:
         return {
             "can_use": all_passed,
             "checks": checks,
-            "fixed_code": (self._auto_fix(ai_generated_code) if not all_passed else ai_generated_code),
+            "fixed_code": (
+                self._auto_fix(ai_generated_code)
+                if not all_passed
+                else ai_generated_code
+            ),
         }
 
     def _check_syntax(self, code: str) -> bool:
@@ -62,7 +66,9 @@ class AICodeValidator:
         except IndentationError:
             return False
         except SyntaxError as e:
-            return not ("unexpected indent" in str(e) or "unindent does not match" in str(e))
+            return not (
+                "unexpected indent" in str(e) or "unindent does not match" in str(e)
+            )
 
     @with_error_bus("_check_imports_exist")
     def _check_imports_exist(self, code: str) -> bool:
@@ -73,7 +79,9 @@ class AICodeValidator:
                     for alias in node.names:
                         if not self._module_exists(alias.name):
                             return False
-                elif isinstance(node, ast.ImportFrom) and not self._module_exists(node.module):
+                elif isinstance(node, ast.ImportFrom) and not self._module_exists(
+                    node.module
+                ):
                     return False
             return True
         except Exception:
@@ -136,7 +144,9 @@ class AICodeValidator:
         try:
             tree = ast.parse(code)
             for node in ast.walk(tree):
-                if isinstance(node, ast.While) and (isinstance(node.test, ast.Constant) and node.test.value is True):
+                if isinstance(node, ast.While) and (
+                    isinstance(node.test, ast.Constant) and node.test.value is True
+                ):
                     has_break = False
                     for subnode in ast.walk(node):
                         if isinstance(subnode, ast.Break | ast.Return):
@@ -154,9 +164,9 @@ class AICodeValidator:
         fixed_lines = []
         for line in lines:
             stripped_line = line.strip()
-            if (stripped_line.startswith("def ") or stripped_line.startswith("class ")) and not stripped_line.endswith(
-                ":"
-            ):
+            if (
+                stripped_line.startswith("def ") or stripped_line.startswith("class ")
+            ) and not stripped_line.endswith(":"):
                 line += ":"
             fixed_lines.append(line)
         code = "\n".join(fixed_lines)

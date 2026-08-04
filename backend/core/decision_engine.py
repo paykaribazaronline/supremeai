@@ -58,7 +58,9 @@ class DecisionEngine:
         # বাংলা: কনটেক্সট থেকে ক্যাশ কী জেনারেট করে ক্যাশ হিট চেক করা
         context_key = str(sorted((k, str(v)) for k, v in context.items()))
         if context_key in self._decision_cache:
-            logger.debug("DecisionEngine: Cache hit, returning decision without duplicating history")
+            logger.debug(
+                "DecisionEngine: Cache hit, returning decision without duplicating history"
+            )
             return self._decision_cache[context_key]
 
         risk_flags = context.get("risk_flags") or []
@@ -78,7 +80,9 @@ class DecisionEngine:
             return decision
 
         if risk_flags:
-            logger.info(f"DecisionEngine: risk flags present {risk_flags}, routing to review")
+            logger.info(
+                f"DecisionEngine: risk flags present {risk_flags}, routing to review"
+            )
             return {
                 "action": "review",
                 "confidence": 0.5,

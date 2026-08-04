@@ -118,7 +118,9 @@ class ConnectionManager:
             self._raw_pool = await get_db_pool()
         return self._raw_pool
 
-    async def raw_pool_with_retry(self, max_retries: int = 3, initial_delay: float = 1.0) -> Any:
+    async def raw_pool_with_retry(
+        self, max_retries: int = 3, initial_delay: float = 1.0
+    ) -> Any:
         """Get the asyncpg pool with exponential backoff retry.
 
         Args:
@@ -131,7 +133,9 @@ class ConnectionManager:
         from core.pgbouncer_pool import get_db_pool_with_retry
 
         if self._raw_pool is None:
-            self._raw_pool = await get_db_pool_with_retry(max_retries=max_retries, initial_delay=initial_delay)
+            self._raw_pool = await get_db_pool_with_retry(
+                max_retries=max_retries, initial_delay=initial_delay
+            )
         return self._raw_pool
 
     # ── psycopg2 Sync Pool ───────────────────────────────────────────────────

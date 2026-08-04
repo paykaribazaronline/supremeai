@@ -10,9 +10,8 @@ SupremeAI Automated GitHub Pull Request (PR) Pipeline
 import os
 from typing import Any
 
-from loguru import logger
-
 from core.security.guardian_ai import guardian_ai
+from loguru import logger
 
 
 class AutoPRPipeline:
@@ -23,8 +22,14 @@ class AutoPRPipeline:
 
     def __init__(self, github_token: str | None = None, repo_name: str | None = None):
         # বাংলা মন্তব্য: আগে "mock-token" ছিল fallback — এখন token না থাকলে প্রোডাকশনে ব্যর্থ হবে
-        self.github_token = github_token or os.getenv("GITHUB_TOKEN") or os.getenv("GITHUB_PAT_AUTO_FIX", "")
-        self.repo_name = repo_name or os.getenv("GITHUB_REPOSITORY", "paykaribazaronline/supremeai")
+        self.github_token = (
+            github_token
+            or os.getenv("GITHUB_TOKEN")
+            or os.getenv("GITHUB_PAT_AUTO_FIX", "")
+        )
+        self.repo_name = repo_name or os.getenv(
+            "GITHUB_REPOSITORY", "paykaribazaronline/supremeai"
+        )
 
     async def create_patch_pr(
         self,
@@ -39,10 +44,14 @@ class AutoPRPipeline:
         বাংলা মন্তব্য: আগে hash(branch_name) % 1000 দিয়ে fake PR URL তৈরি হতো।
         এখন GitHubAgent-এর real create_pr() এবং commit_changes() ব্যবহার করা হয়।
         """
-        logger.info(f"🛡️ [Auto PR] Validating patch safety for '{file_path}' on branch '{branch_name}'...")
+        logger.info(
+            f"🛡️ [Auto PR] Validating patch safety for '{file_path}' on branch '{branch_name}'..."
+        )
 
         if not self.github_token:
-            logger.error("AutoPRPipeline: No GitHub token configured. Set GITHUB_TOKEN or GITHUB_PAT_AUTO_FIX.")
+            logger.error(
+                "AutoPRPipeline: No GitHub token configured. Set GITHUB_TOKEN or GITHUB_PAT_AUTO_FIX."
+            )
             return {
                 "status": "failed",
                 "reason": "GitHub token not configured. Set GITHUB_TOKEN environment variable.",
@@ -53,7 +62,9 @@ class AutoPRPipeline:
         validation_result = await guardian_ai.scan_code(patch_code)
         if not validation_result.get("is_safe", True):
             reason = validation_result.get("reason", "Unknown safety violation")
-            logger.error(f"❌ [Auto PR] Guardian AI rejected patch for '{branch_name}': {reason}")
+            logger.error(
+                f"❌ [Auto PR] Guardian AI rejected patch for '{branch_name}': {reason}"
+            )
             return {
                 "status": "failed",
                 "reason": f"Guardian AI rejected patch: {reason}",
@@ -61,7 +72,9 @@ class AutoPRPipeline:
             }
 
         # ── 2. Real GitHub PR via GitHubAgent ────────────────────────────────
-        logger.info(f"🚀 [Auto PR] Creating real branch '{branch_name}' and PR on '{self.repo_name}'...")
+        logger.info(
+            f"🚀 [Auto PR] Creating real branch '{branch_name}' and PR on '{self.repo_name}'..."
+        )
         try:
             from tools.devops.github_agent import GitHubAgent
 
@@ -70,7 +83,9 @@ class AutoPRPipeline:
             # বাংলা মন্তব্য: ফাইল কমিট করা হচ্ছে নতুন branch-এ
             files_to_commit = {file_path: patch_code}
             commit_msg = f"fix: {pr_title}"
-            await agent.commit_changes(self.repo_name, files_to_commit, commit_msg, branch_name)
+            await agent.commit_changes(
+                self.repo_name, files_to_commit, commit_msg, branch_name
+            )
 
             # বাংলা মন্তব্য: আসল PR তৈরি করা হচ্ছে GitHub API-এ
             pr_result = await agent.create_pr(

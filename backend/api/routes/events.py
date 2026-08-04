@@ -1,10 +1,9 @@
 import asyncio
 import json
 
+from core.messaging.pubsub import global_pubsub
 from fastapi import APIRouter, Request
 from sse_starlette.sse import EventSourceResponse
-
-from core.messaging.pubsub import global_pubsub
 
 router = APIRouter(tags=["Events"])
 

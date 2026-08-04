@@ -77,13 +77,17 @@ class ImpactSimulator:
         Simulate a service failure and predict its impact.
         """
         start_time = datetime.utcnow()
-        logger.info(f"Starting service failure simulation for {service_id}, type: {failure_type}")
+        logger.info(
+            f"Starting service failure simulation for {service_id}, type: {failure_type}"
+        )
 
         # Get current topology
         topology = await self.topology_mapper.get_topology_snapshot()
 
         # Find the service being simulated
-        target_service = next((s for s in topology["services"] if s["id"] == service_id), None)
+        target_service = next(
+            (s for s in topology["services"] if s["id"] == service_id), None
+        )
         if not target_service:
             raise ValueError(f"Service {service_id} not found in topology")
 
@@ -91,13 +95,17 @@ class ImpactSimulator:
         impact_analysis = await self.topology_mapper.get_impact_analysis(service_id)
 
         # Simulate cascade effects
-        cascade_effects = await self._simulate_cascade_effects(service_id, failure_type, duration_minutes, topology)
+        cascade_effects = await self._simulate_cascade_effects(
+            service_id, failure_type, duration_minutes, topology
+        )
 
         # Determine predicted impact level
         impact_level = self._calculate_impact_level(impact_analysis, cascade_effects)
 
         # Generate recommendations
-        recommendations = self._generate_failure_recommendations(service_id, failure_type, impact_analysis)
+        recommendations = self._generate_failure_recommendations(
+            service_id, failure_type, impact_analysis
+        )
 
         # Calculate probability based on historical patterns and service criticality
         probability = self._calculate_failure_probability(target_service, failure_type)
@@ -113,7 +121,9 @@ class ImpactSimulator:
             simulation_type=SimulationType.SERVICE_FAILURE,
             timestamp=start_time.isoformat(),
             duration=duration,
-            affected_services=[s["id"] for s in impact_analysis.get("downstream_services", [])],
+            affected_services=[
+                s["id"] for s in impact_analysis.get("downstream_services", [])
+            ],
             predicted_impact=impact_level,
             probability_of_occurrence=probability,
             confidence_score=confidence_score,
@@ -133,13 +143,17 @@ class ImpactSimulator:
         Simulate a traffic spike and predict its impact.
         """
         start_time = datetime.utcnow()
-        logger.info(f"Starting traffic spike simulation for {service_id}, multiplier: {multiplier}")
+        logger.info(
+            f"Starting traffic spike simulation for {service_id}, multiplier: {multiplier}"
+        )
 
         # Get current topology
         topology = await self.topology_mapper.get_topology_snapshot()
 
         # Find the service being simulated
-        target_service = next((s for s in topology["services"] if s["id"] == service_id), None)
+        target_service = next(
+            (s for s in topology["services"] if s["id"] == service_id), None
+        )
         if not target_service:
             raise ValueError(f"Service {service_id} not found in topology")
 
@@ -147,8 +161,11 @@ class ImpactSimulator:
         # This affects CPU and memory usage, potentially causing cascading effects
         increased_load = {
             "cpu_usage": min(100.0, target_service["cpu_usage"] * multiplier),
-            "memory_usage": min(100.0, target_service["memory_usage"] * (multiplier * 0.8)),  # Memory grows slower
-            "latency_increase_factor": multiplier * 0.5,  # Latency increases with traffic
+            "memory_usage": min(
+                100.0, target_service["memory_usage"] * (multiplier * 0.8)
+            ),  # Memory grows slower
+            "latency_increase_factor": multiplier
+            * 0.5,  # Latency increases with traffic
         }
 
         # Analyze impact with increased load
@@ -163,10 +180,14 @@ class ImpactSimulator:
         impact_level = self._calculate_impact_level(impact_analysis, cascade_effects)
 
         # Generate recommendations
-        recommendations = self._generate_traffic_recommendations(service_id, multiplier, impact_analysis)
+        recommendations = self._generate_traffic_recommendations(
+            service_id, multiplier, impact_analysis
+        )
 
         # Calculate probability based on traffic patterns
-        probability = min(0.95, multiplier * 0.1)  # Higher multiplier = higher probability of issues
+        probability = min(
+            0.95, multiplier * 0.1
+        )  # Higher multiplier = higher probability of issues
 
         # Calculate confidence score
         confidence_score = self._calculate_confidence_score(topology, impact_analysis)
@@ -179,7 +200,9 @@ class ImpactSimulator:
             simulation_type=SimulationType.TRAFFIC_SPIKE,
             timestamp=start_time.isoformat(),
             duration=duration,
-            affected_services=[s["id"] for s in impact_analysis.get("downstream_services", [])],
+            affected_services=[
+                s["id"] for s in impact_analysis.get("downstream_services", [])
+            ],
             predicted_impact=impact_level,
             probability_of_occurrence=probability,
             confidence_score=confidence_score,
@@ -193,7 +216,11 @@ class ImpactSimulator:
         return result
 
     async def _simulate_cascade_effects(
-        self, failed_service_id: str, failure_type: str, duration_minutes: int, topology: dict
+        self,
+        failed_service_id: str,
+        failure_type: str,
+        duration_minutes: int,
+        topology: dict,
     ) -> list[dict]:
         """
         Simulate how a failure propagates through the system.
@@ -201,21 +228,27 @@ class ImpactSimulator:
         cascade_effects = []
 
         # Get dependency chain
-        deps = await self.topology_mapper.get_dependency_chain(failed_service_id, depth=5)
+        deps = await self.topology_mapper.get_dependency_chain(
+            failed_service_id, depth=5
+        )
 
         for dep in deps["dependency_chains"]:
             # Calculate probability of cascade based on reliability and failure type
             base_reliability = 0.95  # Default reliability
-            failure_severity_multiplier = {"complete": 1.0, "partial": 0.6, "intermittent": 0.4, "slow": 0.3}.get(
-                failure_type, 0.5
-            )
+            failure_severity_multiplier = {
+                "complete": 1.0,
+                "partial": 0.6,
+                "intermittent": 0.4,
+                "slow": 0.3,
+            }.get(failure_type, 0.5)
 
             # Find the flow to determine actual reliability
             flow = next(
                 (
                     f
                     for f in topology["data_flows"]
-                    if f["source_node_id"] == dep["source"] and f["target_node_id"] == dep["target"]
+                    if f["source_node_id"] == dep["source"]
+                    and f["target_node_id"] == dep["target"]
                 ),
                 None,
             )
@@ -231,7 +264,9 @@ class ImpactSimulator:
             if random.random() < cascade_probability:
                 # Cascade effect occurs
                 effect_severity = (
-                    "high" if cascade_probability > 0.7 else "medium" if cascade_probability > 0.3 else "low"
+                    "high"
+                    if cascade_probability > 0.7
+                    else "medium" if cascade_probability > 0.3 else "low"
                 )
 
                 cascade_effects.append(
@@ -249,7 +284,11 @@ class ImpactSimulator:
         return cascade_effects
 
     async def _simulate_load_cascade_effects(
-        self, service_id: str, increased_load: dict, duration_minutes: int, topology: dict
+        self,
+        service_id: str,
+        increased_load: dict,
+        duration_minutes: int,
+        topology: dict,
     ) -> list[dict]:
         """
         Simulate how increased load propagates through the system.
@@ -265,14 +304,17 @@ class ImpactSimulator:
                 (
                     f
                     for f in topology["data_flows"]
-                    if f["source_node_id"] == dep["source"] and f["target_node_id"] == dep["target"]
+                    if f["source_node_id"] == dep["source"]
+                    and f["target_node_id"] == dep["target"]
                 ),
                 None,
             )
 
             if flow:
                 # Higher latency and lower reliability mean higher chance of cascade
-                load_impact_factor = (1 - flow["reliability"]) * (increased_load["latency_increase_factor"])
+                load_impact_factor = (1 - flow["reliability"]) * (
+                    increased_load["latency_increase_factor"]
+                )
 
                 if load_impact_factor > 0.3:  # Threshold for significant impact
                     effect_severity = "high" if load_impact_factor > 0.7 else "medium"
@@ -284,7 +326,8 @@ class ImpactSimulator:
                             "effect_type": "performance_degradation",
                             "severity": effect_severity,
                             "estimated_delay_minutes": int(
-                                duration_minutes * increased_load["latency_increase_factor"]
+                                duration_minutes
+                                * increased_load["latency_increase_factor"]
                             ),
                             "additional_impact": f"{dep['target_name']} response times may increase significantly",
                         }
@@ -292,7 +335,9 @@ class ImpactSimulator:
 
         return cascade_effects
 
-    def _calculate_impact_level(self, impact_analysis: dict, cascade_effects: list[dict]) -> str:
+    def _calculate_impact_level(
+        self, impact_analysis: dict, cascade_effects: list[dict]
+    ) -> str:
         """
         Calculate the overall impact level based on analysis and cascade effects.
         """
@@ -301,7 +346,8 @@ class ImpactSimulator:
 
         # Factor in cascade effects
         cascade_severity_score = sum(
-            {"high": 3, "medium": 2, "low": 1}.get(effect["severity"], 1) for effect in cascade_effects
+            {"high": 3, "medium": 2, "low": 1}.get(effect["severity"], 1)
+            for effect in cascade_effects
         )
 
         # Convert to impact level
@@ -314,7 +360,9 @@ class ImpactSimulator:
         else:
             return base_level
 
-    def _generate_failure_recommendations(self, service_id: str, failure_type: str, impact_analysis: dict) -> list[str]:
+    def _generate_failure_recommendations(
+        self, service_id: str, failure_type: str, impact_analysis: dict
+    ) -> list[str]:
         """
         Generate recommendations based on failure simulation.
         """
@@ -373,7 +421,9 @@ class ImpactSimulator:
 
         return recommendations
 
-    def _generate_traffic_recommendations(self, service_id: str, multiplier: float, impact_analysis: dict) -> list[str]:
+    def _generate_traffic_recommendations(
+        self, service_id: str, multiplier: float, impact_analysis: dict
+    ) -> list[str]:
         """
         Generate recommendations based on traffic spike simulation.
         """
@@ -382,11 +432,17 @@ class ImpactSimulator:
         impact_level = impact_analysis.get("impact_level", "low")
 
         if multiplier > 5.0:
-            recommendations.append("EXTREME TRAFFIC SPIKE DETECTED - Auto-scaling likely insufficient")
+            recommendations.append(
+                "EXTREME TRAFFIC SPIKE DETECTED - Auto-scaling likely insufficient"
+            )
         elif multiplier > 3.0:
-            recommendations.append("HIGH TRAFFIC SPIKE - Verify auto-scaling configuration")
+            recommendations.append(
+                "HIGH TRAFFIC SPIKE - Verify auto-scaling configuration"
+            )
         elif multiplier > 2.0:
-            recommendations.append("MODERATE TRAFFIC SPIKE - Monitor resource utilization closely")
+            recommendations.append(
+                "MODERATE TRAFFIC SPIKE - Monitor resource utilization closely"
+            )
 
         if impact_level in ["critical", "high"]:
             recommendations.extend(
@@ -424,11 +480,18 @@ class ImpactSimulator:
         stress_factor = min(1.0, resource_stress * 2)  # Cap at 2x
 
         # Different failure types have different probabilities
-        type_multiplier = {"complete": 1.0, "partial": 1.5, "intermittent": 2.0, "slow": 1.2}.get(failure_type, 1.0)
+        type_multiplier = {
+            "complete": 1.0,
+            "partial": 1.5,
+            "intermittent": 2.0,
+            "slow": 1.2,
+        }.get(failure_type, 1.0)
 
         return min(0.95, base_prob * stress_factor * type_multiplier)
 
-    def _calculate_confidence_score(self, topology: dict, impact_analysis: dict) -> float:
+    def _calculate_confidence_score(
+        self, topology: dict, impact_analysis: dict
+    ) -> float:
         """
         Calculate confidence in the simulation results.
         """
@@ -447,7 +510,9 @@ class ImpactSimulator:
 
         return min(0.95, confidence)  # Cap at 95% for safety
 
-    async def run_scenario_simulation(self, scenario: FailureScenario) -> SimulationResult:
+    async def run_scenario_simulation(
+        self, scenario: FailureScenario
+    ) -> SimulationResult:
         """
         Run a predefined failure scenario.
         """
@@ -484,7 +549,8 @@ class ImpactSimulator:
         recent_sims = [
             sim
             for sim in self.simulation_history
-            if datetime.fromisoformat(sim.timestamp.replace("Z", "+00:00")) >= cutoff_date
+            if datetime.fromisoformat(sim.timestamp.replace("Z", "+00:00"))
+            >= cutoff_date
         ]
 
         # Aggregate statistics
@@ -510,7 +576,9 @@ class ImpactSimulator:
                 stats["high_impact_count"] += 1
 
         if recent_sims:
-            stats["average_confidence"] = sum(s.confidence_score for s in recent_sims) / len(recent_sims)
+            stats["average_confidence"] = sum(
+                s.confidence_score for s in recent_sims
+            ) / len(recent_sims)
 
         return {
             "report_period_days": days_back,
@@ -549,7 +617,9 @@ async def run_sample_simulations():
     print(f"Recommendations: {len(failure_result.recommendations)}")
 
     print("\nRunning sample traffic spike simulation...")
-    traffic_result = await simulator.simulate_traffic_spike("api_gateway", multiplier=3.0, duration_minutes=15)
+    traffic_result = await simulator.simulate_traffic_spike(
+        "api_gateway", multiplier=3.0, duration_minutes=15
+    )
     print(f"Traffic simulation result: {traffic_result.predicted_impact} impact")
     print(f"Cascade effects: {len(traffic_result.cascade_effects)}")
 

@@ -8,9 +8,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from loguru import logger
-
 from database.supabase_client import db
+from loguru import logger
 
 TOOLS = [
     # (id, name, file_path, category, description, cost_per_call)

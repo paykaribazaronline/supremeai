@@ -4,9 +4,13 @@ import os
 from loguru import logger
 
 # বাংলা মন্তব্য: টেস্ট ও রিলায়েবিলিটি গেটের জন্য environment overrides fallback নির্ধারণ করা হলো
-BASE_DIR = os.getenv("SUPREMEAI_BASE_DIR") or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.getenv("SUPREMEAI_BASE_DIR") or os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__))
+)
 DATA_DIR = os.getenv("SUPREMEAI_DATA_DIR") or os.path.join(BASE_DIR, "data")
-MEMORY_FILE_PATH = os.getenv("SUPREMEAI_MEMORY_FILE_PATH") or os.path.join(DATA_DIR, "memory_vault.json")
+MEMORY_FILE_PATH = os.getenv("SUPREMEAI_MEMORY_FILE_PATH") or os.path.join(
+    DATA_DIR, "memory_vault.json"
+)
 
 # ফাইল না থাকলে তৈরি করে নিবে
 # বাংলা: Render-এর মতো প্ল্যাটফর্মে /app read-only হতে পারে (persistent disk মাউন্ট না
@@ -18,9 +22,13 @@ try:
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
 except PermissionError:
-    logger.warning(f"Permission denied creating directory for {DATA_DIR}. Falling back to /tmp/data.")
+    logger.warning(
+        f"Permission denied creating directory for {DATA_DIR}. Falling back to /tmp/data."
+    )
     DATA_DIR = os.path.join("/tmp", "data")
-    MEMORY_FILE_PATH = os.getenv("SUPREMEAI_MEMORY_FILE_PATH") or os.path.join(DATA_DIR, "memory_vault.json")
+    MEMORY_FILE_PATH = os.getenv("SUPREMEAI_MEMORY_FILE_PATH") or os.path.join(
+        DATA_DIR, "memory_vault.json"
+    )
     os.makedirs(DATA_DIR, exist_ok=True)
 
 try:
@@ -28,7 +36,9 @@ try:
         with open(MEMORY_FILE_PATH, "w") as f:
             json.dump({}, f)
 except PermissionError:
-    logger.warning(f"Permission denied writing {MEMORY_FILE_PATH}. Falling back to /tmp/data.")
+    logger.warning(
+        f"Permission denied writing {MEMORY_FILE_PATH}. Falling back to /tmp/data."
+    )
     DATA_DIR = os.path.join("/tmp", "data")
     os.makedirs(DATA_DIR, exist_ok=True)
     MEMORY_FILE_PATH = os.path.join(DATA_DIR, "memory_vault.json")

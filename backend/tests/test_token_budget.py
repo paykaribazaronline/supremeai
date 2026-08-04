@@ -1,10 +1,6 @@
 import pytest
-
-from core.llm.token_budget import (
-    TokenBudgetManager,
-    estimate_tokens,
-    truncate_to_token_limit,
-)
+from core.llm.token_budget import (TokenBudgetManager, estimate_tokens,
+                                   truncate_to_token_limit)
 
 
 def test_estimate_tokens_empty():
@@ -19,10 +15,14 @@ def test_truncate_to_token_limit_from_end_keeps_tail():
 
 @pytest.mark.anyio
 async def test_prepare_prompt_truncates_when_exceeds_budget(monkeypatch):
-    mgr = TokenBudgetManager(custom_budgets={"default": {"max_input_tokens": 200, "max_output_tokens": 50}})
+    mgr = TokenBudgetManager(
+        custom_budgets={"default": {"max_input_tokens": 200, "max_output_tokens": 50}}
+    )
 
     long_prompt = "hello " * 1000
-    processed, meta = mgr.prepare_prompt(long_prompt, provider="default", system_prompt="sys")
+    processed, meta = mgr.prepare_prompt(
+        long_prompt, provider="default", system_prompt="sys"
+    )
 
     assert meta["truncated"] is True
     assert meta["estimated_input_tokens"] > 0
@@ -32,12 +32,16 @@ async def test_prepare_prompt_truncates_when_exceeds_budget(monkeypatch):
 @pytest.mark.anyio
 async def test_prepare_prompt_budget_exhaustion_raises_and_emits(monkeypatch):
     # system_prompt consumes almost entire budget
-    mgr = TokenBudgetManager(custom_budgets={"default": {"max_input_tokens": 100, "max_output_tokens": 50}})
+    mgr = TokenBudgetManager(
+        custom_budgets={"default": {"max_input_tokens": 100, "max_output_tokens": 50}}
+    )
 
     # patch emit so it won't require real bus
     from core.llm import token_budget
 
-    monkeypatch.setattr(token_budget.error_event_bus, "emit", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        token_budget.error_event_bus, "emit", lambda *args, **kwargs: None
+    )
 
     with pytest.raises(ValueError):
         mgr.prepare_prompt("user", provider="default", system_prompt="x" * 10000)

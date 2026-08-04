@@ -8,7 +8,6 @@ import math
 import os
 
 import pytest
-
 from services.memory_service import CascadeMemoryService, hash_vectorize
 
 
@@ -42,7 +41,9 @@ class TestHashVectorize:
         assert len(vec) == 128
 
     def test_l2_normalized(self):
-        vec = hash_vectorize("some longer text with multiple words for testing", size=384)
+        vec = hash_vectorize(
+            "some longer text with multiple words for testing", size=384
+        )
         norm = math.sqrt(sum(x * x for x in vec))
         assert norm == pytest.approx(1.0, abs=0.001)
 

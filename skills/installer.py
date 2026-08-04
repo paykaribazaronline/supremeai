@@ -1,9 +1,10 @@
 import os
 import re
-import sys
 import subprocess
-from typing import List
+import sys
+
 from loguru import logger
+
 from .registry import SkillRegistry
 
 _SKILL_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
@@ -11,8 +12,6 @@ _SKILL_NAME_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
 
 class SecurityError(Exception):
     """Exception raised for security violations during skill installation."""
-
-    pass
 
 
 class SkillInstaller:
@@ -104,7 +103,7 @@ class SkillInstaller:
                     f"Call to banned function '{node.func.id}' blocked in skill install."
                 )
 
-    def install_dependencies(self, dependencies: List[str]) -> bool:
+    def install_dependencies(self, dependencies: list[str]) -> bool:
         """Executes pip to install missing libraries dynamically."""
         if not dependencies:
             return True
@@ -125,13 +124,14 @@ class SkillInstaller:
         code: str,
         version: str,
         description: str,
-        dependencies: List[str] | None = None,
+        dependencies: list[str] | None = None,
         uss: dict | None = None,
     ) -> bool:
         """Writes custom skill code into the local skills workspace and registers it.
         বাংলা মন্তব্য: মিউটেবল ডিফল্ট আর্গুমেন্ট (List[str] = []) পরিহার করে None সেন্টিনেল প্যাটার্ন ব্যবহার করা হলো।
         """
         import os
+
         actual_deps = list(dependencies) if dependencies is not None else []
 
         if uss:

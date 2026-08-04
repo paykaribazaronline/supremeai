@@ -22,7 +22,9 @@ class EnsembleRouter:
     def __init__(self) -> None:
         self.quota_exhausted: set[str] = set()
 
-    async def route_and_vote(self, prompt: str, models: list[str] | None = None) -> dict[str, Any]:
+    async def route_and_vote(
+        self, prompt: str, models: list[str] | None = None
+    ) -> dict[str, Any]:
         if models is None:
             # বাংলা মন্তব্য: ফ্রি-টিয়ার এবং ওপেন-সোর্স প্রভাইডারদের প্রায়োরিটি অর্ডার
             models = ["deepseek", "kimi", "together", "groq", "ollama"]
@@ -39,15 +41,26 @@ class EnsembleRouter:
 
             router = ModelRouter()
 
-            tasks = [router.async_route_and_generate(prompt, task_type="general", max_cost=0.0) for _ in active_models]
+            tasks = [
+                router.async_route_and_generate(
+                    prompt, task_type="general", max_cost=0.0
+                )
+                for _ in active_models
+            ]
             responses = await asyncio.gather(*tasks, return_exceptions=True)
 
             valid = {}
             for model, resp in zip(active_models, responses, strict=False):
                 if isinstance(resp, Exception):
                     err_msg = str(resp).lower()
-                    if "429" in err_msg or "quota" in err_msg or "rate limit" in err_msg:
-                        logger.warning(f"⚠️ PSI Circuit Breaker: Model {model} hit rate-limit/quota. Rotating out.")
+                    if (
+                        "429" in err_msg
+                        or "quota" in err_msg
+                        or "rate limit" in err_msg
+                    ):
+                        logger.warning(
+                            f"⚠️ PSI Circuit Breaker: Model {model} hit rate-limit/quota. Rotating out."
+                        )
                         self.quota_exhausted.add(model)
                     else:
                         logger.warning(f"Ensemble model {model} failed: {resp}")

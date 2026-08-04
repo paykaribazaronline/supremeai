@@ -1,9 +1,6 @@
-from models.admin import (
-    AdminEasyLoginRequest,
-    AdminFirebaseLoginRequest,
-    AdminFirebaseTotpSetupRequest,
-    AdminFirebaseTotpVerifyRequest,
-)
+from models.admin import (AdminEasyLoginRequest, AdminFirebaseLoginRequest,
+                          AdminFirebaseTotpSetupRequest,
+                          AdminFirebaseTotpVerifyRequest)
 
 
 def test_admin_firebase_login_request():

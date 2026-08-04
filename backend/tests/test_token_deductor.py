@@ -2,7 +2,6 @@ from decimal import Decimal
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from core.llm.token_deductor import TokenDeductor
 
 
@@ -58,7 +57,9 @@ async def test_deduct_tokens_success_happy_path(monkeypatch):
     session.execute = AsyncMock(side_effect=_execute)
     session.add = MagicMock()
 
-    res = await td.deduct_tokens(session, user_id="u1", input_tokens=100, output_tokens=100, model_name="m")
+    res = await td.deduct_tokens(
+        session, user_id="u1", input_tokens=100, output_tokens=100, model_name="m"
+    )
     assert res is True
     assert session.add.call_count == 1
 
@@ -88,5 +89,7 @@ async def test_deduct_tokens_insufficient_funds(monkeypatch):
     session.execute = AsyncMock(return_value=_Result())
     session.add = MagicMock()
 
-    res = await td.deduct_tokens(session, user_id="u1", input_tokens=100000, output_tokens=100000, model_name="m")
+    res = await td.deduct_tokens(
+        session, user_id="u1", input_tokens=100000, output_tokens=100000, model_name="m"
+    )
     assert res is False

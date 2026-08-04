@@ -38,7 +38,9 @@ class TestSSOIntegratorInit:
         """SSOIntegrator should handle missing onelogin library."""
         from tools.sso_integrator import SSOIntegrator
 
-        with patch("tools.sso_integrator.SSOIntegrator._load_onelogin", return_value=False):
+        with patch(
+            "tools.sso_integrator.SSOIntegrator._load_onelogin", return_value=False
+        ):
             integrator = SSOIntegrator()
             assert integrator.onelogin is False
 

@@ -7,7 +7,6 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from services.minio_client import MinIOClient, StoredObject
 
 
@@ -57,12 +56,16 @@ async def test_download_writes_file(tmp_path):
     mock_minio.fget_object.assert_called_once()
 
 
-@pytest.mark.skip(reason="MinIO client unconfigured fallback returns empty string in test environment")
+@pytest.mark.skip(
+    reason="MinIO client unconfigured fallback returns empty string in test environment"
+)
 @pytest.mark.anyio
 async def test_get_presigned_url_returns_url():
     client = MinIOClient()
     mock_minio = MagicMock()
-    mock_minio.presigned_get_object.return_value = "http://localhost:9000/bucket/key?sign=xyz"
+    mock_minio.presigned_get_object.return_value = (
+        "http://localhost:9000/bucket/key?sign=xyz"
+    )
 
     client._client = mock_minio
     url = await client.get_presigned_url("bucket", "key", expires_seconds=3600)

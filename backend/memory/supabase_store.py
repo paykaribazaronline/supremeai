@@ -49,7 +49,9 @@ class SupabaseStore(SQLiteMemoryStore):
 
                 key = os.getenv("SUPABASE_KEY", "")
                 if not key:
-                    raise RuntimeError("SUPABASE_KEY is required for Supabase client initialization")
+                    raise RuntimeError(
+                        "SUPABASE_KEY is required for Supabase client initialization"
+                    )
 
                 self._supabase_client = create_client(url, key)
             except Exception as exc:
@@ -70,12 +72,19 @@ class SupabaseStore(SQLiteMemoryStore):
             self.get_session_messages(session_id)
             for msg in messages:
                 if isinstance(msg, dict):
-                    self.save_message(session_id, msg.get("role", "user"), msg.get("content", ""))
+                    self.save_message(
+                        session_id, msg.get("role", "user"), msg.get("content", "")
+                    )
 
     def get_conversation(self, session_id: str) -> list:
         if self._provider == "supabase":
             client = self._get_supabase_client()
-            result = client.table("conversations").select("messages").eq("session_id", session_id).execute()
+            result = (
+                client.table("conversations")
+                .select("messages")
+                .eq("session_id", session_id)
+                .execute()
+            )
             rows = result.data
             if rows:
                 return json.loads(rows[0]["messages"])
@@ -137,11 +146,15 @@ class SupabaseStore(SQLiteMemoryStore):
                 # এখন ব্যর্থ হলে SQLite-এ fallback write হয়, যাতে কোনো fact অপ্রত্যাশিতভাবে বাদ না যায়।
                 from loguru import logger
 
-                logger.error(f"Failed to save fact to Supabase, falling back to local SQLite: {e}")
+                logger.error(
+                    f"Failed to save fact to Supabase, falling back to local SQLite: {e}"
+                )
                 try:
                     self._save_learned_fact_sqlite(fact_id, fact)
                 except Exception as fallback_error:
-                    logger.error(f"SQLite fallback also failed — fact '{fact_id}' was NOT persisted: {fallback_error}")
+                    logger.error(
+                        f"SQLite fallback also failed — fact '{fact_id}' was NOT persisted: {fallback_error}"
+                    )
                     raise
         else:
             self._save_learned_fact_sqlite(fact_id, fact)
@@ -163,7 +176,11 @@ class SupabaseStore(SQLiteMemoryStore):
                     ).execute()
                     if response.data:
                         return [
-                            (json.loads(row["content"]) if isinstance(row["content"], str) else row["content"])
+                            (
+                                json.loads(row["content"])
+                                if isinstance(row["content"], str)
+                                else row["content"]
+                            )
                             for row in response.data
                         ]
             except Exception as e:
@@ -177,9 +194,18 @@ class SupabaseStore(SQLiteMemoryStore):
             # বাংলা মন্তব্য: রেজিলিয়েন্স ফলব্যাক - ভেক্টর সার্চ কাজ না করলে সাধারণ ilike সাবস্ট্রিং সার্চ চালানো হবে।
             try:
                 client = self._get_supabase_client()
-                result = client.table("learned_facts").select("content").ilike("content", f"%{query}%").execute()
+                result = (
+                    client.table("learned_facts")
+                    .select("content")
+                    .ilike("content", f"%{query}%")
+                    .execute()
+                )
                 return [
-                    (json.loads(row["content"]) if isinstance(row["content"], str) else row["content"])
+                    (
+                        json.loads(row["content"])
+                        if isinstance(row["content"], str)
+                        else row["content"]
+                    )
                     for row in result.data
                 ]
             except Exception as e:

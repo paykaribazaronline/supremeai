@@ -77,8 +77,12 @@ class PerformanceAwareRouter:
         normalized_cost = min(provider_info["cost_per_1k"] / max_cost, 1.0)
 
         # Normalize quality (0 = worst, 1 = best) then invert for scoring
-        normalized_quality = (provider_info["quality"] - min_quality) / (max_quality - min_quality)
-        normalized_quality_inverse = 1.0 - normalized_quality  # So higher quality = lower score
+        normalized_quality = (provider_info["quality"] - min_quality) / (
+            max_quality - min_quality
+        )
+        normalized_quality_inverse = (
+            1.0 - normalized_quality
+        )  # So higher quality = lower score
 
         # Calculate weighted score
         score = (
@@ -113,7 +117,9 @@ class PerformanceAwareRouter:
         if not healthy_providers:
             # Fallback to any available provider if all are unhealthy
             healthy_providers = scored_providers
-            if not healthy_providers or all(s == float("inf") for _, s in healthy_providers):
+            if not healthy_providers or all(
+                s == float("inf") for _, s in healthy_providers
+            ):
                 raise Exception("No healthy providers available")
 
         # Sort by score (ascending - lower is better)
@@ -129,7 +135,9 @@ class PerformanceAwareRouter:
 
         # Log alternatives for debugging
         if len(healthy_providers) > 1:
-            alternatives = [f"{p['name']}({s:.3f})" for p, s in healthy_providers[1:4]]  # Top 3 alternatives
+            alternatives = [
+                f"{p['name']}({s:.3f})" for p, s in healthy_providers[1:4]
+            ]  # Top 3 alternatives
             logger.debug(f"🔄 Alternatives: {', '.join(alternatives)}")
 
         return {

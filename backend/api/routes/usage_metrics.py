@@ -1,7 +1,6 @@
+from database.supabase_client import db
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
-
-from database.supabase_client import db
 
 router = APIRouter(prefix="/metrics/usage", tags=["usage-metrics"])
 

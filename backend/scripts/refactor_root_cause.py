@@ -1,8 +1,9 @@
-from core.error_bus import with_error_bus
 import ast
 import os
 import sys
 from pathlib import Path
+
+from core.error_bus import with_error_bus
 
 
 @with_error_bus("process_file")
@@ -36,7 +37,9 @@ def process_file(filepath: Path, dry_run: bool = False):
     # This is a complex multiline replacement, for now we will inject an import at the top
     # and use regex to replace basic `except Exception:` that just has `pass`.
 
-    pass_pattern = re.compile(r"(except\s+Exception(\s+as\s+\w+)?:\s*\n\s*)pass", re.MULTILINE)
+    pass_pattern = re.compile(
+        r"(except\s+Exception(\s+as\s+\w+)?:\s*\n\s*)pass", re.MULTILINE
+    )
 
     @with_error_bus("replacer")
     def replacer(match):

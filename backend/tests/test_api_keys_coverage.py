@@ -118,7 +118,9 @@ class TestListAPIKeys:
 
         mock_request = _make_request("new-user")
 
-        with patch("api.routes.api_keys.get_api_keys_by_user", new=AsyncMock(return_value=[])):
+        with patch(
+            "api.routes.api_keys.get_api_keys_by_user", new=AsyncMock(return_value=[])
+        ):
             result = await list_user_keys(mock_request)
 
         assert result["keys"] == []
@@ -163,7 +165,9 @@ class TestRevokeAPIKey:
 
         mock_request = _make_request("test-user")
 
-        with patch("api.routes.api_keys.get_api_key_by_id", new=AsyncMock(return_value=None)):
+        with patch(
+            "api.routes.api_keys.get_api_key_by_id", new=AsyncMock(return_value=None)
+        ):
             with pytest.raises(HTTPException) as exc_info:
                 await revoke_key(9999, mock_request)
 
@@ -187,7 +191,9 @@ class TestRotateAPIKey:
         }
         rotated = {"id": 1, "key_masked": "sk-new...5678"}
 
-        req_body = RotateAPIKeyRequest(old_key="sk-supreme-oldkey12345678", grace_period_hours=24)
+        req_body = RotateAPIKeyRequest(
+            old_key="sk-supreme-oldkey12345678", grace_period_hours=24
+        )
 
         with (
             patch(
@@ -221,9 +227,13 @@ class TestRotateAPIKey:
         from api.routes.api_keys import RotateAPIKeyRequest, rotate_key
 
         mock_request = _make_request("test-user")
-        req_body = RotateAPIKeyRequest(old_key="sk-supreme-oldkey12345678", grace_period_hours=24)
+        req_body = RotateAPIKeyRequest(
+            old_key="sk-supreme-oldkey12345678", grace_period_hours=24
+        )
 
-        with patch("api.routes.api_keys.get_api_key_by_id", new=AsyncMock(return_value=None)):
+        with patch(
+            "api.routes.api_keys.get_api_key_by_id", new=AsyncMock(return_value=None)
+        ):
             with pytest.raises(HTTPException) as exc_info:
                 await rotate_key(9999, req_body, mock_request)
 

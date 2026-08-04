@@ -135,7 +135,10 @@ class TestLocalSearchRAGSearch:
         mock_browser.return_value = mock_browser_instance
 
         with (
-            patch("tools.knowledge.local_search_rag.BrowserAgent", return_value=mock_browser_instance),
+            patch(
+                "tools.knowledge.local_search_rag.BrowserAgent",
+                return_value=mock_browser_instance,
+            ),
             patch("pathlib.Path.mkdir"),
             patch.object(Path, "exists", return_value=False),
         ):

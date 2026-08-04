@@ -39,11 +39,18 @@ import httpx
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent / "backend"
 sys.path.insert(0, str(BACKEND_DIR))
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger("health_check")
 
 TIMEOUT = float(os.getenv("HEALTH_CHECK_TIMEOUT", "5"))
-API_URL = os.getenv("BACKEND_URL", os.getenv("API_URL", "https://supremeai-backend.onrender.com")) + "/api/v1/health"
+API_URL = (
+    os.getenv(
+        "BACKEND_URL", os.getenv("API_URL", "https://supremeai-backend.onrender.com")
+    )
+    + "/api/v1/health"
+)
 
 
 def _mask(value: str, visible: int = 3) -> str:
@@ -59,7 +66,10 @@ async def send_telegram_alert(message: str) -> None:
     chat_id = os.getenv("TELEGRAM_CHAT_ID", "")
 
     if not bot_token or not chat_id:
-        logger.warning("Telegram credentials সেট করা নেই (bot_token=%s) — alert স্কিপ করা হলো।", _mask(bot_token))
+        logger.warning(
+            "Telegram credentials সেট করা নেই (bot_token=%s) — alert স্কিপ করা হলো।",
+            _mask(bot_token),
+        )
         return
 
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
@@ -74,7 +84,9 @@ async def send_telegram_alert(message: str) -> None:
             if response.status_code == 200:
                 logger.info("✅ Telegram alert সফলভাবে পাঠানো হয়েছে।")
             else:
-                logger.error("❌ Telegram alert পাঠাতে ব্যর্থ: status=%s", response.status_code)
+                logger.error(
+                    "❌ Telegram alert পাঠাতে ব্যর্থ: status=%s", response.status_code
+                )
     except Exception as exc:  # noqa: BLE001
         logger.error("❌ Telegram alert পাঠাতে এরর: %s", exc)
 
@@ -94,9 +106,8 @@ async def check_api() -> tuple[bool, str]:
 async def check_database() -> tuple[bool, str]:
     """AsyncSessionLocal (database.session) ব্যবহার করে DB কানেকশন যাচাই করে।"""
     try:
-        from sqlalchemy import text
-
         from database.session import AsyncSessionLocal
+        from sqlalchemy import text
 
         async with AsyncSessionLocal() as session:
             await session.execute(text("SELECT 1"))
@@ -110,11 +121,12 @@ async def check_database() -> tuple[bool, str]:
 async def check_redis() -> tuple[bool, str]:
     """core.config.settings.redis_url থেকে Redis কানেকশন যাচাই করে।"""
     try:
+        from core.config import settings
         from redis.asyncio import Redis
 
-        from core.config import settings
-
-        redis_url = getattr(settings, "redis_url", None) or os.getenv("REDIS_URL", "redis://dummy-redis-server:6379")
+        redis_url = getattr(settings, "redis_url", None) or os.getenv(
+            "REDIS_URL", "redis://dummy-redis-server:6379"
+        )
         client: Redis = Redis.from_url(redis_url, socket_timeout=TIMEOUT)
         try:
             await client.ping()
@@ -134,7 +146,9 @@ def check_dependencies_and_env() -> tuple[bool, str]:
 
         report = HealthChecker().run_health_check()
         ok = report.get("overall_status") == "HEALTHY"
-        detail = f"status={report.get('overall_status')} deps={report.get('dependencies')}"
+        detail = (
+            f"status={report.get('overall_status')} deps={report.get('dependencies')}"
+        )
         return ok, detail
     except ImportError as exc:
         return False, f"HealthChecker ইম্পোর্ট করা যায়নি: {exc}"
@@ -202,14 +216,24 @@ async def run_health_check(skip_db: bool, skip_redis: bool, skip_deps: bool) -> 
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="SupremeAI 2.0 unified system health check")
-    parser.add_argument("--skip-db", action="store_true", help="Database চেক স্কিপ করুন")
-    parser.add_argument("--skip-redis", action="store_true", help="Redis চেক স্কিপ করুন")
-    parser.add_argument("--skip-deps", action="store_true", help="Dependency/.env চেক স্কিপ করুন")
+    parser = argparse.ArgumentParser(
+        description="SupremeAI 2.0 unified system health check"
+    )
+    parser.add_argument(
+        "--skip-db", action="store_true", help="Database চেক স্কিপ করুন"
+    )
+    parser.add_argument(
+        "--skip-redis", action="store_true", help="Redis চেক স্কিপ করুন"
+    )
+    parser.add_argument(
+        "--skip-deps", action="store_true", help="Dependency/.env চেক স্কিপ করুন"
+    )
     args = parser.parse_args()
 
     exit_code = asyncio.run(
-        run_health_check(skip_db=args.skip_db, skip_redis=args.skip_redis, skip_deps=args.skip_deps)
+        run_health_check(
+            skip_db=args.skip_db, skip_redis=args.skip_redis, skip_deps=args.skip_deps
+        )
     )
     sys.exit(exit_code)
 

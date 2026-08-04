@@ -1,13 +1,14 @@
-# ruff: noqa: E402, F821
+# ruff: noqa: F821
 """
 Cloud-native PostgreSQL store using Supabase/Cloud SQL.
 Replaces local SQLite for production.
 """
 
 import os
-from typing import Dict, Any, Optional, List
-from loguru import logger
+from typing import Any
+
 import psycopg2
+from loguru import logger
 from psycopg2.extras import RealDictCursor
 
 
@@ -28,9 +29,8 @@ class CloudPostgresStore:
 
     def _init_tables(self):
         """Initialize tables if not exist."""
-        with self._get_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute("""
+        with self._get_conn() as conn, conn.cursor() as cur:
+            cur.execute("""
                     CREATE TABLE IF NOT EXISTS task_history (
                         id SERIAL PRIMARY KEY,
                         task_type VARCHAR(50),
@@ -43,7 +43,7 @@ class CloudPostgresStore:
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """)
-                cur.execute("""
+            cur.execute("""
                     CREATE TABLE IF NOT EXISTS conversation_context (
                         id SERIAL PRIMARY KEY,
                         session_id VARCHAR(100),
@@ -54,7 +54,7 @@ class CloudPostgresStore:
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """)
-                cur.execute("""
+            cur.execute("""
                     CREATE TABLE IF NOT EXISTS verification_queue (
                         id SERIAL PRIMARY KEY,
                         email_target VARCHAR(255),
@@ -64,58 +64,55 @@ class CloudPostgresStore:
                         received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """)
-                conn.commit()
-                logger.info("PostgreSQL tables initialized")
+            conn.commit()
+            logger.info("PostgreSQL tables initialized")
 
-    def save_task(self, task_data: Dict[str, Any]) -> int:
+    def save_task(self, task_data: dict[str, Any]) -> int:
         """Save task execution record."""
-        with self._get_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
+        with self._get_conn() as conn, conn.cursor() as cur:
+            cur.execute(
+                """
                     INSERT INTO task_history
                     (task_type, prompt, result, provider, cost, latency_ms, success)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
                 """,
-                    (
-                        task_data.get("task_type"),
-                        task_data.get("prompt"),
-                        task_data.get("result"),
-                        task_data.get("provider"),
-                        task_data.get("cost", 0.0),
-                        task_data.get("latency_ms", 0),
-                        task_data.get("success", True),
-                    ),
-                )
-                result = cur.fetchone()
-                conn.commit()
-                return result["id"]
+                (
+                    task_data.get("task_type"),
+                    task_data.get("prompt"),
+                    task_data.get("result"),
+                    task_data.get("provider"),
+                    task_data.get("cost", 0.0),
+                    task_data.get("latency_ms", 0),
+                    task_data.get("success", True),
+                ),
+            )
+            result = cur.fetchone()
+            conn.commit()
+            return result["id"]
 
-    def get_conversation(self, session_id: str) -> Optional[Dict[str, Any]]:
+    def get_conversation(self, session_id: str) -> dict[str, Any] | None:
         """Get conversation context by session."""
-        with self._get_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
+        with self._get_conn() as conn, conn.cursor() as cur:
+            cur.execute(
+                """
                     SELECT * FROM conversation_context
                     WHERE session_id = %s
                     ORDER BY updated_at DESC
                     LIMIT 1
                 """,
-                    (session_id,),
-                )
-                result = cur.fetchone()
-                return dict(result) if result else None
+                (session_id,),
+            )
+            result = cur.fetchone()
+            return dict(result) if result else None
 
     def update_conversation(
-        self, session_id: str, messages: List[Dict], summary: str = ""
+        self, session_id: str, messages: list[dict], summary: str = ""
     ):
         """Update or create conversation context."""
-        with self._get_conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    """
+        with self._get_conn() as conn, conn.cursor() as cur:
+            cur.execute(
+                """
                     INSERT INTO conversation_context (session_id, messages, summary)
                     VALUES (%s, %s, %s)
                     ON CONFLICT (session_id) DO UPDATE SET
@@ -123,11 +120,11 @@ class CloudPostgresStore:
                         summary = EXCLUDED.summary,
                         updated_at = CURRENT_TIMESTAMP
                 """,
-                    (session_id, Json(messages), summary),
-                )
-                conn.commit()
+                (session_id, Json(messages), summary),
+            )
+            conn.commit()
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get system statistics."""
         with self._get_conn() as conn:
             with conn.cursor() as cur:

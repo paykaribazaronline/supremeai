@@ -25,7 +25,9 @@ class OnPremiseDeployer:
         os.makedirs(self.output_dir, exist_ok=True)
         logger.info(f"Initialized OnPremiseDeployer (output_dir={self.output_dir})")
 
-    def generate_compose(self, overrides: dict[str, Any] | None = None) -> dict[str, Any]:
+    def generate_compose(
+        self, overrides: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         cfg = {
             "version": "3.9",
             "services": {
@@ -163,9 +165,13 @@ class OnPremiseDeployer:
         os.makedirs(templates_dir, exist_ok=True)
         deploy = self._render_deployment(values)
         svc = self._render_service(values)
-        with open(os.path.join(templates_dir, "deployment.yaml"), "w", encoding="utf-8") as f:
+        with open(
+            os.path.join(templates_dir, "deployment.yaml"), "w", encoding="utf-8"
+        ) as f:
             f.write(deploy)
-        with open(os.path.join(templates_dir, "service.yaml"), "w", encoding="utf-8") as f:
+        with open(
+            os.path.join(templates_dir, "service.yaml"), "w", encoding="utf-8"
+        ) as f:
             f.write(svc)
         logger.info(f"Wrote Helm chart to {chart_dir}")
         return chart_dir

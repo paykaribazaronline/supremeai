@@ -29,7 +29,9 @@ class VectorDatabaseClient:
         # services.py এই module কে import করলে সরাসরি top-level import ঝুঁকিপূর্ণ।
         self._exp_db = None
         self.degraded: bool = False
-        _logger.debug("VectorDatabaseClient initialised (free-tier adapter, shared experience_db)")
+        _logger.debug(
+            "VectorDatabaseClient initialised (free-tier adapter, shared experience_db)"
+        )
 
     def _get_exp_db(self):
         """Lazily fetch the shared experience_db singleton from core.services."""
@@ -49,7 +51,9 @@ class VectorDatabaseClient:
                 self.degraded = True
         return self._exp_db
 
-    async def save_experience(self, vector: list[float], metadata: dict[str, Any]) -> None:
+    async def save_experience(
+        self, vector: list[float], metadata: dict[str, Any]
+    ) -> None:
         """
         Saves an experience into the shared memory pool.
         বাংলা মন্তব্য: vector argument এখন ignore করা হচ্ছে — experience_db নিজেই
@@ -60,7 +64,8 @@ class VectorDatabaseClient:
         if exp_db is None:
             self.degraded = True
             _logger.error(
-                "save_experience() skipped: shared experience_db unavailable (DEGRADED). " "Experience NOT persisted."
+                "save_experience() skipped: shared experience_db unavailable (DEGRADED). "
+                "Experience NOT persisted."
             )
             return
 
@@ -77,12 +82,18 @@ class VectorDatabaseClient:
             )
             # বাংলা মন্তব্য: blocking SQLite write — thread-এ offload করা হচ্ছে
             await asyncio.to_thread(exp_db.record_experience, exp)
-            _logger.debug(f"🧠 Saved neural memory experience via shared pool: {metadata.get('patch_id', 'n/a')}")
+            _logger.debug(
+                f"🧠 Saved neural memory experience via shared pool: {metadata.get('patch_id', 'n/a')}"
+            )
         except Exception as exc:
             self.degraded = True
-            _logger.error(f"save_experience() failed (experience NOT persisted, DEGRADED): {exc!r}")
+            _logger.error(
+                f"save_experience() failed (experience NOT persisted, DEGRADED): {exc!r}"
+            )
 
-    async def find_similar_experiences(self, vector: list[float], top_k: int = 3) -> list[dict[str, Any]]:
+    async def find_similar_experiences(
+        self, vector: list[float], top_k: int = 3
+    ) -> list[dict[str, Any]]:
         """
         Retrieves past experiences from the shared free-tier vector backend.
         বাংলা মন্তব্য: vector argument ignore করা হয় — experience_db.find_similar()
@@ -103,7 +114,9 @@ class VectorDatabaseClient:
         query_text = vector if isinstance(vector, str) else ""  # type: ignore[assignment]
 
         if not query_text:
-            _logger.debug("find_similar_experiences(): no query text available, returning empty.")
+            _logger.debug(
+                "find_similar_experiences(): no query text available, returning empty."
+            )
             return []
 
         try:
@@ -123,7 +136,9 @@ class VectorDatabaseClient:
             ]
         except Exception as exc:
             self.degraded = True
-            _logger.error(f"find_similar_experiences() failed (returning empty, DEGRADED state): {exc!r}")
+            _logger.error(
+                f"find_similar_experiences() failed (returning empty, DEGRADED state): {exc!r}"
+            )
             return []
 
 

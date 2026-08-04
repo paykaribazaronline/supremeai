@@ -2,10 +2,9 @@
 API Endpoints for Knowledge Base Interaction.
 """
 
+from api.dependencies import get_current_user_token
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
-
-from api.dependencies import get_current_user_token
 from services.knowledge_qa import KnowledgeQAService
 
 router = APIRouter()

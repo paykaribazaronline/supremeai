@@ -13,10 +13,9 @@ import os
 from typing import Any
 
 import httpx
-from loguru import logger
-
 from core.config_proxy import DynamicConfigProxy
 from core.health.self_healer import SelfHealerService
+from loguru import logger
 from utils.firestore_helpers import get_firestore_db
 
 
@@ -55,7 +54,9 @@ class CloudSandboxOrchestrator:
 
     async def create_sandbox(self, spec: dict[str, Any]) -> dict[str, Any] | None:
         if not self.api_key:
-            logger.warning("Cannot create sandbox: API key is missing. Running in mock/dry-run mode.")
+            logger.warning(
+                "Cannot create sandbox: API key is missing. Running in mock/dry-run mode."
+            )
             mock_id = f"mock-sandbox-id-{os.urandom(4).hex()}"
             self._active_sandboxes[mock_id] = {
                 "created_at": datetime.datetime.now(datetime.UTC),
@@ -85,7 +86,9 @@ class CloudSandboxOrchestrator:
             logger.success(f"Successfully created sandbox with ID: {sandbox_id}")
             return data
         except httpx.HTTPStatusError as e:
-            logger.error(f"Failed to create sandbox. Status: {e.response.status_code}, Body: {e.response.text}")
+            logger.error(
+                f"Failed to create sandbox. Status: {e.response.status_code}, Body: {e.response.text}"
+            )
         except Exception as e:
             logger.error(f"An unexpected error occurred during sandbox creation: {e}")
 
@@ -107,10 +110,14 @@ class CloudSandboxOrchestrator:
             response.raise_for_status()
             return response.json()
         except httpx.HTTPStatusError as e:
-            logger.error(f"Failed to get status for sandbox {sandbox_id}. Status: {e.response.status_code}")
+            logger.error(
+                f"Failed to get status for sandbox {sandbox_id}. Status: {e.response.status_code}"
+            )
         return None
 
-    async def run_command(self, sandbox_id: str, command: str, timeout: int = 300) -> dict[str, Any] | None:
+    async def run_command(
+        self, sandbox_id: str, command: str, timeout: int = 300
+    ) -> dict[str, Any] | None:
         if not self.api_key:
             logger.info(f"Dry-run: Running command '{command}' in sandbox {sandbox_id}")
             return {
@@ -130,7 +137,9 @@ class CloudSandboxOrchestrator:
             response.raise_for_status()
             return response.json()
         except httpx.HTTPStatusError as e:
-            logger.error(f"Failed to run command in sandbox {sandbox_id}. Status: {e.response.status_code}")
+            logger.error(
+                f"Failed to run command in sandbox {sandbox_id}. Status: {e.response.status_code}"
+            )
         return None
 
     async def destroy_sandbox(self, sandbox_id: str) -> bool:
@@ -148,7 +157,9 @@ class CloudSandboxOrchestrator:
                 del self._active_sandboxes[sandbox_id]
             return True
         except httpx.HTTPStatusError as e:
-            logger.error(f"Failed to destroy sandbox {sandbox_id}. Status: {e.response.status_code}")
+            logger.error(
+                f"Failed to destroy sandbox {sandbox_id}. Status: {e.response.status_code}"
+            )
         return False
 
     async def auto_destroy_worker(self, tenant_id: str):
@@ -163,14 +174,20 @@ class CloudSandboxOrchestrator:
         while True:
             try:
                 # Default 10 minutes TTL
-                ttl_minutes = await config_proxy.get("SANDBOX_TTL_MINUTES", 10) if config_proxy else 10
+                ttl_minutes = (
+                    await config_proxy.get("SANDBOX_TTL_MINUTES", 10)
+                    if config_proxy
+                    else 10
+                )
                 ttl_delta = datetime.timedelta(minutes=ttl_minutes)
                 now = datetime.datetime.now(datetime.UTC)
 
                 for sandbox_id, data in list(self._active_sandboxes.items()):
                     created_at = data.get("created_at")
                     if created_at and (now - created_at) > ttl_delta:
-                        logger.warning(f"Sandbox {sandbox_id} exceeded TTL of {ttl_minutes}m. Terminating...")
+                        logger.warning(
+                            f"Sandbox {sandbox_id} exceeded TTL of {ttl_minutes}m. Terminating..."
+                        )
 
                         # If we assume it timed out or crashed, notify SelfHealer
                         if db:
@@ -193,12 +210,16 @@ class CloudSandboxOrchestrator:
     # ------------------------------------------------------------------------
     # 🤖 FREEBUFF AI WORKER INTEGRATION
     # ------------------------------------------------------------------------
-    async def delegate_to_freebuff(self, prompt: str, working_dir: str = ".") -> dict[str, Any]:
+    async def delegate_to_freebuff(
+        self, prompt: str, working_dir: str = "."
+    ) -> dict[str, Any]:
         """
         বাংলা মন্তব্য: Freebuff CLI-কে অসিঙ্ক্রোনাস সাব-প্রসেস হিসেবে কল করে জিরো-কস্টে কোডিং টাস্ক এক্সিকিউট করা হচ্ছে।
         এটি SupremeAI-এর জন্য সম্পূর্ণ ফ্রি এআই ডেভেলপার হিসেবে কাজ করবে।
         """
-        logger.info(f"🚀 Delegating task to Freebuff AI Worker in directory: {working_dir}")
+        logger.info(
+            f"🚀 Delegating task to Freebuff AI Worker in directory: {working_dir}"
+        )
         try:
             # বাংলা মন্তব্য: asyncio.create_subprocess_exec ব্যবহার করা হচ্ছে যাতে মূল ইভেন্ট লুপ ব্লক না হয়
             # উইন্ডোজের জন্য .cmd সাফিক্স হ্যান্ডলিং করা হয়েছে
@@ -223,7 +244,9 @@ class CloudSandboxOrchestrator:
                 return {"status": "error", "error": stderr.decode("utf-8")}
 
         except FileNotFoundError:
-            logger.error("🚨 Freebuff CLI not found. Please ensure it is installed globally (npm install -g freebuff).")
+            logger.error(
+                "🚨 Freebuff CLI not found. Please ensure it is installed globally (npm install -g freebuff)."
+            )
             return {"status": "error", "error": "Freebuff CLI not installed."}
         except Exception as e:
             logger.error(f"⚠️ Unexpected error running Freebuff: {e}")
@@ -239,9 +262,13 @@ class CloudSandboxOrchestrator:
                 "destroy": f"/{sandbox_id}/terminate",
             }
             return endpoints[action]
-        raise NotImplementedError(f"Endpoints for provider '{self.provider}' not implemented.")
+        raise NotImplementedError(
+            f"Endpoints for provider '{self.provider}' not implemented."
+        )
 
     def _prepare_creation_payload(self, spec: dict[str, Any]) -> dict[str, Any]:
         if self.provider == "runpod":
             return {"pod": spec}
-        raise NotImplementedError(f"Payload preparation for provider '{self.provider}' not implemented.")
+        raise NotImplementedError(
+            f"Payload preparation for provider '{self.provider}' not implemented."
+        )

@@ -1,9 +1,8 @@
-# ruff: noqa: BLE001, B904, E722
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 from datetime import UTC, datetime, timedelta
 
+from core.error_bus import with_error_bus
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from loguru import logger
@@ -33,7 +32,9 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     if jwt is None:
         raise RuntimeError("python-jose[cryptography] is required for token issuance")
     to_encode = data.copy()
-    expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    expire = datetime.now(UTC) + (
+        expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -88,14 +89,19 @@ async def login(body: LoginRequest, request: Request):
         )
 
     try:
-        res = db.client.auth.sign_in_with_password({"email": body.username, "password": body.password})
+        res = db.client.auth.sign_in_with_password(
+            {"email": body.username, "password": body.password}
+        )
         if not res.user:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
+            )
 
         user_id = res.user.id
         # বাংলা মন্তব্য: ইমেইলটি settings.admin_emails তালিকায় আছে কি না তা দেখে রোল অ্যাসাইন করা হচ্ছে (ঝুঁকিপূর্ণ "admin" in username চেক প্রতিস্থাপিত)।
         is_admin = body.username and any(
-            body.username.lower() == admin_email.lower() for admin_email in settings.admin_emails
+            body.username.lower() == admin_email.lower()
+            for admin_email in settings.admin_emails
         )
         primary_role = "admin" if is_admin else "user"
         token_data = {
@@ -114,9 +120,13 @@ async def login(body: LoginRequest, request: Request):
             try:
                 await redis_manager.client.sadd(f"device:known:{user_id}", fingerprint)
             except Exception as exc:
-                logger.warning(f"Failed to register device fingerprint for {user_id}: {exc}")
+                logger.warning(
+                    f"Failed to register device fingerprint for {user_id}: {exc}"
+                )
 
-        return TokenResponse(access_token=access_token, user_id=user_id, role=primary_role)
+        return TokenResponse(
+            access_token=access_token, user_id=user_id, role=primary_role
+        )
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
@@ -130,14 +140,19 @@ async def register(body: RegisterRequest):
         )
 
     try:
-        res = db.client.auth.sign_up({"email": body.username, "password": body.password})
+        res = db.client.auth.sign_up(
+            {"email": body.username, "password": body.password}
+        )
         if not res.user:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Registration failed")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Registration failed"
+            )
 
         user_id = res.user.id
         # বাংলা মন্তব্য: ইমেইলটি settings.admin_emails তালিকায় আছে কি না তা দেখে রোল অ্যাসাইন করা হচ্ছে (ঝুঁকিপূর্ণ "admin" in username চেক প্রতিস্থাপিত)।
         is_admin = body.username and any(
-            body.username.lower() == admin_email.lower() for admin_email in settings.admin_emails
+            body.username.lower() == admin_email.lower()
+            for admin_email in settings.admin_emails
         )
         primary_role = "admin" if is_admin else "user"
         token_data = {
@@ -147,7 +162,9 @@ async def register(body: RegisterRequest):
             "method": "supabase_auth",
         }
         access_token = create_access_token(token_data)
-        return TokenResponse(access_token=access_token, user_id=user_id, role=primary_role)
+        return TokenResponse(
+            access_token=access_token, user_id=user_id, role=primary_role
+        )
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
@@ -155,10 +172,14 @@ async def register(body: RegisterRequest):
 @router.get("/me", response_model=MeResponse)
 async def me(current_user: UserContext | None = Depends(optional_current_user)):
     if current_user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
+        )
     # বাংলা মন্তব্য: scopes যদি None হয় তবে MeResponse ভ্যালিডেশন পাস করানোর জন্য খালি টুপল পাস করা হচ্ছে।
     scopes_val = current_user.scopes if current_user.scopes is not None else ()
-    return MeResponse(user_id=current_user.user_id, role=current_user.role, scopes=scopes_val)
+    return MeResponse(
+        user_id=current_user.user_id, role=current_user.role, scopes=scopes_val
+    )
 
 
 @router.get("/verify")

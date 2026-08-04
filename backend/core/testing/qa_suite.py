@@ -39,7 +39,8 @@ from loguru import logger
 try:
     from selenium import webdriver
     from selenium.webdriver.common.by import By
-    from selenium.webdriver.support import expected_conditions as EC  # -- standard Selenium idiom (docs use `EC`)
+    from selenium.webdriver.support import \
+        expected_conditions as EC  # -- standard Selenium idiom (docs use `EC`)
     from selenium.webdriver.support.ui import WebDriverWait
 except ImportError:
     webdriver = None
@@ -159,7 +160,10 @@ class TestSuite:
 
                 results.append(
                     TestResultDetail(
-                        test_case=test_case, result=TestResult.PASSED, duration=duration, timestamp=start_time
+                        test_case=test_case,
+                        result=TestResult.PASSED,
+                        duration=duration,
+                        timestamp=start_time,
                     )
                 )
             except Exception as e:
@@ -195,7 +199,10 @@ class TestSuite:
                 duration = time.time() - start_time
 
                 return TestResultDetail(
-                    test_case=test_case, result=TestResult.PASSED, duration=duration, timestamp=start_time
+                    test_case=test_case,
+                    result=TestResult.PASSED,
+                    duration=duration,
+                    timestamp=start_time,
                 )
             except Exception as e:
                 duration = time.time() - start_time
@@ -227,7 +234,11 @@ class TestSuite:
         skipped = len([r for r in self.results if r.result == TestResult.SKIPPED])
         errors = len([r for r in self.results if r.result == TestResult.ERROR])
 
-        total_duration = (self.end_time - self.start_time) if self.end_time and self.start_time else 0
+        total_duration = (
+            (self.end_time - self.start_time)
+            if self.end_time and self.start_time
+            else 0
+        )
 
         return {
             "suite_name": self.name,
@@ -238,7 +249,11 @@ class TestSuite:
             "errors": errors,
             "pass_rate": passed / total_tests if total_tests > 0 else 0,
             "total_duration": total_duration,
-            "average_duration": sum(r.duration for r in self.results) / len(self.results) if self.results else 0,
+            "average_duration": (
+                sum(r.duration for r in self.results) / len(self.results)
+                if self.results
+                else 0
+            ),
         }
 
 
@@ -360,13 +375,20 @@ class SecurityTester:
             "' OR 1=1--",
         ]
 
-        results = {"endpoint": endpoint, "param_name": param_name, "vulnerable_inputs": [], "is_vulnerable": False}
+        results = {
+            "endpoint": endpoint,
+            "param_name": param_name,
+            "vulnerable_inputs": [],
+            "is_vulnerable": False,
+        }
 
         for payload in vulnerable_inputs:
             try:
                 # In a real implementation, you'd make actual requests
                 # For demo, we'll simulate the check
-                is_vulnerable = self._simulate_sql_injection_check(endpoint, param_name, payload)
+                is_vulnerable = self._simulate_sql_injection_check(
+                    endpoint, param_name, payload
+                )
 
                 if is_vulnerable:
                     results["vulnerable_inputs"].append(payload)
@@ -376,12 +398,16 @@ class SecurityTester:
 
         return results
 
-    def _simulate_sql_injection_check(self, endpoint: str, param_name: str, payload: str) -> bool:
+    def _simulate_sql_injection_check(
+        self, endpoint: str, param_name: str, payload: str
+    ) -> bool:
         """Simulate SQL injection check."""
         # In a real implementation, you'd make requests with payloads
         # and analyze responses for signs of vulnerability
         # For demo, we'll return a random result
-        return random.choice([True, False, False, False])  # Low probability of vulnerability in demo
+        return random.choice(
+            [True, False, False, False]
+        )  # Low probability of vulnerability in demo
 
     def test_xss(self, endpoint: str, param_name: str) -> dict[str, Any]:
         """Test for XSS vulnerabilities."""
@@ -393,7 +419,12 @@ class SecurityTester:
             "'><script>alert('XSS')</script>",
         ]
 
-        results = {"endpoint": endpoint, "param_name": param_name, "xss_payloads": [], "is_vulnerable": False}
+        results = {
+            "endpoint": endpoint,
+            "param_name": param_name,
+            "xss_payloads": [],
+            "is_vulnerable": False,
+        }
 
         for payload in xss_payloads:
             try:
@@ -417,7 +448,11 @@ class SecurityTester:
 
     def test_auth_bypass(self, auth_endpoint: str) -> dict[str, Any]:
         """Test for authentication bypass vulnerabilities."""
-        results = {"endpoint": auth_endpoint, "bypass_methods": [], "is_vulnerable": False}
+        results = {
+            "endpoint": auth_endpoint,
+            "bypass_methods": [],
+            "is_vulnerable": False,
+        }
 
         # Test various bypass techniques
         bypass_techniques = [
@@ -429,7 +464,9 @@ class SecurityTester:
 
         for technique in bypass_techniques:
             try:
-                is_vulnerable = self._simulate_auth_bypass_check(auth_endpoint, technique)
+                is_vulnerable = self._simulate_auth_bypass_check(
+                    auth_endpoint, technique
+                )
 
                 if is_vulnerable:
                     results["bypass_methods"].append(technique)
@@ -451,7 +488,9 @@ class PerformanceTester:
     def __init__(self):
         self.metrics = []
 
-    async def test_response_time(self, url: str, num_requests: int = 100) -> dict[str, Any]:
+    async def test_response_time(
+        self, url: str, num_requests: int = 100
+    ) -> dict[str, Any]:
         """Test API response times."""
         response_times = []
 
@@ -495,7 +534,9 @@ class PerformanceTester:
         index = int(len(sorted_data) * percentile / 100)
         return sorted_data[min(index, len(sorted_data) - 1)] if sorted_data else 0.0
 
-    async def test_concurrent_load(self, url: str, num_concurrent: int = 10, duration: int = 60) -> dict[str, Any]:
+    async def test_concurrent_load(
+        self, url: str, num_concurrent: int = 10, duration: int = 60
+    ) -> dict[str, Any]:
         """Test concurrent load handling."""
         start_time = time.time()
         end_time = start_time + duration
@@ -510,7 +551,11 @@ class PerformanceTester:
                         async with session.get(url) as resp:
                             response_time = time.time() - request_start
                             results.append(
-                                {"status": resp.status, "response_time": response_time, "timestamp": time.time()}
+                                {
+                                    "status": resp.status,
+                                    "response_time": response_time,
+                                    "timestamp": time.time(),
+                                }
                             )
                 except Exception as e:
                     results.append(
@@ -528,7 +573,9 @@ class PerformanceTester:
         tasks = [make_request() for _ in range(num_concurrent)]
         await asyncio.gather(*tasks)
 
-        successful_requests = [r for r in results if r["status"] != 0 and r["status"] < 500]
+        successful_requests = [
+            r for r in results if r["status"] != 0 and r["status"] < 500
+        ]
         failed_requests = [r for r in results if r["status"] == 0 or r["status"] >= 500]
 
         return {
@@ -540,7 +587,8 @@ class PerformanceTester:
             "failed_requests": len(failed_requests),
             "success_rate": len(successful_requests) / len(results) if results else 0,
             "avg_response_time": (
-                sum(r["response_time"] for r in successful_requests) / len(successful_requests)
+                sum(r["response_time"] for r in successful_requests)
+                / len(successful_requests)
                 if successful_requests
                 else 0
             ),
@@ -558,7 +606,9 @@ class ChaosEngineer:
         self, target_service: str, latency_ms: int = 500, duration: int = 30
     ) -> dict[str, Any]:
         """Inject network latency to test resilience."""
-        logger.info(f"Injecting {latency_ms}ms network latency to {target_service} for {duration}s")
+        logger.info(
+            f"Injecting {latency_ms}ms network latency to {target_service} for {duration}s"
+        )
 
         # In a real implementation, you'd use tools like toxiproxy, iptables, etc.
         # For demo, we'll simulate the effect
@@ -574,9 +624,13 @@ class ChaosEngineer:
             "recovery_time": random.randint(5, 30),  # Simulated recovery time
         }
 
-    async def inject_cpu_spikes(self, target_service: str, cpu_percent: int = 80, duration: int = 30) -> dict[str, Any]:
+    async def inject_cpu_spikes(
+        self, target_service: str, cpu_percent: int = 80, duration: int = 30
+    ) -> dict[str, Any]:
         """Inject CPU spikes to test resilience."""
-        logger.info(f"Injecting {cpu_percent}% CPU load to {target_service} for {duration}s")
+        logger.info(
+            f"Injecting {cpu_percent}% CPU load to {target_service} for {duration}s"
+        )
 
         # Simulate CPU spike by consuming CPU cycles
         start_time = time.time()
@@ -598,7 +652,9 @@ class ChaosEngineer:
         self, target_service: str, memory_mb: int = 100, duration: int = 30
     ) -> dict[str, Any]:
         """Inject memory pressure to test resilience."""
-        logger.info(f"Injecting {memory_mb}MB memory pressure to {target_service} for {duration}s")
+        logger.info(
+            f"Injecting {memory_mb}MB memory pressure to {target_service} for {duration}s"
+        )
 
         # Simulate memory allocation
         allocated_memory = []
@@ -702,14 +758,21 @@ class QASuite:
 
         results = self.unit_tests.run_tests(parallel=True)
 
-        return {"results": [r.result.value for r in results], "summary": self.unit_tests.get_summary()}
+        return {
+            "results": [r.result.value for r in results],
+            "summary": self.unit_tests.get_summary(),
+        }
 
     async def _run_integration_tests(self, target_url: str) -> dict[str, Any]:
         """Run integration tests."""
         # Run integration tests
-        db_result = await self.integration_runner.test_database_integration("postgresql://localhost/test")
+        db_result = await self.integration_runner.test_database_integration(
+            "postgresql://localhost/test"
+        )
         api_result = await self.integration_runner.test_api_integration(target_url)
-        cache_result = await self.integration_runner.test_cache_integration("redis://localhost:6379")
+        cache_result = await self.integration_runner.test_cache_integration(
+            "redis://localhost:6379"
+        )
 
         return {
             "database_integration": db_result,
@@ -720,8 +783,12 @@ class QASuite:
 
     async def _run_performance_tests(self, target_url: str) -> dict[str, Any]:
         """Run performance tests."""
-        response_time_results = await self.performance_tester.test_response_time(f"{target_url}/health", 50)
-        load_test_results = await self.performance_tester.test_concurrent_load(f"{target_url}/api/data", 10, 30)
+        response_time_results = await self.performance_tester.test_response_time(
+            f"{target_url}/health", 50
+        )
+        load_test_results = await self.performance_tester.test_concurrent_load(
+            f"{target_url}/api/data", 10, 30
+        )
 
         return {
             "response_time": response_time_results,
@@ -734,9 +801,15 @@ class QASuite:
 
     async def _run_security_tests(self, target_url: str) -> dict[str, Any]:
         """Run security tests."""
-        sql_test_results = self.security_tester.test_sql_injection(f"{target_url}/api/search", "query")
-        xss_test_results = self.security_tester.test_xss(f"{target_url}/api/echo", "message")
-        auth_test_results = self.security_tester.test_auth_bypass(f"{target_url}/api/protected")
+        sql_test_results = self.security_tester.test_sql_injection(
+            f"{target_url}/api/search", "query"
+        )
+        xss_test_results = self.security_tester.test_xss(
+            f"{target_url}/api/echo", "message"
+        )
+        auth_test_results = self.security_tester.test_auth_bypass(
+            f"{target_url}/api/protected"
+        )
 
         return {
             "sql_injection": sql_test_results,
@@ -753,9 +826,13 @@ class QASuite:
 
     async def _run_chaos_tests(self, target_url: str) -> dict[str, Any]:
         """Run chaos engineering tests."""
-        latency_experiment = await self.chaos_engineer.inject_network_latency(target_url, 500, 15)
+        latency_experiment = await self.chaos_engineer.inject_network_latency(
+            target_url, 500, 15
+        )
         cpu_experiment = await self.chaos_engineer.inject_cpu_spikes(target_url, 80, 15)
-        memory_experiment = await self.chaos_engineer.inject_memory_pressure(target_url, 50, 15)
+        memory_experiment = await self.chaos_engineer.inject_memory_pressure(
+            target_url, 50, 15
+        )
 
         return {
             "network_latency": latency_experiment,
@@ -775,7 +852,9 @@ class QASuite:
         return {
             "unit_tests_passing": results["unit_tests"]["summary"]["pass_rate"] == 1.0,
             "integration_tests_passing": results["integration_tests"]["all_passed"],
-            "performance_acceptable": results["performance_tests"]["is_performing_well"],
+            "performance_acceptable": results["performance_tests"][
+                "is_performing_well"
+            ],
             "security_passing": results["security_tests"]["is_secure"],
             "resilience_verified": results["chaos_tests"]["system_resilient"],
             "overall_status": all(
@@ -803,11 +882,15 @@ async def demo_qa_suite():
 
     print("\nQA Suite Results:")
     print(f"Unit Tests Passing: {results['summary']['unit_tests_passing']}")
-    print(f"Integration Tests Passing: {results['summary']['integration_tests_passing']}")
+    print(
+        f"Integration Tests Passing: {results['summary']['integration_tests_passing']}"
+    )
     print(f"Performance Acceptable: {results['summary']['performance_acceptable']}")
     print(f"Security Passing: {results['summary']['security_passing']}")
     print(f"Resilience Verified: {results['summary']['resilience_verified']}")
-    print(f"Overall Status: {'PASS' if results['summary']['overall_status'] else 'FAIL'}")
+    print(
+        f"Overall Status: {'PASS' if results['summary']['overall_status'] else 'FAIL'}"
+    )
 
     print("\nDetailed Results:")
     print(f"- Unit Tests: {results['unit_tests']['summary']}")

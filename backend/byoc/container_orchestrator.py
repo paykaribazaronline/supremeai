@@ -19,11 +19,15 @@ class ContainerOrchestrator:
         self.tf_dir = tf_dir
 
     async def deploy(self, user_id: str, skill: str) -> dict[str, Any]:
-        logger.info(f"Deploying skill '{skill}' for user '{user_id}' on Google Cloud Run...")
+        logger.info(
+            f"Deploying skill '{skill}' for user '{user_id}' on Google Cloud Run..."
+        )
 
         tf_executable = shutil.which("terraform")
         if not tf_executable:
-            logger.warning("Terraform binary not found. Running in simulated fallback mode.")
+            logger.warning(
+                "Terraform binary not found. Running in simulated fallback mode."
+            )
             return {
                 "status": "deployed",
                 "user_id": user_id,
@@ -80,7 +84,8 @@ class ContainerOrchestrator:
                 "status": "deployed",
                 "user_id": user_id,
                 "skill": skill,
-                "service_url": service_url or f"https://byoc-skill-{skill}-fallback.a.run.app",
+                "service_url": service_url
+                or f"https://byoc-skill-{skill}-fallback.a.run.app",
                 "mode": "live",
             }
         except subprocess.CalledProcessError as err:

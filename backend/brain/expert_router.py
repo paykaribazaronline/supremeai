@@ -112,13 +112,22 @@ class SupremeMoERouter:
         words = set(prompt_lower.split())
 
         # Check explicit keywords
-        if any(kw in words or (len(kw) > 3 and kw in prompt_lower) for kw in cls.BENGALI_KEYWORDS):
+        if any(
+            kw in words or (len(kw) > 3 and kw in prompt_lower)
+            for kw in cls.BENGALI_KEYWORDS
+        ):
             return ExpertType.BENGALI
 
-        if any(kw in words or (len(kw) > 3 and kw in prompt_lower) for kw in cls.CODER_KEYWORDS):
+        if any(
+            kw in words or (len(kw) > 3 and kw in prompt_lower)
+            for kw in cls.CODER_KEYWORDS
+        ):
             return ExpertType.CODER
 
-        if any(kw in words or (len(kw) > 3 and kw in prompt_lower) for kw in cls.REASONING_KEYWORDS):
+        if any(
+            kw in words or (len(kw) > 3 and kw in prompt_lower)
+            for kw in cls.REASONING_KEYWORDS
+        ):
             return ExpertType.REASONER
 
         return ExpertType.GENERAL
@@ -128,5 +137,7 @@ class SupremeMoERouter:
         """Return model fallback chain based on expert classification."""
         expert = cls.classify_prompt(prompt)
         chain = cls.EXPERT_MODEL_MAP[expert]
-        logger.info(f"🔀 [MoE Router] Prompt classified as '{expert.value}' -> Chain: {chain}")
+        logger.info(
+            f"🔀 [MoE Router] Prompt classified as '{expert.value}' -> Chain: {chain}"
+        )
         return chain

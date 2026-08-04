@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 ============================================================================
 SupremeAI 2.0 — Performance Benchmark Suite
@@ -31,20 +30,18 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import gc
 import json
 import os
 import statistics
 import sys
 import time
 import tracemalloc
-import uuid
 from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor
-from dataclasses import asdict, dataclass, field
+from collections.abc import Callable
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import httpx
 from loguru import logger
@@ -55,7 +52,6 @@ try:
     from backend.core.llm.llm_gateway import get_llm_gateway
 except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
-    from backend.core.config import settings
     from backend.core.llm.llm_gateway import get_llm_gateway
 
 
@@ -70,9 +66,11 @@ API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
 
 # ── Data Models ──────────────────────────────────────────────────────────
 
+
 @dataclass
 class BenchmarkResult:
     """বাংলা মন্তব্য: একক বেঞ্চমার্ক রানের ফলাফল"""
+
     name: str
     target: str
     metric: str  # latency | throughput | memory | cpu
@@ -139,6 +137,7 @@ class BenchmarkResult:
 @dataclass
 class LoadTestResult:
     """বাংলা মন্তব্য: লোড টেস্টের ফলাফল"""
+
     total_requests: int = 0
     successful_requests: int = 0
     failed_requests: int = 0
@@ -168,6 +167,7 @@ class LoadTestResult:
 
 # ── Benchmark Base Class ─────────────────────────────────────────────────
 
+
 class BenchmarkBase:
     """
     বাংলা মন্তব্য: সব বেঞ্চমার্কের বেস ক্লাস। Common functionality প্রোভাইড করে।
@@ -184,26 +184,44 @@ class BenchmarkBase:
             logger.info(f"Warming up for {self.warmup}s...")
             await asyncio.sleep(self.warmup)
 
-    def record(self, name: str, target: str, metric: str, value: float, unit: str = "ms", metadata: dict | None = None) -> None:
+    def record(
+        self,
+        name: str,
+        target: str,
+        metric: str,
+        value: float,
+        unit: str = "ms",
+        metadata: dict | None = None,
+    ) -> None:
         """বাংলা মন্তব্য: একক মেজারমেন্ট রেকর্ড করে"""
-        existing = next((r for r in self.results if r.name == name and r.target == target and r.metric == metric), None)
+        existing = next(
+            (
+                r
+                for r in self.results
+                if r.name == name and r.target == target and r.metric == metric
+            ),
+            None,
+        )
         if existing:
             existing.samples.append(value)
         else:
-            self.results.append(BenchmarkResult(
-                name=name,
-                target=target,
-                metric=metric,
-                samples=[value],
-                unit=unit,
-                metadata=metadata or {},
-            ))
+            self.results.append(
+                BenchmarkResult(
+                    name=name,
+                    target=target,
+                    metric=metric,
+                    samples=[value],
+                    unit=unit,
+                    metadata=metadata or {},
+                )
+            )
 
     def get_results(self) -> list[BenchmarkResult]:
         return self.results
 
 
 # ── API Benchmark ──────────────────────────────────────────────────────────
+
 
 class APIBenchmark(BenchmarkBase):
     """
@@ -212,8 +230,16 @@ class APIBenchmark(BenchmarkBase):
 
     ENDPOINTS = {
         "health": {"method": "GET", "path": "/health", "body": None},
-        "auth_login": {"method": "POST", "path": "/api/v1/auth/login", "body": {"email": "test@test.com", "password": "test123"}},
-        "chat": {"method": "POST", "path": "/api/v1/chat", "body": {"message": "Hello, how are you?", "session_id": "test-session"}},
+        "auth_login": {
+            "method": "POST",
+            "path": "/api/v1/auth/login",
+            "body": {"email": "test@test.com", "password": "test123"},
+        },
+        "chat": {
+            "method": "POST",
+            "path": "/api/v1/chat",
+            "body": {"message": "Hello, how are you?", "session_id": "test-session"},
+        },
         "tenant_info": {"method": "GET", "path": "/api/v1/tenant/info", "body": None},
         "skills_list": {"method": "GET", "path": "/api/v1/skills", "body": None},
     }
@@ -239,9 +265,13 @@ class APIBenchmark(BenchmarkBase):
 
         return self.results
 
-    async def _benchmark_endpoint(self, client: httpx.AsyncClient, name: str, config: dict) -> None:
+    async def _benchmark_endpoint(
+        self, client: httpx.AsyncClient, name: str, config: dict
+    ) -> None:
         """বাংলা মন্তব্য: একক endpoint বেঞ্চমার্ক করে"""
-        logger.info(f"Benchmarking endpoint: {name} ({config['method']} {config['path']})")
+        logger.info(
+            f"Benchmarking endpoint: {name} ({config['method']} {config['path']})"
+        )
 
         start_time = time.time()
         request_count = 0
@@ -258,8 +288,17 @@ class APIBenchmark(BenchmarkBase):
                     )
 
                 latency = (time.perf_counter() - req_start) * 1000  # ms
-                self.record(name, config["path"], "latency", latency, "ms",
-                           metadata={"status_code": response.status_code, "method": config["method"]})
+                self.record(
+                    name,
+                    config["path"],
+                    "latency",
+                    latency,
+                    "ms",
+                    metadata={
+                        "status_code": response.status_code,
+                        "method": config["method"],
+                    },
+                )
                 request_count += 1
 
             except Exception as e:
@@ -267,13 +306,22 @@ class APIBenchmark(BenchmarkBase):
 
         elapsed = time.time() - start_time
         throughput = request_count / elapsed if elapsed > 0 else 0
-        self.record(name, config["path"], "throughput", throughput, "req/s",
-                   metadata={"total_requests": request_count, "duration": elapsed})
+        self.record(
+            name,
+            config["path"],
+            "throughput",
+            throughput,
+            "req/s",
+            metadata={"total_requests": request_count, "duration": elapsed},
+        )
 
-        logger.info(f"  {name}: {request_count} requests in {elapsed:.1f}s ({throughput:.1f} req/s)")
+        logger.info(
+            f"  {name}: {request_count} requests in {elapsed:.1f}s ({throughput:.1f} req/s)"
+        )
 
 
 # ── LLM Benchmark ──────────────────────────────────────────────────────────
+
 
 class LLMBenchmark(BenchmarkBase):
     """
@@ -282,9 +330,21 @@ class LLMBenchmark(BenchmarkBase):
 
     TEST_PROMPTS = [
         {"name": "short", "prompt": "What is 2+2?", "expected_tokens": 10},
-        {"name": "medium", "prompt": "Explain quantum computing in simple terms.", "expected_tokens": 150},
-        {"name": "long", "prompt": "Write a Python function to implement a binary search tree with insert, delete, and search operations. Include docstrings and type hints.", "expected_tokens": 500},
-        {"name": "bangla", "prompt": "বাংলাদেশের ইতিহাস সম্পর্কে একটি সংক্ষিপ্ত প্রবন্ধ লিখুন।", "expected_tokens": 300},
+        {
+            "name": "medium",
+            "prompt": "Explain quantum computing in simple terms.",
+            "expected_tokens": 150,
+        },
+        {
+            "name": "long",
+            "prompt": "Write a Python function to implement a binary search tree with insert, delete, and search operations. Include docstrings and type hints.",
+            "expected_tokens": 500,
+        },
+        {
+            "name": "bangla",
+            "prompt": "বাংলাদেশের ইতিহাস সম্পর্কে একটি সংক্ষিপ্ত প্রবন্ধ লিখুন।",
+            "expected_tokens": 300,
+        },
     ]
 
     def __init__(self, providers: list[str] | None = None, **kwargs):
@@ -339,18 +399,33 @@ class LLMBenchmark(BenchmarkBase):
 
         if latencies:
             for lat in latencies:
-                self.record(name, provider, "latency", lat, "ms",
-                           metadata={"prompt_type": test["name"], "provider": provider})
+                self.record(
+                    name,
+                    provider,
+                    "latency",
+                    lat,
+                    "ms",
+                    metadata={"prompt_type": test["name"], "provider": provider},
+                )
             for tps in tokens_per_second:
-                self.record(name, provider, "tokens_per_second", tps, "tokens/s",
-                           metadata={"prompt_type": test["name"], "provider": provider})
+                self.record(
+                    name,
+                    provider,
+                    "tokens_per_second",
+                    tps,
+                    "tokens/s",
+                    metadata={"prompt_type": test["name"], "provider": provider},
+                )
 
             avg_latency = statistics.mean(latencies)
             avg_tps = statistics.mean(tokens_per_second)
-            logger.info(f"  {name}: avg latency={avg_latency:.1f}ms, avg tps={avg_tps:.1f}")
+            logger.info(
+                f"  {name}: avg latency={avg_latency:.1f}ms, avg tps={avg_tps:.1f}"
+            )
 
 
 # ── Database Benchmark ─────────────────────────────────────────────────────
+
 
 class DatabaseBenchmark(BenchmarkBase):
     """
@@ -366,6 +441,7 @@ class DatabaseBenchmark(BenchmarkBase):
         """বাংলা মন্তব্য: Firestore client ইনিশিয়ালাইজ করে"""
         try:
             from google.cloud import firestore
+
             self.db = firestore.Client()
         except Exception as e:
             logger.warning(f"Firestore unavailable: {e}")
@@ -395,15 +471,23 @@ class DatabaseBenchmark(BenchmarkBase):
         for i in range(doc_count):
             start = time.perf_counter()
             doc_ref = collection.document(f"bench_{i}")
-            await doc_ref.set({
-                "index": i,
-                "data": "x" * 1000,  # 1KB payload
-                "timestamp": datetime.now(UTC),
-                "metadata": {"test": True, "benchmark": True},
-            })
+            await doc_ref.set(
+                {
+                    "index": i,
+                    "data": "x" * 1000,  # 1KB payload
+                    "timestamp": datetime.now(UTC),
+                    "metadata": {"test": True, "benchmark": True},
+                }
+            )
             latency = (time.perf_counter() - start) * 1000
-            self.record("firestore_write", "firestore", "latency", latency, "ms",
-                       metadata={"operation": "write", "payload_size": 1000})
+            self.record(
+                "firestore_write",
+                "firestore",
+                "latency",
+                latency,
+                "ms",
+                metadata={"operation": "write", "payload_size": 1000},
+            )
 
     async def _benchmark_reads(self, collection) -> None:
         """বাংলা মন্তব্য: Read operation latency মেজার করে"""
@@ -413,8 +497,14 @@ class DatabaseBenchmark(BenchmarkBase):
             start = time.perf_counter()
             doc = await collection.document(f"bench_{i}").get()
             latency = (time.perf_counter() - start) * 1000
-            self.record("firestore_read", "firestore", "latency", latency, "ms",
-                       metadata={"operation": "read", "exists": doc.exists})
+            self.record(
+                "firestore_read",
+                "firestore",
+                "latency",
+                latency,
+                "ms",
+                metadata={"operation": "read", "exists": doc.exists},
+            )
 
     async def _benchmark_queries(self, collection) -> None:
         """বাংলা মন্তব্য: Query operation latency মেজার করে"""
@@ -425,8 +515,14 @@ class DatabaseBenchmark(BenchmarkBase):
             query = collection.where("test", "==", True).limit(10)
             docs = await query.get()
             latency = (time.perf_counter() - start) * 1000
-            self.record("firestore_query", "firestore", "latency", latency, "ms",
-                       metadata={"operation": "query", "results": len(docs)})
+            self.record(
+                "firestore_query",
+                "firestore",
+                "latency",
+                latency,
+                "ms",
+                metadata={"operation": "query", "results": len(docs)},
+            )
 
     async def _cleanup(self, collection) -> None:
         """বাংলা মন্তব্য: বেঞ্চমার্ক ডেটা ক্লিনআপ করে"""
@@ -437,6 +533,7 @@ class DatabaseBenchmark(BenchmarkBase):
 
 
 # ── Load Test Engine ─────────────────────────────────────────────────────
+
 
 class LoadTestEngine:
     """
@@ -449,9 +546,13 @@ class LoadTestEngine:
         self.results = LoadTestResult()
         self._stop_event = asyncio.Event()
 
-    async def run(self, users: int, spawn_rate: float, duration: int, endpoint: str = "/health") -> LoadTestResult:
+    async def run(
+        self, users: int, spawn_rate: float, duration: int, endpoint: str = "/health"
+    ) -> LoadTestResult:
         """বাংলা মন্তব্য: নির্দিষ্ট সংখ্যক concurrent user দিয়ে লোড টেস্ট চালায়।"""
-        logger.info(f"Starting load test: {users} users, {spawn_rate}/s spawn rate, {duration}s duration")
+        logger.info(
+            f"Starting load test: {users} users, {spawn_rate}/s spawn rate, {duration}s duration"
+        )
 
         self.results = LoadTestResult()
         start_time = time.time()
@@ -462,7 +563,9 @@ class LoadTestEngine:
         while spawned < users and not self._stop_event.is_set():
             batch_size = min(int(spawn_rate), users - spawned)
             for _ in range(batch_size):
-                task = asyncio.create_task(self._user_worker(endpoint, start_time, duration))
+                task = asyncio.create_task(
+                    self._user_worker(endpoint, start_time, duration)
+                )
                 tasks.append(task)
             spawned += batch_size
             await asyncio.sleep(1.0)
@@ -475,13 +578,19 @@ class LoadTestEngine:
 
         self.results.total_duration = time.time() - start_time
         if self.results.total_duration > 0:
-            self.results.requests_per_second = self.results.total_requests / self.results.total_duration
+            self.results.requests_per_second = (
+                self.results.total_requests / self.results.total_duration
+            )
         if self.results.response_times:
-            self.results.avg_response_time = statistics.mean(self.results.response_times)
+            self.results.avg_response_time = statistics.mean(
+                self.results.response_times
+            )
 
         return self.results
 
-    async def _user_worker(self, endpoint: str, test_start: float, duration: int) -> None:
+    async def _user_worker(
+        self, endpoint: str, test_start: float, duration: int
+    ) -> None:
         """বাংলা মন্তব্য: একজন virtual user এর কাজ — continuously request করে"""
         async with httpx.AsyncClient(timeout=10.0) as client:
             while not self._stop_event.is_set():
@@ -502,8 +611,12 @@ class LoadTestEngine:
                     else:
                         self.results.failed_requests += 1
 
-                    self.results.min_response_time = min(self.results.min_response_time, latency)
-                    self.results.max_response_time = max(self.results.max_response_time, latency)
+                    self.results.min_response_time = min(
+                        self.results.min_response_time, latency
+                    )
+                    self.results.max_response_time = max(
+                        self.results.max_response_time, latency
+                    )
 
                 except Exception as e:
                     self.results.total_requests += 1
@@ -514,6 +627,7 @@ class LoadTestEngine:
 
 
 # ── Memory Profiler ──────────────────────────────────────────────────────
+
 
 class MemoryProfiler:
     """
@@ -540,7 +654,11 @@ class MemoryProfiler:
             "peak_mb": peak / 1024 / 1024,
             "top_allocations": [
                 {
-                    "file": stat.traceback.format()[-1] if stat.traceback.format() else "unknown",
+                    "file": (
+                        stat.traceback.format()[-1]
+                        if stat.traceback.format()
+                        else "unknown"
+                    ),
                     "size_mb": stat.size / 1024 / 1024,
                     "count": stat.count,
                 }
@@ -565,7 +683,11 @@ class MemoryProfiler:
 
         return [
             {
-                "file": stat.traceback.format()[-1] if stat.traceback.format() else "unknown",
+                "file": (
+                    stat.traceback.format()[-1]
+                    if stat.traceback.format()
+                    else "unknown"
+                ),
                 "size_diff_mb": stat.size_diff / 1024 / 1024,
                 "count_diff": stat.count_diff,
             }
@@ -574,6 +696,7 @@ class MemoryProfiler:
 
 
 # ── Report Generator ─────────────────────────────────────────────────────
+
 
 class PerformanceReportGenerator:
     """
@@ -584,7 +707,12 @@ class PerformanceReportGenerator:
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def generate(self, benchmark_results: list[BenchmarkResult], load_results: LoadTestResult | None = None, memory_results: list[dict] | None = None) -> str:
+    def generate(
+        self,
+        benchmark_results: list[BenchmarkResult],
+        load_results: LoadTestResult | None = None,
+        memory_results: list[dict] | None = None,
+    ) -> str:
         """বাংলা মন্তব্য: সম্পূর্ণ পারফরম্যান্স রিপোর্ট জেনারেট করে"""
         report_data = {
             "project": "SupremeAI 2.0",
@@ -602,7 +730,11 @@ class PerformanceReportGenerator:
                 "requests_per_second": load_results.requests_per_second,
                 "avg_response_time": load_results.avg_response_time,
                 "p95_response_time": load_results.p95_response_time,
-                "min_response_time": load_results.min_response_time if load_results.min_response_time != float("inf") else 0,
+                "min_response_time": (
+                    load_results.min_response_time
+                    if load_results.min_response_time != float("inf")
+                    else 0
+                ),
                 "max_response_time": load_results.max_response_time,
                 "status_codes": dict(load_results.status_codes),
             }
@@ -610,14 +742,23 @@ class PerformanceReportGenerator:
         if memory_results:
             report_data["memory_profile"] = memory_results
 
-        json_file = self.output_dir / f"performance_report_{datetime.now(UTC):%Y%m%d_%H%M%S}.json"
-        json_file.write_text(json.dumps(report_data, indent=2, ensure_ascii=False), encoding="utf-8")
+        json_file = (
+            self.output_dir
+            / f"performance_report_{datetime.now(UTC):%Y%m%d_%H%M%S}.json"
+        )
+        json_file.write_text(
+            json.dumps(report_data, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
 
         self._print_console_summary(benchmark_results, load_results)
 
         return str(json_file)
 
-    def _print_console_summary(self, benchmark_results: list[BenchmarkResult], load_results: LoadTestResult | None) -> None:
+    def _print_console_summary(
+        self,
+        benchmark_results: list[BenchmarkResult],
+        load_results: LoadTestResult | None,
+    ) -> None:
         """বাংলা মন্তব্য: কনসোলে সুন্দর সারসংক্ষেপ প্রিন্ট করে"""
         print("\n" + "=" * 70)
         print("🏎️  SupremeAI Performance Benchmark Summary")
@@ -631,22 +772,27 @@ class PerformanceReportGenerator:
             print(f"\n📍 {target}")
             print("-" * 50)
             for r in results:
-                print(f"  {r.name:30} | Mean: {r.mean:8.2f}{r.unit} | P95: {r.p95:8.2f}{r.unit} | P99: {r.p99:8.2f}{r.unit}")
+                print(
+                    f"  {r.name:30} | Mean: {r.mean:8.2f}{r.unit} | P95: {r.p95:8.2f}{r.unit} | P99: {r.p99:8.2f}{r.unit}"
+                )
 
         if load_results:
-            print(f"\n🌊 Load Test Results")
+            print("\n🌊 Load Test Results")
             print("-" * 50)
             print(f"  Total Requests : {load_results.total_requests}")
             print(f"  Success Rate   : {load_results.success_rate:.1f}%")
             print(f"  Req/Second     : {load_results.requests_per_second:.1f}")
             print(f"  Avg Response   : {load_results.avg_response_time:.1f}ms")
             print(f"  P95 Response   : {load_results.p95_response_time:.1f}ms")
-            print(f"  Min/Max        : {load_results.min_response_time:.1f}ms / {load_results.max_response_time:.1f}ms")
+            print(
+                f"  Min/Max        : {load_results.min_response_time:.1f}ms / {load_results.max_response_time:.1f}ms"
+            )
 
         print("\n" + "=" * 70)
 
 
 # ── Regression Detector ────────────────────────────────────────────────────
+
 
 class RegressionDetector:
     """
@@ -683,35 +829,50 @@ class RegressionDetector:
 
             if is_latency:
                 if current_mean > baseline * self.REGRESSION_THRESHOLD:
-                    regressions.append({
-                        "name": result.name,
-                        "target": result.target,
-                        "metric": result.metric,
-                        "baseline": baseline,
-                        "current": current_mean,
-                        "degradation_pct": ((current_mean - baseline) / baseline) * 100,
-                        "severity": "HIGH" if current_mean > baseline * 1.5 else "MEDIUM",
-                    })
+                    regressions.append(
+                        {
+                            "name": result.name,
+                            "target": result.target,
+                            "metric": result.metric,
+                            "baseline": baseline,
+                            "current": current_mean,
+                            "degradation_pct": ((current_mean - baseline) / baseline)
+                            * 100,
+                            "severity": (
+                                "HIGH" if current_mean > baseline * 1.5 else "MEDIUM"
+                            ),
+                        }
+                    )
             else:
                 if current_mean < baseline / self.REGRESSION_THRESHOLD:
-                    regressions.append({
-                        "name": result.name,
-                        "target": result.target,
-                        "metric": result.metric,
-                        "baseline": baseline,
-                        "current": current_mean,
-                        "degradation_pct": ((baseline - current_mean) / baseline) * 100,
-                        "severity": "HIGH" if current_mean < baseline / 1.5 else "MEDIUM",
-                    })
+                    regressions.append(
+                        {
+                            "name": result.name,
+                            "target": result.target,
+                            "metric": result.metric,
+                            "baseline": baseline,
+                            "current": current_mean,
+                            "degradation_pct": ((baseline - current_mean) / baseline)
+                            * 100,
+                            "severity": (
+                                "HIGH" if current_mean < baseline / 1.5 else "MEDIUM"
+                            ),
+                        }
+                    )
 
         return regressions
 
     def _get_baseline(self, name: str, target: str, metric: str) -> float | None:
         """বাংলা মন্তব্য: Historical baseline mean বের করে"""
         matching = [
-            r for r in self.history
-            if any(b.get("name") == name and b.get("target") == target and b.get("metric") == metric
-            for b in r.get("benchmarks", []))
+            r
+            for r in self.history
+            if any(
+                b.get("name") == name
+                and b.get("target") == target
+                and b.get("metric") == metric
+                for b in r.get("benchmarks", [])
+            )
         ]
 
         if not matching:
@@ -721,7 +882,11 @@ class RegressionDetector:
         values = []
         for run in recent:
             for b in run.get("benchmarks", []):
-                if b.get("name") == name and b.get("target") == target and b.get("metric") == metric:
+                if (
+                    b.get("name") == name
+                    and b.get("target") == target
+                    and b.get("metric") == metric
+                ):
                     values.append(b.get("mean", 0))
 
         return statistics.mean(values) if values else None
@@ -738,6 +903,7 @@ class RegressionDetector:
 
 # ── Main Benchmark Runner ──────────────────────────────────────────────────
 
+
 class PerformanceBenchmarkRunner:
     """
     বাংলা মন্তব্য: মূল অরকেস্ট্রেটর। সব বেঞ্চমার্ক টাইপ একসাথে চালায়।
@@ -751,16 +917,22 @@ class PerformanceBenchmarkRunner:
         self.report_generator = PerformanceReportGenerator()
         self.regression_detector = RegressionDetector()
 
-    async def run_api_benchmark(self, endpoints: list[str] | None = None) -> list[BenchmarkResult]:
+    async def run_api_benchmark(
+        self, endpoints: list[str] | None = None
+    ) -> list[BenchmarkResult]:
         """বাংলা মন্তব্য: API বেঞ্চমার্ক চালায়"""
         benchmark = APIBenchmark(duration=self.duration, warmup=self.warmup)
         results = await benchmark.run(endpoints)
         self.all_results.extend(results)
         return results
 
-    async def run_llm_benchmark(self, providers: list[str] | None = None) -> list[BenchmarkResult]:
+    async def run_llm_benchmark(
+        self, providers: list[str] | None = None
+    ) -> list[BenchmarkResult]:
         """বাংলা মন্তব্য: LLM বেঞ্চমার্ক চালায়"""
-        benchmark = LLMBenchmark(providers=providers, duration=self.duration, warmup=self.warmup)
+        benchmark = LLMBenchmark(
+            providers=providers, duration=self.duration, warmup=self.warmup
+        )
         await benchmark.initialize()
         results = await benchmark.run()
         self.all_results.extend(results)
@@ -774,12 +946,16 @@ class PerformanceBenchmarkRunner:
         self.all_results.extend(results)
         return results
 
-    async def run_load_test(self, users: int, spawn_rate: float, endpoint: str = "/health") -> LoadTestResult:
+    async def run_load_test(
+        self, users: int, spawn_rate: float, endpoint: str = "/health"
+    ) -> LoadTestResult:
         """বাংলা মন্তব্য: Load test চালায়"""
         engine = LoadTestEngine()
         return await engine.run(users, spawn_rate, self.duration, endpoint)
 
-    async def run_memory_profile(self, target_func: Callable | None = None) -> list[dict]:
+    async def run_memory_profile(
+        self, target_func: Callable | None = None
+    ) -> list[dict]:
         """বাংলা মন্তব্য: Memory profiling চালায়"""
         profiler = MemoryProfiler()
         profiler.start()
@@ -787,7 +963,11 @@ class PerformanceBenchmarkRunner:
         baseline = profiler.snapshot("baseline")
 
         if target_func:
-            await target_func() if asyncio.iscoroutinefunction(target_func) else target_func()
+            (
+                await target_func()
+                if asyncio.iscoroutinefunction(target_func)
+                else target_func()
+            )
 
         after_load = profiler.snapshot("after_load")
 
@@ -802,20 +982,29 @@ class PerformanceBenchmarkRunner:
         if regressions:
             print("\n⚠️  REGRESSIONS DETECTED:")
             for reg in regressions:
-                print(f"  🔴 [{reg['severity']}] {reg['name']}: {reg['degradation_pct']:.1f}% degradation")
+                print(
+                    f"  🔴 [{reg['severity']}] {reg['name']}: {reg['degradation_pct']:.1f}% degradation"
+                )
         else:
             print("\n✅ No regressions detected")
 
         return regressions
 
-    def save_and_report(self, load_results: LoadTestResult | None = None, memory_results: list[dict] | None = None) -> str:
+    def save_and_report(
+        self,
+        load_results: LoadTestResult | None = None,
+        memory_results: list[dict] | None = None,
+    ) -> str:
         """বাংলা মন্তব্য: রেজাল্ট সেভ এবং রিপোর্ট জেনারেট করে"""
         self.regression_detector.save_run(self.all_results)
-        report_file = self.report_generator.generate(self.all_results, load_results, memory_results)
+        report_file = self.report_generator.generate(
+            self.all_results, load_results, memory_results
+        )
         return report_file
 
 
 # ── CLI ──────────────────────────────────────────────────────────────────────
+
 
 def main() -> None:
     """বাংলা মন্তব্য: CLI entry point"""
@@ -823,33 +1012,73 @@ def main() -> None:
         description="SupremeAI 2.0 — Performance Benchmark Suite\nপারফরম্যান্স বেঞ্চমার্ক ও লোড টেস্ট",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument("--target", "-t", default="all",
-                        choices=["all", "api", "llm", "db", "load", "memory"],
-                        help="Benchmark target")
-    parser.add_argument("--duration", "-d", type=int, default=DEFAULT_DURATION,
-                        help="Benchmark duration in seconds")
-    parser.add_argument("--concurrency", "-c", type=int, default=DEFAULT_CONCURRENCY,
-                        help="Number of concurrent requests")
-    parser.add_argument("--warmup", "-w", type=int, default=DEFAULT_WARMUP,
-                        help="Warmup duration in seconds")
-    parser.add_argument("--providers", "-p", default="gemini,deepseek,groq",
-                        help="LLM providers to benchmark (comma-separated)")
-    parser.add_argument("--endpoints", "-e", default="",
-                        help="API endpoints to benchmark (comma-separated)")
-    parser.add_argument("--load-test", "-l", action="store_true",
-                        help="Run load test")
-    parser.add_argument("--users", "-u", type=int, default=100,
-                        help="Number of virtual users for load test")
-    parser.add_argument("--spawn-rate", "-sr", type=float, default=10.0,
-                        help="User spawn rate per second")
-    parser.add_argument("--memory", "-m", action="store_true",
-                        help="Run memory profiling")
+    parser.add_argument(
+        "--target",
+        "-t",
+        default="all",
+        choices=["all", "api", "llm", "db", "load", "memory"],
+        help="Benchmark target",
+    )
+    parser.add_argument(
+        "--duration",
+        "-d",
+        type=int,
+        default=DEFAULT_DURATION,
+        help="Benchmark duration in seconds",
+    )
+    parser.add_argument(
+        "--concurrency",
+        "-c",
+        type=int,
+        default=DEFAULT_CONCURRENCY,
+        help="Number of concurrent requests",
+    )
+    parser.add_argument(
+        "--warmup",
+        "-w",
+        type=int,
+        default=DEFAULT_WARMUP,
+        help="Warmup duration in seconds",
+    )
+    parser.add_argument(
+        "--providers",
+        "-p",
+        default="gemini,deepseek,groq",
+        help="LLM providers to benchmark (comma-separated)",
+    )
+    parser.add_argument(
+        "--endpoints",
+        "-e",
+        default="",
+        help="API endpoints to benchmark (comma-separated)",
+    )
+    parser.add_argument("--load-test", "-l", action="store_true", help="Run load test")
+    parser.add_argument(
+        "--users",
+        "-u",
+        type=int,
+        default=100,
+        help="Number of virtual users for load test",
+    )
+    parser.add_argument(
+        "--spawn-rate",
+        "-sr",
+        type=float,
+        default=10.0,
+        help="User spawn rate per second",
+    )
+    parser.add_argument(
+        "--memory", "-m", action="store_true", help="Run memory profiling"
+    )
 
     args = parser.parse_args()
 
     logger.remove()
-    logger.add(sys.stderr, level="INFO",
-               format="<green>{time:HH:mm:ss}</green> | <level>{level}</level> | {message}")
+    logger.add(
+        sys.stderr,
+        level="INFO",
+        format="<green>{time:HH:mm:ss}</green> | <level>{level}</level> | {message}",
+    )
 
     async def run():
         runner = PerformanceBenchmarkRunner(

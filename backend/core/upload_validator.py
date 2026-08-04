@@ -29,7 +29,9 @@ ALLOWED_EXTENSIONS = {
 
 class UploadValidationError(HTTPException):
     def __init__(self, detail: str):
-        super().__init__(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail=detail)
+        super().__init__(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail=detail
+        )
 
 
 async def validate_upload(file: object) -> None:
@@ -44,7 +46,9 @@ async def validate_upload(file: object) -> None:
     if not allowed:
         raise UploadValidationError(f"Extension '{ext}' is not allowed.")
     if content_type and content_type not in allowed:
-        raise UploadValidationError(f"Content type '{content_type}' does not match allowed types for '{ext}'.")
+        raise UploadValidationError(
+            f"Content type '{content_type}' does not match allowed types for '{ext}'."
+        )
     body = await file_obj.read()
     if len(body) > MAX_UPLOAD_BYTES:
         raise HTTPException(

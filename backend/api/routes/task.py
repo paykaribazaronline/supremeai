@@ -7,21 +7,19 @@ import datetime
 import json
 import logging
 import re
-
 # বাংলা মন্তব্য: টাইপিং এরর এড়ানোর জন্য Any ইমপোর্ট করা হলো
 from typing import Any
 
 import anyio
-from fastapi import APIRouter, BackgroundTasks, HTTPException
-from fastapi.responses import JSONResponse, StreamingResponse
-from loguru import logger
-from pydantic import BaseModel
-
 # --- Local Imports ---
 # Moved imports to the top of the file to improve performance by avoiding repeated imports inside functions.
 from adaptive_engine.experience_db import Experience
 from core.intent_router import PromptAction, intent_router
 from core.prompt_handler import format_unified_chat_prompt
+from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi.responses import JSONResponse, StreamingResponse
+from loguru import logger
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -68,7 +66,9 @@ class CompletionRequest(BaseModel):
     suffix: str
     filePath: str  # -- camelCase required to match frontend JSON API contract
     language: str
-    sessionId: str | None = None  # -- camelCase required to match frontend JSON API contract
+    sessionId: str | None = (
+        None  # -- camelCase required to match frontend JSON API contract
+    )
 
 
 class CompletionResponse(BaseModel):
@@ -78,7 +78,9 @@ class CompletionResponse(BaseModel):
 
 class ChatStreamRequest(BaseModel):
     message: str
-    sessionId: str | None = None  # -- camelCase required to match frontend JSON API contract
+    sessionId: str | None = (
+        None  # -- camelCase required to match frontend JSON API contract
+    )
     messages: list[dict] | None = None
     context: dict | None = None
 
@@ -179,7 +181,9 @@ class ProblemDetailsResponse(JSONResponse):
             "instance": instance or "",
         }
         content.update(kwargs)
-        super().__init__(status_code=status, content=content, media_type="application/problem+json")
+        super().__init__(
+            status_code=status, content=content, media_type="application/problem+json"
+        )
 
 
 # --- Action Cards Helpers ---
@@ -221,7 +225,11 @@ def format_response(text: str, task_type: str) -> str:
                 "content": extract_code(text),
                 "metadata": {
                     "language": detect_language(text),
-                    "filename": ("index.html" if "html" in detect_language(text) else "component.tsx"),
+                    "filename": (
+                        "index.html"
+                        if "html" in detect_language(text)
+                        else "component.tsx"
+                    ),
                     "actions": [
                         {"id": "preview", "label": "👁️ Preview", "type": "preview"},
                         {"id": "save", "label": "💾 Save to Project", "type": "save"},
@@ -287,12 +295,18 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
     prompt_action: PromptAction = intent_router.route(req.task)
 
     # Offload heavy CPU-bound Intent classification to background thread pool
-    app_spec = await anyio.to_thread.run_sync(app_mod.intent_parser.parse_intent, req.task, req.messages)
+    app_spec = await anyio.to_thread.run_sync(
+        app_mod.intent_parser.parse_intent, req.task, req.messages
+    )
     intent = await anyio.to_thread.run_sync(intent_clf.classify, req.task)
 
     task_type = req.task_type
     if intent.task_type != "general" and req.task_type == "general":
-        task_type = intent.task_type.value if hasattr(intent.task_type, "value") else str(intent.task_type)
+        task_type = (
+            intent.task_type.value
+            if hasattr(intent.task_type, "value")
+            else str(intent.task_type)
+        )
 
     # Build prompt context if chat messages are provided
     prompt = format_unified_chat_prompt(req.task, req.messages)
@@ -301,7 +315,9 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
     raw = None
     sem_cache = get_semantic_cache()
     if sem_cache:
-        cached_text = await sem_cache.get_cached_inference(prompt=prompt, model_name=task_type)
+        cached_text = await sem_cache.get_cached_inference(
+            prompt=prompt, model_name=task_type
+        )
         if cached_text:
             raw = {
                 "success": True,
@@ -318,7 +334,9 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
         )
         if raw.get("success") and sem_cache:
             try:
-                await sem_cache.set_cache_inference(prompt=prompt, model_name=task_type, response_text=raw.get("text"))
+                await sem_cache.set_cache_inference(
+                    prompt=prompt, model_name=task_type, response_text=raw.get("text")
+                )
             except Exception as exc:
                 logger.exception(f"Semantic cache write failed: {exc}")
 
@@ -342,7 +360,9 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
         error_message=raw.get("error"),
         generated_code=raw.get("text") if ("```" in raw.get("text", "")) else None,
         what_worked=["Intent parsed successfully"] if raw.get("success") else [],
-        what_failed=([] if raw.get("success") else [str(raw.get("error", "Unknown error"))]),
+        what_failed=(
+            [] if raw.get("success") else [str(raw.get("error", "Unknown error"))]
+        ),
     )
     background_tasks.add_task(app_mod.experience_db.record_experience, exp)
 
@@ -375,7 +395,11 @@ async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
             "payload": prompt_action.payload,
         },
         intent={
-            "task_type": (intent.task_type.value if hasattr(intent.task_type, "value") else str(intent.task_type)),
+            "task_type": (
+                intent.task_type.value
+                if hasattr(intent.task_type, "value")
+                else str(intent.task_type)
+            ),
             "confidence": intent.confidence,
         },
     )

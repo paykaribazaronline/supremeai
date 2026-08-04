@@ -1,4 +1,4 @@
-f#!/usr/bin/env python3
+f  #!/usr/bin/env python3
 """
 SupremeAI — Google Colab Mergekit Pipeline
 ==========================================
@@ -20,16 +20,13 @@ Bengali:
 """
 
 import argparse
-import json
 import os
 import subprocess
 import sys
 from datetime import datetime, pathlib
-from typing import Dict, List, Optional
 
 import yaml
 from loguru import logger
-
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 MERGEKIT_CONFIG_TEMPLATE = {
@@ -41,23 +38,23 @@ MERGEKIT_CONFIG_TEMPLATE = {
                 {
                     "model": "your-bengali-model-7b",
                     "layer_range": [0, 32],
-                    "weight": 0.4  # Bengali expertise
+                    "weight": 0.4,  # Bengali expertise
                 },
                 {
                     "model": "codellama/CodeLlama-7b-hf",
                     "layer_range": [0, 32],
-                    "weight": 0.4  # Coding expertise
+                    "weight": 0.4,  # Coding expertise
                 },
                 {
                     "model": "microsoft/phi-2",  # Good for math reasoning
                     "layer_range": [0, 32],
-                    "weight": 0.2  # Math expertise
-                }
+                    "weight": 0.2,  # Math expertise
+                },
             ]
         }
     ],
     "dtype": "float16",
-    "tokenizer_source": "base"
+    "tokenizer_source": "base",
 }
 
 
@@ -72,16 +69,21 @@ class MergekitPipeline:
     - Progress tracking and error handling
     """
 
-    def __init__(self, config_path: Optional[str] = None, output_dir: str = "./merged_models"):
+    def __init__(
+        self, config_path: str | None = None, output_dir: str = "./merged_models"
+    ):
         self.config_path = config_path
         self.output_dir = pathlib.Path(output_dir)
         self.output_dir.mkdir(exist_ok=True, parents=True)
 
-    def create_config(self, config_data: Dict) -> str:
+    def create_config(self, config_data: dict) -> str:
         """Create a mergekit config file from template/data."""
-        config_path = self.output_dir / f"merge_config_{datetime.now().strftime('%Y%m%d_%H%M%S')}.yaml"
+        config_path = (
+            self.output_dir
+            / f"merge_config_{datetime.now().strftime('%Y%m%d_%H%M%S')}.yaml"
+        )
 
-        with open(config_path, 'w', encoding='utf-8') as f:
+        with open(config_path, "w", encoding="utf-8") as f:
             yaml.dump(config_data, f, default_flow_style=False, allow_unicode=True)
 
         logger.info(f"Created merge config at {config_path}")
@@ -90,20 +92,19 @@ class MergekitPipeline:
     def run_merge(self, config_path: str, merged_model_path: str) -> bool:
         """Execute the mergekit merge command."""
         cmd = [
-            sys.executable, "-m", "mergekit.merge",
+            sys.executable,
+            "-m",
+            "mergekit.merge",
             config_path,
             merged_model_path,
-            "--copy-tokenizer"
+            "--copy-tokenizer",
         ]
 
         logger.info(f"Running merge: {' '.join(cmd)}")
 
         try:
             result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=3600  # 1 hour timeout
+                cmd, capture_output=True, text=True, timeout=3600  # 1 hour timeout
             )
 
             if result.returncode != 0:
@@ -117,31 +118,40 @@ class MergekitPipeline:
             logger.error("Model merging timed out after 1 hour")
             return False
         except Exception as e:
-            logger.error(f"Error during merging: {str(e)}")
+            logger.error(f"Error during merging: {e!s}")
             return False
 
     def quantize_to_gguf(self, merged_model_path: str, gguf_output_path: str) -> bool:
         """Convert the merged model to GGUF format with Q4_K_M quantization."""
         # First convert to safetensors if needed
         convert_cmd = [
-            sys.executable, "-m", "optimum.exporters.onnx",
-            "--model", merged_model_path,
-            "--task", "text-generation-with-past",
-            os.path.join(merged_model_path, "onnx")
+            sys.executable,
+            "-m",
+            "optimum.exporters.onnx",
+            "--model",
+            merged_model_path,
+            "--task",
+            "text-generation-with-past",
+            os.path.join(merged_model_path, "onnx"),
         ]
 
         logger.info("Converting to ONNX format...")
         try:
             result = subprocess.run(convert_cmd, capture_output=True, text=True)
             if result.returncode != 0:
-                logger.warning(f"ONNX conversion failed: {result.stderr}, trying direct GGUF conversion")
+                logger.warning(
+                    f"ONNX conversion failed: {result.stderr}, trying direct GGUF conversion"
+                )
         except Exception as e:
-            logger.warning(f"ONNX conversion failed ({e}), proceeding with direct GGUF conversion")
+            logger.warning(
+                f"ONNX conversion failed ({e}), proceeding with direct GGUF conversion"
+            )
 
         # Use llama.cpp for GGUF conversion
         gguf_cmd = [
-            "python", "-c",
-            f'''
+            "python",
+            "-c",
+            f"""
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from optimum.gptq import load_quantized_model
@@ -157,7 +167,7 @@ print(f"python -m llama_cpp.llama_speculative import {merged_model_path} {gguf_o
 # For Colab environment, we'll just verify the model loads
 print(f"Model verification: {{model.num_parameters()}} parameters")
 print(f"Tokenizer vocab size: {{tokenizer.vocab_size}}")
-            '''
+            """,
         ]
 
         logger.info(f"Quantizing to GGUF: {gguf_output_path}")
@@ -169,7 +179,7 @@ print(f"Tokenizer vocab size: {{tokenizer.vocab_size}}")
             logger.success(f"GGUF conversion completed: {gguf_output_path}")
             return True
         except Exception as e:
-            logger.error(f"Error during GGUF conversion: {str(e)}")
+            logger.error(f"Error during GGUF conversion: {e!s}")
             return False
 
     def run_full_pipeline(self) -> bool:
@@ -197,7 +207,7 @@ print(f"Tokenizer vocab size: {{tokenizer.vocab_size}}")
             logger.error("Pipeline failed at quantization stage")
             return False
 
-        logger.success(f"Pipeline completed successfully!")
+        logger.success("Pipeline completed successfully!")
         logger.info(f"Merged model: {merged_model_path}")
         logger.info(f"GGUF model: {gguf_path}")
 
@@ -207,10 +217,17 @@ print(f"Tokenizer vocab size: {{tokenizer.vocab_size}}")
 def main():
     parser = argparse.ArgumentParser(description="SupremeAI Mergekit Pipeline")
     parser.add_argument("--config", type=str, help="Path to mergekit config YAML file")
-    parser.add_argument("--output-dir", type=str, default="./merged_models",
-                       help="Output directory for merged models")
-    parser.add_argument("--install-deps", action="store_true",
-                       help="Install required dependencies before running")
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default="./merged_models",
+        help="Output directory for merged models",
+    )
+    parser.add_argument(
+        "--install-deps",
+        action="store_true",
+        help="Install required dependencies before running",
+    )
 
     args = parser.parse_args()
 
@@ -224,7 +241,9 @@ def main():
         deps = ["mergekit", "optimum", "transformers", "torch", "tokenizers"]
         for dep in deps:
             try:
-                subprocess.run([sys.executable, "-m", "pip", "install", dep], check=True)
+                subprocess.run(
+                    [sys.executable, "-m", "pip", "install", dep], check=True
+                )
                 logger.success(f"Installed {dep}")
             except subprocess.CalledProcessError:
                 logger.error(f"Failed to install {dep}")

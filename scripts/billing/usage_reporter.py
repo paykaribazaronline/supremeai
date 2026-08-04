@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║  SUPREMEAI — Billing Usage Reporter                                         ║
@@ -31,8 +30,7 @@ import json
 import os
 import sys
 from dataclasses import asdict, dataclass, field
-from datetime import UTC
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -78,7 +76,7 @@ class TenantUsage:
         data["period_end"] = self.period_end.isoformat()
         data["total_spend_usd"] = float(self.total_spend_usd)
         for day, breakdown in data["daily_breakdown"].items():
-            breakdown["spend_usd"] = float(breakdown.get("spend_usd", Decimal("0")))
+            breakdown["spend_usd"] = float(breakdown.get("spend_usd", Decimal(0)))
         return data
 
 
@@ -105,6 +103,7 @@ class UsageReporter:
         if AsyncSession and self.database_url:
             try:
                 from sqlalchemy.ext.asyncio import create_async_engine
+
                 engine = create_async_engine(self.database_url)
                 self.db_session = AsyncSession(engine)
                 logger.info("Database session initialized")
@@ -114,6 +113,7 @@ class UsageReporter:
         if self.redis_url:
             try:
                 import httpx
+
                 self._http = httpx.AsyncClient(timeout=10.0)
             except Exception as e:
                 logger.warning(f"HTTP client init failed: {e}")
@@ -211,7 +211,9 @@ class UsageReporter:
                     "amount_usd": float(entry.amount_usd),
                     "transaction_type": entry.transaction_type,
                     "description": entry.description,
-                    "timestamp": entry.timestamp.isoformat() if entry.timestamp else None,
+                    "timestamp": (
+                        entry.timestamp.isoformat() if entry.timestamp else None
+                    ),
                 }
                 for entry in entries
             ]
@@ -230,7 +232,7 @@ class UsageReporter:
             day = ts[:10]
             if day not in breakdown:
                 breakdown[day] = {
-                    "spend_usd": Decimal("0"),
+                    "spend_usd": Decimal(0),
                     "transactions": 0,
                     "topups": 0,
                     "byoc": 0,
@@ -258,7 +260,9 @@ class UsageReporter:
         ledger_entries = await self.get_ledger_entries(tenant_id, start, end)
 
         total_spend = sum(Decimal(str(e.get("amount_usd", 0))) for e in ledger_entries)
-        topup_count = sum(1 for e in ledger_entries if e.get("transaction_type") == "topup")
+        topup_count = sum(
+            1 for e in ledger_entries if e.get("transaction_type") == "topup"
+        )
         byoc_count = sum(
             1 for e in ledger_entries if e.get("transaction_type") == "byoc_deployment"
         )
@@ -298,9 +302,8 @@ class UsageReporter:
     async def _send_slack_alert(self, tenant_id: str, alerts: list[str]) -> None:
         if not self._http or not self.slack_webhook:
             return
-        message = (
-            f"⚠️ *Billing Usage Alert — Tenant {tenant_id}*\n"
-            + "\n".join(f"• {alert}" for alert in alerts)
+        message = f"⚠️ *Billing Usage Alert — Tenant {tenant_id}*\n" + "\n".join(
+            f"• {alert}" for alert in alerts
         )
         try:
             await self._http.post(self.slack_webhook, json={"text": message})
@@ -309,7 +312,10 @@ class UsageReporter:
 
     def write_json_report(self, report: TenantUsage, output_dir: Path) -> Path:
         output_dir.mkdir(parents=True, exist_ok=True)
-        path = output_dir / f"usage-{report.tenant_id}-{report.period_start.strftime('%Y%m')}.json"
+        path = (
+            output_dir
+            / f"usage-{report.tenant_id}-{report.period_start.strftime('%Y%m')}.json"
+        )
         with open(path, "w", encoding="utf-8") as f:
             json.dump(report.to_dict(), f, indent=2, default=str)
         logger.info(f"JSON report written: {path}")
@@ -317,13 +323,18 @@ class UsageReporter:
 
     def write_markdown_report(self, report: TenantUsage, output_dir: Path) -> Path:
         output_dir.mkdir(parents=True, exist_ok=True)
-        path = output_dir / f"usage-{report.tenant_id}-{report.period_start.strftime('%Y%m')}.md"
+        path = (
+            output_dir
+            / f"usage-{report.tenant_id}-{report.period_start.strftime('%Y%m')}.md"
+        )
         with open(path, "w", encoding="utf-8") as f:
             f.write(f"# 📊 Usage Report — {report.tenant_id}\n\n")
-            f.write(f"**Period:** {report.period_start.date()} to {report.period_end.date()}\n\n")
+            f.write(
+                f"**Period:** {report.period_start.date()} to {report.period_end.date()}\n\n"
+            )
             f.write("## Summary\n\n")
-            f.write(f"| Metric | Value |\n")
-            f.write(f"| --- | --- |\n")
+            f.write("| Metric | Value |\n")
+            f.write("| --- | --- |\n")
             f.write(f"| Total Spend | ${report.total_spend_usd:.4f} |\n")
             f.write(f"| Total Transactions | {report.total_transactions} |\n")
             f.write(f"| Token Usage Events | {report.token_input_count} |\n")
@@ -332,19 +343,18 @@ class UsageReporter:
 
             if report.daily_breakdown:
                 f.write("## Daily Breakdown\n\n")
-                f.write(f"| Date | Spend | Txns | Top-ups | BYOC |\n")
-                f.write(f"| --- | --- | --- | --- | --- |\n")
-                for day, bd in sorted(report.daily_breakdown.items()):
-                    f.write(
-                        f"| {day} | ${bd['spend_usd']:.4f} | {bd['transactions']} | "
-                        f"{bd['topups']} | {bd['byoc']} |\n"
-                    )
+                f.write("| Date | Spend | Txns | Top-ups | BYOC |\n")
+                f.write("| --- | --- | --- | --- | --- |\n")
+                f.writelines(
+                    f"| {day} | ${bd['spend_usd']:.4f} | {bd['transactions']} | "
+                    f"{bd['topups']} | {bd['byoc']} |\n"
+                    for day, bd in sorted(report.daily_breakdown.items())
+                )
                 f.write("\n")
 
             if report.alerts:
                 f.write("## Alerts\n\n")
-                for alert in report.alerts:
-                    f.write(f"- ⚠️ {alert}\n")
+                f.writelines(f"- ⚠️ {alert}\n" for alert in report.alerts)
         logger.info(f"Markdown report written: {path}")
         return path
 
@@ -372,10 +382,16 @@ async def main() -> int:
     )
     parser.add_argument("--tenant-id", type=str, help="Specific tenant ID to report on")
     parser.add_argument("--scan-all", action="store_true", help="Report on all tenants")
-    parser.add_argument("--period", type=str, required=True, help="Billing period (YYYY-MM or YYYYMM)")
-    parser.add_argument("--format", type=str, choices=["json", "markdown", "both"], default="json")
+    parser.add_argument(
+        "--period", type=str, required=True, help="Billing period (YYYY-MM or YYYYMM)"
+    )
+    parser.add_argument(
+        "--format", type=str, choices=["json", "markdown", "both"], default="json"
+    )
     parser.add_argument("--output-dir", type=Path, default=Path("reports/billing"))
-    parser.add_argument("--dry-run", action="store_true", help="Simulate without writing reports")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Simulate without writing reports"
+    )
 
     args = parser.parse_args()
 
@@ -418,7 +434,9 @@ async def main() -> int:
                 reporter.write_markdown_report(report, args.output_dir)
 
     total_spend = sum(r.total_spend_usd for r in reports)
-    logger.success(f"✅ Reports generated for {len(reports)} tenant(s). Total spend: ${total_spend:.4f}")
+    logger.success(
+        f"✅ Reports generated for {len(reports)} tenant(s). Total spend: ${total_spend:.4f}"
+    )
     return 0
 
 

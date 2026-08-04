@@ -85,13 +85,14 @@ class SupremeLearningEngine:
 
         logger.info("🧠 SupremeLearningEngine initialized")
         logger.info(f"   📊 Patterns DB: {self.db_path}")
-        logger.info(f"   🕸️  Knowledge Graph: {len(self.knowledge_graph.get('nodes', {}))} nodes")
+        logger.info(
+            f"   🕸️  Knowledge Graph: {len(self.knowledge_graph.get('nodes', {}))} nodes"
+        )
 
     def _init_db(self):
         """Initialize SQLite database for patterns."""
         conn = sqlite3.connect(self.db_path)
-        conn.execute(
-            """
+        conn.execute("""
             CREATE TABLE IF NOT EXISTS patterns (
                 pattern_id TEXT PRIMARY KEY,
                 query_signature TEXT,
@@ -107,18 +108,13 @@ class SupremeLearningEngine:
                 domain TEXT,
                 complexity TEXT
             )
-        """
-        )
-        conn.execute(
-            """
+        """)
+        conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_signature ON patterns(query_signature)
-        """
-        )
-        conn.execute(
-            """
+        """)
+        conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_domain ON patterns(domain)
-        """
-        )
+        """)
         conn.commit()
         conn.close()
 
@@ -166,7 +162,9 @@ class SupremeLearningEngine:
 
             for name, config in model_configs.items():
                 try:
-                    logger.info(f"📥 Loading mini-model: {name} ({config['description']})")
+                    logger.info(
+                        f"📥 Loading mini-model: {name} ({config['description']})"
+                    )
                     self._mini_models[name] = pipeline(
                         config["task"],
                         model=config["model"],
@@ -176,7 +174,9 @@ class SupremeLearningEngine:
                 except Exception as e:
                     logger.warning(f"⚠️ Could not load {name}: {e}")
         except ImportError:
-            logger.info("ℹ️ Transformers/Torch not loaded; running in lightweight heuristics mode.")
+            logger.info(
+                "ℹ️ Transformers/Torch not loaded; running in lightweight heuristics mode."
+            )
 
     def learn_from_interaction(
         self,
@@ -235,7 +235,9 @@ class SupremeLearningEngine:
             self.stats["self_answers"] += 1
             return True, confidence, pattern
         else:
-            logger.info(f"🤔 Confidence too low ({confidence:.2f} < {min_confidence}) - fallback to external AI")
+            logger.info(
+                f"🤔 Confidence too low ({confidence:.2f} < {min_confidence}) - fallback to external AI"
+            )
             self.stats["fallback_answers"] += 1
             return False, confidence, pattern
 
@@ -249,7 +251,9 @@ class SupremeLearningEngine:
         response = self._fill_template(pattern["response_template"], query, context)
 
         if pattern.get("reasoning_chain"):
-            reasoning = "\n".join([f"{i+1}. {step}" for i, step in enumerate(pattern["reasoning_chain"])])
+            reasoning = "\n".join(
+                [f"{i+1}. {step}" for i, step in enumerate(pattern["reasoning_chain"])]
+            )
             response = f"{response}\n\n💭 Reasoning:\n{reasoning}"
 
         self._update_pattern_usage(pattern["pattern_id"], success=True)
@@ -264,7 +268,9 @@ class SupremeLearningEngine:
                 signature_words.append("{entity}")
             else:
                 signature_words.append(word)
-        return hashlib.md5(" ".join(signature_words).encode(), usedforsecurity=False).hexdigest()[:16]
+        return hashlib.md5(
+            " ".join(signature_words).encode(), usedforsecurity=False
+        ).hexdigest()[:16]
 
     def _extract_reasoning(self, response: str) -> list[str]:
         reasoning = []
@@ -311,7 +317,9 @@ class SupremeLearningEngine:
         complexity: str,
         feedback: float | None,
     ) -> dict:
-        pattern_id = hashlib.md5(f"{query_sig}:{domain}".encode(), usedforsecurity=False).hexdigest()[:16]
+        pattern_id = hashlib.md5(
+            f"{query_sig}:{domain}".encode(), usedforsecurity=False
+        ).hexdigest()[:16]
 
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -454,7 +462,9 @@ class SupremeLearningEngine:
         concepts = re.findall(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b", response)
 
         for concept in concepts[:5]:
-            node_id = hashlib.md5(concept.encode(), usedforsecurity=False).hexdigest()[:16]
+            node_id = hashlib.md5(concept.encode(), usedforsecurity=False).hexdigest()[
+                :16
+            ]
 
             if node_id not in self.knowledge_graph.get("nodes", {}):
                 self.knowledge_graph.setdefault("nodes", {})[node_id] = {
@@ -473,7 +483,9 @@ class SupremeLearningEngine:
     def get_stats(self) -> dict:
         total = self.stats["self_answers"] + self.stats["fallback_answers"]
         if total > 0:
-            self.stats["self_sufficiency_rate"] = self.stats["self_answers"] / total * 100
+            self.stats["self_sufficiency_rate"] = (
+                self.stats["self_answers"] / total * 100
+            )
 
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -485,5 +497,8 @@ class SupremeLearningEngine:
             **self.stats,
             "total_patterns_in_db": total_patterns,
             "knowledge_graph_nodes": len(self.knowledge_graph.get("nodes", {})),
-            "data_dir_size_mb": sum(f.stat().st_size for f in self.data_dir.rglob("*") if f.is_file()) / (1024 * 1024),
+            "data_dir_size_mb": sum(
+                f.stat().st_size for f in self.data_dir.rglob("*") if f.is_file()
+            )
+            / (1024 * 1024),
         }

@@ -84,7 +84,11 @@ class AutoHealerService:
             from core.health.health_probes import probe_database
 
             result = await probe_database()
-            db_up = result.get("status") == "up" if isinstance(result, dict) else bool(result)
+            db_up = (
+                result.get("status") == "up"
+                if isinstance(result, dict)
+                else bool(result)
+            )
         except Exception as exc:
             db_up = False
             logger.warning(f"🚑 DB probe raised exception: {exc!r}")
@@ -128,7 +132,11 @@ class AutoHealerService:
             from core.health.health_probes import probe_redis
 
             result = await probe_redis()
-            redis_up = result.get("status") == "up" if isinstance(result, dict) else bool(result)
+            redis_up = (
+                result.get("status") == "up"
+                if isinstance(result, dict)
+                else bool(result)
+            )
         except Exception as exc:
             redis_up = False
             logger.warning(f"🚑 Redis probe raised exception: {exc!r}")
@@ -179,7 +187,9 @@ class AutoHealerService:
         last = self._last_heal_time.get(subsystem, 0.0)
         return (time.monotonic() - last) >= self.HEAL_COOLDOWN_SECONDS
 
-    async def attempt_code_mutation_heal(self, fingerprint: str, exc: Exception) -> bool:
+    async def attempt_code_mutation_heal(
+        self, fingerprint: str, exc: Exception
+    ) -> bool:
         """
         বাংলা মন্তব্য: ফিঙ্গারপ্রিন্ট ধরে কোড হিলিং চেষ্টা — Depth <= 3 চেক এবং ব্যর্থ হলে Git Revert ও HITL ট্রাইগার করা।
         """
@@ -189,7 +199,9 @@ class AutoHealerService:
         current_depth = self._fingerprint_depth.get(fingerprint, 0) + 1
         self._fingerprint_depth[fingerprint] = current_depth
 
-        logger.info(f"AutoHealer Mutation Attempt: Fingerprint={fingerprint[:12]} Depth={current_depth}/3")
+        logger.info(
+            f"AutoHealer Mutation Attempt: Fingerprint={fingerprint[:12]} Depth={current_depth}/3"
+        )
 
         if current_depth > 3:
             logger.critical(
@@ -216,7 +228,11 @@ class AutoHealerService:
                     {
                         "fingerprint": fingerprint,
                         "error": str(exc),
-                        "action": ("git_revert_triggered" if revert_success else "git_revert_FAILED"),
+                        "action": (
+                            "git_revert_triggered"
+                            if revert_success
+                            else "git_revert_FAILED"
+                        ),
                         "depth": current_depth,
                     },
                 )
@@ -230,7 +246,9 @@ class AutoHealerService:
             return False
 
         # Simulate hotfix attempt
-        logger.info(f"AutoHealer JIT Hotfix applied for {fingerprint[:12]} (Attempt #{current_depth})")
+        logger.info(
+            f"AutoHealer JIT Hotfix applied for {fingerprint[:12]} (Attempt #{current_depth})"
+        )
         return True
 
     def get_status(self) -> dict[str, Any]:
@@ -239,7 +257,9 @@ class AutoHealerService:
             "running": self._running,
             "failure_counts": dict(self.failure_counts),
             "fingerprint_depths": getattr(self, "_fingerprint_depth", {}),
-            "last_heal_times": {k: time.monotonic() - v for k, v in self._last_heal_time.items()},
+            "last_heal_times": {
+                k: time.monotonic() - v for k, v in self._last_heal_time.items()
+            },
         }
 
 

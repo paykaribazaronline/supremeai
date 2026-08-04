@@ -2,9 +2,8 @@ import os
 from typing import Any
 
 import httpx
-from loguru import logger
-
 from core.config import settings
+from loguru import logger
 
 
 class HFImageGenerator:
@@ -30,29 +29,39 @@ class HFImageGenerator:
         model = model or self.default_model
         if not self.api_key:
             # বাংলা মন্তব্য: এপিআই কী অনুপস্থিত থাকলে এআই মক করার বদলে সরাসরি ValueError ছুঁড়ে দেবে, জিরো-স্টাব পলিসি অনুযায়ী।
-            raise ValueError("HF_API_KEY is not configured. HuggingFace image generation requires a valid API key.")
+            raise ValueError(
+                "HF_API_KEY is not configured. HuggingFace image generation requires a valid API key."
+            )
 
         headers = {"Authorization": f"Bearer {self.api_key}"}
         url = f"https://api-inference.huggingface.co/models/{model}"
 
         try:
-            logger.info(f"Generating image via HF Model '{model}' with prompt: {prompt}")
+            logger.info(
+                f"Generating image via HF Model '{model}' with prompt: {prompt}"
+            )
             async with httpx.AsyncClient(timeout=60.0) as client:
                 res = await client.post(url, headers=headers, json={"inputs": prompt})
 
                 # Check for model loading
                 if res.status_code == 503:
                     estimated_time = float(res.json().get("estimated_time", 20.0))
-                    logger.warning(f"HF Model is loading. Estimated time: {estimated_time}s. Retrying once...")
+                    logger.warning(
+                        f"HF Model is loading. Estimated time: {estimated_time}s. Retrying once..."
+                    )
                     # Use non-blocking delays for async HTTP retry
                     await asyncio.sleep(min(estimated_time, 60.0))
-                    res = await client.post(url, headers=headers, json={"inputs": prompt})
+                    res = await client.post(
+                        url, headers=headers, json={"inputs": prompt}
+                    )
 
                 res.raise_for_status()
                 image_data = res.content
 
                 # Ensure directories exist
-                os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+                os.makedirs(
+                    os.path.dirname(os.path.abspath(output_path)), exist_ok=True
+                )
                 with open(output_path, "wb") as f:
                     f.write(image_data)
 

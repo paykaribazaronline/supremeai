@@ -5,9 +5,8 @@ Tests for core/schema_validator.py — SchemaValidator
 from __future__ import annotations
 
 import pytest
-from pydantic import BaseModel
-
 from core.schema_validator import SchemaValidationError, SchemaValidator
+from pydantic import BaseModel
 
 
 class TestModel(BaseModel):
@@ -67,7 +66,9 @@ class TestSchemaValidator:
         assert result["data"]["enabled"] is True
 
     def test_validate_extra_fields_ignored(self, validator):
-        result = validator.validate("test", {"name": "Bob", "age": 25, "extra": "ignored"})
+        result = validator.validate(
+            "test", {"name": "Bob", "age": 25, "extra": "ignored"}
+        )
         assert result["status"] == "ok"
         assert "extra" not in result["data"]
 

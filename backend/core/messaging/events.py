@@ -18,14 +18,18 @@ def get_firebase_auth():
         if not firebase_admin._apps:
             _gac = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "")
             _sa_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON", "")
-            _sa_path = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH") or "service-account.json"
+            _sa_path = (
+                os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH") or "service-account.json"
+            )
 
             if _sa_json:
                 import json as _json
 
                 _cred = fb_credentials.Certificate(_json.loads(_sa_json))
                 firebase_admin.initialize_app(_cred)
-                logger.info("Firebase Admin initialized from FIREBASE_SERVICE_ACCOUNT_JSON")
+                logger.info(
+                    "Firebase Admin initialized from FIREBASE_SERVICE_ACCOUNT_JSON"
+                )
             elif _sa_path:
                 _resolved_path = None
                 for p in [
@@ -43,19 +47,27 @@ def get_firebase_auth():
                 if _resolved_path:
                     _cred = fb_credentials.Certificate(_resolved_path)
                     firebase_admin.initialize_app(_cred)
-                    logger.info(f"Firebase Admin initialized from file: {_resolved_path}")
+                    logger.info(
+                        f"Firebase Admin initialized from file: {_resolved_path}"
+                    )
                 elif _sa_path != "service-account.json":
-                    logger.warning(f"Firebase service account file not found at {_sa_path}")
+                    logger.warning(
+                        f"Firebase service account file not found at {_sa_path}"
+                    )
                     raise RuntimeError(f"Service account file not found: {_sa_path}")
                 elif _gac and os.path.exists(_gac):
                     firebase_admin.initialize_app()
-                    logger.info("Firebase Admin initialized via GOOGLE_APPLICATION_CREDENTIALS")
+                    logger.info(
+                        "Firebase Admin initialized via GOOGLE_APPLICATION_CREDENTIALS"
+                    )
                 else:
                     logger.warning("Firebase Admin SDK: No credentials found.")
                     raise RuntimeError("No Firebase credentials configured")
             elif _gac and os.path.exists(_gac):
                 firebase_admin.initialize_app()
-                logger.info("Firebase Admin initialized via GOOGLE_APPLICATION_CREDENTIALS")
+                logger.info(
+                    "Firebase Admin initialized via GOOGLE_APPLICATION_CREDENTIALS"
+                )
             else:
                 logger.warning(
                     "Firebase Admin SDK: No credentials found. Set FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_PATH in .env"

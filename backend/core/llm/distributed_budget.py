@@ -19,7 +19,9 @@ _KEY_PREFIX = "llm:budget:daily:"
 class DistributedTokenBudget:
     """Redis-backed daily token budget, safe across N worker processes।"""
 
-    def __init__(self, daily_limit: int = 100_000, max_input: int = 8192, max_output: int = 4096) -> None:
+    def __init__(
+        self, daily_limit: int = 100_000, max_input: int = 8192, max_output: int = 4096
+    ) -> None:
         self.daily_limit = daily_limit
         self.max_input = max_input
         self.max_output = max_output
@@ -29,7 +31,9 @@ class DistributedTokenBudget:
         day = time.strftime("%Y-%m-%d", time.gmtime())
         return f"{_KEY_PREFIX}{day}"
 
-    async def check_and_reserve(self, estimated_input: int, estimated_output: int) -> bool:
+    async def check_and_reserve(
+        self, estimated_input: int, estimated_output: int
+    ) -> bool:
         """Atomically রিজার্ভ করে, সীমা ছাড়ালে rollback করে ফেরত পাঠায়।"""
         if estimated_input > self.max_input or estimated_output > self.max_output:
             return False
@@ -37,7 +41,9 @@ class DistributedTokenBudget:
         total = estimated_input + estimated_output
         if not redis_manager or not redis_manager.client:
             # বাংলা মন্তব্য: Redis unavailable হলে fail-open না করে conservative fallback
-            logger.warning("Redis unavailable for distributed budget — falling back to permissive mode")
+            logger.warning(
+                "Redis unavailable for distributed budget — falling back to permissive mode"
+            )
             return True
 
         key = self._key()

@@ -12,30 +12,14 @@ Bengali:
 
 from loguru import logger
 
-from .remediation_engine import (
-    RemediationAction,
-    RemediationEngine,
-    RemediationExecution,
-    RemediationPlan,
-    RemediationStatus,
-    get_remediation_engine,
-)
-from .simulator import (
-    FailureScenario,
-    ImpactSimulator,
-    SimulationResult,
-    SimulationType,
-    TrafficScenario,
-    get_impact_simulator,
-)
-from .topology import (
-    DataFlowEdge,
-    ResourceUtilization,
-    ServiceNode,
-    SystemTopologyMapper,
-    discover_system_topology,
-    get_topology_mapper,
-)
+from .remediation_engine import (RemediationAction, RemediationEngine,
+                                 RemediationExecution, RemediationPlan,
+                                 RemediationStatus, get_remediation_engine)
+from .simulator import (FailureScenario, ImpactSimulator, SimulationResult,
+                        SimulationType, TrafficScenario, get_impact_simulator)
+from .topology import (DataFlowEdge, ResourceUtilization, ServiceNode,
+                       SystemTopologyMapper, discover_system_topology,
+                       get_topology_mapper)
 
 # Version information
 __version__ = "1.0.0"
@@ -63,7 +47,9 @@ class DigitalTwinWorldModel:
         """Initialize all digital twin components."""
         # Discover initial system topology
         topology = await discover_system_topology()
-        logger.info(f"Initialized digital twin with {topology['summary']['total_services']} services")
+        logger.info(
+            f"Initialized digital twin with {topology['summary']['total_services']} services"
+        )
 
         return topology
 
@@ -100,7 +86,11 @@ class DigitalTwinWorldModel:
             "traffic_simulation": traffic_sim,
             "risk_assessment": self._assess_risk(failure_sim, traffic_sim),
             "recommendations": self._combine_recommendations(
-                [failure_sim.recommendations, traffic_sim.recommendations, impact_analysis.get("recommendations", [])]
+                [
+                    failure_sim.recommendations,
+                    traffic_sim.recommendations,
+                    impact_analysis.get("recommendations", []),
+                ]
             ),
         }
 
@@ -113,19 +103,28 @@ class DigitalTwinWorldModel:
             return {}
 
         # Find incoming and outgoing flows
-        incoming_flows = [f for f in topology["data_flows"] if f["target_node_id"] == service_id]
-        outgoing_flows = [f for f in topology["data_flows"] if f["source_node_id"] == service_id]
+        incoming_flows = [
+            f for f in topology["data_flows"] if f["target_node_id"] == service_id
+        ]
+        outgoing_flows = [
+            f for f in topology["data_flows"] if f["source_node_id"] == service_id
+        ]
 
         return {
             "service_info": service,
             "incoming_dependencies": len(incoming_flows),
             "outgoing_dependencies": len(outgoing_flows),
             "connected_services": len(
-                set([f["source_node_id"] for f in incoming_flows] + [f["target_node_id"] for f in outgoing_flows])
+                set(
+                    [f["source_node_id"] for f in incoming_flows]
+                    + [f["target_node_id"] for f in outgoing_flows]
+                )
             ),
         }
 
-    def _assess_risk(self, failure_sim: SimulationResult, traffic_sim: SimulationResult) -> str:
+    def _assess_risk(
+        self, failure_sim: SimulationResult, traffic_sim: SimulationResult
+    ) -> str:
         """Assess overall risk based on simulations."""
         # Combine impact levels
         impact_scores = {"low": 1, "medium": 2, "high": 3, "critical": 4}
@@ -158,7 +157,9 @@ class DigitalTwinWorldModel:
 
         return all_recommendations
 
-    async def trigger_autonomous_remediation(self, service_id: str, issue_type: str = "auto"):
+    async def trigger_autonomous_remediation(
+        self, service_id: str, issue_type: str = "auto"
+    ):
         """
         Trigger autonomous remediation for a service based on detected issue.
 
@@ -172,8 +173,12 @@ class DigitalTwinWorldModel:
 
             if analysis["risk_assessment"] in ["critical", "high"]:
                 # Determine the most appropriate remediation plan
-                plan = await self._create_adaptive_remediation_plan(service_id, analysis)
-                execution_results = await self.remediation_engine._execute_remediation_plan(plan)
+                plan = await self._create_adaptive_remediation_plan(
+                    service_id, analysis
+                )
+                execution_results = (
+                    await self.remediation_engine._execute_remediation_plan(plan)
+                )
                 return execution_results
             else:
                 return None  # Low risk, no action needed
@@ -186,16 +191,16 @@ class DigitalTwinWorldModel:
             else:
                 action = RemediationAction.RESTART_SERVICE  # default
 
-            result = await self.remediation_engine.manual_trigger_remediation(service_id, action)
+            result = await self.remediation_engine.manual_trigger_remediation(
+                service_id, action
+            )
             return [result]
 
     async def _create_adaptive_remediation_plan(self, service_id: str, analysis: dict):
         """Create an adaptive remediation plan based on analysis."""
         from .remediation_engine import RemediationAction, RemediationPlan
 
-        issue_description = (
-            f"Adaptive remediation for {service_id} based on risk assessment: {analysis['risk_assessment']}"
-        )
+        issue_description = f"Adaptive remediation for {service_id} based on risk assessment: {analysis['risk_assessment']}"
 
         # Select actions based on risk level
         if analysis["risk_assessment"] == "critical":
@@ -243,7 +248,9 @@ class DigitalTwinWorldModel:
                     else None
                 ),
             },
-            "health_summary": self._generate_health_summary(topology, remediation_stats),
+            "health_summary": self._generate_health_summary(
+                topology, remediation_stats
+            ),
         }
 
     def _generate_health_summary(self, topology: dict, remediation_stats: dict):
@@ -256,10 +263,13 @@ class DigitalTwinWorldModel:
         error_services = len([s for s in services if s["status"] == "error"])
 
         high_cpu_services = len([u for u in utilizations if u["cpu_percent"] > 80])
-        high_memory_services = len([u for u in utilizations if u["memory_percent"] > 80])
+        high_memory_services = len(
+            [u for u in utilizations if u["memory_percent"] > 80]
+        )
 
         return {
-            "overall_health_percentage": (healthy_services / max(1, total_services)) * 100,
+            "overall_health_percentage": (healthy_services / max(1, total_services))
+            * 100,
             "total_services": total_services,
             "healthy_services": healthy_services,
             "error_services": error_services,
@@ -334,8 +344,12 @@ async def demo_digital_twin():
 
     print("\nGetting system digital twin state...")
     state = await model.get_system_digital_twin_state()
-    print(f"Overall health: {state['health_summary']['overall_health_percentage']:.1f}%")
-    print(f"Active remediation plans: {state['health_summary']['active_remediation_plans']}")
+    print(
+        f"Overall health: {state['health_summary']['overall_health_percentage']:.1f}%"
+    )
+    print(
+        f"Active remediation plans: {state['health_summary']['active_remediation_plans']}"
+    )
 
     return model
 

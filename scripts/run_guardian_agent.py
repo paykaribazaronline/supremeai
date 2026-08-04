@@ -1,15 +1,17 @@
-import sys
-import json
 import asyncio
+import json
+import sys
 from pathlib import Path
 
 # Fix Windows console unicode output
-if sys.stdout.encoding.lower() != 'utf-8':
-    sys.stdout.reconfigure(encoding='utf-8')
+if sys.stdout.encoding.lower() != "utf-8":
+    sys.stdout.reconfigure(encoding="utf-8")
+
 
 def setup_env():
     backend_path = Path(__file__).resolve().parent.parent / "backend"
     sys.path.insert(0, str(backend_path))
+
 
 async def run_guardian():
     setup_env()
@@ -53,8 +55,7 @@ async def run_guardian():
     system_prompt = guardian_config.get("system_prompt", "You are the Guardian Agent.")
     user_prompt = (
         "Analyze the following Python code against our project rules.\n\n"
-        "### Project Rules:\n"
-        + "\n".join(rule_summaries) + "\n\n"
+        "### Project Rules:\n" + "\n".join(rule_summaries) + "\n\n"
         "### Code to Analyze (cost_guard_monitor.py):\n"
         "```python\n" + code_content + "\n```\n\n"
         "List any violations with their Rule ID. If there are no violations, report 'ALL CLEAR'."
@@ -64,22 +65,27 @@ async def run_guardian():
 
     try:
         response = await llm_gateway.acompletion(
-            model="gemini/gemini-2.5-pro", # Use an advanced model for analysis
+            model="gemini/gemini-2.5-pro",  # Use an advanced model for analysis
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ]
+                {"role": "user", "content": user_prompt},
+            ],
         )
-        report = response.get("choices", [{}])[0].get("message", {}).get("content", "Failed to generate report.")
+        report = (
+            response.get("choices", [{}])[0]
+            .get("message", {})
+            .get("content", "Failed to generate report.")
+        )
 
-        print("\n" + "="*50)
+        print("\n" + "=" * 50)
         print("🛡️ GUARDIAN AGENT REPORT")
-        print("="*50)
+        print("=" * 50)
         print(report)
-        print("="*50)
+        print("=" * 50)
 
     except Exception as e:
         print(f"🚨 Guardian analysis failed: {e}")
+
 
 if __name__ == "__main__":
     asyncio.run(run_guardian())

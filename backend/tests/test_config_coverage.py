@@ -5,14 +5,15 @@ import os
 from unittest.mock import patch
 
 import pytest
-
 from core.config import Settings
 from core.security.secret_vault import secret_vault
 
 
 @pytest.fixture(autouse=True)
 def mock_secret_vault():
-    with patch.object(secret_vault, "fetch_secret", return_value="test-secret" * 10) as mock:
+    with patch.object(
+        secret_vault, "fetch_secret", return_value="test-secret" * 10
+    ) as mock:
         yield mock
 
 
@@ -31,7 +32,9 @@ def test_settings_production_env(mock_secret_vault):
     assert s.jwt_secret == "test-secret" * 10
 
 
-@patch.dict(os.environ, {"ENV": "local", "CORS_ORIGINS": "http://localhost:3000"}, clear=True)
+@patch.dict(
+    os.environ, {"ENV": "local", "CORS_ORIGINS": "http://localhost:3000"}, clear=True
+)
 def test_settings_local_env(mock_secret_vault):
     s = Settings()
     assert s.env == "local"

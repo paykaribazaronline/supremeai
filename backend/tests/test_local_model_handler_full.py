@@ -13,7 +13,6 @@ import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from models.local_model_handler import LocalModelHandler
 
 
@@ -37,7 +36,9 @@ async def test_health_check_success():
     mock_client.__aexit__ = AsyncMock(return_value=False)
     mock_client.get = AsyncMock(return_value=mock_resp)
 
-    with patch("models.local_model_handler.httpx.AsyncClient", return_value=mock_client):
+    with patch(
+        "models.local_model_handler.httpx.AsyncClient", return_value=mock_client
+    ):
         result = await handler.health_check()
 
     assert result is True
@@ -54,7 +55,9 @@ async def test_health_check_failure():
     mock_client.__aexit__ = AsyncMock(return_value=False)
     mock_client.get = AsyncMock(return_value=mock_resp)
 
-    with patch("models.local_model_handler.httpx.AsyncClient", return_value=mock_client):
+    with patch(
+        "models.local_model_handler.httpx.AsyncClient", return_value=mock_client
+    ):
         result = await handler.health_check()
 
     assert result is False
@@ -74,7 +77,9 @@ async def test_list_models_success():
     mock_client.__aexit__ = AsyncMock(return_value=False)
     mock_client.get = AsyncMock(return_value=mock_resp)
 
-    with patch("models.local_model_handler.httpx.AsyncClient", return_value=mock_client):
+    with patch(
+        "models.local_model_handler.httpx.AsyncClient", return_value=mock_client
+    ):
         models = await handler.list_models()
 
     assert models == ["llama3:latest", "mistral:latest"]
@@ -101,7 +106,9 @@ async def test_infer_success_and_caching():
     mock_client.__aexit__ = AsyncMock(return_value=False)
     mock_client.post = mock_post
 
-    with patch("models.local_model_handler.httpx.AsyncClient", return_value=mock_client):
+    with patch(
+        "models.local_model_handler.httpx.AsyncClient", return_value=mock_client
+    ):
         res1 = await handler.infer("llama3", "Hi")
         assert res1["status"] == "success"
         assert res1["text"] == "Hello from Ollama!"

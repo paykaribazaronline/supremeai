@@ -9,9 +9,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "scripts" / "billing"))
+sys.path.insert(
+    0, str(Path(__file__).resolve().parent.parent.parent / "scripts" / "billing")
+)
 
-from fraud_detector import FraudDetector, FraudAlert, FraudReport  # noqa: E402
+from fraud_detector import FraudDetector
 
 
 @pytest.fixture
@@ -28,7 +30,10 @@ def mock_http():
 
 class TestFraudDetectorInit:
     def test_defaults(self):
-        with patch.dict(os.environ, {"DATABASE_URL": "", "GOOGLE_CLOUD_PROJECT": "", "SLACK_WEBHOOK_URL": ""}):
+        with patch.dict(
+            os.environ,
+            {"DATABASE_URL": "", "GOOGLE_CLOUD_PROJECT": "", "SLACK_WEBHOOK_URL": ""},
+        ):
             detector = FraudDetector()
             assert detector.database_url == ""
             assert detector.project_id == ""
@@ -61,7 +66,9 @@ class TestFraudDetectorContextManager:
 
     @pytest.mark.asyncio
     async def test_aenter_with_slack(self, mock_http):
-        with patch.dict(os.environ, {"SLACK_WEBHOOK_URL": "https://hooks.slack.com/test"}):
+        with patch.dict(
+            os.environ, {"SLACK_WEBHOOK_URL": "https://hooks.slack.com/test"}
+        ):
             with patch("httpx.AsyncClient") as mock_async_client:
                 mock_async_client.return_value = mock_http
                 detector = FraudDetector()
@@ -109,12 +116,15 @@ class TestFraudDetectorLedger:
     @pytest.mark.asyncio
     async def test_get_ledger_entries_no_db(self):
         detector = FraudDetector()
-        entries = await detector.get_ledger_entries("t1", datetime.now(UTC), datetime.now(UTC))
+        entries = await detector.get_ledger_entries(
+            "t1", datetime.now(UTC), datetime.now(UTC)
+        )
         assert entries == []
 
     @pytest.mark.asyncio
     async def test_get_ledger_entries_with_data(self, mock_db_session):
         from models.wallet import TransactionLedgerEntry
+
         entry = TransactionLedgerEntry(
             transaction_id="tx1",
             user_id="t1",
@@ -139,7 +149,9 @@ class TestFraudDetectorLedger:
         mock_db_session.execute.side_effect = Exception("db error")
         detector = FraudDetector()
         detector.db_session = mock_db_session
-        entries = await detector.get_ledger_entries("t1", datetime.now(UTC), datetime.now(UTC))
+        entries = await detector.get_ledger_entries(
+            "t1", datetime.now(UTC), datetime.now(UTC)
+        )
         assert entries == []
 
 
@@ -153,17 +165,20 @@ class TestFraudDetectorAnomalyDetection:
     @pytest.mark.asyncio
     async def test_scan_tenant_with_entries(self, mock_db_session):
         from models.wallet import TransactionLedgerEntry
+
         entries = []
         now = datetime.now(UTC)
         for i in range(6):
-            entries.append(TransactionLedgerEntry(
-                transaction_id=f"tx{i}",
-                user_id="t1",
-                amount_usd=Decimal("10.00"),
-                transaction_type="topup",
-                description="topup failed: insufficient funds",
-                timestamp=now - timedelta(hours=i),
-            ))
+            entries.append(
+                TransactionLedgerEntry(
+                    transaction_id=f"tx{i}",
+                    user_id="t1",
+                    amount_usd=Decimal("10.00"),
+                    transaction_type="topup",
+                    description="topup failed: insufficient funds",
+                    timestamp=now - timedelta(hours=i),
+                )
+            )
         mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = entries
         mock_db_session.execute.return_value = mock_result

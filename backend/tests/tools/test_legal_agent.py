@@ -150,7 +150,9 @@ These terms are governed by the laws of Bangladesh.
 """,
         }
 
-        result = await agent.generate_tos(product_description="AI-powered code generation platform", jurisdiction="BD")
+        result = await agent.generate_tos(
+            product_description="AI-powered code generation platform", jurisdiction="BD"
+        )
 
     assert result is not None
     assert "TERMS OF SERVICE" in result["document"]

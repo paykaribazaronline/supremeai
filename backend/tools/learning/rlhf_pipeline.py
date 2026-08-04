@@ -22,7 +22,9 @@ class RLHFPipeline:
                     for line in f:
                         if line.strip():
                             self.preference_logs.append(json.loads(line))
-                logger.info(f"Loaded {len(self.preference_logs)} existing local preference records")
+                logger.info(
+                    f"Loaded {len(self.preference_logs)} existing local preference records"
+                )
             except Exception as e:
                 logger.error(f"Failed to load existing preferences: {e}")
 
@@ -32,18 +34,24 @@ class RLHFPipeline:
 
             queue = GCPFirestoreVerificationQueue(collection_name="ai_rlhf_preferences")
             if queue.mode == "firestore" and queue.client:
-                docs = queue.client.collection("ai_rlhf_preferences").limit(100).stream()
+                docs = (
+                    queue.client.collection("ai_rlhf_preferences").limit(100).stream()
+                )
                 fs_count = 0
                 for doc in docs:
                     data = doc.to_dict()
                     if data and "prompt" in data:
                         self.preference_logs.append(data)
                         fs_count += 1
-                logger.info(f"Synced {fs_count} preference records from Firestore 'ai_rlhf_preferences'")
+                logger.info(
+                    f"Synced {fs_count} preference records from Firestore 'ai_rlhf_preferences'"
+                )
         except Exception as err:
             logger.debug(f"Firestore sync skipped or not configured: {err}")
 
-    def record_preference(self, prompt: str, chosen_response: str, rejected_response: str) -> dict[str, Any]:
+    def record_preference(
+        self, prompt: str, chosen_response: str, rejected_response: str
+    ) -> dict[str, Any]:
         logger.debug("Recording RLHF preference data point.")
         record = {
             "prompt": prompt,
@@ -63,18 +71,24 @@ class RLHFPipeline:
             queue = GCPFirestoreVerificationQueue(collection_name="ai_rlhf_preferences")
             if queue.mode == "firestore" and queue.client:
                 queue.client.collection("ai_rlhf_preferences").add(record)
-                logger.info("Successfully persisted preference record to Firestore database.")
+                logger.info(
+                    "Successfully persisted preference record to Firestore database."
+                )
         except Exception as err:
             logger.debug(f"Firestore auto-save skipped: {err}")
 
         return {"status": "success", "recorded": len(self.preference_logs)}
 
-    async def export_dpo_dataset(self, output_path: str | None = None) -> dict[str, Any]:
+    async def export_dpo_dataset(
+        self, output_path: str | None = None
+    ) -> dict[str, Any]:
         if not self.preference_logs:
             logger.warning("No preference data to export.")
             return {"status": "error", "error": "No preference data to export."}
         output_path = output_path or os.path.join(self.storage_dir, "dpo_dataset.jsonl")
-        logger.info(f"Exporting {len(self.preference_logs)} DPO records to {output_path}")
+        logger.info(
+            f"Exporting {len(self.preference_logs)} DPO records to {output_path}"
+        )
         try:
             with open(output_path, "w", encoding="utf-8") as f:
                 for log in self.preference_logs:
@@ -109,7 +123,9 @@ class RLHFPipeline:
                 and importlib.util.find_spec("torch") is not None
                 and importlib.util.find_spec("transformers") is not None
             ):
-                logger.info("trl library is available. Simulating local DPOTrainer compilation.")
+                logger.info(
+                    "trl library is available. Simulating local DPOTrainer compilation."
+                )
                 # Local training simulation with TRL
                 return {
                     "status": "success",
@@ -120,7 +136,9 @@ class RLHFPipeline:
                 raise ImportError("trl or dependencies missing")
         except ImportError:
             # Fallback to model trainer (RunPod/Modal Serverless)
-            logger.warning("trl library not found locally. Delegating DPO job to ModelTrainer.")
+            logger.warning(
+                "trl library not found locally. Delegating DPO job to ModelTrainer."
+            )
             from tools.learning.model_trainer import ModelTrainer
 
             trainer = ModelTrainer()

@@ -6,13 +6,14 @@ import os
 import sqlite3
 from typing import Any
 
-from loguru import logger
-
 from core.persistence import pooled_pg
+from loguru import logger
 
 # বাংলা মন্তব্য: রেন্ডার ফ্রি টায়ারে মেমোরি সংকট এড়াতে LOW_MEMORY_MODE চেক করা হচ্ছে
 LOW_MEMORY_MODE = os.getenv("LOW_MEMORY_MODE", "false").lower() == "true"
-HAS_SENTENCE_TRANSFORMERS = (not LOW_MEMORY_MODE) and importlib.util.find_spec("sentence_transformers") is not None
+HAS_SENTENCE_TRANSFORMERS = (not LOW_MEMORY_MODE) and importlib.util.find_spec(
+    "sentence_transformers"
+) is not None
 
 
 def hash_vectorize(text: str, size: int = 384) -> list[float]:
@@ -68,7 +69,9 @@ class CascadeMemoryService:
                 self.db_path = None
                 logger.info("CascadeMemoryService: using pooled Postgres backend.")
             except Exception as exc:
-                logger.error(f"CascadeMemoryService: Postgres schema init failed, falling back to SQLite: {exc}")
+                logger.error(
+                    f"CascadeMemoryService: Postgres schema init failed, falling back to SQLite: {exc}"
+                )
                 self._use_pg = False
 
         if not self._use_pg:
@@ -85,15 +88,18 @@ class CascadeMemoryService:
                 from sentence_transformers import SentenceTransformer
 
                 self.encoder = SentenceTransformer("all-MiniLM-L6-v2")
-                logger.info("Initialized SentenceTransformer encoder for memory service")
+                logger.info(
+                    "Initialized SentenceTransformer encoder for memory service"
+                )
             except Exception as e:
-                logger.warning(f"Failed to load SentenceTransformer: {e}. Using hash fallback.")
+                logger.warning(
+                    f"Failed to load SentenceTransformer: {e}. Using hash fallback."
+                )
 
     def _init_db(self) -> None:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute(
-                """
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS file_memories (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     file_path TEXT UNIQUE,
@@ -102,8 +108,7 @@ class CascadeMemoryService:
                     structure TEXT,
                     embedding TEXT
                 )
-                """
-            )
+                """)
             conn.commit()
 
     def _embed(self, text: str) -> list[float]:
@@ -111,7 +116,9 @@ class CascadeMemoryService:
             try:
                 return self.encoder.encode(text).tolist()
             except Exception as e:
-                logger.warning(f"Embedding failed: {e}. Falling back to hash vectorizer.")
+                logger.warning(
+                    f"Embedding failed: {e}. Falling back to hash vectorizer."
+                )
         return hash_vectorize(text)
 
     def _parse_code_structure(self, file_path: str, content: str) -> dict[str, Any]:
@@ -150,7 +157,9 @@ class CascadeMemoryService:
                             class_info["methods"].append(method_info)
                             summary_parts.append(f"  Method: {subnode.name}")
                             if method_info["docstring"]:
-                                summary_parts.append(f"    Docstring: {method_info['docstring']}")
+                                summary_parts.append(
+                                    f"    Docstring: {method_info['docstring']}"
+                                )
                     structure["classes"].append(class_info)
 
                 elif isinstance(node, ast.FunctionDef):
@@ -174,7 +183,9 @@ class CascadeMemoryService:
                 "structure": json.dumps({"error": str(e)}),
             }
 
-    def store_memory(self, file_path: str, content: str, summary: str, structure: str) -> None:
+    def store_memory(
+        self, file_path: str, content: str, summary: str, structure: str
+    ) -> None:
         """Stores or updates a memory entry in the database.
 
         বাংলা মন্তব্য: ডেটাবেসে মেমোরি এন্ট্রি স্টোর বা আপডেট করার কোর মেথড।
@@ -197,7 +208,9 @@ class CascadeMemoryService:
                     (file_path, content, summary, structure, embedding_str),
                 )
             except Exception as exc:
-                logger.error(f"CascadeMemoryService.store_memory: Postgres write failed: {exc}")
+                logger.error(
+                    f"CascadeMemoryService.store_memory: Postgres write failed: {exc}"
+                )
             return
 
         with sqlite3.connect(self.db_path) as conn:
@@ -224,9 +237,13 @@ class CascadeMemoryService:
         results = []
         if self._use_pg:
             try:
-                rows = pooled_pg.query_dicts("SELECT file_path, content, summary, structure FROM file_memories")
+                rows = pooled_pg.query_dicts(
+                    "SELECT file_path, content, summary, structure FROM file_memories"
+                )
             except Exception as exc:
-                logger.error(f"CascadeMemoryService.retrieve_memories: Postgres read failed: {exc}")
+                logger.error(
+                    f"CascadeMemoryService.retrieve_memories: Postgres read failed: {exc}"
+                )
                 rows = []
             for row in rows:
                 results.append(
@@ -242,7 +259,9 @@ class CascadeMemoryService:
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            cursor.execute("SELECT file_path, content, summary, structure FROM file_memories")
+            cursor.execute(
+                "SELECT file_path, content, summary, structure FROM file_memories"
+            )
             rows = cursor.fetchall()
             for row in rows:
                 results.append(
@@ -262,14 +281,20 @@ class CascadeMemoryService:
         """
         if self._use_pg:
             try:
-                pooled_pg.execute("DELETE FROM file_memories WHERE file_path = %s", (file_path,))
+                pooled_pg.execute(
+                    "DELETE FROM file_memories WHERE file_path = %s", (file_path,)
+                )
             except Exception as exc:
-                logger.error(f"CascadeMemoryService.delete_memory: Postgres delete failed: {exc}")
+                logger.error(
+                    f"CascadeMemoryService.delete_memory: Postgres delete failed: {exc}"
+                )
             return
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM file_memories WHERE file_path = ?", (file_path,))
+            cursor.execute(
+                "DELETE FROM file_memories WHERE file_path = ?", (file_path,)
+            )
             conn.commit()
 
     def chunk_and_embed(self, file_path: str, content: str) -> list[dict[str, Any]]:
@@ -310,9 +335,13 @@ class CascadeMemoryService:
 
         if self._use_pg:
             try:
-                rows = pooled_pg.query_dicts("SELECT file_path, summary, structure, embedding FROM file_memories")
+                rows = pooled_pg.query_dicts(
+                    "SELECT file_path, summary, structure, embedding FROM file_memories"
+                )
             except Exception as exc:
-                logger.error(f"CascadeMemoryService.query_context: Postgres read failed: {exc}")
+                logger.error(
+                    f"CascadeMemoryService.query_context: Postgres read failed: {exc}"
+                )
                 rows = []
             for row in rows:
                 try:
@@ -327,14 +356,18 @@ class CascadeMemoryService:
                         }
                     )
                 except Exception as e:
-                    logger.warning(f"Error calculating similarity for {row.get('file_path')}: {e}")
+                    logger.warning(
+                        f"Error calculating similarity for {row.get('file_path')}: {e}"
+                    )
             results.sort(key=lambda x: x["score"], reverse=True)
             return results[:top_k]
 
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            cursor.execute("SELECT file_path, summary, structure, embedding FROM file_memories")
+            cursor.execute(
+                "SELECT file_path, summary, structure, embedding FROM file_memories"
+            )
             rows = cursor.fetchall()
 
             for row in rows:
@@ -350,14 +383,18 @@ class CascadeMemoryService:
                         }
                     )
                 except Exception as e:
-                    logger.warning(f"Error calculating similarity for {row['file_path']}: {e}")
+                    logger.warning(
+                        f"Error calculating similarity for {row['file_path']}: {e}"
+                    )
 
         # Sort by similarity score descending
         results.sort(key=lambda x: x["score"], reverse=True)
         return results[:top_k]
 
     # Backward-compatible aliases for test compatibility
-    def store(self, user_id: str, agent_id: str, content: str, metadata: dict[str, Any]) -> None:
+    def store(
+        self, user_id: str, agent_id: str, content: str, metadata: dict[str, Any]
+    ) -> None:
         """Backward-compatible alias for store_memory."""
         summary = metadata.get("summary", content[:200])
         structure = metadata.get("structure", json.dumps({}))
@@ -382,21 +419,32 @@ class CascadeMemoryService:
                 conn.execute("DELETE FROM file_memories")
                 conn.commit()
 
-    def get_context_window(self, user_id: str, agent_id: str, limit: int) -> list[dict[str, Any]]:
+    def get_context_window(
+        self, user_id: str, agent_id: str, limit: int
+    ) -> list[dict[str, Any]]:
         """Backward-compatible alias for query_context."""
         return self.query_context(f"{user_id} {agent_id}", top_k=limit)
 
-    def update_context_window(self, user_id: str, messages: list[dict[str, Any]]) -> None:
+    def update_context_window(
+        self, user_id: str, messages: list[dict[str, Any]]
+    ) -> None:
         """Backward-compatible method to store messages in context window."""
         for msg in messages:
             content = msg.get("content", str(msg))
-            self.store_memory(f"{user_id}/context", content, content, json.dumps({"role": msg.get("role", "user")}))
+            self.store_memory(
+                f"{user_id}/context",
+                content,
+                content,
+                json.dumps({"role": msg.get("role", "user")}),
+            )
 
     def semantic_search(self, query: str, limit: int = 5) -> list[dict[str, Any]]:
         """Backward-compatible alias for query_context."""
         return self.query_context(query, top_k=limit)
 
-    def get_recent_interactions(self, user_id: str, limit: int = 20) -> list[dict[str, Any]]:
+    def get_recent_interactions(
+        self, user_id: str, limit: int = 20
+    ) -> list[dict[str, Any]]:
         """Backward-compatible method to get recent interactions."""
         return self.retrieve_memories()[:limit]
 
@@ -432,7 +480,9 @@ def helper_utils():
     logger.info(f"Indexed output: {indexed}")
 
     # 2. Test semantic search query
-    matches = test_service.query_context("Need a class to calculate and analyze data", top_k=1)
+    matches = test_service.query_context(
+        "Need a class to calculate and analyze data", top_k=1
+    )
     logger.info(f"Semantic search match: {matches}")
 
     # Clean up temp file

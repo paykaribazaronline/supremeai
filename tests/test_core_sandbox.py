@@ -1,16 +1,19 @@
 # tests/test_core_sandbox.py
 """Tests for sandbox security components."""
 
-import pytest
-from unittest.mock import MagicMock, patch, PropertyMock
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
+
+import pytest
 
 
 class TestSandboxValidation:
     """Test sandbox path and input validation."""
 
-    @pytest.mark.skip(reason="SECURITY - NOT verified safe, needs developer review: _validate_sandbox_root() correctly rejects pytest's default tmpdir because it's not in the sandbox-root whitelist (this is CORRECT secure behavior, confirmed by reading core/microvm_sandbox.py). Test needs to be rewritten to use a whitelisted path, not loosened - do not change the whitelist logic to make this pass.")
+    @pytest.mark.skip(
+        reason="SECURITY - NOT verified safe, needs developer review: _validate_sandbox_root() correctly rejects pytest's default tmpdir because it's not in the sandbox-root whitelist (this is CORRECT secure behavior, confirmed by reading core/microvm_sandbox.py). Test needs to be rewritten to use a whitelisted path, not loosened - do not change the whitelist logic to make this pass."
+    )
     def test_sandbox_root_validation(self):
         """Test sandbox root path validation."""
         # This tests the validation functions
@@ -46,11 +49,14 @@ class TestSandboxValidation:
 class TestSafeVMPath:
     """Test safe VM path generation."""
 
-    @pytest.mark.skip(reason='SECURITY - NOT verified safe, needs developer review: same root cause as test_sandbox_root_validation (tmpdir not in sandbox-root whitelist). Test needs to be rewritten to use a whitelisted path, not loosened.')
+    @pytest.mark.skip(
+        reason="SECURITY - NOT verified safe, needs developer review: same root cause as test_sandbox_root_validation (tmpdir not in sandbox-root whitelist). Test needs to be rewritten to use a whitelisted path, not loosened."
+    )
     def test_safe_vm_path_within_sandbox(self):
         """Test that VM paths stay within sandbox."""
-        from backend.core.microvm_sandbox import _safe_vm_path
         import tempfile
+
+        from backend.core.microvm_sandbox import _safe_vm_path
 
         with tempfile.TemporaryDirectory() as tmpdir:
             sandbox_root = Path(tmpdir)
@@ -61,8 +67,9 @@ class TestSafeVMPath:
 
     def test_safe_vm_path_outside_sandbox(self):
         """Test that VM paths outside sandbox are caught."""
-        from backend.core.microvm_sandbox import _safe_vm_path
         import tempfile
+
+        from backend.core.microvm_sandbox import _safe_vm_path
 
         with tempfile.TemporaryDirectory() as tmpdir:
             sandbox_root = Path(tmpdir)
@@ -90,8 +97,7 @@ class TestFileIsolationGateExtended:
     def test_file_gate_initialization(self):
         """Test FileIsolationGate initializes."""
         # Mock DockerSandbox to avoid actual container
-        with patch('backend.sandbox.file_isolation_gate.DockerSandbox'):
-            from backend.sandbox.file_isolation_gate import FileIsolationGate
+        with patch("backend.sandbox.file_isolation_gate.DockerSandbox"):
 
             # The gate uses SECURE_STAGING_DIR by default
             # We can verify it initializes
@@ -101,7 +107,6 @@ class TestFileIsolationGateExtended:
         """Test that path traversal is blocked in transaction ID."""
         # This is implicitly tested in the main test file
         # Additional edge cases here
-        pass
 
 
 class TestContainerAuditor:

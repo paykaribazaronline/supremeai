@@ -1,4 +1,3 @@
-from core.error_bus import with_error_bus
 import asyncio
 import contextlib
 import json
@@ -7,18 +6,20 @@ import secrets
 import shutil
 from typing import Any
 
+from core.config import settings
+from core.error_bus import with_error_bus
+from core.utils.time_utils import utc_now
 # বাংলা মন্তব্য: কোয়েরি প্যারামিটার হ্যান্ডেল করার জন্য Query ক্লাস ইম্পোর্ট করা হলো
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, WebSocket
+from fastapi import (APIRouter, Depends, HTTPException, Query, Request,
+                     WebSocket)
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.websockets import WebSocketDisconnect
 from jose import jwt
 from loguru import logger
+from models.ci_report import CIReportPayload, create_ci_report
 from pydantic import BaseModel
 
-from core.config import settings
-from core.utils.time_utils import utc_now
-from models.ci_report import CIReportPayload, create_ci_report
 from tools.billing.cost_auditor import CostAuditor
 from tools.knowledge.codebase_exporter import export_codebase_to_markdown
 
@@ -34,7 +35,9 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
         jwt_secret = settings.jwt_secret
         decoded = jwt.decode(token, jwt_secret, algorithms=["HS256"])
         if decoded.get("role") != "admin":
-            raise HTTPException(status_code=403, detail="Forbidden: User does not have admin role.")
+            raise HTTPException(
+                status_code=403, detail="Forbidden: User does not have admin role."
+            )
 
         jti = decoded.get("jti")
         if jti:
@@ -44,11 +47,17 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
             if redis_queue and getattr(redis_queue, "configured", False):
                 blocked = redis_queue.get(f"jwt_blacklist:{jti}")
                 if blocked is not None:
-                    raise HTTPException(status_code=401, detail="Token has been revoked.")
+                    raise HTTPException(
+                        status_code=401, detail="Token has been revoked."
+                    )
             else:
                 if jti in _in_memory_jwt_blacklist:
-                    raise HTTPException(status_code=401, detail="Token has been revoked.")
-                logger.warning("Redis not configured; falling back to in-memory JWT blacklist check.")
+                    raise HTTPException(
+                        status_code=401, detail="Token has been revoked."
+                    )
+                logger.warning(
+                    "Redis not configured; falling back to in-memory JWT blacklist check."
+                )
 
         return decoded
     except Exception as err:
@@ -227,9 +236,13 @@ def get_costs():
 
 @router.get("/health-map")
 def get_health_map():
-    gcp_configured = bool(getattr(settings, "gcp_project_id", None) or settings._get_cached_secret("GCP_PROJECT_ID"))
+    gcp_configured = bool(
+        getattr(settings, "gcp_project_id", None)
+        or settings._get_cached_secret("GCP_PROJECT_ID")
+    )
     redis_configured = bool(
-        getattr(settings, "upstash_redis_rest_url", None) or settings._get_cached_secret("UPSTASH_REDIS_REST_URL")
+        getattr(settings, "upstash_redis_rest_url", None)
+        or settings._get_cached_secret("UPSTASH_REDIS_REST_URL")
     )
     db_configured = bool(
         getattr(settings, "supabase_database_url", None)
@@ -271,7 +284,9 @@ def create_user(user: UserUpdate):
             save_users(users)
             return {"status": "success", "message": f"User {user.username} updated"}
 
-    users.append({"username": user.username, "role": user.role, "permissions": user.permissions})
+    users.append(
+        {"username": user.username, "role": user.role, "permissions": user.permissions}
+    )
     save_users(users)
     return {"status": "success", "message": f"User {user.username} created"}
 
@@ -300,7 +315,9 @@ def get_env_etag(redis_key: str = "config:env_etag") -> str:
     if os.path.exists(".env"):
         try:
             with open(".env", "rb") as f:
-                etag = hashlib.md5(f.read(), usedforsecurity=False).hexdigest()  # nosec B324
+                etag = hashlib.md5(
+                    f.read(), usedforsecurity=False
+                ).hexdigest()  # nosec B324
             if redis_queue and getattr(redis_queue, "configured", False):
                 redis_queue.set(redis_key, etag, ex=300)
             return etag
@@ -323,7 +340,9 @@ def _acquire_env_lock(lock_path: str = ".env.lock") -> bool:
         except Exception as exc:
             # বল মনতবয: রডস লক বযর্থ হল ফাইল-লক ফলবযাক বযবহত হয়;
             # নরব সযলপ ন কর ডবগ লগ কর হল
-            logger.debug(f"Redis env lock acquisition failed, falling back to file lock: {exc}")
+            logger.debug(
+                f"Redis env lock acquisition failed, falling back to file lock: {exc}"
+            )
     try:
         fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_RDWR)
         os.close(fd)
@@ -505,7 +524,9 @@ class RouterOverrideRequest(BaseModel):
 
 @router.post("/model-router/override")
 def set_router_override(payload: RouterOverrideRequest):
-    logger.info(f"Router override set: {payload.provider}/{payload.model} for {payload.remaining_requests} requests")
+    logger.info(
+        f"Router override set: {payload.provider}/{payload.model} for {payload.remaining_requests} requests"
+    )
     return {
         "status": "success",
         "override": {
@@ -559,7 +580,9 @@ def update_cost_caps(payload: dict[str, Any]):
 
 
 @router.post("/users/impersonate/{username}")
-async def impersonate_user(username: str, current_admin: dict = Depends(require_admin_token)):
+async def impersonate_user(
+    username: str, current_admin: dict = Depends(require_admin_token)
+):
     users = load_users()
     target = next((u for u in users if u["username"] == username), None)
     if not target:
@@ -722,7 +745,11 @@ def run_security_scan():
             "admin",
             "jwt_secret",
         }
-        if not _jwt_secret or len(_jwt_secret) < 64 or _jwt_secret.lower() in _weak_secrets:
+        if (
+            not _jwt_secret
+            or len(_jwt_secret) < 64
+            or _jwt_secret.lower() in _weak_secrets
+        ):
             findings.append(
                 {
                     "item": "jwt_secret",
@@ -794,8 +821,12 @@ with contextlib.suppress(ImportError):
 
 class GateOverridePayload(BaseModel):
     target_status: str = Field(..., description="Must be 'UNLOCKED' or 'LOCKED'")
-    reason: str = Field(..., min_length=10, description="Detailed justification for manual bypass")
-    admin_secret: str = Field(..., description="Master JWT/Vault secret key for authentication")
+    reason: str = Field(
+        ..., min_length=10, description="Detailed justification for manual bypass"
+    )
+    admin_secret: str = Field(
+        ..., description="Master JWT/Vault secret key for authentication"
+    )
 
 
 @router.post("/gate/override")
@@ -807,7 +838,9 @@ async def execute_manual_gate_override(payload: GateOverridePayload):
     """
     # 🛡️ ১. স্ট্রিক্ট সিকিউরিটি গেটকিপার (Master Token Cross-Matching)
     if payload.admin_secret != settings.jwt_secret:
-        logger.critical("🚨 [SECURITY BREACH ATTEMPT] Unauthorized attempt to access God-Mode Override Endpoint!")
+        logger.critical(
+            "🚨 [SECURITY BREACH ATTEMPT] Unauthorized attempt to access God-Mode Override Endpoint!"
+        )
         raise HTTPException(
             status_code=401,
             detail="Access Denied: Invalid Administrative Secret Key Key.",
@@ -836,7 +869,9 @@ async def execute_manual_gate_override(payload: GateOverridePayload):
         # ট্রানজেকশনাল রাইট ট্রিগার
         gate_ref.set(override_context)
 
-        logger.warning(f"🔱 [GOD-MODE OVERRIDE] Admin has manually forced deploy_gate status to {requested_status}.")
+        logger.warning(
+            f"🔱 [GOD-MODE OVERRIDE] Admin has manually forced deploy_gate status to {requested_status}."
+        )
 
         return {
             "success": True,
@@ -846,8 +881,12 @@ async def execute_manual_gate_override(payload: GateOverridePayload):
         }
 
     except Exception as e:
-        logger.error(f"❌ Failed to commit manual gate override to Cloud Firestore: {e!s}")
-        raise HTTPException(status_code=500, detail=f"Infrastructure Sync Failure: {e!s}") from e
+        logger.error(
+            f"❌ Failed to commit manual gate override to Cloud Firestore: {e!s}"
+        )
+        raise HTTPException(
+            status_code=500, detail=f"Infrastructure Sync Failure: {e!s}"
+        ) from e
 
 
 @router.get("/ci-logs")
@@ -860,7 +899,9 @@ async def get_ci_logs(limit: int = 20):
         return reports
     except Exception as e:
         logger.error(f"❌ Failed to fetch CI logs: {e!s}")
-        raise HTTPException(status_code=500, detail=f"Database query failure: {e!s}") from e
+        raise HTTPException(
+            status_code=500, detail=f"Database query failure: {e!s}"
+        ) from e
 
 
 @router.post("/ci-report")
@@ -880,8 +921,12 @@ async def receive_ci_report(report: CIReportPayload, request: Request):
 
     # Optional: Verify the request is coming from GitHub Actions
     # This could be improved with a shared secret or webhook signature validation
-    if "github.com" not in request.headers.get("host", "") and "localhost" not in request.headers.get("host", ""):
-        logger.warning(f"CI Report received from non-GitHub host: {request.headers.get('host')}")
+    if "github.com" not in request.headers.get(
+        "host", ""
+    ) and "localhost" not in request.headers.get("host", ""):
+        logger.warning(
+            f"CI Report received from non-GitHub host: {request.headers.get('host')}"
+        )
 
     try:
         # বাংলা মন্তব্য: নতুন CI রিপোর্ট ডাটাবেসে ইনসার্ট বা আপডেট করা হচ্ছে
@@ -891,7 +936,9 @@ async def receive_ci_report(report: CIReportPayload, request: Request):
         return {"status": "success", "report_id": report_id}
     except Exception as e:
         logger.error(f"❌ Failed to save CI report: {e!s}")
-        raise HTTPException(status_code=500, detail=f"Failed to save CI report: {e!s}") from e
+        raise HTTPException(
+            status_code=500, detail=f"Failed to save CI report: {e!s}"
+        ) from e
 
 
 @router.get("/events")
@@ -951,7 +998,9 @@ async def list_reports(report_name: str | None = None):
         import glob
 
         report_files = glob.glob(f"{reports_dir}/*.md")
-        return {"reports": [os.path.basename(f).replace(".md", "") for f in report_files]}
+        return {
+            "reports": [os.path.basename(f).replace(".md", "") for f in report_files]
+        }
 
 
 # ── Additional Admin CRUD Endpoints (Phase 1) ────────────────────────────────
@@ -983,18 +1032,33 @@ def _save_json_data(file_path: str, data: Any):
 
 @router.get("/roles")
 def get_roles():
-    return [{"id": "1", "name": "God"}, {"id": "2", "name": "Operator"}, {"id": "3", "name": "Viewer"}]
+    return [
+        {"id": "1", "name": "God"},
+        {"id": "2", "name": "Operator"},
+        {"id": "3", "name": "Viewer"},
+    ]
 
 
 @router.get("/permissions")
 def get_permissions():
-    return [{"id": "1", "name": "all"}, {"id": "2", "name": "read"}, {"id": "3", "name": "write"}]
+    return [
+        {"id": "1", "name": "all"},
+        {"id": "2", "name": "read"},
+        {"id": "3", "name": "write"},
+    ]
 
 
 @router.get("/workspaces")
 def get_workspaces():
     return _load_json_data(
-        WORKSPACES_FILE, [{"id": "ws_1", "name": "Default Workspace", "description": "System default workspace"}]
+        WORKSPACES_FILE,
+        [
+            {
+                "id": "ws_1",
+                "name": "Default Workspace",
+                "description": "System default workspace",
+            }
+        ],
     )
 
 
@@ -1031,7 +1095,10 @@ def delete_workspace(ws_id: str):
 
 @router.get("/settings")
 def get_settings():
-    return _load_json_data(SETTINGS_FILE, {"theme": "dark", "notifications_enabled": True, "max_concurrent_tasks": 5})
+    return _load_json_data(
+        SETTINGS_FILE,
+        {"theme": "dark", "notifications_enabled": True, "max_concurrent_tasks": 5},
+    )
 
 
 @router.post("/settings")
@@ -1044,11 +1111,22 @@ def update_settings(payload: dict):
 
 @router.get("/sessions")
 def get_sessions():
-    return _load_json_data(SESSIONS_FILE, [{"id": "sess_1", "name": "Initial Boot Session", "status": "active"}])
+    return _load_json_data(
+        SESSIONS_FILE,
+        [{"id": "sess_1", "name": "Initial Boot Session", "status": "active"}],
+    )
 
 
 @router.get("/customers")
 def get_customers():
     return _load_json_data(
-        CUSTOMERS_FILE, [{"id": "cust_1", "name": "Acme Corp", "email": "admin@acme.com", "billing_tier": "pro"}]
+        CUSTOMERS_FILE,
+        [
+            {
+                "id": "cust_1",
+                "name": "Acme Corp",
+                "email": "admin@acme.com",
+                "billing_tier": "pro",
+            }
+        ],
     )

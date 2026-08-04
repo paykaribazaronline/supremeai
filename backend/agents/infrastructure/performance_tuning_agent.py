@@ -3,7 +3,6 @@ Performance Tuning Agent for SupremeAI 2.0
 Continuously optimizes system performance based on metrics and usage patterns.
 """
 
-from core.error_bus import with_error_bus
 import asyncio
 import json
 import logging
@@ -13,8 +12,8 @@ from datetime import datetime, timedelta
 from typing import Any
 
 import psutil
-
 from core.cache.redis_manager import redis_manager
+from core.error_bus import with_error_bus
 from core.llm.token_deductor import TokenDeductor
 from core.monitoring.metrics_collector import MetricsCollector
 
@@ -69,7 +68,9 @@ class PerformanceTuningAgent:
     def __init__(self):
         self.name = "Performance Tuning Agent"
         self.token_deductor = TokenDeductor()
-        self.metrics_collector = MetricsCollector() if "MetricsCollector" in globals() else None
+        self.metrics_collector = (
+            MetricsCollector() if "MetricsCollector" in globals() else None
+        )
         self.performance_metrics_key = "performance_tuning:metrics"
         self.optimization_history_key = "performance_tuning:optimization_history"
         self.tuning_recommendations_key = "performance_tuning:recommendations"
@@ -178,7 +179,9 @@ class PerformanceTuningAgent:
             # This would typically come from the application metrics collector
             try:
                 if self.metrics_collector:
-                    app_metrics = await self.metrics_collector.get_recent_metrics(minutes=1)
+                    app_metrics = await self.metrics_collector.get_recent_metrics(
+                        minutes=1
+                    )
                     if app_metrics:
                         active_connections = app_metrics.get("active_connections", 0)
                         response_time_ms = app_metrics.get("avg_response_time", 0)
@@ -304,7 +307,10 @@ class PerformanceTuningAgent:
                 )
 
             # Check for response time optimization opportunities
-            if current_metric.response_time_ms > self.performance_thresholds["response_time_high"]:
+            if (
+                current_metric.response_time_ms
+                > self.performance_thresholds["response_time_high"]
+            ):
                 recommendations.append(
                     OptimizationRecommendation(
                         component="api",
@@ -317,7 +323,10 @@ class PerformanceTuningAgent:
                 )
 
             # Check for error rate optimization opportunities
-            if current_metric.error_rate > self.performance_thresholds["error_rate_high"]:
+            if (
+                current_metric.error_rate
+                > self.performance_thresholds["error_rate_high"]
+            ):
                 recommendations.append(
                     OptimizationRecommendation(
                         component="system",
@@ -330,7 +339,10 @@ class PerformanceTuningAgent:
                 )
 
             # Check for queue depth optimization opportunities
-            if current_metric.queue_depth > self.performance_thresholds["queue_depth_high"]:
+            if (
+                current_metric.queue_depth
+                > self.performance_thresholds["queue_depth_high"]
+            ):
                 recommendations.append(
                     OptimizationRecommendation(
                         component="messaging",
@@ -386,7 +398,9 @@ class PerformanceTuningAgent:
             PerformanceTuningResult with the outcome
         """
         try:
-            optimization_id = f"opt_{int(datetime.utcnow().timestamp())}_{optimization_name[:8]}"
+            optimization_id = (
+                f"opt_{int(datetime.utcnow().timestamp())}_{optimization_name[:8]}"
+            )
 
             # Get performance metrics before applying optimization
             before_metrics = await self.collect_performance_metrics()
@@ -399,11 +413,15 @@ class PerformanceTuningAgent:
             after_metrics = await self.collect_performance_metrics()
 
             # Calculate performance improvement
-            improvement = self._calculate_performance_improvement(before_metrics, after_metrics)
+            improvement = self._calculate_performance_improvement(
+                before_metrics, after_metrics
+            )
 
             # Determine status based on success and improvement
             status = "success" if success else "failed"
-            if success and improvement.get("overall_score", 0) < 0.1:  # Minimal improvement
+            if (
+                success and improvement.get("overall_score", 0) < 0.1
+            ):  # Minimal improvement
                 status = "partial"
 
             result = PerformanceTuningResult(
@@ -433,7 +451,9 @@ class PerformanceTuningAgent:
                 notes=f"Error applying optimization: {e!s}",
             )
 
-    async def _execute_optimization(self, optimization_name: str, parameters: dict[str, Any]) -> bool:
+    async def _execute_optimization(
+        self, optimization_name: str, parameters: dict[str, Any]
+    ) -> bool:
         """Execute a specific optimization technique."""
         try:
             if optimization_name not in self.available_optimizations:
@@ -442,7 +462,9 @@ class PerformanceTuningAgent:
 
             # In a real implementation, this would actually execute the optimization
             # For simulation, we'll just log the intended action
-            logger.info(f"Executing optimization: {optimization_name} with parameters: {parameters}")
+            logger.info(
+                f"Executing optimization: {optimization_name} with parameters: {parameters}"
+            )
 
             # Simulate the optimization action
             # This would typically involve:
@@ -468,7 +490,8 @@ class PerformanceTuningAgent:
             improvement = {
                 "cpu_usage_change": before.cpu_usage - after.cpu_usage,
                 "memory_usage_change": before.memory_usage - after.memory_usage,
-                "response_time_change_ms": before.response_time_ms - after.response_time_ms,
+                "response_time_change_ms": before.response_time_ms
+                - after.response_time_ms,
                 "error_rate_change": before.error_rate - after.error_rate,
                 "rps_change": after.requests_per_second - before.requests_per_second,
             }
@@ -476,25 +499,46 @@ class PerformanceTuningAgent:
             # Calculate overall score (higher is better)
             # Normalize each metric and combine
             cpu_score = (
-                max(0, min(1, (before.cpu_usage - after.cpu_usage) / before.cpu_usage)) if before.cpu_usage > 0 else 0
+                max(0, min(1, (before.cpu_usage - after.cpu_usage) / before.cpu_usage))
+                if before.cpu_usage > 0
+                else 0
             )
             memory_score = (
-                max(0, min(1, (before.memory_usage - after.memory_usage) / before.memory_usage))
+                max(
+                    0,
+                    min(
+                        1,
+                        (before.memory_usage - after.memory_usage)
+                        / before.memory_usage,
+                    ),
+                )
                 if before.memory_usage > 0
                 else 0
             )
             response_score = (
-                max(0, min(1, (before.response_time_ms - after.response_time_ms) / before.response_time_ms))
+                max(
+                    0,
+                    min(
+                        1,
+                        (before.response_time_ms - after.response_time_ms)
+                        / before.response_time_ms,
+                    ),
+                )
                 if before.response_time_ms > 0
                 else 0
             )
             error_score = (
-                max(0, min(1, (before.error_rate - after.error_rate) / before.error_rate))
+                max(
+                    0,
+                    min(1, (before.error_rate - after.error_rate) / before.error_rate),
+                )
                 if before.error_rate > 0
                 else 0
             )
 
-            overall_score = (cpu_score + memory_score + response_score + error_score) / 4
+            overall_score = (
+                cpu_score + memory_score + response_score + error_score
+            ) / 4
             improvement["overall_score"] = round(overall_score, 3)
 
             return improvement
@@ -502,10 +546,14 @@ class PerformanceTuningAgent:
             logger.error(f"Error calculating performance improvement: {e}")
             return {"overall_score": 0.0}
 
-    async def get_optimization_recommendations(self, limit: int = 10) -> list[OptimizationRecommendation]:
+    async def get_optimization_recommendations(
+        self, limit: int = 10
+    ) -> list[OptimizationRecommendation]:
         """Get recent optimization recommendations."""
         try:
-            recommendations_data = await redis_manager.get(self.tuning_recommendations_key)
+            recommendations_data = await redis_manager.get(
+                self.tuning_recommendations_key
+            )
             if not recommendations_data:
                 return []
 
@@ -529,7 +577,9 @@ class PerformanceTuningAgent:
             logger.error(f"Error retrieving optimization recommendations: {e}")
             return []
 
-    async def _store_recommendations(self, recommendations: list[OptimizationRecommendation]):
+    async def _store_recommendations(
+        self, recommendations: list[OptimizationRecommendation]
+    ):
         """Store optimization recommendations in Redis."""
         try:
             recommendations_data = []
@@ -546,7 +596,9 @@ class PerformanceTuningAgent:
                 )
 
             # Get existing recommendations
-            existing_recommendations = await redis_manager.get(self.tuning_recommendations_key)
+            existing_recommendations = await redis_manager.get(
+                self.tuning_recommendations_key
+            )
             if existing_recommendations:
                 rec_list = json.loads(existing_recommendations)
             else:
@@ -617,16 +669,26 @@ class PerformanceTuningAgent:
             # Get metrics from Redis
             metrics_data = await redis_manager.get(self.performance_metrics_key)
             if not metrics_data:
-                return {"status": "no_data", "message": "No performance metrics available"}
+                return {
+                    "status": "no_data",
+                    "message": "No performance metrics available",
+                }
 
             all_metrics = json.loads(metrics_data)
 
             # Filter metrics for the specified time period
             cutoff_time = datetime.utcnow() - timedelta(hours=hours)
-            filtered_metrics = [m for m in all_metrics if datetime.fromisoformat(m["timestamp"]) >= cutoff_time]
+            filtered_metrics = [
+                m
+                for m in all_metrics
+                if datetime.fromisoformat(m["timestamp"]) >= cutoff_time
+            ]
 
             if not filtered_metrics:
-                return {"status": "no_data", "message": f"No metrics available for last {hours} hours"}
+                return {
+                    "status": "no_data",
+                    "message": f"No metrics available for last {hours} hours",
+                }
 
             # Calculate averages and statistics
             cpu_values = [m["cpu_usage"] for m in filtered_metrics]
@@ -641,7 +703,9 @@ class PerformanceTuningAgent:
                 "averages": {
                     "cpu_usage": round(sum(cpu_values) / len(cpu_values), 2),
                     "memory_usage": round(sum(memory_values) / len(memory_values), 2),
-                    "response_time_ms": round(sum(response_times) / len(response_times), 2),
+                    "response_time_ms": round(
+                        sum(response_times) / len(response_times), 2
+                    ),
                     "error_rate": round(sum(error_rates) / len(error_rates), 2),
                 },
                 "peak_values": {
@@ -651,7 +715,9 @@ class PerformanceTuningAgent:
                     "error_rate": max(error_rates),
                 },
                 "trend": "stable",  # This would be calculated based on actual trends
-                "recommendations_needed": len(await self.get_optimization_recommendations(limit=5)),
+                "recommendations_needed": len(
+                    await self.get_optimization_recommendations(limit=5)
+                ),
             }
 
             # Determine trend based on last vs first values
@@ -676,7 +742,9 @@ class PerformanceTuningAgent:
         Args:
             interval_minutes: Interval between tuning checks in minutes
         """
-        logger.info(f"Starting continuous performance tuning (interval: {interval_minutes} minutes)")
+        logger.info(
+            f"Starting continuous performance tuning (interval: {interval_minutes} minutes)"
+        )
 
         while True:
             try:
@@ -691,10 +759,15 @@ class PerformanceTuningAgent:
                     if rec.expected_impact == "high" and rec.confidence > 0.7:
                         await self.apply_optimization(
                             f"{rec.component}_optimization",
-                            {"recommendation": rec.recommendation, "priority": rec.expected_impact},
+                            {
+                                "recommendation": rec.recommendation,
+                                "priority": rec.expected_impact,
+                            },
                         )
 
-                logger.info(f"Completed performance tuning cycle. Found {len(recommendations)} recommendations.")
+                logger.info(
+                    f"Completed performance tuning cycle. Found {len(recommendations)} recommendations."
+                )
 
                 # Sleep until next cycle
                 await asyncio.sleep(interval_minutes * 60)

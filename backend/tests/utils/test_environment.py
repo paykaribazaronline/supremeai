@@ -1,10 +1,7 @@
 import os
 
-from utils.environment import (
-    is_admin_authorized,
-    is_autofix_authorized,
-    is_test_environment,
-)
+from utils.environment import (is_admin_authorized, is_autofix_authorized,
+                               is_test_environment)
 
 
 class TestIsTestEnvironment:

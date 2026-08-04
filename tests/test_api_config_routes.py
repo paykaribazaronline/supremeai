@@ -2,19 +2,14 @@
 """Tests for API config routes."""
 
 from unittest.mock import patch
+
 import pytest
 from fastapi import HTTPException, Response
 
 # বাংলা মন্তব্য: ল্যাগ-ফ্রি ও হাই-পারফর্মেন্স ইউনিট টেস্টিংয়ের জন্য সকেট/ইনফ্রাস্ট্রাকচার ডিপেনডেন্সি ছাড়াই হ্যান্ডলার মেথডগুলো সরাসরি কল করা হচ্ছে।
-from backend.api.routes.config import (
-    _ConfigDBClientWrapper,
-    db,
-    get_config_by_key,
-    get_public_config,
-    require_admin_token,
-    router,
-    update_config_by_key,
-)
+from backend.api.routes.config import (_ConfigDBClientWrapper, db,
+                                       get_config_by_key, get_public_config,
+                                       router, update_config_by_key)
 
 
 @pytest.mark.asyncio
@@ -25,13 +20,15 @@ async def test_get_public_config():
     assert "ENV" in data
     assert "BACKEND_URL" in data
     assert "FEATURES" in data
-    assert response.headers.get("Cache-Control") == "public, max-age=3600, s-maxage=86400"
+    assert (
+        response.headers.get("Cache-Control") == "public, max-age=3600, s-maxage=86400"
+    )
 
 
 @pytest.mark.asyncio
 async def test_get_config_by_key_success():
     """Test getting config by key with valid admin token."""
-    with patch.object(db, 'get_config', return_value="test_value"):
+    with patch.object(db, "get_config", return_value="test_value"):
         data = await get_config_by_key("test_key", admin={"role": "admin"})
         assert data["key"] == "test_key"
         assert data["value"] == "test_value"
@@ -40,7 +37,7 @@ async def test_get_config_by_key_success():
 @pytest.mark.asyncio
 async def test_get_config_by_key_not_found():
     """Test getting config by key that doesn't exist."""
-    with patch.object(db, 'get_config', return_value=None):
+    with patch.object(db, "get_config", return_value=None):
         with pytest.raises(HTTPException) as exc_info:
             await get_config_by_key("nonexistent_key", admin={"role": "admin"})
         assert exc_info.value.status_code == 404
@@ -50,9 +47,11 @@ async def test_get_config_by_key_not_found():
 @pytest.mark.asyncio
 async def test_update_config_by_key_success():
     """Test updating config by key with valid admin token."""
-    with patch.object(db, 'set_config') as mock_set_config:
+    with patch.object(db, "set_config") as mock_set_config:
         test_value = {"some": "data"}
-        data = await update_config_by_key("test_key", value=test_value, admin={"role": "admin"})
+        data = await update_config_by_key(
+            "test_key", value=test_value, admin={"role": "admin"}
+        )
         assert data["status"] == "success"
         mock_set_config.assert_called_once_with("test_key", test_value)
 
@@ -95,9 +94,9 @@ async def test_update_config_by_key_with_various_types():
         ("dict_key", {"nested": "value"}),
         ("null_key", None),
     ]
-    
+
     for key, value in test_cases:
-        with patch.object(db, 'set_config') as mock_set_config:
+        with patch.object(db, "set_config") as mock_set_config:
             data = await update_config_by_key(key, value=value, admin={"role": "admin"})
             assert data["status"] == "success"
             mock_set_config.assert_called_once_with(key, value)
@@ -114,9 +113,9 @@ async def test_get_config_by_key_special_characters():
         "TestKey",
         "test_key_with_underscores",
     ]
-    
+
     for key in special_keys:
-        with patch.object(db, 'get_config', return_value=f"value_for_{key}"):
+        with patch.object(db, "get_config", return_value=f"value_for_{key}"):
             data = await get_config_by_key(key, admin={"role": "admin"})
             assert data["key"] == key
             assert data["value"] == f"value_for_{key}"
@@ -133,10 +132,12 @@ async def test_update_config_by_key_special_characters():
         "TestKey",
         "test_key_with_underscores",
     ]
-    
+
     for key in special_keys:
-        with patch.object(db, 'set_config') as mock_set_config:
-            data = await update_config_by_key(key, value="test_value", admin={"role": "admin"})
+        with patch.object(db, "set_config") as mock_set_config:
+            data = await update_config_by_key(
+                key, value="test_value", admin={"role": "admin"}
+            )
             assert data["status"] == "success"
             mock_set_config.assert_called_once_with(key, "test_value")
 
@@ -146,11 +147,11 @@ async def test_config_public_endpoint_response_structure():
     """Test the structure of the public config response."""
     response = Response()
     data = await get_public_config(response)
-    
+
     assert "ENV" in data
     assert "BACKEND_URL" in data
     assert "FEATURES" in data
-    
+
     features = data["FEATURES"]
     assert isinstance(features, dict)
     assert "morphic_rewrite" in features

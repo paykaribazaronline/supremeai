@@ -45,9 +45,12 @@ sys.path.insert(0, BACKEND_DIR)
 
 try:
     from core.config import settings
+
     from tools.headless_agent_registry import get_headless_agent_configs
 except ImportError as e:
-    logger.error(f"প্রয়োজনীয় মডিউল ইম্পোর্ট করা যায়নি: {e}. backend ডিরেক্টরি থেকে বা repo root থেকে চালান।")
+    logger.error(
+        f"প্রয়োজনীয় মডিউল ইম্পোর্ট করা যায়নি: {e}. backend ডিরেক্টরি থেকে বা repo root থেকে চালান।"
+    )
     sys.exit(1)
 
 
@@ -55,7 +58,9 @@ def get_db_connection() -> psycopg2.extensions.connection | None:
     """settings.supabase_database_url থেকে ডাটাবেস কানেকশন তৈরি করে।"""
     db_url = getattr(settings, "supabase_database_url", None)
     if not db_url:
-        logger.error("SUPABASE_DATABASE_URL_POOLER কনফিগার করা নেই (settings.supabase_database_url)।")
+        logger.error(
+            "SUPABASE_DATABASE_URL_POOLER কনফিগার করা নেই (settings.supabase_database_url)।"
+        )
         return None
     try:
         conn = psycopg2.connect(db_url)
@@ -78,8 +83,7 @@ def ensure_tables(conn, dry_run: bool) -> None:
     logger.info("ডাটাবেস টেবিল আছে কিনা যাচাই করা হচ্ছে (কোনো DROP হবে না)...")
     cursor = conn.cursor()
     try:
-        cursor.execute(
-            """
+        cursor.execute("""
         CREATE TABLE IF NOT EXISTS skills (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             skill_name VARCHAR(255) UNIQUE NOT NULL,
@@ -111,8 +115,7 @@ def ensure_tables(conn, dry_run: bool) -> None:
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
-        """
-        )
+        """)
         conn.commit()
         logger.success("টেবিল প্রস্তুত (বিদ্যমান ডেটা অক্ষত আছে)।")
     except Exception as e:
@@ -139,7 +142,9 @@ def migrate_skills(conn, dry_run: bool) -> None:
             try:
                 with open(file_path, encoding="utf-8") as f:
                     code = f.read()
-                description = f"Skill for {skill_name.replace('_', ' ')}. Automatically migrated."
+                description = (
+                    f"Skill for {skill_name.replace('_', ' ')}. Automatically migrated."
+                )
 
                 if dry_run:
                     logger.info(f"  [DRY-RUN] -> মাইগ্রেট হতো: {skill_name}")
@@ -254,14 +259,18 @@ def migrate_agent_configs(conn, dry_run: bool) -> None:
         if not dry_run:
             conn.commit()
             cursor.close()
-        logger.info(f"Agent config migration সম্পন্ন। মোট প্রক্রিয়াকৃত: {migrated_count}")
+        logger.info(
+            f"Agent config migration সম্পন্ন। মোট প্রক্রিয়াকৃত: {migrated_count}"
+        )
 
     except Exception as e:
         logger.error(f"Agent configs মাইগ্রেট করতে ব্যর্থ: {e}")
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="SupremeAI 2.0 code-to-database migration")
+    parser = argparse.ArgumentParser(
+        description="SupremeAI 2.0 code-to-database migration"
+    )
     parser.add_argument(
         "--dry-run",
         action="store_true",
@@ -269,7 +278,10 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    logger.info("🚀 CODE_TO_DATABASE migration শুরু হচ্ছে..." + (" [DRY-RUN MODE]" if args.dry_run else ""))
+    logger.info(
+        "🚀 CODE_TO_DATABASE migration শুরু হচ্ছে..."
+        + (" [DRY-RUN MODE]" if args.dry_run else "")
+    )
 
     if args.dry_run:
         migrate_skills(None, dry_run=True)

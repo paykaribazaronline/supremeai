@@ -17,7 +17,6 @@ except ImportError:
 
 from core.cache.redis_manager import redis_manager
 from core.config import settings
-
 # Remove the problematic import and use alternative
 # from core.security.auth_middleware import get_current_active_user
 from core.health_check import health_checker
@@ -36,7 +35,9 @@ class UpdateInfo:
     description: str
     url: str
     timestamp: datetime
-    category: str  # 'github_trending', 'ai_updates', 'system_capability', 'security_alert'
+    category: (
+        str  # 'github_trending', 'ai_updates', 'system_capability', 'security_alert'
+    )
 
 
 class InternetMonitorAgent:
@@ -47,14 +48,17 @@ class InternetMonitorAgent:
         self.session: aiohttp.ClientSession | None = None
         self.event_bus = EventBus()
         self.token_deductor = TokenDeductor()
-        self.check_interval = getattr(settings, "internet_monitor_interval", 3600)  # Default 1 hour
+        self.check_interval = getattr(
+            settings, "internet_monitor_interval", 3600
+        )  # Default 1 hour
         self.update_history_key = "internet_monitor:update_history"
         self.system_capabilities_key = "internet_monitor:system_capabilities"
 
     async def initialize(self):
         """Initialize the agent with HTTP session."""
         self.session = aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=30), headers={"User-Agent": "SupremeAI-InternetMonitor/2.0"}
+            timeout=aiohttp.ClientTimeout(total=30),
+            headers={"User-Agent": "SupremeAI-InternetMonitor/2.0"},
         )
         # Load system capabilities on startup
         await self._discover_system_capabilities()
@@ -78,11 +82,15 @@ class InternetMonitorAgent:
             # Since we don't have direct access to get_available_tools, let's check the tools directory
             import os
 
-            tools_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tools")
+            tools_dir = os.path.join(
+                os.path.dirname(os.path.dirname(__file__)), "tools"
+            )
             if os.path.exists(tools_dir):
                 for item in os.listdir(tools_dir):
                     if item.endswith(".py") and item != "__init__.py":
-                        capabilities["features"].append(item[:-3])  # Remove .py extension
+                        capabilities["features"].append(
+                            item[:-3]
+                        )  # Remove .py extension
 
             # Check available agents
             import os
@@ -90,8 +98,14 @@ class InternetMonitorAgent:
             agents_dir = os.path.join(os.path.dirname(__file__))
             if os.path.exists(agents_dir):
                 for item in os.listdir(agents_dir):
-                    if item.endswith(".py") and item != "__init__.py" and item != "internet_monitor_agent.py":
-                        capabilities["features"].append(item[:-3])  # Remove .py extension
+                    if (
+                        item.endswith(".py")
+                        and item != "__init__.py"
+                        and item != "internet_monitor_agent.py"
+                    ):
+                        capabilities["features"].append(
+                            item[:-3]
+                        )  # Remove .py extension
 
             # Store in Redis
             await redis_manager.set_with_ttl(
@@ -100,7 +114,9 @@ class InternetMonitorAgent:
                 ttl=86400,  # 24 hours
             )
 
-            logger.info(f"Discovered {len(capabilities['features'])} system capabilities")
+            logger.info(
+                f"Discovered {len(capabilities['features'])} system capabilities"
+            )
 
         except Exception as e:
             logger.error(f"Error discovering system capabilities: {e}")
@@ -130,7 +146,9 @@ class InternetMonitorAgent:
             params = {"per_page": 5}
 
             if self.session:
-                async with self.session.get(url, headers=headers, params=params) as response:
+                async with self.session.get(
+                    url, headers=headers, params=params
+                ) as response:
                     if response.status == 200:
                         data = await response.json()
 
@@ -139,7 +157,9 @@ class InternetMonitorAgent:
                                 UpdateInfo(
                                     source="GitHub Trending",
                                     title=f"Trending Repository: {repo.get('name', 'Unknown')}",
-                                    description=repo.get("description", "No description available"),
+                                    description=repo.get(
+                                        "description", "No description available"
+                                    ),
                                     url=repo.get("html_url", ""),
                                     timestamp=datetime.utcnow(),
                                     category="github_trending",
@@ -147,7 +167,9 @@ class InternetMonitorAgent:
                             )
                     else:
                         # Fallback to basic update
-                        logger.warning(f"GitHub API failed with status {response.status}, using fallback")
+                        logger.warning(
+                            f"GitHub API failed with status {response.status}, using fallback"
+                        )
                         # This is a simplified version - in reality, we'd scrape the actual page
                         fallback_updates = [
                             UpdateInfo(
@@ -161,7 +183,9 @@ class InternetMonitorAgent:
                         ]
                         updates.extend(fallback_updates)
             else:
-                logger.warning("HTTP session not initialized, skipping GitHub monitoring")
+                logger.warning(
+                    "HTTP session not initialized, skipping GitHub monitoring"
+                )
 
         except Exception as e:
             logger.error(f"Error monitoring GitHub trending: {e}")
@@ -174,7 +198,9 @@ class InternetMonitorAgent:
 
         try:
             if not self.session:
-                logger.warning("HTTP session not initialized, skipping AI world monitoring")
+                logger.warning(
+                    "HTTP session not initialized, skipping AI world monitoring"
+                )
                 return updates
 
             # Monitor Hugging Face model hub
@@ -188,7 +214,9 @@ class InternetMonitorAgent:
                             UpdateInfo(
                                 source="Hugging Face",
                                 title=f"New Trending Model: {model.get('id', 'Unknown')}",
-                                description=model.get("cardData", {}).get("summary", "New AI model released"),
+                                description=model.get("cardData", {}).get(
+                                    "summary", "New AI model released"
+                                ),
                                 url=f"https://huggingface.co/{model.get('id', '')}",
                                 timestamp=datetime.utcnow(),
                                 category="ai_updates",
@@ -275,7 +303,9 @@ class InternetMonitorAgent:
                         or "novel approach" in update.description.lower()
                     )
 
-                    if missing_indicator or any(feature.lower() in title_lower for feature in current_features):
+                    if missing_indicator or any(
+                        feature.lower() in title_lower for feature in current_features
+                    ):
                         updates.append(
                             UpdateInfo(
                                 source=f"{update.source} - Capability Alert",
@@ -300,9 +330,7 @@ class InternetMonitorAgent:
             health_status = await health_checker.check_all()  # Use the correct function
 
             # Identify system gaps and status
-            gap_description = (
-                "System is functioning normally but may have capability gaps compared to latest developments"
-            )
+            gap_description = "System is functioning normally but may have capability gaps compared to latest developments"
 
             # Check for any subsystem issues
             for subsystem, status in health_status.get("checks", {}).items():
@@ -382,7 +410,12 @@ class InternetMonitorAgent:
         summary = {
             "timestamp": datetime.utcnow().isoformat(),
             "total_updates": len(updates),
-            "by_category": {"github_trending": [], "ai_updates": [], "system_capability": [], "security_alert": []},
+            "by_category": {
+                "github_trending": [],
+                "ai_updates": [],
+                "system_capability": [],
+                "security_alert": [],
+            },
             "top_updates": updates[:5],  # Top 5 most recent
         }
 

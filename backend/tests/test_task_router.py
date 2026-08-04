@@ -106,12 +106,27 @@ class TestSwarmLLMRouter:
         from core.llm_router import HFSwarmRouter
 
         swarm_router = HFSwarmRouter()
-        assert swarm_router.classify_task("Write a python function to parse JSON") == "coding"
-        assert swarm_router.classify_task("Solve the equation x^2 + 5x + 6 = 0") == "reasoning"
-        assert swarm_router.classify_task("Write a poem and creative story about space") == "creative"
-        assert swarm_router.classify_task("Analyze this screenshot image of UI") == "vision"
+        assert (
+            swarm_router.classify_task("Write a python function to parse JSON")
+            == "coding"
+        )
+        assert (
+            swarm_router.classify_task("Solve the equation x^2 + 5x + 6 = 0")
+            == "reasoning"
+        )
+        assert (
+            swarm_router.classify_task("Write a poem and creative story about space")
+            == "creative"
+        )
+        assert (
+            swarm_router.classify_task("Analyze this screenshot image of UI")
+            == "vision"
+        )
         assert swarm_router.classify_task("Give me a fast draft answer") == "draft"
-        assert swarm_router.classify_task("Step by step instructions " + "word " * 160) == "master"
+        assert (
+            swarm_router.classify_task("Step by step instructions " + "word " * 160)
+            == "master"
+        )
         assert swarm_router.classify_task("Hello, how are you today?") == "general"
 
     def test_model_swarm_registry_mapping(self):

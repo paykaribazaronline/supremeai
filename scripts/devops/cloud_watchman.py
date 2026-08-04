@@ -9,19 +9,15 @@ Author: SupremeAI Core
 Date: July 18, 2026
 """
 
-import os
-import sys
+import argparse
+import concurrent.futures
 import json
 import logging
-import argparse
-import hashlib
-import concurrent.futures
-import threading
-import time
-from pathlib import Path
-from dataclasses import dataclass, field, asdict
-from typing import Any
+import os
+import sys
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from pathlib import Path
 from statistics import mean, stdev
 
 import requests
@@ -36,7 +32,7 @@ except ImportError:
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from core.config import settings
 
-logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
+logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 CACHE_FILE = Path(__file__).parent / ".cloud_watchman_cache.json"
 ALERT_STATE_FILE = Path(__file__).parent / ".cloud_watchman_alerts.json"
@@ -77,18 +73,30 @@ class ServiceReport:
 
 # --- API Clients ---
 
+
 class RenderClient:
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.headers = {"Authorization": f"Bearer {api_key}", "Accept": "application/json"}
+        self.headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Accept": "application/json",
+        }
 
     def get_services(self) -> list[dict]:
-        resp = requests.get("https://api.render.com/v1/services?limit=20", headers=self.headers, timeout=REQUEST_TIMEOUT)
+        resp = requests.get(
+            "https://api.render.com/v1/services?limit=20",
+            headers=self.headers,
+            timeout=REQUEST_TIMEOUT,
+        )
         resp.raise_for_status()
         return resp.json()
 
     def get_deploys(self, service_id: str, limit: int = 5) -> list[dict]:
-        resp = requests.get(f"https://api.render.com/v1/services/{service_id}/deploys?limit={limit}", headers=self.headers, timeout=REQUEST_TIMEOUT)
+        resp = requests.get(
+            f"https://api.render.com/v1/services/{service_id}/deploys?limit={limit}",
+            headers=self.headers,
+            timeout=REQUEST_TIMEOUT,
+        )
         resp.raise_for_status()
         return resp.json()
 
@@ -98,17 +106,25 @@ class VercelClient:
         self.token = token
         self.headers = {"Authorization": f"Bearer {token}"}
 
-    def get_deployments(self, project_id: str | None = None, limit: int = 10) -> list[dict]:
+    def get_deployments(
+        self, project_id: str | None = None, limit: int = 10
+    ) -> list[dict]:
         url = "https://api.vercel.com/v6/deployments"
         params = {"limit": limit}
         if project_id:
             params["projectId"] = project_id
-        resp = requests.get(url, headers=self.headers, params=params, timeout=REQUEST_TIMEOUT)
+        resp = requests.get(
+            url, headers=self.headers, params=params, timeout=REQUEST_TIMEOUT
+        )
         resp.raise_for_status()
         return resp.json().get("deployments", [])
 
     def get_projects(self) -> list[dict]:
-        resp = requests.get("https://api.vercel.com/v9/projects", headers=self.headers, timeout=REQUEST_TIMEOUT)
+        resp = requests.get(
+            "https://api.vercel.com/v9/projects",
+            headers=self.headers,
+            timeout=REQUEST_TIMEOUT,
+        )
         resp.raise_for_status()
         return resp.json().get("projects", [])
 
@@ -121,7 +137,13 @@ class GCPClient:
     def _get_access_token(self) -> str:
         try:
             import subprocess
-            result = subprocess.run(["gcloud", "auth", "print-access-token"], capture_output=True, text=True, timeout=10)
+
+            result = subprocess.run(
+                ["gcloud", "auth", "print-access-token"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
             if result.returncode == 0:
                 return result.stdout.strip()
         except Exception:
@@ -131,16 +153,24 @@ class GCPClient:
     def get_service_usage(self) -> list[dict]:
         if not self.access_token:
             return []
-        headers = {"Authorization": f"Bearer {self.access_token}", "Accept": "application/json"}
+        headers = {
+            "Authorization": f"Bearer {self.access_token}",
+            "Accept": "application/json",
+        }
         url = f"https://serviceusage.googleapis.com/v1/projects/{self.project}/services"
         resp = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
         resp.raise_for_status()
         return resp.json().get("services", [])
 
-    def get_monitoring_metrics(self, metric_type: str = "compute.googleapis.com/quota/instances") -> list[dict]:
+    def get_monitoring_metrics(
+        self, metric_type: str = "compute.googleapis.com/quota/instances"
+    ) -> list[dict]:
         if not self.access_token:
             return []
-        headers = {"Authorization": f"Bearer {self.access_token}", "Accept": "application/json"}
+        headers = {
+            "Authorization": f"Bearer {self.access_token}",
+            "Accept": "application/json",
+        }
         now = datetime.utcnow()
         start = (now - timedelta(hours=1)).isoformat("T") + "Z"
         end = now.isoformat("T") + "Z"
@@ -150,7 +180,9 @@ class GCPClient:
         )
         resp = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
         if resp.status_code == 403:
-            logging.warning("GCP Monitoring API access denied. Enable Cloud Monitoring API.")
+            logging.warning(
+                "GCP Monitoring API access denied. Enable Cloud Monitoring API."
+            )
             return []
         resp.raise_for_status()
         return resp.json().get("timeSeries", [])
@@ -158,14 +190,23 @@ class GCPClient:
 
 # --- Anomaly Detection ---
 
-def detect_anomaly(metric_name: str, current: float, history: list[float]) -> Anomaly | None:
+
+def detect_anomaly(
+    metric_name: str, current: float, history: list[float]
+) -> Anomaly | None:
     if len(history) < 3:
         return None
 
     avg = mean(history)
     if avg == 0:
         if current > 0:
-            return Anomaly(metric_name, current, "0 (baseline)", "HIGH", f"First non-zero value detected: {current}")
+            return Anomaly(
+                metric_name,
+                current,
+                "0 (baseline)",
+                "HIGH",
+                f"First non-zero value detected: {current}",
+            )
         return None
 
     pct_dev = abs(current - avg) / avg * 100
@@ -188,11 +229,12 @@ def detect_anomaly(metric_name: str, current: float, history: list[float]) -> An
         current_value=current,
         expected_range=f"{avg:.2f} ± {ANOMALY_PCT_THRESHOLD}%",
         severity=severity,
-        message=f"{metric_name} is {current} (expected ~{avg:.2f}). Deviation: {pct_dev:.1f}%"
+        message=f"{metric_name} is {current} (expected ~{avg:.2f}). Deviation: {pct_dev:.1f}%",
     )
 
 
 # --- Cache & State ---
+
 
 def load_cache() -> dict:
     if CACHE_FILE.exists():
@@ -202,8 +244,10 @@ def load_cache() -> dict:
             pass
     return {}
 
+
 def save_cache(cache: dict):
     CACHE_FILE.write_text(json.dumps(cache, indent=2), encoding="utf-8")
+
 
 def load_alert_state() -> dict:
     if ALERT_STATE_FILE.exists():
@@ -213,11 +257,13 @@ def load_alert_state() -> dict:
             pass
     return {}
 
+
 def save_alert_state(state: dict):
     ALERT_STATE_FILE.write_text(json.dumps(state, indent=2), encoding="utf-8")
 
 
 # --- Report Generation ---
+
 
 def generate_markdown_report(reports: list[ServiceReport], output_path: Path):
     lines = [
@@ -237,14 +283,16 @@ def generate_markdown_report(reports: list[ServiceReport], output_path: Path):
         total_anomalies += anom_count
         lines.append(f"| {r.source} | {status} | {len(r.metrics)} | {anom_count} |")
 
-    lines.extend([
-        "",
-        f"**Total Anomalies:** {total_anomalies}",
-        "",
-        "---",
-        "",
-        "## Anomalies & Alerts",
-    ])
+    lines.extend(
+        [
+            "",
+            f"**Total Anomalies:** {total_anomalies}",
+            "",
+            "---",
+            "",
+            "## Anomalies & Alerts",
+        ]
+    )
 
     for r in reports:
         if not r.anomalies:
@@ -254,13 +302,17 @@ def generate_markdown_report(reports: list[ServiceReport], output_path: Path):
         lines.append("| Metric | Severity | Current | Expected | Message |")
         lines.append("|--------|----------|---------|----------|---------|")
         for a in r.anomalies:
-            lines.append(f"| {a.metric} | {a.severity} | {a.current_value} | {a.expected_range} | {a.message} |")
+            lines.append(
+                f"| {a.metric} | {a.severity} | {a.current_value} | {a.expected_range} | {a.message} |"
+            )
         lines.append("")
 
-    lines.extend([
-        "",
-        "## Latest Metrics",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Latest Metrics",
+        ]
+    )
     for r in reports:
         if not r.metrics:
             continue
@@ -278,11 +330,16 @@ def generate_markdown_report(reports: list[ServiceReport], output_path: Path):
 
 # --- Main Orchestrator ---
 
+
 def check_render(render_key: str | None) -> ServiceReport:
     report = ServiceReport(source="Render", healthy=True)
     if not render_key:
         report.healthy = False
-        report.anomalies.append(Anomaly("api_key", 0, "present", "CRITICAL", "Render API key not configured"))
+        report.anomalies.append(
+            Anomaly(
+                "api_key", 0, "present", "CRITICAL", "Render API key not configured"
+            )
+        )
         return report
 
     try:
@@ -295,7 +352,15 @@ def check_render(render_key: str | None) -> ServiceReport:
             name = service.get("name", "unknown")
             suspended = service.get("suspended") == "suspended"
             if suspended:
-                report.anomalies.append(Anomaly(f"render_{name}_suspended", 1, "0", "HIGH", f"Service {name} is suspended"))
+                report.anomalies.append(
+                    Anomaly(
+                        f"render_{name}_suspended",
+                        1,
+                        "0",
+                        "HIGH",
+                        f"Service {name} is suspended",
+                    )
+                )
                 report.healthy = False
 
             deploys = client.get_deploys(srv_id, limit=3)
@@ -304,21 +369,33 @@ def check_render(render_key: str | None) -> ServiceReport:
                 status = dep.get("status")
                 if status in {"failed", "canceled"}:
                     failed_deploys += 1
-                report.metrics.append(MetricPoint(
-                    name=f"render_{name}_deploy_status",
-                    value=1 if status == "live" else 0,
-                    unit="boolean",
-                    timestamp=datetime.now().isoformat(),
-                    source="render"
-                ))
+                report.metrics.append(
+                    MetricPoint(
+                        name=f"render_{name}_deploy_status",
+                        value=1 if status == "live" else 0,
+                        unit="boolean",
+                        timestamp=datetime.now().isoformat(),
+                        source="render",
+                    )
+                )
 
         if failed_deploys > 0:
             report.healthy = False
-            report.anomalies.append(Anomaly("render_failed_deploys", failed_deploys, "0", "HIGH", f"{failed_deploys} recent failed deploy(s) detected"))
+            report.anomalies.append(
+                Anomaly(
+                    "render_failed_deploys",
+                    failed_deploys,
+                    "0",
+                    "HIGH",
+                    f"{failed_deploys} recent failed deploy(s) detected",
+                )
+            )
 
     except Exception as e:
         report.healthy = False
-        report.anomalies.append(Anomaly("render_api", 0, "ok", "CRITICAL", f"Render API error: {e}"))
+        report.anomalies.append(
+            Anomaly("render_api", 0, "ok", "CRITICAL", f"Render API error: {e}")
+        )
 
     return report
 
@@ -327,7 +404,11 @@ def check_vercel(vercel_token: str | None) -> ServiceReport:
     report = ServiceReport(source="Vercel", healthy=True)
     if not vercel_token:
         report.healthy = False
-        report.anomalies.append(Anomaly("api_token", 0, "present", "CRITICAL", "Vercel token not configured"))
+        report.anomalies.append(
+            Anomaly(
+                "api_token", 0, "present", "CRITICAL", "Vercel token not configured"
+            )
+        )
         return report
 
     try:
@@ -338,19 +419,31 @@ def check_vercel(vercel_token: str | None) -> ServiceReport:
             deploys = client.get_deployments(project_id=proj.get("id"), limit=1)
             for dep in deploys:
                 state = dep.get("state")  # READY, ERROR, CANCELED
-                report.metrics.append(MetricPoint(
-                    name=f"vercel_{name}_deploy_state",
-                    value=1 if state == "READY" else 0,
-                    unit="boolean",
-                    timestamp=datetime.now().isoformat(),
-                    source="vercel"
-                ))
+                report.metrics.append(
+                    MetricPoint(
+                        name=f"vercel_{name}_deploy_state",
+                        value=1 if state == "READY" else 0,
+                        unit="boolean",
+                        timestamp=datetime.now().isoformat(),
+                        source="vercel",
+                    )
+                )
                 if state == "ERROR":
                     report.healthy = False
-                    report.anomalies.append(Anomaly(f"vercel_{name}_deploy", 0, "READY", "HIGH", f"Vercel project {name} latest deployment failed"))
+                    report.anomalies.append(
+                        Anomaly(
+                            f"vercel_{name}_deploy",
+                            0,
+                            "READY",
+                            "HIGH",
+                            f"Vercel project {name} latest deployment failed",
+                        )
+                    )
     except Exception as e:
         report.healthy = False
-        report.anomalies.append(Anomaly("vercel_api", 0, "ok", "CRITICAL", f"Vercel API error: {e}"))
+        report.anomalies.append(
+            Anomaly("vercel_api", 0, "ok", "CRITICAL", f"Vercel API error: {e}")
+        )
 
     return report
 
@@ -363,13 +456,15 @@ def check_gcp(gcp_token: str | None, cache: dict) -> ServiceReport:
     try:
         services = client.get_service_usage()
         enabled = sum(1 for s in services if s.get("state") == "ENABLED")
-        report.metrics.append(MetricPoint(
-            name="gcp_enabled_services",
-            value=enabled,
-            unit="count",
-            timestamp=datetime.now().isoformat(),
-            source="gcp"
-        ))
+        report.metrics.append(
+            MetricPoint(
+                name="gcp_enabled_services",
+                value=enabled,
+                unit="count",
+                timestamp=datetime.now().isoformat(),
+                source="gcp",
+            )
+        )
 
         metrics = client.get_monitoring_metrics()
         for ts in metrics:
@@ -377,14 +472,18 @@ def check_gcp(gcp_token: str | None, cache: dict) -> ServiceReport:
             points = ts.get("points", [])
             if points:
                 latest = points[0]
-                value = latest.get("value", {}).get("int64Value") or latest.get("value", {}).get("doubleValue", 0)
-                report.metrics.append(MetricPoint(
-                    name=f"gcp_{metric_type}",
-                    value=float(value),
-                    unit="count",
-                    timestamp=datetime.now().isoformat(),
-                    source="gcp"
-                ))
+                value = latest.get("value", {}).get("int64Value") or latest.get(
+                    "value", {}
+                ).get("doubleValue", 0)
+                report.metrics.append(
+                    MetricPoint(
+                        name=f"gcp_{metric_type}",
+                        value=float(value),
+                        unit="count",
+                        timestamp=datetime.now().isoformat(),
+                        source="gcp",
+                    )
+                )
 
                 key = f"gcp_{metric_type}"
                 history = cache.get("history", {}).get(key, [])
@@ -400,15 +499,23 @@ def check_gcp(gcp_token: str | None, cache: dict) -> ServiceReport:
                 cache["history"][key] = cache["history"][key][-20:]
     except Exception as e:
         report.healthy = False
-        report.anomalies.append(Anomaly("gcp_api", 0, "ok", "CRITICAL", f"GCP API error: {e}"))
+        report.anomalies.append(
+            Anomaly("gcp_api", 0, "ok", "CRITICAL", f"GCP API error: {e}")
+        )
 
     return report
 
 
-def main(dry_run: bool = False, force: bool = False, output: str = "cloud_watchman_report.md"):
+def main(
+    dry_run: bool = False, force: bool = False, output: str = "cloud_watchman_report.md"
+):
     # বাংলা মন্তব্য: ক্লাউড ওয়াচম্যান এর মূল অর্কেস্ট্রেশন ফাংশন।
     vercel_token = os.getenv("VERCEL_TOKEN")
-    render_key = settings.render_api_key if hasattr(settings, "render_api_key") else os.getenv("RENDER_API_KEY")
+    render_key = (
+        settings.render_api_key
+        if hasattr(settings, "render_api_key")
+        else os.getenv("RENDER_API_KEY")
+    )
     gcp_token = os.getenv("GCP_ACCESS_TOKEN")
 
     cache = load_cache()
@@ -428,9 +535,21 @@ def main(dry_run: bool = False, force: bool = False, output: str = "cloud_watchm
                 reports.append(report)
             except Exception as e:
                 logging.error(f"Error checking {source}: {e}")
-                reports.append(ServiceReport(source=source, healthy=False, anomalies=[
-                    Anomaly("system_error", 0, "ok", "CRITICAL", f"Failed to run check for {source}: {e}")
-                ]))
+                reports.append(
+                    ServiceReport(
+                        source=source,
+                        healthy=False,
+                        anomalies=[
+                            Anomaly(
+                                "system_error",
+                                0,
+                                "ok",
+                                "CRITICAL",
+                                f"Failed to run check for {source}: {e}",
+                            )
+                        ],
+                    )
+                )
 
     if not dry_run:
         save_cache(cache)
@@ -446,9 +565,19 @@ def main(dry_run: bool = False, force: bool = False, output: str = "cloud_watchm
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="CloudWatchman: Multi-cloud SRE monitoring agent")
-    parser.add_argument("--dry-run", action="store_true", help="Run without saving cache or state.")
-    parser.add_argument("-o", "--output", type=str, default="cloud_watchman_report.md", help="Output report file path.")
+    parser = argparse.ArgumentParser(
+        description="CloudWatchman: Multi-cloud SRE monitoring agent"
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Run without saving cache or state."
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        default="cloud_watchman_report.md",
+        help="Output report file path.",
+    )
     args = parser.parse_args()
 
     main(dry_run=args.dry_run, output=args.output)

@@ -14,7 +14,7 @@ files_to_move = [
     "secret_vault.py",
     "security_vault.py",
     "secure_credential_store.py",
-    "origin_validator.py"
+    "origin_validator.py",
 ]
 
 os.makedirs(security_dir, exist_ok=True)

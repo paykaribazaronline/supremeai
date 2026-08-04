@@ -1,4 +1,3 @@
-# ruff: noqa: E501
 """
 SupremeAI — Multi-Database Router & Transactional Outbox System
 ===============================================================
@@ -17,16 +16,17 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
-from loguru import logger
-
 from core.cache import get_cache
 from core.persistence.write_behind import WriteBehindBatcher
+from loguru import logger
 
 # ── Constants & Outbox Batcher ────────────────────────────────────────────────
 ROUTING_CACHE_TTL = 300
 
 # বাংলা ব্যাখ্যা: ডাটাবেস আউটবক্স ব্যাচার - ব্যাকগ্রাউন্ড সিঙ্ক ও ফেলওভার নিশ্চিত করার জন্য লোকালে রাইট-বিহাইন্ড মেমোরিতে পেন্ডিং ট্রানজ্যাকশন জমা রাখে।
-outbox_batcher = WriteBehindBatcher(name="multi_db_outbox", max_batch_size=50, flush_interval=2.0)
+outbox_batcher = WriteBehindBatcher(
+    name="multi_db_outbox", max_batch_size=50, flush_interval=2.0
+)
 
 
 class DatabaseType(StrEnum):
@@ -87,7 +87,9 @@ class MultiDBRouter:
     def mark_healthy(self, name: str) -> None:
         """Mark database as healthy."""
         self._circuit_breakers[name] = False
-        logger.info(f"MultiDBRouter: Circuit breaker CLOSED (Healthy) for database '{name}'")
+        logger.info(
+            f"MultiDBRouter: Circuit breaker CLOSED (Healthy) for database '{name}'"
+        )
 
     def _select_database(self, pattern: QueryPattern) -> str | None:
         """Select best database for query pattern considering health status."""
@@ -99,21 +101,31 @@ class MultiDBRouter:
             and (
                 (pattern == QueryPattern.READ and not config.read_replica)
                 or (pattern == QueryPattern.WRITE and not config.read_replica)
-                or (pattern == QueryPattern.ANALYTICS and config.db_type == DatabaseType.POSTGRES)
-                or (pattern == QueryPattern.CACHE and config.db_type == DatabaseType.REDIS)
+                or (
+                    pattern == QueryPattern.ANALYTICS
+                    and config.db_type == DatabaseType.POSTGRES
+                )
+                or (
+                    pattern == QueryPattern.CACHE
+                    and config.db_type == DatabaseType.REDIS
+                )
             )
         }
 
         if not candidates:
             # Fallback to any healthy DB
             candidates = {
-                name: cfg for name, cfg in self.databases.items() if not self._circuit_breakers.get(name, False)
+                name: cfg
+                for name, cfg in self.databases.items()
+                if not self._circuit_breakers.get(name, False)
             }
 
         if not candidates:
             # বাংলা মন্তব্য: সব ডাটাবেসের সার্কিট ব্রেকার open থাকা অবস্থায় নির্বিচারে কোনো একটাকে
             # বেছে নিয়ে নিশ্চিত-ব্যর্থ রিকোয়েস্ট পাঠানো হচ্ছে না — বরং None রিটার্ন করে fail-closed (Patch 15 fix)
-            logger.error("MultiDBRouter: All databases unhealthy — refusing to route (fail-closed)")
+            logger.error(
+                "MultiDBRouter: All databases unhealthy — refusing to route (fail-closed)"
+            )
             return None
 
         # Select by priority (highest first)
@@ -161,7 +173,9 @@ class MultiDBRouter:
             }
             outbox_batcher.enqueue(outbox_payload)
             outbox_enqueued = True
-            logger.debug(f"MultiDBRouter: Write operation enqueued to Outbox [{target_db}]")
+            logger.debug(
+                f"MultiDBRouter: Write operation enqueued to Outbox [{target_db}]"
+            )
 
         routing = {
             "target_database": target_db,

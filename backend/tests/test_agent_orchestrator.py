@@ -3,14 +3,11 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import pytest
-
-from core.orchestration.agent_orchestrator import (
-    AgentCircuitBreaker,
-    AsyncTaskManager,
-    SmartSemanticRouter,
-    budget_aware_route,
-    route_request,
-)
+from core.orchestration.agent_orchestrator import (AgentCircuitBreaker,
+                                                   AsyncTaskManager,
+                                                   SmartSemanticRouter,
+                                                   budget_aware_route,
+                                                   route_request)
 
 
 @pytest.fixture
@@ -221,7 +218,9 @@ def test_async_task_manager_simulate_image():
 
 
 def test_smart_semantic_router_model():
-    router = SmartSemanticRouter(intent="test_intent", requires_expensive=True, tier=2, reasoning="test")
+    router = SmartSemanticRouter(
+        intent="test_intent", requires_expensive=True, tier=2, reasoning="test"
+    )
     assert router.intent == "test_intent"
     assert router.requires_expensive is True
     assert router.tier == 2
@@ -249,7 +248,10 @@ def test_budget_aware_route_free_tier_available():
     mock_tracker = MagicMock()
     mock_tracker.get_best_provider.return_value = "groq"
     with patch("core.orchestration.agent_orchestrator._free_tier_available", True):
-        with patch("core.orchestration.agent_orchestrator.get_tracker", return_value=mock_tracker):
+        with patch(
+            "core.orchestration.agent_orchestrator.get_tracker",
+            return_value=mock_tracker,
+        ):
             result = budget_aware_route("some prompt", task_type="general")
     assert result["best_provider"] == "groq"
     mock_tracker.get_best_provider.assert_called_once()
@@ -259,6 +261,9 @@ def test_budget_aware_route_free_tier_exhausted():
     mock_tracker = MagicMock()
     mock_tracker.get_best_provider.return_value = None
     with patch("core.orchestration.agent_orchestrator._free_tier_available", True):
-        with patch("core.orchestration.agent_orchestrator.get_tracker", return_value=mock_tracker):
+        with patch(
+            "core.orchestration.agent_orchestrator.get_tracker",
+            return_value=mock_tracker,
+        ):
             result = budget_aware_route("some prompt", task_type="general")
     assert result["best_provider"] is None

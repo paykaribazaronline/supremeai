@@ -1,6 +1,6 @@
 import pytest
-
-from brain.performance_aware_router import PROVIDER_HEALTH, PerformanceAwareRouter
+from brain.performance_aware_router import (PROVIDER_HEALTH,
+                                            PerformanceAwareRouter)
 
 
 @pytest.fixture

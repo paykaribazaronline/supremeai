@@ -22,13 +22,17 @@ class AutonomousProviderRouter:
         }
         self.quota_limit = 0.80  # ৮০% ডেইলি ফ্রি কোটা লিমিট ট্র্যাকিং
 
-    def get_optimal_provider(self, task_type: str, fallback_active: bool = False) -> str:
+    def get_optimal_provider(
+        self, task_type: str, fallback_active: bool = False
+    ) -> str:
         """
         টাস্ক টাইপ অনুযায়ী শুধুমাত্র ফ্রি ক্লাউড প্রোভাইডারদের মধ্যে রাউটিং করে।
         (কোনো লোকাল রিসোর্স বা পেইড এপিআই কল করা হবে না)
         """
         # বাংলা ভাষা বা ক্রিয়েটিভ রাইটিং-এর কাজের জন্য Moonshot Kimi (PSI-001)
-        if (task_type == "BANGLA_SPECIFIC" or task_type == "CREATIVE") and not fallback_active:
+        if (
+            task_type == "BANGLA_SPECIFIC" or task_type == "CREATIVE"
+        ) and not fallback_active:
             if self.provider_token_usage["moonshot"] < self.quota_limit:
                 return "moonshot"
             elif self.provider_token_usage["huggingface"] < self.quota_limit:
@@ -36,7 +40,9 @@ class AutonomousProviderRouter:
                 return "huggingface"
             else:
                 # কোটা শেষ হলে সরাসরি Gemini Free Tier-এ ফলব্যাক
-                logger.warning("Moonshot quota near limit, falling back to Gemini Free Tier.")
+                logger.warning(
+                    "Moonshot quota near limit, falling back to Gemini Free Tier."
+                )
                 return "gemini"
 
         # কোডিং বা টেকনিক্যাল কাজের জন্য Groq বা GitHub Models
@@ -71,4 +77,6 @@ class AutonomousProviderRouter:
             # টোকেন ব্যবহার আপডেট করা হচ্ছে
             self.provider_token_usage[provider] += tokens_used / 100000.0
             # বাংলায় ডেভেলপমেন্ট লগিং রাখা হয়েছে সহজে বোঝার সুবিধার্থে
-            logger.info(f"ফ্রি প্রোভাইডার {provider}-এর বর্তমান কোটা ব্যবহার: {self.provider_token_usage[provider]:.2%}")
+            logger.info(
+                f"ফ্রি প্রোভাইডার {provider}-এর বর্তমান কোটা ব্যবহার: {self.provider_token_usage[provider]:.2%}"
+            )

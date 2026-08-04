@@ -2,7 +2,6 @@ import time
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from core.observability.observability_middleware import ObservabilityMiddleware
 
 
@@ -67,7 +66,9 @@ async def test_bypass_metrics_path():
         "server": ("x", 80),
     }
     await mw(scope, receive, send)
-    assert len(sent) == 2  # middleware bypasses metrics endpoint but Fake app still runs
+    assert (
+        len(sent) == 2
+    )  # middleware bypasses metrics endpoint but Fake app still runs
 
 
 @pytest.mark.anyio
@@ -99,7 +100,9 @@ async def test_records_metrics_and_triggers_sentinel_on_500(monkeypatch):
         patch("core.sentinel_agent.sentinel.trigger_event", new_callable=MagicMock),
     ):
         sentinel_mock = MagicMock()
-        with patch("core.sentinel_agent.sentinel", new=MagicMock(trigger_event=sentinel_mock)):
+        with patch(
+            "core.sentinel_agent.sentinel", new=MagicMock(trigger_event=sentinel_mock)
+        ):
             scope = {
                 "type": "http",
                 "path": "/api/x",

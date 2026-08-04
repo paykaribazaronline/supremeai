@@ -22,14 +22,11 @@ Key features:
 
 import re
 import time
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from typing import Any
 
+from core.messaging.event_bus import ErrorEvent, error_event_bus
 from loguru import logger
-
-from core.messaging.event_bus import ErrorEvent
-from core.messaging.event_bus import error_event_bus
 
 # ---------------------------------------------------------------------------
 # Per-provider max token budgets (conservative — leaves headroom for system prompts)
@@ -162,7 +159,9 @@ class TokenBudgetStats:
             "total_calls": self.total_calls,
             "total_input_tokens": self.total_input_tokens,
             "total_output_tokens": self.total_output_tokens,
-            "avg_input_tokens": (self.total_input_tokens // self.total_calls if self.total_calls else 0),
+            "avg_input_tokens": (
+                self.total_input_tokens // self.total_calls if self.total_calls else 0
+            ),
             "truncated_calls": self.truncated_calls,
             "tokens_saved_by_truncation": self.tokens_saved_by_truncation,
             "tracking_since": self.started_at,

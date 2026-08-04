@@ -35,26 +35,22 @@ import time  # - Added for metrics collection
 from contextlib import asynccontextmanager
 
 import httpx
-from loguru import logger
-
 from core import services
 from core.agent_supervisor import agent_supervisor
 from core.cache.redis_manager import redis_manager
 from core.config import settings
 from core.config_cache import config_cache
 from core.maintenance_pipeline import maintenance_pipeline
-from core.messaging.event_bus import ErrorEvent
-from core.messaging.event_bus import error_event_bus
+from core.messaging.event_bus import ErrorEvent, error_event_bus
 from core.metrics_collector import metrics_collector, record_db_operation
 from core.orchestration.orchestrator import Orchestrator
 from core.persistence import pooled_pg
-from core.persistence.write_behind import (
-    flush_all as flush_write_behind_batchers,
-)
-from core.pgbouncer_pool import get_db_pool
-from core.pgbouncer_pool import init_db_pool
+from core.persistence.write_behind import \
+    flush_all as flush_write_behind_batchers
+from core.pgbouncer_pool import get_db_pool, init_db_pool
 from core.reliability_controller import ReliabilityController
 from core.startup_validator import StartupValidator
+from loguru import logger
 
 
 @with_error_bus("_ensure_api_key_tables")
@@ -70,8 +66,7 @@ async def _ensure_api_key_tables() -> None:
     conn = await pool.acquire()
     try:
         async with conn.transaction():
-            await conn.execute(
-                """
+            await conn.execute("""
                 CREATE TABLE IF NOT EXISTS api_keys (
                     id SERIAL PRIMARY KEY,
                     user_id TEXT NOT NULL,
@@ -87,10 +82,8 @@ async def _ensure_api_key_tables() -> None:
                     created_at INTEGER NOT NULL,
                     updated_at INTEGER NOT NULL
                 )
-                """
-            )
-            await conn.execute(
-                """
+                """)
+            await conn.execute("""
                 CREATE TABLE IF NOT EXISTS api_key_usage (
                     id SERIAL PRIMARY KEY,
                     api_key_id INTEGER NOT NULL REFERENCES api_keys(id),
@@ -100,10 +93,8 @@ async def _ensure_api_key_tables() -> None:
                     ip_address TEXT,
                     created_at INTEGER NOT NULL
                 )
-                """
-            )
-            await conn.execute(
-                """
+                """)
+            await conn.execute("""
                 CREATE TABLE IF NOT EXISTS api_key_events (
                     id SERIAL PRIMARY KEY,
                     api_key_id INTEGER NOT NULL REFERENCES api_keys(id),
@@ -112,10 +103,13 @@ async def _ensure_api_key_tables() -> None:
                     ip_address TEXT,
                     created_at INTEGER NOT NULL
                 )
-                """
+                """)
+            await conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash)"
             )
-            await conn.execute("CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash)")
-            await conn.execute("ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS rate_limit_window INTEGER DEFAULT 60")
+            await conn.execute(
+                "ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS rate_limit_window INTEGER DEFAULT 60"
+            )
             await conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_api_key_usage_key ON api_key_usage(api_key_id, created_at DESC)"
             )
@@ -153,13 +147,19 @@ async def app_lifespan(app):
 
     # Update metrics with subsystem status
     await metrics_collector.set_gauge(
-        "subsystem_db_status", 1 if app.state.subsystem_status["db"] == "up" else 0, {"subsystem": "db"}
+        "subsystem_db_status",
+        1 if app.state.subsystem_status["db"] == "up" else 0,
+        {"subsystem": "db"},
     )
     await metrics_collector.set_gauge(
-        "subsystem_redis_status", 1 if app.state.subsystem_status["redis"] == "up" else 0, {"subsystem": "redis"}
+        "subsystem_redis_status",
+        1 if app.state.subsystem_status["redis"] == "up" else 0,
+        {"subsystem": "redis"},
     )
     await metrics_collector.set_gauge(
-        "subsystem_config_status", 1 if app.state.subsystem_status["config"] == "up" else 0, {"subsystem": "config"}
+        "subsystem_config_status",
+        1 if app.state.subsystem_status["config"] == "up" else 0,
+        {"subsystem": "config"},
     )
 
     # ── Parallelized Startup Phase 1: Independent services ──────────────────
@@ -221,15 +221,21 @@ async def app_lifespan(app):
                         try:
                             # Test connection with a simple query
                             await conn.fetchval("SELECT 1")
-                            logger.info("✅ Database connection pool health check passed.")
+                            logger.info(
+                                "✅ Database connection pool health check passed."
+                            )
                         finally:
                             await pool.release(conn)
                     except Exception as health_exc:
-                        logger.error(f"❌ Database pool health check failed: {health_exc}")
+                        logger.error(
+                            f"❌ Database pool health check failed: {health_exc}"
+                        )
                         app.state.subsystem_status["db"] = "degraded"
                         raise health_exc
 
-                logger.info("⚡ PgBouncer connection pool successfully initialized at startup.")
+                logger.info(
+                    "⚡ PgBouncer connection pool successfully initialized at startup."
+                )
                 await _ensure_api_key_tables()
 
                 # Optimize queries with connection pooling best practices
@@ -263,7 +269,9 @@ async def app_lifespan(app):
             await config_cache.refresh_async()
             logger.info("✅ System configuration cache successfully initialized.")
         except Exception as exc:
-            logger.warning(f"⚠️ Async config load failed, falling back to local DEFAULT_CONFIGS: {exc}")
+            logger.warning(
+                f"⚠️ Async config load failed, falling back to local DEFAULT_CONFIGS: {exc}"
+            )
             app.state.subsystem_status["config"] = "fallback"
             error_event_bus.emit(
                 ErrorEvent(
@@ -312,7 +320,9 @@ async def app_lifespan(app):
             from core.cost_guard import cost_guard
 
             await cost_guard.connect()
-            logger.info("✅ CostGuard Redis connection initialized for budget tracking.")
+            logger.info(
+                "✅ CostGuard Redis connection initialized for budget tracking."
+            )
         except Exception as e:
             logger.warning(f"CostGuard initialization failed (non-critical): {e}")
             error_event_bus.emit(
@@ -367,12 +377,18 @@ async def app_lifespan(app):
         from database import db as supabase_db
 
         if settings.supabase_database_url:
-            await asyncio.wait_for(asyncio.to_thread(supabase_db.bootstrap_schema), timeout=30.0)
+            await asyncio.wait_for(
+                asyncio.to_thread(supabase_db.bootstrap_schema), timeout=30.0
+            )
             logger.info("Supabase schema bootstrap complete")
     except TimeoutError:
-        logger.warning("Supabase schema bootstrap timed out after 30s — continuing without full schema init.")
+        logger.warning(
+            "Supabase schema bootstrap timed out after 30s — continuing without full schema init."
+        )
     except Exception as exc:
-        logger.warning(f"Supabase bootstrap failed on startup: {exc}. Continuing without schema bootstrap.")
+        logger.warning(
+            f"Supabase bootstrap failed on startup: {exc}. Continuing without schema bootstrap."
+        )
         error_event_bus.emit(
             ErrorEvent(
                 module="lifespan",
@@ -448,7 +464,9 @@ async def app_lifespan(app):
             await init_tier8(services.registry)
             logger.info("✅ Tier-8 Meta-Self subsystem initialized successfully.")
         else:
-            logger.info("ℹ️ Tier-8 Meta-Self subsystem disabled via environment variable.")
+            logger.info(
+                "ℹ️ Tier-8 Meta-Self subsystem disabled via environment variable."
+            )
     except Exception as exc:
         logger.warning(f"⚠️ Tier-8 initialization failed: {exc}")
 
@@ -460,7 +478,9 @@ async def app_lifespan(app):
             _evo_agent = SelfEvolutionAgent(interval_seconds=300)
             await _evo_agent.start()
             app.state.evo_agent = _evo_agent
-            logger.info("✅ SelfEvolutionAgent background loop started (5-min evolution cycle).")
+            logger.info(
+                "✅ SelfEvolutionAgent background loop started (5-min evolution cycle)."
+            )
         else:
             app.state.evo_agent = None
             logger.info("ℹ️ SelfEvolutionAgent disabled via environment variable.")
@@ -493,7 +513,9 @@ async def app_lifespan(app):
                 max_restarts=5,
                 restart_delay=60.0,
             )
-            logger.info("✅ DailyLearner background task started (24h research scan cycle).")
+            logger.info(
+                "✅ DailyLearner background task started (24h research scan cycle)."
+            )
         else:
             logger.info("ℹ️ DailyLearner disabled via environment variable.")
     except Exception as exc:
@@ -506,7 +528,9 @@ async def app_lifespan(app):
 
             await auto_healer_service.start()
             app.state.auto_healer = auto_healer_service
-            logger.info("✅ AutoHealerService started (DB/Redis healing active, 30s check interval).")
+            logger.info(
+                "✅ AutoHealerService started (DB/Redis healing active, 30s check interval)."
+            )
         else:
             logger.info("ℹ️ AutoHealerService disabled via environment variable.")
     except Exception as exc:
@@ -526,7 +550,9 @@ async def app_lifespan(app):
 
     yield  # এখানে অ্যাপ্লিকেশন ট্রাফিক রিসিভ করবে
 
-    logger.critical("🚨 Graceful Shutdown Sequence triggered via Cloud Run Orchestrator.")
+    logger.critical(
+        "🚨 Graceful Shutdown Sequence triggered via Cloud Run Orchestrator."
+    )
 
     # Shutdown Tier-8 Meta-Self Agents
     try:

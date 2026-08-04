@@ -7,12 +7,10 @@ mounting এবং নতুন halt/resume/telemetry endpoint-গুলো স�
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from fastapi.testclient import TestClient
-
 from api.dependencies import get_current_user_token
-
 # বাংলা মন্তব্য: মেইন মডিউলের বদলে core.app থেকে সরাসরি app ইমপোর্ট করা হলো
 from core.app import app
+from fastapi.testclient import TestClient
 
 client = TestClient(app)
 
@@ -37,7 +35,9 @@ def test_halt_requires_admin(mock_decode_jwt, mock_token):
         "role": "user",
     }
 
-    response = client.post("/api/v1/swarm/halt", headers={"Authorization": "Bearer dummy"})
+    response = client.post(
+        "/api/v1/swarm/halt", headers={"Authorization": "Bearer dummy"}
+    )
     assert response.status_code in (401, 403)
 
     app.dependency_overrides = {}
@@ -63,7 +63,9 @@ def test_halt_sets_flag_and_broadcasts(mock_decode_jwt, mock_token):
         mock_streamer.set_halt = AsyncMock()
         mock_streamer.broadcast = AsyncMock()
 
-        response = client.post("/api/v1/swarm/halt", headers={"Authorization": "Bearer dummy"})
+        response = client.post(
+            "/api/v1/swarm/halt", headers={"Authorization": "Bearer dummy"}
+        )
 
         assert response.status_code == 202
         assert response.json()["status"] == "halted"
@@ -94,12 +96,16 @@ def test_resume_clears_flag_and_broadcasts(mock_decode_jwt, mock_token):
         mock_streamer.clear_halt = AsyncMock()
         mock_streamer.broadcast = AsyncMock()
 
-        response = client.post("/api/v1/swarm/resume", headers={"Authorization": "Bearer dummy"})
+        response = client.post(
+            "/api/v1/swarm/resume", headers={"Authorization": "Bearer dummy"}
+        )
 
         assert response.status_code == 202
         assert response.json()["status"] == "resumed"
         mock_streamer.clear_halt.assert_called_once()
-        assert mock_streamer.broadcast.call_args.kwargs["event_type"] == "CIRCUIT_CLOSED"
+        assert (
+            mock_streamer.broadcast.call_args.kwargs["event_type"] == "CIRCUIT_CLOSED"
+        )
 
     app.dependency_overrides = {}
 

@@ -1,13 +1,12 @@
-from core.error_bus import with_error_bus
 from datetime import UTC, datetime
 from typing import Any
 
+from core.error_bus import with_error_bus
+from core.observability.audit_logger import AuditLogger
+from core.security.secure_credential_store import SecureCredentialStore
 from fastapi import APIRouter, HTTPException
 from loguru import logger
 from pydantic import BaseModel
-
-from core.observability.audit_logger import AuditLogger
-from core.security.secure_credential_store import SecureCredentialStore
 
 
 def get_audit() -> AuditLogger:
@@ -63,12 +62,16 @@ class CredentialRequest(BaseModel):
     serviceName: str  # -- camelCase required to match frontend JSON API contract
     username: str
     password: str
-    userId: str | None = "default"  # -- camelCase required to match frontend JSON API contract
+    userId: str | None = (
+        "default"  # -- camelCase required to match frontend JSON API contract
+    )
 
 
 class UrlPermissionRequest(BaseModel):
     urlPattern: str  # -- camelCase required to match frontend JSON API contract
-    userId: str | None = "default"  # -- camelCase required to match frontend JSON API contract
+    userId: str | None = (
+        "default"  # -- camelCase required to match frontend JSON API contract
+    )
     reason: str | None = "None"
 
 
@@ -188,13 +191,21 @@ def get_paused_state():
 
 @router.get("/urls/allowed")
 def get_allowed_urls(userId: str = "default"):
-    allowed = [u for u in URL_PERMISSIONS if u.get("type") == "allowed" and u.get("userId") == userId]
+    allowed = [
+        u
+        for u in URL_PERMISSIONS
+        if u.get("type") == "allowed" and u.get("userId") == userId
+    ]
     return {"urls": allowed}
 
 
 @router.get("/urls/denied")
 def get_denied_urls(userId: str = "default"):
-    denied = [u for u in URL_PERMISSIONS if u.get("type") == "denied" and u.get("userId") == userId]
+    denied = [
+        u
+        for u in URL_PERMISSIONS
+        if u.get("type") == "denied" and u.get("userId") == userId
+    ]
     return {"urls": denied}
 
 
@@ -493,9 +504,9 @@ def delete_session(session_id: str):
     return {"success": True}
 
 
+from api.routes.admin_dashboard import require_admin_token
 from fastapi import Depends
 
-from api.routes.admin_dashboard import require_admin_token
 from tools.ai_agents.browser_agent import BrowserAgent, BrowseRequest
 
 _agent = BrowserAgent()

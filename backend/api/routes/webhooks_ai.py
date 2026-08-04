@@ -6,11 +6,10 @@ Handles outgoing alerts with inline approval buttons and incoming callbacks.
 
 from typing import Any
 
+from core.config import settings
 from fastapi import APIRouter, HTTPException, status
 from loguru import logger
 from pydantic import BaseModel
-
-from core.config import settings
 
 router = APIRouter(prefix="/api/v1/webhooks/telegram", tags=["Webhooks AI"])
 
@@ -37,16 +36,29 @@ async def send_telegram_alert(payload: AlertPayload) -> dict[str, Any]:
     """
     inline_keyboard = [
         [
-            {"text": "✅ Approve PR & Merge", "callback_data": f"approve_pr:{payload.pr_id or 'PR-001'}"},
-            {"text": "❌ Reject", "callback_data": f"reject_pr:{payload.pr_id or 'PR-001'}"},
+            {
+                "text": "✅ Approve PR & Merge",
+                "callback_data": f"approve_pr:{payload.pr_id or 'PR-001'}",
+            },
+            {
+                "text": "❌ Reject",
+                "callback_data": f"reject_pr:{payload.pr_id or 'PR-001'}",
+            },
         ]
     ]
 
-    message_text = f"⚠️ <b>{payload.severity}: {payload.title}</b>\n\n" f"{payload.description}\n\n"
+    message_text = (
+        f"⚠️ <b>{payload.severity}: {payload.title}</b>\n\n"
+        f"{payload.description}\n\n"
+    )
     if payload.patch_code:
-        message_text += f"<b>Suggested Fix:</b>\n<code>{payload.patch_code[:500]}</code>\n"
+        message_text += (
+            f"<b>Suggested Fix:</b>\n<code>{payload.patch_code[:500]}</code>\n"
+        )
 
-    logger.info(f"📢 [Telegram Webhook] Outgoing alert: {payload.title} (PR: {payload.pr_id})")
+    logger.info(
+        f"📢 [Telegram Webhook] Outgoing alert: {payload.title} (PR: {payload.pr_id})"
+    )
 
     # Mock response or actual httpx call to Telegram Bot API
     return {
@@ -62,7 +74,9 @@ async def handle_telegram_callback(query: CallbackQuery) -> dict[str, Any]:
     """
     Handle user interaction on Telegram inline keyboard buttons.
     """
-    logger.info(f"📥 [Telegram Callback] Action '{query.action}' by User '{query.user_id}' on PR '{query.pr_id}'")
+    logger.info(
+        f"📥 [Telegram Callback] Action '{query.action}' by User '{query.user_id}' on PR '{query.pr_id}'"
+    )
 
     if query.action == "approve_pr":
         # Trigger PR Pipeline / Auto-merge logic
@@ -78,6 +92,9 @@ async def handle_telegram_callback(query: CallbackQuery) -> dict[str, Any]:
             "message": f"❌ PR {query.pr_id} rejected by user {query.user_id}.",
         }
     else:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Unknown action: {query.action}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unknown action: {query.action}",
+        )
 
     return result

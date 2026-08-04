@@ -10,7 +10,7 @@ files_to_move = [
     "pubsub.py",
     "gcp_pubsub_queue.py",
     "nats_messaging.py",
-    "upstash_redis_queue.py"
+    "upstash_redis_queue.py",
 ]
 
 os.makedirs(target_dir, exist_ok=True)

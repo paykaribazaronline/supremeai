@@ -14,7 +14,9 @@ VERIFIED_MCP_SOURCES = [
 ]
 
 # বাংলা মন্তব্য: __file__ থেকে absolute path — relative path CI-তে ভাঙে
-_DEFAULT_INDEX_PATH = Path(__file__).resolve().parent.parent / "skills" / "manifests" / ".index.json"
+_DEFAULT_INDEX_PATH = (
+    Path(__file__).resolve().parent.parent / "skills" / "manifests" / ".index.json"
+)
 
 
 class SkillIndexManager:

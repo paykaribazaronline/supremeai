@@ -40,7 +40,9 @@ class PredictiveMetricsTracker:
         if self.ewma_latency is None:
             self.ewma_latency = latency_ms
         else:
-            self.ewma_latency = (self.alpha * latency_ms) + ((1 - self.alpha) * self.ewma_latency)
+            self.ewma_latency = (self.alpha * latency_ms) + (
+                (1 - self.alpha) * self.ewma_latency
+            )
 
         # Consecutive errors পর্যবেক্ষণ করা
         if 500 <= status_code < 600:
@@ -98,11 +100,17 @@ class PredictiveMetricsTracker:
 
         # রুল ১: টানা ৫টি বা তার বেশি 5xx এরর হওয়া
         if self.consecutive_errors >= self.error_threshold_consecutive:
-            logger.warning(f"Predictive Anomaly: High consecutive errors ({self.consecutive_errors})")
+            logger.warning(
+                f"Predictive Anomaly: High consecutive errors ({self.consecutive_errors})"
+            )
             return True
 
         # রুল ২: EWMA লেটেন্সি সাধারণ পার্সেন্টাইলের ৩ গুণের চেয়ে বেশি হওয়া এবং মিনিমাম ১০টি স্যাম্পল থাকা
-        if len(self.latencies) >= 10 and self.ewma_latency and self.ewma_latency > (p95 * 3.0):
+        if (
+            len(self.latencies) >= 10
+            and self.ewma_latency
+            and self.ewma_latency > (p95 * 3.0)
+        ):
             logger.warning(
                 f"Predictive Anomaly: Latency spike detected (EWMA: {self.ewma_latency:.2f}ms, p95: {p95:.2f}ms)"
             )

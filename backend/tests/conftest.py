@@ -26,7 +26,9 @@ from unittest.mock import MagicMock
 
 def create_mock_module(name, is_package=False):
     m = MagicMock()
-    m.__spec__ = importlib.machinery.ModuleSpec(name=name, loader=MagicMock(), is_package=is_package)
+    m.__spec__ = importlib.machinery.ModuleSpec(
+        name=name, loader=MagicMock(), is_package=is_package
+    )
     if is_package:
         m.__path__ = []
     return m
@@ -37,7 +39,10 @@ import pytest
 
 @pytest.fixture
 def valid_auth_headers():
-    return {"Authorization": "Bearer mock_test_jwt_token", "Content-Type": "application/json"}
+    return {
+        "Authorization": "Bearer mock_test_jwt_token",
+        "Content-Type": "application/json",
+    }
 
 
 @pytest.fixture
@@ -49,16 +54,18 @@ async def async_session():
 
 @pytest.fixture(autouse=True)
 def disable_honeypot(request, monkeypatch):
-    if os.environ.get("ENABLE_HONEYPOT_TEST") == "true" or "test_honeypot_middleware" in getattr(
-        request.node, "nodeid", ""
-    ):
+    if os.environ.get(
+        "ENABLE_HONEYPOT_TEST"
+    ) == "true" or "test_honeypot_middleware" in getattr(request.node, "nodeid", ""):
         yield
         return
 
     async def mock_bypass(self, scope, receive, send):
         await self.app(scope, receive, send)
 
-    monkeypatch.setattr("core.security.honeypot_middleware.HoneypotMiddleware.__call__", mock_bypass)
+    monkeypatch.setattr(
+        "core.security.honeypot_middleware.HoneypotMiddleware.__call__", mock_bypass
+    )
     # বাংলা মন্তব্য: BUG FIX - `backend.core.*` prefix দিয়ে import হওয়া app-এর
     # HoneypotMiddleware একটা সম্পূর্ণ আলাদা ক্লাস অবজেক্ট (module identity duplication,
     # secret_vault-এ আগে পাওয়া একই সমস্যা) -- শুধু bare `core.security...` patch করলে
@@ -152,7 +159,9 @@ sys.modules["pinecone"] = create_mock_module("pinecone", is_package=True)
 sys.modules["chromadb"] = create_mock_module("chromadb", is_package=True)
 sys.modules["chromadb.config"] = create_mock_module("chromadb.config")
 sys.modules["chromadb.utils"] = create_mock_module("chromadb.utils", is_package=True)
-sys.modules["chromadb.utils.embedding_functions"] = create_mock_module("chromadb.utils.embedding_functions")
+sys.modules["chromadb.utils.embedding_functions"] = create_mock_module(
+    "chromadb.utils.embedding_functions"
+)
 sys.modules["cachetools"] = create_mock_module("cachetools", is_package=True)
 sys.modules["nats"] = create_mock_module("nats", is_package=True)
 sys.modules["nats.aio"] = create_mock_module("nats.aio", is_package=True)
@@ -166,21 +175,31 @@ sys.modules["rich.console"] = create_mock_module("rich.console")
 sys.modules["rich.table"] = create_mock_module("rich.table")
 sys.modules["rich.panel"] = create_mock_module("rich.panel")
 sys.modules["rich.prompt"] = create_mock_module("rich.prompt")
-sys.modules["tools.code.image_to_code_react"] = create_mock_module("tools.code.image_to_code_react")
+sys.modules["tools.code.image_to_code_react"] = create_mock_module(
+    "tools.code.image_to_code_react"
+)
 
 # Mock external SDKs
 sys.modules["analytics"] = create_mock_module("analytics")
 sys.modules["sentry_sdk"] = create_mock_module("sentry_sdk")
-sys.modules["sentry_sdk.integrations"] = create_mock_module("sentry_sdk.integrations", is_package=True)
-sys.modules["sentry_sdk.integrations.loguru"] = create_mock_module("sentry_sdk.integrations.loguru")
+sys.modules["sentry_sdk.integrations"] = create_mock_module(
+    "sentry_sdk.integrations", is_package=True
+)
+sys.modules["sentry_sdk.integrations.loguru"] = create_mock_module(
+    "sentry_sdk.integrations.loguru"
+)
 sys.modules["supabase"] = create_mock_module("supabase", is_package=True)
 sys.modules["supabase.client"] = create_mock_module("supabase.client")
 sys.modules["alembic"] = create_mock_module("alembic", is_package=True)
 sys.modules["alembic.config"] = create_mock_module("alembic.config")
-sys.modules["alembic.migration"] = create_mock_module("alembic.migration", is_package=True)
+sys.modules["alembic.migration"] = create_mock_module(
+    "alembic.migration", is_package=True
+)
 sys.modules["alembic.operations"] = create_mock_module("alembic.operations")
 sys.modules["alembic.runtime"] = create_mock_module("alembic.runtime", is_package=True)
-sys.modules["alembic.runtime.migration"] = create_mock_module("alembic.runtime.migration")
+sys.modules["alembic.runtime.migration"] = create_mock_module(
+    "alembic.runtime.migration"
+)
 sys.modules["redis"] = create_mock_module("redis", is_package=True)
 sys.modules["redis.asyncio"] = create_mock_module("redis.asyncio", is_package=True)
 sys.modules["redis.exceptions"] = create_mock_module("redis.exceptions")
@@ -191,18 +210,36 @@ sys.modules["resend.emails"] = create_mock_module("resend.emails")
 sys.modules["websockets"] = create_mock_module("websockets", is_package=True)
 sys.modules["litellm"] = create_mock_module("litellm", is_package=True)
 sys.modules["opentelemetry"] = create_mock_module("opentelemetry", is_package=True)
-sys.modules["opentelemetry.trace"] = create_mock_module("opentelemetry.trace", is_package=True)
-sys.modules["opentelemetry.sdk"] = create_mock_module("opentelemetry.sdk", is_package=True)
-sys.modules["opentelemetry.sdk.trace"] = create_mock_module("opentelemetry.sdk.trace", is_package=True)
-sys.modules["opentelemetry.sdk.trace.export"] = create_mock_module("opentelemetry.sdk.trace.export")
-sys.modules["opentelemetry.instrumentation"] = create_mock_module("opentelemetry.instrumentation", is_package=True)
-sys.modules["opentelemetry.instrumentation.fastapi"] = create_mock_module("opentelemetry.instrumentation.fastapi")
-sys.modules["opentelemetry.exporter"] = create_mock_module("opentelemetry.exporter", is_package=True)
-sys.modules["opentelemetry.exporter.otlp"] = create_mock_module("opentelemetry.exporter.otlp", is_package=True)
+sys.modules["opentelemetry.trace"] = create_mock_module(
+    "opentelemetry.trace", is_package=True
+)
+sys.modules["opentelemetry.sdk"] = create_mock_module(
+    "opentelemetry.sdk", is_package=True
+)
+sys.modules["opentelemetry.sdk.trace"] = create_mock_module(
+    "opentelemetry.sdk.trace", is_package=True
+)
+sys.modules["opentelemetry.sdk.trace.export"] = create_mock_module(
+    "opentelemetry.sdk.trace.export"
+)
+sys.modules["opentelemetry.instrumentation"] = create_mock_module(
+    "opentelemetry.instrumentation", is_package=True
+)
+sys.modules["opentelemetry.instrumentation.fastapi"] = create_mock_module(
+    "opentelemetry.instrumentation.fastapi"
+)
+sys.modules["opentelemetry.exporter"] = create_mock_module(
+    "opentelemetry.exporter", is_package=True
+)
+sys.modules["opentelemetry.exporter.otlp"] = create_mock_module(
+    "opentelemetry.exporter.otlp", is_package=True
+)
 sys.modules["opentelemetry.exporter.otlp.proto"] = create_mock_module(
     "opentelemetry.exporter.otlp.proto", is_package=True
 )
-sys.modules["opentelemetry.exporter.otlp.proto.grpc"] = create_mock_module("opentelemetry.exporter.otlp.proto.grpc")
+sys.modules["opentelemetry.exporter.otlp.proto.grpc"] = create_mock_module(
+    "opentelemetry.exporter.otlp.proto.grpc"
+)
 sys.modules["asyncpg"] = create_mock_module("asyncpg", is_package=True)
 sys.modules["asyncpg.connection"] = create_mock_module("asyncpg.connection")
 sys.modules["tenacity"] = create_mock_module("tenacity", is_package=True)

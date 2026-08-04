@@ -20,7 +20,9 @@ class PostHogClient:
                 logger.error(f"Failed to initialize PostHog: {e}")
                 self.enabled = False
         else:
-            logger.warning("POSTHOG_API_KEY not set. PostHog analytics running in mock/log mode.")
+            logger.warning(
+                "POSTHOG_API_KEY not set. PostHog analytics running in mock/log mode."
+            )
 
     def capture(self, distinct_id: str, event: str, properties: dict | None = None):
         if self.enabled:
@@ -30,7 +32,9 @@ class PostHogClient:
                 # সুনির্দিষ্ট ত্রুটি ক্যাচ করা হলো, যাতে কোনো ক্রিটিকাল এরর চাপা না পড়ে
                 logger.error(f"PostHog capture failed: {e}")
         else:
-            logger.info(f"[Mock Analytics] User: {distinct_id} | Event: {event} | Props: {properties}")
+            logger.info(
+                f"[Mock Analytics] User: {distinct_id} | Event: {event} | Props: {properties}"
+            )
 
 
 posthog_client = PostHogClient()

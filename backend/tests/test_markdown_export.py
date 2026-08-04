@@ -1,8 +1,7 @@
 import time
 
-from fastapi.testclient import TestClient
-
 from core.app import app
+from fastapi.testclient import TestClient
 
 client = TestClient(app)
 
@@ -22,7 +21,9 @@ def test_markdown_export_async_flow(valid_auth_headers):
 
     # 2. Check status (may need to wait briefly, but we check if endpoint returns status)
     time.sleep(0.5)
-    status_response = client.get(f"/api/v1/markdown/export/{job_id}/status", headers=valid_auth_headers)
+    status_response = client.get(
+        f"/api/v1/markdown/export/{job_id}/status", headers=valid_auth_headers
+    )
     assert status_response.status_code == 200
     status_data = status_response.json()
     assert "status" in status_data

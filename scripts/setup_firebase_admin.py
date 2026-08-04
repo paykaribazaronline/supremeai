@@ -2,8 +2,9 @@
 Firebase Admin Setup Script — One-time run করুন
 Firestore-এ niloyjoy7@gmail.com কে admin role দেবে
 """
+
 import firebase_admin
-from firebase_admin import credentials, firestore, auth
+from firebase_admin import auth, credentials, firestore
 
 # 1. Service Account দিয়ে initialize করুন
 #    (নিচের path আপনার service-account.json এর path দিন)
@@ -23,22 +24,28 @@ except Exception as e:
 
 # 3. Firestore-এ admin role set করো
 if uid:
-    db.collection("admin_users").document(uid).set({
-        "email": "niloyjoy7@gmail.com",
-        "role": "admin",
-        "created_at": "2026-06-22",
-        "totp_secret": None,  # প্রথম login-এ TOTP setup হবে
-    }, merge=True)
+    db.collection("admin_users").document(uid).set(
+        {
+            "email": "niloyjoy7@gmail.com",
+            "role": "admin",
+            "created_at": "2026-06-22",
+            "totp_secret": None,  # প্রথম login-এ TOTP setup হবে
+        },
+        merge=True,
+    )
     print(f"[OK] Admin role set for niloyjoy7@gmail.com (uid={uid})")
 
 # 4. admin@supremeai.com কেও admin করো (যদি চান)
 try:
     user2 = auth.get_user_by_email("admin@supremeai.com")
-    db.collection("admin_users").document(user2.uid).set({
-        "email": "admin@supremeai.com",
-        "role": "admin",
-        "created_at": "2026-06-22",
-    }, merge=True)
+    db.collection("admin_users").document(user2.uid).set(
+        {
+            "email": "admin@supremeai.com",
+            "role": "admin",
+            "created_at": "2026-06-22",
+        },
+        merge=True,
+    )
     print("[OK] Admin role set for admin@supremeai.com")
 except Exception as e:
     print(f"admin@supremeai.com: {e}")

@@ -36,7 +36,9 @@ async def main():
         await asyncio.sleep(5)
         architects = worker_registry.get_workers_by_type("Architect")
         if architects:
-            logger.info(f"✅ Success! Control Plane discovered workers: {[w['worker_id'] for w in architects]}")
+            logger.info(
+                f"✅ Success! Control Plane discovered workers: {[w['worker_id'] for w in architects]}"
+            )
             logger.info(f"Capabilities: {architects[0]}")
             break
         else:

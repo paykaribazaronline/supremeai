@@ -1,7 +1,8 @@
-from core.error_bus import with_error_bus
 import asyncio
 import json
 from typing import Any
+
+from core.error_bus import with_error_bus
 
 try:
     import networkx as nx
@@ -85,7 +86,9 @@ class SelfPlanner:
             f"Objective: {objective}"
         )
         try:
-            result = await model_router.async_route_and_generate(prompt, task_type="reasoning", max_cost=0.05)
+            result = await model_router.async_route_and_generate(
+                prompt, task_type="reasoning", max_cost=0.05
+            )
         except Exception as e:
             # ✅ FIXED: LLM planning failures now propagate as real errors instead of
             # being masked by a hardcoded fallback plan. A caller must know planning failed.
@@ -137,7 +140,9 @@ class SelfPlanner:
         while in_degrees:
             current_batch = [node for node, degree in in_degrees.items() if degree == 0]
             if not current_batch:
-                raise RuntimeError("Circular dependency detected during execution ordering")
+                raise RuntimeError(
+                    "Circular dependency detected during execution ordering"
+                )
 
             batches.append(current_batch)
             for node in current_batch:
@@ -182,7 +187,9 @@ class SelfPlanner:
         # After all batches are complete, log the summary and return.
         # 🛑 ZERO-GAP: Removed recursive self-generating planning logic to avoid OOM loop leaks.
         final_summary = "Completed all tasks. " + json.dumps(execution_results)
-        logger.info(f"Plan execution finished for objective. Summary: {final_summary[:200]}")
+        logger.info(
+            f"Plan execution finished for objective. Summary: {final_summary[:200]}"
+        )
 
         return {
             "status": "completed",
@@ -196,7 +203,9 @@ class SelfPlanner:
         """Cancels all currently active running planner tasks."""
         if not self.active_tasks:
             return
-        logger.warning(f"Shutting down SelfPlanner. Cancelling {len(self.active_tasks)} active tasks...")
+        logger.warning(
+            f"Shutting down SelfPlanner. Cancelling {len(self.active_tasks)} active tasks..."
+        )
         for task in list(self.active_tasks):
             if not task.done():
                 task.cancel()

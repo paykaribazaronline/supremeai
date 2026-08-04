@@ -1,12 +1,11 @@
 import secrets
 from typing import Any
 
+from core.config import settings
 from fastapi import APIRouter, Body, Depends, HTTPException, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import jwt
 from loguru import logger
-
-from core.config import settings
 
 security = HTTPBearer()
 
@@ -18,7 +17,9 @@ def require_admin_token(credentials: HTTPAuthorizationCredentials = Depends(secu
         jwt_secret = settings.jwt_secret
         decoded = jwt.decode(token, jwt_secret, algorithms=["HS256"])
         if decoded.get("role") != "admin":
-            raise HTTPException(status_code=403, detail="Forbidden: User does not have admin role.")
+            raise HTTPException(
+                status_code=403, detail="Forbidden: User does not have admin role."
+            )
         return decoded
     except Exception as err:
         logger.warning("Admin token validation failed", exc_info=True)
@@ -83,6 +84,8 @@ async def get_config_by_key(key: str, admin: str = Depends(require_admin_token))
 
 # বাংলা মন্তব্য: অ্যাডমিন ট্রাস্টেড এক্সেস কন্ট্রোলের মাধ্যমে নির্দিষ্ট কনফিগ কি আপডেট করার এন্ডপয়েন্ট।
 @router.put("/{key}")
-async def update_config_by_key(key: str, value: Any = Body(...), admin: str = Depends(require_admin_token)):
+async def update_config_by_key(
+    key: str, value: Any = Body(...), admin: str = Depends(require_admin_token)
+):
     db.set_config(key, value)
     return {"status": "success"}

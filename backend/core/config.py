@@ -62,17 +62,9 @@ except ImportError:
 
 
 from loguru import logger
-from pydantic import (
-    Field,
-    PrivateAttr,
-    SecretStr,
-    ValidationInfo,
-    field_validator,
-    model_serializer,
-    model_validator,
-)
+from pydantic import (Field, PrivateAttr, SecretStr, ValidationInfo,
+                      field_validator, model_serializer, model_validator)
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
-
 from utils.environment import is_test_environment
 
 from .security.secret_vault import secret_vault
@@ -92,7 +84,9 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_file=(
-            None if "pytest" in sys.modules else ["../.env", ".env", "/etc/secrets/.env", "/etc/secrets/render.env"]
+            None
+            if "pytest" in sys.modules
+            else ["../.env", ".env", "/etc/secrets/.env", "/etc/secrets/render.env"]
         ),
         extra="ignore",
     )
@@ -104,30 +98,52 @@ class Settings(BaseSettings):
     # বাংলা মন্তব্য: টেস্ট এনভায়রনমেন্টে AuthMiddleware-এর JWT ভেরিফিকেশন বাইপাস করার জন্য
     # CI workflow-এ ALLOW_TEST_AUTH_BYPASS=true সেট করা হয়। Production-এ এটি কখনো true হবে না।
     # auth_middleware.py:139 এই field চেক করে।
-    allow_test_auth_bypass: bool = Field(default=False, validation_alias="ALLOW_TEST_AUTH_BYPASS")
-    allow_test_origin_bypass: bool = Field(default=False, validation_alias="ALLOW_TEST_ORIGIN_BYPASS")
+    allow_test_auth_bypass: bool = Field(
+        default=False, validation_alias="ALLOW_TEST_AUTH_BYPASS"
+    )
+    allow_test_origin_bypass: bool = Field(
+        default=False, validation_alias="ALLOW_TEST_ORIGIN_BYPASS"
+    )
 
     PROJECT_NAME: str = "SupremeAI 2.0"
     API_V1_STR: str = "/api/v1"
     app_name: str = "SupremeAI 2.0"
 
     # ── LLM Gateway & Streaming Configuration ────────────────────────────────
-    LLM_CONNECT_TIMEOUT: float = Field(default=5.0, validation_alias="LLM_CONNECT_TIMEOUT")
+    LLM_CONNECT_TIMEOUT: float = Field(
+        default=5.0, validation_alias="LLM_CONNECT_TIMEOUT"
+    )
     LLM_READ_TIMEOUT: float = Field(default=30.0, validation_alias="LLM_READ_TIMEOUT")
     LLM_WRITE_TIMEOUT: float = Field(default=5.0, validation_alias="LLM_WRITE_TIMEOUT")
     LLM_POOL_TIMEOUT: float = Field(default=5.0, validation_alias="LLM_POOL_TIMEOUT")
-    LLM_MAX_CONNECTIONS: int = Field(default=100, validation_alias="LLM_MAX_CONNECTIONS")
+    LLM_MAX_CONNECTIONS: int = Field(
+        default=100, validation_alias="LLM_MAX_CONNECTIONS"
+    )
     LLM_MAX_KEEPALIVE: int = Field(default=20, validation_alias="LLM_MAX_KEEPALIVE")
 
     LATENCY_WINDOW_SIZE: int = Field(default=20, validation_alias="LATENCY_WINDOW_SIZE")
-    LATENCY_NORMALIZATION_MS: float = Field(default=1000.0, validation_alias="LATENCY_NORMALIZATION_MS")
-    MIN_PROVIDER_WEIGHT: float = Field(default=0.01, validation_alias="MIN_PROVIDER_WEIGHT")
-    CIRCUIT_FAILURE_THRESHOLD: int = Field(default=5, validation_alias="CIRCUIT_FAILURE_THRESHOLD")
-    CIRCUIT_SUCCESS_RATE_FLOOR: float = Field(default=0.5, validation_alias="CIRCUIT_SUCCESS_RATE_FLOOR")
-    CIRCUIT_COOLDOWN_SECONDS: float = Field(default=30.0, validation_alias="CIRCUIT_COOLDOWN_SECONDS")
-    MAX_ROUTING_ATTEMPTS: int = Field(default=3, validation_alias="MAX_ROUTING_ATTEMPTS")
+    LATENCY_NORMALIZATION_MS: float = Field(
+        default=1000.0, validation_alias="LATENCY_NORMALIZATION_MS"
+    )
+    MIN_PROVIDER_WEIGHT: float = Field(
+        default=0.01, validation_alias="MIN_PROVIDER_WEIGHT"
+    )
+    CIRCUIT_FAILURE_THRESHOLD: int = Field(
+        default=5, validation_alias="CIRCUIT_FAILURE_THRESHOLD"
+    )
+    CIRCUIT_SUCCESS_RATE_FLOOR: float = Field(
+        default=0.5, validation_alias="CIRCUIT_SUCCESS_RATE_FLOOR"
+    )
+    CIRCUIT_COOLDOWN_SECONDS: float = Field(
+        default=30.0, validation_alias="CIRCUIT_COOLDOWN_SECONDS"
+    )
+    MAX_ROUTING_ATTEMPTS: int = Field(
+        default=3, validation_alias="MAX_ROUTING_ATTEMPTS"
+    )
     docs_auth_enabled: bool = True
-    docs_username: str = Field(default="admin", validation_alias="SUPREMEAI_DOCS_USERNAME")
+    docs_username: str = Field(
+        default="admin", validation_alias="SUPREMEAI_DOCS_USERNAME"
+    )
     docs_password: SecretStr = Field(
         default=SecretStr("dev_password_only"),
         validation_alias="SUPREMEAI_DOCS_PASSWORD",
@@ -160,7 +176,9 @@ class Settings(BaseSettings):
     service_role: str = Field(default="user", validation_alias="SERVICE_ROLE")
 
     # বাংলা মন্তব্য: JIT OTP over-saturation protection — প্রতি admin প্রতি এই সেকেন্ডে সর্বোচ্চ ১টি OTP।
-    otp_cooldown_seconds: int = Field(default=60, validation_alias="OTP_COOLDOWN_SECONDS")
+    otp_cooldown_seconds: int = Field(
+        default=60, validation_alias="OTP_COOLDOWN_SECONDS"
+    )
 
     # বাংলা মন্তব্য: Admin email list সম্পূর্ণ env-driven
     # (Moved to Security & Auth Config section to avoid duplication)
@@ -180,23 +198,41 @@ class Settings(BaseSettings):
     groq_rpm_limit: int = Field(default=28, validation_alias="GROQ_RPM_LIMIT")
     groq_tpm_limit: int = Field(default=28_500, validation_alias="GROQ_TPM_LIMIT")
     groq_rpd_limit: int = Field(default=13_680, validation_alias="GROQ_RPD_LIMIT")
-    openrouter_rpm_limit: int = Field(default=19, validation_alias="OPENROUTER_RPM_LIMIT")
-    openrouter_rpd_limit: int = Field(default=45, validation_alias="OPENROUTER_RPD_LIMIT")
-    cloudflare_rpd_limit: int = Field(default=9_000, validation_alias="CLOUDFLARE_RPD_LIMIT")
+    openrouter_rpm_limit: int = Field(
+        default=19, validation_alias="OPENROUTER_RPM_LIMIT"
+    )
+    openrouter_rpd_limit: int = Field(
+        default=45, validation_alias="OPENROUTER_RPD_LIMIT"
+    )
+    cloudflare_rpd_limit: int = Field(
+        default=9_000, validation_alias="CLOUDFLARE_RPD_LIMIT"
+    )
     nvidia_rpm_limit: int = Field(default=38, validation_alias="NVIDIA_RPM_LIMIT")
     nvidia_tpm_limit: int = Field(default=38_000, validation_alias="NVIDIA_TPM_LIMIT")
-    huggingface_rpm_limit: int = Field(default=18, validation_alias="HUGGINGFACE_RPM_LIMIT")
-    huggingface_rpd_limit: int = Field(default=950, validation_alias="HUGGINGFACE_RPD_LIMIT")
+    huggingface_rpm_limit: int = Field(
+        default=18, validation_alias="HUGGINGFACE_RPM_LIMIT"
+    )
+    huggingface_rpd_limit: int = Field(
+        default=950, validation_alias="HUGGINGFACE_RPD_LIMIT"
+    )
 
     max_prompt_tokens: int = Field(default=4_000, validation_alias="MAX_PROMPT_TOKENS")
-    max_response_tokens: int = Field(default=1_500, validation_alias="MAX_RESPONSE_TOKENS")
+    max_response_tokens: int = Field(
+        default=1_500, validation_alias="MAX_RESPONSE_TOKENS"
+    )
     max_cost_per_task: float = Field(default=0.01, validation_alias="MAX_COST_PER_TASK")
     enable_token_compression: bool = True
 
     # ── Security & Auth Config ──────────────────────────────────────────────
-    security_context_ttl: int = Field(default=86400, validation_alias="SECURITY_CONTEXT_TTL")
-    security_caution_log_ttl: int = Field(default=86400, validation_alias="SECURITY_CAUTION_LOG_TTL")
-    admin_emails: str | list[str] = Field(default_factory=list, validation_alias="ADMIN_EMAILS")
+    security_context_ttl: int = Field(
+        default=86400, validation_alias="SECURITY_CONTEXT_TTL"
+    )
+    security_caution_log_ttl: int = Field(
+        default=86400, validation_alias="SECURITY_CAUTION_LOG_TTL"
+    )
+    admin_emails: str | list[str] = Field(
+        default_factory=list, validation_alias="ADMIN_EMAILS"
+    )
 
     supremeai_public_paths: str | list[str] = Field(
         default=[
@@ -235,8 +271,12 @@ class Settings(BaseSettings):
     )
 
     # ── Circuit Breaker Config ───────────────────────────────────────────────
-    circuit_breaker_failure_threshold: int = Field(default=3, validation_alias="CIRCUIT_BREAKER_FAILURE_THRESHOLD")
-    circuit_breaker_cooldown_period: int = Field(default=60, validation_alias="CIRCUIT_BREAKER_COOLDOWN_PERIOD")
+    circuit_breaker_failure_threshold: int = Field(
+        default=3, validation_alias="CIRCUIT_BREAKER_FAILURE_THRESHOLD"
+    )
+    circuit_breaker_cooldown_period: int = Field(
+        default=60, validation_alias="CIRCUIT_BREAKER_COOLDOWN_PERIOD"
+    )
 
     # ── Idempotency Config ───────────────────────────────────────────────
     # বাংলা মন্তব্য: idempotency_critical_paths সম্পূর্ণ env-driven।
@@ -271,45 +311,73 @@ class Settings(BaseSettings):
     memory_db_dir: str = Field(default="", validation_alias="MEMORY_DB_DIR")
     skill_registry_path: str = Field(default="", validation_alias="SKILL_REGISTRY_PATH")
     # বাংলা মন্তব্য: ChromaDB ভেক্টর ডাটাবেসের জন্য কনফিগারেবল পাথ যোগ করা হলো।
-    chromadb_path: str = Field(default="supremeai_knowledge_base", validation_alias="CHROMADB_PATH")
+    chromadb_path: str = Field(
+        default="supremeai_knowledge_base", validation_alias="CHROMADB_PATH"
+    )
 
     # ── Sandbox config — env-driven ──────────────────────────────────────────
-    sandbox_root: str = Field(default="/tmp/sandboxes", validation_alias="SANDBOX_ROOT")  # nosec B108
-    firecracker_path: str = Field(default="/usr/bin/firecracker", validation_alias="FIRECRACKER_PATH")
+    sandbox_root: str = Field(
+        default="/tmp/sandboxes", validation_alias="SANDBOX_ROOT"
+    )  # nosec B108
+    firecracker_path: str = Field(
+        default="/usr/bin/firecracker", validation_alias="FIRECRACKER_PATH"
+    )
     gvisor_path: str = Field(default="/usr/bin/runsc", validation_alias="GVISOR_PATH")
-    allow_sandbox_fallback: bool = Field(default=False, validation_alias="ALLOW_SANDBOX_FALLBACK")
+    allow_sandbox_fallback: bool = Field(
+        default=False, validation_alias="ALLOW_SANDBOX_FALLBACK"
+    )
     # বাংলা মন্তব্য: local_code_executor ও docker_sandbox-এর লোকাল ফলব্যাকের জন্য settings ভেরিয়েবল যোগ করা হলো।
-    allow_local_sandbox_fallback: str = Field(default="false", validation_alias="ALLOW_LOCAL_SANDBOX_FALLBACK")
+    allow_local_sandbox_fallback: str = Field(
+        default="false", validation_alias="ALLOW_LOCAL_SANDBOX_FALLBACK"
+    )
 
     # ── Agent Execution Config — env-driven ─────────────────────────────────
     # বাংলা মন্তব্য: আগে agent_orchestrator.py সরাসরি os.getenv() করত।
     # এখন এই দুটো settings-এর Single Source of Truth থেকে আসে।
     max_agent_tokens: int = Field(default=5000, validation_alias="MAX_AGENT_TOKENS")
-    max_agent_iterations: int = Field(default=5, validation_alias="MAX_AGENT_ITERATIONS")
-    agent_admin_permissions_required: bool = Field(default=True, validation_alias="AGENT_ADMIN_PERMISSIONS_REQUIRED")
+    max_agent_iterations: int = Field(
+        default=5, validation_alias="MAX_AGENT_ITERATIONS"
+    )
+    agent_admin_permissions_required: bool = Field(
+        default=True, validation_alias="AGENT_ADMIN_PERMISSIONS_REQUIRED"
+    )
 
     # ── LLM Cost Config — env-driven ────────────────────────────────────────
     # বাংলা মন্তব্য: আগে llm_gateway.py-এ `estimated_cost = tokens * 0.00001` hardcoded ছিল।
     # এখন এই factor settings থেকে নিয়ন্ত্রিত হয় যা runtime-এ override করা যাবে।
-    llm_cost_per_token: float = Field(default=0.00001, validation_alias="LLM_COST_PER_TOKEN")
+    llm_cost_per_token: float = Field(
+        default=0.00001, validation_alias="LLM_COST_PER_TOKEN"
+    )
 
     # ── Task Queue Config — env-driven ──────────────────────────────────────
     # বাংলা মন্তব্য: task_queue_enhanced.py-এ TTL এবং backend priority এখন config-driven।
-    task_result_ttl_seconds: int = Field(default=3600, validation_alias="TASK_RESULT_TTL_SECONDS")
+    task_result_ttl_seconds: int = Field(
+        default=3600, validation_alias="TASK_RESULT_TTL_SECONDS"
+    )
     queue_backend_priority: str = Field(
         default="asyncio,redis,celery,pubsub", validation_alias="QUEUE_BACKEND_PRIORITY"
     )
 
     # ── Health Check Config — env-driven ────────────────────────────────────
     # বাংলা মন্তব্য: health_monitor.py-এ hardcoded interval এখন config-driven।
-    health_check_interval_seconds: int = Field(default=60, validation_alias="HEALTH_CHECK_INTERVAL_SECONDS")
-    skill_timeout_seconds: int = Field(default=30, validation_alias="SKILL_TIMEOUT_SECONDS")
+    health_check_interval_seconds: int = Field(
+        default=60, validation_alias="HEALTH_CHECK_INTERVAL_SECONDS"
+    )
+    skill_timeout_seconds: int = Field(
+        default=30, validation_alias="SKILL_TIMEOUT_SECONDS"
+    )
 
     # ── Self-Healing Config — env-driven ────────────────────────────────────
     # বাংলা মন্তব্য: self_healer.py-এ human approval loop-এর জন্য config যোগ করা হলো।
-    self_heal_approval_webhook: str = Field(default="", validation_alias="SELF_HEAL_APPROVAL_WEBHOOK")
-    self_heal_approval_timeout_hours: int = Field(default=24, validation_alias="SELF_HEAL_APPROVAL_TIMEOUT_HOURS")
-    auto_remediation_dry_run: bool = Field(default=True, validation_alias="AUTO_REMEDIATION_DRY_RUN")
+    self_heal_approval_webhook: str = Field(
+        default="", validation_alias="SELF_HEAL_APPROVAL_WEBHOOK"
+    )
+    self_heal_approval_timeout_hours: int = Field(
+        default=24, validation_alias="SELF_HEAL_APPROVAL_TIMEOUT_HOURS"
+    )
+    auto_remediation_dry_run: bool = Field(
+        default=True, validation_alias="AUTO_REMEDIATION_DRY_RUN"
+    )
 
     _cached_secrets: dict[str, str] = PrivateAttr(default_factory=dict)
     _secrets_batch_loaded: bool = PrivateAttr(default=False)
@@ -368,7 +436,9 @@ class Settings(BaseSettings):
             except Exception as _secret_err:
                 # বাংলা: RuntimeError সহ সব exception gracefully handle করা হচ্ছে।
                 # যদি কোনো optional secret missing থাকে, server startup block হবে না।
-                logger.debug(f"Secret {secret_key} not available during batch load: {_secret_err}")
+                logger.debug(
+                    f"Secret {secret_key} not available during batch load: {_secret_err}"
+                )
         self._secrets_batch_loaded = True
 
     def _get_cached_secret(self, key: str) -> str:
@@ -388,9 +458,13 @@ class Settings(BaseSettings):
         self._ensure_secrets_loaded()
         if key not in self._cached_secrets:
             if is_test_environment():
-                logger.debug(f"Secret '{key}' not found in cache after batch load - returning empty string")
+                logger.debug(
+                    f"Secret '{key}' not found in cache after batch load - returning empty string"
+                )
             else:
-                logger.warning(f"Secret '{key}' not found in cache after batch load - returning empty string")
+                logger.warning(
+                    f"Secret '{key}' not found in cache after batch load - returning empty string"
+                )
         return self._cached_secrets.get(key, "")
 
     # ── Cloud-fetched secrets — GCP Secret Manager বা env fallback ───────────
@@ -648,7 +722,11 @@ class Settings(BaseSettings):
             env_origins = env_origins.strip()
             try:
                 parsed = json.loads(env_origins)
-                origins = [str(o).strip() for o in parsed if str(o).strip()] if isinstance(parsed, list) else []
+                origins = (
+                    [str(o).strip() for o in parsed if str(o).strip()]
+                    if isinstance(parsed, list)
+                    else []
+                )
             except json.JSONDecodeError:
                 origins = [o.strip() for o in env_origins.split(",") if o.strip()]
         else:
@@ -794,19 +872,26 @@ class Settings(BaseSettings):
         env = info.data.get("env", "local")
         if env in {"production", "staging"}:
             if str(v).lower() == "true" and (
-                os.getenv("debug", "").lower() == "true" or os.getenv("DEBUG", "").lower() == "true"
+                os.getenv("debug", "").lower() == "true"
+                or os.getenv("DEBUG", "").lower() == "true"
             ):
-                raise ValueError("Explicitly setting debug=True is PROHIBITED in production/staging.")
+                raise ValueError(
+                    "Explicitly setting debug=True is PROHIBITED in production/staging."
+                )
             return False
         return bool(v)
 
     @field_validator("docs_password", mode="before")
     @classmethod
-    def validate_docs_password(cls, v: str | SecretStr | None, info: ValidationInfo) -> str | SecretStr:
+    def validate_docs_password(
+        cls, v: str | SecretStr | None, info: ValidationInfo
+    ) -> str | SecretStr:
         if "pytest" in sys.modules:
             return v or ""
         if not v and info.data.get("env", "local") in {"production", "staging"}:
-            logger.warning("⚠️ SUPREMEAI_DOCS_PASSWORD not configured — using auto-generated secure password")
+            logger.warning(
+                "⚠️ SUPREMEAI_DOCS_PASSWORD not configured — using auto-generated secure password"
+            )
             return SecretStr(secrets.token_urlsafe(32))
         return v or ""
 
@@ -853,18 +938,28 @@ class Settings(BaseSettings):
                     f"Available: {available}. Partial AI functionality only."
                 )
             else:
-                logger.info(f"✅ BOOT-TIME: সব {len(available)} LLM API key সফলভাবে লোড হয়েছে।")
+                logger.info(
+                    f"✅ BOOT-TIME: সব {len(available)} LLM API key সফলভাবে লোড হয়েছে।"
+                )
 
         # Stripe warning (non-blocking)
         if self.env in {"production", "staging"}:
-            stripe_key = self.stripe_api_key.get_secret_value() if self.stripe_api_key else ""
-            stripe_webhook = self.stripe_webhook_secret.get_secret_value() if self.stripe_webhook_secret else ""
+            stripe_key = (
+                self.stripe_api_key.get_secret_value() if self.stripe_api_key else ""
+            )
+            stripe_webhook = (
+                self.stripe_webhook_secret.get_secret_value()
+                if self.stripe_webhook_secret
+                else ""
+            )
             if not stripe_key:
                 logger.warning(
                     "⚠️ Stripe API key missing in production/staging. Billing features will run in mock mode."
                 )
             if not stripe_webhook:
-                logger.warning("⚠️ Stripe webhook secret missing in production/staging. Webhook validation disabled.")
+                logger.warning(
+                    "⚠️ Stripe webhook secret missing in production/staging. Webhook validation disabled."
+                )
 
         # Production completeness / degraded mode allowed
         if self.env == "production":
@@ -934,7 +1029,9 @@ class Settings(BaseSettings):
     def parse_admin_emails(cls, v) -> list[str]:
         if isinstance(v, str):
             v = v.strip()
-            return [email.strip() for email in v.split(",") if email.strip()] if v else []
+            return (
+                [email.strip() for email in v.split(",") if email.strip()] if v else []
+            )
         return v or []
 
     @field_validator("allowed_hosts", mode="before")
@@ -990,7 +1087,10 @@ class Settings(BaseSettings):
             # বাংলা মন্তব্য: প্রোডাকশনে লোকালহোস্ট CORS অরিজিন থেকে সরিয়ে ফেলা হয়
             # field_name check করা হচ্ছে — 'cors_origins' shorthand ও accept করা হচ্ছে
             field = getattr(info, "field_name", None) or ""
-            if field in {"user_cors_origins", "admin_cors_origins", "cors_origins"} or not field:
+            if (
+                field in {"user_cors_origins", "admin_cors_origins", "cors_origins"}
+                or not field
+            ):
                 v = [o for o in v if "localhost" not in o and "127.0.0.1" not in o]
         return v
 
@@ -1015,15 +1115,25 @@ class Settings(BaseSettings):
         return [x.strip() for x in str(value).split(",") if x.strip()]
 
     @classmethod
-    def validate_cors_origins_helper(cls, value: list[str], info: Any = None) -> list[str]:
-        env = info.data.get("env", "local") if info and hasattr(info, "data") else "local"
+    def validate_cors_origins_helper(
+        cls, value: list[str], info: Any = None
+    ) -> list[str]:
+        env = (
+            info.data.get("env", "local") if info and hasattr(info, "data") else "local"
+        )
         if env == "production":
-            return [origin for origin in value if "localhost" not in origin and "127.0.0.1" not in origin]
+            return [
+                origin
+                for origin in value
+                if "localhost" not in origin and "127.0.0.1" not in origin
+            ]
         return value
 
     @classmethod
     def set_jwt_secret(cls, value: Any, info: Any = None) -> str:
-        env = info.data.get("env", "local") if info and hasattr(info, "data") else "local"
+        env = (
+            info.data.get("env", "local") if info and hasattr(info, "data") else "local"
+        )
         if not value and env == "production":
             raise ValueError("JWT secret cannot be empty in production.")
         if not value or value is None:
@@ -1049,7 +1159,9 @@ class Settings(BaseSettings):
 
             # বাংলা মন্তব্য: প্রোডাকশনে কনফিগারেশন পূর্ণতা যাচাই
             if not self.user_cors_origins and not self.admin_cors_origins:
-                logger.warning("⚠️ Production CORS origins not explicitly configured. Using defaults for security.")
+                logger.warning(
+                    "⚠️ Production CORS origins not explicitly configured. Using defaults for security."
+                )
 
         # বাংলা মন্তব্য: কনফিগারেশন লোড হওয়ার পর লগ মেসেজ দেখানো
         logger.info(f"✅ Configuration loaded successfully for environment: {self.env}")
@@ -1086,6 +1198,8 @@ def get_production_env(var_name: str, default: str | None = None) -> str:
     if not value:
         if default is not None:
             return default
-        logger.critical(f"❌ CRITICAL CONFIG ERROR: Missing required environment variable '{var_name}'!")
+        logger.critical(
+            f"❌ CRITICAL CONFIG ERROR: Missing required environment variable '{var_name}'!"
+        )
         raise ValueError(f"Configuration Error: {var_name} must be explicitly defined.")
     return value

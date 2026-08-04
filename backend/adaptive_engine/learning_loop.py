@@ -67,7 +67,9 @@ class ExperienceClusterer:
         self.similarity_threshold = similarity_threshold
         self._embeddings_cache: dict[str, list[float]] = {}
 
-    def cluster_failures(self, experiences: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    def cluster_failures(
+        self, experiences: list[dict[str, Any]]
+    ) -> dict[str, list[dict[str, Any]]]:
         """Group experiences by failure signature for pattern detection."""
         clusters: dict[str, list[dict[str, Any]]] = {}
 
@@ -160,13 +162,17 @@ class PerformanceDriftDetector:
         else:
             lat_zscore = 0.0
 
-        drift_detected = lat_zscore > self.z_threshold or recent_err_mean > old_err_mean * 2
+        drift_detected = (
+            lat_zscore > self.z_threshold or recent_err_mean > old_err_mean * 2
+        )
 
         return {
             "provider": provider,
             "drift_detected": drift_detected,
             "latency_change_pct": (
-                round((recent_lat_mean - old_lat_mean) / old_lat_mean * 100, 2) if old_lat_mean else 0.0
+                round((recent_lat_mean - old_lat_mean) / old_lat_mean * 100, 2)
+                if old_lat_mean
+                else 0.0
             ),
             "error_rate_change": round(recent_err_mean - old_err_mean, 4),
             "recommendation": "consider_fallback" if drift_detected else "stable",
@@ -235,7 +241,9 @@ class LearningLoop:
         async with self._lock:
             self._is_running = True
             start_time = datetime.now(UTC)
-            cycle_id = f"cycle_{start_time.strftime('%Y%m%d_%H%M%S')}_{self._cycle_count}"
+            cycle_id = (
+                f"cycle_{start_time.strftime('%Y%m%d_%H%M%S')}_{self._cycle_count}"
+            )
 
             try:
                 logger.info(f"🧠 Learning cycle {cycle_id} started")
@@ -250,7 +258,9 @@ class LearningLoop:
                 drift_results = await self._check_model_drift()
 
                 # Step 4: Generate insights via LLM if gateway available
-                insights = await self._generate_insights(experiences, failure_clusters, drift_results)
+                insights = await self._generate_insights(
+                    experiences, failure_clusters, drift_results
+                )
 
                 # Step 5: Persist insights and update counters
                 self._insights_log.extend(insights)
@@ -266,12 +276,18 @@ class LearningLoop:
                     total_experiences=len(experiences),
                     new_patterns_found=len(failure_clusters),
                     insights_generated=insights,
-                    model_drift_detected=any(d.get("drift_detected", False) for d in drift_results),
-                    top_failure_clusters={k: len(v) for k, v in failure_clusters.items()},
+                    model_drift_detected=any(
+                        d.get("drift_detected", False) for d in drift_results
+                    ),
+                    top_failure_clusters={
+                        k: len(v) for k, v in failure_clusters.items()
+                    },
                     execution_time_ms=execution_time,
                 )
 
-                logger.info(f"✅ Learning cycle {cycle_id} completed in {execution_time:.0f}ms")
+                logger.info(
+                    f"✅ Learning cycle {cycle_id} completed in {execution_time:.0f}ms"
+                )
                 return result
 
             except Exception as exc:
@@ -334,14 +350,18 @@ class LearningLoop:
         insights: list[LearningInsight] = []
 
         # Insight 1: Top failure patterns
-        for fingerprint, cluster in sorted(failure_clusters.items(), key=lambda x: -len(x[1]))[:3]:
+        for fingerprint, cluster in sorted(
+            failure_clusters.items(), key=lambda x: -len(x[1])
+        )[:3]:
             insights.append(
                 LearningInsight(
                     insight_id=f"failure_{fingerprint}_{datetime.now(UTC).strftime('%H%M%S')}",
                     category="reliability",
                     severity="critical" if len(cluster) > 5 else "warning",
                     description=f"Failure pattern '{fingerprint}' occurred {len(cluster)} times",
-                    affected_components=list(set(e.get("action_taken", "unknown") for e in cluster)),
+                    affected_components=list(
+                        set(e.get("action_taken", "unknown") for e in cluster)
+                    ),
                     suggested_action="Review error handling and add retry logic",
                     confidence=min(len(cluster) / 10, 1.0),
                 )
@@ -365,11 +385,16 @@ class LearningLoop:
                 )
 
         # Insight 3: User feedback trends
-        feedback_scores = [e.get("user_feedback") for e in experiences if e.get("user_feedback") is not None]
+        feedback_scores = [
+            e.get("user_feedback")
+            for e in experiences
+            if e.get("user_feedback") is not None
+        ]
         if feedback_scores:
-            avg_feedback = sum(1 if f == "positive" else -1 if f == "negative" else 0 for f in feedback_scores) / len(
-                feedback_scores
-            )
+            avg_feedback = sum(
+                1 if f == "positive" else -1 if f == "negative" else 0
+                for f in feedback_scores
+            ) / len(feedback_scores)
             if avg_feedback < -0.3:
                 insights.append(
                     LearningInsight(
@@ -384,7 +409,9 @@ class LearningLoop:
 
         return insights
 
-    def get_insights(self, category: str | None = None, unresolved_only: bool = True) -> list[LearningInsight]:
+    def get_insights(
+        self, category: str | None = None, unresolved_only: bool = True
+    ) -> list[LearningInsight]:
         """Retrieve insights, optionally filtered."""
         insights = self._insights_log
         if category:
@@ -425,7 +452,9 @@ class LearningLoop:
             "total_cycles": self._cycle_count,
             "last_cycle": self._last_cycle.isoformat() if self._last_cycle else None,
             "total_insights": len(self._insights_log),
-            "unresolved_insights": len([i for i in self._insights_log if i.resolved_at is None]),
+            "unresolved_insights": len(
+                [i for i in self._insights_log if i.resolved_at is None]
+            ),
             "insights_by_category": Counter(i.category for i in self._insights_log),
             "insights_by_severity": Counter(i.severity for i in self._insights_log),
         }

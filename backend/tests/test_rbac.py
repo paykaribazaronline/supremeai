@@ -2,17 +2,9 @@ import datetime
 from datetime import UTC
 
 import pytest
-
-from core.security.rbac import (
-    Permission,
-    PermissionDeniedError,
-    Role,
-    RoleBasedAccessControl,
-    UserContext,
-    authorize,
-    get_role_permissions,
-    has_permission,
-)
+from core.security.rbac import (Permission, PermissionDeniedError, Role,
+                                RoleBasedAccessControl, UserContext, authorize,
+                                get_role_permissions, has_permission)
 
 
 @pytest.fixture

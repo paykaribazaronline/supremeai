@@ -21,13 +21,12 @@ import sys
 from contextlib import asynccontextmanager
 from typing import Any
 
+from core.config import settings
+from core.logging_config import setup_logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from loguru import logger
-
-from core.config import settings
-from core.logging_config import setup_logging
 
 # বাংলা মন্তব্ব্য: মিডলওয়্যার ইম্পোর্ট লেজি-লোডেড — create_app()-এর ভিতরে ইম্পোর্ট হবে
 # এর ফলে কোল্ড স্টার্ট ২০% দ্রুত হবে এবং modularity বাড়বে।
@@ -92,15 +91,14 @@ def create_app(title: str = settings.PROJECT_NAME) -> FastAPI:
     """
 
     # বাংলা মন্তব্ব্য: লেজি ইম্পোর্ট — মিডলওয়্যার ক্লাস শুধু create_app() কল করলেই লোড হবে
-    from api.middleware import (
-        RequestIdMiddleware,
-        ResponseStandardizationMiddleware,
-        SupremeContextMiddleware,
-        TenantExtractionMiddleware,
-    )
+    from api.middleware import (RequestIdMiddleware,
+                                ResponseStandardizationMiddleware,
+                                SupremeContextMiddleware,
+                                TenantExtractionMiddleware)
     from core.idempotency_middleware import IdempotencyMiddleware
     from core.lifespan import app_lifespan
-    from core.observability.observability_middleware import ObservabilityMiddleware
+    from core.observability.observability_middleware import \
+        ObservabilityMiddleware
     from core.request_context import RequestContextMiddleware
     from core.security.api_key_middleware import APIKeyAuthMiddleware
     from core.security.auth_middleware import AuthMiddleware
@@ -239,6 +237,8 @@ def create_app(title: str = settings.PROJECT_NAME) -> FastAPI:
 build_app_shell = create_app
 
 
-def router_health_check(app: FastAPI | None = None, expected_count: int = 0) -> dict[str, Any]:
+def router_health_check(
+    app: FastAPI | None = None, expected_count: int = 0
+) -> dict[str, Any]:
     """Helper to return health status of app routers."""
     return {"status": "healthy", "expected_count": expected_count, "env": settings.env}

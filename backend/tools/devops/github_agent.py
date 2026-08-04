@@ -2,12 +2,11 @@ import base64
 from datetime import datetime as dt
 
 import httpx
+from core.security.security_vault import decrypt_token
 from loguru import logger
+from models.integration import Integration
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from core.security.security_vault import decrypt_token
-from models.integration import Integration
 
 
 async def get_user_github_token(user_id: str, db: AsyncSession) -> str | None:
@@ -85,7 +84,9 @@ class GitHubAgent:
     def __init__(self, token: str | None = None):
         self.token = token or ""
         if not self.token:
-            logger.warning("GitHubAgent initialized without a token; real API calls disabled.")
+            logger.warning(
+                "GitHubAgent initialized without a token; real API calls disabled."
+            )
 
     def _headers(self) -> dict:
         if not self.token:
@@ -95,13 +96,17 @@ class GitHubAgent:
             "Accept": "application/vnd.github.v3+json",
         }
 
-    async def connect_repo(self, repo_owner: str, repo_name: str, installation_id: str | None = None) -> dict:
+    async def connect_repo(
+        self, repo_owner: str, repo_name: str, installation_id: str | None = None
+    ) -> dict:
         """Verifies the repo is actually reachable with this token before 'connecting'."""
         url = f"https://api.github.com/repos/{repo_owner}/{repo_name}"
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.get(url, headers=self._headers())
         if resp.status_code == 404:
-            raise ValueError(f"Repository {repo_owner}/{repo_name} not found or not accessible with this token.")
+            raise ValueError(
+                f"Repository {repo_owner}/{repo_name} not found or not accessible with this token."
+            )
         resp.raise_for_status()
         return {
             "status": "success",
@@ -149,7 +154,9 @@ class GitHubAgent:
                 },
             )
         if resp.status_code != 201:
-            raise RuntimeError(f"GitHub PR creation failed ({resp.status_code}): {resp.text}")
+            raise RuntimeError(
+                f"GitHub PR creation failed ({resp.status_code}): {resp.text}"
+            )
         pr = resp.json()
         logger.info(f"Real PR created: {pr['html_url']}")
         return {
@@ -174,7 +181,9 @@ class GitHubAgent:
             repo_info.raise_for_status()
             default_branch = repo_info.json()["default_branch"]
 
-            ref = await client.get(f"{base_url}/git/refs/heads/{default_branch}", headers=headers)
+            ref = await client.get(
+                f"{base_url}/git/refs/heads/{default_branch}", headers=headers
+            )
             ref.raise_for_status()
             base_sha = ref.json()["object"]["sha"]
 
@@ -202,7 +211,9 @@ class GitHubAgent:
                     },
                 )
                 if commit_res.status_code not in (200, 201):
-                    raise RuntimeError(f"Failed to commit {file_path}: {commit_res.text}")
+                    raise RuntimeError(
+                        f"Failed to commit {file_path}: {commit_res.text}"
+                    )
                 last_sha = commit_res.json()["commit"]["sha"]
 
         return {

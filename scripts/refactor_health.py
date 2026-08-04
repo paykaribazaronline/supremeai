@@ -4,11 +4,7 @@ import shutil
 core_dir = "backend/core"
 target_dir = os.path.join(core_dir, "health")
 
-files_to_move = [
-    "health_monitor.py",
-    "health_probes.py",
-    "self_healer.py"
-]
+files_to_move = ["health_monitor.py", "health_probes.py", "self_healer.py"]
 
 os.makedirs(target_dir, exist_ok=True)
 

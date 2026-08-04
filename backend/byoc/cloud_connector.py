@@ -31,7 +31,9 @@ except ValueError:
 
 
 class CloudStatus:
-    def __init__(self, connected: bool = False, provider: str = "gcp", region: str | None = None):
+    def __init__(
+        self, connected: bool = False, provider: str = "gcp", region: str | None = None
+    ):
         self.connected = connected
         self.provider = provider
         self.region = region

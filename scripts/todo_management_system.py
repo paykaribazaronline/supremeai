@@ -11,7 +11,7 @@ import json
 import os
 import re
 import sys
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -31,8 +31,7 @@ IGNORE_PATTERNS = [
 ]
 
 TODO_PATTERN = re.compile(
-    r"#\s*(TODO|FIXME|HACK|OPTIMIZE|DOCUMENT|TEST)\s*:\s*(.*)",
-    re.IGNORECASE
+    r"#\s*(TODO|FIXME|HACK|OPTIMIZE|DOCUMENT|TEST)\s*:\s*(.*)", re.IGNORECASE
 )
 
 
@@ -126,15 +125,17 @@ class TodoScanner:
                     elif tag in {"OPTIMIZE", "DOCUMENT", "TEST"}:
                         priority = "low"
 
-                    todos.append(TodoItem(
-                        tag=tag,
-                        message=message,
-                        file_path=file_path,
-                        line_number=line_num,
-                        line_content=line,
-                        detected_at=datetime.utcnow().isoformat() + "Z",
-                        priority=priority,
-                    ))
+                    todos.append(
+                        TodoItem(
+                            tag=tag,
+                            message=message,
+                            file_path=file_path,
+                            line_number=line_num,
+                            line_content=line,
+                            detected_at=datetime.utcnow().isoformat() + "Z",
+                            priority=priority,
+                        )
+                    )
         except Exception as exc:
             print(f"⚠️  Failed to scan {file_path}: {exc}", file=sys.stderr)
 
@@ -165,7 +166,16 @@ class TodoScanner:
                     continue
 
                 # Only scan code files
-                if file_path.suffix not in {".py", ".ts", ".js", ".tsx", ".jsx", ".yml", ".yaml", ".md"}:
+                if file_path.suffix not in {
+                    ".py",
+                    ".ts",
+                    ".js",
+                    ".tsx",
+                    ".jsx",
+                    ".yml",
+                    ".yaml",
+                    ".md",
+                }:
                     continue
 
                 todos = self.scan_file(file_str)
@@ -275,16 +285,22 @@ class TodoManager:
 
             if response.status_code == 201:
                 todo.github_issue_id = response.json()["id"]
-                print(f"✅ Created issue #{response.json()['number']}: {todo.github_title}")
+                print(
+                    f"✅ Created issue #{response.json()['number']}: {todo.github_title}"
+                )
                 return True
             else:
-                print(f"❌ Failed to create issue: {todo.github_title} (status: {response.status_code})")
+                print(
+                    f"❌ Failed to create issue: {todo.github_title} (status: {response.status_code})"
+                )
                 return False
         except Exception as exc:
             print(f"❌ Error creating GitHub issue: {exc}", file=sys.stderr)
             return False
 
-    def create_issues(self, todos: list[TodoItem], limit: int = 10, dry_run: bool = False) -> dict[str, Any]:
+    def create_issues(
+        self, todos: list[TodoItem], limit: int = 10, dry_run: bool = False
+    ) -> dict[str, Any]:
         """Create GitHub issues for TODO items.
 
         Args:
@@ -340,7 +356,9 @@ class TodoManager:
 
         # Count by priority
         for todo in todos:
-            data["by_priority"][todo.priority] = data["by_priority"].get(todo.priority, 0) + 1
+            data["by_priority"][todo.priority] = (
+                data["by_priority"].get(todo.priority, 0) + 1
+            )
 
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
@@ -354,8 +372,12 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="TODO Management System")
     parser.add_argument("--scan", action="store_true", help="Scan codebase for TODOs")
-    parser.add_argument("--create-issues", action="store_true", help="Create GitHub issues for TODOs")
-    parser.add_argument("--dry-run", action="store_true", help="Dry run mode (no actual changes)")
+    parser.add_argument(
+        "--create-issues", action="store_true", help="Create GitHub issues for TODOs"
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Dry run mode (no actual changes)"
+    )
     parser.add_argument("--limit", type=int, default=10, help="Max issues to create")
     parser.add_argument("--export", type=str, help="Export TODOs to JSON file")
     parser.add_argument("--stats", action="store_true", help="Show statistics only")
@@ -382,7 +404,9 @@ def main() -> None:
             print(f"  {tag}: {count}")
 
         print("\nBy Priority:")
-        for priority, count in sorted(by_priority.items(), key=lambda x: x[1], reverse=True):
+        for priority, count in sorted(
+            by_priority.items(), key=lambda x: x[1], reverse=True
+        ):
             print(f"  {priority}: {count}")
 
         # Export if requested
@@ -392,17 +416,21 @@ def main() -> None:
         # Show details if stats only
         if args.stats:
             print("\nHigh Priority Items:")
-            for todo in sorted(todos, key=lambda t: t.priority == "high", reverse=True)[:20]:
+            for todo in sorted(todos, key=lambda t: t.priority == "high", reverse=True)[
+                :20
+            ]:
                 print(f"  [{todo.priority}] {todo.tag}: {todo.message}")
                 print(f"    → {todo.file_path}:{todo.line_number}")
             sys.exit(0)
 
         # Create GitHub issues if requested
         if args.create_issues:
-            print(f"\n🚀 Creating GitHub issues (limit: {args.limit}, dry_run: {args.dry_run})...")
+            print(
+                f"\n🚀 Creating GitHub issues (limit: {args.limit}, dry_run: {args.dry_run})..."
+            )
             stats = manager.create_issues(todos, limit=args.limit, dry_run=args.dry_run)
 
-            print(f"\nResults:")
+            print("\nResults:")
             print(f"  Total TODOs: {stats['total']}")
             print(f"  Created: {stats['created']}")
             print(f"  Skipped: {stats['skipped']}")

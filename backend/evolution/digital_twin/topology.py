@@ -20,9 +20,8 @@ import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
 
-from loguru import logger
-
 from core.config import settings
+from loguru import logger
 
 
 @dataclass
@@ -86,8 +85,7 @@ class SystemTopologyMapper:
         cursor = conn.cursor()
 
         # Create services table
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS services (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
@@ -101,12 +99,10 @@ class SystemTopologyMapper:
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             )
-        """
-        )
+        """)
 
         # Create data_flows table
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS data_flows (
                 id TEXT PRIMARY KEY,
                 source_node_id TEXT NOT NULL,
@@ -120,12 +116,10 @@ class SystemTopologyMapper:
                 FOREIGN KEY (source_node_id) REFERENCES services(id),
                 FOREIGN KEY (target_node_id) REFERENCES services(id)
             )
-        """
-        )
+        """)
 
         # Create resource_utilization table
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS resource_utilization (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 node_id TEXT NOT NULL,
@@ -136,8 +130,7 @@ class SystemTopologyMapper:
                 timestamp TEXT NOT NULL,
                 FOREIGN KEY (node_id) REFERENCES services(id)
             )
-        """
-        )
+        """)
 
         conn.commit()
         conn.close()
@@ -206,13 +199,17 @@ class SystemTopologyMapper:
             conn.commit()
             conn.close()
 
-            logger.info(f"Added data flow to topology: {flow.source_node_id} -> {flow.target_node_id}")
+            logger.info(
+                f"Added data flow to topology: {flow.source_node_id} -> {flow.target_node_id}"
+            )
             return True
         except Exception as e:
             logger.error(f"Failed to add data flow to topology: {e}")
             return False
 
-    async def record_resource_utilization(self, utilization: ResourceUtilization) -> bool:
+    async def record_resource_utilization(
+        self, utilization: ResourceUtilization
+    ) -> bool:
         """Record resource utilization for a node."""
         try:
             conn = sqlite3.connect(self.db_path)
@@ -237,7 +234,9 @@ class SystemTopologyMapper:
             conn.commit()
             conn.close()
 
-            logger.debug(f"Recorded resource utilization for node: {utilization.node_id}")
+            logger.debug(
+                f"Recorded resource utilization for node: {utilization.node_id}"
+            )
             return True
         except Exception as e:
             logger.error(f"Failed to record resource utilization: {e}")
@@ -258,7 +257,9 @@ class SystemTopologyMapper:
             services.append(service_dict)
 
         # Get all data flows
-        cursor.execute("SELECT * FROM data_flows ORDER BY source_node_id, target_node_id")
+        cursor.execute(
+            "SELECT * FROM data_flows ORDER BY source_node_id, target_node_id"
+        )
         flows_rows = cursor.fetchall()
         flows_desc = [d[0] for d in cursor.description]
         flows = []
@@ -267,8 +268,7 @@ class SystemTopologyMapper:
             flows.append(flow_dict)
 
         # Get latest resource utilization for each node
-        cursor.execute(
-            """
+        cursor.execute("""
             SELECT ru.*, s.name as service_name
             FROM resource_utilization ru
             JOIN services s ON ru.node_id = s.id
@@ -277,8 +277,7 @@ class SystemTopologyMapper:
                 FROM resource_utilization ru2
                 WHERE ru2.node_id = ru.node_id
             )
-        """
-        )
+        """)
         utilization_rows = cursor.fetchall()
         utilization_desc = [d[0] for d in cursor.description]
         utilization = []
@@ -322,7 +321,8 @@ class SystemTopologyMapper:
         )
 
         upstream_services = [
-            dict(zip([d[0] for d in cursor.description], row, strict=False)) for row in cursor.fetchall()
+            dict(zip([d[0] for d in cursor.description], row, strict=False))
+            for row in cursor.fetchall()
         ]
 
         # Find services that this service depends on (outgoing edges)
@@ -337,7 +337,8 @@ class SystemTopologyMapper:
         )
 
         downstream_services = [
-            dict(zip([d[0] for d in cursor.description], row, strict=False)) for row in cursor.fetchall()
+            dict(zip([d[0] for d in cursor.description], row, strict=False))
+            for row in cursor.fetchall()
         ]
 
         # Calculate impact scores based on flow reliability and volume
@@ -354,16 +355,23 @@ class SystemTopologyMapper:
             (service_id, service_id),
         )
 
-        impact_metrics = [dict(zip([d[0] for d in cursor.description], row, strict=False)) for row in cursor.fetchall()]
+        impact_metrics = [
+            dict(zip([d[0] for d in cursor.description], row, strict=False))
+            for row in cursor.fetchall()
+        ]
 
         conn.close()
 
         # Calculate overall impact score
-        total_reliability = sum(m["avg_reliability"] for m in impact_metrics if m["avg_reliability"])
+        total_reliability = sum(
+            m["avg_reliability"] for m in impact_metrics if m["avg_reliability"]
+        )
         sum(m["total_volume"] for m in impact_metrics if m["total_volume"])
 
         # Impact levels: 0-30% = low, 31-70% = medium, 71-100% = high
-        impact_score = min(100, ((2 - total_reliability) * 50) if total_reliability > 0 else 100)
+        impact_score = min(
+            100, ((2 - total_reliability) * 50) if total_reliability > 0 else 100
+        )
         if impact_score > 70:
             impact_level = "high"
         elif impact_score > 30:
@@ -380,10 +388,14 @@ class SystemTopologyMapper:
             "upstream_services": upstream_services,
             "downstream_services": downstream_services,
             "impact_metrics": impact_metrics,
-            "recommendations": self._generate_impact_recommendations(impact_level, downstream_services),
+            "recommendations": self._generate_impact_recommendations(
+                impact_level, downstream_services
+            ),
         }
 
-    def _generate_impact_recommendations(self, impact_level: str, affected_services: list) -> list[str]:
+    def _generate_impact_recommendations(
+        self, impact_level: str, affected_services: list
+    ) -> list[str]:
         """Generate recommendations based on impact level."""
         recommendations = []
 
@@ -407,11 +419,17 @@ class SystemTopologyMapper:
             )
         else:
             recommendations.extend(
-                ["Continue normal monitoring", "Log the event for trend analysis", "No immediate action required"]
+                [
+                    "Continue normal monitoring",
+                    "Log the event for trend analysis",
+                    "No immediate action required",
+                ]
             )
 
         if len(affected_services) > 5:
-            recommendations.append("Consider architectural refactoring to reduce coupling")
+            recommendations.append(
+                "Consider architectural refactoring to reduce coupling"
+            )
 
         return recommendations
 
@@ -625,7 +643,9 @@ if __name__ == "__main__":
 
     async def test_mapper():
         topology = await discover_system_topology()
-        print(f"Discovered topology with {topology['summary']['total_services']} services")
+        print(
+            f"Discovered topology with {topology['summary']['total_services']} services"
+        )
 
         # Test impact analysis
         impact = await get_topology_mapper().get_impact_analysis("llm_router")
@@ -633,7 +653,9 @@ if __name__ == "__main__":
 
         # Test dependency chain
         deps = await get_topology_mapper().get_dependency_chain("api_gateway")
-        print(f"Dependency chain for api_gateway: {deps['total_dependencies']} dependencies found")
+        print(
+            f"Dependency chain for api_gateway: {deps['total_dependencies']} dependencies found"
+        )
 
     # Run the test
     asyncio.run(test_mapper())

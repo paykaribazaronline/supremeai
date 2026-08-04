@@ -1,7 +1,6 @@
+from database.supabase_client import db
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
-
-from database.supabase_client import db
 
 router = APIRouter(prefix="/repos", tags=["repos"])
 
@@ -76,5 +75,7 @@ async def update_repo(repo_id: str, payload: RepoUpdate):
 async def delete_repo(repo_id: str):
     if not db.client:
         raise HTTPException(status_code=503, detail="Database not configured")
-    db.client.table("github_repos").update({"status": "archived"}).eq("id", repo_id).execute()
+    db.client.table("github_repos").update({"status": "archived"}).eq(
+        "id", repo_id
+    ).execute()
     return {"status": "success", "message": "Repo archived"}

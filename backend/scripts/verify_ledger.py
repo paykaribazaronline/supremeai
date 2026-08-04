@@ -15,8 +15,12 @@ def main():
     ledger = CryptographicLedger()
 
     # Test entries
-    ledger.record_entry_sync("agent_sentinel", "DEPLOY_MODEL", {"model": "gpt-4o", "tier": 1})
-    ledger.record_entry_sync("agent_code", "GENERATE_PATCH", {"target": "auth.py", "lines": 12})
+    ledger.record_entry_sync(
+        "agent_sentinel", "DEPLOY_MODEL", {"model": "gpt-4o", "tier": 1}
+    )
+    ledger.record_entry_sync(
+        "agent_code", "GENERATE_PATCH", {"target": "auth.py", "lines": 12}
+    )
 
     print(f"Total Ledger Blocks: {len(ledger.chain)}")
     merkle_root = ledger.compute_merkle_root()
@@ -24,7 +28,9 @@ def main():
 
     is_valid = ledger.verify_chain_integrity()
     if is_valid:
-        print("[SUCCESS] Cryptographic Ledger Chain Integrity Verified! Zero tampering detected.")
+        print(
+            "[SUCCESS] Cryptographic Ledger Chain Integrity Verified! Zero tampering detected."
+        )
         sys.exit(0)
     else:
         print("[CRITICAL] Tampering detected in Cryptographic Ledger!")

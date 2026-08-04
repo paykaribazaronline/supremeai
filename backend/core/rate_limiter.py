@@ -3,10 +3,9 @@ from __future__ import annotations
 import os
 import time
 
-from loguru import logger
-
 from core.cache.redis_manager import redis_manager
 from core.config import settings
+from loguru import logger
 
 
 class InMemoryFallbackLimiter:
@@ -45,7 +44,9 @@ class AsyncRateLimiter:
     """
 
     def __init__(self) -> None:
-        self._rate_limit_enabled: bool = os.getenv("RATE_LIMIT_ENABLED", "true").lower() in {
+        self._rate_limit_enabled: bool = os.getenv(
+            "RATE_LIMIT_ENABLED", "true"
+        ).lower() in {
             "true",
             "1",
             "yes",
@@ -76,7 +77,9 @@ class AsyncRateLimiter:
         """
         return None
 
-    async def acquire(self, key: str, limit: int | None = None, window: int | None = None) -> bool:
+    async def acquire(
+        self, key: str, limit: int | None = None, window: int | None = None
+    ) -> bool:
         """Redis-based sliding window rate limiting with fail-closed behavior.
 
         বাংলা মন্তব্ব্য: Redis-ভিত্তিক sliding window রেট লিমিটিং।
@@ -92,9 +95,13 @@ class AsyncRateLimiter:
             client = await self._get_redis()
             if client is None:
                 if settings.env in ("production", "staging"):
-                    logger.critical(f"Rate limiter Redis unavailable. Blocking request for {key} (fail-closed).")
+                    logger.critical(
+                        f"Rate limiter Redis unavailable. Blocking request for {key} (fail-closed)."
+                    )
                     return False
-                logger.warning(f"Redis rate limiter unavailable. Allowing request for {key} (fail-open in dev).")
+                logger.warning(
+                    f"Redis rate limiter unavailable. Allowing request for {key} (fail-open in dev)."
+                )
                 return True
 
             now = time.time()
@@ -121,9 +128,13 @@ class AsyncRateLimiter:
             return is_allowed
         except Exception as e:
             if settings.env in ("production", "staging"):
-                logger.critical(f"Rate limiter failed critically in production: {e}. Blocking request (fail-closed).")
+                logger.critical(
+                    f"Rate limiter failed critically in production: {e}. Blocking request (fail-closed)."
+                )
                 return False
             else:
-                logger.warning(f"Rate limiter failed in non-production: {e}. Allowing request (fail-open).")
+                logger.warning(
+                    f"Rate limiter failed in non-production: {e}. Allowing request (fail-open)."
+                )
                 # Use in-memory fallback for dev/testing
                 return self._fallback_limiter.is_allowed(key, limit)

@@ -7,7 +7,6 @@ Provides product analysis, review summarization, and shopping assistance.
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import hashlib
 import logging
 from dataclasses import dataclass
@@ -15,6 +14,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from core.cache import get_cache
+from core.error_bus import with_error_bus
 from core.llm_router import LLMRouter
 
 logger = logging.getLogger("supremeai.ecommerce")
@@ -68,7 +68,9 @@ class EcommerceAgent:
         self._products: dict[str, Product] = {}
 
     def _cache_key(self, prefix: str, identifier: str) -> str:
-        raw = f"ecommerce:{prefix}:{identifier}:{datetime.now(UTC).strftime('%Y%m%d%H')}"
+        raw = (
+            f"ecommerce:{prefix}:{identifier}:{datetime.now(UTC).strftime('%Y%m%d%H')}"
+        )
         return f"ecommerce:{hashlib.sha256(raw.encode()).hexdigest()[:16]}"
 
     def add_product(self, product: Product) -> None:
@@ -91,7 +93,9 @@ class EcommerceAgent:
 
         # Filter by category
         if category:
-            candidates = [p for p in candidates if p.category.lower() == category.lower()]
+            candidates = [
+                p for p in candidates if p.category.lower() == category.lower()
+            ]
 
         # Filter by budget
         candidates = [p for p in candidates if p.price <= budget_max]
@@ -120,9 +124,15 @@ class EcommerceAgent:
 
         recommendations = []
         for score, product in scored:
-            matched_tags = ", ".join(t for t in product.tags if t.lower() in set(p.lower() for p in user_preferences))
+            matched_tags = ", ".join(
+                t
+                for t in product.tags
+                if t.lower() in set(p.lower() for p in user_preferences)
+            )
             reason = (
-                f"Matches your interest in {matched_tags}" if matched_tags else f"Top-rated {product.category} product"
+                f"Matches your interest in {matched_tags}"
+                if matched_tags
+                else f"Top-rated {product.category} product"
             )
 
             recommendations.append(
@@ -150,7 +160,9 @@ class EcommerceAgent:
 
         avg_rating = sum(r.get("rating", 0) for r in reviews) / len(reviews)
         sentiments = [r.get("sentiment", "neutral") for r in reviews]
-        dominant_sentiment = max(set(sentiments), key=sentiments.count) if sentiments else "neutral"
+        dominant_sentiment = (
+            max(set(sentiments), key=sentiments.count) if sentiments else "neutral"
+        )
 
         prompt = (
             f"Summarize these {len(reviews)} product reviews into pros and cons:\n\n"
@@ -159,7 +171,9 @@ class EcommerceAgent:
         )
 
         try:
-            result = await self.llm.route(prompt=prompt, task_type="reasoning", max_tokens=500)
+            result = await self.llm.route(
+                prompt=prompt, task_type="reasoning", max_tokens=500
+            )
             import json
 
             content = result.get("content", "{}")

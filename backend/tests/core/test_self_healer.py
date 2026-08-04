@@ -2,7 +2,6 @@ import re
 from unittest.mock import MagicMock
 
 import pytest
-
 from core.health.self_healer import SelfHealerService
 
 
@@ -56,7 +55,9 @@ async def test_self_healer_rejects_dangerous_code(mock_db):
 async def test_self_healer_rejects_invalid_impact_score(mock_db):
     service = SelfHealerService(mock_db)
 
-    with pytest.raises(ValueError, match=re.escape("Impact score must be between 0.0 and 1.0")):
+    with pytest.raises(
+        ValueError, match=re.escape("Impact score must be between 0.0 and 1.0")
+    ):
         await service.propose_fix(
             tenant_id="tenant-1",
             error_pattern="Any error",

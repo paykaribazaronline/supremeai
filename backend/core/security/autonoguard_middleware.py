@@ -14,13 +14,12 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from core.autonoguard_engine import OperationContext, autonoguard_engine
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
-
-from core.autonoguard_engine import OperationContext, autonoguard_engine
 
 
 class AutonoGuardMiddleware(BaseHTTPMiddleware):
@@ -49,9 +48,9 @@ class AutonoGuardMiddleware(BaseHTTPMiddleware):
         # Check if this is a sensitive operation
         from core.autonoguard_engine import SENSITIVE_OPS as _SENSITIVE_OPS
 
-        is_sensitive = any(path.startswith(op.rstrip("/")) for op in _SENSITIVE_OPS) or path.startswith(
-            "/api/sensitive"
-        )
+        is_sensitive = any(
+            path.startswith(op.rstrip("/")) for op in _SENSITIVE_OPS
+        ) or path.startswith("/api/sensitive")
 
         if not is_sensitive:
             return await call_next(request)
@@ -67,13 +66,27 @@ class AutonoGuardMiddleware(BaseHTTPMiddleware):
             admin_id = request.state.user_id
 
         if not isinstance(admin_id, str):
-            admin_id = str(admin_id) if admin_id is not None and not hasattr(admin_id, "_mock_name") else "unknown"
+            admin_id = (
+                str(admin_id)
+                if admin_id is not None and not hasattr(admin_id, "_mock_name")
+                else "unknown"
+            )
 
         # Extract IP for churn detection
-        raw_ip = getattr(request.client, "host", "unknown") if request.client else "unknown"
-        client_ip = str(raw_ip) if raw_ip is not None and not hasattr(raw_ip, "_mock_name") else "unknown"
+        raw_ip = (
+            getattr(request.client, "host", "unknown") if request.client else "unknown"
+        )
+        client_ip = (
+            str(raw_ip)
+            if raw_ip is not None and not hasattr(raw_ip, "_mock_name")
+            else "unknown"
+        )
         corr_id = getattr(request.state, "correlation_id", None)
-        correlation_id = str(corr_id) if corr_id is not None and not hasattr(corr_id, "_mock_name") else None
+        correlation_id = (
+            str(corr_id)
+            if corr_id is not None and not hasattr(corr_id, "_mock_name")
+            else None
+        )
 
         # Extract OTP code from header (if provided)
         otp_code = request.headers.get("X-JIT-OTP") or request.headers.get("X-OTP")
@@ -87,7 +100,9 @@ class AutonoGuardMiddleware(BaseHTTPMiddleware):
                 if raw_body:
                     try:
                         payload = json.loads(raw_body)
-                        code_to_scan = payload.get("code") or payload.get("generated_code")
+                        code_to_scan = payload.get("code") or payload.get(
+                            "generated_code"
+                        )
                     except json.JSONDecodeError:
                         pass
             except Exception as exc:

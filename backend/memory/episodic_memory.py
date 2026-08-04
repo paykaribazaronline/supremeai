@@ -47,9 +47,13 @@ class EpisodicMemory:
         tags: list[str] | None = None,
         **kwargs,
     ) -> dict[str, Any]:
-        actual_event = event_type if event_type != "general" or not task_type else task_type
+        actual_event = (
+            event_type if event_type != "general" or not task_type else task_type
+        )
         actual_context = context if context != "" or input_data is None else input_data
-        actual_outcome = outcome if outcome != "success" or output_data is None else output_data
+        actual_outcome = (
+            outcome if outcome != "success" or output_data is None else output_data
+        )
 
         ep_id = f"ep_{len(self._episodes) + 1}"
         episode = {
@@ -84,7 +88,9 @@ class EpisodicMemory:
         if target_event:
             episodes = [e for e in episodes if e.get("event_type") == target_event]
         if min_importance is not None:
-            episodes = [e for e in episodes if e.get("importance", 0.0) >= min_importance]
+            episodes = [
+                e for e in episodes if e.get("importance", 0.0) >= min_importance
+            ]
         return episodes[:limit]
 
     def summarize_recent(self, limit: int = 5, **kwargs) -> str:
@@ -93,7 +99,9 @@ class EpisodicMemory:
             return ""
         lines = ["Recent episodes:"]
         for ep in recent:
-            lines.append(f"- [{ep.get('event_type')}] {ep.get('context')} -> {ep.get('outcome')}")
+            lines.append(
+                f"- [{ep.get('event_type')}] {ep.get('context')} -> {ep.get('outcome')}"
+            )
         return "\n".join(lines)
 
     async def record_task(
@@ -122,15 +130,24 @@ class EpisodicMemory:
                 meta.update(metadata)
 
             content_text = f"Prompt: {prompt}\nResponse: {response}"
-            self.vector_store.add_document(doc_id=f"episode_{task_id}", text=content_text, metadata=meta)
-            self.store_episode(event_type="task.completed", context=prompt, outcome=response, importance=5.0)
+            self.vector_store.add_document(
+                doc_id=f"episode_{task_id}", text=content_text, metadata=meta
+            )
+            self.store_episode(
+                event_type="task.completed",
+                context=prompt,
+                outcome=response,
+                importance=5.0,
+            )
             logger.info(f"Recorded episodic memory for task: {task_id}")
             return True
         except Exception as e:
             logger.error(f"Failed to record episodic memory: {e}")
             return False
 
-    async def get_similar_past_tasks(self, query: str, n: int = 3) -> list[dict[str, Any]]:
+    async def get_similar_past_tasks(
+        self, query: str, n: int = 3
+    ) -> list[dict[str, Any]]:
         """
         Retrieve top-N similar past task execution records for cognitive reflection.
         """

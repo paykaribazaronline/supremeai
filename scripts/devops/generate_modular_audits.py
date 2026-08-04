@@ -1,4 +1,3 @@
-# ruff: noqa: E501
 """
 SupremeAI 2.0 — Elite Modular Audit Generator (v2.0)
 ======================================================
@@ -19,7 +18,6 @@ Key upgrades over v1:
 একটি সম্পূর্ণ, স্বনির্ভর (self-contained) কনটেক্সট প্যাকেজ তৈরি করে।
 """
 
-import os
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
@@ -28,31 +26,88 @@ from pathlib import Path
 # বাংলা মন্তব্য: স্কিপ করা এক্সটেনশন — বাইনারি, ক্যাশ, বা অপ্রয়োজনীয় ফাইল
 # ─────────────────────────────────────────────────────────────────────────────
 SKIP_EXTENSIONS = {
-    ".pyc", ".pyo", ".pyd", ".so", ".dll", ".dylib",
-    ".png", ".jpg", ".jpeg", ".gif", ".ico", ".svg", ".webp", ".bmp",
-    ".pdf", ".docx", ".xlsx", ".zip", ".gz", ".tar", ".whl",
-    ".woff", ".woff2", ".ttf", ".eot", ".otf",
-    ".mp3", ".mp4", ".wav", ".ogg", ".avi",
+    ".pyc",
+    ".pyo",
+    ".pyd",
+    ".so",
+    ".dll",
+    ".dylib",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".ico",
+    ".svg",
+    ".webp",
+    ".bmp",
+    ".pdf",
+    ".docx",
+    ".xlsx",
+    ".zip",
+    ".gz",
+    ".tar",
+    ".whl",
+    ".woff",
+    ".woff2",
+    ".ttf",
+    ".eot",
+    ".otf",
+    ".mp3",
+    ".mp4",
+    ".wav",
+    ".ogg",
+    ".avi",
     ".lock",  # poetry.lock, package-lock.json — too large
-    ".map",   # JS source maps
+    ".map",  # JS source maps
 }
 
 # বাংলা মন্তব্য: এই ডিরেক্টরিগুলো সম্পূর্ণ স্কিপ করা হবে
 SKIP_DIRS = {
-    "__pycache__", ".git", "node_modules", ".venv", "venv", ".env",
-    "dist", "build", ".next", ".turbo", ".cache", ".mypy_cache",
-    ".pytest_cache", ".ruff_cache", "autogen",  # skip own output dir
+    "__pycache__",
+    ".git",
+    "node_modules",
+    ".venv",
+    "venv",
+    ".env",
+    "dist",
+    "build",
+    ".next",
+    ".turbo",
+    ".cache",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    "autogen",  # skip own output dir
 }
 
 # বাংলা মন্তব্য: ফাইল এক্সটেনশন থেকে markdown code fence ভাষা নির্ধারণ
 EXT_TO_LANG: dict[str, str] = {
-    ".py": "python", ".ts": "typescript", ".tsx": "tsx", ".js": "javascript",
-    ".jsx": "jsx", ".json": "json", ".yaml": "yaml", ".yml": "yaml",
-    ".toml": "toml", ".md": "markdown", ".sh": "bash", ".bash": "bash",
-    ".env": "bash", ".tf": "hcl", ".hcl": "hcl", ".sql": "sql",
-    ".dart": "dart", ".go": "go", ".rs": "rust", ".html": "html",
-    ".css": "css", ".scss": "scss", ".xml": "xml", ".proto": "protobuf",
-    ".graphql": "graphql", ".dockerfile": "dockerfile",
+    ".py": "python",
+    ".ts": "typescript",
+    ".tsx": "tsx",
+    ".js": "javascript",
+    ".jsx": "jsx",
+    ".json": "json",
+    ".yaml": "yaml",
+    ".yml": "yaml",
+    ".toml": "toml",
+    ".md": "markdown",
+    ".sh": "bash",
+    ".bash": "bash",
+    ".env": "bash",
+    ".tf": "hcl",
+    ".hcl": "hcl",
+    ".sql": "sql",
+    ".dart": "dart",
+    ".go": "go",
+    ".rs": "rust",
+    ".html": "html",
+    ".css": "css",
+    ".scss": "scss",
+    ".xml": "xml",
+    ".proto": "protobuf",
+    ".graphql": "graphql",
+    ".dockerfile": "dockerfile",
 }
 
 # Max file size to embed (skip files larger than this — e.g. large test fixtures)
@@ -259,6 +314,7 @@ AUDIT_PARTS: dict[str, dict] = {
 # বাংলা মন্তব্য: helper ফাংশন — ফাইল সংগ্রহ করে metadata সহ
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def _should_skip(path: Path) -> bool:
     """বাংলা মন্তব্য: ফাইলটি স্কিপ করা উচিত কিনা তা নির্ধারণ করে।"""
     if path.suffix.lower() in SKIP_EXTENSIONS:
@@ -301,7 +357,12 @@ def _get_git_log(filepath: Path, root_path: Path) -> str:
         rel = str(filepath.relative_to(root_path)).replace("\\", "/")
         result = subprocess.run(
             ["git", "log", "--oneline", "-3", "--", rel],
-            capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=root_path, timeout=5,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=root_path,
+            timeout=5,
         )
         lines = result.stdout.strip().splitlines()
         if lines:
@@ -326,7 +387,9 @@ def _embed_file(filepath: Path, rel_path: str, root_path: Path) -> tuple[str, di
 
     size_bytes = filepath.stat().st_size
     try:
-        mtime = datetime.fromtimestamp(filepath.stat().st_mtime, tz=timezone.utc).strftime("%Y-%m-%d")
+        mtime = datetime.fromtimestamp(
+            filepath.stat().st_mtime, tz=timezone.utc
+        ).strftime("%Y-%m-%d")
     except Exception:  # noqa: BLE001
         mtime = "unknown"
 
@@ -368,6 +431,7 @@ def _embed_file(filepath: Path, rel_path: str, root_path: Path) -> tuple[str, di
 # বাংলা মন্তব্য: AI-optimized audit prompt — যেকোনো AI সর্বোচ্চ মানের রিভিউ দিতে পারবে
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def _build_ai_audit_prompt(title: str, description: str, focus_areas: list[str]) -> str:
     areas_md = "\n".join(f"  - {a}" for a in focus_areas)
     return f"""## 🤖 AI Audit Instructions
@@ -406,6 +470,7 @@ For every issue found, provide **exactly**:
 # বাংলা মন্তব্য: মূল generation ফাংশন
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def generate_audit_markdowns(project_root: str = ".") -> None:
     """
     বাংলা মন্তব্য: সম্পূর্ণ monorepo স্ক্যান করে ১৪টি AI-optimized audit ফাইল তৈরি করে।
@@ -417,7 +482,7 @@ def generate_audit_markdowns(project_root: str = ".") -> None:
 
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     print(f"\n{'='*70}")
-    print(f"  SupremeAI 2.0 — Elite Modular Audit Generator v2.0")
+    print("  SupremeAI 2.0 — Elite Modular Audit Generator v2.0")
     print(f"  Output  : {output_dir}")
     print(f"  Started : {timestamp}")
     print(f"{'='*70}\n")
@@ -480,8 +545,14 @@ def generate_audit_markdowns(project_root: str = ".") -> None:
         grand_total_bytes += part_bytes
         grand_total_tokens += part_tokens
 
-        inventory_md = "\n".join(inventory_lines) if inventory_lines else "*(no files found)*"
-        source_dump = "\n---\n".join(embedded_blocks) if embedded_blocks else "*(no source files)*"
+        inventory_md = (
+            "\n".join(inventory_lines) if inventory_lines else "*(no files found)*"
+        )
+        source_dump = (
+            "\n---\n".join(embedded_blocks)
+            if embedded_blocks
+            else "*(no source files)*"
+        )
         ai_prompt = _build_ai_audit_prompt(title, description, focus_areas)
 
         # ── Write part file ────────────────────────────────────────────────
@@ -615,8 +686,10 @@ SupremeAI 2.0 Monorepo
 
     print(f"\n{'='*70}")
     print(f"  [OK] INDEX.md generated: {index_path}")
-    print(f"  [+]  Grand Total: {grand_total_files} files · "
-          f"{grand_total_bytes:,} bytes · ~{grand_total_tokens:,} tokens")
+    print(
+        f"  [+]  Grand Total: {grand_total_files} files · "
+        f"{grand_total_bytes:,} bytes · ~{grand_total_tokens:,} tokens"
+    )
     print(f"  [/]  Output: {output_dir}")
     print(f"{'='*70}\n")
 

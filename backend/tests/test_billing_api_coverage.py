@@ -24,7 +24,9 @@ class TestBillingGetBalance:
         mock_session.execute.return_value = mock_result
 
         token_payload = {"sub": "test-user"}
-        result = await get_wallet_balance(session=mock_session, token_payload=token_payload)
+        result = await get_wallet_balance(
+            session=mock_session, token_payload=token_payload
+        )
 
         assert result["user_id"] == "test-user"
         assert result["balance_usd"] == 100.0

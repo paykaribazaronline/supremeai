@@ -7,17 +7,14 @@ CI/CD অপারেশন (Issue, PR, Auto-fix) সরাসরে চ্য�
 
 import base64
 import json
-
 # বাংলা মন্তব্য: পরিবেশের ভেরিয়েবল চেক করার জন্য os মডিউল ইমপোর্ট করা হলো
 import os
 from enum import StrEnum
 
 import httpx
+from core.config import settings
 from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, ConfigDict, Field
-
-from core.config import settings
-
 # শেয়ার্ড ইউটিলিটি — ডুপ্লিকেট কোড দূর করতে কেন্দ্রীয় মডিউল থেকে ইম্পোর্ট
 from utils.environment import is_admin_authorized, is_autofix_authorized
 from utils.http_client import handle_api_error
@@ -338,8 +335,14 @@ class SearchCodeInput(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
-    query: str = Field(..., description="সার্চ কোয়েরি (GitHub code search সিনট্যাক্স সাপোর্ট করে)", min_length=1)
-    per_page: int = Field(default=10, description="প্রতি পেজে কতগুলো রেজাল্ট", ge=1, le=50)
+    query: str = Field(
+        ...,
+        description="সার্চ কোয়েরি (GitHub code search সিনট্যাক্স সাপোর্ট করে)",
+        min_length=1,
+    )
+    per_page: int = Field(
+        default=10, description="প্রতি পেজে কতগুলো রেজাল্ট", ge=1, le=50
+    )
 
 
 @mcp.tool(
@@ -387,7 +390,9 @@ async def github_get_file_contents(params: GetFileContentsInput) -> str:
             encoding = data.get("encoding", "")
 
             if encoding == "base64" and content_b64:
-                decoded_content = base64.b64decode(content_b64).decode("utf-8", errors="replace")
+                decoded_content = base64.b64decode(content_b64).decode(
+                    "utf-8", errors="replace"
+                )
             else:
                 decoded_content = content_b64
 

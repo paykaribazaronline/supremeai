@@ -12,7 +12,6 @@ Provides:
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import asyncio
 import json
 import os
@@ -20,13 +19,13 @@ import random
 import time
 import uuid
 
+from core.config import settings
+from core.error_bus import with_error_bus
+from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
-
-from core.config import settings
-from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 
 
 class SupremeContextMiddleware(BaseHTTPMiddleware):
@@ -105,7 +104,10 @@ class ResponseStandardizationMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
-        if response.status_code >= 400 and response.headers.get("content-type") != "application/json":
+        if (
+            response.status_code >= 400
+            and response.headers.get("content-type") != "application/json"
+        ):
             description = getattr(response, "description", "Unknown error")
             body_content = ""
             if hasattr(response, "body") and getattr(response, "body", b""):
@@ -124,11 +126,14 @@ class ChaosInjectorMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):
         super().__init__(app)
         self.chaos_enabled = (
-            os.getenv("LOCAL_CHAOS_MODE", "false").lower() == "true" and settings.env.lower() != "production"
+            os.getenv("LOCAL_CHAOS_MODE", "false").lower() == "true"
+            and settings.env.lower() != "production"
         )
         self.packet_drop_rate = float(os.getenv("CHAOS_PACKET_DROP_RATE", "0.20"))
         self.max_latency_spike = float(os.getenv("CHAOS_MAX_LATENCY_SPIKE", "3.5"))
-        self.latency_spike_chance = float(os.getenv("CHAOS_LATENCY_SPIKE_CHANCE", "0.30"))
+        self.latency_spike_chance = float(
+            os.getenv("CHAOS_LATENCY_SPIKE_CHANCE", "0.30")
+        )
 
     async def dispatch(self, request: Request, call_next):
         if not self.chaos_enabled:
@@ -136,11 +141,15 @@ class ChaosInjectorMiddleware(BaseHTTPMiddleware):
 
         if random.random() < self.latency_spike_chance:
             delay = random.uniform(0.5, self.max_latency_spike)
-            logger.warning(f"[CHAOS ENGINE] Injecting artificial network lag: {delay:.2f}s on {request.url.path}")
+            logger.warning(
+                f"[CHAOS ENGINE] Injecting artificial network lag: {delay:.2f}s on {request.url.path}"
+            )
             await asyncio.sleep(delay)
 
         if random.random() < self.packet_drop_rate:
-            logger.critical(f"[CHAOS ENGINE] Simulated Packet Drop! Severing connection for {request.url.path}")
+            logger.critical(
+                f"[CHAOS ENGINE] Simulated Packet Drop! Severing connection for {request.url.path}"
+            )
             return JSONResponse(
                 status_code=504,
                 content={
@@ -168,7 +177,9 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
-        if request.method != "POST" or not any(path.startswith(p) for p in IDEMPOTENCY_PATHS):
+        if request.method != "POST" or not any(
+            path.startswith(p) for p in IDEMPOTENCY_PATHS
+        ):
             return await call_next(request)
 
         idempotency_key = request.headers.get("Idempotency-Key")
@@ -183,13 +194,12 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
 
         try:
             from core.cache.redis_manager import (
-                acquire_idempotency_lock,
-                cache_response_and_release_lock,
-                redis_manager,
-                release_idempotency_lock,
-            )
+                acquire_idempotency_lock, cache_response_and_release_lock,
+                redis_manager, release_idempotency_lock)
         except ImportError:
-            logger.warning("[Idempotency] Failed to import redis_manager — skipping check (fail-open)")
+            logger.warning(
+                "[Idempotency] Failed to import redis_manager — skipping check (fail-open)"
+            )
             return await call_next(request)
 
         if redis_manager.client is not None:
@@ -197,7 +207,9 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                 cached_key = f"idempotency:response:{idempotency_key}"
                 cached = await redis_manager.client.get(cached_key)
                 if cached:
-                    logger.info(f"Idempotency Hit: serving cached response for key {idempotency_key}")
+                    logger.info(
+                        f"Idempotency Hit: serving cached response for key {idempotency_key}"
+                    )
                     cached_data = json.loads(cached)
                     return JSONResponse(
                         status_code=cached_data.get("status_code", 200),
@@ -207,9 +219,13 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
             except Exception as e:
                 logger.warning(f"[Idempotency] Cache read failed — continuing: {e}")
 
-        acquired = await acquire_idempotency_lock(idempotency_key, IDEMPOTENCY_TTL_SECONDS)
+        acquired = await acquire_idempotency_lock(
+            idempotency_key, IDEMPOTENCY_TTL_SECONDS
+        )
         if not acquired:
-            logger.warning(f"Idempotency Block: {idempotency_key} is already being processed.")
+            logger.warning(
+                f"Idempotency Block: {idempotency_key} is already being processed."
+            )
             raise HTTPException(
                 status_code=409,
                 detail="Conflict: Request is already being processed. Duplicate execution blocked.",
@@ -223,10 +239,14 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
                 body_bytes = b""
                 if hasattr(response, "body_iterator"):
                     try:
-                        response_body = [section async for section in response.body_iterator]
+                        response_body = [
+                            section async for section in response.body_iterator
+                        ]
                         body_bytes = b"".join(response_body)
                     except (RuntimeError, StopAsyncIteration) as stream_err:
-                        logger.warning(f"[Idempotency] Body iterator exhausted or failed: {stream_err}")
+                        logger.warning(
+                            f"[Idempotency] Body iterator exhausted or failed: {stream_err}"
+                        )
                         body_bytes = b"{}"
                 elif hasattr(response, "body"):
                     body_bytes = response.body if response.body else b"{}"
@@ -235,7 +255,8 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
 
                 # বাংলা মন্তব্য: স্ট্রিমিং রেসপন্সের জন্য পুনরায় Response অবজেক্ট তৈরি
                 if hasattr(response, "body_iterator"):
-                    from starlette.responses import Response as StarletteResponse
+                    from starlette.responses import \
+                        Response as StarletteResponse
 
                     response = StarletteResponse(
                         content=body_bytes,
@@ -246,13 +267,21 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
 
                 try:
                     body_str = body_bytes.decode("utf-8")
-                    cache_data = json.dumps({"status_code": 200, "body": json.loads(body_str)})
-                    await cache_response_and_release_lock(idempotency_key, cache_data, IDEMPOTENCY_TTL_SECONDS * 5)
+                    cache_data = json.dumps(
+                        {"status_code": 200, "body": json.loads(body_str)}
+                    )
+                    await cache_response_and_release_lock(
+                        idempotency_key, cache_data, IDEMPOTENCY_TTL_SECONDS * 5
+                    )
                 except (json.JSONDecodeError, UnicodeDecodeError) as parse_err:
-                    logger.warning(f"[Idempotency] Response body not JSON-serializable (non-blocking): {parse_err}")
+                    logger.warning(
+                        f"[Idempotency] Response body not JSON-serializable (non-blocking): {parse_err}"
+                    )
                     await release_idempotency_lock(idempotency_key)
                 except Exception as cache_err:
-                    logger.warning(f"[Idempotency] Response caching failed (non-blocking): {cache_err}")
+                    logger.warning(
+                        f"[Idempotency] Response caching failed (non-blocking): {cache_err}"
+                    )
                     await release_idempotency_lock(idempotency_key)
             else:
                 await release_idempotency_lock(idempotency_key)
@@ -266,10 +295,10 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
 
 
 __all__ = [
-    "SupremeContextMiddleware",
-    "RequestIdMiddleware",
-    "TenantExtractionMiddleware",
-    "ResponseStandardizationMiddleware",
     "ChaosInjectorMiddleware",
     "IdempotencyMiddleware",
+    "RequestIdMiddleware",
+    "ResponseStandardizationMiddleware",
+    "SupremeContextMiddleware",
+    "TenantExtractionMiddleware",
 ]

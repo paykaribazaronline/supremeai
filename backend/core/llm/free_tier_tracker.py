@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from core.error_bus import with_error_bus
-from ..messaging.event_bus import (
-    ErrorContext,  # Fixed import path - using relative import
-)
+
+from ..messaging.event_bus import \
+    ErrorContext  # Fixed import path - using relative import
 
 """
 free_tier_tracker.py
@@ -20,19 +20,16 @@ Supports optional Redis persistence for multi-worker environments.
 
 import time
 from collections import deque
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from typing import Any
 
 from loguru import logger
 
 from ..config import settings  # Fixed import path - using relative import
-from ..messaging.event_bus import (
-    ErrorEvent,  # Fixed import path - using relative import
-)
-from ..messaging.event_bus import (
-    error_event_bus,  # Fixed import path - using relative import
-)
+from ..messaging.event_bus import \
+    ErrorEvent  # Fixed import path - using relative import
+from ..messaging.event_bus import \
+    error_event_bus  # Fixed import path - using relative import
 
 # ---------------------------------------------------------------------------
 # Free-tier limit configuration for each provider
@@ -233,7 +230,9 @@ class ProviderBudget:
             "rpd_limit": self.limits["rpd"],
             "rpd_remaining": max(0, self.limits["rpd"] - self._rpd_window.count),
             "available": self.is_available(),
-            "paused_until": (self._paused_until if self._paused_until > time.time() else None),
+            "paused_until": (
+                self._paused_until if self._paused_until > time.time() else None
+            ),
             "rpd_resets_in_seconds": self._rpd_window.seconds_until_oldest_expires(),
         }
 
@@ -280,7 +279,8 @@ class FreeTierTracker:
         self.priority_list = list(FREE_PROVIDER_PRIORITY)
 
         self._budgets: dict[str, ProviderBudget] = {
-            provider: ProviderBudget(provider, provider_limits) for provider, provider_limits in limits.items()
+            provider: ProviderBudget(provider, provider_limits)
+            for provider, provider_limits in limits.items()
         }
 
     async def load_from_db(self) -> None:
@@ -320,7 +320,8 @@ class FreeTierTracker:
             except Exception as e:
                 logger.debug(f"Failed to fetch provider configs from Supabase: {e}")
                 try:
-                    from core.messaging.event_bus import ErrorEvent, error_event_bus
+                    from core.messaging.event_bus import (ErrorEvent,
+                                                          error_event_bus)
 
                     error_event_bus.emit(
                         ErrorEvent(
@@ -415,7 +416,9 @@ class FreeTierTracker:
 
     def get_status(self) -> dict[str, Any]:
         """Return full usage status for all providers (for admin dashboard)."""
-        statuses = {provider: budget.remaining() for provider, budget in self._budgets.items()}
+        statuses = {
+            provider: budget.remaining() for provider, budget in self._budgets.items()
+        }
         available_providers = [p for p, s in statuses.items() if s["available"]]
         return {
             "available_providers": available_providers,

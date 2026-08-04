@@ -1,10 +1,9 @@
 import json
 
+from brain.model_router import ModelRouter
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-
-from brain.model_router import ModelRouter
 
 router = APIRouter(prefix="/api/stream", tags=["stream"])
 model_router = ModelRouter()

@@ -18,7 +18,9 @@ class ConversationManager:
         }
         return session_id
 
-    def add_message(self, session_id: str, role: str, content: str, max_history: int = 10) -> int:
+    def add_message(
+        self, session_id: str, role: str, content: str, max_history: int = 10
+    ) -> int:
         if session_id not in self.sessions:
             raise ValueError(f"Invalid session {session_id}")
         if len(content) > 4000:
@@ -29,7 +31,9 @@ class ConversationManager:
         if len(session["history"]) > max_history:
             old_msg = session["history"].pop(0)
             prev = session.get("summary", "")
-            session["summary"] = f"{prev} [{old_msg['role']}: {old_msg['content'][:60]}...]".strip()
+            session["summary"] = (
+                f"{prev} [{old_msg['role']}: {old_msg['content'][:60]}...]".strip()
+            )
             if len(session["summary"]) > 2000:
                 session["summary"] = session["summary"][:2000]
             idx -= 1
@@ -41,7 +45,9 @@ class ConversationManager:
                     "with",
                     "have",
                 }:
-                    session["entities"][word.lower()] = session["entities"].get(word.lower(), 0) + 1
+                    session["entities"][word.lower()] = (
+                        session["entities"].get(word.lower(), 0) + 1
+                    )
         return max(0, idx)
 
     def create_conversation(self, user_id: str = "default") -> str:
@@ -49,13 +55,19 @@ class ConversationManager:
         self.sessions[sid]["user_id"] = user_id
         return sid
 
-    def update_message(self, session_id: str, index_or_id: int | None = 0, content: str = ""):
+    def update_message(
+        self, session_id: str, index_or_id: int | None = 0, content: str = ""
+    ):
         idx = 0 if index_or_id is None else index_or_id
-        if session_id in self.sessions and 0 <= idx < len(self.sessions[session_id]["history"]):
+        if session_id in self.sessions and 0 <= idx < len(
+            self.sessions[session_id]["history"]
+        ):
             self.sessions[session_id]["history"][idx]["content"] = content
 
     def delete_message(self, session_id: str, index: int):
-        if session_id in self.sessions and 0 <= index < len(self.sessions[session_id]["history"]):
+        if session_id in self.sessions and 0 <= index < len(
+            self.sessions[session_id]["history"]
+        ):
             self.sessions[session_id]["history"].pop(index)
 
     def get_history(self, session_id: str) -> list[dict[str, str]]:
@@ -69,6 +81,8 @@ class ConversationManager:
         session = self.sessions[session_id]
         context: list[dict[str, str]] = []
         if session.get("summary"):
-            context.append({"role": "system", "content": f"Previous context: {session['summary']}"})
+            context.append(
+                {"role": "system", "content": f"Previous context: {session['summary']}"}
+            )
         context.extend(session["history"])
         return context

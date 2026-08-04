@@ -49,7 +49,9 @@ class SkillProvisioner:
                 missing_python.append(py_pkg)
 
         if missing_python:
-            logger.info(f"Installing Python packages for skill {skill_id}: {missing_python}")
+            logger.info(
+                f"Installing Python packages for skill {skill_id}: {missing_python}"
+            )
             proc = await asyncio.create_subprocess_exec(
                 sys.executable,
                 "-m",
@@ -61,7 +63,9 @@ class SkillProvisioner:
             )
             stdout, stderr = await proc.communicate()
             if proc.returncode != 0:
-                logger.error(f"Failed to install Python packages for {skill_id}: {stderr.decode()}")
+                logger.error(
+                    f"Failed to install Python packages for {skill_id}: {stderr.decode()}"
+                )
                 return {
                     "status": "failed",
                     "reason": "pip_install_failure",

@@ -5,17 +5,15 @@
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import os
-
 import sys
 
-from cryptography.fernet import Fernet
-from loguru import logger
-
 from core.config import settings
+from core.error_bus import with_error_bus
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 from core.security.secure_credential_store import RotatingFernet
+from cryptography.fernet import Fernet
+from loguru import logger
 
 # Fail-fast policy:
 # STRICT_ENCRYPTION_CHECK=true হলে encryption key শুধুই raw environment থেকে নেয়া হবে।
@@ -23,7 +21,9 @@ from core.security.secure_credential_store import RotatingFernet
 strict_enabled = os.environ.get("STRICT_ENCRYPTION_CHECK") == "true"
 
 if strict_enabled:
-    ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY") or os.environ.get("SUPREMEAI_ENCRYPTION_KEY")
+    ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY") or os.environ.get(
+        "SUPREMEAI_ENCRYPTION_KEY"
+    )
     if not ENCRYPTION_KEY:
         error_event_bus.emit(
             ErrorEvent(
@@ -40,7 +40,9 @@ if strict_enabled:
 else:
     # Normal mode: settings.encryption_key থেকে আসে (computed field via secret_vault)
     ENCRYPTION_KEY = (
-        settings.encryption_key.get_secret_value() if settings.encryption_key else os.environ.get("ENCRYPTION_KEY")
+        settings.encryption_key.get_secret_value()
+        if settings.encryption_key
+        else os.environ.get("ENCRYPTION_KEY")
     )
 
     if not ENCRYPTION_KEY:
@@ -78,7 +80,9 @@ _raw_keys = [
 ]
 
 if not _raw_keys:
-    raise ValueError("CRITICAL: No encryption keys configured (ENCRYPTION_KEYS). Fail-Fast!")
+    raise ValueError(
+        "CRITICAL: No encryption keys configured (ENCRYPTION_KEYS). Fail-Fast!"
+    )
 
 _vault = RotatingFernet(_raw_keys)
 

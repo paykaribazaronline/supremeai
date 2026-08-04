@@ -6,11 +6,15 @@ import sys
 logger = logging.getLogger(__name__)
 
 
-def export_openapi_schema(output_path: str = "packages/shared-types/openapi.json") -> str:
+def export_openapi_schema(
+    output_path: str = "packages/shared-types/openapi.json",
+) -> str:
     """
     FastAPI অ্যাপ থেকে OpenAPI JSON স্কিমা এক্সপোর্ট করা।
     """
-    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend")))
+    sys.path.insert(
+        0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend"))
+    )
     from main import app
 
     schema = app.openapi()

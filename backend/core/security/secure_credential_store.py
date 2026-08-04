@@ -155,7 +155,9 @@ class CloudKMSProvider(EncryptionProvider):
             logger.warning("KMS not configured; returning plaintext.")
             return plaintext, None
         try:
-            response = self.kms_client.encrypt(request={"name": self.key_name, "plaintext": plaintext.encode()})
+            response = self.kms_client.encrypt(
+                request={"name": self.key_name, "plaintext": plaintext.encode()}
+            )
             ciphertext = base64.b64encode(response.ciphertext).decode()
             return ciphertext, self.key_name
         except Exception as exc:
@@ -164,7 +166,9 @@ class CloudKMSProvider(EncryptionProvider):
 
     def decrypt(self, ciphertext: str, key_ref: str | None) -> str:
         if not self.kms_client or not (key_ref or self.key_name):
-            logger.warning("KMS not configured or missing key_ref; returning ciphertext as-is.")
+            logger.warning(
+                "KMS not configured or missing key_ref; returning ciphertext as-is."
+            )
             return ciphertext
         try:
             response = self.kms_client.decrypt(

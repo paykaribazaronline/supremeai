@@ -2,13 +2,9 @@ from datetime import datetime
 
 import pandas as pd
 import pytest
-
 from brain.causal.discovery import CausalDiscoveryEngine
-from brain.causal.interventions import (
-    Intervention,
-    InterventionTracker,
-    InterventionType,
-)
+from brain.causal.interventions import (Intervention, InterventionTracker,
+                                        InterventionType)
 from brain.causal.root_cause import RootCauseAnalyzer
 
 
@@ -27,7 +23,9 @@ async def test_intervention_tracker():
     )
     await tracker.log_intervention(intervention)
 
-    experiments = await tracker.get_natural_experiments("payment_service", time_window_hours=24)
+    experiments = await tracker.get_natural_experiments(
+        "payment_service", time_window_hours=24
+    )
     assert len(experiments) == 1
     assert experiments[0].id == "int_001"
 

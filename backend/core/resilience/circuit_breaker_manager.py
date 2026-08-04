@@ -3,7 +3,8 @@
 import threading
 
 from ..config import settings
-from .circuit_breaker import CircuitBreaker  # Fixed import path - using relative import
+from .circuit_breaker import \
+    CircuitBreaker  # Fixed import path - using relative import
 
 
 class CircuitBreakerManager:
@@ -34,15 +35,22 @@ class CircuitBreakerManager:
             if name not in self._circuit_breakers:
                 self._circuit_breakers[name] = CircuitBreaker(
                     name=name,
-                    failure_threshold=getattr(settings, "circuit_breaker_failure_threshold", 3),
-                    recovery_timeout=getattr(settings, "circuit_breaker_cooldown_period", 60),
+                    failure_threshold=getattr(
+                        settings, "circuit_breaker_failure_threshold", 3
+                    ),
+                    recovery_timeout=getattr(
+                        settings, "circuit_breaker_cooldown_period", 60
+                    ),
                 )
             return self._circuit_breakers[name]
 
     def get_all_states(self) -> dict[str, dict]:
         """Get the state of all circuit breakers."""
         with self._lock:
-            return {name: breaker.get_state_info() for name, breaker in self._circuit_breakers.items()}
+            return {
+                name: breaker.get_state_info()
+                for name, breaker in self._circuit_breakers.items()
+            }
 
     def reset_breaker(self, name: str) -> bool:
         """Reset a specific circuit breaker."""

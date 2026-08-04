@@ -11,11 +11,10 @@ This module tests:
 
 from unittest.mock import patch
 
+from core.security.origin_validator import TrustedOriginMiddleware
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from starlette.responses import PlainTextResponse
-
-from core.security.origin_validator import TrustedOriginMiddleware
 
 
 class TestTrustedOriginMiddleware:
@@ -34,7 +33,8 @@ class TestTrustedOriginMiddleware:
 
         # Mock ENV=test - patch at module level since middleware imports os locally
         with patch(
-            "core.security.origin_validator.os.getenv", side_effect=lambda k, d=None: "test" if k == "ENV" else d
+            "core.security.origin_validator.os.getenv",
+            side_effect=lambda k, d=None: "test" if k == "ENV" else d,
         ):
             resp = client.get("/api/test")
 
@@ -53,7 +53,8 @@ class TestTrustedOriginMiddleware:
 
         # testserver is used by FastAPI's TestClient
         with patch(
-            "core.security.origin_validator.os.getenv", side_effect=lambda k, d=None: "development" if k == "ENV" else d
+            "core.security.origin_validator.os.getenv",
+            side_effect=lambda k, d=None: "development" if k == "ENV" else d,
         ):
             resp = client.get("/api/test")
 
@@ -175,7 +176,10 @@ class TestTrustedOriginMiddleware:
 
             # Check CORS headers
             assert "Access-Control-Allow-Origin" in resp.headers
-            assert resp.headers["Access-Control-Allow-Origin"] == "https://trusted.example.com"
+            assert (
+                resp.headers["Access-Control-Allow-Origin"]
+                == "https://trusted.example.com"
+            )
 
     def test_blocks_malicious_host(self):
         """Test that malicious host header is blocked."""

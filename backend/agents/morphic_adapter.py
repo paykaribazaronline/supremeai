@@ -41,7 +41,9 @@ class MorphicAdapter:
         - NEVER output markdown text, conversational explanations, or backticks (```python). Output ONLY clean, valid, executable Python code.
         """
 
-    def adapt_code_to_contract(self, raw_code: str, skill_description: str) -> dict[str, Any]:
+    def adapt_code_to_contract(
+        self, raw_code: str, skill_description: str
+    ) -> dict[str, Any]:
         """কাঁচা পাইথন কোডকে মডার্ন জেমিনি ক্লায়েন্ট দিয়ে সুপ্রীম চুক্তিতে রি-রাইট করে"""
         if not self.client:
             return {

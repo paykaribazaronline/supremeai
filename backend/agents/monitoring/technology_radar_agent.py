@@ -111,15 +111,20 @@ class TechnologyRadarAgent:
             adoption_priority=adoption_priority,
             impact_score=min(1.0, max(0.0, impact)),
             effort_to_adopt=effort,
-            recommendation=recommendation or f"Monitor {name} for potential adoption in {category}",
+            recommendation=recommendation
+            or f"Monitor {name} for potential adoption in {category}",
             detected_at=datetime.now(UTC),
         )
         self._technologies.append(tech)
         return tech
 
-    async def assess_relevance(self, tech_name: str, project_context: str) -> dict[str, Any]:
+    async def assess_relevance(
+        self, tech_name: str, project_context: str
+    ) -> dict[str, Any]:
         """Assess how relevant a technology is to the project."""
-        tech = next((t for t in self._technologies if t.name.lower() == tech_name.lower()), None)
+        tech = next(
+            (t for t in self._technologies if t.name.lower() == tech_name.lower()), None
+        )
         if not tech:
             return {"error": f"Technology '{tech_name}' not found in radar"}
 
@@ -148,7 +153,9 @@ class TechnologyRadarAgent:
 
     async def generate_radar(self) -> RadarReport:
         """Generate the current technology radar report."""
-        adopt_now = [t for t in self._technologies if t.adoption_priority == AdoptionPriority.NOW]
+        adopt_now = [
+            t for t in self._technologies if t.adoption_priority == AdoptionPriority.NOW
+        ]
 
         return RadarReport(
             technologies=self._technologies,
@@ -170,7 +177,8 @@ class TechnologyRadarAgent:
             AdoptionPriority.HOLD: 3,
         }
         sorted_techs = sorted(
-            self._technologies, key=lambda t: (priority_order.get(t.adoption_priority, 3), -t.impact_score)
+            self._technologies,
+            key=lambda t: (priority_order.get(t.adoption_priority, 3), -t.impact_score),
         )
 
         return [

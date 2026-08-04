@@ -62,7 +62,9 @@ class HTMLAccessibilityParser(HTMLParser):
         if self.tag_stack:
             self.tag_stack.pop()
 
-    def _check_tag_accessibility(self, tag: str, attrs: dict[str, str]) -> list[dict[str, Any]]:
+    def _check_tag_accessibility(
+        self, tag: str, attrs: dict[str, str]
+    ) -> list[dict[str, Any]]:
         """Check a specific tag for accessibility issues."""
         issues = []
 
@@ -90,13 +92,17 @@ class HTMLAccessibilityParser(HTMLParser):
                             "category": "cognitive",
                             "description": "Link with non-descriptive text",
                             "wcag_level": "A",
-                            "suggestions": ["Use descriptive link text that makes sense out of context"],
+                            "suggestions": [
+                                "Use descriptive link text that makes sense out of context"
+                            ],
                             "affected_elements": [f"<{tag} {dict(attrs)}>"],
                         }
                     )
 
         # Check for form inputs without labels
-        if tag in ["input", "textarea", "select"] and "type" not in attrs or attrs.get("type") != "hidden":
+        if (
+            tag in ["input", "textarea", "select"] and "type" not in attrs
+        ) or attrs.get("type") != "hidden":
             if "aria-label" not in attrs and "aria-labelledby" not in attrs:
                 # Check if previous element is a label
                 if "id" in attrs:
@@ -109,13 +115,17 @@ class HTMLAccessibilityParser(HTMLParser):
                             "category": "motor",
                             "description": "Form input missing label or aria-label",
                             "wcag_level": "A",
-                            "suggestions": ["Add a label element or use aria-label attribute"],
+                            "suggestions": [
+                                "Add a label element or use aria-label attribute"
+                            ],
                             "affected_elements": [f"<{tag} {dict(attrs)}>"],
                         }
                     )
 
         # Check for color contrast (would need CSS analysis)
-        if "style" in attrs and ("color" in attrs["style"] or "background" in attrs["style"]):
+        if "style" in attrs and (
+            "color" in attrs["style"] or "background" in attrs["style"]
+        ):
             # Simplified - would need actual color contrast checking
             pass
 
@@ -174,24 +184,63 @@ class AccessibilityAgent:
         # Define disability categories and considerations
         self.disability_considerations = {
             "visual": {
-                "issues": ["color_dependency", "small_text", "missing_alt_text", "poor_contrast"],
-                "solutions": ["screen_reader_support", "high_contrast_mode", "text_scaling", "audio_alternatives"],
+                "issues": [
+                    "color_dependency",
+                    "small_text",
+                    "missing_alt_text",
+                    "poor_contrast",
+                ],
+                "solutions": [
+                    "screen_reader_support",
+                    "high_contrast_mode",
+                    "text_scaling",
+                    "audio_alternatives",
+                ],
             },
             "auditory": {
-                "issues": ["audio_only_content", "missing_captions", "sound_based_feedback"],
-                "solutions": ["captions", "transcripts", "visual_indicators", "sign_language"],
+                "issues": [
+                    "audio_only_content",
+                    "missing_captions",
+                    "sound_based_feedback",
+                ],
+                "solutions": [
+                    "captions",
+                    "transcripts",
+                    "visual_indicators",
+                    "sign_language",
+                ],
             },
             "motor": {
-                "issues": ["keyboard_dependency", "small_targets", "timed_interactions"],
-                "solutions": ["keyboard_navigation", "voice_control", "customizable_timing", "alternative_inputs"],
+                "issues": [
+                    "keyboard_dependency",
+                    "small_targets",
+                    "timed_interactions",
+                ],
+                "solutions": [
+                    "keyboard_navigation",
+                    "voice_control",
+                    "customizable_timing",
+                    "alternative_inputs",
+                ],
             },
             "cognitive": {
-                "issues": ["complex_language", "unexpected_behaviors", "too_much_information"],
-                "solutions": ["simple_language", "consistent_design", "clear_feedback", "distraction_reduction"],
+                "issues": [
+                    "complex_language",
+                    "unexpected_behaviors",
+                    "too_much_information",
+                ],
+                "solutions": [
+                    "simple_language",
+                    "consistent_design",
+                    "clear_feedback",
+                    "distraction_reduction",
+                ],
             },
         }
 
-    async def assess_content_accessibility(self, content: str, content_type: str = "html") -> AccessibilityReport:
+    async def assess_content_accessibility(
+        self, content: str, content_type: str = "html"
+    ) -> AccessibilityReport:
         """
         Assess the accessibility of content.
 
@@ -240,7 +289,9 @@ class AccessibilityAgent:
 
             # Create report
             report = AccessibilityReport(
-                content_analyzed=content[:200] + "..." if len(content) > 200 else content,
+                content_analyzed=(
+                    content[:200] + "..." if len(content) > 200 else content
+                ),
                 issues_found=issues,
                 overall_score=score,
                 compliance_level=compliance_level,
@@ -251,14 +302,18 @@ class AccessibilityAgent:
             # Store report in Redis
             await self._store_accessibility_report(report)
 
-            logger.info(f"Accessibility assessment completed. Issues found: {len(issues)}, Score: {score}")
+            logger.info(
+                f"Accessibility assessment completed. Issues found: {len(issues)}, Score: {score}"
+            )
             return report
 
         except Exception as e:
             logger.error(f"Error assessing content accessibility: {e}")
             # Return a neutral report in case of error
             return AccessibilityReport(
-                content_analyzed=content[:200] + "..." if len(content) > 200 else content,
+                content_analyzed=(
+                    content[:200] + "..." if len(content) > 200 else content
+                ),
                 issues_found=[],
                 overall_score=0.5,
                 compliance_level="not_compliant",
@@ -317,7 +372,9 @@ class AccessibilityAgent:
                         "Provide definitions for technical terms",
                         "Use plain language",
                     ],
-                    affected_elements=[f"Found {jargon_count} potentially complex terms"],
+                    affected_elements=[
+                        f"Found {jargon_count} potentially complex terms"
+                    ],
                     timestamp=datetime.utcnow(),
                 )
             )
@@ -354,7 +411,9 @@ class AccessibilityAgent:
         else:
             return "not_compliant"
 
-    async def _generate_recommendations(self, issues: list[AccessibilityIssue]) -> list[str]:
+    async def _generate_recommendations(
+        self, issues: list[AccessibilityIssue]
+    ) -> list[str]:
         """Generate recommendations based on identified issues."""
         recommendations = set()  # Use set to avoid duplicates
 
@@ -368,7 +427,9 @@ class AccessibilityAgent:
         # Generate recommendations for each category
         for category, _cat_issues in category_issues.items():
             if category == "visual":
-                recommendations.add("Implement high contrast mode and support screen readers")
+                recommendations.add(
+                    "Implement high contrast mode and support screen readers"
+                )
             elif category == "auditory":
                 recommendations.add("Provide text alternatives for audio content")
             elif category == "motor":
@@ -388,7 +449,9 @@ class AccessibilityAgent:
 
         return list(recommendations)
 
-    async def check_interface_accessibility(self, interface_elements: list[dict[str, Any]]) -> list[AccessibilityIssue]:
+    async def check_interface_accessibility(
+        self, interface_elements: list[dict[str, Any]]
+    ) -> list[AccessibilityIssue]:
         """
         Check interface elements for accessibility issues.
 
@@ -431,15 +494,23 @@ class AccessibilityAgent:
                             category="motor",
                             description=f"Button {i} too small for touch targets",
                             wcag_level="AA",
-                            suggestions=["Make button at least 44x44 pixels or provide equivalent spacing"],
-                            affected_elements=[f"Button at index {i} (size: {width}x{height}px)"],
+                            suggestions=[
+                                "Make button at least 44x44 pixels or provide equivalent spacing"
+                            ],
+                            affected_elements=[
+                                f"Button at index {i} (size: {width}x{height}px)"
+                            ],
                             timestamp=datetime.utcnow(),
                         )
                     )
 
             # Check form field accessibility
             elif element_type in ["input", "select", "textarea"]:
-                if not props.get("label") and not props.get("aria-label") and not props.get("aria-labelledby"):
+                if (
+                    not props.get("label")
+                    and not props.get("aria-label")
+                    and not props.get("aria-labelledby")
+                ):
                     issues.append(
                         AccessibilityIssue(
                             id=f"field_no_label_{i}_{int(datetime.utcnow().timestamp())}",
@@ -447,7 +518,9 @@ class AccessibilityAgent:
                             category="visual",
                             description=f"Form field {i} missing accessible label",
                             wcag_level="A",
-                            suggestions=["Add associated label or use aria-label/aria-labelledby"],
+                            suggestions=[
+                                "Add associated label or use aria-label/aria-labelledby"
+                            ],
                             affected_elements=[f"Form field at index {i}"],
                             timestamp=datetime.utcnow(),
                         )
@@ -455,7 +528,9 @@ class AccessibilityAgent:
 
         return issues
 
-    async def generate_accessibility_plan(self, target_score: float = 0.9) -> dict[str, Any]:
+    async def generate_accessibility_plan(
+        self, target_score: float = 0.9
+    ) -> dict[str, Any]:
         """
         Generate an accessibility improvement plan.
 
@@ -556,7 +631,8 @@ class AccessibilityAgent:
             plan = {
                 "status": "generated",
                 "target_score": target_score,
-                "current_average_score": sum(r.overall_score for r in recent_reports) / len(recent_reports),
+                "current_average_score": sum(r.overall_score for r in recent_reports)
+                / len(recent_reports),
                 "improvement_steps": improvement_steps,
                 "estimated_completion": "2-4 weeks",
                 "success_metrics": [
@@ -570,7 +646,11 @@ class AccessibilityAgent:
 
         except Exception as e:
             logger.error(f"Error generating accessibility plan: {e}")
-            return {"status": "error", "message": f"Error generating plan: {e!s}", "steps": []}
+            return {
+                "status": "error",
+                "message": f"Error generating plan: {e!s}",
+                "steps": [],
+            }
 
     async def _store_accessibility_report(self, report: AccessibilityReport):
         """Store accessibility report in Redis."""

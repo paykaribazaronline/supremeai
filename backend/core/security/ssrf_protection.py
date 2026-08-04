@@ -177,7 +177,9 @@ class SSRFProtection:
         if custom_blocklist:
             self._blocklist_hostnames.update(custom_blocklist)
         if env_blocklist:
-            self._blocklist_hostnames.update(h.strip().lower() for h in env_blocklist.split(",") if h.strip())
+            self._blocklist_hostnames.update(
+                h.strip().lower() for h in env_blocklist.split(",") if h.strip()
+            )
 
         logger.info(
             f"[SSRFProtection] Initialized. DNS rebinding={enable_dns_rebinding_protection}, "
@@ -232,7 +234,9 @@ class SSRFProtection:
         for suffix in BLOCKED_HOSTNAME_SUFFIXES:
             if hostname_lower.endswith(suffix):
                 result.is_safe = False
-                result.reason = f"Blocked internal hostname suffix: '{suffix}' in '{hostname}'"
+                result.reason = (
+                    f"Blocked internal hostname suffix: '{suffix}' in '{hostname}'"
+                )
                 result.validation_time_ms = (time.monotonic() - start_time) * 1000
                 logger.warning(f"[SSRF] Blocked internal hostname: {hostname}")
                 return result
@@ -266,11 +270,15 @@ class SSRFProtection:
         # Step 8: DNS rebinding protection (double-resolution check)
         if self._enable_dns_rebinding:
             try:
-                second_resolved = self._resolve_hostname(hostname_lower, use_cache=False)
+                second_resolved = self._resolve_hostname(
+                    hostname_lower, use_cache=False
+                )
                 # Skip rebinding flag if both resolved IPs are valid public IPs (e.g., DNS round-robin / CDN load balancing / test mock)
                 first_is_private = ipaddress.ip_address(resolved_ip).is_private
                 second_is_private = ipaddress.ip_address(second_resolved).is_private
-                if second_resolved != resolved_ip and (first_is_private or second_is_private):
+                if second_resolved != resolved_ip and (
+                    first_is_private or second_is_private
+                ):
                     result.is_safe = False
                     result.reason = (
                         f"DNS rebinding attack detected! First resolution: {resolved_ip}, "
@@ -278,7 +286,8 @@ class SSRFProtection:
                     )
                     result.validation_time_ms = (time.monotonic() - start_time) * 1000
                     logger.critical(
-                        f"[SSRF] DNS rebinding detected for {hostname}: " f"{resolved_ip} -> {second_resolved}"
+                        f"[SSRF] DNS rebinding detected for {hostname}: "
+                        f"{resolved_ip} -> {second_resolved}"
                     )
                     return result
             except (socket.gaierror, OSError) as e:
@@ -373,13 +382,17 @@ class SSRFProtection:
             if ip_obj.is_link_local:
                 result.is_safe = False
                 result.reason = f"Blocked link-local IP: {ip} for hostname '{hostname}'"
-                logger.warning(f"[SSRF] Blocked link-local IP access: {hostname} -> {ip}")
+                logger.warning(
+                    f"[SSRF] Blocked link-local IP access: {hostname} -> {ip}"
+                )
                 return result
 
             if ip_obj.is_multicast:
                 result.is_safe = False
                 result.reason = f"Blocked multicast IP: {ip} for hostname '{hostname}'"
-                logger.warning(f"[SSRF] Blocked multicast IP access: {hostname} -> {ip}")
+                logger.warning(
+                    f"[SSRF] Blocked multicast IP access: {hostname} -> {ip}"
+                )
                 return result
 
             if ip_obj.is_reserved:

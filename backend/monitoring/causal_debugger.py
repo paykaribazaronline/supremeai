@@ -16,7 +16,9 @@ class CausalDebugger:
     Parses tracebacks, isolates the breaking module/line, and formulates automated remediation steps.
     """
 
-    def analyze_exception(self, exc: Exception, context_info: dict[str, Any] | None = None) -> dict[str, Any]:
+    def analyze_exception(
+        self, exc: Exception, context_info: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Analyze an exception object and extract causal insights.
         """
@@ -43,7 +45,9 @@ class CausalDebugger:
             "suggested_remediation": self._suggest_fix(exc_type, exc_msg),
         }
 
-        logger.info(f"Causal Debugger analyzed failure in [{causal_module}:{failing_line}] -> {exc_type}: {exc_msg}")
+        logger.info(
+            f"Causal Debugger analyzed failure in [{causal_module}:{failing_line}] -> {exc_type}: {exc_msg}"
+        )
         return analysis
 
     def _suggest_fix(self, exc_type: str, exc_msg: str) -> str:

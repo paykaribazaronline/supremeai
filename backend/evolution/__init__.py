@@ -19,14 +19,9 @@ Bengali:
 """
 
 # Import all evolution components
-from .digital_twin import (
-    DigitalTwinWorldModel,
-    ImpactSimulator,
-    RemediationEngine,
-    SystemTopologyMapper,
-    get_digital_twin_model,
-    initialize_digital_twin,
-)
+from .digital_twin import (DigitalTwinWorldModel, ImpactSimulator,
+                           RemediationEngine, SystemTopologyMapper,
+                           get_digital_twin_model, initialize_digital_twin)
 
 try:
     from .continual_learning.ewc import EWC, EWCConfig, EWCTrainer, OnlineEWC
@@ -34,65 +29,51 @@ except ImportError:
     EWC = OnlineEWC = EWCTrainer = EWCConfig = None
 
 try:
-    from .adversarial_defense.defense_system import (
-        AdversarialDefenseSystem,
-        AdversarialTrainer,
-        AttackType,
-        DefenseConfig,
-    )
+    from .adversarial_defense.defense_system import (AdversarialDefenseSystem,
+                                                     AdversarialTrainer,
+                                                     AttackType, DefenseConfig)
 except ImportError:
     AdversarialDefenseSystem = AdversarialTrainer = AttackType = DefenseConfig = None
 
 try:
-    from .neural_symbolic.integration import (
-        MathematicalReasoningEngine,
-        NeuralSymbolicConfig,
-        NeuralSymbolicIntegrator,
-        SymbolicExpression,
-        SymbolicReasoner,
-    )
+    from .neural_symbolic.integration import (MathematicalReasoningEngine,
+                                              NeuralSymbolicConfig,
+                                              NeuralSymbolicIntegrator,
+                                              SymbolicExpression,
+                                              SymbolicReasoner)
 except ImportError:
-    NeuralSymbolicIntegrator = MathematicalReasoningEngine = SymbolicExpression = SymbolicReasoner = (
-        NeuralSymbolicConfig
+    NeuralSymbolicIntegrator = MathematicalReasoningEngine = SymbolicExpression = (
+        SymbolicReasoner
+    ) = NeuralSymbolicConfig = None
+
+try:
+    from .federated_learning.fed_learning import (AggregationMethod,
+                                                  FederatedLearningCoordinator,
+                                                  FederatedServer, FLConfig,
+                                                  LocalClient)
+except ImportError:
+    FederatedLearningCoordinator = FederatedServer = LocalClient = FLConfig = (
+        AggregationMethod
     ) = None
 
 try:
-    from .federated_learning.fed_learning import (
-        AggregationMethod,
-        FederatedLearningCoordinator,
-        FederatedServer,
-        FLConfig,
-        LocalClient,
-    )
-except ImportError:
-    FederatedLearningCoordinator = FederatedServer = LocalClient = FLConfig = AggregationMethod = None
-
-try:
-    from .theory_of_mind.tom_system import (
-        MentalStateManager,
-        TheoryOfMindSystem,
-        ToMConfig,
-        ToMLevel,
-        ToMReasoner,
-    )
+    from .theory_of_mind.tom_system import (MentalStateManager,
+                                            TheoryOfMindSystem, ToMConfig,
+                                            ToMLevel, ToMReasoner)
 except ImportError:
     TheoryOfMindSystem = ToMReasoner = MentalStateManager = ToMConfig = ToMLevel = None
 
 try:
     from .temporal_abstraction.temporal_system import (
-        TemporalAbstractionConfig,
-        TemporalAbstractionSystem,
-        TemporalEvent,
-        TemporalGranularity,
-        TemporalMemory,
-        TemporalPattern,
-        TemporalPatternDetector,
-        TemporalPredictor,
-    )
+        TemporalAbstractionConfig, TemporalAbstractionSystem, TemporalEvent,
+        TemporalGranularity, TemporalMemory, TemporalPattern,
+        TemporalPatternDetector, TemporalPredictor)
 except ImportError:
-    TemporalAbstractionSystem = TemporalMemory = TemporalPatternDetector = TemporalPredictor = (
-        TemporalAbstractionConfig
-    ) = TemporalEvent = TemporalPattern = TemporalGranularity = None
+    TemporalAbstractionSystem = TemporalMemory = TemporalPatternDetector = (
+        TemporalPredictor
+    ) = TemporalAbstractionConfig = TemporalEvent = TemporalPattern = (
+        TemporalGranularity
+    ) = None
 
 # Version information
 __version__ = "1.0.0"
@@ -198,7 +179,9 @@ def run_comprehensive_evolution_test():
     print("✓ Adversarial Defense System:", type(systems["defense_system"]).__name__)
     print("✓ Neural-Symbolic System:", type(systems["neural_symbolic"]).__name__)
     print("✓ Theory of Mind System:", type(systems["theory_of_mind"]).__name__)
-    print("✓ Temporal Abstraction System:", type(systems["temporal_abstraction"]).__name__)
+    print(
+        "✓ Temporal Abstraction System:", type(systems["temporal_abstraction"]).__name__
+    )
 
     # Note: EWC and Federated Learning need models to be fully functional
     print("✓ EWC System: Initialized (requires model)")

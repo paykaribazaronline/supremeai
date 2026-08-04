@@ -13,12 +13,9 @@ from typing import Any
 
 from adaptive_engine.experience_db import Experience, ExperienceDatabase
 from adaptive_engine.intent_parser import IntentParser
-from adaptive_engine.learning_loop import (
-    LearningCycleResult,
-    LearningInsight,
-    LearningLoop,
-    create_learning_loop,
-)
+from adaptive_engine.learning_loop import (LearningCycleResult,
+                                           LearningInsight, LearningLoop,
+                                           create_learning_loop)
 from adaptive_engine.platform_learner import PlatformLearner, PlatformProfile
 from adaptive_engine.registry import PlatformRegistry
 

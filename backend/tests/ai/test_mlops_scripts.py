@@ -1,13 +1,12 @@
 """Unit and integration tests for MLOps scripts (bias_detector, model_drift_detector, prompt_injection_tester, model_version_manager)."""
 
+import importlib.util
 import os
 import tempfile
 from pathlib import Path
 
 import numpy as np
 import pytest
-
-import importlib.util
 
 repo_root = Path(__file__).resolve().parents[3]
 
@@ -22,8 +21,12 @@ def _import_script(relative_path: str, module_name: str):
 
 bias_mod = _import_script("scripts/ai/bias_detector.py", "bias_detector")
 drift_mod = _import_script("scripts/ai/model_drift_detector.py", "model_drift_detector")
-injection_mod = _import_script("scripts/ai/prompt_injection_tester.py", "prompt_injection_tester")
-version_mod = _import_script("scripts/ai/model_version_manager.py", "model_version_manager")
+injection_mod = _import_script(
+    "scripts/ai/prompt_injection_tester.py", "prompt_injection_tester"
+)
+version_mod = _import_script(
+    "scripts/ai/model_version_manager.py", "model_version_manager"
+)
 
 BiasDetector = bias_mod.BiasDetector
 ModelDriftDetector = drift_mod.ModelDriftDetector
@@ -61,7 +64,9 @@ class TestModelDriftDetector:
             preds = np.random.randn(100)
 
             detector.save_baseline("test-model", features, preds)
-            results = detector.run_full_drift_check("test-model", features, preds, current_accuracy=0.90)
+            results = detector.run_full_drift_check(
+                "test-model", features, preds, current_accuracy=0.90
+            )
             assert len(results) >= 1
 
 
@@ -83,7 +88,9 @@ class TestModelVersionManager:
             storage_path = os.path.join(tmpdir, "storage")
             artifacts_dir = os.path.join(tmpdir, "artifacts")
             os.makedirs(artifacts_dir, exist_ok=True)
-            Path(artifacts_dir, "model.bin").write_text("dummy model weights", encoding="utf-8")
+            Path(artifacts_dir, "model.bin").write_text(
+                "dummy model weights", encoding="utf-8"
+            )
 
             manager = ModelVersionManager(storage_path=storage_path, db_path=db_path)
             version = manager.create_version(

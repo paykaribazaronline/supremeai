@@ -3,16 +3,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from backend.tools.code.auto_test_generator import (
-    AutoTestGenerator,
-    TestGenRequest,
-    TestGenResponse,
-    _detect_framework,
-    _detect_stack,
-    _extract_python_symbols,
-    _get_test_file_path,
-    router,
-)
+from backend.tools.code.auto_test_generator import (AutoTestGenerator,
+                                                    TestGenRequest,
+                                                    TestGenResponse,
+                                                    _detect_framework,
+                                                    _detect_stack,
+                                                    _extract_python_symbols,
+                                                    _get_test_file_path,
+                                                    router)
 
 
 @pytest.fixture
@@ -117,7 +115,9 @@ async def test_generate_success_python(generator):
     source = "def add(a, b):\n    return a + b"
     expected = "def test_add():\n    assert add(1, 2) == 3"
 
-    with patch.object(AutoTestGenerator, "_llm", new_callable=AsyncMock, return_value=expected):
+    with patch.object(
+        AutoTestGenerator, "_llm", new_callable=AsyncMock, return_value=expected
+    ):
         result = await generator.generate(source_code=source, file_path="utils.py")
 
     assert result["status"] == "success"
@@ -136,7 +136,9 @@ async def test_generate_success_typescript(generator):
     source = "export const greet = (name: string): string => `Hello, ${name}`;"
     expected = "import { describe, it, expect } from 'vitest';\n\ndescribe('greet', () => {\n  it('works', () => {\n    expect(greet('x')).toBe('Hello, x');\n  });\n});"
 
-    with patch.object(AutoTestGenerator, "_llm", new_callable=AsyncMock, return_value=expected):
+    with patch.object(
+        AutoTestGenerator, "_llm", new_callable=AsyncMock, return_value=expected
+    ):
         result = await generator.generate(source_code=source, file_path="greeting.ts")
 
     assert result["status"] == "success"
@@ -149,7 +151,9 @@ async def test_generate_success_typescript(generator):
 
 @pytest.mark.anyio
 async def test_generate_error_on_empty_llm_response(generator):
-    with patch.object(AutoTestGenerator, "_llm", new_callable=AsyncMock, return_value=""):
+    with patch.object(
+        AutoTestGenerator, "_llm", new_callable=AsyncMock, return_value=""
+    ):
         result = await generator.generate(source_code="def f(): pass", file_path="f.py")
 
     assert result["status"] == "error"
@@ -171,7 +175,9 @@ async def test_generate_and_save_writes_file(tmp_path, generator):
     src.write_text("def add(a, b):\n    return a + b", encoding="utf-8")
     expected_test = "def test_add():\n    assert True"
 
-    with patch.object(AutoTestGenerator, "_llm", new_callable=AsyncMock, return_value=expected_test):
+    with patch.object(
+        AutoTestGenerator, "_llm", new_callable=AsyncMock, return_value=expected_test
+    ):
         result = await generator.generate_and_save(str(src), run_tests=False)
 
     assert result["status"] == "success"
@@ -228,7 +234,9 @@ async def test_batch_generate_all_success(tmp_path, generator):
         "coverage_estimate": 50,
     }
 
-    with patch.object(AutoTestGenerator, "generate", new_callable=AsyncMock, return_value=results):
+    with patch.object(
+        AutoTestGenerator, "generate", new_callable=AsyncMock, return_value=results
+    ):
         out = await generator.batch_generate(files, save=False)
 
     assert out["status"] == "success"
@@ -355,7 +363,8 @@ def client(generator):
     except Exception:
         from fastapi import FastAPI
 
-        from backend.tools.code.auto_test_generator import router as test_router
+        from backend.tools.code.auto_test_generator import \
+            router as test_router
 
         app = FastAPI()
         app.include_router(test_router)
@@ -368,7 +377,9 @@ def client(generator):
 @pytest.mark.anyio
 async def test_llm_method_exception():
     generator = AutoTestGenerator()
-    with patch("backend.brain.model_router.ModelRouter", side_effect=RuntimeError("fail")):
+    with patch(
+        "backend.brain.model_router.ModelRouter", side_effect=RuntimeError("fail")
+    ):
         out = await generator._llm("prompt")
     assert out == ""
 
@@ -470,7 +481,8 @@ async def test_generate_endpoint_success(client):
     if app is None:
         from fastapi import FastAPI
 
-        from backend.tools.code.auto_test_generator import router as test_router
+        from backend.tools.code.auto_test_generator import \
+            router as test_router
 
         app = FastAPI()
         app.include_router(test_router)
@@ -515,7 +527,8 @@ async def test_generate_endpoint_error(client):
     if app is None:
         from fastapi import FastAPI
 
-        from backend.tools.code.auto_test_generator import router as test_router
+        from backend.tools.code.auto_test_generator import \
+            router as test_router
 
         app = FastAPI()
         app.include_router(test_router)
@@ -558,7 +571,8 @@ async def test_generate_file_endpoint(client, generator):
     if app is None:
         from fastapi import FastAPI
 
-        from backend.tools.code.auto_test_generator import router as test_router
+        from backend.tools.code.auto_test_generator import \
+            router as test_router
 
         app = FastAPI()
         app.include_router(test_router)
@@ -581,7 +595,9 @@ async def test_generate_file_endpoint(client, generator):
             },
         ),
     ):
-        resp = c.post("/test-gen/generate-file", files={"file": ("upload.py", b"def f(): pass")})
+        resp = c.post(
+            "/test-gen/generate-file", files={"file": ("upload.py", b"def f(): pass")}
+        )
     assert resp.status_code == 200
 
 

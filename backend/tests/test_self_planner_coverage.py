@@ -54,7 +54,9 @@ class TestSelfPlannerGeneratePlan:
         with patch("tools.self_planner.ModelRouter") as mock_router_cls:
             mock_router_instance = MagicMock()
             mock_router_cls.return_value = mock_router_instance
-            mock_router_instance.async_route_and_generate = AsyncMock(return_value={"text": json.dumps(plan_data)})
+            mock_router_instance.async_route_and_generate = AsyncMock(
+                return_value={"text": json.dumps(plan_data)}
+            )
             graph = await planner.generate_plan("Build a feature")
             assert graph is not None
             assert graph.number_of_nodes() == 2
@@ -69,7 +71,9 @@ class TestSelfPlannerGeneratePlan:
         with patch("tools.self_planner.ModelRouter") as mock_router_cls:
             mock_router_instance = MagicMock()
             mock_router_cls.return_value = mock_router_instance
-            mock_router_instance.async_route_and_generate = AsyncMock(side_effect=Exception("LLM down"))
+            mock_router_instance.async_route_and_generate = AsyncMock(
+                side_effect=Exception("LLM down")
+            )
             with pytest.raises(RuntimeError, match="Agent planning failed"):
                 await planner.generate_plan("Test objective")
 
@@ -82,7 +86,9 @@ class TestSelfPlannerGeneratePlan:
         with patch("tools.self_planner.ModelRouter") as mock_router_cls:
             mock_router_instance = MagicMock()
             mock_router_cls.return_value = mock_router_instance
-            mock_router_instance.async_route_and_generate = AsyncMock(return_value={"text": "not valid json"})
+            mock_router_instance.async_route_and_generate = AsyncMock(
+                return_value={"text": "not valid json"}
+            )
             with pytest.raises(RuntimeError, match="Agent planning failed"):
                 await planner.generate_plan("Test")
 
@@ -110,7 +116,9 @@ class TestSelfPlannerGeneratePlan:
         with patch("tools.self_planner.ModelRouter") as mock_router_cls:
             mock_router_instance = MagicMock()
             mock_router_cls.return_value = mock_router_instance
-            mock_router_instance.async_route_and_generate = AsyncMock(return_value={"text": json.dumps([])})
+            mock_router_instance.async_route_and_generate = AsyncMock(
+                return_value={"text": json.dumps([])}
+            )
             graph = await planner.generate_plan("Test")
             assert graph is not None
             assert graph.number_of_nodes() == 0

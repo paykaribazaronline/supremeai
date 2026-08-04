@@ -21,11 +21,9 @@ import os
 import random
 import time
 
-from core.health.health_probes import probe_database
-from core.health.health_probes import probe_external_api
-from core.health.health_probes import probe_redis
-from core.messaging.event_bus import ErrorEvent
-from core.messaging.event_bus import error_event_bus
+from core.health.health_probes import (probe_database, probe_external_api,
+                                       probe_redis)
+from core.messaging.event_bus import ErrorEvent, error_event_bus
 
 logger = logging.getLogger("supremeai.immune_system")
 
@@ -48,7 +46,9 @@ class MaintenancePipeline:
 
     async def _monitoring_loop(self):
         """Background loop that runs zero-cost health probes with configurable interval + jitter."""
-        logger.info(f"🛡️ Immune System: Background monitoring started (interval={self._monitor_interval}s).")
+        logger.info(
+            f"🛡️ Immune System: Background monitoring started (interval={self._monitor_interval}s)."
+        )
         while True:
             # Add random jitter (±10%) to prevent thundering herd
             jitter = random.uniform(0.9, 1.1)
@@ -57,7 +57,9 @@ class MaintenancePipeline:
             await self.run_health_check()
 
     async def _handle_error_event(self, event):
-        logger.warning(f"🛡️ Immune System received error event: {event.error_type} in {event.module}")
+        logger.warning(
+            f"🛡️ Immune System received error event: {event.error_type} in {event.module}"
+        )
         if event.severity in ("ERROR", "CRITICAL"):
             self.health_score = max(0, self.health_score - 5)
             await self.auto_remediate(event)
@@ -69,8 +71,12 @@ class MaintenancePipeline:
         results = {
             "redis": await probe_redis(),
             "database": await probe_database(),
-            "api_gemini": await probe_external_api("https://generativelanguage.googleapis.com"),
-            "api_openrouter": await probe_external_api("https://openrouter.ai/api/v1/auth/key"),
+            "api_gemini": await probe_external_api(
+                "https://generativelanguage.googleapis.com"
+            ),
+            "api_openrouter": await probe_external_api(
+                "https://openrouter.ai/api/v1/auth/key"
+            ),
             "timestamp": time.time(),
         }
 
@@ -104,7 +110,11 @@ class MaintenancePipeline:
                 )
             )
 
-        status = "HEALTHY" if self.health_score > 80 else ("DEGRADED" if self.health_score > 50 else "CRITICAL")
+        status = (
+            "HEALTHY"
+            if self.health_score > 80
+            else ("DEGRADED" if self.health_score > 50 else "CRITICAL")
+        )
         results["status"] = status
         results["health_score"] = self.health_score
         return results
@@ -121,7 +131,9 @@ class MaintenancePipeline:
 
             history = metrics_engine.latency_history
             if not history:
-                logger.info("🛡️ Immune System: Latency logs empty. Skipping regression check.")
+                logger.info(
+                    "🛡️ Immune System: Latency logs empty. Skipping regression check."
+                )
                 return
 
             # বাংলা মন্তব্য: P95 ল্যাটেন্সি গণনা করা।
@@ -133,7 +145,9 @@ class MaintenancePipeline:
 
             LATENCY_THRESHOLD_MS = 500.0  # Dev default threshold 500ms
 
-            logger.info(f"🛡️ Immune System: Current real P95 Latency = {p95_latency:.2f}ms")
+            logger.info(
+                f"🛡️ Immune System: Current real P95 Latency = {p95_latency:.2f}ms"
+            )
             if p95_latency > LATENCY_THRESHOLD_MS:
                 logger.critical(
                     f"🚨 Performance Regression Detected! p95 latency ({p95_latency:.2f}ms) exceeds threshold ({LATENCY_THRESHOLD_MS}ms)."
@@ -154,14 +168,21 @@ class MaintenancePipeline:
             return
 
         if event:
-            logger.info(f"Attempting to heal module {event.module} for error {event.error_type}")
+            logger.info(
+                f"Attempting to heal module {event.module} for error {event.error_type}"
+            )
             from core.cache.redis_manager import redis_manager
 
             # Simulated checks based on the event payload or type
             # In a real scenario, the event type might be exactly 'llm_provider_down' or 'redis_connection_lost'
 
-            if "gemini" in str(event.context).lower() or event.error_type == "system.health.degraded":
-                logger.info("🚑 Auto-Recovery: LLM Provider degraded. Switching active provider to OpenRouter.")
+            if (
+                "gemini" in str(event.context).lower()
+                or event.error_type == "system.health.degraded"
+            ):
+                logger.info(
+                    "🚑 Auto-Recovery: LLM Provider degraded. Switching active provider to OpenRouter."
+                )
                 # Set active_provider in Redis (if redis is up)
                 if redis_manager.client:
                     try:
@@ -180,8 +201,13 @@ class MaintenancePipeline:
                     except Exception as e:
                         logger.error(f"Failed to switch provider: {e}")
 
-            if "redis" in str(event.context).lower() or event.error_type == "redis_connection_lost":
-                logger.info("🚑 Auto-Recovery: Redis degraded. Attempting to re-initialize pool.")
+            if (
+                "redis" in str(event.context).lower()
+                or event.error_type == "redis_connection_lost"
+            ):
+                logger.info(
+                    "🚑 Auto-Recovery: Redis degraded. Attempting to re-initialize pool."
+                )
                 try:
                     await redis_manager.close()
                     # Re-init would happen here depending on the manager implementation
@@ -198,9 +224,8 @@ class MaintenancePipeline:
             try:
                 import asyncio as _asyncio
 
-                from core.evolution.self_evolution_agent import (
-                    SelfEvolutionAgent,
-                )
+                from core.evolution.self_evolution_agent import \
+                    SelfEvolutionAgent
 
                 # বাংলা: আগে এখানে SelfEvolutionAgent.__new__(SelfEvolutionAgent) দিয়ে
                 # instance বানানো হতো, যেটা __init__() সম্পূর্ণ স্কিপ করে দেয় — ফলে
@@ -216,7 +241,8 @@ class MaintenancePipeline:
 
                     track_task(_asyncio.create_task(_evo._tick()))
                     logger.warning(
-                        f"🛡️→🧬 Health critical (score={self.health_score}), " "triggered emergency evolution tick."
+                        f"🛡️→🧬 Health critical (score={self.health_score}), "
+                        "triggered emergency evolution tick."
                     )
             except Exception as evo_exc:
                 logger.debug(f"Evolution trigger skipped: {evo_exc!r}")

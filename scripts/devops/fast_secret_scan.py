@@ -6,40 +6,50 @@ Fast Secret Scanner for Pre-commit Hook
 """
 
 import re
-import sys
 import subprocess
-from pathlib import Path
-from typing import List, Tuple
+import sys
 
-def get_staged_files() -> List[str]:
+
+def get_staged_files() -> list[str]:
     """Get list of staged files for commit."""
     try:
-        result = subprocess.run(['git', 'diff', '--cached', '--name-only'],
-                                capture_output=True, text=True, check=True)
-        return result.stdout.strip().split('\n') if result.stdout.strip() else []
+        result = subprocess.run(
+            ["git", "diff", "--cached", "--name-only"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout.strip().split("\n") if result.stdout.strip() else []
     except subprocess.CalledProcessError:
         print("⚠️  Not in a git repository or no staged files found.")
         return []
 
-def fast_secret_scan(file_paths: List[str]) -> Tuple[bool, List[Tuple[str, int, str]]]:
+
+def fast_secret_scan(file_paths: list[str]) -> tuple[bool, list[tuple[str, int, str]]]:
     """Fast scan for common secret patterns in staged files."""
     # Common secret patterns that can be detected quickly
     patterns = [
-        (r'(?i)(password|secret|key|token|api[_-]?key)\s*[=:]\s*["\'][^"\']{10,}', 'Potential secret/password in plain text'),
-        (r'(?i)aws[_-]?(access|secret)[_=][^"\']{10,}', 'AWS credential detected'),
-        (r'(?i)github[_-]?(token|key)[_=][^"\']{10,}', 'GitHub token/key detected'),
-        (r'(ssh-rsa|ssh-ed25519)\s+[A-Za-z0-9+/]{20,}={0,3}\s+.*', 'SSH key detected'),
-        (r'-----BEGIN (RSA|OPENSSH|DSA|EC|PGP) PRIVATE KEY-----', 'Private key detected'),
+        (
+            r'(?i)(password|secret|key|token|api[_-]?key)\s*[=:]\s*["\'][^"\']{10,}',
+            "Potential secret/password in plain text",
+        ),
+        (r'(?i)aws[_-]?(access|secret)[_=][^"\']{10,}', "AWS credential detected"),
+        (r'(?i)github[_-]?(token|key)[_=][^"\']{10,}', "GitHub token/key detected"),
+        (r"(ssh-rsa|ssh-ed25519)\s+[A-Za-z0-9+/]{20,}={0,3}\s+.*", "SSH key detected"),
+        (
+            r"-----BEGIN (RSA|OPENSSH|DSA|EC|PGP) PRIVATE KEY-----",
+            "Private key detected",
+        ),
     ]
 
     findings = []
 
     for file_path in file_paths:
-        if not file_path or file_path.startswith('.'):
+        if not file_path or file_path.startswith("."):
             continue
 
         try:
-            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
                 lines = f.readlines()
 
             for line_num, line in enumerate(lines, 1):
@@ -53,6 +63,7 @@ def fast_secret_scan(file_paths: List[str]) -> Tuple[bool, List[Tuple[str, int, 
 
     return len(findings) == 0, findings
 
+
 def main():
     """Main function for fast secret scanning."""
     print("🔍 Running fast secret scan...")
@@ -63,9 +74,27 @@ def main():
         return 0
 
     # Filter for text-based files
-    text_files = [f for f in staged_files if any(f.endswith(ext) for ext in
-                                               ['.py', '.js', '.ts', '.tsx', '.jsx', '.json',
-                                                '.yaml', '.yml', '.toml', '.txt', '.md', '.env'])]
+    text_files = [
+        f
+        for f in staged_files
+        if any(
+            f.endswith(ext)
+            for ext in [
+                ".py",
+                ".js",
+                ".ts",
+                ".tsx",
+                ".jsx",
+                ".json",
+                ".yaml",
+                ".yml",
+                ".toml",
+                ".txt",
+                ".md",
+                ".env",
+            ]
+        )
+    ]
 
     if not text_files:
         print("✅ No text files to scan.")
@@ -83,6 +112,7 @@ def main():
 
         print("\n⚠️  Commit blocked due to potential secrets detected.")
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

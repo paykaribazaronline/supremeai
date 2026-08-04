@@ -9,15 +9,21 @@ def test_autocache_proxy_ttl_calculation():
     assert ttl_docs == 86400
 
     # Skills catalog -> 43200s (12h)
-    ttl_skills = proxy.calculate_dynamic_ttl("List all available tools and skills catalog")
+    ttl_skills = proxy.calculate_dynamic_ttl(
+        "List all available tools and skills catalog"
+    )
     assert ttl_skills == 43200
 
     # Code generation -> 3600s (1h)
-    ttl_code = proxy.calculate_dynamic_ttl("def async_generate(self, prompt: str): pass")
+    ttl_code = proxy.calculate_dynamic_ttl(
+        "def async_generate(self, prompt: str): pass"
+    )
     assert ttl_code == 3600
 
     # User dashboard -> 0s (Bypass cache)
-    ttl_user = proxy.calculate_dynamic_ttl("Show my account balance and profile dashboard")
+    ttl_user = proxy.calculate_dynamic_ttl(
+        "Show my account balance and profile dashboard"
+    )
     assert ttl_user == 0
 
     # General chat -> 1800s (30m)

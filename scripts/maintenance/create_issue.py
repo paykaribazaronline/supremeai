@@ -1,8 +1,9 @@
 import json
 import os
 import sys
-import urllib.request
 import urllib.error
+import urllib.request
+
 
 def main():
     if len(sys.argv) < 2:
@@ -40,12 +41,17 @@ def main():
         sys.exit(0)
 
     # Create the issue body
-    body_lines = ["### 🚨 Security Vulnerabilities Detected\n", "The `dependency-vulnerability-scan` pipeline has found the following issues:\n"]
+    body_lines = [
+        "### 🚨 Security Vulnerabilities Detected\n",
+        "The `dependency-vulnerability-scan` pipeline has found the following issues:\n",
+    ]
     for pkg in vuln_packages:
         pkg_name = pkg.get("name")
         pkg_version = pkg.get("version")
         for v in pkg.get("vulns", []):
-            body_lines.append(f"- **{pkg_name}** ({pkg_version}): {v.get('id')} - {v.get('fix_versions', 'No fix available')}")
+            body_lines.append(
+                f"- **{pkg_name}** ({pkg_version}): {v.get('id')} - {v.get('fix_versions', 'No fix available')}"
+            )
             body_lines.append(f"  - Details: {v.get('aliases', [])}")
 
     body = "\n".join(body_lines)
@@ -53,7 +59,7 @@ def main():
     payload = {
         "title": "🚨 Security Vulnerability Detected by pip-audit",
         "body": body,
-        "labels": ["security", "automated-issue"]
+        "labels": ["security", "automated-issue"],
     }
 
     url = f"https://api.github.com/repos/{github_repo}/issues"
@@ -65,7 +71,7 @@ def main():
             "Accept": "application/vnd.github.v3+json",
             "Content-Type": "application/json",
         },
-        method="POST"
+        method="POST",
     )
 
     try:
@@ -77,6 +83,7 @@ def main():
     except urllib.error.URLError as e:
         print(f"Failed to create issue: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

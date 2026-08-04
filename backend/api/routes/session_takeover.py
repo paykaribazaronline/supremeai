@@ -1,22 +1,15 @@
-from core.error_bus import with_error_bus
 import asyncio
 import json
 import os
 import secrets
 import time
 
-from fastapi import (
-    APIRouter,
-    HTTPException,
-    Query,
-    Request,
-    WebSocket,
-    WebSocketDisconnect,
-)
+from core.error_bus import with_error_bus
+from core.messaging.event_bus import ErrorContext
+from fastapi import (APIRouter, HTTPException, Query, Request, WebSocket,
+                     WebSocketDisconnect)
 from loguru import logger
 from pydantic import BaseModel
-
-from core.messaging.event_bus import ErrorContext
 
 router = APIRouter()
 
@@ -32,7 +25,9 @@ def _require_admin(request: Request) -> dict:
     if not user:
         raise HTTPException(status_code=401, detail="Authentication required")
     if user.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Admin role required for session takeover")
+        raise HTTPException(
+            status_code=403, detail="Admin role required for session takeover"
+        )
     return user
 
 
@@ -67,7 +62,9 @@ def get_takeover_status(session_id: str, request: Request) -> dict:
     except Exception as e:
         # বাংলা: এটি অ্যাডমিন সেশন-টেকওভার মনিটরিং এন্ডপয়েন্ট — Redis lookup ব্যর্থ হলে
         # চুপচাপ "inactive" দেখানো বিভ্রান্তিকর, তাই কারণটি লগ করা হচ্ছে
-        logger.warning(f"Failed to fetch takeover status from Redis for session {session_id}: {e}")
+        logger.warning(
+            f"Failed to fetch takeover status from Redis for session {session_id}: {e}"
+        )
         data = None
     if data:
         return {"status": "active", "session_id": session_id, "data": data}
@@ -103,15 +100,20 @@ async def _redis_client():
     """Best-effort shared Redis client for single-use token consumption. Returns None if unavailable."""
     try:
         import redis.asyncio as aioredis  # type: ignore[import-untyped]
-
         from core.config import settings as app_settings
 
-        redis_url = getattr(app_settings, "redis_url", None) or os.getenv("REDIS_URL") or os.getenv("UPSTASH_REDIS_URL")
+        redis_url = (
+            getattr(app_settings, "redis_url", None)
+            or os.getenv("REDIS_URL")
+            or os.getenv("UPSTASH_REDIS_URL")
+        )
         if not redis_url:
             return None
         return aioredis.from_url(redis_url, decode_responses=True)
     except Exception as exc:
-        logger.debug(f"Redis unavailable for takeover-token consumption, falling back to base check only: {exc}")
+        logger.debug(
+            f"Redis unavailable for takeover-token consumption, falling back to base check only: {exc}"
+        )
         return None
 
 
@@ -133,12 +135,18 @@ async def verify_takeover_token(token: str) -> bool:
         if client is not None:
             try:
                 # SETNX-স্টাইল single-use consumption — token একবার ব্যবহার হলে ৫ মিনিটের জন্য লক থাকে
-                consumed = await client.set(f"takeover_used:{token}", "1", nx=True, ex=300)
+                consumed = await client.set(
+                    f"takeover_used:{token}", "1", nx=True, ex=300
+                )
                 if not consumed:
-                    logger.warning(f"Replay attempt detected for already-used takeover token: {token[:10]}...")
+                    logger.warning(
+                        f"Replay attempt detected for already-used takeover token: {token[:10]}..."
+                    )
                     return False
             except Exception as exc:
-                logger.warning(f"Redis single-use check failed, allowing on base validation only: {exc}")
+                logger.warning(
+                    f"Redis single-use check failed, allowing on base validation only: {exc}"
+                )
 
         return True
     except Exception as e:
@@ -163,7 +171,9 @@ async def dev_mock_screencast_emitter(websocket: WebSocket, session_id: str):
     try:
         while True:
             await asyncio.sleep(0.1)
-            await websocket.send_json({"channel": "screencast", "data": MOCK_FRAME_B64, "mock": True})
+            await websocket.send_json(
+                {"channel": "screencast", "data": MOCK_FRAME_B64, "mock": True}
+            )
     except asyncio.CancelledError:
         logger.warning("⚠️ Task execution was intentionally cancelled.")
         raise
@@ -209,7 +219,9 @@ async def _report_screencast_unavailable(websocket: WebSocket, session_id: str) 
 
 
 @router.websocket("/ws/session/{session_id}/takeover")
-async def takeover_session_websocket(websocket: WebSocket, session_id: str, token: str = Query(...)):
+async def takeover_session_websocket(
+    websocket: WebSocket, session_id: str, token: str = Query(...)
+):
     """
     Ephemeral WebSocket gateway for Sandbox Viewport takeover.
     Validates token, streams CDP frames to client, and receives mouse/keyboard events.
@@ -218,7 +230,9 @@ async def takeover_session_websocket(websocket: WebSocket, session_id: str, toke
     await websocket.accept()
 
     if not await verify_takeover_token(token):
-        await websocket.send_json({"error": "Invalid, expired, or already-used takeover token"})
+        await websocket.send_json(
+            {"error": "Invalid, expired, or already-used takeover token"}
+        )
         await websocket.close(code=1008)
         return
 
@@ -228,7 +242,9 @@ async def takeover_session_websocket(websocket: WebSocket, session_id: str, toke
         await _report_screencast_unavailable(websocket, session_id)
         emitter_task = None
     else:
-        emitter_task = asyncio.create_task(dev_mock_screencast_emitter(websocket, session_id))
+        emitter_task = asyncio.create_task(
+            dev_mock_screencast_emitter(websocket, session_id)
+        )
 
     start_time = time.monotonic()
     try:
@@ -241,7 +257,9 @@ async def takeover_session_websocket(websocket: WebSocket, session_id: str, toke
                 break
             elif str(action).startswith("Input.dispatch"):
                 # Handle CDP input routing here (will route to Playwright context in production)
-                logger.debug(f"CDP Event [{session_id}]: {action} - {data.get('params')}")
+                logger.debug(
+                    f"CDP Event [{session_id}]: {action} - {data.get('params')}"
+                )
 
     except WebSocketDisconnect:
         logger.info(f"WebSocket takeover disconnected for session {session_id}")
@@ -252,4 +270,6 @@ async def takeover_session_websocket(websocket: WebSocket, session_id: str, toke
             emitter_task.cancel()
         if websocket.client_state.name != "DISCONNECTED":
             await websocket.close()
-        logger.debug(f"Takeover session {session_id} lasted {time.monotonic() - start_time:.1f}s")
+        logger.debug(
+            f"Takeover session {session_id} lasted {time.monotonic() - start_time:.1f}s"
+        )

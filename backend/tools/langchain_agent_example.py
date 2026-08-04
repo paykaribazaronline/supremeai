@@ -4,9 +4,8 @@
 import os
 import sys
 
-from loguru import logger
-
 from core.config import settings
+from loguru import logger
 
 # Add backend directory to sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -19,7 +18,8 @@ try:
     from langchain_community.callbacks import get_openai_callback
     from langchain_core.messages import HumanMessage, SystemMessage
     from langchain_google_genai import ChatGoogleGenerativeAI
-    from ldai import AIAgentConfig, AIAgentConfigDefault, LDAIClient, ModelConfig
+    from ldai import (AIAgentConfig, AIAgentConfigDefault, LDAIClient,
+                      ModelConfig)
     from ldai.tracker import TokenUsage
     from ldclient.config import Config
     from ldclient.context import Context
@@ -41,8 +41,14 @@ def handle_agent_call_langchain(
     tracker = config.create_tracker()
 
     # বাংলা মন্তব্য: লঞ্চডার্কলি থেকে ডায়নামিক মডেল নির্ধারণ, অন্যথায় ডিফল্ট মডেল ব্যবহার
-    default_model = "gemini-2.5-flash" if getattr(settings, "gemini_api_key", None) else "claude-3-5-sonnet-20241022"
-    model_name = config.model.name if (config.model and config.model.name) else default_model
+    default_model = (
+        "gemini-2.5-flash"
+        if getattr(settings, "gemini_api_key", None)
+        else "claude-3-5-sonnet-20241022"
+    )
+    model_name = (
+        config.model.name if (config.model and config.model.name) else default_model
+    )
 
     # বাংলা মন্তব্য: লঞ্চডার্কলি মডেল প্রোভাইডার প্রিফিক্স (যেমন: "Gemini.") থাকলে তা বাদ দেওয়া হচ্ছে
     if "." in model_name:
@@ -60,10 +66,14 @@ def handle_agent_call_langchain(
     messages.append(HumanMessage(content=user_input))
 
     # বাংলা মন্তব্য: লঞ্চডার্কলি অবজারভেবিলিটি ব্যবহার করে কাস্টম লগ রেকর্ড এবং স্প্যান স্টার্ট করা হচ্ছে
-    observe.record_log("Executing LangChain Agent Call", logging.INFO, {"model": model_name})
+    observe.record_log(
+        "Executing LangChain Agent Call", logging.INFO, {"model": model_name}
+    )
 
     try:
-        with observe.start_span("langchain-invoke", attributes={"model": model_name}) as span:
+        with observe.start_span(
+            "langchain-invoke", attributes={"model": model_name}
+        ) as span:
             span.set_attribute("custom-langchain-attribute", "custom-value")
 
             # বাংলা মন্তব্য: টোকেন ট্র্যাকিংয়ের জন্য ল্যাংচেইন কলব্যাক প্রোভাইডার ব্যবহার করা হচ্ছে
@@ -92,7 +102,9 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # বাংলা মন্তব্য: লঞ্চডার্কলি ক্লায়েন্ট কনফিগারেশন এবং অবজারভেবিলিটি প্লাগইন ইনিশিয়ালাইজেশন
-    sdk_key = getattr(settings, "launchdarkly_sdk_key", "sdk-85f22e74-cb85-481b-8fd9-bfb2dd5f0e10")
+    sdk_key = getattr(
+        settings, "launchdarkly_sdk_key", "sdk-85f22e74-cb85-481b-8fd9-bfb2dd5f0e10"
+    )
     ldclient.set_config(
         Config(
             sdk_key,
@@ -109,7 +121,11 @@ if __name__ == "__main__":
     aiclient = LDAIClient(ldclient.get())
     context = Context.builder("user-123").kind("user").build()
 
-    default_model = "gemini-2.5-flash" if getattr(settings, "gemini_api_key", None) else "claude-3-5-sonnet-20241022"
+    default_model = (
+        "gemini-2.5-flash"
+        if getattr(settings, "gemini_api_key", None)
+        else "claude-3-5-sonnet-20241022"
+    )
     config = aiclient.agent_config(
         "supremes-writing-assistant",
         context,
@@ -123,7 +139,9 @@ if __name__ == "__main__":
     logger.info("Evaluating AgentConfig...")
     if config.enabled:
         try:
-            result = handle_agent_call_langchain(config, "Hello, write a short tagline for SupremeAI.")
+            result = handle_agent_call_langchain(
+                config, "Hello, write a short tagline for SupremeAI."
+            )
             logger.info(f"Result: {result}")
         except Exception as e:
             logger.info(f"Error during runtime execution: {e}")

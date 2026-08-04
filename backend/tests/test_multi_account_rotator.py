@@ -4,15 +4,10 @@ from datetime import timedelta
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from core.utils.time_utils import utc_now
 
 from backend.tools.security_tools.multi_account_rotator import (
-    Account,
-    MultiAccountRotator,
-    Provider,
-    ProviderStatus,
-    TaskType,
-)
-from core.utils.time_utils import utc_now
+    Account, MultiAccountRotator, Provider, ProviderStatus, TaskType)
 
 
 # বাংলা মন্তব্য: rotator ইনস্ট্যান্স তৈরি করার জন্য ফিক্সচার
@@ -326,7 +321,9 @@ class TestMultiAccountRotator:
         )
         acc = Account(id="a1", provider="deepseek", email="a@b.com")
         # বাংলা মন্তব্য: রিয়েল নেটওয়ার্ক কল এড়াতে LLMGateway.acompletion মক করা হলো।
-        with patch("core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
+        with patch(
+            "core.llm.llm_gateway.LLMGateway.acompletion", new_callable=AsyncMock
+        ) as mock_acompletion:
             mock_acompletion.return_value = {
                 "success": True,
                 "text": "DeepSeek analysis: test response",
@@ -430,6 +427,8 @@ class TestMultiAccountRotator:
         """কনফিগ ফাইল মিসিং থাকলে _create_default_config কল হয়।"""
         config_file = str(tmp_path / "missing.json")
         assert not os.path.exists(config_file)
-        with patch.object(MultiAccountRotator, "_create_default_config") as mock_default:
+        with patch.object(
+            MultiAccountRotator, "_create_default_config"
+        ) as mock_default:
             MultiAccountRotator(config_file=config_file)
             mock_default.assert_called_once()

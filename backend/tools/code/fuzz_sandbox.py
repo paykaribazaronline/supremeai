@@ -35,21 +35,35 @@ def run_sandbox_ast_check(code: str) -> bool:
         for node in ast.walk(tree):
             # ২. Type-Safe Import Blocker
             if isinstance(node, ast.Import | ast.ImportFrom):
-                modules = [alias.name for alias in node.names] if isinstance(node, ast.Import) else [node.module]
+                modules = (
+                    [alias.name for alias in node.names]
+                    if isinstance(node, ast.Import)
+                    else [node.module]
+                )
                 for mod in modules:
                     if mod and mod.split(".")[0] in banned_imports:
                         raise SecurityError(f"Banned root import '{mod}' blocked.")
 
             # ৩. Dunder and Method Reflection Blocker
-            if isinstance(node, ast.Attribute) and (node.attr.startswith("__") or node.attr in banned_keys):
-                raise SecurityError(f"Malicious attribute access '{node.attr}' detected.")
+            if isinstance(node, ast.Attribute) and (
+                node.attr.startswith("__") or node.attr in banned_keys
+            ):
+                raise SecurityError(
+                    f"Malicious attribute access '{node.attr}' detected."
+                )
 
             # 💥 ৪. Global Identifier Protection
             if isinstance(node, ast.Name) and node.id in banned_keys:
-                raise SecurityError(f"Attempted reference to banned identifier '{node.id}' blocked.")
+                raise SecurityError(
+                    f"Attempted reference to banned identifier '{node.id}' blocked."
+                )
 
             # ৫. Subscript Protection
-            if isinstance(node, ast.Constant) and isinstance(node.value, str) and node.value in banned_keys:
+            if (
+                isinstance(node, ast.Constant)
+                and isinstance(node.value, str)
+                and node.value in banned_keys
+            ):
                 raise SecurityError(f"Obfuscated key reference '{node.value}' blocked.")
         return True
     except SyntaxError:
@@ -74,8 +88,12 @@ def generate_fuzz_payloads():
     for key in banned_keys:
         payloads.append((f"{key}('logger.info(1)')", "Direct Builtin Execution"))
         payloads.append((f"x = {key}\nx('pass')", "Alias Binding Attack"))
-        payloads.append((f"fn = '{key}'\nfunc = globals()[fn]", "Dynamic String Key Lookup"))
-        payloads.append(("f = 'ev' + 'al'\nmain = globals()[f]", "String Concatenation Lookup"))
+        payloads.append(
+            (f"fn = '{key}'\nfunc = globals()[fn]", "Dynamic String Key Lookup")
+        )
+        payloads.append(
+            ("f = 'ev' + 'al'\nmain = globals()[f]", "String Concatenation Lookup")
+        )
 
     # Category 2: Banned Imports & Aliasing
     banned_imports = ["os", "sys", "subprocess", "shutil", "socket", "pty"]
@@ -83,7 +101,9 @@ def generate_fuzz_payloads():
         payloads.append((f"import {imp}", "Direct Banned Import"))
         payloads.append((f"import {imp} as hacked_m", "Import Aliasing"))
         payloads.append((f"from {imp} import *", "Star Import Injection"))
-        payloads.append((f"__import__('{imp}').system('ls')", "Dynamic Dunder Import RCE"))
+        payloads.append(
+            (f"__import__('{imp}').system('ls')", "Dynamic Dunder Import RCE")
+        )
 
     # Category 3: Dunder Reflection & Jailbreak Constructs (Subclasses, Classes, Bases)
     dunder_tricks = [
@@ -104,8 +124,12 @@ def generate_fuzz_payloads():
     payloads.append(("delattr(object, 'key')", "Delattr State Disruption"))
 
     # Category 5: Complex Obfuscated Structural Strings (AST Constant Targets)
-    payloads.append(("payload = 'eval'\nlogger.info(payload)", "Plaintext Constant Injection"))
-    payloads.append(("def malicious():\n    return 'exec'", "Nested Function Constant Return"))
+    payloads.append(
+        ("payload = 'eval'\nlogger.info(payload)", "Plaintext Constant Injection")
+    )
+    payloads.append(
+        ("def malicious():\n    return 'exec'", "Nested Function Constant Return")
+    )
     payloads.append(
         (
             "class Hack:\n    def __init__(self):\n        self.x = 'compile'",
@@ -136,7 +160,9 @@ def execute_ultimate_fuzz_test():
     syntax_error_count = 0
 
     logger.info("\n" + "=" * 80)
-    logger.info(f"| {'ATTACK VECTOR CATEGORY':<35} | {'STATUS':<12} | {'ENGINE VERDICT':<23} |")
+    logger.info(
+        f"| {'ATTACK VECTOR CATEGORY':<35} | {'STATUS':<12} | {'ENGINE VERDICT':<23} |"
+    )
     logger.info("=" * 80)
 
     for idx, (code, category) in enumerate(payloads, 1):
@@ -144,21 +170,31 @@ def execute_ultimate_fuzz_test():
             is_safe = run_sandbox_ast_check(code)
             if is_safe:
                 # স্যান্ডবক্স কোডটিকে সেফ বলেছে -> অর্থাৎ হ্যাক সফল, স্যান্ডবক্স ফেল করেছে (Bypass)!
-                logger.info(f"| {idx:03d}. {category:<30} | {RED}{'BYPASS':<12}{RESET} | Allowed Malicious Code  |")
+                logger.info(
+                    f"| {idx:03d}. {category:<30} | {RED}{'BYPASS':<12}{RESET} | Allowed Malicious Code  |"
+                )
                 bypass_count += 1
             else:
                 # সিনট্যাক্স এরর হ্যান্ডলিং
-                logger.info(f"| {idx:03d}. {category:<30} | {GREEN}{'BLOCKED':<12}{RESET} | Syntax Normalization    |")
+                logger.info(
+                    f"| {idx:03d}. {category:<30} | {GREEN}{'BLOCKED':<12}{RESET} | Syntax Normalization    |"
+                )
                 syntax_error_count += 1
         except SecurityError as e:
             # স্যান্ডবক্স সফলভাবে সিকিউরিটি এরর রেইজ করে অ্যাটাক ব্লক করেছে (Success)
-            logger.info(f"| {idx:03d}. {category:<30} | {GREEN}{'BLOCKED':<12}{RESET} | {str(e)[:23]:<23} |")
+            logger.info(
+                f"| {idx:03d}. {category:<30} | {GREEN}{'BLOCKED':<12}{RESET} | {str(e)[:23]:<23} |"
+            )
             blocked_count += 1
 
     logger.info("=" * 80)
     logger.info("\n📊 FINAL FUZZING LAB REPORT:")
-    logger.info(f"  🟢 TOTAL ATTACKS SECURELY DEFENDED : {GREEN}{blocked_count + syntax_error_count}/100{RESET}")
-    logger.info(f"  🔴 TOTAL BYPASSES (SANDBOX CRACKS) : {RED if bypass_count > 0 else GREEN}{bypass_count}/100{RESET}")
+    logger.info(
+        f"  🟢 TOTAL ATTACKS SECURELY DEFENDED : {GREEN}{blocked_count + syntax_error_count}/100{RESET}"
+    )
+    logger.info(
+        f"  🔴 TOTAL BYPASSES (SANDBOX CRACKS) : {RED if bypass_count > 0 else GREEN}{bypass_count}/100{RESET}"
+    )
     logger.info("=" * 80)
 
     if bypass_count == 0:

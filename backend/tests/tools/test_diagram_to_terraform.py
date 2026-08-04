@@ -22,7 +22,9 @@ async def test_to_terraform(mock_diagram_converter):
     # বাংলা মন্তব্য: Cloud architecture diagram থেকে Terraform HCL জেনারেশন টেস্ট
     converter = DiagramToArchitecture()
 
-    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_client:
+    with patch(
+        "brain.model_router.ModelRouter.async_route_and_generate"
+    ) as mock_client:
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.content = """
@@ -47,7 +49,9 @@ resource "google_compute_instance" "web_server" {
 """
         mock_client.return_value = {"text": mock_response.choices[0].message.content}
 
-        result = await converter.to_terraform("architecture_diagram.png", cloud_provider="gcp")
+        result = await converter.to_terraform(
+            "architecture_diagram.png", cloud_provider="gcp"
+        )
 
     assert result is not None
     assert "gcp_vpc" in result.code
@@ -58,7 +62,9 @@ async def test_to_kubernetes(mock_diagram_converter):
     # বাংলা মন্তব্য: Architecture diagram থেকে Kubernetes YAML জেনারেশন টেস্ট
     converter = DiagramToArchitecture()
 
-    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_client:
+    with patch(
+        "brain.model_router.ModelRouter.async_route_and_generate"
+    ) as mock_client:
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.content = """
@@ -98,7 +104,9 @@ async def test_to_database_schema(mock_diagram_converter):
     # বাংলা মন্তব্য: ER diagram থেকে SQLAlchemy model জেনারেশন টেস্ট
     converter = DiagramToArchitecture()
 
-    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_client:
+    with patch(
+        "brain.model_router.ModelRouter.async_route_and_generate"
+    ) as mock_client:
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.content = """
@@ -127,7 +135,9 @@ async def test_generate_api_spec(mock_diagram_converter):
     # বাংলা মন্তব্য: Flowchart থেকে API spec (OpenAPI) জেনারেশন টেস্ট
     converter = DiagramToArchitecture()
 
-    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_client:
+    with patch(
+        "brain.model_router.ModelRouter.async_route_and_generate"
+    ) as mock_client:
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.content = """

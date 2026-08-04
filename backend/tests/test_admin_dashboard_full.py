@@ -22,33 +22,18 @@ import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from api.routes.admin_dashboard import (RouterOverrideRequest, UserUpdate,
+                                        _acquire_env_lock, _release_env_lock,
+                                        create_user, delete_user,
+                                        get_codebase_export, get_cost_caps,
+                                        get_costs, get_env_etag,
+                                        get_health_map, get_metrics,
+                                        get_model_router, get_providers,
+                                        get_users, load_cost_caps, load_users,
+                                        logs_stream, save_cost_caps,
+                                        save_users, set_router_override,
+                                        trigger_deploy, update_cost_caps)
 from fastapi import HTTPException
-
-from api.routes.admin_dashboard import (
-    RouterOverrideRequest,
-    UserUpdate,
-    _acquire_env_lock,
-    _release_env_lock,
-    create_user,
-    delete_user,
-    get_codebase_export,
-    get_cost_caps,
-    get_costs,
-    get_env_etag,
-    get_health_map,
-    get_metrics,
-    get_model_router,
-    get_providers,
-    get_users,
-    load_cost_caps,
-    load_users,
-    logs_stream,
-    save_cost_caps,
-    save_users,
-    set_router_override,
-    trigger_deploy,
-    update_cost_caps,
-)
 
 # ── Helpers ────────────────────────────────────────────────────────────
 
@@ -97,7 +82,9 @@ class TestLoadSaveUsers:
     def test_load_users_existing_file(self, temp_users_file):
         """File exists → loads from file."""
         with open(temp_users_file, "w") as f:
-            json.dump([{"username": "custom", "role": "Admin", "permissions": ["all"]}], f)
+            json.dump(
+                [{"username": "custom", "role": "Admin", "permissions": ["all"]}], f
+            )
         users = load_users()
         assert len(users) == 1
         assert users[0]["username"] == "custom"
@@ -139,7 +126,9 @@ class TestUserCRUD:
 
     def test_create_user_updates_existing(self, temp_users_file):
         """Creating an existing user updates them."""
-        user = UserUpdate(username="admin", role="SuperAdmin", permissions=["all", "delete"])
+        user = UserUpdate(
+            username="admin", role="SuperAdmin", permissions=["all", "delete"]
+        )
         result = create_user(user)
         assert result["status"] == "success"
         assert "updated" in result["message"]
@@ -169,7 +158,9 @@ class TestGetCosts:
         """CostAuditor returns no text_report → returns unavailable message."""
         with patch("api.routes.admin_dashboard.CostAuditor") as mock_cls:
             mock_auditor = MagicMock()
-            mock_auditor.generate_report.return_value = {"text_report": str(tmp_path / "nonexistent.md")}
+            mock_auditor.generate_report.return_value = {
+                "text_report": str(tmp_path / "nonexistent.md")
+            }
             mock_cls.return_value = mock_auditor
             result = get_costs()
         assert result["status"] == "ok"
@@ -181,7 +172,9 @@ class TestGetCosts:
         report_file.write_text("# Cost Report\nSome content")
         with patch("api.routes.admin_dashboard.CostAuditor") as mock_cls:
             mock_auditor = MagicMock()
-            mock_auditor.generate_report.return_value = {"text_report": str(report_file)}
+            mock_auditor.generate_report.return_value = {
+                "text_report": str(report_file)
+            }
             mock_cls.return_value = mock_auditor
             result = get_costs()
         assert result["status"] == "ok"
@@ -221,7 +214,9 @@ class TestGetHealthMap:
             "UPSTASH_REDIS_REST_URL": "https://redis.upstash.com",
             "SUPABASE_DATABASE_URL_POOLER": "postgresql://db",
         }
-        monkeypatch.setattr(settings, "_get_cached_secret", lambda k: secrets_map.get(k, ""))
+        monkeypatch.setattr(
+            settings, "_get_cached_secret", lambda k: secrets_map.get(k, "")
+        )
         result = get_health_map()
         assert result["gcp"]["status"] == "healthy"
         assert result["railway"]["status"] == "healthy"
@@ -328,7 +323,9 @@ class TestModelRouter:
 
     def test_set_router_override(self):
         """Sets override and returns success."""
-        payload = RouterOverrideRequest(provider="openrouter", model="gpt-4o", remaining_requests=100)
+        payload = RouterOverrideRequest(
+            provider="openrouter", model="gpt-4o", remaining_requests=100
+        )
         result = set_router_override(payload)
         assert result["status"] == "success"
         assert result["override"]["provider"] == "openrouter"
@@ -569,7 +566,9 @@ class TestLogsStream:
                 mock_open.return_value = MagicMock(
                     __enter__=MagicMock(
                         return_value=MagicMock(
-                            readlines=MagicMock(return_value=["line1\n", "line2\n", "line3\n"]),
+                            readlines=MagicMock(
+                                return_value=["line1\n", "line2\n", "line3\n"]
+                            ),
                             readline=MagicMock(return_value=""),
                             seek=MagicMock(),
                             close=MagicMock(),

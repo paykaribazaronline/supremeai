@@ -45,7 +45,9 @@ class BhashaBot:
     ) -> None:
         if model_router is None:
             if ModelRouter is None:
-                raise RuntimeError("ModelRouter import failed - brain.model_router unavailable")
+                raise RuntimeError(
+                    "ModelRouter import failed - brain.model_router unavailable"
+                )
             model_router = ModelRouter()
         self.model_router = model_router
         self.cache_ttl_hours = cache_ttl_hours

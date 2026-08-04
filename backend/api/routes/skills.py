@@ -23,7 +23,9 @@ async def get_active_skill_catalog():
     """
     if not MANIFEST_DIR.exists():
         logger.error(f"Manifest directory not found at: {MANIFEST_DIR}")
-        raise HTTPException(status_code=500, detail="Skill catalog repository is unavailable.")
+        raise HTTPException(
+            status_code=500, detail="Skill catalog repository is unavailable."
+        )
 
     catalog = []
 
@@ -32,18 +34,24 @@ async def get_active_skill_catalog():
         try:
             # ডিফেন্সিভ চেক: পাথটি সত্যিই আমাদের ডিরেক্টরির ভেতরে কিনা
             if not json_file.resolve().is_relative_to(MANIFEST_DIR):
-                logger.warning(f"Path traversal attempt blocked during catalog scan: {json_file}")
+                logger.warning(
+                    f"Path traversal attempt blocked during catalog scan: {json_file}"
+                )
                 continue
 
             manifest_data = json.loads(json_file.read_text(encoding="utf-8"))
             catalog.append(manifest_data)
 
         except json.JSONDecodeError as jde:
-            logger.error(f"Malformed JSON schema detected in manifest {json_file.name}: {jde!s}")
+            logger.error(
+                f"Malformed JSON schema detected in manifest {json_file.name}: {jde!s}"
+            )
             continue
         except Exception as e:
             logger.error(f"Failed to read manifest file {json_file.name}: {e!s}")
             continue
 
-    logger.info(f"Successfully broadcasted {len(catalog)} active skills to the frontend dashboard.")
+    logger.info(
+        f"Successfully broadcasted {len(catalog)} active skills to the frontend dashboard."
+    )
     return catalog

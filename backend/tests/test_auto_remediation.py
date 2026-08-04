@@ -2,7 +2,6 @@ import os
 from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 
 import pytest
-
 from core.resilience.auto_remediation import AutoRemediation
 
 
@@ -76,7 +75,9 @@ async def test_process_security_alert_happy_path(monkeypatch):
     m = mock_open(read_data="print('original')\n")
 
     class DummyPipeline:
-        async def submit(self, tenant_id, issue, fixed_code, impact_score, dependency_tree):
+        async def submit(
+            self, tenant_id, issue, fixed_code, impact_score, dependency_tree
+        ):
             assert tenant_id == "t1"
             assert "fixed" in fixed_code.lower() or fixed_code.startswith("#")
             assert 0.0 <= impact_score <= 1.0

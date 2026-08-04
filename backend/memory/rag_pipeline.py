@@ -1,8 +1,7 @@
 from typing import Any
 
-from loguru import logger
-
 from core.llm.llm_gateway import GatewayManager
+from loguru import logger
 
 from .chromadb_store import ChromaDBStore
 
@@ -13,7 +12,9 @@ class RAGPipeline:
     def __init__(self, vector_store: ChromaDBStore = None):
         self.vector_store = vector_store or ChromaDBStore()
 
-    def chunk_text(self, text: str, chunk_size: int = 500, overlap: int = 100) -> list[str]:
+    def chunk_text(
+        self, text: str, chunk_size: int = 500, overlap: int = 100
+    ) -> list[str]:
         words = text.split()
         chunks = []
         i = 0
@@ -26,7 +27,9 @@ class RAGPipeline:
                 break
         return chunks
 
-    def ingest_document(self, doc_id: str, content: str, metadata: dict[str, Any] | None = None):
+    def ingest_document(
+        self, doc_id: str, content: str, metadata: dict[str, Any] | None = None
+    ):
         if metadata is None:
             metadata = {}
         chunks = self.chunk_text(content)
@@ -57,7 +60,9 @@ class RAGPipeline:
                 model="gemini/gemini-2.5-flash",
             )
             hypothetical_answer = hypo_response.get("text", query)
-            logger.debug(f"HyDE generated hypothetical answer for search: {hypothetical_answer[:50]}...")
+            logger.debug(
+                f"HyDE generated hypothetical answer for search: {hypothetical_answer[:50]}..."
+            )
 
             # Search using the hypothetical answer
             results = self.vector_store.query(hypothetical_answer, n_results=limit)
@@ -67,5 +72,7 @@ class RAGPipeline:
                     context_parts.append(doc_data["text"])
             return "\n---\n".join(context_parts)
         except Exception as e:
-            logger.error(f"HyDE retrieval failed, falling back to standard retrieval: {e}")
+            logger.error(
+                f"HyDE retrieval failed, falling back to standard retrieval: {e}"
+            )
             return self.retrieve_context(query, limit)

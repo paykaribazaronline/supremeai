@@ -29,7 +29,6 @@ Fixes Applied (Autonomous Architecture Audit):
 - 🟢 [LOW] Added `insert_error_pattern()` for self-healing capability
 """
 
-from core.error_bus import with_error_bus
 import asyncio
 import hashlib
 import json
@@ -37,10 +36,10 @@ import os
 from collections.abc import Callable
 from pathlib import Path
 
-from loguru import logger
-
+from core.error_bus import with_error_bus
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 from core.resilience.circuit_breaker import CircuitBreaker
+from loguru import logger
 
 # ── Embedding Provider ─────────────────────────────────────────────────────────
 _SENTENCE_TRANSFORMER_AVAILABLE = False
@@ -77,10 +76,14 @@ def _compute_embedding(text: str, vector_size: int = 384) -> list[float]:
             if _SENTENCE_TRANSFORMER_MODEL is None:
                 # বাংলা মন্তব্য: Lazy load — all-MiniLM-L6-v2 (384-dim) Qdrant-এর সাথে compatible
                 _SENTENCE_TRANSFORMER_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
-            embedding = _SENTENCE_TRANSFORMER_MODEL.encode(text, normalize_embeddings=True)
+            embedding = _SENTENCE_TRANSFORMER_MODEL.encode(
+                text, normalize_embeddings=True
+            )
             return embedding.tolist()  # type: ignore[union-attr]
         except Exception as exc:
-            logger.debug(f"sentence-transformers encode failed, falling back to hash embedding: {exc}")
+            logger.debug(
+                f"sentence-transformers encode failed, falling back to hash embedding: {exc}"
+            )
 
     # ── Deterministic hash-based fallback ──────────────────────────────────────
     # বাংলা মন্তব্য: SHA-256-এর প্রতিটি বাইটকে [0,1] রেঞ্জে normalize করে
@@ -113,7 +116,9 @@ except (ImportError, TypeError, Exception):
 # Qdrant default collection configuration
 QDRANT_COLLECTION_NAME = "error_patterns"
 QDRANT_VECTOR_SIZE = 384
-QDRANT_DISTANCE = qdrant_models.Distance.COSINE if (HAS_QDRANT and qdrant_models) else None
+QDRANT_DISTANCE = (
+    qdrant_models.Distance.COSINE if (HAS_QDRANT and qdrant_models) else None
+)
 
 
 class ErrorRemediation:
@@ -127,12 +132,18 @@ class ErrorRemediation:
     def __init__(self) -> None:
         self._qdrant: QdrantClient | None = None
         self._qdrant_initialized: bool = False
-        self.fallback_path = Path(__file__).parent.parent / "data" / "error_remediation_fallback.json"
-        self.circuit_breaker = CircuitBreaker(name="qdrant", failure_threshold=3, recovery_timeout=60.0)
+        self.fallback_path = (
+            Path(__file__).parent.parent / "data" / "error_remediation_fallback.json"
+        )
+        self.circuit_breaker = CircuitBreaker(
+            name="qdrant", failure_threshold=3, recovery_timeout=60.0
+        )
         self._ensure_fallback_file()
 
         # Listen for escalating errors to trigger RefactorWiz
-        error_event_bus.register_listener("SILENT_PATTERN_ESCALATED", self._trigger_refactor_wiz)
+        error_event_bus.register_listener(
+            "SILENT_PATTERN_ESCALATED", self._trigger_refactor_wiz
+        )
 
     def _trigger_refactor_wiz(self, event: ErrorEvent):
         """বাংলা মন্তব্য: Automatically triggers RefactorWiz to generate a patch for escalated silent patterns."""
@@ -140,7 +151,9 @@ class ErrorRemediation:
         if not module_name or module_name == "unknown":
             return
 
-        logger.info(f"🚀 SILENT_PATTERN_ESCALATED for {module_name}. Triggering Auto-Patch via RefactorWiz...")
+        logger.info(
+            f"🚀 SILENT_PATTERN_ESCALATED for {module_name}. Triggering Auto-Patch via RefactorWiz..."
+        )
 
         # We run this in the background
         async def _run_wiz():
@@ -150,10 +163,18 @@ class ErrorRemediation:
                 if not os.path.exists(file_path):
                     file_path = "backend/" + file_path
                 if not os.path.exists(file_path):
-                    logger.warning(f"Could not resolve {module_name} to a file for RefactorWiz.")
+                    logger.warning(
+                        f"Could not resolve {module_name} to a file for RefactorWiz."
+                    )
                     return
 
-                cmd = ["python", "scripts/devops/refactor_wiz.py", "--files", file_path, "--no-prompt"]
+                cmd = [
+                    "python",
+                    "scripts/devops/refactor_wiz.py",
+                    "--files",
+                    file_path,
+                    "--no-prompt",
+                ]
                 proc = await asyncio.create_subprocess_exec(
                     *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
                 )
@@ -161,7 +182,9 @@ class ErrorRemediation:
                 if proc.returncode == 0:
                     logger.info(f"✅ RefactorWiz auto-patch completed for {file_path}")
                 else:
-                    logger.error(f"❌ RefactorWiz auto-patch failed for {file_path}:\n{stderr.decode()}")
+                    logger.error(
+                        f"❌ RefactorWiz auto-patch failed for {file_path}:\n{stderr.decode()}"
+                    )
             except Exception as e:
                 logger.error(f"Error triggering RefactorWiz: {e}")
 
@@ -202,7 +225,9 @@ class ErrorRemediation:
             self._qdrant_initialized = True
             logger.info(f"✅ Qdrant error remediation client connected ({qdrant_url})")
         except Exception as exc:
-            logger.warning(f"⚠️ Qdrant initialization failed: {exc}. Using local fallback only.")
+            logger.warning(
+                f"⚠️ Qdrant initialization failed: {exc}. Using local fallback only."
+            )
             self._qdrant = None
             self._qdrant_initialized = True
 
@@ -221,7 +246,9 @@ class ErrorRemediation:
                         distance=QDRANT_DISTANCE or qdrant_models.Distance.COSINE,
                     ),
                 )
-                logger.info(f"✅ Created Qdrant collection '{QDRANT_COLLECTION_NAME}' (size={QDRANT_VECTOR_SIZE})")
+                logger.info(
+                    f"✅ Created Qdrant collection '{QDRANT_COLLECTION_NAME}' (size={QDRANT_VECTOR_SIZE})"
+                )
 
             # DLQ Collection
             if "failed_fixes" not in existing_names:
@@ -234,7 +261,9 @@ class ErrorRemediation:
                 )
                 logger.info("✅ Created Qdrant collection 'failed_fixes' (DLQ)")
         except UnexpectedResponse as exc:
-            logger.warning(f"Qdrant collection check failed (may already exist or service unavailable): {exc}")
+            logger.warning(
+                f"Qdrant collection check failed (may already exist or service unavailable): {exc}"
+            )
 
     # ── Fallback file management ───────────────────────────────────────────────
 
@@ -274,7 +303,10 @@ class ErrorRemediation:
                             severity="ERROR",
                             structured_context=ErrorContext(
                                 module="error_remediation",
-                                extra={"file_path": str(self.fallback_path), "exception": str(file_write_exc)[:200]},
+                                extra={
+                                    "file_path": str(self.fallback_path),
+                                    "exception": str(file_write_exc)[:200],
+                                },
                             ),
                         )
                     )
@@ -291,7 +323,10 @@ class ErrorRemediation:
                     severity="ERROR",
                     structured_context=ErrorContext(
                         module="error_remediation",
-                        extra={"file_path": str(self.fallback_path), "exception": str(exc)[:200]},
+                        extra={
+                            "file_path": str(self.fallback_path),
+                            "exception": str(exc)[:200],
+                        },
                     ),
                 )
             )
@@ -327,22 +362,31 @@ class ErrorRemediation:
                         severity="ERROR",
                         structured_context=ErrorContext(
                             module="error_remediation",
-                            extra={"file_path": str(self.fallback_path), "exception": str(je)[:200]},
+                            extra={
+                                "file_path": str(self.fallback_path),
+                                "exception": str(je)[:200],
+                            },
                         ),
                     )
                 )
-                return data.get("fallbacks", {}).get("default")  # Use default if JSON is invalid
+                return data.get("fallbacks", {}).get(
+                    "default"
+                )  # Use default if JSON is invalid
 
             # Try keyword-specific fallback first
             if error_sig:
                 sig_lower = error_sig.lower()
                 for keyword, fix in data.get("fallbacks", {}).items():
                     if keyword in sig_lower:
-                        logger.debug(f"Found keyword match for '{keyword}' in error signature")
+                        logger.debug(
+                            f"Found keyword match for '{keyword}' in error signature"
+                        )
                         return fix
 
             # Return default fallback
-            default_fix = data.get("default_fix") or data.get("fallbacks", {}).get("default")
+            default_fix = data.get("default_fix") or data.get("fallbacks", {}).get(
+                "default"
+            )
             if not default_fix:
                 logger.warning("No default fix found in fallback file")
                 error_event_bus.emit(
@@ -352,14 +396,17 @@ class ErrorRemediation:
                         message="No default fix found in fallback file",
                         severity="WARNING",
                         structured_context=ErrorContext(
-                            module="error_remediation", extra={"file_path": str(self.fallback_path)}
+                            module="error_remediation",
+                            extra={"file_path": str(self.fallback_path)},
                         ),
                     )
                 )
             return default_fix
 
         except Exception as exc:  # Catch any unexpected errors
-            logger.error(f"Unexpected error loading local fallback: {exc}", exc_info=True)
+            logger.error(
+                f"Unexpected error loading local fallback: {exc}", exc_info=True
+            )
             error_event_bus.emit(
                 ErrorEvent(
                     module="error_remediation",
@@ -368,7 +415,10 @@ class ErrorRemediation:
                     severity="ERROR",
                     structured_context=ErrorContext(
                         module="error_remediation",
-                        extra={"file_path": str(self.fallback_path), "exception": str(exc)[:200]},
+                        extra={
+                            "file_path": str(self.fallback_path),
+                            "exception": str(exc)[:200],
+                        },
                     ),
                 )
             )
@@ -384,7 +434,9 @@ class ErrorRemediation:
             from core.cache.redis_manager import redis_manager
 
             if redis_manager and redis_manager.client:
-                cache_key = f"remediation:fix:{hashlib.sha256(error_sig.encode()).hexdigest()}"
+                cache_key = (
+                    f"remediation:fix:{hashlib.sha256(error_sig.encode()).hexdigest()}"
+                )
                 fix = await redis_manager.client.get(cache_key)
                 if fix:
                     logger.info("✅ Found remediation in Redis fallback cache.")
@@ -398,7 +450,11 @@ class ErrorRemediation:
                     message=f"Redis fallback failed: {exc}",
                     severity="WARNING",
                     structured_context=ErrorContext(
-                        module="error_remediation", extra={"error_sig": error_sig[:200], "exception": str(exc)[:200]}
+                        module="error_remediation",
+                        extra={
+                            "error_sig": error_sig[:200],
+                            "exception": str(exc)[:200],
+                        },
                     ),
                 )
             )
@@ -406,7 +462,9 @@ class ErrorRemediation:
 
     # ── Circuit-breaking retry ─────────────────────────────────────────────────
 
-    async def _backoff_retry(self, operation: Callable, max_attempts: int = 3, base_delay: float = 0.5):
+    async def _backoff_retry(
+        self, operation: Callable, max_attempts: int = 3, base_delay: float = 0.5
+    ):
         """Execute an async operation with exponential backoff and circuit breaking.
 
         Args:
@@ -429,7 +487,9 @@ class ErrorRemediation:
             except Exception as exc:
                 last_exception = exc
                 self.circuit_breaker.mark_failure()
-                logger.debug(f"Qdrant lookup attempt {attempt}/{max_attempts} failed: {exc}")
+                logger.debug(
+                    f"Qdrant lookup attempt {attempt}/{max_attempts} failed: {exc}"
+                )
                 if attempt < max_attempts:
                     await asyncio.sleep(min(base_delay * (2 ** (attempt - 1)), 5.0))
 
@@ -459,7 +519,9 @@ class ErrorRemediation:
                     error_type="EMPTY_ERROR_SIGNATURE",
                     message="Empty error signature provided",
                     severity="WARNING",
-                    structured_context=ErrorContext(module="error_remediation", extra={"error_sig": ""}),
+                    structured_context=ErrorContext(
+                        module="error_remediation", extra={"error_sig": ""}
+                    ),
                 )
             )
             return None
@@ -471,7 +533,9 @@ class ErrorRemediation:
                 error_type="QDRANT_LOOKUP_INITIATED",
                 message="Starting Qdrant remediation lookup",
                 severity="DEBUG",
-                structured_context=ErrorContext(module="error_remediation", extra={"error_sig": error_sig[:200]}),
+                structured_context=ErrorContext(
+                    module="error_remediation", extra={"error_sig": error_sig[:200]}
+                ),
             )
         )
 
@@ -480,7 +544,9 @@ class ErrorRemediation:
             self._init_qdrant()
 
             if not HAS_QDRANT:
-                logger.warning("Qdrant not available — skipping vector search, using fallback only")
+                logger.warning(
+                    "Qdrant not available — skipping vector search, using fallback only"
+                )
                 error_event_bus.emit(
                     ErrorEvent(
                         module="error_remediation",
@@ -488,7 +554,8 @@ class ErrorRemediation:
                         message="Qdrant not available, using fallback",
                         severity="WARNING",
                         structured_context=ErrorContext(
-                            module="error_remediation", extra={"error_sig": error_sig[:200]}
+                            module="error_remediation",
+                            extra={"error_sig": error_sig[:200]},
                         ),
                     )
                 )
@@ -514,7 +581,9 @@ class ErrorRemediation:
             if results and results[0].payload:
                 fix: str | None = results[0].payload.get("fix")
                 if fix:
-                    logger.info(f"✅ Found Qdrant remediation (score={results[0].score:.3f})")
+                    logger.info(
+                        f"✅ Found Qdrant remediation (score={results[0].score:.3f})"
+                    )
                     return fix
 
             error_event_bus.emit(
@@ -523,7 +592,9 @@ class ErrorRemediation:
                     error_type="QDRANT_NO_FIX_FOUND",
                     message="No remediation found in Qdrant for error signature",
                     severity="INFO",
-                    structured_context=ErrorContext(module="error_remediation", extra={"error_sig": error_sig[:200]}),
+                    structured_context=ErrorContext(
+                        module="error_remediation", extra={"error_sig": error_sig[:200]}
+                    ),
                 )
             )
 
@@ -533,11 +604,15 @@ class ErrorRemediation:
                     collection_name="failed_fixes",
                     points=[
                         qdrant_models.PointStruct(
-                            id=abs(hash(error_sig)) % (10**12), vector=embedding, payload={"error_sig": error_sig[:500]}
+                            id=abs(hash(error_sig)) % (10**12),
+                            vector=embedding,
+                            payload={"error_sig": error_sig[:500]},
                         )
                     ],
                 )
-                logger.debug("Inserted unresolved error signature into DLQ (failed_fixes collection).")
+                logger.debug(
+                    "Inserted unresolved error signature into DLQ (failed_fixes collection)."
+                )
             except Exception as dlq_exc:
                 logger.warning(f"Failed to insert into DLQ: {dlq_exc}")
                 error_event_bus.emit(
@@ -548,7 +623,10 @@ class ErrorRemediation:
                         severity="WARNING",
                         structured_context=ErrorContext(
                             module="error_remediation",
-                            extra={"error_sig": error_sig[:200], "exception": str(dlq_exc)[:200]},
+                            extra={
+                                "error_sig": error_sig[:200],
+                                "exception": str(dlq_exc)[:200],
+                            },
                         ),
                     )
                 )
@@ -567,7 +645,11 @@ class ErrorRemediation:
                     message=f"Unexpected error in lookup_fix: {exc}",
                     severity="ERROR",
                     structured_context=ErrorContext(
-                        module="error_remediation", extra={"error_sig": error_sig[:200], "exception": str(exc)[:200]}
+                        module="error_remediation",
+                        extra={
+                            "error_sig": error_sig[:200],
+                            "exception": str(exc)[:200],
+                        },
                     ),
                 )
             )
@@ -612,7 +694,9 @@ class ErrorRemediation:
                     )
                 ],
             )
-            logger.info(f"✅ Inserted error pattern ({len(embedding)}-dim): {error_sig[:80]}")
+            logger.info(
+                f"✅ Inserted error pattern ({len(embedding)}-dim): {error_sig[:80]}"
+            )
             error_event_bus.emit(
                 ErrorEvent(
                     module="error_remediation",

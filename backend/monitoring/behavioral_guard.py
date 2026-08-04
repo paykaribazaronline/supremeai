@@ -33,7 +33,9 @@ class BehavioralGuard:
         """Check if an agent is currently blocked due to anomalous behavior."""
         return agent_id in self._blocked_agents
 
-    def record_action(self, agent_id: str, action_type: str, prompt_or_command: str) -> dict[str, Any]:
+    def record_action(
+        self, agent_id: str, action_type: str, prompt_or_command: str
+    ) -> dict[str, Any]:
         """
         Record and analyze an agent action for behavioral anomalies.
         Returns evaluation dict with success status and potential anomaly alerts.
@@ -46,7 +48,9 @@ class BehavioralGuard:
 
         now = time.time()
         # Clean older timestamps (older than 60 seconds)
-        self._action_timestamps[agent_id] = [t for t in self._action_timestamps[agent_id] if now - t < 60.0]
+        self._action_timestamps[agent_id] = [
+            t for t in self._action_timestamps[agent_id] if now - t < 60.0
+        ]
         self._action_timestamps[agent_id].append(now)
 
         # Check call frequency anomaly
@@ -71,7 +75,9 @@ class BehavioralGuard:
         recent_identical = history.count(prompt_or_command)
         if recent_identical >= self.ANOMALY_THRESHOLDS["max_identical_prompts"]:
             self._blocked_agents.add(agent_id)
-            logger.error(f"🚨 Behavioral Guard Alert: Agent '{agent_id}' detected in infinite execution loop. BLOCKED.")
+            logger.error(
+                f"🚨 Behavioral Guard Alert: Agent '{agent_id}' detected in infinite execution loop. BLOCKED."
+            )
             return {
                 "allowed": False,
                 "reason": "Infinite prompt execution loop detected.",
@@ -79,7 +85,12 @@ class BehavioralGuard:
             }
 
         # Check for malicious patterns (e.g. sandbox escapes)
-        suspicious_keywords = ["rm -rf /", "drop database", "chmod 777 /", "../../../etc/passwd"]
+        suspicious_keywords = [
+            "rm -rf /",
+            "drop database",
+            "chmod 777 /",
+            "../../../etc/passwd",
+        ]
         for kw in suspicious_keywords:
             if kw in prompt_or_command.lower():
                 self._blocked_agents.add(agent_id)

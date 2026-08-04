@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os
-import sys
+
 
 def main():
     print("🛡️ Cost Guard Monitor is active.")
@@ -14,6 +14,7 @@ def main():
         with open(summary_file, "a", encoding="utf-8") as f:
             f.write("## 🛡️ Cost Guard Monitor\n")
             f.write("✅ API usages are well within the daily budget limit.\n")
+
 
 if __name__ == "__main__":
     main()

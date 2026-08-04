@@ -9,7 +9,6 @@ import time
 from unittest.mock import patch
 
 import pytest
-
 from core.health.health_monitor import HealthMonitor
 
 
@@ -37,7 +36,9 @@ def test_health_monitor_initialization_without_prometheus():
 
 @pytest.mark.anyio
 async def test_get_system_metrics_structure(monitor):
-    with patch("psutil.cpu_percent", return_value=50.0), patch("psutil.virtual_memory") as mock_vm:
+    with patch("psutil.cpu_percent", return_value=50.0), patch(
+        "psutil.virtual_memory"
+    ) as mock_vm:
         mock_vm.return_value.percent = 40.0
         mock_vm.return_value.available = 1024 * 1024 * 1024
         metrics = await monitor.get_system_metrics()
@@ -54,7 +55,9 @@ async def test_get_system_metrics_structure(monitor):
 
 @pytest.mark.anyio
 async def test_get_system_metrics_degraded(monitor):
-    with patch("psutil.cpu_percent", return_value=95.0), patch("psutil.virtual_memory") as mock_vm:
+    with patch("psutil.cpu_percent", return_value=95.0), patch(
+        "psutil.virtual_memory"
+    ) as mock_vm:
         mock_vm.return_value.percent = 95.0
         mock_vm.return_value.available = 1024 * 1024
         metrics = await monitor.get_system_metrics()
@@ -63,7 +66,9 @@ async def test_get_system_metrics_degraded(monitor):
 
 @pytest.mark.anyio
 async def test_get_system_metrics_degraded_memory(monitor):
-    with patch("psutil.cpu_percent", return_value=10.0), patch("psutil.virtual_memory") as mock_vm:
+    with patch("psutil.cpu_percent", return_value=10.0), patch(
+        "psutil.virtual_memory"
+    ) as mock_vm:
         mock_vm.return_value.percent = 95.0
         mock_vm.return_value.available = 1024 * 1024
         metrics = await monitor.get_system_metrics()
@@ -78,7 +83,9 @@ async def test_get_system_metrics_prometheus_update(monitor):
     monitor.memory_available_mb = MagicMock()
     monitor.active_tasks = MagicMock()
     monitor.status = MagicMock()
-    with patch("psutil.cpu_percent", return_value=50.0), patch("psutil.virtual_memory") as mock_vm:
+    with patch("psutil.cpu_percent", return_value=50.0), patch(
+        "psutil.virtual_memory"
+    ) as mock_vm:
         mock_vm.return_value.percent = 40.0
         mock_vm.return_value.available = 1024 * 1024 * 1024
         await monitor.get_system_metrics()
@@ -92,7 +99,9 @@ async def test_get_system_metrics_prometheus_update(monitor):
 async def test_get_system_metrics_prometheus_update_failure(monitor):
     monitor.uptime_seconds = MagicMock()
     monitor.uptime_seconds.set.side_effect = Exception("Prometheus error")
-    with patch("psutil.cpu_percent", return_value=50.0), patch("psutil.virtual_memory") as mock_vm:
+    with patch("psutil.cpu_percent", return_value=50.0), patch(
+        "psutil.virtual_memory"
+    ) as mock_vm:
         mock_vm.return_value.percent = 40.0
         mock_vm.return_value.available = 1024 * 1024
         metrics = await monitor.get_system_metrics()
@@ -146,7 +155,9 @@ def test_health_monitor_uptime_increases():
     ):
         m = HealthMonitor(metrics_port=9091)
     time.sleep(0.01)
-    with patch("psutil.cpu_percent", return_value=0.0), patch("psutil.virtual_memory") as mock_vm:
+    with patch("psutil.cpu_percent", return_value=0.0), patch(
+        "psutil.virtual_memory"
+    ) as mock_vm:
         mock_vm.return_value.percent = 0.0
         mock_vm.return_value.available = 1024 * 1024 * 1024
         loop = asyncio.new_event_loop()

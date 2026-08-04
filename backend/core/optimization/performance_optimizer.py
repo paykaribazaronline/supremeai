@@ -19,7 +19,6 @@ Bengali:
 - রিসোর্স পুলিং
 """
 
-from core.error_bus import with_error_bus
 import asyncio
 import time
 import tracemalloc
@@ -28,6 +27,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
+from core.error_bus import with_error_bus
 from loguru import logger
 
 try:
@@ -194,10 +194,14 @@ class QueryOptimizer:
 
         # Simple heuristics for optimization suggestions
         if "WHERE" not in query.upper():
-            analysis["suggested_optimizations"].append("Consider adding WHERE clause for filtering")
+            analysis["suggested_optimizations"].append(
+                "Consider adding WHERE clause for filtering"
+            )
 
         if "ORDER BY" in query.upper() and "LIMIT" not in query.upper():
-            analysis["suggested_optimizations"].append("Consider adding LIMIT for better performance")
+            analysis["suggested_optimizations"].append(
+                "Consider adding LIMIT for better performance"
+            )
 
         return analysis
 
@@ -234,7 +238,11 @@ class QueryOptimizer:
 
         # Add suggestions to stats
         if query not in self.query_stats:
-            self.query_stats[query] = {"executions": 0, "avg_time": 0.0, "last_executed": 0}
+            self.query_stats[query] = {
+                "executions": 0,
+                "avg_time": 0.0,
+                "last_executed": 0,
+            }
 
         self.query_stats[query]["executions"] += 1
 
@@ -386,11 +394,17 @@ class PerformanceOptimizer:
 
     def __init__(self, level: OptimizationLevel = OptimizationLevel.MODERATE):
         self.level = level
-        self.cache = AsyncLRUCache(maxsize=1000 if level == OptimizationLevel.AGGRESSIVE else 500)
+        self.cache = AsyncLRUCache(
+            maxsize=1000 if level == OptimizationLevel.AGGRESSIVE else 500
+        )
         self.query_optimizer = QueryOptimizer()
-        self.pool_manager = AsyncPoolManager(max_connections=20 if level == OptimizationLevel.AGGRESSIVE else 10)
+        self.pool_manager = AsyncPoolManager(
+            max_connections=20 if level == OptimizationLevel.AGGRESSIVE else 10
+        )
         self.metrics = PerfMetrics()
-        self.executor = ThreadPoolExecutor(max_workers=4 if level == OptimizationLevel.AGGRESSIVE else 2)
+        self.executor = ThreadPoolExecutor(
+            max_workers=4 if level == OptimizationLevel.AGGRESSIVE else 2
+        )
 
         # System monitoring
         self.monitoring_task = None
@@ -428,7 +442,8 @@ class PerformanceOptimizer:
                 # Log metrics periodically
                 if self.metrics.request_count % 100 == 0:
                     logger.info(
-                        f"System metrics - CPU: {self.metrics.cpu_usage}%, " f"Memory: {self.metrics.memory_usage}%"
+                        f"System metrics - CPU: {self.metrics.cpu_usage}%, "
+                        f"Memory: {self.metrics.memory_usage}%"
                     )
 
                 await asyncio.sleep(5)  # Monitor every 5 seconds
@@ -490,7 +505,9 @@ class PerformanceOptimizer:
                 # Manage cache size
                 if len(self.cache.cache) > self.cache.maxsize:
                     # Remove oldest item
-                    oldest_key = min(self.cache.access_order, key=self.cache.access_order.get)
+                    oldest_key = min(
+                        self.cache.access_order, key=self.cache.access_order.get
+                    )
                     del self.cache.cache[oldest_key]
                     del self.cache.access_order[oldest_key]
 
@@ -524,7 +541,8 @@ class PerformanceOptimizer:
             "current_metrics": {
                 "request_count": self.metrics.request_count,
                 "avg_response_time": self.metrics.avg_response_time,
-                "cache_hit_rate": self.metrics.cache_hits / max(1, self.metrics.cache_hits + self.metrics.cache_misses),
+                "cache_hit_rate": self.metrics.cache_hits
+                / max(1, self.metrics.cache_hits + self.metrics.cache_misses),
                 "db_avg_time": self.metrics.db_avg_time,
                 "cpu_usage": self.metrics.cpu_usage,
                 "memory_usage": self.metrics.memory_usage,
@@ -553,7 +571,9 @@ class PerformanceOptimizer:
             if key in self.cache.access_order:
                 del self.cache.access_order[key]
 
-    async def batch_process(self, items: list[Any], processor: Callable, batch_size: int = 10) -> list[Any]:
+    async def batch_process(
+        self, items: list[Any], processor: Callable, batch_size: int = 10
+    ) -> list[Any]:
         """Process items in batches for better performance."""
         results = []
 
@@ -561,7 +581,9 @@ class PerformanceOptimizer:
             batch = items[i : i + batch_size]
 
             # Process batch concurrently
-            batch_results = await asyncio.gather(*[processor(item) for item in batch], return_exceptions=True)
+            batch_results = await asyncio.gather(
+                *[processor(item) for item in batch], return_exceptions=True
+            )
 
             for idx, result in enumerate(batch_results):
                 if isinstance(result, BaseException):
@@ -577,7 +599,9 @@ class PerformanceOptimizer:
 _performance_optimizer: PerformanceOptimizer | None = None
 
 
-def get_performance_optimizer(level: OptimizationLevel = OptimizationLevel.MODERATE) -> PerformanceOptimizer:
+def get_performance_optimizer(
+    level: OptimizationLevel = OptimizationLevel.MODERATE,
+) -> PerformanceOptimizer:
     """Get or create the global performance optimizer instance."""
     global _performance_optimizer
     if _performance_optimizer is None:
@@ -615,7 +639,9 @@ async def demo_performance_optimization():
 
     # Demonstrate query optimization
     print("\nTesting query optimization...")
-    optimized = await optimizer.optimize_database_access("SELECT * FROM users WHERE id = 1")
+    optimized = await optimizer.optimize_database_access(
+        "SELECT * FROM users WHERE id = 1"
+    )
     print(f"Optimized query: {optimized}")
 
     # Get performance report

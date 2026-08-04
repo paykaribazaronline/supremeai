@@ -3,10 +3,10 @@ import sys
 import time
 from unittest.mock import AsyncMock, patch
 
-from loguru import logger
-
 from core.llm.llm_gateway import llm_gateway
-from core.orchestration.cloud_sandbox_orchestrator import CloudSandboxOrchestrator
+from core.orchestration.cloud_sandbox_orchestrator import \
+    CloudSandboxOrchestrator
+from loguru import logger
 from utils.firestore_helpers import get_firestore_db
 
 logger.remove()
@@ -34,7 +34,12 @@ async def main():
 
     # Pre-configure mock DB if needed
     if db:
-        budget_ref = db.collection("tenants").document(tenant_id).collection("budget").document("current")
+        budget_ref = (
+            db.collection("tenants")
+            .document(tenant_id)
+            .collection("budget")
+            .document("current")
+        )
         await budget_ref.set({"monthly_limit": 100.0, "spent_amount": 0.0})
 
     # Mock LiteLLM so we don't make real API calls

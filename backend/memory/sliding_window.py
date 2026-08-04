@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from typing import Any
 
 from loguru import logger
-
 # শেয়ার্ড ইউটিলিটি — টাইমস্ট্যাম্প কেন্দ্রীভূত
 from utils.timestamps import utc_now_iso
 
@@ -43,15 +42,16 @@ class SlidingWindowMemory:
     def _connect(self) -> sqlite3.Connection:
         if self.db_path == ":memory:":
             if self._memory_conn is None:
-                self._memory_conn = sqlite3.connect(self.db_path, check_same_thread=False)
+                self._memory_conn = sqlite3.connect(
+                    self.db_path, check_same_thread=False
+                )
             return self._memory_conn
         return sqlite3.connect(self.db_path, check_same_thread=False)
 
     def _init_db(self) -> None:
         conn = self._connect()
         try:
-            conn.executescript(
-                """
+            conn.executescript("""
                 CREATE TABLE IF NOT EXISTS conversation_windows (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     session_id TEXT NOT NULL,
@@ -70,8 +70,7 @@ class SlidingWindowMemory:
                     created_at TEXT NOT NULL
                 );
                 CREATE INDEX IF NOT EXISTS idx_windows_session ON conversation_windows(session_id, created_at);
-            """
-            )
+            """)
             conn.commit()
         finally:
             if self.db_path != ":memory:":
@@ -103,7 +102,9 @@ class SlidingWindowMemory:
         if not text:
             return ""
         first_sentence_end = text.find(". ")
-        snippet = text[: first_sentence_end + 2] if first_sentence_end != -1 else text[:120]
+        snippet = (
+            text[: first_sentence_end + 2] if first_sentence_end != -1 else text[:120]
+        )
         return snippet.replace("\n", " ").strip()
 
     # ------------------------------------------------------------------

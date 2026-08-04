@@ -1,13 +1,12 @@
-from core.error_bus import with_error_bus
 import email
 import imaplib
 import re
 from email.header import decode_header
 from typing import Any
 
-from loguru import logger
-
+from core.error_bus import with_error_bus
 from core.security.secure_credential_store import SecureCredentialStore
+from loguru import logger
 
 
 class EmailAgent:
@@ -44,7 +43,9 @@ class EmailAgent:
             "Use IMAP with an app password via connect_imap() instead."
         )
 
-    def connect_imap(self, host: str, port: int, username: str, app_password: str) -> bool:
+    def connect_imap(
+        self, host: str, port: int, username: str, app_password: str
+    ) -> bool:
         """একটি রিয়েল IMAP লগইন করে ক্রেডেনশিয়াল যাচাই করে, তারপর এনক্রিপ্ট করে সংরক্ষণ করে।"""
         try:
             with imaplib.IMAP4_SSL(host, port, timeout=10) as imap:
@@ -64,7 +65,9 @@ class EmailAgent:
         }
         self.auth_method = "imap"
         self.connected = True
-        logger.info(f"IMAP connection verified and credentials stored (encrypted) for {username}@{host}:{port}")
+        logger.info(
+            f"IMAP connection verified and credentials stored (encrypted) for {username}@{host}:{port}"
+        )
         return True
 
     def receive_otp(self, website: str, lookback: int = 10) -> str:
@@ -72,12 +75,16 @@ class EmailAgent:
         কোনো লাইভ কানেকশন না থাকলে বা OTP না পাওয়া গেলে খালি স্ট্রিং রিটার্ন করে — কখনো fabricate করে না।
         """
         if self.auth_method != "imap" or not self._imap_config or not self.connected:
-            logger.warning("receive_otp() called without a live IMAP connection — cannot fetch a real OTP.")
+            logger.warning(
+                "receive_otp() called without a live IMAP connection — cannot fetch a real OTP."
+            )
             return ""
 
         cfg = self._imap_config
         try:
-            app_password = self._credential_store.decrypt(cfg["ciphertext"], cfg["key_ref"])
+            app_password = self._credential_store.decrypt(
+                cfg["ciphertext"], cfg["key_ref"]
+            )
         except Exception as exc:
             logger.error(f"Failed to decrypt stored IMAP credentials: {exc}")
             return ""
@@ -105,7 +112,9 @@ class EmailAgent:
                     if otp:
                         return otp
         except (imaplib.IMAP4.error, OSError) as exc:
-            logger.error(f"IMAP poll failed while looking for OTP from {website}: {exc}")
+            logger.error(
+                f"IMAP poll failed while looking for OTP from {website}: {exc}"
+            )
         return ""
 
     @staticmethod
@@ -124,17 +133,25 @@ class EmailAgent:
     def _extract_body(msg) -> str:
         if msg.is_multipart():
             for part in msg.walk():
-                if part.get_content_type() == "text/plain" and "attachment" not in str(part.get("Content-Disposition")):
+                if part.get_content_type() == "text/plain" and "attachment" not in str(
+                    part.get("Content-Disposition")
+                ):
                     try:
                         payload = part.get_payload(decode=True)
                         if payload:
-                            return payload.decode(part.get_content_charset() or "utf-8", errors="ignore")
+                            return payload.decode(
+                                part.get_content_charset() or "utf-8", errors="ignore"
+                            )
                     except Exception:  # noqa: S112
                         continue
             return ""
         try:
             payload = msg.get_payload(decode=True)
-            return payload.decode(msg.get_content_charset() or "utf-8", errors="ignore") if payload else ""
+            return (
+                payload.decode(msg.get_content_charset() or "utf-8", errors="ignore")
+                if payload
+                else ""
+            )
         except Exception:
             return ""
 

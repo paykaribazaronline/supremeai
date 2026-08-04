@@ -24,12 +24,11 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
-from loguru import logger
-
 from core.cache import get_cache
 from core.llm_router import LLMRouter
 from core.upload_validator import validate_upload
+from fastapi import APIRouter, File, HTTPException, UploadFile
+from loguru import logger
 
 router = APIRouter(prefix="/video-to-code", tags=["video-to-code"])
 
@@ -221,7 +220,9 @@ class FrameAnalyzer:
                 for i, item in enumerate(data)
             ]
 
-            await self.cache.set(cache_key, [c.__dict__ for c in components], ttl=VIDEO_CACHE_TTL)
+            await self.cache.set(
+                cache_key, [c.__dict__ for c in components], ttl=VIDEO_CACHE_TTL
+            )
             return components
 
         except Exception as e:

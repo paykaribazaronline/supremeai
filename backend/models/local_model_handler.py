@@ -13,9 +13,8 @@ import time
 from typing import Any
 
 import httpx
-from loguru import logger
-
 from core.config import settings
+from loguru import logger
 
 
 class LocalModelHandler:
@@ -39,16 +38,23 @@ class LocalModelHandler:
         self._cache: dict[str, tuple[float, dict[str, Any]]] = {}
         self._cache_ttl = 60.0  # 1 minute TTL for local caching
 
-    async def deploy_distilled_edge_model(self, model_tag: str = "qwen2.5:3b") -> dict[str, Any]:
+    async def deploy_distilled_edge_model(
+        self, model_tag: str = "qwen2.5:3b"
+    ) -> dict[str, Any]:
         """Pull and initialize distilled 3B/4B edge model on local Ollama runtime.
 
         বাংলা মন্তব্য: ডিস্টিল্ড ৩বি/৪বি এজ মডেল ওলামাতে পুল এবং সেটআপ।
         """
         try:
             async with httpx.AsyncClient(timeout=120.0) as client:
-                res = await client.post(f"{self.base_url}/api/pull", json={"name": model_tag, "stream": False})
+                res = await client.post(
+                    f"{self.base_url}/api/pull",
+                    json={"name": model_tag, "stream": False},
+                )
                 if res.status_code == 200:
-                    logger.info(f"Successfully deployed distilled edge model: {model_tag}")
+                    logger.info(
+                        f"Successfully deployed distilled edge model: {model_tag}"
+                    )
                     return {"status": "deployed", "model": model_tag}
                 return {"status": "error", "model": model_tag, "error": res.text}
         except Exception as exc:
@@ -84,7 +90,9 @@ class LocalModelHandler:
             logger.warning(f"Failed to list local models: {exc}")
         return []
 
-    async def infer(self, model: str, prompt: str, system_prompt: str | None = None) -> dict[str, Any]:
+    async def infer(
+        self, model: str, prompt: str, system_prompt: str | None = None
+    ) -> dict[str, Any]:
         """Run inference on a local model.
 
         বাংলা মন্তব্য: ইনফারেন্স এক্সিকিউশন — মেমোরি ক্যাশিং ও টাইমআউট হ্যান্ডলিং সহ।
@@ -121,10 +129,20 @@ class LocalModelHandler:
                     return res_dict
                 else:
                     logger.error(f"Local model error [{res.status_code}]: {res.text}")
-                    return {"text": "", "model": model, "status": "error", "error": res.text}
+                    return {
+                        "text": "",
+                        "model": model,
+                        "status": "error",
+                        "error": res.text,
+                    }
         except httpx.TimeoutException:
             logger.error(f"Local model inference timed out after {self.timeout}s")
-            return {"text": "", "model": model, "status": "timeout", "error": "Inference timed out"}
+            return {
+                "text": "",
+                "model": model,
+                "status": "timeout",
+                "error": "Inference timed out",
+            }
         except Exception as exc:
             logger.error(f"Local model inference failed: {exc}")
             return {"text": "", "model": model, "status": "error", "error": str(exc)}

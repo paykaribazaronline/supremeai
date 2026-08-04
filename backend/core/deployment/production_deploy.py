@@ -131,7 +131,9 @@ class ConfigManager:
         env_name = environment.value
         return self.environments.get(env_name, {})
 
-    def update_config(self, environment: DeploymentEnvironment, updates: dict[str, Any]):
+    def update_config(
+        self, environment: DeploymentEnvironment, updates: dict[str, Any]
+    ):
         """Update configuration for specific environment."""
         env_name = environment.value
         if env_name not in self.environments:
@@ -183,7 +185,9 @@ class ImageBuilder:
     def push_image(self, image_name: str, tag: str, registry: str = "") -> bool:
         """Push image to registry."""
         try:
-            full_image_name = f"{registry}{image_name}:{tag}" if registry else f"{image_name}:{tag}"
+            full_image_name = (
+                f"{registry}{image_name}:{tag}" if registry else f"{image_name}:{tag}"
+            )
 
             logger.info(f"Pushing image to registry: {full_image_name}")
 
@@ -193,7 +197,9 @@ class ImageBuilder:
                 image.tag(full_image_name)
 
             # Push to registry
-            push_logs = self.client.images.push(full_image_name, stream=True, decode=True)
+            push_logs = self.client.images.push(
+                full_image_name, stream=True, decode=True
+            )
 
             for log in push_logs:
                 if "status" in log:
@@ -230,9 +236,15 @@ class HealthChecker:
                     try:
                         health_data = response.json()
                         # Check if the service reports itself as healthy
-                        if isinstance(health_data, dict) and health_data.get("status") == "healthy":
+                        if (
+                            isinstance(health_data, dict)
+                            and health_data.get("status") == "healthy"
+                        ):
                             return True
-                        elif isinstance(health_data, str) and "healthy" in health_data.lower():
+                        elif (
+                            isinstance(health_data, str)
+                            and "healthy" in health_data.lower()
+                        ):
                             return True
                         else:
                             # If no explicit status, assume OK response means healthy
@@ -241,7 +253,9 @@ class HealthChecker:
                         # If not JSON, just check status code
                         return True
                 else:
-                    logger.warning(f"Health check returned status {response.status_code}")
+                    logger.warning(
+                        f"Health check returned status {response.status_code}"
+                    )
 
             except requests.exceptions.RequestException as e:
                 logger.warning(f"Health check attempt {attempt + 1} failed: {e}")
@@ -283,33 +297,47 @@ class DeploymentManager:
         return deployment_id
 
     def build_and_push_image(
-        self, deployment_id: str, context_path: str, image_name: str, config: DeploymentConfig
+        self,
+        deployment_id: str,
+        context_path: str,
+        image_name: str,
+        config: DeploymentConfig,
     ) -> bool:
         """Build and push Docker image."""
         try:
             self._update_deployment_status(deployment_id, DeploymentStatus.BUILDING)
 
             # Build image
-            build_success = self.image_builder.build_image(context_path, image_name, [config.image_tag, "latest"])
+            build_success = self.image_builder.build_image(
+                context_path, image_name, [config.image_tag, "latest"]
+            )
 
             if not build_success:
-                self._update_deployment_status(deployment_id, DeploymentStatus.FAILED, "Image build failed")
+                self._update_deployment_status(
+                    deployment_id, DeploymentStatus.FAILED, "Image build failed"
+                )
                 return False
 
             # Push image
             push_success = self.image_builder.push_image(image_name, config.image_tag)
 
             if not push_success:
-                self._update_deployment_status(deployment_id, DeploymentStatus.FAILED, "Image push failed")
+                self._update_deployment_status(
+                    deployment_id, DeploymentStatus.FAILED, "Image push failed"
+                )
                 return False
 
             return True
 
         except Exception as e:
-            self._update_deployment_status(deployment_id, DeploymentStatus.FAILED, str(e))
+            self._update_deployment_status(
+                deployment_id, DeploymentStatus.FAILED, str(e)
+            )
             return False
 
-    def deploy_to_environment(self, deployment_id: str, config: DeploymentConfig) -> bool:
+    def deploy_to_environment(
+        self, deployment_id: str, config: DeploymentConfig
+    ) -> bool:
         """Deploy to the target environment."""
         try:
             self._update_deployment_status(deployment_id, DeploymentStatus.DEPLOYING)
@@ -329,20 +357,28 @@ class DeploymentManager:
 
             if not success:
                 self._update_deployment_status(
-                    deployment_id, DeploymentStatus.FAILED, "Deployment to environment failed"
+                    deployment_id,
+                    DeploymentStatus.FAILED,
+                    "Deployment to environment failed",
                 )
                 return False
 
             # Update status to health checking
-            self._update_deployment_status(deployment_id, DeploymentStatus.HEALTH_CHECKING)
+            self._update_deployment_status(
+                deployment_id, DeploymentStatus.HEALTH_CHECKING
+            )
 
             return True
 
         except Exception as e:
-            self._update_deployment_status(deployment_id, DeploymentStatus.FAILED, str(e))
+            self._update_deployment_status(
+                deployment_id, DeploymentStatus.FAILED, str(e)
+            )
             return False
 
-    def _deploy_to_production(self, deployment_id: str, config: DeploymentConfig, env_config: dict[str, Any]) -> bool:
+    def _deploy_to_production(
+        self, deployment_id: str, config: DeploymentConfig, env_config: dict[str, Any]
+    ) -> bool:
         """Deploy to production environment using blue-green deployment."""
         logger.info(f"Deploying to production: {deployment_id}")
 
@@ -376,7 +412,9 @@ class DeploymentManager:
 
         return True
 
-    def _deploy_to_staging(self, deployment_id: str, config: DeploymentConfig, env_config: dict[str, Any]) -> bool:
+    def _deploy_to_staging(
+        self, deployment_id: str, config: DeploymentConfig, env_config: dict[str, Any]
+    ) -> bool:
         """Deploy to staging environment."""
         logger.info(f"Deploying to staging: {deployment_id}")
 
@@ -386,7 +424,9 @@ class DeploymentManager:
         # In real implementation, deploy to staging cluster/environment
         return True
 
-    def _deploy_to_development(self, deployment_id: str, config: DeploymentConfig, env_config: dict[str, Any]) -> bool:
+    def _deploy_to_development(
+        self, deployment_id: str, config: DeploymentConfig, env_config: dict[str, Any]
+    ) -> bool:
         """Deploy to development environment."""
         logger.info(f"Deploying to development: {deployment_id}")
 
@@ -395,7 +435,9 @@ class DeploymentManager:
 
         return True
 
-    def _deploy_to_generic(self, deployment_id: str, config: DeploymentConfig, env_config: dict[str, Any]) -> bool:
+    def _deploy_to_generic(
+        self, deployment_id: str, config: DeploymentConfig, env_config: dict[str, Any]
+    ) -> bool:
         """Generic deployment method."""
         logger.info(f"Deploying to generic environment: {deployment_id}")
 
@@ -404,7 +446,9 @@ class DeploymentManager:
 
         return True
 
-    async def run_health_checks(self, deployment_id: str, config: DeploymentConfig) -> bool:
+    async def run_health_checks(
+        self, deployment_id: str, config: DeploymentConfig
+    ) -> bool:
         """Run health checks after deployment."""
         try:
             # Create health checker
@@ -422,11 +466,15 @@ class DeploymentManager:
                 logger.info(f"Deployment {deployment_id} is healthy and active")
                 return True
             else:
-                self._update_deployment_status(deployment_id, DeploymentStatus.FAILED, "Health check failed")
+                self._update_deployment_status(
+                    deployment_id, DeploymentStatus.FAILED, "Health check failed"
+                )
                 return False
 
         except Exception as e:
-            self._update_deployment_status(deployment_id, DeploymentStatus.FAILED, f"Health check error: {e!s}")
+            self._update_deployment_status(
+                deployment_id, DeploymentStatus.FAILED, f"Health check error: {e!s}"
+            )
             return False
 
     def rollback_deployment(self, deployment_id: str) -> bool:
@@ -457,7 +505,12 @@ class DeploymentManager:
             logger.error(f"Rollback failed for {deployment_id}: {e}")
             return False
 
-    def _update_deployment_status(self, deployment_id: str, status: DeploymentStatus, error_message: str | None = None):
+    def _update_deployment_status(
+        self,
+        deployment_id: str,
+        status: DeploymentStatus,
+        error_message: str | None = None,
+    ):
         """Update deployment status."""
         if deployment_id in self.active_deployments:
             result = self.active_deployments[deployment_id]
@@ -466,7 +519,10 @@ class DeploymentManager:
                 result.error_message = error_message
 
     async def execute_deployment(
-        self, config: DeploymentConfig, context_path: str = ".", image_name: str = "supremeai/app"
+        self,
+        config: DeploymentConfig,
+        context_path: str = ".",
+        image_name: str = "supremeai/app",
     ) -> DeploymentResult:
         """Execute a complete deployment."""
         # Prepare deployment
@@ -474,7 +530,9 @@ class DeploymentManager:
 
         try:
             # Build and push image
-            if not self.build_and_push_image(deployment_id, context_path, image_name, config):
+            if not self.build_and_push_image(
+                deployment_id, context_path, image_name, config
+            ):
                 if config.rollback_on_failure:
                     self.rollback_deployment(deployment_id)
                 return self.active_deployments[deployment_id]
@@ -502,7 +560,9 @@ class DeploymentManager:
             return result
 
         except Exception as e:
-            self._update_deployment_status(deployment_id, DeploymentStatus.FAILED, str(e))
+            self._update_deployment_status(
+                deployment_id, DeploymentStatus.FAILED, str(e)
+            )
             result = self.active_deployments[deployment_id]
 
             if config.rollback_on_failure:
@@ -513,7 +573,9 @@ class DeploymentManager:
     def _notify_completion(self, result: DeploymentResult):
         """Notify about deployment completion."""
         # In a real implementation, this could send emails, Slack notifications, etc.
-        logger.info(f"Deployment {result.deployment_id} completed with status: {result.status.value}")
+        logger.info(
+            f"Deployment {result.deployment_id} completed with status: {result.status.value}"
+        )
 
         if result.error_message:
             logger.error(f"Deployment error: {result.error_message}")
@@ -528,7 +590,10 @@ class ProductionDeploymentSystem:
         self.monitoring_integrator = MonitoringIntegrator()
 
     async def deploy_new_version(
-        self, environment: DeploymentEnvironment, version_tag: str, config_overrides: dict[str, Any] | None = None
+        self,
+        environment: DeploymentEnvironment,
+        version_tag: str,
+        config_overrides: dict[str, Any] | None = None,
     ) -> DeploymentResult:
         """Deploy a new version to the specified environment."""
 
@@ -537,7 +602,10 @@ class ProductionDeploymentSystem:
             environment=environment,
             image_tag=version_tag,
             replicas=3 if environment == DeploymentEnvironment.PRODUCTION else 1,
-            resources={"limits": {"cpu": "2000m", "memory": "4Gi"}, "requests": {"cpu": "500m", "memory": "1Gi"}},
+            resources={
+                "limits": {"cpu": "2000m", "memory": "4Gi"},
+                "requests": {"cpu": "500m", "memory": "1Gi"},
+            },
             health_check_path="/health",
             readiness_timeout=30,
             rollback_on_failure=True,
@@ -559,10 +627,14 @@ class ProductionDeploymentSystem:
 
         return result
 
-    async def _post_deployment_tasks(self, result: DeploymentResult, config: DeploymentConfig):
+    async def _post_deployment_tasks(
+        self, result: DeploymentResult, config: DeploymentConfig
+    ):
         """Execute post-deployment tasks."""
         # Integrate with monitoring
-        self.monitoring_integrator.setup_monitoring(result.deployment_id, config.environment)
+        self.monitoring_integrator.setup_monitoring(
+            result.deployment_id, config.environment
+        )
 
         # Apply security hardening
         self.security_hardener.apply_hardening(result.deployment_id, config.environment)
@@ -585,13 +657,17 @@ class ProductionDeploymentSystem:
         ]
 
         if len(previous_deployments) < 2:
-            logger.warning(f"Not enough previous deployments to rollback in {environment.value}")
+            logger.warning(
+                f"Not enough previous deployments to rollback in {environment.value}"
+            )
             return False
 
         # Get the second-to-last successful deployment
         target_deployment = previous_deployments[-2]
 
-        logger.info(f"Rolling back to previous version: {target_deployment.image_version}")
+        logger.info(
+            f"Rolling back to previous version: {target_deployment.image_version}"
+        )
 
         # This would involve deploying the previous image version
         # Implementation would depend on the deployment platform
@@ -610,9 +686,15 @@ class ProductionDeploymentSystem:
 
         return None
 
-    def get_environment_status(self, environment: DeploymentEnvironment) -> dict[str, Any]:
+    def get_environment_status(
+        self, environment: DeploymentEnvironment
+    ) -> dict[str, Any]:
         """Get overall status of an environment."""
-        active_deployments = [d for d in self.deployment_manager.deployment_history if d.environment == environment]
+        active_deployments = [
+            d
+            for d in self.deployment_manager.deployment_history
+            if d.environment == environment
+        ]
 
         if not active_deployments:
             return {"status": "no_deployments", "environment": environment.value}
@@ -703,7 +785,9 @@ async def demo_production_deployment():
     logger.info(f"Production deployment result: {prod_result.status.value}")
 
     logger.info("Checking production environment status...")
-    prod_status = deployment_system.get_environment_status(DeploymentEnvironment.PRODUCTION)
+    prod_status = deployment_system.get_environment_status(
+        DeploymentEnvironment.PRODUCTION
+    )
     logger.info(f"Production status: {prod_status}")
 
     logger.info("Deployment system demo completed!")

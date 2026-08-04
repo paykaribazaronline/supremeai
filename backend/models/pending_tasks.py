@@ -43,8 +43,7 @@ def _get_conn():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    conn.execute(
-        """
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS pending_tasks (
             task_id TEXT PRIMARY KEY,
             task_type TEXT NOT NULL,
@@ -55,12 +54,13 @@ def _get_conn():
             resolved_at TEXT,
             reason TEXT
         )
-        """
-    )
+        """)
     return conn
 
 
-def create_pending_task(task_type: TaskType, payload: dict, created_by: str = "system") -> PendingTask:
+def create_pending_task(
+    task_type: TaskType, payload: dict, created_by: str = "system"
+) -> PendingTask:
     task = PendingTask(
         task_id=str(uuid.uuid4()),
         task_type=task_type,
@@ -94,7 +94,9 @@ def create_pending_task(task_type: TaskType, payload: dict, created_by: str = "s
 def list_pending() -> list[PendingTask]:
     conn = _get_conn()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM pending_tasks WHERE status = ?", (TaskStatus.PENDING,))
+    cursor.execute(
+        "SELECT * FROM pending_tasks WHERE status = ?", (TaskStatus.PENDING,)
+    )
     rows = cursor.fetchall()
     conn.close()
     return [row_to_task(row) for row in rows]
@@ -105,7 +107,9 @@ def update_task_status(
 ) -> PendingTask | None:
     conn = _get_conn()
     cursor = conn.cursor()
-    resolved_at = datetime.now(UTC).isoformat() if status != TaskStatus.PENDING else None
+    resolved_at = (
+        datetime.now(UTC).isoformat() if status != TaskStatus.PENDING else None
+    )
     cursor.execute(
         """
         UPDATE pending_tasks SET status = ?, resolved_by = ?, resolved_at = ?, reason = ?
