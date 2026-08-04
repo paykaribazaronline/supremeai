@@ -41,7 +41,14 @@ jobs:
           if [ -n "$EXISTING_PR" ] && [ "$EXISTING_PR" != "null" ]; then
             echo "ℹ️ Existing promotion PR #$EXISTING_PR found. Updated automatically."
           else
-            echo "🚀 Opening new automated Staging Promotion PR..."
+            echo "🔍 Checking for differences before creating PR..."
+            # Using try-catch pattern for the API call in case of permissions or repository relationship issues
+            DIFF_STATUS=$(gh api repos/paykaribazaronline/supremeai/compare/main...SaifulHaqueNiloy:main --jq '.status' 2>/dev/null || echo "unknown")
+            
+            if [ "$DIFF_STATUS" = "identical" ] || [ "$DIFF_STATUS" = "behind" ]; then
+              echo "ℹ️ No new commits to promote (status: $DIFF_STATUS). Skipping PR creation."
+            else
+              echo "🚀 Opening new automated Staging Promotion PR..."
             gh pr create \
               --repo paykaribazaronline/supremeai \
               --head SaifulHaqueNiloy:main \
