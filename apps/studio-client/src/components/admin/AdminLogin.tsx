@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 interface LoginViewProps {
   adminEmail: string;
@@ -12,6 +12,9 @@ interface LoginViewProps {
   provisioningUri: string;
 }
 
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS = 15 * 60 * 1000; // 15 minutes
+
 export function LoginView({
   adminEmail,
   setAdminEmail,
@@ -24,6 +27,69 @@ export function LoginView({
   provisioningUri,
 }: LoginViewProps) {
   const [localPassword, setLocalPassword] = useState('');
+  const [localError, setLocalError] = useState('');
+  const [attempts, setAttempts] = useState(0);
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const lockoutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const isLocked = lockedUntil !== null && Date.now() < lockedUntil;
+  const lockoutRemaining = lockedUntil ? Math.ceil((lockedUntil - Date.now()) / 1000) : 0;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Rate limiting check
+    if (isLocked) {
+      setLocalError(`Too many failed attempts. Please wait ${lockoutRemaining} seconds.`);
+      return;
+    }
+
+    // Email validation
+    if (!otpRequired) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(adminEmail)) {
+        setLocalError('Please enter a valid email address.');
+        return;
+      }
+      if (localPassword.length < 8) {
+        setLocalError('Password must be at least 8 characters.');
+        return;
+      }
+    }
+
+    // OTP validation
+    if (otpRequired) {
+      if (!/^\d{6}$/.test(adminOtp)) {
+        setLocalError('OTP must be exactly 6 digits.');
+        return;
+      }
+    }
+
+    setLocalError('');
+    setIsSubmitting(true);
+
+    try {
+      handleAdminLogin(localPassword);
+      if (!otpRequired) {
+        setLocalPassword('');
+      }
+    } catch (err) {
+      // Increment attempt counter for rate limiting
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+      if (newAttempts >= MAX_ATTEMPTS) {
+        const lockUntil = Date.now() + LOCKOUT_MS;
+        setLockedUntil(lockUntil);
+        setAttempts(0);
+        setLocalError(`Too many failed attempts. Account locked for 15 minutes.`);
+        if (lockoutTimerRef.current) clearTimeout(lockoutTimerRef.current);
+        lockoutTimerRef.current = setTimeout(() => setLockedUntil(null), LOCKOUT_MS);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex-1 flex items-center justify-center p-6">
@@ -39,32 +105,41 @@ export function LoginView({
 
         <form
           className="flex flex-col gap-3.5"
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleAdminLogin(localPassword);
-            if (!otpRequired) {
-              setLocalPassword(''); // Clear immediately after submission
-            }
-          }}
+          onSubmit={handleSubmit}
+          aria-label="Admin authentication form"
         >
           {!otpRequired && (
             <>
-              <input
-                type="email"
-                placeholder="Admin Email"
-                value={adminEmail}
-                onChange={e => setAdminEmail(e.target.value)}
-                className="w-full text-center bg-[#07090f] border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00f3ff] transition-all font-mono tracking-widest"
-                required
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={localPassword}
-                onChange={e => setLocalPassword(e.target.value)}
-                className="w-full text-center bg-[#07090f] border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00f3ff] transition-all font-mono tracking-widest"
-                required
-              />
+              <div>
+                <label htmlFor="admin-email" className="sr-only">Admin Email</label>
+                <input
+                  id="admin-email"
+                  type="email"
+                  placeholder="Admin Email"
+                  value={adminEmail}
+                  onChange={e => setAdminEmail(e.target.value)}
+                  className="w-full text-center bg-[#07090f] border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00f3ff] transition-all font-mono tracking-widest"
+                  required
+                  autoComplete="email"
+                  aria-required="true"
+                  aria-invalid={localError ? 'true' : 'false'}
+                />
+              </div>
+              <div>
+                <label htmlFor="admin-password" className="sr-only">Password</label>
+                <input
+                  id="admin-password"
+                  type="password"
+                  placeholder="Password"
+                  value={localPassword}
+                  onChange={e => setLocalPassword(e.target.value)}
+                  className="w-full text-center bg-[#07090f] border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00f3ff] transition-all font-mono tracking-widest"
+                  required
+                  autoComplete="current-password"
+                  aria-required="true"
+                  aria-invalid={localError ? 'true' : 'false'}
+                />
+              </div>
             </>
           )}
 
@@ -81,23 +156,43 @@ export function LoginView({
           )}
 
           {otpRequired && (
-            <input
-              type="text"
-              placeholder="Enter 6-digit OTP"
-              value={adminOtp}
-              onChange={e => setAdminOtp(e.target.value)}
-              className="w-full text-center bg-[#07090f] border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00f3ff] transition-all font-mono tracking-widest"
-              required
-            />
+            <div>
+              <label htmlFor="admin-otp" className="sr-only">Enter 6-digit OTP</label>
+              <input
+                id="admin-otp"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]{6}"
+                maxLength={6}
+                placeholder="Enter 6-digit OTP"
+                value={adminOtp}
+                onChange={e => setAdminOtp(e.target.value.replace(/\D/g, ''))}
+                className="w-full text-center bg-[#07090f] border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#00f3ff] transition-all font-mono tracking-widest"
+                required
+                aria-required="true"
+                aria-invalid={localError ? 'true' : 'false'}
+              />
+            </div>
           )}
 
-          {adminError && <div className="text-[#ff4d4f] text-xs mt-1 font-mono">{adminError}</div>}
+          {(adminError || localError) && (
+            <div className="text-[#ff4d4f] text-xs mt-1 font-mono" role="alert">
+              {localError || adminError}
+            </div>
+          )}
+
+          {isLocked && (
+            <div className="text-amber-400 text-xs mt-1 font-mono" role="alert">
+              🔒 Account temporarily locked. Retry in {lockoutRemaining}s.
+            </div>
+          )}
 
           <button
             type="submit"
-            className="cyber-button w-full uppercase py-3 text-xs tracking-wider font-mono font-bold mt-2"
+            disabled={isSubmitting || isLocked}
+            className="cyber-button w-full uppercase py-3 text-xs tracking-wider font-mono font-bold mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {otpRequired ? 'Verify OTP' : 'Authorize Access'}
+            {isSubmitting ? 'Verifying...' : otpRequired ? 'Verify OTP' : 'Authorize Access'}
           </button>
         </form>
       </div>

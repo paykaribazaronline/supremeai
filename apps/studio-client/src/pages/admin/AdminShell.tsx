@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useAdminStore } from "../../store/adminStore";
 import { useStore } from "../../store/useStore";
 import { AdminConsole } from "../../components/admin/AdminConsole";
-import { getApiBaseUrl } from "../../utils/api";
+import { apiClient } from "../../services/apiClient";
 import { Shield } from "lucide-react";
+import type { AdminSubTab, AdminUser, Skill, Checkpoint, ChatMessage, HealthMap } from "../../types";
 
 export function AdminShell() {
   const {
@@ -17,7 +18,6 @@ export function AdminShell() {
     adminOtp,
     setAdminOtp,
     totpSetupRequired,
-    totpSecret,
     provisioningUri,
     handleAdminLogout,
     actionStatus,
@@ -25,20 +25,20 @@ export function AdminShell() {
   } = useAdminStore();
 
   const { systemConfig } = useStore();
-  const [adminSubTab, setAdminSubTab] = useState<any>("dashboard");
+  const [adminSubTab, setAdminSubTab] = useState<AdminSubTab>("dashboard");
   const [skillQuery, setSkillQuery] = useState("");
-  const [skillsList] = useState<any[]>([]);
-  const [checkpointsList] = useState<any[]>([]);
-  const [adminMessages, setAdminMessages] = useState<any[]>([]);
+  const [skillsList] = useState<Skill[]>([]);
+  const [checkpointsList] = useState<Checkpoint[]>([]);
+  const [adminMessages, setAdminMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState("");
   const [liveLogs, setLiveLogs] = useState<string[]>([]);
   const [costReport, setCostReport] = useState("");
-  const [healthMap, setHealthMap] = useState<any>({});
+  const [healthMap, setHealthMap] = useState<HealthMap>({ gcp: { status: 'unknown', latency: '', region: '' }, railway: { status: 'unknown', latency: '', region: '' }, render: { status: 'unknown', latency: '', region: '' } });
   const [newUsername, setNewUsername] = useState("");
   const [newUserRole, setNewUserRole] = useState("Operator");
   const [newUserPerms, setNewUserPerms] = useState("read,write");
-  const [adminUsers, setAdminUsers] = useState<any[]>([]);
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
   const [envConfig, setEnvConfig] = useState<Record<string, string>>({});
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [adminInput, setAdminInput] = useState("");
@@ -58,7 +58,7 @@ export function AdminShell() {
     if (!adminAuthenticated) return;
 
     if (adminRole !== 'admin') {
-      console.warn("RBAC: User is not an admin.");
+      if (import.meta.env.DEV) console.warn("RBAC: User is not an admin.");
     }
 
     const loadEnvConfig = async () => {
@@ -74,32 +74,21 @@ export function AdminShell() {
 
   }, [adminAuthenticated]);
 
-  // Utility logic for tokens
-  const getAdminToken = () => {
-    return localStorage.getItem('adminToken') || '';
-  }
-
   const handleAdminOtpVerify = () => {
     handleAdminLogin();
   };
 
   const handleInstallSkill = (name: string) => {
-    console.warn("Install skill", name);
+    if (import.meta.env.DEV) console.warn("Install skill", name);
   };
 
   const handleDeleteCheckpoint = (taskId: string) => {
-    console.warn("Delete checkpoint", taskId);
+    if (import.meta.env.DEV) console.warn("Delete checkpoint", taskId);
   };
 
   const handleTriggerDeploy = () => {
     setActionStatus("TRIGGERING DEPLOY...");
-    const API_BASE = getApiBaseUrl();
-    const headers = {
-      "Authorization": `Bearer ${getAdminToken()}`,
-      "Content-Type": "application/json"
-    };
-    fetch(`${API_BASE}/admin-api/deploy`, { method: "POST", headers })
-      .then(res => res.json())
+    apiClient.post('/admin-api/deploy')
       .then(() => {
         setActionStatus("DEPLOY TRIGGERED");
         setTimeout(() => setActionStatus(""), 2000);
@@ -111,7 +100,7 @@ export function AdminShell() {
   };
 
   const handleSendAdmin = () => {
-    console.warn("Send admin message", adminInput);
+    if (import.meta.env.DEV) console.warn("Send admin message", adminInput);
     setAdminInput("");
   };
 
@@ -122,57 +111,38 @@ export function AdminShell() {
 
   const handleSaveUser = () => {
     if (!newUsername) return;
-    const API_BASE = getApiBaseUrl();
-    const headers = {
-      "Authorization": `Bearer ${getAdminToken()}`,
-      "Content-Type": "application/json"
-    };
-    fetch(`${API_BASE}/admin-api/users`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ username: newUsername, role: newUserRole, permissions: newUserPerms.split(",") })
+    apiClient.post('/admin-api/users', {
+      username: newUsername,
+      role: newUserRole,
+      permissions: newUserPerms.split(",")
     })
-      .then(res => res.json())
       .then(() => {
         setAdminUsers(prev => [...prev, { username: newUsername, role: newUserRole, permissions: newUserPerms.split(",") }]);
         setNewUsername("");
       })
-      .catch(err => console.error("Error creating user:", err));
+      .catch(err => {
+        if (import.meta.env.DEV) console.error("Error creating user:", err);
+      });
   };
 
   const handleDeleteUser = (username: string) => {
-    const API_BASE = getApiBaseUrl();
-    const headers = {
-      "Authorization": `Bearer ${getAdminToken()}`,
-      "Content-Type": "application/json"
-    };
-    fetch(`${API_BASE}/admin-api/users/${username}`, { method: "DELETE", headers })
-      .then(res => res.json())
+    apiClient.delete(`/admin-api/users/${encodeURIComponent(username)}`)
       .then(() => {
         setAdminUsers(prev => prev.filter(u => u.username !== username));
       })
-      .catch(err => console.error("Error deleting user:", err));
+      .catch(err => {
+        if (import.meta.env.DEV) console.error("Error deleting user:", err);
+      });
   };
 
   const handleSaveConfig = () => {
-    const API_BASE = getApiBaseUrl();
-    const headers = {
-      "Authorization": `Bearer ${getAdminToken()}`,
-      "Content-Type": "application/json"
-    };
-    fetch(`${API_BASE}/admin-api/config`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(envConfig)
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to save config");
-        return res.json();
-      })
+    apiClient.post('/admin-api/config', envConfig)
       .then(() => {
-        console.warn("Environment config saved successfully.");
+        if (import.meta.env.DEV) console.warn("Environment config saved successfully.");
       })
-      .catch(err => console.error("Error saving environment config:", err));
+      .catch(err => {
+        if (import.meta.env.DEV) console.error("Error saving environment config:", err);
+      });
   };
 
   if (adminAuthenticated && adminRole !== 'admin') {
@@ -199,7 +169,6 @@ export function AdminShell() {
       adminEmail={adminEmail}
       setAdminEmail={setAdminEmail}
       totpSetupRequired={totpSetupRequired}
-      totpSecret={totpSecret}
       provisioningUri={provisioningUri}
       adminError={adminError}
       handleAdminLogin={handleAdminLogin}

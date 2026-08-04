@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Badge } from '../ui';
-import { Shield, ShieldAlert, Cpu, Database, Eye, RefreshCw, Server } from 'lucide-react';
+import { Shield, ShieldAlert, Cpu, Database, Eye, RefreshCw, Server, Loader2 } from 'lucide-react';
+import { apiClient } from '../../services/apiClient';
 
 interface TaskReference {
   id: string;
@@ -10,19 +11,68 @@ interface TaskReference {
   startedAt: string;
 }
 
-export function SecurityDashboard() {
-  const [activeTasks, setActiveTasks] = useState<TaskReference[]>([
-    { id: 't-103', name: 'SelfEvolutionAgent.tick_loop', strongRef: true, status: 'running', startedAt: '2026-06-30 23:55' },
-    { id: 't-104', name: 'BillingEngine.webhook_listener', strongRef: true, status: 'running', startedAt: '2026-06-30 23:55' },
-    { id: 't-108', name: 'TokenDeductor.release_lock_eval', strongRef: true, status: 'completed', startedAt: '2026-06-30 23:59' },
-  ]);
+interface MemoryMetrics {
+  heapUsed: string;
+  heapTotal: string;
+  zombieTasksDetected: number;
+  failuresBlocked: number;
+}
 
-  const [memoryMetrics, setMemoryMetrics] = useState({
-    heapUsed: '42.8 MB',
-    heapTotal: '128.0 MB',
-    zombieTasksDetected: 0,
-    failuresBlocked: 4,
-  });
+export function SecurityDashboard() {
+  const [activeTasks, setActiveTasks] = useState<TaskReference[]>([]);
+  const [memoryMetrics, setMemoryMetrics] = useState<MemoryMetrics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const [tasksRes, metricsRes] = await Promise.all([
+        apiClient.get<{ tasks: TaskReference[] }>('/admin-api/security/tasks'),
+        apiClient.get<MemoryMetrics>('/admin-api/security/memory'),
+      ]);
+      setActiveTasks(tasksRes.tasks || []);
+      setMemoryMetrics(metricsRes);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load security data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex-grow p-6 overflow-y-auto bg-[#030611] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-slate-400">
+          <Loader2 size={24} className="animate-spin text-[#00f3ff]" />
+          <span className="text-xs font-mono">Loading security dashboard...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex-grow p-6 overflow-y-auto bg-[#030611] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-rose-400">
+          <ShieldAlert size={24} />
+          <span className="text-xs font-mono">{error}</span>
+          <button
+            onClick={fetchData}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#00f3ff]/10 hover:bg-[#00f3ff]/20 text-[#00f3ff] text-xs font-mono border border-[#00f3ff]/30 transition-colors"
+          >
+            <RefreshCw size={12} />
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-grow p-6 overflow-y-auto bg-[#030611]">
@@ -51,11 +101,11 @@ export function SecurityDashboard() {
 
         <Card title="Zombie/Fire-And-Forget Checks">
           <div className="flex items-center gap-3">
-            <ShieldAlert size={20} className={memoryMetrics.zombieTasksDetected > 0 ? 'text-red-400' : 'text-emerald-400'} />
+            <ShieldAlert size={20} className={memoryMetrics && memoryMetrics.zombieTasksDetected > 0 ? 'text-red-400' : 'text-emerald-400'} />
             <div>
               <div className="text-xs text-slate-400">Untracked Tasks Blocked</div>
               <div className="text-xl font-bold text-emerald-400 font-mono">
-                {memoryMetrics.failuresBlocked} Blocked
+                {memoryMetrics ? memoryMetrics.failuresBlocked : 0} Blocked
               </div>
             </div>
           </div>
@@ -67,7 +117,7 @@ export function SecurityDashboard() {
             <div>
               <div className="text-xs text-slate-400">Memory Heap</div>
               <div className="text-xl font-bold text-yellow-400 font-mono">
-                {memoryMetrics.heapUsed}
+                {memoryMetrics ? memoryMetrics.heapUsed : '—'}
               </div>
             </div>
           </div>
@@ -89,24 +139,28 @@ export function SecurityDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card title="Monitored Async Background Tasks">
           <div className="flex flex-col gap-2">
-            {activeTasks.map(t => (
-              <div key={t.id} className="p-3 rounded-lg border border-slate-800 bg-slate-900/30 flex items-center justify-between">
-                <div>
-                  <div className="text-xs font-bold text-white font-mono">{t.name}</div>
-                  <div className="text-[10px] text-slate-400 mt-1">
-                    ID: {t.id} • Started: {t.startedAt}
+            {activeTasks.length === 0 ? (
+              <div className="text-xs text-slate-400 font-mono text-center py-4">No active tasks monitored.</div>
+            ) : (
+              activeTasks.map(t => (
+                <div key={t.id} className="p-3 rounded-lg border border-slate-800 bg-slate-900/30 flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold text-white font-mono">{t.name}</div>
+                    <div className="text-[10px] text-slate-400 mt-1">
+                      ID: {t.id} • Started: {t.startedAt}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={t.strongRef ? 'info' : 'warning'}>
+                      {t.strongRef ? 'Strong Reference' : 'Weak Reference'}
+                    </Badge>
+                    <Badge variant={t.status === 'running' ? 'success' : 'info'}>
+                      {t.status.toUpperCase()}
+                    </Badge>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={t.strongRef ? 'info' : 'warning'}>
-                    {t.strongRef ? 'Strong Reference' : 'Weak Reference'}
-                  </Badge>
-                  <Badge variant={t.status === 'running' ? 'success' : 'info'}>
-                    {t.status.toUpperCase()}
-                  </Badge>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </Card>
 

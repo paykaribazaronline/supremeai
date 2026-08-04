@@ -1,5 +1,5 @@
 export const AppDefaults = {
-  adminEmail: 'admin@supremeai.dev',
+  adminEmail: import.meta.env.VITE_DEFAULT_ADMIN_EMAIL || '',
   maxConcurrency: 3,
   features: {
     selfHealing: false,

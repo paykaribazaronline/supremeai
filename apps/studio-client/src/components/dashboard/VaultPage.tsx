@@ -58,6 +58,22 @@ export function VaultPage() {
 
   const handleImport = async () => {
     if (!serviceName.trim() || !secret.trim() || saving) return;
+
+    // Input validation
+    const domainRegex = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9][a-zA-Z0-9-]*(\.[a-zA-Z0-9][a-zA-Z0-9-]*)+(\/[^\s]*)?$/;
+    if (!domainRegex.test(serviceName.trim())) {
+      setError('Please enter a valid domain (e.g. github.com or https://github.com)');
+      return;
+    }
+    if (secret.trim().length < 4) {
+      setError('Secret/token must be at least 4 characters');
+      return;
+    }
+    if (username.trim() && !/^[a-zA-Z0-9_.-]{1,64}$/.test(username.trim())) {
+      setError('Username can only contain letters, numbers, _ . - (max 64 chars)');
+      return;
+    }
+
     setSaving(true);
     setError('');
     try {

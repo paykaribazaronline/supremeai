@@ -41,20 +41,30 @@ jobs:
           if [ -n "$EXISTING_PR" ] && [ "$EXISTING_PR" != "null" ]; then
             echo "ℹ️ Existing promotion PR #$EXISTING_PR found. Updated automatically."
           else
-            echo "🔍 Checking for differences before creating PR..."
-            # Using try-catch pattern for the API call in case of permissions or repository relationship issues
-            DIFF_STATUS=$(gh api repos/paykaribazaronline/supremeai/compare/main...SaifulHaqueNiloy:main --jq '.status' 2>/dev/null || echo "unknown")
+            echo "🔍 Configuring remote to check differences and push..."
             
-            if [ "$DIFF_STATUS" = "identical" ] || [ "$DIFF_STATUS" = "behind" ]; then
-              echo "ℹ️ No new commits to promote (status: $DIFF_STATUS). Skipping PR creation."
+            # বাংলা মন্তব্য: আলাদা রেপোজিটরি হওয়ায় সরাসরি গিটহাবে পুশ করে PR ওপেন করতে হবে
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+            
+            git remote add target https://x-access-token:${GH_TOKEN}@github.com/paykaribazaronline/supremeai.git
+            git fetch target main
+            
+            if git diff --quiet HEAD target/main; then
+              echo "ℹ️ No new commits to promote. Branches are identical. Skipping PR creation."
             else
+              echo "🚀 Pushing staging branch to target repository..."
+              PR_BRANCH="promotion/staging-${STAGING_HEAD:0:7}"
+              git checkout -b $PR_BRANCH
+              git push target $PR_BRANCH --force
+              
               echo "🚀 Opening new automated Staging Promotion PR..."
-            gh pr create \
-              --repo paykaribazaronline/supremeai \
-              --head SaifulHaqueNiloy:main \
-              --base main \
-              --title "🟢 [Staging Promotion] Verified CI Green Build (${STAGING_HEAD:0:7})" \
-              --body "## 🛡️ Secondary Staging CI Pass Report
+              gh pr create \
+                --repo paykaribazaronline/supremeai \
+                --head $PR_BRANCH \
+                --base main \
+                --title "🟢 [Staging Promotion] Verified CI Green Build (${STAGING_HEAD:0:7})" \
+                --body "## 🛡️ Secondary Staging CI Pass Report
 
               All quality gates passed on \`SaifulHaqueNiloy/supremeai\`:
               - 🟢 Pytest & Backend Unit Tests

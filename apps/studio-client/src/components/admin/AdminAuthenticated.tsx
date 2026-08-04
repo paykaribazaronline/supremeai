@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import type { AdminSubTab, GcpHealth, CloudStats } from '../../types';
+import type { AdminSubTab, GcpHealth, CloudStats, Skill, Checkpoint, ChatMessage, AdminUser, HealthMap } from '../../types';
 import { SubTabContent } from './AdminSubTabContent';
 import { AdminTopNav } from './AdminTopNav';
 import {
@@ -22,14 +22,14 @@ interface AuthenticatedViewProps {
   cloudStats: CloudStats | null;
   skillQuery: string;
   setSkillQuery: (val: string) => void;
-  skills: any[];
+  skills: Skill[];
   handleInstallSkill: (name: string) => void;
-  checkpoints: any[];
+  checkpoints: Checkpoint[];
   handleDeleteCheckpoint: (taskId: string) => void;
   adminSubTab: AdminSubTab;
   setAdminSubTab: (tab: AdminSubTab) => void;
   handleTriggerDeploy: () => void;
-  adminMessages: any[];
+  adminMessages: ChatMessage[];
   loading: boolean;
   adminInput: string;
   setAdminInput: (val: string) => void;
@@ -41,7 +41,7 @@ interface AuthenticatedViewProps {
   liveLogs: string[];
   setLiveLogs: (logs: string[]) => void;
   costReport: string;
-  healthMap: any;
+  healthMap: HealthMap;
   newUsername: string;
   setNewUsername: (val: string) => void;
   newUserRole: string;
@@ -49,7 +49,7 @@ interface AuthenticatedViewProps {
   newUserPerms: string;
   setNewUserPerms: (val: string) => void;
   handleSaveUser: () => void;
-  adminUsers: any[];
+  adminUsers: AdminUser[];
   handleDeleteUser: (username: string) => void;
   envConfig: Record<string, string>;
   setEnvConfig: React.Dispatch<React.SetStateAction<Record<string, string>>>;

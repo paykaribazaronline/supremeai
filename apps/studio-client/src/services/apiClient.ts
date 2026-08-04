@@ -28,6 +28,18 @@ export const updateTokenCache = (token: string | null) => {
   cachedToken = token;
 };
 
+const isDev = () => {
+  return typeof process !== 'undefined' && (process.env.NODE_ENV === 'development' || process.env.VITE_ENV === 'development');
+};
+
+const getCSRFToken = (): string => {
+  // Get CSRF token from cookie or meta tag
+  const metaTag = document.querySelector('meta[name="csrf-token"]');
+  if (metaTag) return metaTag.getAttribute('content') || '';
+  const cookieMatch = document.cookie.match(/csrf_token=([^;]+)/);
+  return cookieMatch ? cookieMatch[1] : '';
+};
+
 export const getAuthHeaders = async (): Promise<Record<string, string>> => {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -40,6 +52,12 @@ export const getAuthHeaders = async (): Promise<Record<string, string>> => {
 
   if (cachedToken) {
     headers['Authorization'] = `Bearer ${cachedToken}`;
+  }
+
+  // 🔐 CSRF Protection
+  const csrfToken = getCSRFToken();
+  if (csrfToken) {
+    headers['X-CSRF-Token'] = csrfToken;
   }
 
   // 🔐 Phase 2: Hybrid Fingerprint Login — AntiHackingContextMiddleware ব্যবহার করে
@@ -76,19 +94,19 @@ const handleResponse = async (res: Response) => {
 
     // 🛑 ZERO-GAP: Intercept specific critical HTTP exception statuses
     if (res.status === 429) {
-      console.warn("Rate limit exceeded (429). Throttling client requests.");
+      if (isDev()) console.warn("Rate limit exceeded (429). Throttling client requests.");
       throw new ApiError(`Rate limit exceeded: ${errMsg}. Please wait before retrying.`, 429);
     }
     if (res.status === 402) {
-      console.warn("Payment/Budget Required (402). CostGuard rejected the request.");
+      if (isDev()) console.warn("Payment/Budget Required (402). CostGuard rejected the request.");
       throw new ApiError(`Budget Limit Exceeded: ${errMsg}`, 402);
     }
     if (res.status === 422) {
-      console.error("Validation error (422) detected in payload schema.");
+      if (isDev()) console.error("Validation error (422) detected in payload schema.");
       throw new ApiError(`Validation Error: ${errMsg}`, 422);
     }
     if (res.status === 401 || res.status === 403) {
-      console.warn("Authorization failure (401/403). Session invalidated.");
+      if (isDev()) console.warn("Authorization failure (401/403). Session invalidated.");
       throw new ApiError(errMsg, res.status);
     }
     throw new ApiError(errMsg, res.status);
@@ -140,11 +158,11 @@ const throttledFetch = async (url: string, options: RequestInit): Promise<Respon
       } catch (e: any) {
         attempts++;
         if (attempts >= 2) {
-          console.error(`[Queue Interceptor] Network failure for ${currentUrl} after 2 attempts:`, e);
+          if (isDev()) console.error(`[Queue Interceptor] Network failure for ${currentUrl} after 2 attempts:`, e);
           throw e;
         }
 
-        console.warn(`[Failover] Network error detected: ${e.message}. Switching active backend...`);
+        if (isDev()) console.warn(`[Failover] Network error detected: ${e.message}. Switching active backend...`);
         const newBase = switchActiveBackend();
 
         // currentUrl থেকে পুরনো বেস URL সরিয়ে নতুনটি বসানো

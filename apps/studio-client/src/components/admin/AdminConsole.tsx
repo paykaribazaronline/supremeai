@@ -1,14 +1,13 @@
-import type { ChatMessage, Skill, Checkpoint, CloudStats, GcpHealth, AdminSubTab } from '../../types';
-import { useHydrated } from '../../store/customerStore';
+import type { ChatMessage, Skill, Checkpoint, CloudStats, GcpHealth, AdminSubTab, AdminUser, HealthMap } from '../../types';
 import { LoginView } from './AdminLogin';
 import { AuthenticatedView } from './AdminAuthenticated';
+import { DashboardErrorBoundary } from './DashboardErrorBoundary';
 
 interface AdminConsoleProps {
   adminAuthenticated: boolean;
   adminEmail: string;
   setAdminEmail: (val: string) => void;
   totpSetupRequired: boolean;
-  totpSecret: string;
   provisioningUri: string;
   adminError: string;
   handleAdminLogin: (password?: string) => void;
@@ -38,7 +37,7 @@ interface AdminConsoleProps {
   liveLogs: string[];
   setLiveLogs: (logs: string[]) => void;
   costReport: string;
-  healthMap: any;
+  healthMap: HealthMap;
   newUsername: string;
   setNewUsername: (val: string) => void;
   newUserRole: string;
@@ -46,7 +45,7 @@ interface AdminConsoleProps {
   newUserPerms: string;
   setNewUserPerms: (val: string) => void;
   handleSaveUser: () => void;
-  adminUsers: any[];
+  adminUsers: AdminUser[];
   handleDeleteUser: (username: string) => void;
   envConfig: Record<string, string>;
   setEnvConfig: React.Dispatch<React.SetStateAction<Record<string, string>>>;
@@ -61,21 +60,23 @@ interface AdminConsoleProps {
 export function AdminConsole(props: AdminConsoleProps) {
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-[#030407]">
-      {!props.adminAuthenticated ? (
-        <LoginView
-          adminEmail={props.adminEmail}
-          setAdminEmail={props.setAdminEmail}
-          adminError={props.adminError}
-          handleAdminLogin={props.handleAdminLogin}
-          otpRequired={props.otpRequired}
-          adminOtp={props.adminOtp}
-          setAdminOtp={props.setAdminOtp}
-          totpSetupRequired={props.totpSetupRequired}
-          provisioningUri={props.provisioningUri}
-        />
-      ) : (
-        <AuthenticatedView {...props} />
-      )}
+      <DashboardErrorBoundary>
+        {!props.adminAuthenticated ? (
+          <LoginView
+            adminEmail={props.adminEmail}
+            setAdminEmail={props.setAdminEmail}
+            adminError={props.adminError}
+            handleAdminLogin={props.handleAdminLogin}
+            otpRequired={props.otpRequired}
+            adminOtp={props.adminOtp}
+            setAdminOtp={props.setAdminOtp}
+            totpSetupRequired={props.totpSetupRequired}
+            provisioningUri={props.provisioningUri}
+          />
+        ) : (
+          <AuthenticatedView {...props} />
+        )}
+      </DashboardErrorBoundary>
     </div>
   );
 }

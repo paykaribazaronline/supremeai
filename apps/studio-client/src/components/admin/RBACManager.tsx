@@ -5,22 +5,57 @@ import { Shield, UserPlus, Trash2, Settings2, CheckCircle2, XCircle } from 'luci
 // বাংলা মন্তব্য: raw fetch()-এর বদলে apiClient ব্যবহার — auth হেডার ও থ্রটল নিশ্চিত করে
 import { apiClient } from '../../services/apiClient';
 import { adminTokenStore } from '../../services/adminTokenStore';
+import type { AdminUser } from '../../types';
+
+interface NewUserInput {
+  username: string;
+  role: string;
+  permissions: string;
+}
 
 export function RBACManager() {
   // বাংলা মন্তব্য: queryKey ম্যাচ করানো হয়েছে useAdminApi.useAdminUsers()-এর সাথে — ক্যাশ শেয়ার হবে
   const { data: users } = useQuery({
     queryKey: ['admin', 'users'],
-    queryFn: () => apiClient.get<any[]>('/admin-api/users'),
+    queryFn: () => apiClient.get<AdminUser[]>('/admin-api/users'),
     enabled: !!adminTokenStore.getDecodedToken(),
     staleTime: 30_000,
   });
   const qc = useQueryClient();
-  const [newUser, setNewUser] = useState({ username: '', role: 'Operator', permissions: 'read,write' });
+  const [newUser, setNewUser] = useState<NewUserInput>({ username: '', role: 'Operator', permissions: 'read,write' });
 
   const addUser = useMutation({
-    mutationFn: (user: any) => apiClient.post('/admin-api/users', user),
+    mutationFn: (user: NewUserInput) => apiClient.post('/admin-api/users', user),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
   });
+
+  const handleAddUser = () => {
+    if (!newUser.username.trim()) {
+      window.dispatchEvent(new CustomEvent('supremeai-toast', {
+        detail: { message: 'Username is required', type: 'error' }
+      }));
+      return;
+    }
+    if (!/^[a-zA-Z0-9_.-]{3,32}$/.test(newUser.username.trim())) {
+      window.dispatchEvent(new CustomEvent('supremeai-toast', {
+        detail: { message: 'Username must be 3-32 chars (letters, numbers, _ . -)', type: 'error' }
+      }));
+      return;
+    }
+    if (!newUser.role) {
+      window.dispatchEvent(new CustomEvent('supremeai-toast', {
+        detail: { message: 'Role is required', type: 'error' }
+      }));
+      return;
+    }
+    if (newUser.permissions && !/^[a-zA-Z0-9:,._-]+$/.test(newUser.permissions)) {
+      window.dispatchEvent(new CustomEvent('supremeai-toast', {
+        detail: { message: 'Permissions can only contain letters, numbers, commas, colons, dots, underscores, hyphens', type: 'error' }
+      }));
+      return;
+    }
+    addUser.mutate(newUser);
+  };
 
   const deleteUser = useMutation({
     mutationFn: (username: string) => apiClient.delete(`/admin-api/users/${username}`),
@@ -80,7 +115,7 @@ export function RBACManager() {
               />
             </div>
             <button
-              onClick={() => addUser.mutate(newUser)}
+              onClick={handleAddUser}
               className="bg-[#00f3ff] hover:bg-cyan-400 text-black font-bold px-4 py-1.5 rounded text-xs uppercase font-mono"
             >
               Add User
@@ -90,7 +125,7 @@ export function RBACManager() {
 
         <Card title="User Directory" icon={<Shield size={14} />} className="xl:col-span-2">
           <div className="flex flex-col gap-2 max-h-[50vh] overflow-y-auto">
-            {users?.map((user: any) => (
+            {users?.map((user: AdminUser) => (
               <div key={user.username} className="flex items-center justify-between p-3 rounded-lg border border-slate-800 bg-slate-900/30">
                 <div className="flex items-center gap-3">
                   <div>

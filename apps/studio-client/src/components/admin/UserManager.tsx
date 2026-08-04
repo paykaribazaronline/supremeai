@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import type { AdminUser } from '../../types';
 
 interface UserManagerProps {
   newUsername: string;
@@ -8,7 +9,7 @@ interface UserManagerProps {
   newUserPerms: string;
   setNewUserPerms: (val: string) => void;
   handleSaveUser: () => void;
-  adminUsers: any[];
+  adminUsers: AdminUser[];
   handleDeleteUser: (username: string) => void;
 }
 
@@ -31,6 +32,29 @@ export function UserManager({
       handleDeleteUser(userToDelete);
       setUserToDelete(null);
     }
+  };
+
+  const handleSaveUserClick = () => {
+    // Input validation
+    if (!newUsername.trim()) {
+      window.dispatchEvent(new CustomEvent('supremeai-toast', {
+        detail: { message: 'Username is required', type: 'error' }
+      }));
+      return;
+    }
+    if (!/^[a-zA-Z0-9_.-]{3,32}$/.test(newUsername.trim())) {
+      window.dispatchEvent(new CustomEvent('supremeai-toast', {
+        detail: { message: 'Username must be 3-32 chars (letters, numbers, _ . -)', type: 'error' }
+      }));
+      return;
+    }
+    if (!newUserRole) {
+      window.dispatchEvent(new CustomEvent('supremeai-toast', {
+        detail: { message: 'Role is required', type: 'error' }
+      }));
+      return;
+    }
+    handleSaveUser();
   };
 
   return (
@@ -105,7 +129,7 @@ export function UserManager({
         </div>
         <div className="flex justify-end mt-4">
           <button
-            onClick={handleSaveUser}
+            onClick={handleSaveUserClick}
             className="bg-[#00f3ff] hover:bg-cyan-400 text-black font-extrabold px-6 py-2 rounded-lg text-xs transition-colors uppercase font-mono tracking-wider shadow-[0_4px_12px_rgba(0,243,255,0.15)]"
           >
             Provision / Save User
