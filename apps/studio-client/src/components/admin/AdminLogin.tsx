@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 interface LoginViewProps {
   adminEmail: string;
@@ -33,8 +33,20 @@ export function LoginView({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const lockoutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const isLocked = lockedUntil !== null && Date.now() < lockedUntil;
-  const lockoutRemaining = lockedUntil ? Math.ceil((lockedUntil - Date.now()) / 1000) : 0;
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (lockedUntil !== null) {
+      interval = setInterval(() => setCurrentTime(Date.now()), 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [lockedUntil]);
+
+  const isLocked = lockedUntil !== null && currentTime < lockedUntil;
+  const lockoutRemaining = lockedUntil ? Math.max(0, Math.ceil((lockedUntil - currentTime) / 1000)) : 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
