@@ -2,7 +2,7 @@
 // 🚨 CRITICAL CHECK: No external imports allowed here to bypass Vite Rollup blocks
 
 export const adminTokenStore = {
-  getDecodedToken: (): any | null => {
+  getDecodedToken: (): Record<string, unknown> | null => {
     const token = localStorage.getItem('supreme_admin_jwt');
     if (!token) return null;
 
@@ -25,9 +25,10 @@ export const adminTokenStore = {
       );
 
       return JSON.parse(jsonPayload);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errObj = error as { message?: string };
       console.warn("⚠️ [TOKEN_STORE_LEAK]: Failed to safely parse or decode admin JWT token natively.", {
-        error_message: error?.message || 'Invalid base64 payload matrix',
+        error_message: errObj?.message || 'Invalid base64 payload matrix',
         token_length: token.length,
         timestamp: new Date().toISOString()
       });

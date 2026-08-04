@@ -10,8 +10,8 @@ export interface AdminUser {
 }
 
 export const adminService = {
-  getHealthMap: async (): Promise<any> => {
-    return apiClient.get<any>('/admin-api/health-map');
+  getHealthMap: async (): Promise<unknown> => {
+    return apiClient.get<unknown>('/admin-api/health-map');
   },
 
   getCostsReport: async (): Promise<{ report: string }> => {

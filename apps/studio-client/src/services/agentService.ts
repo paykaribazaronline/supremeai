@@ -17,8 +17,8 @@ export const agentService = {
     });
   },
 
-  listAgents: async (): Promise<any[]> => {
-    return apiClient.get<any[]>('/api/agents');
+  listAgents: async (): Promise<unknown[]> => {
+    return apiClient.get<unknown[]>('/api/agents');
   },
 
   getAgentStatus: async (agentId: string): Promise<{ status: string }> => {

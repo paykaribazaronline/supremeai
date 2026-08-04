@@ -169,7 +169,7 @@ export const apiClient = {
     return handleResponse(res);
   },
 
-  post: async <T>(path: string, body?: any, options?: RequestInit): Promise<T> => {
+  post: async <T>(path: string, body?: unknown, options?: RequestInit): Promise<T> => {
     const res = await throttledFetch(`${getApiBaseUrl()}${path}`, {
       method: 'POST',
       headers: await getAuthHeaders(),
@@ -179,7 +179,7 @@ export const apiClient = {
     return handleResponse(res);
   },
 
-  put: async <T>(path: string, body?: any, options?: RequestInit): Promise<T> => {
+  put: async <T>(path: string, body?: unknown, options?: RequestInit): Promise<T> => {
     const res = await throttledFetch(`${getApiBaseUrl()}${path}`, {
       method: 'PUT',
       headers: await getAuthHeaders(),
@@ -198,7 +198,7 @@ export const apiClient = {
     return handleResponse(res);
   },
 
-  performSensitiveAction: async <T>(path: string, body?: any, otpCode?: string): Promise<T> => {
+  performSensitiveAction: async <T>(path: string, body?: unknown, otpCode?: string): Promise<T> => {
     const headers = await getAuthHeaders();
     if (otpCode) {
       headers['X-JIT-OTP'] = otpCode;
