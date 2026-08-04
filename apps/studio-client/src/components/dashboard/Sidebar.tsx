@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Puzzle, Network, BrainCircuit, ShieldAlert } from 'lucide-react';
-import { cn } from '../ui/Button';
+import { cn } from '../../utils/cn';
 
 const navItems = [
   { name: 'Workspace', path: '/workspace', icon: LayoutDashboard },

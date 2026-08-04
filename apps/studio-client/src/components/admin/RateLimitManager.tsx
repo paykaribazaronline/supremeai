@@ -43,8 +43,12 @@ export const RateLimitManager: React.FC = () => {
   const [saving, setSaving] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<Partial<TenantLimit>>({});
-  const { toast } = useToast();
-  const [newTenant, setNewTenant] = useState({ tenant_id: '', org_name: '', billing_tier: 'free' as const });
+  const { showToast } = useToast();
+  const [newTenant, setNewTenant] = useState<Pick<TenantLimit, 'tenant_id' | 'org_name' | 'billing_tier'>>({
+    tenant_id: '',
+    org_name: '',
+    billing_tier: 'free',
+  });
   const [showNewForm, setShowNewForm] = useState(false);
 
   const fetchData = useCallback(async () => {
@@ -72,14 +76,14 @@ export const RateLimitManager: React.FC = () => {
       setTenants([]);
 
       // 🚨 অ্যাডমিনকে লাইভ ইনফর্ম করার জন্য টোস্ট নোটিফিকেশন ফায়ার
-      toast({
-        title: '⚠️ System Synchronization Failed',
-        description: errMsg,
-        variant: 'destructive',
-      });
+      // (আগে `toast({title,description,variant})` অবজেক্ট আকারে কল হতো, কিন্তু
+      // useToast() প্রকৃতপক্ষে `showToast(type, message)` রিটার্ন করে —
+      // ফলে রানটাইমে "toast is not a function" থ্রো হতো এবং ইউজার
+      // error banner-টাই দেখতে পেতো না)
+      showToast('error', `⚠️ System Synchronization Failed: ${errMsg}`);
     }
     setLoading(false);
-  }, [toast]);
+  }, [showToast]);
 
   useEffect(() => {
     fetchData();
@@ -107,14 +111,14 @@ export const RateLimitManager: React.FC = () => {
         body: JSON.stringify(editValues),
       });
       if (resp.ok) {
-        toast({ title: 'Success', description: `✅ ${tenant_id} limits saved`, variant: 'default' });
+        showToast('success', `✅ ${tenant_id} limits saved`);
         setTenants(prev => prev.map(t => t.tenant_id === tenant_id ? { ...t, ...editValues } : t));
         setEditingId(null);
       } else {
-        toast({ title: 'Error', description: `❌ Save failed: ${resp.status}`, variant: 'destructive' });
+        showToast('error', `❌ Save failed: ${resp.status}`);
       }
     } catch {
-      toast({ title: 'Error', description: `❌ Save failed - server unreachable`, variant: 'destructive' });
+      showToast('error', '❌ Save failed - server unreachable');
     }
     setSaving(null);
   };
@@ -128,7 +132,10 @@ export const RateLimitManager: React.FC = () => {
     try {
       const resp = await fetch(`${API_BASE}/admin/tenant-limits`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getAdminToken()}` },
+        // (আগে undefined ফাংশন getAdminToken() কল হতো — এই বাটন চাপলেই
+        // ReferenceError ছুড়ে "Create Tenant" পুরো ভেঙে যেতো। ফাইলের বাকি
+        // অংশের প্যাটার্ন অনুযায়ী adminTokenStore ব্যবহার করা হলো।)
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminTokenStore.getDecodedToken()}` },
         body: JSON.stringify(record),
       });
       if (!resp.ok) {
@@ -137,9 +144,9 @@ export const RateLimitManager: React.FC = () => {
       setTenants(prev => [...prev, record]);
       setNewTenant({ tenant_id: '', org_name: '', billing_tier: 'free' });
       setShowNewForm(false);
-      toast({ title: 'Success', description: `✅ Tenant ${record.tenant_id} created`, variant: 'default' });
+      showToast('success', `✅ Tenant ${record.tenant_id} created`);
     } catch (e: unknown) {
-      toast({ title: 'Error', description: `❌ Failed to create tenant: ${e instanceof Error ? e.message : 'Unknown error'}`, variant: 'destructive' });
+      showToast('error', `❌ Failed to create tenant: ${e instanceof Error ? e.message : 'Unknown error'}`);
     }
   };
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '../ui/Button';
+import { cn } from '../../utils/cn';
 
 interface ShellProps extends React.HTMLAttributes<HTMLDivElement> {
   sidebar?: React.ReactNode;

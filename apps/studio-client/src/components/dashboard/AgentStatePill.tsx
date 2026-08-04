@@ -14,6 +14,10 @@ const stateConfig: Record<SujonState, { color: string; label: string; animation:
   awaiting_human: { color: 'bg-purple-500', label: 'Awaiting Input', animation: 'animate-ping' },
   success: { color: 'bg-emerald-400', label: 'Success', animation: '' },
   failed: { color: 'bg-red-500', label: 'Failed', animation: '' },
+  // বাংলা: SujonState union-এ 'processing' যোগ হয়েছিল কিন্তু এখানে এন্ট্রি ছিল না —
+  // state==='processing' হলে config===undefined হয়ে render-এ ক্র্যাশ করতো
+  // ("Cannot read properties of undefined (reading 'label')")।
+  processing: { color: 'bg-sky-500', label: 'Processing', animation: 'animate-pulse' },
 };
 
 export const AgentStatePill: React.FC<AgentStatePillProps> = ({ state }) => {

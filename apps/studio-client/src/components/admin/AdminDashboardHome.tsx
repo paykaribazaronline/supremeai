@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Play, Activity, Server, AlertTriangle, Monitor, Sparkles, Cpu, Layers } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { RealTimeMetricsPanel } from './RealTimeMetricsPanel';
-import { useMetrics, useHealthMap, useCIReports, useDashboardEvents } from '../../hooks/useDashboardData';
+import { useMetrics, useHealthMap, useCIReports } from '../../hooks/useDashboardData';
 import { HealthReportWidget } from './HealthReportWidget';
 import { GitHubCIWidget } from './GitHubCIWidget';
 
@@ -16,10 +16,16 @@ export const AdminDashboardHome: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
 
   // রিয়েল ডেটা — useMetrics হুক থেকে লাইভ মেট্রিক্স নেওয়া হচ্ছে
-  const { data: metrics, isLoading: metricsLoading } = useMetrics(15000);
-  const { data: healthMap } = useHealthMap(45000);
-  const { data: ciReports } = useCIReports(5, 30000);
-  const { data: events } = useDashboardEvents(10, 30000);
+  // (বাংলা: এই হুকগুলো আর polling-interval আর্গুমেন্ট নেয় না — পোলিং সরিয়ে
+  // SSE-ভিত্তিক আপডেটে (useDashboardSSE) সরানো হয়েছে, কিন্তু এই কল-সাইটগুলো
+  // পুরনো সিগনেচার দিয়ে রয়ে গিয়েছিল, ফলে build ভেঙে যাচ্ছিল।)
+  const { data: metrics, isLoading: metricsLoading } = useMetrics();
+  const { data: healthMap } = useHealthMap();
+  const { data: ciReports } = useCIReports(5);
+  // বাংলা: events ডেটা fetch হতো কিন্তু এই কম্পোনেন্টে কোথাও render হতো না
+  // (unused variable, build-breaking noUnusedLocals)। এটা একটা মিসিং ফিচার —
+  // events feed UI যোগ করা এই বাগ-ফিক্স পাসের স্কোপের বাইরে, তাই fetch-টা
+  // আপাতত সরিয়ে রাখা হলো যতক্ষণ না আসল UI যোগ হয়।
 
   useEffect(() => {
     const timer = setInterval(() => {

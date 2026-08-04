@@ -255,20 +255,27 @@ const Dashboard: React.FC = () => {
                   <Users size={24} className="text-indigo-600" />
                 </div>
                 <span className="text-sm font-mono font-bold text-indigo-600">
-                  {metrics ? metrics.active_agents : 0} Active
+                  {metrics ? metrics.active_providers.length : 0} Active
                 </span>
               </div>
-              <h3 className="text-lg font-bold text-slate-800">AI Agents</h3>
+              {/* বাংলা: `metrics.active_agents` কখনোই backend response
+                  (backend/api/routes/admin_dashboard.py -> get_metrics())-এ
+                  ছিল না, তাই এটা সবসময় `undefined` ছিল — কার্ডে সবসময় 0/Inactive
+                  দেখাতো আর `undefined * 10` থেকে NaN width bug হতো। ব্যাকএন্ডে
+                  আসল "active agents" কাউন্ট এখনো এক্সপোজ করা হয়নি, তাই আপাতত
+                  বাস্তবে যা পাওয়া যায় (active LLM providers সংখ্যা) দেখানো হচ্ছে —
+                  fake সংখ্যা বসানো হয়নি (repo-র own Zero-Gap stub-data নীতি মেনে)। */}
+              <h3 className="text-lg font-bold text-slate-800">AI Providers</h3>
               <p className="text-2xl font-extrabold text-indigo-600 mt-2">
-                {metrics && metrics.active_agents > 0 ? 'Operational' : 'Inactive'}
+                {metrics && metrics.active_providers.length > 0 ? 'Operational' : 'Inactive'}
               </p>
               <p className="text-xs text-slate-500 mt-2">
-                {metrics ? metrics.active_agents : 0} agents processing tasks
+                {metrics ? metrics.active_providers.length : 0} providers configured
               </p>
               <div className="mt-4 h-2 bg-slate-200 rounded-full overflow-hidden">
                 <div 
                   className="h-full bg-indigo-500 rounded-full" 
-                  style={{ width: `${metrics ? Math.min(metrics.active_agents * 10, 100) : 0}%` }}
+                  style={{ width: `${metrics ? Math.min(metrics.active_providers.length * 25, 100) : 0}%` }}
                 ></div>
               </div>
             </motion.div>
@@ -454,13 +461,13 @@ const Dashboard: React.FC = () => {
                     <div className="flex justify-between mb-1">
                       <span className="text-sm font-medium">CPU Usage</span>
                       <span className="text-sm font-bold">
-                        {metrics ? Math.round(metrics.cpu_percent) : 0}%
+                        {metrics ? Math.round(metrics.cpu_usage_percent) : 0}%
                       </span>
                     </div>
                     <div className="h-2 bg-white/20 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-white rounded-full" 
-                        style={{ width: `${metrics ? Math.min(metrics.cpu_percent, 100) : 0}%` }}
+                        style={{ width: `${metrics ? Math.min(metrics.cpu_usage_percent, 100) : 0}%` }}
                       ></div>
                     </div>
                   </div>
@@ -469,13 +476,13 @@ const Dashboard: React.FC = () => {
                     <div className="flex justify-between mb-1">
                       <span className="text-sm font-medium">Memory Usage</span>
                       <span className="text-sm font-bold">
-                        {metrics ? Math.round(metrics.memory_percent) : 0}%
+                        {metrics ? Math.round(metrics.memory_usage_percent) : 0}%
                       </span>
                     </div>
                     <div className="h-2 bg-white/20 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-white rounded-full" 
-                        style={{ width: `${metrics ? Math.min(metrics.memory_percent, 100) : 0}%` }}
+                        style={{ width: `${metrics ? Math.min(metrics.memory_usage_percent, 100) : 0}%` }}
                       ></div>
                     </div>
                   </div>

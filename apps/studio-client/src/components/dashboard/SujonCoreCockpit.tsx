@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import useSupremeStore from '../../store/useSupremeStore';
-import WebSocketManager from '../../../services/realtime/WebSocketManager';
+import WebSocketManager from '../../services/realtime/WebSocketManager';
 
 interface SujonCoreCockpitProps {
   authToken: string;
