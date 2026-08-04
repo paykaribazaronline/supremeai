@@ -1,7 +1,7 @@
 import type { ChatMessage, Skill, Checkpoint, CloudStats, GcpHealth, AdminSubTab, AdminUser, HealthMap } from '../../types';
 import { LoginView } from './AdminLogin';
 import { AuthenticatedView } from './AdminAuthenticated';
-import { DashboardErrorBoundary } from './DashboardErrorBoundary';
+import DashboardErrorBoundary from './DashboardErrorBoundary';
 
 interface AdminConsoleProps {
   adminAuthenticated: boolean;
