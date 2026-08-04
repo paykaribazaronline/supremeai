@@ -49,7 +49,6 @@ if backend_dir not in sys.path:
 if "SUPREMEAI_ENCRYPTION_KEY" not in os.environ and "ENCRYPTION_KEY" not in os.environ:
     os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "TEST_ONLY_SUPREMEAI_ENCRYPTION_KEY_DO_NOT_USE_IN_PROD="
 
-
 # ── Router lists (mirrors backend/api/routers.py) ─────────────────────────────
 CORE_ROUTERS = [
     "api.routes.memory",

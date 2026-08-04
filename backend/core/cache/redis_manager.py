@@ -14,11 +14,15 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# redis লাইব্রেরি মিসিং থাকলেও যেন core.cache মডিউল ক্র্যাশ না করে, সে জন্য সেফ ইমপোর্ট ব্যবহার করা হলো।
 try:
     import aioredis
+    if not hasattr(aioredis, "Redis"):
+        import redis.asyncio as aioredis
 except ImportError:
-    aioredis = None
+    try:
+        import redis.asyncio as aioredis
+    except ImportError:
+        aioredis = None
 
 # Import pybreaker for circuit breaker functionality as mentioned in audit report
 try:
