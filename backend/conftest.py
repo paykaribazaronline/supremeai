@@ -50,7 +50,7 @@ def mock_redis():
 @pytest.fixture
 def mock_async_redis():
     """Provide an async Redis mock for async tests."""
-    with patch("redis.asyncio.Redis.from_url") as mock_redis_constructor:
+    with patch("redis.asyncio.from_url") as mock_redis_constructor:
         mock_instance = MagicMock()
         mock_instance.ping = asyncio.Future()
         mock_instance.ping.set_result(True)
