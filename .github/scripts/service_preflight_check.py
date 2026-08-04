@@ -5,13 +5,24 @@ service_preflight_check.py
 উদ্দেশ্য: ব্যয়বহুল jobs (pytest, lint, build) চালানোর আগেই
 সব external service-এর credential/key validate করা।
 
-চেক করা হয় (Blocking — fail হলে exit 1):
+চেক করা হয় (Blocking — শুধু production main repo-তে, fail হলে exit 1):
   - Render Primary  (RENDER_API_KEY + PRIMARY_SVC_ID)
   - Render Backup   (RENDER_API_KEY_BACKUP + BACKUP_SVC_ID)
   - Vercel          (VERCEL_TOKEN)
 
 চেক করা হয় (Warning-only — fail হলেও exit 0):
   - Firebase        (FIREBASE_SERVICE_ACCOUNT — JSON parse only)
+
+Repo-aware gating (2026-08-04 fix):
+  এই স্ক্রিপ্ট GITHUB_REPOSITORY env var (GitHub Actions সব step-এ default
+  পাওয়া যায়) পড়ে production main repo চিনে নেয়। Main repo ছাড়া অন্য যেকোনো
+  repo-তে (staging/mirror/fork সহ) Render ও Vercel-এর fail-কে blocking না
+  রেখে warning-only করে দেওয়া হয় — কারণ সেসব repo-তে production deploy job
+  গুলো এমনিতেই `github.repository == 'paykaribazaronline/supremeai'` গার্ড
+  দিয়ে বন্ধ থাকে, ফলে সেখানে production credential যাচাই করার কোনো বাস্তব
+  মূল্য নেই এবং সেই credential রাখাটাও অপ্রয়োজনীয় ঝুঁকি (attack surface,
+  secret duplication/drift)। এতে দুই repo-তেই একই স্ক্রিপ্ট রাখা যায়, কিন্তু
+  staging repo আর কখনো এই কারণে force-cancel হয় না।
 
 GCP চেক: নিচে commented-out রাখা হয়েছে।
   → GCP deploy enable করতে হলে শুধু uncomment করুন।
@@ -23,6 +34,13 @@ import sys
 import urllib.error
 import urllib.request
 from typing import Optional
+
+# ──────────────────────────────────────────────────────────────
+# Production main repo — শুধু এই repo-তে Render/Vercel blocking থাকে।
+# হার্ডকোড এড়াতে env var দিয়ে override করার সুযোগও রাখা হলো
+# (repo/org variable PROD_REPO_SLUG সেট থাকলে সেটাই ব্যবহার হবে)।
+# ──────────────────────────────────────────────────────────────
+PROD_REPO_SLUG = os.environ.get("PROD_REPO_SLUG", "paykaribazaronline/supremeai")
 
 
 # ──────────────────────────────────────────────────────────────
@@ -230,6 +248,15 @@ def main() -> None:
     print("🔌  Service Preflight Connectivity Check")
     print("━" * 60)
 
+    # ── Repo-aware gating ────────────────────────────────────
+    current_repo = os.environ.get("GITHUB_REPOSITORY", "")
+    is_prod_repo = current_repo == PROD_REPO_SLUG
+    if is_prod_repo:
+        print(f"🏭  Production repo detected ({current_repo}) — Render/Vercel checks are BLOCKING.\n")
+    else:
+        print(f"🧪  Non-production repo detected ({current_repo or 'unknown'}) — Render/Vercel checks are WARNING-ONLY.")
+        print(f"    (Blocking mode only applies on {PROD_REPO_SLUG}; deploy jobs are already repo-gated there too.)\n")
+
     # ── Environment variables ─────────────────────────────────
     render_key_primary  = os.environ.get("RENDER_API_KEY", "")
     render_key_backup   = os.environ.get("RENDER_API_KEY_BACKUP", "")
@@ -246,27 +273,36 @@ def main() -> None:
     # ── Run checks ───────────────────────────────────────────
     blocking_errors: list[str] = []
 
-    # Render Primary (BLOCKING)
+    # Render Primary (BLOCKING only on prod repo, else warning-only)
     print("\n[1/5] Render Primary Backend...")
     err = check_render("RENDER-PRIMARY", render_key_primary, primary_svc_id)
     if err:
-        blocking_errors.append(err)
+        if is_prod_repo:
+            blocking_errors.append(err)
+        else:
+            print(f"  ⚠️  [RENDER-PRIMARY] WARNING (non-prod repo, non-blocking):\n{err}")
     else:
         ping_render_warmup("RENDER-PRIMARY", primary_svc_url)
 
-    # Render Backup/Admin (BLOCKING)
+    # Render Backup/Admin (BLOCKING only on prod repo, else warning-only)
     print("\n[2/5] Render Backup/Admin Backend...")
     err = check_render("RENDER-BACKUP", render_key_backup, backup_svc_id)
     if err:
-        blocking_errors.append(err)
+        if is_prod_repo:
+            blocking_errors.append(err)
+        else:
+            print(f"  ⚠️  [RENDER-BACKUP] WARNING (non-prod repo, non-blocking):\n{err}")
     else:
         ping_render_warmup("RENDER-BACKUP", backup_svc_url)
 
-    # Vercel (BLOCKING)
+    # Vercel (BLOCKING only on prod repo, else warning-only)
     print("\n[3/5] Vercel User Portal...")
     err = check_vercel(vercel_token)
     if err:
-        blocking_errors.append(err)
+        if is_prod_repo:
+            blocking_errors.append(err)
+        else:
+            print(f"  ⚠️  [VERCEL] WARNING (non-prod repo, non-blocking):\n{err}")
 
     # Firebase (WARNING ONLY — non-blocking)
     print("\n[4/5] Firebase Service Account (warning-only)...")
