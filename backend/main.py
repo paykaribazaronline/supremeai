@@ -21,12 +21,18 @@ from loguru import logger
 # বাংলা মন্তব্য: টেস্ট এনভায়রনমেন্টে সম্পূর্ণ অ্যাপ এবং প্রোডাকশনে রোল অনুযায়ী ইউজার/অ্যাডমিন এন্ট্রি পয়েন্ট লোড করা হচ্ছে
 if "pytest" in sys.modules:
     from core.app import app
+
+    _APP_IMPORT_STRING = "core.app:app"
 else:
     role = os.getenv("SERVICE_ROLE", "user").lower()
     if role == "admin":
         from core.app_admin import app
+
+        _APP_IMPORT_STRING = "core.app_admin:app"
     else:
         from core.app_user import app
+
+        _APP_IMPORT_STRING = "core.app_user:app"
 
 from core.config import settings
 from core.logging_config import setup_logging
@@ -79,7 +85,14 @@ def run_server() -> None:
 
     try:
         # বাংলা: app-এর সরাসরি রেফারেন্স ব্যবহার, যাতে মডিউল রিলোডিং পরিবর্তনে ভাঙ্গবে না
-        uvicorn.run(app, **uvicorn_kwargs)
+        # বাংলা: আগে এখানে `app` অবজেক্ট সরাসরি পাস করা হতো, যেটা reload=True বা
+        # workers>1 হলে uvicorn-কে "must pass the application as an import string"
+        # ওয়ার্নিং দিতে বাধ্য করত — আর reload/multi-worker ঠিকভাবে কাজ করত না
+        # (production লগে বারবার ModelRouter/SkillManager re-initialize হওয়া এবং
+        # শেষে পোর্ট বাইন্ড না হয়ে exit হওয়ার এটাই সম্ভাব্য কারণ)। import string
+        # ব্যবহার করলে reload আর workers>1 — দুটো ক্ষেত্রেই সঠিকভাবে কাজ করে, আর
+        # single-worker/no-reload ক্ষেত্রেও কোনো পার্থক্য হয় না।
+        uvicorn.run(_APP_IMPORT_STRING, **uvicorn_kwargs)
     except RuntimeError as exc:
         logger.critical(f"Server failed to start (configuration error): {exc}")
         if settings.sentry_dsn:

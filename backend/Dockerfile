@@ -34,6 +34,11 @@ RUN adduser --disabled-password --gecos '' --home /home/appuser appuser
 # Copy virtual environment from builder and application source code from workspace
 COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
 COPY --chown=appuser:appuser backend/ /app/
+# বাংলা: scripts/ রুট-লেভেলে (backend/-এর বাইরে) থাকে, কিন্তু core/lifespan.py (BugProphet)
+# এবং core/error_remediation.py (RefactorWiz) রানটাইমে এটা ইম্পোর্ট/এক্সিকিউট করে —
+# আগে এটা image-এ কপি হতো না, ফলে production-এ "No module named 'scripts.devops'"
+# ওয়ার্নিং দিয়ে ওই ফিচারগুলো নিঃশব্দে বন্ধ থাকত।
+COPY --chown=appuser:appuser scripts/ /app/scripts/
 
 
 # Security hardening: remove sensitive files
