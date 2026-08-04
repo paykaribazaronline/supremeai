@@ -1,4 +1,3 @@
-from core.error_bus import with_error_bus
 import asyncio
 import json
 import os
@@ -16,6 +15,7 @@ from fastapi import (
 from loguru import logger
 from pydantic import BaseModel
 
+from core.error_bus import with_error_bus
 from core.messaging.event_bus import ErrorContext
 
 router = APIRouter()

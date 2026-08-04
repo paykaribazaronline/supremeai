@@ -5,7 +5,6 @@
 # Docker image whitelist enforced — arbitrary image run নিষিদ্ধ।
 # os.environ-এ secrets inject করা বন্ধ।
 # CancelledError সবসময় re-raise।
-from core.error_bus import with_error_bus
 import asyncio
 import contextlib
 import json
@@ -22,6 +21,7 @@ from typing import Any
 from loguru import logger
 
 from core.config import settings
+from core.error_bus import with_error_bus
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 
 # AST প্রি-এক্সিকিউশন স্ক্যানার — স্যান্ডবক্স বাইপাস প্রতিরোধ

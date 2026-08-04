@@ -1,4 +1,3 @@
-from core.error_bus import with_error_bus
 import hashlib
 import hmac
 from typing import Any
@@ -8,6 +7,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from core.config import settings
+from core.error_bus import with_error_bus
 
 router = APIRouter(prefix="/cdc", tags=["cdc"])
 

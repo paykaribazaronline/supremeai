@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 from loguru import logger
+
+from core.error_bus import with_error_bus
 
 
 class RollbackMonitor:

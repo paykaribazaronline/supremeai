@@ -7,7 +7,6 @@ cost optimization, and Bengali language optimization.
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import json
 import time
 from dataclasses import dataclass
@@ -15,6 +14,7 @@ from enum import Enum, StrEnum
 
 # Internal core imports
 from core.cache import get_redis_client
+from core.error_bus import with_error_bus
 from core.llm.llm_gateway import get_llm_gateway
 from core.logging import get_logger
 from core.resilience.circuit_breaker_manager import get_shared_circuit_breaker

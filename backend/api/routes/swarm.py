@@ -1,4 +1,3 @@
-from core.error_bus import with_error_bus
 import asyncio
 import logging
 import uuid
@@ -9,6 +8,7 @@ from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 
 from api.routes.admin import get_current_admin
+from core.error_bus import with_error_bus
 from core.orchestration.swarm_orchestrator import SwarmOrchestrator
 from core.swarm_pubsub import swarm_streamer
 from database.session import get_db_session

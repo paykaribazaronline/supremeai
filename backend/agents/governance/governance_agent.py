@@ -3,7 +3,6 @@ Governance Agent for SupremeAI 2.0
 Manages access controls, decision-making oversight, and policy enforcement.
 """
 
-from core.error_bus import with_error_bus
 import asyncio
 import json
 import logging
@@ -13,6 +12,7 @@ from datetime import datetime
 from typing import Any
 
 from core.cache.redis_manager import redis_manager
+from core.error_bus import with_error_bus
 from core.llm.token_deductor import TokenDeductor
 from core.utils.background_tasks import track_task
 

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import asyncio
 import traceback
 from dataclasses import dataclass
@@ -8,6 +7,7 @@ from typing import Any
 
 from loguru import logger
 
+from core.error_bus import with_error_bus
 from core.performance_enhancer import get_performance_optimizer
 
 

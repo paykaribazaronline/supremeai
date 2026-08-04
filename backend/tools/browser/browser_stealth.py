@@ -62,8 +62,7 @@ class BrowserStealth:
 
         self.context = await browser.new_context(**context_kwargs)
         await self.context.route("**/*.{png,jpg,jpeg,gif,svg,woff,woff2}", lambda route: route.abort())
-        await self.context.add_init_script(
-            """
+        await self.context.add_init_script("""
             (() => {
                 // --- General Navigator Spoofing ---
                 Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
@@ -116,8 +115,7 @@ class BrowserStealth:
                     return toDataURL.apply(this, arguments);
                 };
             })();
-            """
-        )
+            """)
         return self.context
 
     async def simulate_human_behavior(self, page: Page) -> None:

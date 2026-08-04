@@ -1,7 +1,8 @@
-from core.error_bus import with_error_bus
 import asyncio
 import json
 from typing import Any
+
+from core.error_bus import with_error_bus
 
 try:
     import networkx as nx

@@ -21,8 +21,7 @@ def upgrade() -> None:
     """Upgrade schema."""
     # বাংলা মন্তব্য: Self-Healing ফিডব্যাক লুপের জন্য patch_telemetry টেবিল —
     # আগে এই ডেটা শুধু logger.info() দিয়ে লগ হতো, DB তে কখনো সেভ হতো না (silent data loss)।
-    op.execute(
-        """
+    op.execute("""
         CREATE TABLE IF NOT EXISTS patch_telemetry (
             id UUID PRIMARY KEY,
             error_id VARCHAR(255) NOT NULL,
@@ -32,8 +31,7 @@ def upgrade() -> None:
             similarity_score FLOAT NOT NULL,
             created_at TIMESTAMPTZ NOT NULL DEFAULT now()
         )
-        """
-    )
+        """)
     op.execute("CREATE INDEX IF NOT EXISTS ix_patch_telemetry_error_id ON patch_telemetry (error_id)")
     op.execute("CREATE INDEX IF NOT EXISTS ix_patch_telemetry_patch_id ON patch_telemetry (patch_id)")
 

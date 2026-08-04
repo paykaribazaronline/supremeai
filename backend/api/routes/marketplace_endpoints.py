@@ -1,4 +1,3 @@
-from core.error_bus import with_error_bus
 import json
 import os
 import sqlite3
@@ -8,6 +7,7 @@ from fastapi import APIRouter, HTTPException, Request
 from loguru import logger
 from pydantic import BaseModel
 
+from core.error_bus import with_error_bus
 from database.supabase_client import db
 from tools.resource_catalog import ResourceCatalog
 from tools.social.marketplace_agent import MarketplaceAgent
@@ -31,8 +31,7 @@ def _get_conn() -> sqlite3.Connection:
     (os.makedirs(os.path.dirname(DB_PATH), exist_ok=True) if os.path.dirname(DB_PATH) else None)
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
-    conn.execute(
-        """
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS skills (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
@@ -43,8 +42,7 @@ def _get_conn() -> sqlite3.Connection:
             source TEXT NOT NULL DEFAULT 'builtin',
             installed_at REAL
         )
-        """
-    )
+        """)
     conn.commit()
     return conn
 

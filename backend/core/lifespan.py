@@ -43,16 +43,12 @@ from core.cache.redis_manager import redis_manager
 from core.config import settings
 from core.config_cache import config_cache
 from core.maintenance_pipeline import maintenance_pipeline
-from core.messaging.event_bus import ErrorEvent
-from core.messaging.event_bus import error_event_bus
+from core.messaging.event_bus import ErrorEvent, error_event_bus
 from core.metrics_collector import metrics_collector, record_db_operation
 from core.orchestration.orchestrator import Orchestrator
 from core.persistence import pooled_pg
-from core.persistence.write_behind import (
-    flush_all as flush_write_behind_batchers,
-)
-from core.pgbouncer_pool import get_db_pool
-from core.pgbouncer_pool import init_db_pool
+from core.persistence.write_behind import flush_all as flush_write_behind_batchers
+from core.pgbouncer_pool import get_db_pool, init_db_pool
 from core.reliability_controller import ReliabilityController
 from core.startup_validator import StartupValidator
 
@@ -70,8 +66,7 @@ async def _ensure_api_key_tables() -> None:
     conn = await pool.acquire()
     try:
         async with conn.transaction():
-            await conn.execute(
-                """
+            await conn.execute("""
                 CREATE TABLE IF NOT EXISTS api_keys (
                     id SERIAL PRIMARY KEY,
                     user_id TEXT NOT NULL,
@@ -87,10 +82,8 @@ async def _ensure_api_key_tables() -> None:
                     created_at INTEGER NOT NULL,
                     updated_at INTEGER NOT NULL
                 )
-                """
-            )
-            await conn.execute(
-                """
+                """)
+            await conn.execute("""
                 CREATE TABLE IF NOT EXISTS api_key_usage (
                     id SERIAL PRIMARY KEY,
                     api_key_id INTEGER NOT NULL REFERENCES api_keys(id),
@@ -100,10 +93,8 @@ async def _ensure_api_key_tables() -> None:
                     ip_address TEXT,
                     created_at INTEGER NOT NULL
                 )
-                """
-            )
-            await conn.execute(
-                """
+                """)
+            await conn.execute("""
                 CREATE TABLE IF NOT EXISTS api_key_events (
                     id SERIAL PRIMARY KEY,
                     api_key_id INTEGER NOT NULL REFERENCES api_keys(id),
@@ -112,8 +103,7 @@ async def _ensure_api_key_tables() -> None:
                     ip_address TEXT,
                     created_at INTEGER NOT NULL
                 )
-                """
-            )
+                """)
             await conn.execute("CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash)")
             await conn.execute("ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS rate_limit_window INTEGER DEFAULT 60")
             await conn.execute(

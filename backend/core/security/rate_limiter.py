@@ -11,7 +11,6 @@ Critical Security Note: ফেইল-ক্লোজড মোডে রেট �
 যাতে প্রোডাকশনে Redis ডাউন থাকলে রিকোয়েস্ট পাস না করে।
 """
 
-from core.error_bus import with_error_bus
 import time
 from typing import Literal
 
@@ -19,6 +18,7 @@ from loguru import logger
 
 from core.cache.redis_manager import redis_manager
 from core.config import settings
+from core.error_bus import with_error_bus
 
 
 class RateLimitExceededError(Exception):

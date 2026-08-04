@@ -78,8 +78,7 @@ def ensure_tables(conn, dry_run: bool) -> None:
     logger.info("ডাটাবেস টেবিল আছে কিনা যাচাই করা হচ্ছে (কোনো DROP হবে না)...")
     cursor = conn.cursor()
     try:
-        cursor.execute(
-            """
+        cursor.execute("""
         CREATE TABLE IF NOT EXISTS skills (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             skill_name VARCHAR(255) UNIQUE NOT NULL,
@@ -111,8 +110,7 @@ def ensure_tables(conn, dry_run: bool) -> None:
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
-        """
-        )
+        """)
         conn.commit()
         logger.success("টেবিল প্রস্তুত (বিদ্যমান ডেটা অক্ষত আছে)।")
     except Exception as e:

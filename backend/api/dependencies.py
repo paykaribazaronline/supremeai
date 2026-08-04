@@ -10,7 +10,6 @@ Provides:
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
@@ -18,6 +17,7 @@ from jose.exceptions import ExpiredSignatureError
 from loguru import logger
 
 from core.config import settings
+from core.error_bus import with_error_bus
 from core.evolution.fitness_engine import FitnessEngine
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 from core.tenant_db import TenantAwareFirestore

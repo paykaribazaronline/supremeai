@@ -7,7 +7,6 @@ Provides ethical assessment, bias checking, and ethics compliance reporting.
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import hashlib
 import logging
 from dataclasses import dataclass
@@ -16,6 +15,7 @@ from enum import StrEnum
 from typing import Any
 
 from core.cache import get_cache
+from core.error_bus import with_error_bus
 from core.llm_router import LLMRouter
 
 logger = logging.getLogger("supremeai.ethics_monitor")

@@ -43,8 +43,7 @@ def _get_conn():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    conn.execute(
-        """
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS pending_tasks (
             task_id TEXT PRIMARY KEY,
             task_type TEXT NOT NULL,
@@ -55,8 +54,7 @@ def _get_conn():
             resolved_at TEXT,
             reason TEXT
         )
-        """
-    )
+        """)
     return conn
 
 

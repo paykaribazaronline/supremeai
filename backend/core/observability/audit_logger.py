@@ -73,8 +73,7 @@ class AuditLogger:
     def _init_sqlite(self):
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         with self._get_conn() as conn:
-            conn.execute(
-                """
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS audit_logs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     action_type TEXT,
@@ -82,8 +81,7 @@ class AuditLogger:
                     reasoning TEXT,
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """
-            )
+            """)
             conn.commit()
 
     def _ensure_schema(self) -> bool:

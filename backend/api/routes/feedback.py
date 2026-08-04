@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import tempfile
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -12,8 +13,6 @@ from loguru import logger
 from pydantic import BaseModel
 
 from core.feedback_loop import FeedbackLoop
-
-import tempfile
 
 
 def _get_db_path() -> Path:
@@ -38,16 +37,14 @@ def _ensure_db() -> None:
         pass
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     try:
-        conn.execute(
-            """
+        conn.execute("""
             CREATE TABLE IF NOT EXISTS feedback_events (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 event_type TEXT NOT NULL,
                 payload TEXT NOT NULL,
                 created_at REAL NOT NULL
             )
-            """
-        )
+            """)
         conn.commit()
     finally:
         conn.close()

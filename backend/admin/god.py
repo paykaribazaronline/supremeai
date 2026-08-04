@@ -64,16 +64,14 @@ class AdminGodLayer:
 
         with self.sqlite_lock:
             with closing(sqlite3.connect(self.db_path, check_same_thread=False)) as conn:
-                conn.execute(
-                    """
+                conn.execute("""
                     CREATE TABLE IF NOT EXISTS rules (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         key TEXT UNIQUE NOT NULL,
                         value TEXT NOT NULL,
                         updated_at REAL NOT NULL
                     )
-                    """
-                )
+                    """)
                 conn.commit()
 
         # বাংলা মন্তব্য: নিরাপত্তার জন্য প্রথমবার চালানোর সময় সকল অ্যাডমিন অথরাইজেশন ডিফল্টভাবে 'false' রাখা হচ্ছে এবং সতর্কতা লগ করা হচ্ছে।

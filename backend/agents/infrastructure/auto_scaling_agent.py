@@ -3,7 +3,6 @@ Auto-Scaling Agent for SupremeAI 2.0
 Dynamically adjusts resources based on demand to optimize performance and costs.
 """
 
-from core.error_bus import with_error_bus
 import asyncio
 import json
 import logging
@@ -14,6 +13,7 @@ from typing import Any
 import psutil  # This may need to be installed separately
 
 from core.cache.redis_manager import redis_manager
+from core.error_bus import with_error_bus
 from core.llm.token_deductor import TokenDeductor
 from core.monitoring.metrics_collector import MetricsCollector
 from core.utils.background_tasks import track_task

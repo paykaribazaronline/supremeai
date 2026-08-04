@@ -250,8 +250,7 @@ class MultiAccountRotator:
 
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
-        cursor.execute(
-            """
+        cursor.execute("""
             CREATE TABLE IF NOT EXISTS verification_queue (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 sender TEXT,
@@ -262,8 +261,7 @@ class MultiAccountRotator:
                 processed INTEGER DEFAULT 0,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """
-        )
+        """)
         cursor.execute(
             "INSERT INTO verification_queue (sender, subject, email_target, code, link) VALUES (?, ?, ?, ?, ?)",
             (

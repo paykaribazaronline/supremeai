@@ -3,9 +3,9 @@
 Targets: cli, langchain_agent_example, bandwidth_optimizer, conversation_manager
 """
 
-import pytest  # বাংলা মন্তব্য: pytest মডিউল ইমপোর্ট করা হলো যাতে @pytest.mark.skip সজ্জা সঠিকভাবে কাজ করে।
 from unittest.mock import patch
 
+import pytest  # বাংলা মন্তব্য: pytest মডিউল ইমপোর্ট করা হলো যাতে @pytest.mark.skip সজ্জা সঠিকভাবে কাজ করে।
 
 # ── cli ────────────────────────────────────────────────────────────────────────
 

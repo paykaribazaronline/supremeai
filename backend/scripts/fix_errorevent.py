@@ -1,6 +1,7 @@
-from core.error_bus import with_error_bus
 import os
 import re
+
+from core.error_bus import with_error_bus
 
 
 @with_error_bus("main")

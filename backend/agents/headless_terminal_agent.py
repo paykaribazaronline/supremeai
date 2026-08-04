@@ -12,7 +12,6 @@ CLI handler for terminal-based AI interactions.
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import asyncio
 import hashlib
 import json
@@ -24,6 +23,7 @@ from typing import Any
 from loguru import logger
 
 from core.cache import get_cache
+from core.error_bus import with_error_bus
 from core.llm_router import LLMRouter
 
 # ── Constants ────────────────────────────────────────────────────────────────
