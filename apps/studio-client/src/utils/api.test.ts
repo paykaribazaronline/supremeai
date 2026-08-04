@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { RENDER_BACKENDS, switchActiveBackend, getApiBaseUrl, getWebSocketBaseUrl } from './api';
 
 describe('api.ts', () => {
@@ -15,13 +15,13 @@ describe('api.ts', () => {
   describe('switchActiveBackend', () => {
     it('toggles between backends', () => {
       const first = switchActiveBackend();
-      const second = switchActiveBackend();
-      expect(first).not.toBe(second);
+      const _second = switchActiveBackend();
+      expect(first).not.toBe(_second);
     });
 
     it('returns same backend after two toggles', () => {
       const first = switchActiveBackend();
-      const second = switchActiveBackend();
+      const _second = switchActiveBackend();
       const third = switchActiveBackend();
       expect(first).toBe(third);
     });

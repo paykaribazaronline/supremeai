@@ -29,7 +29,7 @@ export default tseslint.config({ ignores: ['dist'] }, {
       { allowConstantExport: true, allowExportNames: ['useTheme', 'useToast', 'useI18n', 'useThemeSync', 'useSwarmStream', 'setSujonState', 'useSujonState', 'SUJON_STATE_EVENT', 'SujonState', 'Theme', 'THEME_ORDER', 'ToastType', 'Toast', 'globalShowToastRef'] },
     ],
     '@typescript-eslint/no-explicit-any': 'warn',
-    '@typescript-eslint/no-unused-vars': ['warn', { 'argsIgnorePattern': '^_' }],
+    '@typescript-eslint/no-unused-vars': ['warn', { 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_' }],
     'react-hooks/set-state-in-effect': 'off',
     'no-console': ['warn', { allow: ['warn', 'error'] }],
   },

@@ -868,11 +868,17 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Lowercase Repository Name
+        id: string
+        run: |
+          echo "REPO_LOWER=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
+          echo "OWNER_LOWER=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_OUTPUT
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/supremeai/supremeai-backend
+          images: ghcr.io/${{ steps.string.outputs.REPO_LOWER }}/supremeai-backend
           tags: |
             type=raw,value=latest
             type=sha
@@ -886,8 +892,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # বাংলা মন্তব্য: GHCR registry cache ব্যবহার করা হচ্ছে — আলাদা storage quota তাই 10GB GHA limit স্পর্শ করে না
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/supremeai/supremeai-backend:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/supremeai/supremeai-backend:buildcache,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ steps.string.outputs.REPO_LOWER }}/supremeai-backend:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ steps.string.outputs.REPO_LOWER }}/supremeai-backend:buildcache,mode=max
 
   deploy-user-backend:
     name: 🚀 Deploy User Backend (Render)
@@ -907,7 +913,8 @@ jobs:
       - name: Trigger User Render Deploy (Prebuilt Image)
         if: needs.check-render-quota.outputs.use_github_build == 'true'
         run: |
-          IMAGE_URL="ghcr.io/${{ github.repository_owner }}/supremeai/supremeai-backend:sha-${{ github.sha }}"
+          OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_URL="ghcr.io/${OWNER_LOWER}/supremeai/supremeai-backend:sha-${{ github.sha }}"
           echo "🐳 GitHub build mode ACTIVE! Deploying pre-built image: $IMAGE_URL"
           PRIMARY_SVC_ID="srv-d9d3n58js32c738n79k0"
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
@@ -986,7 +993,8 @@ jobs:
       - name: Trigger Admin Render Deploy (Prebuilt Image)
         if: needs.check-render-quota.outputs.use_github_build == 'true'
         run: |
-          IMAGE_URL="ghcr.io/${{ github.repository_owner }}/supremeai/supremeai-backend:sha-${{ github.sha }}"
+          OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_URL="ghcr.io/${OWNER_LOWER}/supremeai/supremeai-backend:sha-${{ github.sha }}"
           echo "🐳 GitHub build mode ACTIVE! Deploying pre-built image: $IMAGE_URL"
           BACKUP_SVC_ID="srv-d9fg48bh523c73f63bb0"
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
@@ -994,7 +1002,6 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY_BACKUP }}" \
             -H "Content-Type: application/json" \
             -d "{\"clearCache\":\"do_not_clear\",\"imageUrl\":\"$IMAGE_URL\"}")
-          if [ "$STATUS" = "201" ] || [ "$STATUS" = "202" ]; then
             echo "✅ Admin Render deploy triggered via API with prebuilt image (status: $STATUS)!"
           else
             echo "❌ Admin API deploy with prebuilt image returned status: $STATUS"
