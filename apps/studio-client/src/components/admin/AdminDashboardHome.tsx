@@ -110,7 +110,7 @@ export const AdminDashboardHome: React.FC = () => {
               {metrics && metrics.requests_per_second
                 ? Array.from({ length: 9 }, (_, i) => {
                     const baseHeight = (metrics.requests_per_second || 5) * 10;
-                    return Math.min(Math.max(baseHeight + (i * 5) - (Math.random() * 10), 10), 100);
+                    return Math.min(Math.max(baseHeight + (i * 5) - ((i * 7) % 10), 10), 100);
                   }).map((h, i) => (
                     <div
                       key={i}
