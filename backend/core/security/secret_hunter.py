@@ -242,17 +242,21 @@ class GitleaksRunner:
 
         for file_path in directory.rglob("*"):
             if file_path.is_file() and file_path.suffix in extensions:
-                # Skip common non-source directories
-                if any(part.startswith(".") for part in file_path.parts):
+                # বাংলা মন্তব্য: ওয়ার্কস্পেস বা রুট পাথে 'tests' বা 'tmp_' থাকলে যেন ভুলবশত ফাইল স্ক্যানিং স্কিপ না হয়, সেজন্য রিলেটিভ পাথ ফিল্টারিং ব্যবহার করা হচ্ছে।
+                try:
+                    rel_parts = file_path.relative_to(directory).parts
+                except ValueError:
+                    rel_parts = file_path.parts
+
+                if any(part.startswith(".") for part in rel_parts):
                     continue
-                if (
-                    "node_modules" in str(file_path)
-                    or "__pycache__" in str(file_path)
-                    or "tests" in file_path.parts
-                    or file_path.name.startswith("test_")
-                    or "tmp_" in str(file_path)
-                ):
+                if any(part in {"node_modules", "__pycache__", "tests"} for part in rel_parts):
                     continue
+                if any(part.startswith("tmp_") for part in rel_parts):
+                    continue
+                if file_path.name.startswith("test_"):
+                    continue
+
 
                 total_files += 1
                 file_findings = self.scan_file(file_path)
