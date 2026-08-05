@@ -333,7 +333,7 @@
         {
           "id": "supremeai-sidebar",
           "title": "SupremeAI",
-          "icon": "media/icon.png"
+          "icon": "$(sparkle)"
         }
       ]
     },
