@@ -58,6 +58,24 @@ services:
         value: '["https://supremeai-studio-client.onrender.com","https://supremeai-lac.vercel.app","https://supremeai-studio.vercel.app","https://supremeai-a.web.app","https://supremeai-admin.web.app"]'
       # বাংলা মন্তব্য: core/app_user.py এই User-role instance-এ CORS_ORIGINS নয়, USER_CORS_ORIGINS
       # পড়ে এবং production-এ খালি থাকলে বুট-টাইমে crash করে (Fail-Fast) — তাই আলাদাভাবে সেট করা হলো,
+
+  # 1b. Backend Failover (Backup Account Active Service)
+  - type: web
+    name: supremeai-backend-65hl
+    env: image
+    image:
+      url: ghcr.io/paykaribazaronline/supremeai/supremeai-backend:latest
+    region: singapore
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: ENV
+        value: production
+      - key: CORS_ORIGINS
+        value: '["https://supremeai-studio-client.onrender.com","https://supremeai-lac.vercel.app","https://supremeai-studio.vercel.app","https://supremeai-a.web.app","https://supremeai-admin.web.app"]'
       # যাতে User API কঠোরভাবে শুধু Vercel/Netlify/Render client-গুলোকেই ট্রাস্ট করে (Admin console নয়)।
       - key: USER_CORS_ORIGINS
         value: '["https://supremeai-studio-client.onrender.com","https://supremeai-lac.vercel.app","https://supremeai-studio.vercel.app"]'

@@ -145,7 +145,6 @@ export class SupremeAICustomerDashboardProvider implements vscode.WebviewViewPro
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline' https: vscode-webview-resource:; script-src 'unsafe-inline' 'unsafe-eval' https: vscode-webview-resource:; img-src 'self' data: https: vscode-webview-resource:;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SupremeAI Customer Dashboard</title>
   <style>
