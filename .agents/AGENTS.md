@@ -255,3 +255,11 @@ Classify করতে না পারলে — সরাসরি উত্ত
 ✅ Code runnable | ✅ Security safe | ✅ Token অপচয় নেই | ✅ Next step clear
 
 _Rules Book v3.0 — Last Updated: 2026-07-27_
+
+
+## Custom Learned Rule: Auto CI Workflow Health & Monitoring
+
+- **Auto CI Monitoring & Healing Loop:**
+  - After any git push, schedule a 5-minute recurring timer to check GitHub Actions run status.
+  - If any workflow job/step fails, inspect raw logs, apply root-cause fixes, commit with Bangla comments, and push.
+  - Repeat monitoring loop until the entire workflow is green (conclusion: success).
