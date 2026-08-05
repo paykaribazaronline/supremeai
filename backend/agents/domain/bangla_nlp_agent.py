@@ -7,13 +7,13 @@ Provides transliteration, sentiment analysis, and Bangla text processing.
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import hashlib
 import logging
 import re
 from dataclasses import dataclass
 
 from core.cache import get_cache
+from core.error_bus import with_error_bus
 from core.llm_router import LLMRouter
 
 logger = logging.getLogger("supremeai.bangla_nlp")

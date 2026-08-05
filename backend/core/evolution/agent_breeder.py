@@ -13,13 +13,14 @@ Performs genetic breeding of two parent agents to produce a superior offspring:
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import copy
 import random
 import secrets
 import uuid
 from dataclasses import dataclass
 from typing import Any, Protocol
+
+from core.error_bus import with_error_bus
 
 try:
     import litellm

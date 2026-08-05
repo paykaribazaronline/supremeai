@@ -5,7 +5,6 @@
 # Semantic cache, fallback chain, cost guard সব অক্ষুণ্ণ।
 # CancelledError সবসময় re-raise।
 # import litellm lazy করা হলো — cold start কমাতে।
-from core.error_bus import with_error_bus
 import asyncio
 import json
 import os
@@ -16,6 +15,7 @@ from typing import Any
 import httpx
 from loguru import logger
 
+from core.error_bus import with_error_bus
 from utils.firestore_helpers import get_firestore_db
 
 from ..config import settings  # Fixed import path - using relative import

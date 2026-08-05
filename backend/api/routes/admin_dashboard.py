@@ -1,4 +1,3 @@
-from core.error_bus import with_error_bus
 import asyncio
 import contextlib
 import json
@@ -17,6 +16,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from core.config import settings
+from core.error_bus import with_error_bus
 from core.utils.time_utils import utc_now
 from models.ci_report import CIReportPayload, create_ci_report
 from tools.billing.cost_auditor import CostAuditor

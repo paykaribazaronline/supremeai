@@ -3,7 +3,6 @@
 বাংলা: কোর সার্ভিস রেজিস্ট্রি এবং লেজি ইনিশিয়ালাইজেশন।
 """
 
-from core.error_bus import with_error_bus
 import asyncio
 import logging
 import os
@@ -11,6 +10,8 @@ from collections.abc import Callable
 from typing import Any
 
 import httpx
+
+from core.error_bus import with_error_bus
 
 # Lazy HTTP client — initialized on first use
 _http_client: httpx.AsyncClient | None = None

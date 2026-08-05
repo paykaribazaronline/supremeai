@@ -334,8 +334,7 @@ async def supabase_run_migration(params: MigrationInput) -> str:
 
         cur = conn.cursor()
 
-        cur.execute(
-            """
+        cur.execute("""
             CREATE TABLE IF NOT EXISTS migrations (
                 id SERIAL PRIMARY KEY,
                 name TEXT NOT NULL UNIQUE,
@@ -343,8 +342,7 @@ async def supabase_run_migration(params: MigrationInput) -> str:
                 down_sql TEXT,
                 applied_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
             )
-        """
-        )
+        """)
 
         cur.execute("SELECT id FROM migrations WHERE name = %s", (params.migration_name,))
         if cur.fetchone():
@@ -414,14 +412,12 @@ async def supabase_list_tables() -> str:
             return json.dumps({"error": "Failed to connect to database"}, ensure_ascii=False)
 
         cur = conn.cursor()
-        cur.execute(
-            """
+        cur.execute("""
             SELECT table_name, table_type
             FROM information_schema.tables
             WHERE table_schema = 'public'
             ORDER BY table_name
-        """
-        )
+        """)
         tables = cur.fetchall()
         cur.close()
 

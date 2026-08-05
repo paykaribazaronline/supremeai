@@ -19,7 +19,6 @@ Bengali:
 - রিসোর্স পুলিং
 """
 
-from core.error_bus import with_error_bus
 import asyncio
 import time
 import tracemalloc
@@ -29,6 +28,8 @@ from enum import Enum
 from typing import Any
 
 from loguru import logger
+
+from core.error_bus import with_error_bus
 
 try:
     import psutil

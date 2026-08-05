@@ -5,7 +5,6 @@ import re
 from typing import Any
 from unittest.mock import MagicMock, Mock
 
-
 _VALID_TABLE_PATTERN = re.compile(r"^[A-Za-z0-9_]+$")
 
 

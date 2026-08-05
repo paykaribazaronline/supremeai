@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class PermissionDeniedError(PermissionError):
     """READ_ONLY স্কোপে মডিফিকেশন বা রাইট চেষ্টা করা হলে এই এরর রেইজ হবে।"""
+
     pass
 
 
@@ -55,8 +56,12 @@ class DynamicRepoManager:
             subprocess.run(cmd, check=True, capture_output=True, text=True)
         else:
             logger.info(f"Updating workspace for target '{target.id}' ({target.branch})")
-            subprocess.run(["git", "-C", str(target_dir), "fetch", "origin"], check=True, capture_output=True, text=True)
-            subprocess.run(["git", "-C", str(target_dir), "checkout", target.branch], check=True, capture_output=True, text=True)
+            subprocess.run(
+                ["git", "-C", str(target_dir), "fetch", "origin"], check=True, capture_output=True, text=True
+            )
+            subprocess.run(
+                ["git", "-C", str(target_dir), "checkout", target.branch], check=True, capture_output=True, text=True
+            )
 
         return target_dir
 

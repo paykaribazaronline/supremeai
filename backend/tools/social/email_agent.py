@@ -1,4 +1,3 @@
-from core.error_bus import with_error_bus
 import email
 import imaplib
 import re
@@ -7,6 +6,7 @@ from typing import Any
 
 from loguru import logger
 
+from core.error_bus import with_error_bus
 from core.security.secure_credential_store import SecureCredentialStore
 
 

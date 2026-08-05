@@ -12,22 +12,24 @@ Key Features:
 from __future__ import annotations
 
 import logging
+import threading
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
-import threading
 
 logger = logging.getLogger(__name__)
 
 
 class PermissionScope(str, Enum):
     """পারমিশন স্কোপ এনাম - রিড-অনলি বনাম ফুল-কন্ট্রোল।"""
+
     READ_ONLY = "READ_ONLY"
     FULL_CONTROL = "FULL_CONTROL"
 
 
 class TargetPlatformType(str, Enum):
     """টার্গেট প্ল্যাটফর্ম টাইপ এনাম।"""
+
     GIT_REPOSITORY = "GIT_REPOSITORY"
     CLOUD_SERVICE = "CLOUD_SERVICE"
     API_ENDPOINT = "API_ENDPOINT"
@@ -72,7 +74,7 @@ class TargetPlatformRegistry:
             url="origin/main",
             branch="main",
             scope=PermissionScope.READ_ONLY,
-            metadata={"description": "Protected primary codebase - read-only analysis only"}
+            metadata={"description": "Protected primary codebase - read-only analysis only"},
         )
         self._targets[main_target.id] = main_target
 

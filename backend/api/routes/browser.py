@@ -1,4 +1,3 @@
-from core.error_bus import with_error_bus
 from datetime import UTC, datetime
 from typing import Any
 
@@ -6,6 +5,7 @@ from fastapi import APIRouter, HTTPException
 from loguru import logger
 from pydantic import BaseModel
 
+from core.error_bus import with_error_bus
 from core.observability.audit_logger import AuditLogger
 from core.security.secure_credential_store import SecureCredentialStore
 

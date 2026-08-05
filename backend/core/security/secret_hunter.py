@@ -257,7 +257,6 @@ class GitleaksRunner:
                 if file_path.name.startswith("test_"):
                     continue
 
-
                 total_files += 1
                 file_findings = self.scan_file(file_path)
                 findings.extend(file_findings)

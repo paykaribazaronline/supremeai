@@ -1,8 +1,9 @@
-from core.error_bus import with_error_bus
 import ast
 import os
 import sys
 from pathlib import Path
+
+from core.error_bus import with_error_bus
 
 
 @with_error_bus("process_file")

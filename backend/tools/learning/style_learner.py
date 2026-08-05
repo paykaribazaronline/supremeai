@@ -1,4 +1,3 @@
-from core.error_bus import with_error_bus
 import json
 import os
 from typing import Any
@@ -6,6 +5,8 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from loguru import logger
 from pydantic import BaseModel
+
+from core.error_bus import with_error_bus
 
 router = APIRouter(prefix="/style", tags=["style-learner"])
 

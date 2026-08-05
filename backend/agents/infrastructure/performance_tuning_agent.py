@@ -3,7 +3,6 @@ Performance Tuning Agent for SupremeAI 2.0
 Continuously optimizes system performance based on metrics and usage patterns.
 """
 
-from core.error_bus import with_error_bus
 import asyncio
 import json
 import logging
@@ -15,6 +14,7 @@ from typing import Any
 import psutil
 
 from core.cache.redis_manager import redis_manager
+from core.error_bus import with_error_bus
 from core.llm.token_deductor import TokenDeductor
 from core.monitoring.metrics_collector import MetricsCollector
 

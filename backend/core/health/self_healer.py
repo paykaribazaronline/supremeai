@@ -1,4 +1,3 @@
-from core.error_bus import with_error_bus
 import asyncio
 import traceback
 import uuid
@@ -6,6 +5,8 @@ from datetime import UTC, datetime
 from typing import Any
 
 from loguru import logger
+
+from core.error_bus import with_error_bus
 
 from ..messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 

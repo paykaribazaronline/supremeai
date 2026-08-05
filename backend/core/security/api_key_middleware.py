@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import time
 from typing import Any
 
@@ -15,6 +14,7 @@ from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from core.cache.redis_manager import redis_manager
+from core.error_bus import with_error_bus
 from core.pgbouncer_pool import get_db_pool
 from core.rate_limiter import AsyncRateLimiter
 from core.resilience.circuit_breaker import CircuitBreaker

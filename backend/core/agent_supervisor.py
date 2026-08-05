@@ -17,7 +17,6 @@ Usage:
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import asyncio
 import time
 from collections.abc import Callable, Coroutine
@@ -26,6 +25,7 @@ from typing import Any
 
 from loguru import logger
 
+from core.error_bus import with_error_bus
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 
 

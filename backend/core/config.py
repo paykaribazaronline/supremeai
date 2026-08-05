@@ -118,7 +118,6 @@ class Settings(BaseSettings):
     target_repo_token: SecretStr = Field(default=SecretStr(""), validation_alias="TARGET_REPO_TOKEN")
     workspace_base_dir: str = Field(default="storage/workspaces", validation_alias="WORKSPACE_BASE_DIR")
 
-
     # ── LLM Gateway & Streaming Configuration ────────────────────────────────
     LLM_CONNECT_TIMEOUT: float = Field(default=5.0, validation_alias="LLM_CONNECT_TIMEOUT")
     LLM_READ_TIMEOUT: float = Field(default=30.0, validation_alias="LLM_READ_TIMEOUT")

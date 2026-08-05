@@ -1,13 +1,14 @@
 # backend/agents/autonomous_agent.py
 # বাংলা মন্তব্য: স্বয়ংক্রিয় ব্যাকগ্রাউন্ড সিস্টেম মনিটরিং এজেন্ট — মেমোরি, ডাটাবেস, এপিআই ও সিকিউরিটি হেলথ ট্র্যাকিং এবং সেলফ-হিলিং প্রসেস রিগেড করা।
 
-from core.error_bus import with_error_bus
 import asyncio
 import gc
 import logging
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
 from typing import Any
+
+from core.error_bus import with_error_bus
 
 try:
     import psutil

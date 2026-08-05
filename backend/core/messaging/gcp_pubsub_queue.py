@@ -1,4 +1,3 @@
-from core.error_bus import with_error_bus
 import json
 import os
 import sqlite3
@@ -8,6 +7,7 @@ from typing import Any
 
 from loguru import logger
 
+from core.error_bus import with_error_bus
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 
 try:
@@ -75,8 +75,7 @@ class GCPPubSubQueue:
         assert conn is not None
 
         try:
-            conn.execute(
-                """
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS pubsub_queue (
                     message_id TEXT PRIMARY KEY,
                     task_id TEXT NOT NULL,
@@ -84,8 +83,7 @@ class GCPPubSubQueue:
                     published_at TEXT NOT NULL,
                     acked INTEGER NOT NULL DEFAULT 0
                 )
-                """
-            )
+                """)
             conn.execute("CREATE INDEX IF NOT EXISTS idx_pubsub_acked ON pubsub_queue(acked)")
             conn.commit()
         finally:

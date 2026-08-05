@@ -4,7 +4,6 @@
 # _asyncio_worker() এর while True → gracefully cancellable coroutine।
 # Bounded memory: max tracked tasks cap enforce।
 # CancelledError সবসময় re-raise।
-from core.error_bus import with_error_bus
 import asyncio
 import contextlib
 import functools
@@ -21,6 +20,7 @@ from typing import Any
 from loguru import logger
 
 from core.config import settings
+from core.error_bus import with_error_bus
 
 
 # ── Data Models ────────────────────────────────────────────────────────────────

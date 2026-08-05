@@ -1,8 +1,9 @@
-from core.error_bus import with_error_bus
 import json
 import logging
 from collections.abc import Callable
 from typing import Any
+
+from core.error_bus import with_error_bus
 
 try:
     import nats

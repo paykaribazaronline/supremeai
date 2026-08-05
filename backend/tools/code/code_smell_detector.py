@@ -1,4 +1,3 @@
-from core.error_bus import with_error_bus
 import ast
 import json
 import os
@@ -8,6 +7,8 @@ import time
 from typing import Any
 
 from loguru import logger
+
+from core.error_bus import with_error_bus
 
 
 class CodeSmellDetector:
