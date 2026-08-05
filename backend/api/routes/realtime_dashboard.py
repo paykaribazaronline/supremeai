@@ -12,13 +12,13 @@ Channels:
     - alerts.emergency   — Critical system alerts
 """
 
-from core.error_bus import with_error_bus
 import asyncio
 import json
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 from loguru import logger
 
+from core.error_bus import with_error_bus
 from core.security import verify_token
 from core.swarm_pubsub import get_swarm_streamer
 

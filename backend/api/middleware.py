@@ -12,7 +12,6 @@ Provides:
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import asyncio
 import json
 import os
@@ -26,6 +25,7 @@ from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from core.config import settings
+from core.error_bus import with_error_bus
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 
 

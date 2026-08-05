@@ -1,13 +1,12 @@
 """Unit and integration tests for MLOps scripts (bias_detector, model_drift_detector, prompt_injection_tester, model_version_manager)."""
 
+import importlib.util
 import os
 import tempfile
 from pathlib import Path
 
 import numpy as np
 import pytest
-
-import importlib.util
 
 repo_root = Path(__file__).resolve().parents[3]
 

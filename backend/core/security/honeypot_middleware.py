@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import asyncio
 import json
 import os
@@ -11,6 +10,7 @@ import uuid
 from fastapi.responses import JSONResponse
 from loguru import logger
 
+from core.error_bus import with_error_bus
 from core.messaging.event_bus import ErrorContext, ErrorEvent
 
 

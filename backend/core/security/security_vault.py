@@ -5,15 +5,14 @@
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import os
-
 import sys
 
 from cryptography.fernet import Fernet
 from loguru import logger
 
 from core.config import settings
+from core.error_bus import with_error_bus
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 from core.security.secure_credential_store import RotatingFernet
 

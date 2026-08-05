@@ -29,7 +29,6 @@ Fixes Applied (Autonomous Architecture Audit):
 - 🟢 [LOW] Added `insert_error_pattern()` for self-healing capability
 """
 
-from core.error_bus import with_error_bus
 import asyncio
 import hashlib
 import json
@@ -39,6 +38,7 @@ from pathlib import Path
 
 from loguru import logger
 
+from core.error_bus import with_error_bus
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 from core.resilience.circuit_breaker import CircuitBreaker
 

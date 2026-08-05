@@ -8,13 +8,14 @@ Strict secret handling ensures exceptions are raised for missing secrets.
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import asyncio
 import os
 import time
 from typing import TYPE_CHECKING
 
 from loguru import logger
+
+from core.error_bus import with_error_bus
 
 # Fixed import path - using relative import
 from ..messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus

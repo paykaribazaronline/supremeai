@@ -16,7 +16,6 @@ Features:
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import json
 import os
 import sqlite3
@@ -29,6 +28,8 @@ from pathlib import Path
 from typing import Any
 
 from loguru import logger
+
+from core.error_bus import with_error_bus
 
 # Lazy import for Google Cloud libraries
 _FIRESTORE_CLIENT: Any | None = None
@@ -50,8 +51,7 @@ def _get_sqlite_fallback() -> sqlite3.Connection:
 
 def _init_sqlite_schema(conn: sqlite3.Connection) -> None:
     """Initialize SQLite fallback schema."""
-    conn.executescript(
-        """
+    conn.executescript("""
         CREATE TABLE IF NOT EXISTS firestore_documents (
             collection TEXT NOT NULL,
             doc_id TEXT NOT NULL,
@@ -67,8 +67,7 @@ def _init_sqlite_schema(conn: sqlite3.Connection) -> None:
             name TEXT PRIMARY KEY,
             created_at TEXT NOT NULL
         );
-    """
-    )
+    """)
     conn.commit()
 
 

@@ -23,8 +23,7 @@ _lock = threading.Lock()
 def _conn() -> sqlite3.Connection:
     os.makedirs(os.path.dirname(DB_PATH) or ".", exist_ok=True)
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    conn.execute(
-        """
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS site_actions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             site_name TEXT NOT NULL,
@@ -39,8 +38,7 @@ def _conn() -> sqlite3.Connection:
             health_score INTEGER DEFAULT 100,
             updated_at REAL NOT NULL
         )
-        """
-    )
+        """)
 
     # Run migrations if columns don't exist
     cur = conn.cursor()

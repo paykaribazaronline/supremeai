@@ -70,8 +70,8 @@ class VoiceInterface:
 
         try:
             from TTS.api import (
-                TTS as CoquiTTS,
-            )  # -- intentional rename to disambiguate from this module's own TTS engine abstraction
+                TTS as CoquiTTS,  # -- intentional rename to disambiguate from this module's own TTS engine abstraction
+            )
 
             logger.info("Using Coqui TTS for offline Text-to-Speech...")
             device = "cpu"

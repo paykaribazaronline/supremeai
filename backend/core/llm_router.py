@@ -35,8 +35,8 @@ from .llm.llm_gateway import get_llm_gateway  # Enhanced LLM gateway for integra
 from .logging import get_logger
 from .metrics import counter, timed
 from .resilience.circuit_breaker import (
-    CircuitBreaker as circuit_breaker,
-)  # -- used as a decorator (@circuit_breaker(...)) below, lowercase is the intended convention for decorators
+    CircuitBreaker as circuit_breaker,  # -- used as a decorator (@circuit_breaker(...)) below, lowercase is the intended convention for decorators
+)
 from .resilience.circuit_breaker_manager import get_shared_circuit_breaker
 
 

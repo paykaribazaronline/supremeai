@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import os
 from typing import Any
 
 from loguru import logger
 
+from core.error_bus import with_error_bus
 from core.messaging.event_bus import ErrorContext
 
 

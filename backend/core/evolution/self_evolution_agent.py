@@ -9,7 +9,6 @@ which ensures the secure and validated integration of AI-generated code proposal
 through AST security scanning, CI/CD dry runs, and atomic database transactions.
 """
 
-from core.error_bus import with_error_bus
 import asyncio
 import contextlib
 import time
@@ -20,6 +19,8 @@ from typing import Any
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+
+from core.error_bus import with_error_bus
 
 try:
     from core.evolution.auto_skill_creator import AutoSkillCreator

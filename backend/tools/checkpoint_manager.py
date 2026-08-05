@@ -90,8 +90,7 @@ class CheckpointManager:
     def _init_sqlite(self):
         conn = sqlite3.connect(self.db_path)
         try:
-            conn.execute(
-                """
+            conn.execute("""
                 CREATE TABLE IF NOT EXISTS checkpoints (
                     task_id TEXT PRIMARY KEY,
                     step_index INTEGER,
@@ -99,8 +98,7 @@ class CheckpointManager:
                     created_at TEXT,
                     resumed INTEGER DEFAULT 0
                 )
-            """
-            )
+            """)
             conn.commit()
         finally:
             conn.close()

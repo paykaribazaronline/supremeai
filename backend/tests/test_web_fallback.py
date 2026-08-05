@@ -1,5 +1,6 @@
-import pytest
 import asyncio
+
+import pytest
 
 from tools.browser.web_fallback_agent import WebFallbackAgent
 

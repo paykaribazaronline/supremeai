@@ -1,13 +1,14 @@
 # ruff: noqa: BLE001, B904, E722
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from loguru import logger
 from pydantic import BaseModel
+
+from core.error_bus import with_error_bus
 
 try:
     from jose import JWTError, jwt

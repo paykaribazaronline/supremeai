@@ -92,8 +92,7 @@ class CascadeMemoryService:
     def _init_db(self) -> None:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute(
-                """
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS file_memories (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     file_path TEXT UNIQUE,
@@ -102,8 +101,7 @@ class CascadeMemoryService:
                     structure TEXT,
                     embedding TEXT
                 )
-                """
-            )
+                """)
             conn.commit()
 
     def _embed(self, text: str) -> list[float]:

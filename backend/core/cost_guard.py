@@ -1,4 +1,5 @@
 from core.error_bus import with_error_bus
+
 from .messaging.event_bus import (
     ErrorContext,  # Fixed import path - using relative import
 )

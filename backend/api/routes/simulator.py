@@ -10,7 +10,6 @@ Falls back to in-memory dicts if Redis is unavailable (e.g. in test environments
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import json
 from datetime import UTC, datetime
 from typing import Any
@@ -19,6 +18,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from core.cache.redis_manager import redis_manager
+from core.error_bus import with_error_bus
 
 router = APIRouter(prefix="/api/simulator", tags=["simulator"])
 

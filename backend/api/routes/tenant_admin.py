@@ -10,7 +10,6 @@ POST /api/admin/tenant-limits/{id}/reset-usage — reset today's counters
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import time
 from typing import Any
 
@@ -19,6 +18,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from api.routes.admin import get_current_admin
+from core.error_bus import with_error_bus
 
 router = APIRouter(
     prefix="/admin/tenant-limits",

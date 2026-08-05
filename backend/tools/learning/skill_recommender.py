@@ -14,7 +14,6 @@ ML/heuristic-based smart recommendation engine that:
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import hashlib
 import re
 from collections import defaultdict
@@ -26,6 +25,7 @@ from typing import Any, cast
 from loguru import logger
 
 from core.cache import get_cache
+from core.error_bus import with_error_bus
 from core.llm_router import LLMRouter
 from database.supabase_client import db
 

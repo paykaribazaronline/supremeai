@@ -22,7 +22,6 @@ Bengali:
 - প্রতীক গ্রাউন্ডিং
 """
 
-from core.error_bus import with_error_bus
 import re
 from dataclasses import dataclass
 from enum import Enum
@@ -33,6 +32,8 @@ import torch
 import torch.nn as nn
 from loguru import logger
 from sympy.parsing.sympy_parser import parse_expr
+
+from core.error_bus import with_error_bus
 
 
 class SymbolicOperation(Enum):

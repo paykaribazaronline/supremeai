@@ -13,7 +13,6 @@ Key Features:
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import hashlib
 import secrets
 import time
@@ -24,6 +23,7 @@ from pydantic import BaseModel
 
 from core.cache.redis_manager import redis_manager
 from core.config import settings
+from core.error_bus import with_error_bus
 from core.error_remediation import error_remediator
 from core.failure_fingerprint import make_fingerprint
 from core.immune_system import ImmuneSystemScanner

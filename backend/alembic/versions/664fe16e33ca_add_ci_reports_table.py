@@ -20,8 +20,7 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     """Upgrade schema."""
     # বাংলা মন্তব্য: গিটহাব রানার থেকে লগ পুশ করার পরিবর্তে ডেটাবেসে লগ রাখার জন্য ci_reports টেবিল তৈরি করা হলো
-    op.execute(
-        """
+    op.execute("""
         CREATE TABLE IF NOT EXISTS ci_reports (
             id SERIAL PRIMARY KEY,
             run_id BIGINT NOT NULL UNIQUE,
@@ -37,8 +36,7 @@ def upgrade() -> None:
             error_logs TEXT,
             created_at INTEGER NOT NULL
         )
-        """
-    )
+        """)
     op.execute("CREATE INDEX IF NOT EXISTS idx_ci_reports_run_id ON ci_reports(run_id)")
     op.execute("CREATE INDEX IF NOT EXISTS idx_ci_reports_created ON ci_reports(created_at DESC)")
 

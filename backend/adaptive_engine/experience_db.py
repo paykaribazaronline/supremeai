@@ -116,8 +116,7 @@ class ExperienceDatabase:
     def _init_db(self) -> None:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            cursor.execute(
-                """
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS experiences (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp TEXT,
@@ -135,8 +134,7 @@ class ExperienceDatabase:
                     suggested_improvements TEXT,
                     embedding BLOB
                 )
-                """
-            )
+                """)
             cursor.execute("PRAGMA table_info(experiences)")
             columns = {row[1] for row in cursor.fetchall()}
             if "embedding" not in columns:

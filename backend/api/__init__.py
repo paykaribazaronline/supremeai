@@ -7,13 +7,13 @@ No router is loaded silently; all failures are captured and reported.
 
 from __future__ import annotations
 
-from core.error_bus import with_error_bus
 import importlib
 import logging
 
 from fastapi import FastAPI
 
 from core.config import settings  # noqa  # noqa
+from core.error_bus import with_error_bus
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 
 logger = logging.getLogger("SupremeAI.API")

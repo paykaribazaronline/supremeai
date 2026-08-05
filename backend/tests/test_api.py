@@ -10,7 +10,6 @@ os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
 import core.services as services_mod
 from core import services
 from core.app import app
-
 from core.security import create_access_token
 
 valid_token = create_access_token({"sub": "test_admin", "role": "admin"})

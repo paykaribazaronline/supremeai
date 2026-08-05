@@ -1,4 +1,3 @@
-from core.error_bus import with_error_bus
 import asyncio
 import os
 import re
@@ -8,6 +7,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from core.config import settings
+from core.error_bus import with_error_bus
 from core.messaging.event_bus import ErrorContext
 
 MAX_AGENT_TOKENS = settings.max_agent_tokens
@@ -438,7 +438,9 @@ class SupremeAgentOrchestrator:
             if res and isinstance(res, dict) and "output" in res:
                 validated_responses.append(res)
             else:
-                logger.warning(f"⚠️ [MALFORMED_AGENT_RESPONSE]: Agent '{agent_name}' returned invalid signature packet.")
+                logger.warning(
+                    f"⚠️ [MALFORMED_AGENT_RESPONSE]: Agent '{agent_name}' returned invalid signature packet."
+                )
 
         if not validated_responses:
             raise SwarmOrchestrationError(

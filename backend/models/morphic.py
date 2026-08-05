@@ -1,4 +1,5 @@
 from sqlalchemy import (
+    JSON,
     Boolean,
     Column,
     DateTime,
@@ -7,7 +8,6 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
-    JSON,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.sql import func

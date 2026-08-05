@@ -60,8 +60,7 @@ class EvolutionEngine:
     def _ensure_schema(self) -> None:
         conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
         try:
-            conn.executescript(
-                """
+            conn.executescript("""
                 CREATE TABLE IF NOT EXISTS task_history (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     task TEXT NOT NULL,
@@ -97,8 +96,7 @@ class EvolutionEngine:
                     adjusted INTEGER DEFAULT 0,
                     created_at TEXT NOT NULL
                 );
-            """
-            )
+            """)
             conn.commit()
         finally:
             conn.close()
