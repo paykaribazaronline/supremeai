@@ -140,6 +140,12 @@ _Generated for SupremeAI 2.0 — Admin Plan Execution_
   - There are NO local-only environment hacks or local targets. All code, setups, dependencies, models, and workflows MUST be production-grade targeting live cloud infrastructure (GCP Cloud Run, Render, Vercel, Infisical, Supabase, Cloudflare, GitHub Actions).
   - Speculative local-path fallbacks, mock-type checking in production code, or local-only workarounds are strictly forbidden.
 
+- **Strict Master Audit Execution Rule (MANDATORY):**
+  - Whenever the user requests an audit (e.g., "audit", "run audit", "check code", "phase audit"), the AI agent **MUST strictly execute the Master Audit Blueprint** defined in `docs/kb/SUPREMEAI_MASTER_AUDIT_PLAN.md`.
+  - **Audit Reports Location:** Every Phase report MUST be saved as a separate markdown file inside the `docs/audit_reports/` directory (e.g., `docs/audit_reports/PHASE_01_CORE_BACKEND.md`).
+  - **Empirical Evidence First:** Every finding MUST contain concrete evidence (exact file path, line number, grep output, or test log). Never claim an issue is "Fixed" without verifying code changes.
+  - **Technical Taxonomy:** Audit findings MUST be categorized using standard technical error terms (`Content Security Policy Violation`, `CORS Blocked`, `Configuration Drift`, `Silent Failure`, `Race Condition`, etc.) and P0-P3 severity matrix.
+
 - **Strict Documentation Architecture Rule (MANDATORY):**
   - Whenever generating, updating, or maintaining ANY technical documentation, design specs, or knowledge items, the AI agent **MUST strictly follow the Master Documentation Plan and Benefits specification** ([docs/bangla/01-admin-plans/master-documentation-plan-and-benefits.md](file:///g:/supremeai%20backup/docs/bangla/01-admin-plans/master-documentation-plan-and-benefits.md) / [docs/english/01-admin-plans/MASTER_DOCUMENTATION_PLAN_AND_BENEFITS.md](file:///g:/supremeai%20backup/docs/english/01-admin-plans/MASTER_DOCUMENTATION_PLAN_AND_BENEFITS.md)).
   - All new technical documents must be placed within the AI-Native Engineering Knowledge Base (`docs/kb/`) or categorized subfolders (`docs/bangla/<category>` / `docs/english/<category>`), fully adhering to the 12 Core Pillars, Knowledge Cards, Living Impact Analysis, and Mermaid Diagram standards.
