@@ -425,15 +425,16 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: pnpm exec playwright install-deps
       - name: 🩹 Ensure Frontend Build Exists
+        # বাংলা মন্তব্য: ফ্রন্টএন্ড বিল্ড ফোল্ডার না থাকলে বিল্ড তৈরি করা এবং প্লেরাইট সার্ভার চালু করার সময় wait-on এর সাথে টাইমআউট ৩০ সেকেন্ড সেট করা হয়েছে।
         run: |
-          if [ ! -d "apps/studio-client/dist" ]; then
+          if [ ! -d "apps/studio-client/dist-user" ] && [ ! -d "apps/studio-client/dist-admin" ] && [ ! -d "apps/studio-client/dist" ]; then
             pnpm --dir apps/studio-client run build
           fi
 
       - name: Start Frontend Preview Server
         run: |
           cd apps/studio-client && pnpm exec vite preview --port 5173 &
-          pnpm exec wait-on http://127.0.0.1:5173
+          pnpm exec wait-on http://127.0.0.1:5173 --timeout 30000
         env:
           CI: true
       - name: Create Report Directory & Execute Playwright Simulation
