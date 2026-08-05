@@ -25,6 +25,19 @@
 
 ---
 
+## 0.1 ঐতিহাসিক প্রস্তুতকৃত অডিট বেসলাইন (Historical Known Baseline Issues)
+
+পূর্বের অডিট রিপোজিটরির (`PRODUCTION_READINESS_AUDIT_2026-07-24.md`) কিছু গুরুত্বপূর্ন সিকিউরিটি ও সিস্টেম ফ্ল নিচে অর্ন্তভুক্ত করা হলো যা প্রতিটা ফেজে পুনরায় চেক করতে হবে:
+
+- **JWT Secret Instability (P0):** `backend/core/config.py`-এ `SUPREMEAI_JWT_SECRET` ডায়নামিকভাবে প্রতি রিস্টার্টে জেনারেট হচ্ছে কিনা তা রি-চেক করা (সেশন লস ভীতি)।
+- **Docker Image Secret Leak (P0):** `.dockerignore`-এ `.env*` ফাইল এক্সক্লুড করা নিশ্চিত করা।
+- **Middleware Chain Vulnerability (P0):** `ChaosInjector` এবং `HoneypotMiddleware` যেন Auth Middleware-এর আগে না চলে।
+- **Secret Vault Fallback Vulnerability (P0):** `secret_vault.py` যেন অনুপস্থিত সিক্রেটের জন্য `""` (খালি স্ট্রিং) রিটার্ন না করে `SecretNotFoundError` থ্রো করে।
+- **Thread Safety in Event Bus (P1):** `ErrorEventBus` রেস কন্ডিশন মুক্ত করা।
+- **OTLP Exporter Missing (P1):** OpenTelemetry ডিপেন্ডেন্সি মিসিং থাকায় ট্র্যাকিং সাইলেন্টলি ড্রপ হওয়া বন্ধ করা।
+
+---
+
 ## Phase 0 — টুলিং, বেসলাইন ও অটোমেটেড প্রিভেনশন সেটআপ (~১-২ ঘণ্টা)
 
 **লক্ষ্য:** অডিট টুলস ইন্সটল ও সিআই/সিডি এবং ক্লাউড ম মনিটরিংয়ে অটোমেটেড চেক বসানো।
