@@ -269,3 +269,16 @@ _Rules Book v3.0 — Last Updated: 2026-07-27_
   - After any git push, schedule a 5-minute recurring timer to check GitHub Actions run status.
   - If any workflow job/step fails, inspect raw logs, apply root-cause fixes, commit with Bangla comments, and push.
   - Repeat monitoring loop until the entire workflow is green (conclusion: success).
+
+## Custom Learned Rule: Multi-Agent Coordination & Risk-Tiered Autonomy
+
+_(পুরো যুক্তি ও উদাহরণ: [`docs/long-term-maintenance/AGENT_GOVERNANCE_ADDENDUM.md`](../docs/long-term-maintenance/AGENT_GOVERNANCE_ADDENDUM.md))_
+
+- **Work-Claim Ledger:** কোনো module-এ কাজ শুরু করার আগে `docs/audit_reports/ACTIVE_CLAIMS.md` চেক করো। ফাইলটা না থাকলে বানাও। অন্য কোনো active claim থাকলে সেই module স্কিপ করো অথবা user-কে conflict সম্ভাবনার কথা জানাও। কাজ শুরুর আগে নিজের claim row যোগ করো, শেষে মুছে দাও বা "done" মার্ক করো।
+
+- **Pre-Commit Sanity Gate (NON-NEGOTIABLE):** যেকোনো `.py`/`.ts`/`.tsx` ফাইল edit করার পর, commit করার ঠিক আগে বাধ্যতামূলকভাবে চালাও: `python3 -m py_compile <file>` (Python) অথবা `npx tsc --noEmit` (TS/TSX), এবং `ruff check <file>`। এই gate fail করলে commit করবে না — নিজে ফিক্স করে আবার চেষ্টা করো (২বারের বেশি loop করবে না, existing Anti-Loop Rule অনুযায়ী)।
+
+- **Blast-Radius Classification:** কাজ শুরুর আগে LOW/MEDIUM/HIGH tier-এ classify করো:
+  - **LOW** (rename, comment, dead code, lint fix) — পুরোপুরি autonomous, approval লাগবে না।
+  - **MEDIUM** (নতুন module/ফাংশন, অন্য module-কে touch না করা logic change) — autonomous, কিন্তু commit message-এ `MEDIUM-RISK` ট্যাগ ও PHASE_LOG এন্ট্রি বাধ্যতামূলক।
+  - **HIGH** (auth/permission logic, payment integration, DB schema migration, secret/env handling, production deploy config, CI gate condition যেমন repo-check) — **explicit user confirmation ছাড়া apply করবে না।** শুধু ready patch/diff হিসেবে দেখাবে এবং approval-এর অপেক্ষা করবে। এই ক্ষেত্রে "১০০% autonomy" ও "DIRECT EXECUTION COMMAND" rule প্রযোজ্য না।
