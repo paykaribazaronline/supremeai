@@ -66,10 +66,8 @@ describe('api.ts', () => {
       expect(getWebSocketBaseUrl()).toBe('wss://api.example.com');
     });
 
-    it('falls back to ws protocol with window host when not production', () => {
-      const protocol = window.location.protocol;
-      const host = window.location.host;
-      expect(getWebSocketBaseUrl()).toBe(`${protocol === 'https:' ? 'wss:' : 'ws:'}//${host}`);
+    it('falls back to default render backend wss protocol when no env and not production', () => {
+      expect(getWebSocketBaseUrl()).toBe('wss://supremeai-backend.onrender.com');
     });
   });
 });
