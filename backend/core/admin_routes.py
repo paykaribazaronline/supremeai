@@ -53,6 +53,8 @@ import struct
 import time
 import uuid
 
+from redis.exceptions import RedisError
+
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from loguru import logger
 
