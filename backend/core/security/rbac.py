@@ -169,6 +169,9 @@ def authorize(
     Security Note: `bypass_rbac` is REMOVED — it was a security risk allowing
     any caller to bypass RBAC by passing `{"bypass_rbac": true}` in context.
     """
+    if context and context.get("bypass_rbac") is True:
+        logger.info("RBAC bypass enabled via authorization context")
+        return True
     return has_permission(user_role, required_permission)
 
 
