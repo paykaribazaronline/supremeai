@@ -1,17 +1,16 @@
 # SupremeAI 2.0 — Hybrid Retriever with Reciprocal Rank Fusion (RRF)
 # বাংলা মন্তব্য: এটি ডেন্স ভেক্টর সার্চ এবং স্পার্স BM25 সার্চের স্কোর সংমিশ্রণ করে RRF অ্যালগরিদম দ্বারা সর্বোচ্চ ৪১% সঠিক উত্তর নিশ্চিত করে।
 
-import math
-from typing import List, Dict, Any, Optional
+from typing import Any
 from backend.core.rag.sparse_bm25 import SparseBM25Index
 
 class HybridRetriever:
     def __init__(self, rrf_k: int = 60):
         self.rrf_k = rrf_k
         self.bm25_index = SparseBM25Index()
-        self.documents: List[Dict[str, Any]] = []
+        self.documents: list[dict[str, Any]] = []
 
-    def index_documents(self, documents: List[Dict[str, Any]], text_key: str = "text") -> None:
+    def index_documents(self, documents: list[dict[str, Any]], text_key: str = "text") -> None:
         """
         Index corpus documents into BM25 and store in-memory document state.
         """
@@ -20,18 +19,18 @@ class HybridRetriever:
 
     def reciprocal_rank_fusion(
         self,
-        dense_results: List[Dict[str, Any]],
-        sparse_results: List[Dict[str, Any]],
+        dense_results: list[dict[str, Any]],
+        sparse_results: list[dict[str, Any]],
         top_k: int = 10,
         doc_id_key: str = "id"
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Combine Dense Vector search results and Sparse BM25 search results using
         Reciprocal Rank Fusion (RRF):
         RRF_score(d) = 1 / (k + rank_dense(d)) + 1 / (k + rank_sparse(d))
         """
-        rrf_scores: Dict[str, float] = {}
-        doc_map: Dict[str, Dict[str, Any]] = {}
+        rrf_scores: dict[str, float] = {}
+        doc_map: dict[str, dict[str, Any]] = {}
 
         # Process Dense Vector Results
         for rank, doc in enumerate(dense_results, start=1):
@@ -59,11 +58,11 @@ class HybridRetriever:
     def hybrid_search(
         self,
         query: str,
-        dense_vector_results: Optional[List[Dict[str, Any]]] = None,
+        dense_vector_results: list[dict[str, Any]] | None = None,
         top_k: int = 10,
         text_key: str = "text",
         doc_id_key: str = "id"
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Perform hybrid search given a query string and optional pre-computed dense vector results.
         If dense_vector_results is empty/None, falls back to BM25 sparse search with simulated dense scoring.

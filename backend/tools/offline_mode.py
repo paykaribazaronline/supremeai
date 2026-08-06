@@ -1,7 +1,6 @@
 import asyncio
 from typing import Any
 
-import httpx
 from loguru import logger
 
 from core.config import settings
@@ -21,24 +20,12 @@ class OfflineModeManager:
         logger.info(f"Initialized OfflineModeManager with local model {self.local_model_id}")
 
     async def _call_ollama(self, prompt: str) -> str:
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                res = await client.post(
-                    f"{self.ollama_url}/api/generate",
-                    json={
-                        "model": self.local_model_id,
-                        "prompt": prompt,
-                        "stream": False,
-                    },
-                )
-                res.raise_for_status()
-                return res.json().get("response", "No response from local model.")
-        except Exception as e:
-            logger.error(f"Ollama local fallback failed: {e}")
-            return f"[Offline Error] Could not reach local Ollama instance: {e!s}"
+        # বাংলা মন্তব্য: ব্যাকএন্ড থেকে ওলামা লোকাল কানেক্টিভিটি সম্পূর্ণ বন্ধ করা হয়েছে।
+        logger.warning("Local Ollama calls are disabled on the backend (0% dependency policy).")
+        return "[Offline Error] Backend Ollama connectivity is disabled."
 
     async def execute_task(self, prompt: str, task_type: str = "general") -> dict[str, Any]:
-        logger.info(f"Executing task offline via Ollama: {prompt}")
+        logger.info(f"Executing task offline: {prompt}")
 
         local_response = await self._call_ollama(prompt)
 
@@ -53,8 +40,8 @@ class OfflineModeManager:
         self.sync_queue.append(action_payload)
 
         return {
-            "status": "success",
-            "source": "ollama",
+            "status": "offline_disabled",
+            "source": "none",
             "result": local_response,
             "queued_for_sync": True,
         }

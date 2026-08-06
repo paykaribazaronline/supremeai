@@ -1,13 +1,8 @@
 # SupremeAI 2.0 — Advanced Model Router Engine
 # বাংলা মন্তব্য: এটি টাস্ক টাইপ, প্রম্পট কমপ্লেক্সিটি এবং পারফরম্যান্স স্কোর অনুযায়ী সর্বাধুনিক মডেল নির্বাচন করে খরচ ৭০-৯০% সাশ্রয় করে।
 
-import asyncio
-import json
-import time
-from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 from enum import Enum
-from loguru import logger
 
 @dataclass
 class ModelPerformanceMetrics:
@@ -38,10 +33,10 @@ class AdvancedModelRouter:
     """
 
     def __init__(self):
-        self.performance_metrics: Dict[str, ModelPerformanceMetrics] = {}
+        self.performance_metrics: dict[str, ModelPerformanceMetrics] = {}
         self.model_preferences = self._load_model_preferences()
 
-    def _load_model_preferences(self) -> Dict[str, Dict]:
+    def _load_model_preferences(self) -> dict[str, dict]:
         """Load model preferences and capabilities from configuration."""
         return {
             "coding": {
@@ -86,7 +81,7 @@ class AdvancedModelRouter:
             }
         }
 
-    def analyze_prompt_complexity(self, prompt: str) -> Dict[str, float]:
+    def analyze_prompt_complexity(self, prompt: str) -> dict[str, float]:
         """Analyze prompt complexity to determine optimal model requirements."""
         if not prompt:
             return {"length": 0.0, "complexity": 0.0, "overall": 0.0}
@@ -106,7 +101,7 @@ class AdvancedModelRouter:
             "overall": float(round((length_score + indicator_score) / 2.0, 4))
         }
 
-    def get_available_models(self, task_type: str) -> List[Tuple[str, str]]:
+    def get_available_models(self, task_type: str) -> list[tuple[str, str]]:
         """Get available models based on task type."""
         task = task_type.lower() if task_type else "general"
         preferences = self.model_preferences.get(task, self.model_preferences["general"])
@@ -144,7 +139,7 @@ class AdvancedModelRouter:
         provider: str,
         model: str,
         task_type: str,
-        complexity: Dict[str, float]
+        complexity: dict[str, float]
     ) -> float:
         """Calculate priority score for a model considering latency, complexity, and performance metrics."""
         model_key = f"{provider}/{model}"
@@ -168,8 +163,8 @@ class AdvancedModelRouter:
         self,
         prompt: str,
         task_type: str = "general",
-        user_id: Optional[str] = None,
-        budget_constraint: Optional[float] = None
+        user_id: str | None = None,
+        budget_constraint: float | None = None
     ) -> RouteDecision:
         """
         Intelligent routing based on task type, performance metrics, and cost optimization.
@@ -177,7 +172,7 @@ class AdvancedModelRouter:
         prompt_complexity = self.analyze_prompt_complexity(prompt)
         available_models = self.get_available_models(task_type)
 
-        scored_models: List[RouteDecision] = []
+        scored_models: list[RouteDecision] = []
         for provider, model in available_models:
             score = self.calculate_model_score(provider, model, task_type, prompt_complexity)
             expected_cost = self.estimate_cost(provider, model, len(prompt))

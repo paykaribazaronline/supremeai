@@ -1,9 +1,9 @@
 # SupremeAI 2.0 — Hybrid RAG Search API Router
 # বাংলা মন্তব্য: এটি ডেন্স এবং স্পার্স হাইব্রিড সার্চের জন্য FastAPI এন্ডপয়েন্ট সরবরাহ করে।
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
+from typing import Any
 from backend.core.rag.hybrid_retriever import HybridRetriever
 
 router = APIRouter(prefix="/api/v1/rag", tags=["RAG Hybrid Search"])
@@ -11,12 +11,12 @@ router = APIRouter(prefix="/api/v1/rag", tags=["RAG Hybrid Search"])
 global_retriever = HybridRetriever(rrf_k=60)
 
 class IndexRequest(BaseModel):
-    documents: List[Dict[str, Any]]
+    documents: list[dict[str, Any]]
 
 class HybridSearchRequest(BaseModel):
     query: str
-    top_k: Optional[int] = 10
-    dense_results: Optional[List[Dict[str, Any]]] = None
+    top_k: int | None = 10
+    dense_results: list[dict[str, Any]] | None = None
 
 @router.post("/index")
 async def index_documents(req: IndexRequest):

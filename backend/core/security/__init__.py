@@ -276,7 +276,7 @@ def verify_token(token: str) -> dict:
                     loop = asyncio.get_running_loop()
                 except RuntimeError:
                     loop = None
-                
+
                 if loop and loop.is_running():
                     result = [False]
                     def run():

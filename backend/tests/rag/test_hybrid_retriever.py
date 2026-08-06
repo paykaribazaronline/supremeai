@@ -1,7 +1,6 @@
 # SupremeAI 2.0 — Hybrid RAG Search Test Suite
 # বাংলা মন্তব্য: এটি Sparse BM25, RRF র‍্যাংক ফিউশন এবং বাংলা টেক্সট টোকেনাইজেশনের ইউনিট টেস্ট পরিচালনা করে।
 
-import pytest
 from backend.core.rag.sparse_bm25 import SparseBM25Index
 from backend.core.rag.hybrid_retriever import HybridRetriever
 
@@ -36,7 +35,7 @@ def test_reciprocal_rank_fusion():
         {"id": "doc2", "text": "Document 2 Sparse Best Match"},
         {"id": "doc3", "text": "Document 3 Sparse Second Match"}
     ]
-    
+
     fused = retriever.reciprocal_rank_fusion(dense_results, sparse_results, top_k=3)
     assert len(fused) == 3
     # doc2 appeared in both (rank 2 in dense, rank 1 in sparse), so doc2 should have highest RRF score

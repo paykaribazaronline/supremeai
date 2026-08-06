@@ -879,7 +879,7 @@ async def main() -> None:
             )
             port = int(os.getenv("MEMORY_MCP_PORT", "8765"))
             logger.info(f"SSE MCP Server listening on port {port}")
-            uvicorn.run(app, host="0.0.0.0", port=port)  # noqa: S104
+            uvicorn.run(app, host="0.0.0.0", port=port)
         except ImportError as e:
             logger.error(f"SSE transport requires starlette + uvicorn: {e}")
             sys.exit(1)

@@ -30,7 +30,7 @@ class FreebuffClient:
                 "stdout": stdout.decode().strip(),
                 "stderr": stderr.decode().strip(),
             }
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error(
                 f"🔴 Freebuff CLI execution timed out after {self.timeout}s. "
                 "Killing process."

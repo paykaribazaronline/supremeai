@@ -3,20 +3,20 @@
 
 import math
 import re
-from typing import List, Dict, Any
+from typing import Any
 
 class SparseBM25Index:
     def __init__(self, k1: float = 1.5, b: float = 0.75):
         self.k1 = k1
         self.b = b
-        self.documents: List[Dict[str, Any]] = []
-        self.doc_len: List[int] = []
+        self.documents: list[dict[str, Any]] = []
+        self.doc_len: list[int] = []
         self.avg_doc_len: float = 0.0
-        self.doc_freqs: Dict[str, int] = {}
-        self.idf: Dict[str, float] = {}
+        self.doc_freqs: dict[str, int] = {}
+        self.idf: dict[str, float] = {}
         self.corpus_size: int = 0
 
-    def tokenize(self, text: str) -> List[str]:
+    def tokenize(self, text: str) -> list[str]:
         # বাংলা মন্তব্য: বাংলা এবং ইংরেজি অক্ষর সমন্বিত টোকেনাইজেশন
         if not text:
             return []
@@ -24,7 +24,7 @@ class SparseBM25Index:
         tokens = [t.strip() for t in text_clean.split() if t.strip()]
         return tokens
 
-    def fit(self, documents: List[Dict[str, Any]], text_key: str = "text") -> None:
+    def fit(self, documents: list[dict[str, Any]], text_key: str = "text") -> None:
         """
         Index documents for BM25 search.
         Each document should be a dict containing text_key.
@@ -58,7 +58,7 @@ class SparseBM25Index:
             idf_val = math.log((self.corpus_size - freq + 0.5) / (freq + 0.5) + 1.0)
             self.idf[term] = max(idf_val, 0.01)
 
-    def search(self, query: str, top_k: int = 10, text_key: str = "text") -> List[Dict[str, Any]]:
+    def search(self, query: str, top_k: int = 10, text_key: str = "text") -> list[dict[str, Any]]:
         """
         Perform Okapi BM25 keyword search for given query.
         Returns top_k matching documents with 'bm25_score'.
@@ -78,7 +78,7 @@ class SparseBM25Index:
                 continue
 
             # Term frequencies in current document
-            tf_map: Dict[str, int] = {}
+            tf_map: dict[str, int] = {}
             for t in doc_tokens:
                 tf_map[t] = tf_map.get(t, 0) + 1
 

@@ -6,7 +6,7 @@
 
 ## 1️⃣ পূর্বশর্ত ও প্রয়োজনীয় সফটওয়্যার (Prerequisites)
 1. **Docker Desktop:** উইন্ডোজের জন্য [Docker Desktop](https://www.docker.com/products/docker-desktop/) ডাউনলোড করে ইনস্টল করুন। ব্যাকগ্রাউন্ডে এটি সচল রাখুন।
-2. **Ollama (Local LLM):** অফলাইন ব্যাকআপ বা লোকাল কাজের জন্য [Ollama](https://ollama.com/) ডাউনলোড করে উইন্ডোজ টার্মিনালে `ollama pull qwen:0.5b` বা `ollama pull llama3` দিয়ে প্রয়োজনীয় মডেল ডাউনলোড করুন।
+2. **Ollama (Local LLM):** ক্লায়েন্ট-সাইড এক্সটেনশন বা লোকাল অফলাইন কাজের জন্য [Ollama](https://ollama.com/) ডাউনলোড করে উইন্ডোজ টার্মিনালে `ollama pull qwen:0.5b` বা `ollama pull llama3` দিয়ে প্রয়োজনীয় মডেল ডাউনলোড করুন (মনে রাখবেন, ব্যাকএন্ডের সাথে ওলামার কোনো সংযোগ নেই — ০% ডিপেন্ডেন্সি)।
 
 ---
 

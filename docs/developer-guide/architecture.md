@@ -43,8 +43,9 @@ SupremeAI 2.0 is a multi-cloud AI orchestration platform built on FastAPI with a
                           ▼
 ┌─────────────────────────────────────────────────────────┐
 │                   LLM GATEWAY                            │
-│  DeepSeek | Groq | OpenAI | Gemini | Local (Ollama)      │
+│  DeepSeek | Groq | OpenAI | Gemini | Client-side Ollama  │
 └─────────────────────────────────────────────────────────┘
+
 ```
 
 ## Monorepo Structure

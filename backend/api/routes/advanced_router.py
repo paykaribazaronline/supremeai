@@ -3,7 +3,6 @@
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
 from backend.core.llm.advanced_model_router import AdvancedModelRouter
 
 router = APIRouter(prefix="/api/v1/router", tags=["Advanced Model Router"])
@@ -12,9 +11,9 @@ global_router = AdvancedModelRouter()
 
 class RouteRequest(BaseModel):
     prompt: str
-    task_type: Optional[str] = "general"
-    user_id: Optional[str] = None
-    budget_constraint: Optional[float] = None
+    task_type: str | None = "general"
+    user_id: str | None = None
+    budget_constraint: float | None = None
 
 @router.post("/route")
 async def route_model(req: RouteRequest):

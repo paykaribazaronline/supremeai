@@ -113,7 +113,36 @@ SUPREMEAI_FULL_AUDIT_PLAN.md ফাইলটা পড়ো।
 
 এই লগ ফাইলটাই আপনার "single source of truth" — কোনদিন কী পাওয়া গেছে, কী এখনো ভেরিফাই হয়নি, সব একনজরে দেখা যাবে।
 
+## অডিট ও ফিক্স ট্র্যাকিং টেবিল ফরম্যাট (Audit & Fix Tracking Table)
+
+প্রতিটি Phase অডিট ও ফিক্স করার পর নতুন কোনো ফাইল তৈরি না করে, একক স্থায়ী ফাইল **[AUDIT_FIX_TRACKER.md](file:///f:/supremeai%20backup/docs/audit_reports/AUDIT_FIX_TRACKER.md)**-এ অডিট ও ফিক্স ট্র্যাকিং টেবিলটি মেইনটেইন করতে হবে। সকল AI এজেন্ট সর্বদা এই নির্দিষ্ট ফাইলে নতুন রেকর্ড যোগ বা আপডেট করবে।
+
+### স্ট্যান্ডার্ড এরর টাইপসমূহ (Standard Error Types):
+1. **Syntax Error (`P1`):** কোড সিনট্যাক্স বা ফরম্যাটজনিত ত্রুটি।
+2. **Static Lint (`P3`):** কোডিং স্ট্যান্ডার্ড বা স্টাইল গাইডলাইন ভায়োলেশন (যেমন: Unused Imports)।
+3. **Dead Code (`P2`):** অব্যবহৃত বা অপ্রয়োজনীয় কোড সেকশন।
+4. **Silent Failure (`P1`):** ট্রাই-এক্সেপ্ট ব্লক দিয়ে এরর ধামাচাপা দেওয়া (e.g., bare `except: pass`)।
+5. **Circular Dependency (`P2`):** মডিউলসমূহের মধ্যে চক্রাকার নির্ভরশীলতা।
+6. **Type Mismatch (`P2`):** ফাংশন বা ভেরিয়েবলের টাইপ অসঙ্গতি।
+7. **Security Bug (`P0`):** হার্ডকোডেড এপিআই কি/সিক্রেট, SQL ইনজেকশন রিস্ক ইত্যাদি।
+8. **Config Drift (`P2`):** লোকাল কনফিগারেশন বনাম রিয়েল ক্লাউড ডেপ্লয়মেন্টের অসঙ্গতি।
+9. **Logic/UI Mismatch (`P2`):** এপিআই ইন্টারফেস বা এপিআই ক্লায়েন্টের লজিক্যাল অমিল।
+10. **Fake-Success (`P1`):** কোড সফলভাবে সম্পন্ন হয়েছে বলে দাবি করে কিন্তু বাস্তবে ডাটাবেস বা এক্সটার্নাল এপিআইতে কোনো প্রভাব ফেলে না (Mocks/Stubs প্রোডাকশনে থেকে যাওয়া)।
+11. **Resource Leak (`P2`):** ফাইল বা ডাটাবেস কানেকশন হ্যান্ডলার সঠিকভাবে বন্ধ (close) না করা।
+12. **Race Condition (`P1`):** সমান্তরাল রিকোয়েস্ট বা অ্যাসিঙ্ক অপারেশনের ডেটা করাপশন বা কনফ্লিক্ট।
+13. **Secret Sync Drift (`P0`):** একাধিক প্ল্যাটফর্মের (GitHub, Vercel, Render ইত্যাদি) মধ্যে এনভায়রনমেন্ট ভ্যারিয়েবল বা সিক্রেট সিঙ্ক না থাকা।
+
+### অডিট ও ফিক্স ট্র্যাকিং টেবিল স্ট্রাকচার:
+
+| File Name (পাথ) | Error Type (এররের ধরন ও Severity) | Fix Time (ফিক্সের সময়) | Fixed By Whom (কার দ্বারা ফিক্সড) | Reverified By (ভেরিফায়ার ও প্রমাণ) | Status (অবস্থা) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `example/auth_core.py` | Security Bug / P0 | 2026-08-07 05:25 | Antigravity AI | Pytest + Admin Verify | ✅ Fixed & Verified |
+| `example/db_helper.py` | Silent Failure / P1 | 2026-08-07 05:30 | Antigravity AI | Pytest | ✅ Fixed & Verified |
+| `example/old_utils.py` | Dead Code / P2 | 2026-08-07 05:40 | Antigravity AI | manual check | ✅ Fixed & Verified |
+| `example/style.ts` | Static Lint / P3 | — | — | — | ⚠️ Pending |
+
 ---
+
 
 ## Phase 16 শেষে (ফাইনাল রিপোর্ট)
 
