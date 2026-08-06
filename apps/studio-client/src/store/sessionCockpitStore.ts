@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { getWebSocketBaseUrl } from '../utils/api';
 
 export type SujonState =
   | 'idle'
@@ -115,7 +116,9 @@ export const useSessionCockpitStore = create<SessionCockpitState>((set, get) => 
 
   connectTakeoverWS: (sessionId: string, token: string) => {
     get().disconnectTakeoverWS();
-    const ws = new WebSocket(`ws://${window.location.host}/ws/session/${sessionId}/takeover?token=${token}`);
+    // বাংলা মন্তব্য: প্রোডাকশন ক্লাউড সার্ভারের সাথে WSS সংযোগ স্থাপনের জন্য getWebSocketBaseUrl ব্যবহার
+    const baseUrl = getWebSocketBaseUrl();
+    const ws = new WebSocket(`${baseUrl}/ws/session/${sessionId}/takeover?token=${token}`);
 
     ws.onopen = () => {
       set({ controlMode: 'human' });

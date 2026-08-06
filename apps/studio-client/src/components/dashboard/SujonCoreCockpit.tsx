@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useSupremeStore from '../../store/useSupremeStore';
 import WebSocketManager from '../../services/realtime/WebSocketManager';
+import { getWebSocketBaseUrl } from '../../utils/api';
 
 interface SujonCoreCockpitProps {
   authToken: string;
@@ -19,7 +20,9 @@ const SujonCoreCockpit: React.FC<SujonCoreCockpitProps> = ({ authToken }) => {
 
   // Initialize WebSocket for real-time log streaming
   useEffect(() => {
-    const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/api/ws/dashboard?token=${authToken}&channels=logs.stream,metrics.update`;
+    // বাংলা মন্তব্য: ফায়ারবেস ওয়েব অ্যাপে স্ট্যাটিক হোস্ট বাইপাস করে রেন্ডার WSS সকেটে সংযোগ
+    const baseUrl = getWebSocketBaseUrl();
+    const wsUrl = `${baseUrl}/api/ws/dashboard?token=${authToken}&channels=logs.stream,metrics.update`;
     const wsManager = new WebSocketManager(wsUrl, {
       onOpen: () => {
         console.warn('Connected to Sujon Core WebSocket');

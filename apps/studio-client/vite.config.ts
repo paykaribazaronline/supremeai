@@ -23,17 +23,18 @@ export default defineConfig({
       'Cross-Origin-Embedder-Policy': 'require-corp',
       'Cross-Origin-Opener-Policy': 'same-origin',
     },
+    // বাংলা মন্তব্য: প্রোডাকশন-গ্রেড ক্লাউড ব্যাকএন্ড টার্গেট সিঙ্ক (Render Admin/User Service)
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://127.0.0.1:8000'),
+        target: process.env.VITE_API_URL || 'https://supremeai-backend.onrender.com',
         changeOrigin: true
       },
       '/admin-api': {
-        target: process.env.VITE_API_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://127.0.0.1:8000'),
+        target: process.env.VITE_API_URL || 'https://supremeai-admin.onrender.com',
         changeOrigin: true
       },
       '/auth': {
-        target: process.env.VITE_API_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://127.0.0.1:8000'),
+        target: process.env.VITE_API_URL || 'https://supremeai-backend.onrender.com',
         changeOrigin: true
       }
     }
@@ -41,15 +42,15 @@ export default defineConfig({
   preview: {
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://127.0.0.1:8000'),
+        target: process.env.VITE_API_URL || 'https://supremeai-backend.onrender.com',
         changeOrigin: true
       },
       '/admin-api': {
-        target: process.env.VITE_API_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://127.0.0.1:8000'),
+        target: process.env.VITE_API_URL || 'https://supremeai-admin.onrender.com',
         changeOrigin: true
       },
       '/auth': {
-        target: process.env.VITE_API_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://127.0.0.1:8000'),
+        target: process.env.VITE_API_URL || 'https://supremeai-backend.onrender.com',
         changeOrigin: true
       }
     }
