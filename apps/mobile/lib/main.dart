@@ -68,12 +68,9 @@ class _HomePageState extends State<HomePage> {
       final wsBase = apiBase.replaceFirst('https://', 'wss://').replaceFirst('http://', 'ws://');
       final wsUri = Uri.parse('$wsBase/api/ws/chat');
 
-      _channel = WebSocketChannel.connect(
-        wsUri,
-        headers: {
-          'Authorization': 'Bearer $_authToken',
-        },
-      );
+      // WebSocketChannel.connect constructor standard parameter Uri query query string auth token
+      final wsAuthUri = wsUri.replace(queryParameters: {'token': _authToken!});
+      _channel = WebSocketChannel.connect(wsAuthUri);
 
       _channel.stream.listen(_handleMessage,
           onError: (error) {
