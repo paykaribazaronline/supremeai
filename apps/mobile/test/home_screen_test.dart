@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supremeai/providers/auth_provider.dart';
-import 'package:supremeai/providers/orchestration_provider.dart';
-import 'package:supremeai/providers/settings_provider.dart';
-import 'package:supremeai/screens/dashboard/home_screen.dart';
-import 'package:supremeai/services/localization_service.dart';
+import 'package:supremeai_mobile/providers/auth_provider.dart';
+import 'package:supremeai_mobile/providers/orchestration_provider.dart';
+import 'package:supremeai_mobile/providers/settings_provider.dart';
+import 'package:supremeai_mobile/screens/dashboard/home_screen.dart';
+import 'package:supremeai_mobile/services/localization_service.dart';
 import 'package:http/http.dart' as http;
-import 'package:supremeai/services/api_service.dart';
+import 'package:supremeai_mobile/services/api_service.dart';
 
 class FakeApiService implements ApiService {
   @override

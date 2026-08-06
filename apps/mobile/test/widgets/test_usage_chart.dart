@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:supremeai/widgets/usage_chart.dart';
+import 'package:supremeai_mobile/widgets/usage_chart.dart';
 
 void main() {
   Widget createUsageChart({List<Map<String, dynamic>>? history}) {

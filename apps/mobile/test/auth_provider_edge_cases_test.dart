@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supremeai/providers/auth_provider.dart';
-import 'package:supremeai/services/api_service.dart';
+import 'package:supremeai_mobile/providers/auth_provider.dart';
+import 'package:supremeai_mobile/services/api_service.dart';
 import 'package:http/http.dart' as http;
 
 class FakeApiService implements ApiService {
