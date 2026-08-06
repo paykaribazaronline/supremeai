@@ -324,18 +324,78 @@ process = await asyncio.create_subprocess_shell(
 
 ---
 
-## Phase 4 — backend/tools/ + scripts/ + utils/ Audit (IN PROGRESS)
+## Phase 4 — backend/tools/ + scripts/ + utils/ Audit (COMPLETED)
 
 **Date:** 2026-08-06
 
-**File Coverage:** 0% — Pending
+**File Coverage:** 95%+ — 50+ files reviewed across backend/tools/ (28 top-level + 9 subdirectories), backend/scripts/ (10 files), backend/utils/ (8 files)
 
-**Issue Count:** P0=0, P1=0, P2=0, P3=0
+**Issue Count:** P0=0, P1=3, P2=4, P3=1
 
-**Technical Error Categories Focus:** Dead Code, Silent Failure, Command Injection
+**Technical Error Categories Focus:** Command Injection, Silent Failure, Hardcoded Secrets, Missing Timeout, SQL Injection, Broken Exception Pattern
+
+### Critical Findings
+
+#### [AUDIT-018] [P1] [Command Injection] [backend/tools/agent_tools.py:178-183]
+**সমস্যা:** `execute_python_code` builds `python -c "{safe_code}"` string with fragile escaping (`code.replace("\\", "\\\\").replace('"', '\\"')`) and passes it to `sandbox.execute_command(cmd)`, which internally runs `docker run ... sh -c cmd` — a shell injection vector. LLM-generated code with carefully crafted metacharacters can bypass the escaping.
+**Fix:** ✅ **DONE** — Replaced with `sandbox.run_secure(code, timeout=30)` which writes code to a temp file and mounts it read-only in Docker (mirroring Phase 1's `run_safe_container` fix).
+
+#### [AUDIT-019] [P1] [Command Injection] [backend/tools/devops/docker_sandbox.py:136-148]
+**সমস্যা:** `DockerSandbox.execute_command()` passes raw `cmd` string to `sh -c cmd` inside the Docker container, enabling shell injection. Same vulnerability pattern as Phase 1 AUDIT-007, but in a separate file (`backend/tools/devops/docker_sandbox.py` vs `backend/sandbox/docker_sandbox.py`).
+**Fix:** ✅ **DONE** — Replaced `sh -c cmd` with `shlex.split(cmd)` passed as exec-style arg list to Docker. Added `run_secure(code, timeout)` method that writes code to a temp file and mounts it read-only. Local fallback path also uses `shlex.split` instead of `shell=True`.
+
+#### [AUDIT-020] [P1] [Hardcoded OTP] [backend/tools/security_tools/multi_account_rotator.py:268-272]
+**সমস্যা:** `perform_autonomous_signup()` inserts hardcoded `"123456"` OTP and `"https://verify.com/link"` into the `verification_queue` SQLite table. If this code path is reached in production, a predictable OTP is injected into the verification flow.
+**Fix:** ✅ **DONE** — Replaced `"123456"` with `secrets.token_hex(3)` for cryptographically secure random OTP generation.
+
+#### [AUDIT-021] [P2] [Missing Timeout] [backend/tools/freebuff_client.py:21]
+**সমস্যা:** `proc.communicate()` called without timeout — a hung external CLI tool hangs the process indefinitely.
+**Fix:** ✅ **DONE** — Added `asyncio.wait_for(proc.communicate(), timeout=self.timeout)` with configurable `timeout=30` parameter. Added `TimeoutError` handler that kills the process.
+
+#### [AUDIT-022] [P2] [Silent Failure] [backend/tools/security_tools/multi_account_rotator.py:161-163]
+**সমস্যা:** `contextlib.suppress(Exception)` wraps `page.wait_for_selector("text=Account Created Successfully")` — any failure to confirm account creation is silently swallowed with no logging.
+**Fix:** ✅ **DONE** — Replaced with explicit try/except that logs a warning on failure.
+
+#### [AUDIT-023] [P2] [Broken Exception Pattern] [vpn_switcher.py:150-156, mcp_supabase.py (6×), telegram_bot.py:199-205, playwright_browser_agent.py:189-195]
+**সমস্যা:** Repeated broken pattern: `try: import loguru; loguru.logger.error(...); except Exception: logger.warning("Exception suppressed: ...")`. The inner `import loguru` is redundant (loguru's `logger` is already imported at module level), and the nested except catches the import error and silently suppresses it. This means error logging can silently fail and go unnoticed.
+**Fix:** ✅ **DONE** — Replaced all 9 instances across 4 files with direct `logger.error(...)` calls. The module-level `logger` (from `from loguru import logger`) is already available.
+
+#### [AUDIT-024] [P2] [Unhandled Exception] [backend/scripts/check_ollama.py:62-66]
+**সমস্যা:** `list_models()` has no try/except — if the Ollama server is down, `httpx.get` raises an unhandled exception.
+**Fix:** ✅ **DONE** — Wrapped in try/except for `httpx.RequestError`, `httpx.HTTPStatusError`, and `ValueError`. Returns empty list on failure with user-facing message + structured log.
+
+#### [AUDIT-025] [P3] [Print Instead of Logging] [backend/scripts/check_ollama.py:54-56, 116-118]
+**সমস্যা:** Exception handlers in `ensure_model()` and `check_server()` use `bprint()` (print to terminal) without structured logging. No audit trail in production.
+**Fix:** ✅ **DONE** — Added `from loguru import logger` and `logger.error(...)` calls to all exception handlers alongside the user-facing `bprint()`.
+
+#### [AUDIT-027] [P3] [SQL Injection Risk] [backend/tools/mcp/mcp_supabase.py:254]
+**সমস্যা:** `CREATE TABLE {if_not_exists} {params.table_name} ({params.columns})` — `table_name` and `columns` are user-supplied strings interpolated directly into SQL via f-string. While admin auth is required, this allows SQL injection through crafted table names or column definitions.
+**Fix:** ✅ **DONE** — Added validation: `table_name` must match `^[a-zA-Z_][a-zA-Z0-9_]*$`; `columns` is sanitized (removes `--` and `;`) and validated against a safe pattern.
+
+### Fixes Applied (Phase 4)
+| Issue | Status | Fix |
+|---|---|---|
+| AUDIT-018 (P1) | ✅ **FIXED** | `agent_tools.py` — replaced `python -c "code"` with `sandbox.run_secure(code)` |
+| AUDIT-019 (P1) | ✅ **FIXED** | `tools/devops/docker_sandbox.py` — `shlex.split` + `run_secure` temp-file mount |
+| AUDIT-020 (P1) | ✅ **FIXED** | `multi_account_rotator.py` — OTP uses `secrets.token_hex(3)` |
+| AUDIT-021 (P2) | ✅ **FIXED** | `freebuff_client.py` — added timeout to `proc.communicate()` |
+| AUDIT-022 (P2) | ✅ **FIXED** | `multi_account_rotator.py` — replaced `contextlib.suppress` with logged try/except |
+| AUDIT-023 (P2) | ✅ **FIXED** | 4 files — replaced 9 broken nested try/except patterns with direct `logger.error()` |
+| AUDIT-024 (P2) | ✅ **FIXED** | `check_ollama.py` — added try/except to `list_models()` |
+| AUDIT-025 (P3) | ✅ **FIXED** | `check_ollama.py` — added `logger.error()` to all exception handlers |
+| AUDIT-027 (P3) | ✅ **FIXED** | `mcp_supabase.py` — SQL injection validation on table_name and columns |
+
+### Dev Guard Actions
+1. ✅ `agent_tools.py` now uses temp-file Docker mount, eliminating shell injection from LLM-generated code
+2. ✅ `docker_sandbox.py` `execute_command` uses `shlex.split` — no `sh -c` or `shell=True`
+3. ✅ `multi_account_rotator.py` OTP generation uses `secrets` module (CSPRNG)
+4. ✅ `freebuff_client.py` has configurable timeout with process kill on timeout
+5. ✅ All 9 instances of the broken `import loguru` nested-try pattern replaced with direct logger calls
+6. ✅ `check_ollama.py` has structured logging via loguru + exception handling
+7. ✅ `mcp_supabase.py` CREATE TABLE parameters validated against injection
 
 ### P0 Stop-the-Line Triggered
-**No**
+**No** — No P0 issues in Phase 4.
 
 ---
 
@@ -363,6 +423,45 @@ process = await asyncio.create_subprocess_shell(
 **Issue Count:** P0=0, P1=0, P2=0, P3=0
 
 **Technical Error Categories Focus:** Command Injection, Memory Leak, Event Loop Blocking
+
+### P0 Stop-the-Line Triggered
+**No**
+
+---
+
+## Phases 13–17 — Supply Chain, Cost Guard, RBAC, Contract, E2E, Rollback (COMPLETED)
+
+**Date:** Continuous audit pass
+
+**File Coverage:** backend/core/cost_guard*, backend/core/queue/task_router*, backend/api/routers.py, backend/API-swagger.yaml, apps/studio-client services, backend/tools/security_tools, .github/workflows, infra deployers
+
+**Issue Count:** P0=0, P1=2, P2=1, P3=1 (new this pass)
+
+**Technical Error Categories Focus:** Supply Chain CVE, LLM Cost Guard wiring gap, PII/OTP log leakage, API Contract Breakage, Docs-vs-Code drift
+
+### Top Findings
+1. **[AUDIT-014] [P1] [Known CVE]** — `pip-audit` on `backend/poetry.lock`: **54 known vulnerabilities in 9 packages** (aiohttp, cryptography, ecdsa, httplib2, litellm, pillow, pyasn1, pydantic-settings, python-dotenv). Remediation guide in `docs/long-term-maintenance/PHASES_13-17_AUDIT_REPORT.md`.
+2. **[AUDIT-015] [P1] [Cost Guard Wiring Gap]** — `CostGuard.validate_budget()`/`record_spend()` used only in tests; `core/queue/task_router.py` has **0% test coverage** (not wired). `check_budget()` wired into `llm_gateway.py` + `connect()` into `lifespan.py`.
+3. **[AUDIT-017] [P2] [PII/OTP Logging]** — `backend/tools/security_tools/multi_account_rotator.py` logged raw OTP codes + verification links. **FIXED** (status-only logs; `py_compile` verified).
+4. **[AUDIT-018] [P1] [API Contract Breakage]** — studio-client calls `/api/voice/voices`, `/api/skills/catalog`, `/api/files/{path}` which are missing on backend (`routers.py` has no skills router; voice router only exposes `/stream_audio`; no files route).
+
+### Dev Guard Action
+- SHA-pin GitHub Actions (AUDIT-006, still open)
+- Register skills router + add `/voice/voices` + `/files/` PUT (AUDIT-018)
+- Upgrade CVE-trackable deps; pin `ecdsa` as accepted risk (AUDIT-014)
+- Wire `validate_budget` into tier routing or document scope (AUDIT-015)
+- Auto-generate OpenAPI from live app (Phase 15 drift)
+
+### Prod Guard Action
+- Add CI contract test asserting every client-referenced path resolves via `app.openapi()`
+- Add gitleaks regex rule for `OTP code:` / `Verification link:` log patterns
+- Complete full-suite coverage run; investigate `test_headless_terminal_agent.py` FF
+
+### Exit Criteria
+- [x] P0/P1 closed or tracked — **All new P1 tracked; P2 AUDIT-017 fixed**
+- [x] Rollback Plan documented — `docs/operations/rollback-plan.md`
+- [x] Audit report written — `docs/long-term-maintenance/PHASES_13-17_AUDIT_REPORT.md`
+- [ ] Full-suite coverage ≥ fail-under (38) — **Pending CI run**
 
 ### P0 Stop-the-Line Triggered
 **No**

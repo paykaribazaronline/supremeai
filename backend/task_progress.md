@@ -1,44 +1,32 @@
-# Test Coverage Improvement - Task Progress
+# Phase 4 Task Progress
 
-## Current Status: 25.66% Line Coverage (7,981 / 31,103 statements)
-## Target: ≥ 90% Line Coverage
+## Audit Target: backend/tools/ + backend/scripts/ + backend/utils/
 
-### Phase 1: High-Impact Coverage Tests (Priority Files < 20%) ✅
-- [x] Create `tests/test_daily_learner_coverage.py` - core/evolution/daily_learner.py
-- [x] Create `tests/test_sso_integrator_coverage.py` - tools/sso_integrator.py
-- [x] Create `tests/test_tenant_admin_coverage.py` - api/routes/tenant_admin.py
-- [x] Create `tests/test_local_search_rag_coverage.py` - tools/knowledge/local_search_rag.py
-- [x] Create `tests/test_seed_database_coverage.py` - tools/seed_database.py
-- [x] Create `tests/test_self_planner_coverage.py` - tools/self_planner.py
-- [x] Create `tests/test_rider_tracker_coverage.py` - services/rider_tracker.py
-- [x] Create `tests/test_browser_routes_coverage.py` - api/routes/browser.py
-- [x] Create `tests/test_meta_ai_coverage.py` - api/routes/meta_ai.py
+### Issues Found
 
-### Phase 2: Core Security & Resilience Tests
-- [x] Create `tests/core/test_secret_vault_coverage.py` - core/security/secret_vault.py
-- [ ] Create `tests/core/test_audit_logger_coverage.py` - core/observability/audit_logger.py
-- [ ] Create `tests/core/test_origin_validator_coverage.py` - core/security/origin_validator.py
-- [ ] Create `tests/core/test_autonoguard_middleware_coverage.py` - core/security/autonoguard_middleware.py
-- [ ] Create `tests/core/test_input_sanitizer_coverage.py` - core/security/input_sanitizer.py
-- [ ] Create `tests/core/test_redis_manager_coverage.py` - core/cache/redis_manager.py
-- [ ] Create `tests/core/test_multi_layer_cache_coverage.py` - core/cache/multi_layer_cache.py
+#### P1 (High) — 3 issues
+- [ ] AUDIT-018: Command Injection — `agent_tools.py:180-183` — fragile `python -c "code"` string interpolation passed to `sandbox.execute_command()` which uses `sh -c cmd` in Docker. Replace with temp-file mount approach.
+- [ ] AUDIT-019: Command Injection — `tools/devops/docker_sandbox.py:136-148` — `execute_command()` passes raw `cmd` string to `sh -c cmd` inside Docker container, enabling shell injection. Same pattern as Phase 1 fix but in a different file.
+- [ ] AUDIT-020: Hardcoded OTP — `multi_account_rotator.py:268-272` — hardcoded `"123456"` and `"https://verify.com/link"` inserted into verification_queue. Should not inject test data into production DB.
 
-### Phase 3: API Routes Coverage
-- [ ] Create `tests/api/test_admin_dashboard_coverage.py` - api/routes/admin_dashboard.py
-- [ ] Create `tests/api/test_websocket_agent_coverage.py` - api/routes/websocket_agent.py
-- [ ] Create `tests/api/test_websocket_voice_coverage.py` - api/routes/websocket_voice.py
-- [ ] Create `tests/api/test_websocket_hitl_coverage.py` - api/routes/websocket_hitl.py
+#### P2 (Medium) — 5 issues
+- [ ] AUDIT-021: Missing timeout — `freebuff_client.py:21` — `proc.communicate()` without timeout, can hang indefinitely.
+- [ ] AUDIT-022: Silent failure — `multi_account_rotator.py:322-323` — `contextlib.suppress(Exception)` swallows wait_for_selector errors.
+- [ ] AUDIT-023: Silent failure — `vpn_switcher.py:150-156` — broken nested try/except pattern suppresses errors (also in mcp_supabase.py, telegram_bot.py, playwright_browser_agent.py).
+- [ ] AUDIT-024: Unhandled exception — `check_ollama.py:62-66` — `list_models()` has no try/except, crashes if Ollama server down.
+- [ ] AUDIT-025: Broken exception pattern — `check_ollama.py:54-56` — broad except with only print(), no structured logging.
 
-### Phase 4: Tools & Services Coverage
-- [x] Create `tests/test_memory_service_coverage.py` - services/memory_service.py
-- [ ] Create `tests/tools/test_multi_account_rotator_coverage.py` - tools/security_tools/multi_account_rotator.py
-- [ ] Create `tests/tools/test_code_smell_detector_coverage.py` - tools/code/code_smell_detector.py
-- [ ] Create `tests/tools/test_task_queue_enhanced_coverage.py` - core/queue/task_queue_enhanced.py
-- [ ] Create `tests/tools/test_style_learner_coverage.py` - tools/learning/style_learner.py
-- [ ] Create `tests/tools/test_skill_recommender_coverage.py` - tools/learning/skill_recommender.py
+#### P3 (Low) — 2 issues
+- [ ] AUDIT-026: Dead code / unused imports — scan for and clean up.
+- [ ] AUDIT-027: SQL injection risk — `mcp_supabase.py:254` — f-string interpolation of table_name/columns into CREATE TABLE SQL.
 
-### Phase 5: Verify & Report
-- [ ] Run full test suite
-- [ ] Generate coverage report
-- [ ] Update TEST_COVERAGE_IMPROVEMENT_PLAN.md
-- [ ] Verify coverage improvement
+### Fix Priority
+1. AUDIT-018 (P1) — command injection in agent_tools.py
+2. AUDIT-019 (P1) — command injection in docker_sandbox.py
+3. AUDIT-020 (P1) — hardcoded OTP
+4. AUDIT-021 (P2) — missing timeout
+5. AUDIT-022/023 (P2) — silent failures
+6. AUDIT-024/025 (P2/P3) — check_ollama reliability
+7. AUDIT-027 (P3) — SQL injection risk
+8. AUDIT-026 (P3) — dead code cleanup
+9. Update PHASE_LOG.md with Phase 4 findings and fixes
