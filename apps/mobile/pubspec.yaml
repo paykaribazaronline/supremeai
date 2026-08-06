@@ -37,11 +37,7 @@ flutter:
   # Added all required asset directories to prevent build failures
   assets:
     - assets/i18n/
-    - assets/images/
-    - assets/icons/
-    - assets/data/
     - assets/icon/
-    - assets/fonts/
 
   # fonts:
   #   - family: Inter

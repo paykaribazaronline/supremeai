@@ -174,6 +174,9 @@ class AuthProvider with ChangeNotifier {
 
     try {
       await _apiService.logout();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('is_guest');
+      await _secureStorage.delete(key: 'auth_token');
       _status = AuthStatus.unauthenticated;
       _token = null;
       _user = null;

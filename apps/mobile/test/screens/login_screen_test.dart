@@ -60,7 +60,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('SupremeAI'), findsOneWidget);
+    expect(find.text('⚡ SUPREME AI'), findsOneWidget);
     expect(find.byType(ElevatedButton), findsOneWidget);
   });
 }
