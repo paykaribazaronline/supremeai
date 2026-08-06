@@ -132,7 +132,7 @@ exclude_lines = [
 [tool.pytest.ini_options]
 minversion = "6.0"
 testpaths = ["tests"]
-addopts = "-ra -v --tb=short --strict-markers --strict-config --import-mode=importlib --cov=core --cov-report=term-missing --cov-report=html --cov-report=xml --cov-fail-under=38"
+addopts = "-ra -v --tb=short --strict-markers --strict-config --import-mode=importlib --cov=core --cov-report=term-missing --cov-report=html --cov-report=xml --cov-fail-under=50"
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

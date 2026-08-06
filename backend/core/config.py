@@ -1,4 +1,4 @@
-﻿# mypy: ignore-errors
+# mypy: ignore-errors
 """This module, `backend.core.config`, serves as the single, authoritative source
 for all application settings within the SupremeAI project. It implements a robust,
 "Fail-Fast" configuration layer using Pydantic, ensuring that all critical parameters
@@ -1060,9 +1060,12 @@ class Settings(BaseSettings):
 
     @classmethod
     def set_jwt_secret(cls, value: Any, info: Any = None) -> str:
+        # বাংলা মন্তব্য: প্রোডাকশনে JWT সিক্রেট অন্তত ৬৪ বাইট দীর্ঘ হতে হবে — কম হলে এক্সেপশন রেইজ হবে
         env = info.data.get("env", "local") if info and hasattr(info, "data") else "local"
         if not value and env == "production":
             raise ValueError("JWT secret cannot be empty in production.")
+        if value and env == "production" and len(str(value)) < 64:
+            raise ValueError("JWT secret must be at least 64 bytes long in production.")
         if not value or value is None:
             return "supremeai_secure_jwt_secret_value_at_least_64_bytes_long_test_string_pad_pad_pad_pad"
         return str(value)
