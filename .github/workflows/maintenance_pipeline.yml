@@ -275,6 +275,7 @@ jobs:
       - name: Prepare Pages Content (exclude large files)
         if: github.ref == 'refs/heads/main'
         run: |
+          mkdir -p docs/autogen
           find docs/autogen -name "codebase_full.md"
 
   worker-test:
@@ -678,7 +679,7 @@ jobs:
         working-directory: backend
         run: |
           mkdir -p ../reports
-          poetry run python ../scripts/ai/model_drift_detector.py --export-promql
+          poetry run python ../scripts/ai/model_drift_detector.py --model-id supremeai_core_model --export-promql ../reports/model_drift.prom
           poetry run python ../scripts/ai/bias_detector.py --report-json ../reports/bias_nightly.json
           poetry run python ../scripts/ai/prompt_injection_tester.py
         env:
