@@ -218,6 +218,7 @@ async def test_rate_limiting(self: PenetrationTestOrchestrator):
 
 # ── CLI ──────────────────────────────────────────────────────────────────────
 async def main():
+    global REPORT_DIR
     parser = argparse.ArgumentParser(
         description="SupremeAI Penetration Tester — Automated security scanning",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -229,7 +230,6 @@ async def main():
 
     args = parser.parse_args()
 
-    global REPORT_DIR
     REPORT_DIR = Path(args.report_dir)
 
     if args.scope == "quick":
