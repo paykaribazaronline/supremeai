@@ -147,10 +147,5 @@ class VPNRotator:
             proxy = cfg.get(use_case) or cfg.get("default")
             return {"proxy": proxy, "source": "premium", "use_case": use_case}
         except Exception as e:
-            try:
-                import loguru
-
-                loguru.logger.error(f"Tool execution error: {e}")
-            except Exception as e:
-                logger.warning(f"Exception suppressed: {e}")
+            logger.error(f"Premium proxy fetch failed: {e}")
             return {"proxy": None, "source": "premium", "reason": "not configured"}

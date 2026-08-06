@@ -197,12 +197,7 @@ class TelegramBotHandler:
                     icon = "✅" if r.status_code == 200 else "⚠️"
                     status_lines.append(f"{icon} {name}: `{r.status_code}`")
             except Exception as e:
-                try:
-                    import loguru
-
-                    loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
-                    logger.warning(f"Exception suppressed: {e}")
+                logger.error(f"Health check failed for {name}: {e}")
                 status_lines.append(f"❌ {name}: unreachable")
         await self.send_message(chat_id, "\n".join(status_lines))
 

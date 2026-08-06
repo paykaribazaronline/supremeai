@@ -7,6 +7,7 @@ import json
 import sys
 
 import httpx
+from loguru import logger
 
 if sys.platform == "win32":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
@@ -53,17 +54,24 @@ def check_server() -> bool:
         return False
     except Exception as e:
         bprint(f"❌ এরর: {e}", RED)
+        logger.error(f"Ollama server health check failed: {e}")
         return False
 
 
 # ──────────────────────────────────────────────
-# ২. दल exceed Downloaded Models List
+# ২. Downloaded Models List
 # ──────────────────────────────────────────────
 def list_models() -> list[str]:
-    resp = httpx.get(f"{OLLAMA_URL}/api/tags", timeout=10.0)
-    resp.raise_for_status()
-    data = resp.json()
-    return [m["name"] for m in data.get("models", [])]
+    """List available Ollama models. Returns empty list on failure."""
+    try:
+        resp = httpx.get(f"{OLLAMA_URL}/api/tags", timeout=10.0)
+        resp.raise_for_status()
+        data = resp.json()
+        return [m["name"] for m in data.get("models", [])]
+    except (httpx.RequestError, httpx.HTTPStatusError, ValueError) as e:
+        bprint(f"  ❌ list_models failed: {e}", RED)
+        logger.error(f"Ollama list_models failed: {e}")
+        return []
 
 
 # ──────────────────────────────────────────────
@@ -106,22 +114,24 @@ def ensure_model(model_name: str) -> bool:
                         return True
                 except json.JSONDecodeError:
                     continue
-            # streme শেষে status==success না হলে
+            # stream শেষে status==success না হলে
             if last_status == "success":
                 bprint(f"  ✅ '{model_name}' Pull সম্পূর্ণ!", GREEN)
                 return True
     except httpx.TimeoutException:
-        bprint(f"  ❌ '{model_name}' pull হল时间内 শেষ হয়নি ({PULL_TIMEOUT}s)", RED)
+        bprint(f"  ❌ '{model_name}' pull হল সময়সীমা অতিক্রম করেনি ({PULL_TIMEOUT}s)", RED)
+        logger.error(f"Ollama model pull timed out for '{model_name}' after {PULL_TIMEOUT}s")
         return False
     except Exception as e:
         bprint(f"  ❌ Pull এরর: {e}", RED)
+        logger.error(f"Ollama model pull error for '{model_name}': {e}")
         return False
 
     return False
 
 
 # ──────────────────────────────────────────────
-# ৪.实际ে Generation Test চালিয়ে দেখি কিনা
+# ৪. Generation Test
 # ──────────────────────────────────────────────
 def test_generation(model_name: str) -> bool:
     bprint(f"\n🧪 [ধাপ 4] '{model_name}' দিয়ে টেস্ট জেনারেশন চেক...", CYAN)
@@ -147,9 +157,11 @@ def test_generation(model_name: str) -> bool:
             return False
     except httpx.TimeoutException:
         bprint("  ❌ জেনারেশন timeout (৬০s)", RED)
+        logger.error(f"Ollama generation timed out for '{model_name}' after 60s")
         return False
     except Exception as e:
         bprint(f"  ❌ এরর: {e}", RED)
+        logger.error(f"Ollama generation error for '{model_name}': {e}")
         return False
 
 
@@ -174,17 +186,17 @@ def main() -> int:
             all_ready = False
 
     if not all_ready:
-        bprint("\n⚠️  কিছু মডেল পাওয়া যাচ্ছে না, পরবর্তী চক্রেই পুনরায় চেক করবেন।", YELLOW)
+        bprint("\n⚠️  কিছু মডেল পাওয়া যাচ্ছে না, পরবর্তী চক্রেই পুনরায় চেক করবেন।", YELLOW)
         return 1
 
-    # Step 4: Generation Test (সব মডেলের mixin এ কম/common model দ=strategy)
+    # Step 4: Generation Test
     bprint("\n🧪 [ধাপ 4] টেক্সট জেনারেশন চেক...", CYAN)
     test_model = "qwen2.5:0.5b" if "qwen2.5:0.5b" in list_models() else MODELS_TO_CHECK[0]
     if test_generation(test_model):
         bprint("\n🎉 সবকিছু ঠিক আছে! Ollama এই জবটি করতে পারবে।", GREEN)
         return 0
     else:
-        bprint("\n⚠️  মডেল পাওয়া গেলেও generation কাজ করছে না।", YELLOW)
+        bprint("\n⚠️  মডেল পাওয়া গেলেও generation কাজ করছে না।", YELLOW)
         return 1
 
 

@@ -175,12 +175,10 @@ def execute_python_code(code: str) -> str:
 
         sandbox = DockerSandbox(image="python:3.11-slim")
 
-        # বাংলা মন্তব্য: python -c "..." কমান্ড হিসেবে run করা হবে
-        # multi-line কোডের জন্য escape করে single-line বানানো হয়
-        safe_code = code.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "; ")
-        cmd = f'python -c "{safe_code}"'
-
-        result = sandbox.execute_command(cmd)
+        # Security Fix: Use run_secure() which writes code to a temp file and
+        # mounts it read-only in Docker. This eliminates the command injection
+        # risk of embedding LLM-generated code into a "python -c" shell string.
+        result = sandbox.run_secure(code, timeout=30)
 
         if result.get("success"):
             output = result.get("stdout", "").strip()

@@ -204,13 +204,7 @@ async def supabase_execute_sql(params: ExecuteQueryInput) -> str:
             try:
                 conn.close()
             except Exception as e:
-                try:
-                    import loguru
-
-                    loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
-                    logger.warning(f"Exception suppressed: {e}")
-                pass
+                logger.error(f"Tool execution error: {e}")
 
 
 @mcp.tool(
@@ -250,8 +244,19 @@ async def supabase_create_table(params: CreateTableInput) -> str:
     if not _get_supabase_db_url():
         return json.dumps({"error": "SUPABASE_DATABASE_URL not configured"}, ensure_ascii=False)
 
+    # Security Fix: Validate table_name and columns to prevent SQL injection.
+    # Only allow alphanumeric, underscore, and basic SQL type syntax.
+    import re as _re
+    if not _re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", params.table_name):
+        return json.dumps({"error": "Invalid table name. Only alphanumeric and underscore characters allowed."}, ensure_ascii=False)
+    # Remove backticks/quotes from columns and validate - allow only safe SQL column defs
+    safe_columns = params.columns.replace("--", "").replace(";", "")
+    _allowed_column_re = r"^[a-zA-Z_][a-zA-Z0-9_\s,().]+"
+    if not _re.match(_allowed_column_re, safe_columns) or ";" in safe_columns or "--" in safe_columns:
+        return json.dumps({"error": "Invalid column definition. Potentially dangerous SQL detected."}, ensure_ascii=False)
+
     if_not_exists = "IF NOT EXISTS" if params.if_not_exists else ""
-    query = f"CREATE TABLE {if_not_exists} {params.table_name} ({params.columns})"
+    query = f"CREATE TABLE {if_not_exists} {params.table_name} ({safe_columns})"
 
     conn = None
     try:
@@ -280,13 +285,7 @@ async def supabase_create_table(params: CreateTableInput) -> str:
             try:
                 conn.close()
             except Exception as e:
-                try:
-                    import loguru
-
-                    loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
-                    logger.warning(f"Exception suppressed: {e}")
-                pass
+                logger.error(f"Tool execution error: {e}")
 
 
 @mcp.tool(
@@ -376,13 +375,7 @@ async def supabase_run_migration(params: MigrationInput) -> str:
             try:
                 conn.close()
             except Exception as e:
-                try:
-                    import loguru
-
-                    loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
-                    logger.warning(f"Exception suppressed: {e}")
-                pass
+                logger.error(f"Tool execution error: {e}")
 
 
 @mcp.tool(
@@ -436,13 +429,7 @@ async def supabase_list_tables() -> str:
             try:
                 conn.close()
             except Exception as e:
-                try:
-                    import loguru
-
-                    loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
-                    logger.warning(f"Exception suppressed: {e}")
-                pass
+                logger.error(f"Tool execution error: {e}")
 
 
 class ExplainQueryInput(BaseModel):
@@ -506,13 +493,7 @@ async def supabase_explain_query(params: ExplainQueryInput) -> str:
             try:
                 conn.close()
             except Exception as e:
-                try:
-                    import loguru
-
-                    loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
-                    logger.warning(f"Exception suppressed: {e}")
-                pass
+                logger.error(f"Tool execution error: {e}")
 
 
 @mcp.tool(
@@ -579,13 +560,7 @@ async def supabase_describe_table(params: DescribeTableInput) -> str:
             try:
                 conn.close()
             except Exception as e:
-                try:
-                    import loguru
-
-                    loguru.logger.error(f"Tool execution error: {e}")
-                except Exception as e:
-                    logger.warning(f"Exception suppressed: {e}")
-                pass
+                logger.error(f"Tool execution error: {e}")
 
 
 if __name__ == "__main__":

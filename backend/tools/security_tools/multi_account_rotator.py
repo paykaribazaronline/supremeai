@@ -268,7 +268,7 @@ class MultiAccountRotator:
                 "verification@identity.com",
                 f"Verify your {provider_name} account",
                 new_email,
-                "123456",
+                secrets.token_hex(3),
                 "https://verify.com/link",
             ),
         )
@@ -319,8 +319,10 @@ class MultiAccountRotator:
                     except Exception as verify_err:
                         logger.warning(f"[SUPREME-AI] Verification filling warning/error (continuing): {verify_err}")
 
-                    with contextlib.suppress(Exception):
+                    try:
                         await page.wait_for_selector("text=Account Created Successfully", timeout=2000)
+                    except Exception as confirm_err:
+                        logger.warning(f"[SUPREME-AI] Account creation confirmation selector not found: {confirm_err}")
                     logger.info(f"[SUPREME-AI] Account creation confirmed for {new_email}.")
 
                     # Add to rotator registry - use SHA-256 for secure ID generation
