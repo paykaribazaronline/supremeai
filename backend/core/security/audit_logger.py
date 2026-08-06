@@ -46,7 +46,11 @@ async def log_security_event(
             pipe.setex(f"{AUDIT_PREFIX}{event_id}", 86400 * 30, payload)  # 30 days retention
             pipe.lpush(AUDIT_LIST_PREFIX, payload)
             pipe.ltrim(AUDIT_LIST_PREFIX, 0, MAX_RECENT_EVENTS - 1)
-            await pipe.execute()
+            import inspect
+            res = pipe.execute()
+            # বাংলা মন্তব্য: টেস্টে যদি MagicMock ব্যবহার করা হয় যা awaitable নয়, তা হ্যান্ডেল করার জন্য চেক যোগ করা হলো
+            if inspect.isawaitable(res):
+                await res
         except Exception as exc:
             # বাংলা মন্তব্য: সিকিউরিটি গার্ড — সিকিউরিটি অডিট ইভেন্ট পারসিস্ট না হলে সাইলেন্ট ফেলিয়ার প্রতিরোধে এরর রেইজ করা হচ্ছে
             logger.error(f"⚠️ Failed to persist security audit event {event_id}: {exc}")

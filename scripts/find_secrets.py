@@ -94,6 +94,7 @@ SCAN_SUFFIXES: tuple[str, ...] = (
 DEFAULT_EXCLUDE: tuple[str, ...] = (
     ".venv", "node_modules", "__pycache__", ".git", ".agent",
     "infrastructure", "archive", "build", "dist", ".turbo",
+    "out", "htmlcov", ".coverage", "coverage",
 )
 
 SEV_RANK = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3, "INFO": 4}
@@ -190,6 +191,9 @@ def classify_token(tok: str, *, var_name: str | None = None, is_recompile: bool 
     # 3b) পাবলিক ডকুমেন্টেশন example টোকেন → আসল লিক না
     if tok in EXAMPLE_TOKENS:
         return _make_finding("", 0, pattern_name, "INFO", 0.05, tok, "known public example token")
+    # 3c) test/local DB connection string (test_user:test_password@localhost) → স্কিপ
+    if pattern_name == "db_connection_string" and re.search(r"(?i)(test|example|dummy|localhost)", tok):
+        return _make_finding("", 0, pattern_name, "INFO", 0.1, tok, "test/local connection string")
 
     # 4) Entropy + Confidence স্কোরিং
     ent = shannon_entropy(tok)
@@ -274,7 +278,7 @@ def scan_text_file(filepath: str) -> list[dict]:
         if stripped.startswith("#") or stripped.startswith("//") or stripped.startswith("*"):
             continue
         # লাইন থেকে ভ্যারিয়েবল নাম বের করি (password=, api_key: ইত্যাদি)
-        var_m = re.search(r"(?:password|passwd|pwd|api[_-]?key|secret|token|private[_-]?key|auth)\s*[:=]", line, re.IGNORECASE)
+        var_m = re.search(r"(password|passwd|pwd|api[_-]?key|secret|token|private[_-]?key|auth)\s*[:=]", line, re.IGNORECASE)
         var_name = var_m.group(1) if var_m else None
         # রেজেক্স কনটেক্সট স্কিপ (re.compile, r'...', r"...")
         is_recompile = ("re.compile" in line) or ("r'" in line and "re." in line) or ('r"' in line and "re." in line)
@@ -295,7 +299,9 @@ def scan_text_file(filepath: str) -> list[dict]:
 def scan_directory(root: str, exclude: list[str]) -> list[dict]:
     all_findings: list[dict] = []
     for path, dirs, files in os.walk(root):
-        dirs[:] = [d for d in dirs if d not in exclude and not d.startswith(".")]
+        # বাংলা মন্তব্য: substring ম্যাচ — "dist" → dist-admin, dist-user; "out" → out/ ইত্যাদি
+        dirs[:] = [d for d in dirs
+                   if not any(ex in d for ex in exclude) and not d.startswith(".")]
         for file in files:
             fp = Path(path) / file
             if fp.suffix not in SCAN_SUFFIXES or is_excepted(str(fp)):

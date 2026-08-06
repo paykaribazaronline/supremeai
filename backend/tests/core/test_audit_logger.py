@@ -93,10 +93,12 @@ class TestLogSecurityEvent:
         mock_client.pipeline.return_value = mock_pipe
         mock_redis.client = mock_client
 
+        # বাংলা মন্তব্য: সিকিউরিটি গার্ড এখন সাইলেন্ট ফেলিয়ার প্রতিরোধে RuntimeError থ্রো করে, তাই টেস্টে pytest.raises যুক্ত করা হলো
         with patch("core.security.audit_logger.redis_manager", mock_redis):
-            event_id = await log_security_event(
-                event_type="TEST",
-                user_id="user",
-                details={},
-            )
-            assert event_id.startswith("sec-")
+            with pytest.raises(RuntimeError, match="Audit logger persistence failed"):
+                await log_security_event(
+                    event_type="TEST",
+                    user_id="user",
+                    details={},
+                )
+
