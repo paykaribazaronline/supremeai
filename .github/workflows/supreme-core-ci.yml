@@ -310,7 +310,13 @@ jobs:
           echo "✅ All admin prefixed routers verified structurally." >> $GITHUB_STEP_SUMMARY
 
 
-      - name: 📋 Gate 3 — Observability Check (No httpx without timeout)
+      - name: 🔗 Gate 3 — Service Topology Check
+        if: needs.changes.outputs.docs_only != 'true'
+        run: |
+          pip install pyyaml
+          python scripts/ci/check_service_topology.py
+
+      - name: 🕵️ Gate 4 — Observability & Silent Error Audit
         if: needs.changes.outputs.docs_only != 'true'
         # বাংলা মন্তব্য: timeout ছাড়া httpx.AsyncClient() ব্যবহার করলে fail
         run: |
