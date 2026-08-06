@@ -1539,21 +1539,23 @@ jobs:
             --json number \
             --jq '.[0].number // empty')
 
+          PR_BODY="## 🛡️ Staging CI Pass Report
+
+          All quality gates passed on \`SaifulHaqueNiloy/supremeai\`:
+          - 🟢 Pytest & Backend Unit Tests
+          - 🟢 Vitest & Web Client Tests
+          - 🟢 Flutter Unit & Widget Tests
+          - 🟢 Preflight & Security Audit
+
+          **Commit:** \`${STAGING_HEAD:0:7}\`
+          **Admin Action Required:** Review and merge to trigger production deployments."
+
           if [ -n "$EXISTING_PR" ]; then
             echo "ℹ️ Existing promotion PR #$EXISTING_PR found. Updating..."
             gh pr edit "$EXISTING_PR" \
               --repo "$TARGET_REPO" \
               --title "🟢 [Staging Promotion] Verified CI Green Build (${STAGING_HEAD:0:7})" \
-              --body "## 🛡️ Staging CI Pass Report
-
-All quality gates passed on \`SaifulHaqueNiloy/supremeai\`:
-- 🟢 Pytest & Backend Unit Tests
-- 🟢 Vitest & Web Client Tests
-- 🟢 Flutter Unit & Widget Tests
-- 🟢 Preflight & Security Audit
-
-**Commit:** \`${STAGING_HEAD:0:7}\`
-**Admin Action Required:** Review and merge to trigger production deployments."
+              --body "$PR_BODY"
           else
             echo "🚀 Opening new automated Staging Promotion PR..."
             gh pr create \
@@ -1561,16 +1563,7 @@ All quality gates passed on \`SaifulHaqueNiloy/supremeai\`:
               --head "$PR_BRANCH" \
               --base main \
               --title "🟢 [Staging Promotion] Verified CI Green Build (${STAGING_HEAD:0:7})" \
-              --body "## 🛡️ Staging CI Pass Report
-
-All quality gates passed on \`SaifulHaqueNiloy/supremeai\`:
-- 🟢 Pytest & Backend Unit Tests
-- 🟢 Vitest & Web Client Tests
-- 🟢 Flutter Unit & Widget Tests
-- 🟢 Preflight & Security Audit
-
-**Commit:** \`${STAGING_HEAD:0:7}\`
-**Admin Action Required:** Review and merge to trigger production deployments."
+              --body "$PR_BODY"
           fi
 
   canary-deploy:
