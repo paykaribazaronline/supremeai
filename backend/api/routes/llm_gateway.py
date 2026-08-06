@@ -8,13 +8,12 @@
 # যার ফলে যেকোনো authenticated user (viewer role সহ) admin endpoints-এ access পেত।
 # এখন `get_current_admin` ডিপেন্ডেন্সি যোগ করা হলো — role চেক বাধ্যতামূলক।
 
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import JSONResponse
-
 from api.dependencies import get_current_user_token
 from core.llm.free_tier_tracker import get_tracker
 from core.llm.llm_gateway import get_llm_gateway
 from core.resilience.circuit_breaker_manager import get_circuit_breaker_manager
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import JSONResponse
 
 router = APIRouter(prefix="/llm-gateway", tags=["llm-gateway"])
 
@@ -73,7 +72,9 @@ async def get_gateway_state(admin_user: dict = Depends(get_current_admin)):
 
 
 @router.post("/admin/circuit-breaker/reset/{name}")
-async def reset_circuit_breaker(name: str, admin_user: dict = Depends(get_current_admin)):
+async def reset_circuit_breaker(
+    name: str, admin_user: dict = Depends(get_current_admin)
+):
     """Reset a specific circuit breaker."""
     cb_manager = get_circuit_breaker_manager()
     success = cb_manager.reset_breaker(name)
@@ -81,7 +82,9 @@ async def reset_circuit_breaker(name: str, admin_user: dict = Depends(get_curren
     if success:
         return {"message": f"Circuit breaker {name} reset successfully"}
     else:
-        return JSONResponse(status_code=404, content={"error": f"Circuit breaker {name} not found"})
+        return JSONResponse(
+            status_code=404, content={"error": f"Circuit breaker {name} not found"}
+        )
 
 
 @router.get("/admin/providers/fallback-chain")
@@ -95,4 +98,8 @@ async def get_fallback_chain(
     gateway = get_llm_gateway()
     call_chain = gateway._build_call_chain(model, provider, task_type)
 
-    return {"task_type": task_type, "fallback_chain": call_chain, "chain_length": len(call_chain)}
+    return {
+        "task_type": task_type,
+        "fallback_chain": call_chain,
+        "chain_length": len(call_chain),
+    }

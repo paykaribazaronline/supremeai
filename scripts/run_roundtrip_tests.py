@@ -3,7 +3,6 @@ import sys
 
 import pytest
 
-
 # Ensure repository root and scripts are importable
 repo_root = os.path.abspath(os.path.join(os.getcwd(), ".."))
 scripts_dir = os.path.join(repo_root, "scripts")
@@ -23,5 +22,5 @@ args = [
 ]
 
 ret = pytest.main(args)
-print("pytest exit code:", ret)  # noqa: T201
+print("pytest exit code:", ret)
 sys.exit(ret)

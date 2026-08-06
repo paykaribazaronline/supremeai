@@ -39,8 +39,26 @@ class BengaliNLP:
         return len(self.tokenize(text))
 
     def analyze_sentiment(self, text: str) -> dict[str, Any]:
-        positive = {"ভালো", "সুন্দর", "চমৎকার", "উত্তম", "আনন্দ", "প্রিয়", "সফল", "ধন্যবাদ"}
-        negative = {"খারাপ", "বrophy", "দুর্ঘটনা", "অসফল", "বিরক্তি", "দুঃখ", "রাগ", "ভয়"}
+        positive = {
+            "ভালো",
+            "সুন্দর",
+            "চমৎকার",
+            "উত্তম",
+            "আনন্দ",
+            "প্রিয়",
+            "সফল",
+            "ধন্যবাদ",
+        }
+        negative = {
+            "খারাপ",
+            "বrophy",
+            "দুর্ঘটনা",
+            "অসফল",
+            "বিরক্তি",
+            "দুঃখ",
+            "রাগ",
+            "ভয়",
+        }
         tokens = self.tokenize(text)
         pos = len(set(tokens) & positive)
         neg = len(set(tokens) & negative)
@@ -50,7 +68,11 @@ class BengaliNLP:
             score = 0.5
         else:
             score = pos / total
-            label = "positive" if score >= 0.6 else "negative" if score <= 0.4 else "neutral"
+            label = (
+                "positive"
+                if score >= 0.6
+                else "negative" if score <= 0.4 else "neutral"
+            )
         return {
             "label": label,
             "score": round(score, 3),

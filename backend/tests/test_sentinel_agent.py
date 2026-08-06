@@ -12,7 +12,6 @@ import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from core.sentinel_agent import SentinelAgent, sentinel
 
 
@@ -62,7 +61,9 @@ class TestSentinelAgent:
         mock_result.scalars.return_value.all.return_value = []
 
         with patch("core.sentinel_agent.AsyncSessionLocal") as mock_session:
-            mock_session.return_value.__aenter__.return_value.execute.return_value = mock_result
+            mock_session.return_value.__aenter__.return_value.execute.return_value = (
+                mock_result
+            )
 
             await agent.monitor_endpoints()
 
@@ -77,7 +78,9 @@ class TestSentinelAgent:
         ):
             mock_session.return_value.__aenter__ = AsyncMock()
             mock_session.return_value.__aexit__ = AsyncMock()
-            mock_session.return_value.execute.return_value.scalars.return_value.all.return_value = []
+            mock_session.return_value.execute.return_value.scalars.return_value.all.return_value = (
+                []
+            )
 
             await agent.audit_dependencies()
 

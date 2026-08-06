@@ -93,7 +93,9 @@ def test_execute_command_local_fallback_success(sandbox, monkeypatch):
 
     sandbox.docker_available = False
     with patch("subprocess.run") as mock_run:
-        mock_run.return_value = MagicMock(returncode=0, stdout="local output", stderr="")
+        mock_run.return_value = MagicMock(
+            returncode=0, stdout="local output", stderr=""
+        )
         result = sandbox.execute_command("echo 'local output'")
 
         assert result["success"] is True

@@ -10,7 +10,6 @@ from collections.abc import Callable
 from typing import Any
 
 import httpx
-
 from core.error_bus import with_error_bus
 
 # Lazy HTTP client — initialized on first use
@@ -138,11 +137,8 @@ def _get_service_attr(name: str) -> Any:
             f"⚠️ Service '{name}' is missing and is being mock injected dynamically in test environment!"
         )
         try:
-            from core.messaging.event_bus import (
-                ErrorContext,
-                ErrorEvent,
-                error_event_bus,
-            )
+            from core.messaging.event_bus import (ErrorContext, ErrorEvent,
+                                                  error_event_bus)
 
             error_event_bus.emit(
                 ErrorEvent(

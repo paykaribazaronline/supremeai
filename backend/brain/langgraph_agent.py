@@ -1,13 +1,13 @@
 from typing import Any
 
-from loguru import logger
-
 from admin.god import AdminGodLayer
 from brain.autonomous_agent import AutonomousAgent
 from brain.model_router import ModelRouter
 from brain.reasoning_orchestrator import ReasoningOrchestrator
 from core.config import settings
 from core.intent import IntentClassifier
+from loguru import logger
+
 from tools.security_tools.vpn_switcher import VPNRotator
 
 
@@ -39,9 +39,13 @@ class SupremeOrchestrator:
         except Exception as exc:
             logger.warning(f"VPN rotation skipped: {exc}")
 
-    def run_autonomous(self, task_description: str, context: str | None = None) -> dict[str, Any]:
+    def run_autonomous(
+        self, task_description: str, context: str | None = None
+    ) -> dict[str, Any]:
         self._maybe_rotate_vpn("general")
-        run = self.autonomous_agent.run(task_description=task_description, context=context)
+        run = self.autonomous_agent.run(
+            task_description=task_description, context=context
+        )
         try:
             self.reasoning_orchestrator.episodic_memory.store_episode(
                 event_type="autonomous_run",
@@ -53,9 +57,13 @@ class SupremeOrchestrator:
             logger.exception(f"Failed to store episodic memory: {exc}")
         return run
 
-    def route_reasoning(self, task_description: str, context: str | None = None) -> dict[str, Any]:
+    def route_reasoning(
+        self, task_description: str, context: str | None = None
+    ) -> dict[str, Any]:
         self._maybe_rotate_vpn("general")
-        return self.reasoning_orchestrator.route(task_description=task_description, context=context)
+        return self.reasoning_orchestrator.route(
+            task_description=task_description, context=context
+        )
 
     def execute_task(self, task: str, task_type: str = "general") -> dict[str, Any]:
         self._maybe_rotate_vpn(task_type)

@@ -9,9 +9,10 @@ Can be used at startup or as part of a CI/CD pipeline.
 """
 
 import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
+
 
 def run_migrations() -> None:
     """Run Alembic migrations to upgrade the database to the latest head."""
@@ -31,10 +32,7 @@ def run_migrations() -> None:
     try:
         print("Running database migrations...")
         result = subprocess.run(
-            ["alembic", "upgrade", "head"],
-            check=True,
-            capture_output=True,
-            text=True
+            ["alembic", "upgrade", "head"], check=True, capture_output=True, text=True
         )
         print("Migration output:")
         print(result.stdout)
@@ -50,6 +48,7 @@ def run_migrations() -> None:
     except FileNotFoundError:
         print("❌ Error: 'alembic' command not found. Is Alembic installed?")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     run_migrations()

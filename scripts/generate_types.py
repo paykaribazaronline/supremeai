@@ -27,11 +27,7 @@ import hashlib
 import importlib
 import inspect
 import json
-import os
-import pkgutil
-import re
 import sys
-import textwrap
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, get_args, get_origin
@@ -42,9 +38,26 @@ sys.path.insert(0, str(_BACKEND_DIR))
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 SCHEMAS_PACKAGE = "schemas"
-OUTPUT_TS_DIR = Path(__file__).resolve().parent.parent / "packages" / "shared-types" / "src" / "typescript"
-OUTPUT_DART_DIR = Path(__file__).resolve().parent.parent / "packages" / "shared-types" / "src" / "dart"
-CHECKSUM_FILE = Path(__file__).resolve().parent.parent / "packages" / "shared-types" / ".type_checksums.json"
+OUTPUT_TS_DIR = (
+    Path(__file__).resolve().parent.parent
+    / "packages"
+    / "shared-types"
+    / "src"
+    / "typescript"
+)
+OUTPUT_DART_DIR = (
+    Path(__file__).resolve().parent.parent
+    / "packages"
+    / "shared-types"
+    / "src"
+    / "dart"
+)
+CHECKSUM_FILE = (
+    Path(__file__).resolve().parent.parent
+    / "packages"
+    / "shared-types"
+    / ".type_checksums.json"
+)
 
 # Type mapping: Python type → TypeScript type
 PY_TO_TS: dict[type, str] = {
@@ -83,36 +96,48 @@ def _get_python_type_name(tp: type) -> str:
         if origin is list:
             return f"list[{_get_python_type_name(args[0])}]" if args else "list"
         if origin in (dict, dict):
-            return f"dict[{_get_python_type_name(args[0])}, {_get_python_type_name(args[1])}]" if len(args) >= 2 else "dict"
+            return (
+                f"dict[{_get_python_type_name(args[0])}, {_get_python_type_name(args[1])}]"
+                if len(args) >= 2
+                else "dict"
+            )
         if origin in (set, set):
             return f"set[{_get_python_type_name(args[0])}]" if args else "set"
         if origin is tuple:
-            return f"tuple[{', '.join(_get_python_type_name(a) for a in args)}]" if args else "tuple"
-        if origin is type(None) or origin is None:  # noqa: E721
+            return (
+                f"tuple[{', '.join(_get_python_type_name(a) for a in args)}]"
+                if args
+                else "tuple"
+            )
+        if origin is type(None) or origin is None:
             return "None"
         if origin is Union:  # type: ignore[name-defined]  # noqa: F821
             return " | ".join(_get_python_type_name(a) for a in args)
-    if tp is type(None):  # noqa: E721
+    if tp is type(None):
         return "None"
     if hasattr(tp, "__name__"):
         return tp.__name__
     return str(tp)
 
 
-def _resolve_type_string(tp: type, type_map: dict[type, str], model_names: set[str]) -> str:
+def _resolve_type_string(
+    tp: type, type_map: dict[type, str], model_names: set[str]
+) -> str:
     """Resolve a Python type to its target language type string."""
     origin = get_origin(tp)
     args = get_args(tp)
 
     # Handle Optional[X] = Union[X, None]
-    if origin is type(None) or origin is None:  # noqa: E721
+    if origin is type(None) or origin is None:
         return "null"
     if origin is Union:  # type: ignore[name-defined]  # noqa: F821
-        non_none_args = [a for a in args if a is not type(None)]  # noqa: E721
+        non_none_args = [a for a in args if a is not type(None)]
         if len(non_none_args) == 1:
             base = _resolve_type_string(non_none_args[0], type_map, model_names)
             return f"{base} | null" if type_map is PY_TO_TS else f"{base}?"
-        return " | ".join(_resolve_type_string(a, type_map, model_names) for a in non_none_args)
+        return " | ".join(
+            _resolve_type_string(a, type_map, model_names) for a in non_none_args
+        )
 
     # Direct mapping
     if tp in type_map:
@@ -127,14 +152,28 @@ def _resolve_type_string(tp: type, type_map: dict[type, str], model_names: set[s
         inner = _resolve_type_string(args[0], type_map, model_names) if args else "any"
         return f"{inner}[]" if type_map is PY_TO_TS else f"List<{inner}>"
     if origin in (dict, dict):
-        key_t = _resolve_type_string(args[0], type_map, model_names) if args else "string"
-        val_t = _resolve_type_string(args[1], type_map, model_names) if len(args) >= 2 else "any"
-        return f"Record<{key_t}, {val_t}>" if type_map is PY_TO_TS else f"Map<{key_t}, {val_t}>"
+        key_t = (
+            _resolve_type_string(args[0], type_map, model_names) if args else "string"
+        )
+        val_t = (
+            _resolve_type_string(args[1], type_map, model_names)
+            if len(args) >= 2
+            else "any"
+        )
+        return (
+            f"Record<{key_t}, {val_t}>"
+            if type_map is PY_TO_TS
+            else f"Map<{key_t}, {val_t}>"
+        )
     if origin in (set, set):
         inner = _resolve_type_string(args[0], type_map, model_names) if args else "any"
         return f"Set<{inner}>" if type_map is PY_TO_DART else f"{inner}[]"
     if origin is tuple:
-        inners = ", ".join(_resolve_type_string(a, type_map, model_names) for a in args) if args else "any"
+        inners = (
+            ", ".join(_resolve_type_string(a, type_map, model_names) for a in args)
+            if args
+            else "any"
+        )
         return f"[{inners}]" if type_map is PY_TO_TS else f"({inners})"
 
     # Fallback
@@ -145,8 +184,16 @@ def _resolve_type_string(tp: type, type_map: dict[type, str], model_names: set[s
 
 def _get_field_type(field: Any, model_names: set[str]) -> tuple[str, str]:
     """Get TypeScript and Dart type strings for a Pydantic field."""
-    ts_type = _resolve_type_string(field.annotation, PY_TO_TS, model_names) if field.annotation else "any"
-    dart_type = _resolve_type_string(field.annotation, PY_TO_DART, model_names) if field.annotation else "dynamic"
+    ts_type = (
+        _resolve_type_string(field.annotation, PY_TO_TS, model_names)
+        if field.annotation
+        else "any"
+    )
+    dart_type = (
+        _resolve_type_string(field.annotation, PY_TO_DART, model_names)
+        if field.annotation
+        else "dynamic"
+    )
     return ts_type, dart_type
 
 
@@ -154,7 +201,12 @@ def _is_pydantic_model(obj: Any) -> bool:
     """Check if an object is a Pydantic BaseModel subclass."""
     try:
         from pydantic import BaseModel
-        return isinstance(obj, type) and issubclass(obj, BaseModel) and obj is not BaseModel
+
+        return (
+            isinstance(obj, type)
+            and issubclass(obj, BaseModel)
+            and obj is not BaseModel
+        )
     except ImportError:
         return False
 
@@ -231,7 +283,9 @@ def generate_typescript(models: dict[str, type]) -> dict[str, str]:
                 description = field.description or ""
                 if description:
                     lines.append(f"  /** {description} */")
-                lines.append(f"  {_to_camel_case(field_name)}{optional_suffix}: {ts_type};")
+                lines.append(
+                    f"  {_to_camel_case(field_name)}{optional_suffix}: {ts_type};"
+                )
         except Exception as e:
             print(f"  ⚠️  Error processing {name} fields: {e}")
             lines.append(f"  // Error: {e}")
@@ -269,7 +323,9 @@ def generate_dart(models: dict[str, type]) -> dict[str, str]:
         lines.append(f"// Source: {model_cls.__module__}.{name}")
         lines.append(f"// Generated: {datetime.now(timezone.utc).isoformat()}")
         lines.append("")
-        lines.append("// ignore_for_file: prefer_final_fields, non_constant_identifier_names")
+        lines.append(
+            "// ignore_for_file: prefer_final_fields, non_constant_identifier_names"
+        )
         lines.append("")
 
         # Class definition
@@ -284,7 +340,9 @@ def generate_dart(models: dict[str, type]) -> dict[str, str]:
             for field_name, field in model_cls.model_fields.items():
                 _, dart_type = _get_field_type(field, model_names)
                 is_required = field.is_required()
-                fields_info.append((field_name, _to_camel_case(field_name), dart_type, is_required))
+                fields_info.append(
+                    (field_name, _to_camel_case(field_name), dart_type, is_required)
+                )
         except Exception as e:
             print(f"  ⚠️  Error processing {name} fields: {e}")
 
@@ -354,7 +412,9 @@ def generate_dart(models: dict[str, type]) -> dict[str, str]:
 # ── Writer ────────────────────────────────────────────────────────────────────
 
 
-def write_files(files: dict[str, str], output_dir: Path, extension: str) -> dict[str, str]:
+def write_files(
+    files: dict[str, str], output_dir: Path, extension: str
+) -> dict[str, str]:
     """Write generated files to disk and return checksums."""
     output_dir.mkdir(parents=True, exist_ok=True)
     checksums: dict[str, str] = {}
@@ -372,7 +432,9 @@ def write_files(files: dict[str, str], output_dir: Path, extension: str) -> dict
     return checksums
 
 
-def save_checksums(ts_checksums: dict[str, str], dart_checksums: dict[str, str]) -> None:
+def save_checksums(
+    ts_checksums: dict[str, str], dart_checksums: dict[str, str]
+) -> None:
     """Save checksums for drift detection."""
     data = {
         "generated_at": datetime.now(timezone.utc).isoformat(),

@@ -11,7 +11,6 @@ from datetime import datetime
 from typing import Any
 
 import psutil  # This may need to be installed separately
-
 from core.cache.redis_manager import redis_manager
 from core.error_bus import with_error_bus
 from core.llm.token_deductor import TokenDeductor
@@ -54,7 +53,9 @@ class AutoScalingAgent:
     def __init__(self):
         self.name = "Auto-Scaling Agent"
         self.token_deductor = TokenDeductor()
-        self.metrics_collector = MetricsCollector() if "MetricsCollector" in globals() else None
+        self.metrics_collector = (
+            MetricsCollector() if "MetricsCollector" in globals() else None
+        )
         self.scaling_history_key = "autoscaling:history"
         self.current_metrics_key = "autoscaling:current_metrics"
         self.scaling_policies_key = "autoscaling:policies"
@@ -67,7 +68,12 @@ class AutoScalingAgent:
         }
 
         # Scaling thresholds
-        self.scale_up_thresholds = {"cpu": 80.0, "memory": 85.0, "response_time": 1000.0, "rps": 150.0}
+        self.scale_up_thresholds = {
+            "cpu": 80.0,
+            "memory": 85.0,
+            "response_time": 1000.0,
+            "rps": 150.0,
+        }
 
         self.scale_down_thresholds = {"cpu": 30.0, "memory": 40.0, "rps": 30.0}
 
@@ -109,11 +115,15 @@ class AutoScalingAgent:
             # Collect system-level metrics
             cpu_percent = psutil.cpu_percent(interval=1)
             memory_percent = psutil.virtual_memory().percent
-            disk_percent = psutil.disk_usage("/").percent if hasattr(psutil, "disk_usage") else 0
+            disk_percent = (
+                psutil.disk_usage("/").percent if hasattr(psutil, "disk_usage") else 0
+            )
 
             # Get network I/O (simplified)
             net_io = psutil.net_io_counters()
-            network_io_mb = (net_io.bytes_sent + net_io.bytes_recv) / (1024 * 1024)  # Convert to MB
+            network_io_mb = (net_io.bytes_sent + net_io.bytes_recv) / (
+                1024 * 1024
+            )  # Convert to MB
 
             # Collect application-level metrics if available
             active_connections = 0
@@ -125,7 +135,9 @@ class AutoScalingAgent:
             # For now, we'll simulate values
             try:
                 if self.metrics_collector:
-                    app_metrics = await self.metrics_collector.get_recent_metrics(minutes=1)
+                    app_metrics = await self.metrics_collector.get_recent_metrics(
+                        minutes=1
+                    )
                     if app_metrics:
                         active_connections = app_metrics.get("active_connections", 0)
                         requests_per_second = app_metrics.get("requests_per_second", 0)
@@ -185,7 +197,9 @@ class AutoScalingAgent:
                 timestamp=datetime.utcnow(),
             )
 
-    async def analyze_scaling_need(self, current_metrics: ResourceMetrics) -> ScalingRecommendation:
+    async def analyze_scaling_need(
+        self, current_metrics: ResourceMetrics
+    ) -> ScalingRecommendation:
         """Analyze if scaling is needed based on current metrics."""
         try:
             # Get current policies
@@ -204,7 +218,9 @@ class AutoScalingAgent:
             current_resources = await self._get_current_resource_allocation()
 
             # Determine scaling direction based on metrics
-            scale_direction = self._determine_scaling_direction(current_metrics, policies)
+            scale_direction = self._determine_scaling_direction(
+                current_metrics, policies
+            )
 
             if scale_direction == 0:  # No scaling needed
                 return ScalingRecommendation(
@@ -236,31 +252,51 @@ class AutoScalingAgent:
                 reasons.append(
                     f"Memory usage ({current_metrics.memory_usage}%) exceeds threshold ({policies['scale_up_thresholds']['memory']}%)"
                 )
-            elif current_metrics.memory_usage < policies["scale_down_thresholds"]["memory"]:
+            elif (
+                current_metrics.memory_usage
+                < policies["scale_down_thresholds"]["memory"]
+            ):
                 reasons.append(
                     f"Memory usage ({current_metrics.memory_usage}%) below threshold ({policies['scale_down_thresholds']['memory']}%)"
                 )
 
-            if current_metrics.average_response_time > policies["scale_up_thresholds"]["response_time"]:
+            if (
+                current_metrics.average_response_time
+                > policies["scale_up_thresholds"]["response_time"]
+            ):
                 reasons.append(
                     f"Response time ({current_metrics.average_response_time}ms) exceeds threshold ({policies['scale_up_thresholds']['response_time']}ms)"
                 )
 
-            if current_metrics.requests_per_second > policies["scale_up_thresholds"]["rps"]:
+            if (
+                current_metrics.requests_per_second
+                > policies["scale_up_thresholds"]["rps"]
+            ):
                 reasons.append(
                     f"Requests per second ({current_metrics.requests_per_second}) exceeds threshold ({policies['scale_up_thresholds']['rps']})"
                 )
-            elif current_metrics.requests_per_second < policies["scale_down_thresholds"]["rps"]:
+            elif (
+                current_metrics.requests_per_second
+                < policies["scale_down_thresholds"]["rps"]
+            ):
                 reasons.append(
                     f"Requests per second ({current_metrics.requests_per_second}) below threshold ({policies['scale_down_thresholds']['rps']})"
                 )
 
-            reason = "; ".join(reasons) if reasons else "Resource usage patterns indicate scaling opportunity"
+            reason = (
+                "; ".join(reasons)
+                if reasons
+                else "Resource usage patterns indicate scaling opportunity"
+            )
 
             # Calculate estimated cost impact
-            cost_impact = self._estimate_cost_impact(current_resources, recommended_resources)
+            cost_impact = self._estimate_cost_impact(
+                current_resources, recommended_resources
+            )
 
-            confidence = self._calculate_scaling_confidence(current_metrics, scale_direction)
+            confidence = self._calculate_scaling_confidence(
+                current_metrics, scale_direction
+            )
 
             return ScalingRecommendation(
                 current_resources=current_resources,
@@ -283,35 +319,50 @@ class AutoScalingAgent:
                 cost_impact=0.0,
             )
 
-    async def execute_scaling_action(self, recommendation: ScalingRecommendation) -> bool:
+    async def execute_scaling_action(
+        self, recommendation: ScalingRecommendation
+    ) -> bool:
         """Execute the scaling action based on recommendation."""
         try:
             # Check cooldown period to prevent excessive scaling
             last_scaling_time = await self._get_last_scaling_time()
-            cooldown_period = (await self._get_policies()).get("cooldown_period", 300)  # 5 minutes
+            cooldown_period = (await self._get_policies()).get(
+                "cooldown_period", 300
+            )  # 5 minutes
 
-            if last_scaling_time and (datetime.utcnow() - last_scaling_time).seconds < cooldown_period:
+            if (
+                last_scaling_time
+                and (datetime.utcnow() - last_scaling_time).seconds < cooldown_period
+            ):
                 logger.info("Skipping scaling action due to cooldown period")
                 return False
 
             # Implement the scaling action
             # This would typically involve calling cloud provider APIs
             # For simulation, we'll just log the action
-            scaling_successful = await self._perform_scaling(recommendation.recommended_resources)
+            scaling_successful = await self._perform_scaling(
+                recommendation.recommended_resources
+            )
 
             if scaling_successful:
                 # Record scaling action
                 await self._record_scaling_action(recommendation)
-                logger.info(f"Successfully scaled resources: {recommendation.recommended_resources}")
+                logger.info(
+                    f"Successfully scaled resources: {recommendation.recommended_resources}"
+                )
             else:
-                logger.warning(f"Failed to scale resources: {recommendation.recommended_resources}")
+                logger.warning(
+                    f"Failed to scale resources: {recommendation.recommended_resources}"
+                )
 
             return scaling_successful
         except Exception as e:
             logger.error(f"Error executing scaling action: {e}")
             return False
 
-    def _determine_scaling_direction(self, metrics: ResourceMetrics, policies: dict) -> int:
+    def _determine_scaling_direction(
+        self, metrics: ResourceMetrics, policies: dict
+    ) -> int:
         """
         Determine scaling direction.
         Returns: 1 for scale up, -1 for scale down, 0 for no change.
@@ -319,7 +370,8 @@ class AutoScalingAgent:
         scale_up_triggered = (
             metrics.cpu_usage > policies["scale_up_thresholds"]["cpu"]
             or metrics.memory_usage > policies["scale_up_thresholds"]["memory"]
-            or metrics.average_response_time > policies["scale_up_thresholds"]["response_time"]
+            or metrics.average_response_time
+            > policies["scale_up_thresholds"]["response_time"]
             or metrics.requests_per_second > policies["scale_up_thresholds"]["rps"]
         )
 
@@ -337,7 +389,11 @@ class AutoScalingAgent:
             return 0
 
     def _calculate_resource_adjustment(
-        self, current_resources: dict[str, float], metrics: ResourceMetrics, direction: int, policies: dict
+        self,
+        current_resources: dict[str, float],
+        metrics: ResourceMetrics,
+        direction: int,
+        policies: dict,
     ) -> dict[str, float]:
         """Calculate the recommended resource adjustment."""
         recommended = current_resources.copy()
@@ -347,7 +403,10 @@ class AutoScalingAgent:
             # Increase instances by 1 or by 20% of current, whichever is greater
             current_instances = recommended.get("instances", 1)
             increase_by = max(1, int(current_instances * 0.2))
-            new_instances = min(current_instances + increase_by, policies["resource_limits"]["max_instances"])
+            new_instances = min(
+                current_instances + increase_by,
+                policies["resource_limits"]["max_instances"],
+            )
             recommended["instances"] = new_instances
 
             # Potentially increase other resources too
@@ -360,14 +419,21 @@ class AutoScalingAgent:
             # Decrease instances by 1 or by 20% of current, whichever is greater, but respect minimum
             current_instances = recommended.get("instances", 1)
             decrease_by = max(1, int(current_instances * 0.2))
-            new_instances = max(current_instances - decrease_by, policies["resource_limits"]["min_instances"])
+            new_instances = max(
+                current_instances - decrease_by,
+                policies["resource_limits"]["min_instances"],
+            )
             recommended["instances"] = new_instances
 
             # Potentially decrease other resources too
             if metrics.cpu_usage < policies["scale_down_thresholds"]["cpu"]:
-                recommended["cpu_cores"] = max(recommended.get("cpu_cores", 1) - 0.5, 0.5)
+                recommended["cpu_cores"] = max(
+                    recommended.get("cpu_cores", 1) - 0.5, 0.5
+                )
             if metrics.memory_usage < policies["scale_down_thresholds"]["memory"]:
-                recommended["memory_gb"] = max(recommended.get("memory_gb", 1) - 1.0, 0.5)
+                recommended["memory_gb"] = max(
+                    recommended.get("memory_gb", 1) - 1.0, 0.5
+                )
 
         return recommended
 
@@ -405,7 +471,9 @@ class AutoScalingAgent:
             return False
 
     @with_error_bus("_estimate_cost_impact")
-    def _estimate_cost_impact(self, current: dict[str, float], recommended: dict[str, float]) -> float:
+    def _estimate_cost_impact(
+        self, current: dict[str, float], recommended: dict[str, float]
+    ) -> float:
         """Estimate the cost impact of scaling action."""
         try:
             # Simplified cost estimation
@@ -417,7 +485,9 @@ class AutoScalingAgent:
             return 0.0
 
     @with_error_bus("_calculate_scaling_confidence")
-    def _calculate_scaling_confidence(self, metrics: ResourceMetrics, direction: int) -> float:
+    def _calculate_scaling_confidence(
+        self, metrics: ResourceMetrics, direction: int
+    ) -> float:
         """Calculate confidence in the scaling recommendation."""
         try:
             if direction == 0:
@@ -428,17 +498,27 @@ class AutoScalingAgent:
 
             if direction == 1:  # Scale up
                 cpu_factor = min(1.0, (metrics.cpu_usage - 70.0) / 30.0)  # Max at 100%
-                mem_factor = min(1.0, (metrics.memory_usage - 75.0) / 25.0)  # Max at 100%
-                resp_factor = min(1.0, (metrics.average_response_time - 500.0) / 1000.0)  # Max at 1500ms
+                mem_factor = min(
+                    1.0, (metrics.memory_usage - 75.0) / 25.0
+                )  # Max at 100%
+                resp_factor = min(
+                    1.0, (metrics.average_response_time - 500.0) / 1000.0
+                )  # Max at 1500ms
                 confidence_factors.extend([cpu_factor, mem_factor, resp_factor])
             else:  # Scale down
-                cpu_factor = min(1.0, (30.0 - metrics.cpu_usage) / 30.0)  # Higher confidence when much lower
+                cpu_factor = min(
+                    1.0, (30.0 - metrics.cpu_usage) / 30.0
+                )  # Higher confidence when much lower
                 mem_factor = min(1.0, (40.0 - metrics.memory_usage) / 40.0)
                 rps_factor = min(1.0, (30.0 - metrics.requests_per_second) / 30.0)
                 confidence_factors.extend([cpu_factor, mem_factor, rps_factor])
 
             # Average the factors and ensure it's between 0.5 and 1.0
-            avg_confidence = sum(confidence_factors) / len(confidence_factors) if confidence_factors else 0.5
+            avg_confidence = (
+                sum(confidence_factors) / len(confidence_factors)
+                if confidence_factors
+                else 0.5
+            )
             return max(0.5, min(1.0, avg_confidence))
         except Exception:
             return 0.7  # Default confidence
@@ -509,7 +589,9 @@ auto_scaling_agent = AutoScalingAgent()
 # বাংলা: import-time-এ event loop না থাকলে RuntimeError এড়ানো হয়, আর টাস্কের রেফারেন্স ট্র্যাক করে
 # রাখা হয় যাতে GC হয়ে মাঝপথে বাতিল না হয়ে যায় (RUF006)।
 try:
-    track_task(asyncio.get_running_loop().create_task(auto_scaling_agent.initialize_policies()))
+    track_task(
+        asyncio.get_running_loop().create_task(auto_scaling_agent.initialize_policies())
+    )
 except RuntimeError:
     logger.debug(
         "No running event loop at import time; skipping eager scaling policy init "

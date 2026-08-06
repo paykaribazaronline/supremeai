@@ -114,7 +114,9 @@ class DatabaseHealthAgent(AutonomousAgent):
             is_connected = pool is not None or True
 
             if not is_connected:
-                logger.warning("[Agent:DatabaseHealthAgent] Database connection issue detected!")
+                logger.warning(
+                    "[Agent:DatabaseHealthAgent] Database connection issue detected!"
+                )
                 await error_bus.publish(
                     ErrorEvent(
                         module="DatabaseHealthAgent",
@@ -135,7 +137,9 @@ class DatabaseHealthAgent(AutonomousAgent):
             )
             logger.debug("[Agent:DatabaseHealthAgent] Database check clean")
         except Exception as exc:
-            logger.error(f"[Agent:DatabaseHealthAgent] Error during database check: {exc}")
+            logger.error(
+                f"[Agent:DatabaseHealthAgent] Error during database check: {exc}"
+            )
             raise
 
 
@@ -160,12 +164,16 @@ class MemoryHealthAgent(AutonomousAgent):
                     "type": "memory_health",
                     "total_gb": round(mem.total / (1024**3), 2),
                     "used_percentage": round(mem_pct * 100, 2),
-                    "status": "critical" if mem_pct > self.memory_threshold else "healthy",
+                    "status": (
+                        "critical" if mem_pct > self.memory_threshold else "healthy"
+                    ),
                 }
             )
 
             if mem_pct > self.memory_threshold:
-                logger.warning(f"[Agent:MemoryHealthAgent] Memory critical: {mem_pct * 100:.2f}%")
+                logger.warning(
+                    f"[Agent:MemoryHealthAgent] Memory critical: {mem_pct * 100:.2f}%"
+                )
                 await error_bus.publish(
                     ErrorEvent(
                         module="MemoryHealthAgent",

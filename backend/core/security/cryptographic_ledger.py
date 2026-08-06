@@ -21,7 +21,13 @@ class CryptographicLedger:
         self.last_hash = self.genesis_hash
         self.chain: list[dict[str, Any]] = []
 
-    def _compute_hash(self, previous_hash: str, timestamp: float, agent_id: str, payload: dict[str, Any]) -> str:
+    def _compute_hash(
+        self,
+        previous_hash: str,
+        timestamp: float,
+        agent_id: str,
+        payload: dict[str, Any],
+    ) -> str:
         """
         SHA-256 Hash Chaining: current_hash = SHA256(previous_hash + timestamp + agent_id + payload)
         """
@@ -29,7 +35,9 @@ class CryptographicLedger:
         raw_string = f"{previous_hash}{timestamp}{agent_id}{payload_str}"
         return hashlib.sha256(raw_string.encode("utf-8")).hexdigest()
 
-    def record_entry_sync(self, agent_id: str, action: str, payload: dict[str, Any]) -> dict[str, Any]:
+    def record_entry_sync(
+        self, agent_id: str, action: str, payload: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         অডিট লগে নতুন এন্ট্রি সরাসরি যোগ করা।
         """
@@ -48,11 +56,17 @@ class CryptographicLedger:
 
         self.last_hash = current_hash
         self.chain.append(block)
-        logger.info(f"[CryptographicLedger] Recorded entry #{block['index']} Hash: {current_hash[:12]}...")
+        logger.info(
+            f"[CryptographicLedger] Recorded entry #{block['index']} Hash: {current_hash[:12]}..."
+        )
         return block
 
     def record_entry_async(
-        self, background_tasks: BackgroundTasks, agent_id: str, action: str, payload: dict[str, Any]
+        self,
+        background_tasks: BackgroundTasks,
+        agent_id: str,
+        action: str,
+        payload: dict[str, Any],
     ) -> None:
         """
         FastAPI BackgroundTasks এর সাহায্যে নন-ব্লকিংভাবে অডিট লগ রাইট করা।
@@ -84,9 +98,13 @@ class CryptographicLedger:
         """
         prev = self.genesis_hash
         for block in self.chain:
-            expected_hash = self._compute_hash(prev, block["timestamp"], block["agent_id"], block["payload"])
+            expected_hash = self._compute_hash(
+                prev, block["timestamp"], block["agent_id"], block["payload"]
+            )
             if block["hash"] != expected_hash:
-                logger.error(f"[CryptographicLedger] Tampering detected at block #{block['index']}!")
+                logger.error(
+                    f"[CryptographicLedger] Tampering detected at block #{block['index']}!"
+                )
                 return False
             prev = block["hash"]
         return True

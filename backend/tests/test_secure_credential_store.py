@@ -37,7 +37,10 @@ class TestSecureCredentialStoreDisable:
 
 
 @pytest.mark.skipif(
-    __import__("core.security.secure_credential_store", fromlist=["CRYPTO_AVAILABLE"]).CRYPTO_AVAILABLE is False,
+    __import__(
+        "core.security.secure_credential_store", fromlist=["CRYPTO_AVAILABLE"]
+    ).CRYPTO_AVAILABLE
+    is False,
     reason="cryptography not installed",
 )
 class TestSecureCredentialStoreEncrypted:
@@ -45,9 +48,7 @@ class TestSecureCredentialStoreEncrypted:
         import json
 
         from core.security.secure_credential_store import (
-            SecureCredentialStore,
-            generate_key,
-        )
+            SecureCredentialStore, generate_key)
 
         key = generate_key()
         monkeypatch.setenv("SUPREMEAI_CREDENTIAL_ENC_KEY", key)
@@ -63,9 +64,7 @@ class TestSecureCredentialStoreEncrypted:
         import json
 
         from core.security.secure_credential_store import (
-            SecureCredentialStore,
-            generate_key,
-        )
+            SecureCredentialStore, generate_key)
 
         key = generate_key()
         monkeypatch.setenv("SUPREMEAI_CREDENTIAL_ENC_KEY", key)
@@ -75,9 +74,7 @@ class TestSecureCredentialStoreEncrypted:
 
     def test_encrypt_empty_payload(self, monkeypatch):
         from core.security.secure_credential_store import (
-            SecureCredentialStore,
-            generate_key,
-        )
+            SecureCredentialStore, generate_key)
 
         key = generate_key()
         monkeypatch.setenv("SUPREMEAI_CREDENTIAL_ENC_KEY", key)

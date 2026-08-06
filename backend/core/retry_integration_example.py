@@ -13,7 +13,9 @@ from .retry_handler import retry_handler, retry_with_budget
 
 
 # Example: Database operation retry
-@retry_handler(max_retries=3, delay=0.5, backoff=2.0, exceptions=(ConnectionError, TimeoutError))
+@retry_handler(
+    max_retries=3, delay=0.5, backoff=2.0, exceptions=(ConnectionError, TimeoutError)
+)
 async def database_operation(query: str) -> dict[str, Any]:
     """
     বাংলা মন্তব্য: ডাটাবেস অপারেশন যেটি কানেকশন সমস্যার কারণে ব্যর্থ হতে পারে।
@@ -31,7 +33,11 @@ async def database_operation(query: str) -> dict[str, Any]:
 
 # Example: API call retry
 @retry_handler(
-    max_retries=5, delay=1.0, backoff=1.5, exceptions=(ConnectionError, TimeoutError, OSError), use_jitter=True
+    max_retries=5,
+    delay=1.0,
+    backoff=1.5,
+    exceptions=(ConnectionError, TimeoutError, OSError),
+    use_jitter=True,
 )
 async def external_api_call(endpoint: str, payload: dict[str, Any]) -> dict[str, Any]:
     """
@@ -45,7 +51,11 @@ async def external_api_call(endpoint: str, payload: dict[str, Any]) -> dict[str,
     if random.random() < 0.7:  # 70% chance of failure
         raise TimeoutError(f"এপিআই কল টাইমআউট: {endpoint}")
 
-    return {"status": "success", "response": f"রিসপন্স ফর এন্ডপয়েন্ট: {endpoint}", "payload": payload}
+    return {
+        "status": "success",
+        "response": f"রিসপন্স ফর এন্ডপয়েন্ট: {endpoint}",
+        "payload": payload,
+    }
 
 
 # Example: File operation retry with budget

@@ -2,7 +2,6 @@ import os
 from types import SimpleNamespace
 
 import pytest
-
 from database.supabase_client import SupabaseDB
 
 
@@ -36,10 +35,14 @@ def test_bootstrap_schema_executes_expected_sql(monkeypatch):
     fake_psycopg = SimpleNamespace(connect=lambda *args, **kwargs: fake_conn)
 
     monkeypatch.setattr("database.supabase_client.psycopg2", fake_psycopg)
-    monkeypatch.setattr("database.supabase_client.create_client", lambda *args, **kwargs: object())
+    monkeypatch.setattr(
+        "database.supabase_client.create_client", lambda *args, **kwargs: object()
+    )
     monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
     monkeypatch.setenv("SUPABASE_KEY", "test-key")
-    monkeypatch.setenv("SUPABASE_DATABASE_URL", "postgresql://user:pass@localhost:5432/postgres")
+    monkeypatch.setenv(
+        "SUPABASE_DATABASE_URL", "postgresql://user:pass@localhost:5432/postgres"
+    )
 
     db = SupabaseDB()
     db.bootstrap_schema()
@@ -67,8 +70,12 @@ def test_bootstrap_schema_prefers_pooler_when_available(monkeypatch):
 
     fake_psycopg = SimpleNamespace(connect=fake_connect)
     monkeypatch.setattr("database.supabase_client.psycopg2", fake_psycopg)
-    monkeypatch.setattr("database.supabase_client.create_client", lambda *args, **kwargs: object())
-    monkeypatch.setenv("SUPABASE_DATABASE_URL", "postgresql://user:pass@localhost:5432/postgres")
+    monkeypatch.setattr(
+        "database.supabase_client.create_client", lambda *args, **kwargs: object()
+    )
+    monkeypatch.setenv(
+        "SUPABASE_DATABASE_URL", "postgresql://user:pass@localhost:5432/postgres"
+    )
     monkeypatch.setenv(
         "SUPABASE_DATABASE_URL_POOLER",
         "postgresql://pooler_user:pooler_pass@localhost:6543/postgres",
@@ -100,7 +107,9 @@ def test_insert_task_history_retries_after_schema_cache_error(monkeypatch):
         def execute(self):
             self.calls += 1
             if self.calls == 1:
-                raise RuntimeError("Could not find the table 'public.task_history' in the schema cache")
+                raise RuntimeError(
+                    "Could not find the table 'public.task_history' in the schema cache"
+                )
             return FakeResponse([{"id": 1, **self.entry}])
 
     class FakeClient:
@@ -111,7 +120,9 @@ def test_insert_task_history_retries_after_schema_cache_error(monkeypatch):
             assert name == "task_history"
             return self.table_obj
 
-    monkeypatch.setattr("database.supabase_client.create_client", lambda *args, **kwargs: FakeClient())
+    monkeypatch.setattr(
+        "database.supabase_client.create_client", lambda *args, **kwargs: FakeClient()
+    )
     monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
     monkeypatch.setenv("SUPABASE_KEY", "test-key")
     db = SupabaseDB()
@@ -138,7 +149,9 @@ def test_insert_task_history_retries_after_schema_cache_error(monkeypatch):
 LIVE_SUPABASE = bool(
     os.getenv("SUPABASE_URL")
     and os.getenv("SUPABASE_KEY")
-    and (os.getenv("SUPABASE_DATABASE_URL") or os.getenv("SUPABASE_DATABASE_URL_POOLER"))
+    and (
+        os.getenv("SUPABASE_DATABASE_URL") or os.getenv("SUPABASE_DATABASE_URL_POOLER")
+    )
 )
 IS_CI = os.getenv("CI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"
 

@@ -9,11 +9,12 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
 from middleware.anti_hacking import AntiHackingContextMiddleware
 
 
-def _make_request(ip: str, country: str, ua: str, fingerprint: str, admin_id: str = "admin-1"):
+def _make_request(
+    ip: str, country: str, ua: str, fingerprint: str, admin_id: str = "admin-1"
+):
     req = SimpleNamespace()
     req.headers = {
         "x-forwarded-for": ip,
@@ -153,4 +154,6 @@ async def test_otp_cooldown_suppresses_duplicate_sends(mock_redis):
         # Immediate second full mismatch from a third distinct context -> cooldown should suppress resend
         req3 = _make_request("5.5.5.5", "FR", "firefox-v1", "fp-yyy")
         await mw.dispatch(req3, _call_next)
-        assert mock_send.call_count == 1  # unchanged — cooldown suppressed the second send
+        assert (
+            mock_send.call_count == 1
+        )  # unchanged — cooldown suppressed the second send

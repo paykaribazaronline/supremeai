@@ -250,18 +250,26 @@ class ASTSandboxScanner:
         if visitor.escape_patterns:
             result.is_safe = False
             result.severity = "CRITICAL"
-            result.findings.append(f"Sandbox escape attempt detected: {', '.join(visitor.escape_patterns)}")
+            result.findings.append(
+                f"Sandbox escape attempt detected: {', '.join(visitor.escape_patterns)}"
+            )
 
         if visitor.blocked_builtins:
             result.is_safe = False
             result.severity = result.severity if result.severity != "PASS" else "HIGH"
-            result.findings.append(f"Blocked builtin functions used: {', '.join(visitor.blocked_builtins)}")
+            result.findings.append(
+                f"Blocked builtin functions used: {', '.join(visitor.blocked_builtins)}"
+            )
 
         if visitor.blocked_imports:
             if self.strict_mode:
                 result.is_safe = False
-                result.severity = result.severity if result.severity != "PASS" else "MEDIUM"
-                result.findings.append(f"Blocked module imports detected: {', '.join(visitor.blocked_imports)}")
+                result.severity = (
+                    result.severity if result.severity != "PASS" else "MEDIUM"
+                )
+                result.findings.append(
+                    f"Blocked module imports detected: {', '.join(visitor.blocked_imports)}"
+                )
             else:
                 # Non-strict mode: still log but don't block
                 result.findings.append(
@@ -271,8 +279,12 @@ class ASTSandboxScanner:
         if visitor.dunder_accesses:
             if self.strict_mode:
                 result.is_safe = False
-                result.severity = result.severity if result.severity != "PASS" else "HIGH"
-                result.findings.append(f"Dangerous dunder attribute access: {', '.join(visitor.dunder_accesses)}")
+                result.severity = (
+                    result.severity if result.severity != "PASS" else "HIGH"
+                )
+                result.findings.append(
+                    f"Dangerous dunder attribute access: {', '.join(visitor.dunder_accesses)}"
+                )
             else:
                 # বাংলা মন্তব্য: Non-strict mode-তেও dunder access লগ করা হয় কিন্তু ব্লক নয়
                 result.findings.append(
@@ -312,7 +324,9 @@ class ASTSandboxScanner:
         encoded_indicators = ["base64", "b64decode", "bytes.fromhex", "decode('hex')"]
         for indicator in encoded_indicators:
             if indicator in code.lower():
-                findings.append(f"Encoded payload indicator detected: '{indicator}' — possible AST bypass attempt")
+                findings.append(
+                    f"Encoded payload indicator detected: '{indicator}' — possible AST bypass attempt"
+                )
 
         return findings
 
@@ -356,10 +370,14 @@ class _SandboxVisitor(ast.NodeVisitor):
         if isinstance(node.func, ast.Name) and node.func.id == "getattr":
             if node.args and len(node.args) >= 2:
                 second_arg = node.args[1]
-                if isinstance(second_arg, ast.Constant) and isinstance(second_arg.value, str):
+                if isinstance(second_arg, ast.Constant) and isinstance(
+                    second_arg.value, str
+                ):
                     if second_arg.value in BLOCKED_DUNDER_PATTERNS:
                         self.blocked_builtins.add("getattr")
-                        self.escape_patterns.add(f"getattr(..., '{second_arg.value}') — sandbox escape attempt")
+                        self.escape_patterns.add(
+                            f"getattr(..., '{second_arg.value}') — sandbox escape attempt"
+                        )
 
         self.generic_visit(node)
 
@@ -375,7 +393,9 @@ class _SandboxVisitor(ast.NodeVisitor):
             if node.value.attr in BLOCKED_DUNDER_PATTERNS:
                 self.dunder_accesses.add(f"{node.value.attr}.{node.attr}")
                 if node.attr in BLOCKED_DUNDER_PATTERNS:
-                    self.escape_patterns.add(f"Chained dunder access: ...{node.value.attr}.{node.attr}")
+                    self.escape_patterns.add(
+                        f"Chained dunder access: ...{node.value.attr}.{node.attr}"
+                    )
 
         # Check for attribute access on dangerous patterns via `getattr`
         self.generic_visit(node)
@@ -408,7 +428,9 @@ class _SandboxVisitor(ast.NodeVisitor):
         if isinstance(node.slice, ast.Constant) and isinstance(node.slice.value, str):
             if node.slice.value in ("__globals__", "__builtins__", "__dict__"):
                 self.dunder_accesses.add(f"subscript[{node.slice.value!r}]")
-                self.escape_patterns.add(f"Dict access to '{node.slice.value}' — sandbox escape attempt")
+                self.escape_patterns.add(
+                    f"Dict access to '{node.slice.value}' — sandbox escape attempt"
+                )
 
         self.generic_visit(node)
 

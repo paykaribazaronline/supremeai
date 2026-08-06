@@ -19,7 +19,7 @@ class AwesomePythonScraper(AwesomeListScraper):
         super().__init__(
             name="awesome-python",
             repo_url="https://github.com/vinta/awesome-python",
-            data_dir=data_dir
+            data_dir=data_dir,
         )
 
 

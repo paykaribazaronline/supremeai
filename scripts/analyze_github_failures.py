@@ -4,34 +4,37 @@ GitHub Actions Failure Analyzer for SupremeAI Agents.
 বাংলা মন্তব্য: গিটহাব অ্যাকশনসের ফেইলড জবগুলো বিস্তারিত বিশ্লেষণ করে সমস্যা চিহ্নিত করবে।
 """
 
-import os
-import sys
 import json
-import requests
+import os
 from datetime import datetime
-from typing import Dict, Any, List, Optional
+from typing import Any
+
+import requests
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
+
 
 class GitHubFailureAnalyzer:
     """
     GitHub Actions failure analyzer that identifies and diagnoses problems.
     """
 
-    def __init__(self, repo: str = "paykaribazaronline/supremeai", token: Optional[str] = None):
+    def __init__(
+        self, repo: str = "paykaribazaronline/supremeai", token: str | None = None
+    ):
         self.repo = repo
         self.token = token or os.getenv("GITHUB_TOKEN") or os.getenv("GITHUB_API_TOKEN")
         self.base_url = f"https://api.github.com/repos/{self.repo}"
         self.headers = {
             "Accept": "application/vnd.github.v3+json",
-            "User-Agent": "SupremeAI-Failure-Analyzer"
+            "User-Agent": "SupremeAI-Failure-Analyzer",
         }
         if self.token:
             self.headers["Authorization"] = f"token {self.token}"
 
-    def get_recent_failed_runs(self, limit: int = 5) -> List[Dict[str, Any]]:
+    def get_recent_failed_runs(self, limit: int = 5) -> list[dict[str, Any]]:
         """
         Get recently failed workflow runs.
         """
@@ -39,14 +42,16 @@ class GitHubFailureAnalyzer:
         response = requests.get(url, headers=self.headers)
 
         if response.status_code != 200:
-            print(f"❌ Error fetching workflow runs (HTTP {response.status_code}): {response.text}")
+            print(
+                f"❌ Error fetching workflow runs (HTTP {response.status_code}): {response.text}"
+            )
             return []
 
         runs = response.json().get("workflow_runs", [])
         print(f"🔍 Found {len(runs)} failed workflow runs in repository '{self.repo}'.")
         return runs
 
-    def get_run_jobs(self, run_id: int) -> List[Dict[str, Any]]:
+    def get_run_jobs(self, run_id: int) -> list[dict[str, Any]]:
         """
         Get all jobs for a specific workflow run.
         """
@@ -60,7 +65,7 @@ class GitHubFailureAnalyzer:
         jobs = response.json().get("jobs", [])
         return jobs
 
-    def get_job_logs(self, job_id: int) -> Optional[str]:
+    def get_job_logs(self, job_id: int) -> str | None:
         """
         Get logs for a specific job.
         """
@@ -73,7 +78,7 @@ class GitHubFailureAnalyzer:
             print(f"❌ Error fetching logs for job #{job_id}: {response.status_code}")
             return None
 
-    def analyze_failure_patterns(self, run_id: int) -> Dict[str, Any]:
+    def analyze_failure_patterns(self, run_id: int) -> dict[str, Any]:
         """
         Analyze failure patterns in a specific run.
         """
@@ -85,7 +90,7 @@ class GitHubFailureAnalyzer:
             "total_jobs": len(jobs),
             "failed_jobs": len(failed_jobs),
             "failed_job_details": [],
-            "potential_fixes": []
+            "potential_fixes": [],
         }
 
         for job in failed_jobs:
@@ -96,7 +101,7 @@ class GitHubFailureAnalyzer:
                 "conclusion": job.get("conclusion"),
                 "started_at": job.get("started_at"),
                 "completed_at": job.get("completed_at"),
-                "steps": []
+                "steps": [],
             }
 
             # Get detailed step information
@@ -107,20 +112,23 @@ class GitHubFailureAnalyzer:
                         "number": step.get("number"),
                         "conclusion": step.get("conclusion"),
                         "started_at": step.get("started_at"),
-                        "completed_at": step.get("completed_at")
+                        "completed_at": step.get("completed_at"),
                     }
                     job_detail["steps"].append(step_detail)
 
                     # Identify potential fixes based on step name
                     potential_fix = self.identify_fix_for_step(step.get("name"))
-                    if potential_fix and potential_fix not in analysis["potential_fixes"]:
+                    if (
+                        potential_fix
+                        and potential_fix not in analysis["potential_fixes"]
+                    ):
                         analysis["potential_fixes"].append(potential_fix)
 
             analysis["failed_job_details"].append(job_detail)
 
         return analysis
 
-    def identify_fix_for_step(self, step_name: str) -> Optional[str]:
+    def identify_fix_for_step(self, step_name: str) -> str | None:
         """
         Identify potential fixes based on failed step names.
         """
@@ -139,11 +147,13 @@ class GitHubFailureAnalyzer:
         elif "build" in step_lower:
             return "Fix: Check build configuration and dependencies in Dockerfile or build scripts"
         elif "deploy" in step_lower:
-            return "Fix: Check deployment configuration and credentials in infrastructure/"
+            return (
+                "Fix: Check deployment configuration and credentials in infrastructure/"
+            )
 
         return None
 
-    def suggest_comprehensive_fix(self, analysis: Dict[str, Any]) -> List[str]:
+    def suggest_comprehensive_fix(self, analysis: dict[str, Any]) -> list[str]:
         """
         Suggest comprehensive fixes based on the analysis.
         """
@@ -153,18 +163,29 @@ class GitHubFailureAnalyzer:
             job_name = job_detail["job_name"].lower()
 
             if "observability" in job_name:
-                fixes.append("1. Fix observability audit script - check backend/monitoring/observability_audit.py")
-                fixes.append("2. Ensure all monitoring endpoints are properly configured")
+                fixes.append(
+                    "1. Fix observability audit script - check backend/monitoring/observability_audit.py"
+                )
+                fixes.append(
+                    "2. Ensure all monitoring endpoints are properly configured"
+                )
 
             if "backend" in job_name and "test" in job_name:
-                fixes.append("3. Investigate failing backend tests - run 'poetry run pytest' locally")
-                fixes.append("4. Check test database setup and Redis connection in test environment")
+                fixes.append(
+                    "3. Investigate failing backend tests - run 'poetry run pytest' locally"
+                )
+                fixes.append(
+                    "4. Check test database setup and Redis connection in test environment"
+                )
 
         if not fixes:
-            fixes.append("1. Re-run the failed workflow after addressing the identified issues")
+            fixes.append(
+                "1. Re-run the failed workflow after addressing the identified issues"
+            )
             fixes.append("2. Check the complete logs for more detailed error messages")
 
         return fixes
+
 
 def main():
     analyzer = GitHubFailureAnalyzer()
@@ -179,7 +200,9 @@ def main():
     # Analyze the most recent failed run
     latest_failed_run = failed_runs[0]
     run_id = latest_failed_run["id"]
-    print(f"🚀 Analyzing latest failed run #{run_id} ({latest_failed_run.get('name')})...")
+    print(
+        f"🚀 Analyzing latest failed run #{run_id} ({latest_failed_run.get('name')})..."
+    )
     print(f"📅 Created at: {latest_failed_run.get('created_at')}")
     print(f"🔗 URL: {latest_failed_run.get('html_url')}")
 
@@ -191,9 +214,11 @@ def main():
     print(f"   Failed Jobs: {analysis['failed_jobs']}")
 
     if analysis["failed_job_details"]:
-        print(f"\n❌ Failed Job Details:")
+        print("\n❌ Failed Job Details:")
         for idx, job_detail in enumerate(analysis["failed_job_details"], 1):
-            print(f"   {idx}. Job: {job_detail['job_name']} (ID: {job_detail['job_id']})")
+            print(
+                f"   {idx}. Job: {job_detail['job_name']} (ID: {job_detail['job_id']})"
+            )
             print(f"      Status: {job_detail['conclusion']}")
             print(f"      Failed Steps: {len(job_detail['steps'])}")
 
@@ -201,25 +226,28 @@ def main():
                 print(f"         - {step['name']} (Step #{step['number']})")
 
     if analysis["potential_fixes"]:
-        print(f"\n🔧 Identified Potential Fixes:")
+        print("\n🔧 Identified Potential Fixes:")
         for fix in analysis["potential_fixes"]:
             print(f"   - {fix}")
 
     # Suggest comprehensive fixes
     comprehensive_fixes = analyzer.suggest_comprehensive_fix(analysis)
-    print(f"\n💡 Recommended Actions:")
+    print("\n💡 Recommended Actions:")
     for fix in comprehensive_fixes:
         print(f"   {fix}")
 
     # Save analysis to file
     timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = f"docs/04-ci-logs/github_failure_analysis_{run_id}_{timestamp_str}.json"
+    output_file = (
+        f"docs/04-ci-logs/github_failure_analysis_{run_id}_{timestamp_str}.json"
+    )
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(analysis, f, indent=2, ensure_ascii=False)
 
     print(f"\n💾 Analysis saved to: {output_file}")
+
 
 if __name__ == "__main__":
     main()

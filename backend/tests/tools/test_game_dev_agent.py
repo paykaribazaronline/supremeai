@@ -124,7 +124,9 @@ cube.data.materials.append(mat)
 """,
         }
 
-        result = await agent.generate_asset_script(asset_description="Create a red cube with material")
+        result = await agent.generate_asset_script(
+            asset_description="Create a red cube with material"
+        )
 
     assert result is not None
     assert "bpy" in result["blender_script"]

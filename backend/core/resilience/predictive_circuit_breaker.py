@@ -12,7 +12,12 @@ class PredictiveCircuitBreaker:
     সিস্টেম সম্পূর্ণ ক্র্যাশ করার আগেই অ্যানমেলি ধরা পড়লে স্বয়ংক্রিয়ভাবে ফলব্যাক রাউটে শিফট করে।
     """
 
-    def __init__(self, name: str, fallback_provider: str | None = "openrouter", cooldown_seconds: int = 60):
+    def __init__(
+        self,
+        name: str,
+        fallback_provider: str | None = "openrouter",
+        cooldown_seconds: int = 60,
+    ):
         self.name = name
         self.fallback_provider = fallback_provider
         self.cooldown_seconds = cooldown_seconds
@@ -43,7 +48,10 @@ class PredictiveCircuitBreaker:
         current_time = time.time()
 
         # Cooldown সময় শেষ হলে অটোমেটিক HALF-OPEN স্টেটে চেক করা
-        if self.state == "OPEN" and (current_time - self.last_state_change) > self.cooldown_seconds:
+        if (
+            self.state == "OPEN"
+            and (current_time - self.last_state_change) > self.cooldown_seconds
+        ):
             logger.info(
                 f"[PredictiveCircuitBreaker] Cooldown expired for '{self.name}'. Switching to HALF-OPEN to test primary provider."
             )

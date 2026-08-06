@@ -6,11 +6,10 @@
 import time
 from typing import Any
 
+from core.cache.redis_manager import redis_manager
 from fastapi import Request
 from loguru import logger
 from starlette.middleware.base import BaseHTTPMiddleware
-
-from core.cache.redis_manager import redis_manager
 
 
 class HealthAwareMiddleware(BaseHTTPMiddleware):
@@ -49,11 +48,15 @@ class HealthAwareMiddleware(BaseHTTPMiddleware):
 
                 # Add health warning header
                 if hasattr(response, "headers"):
-                    response.headers["X-SupremeAI-Health-Warning"] = "System is currently degraded"
+                    response.headers["X-SupremeAI-Health-Warning"] = (
+                        "System is currently degraded"
+                    )
                 return response
             else:
                 # For critical endpoints in degraded state, potentially limit functionality
-                logger.warning(f"Critical endpoint {request.url.path} accessed during degraded system state")
+                logger.warning(
+                    f"Critical endpoint {request.url.path} accessed during degraded system state"
+                )
 
         # Normal processing
         start_time = time.time()
@@ -72,7 +75,9 @@ class HealthAwareMiddleware(BaseHTTPMiddleware):
         # Add health info to response headers
         if hasattr(response, "headers"):
             response.headers["X-Response-Time"] = f"{process_time:.4f}"
-            response.headers["X-SupremeAI-Health-Status"] = health_status.get("status", "unknown")
+            response.headers["X-SupremeAI-Health-Status"] = health_status.get(
+                "status", "unknown"
+            )
 
         return response
 
@@ -89,7 +94,10 @@ class HealthAwareMiddleware(BaseHTTPMiddleware):
 
                 cached_data = json.loads(cached_health)
                 # Check if cache is still valid
-                if time.time() - cached_data.get("timestamp", 0) < self.health_cache_ttl:
+                if (
+                    time.time() - cached_data.get("timestamp", 0)
+                    < self.health_cache_ttl
+                ):
                     return cached_data.get("data", {"status": "unknown"})
 
             # Compute fresh health status
@@ -193,17 +201,27 @@ class HealthAwareMiddleware(BaseHTTPMiddleware):
         if cpu_percent > 85:
             score -= min(0.5, (cpu_percent - 85) / 100)  # Heavy penalty for high CPU
         elif cpu_percent > 75:
-            score -= min(0.2, (cpu_percent - 75) / 100)  # Moderate penalty for moderate CPU
+            score -= min(
+                0.2, (cpu_percent - 75) / 100
+            )  # Moderate penalty for moderate CPU
 
         if memory_percent > 90:
-            score -= min(0.5, (memory_percent - 90) / 100)  # Heavy penalty for high memory
+            score -= min(
+                0.5, (memory_percent - 90) / 100
+            )  # Heavy penalty for high memory
         elif memory_percent > 80:
-            score -= min(0.2, (memory_percent - 80) / 100)  # Moderate penalty for moderate memory
+            score -= min(
+                0.2, (memory_percent - 80) / 100
+            )  # Moderate penalty for moderate memory
 
         if disk_percent > 90:
-            score -= min(0.5, (disk_percent - 90) / 100)  # Heavy penalty for high disk usage
+            score -= min(
+                0.5, (disk_percent - 90) / 100
+            )  # Heavy penalty for high disk usage
         elif disk_percent > 80:
-            score -= min(0.2, (disk_percent - 80) / 100)  # Moderate penalty for moderate disk usage
+            score -= min(
+                0.2, (disk_percent - 80) / 100
+            )  # Moderate penalty for moderate disk usage
 
         # Heavy penalties for service unavailability
         if not redis_connected:
@@ -219,8 +237,12 @@ class HealthAwareMiddleware(BaseHTTPMiddleware):
         if redis_manager and redis_manager.client:
             try:
                 # Track average response time over time
-                await redis_manager.client.lpush("metrics:response_times", response_time)
-                await redis_manager.client.ltrim("metrics:response_times", 0, 99)  # Keep last 100 samples
+                await redis_manager.client.lpush(
+                    "metrics:response_times", response_time
+                )
+                await redis_manager.client.ltrim(
+                    "metrics:response_times", 0, 99
+                )  # Keep last 100 samples
             except Exception as e:
                 logger.warning(f"Could not update response time metric: {e!s}")
 
@@ -235,7 +257,9 @@ class HealthAwareMiddleware(BaseHTTPMiddleware):
                     "error": error_message[:200],
                 }  # Truncate long messages
                 await redis_manager.client.lpush("metrics:error_log", str(error_entry))
-                await redis_manager.client.ltrim("metrics:error_log", 0, 49)  # Keep last 50 errors
+                await redis_manager.client.ltrim(
+                    "metrics:error_log", 0, 49
+                )  # Keep last 50 errors
             except Exception as e:
                 logger.warning(f"Could not update error metric: {e!s}")
 

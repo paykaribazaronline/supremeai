@@ -88,7 +88,9 @@ class ExplainabilityAgent:
                 timestamp=datetime.utcnow(),
             )
 
-    def _prepare_explanation_prompt(self, decision: str, context: str, model_response: dict | None) -> str:
+    def _prepare_explanation_prompt(
+        self, decision: str, context: str, model_response: dict | None
+    ) -> str:
         """Prepare the prompt for generating explanation."""
         prompt_parts = [
             "You are an AI explainability expert. Provide a clear, concise explanation for the following AI decision.",
@@ -137,8 +139,16 @@ class ExplainabilityAgent:
                 {
                     "explanation": f"The AI made this decision based on the input provided. Original decision: {prompt.split('Decision: ')[1].split('Context:')[0][:100]}...",
                     "confidence": 0.6,
-                    "reasoning_steps": ["Analyzed input data", "Applied decision rules", "Generated response"],
-                    "factors_considered": ["Input relevance", "Context appropriateness", "Safety guidelines"],
+                    "reasoning_steps": [
+                        "Analyzed input data",
+                        "Applied decision rules",
+                        "Generated response",
+                    ],
+                    "factors_considered": [
+                        "Input relevance",
+                        "Context appropriateness",
+                        "Safety guidelines",
+                    ],
                 }
             )
 
@@ -162,7 +172,9 @@ class ExplainabilityAgent:
                     "factors_considered": ["Raw response"],
                 }
         except json.JSONDecodeError:
-            logger.warning("Failed to parse explanation as JSON, returning basic structure")
+            logger.warning(
+                "Failed to parse explanation as JSON, returning basic structure"
+            )
             return {
                 "explanation": explanation_text,
                 "confidence": 0.5,

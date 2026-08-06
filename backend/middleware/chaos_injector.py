@@ -49,15 +49,22 @@ class ChaosInjectorMiddleware(BaseHTTPMiddleware):
         # packet drop — 504 Gateway Timeout
         if roll < _DROP_THRESHOLD:
             logger.warning(f"[CHAOS] Packet drop for {request.url.path}")
-            return JSONResponse(status_code=504, content={"detail": "Chaos: packet dropped"})
+            return JSONResponse(
+                status_code=504, content={"detail": "Chaos: packet dropped"}
+            )
 
         # latency injection — random sleep
         if roll < _DELAY_THRESHOLD:
             delay = _DELAY_MIN + random.random() * (_DELAY_MAX - _DELAY_MIN)
-            logger.warning(f"[CHAOS] Injecting {delay:.2f}s delay for {request.url.path}")
+            logger.warning(
+                f"[CHAOS] Injecting {delay:.2f}s delay for {request.url.path}"
+            )
             await asyncio.sleep(delay)
             # packet drop after delay (values[1] < threshold triggers drop)
             if random.random() < _DROP_THRESHOLD:
-                return JSONResponse(status_code=504, content={"detail": "Chaos: packet dropped after delay"})
+                return JSONResponse(
+                    status_code=504,
+                    content={"detail": "Chaos: packet dropped after delay"},
+                )
 
         return await call_next(request)

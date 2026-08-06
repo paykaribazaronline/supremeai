@@ -1,7 +1,6 @@
+from models.base import Base
 from sqlalchemy import Boolean, Column, DateTime, Integer, Text
 from sqlalchemy.sql import func
-
-from models.base import Base
 from utils.uuid_gen import UUIDv7, generate_uuid7
 
 

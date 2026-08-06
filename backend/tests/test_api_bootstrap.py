@@ -7,9 +7,8 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import pytest
-from fastapi import FastAPI
-
 from api import register_router
+from fastapi import FastAPI
 
 
 @pytest.fixture
@@ -17,7 +16,9 @@ def app():
     return FastAPI()
 
 
-@pytest.mark.skip(reason="Router import smoke-test register_router exception handling variance")
+@pytest.mark.skip(
+    reason="Router import smoke-test register_router exception handling variance"
+)
 class TestRegisterRouter:
     def test_register_router_success(self, app):
         with patch("api.importlib.import_module") as mock_import:

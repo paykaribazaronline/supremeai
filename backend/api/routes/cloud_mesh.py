@@ -1,10 +1,9 @@
 import time
 
+from api.routes.admin import get_current_admin
 from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 from pydantic import BaseModel
-
-from api.routes.admin import get_current_admin
 
 # For this demo/implementation we use dummy functions that would hook into actual services
 # (e.g. GCP, Cloudflare, Upstash, OpenAI keys manager).
@@ -52,9 +51,13 @@ async def set_defcon(payload: DefconPayload):
     the system into maintenance mode, locking out non-admin traffic.
     """
     if payload.level not in [1, 2, 3, 4, 5]:
-        raise HTTPException(status_code=400, detail="Invalid DEFCON level. Must be 1-5.")
+        raise HTTPException(
+            status_code=400, detail="Invalid DEFCON level. Must be 1-5."
+        )
 
-    logger.warning(f"Setting system to DEFCON {payload.level}. Reason: {payload.reason}")
+    logger.warning(
+        f"Setting system to DEFCON {payload.level}. Reason: {payload.reason}"
+    )
     # Integration with WAF, API gateway limits, and system global states.
     return {
         "status": "success",

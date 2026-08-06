@@ -103,7 +103,9 @@ class WorkspaceResource(BaseModel):
 
     resource_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str = Field(..., min_length=1, max_length=255)
-    resource_type: str = Field(..., description="e.g., 'document', 'code', 'agent_config', 'dataset'")
+    resource_type: str = Field(
+        ..., description="e.g., 'document', 'code', 'agent_config', 'dataset'"
+    )
     content: str | None = Field(default=None)
     metadata: dict[str, Any] = Field(default_factory=dict)
     created_by: str = Field(...)
@@ -141,7 +143,9 @@ class WorkspaceActivity(BaseModel):
     activity_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     workspace_id: str = Field(...)
     user_id: str = Field(...)
-    action: str = Field(..., description="e.g., 'created', 'updated', 'deleted', 'shared'")
+    action: str = Field(
+        ..., description="e.g., 'created', 'updated', 'deleted', 'shared'"
+    )
     resource_id: str | None = Field(default=None)
     details: dict[str, Any] = Field(default_factory=dict)
     timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
@@ -166,7 +170,9 @@ class SharedWorkspace(BaseModel):
 
     # Members
     members: list[WorkspaceMember] = Field(default_factory=list)
-    pending_invites: list[str] = Field(default_factory=list)  # Emails pending invitation
+    pending_invites: list[str] = Field(
+        default_factory=list
+    )  # Emails pending invitation
 
     # Resources
     resources: dict[str, WorkspaceResource] = Field(default_factory=dict)
@@ -206,9 +212,13 @@ class SharedWorkspace(BaseModel):
             raise ValueError("Cannot remove workspace owner")
         self.members = [m for m in self.members if m.user_id != user_id]
         self.updated_at = datetime.now(UTC)
-        self._log_activity(removed_by, "member_removed", details={"removed_user": user_id})
+        self._log_activity(
+            removed_by, "member_removed", details={"removed_user": user_id}
+        )
 
-    def update_member_role(self, user_id: str, new_role: WorkspaceRole, updated_by: str) -> None:
+    def update_member_role(
+        self, user_id: str, new_role: WorkspaceRole, updated_by: str
+    ) -> None:
         """Update a member's role."""
         for member in self.members:
             if member.user_id == user_id:
@@ -220,7 +230,9 @@ class SharedWorkspace(BaseModel):
                     joined_at=member.joined_at,
                     added_by=member.added_by,
                 )
-                self.members = [m for m in self.members if m.user_id != user_id] + [updated]
+                self.members = [m for m in self.members if m.user_id != user_id] + [
+                    updated
+                ]
                 self.updated_at = datetime.now(UTC)
                 self._log_activity(
                     updated_by,
@@ -251,7 +263,9 @@ class SharedWorkspace(BaseModel):
         """Check if a user has a specific permission."""
         return permission in self.get_member_permissions(user_id)
 
-    def create_snapshot(self, user_id: str, description: str | None = None) -> WorkspaceSnapshot:
+    def create_snapshot(
+        self, user_id: str, description: str | None = None
+    ) -> WorkspaceSnapshot:
         """Create a point-in-time snapshot."""
         snapshot = WorkspaceSnapshot(
             workspace_id=self.workspace_id,
@@ -269,18 +283,24 @@ class SharedWorkspace(BaseModel):
         )
         self.snapshots.append(snapshot)
         self.current_snapshot_id = snapshot.snapshot_id
-        self._log_activity(user_id, "snapshot_created", details={"snapshot_id": snapshot.snapshot_id})
+        self._log_activity(
+            user_id, "snapshot_created", details={"snapshot_id": snapshot.snapshot_id}
+        )
         return snapshot
 
     def restore_snapshot(self, snapshot_id: str, user_id: str) -> None:
         """Restore workspace to a snapshot state."""
-        snapshot = next((s for s in self.snapshots if s.snapshot_id == snapshot_id), None)
+        snapshot = next(
+            (s for s in self.snapshots if s.snapshot_id == snapshot_id), None
+        )
         if not snapshot:
             raise ValueError(f"Snapshot {snapshot_id} not found")
         # In production, this would restore actual resource contents
         self.current_snapshot_id = snapshot_id
         self.updated_at = datetime.now(UTC)
-        self._log_activity(user_id, "snapshot_restored", details={"snapshot_id": snapshot_id})
+        self._log_activity(
+            user_id, "snapshot_restored", details={"snapshot_id": snapshot_id}
+        )
 
     def _log_activity(
         self,
@@ -304,7 +324,9 @@ class SharedWorkspace(BaseModel):
 
     def get_stats(self) -> dict[str, Any]:
         """Get workspace statistics."""
-        total_storage = sum(len(r.content or "") for r in self.resources.values()) / (1024 * 1024)  # MB
+        total_storage = sum(len(r.content or "") for r in self.resources.values()) / (
+            1024 * 1024
+        )  # MB
 
         return {
             "workspace_id": self.workspace_id,
@@ -335,7 +357,9 @@ def workspace_to_firestore(workspace: SharedWorkspace) -> dict[str, Any]:
         "resources": {k: v.model_dump() for k, v in workspace.resources.items()},
         "snapshots": [s.model_dump() for s in workspace.snapshots],
         "current_snapshot_id": workspace.current_snapshot_id,
-        "activity_log": [a.model_dump() for a in workspace.activity_log[-100:]],  # Last 100 only
+        "activity_log": [
+            a.model_dump() for a in workspace.activity_log[-100:]
+        ],  # Last 100 only
         "created_at": workspace.created_at.isoformat(),
         "updated_at": workspace.updated_at.isoformat(),
         "created_by": workspace.created_by,

@@ -4,22 +4,16 @@
 
 from __future__ import annotations
 
-from agents.churn_prophet import (
-    BehavioralScorer,
-    ChurnProphet,
-    ChurnRiskScore,
-    RetentionStrategist,
-    RetentionStrategy,
-    RiskLevel,
-    UserSegment,
-)
+from agents.churn_prophet import (BehavioralScorer, ChurnProphet,
+                                  ChurnRiskScore, RetentionStrategist,
+                                  RetentionStrategy, RiskLevel, UserSegment)
 
 __all__ = [
-    "ChurnProphet",
     "BehavioralScorer",
+    "ChurnProphet",
+    "ChurnRiskScore",
     "RetentionStrategist",
+    "RetentionStrategy",
     "RiskLevel",
     "UserSegment",
-    "ChurnRiskScore",
-    "RetentionStrategy",
 ]

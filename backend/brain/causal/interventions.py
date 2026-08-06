@@ -47,7 +47,13 @@ class InterventionTracker:
         if self.db and hasattr(self.db, "collection"):
             await self.db.collection("interventions").add(intervention.__dict__)
 
-    async def get_natural_experiments(self, service: str, time_window_hours: int = 72) -> list[Intervention]:
+    async def get_natural_experiments(
+        self, service: str, time_window_hours: int = 72
+    ) -> list[Intervention]:
         """Find natural experiment data points for causal analysis."""
         cutoff = datetime.utcnow() - timedelta(hours=time_window_hours)
-        return [i for i in self.interventions if i.target_service == service and i.timestamp > cutoff]
+        return [
+            i
+            for i in self.interventions
+            if i.target_service == service and i.timestamp > cutoff
+        ]

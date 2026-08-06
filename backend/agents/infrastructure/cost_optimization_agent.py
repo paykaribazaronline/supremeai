@@ -67,7 +67,9 @@ class CostOptimizationAgent:
     def __init__(self):
         self.name = "Cost Optimization Agent"
         self.token_deductor = TokenDeductor()
-        self.metrics_collector = MetricsCollector() if "MetricsCollector" in globals() else None
+        self.metrics_collector = (
+            MetricsCollector() if "MetricsCollector" in globals() else None
+        )
         self.cost_metrics_key = "cost_optimization:metrics"
         self.optimization_opportunities_key = "cost_optimization:opportunities"
         self.budget_alerts_key = "cost_optimization:alerts"
@@ -189,17 +191,25 @@ class CostOptimizationAgent:
             usage_metrics = await self._get_usage_metrics()
 
             # Calculate costs based on simulated pricing
-            compute_cost = usage_metrics.get("cpu_hours", 0) * 0.05  # $0.05 per CPU hour
-            storage_cost = usage_metrics.get("gb_months", 0) * 0.023  # $0.023 per GB-month
+            compute_cost = (
+                usage_metrics.get("cpu_hours", 0) * 0.05
+            )  # $0.05 per CPU hour
+            storage_cost = (
+                usage_metrics.get("gb_months", 0) * 0.023
+            )  # $0.023 per GB-month
             network_cost = usage_metrics.get("gb_transferred", 0) * 0.10  # $0.10 per GB
-            ai_model_cost = usage_metrics.get("api_calls", 0) * 0.001  # $0.001 per API call
+            ai_model_cost = (
+                usage_metrics.get("api_calls", 0) * 0.001
+            )  # $0.001 per API call
 
             total_cost = compute_cost + storage_cost + network_cost + ai_model_cost
 
             # Get budget configuration
             budget_config = await self._get_budget_config()
             monthly_budget = budget_config.get("total_monthly_budget", 2000.0)
-            budget_utilization = (total_cost / monthly_budget) * 100 if monthly_budget > 0 else 0
+            budget_utilization = (
+                (total_cost / monthly_budget) * 100 if monthly_budget > 0 else 0
+            )
 
             # Calculate per-user and per-request costs
             active_users = usage_metrics.get("active_users", 1)
@@ -242,7 +252,9 @@ class CostOptimizationAgent:
                 cost_per_request=0.0,
             )
 
-    async def identify_optimization_opportunities(self) -> list[OptimizationOpportunity]:
+    async def identify_optimization_opportunities(
+        self,
+    ) -> list[OptimizationOpportunity]:
         """Identify cost optimization opportunities."""
         try:
             opportunities = []
@@ -269,8 +281,12 @@ class CostOptimizationAgent:
 
                     for strategy_name, strategy_info in strategies.items():
                         # Calculate potential savings based on current cost and strategy
-                        min_savings, max_savings = strategy_info["potential_savings_range"]
-                        potential_savings = cost * ((min_savings + max_savings) / 2)  # Average
+                        min_savings, max_savings = strategy_info[
+                            "potential_savings_range"
+                        ]
+                        potential_savings = cost * (
+                            (min_savings + max_savings) / 2
+                        )  # Average
 
                         if potential_savings > 0.01:  # Only include if savings > 1 cent
                             opportunity = OptimizationOpportunity(
@@ -292,7 +308,9 @@ class CostOptimizationAgent:
             # Store opportunities
             await self._store_optimization_opportunities(opportunities)
 
-            logger.info(f"Identified {len(opportunities)} cost optimization opportunities")
+            logger.info(
+                f"Identified {len(opportunities)} cost optimization opportunities"
+            )
             return opportunities
         except Exception as e:
             logger.error(f"Error identifying optimization opportunities: {e}")
@@ -334,7 +352,10 @@ class CostOptimizationAgent:
                 growth_factor = 1 + (day_offset * 0.001)  # 0.1% growth per day
                 forecasted_cost = avg_daily_cost * growth_factor
                 forecasted_costs.append(
-                    {"date": forecast_date.isoformat(), "predicted_cost": round(forecasted_cost, 2)}
+                    {
+                        "date": forecast_date.isoformat(),
+                        "predicted_cost": round(forecasted_cost, 2),
+                    }
                 )
 
             # Calculate total forecast
@@ -348,7 +369,10 @@ class CostOptimizationAgent:
                 "daily_forecast": forecasted_costs,
                 "confidence": 0.7,  # Basic confidence for simple model
                 "trend": (
-                    "increasing" if avg_daily_cost > daily_totals[-7 if len(daily_totals) >= 7 else 0] else "stable"
+                    "increasing"
+                    if avg_daily_cost
+                    > daily_totals[-7 if len(daily_totals) >= 7 else 0]
+                    else "stable"
                 ),
             }
 
@@ -362,7 +386,12 @@ class CostOptimizationAgent:
             return forecast_result
         except Exception as e:
             logger.error(f"Error generating cost forecast: {e}")
-            return {"status": "error", "message": str(e), "forecast": {}, "confidence": 0.0}
+            return {
+                "status": "error",
+                "message": str(e),
+                "forecast": {},
+                "confidence": 0.0,
+            }
 
     async def optimize_resource_allocation(self) -> dict[str, Any]:
         """Optimize resource allocation based on cost analysis."""
@@ -373,9 +402,15 @@ class CostOptimizationAgent:
                 return {"status": "no_data", "message": "No cost metrics available"}
 
             # Calculate average costs over the period
-            avg_compute = sum(m.compute_cost for m in recent_metrics) / len(recent_metrics)
-            avg_storage = sum(m.storage_cost for m in recent_metrics) / len(recent_metrics)
-            avg_network = sum(m.network_cost for m in recent_metrics) / len(recent_metrics)
+            avg_compute = sum(m.compute_cost for m in recent_metrics) / len(
+                recent_metrics
+            )
+            avg_storage = sum(m.storage_cost for m in recent_metrics) / len(
+                recent_metrics
+            )
+            avg_network = sum(m.network_cost for m in recent_metrics) / len(
+                recent_metrics
+            )
             avg_ai = sum(m.ai_model_cost for m in recent_metrics) / len(recent_metrics)
 
             recommendations = []
@@ -387,7 +422,9 @@ class CostOptimizationAgent:
                         "category": "compute",
                         "action": "consider_right_sizing",
                         "details": "Compute costs are high, consider right-sizing instances",
-                        "potential_savings": round(avg_compute * 0.2, 2),  # 20% savings estimate
+                        "potential_savings": round(
+                            avg_compute * 0.2, 2
+                        ),  # 20% savings estimate
                     }
                 )
 
@@ -398,7 +435,9 @@ class CostOptimizationAgent:
                         "category": "storage",
                         "action": "optimize_tiers",
                         "details": "Storage costs are high, consider optimizing storage tiers",
-                        "potential_savings": round(avg_storage * 0.3, 2),  # 30% savings estimate
+                        "potential_savings": round(
+                            avg_storage * 0.3, 2
+                        ),  # 30% savings estimate
                     }
                 )
 
@@ -409,7 +448,9 @@ class CostOptimizationAgent:
                         "category": "ai_models",
                         "action": "optimize_model_selection",
                         "details": "AI model costs are high, consider optimizing model selection",
-                        "potential_savings": round(avg_ai * 0.25, 2),  # 25% savings estimate
+                        "potential_savings": round(
+                            avg_ai * 0.25, 2
+                        ),  # 25% savings estimate
                     }
                 )
 
@@ -420,7 +461,9 @@ class CostOptimizationAgent:
                         "category": "network",
                         "action": "optimize_cdn_usage",
                         "details": "Network costs are high, consider optimizing CDN usage",
-                        "potential_savings": round(avg_network * 0.2, 2),  # 20% savings estimate
+                        "potential_savings": round(
+                            avg_network * 0.2, 2
+                        ),  # 20% savings estimate
                     }
                 )
 
@@ -428,7 +471,9 @@ class CostOptimizationAgent:
                 "status": "success",
                 "timestamp": datetime.utcnow().isoformat(),
                 "recommendations": recommendations,
-                "total_potential_savings": round(sum(r["potential_savings"] for r in recommendations), 2),
+                "total_potential_savings": round(
+                    sum(r["potential_savings"] for r in recommendations), 2
+                ),
                 "highest_cost_categories": sorted(
                     [
                         ("compute", avg_compute),
@@ -508,7 +553,9 @@ class CostOptimizationAgent:
         except Exception as e:
             logger.error(f"Error storing cost metric: {e}")
 
-    async def _store_optimization_opportunities(self, opportunities: list[OptimizationOpportunity]):
+    async def _store_optimization_opportunities(
+        self, opportunities: list[OptimizationOpportunity]
+    ):
         """Store optimization opportunities in Redis."""
         try:
             opportunities_data = []
@@ -527,7 +574,9 @@ class CostOptimizationAgent:
                 )
 
             # Get existing opportunities
-            existing_opportunities = await redis_manager.get(self.optimization_opportunities_key)
+            existing_opportunities = await redis_manager.get(
+                self.optimization_opportunities_key
+            )
             if existing_opportunities:
                 opp_list = json.loads(existing_opportunities)
             else:
@@ -549,7 +598,9 @@ class CostOptimizationAgent:
         except Exception as e:
             logger.error(f"Error storing optimization opportunities: {e}")
 
-    async def _check_budget_alerts(self, current_metric: CostMetric, budget_config: dict[str, Any]):
+    async def _check_budget_alerts(
+        self, current_metric: CostMetric, budget_config: dict[str, Any]
+    ):
         """Check if current costs trigger any budget alerts."""
         try:
             alerts = []
@@ -629,7 +680,9 @@ class CostOptimizationAgent:
             # Keep only recent alerts (last 7 days worth)
             cutoff_time = datetime.utcnow() - timedelta(days=7)
             recent_alerts = [
-                alert for alert in alerts_list if datetime.fromisoformat(alert["timestamp"]) >= cutoff_time
+                alert
+                for alert in alerts_list
+                if datetime.fromisoformat(alert["timestamp"]) >= cutoff_time
             ]
 
             await redis_manager.set_with_ttl(
@@ -706,13 +759,24 @@ class CostOptimizationAgent:
             avg_daily_cost = total_spent / len(recent_metrics)
 
             # Find highest cost category
-            avg_compute = sum(m.compute_cost for m in recent_metrics) / len(recent_metrics)
-            avg_storage = sum(m.storage_cost for m in recent_metrics) / len(recent_metrics)
-            avg_network = sum(m.network_cost for m in recent_metrics) / len(recent_metrics)
+            avg_compute = sum(m.compute_cost for m in recent_metrics) / len(
+                recent_metrics
+            )
+            avg_storage = sum(m.storage_cost for m in recent_metrics) / len(
+                recent_metrics
+            )
+            avg_network = sum(m.network_cost for m in recent_metrics) / len(
+                recent_metrics
+            )
             avg_ai = sum(m.ai_model_cost for m in recent_metrics) / len(recent_metrics)
 
             highest_cost_cat = max(
-                [("Compute", avg_compute), ("Storage", avg_storage), ("Network", avg_network), ("AI Models", avg_ai)],
+                [
+                    ("Compute", avg_compute),
+                    ("Storage", avg_storage),
+                    ("Network", avg_network),
+                    ("AI Models", avg_ai),
+                ],
                 key=lambda x: x[1],
             )
 
@@ -730,13 +794,19 @@ class CostOptimizationAgent:
                     "count": len(opportunities),
                     "top_3_potential_savings": round(
                         (
-                            sum(min(3, len(opportunities)), key=lambda x: x.potential_savings, default=0)
+                            sum(
+                                min(3, len(opportunities)),
+                                key=lambda x: x.potential_savings,
+                                default=0,
+                            )
                             if opportunities
                             else 0
                         ),
                         2,
                     ),
-                    "categories_covered": list(set(opp.category for opp in opportunities)),
+                    "categories_covered": list(
+                        set(opp.category for opp in opportunities)
+                    ),
                 },
                 "forecast": forecast,
                 "recommendations": [
@@ -756,7 +826,9 @@ class CostOptimizationAgent:
                         "potential_savings": opp.potential_savings,
                         "timeline": opp.timeline,
                     }
-                    for opp in sorted(opportunities, key=lambda x: x.potential_savings, reverse=True)[:5]
+                    for opp in sorted(
+                        opportunities, key=lambda x: x.potential_savings, reverse=True
+                    )[:5]
                 ]
 
             return report
@@ -772,7 +844,11 @@ cost_optimization_agent = CostOptimizationAgent()
 # বাংলা: import-time-এ event loop না থাকলে RuntimeError এড়ানো হয়, আর টাস্কের রেফারেন্স ট্র্যাক করে
 # রাখা হয় যাতে GC হয়ে মাঝপথে বাতিল না হয়ে যায় (RUF006)।
 try:
-    track_task(asyncio.get_running_loop().create_task(cost_optimization_agent.initialize_budget_config()))
+    track_task(
+        asyncio.get_running_loop().create_task(
+            cost_optimization_agent.initialize_budget_config()
+        )
+    )
 except RuntimeError:
     logger.debug(
         "No running event loop at import time; skipping eager budget config init "

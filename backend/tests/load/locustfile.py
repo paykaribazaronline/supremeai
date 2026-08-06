@@ -34,11 +34,15 @@ class SupremeAILoadTestUser(HttpUser):
     def fetch_skills(self):
         """GET /api/skills এন্ডপয়েন্টের ল্যাটেন্সি এবং ডিবি পুল টেস্ট"""
         # timeout=(connect_timeout, read_timeout) কড়াভাবে মেইনটেইন করা হয়েছে
-        with self.client.get("/api/skills", headers=self.headers, timeout=(5, 10), catch_response=True) as response:
+        with self.client.get(
+            "/api/skills", headers=self.headers, timeout=(5, 10), catch_response=True
+        ) as response:
             if response.status_code == 200:
                 response.success()
             else:
-                response.failure(f"Failed to fetch skills: {response.status_code} - {response.text}")
+                response.failure(
+                    f"Failed to fetch skills: {response.status_code} - {response.text}"
+                )
 
     @task(1)
     def execute_and_stream_task(self):
@@ -62,7 +66,9 @@ class SupremeAILoadTestUser(HttpUser):
             catch_response=True,
         ) as response:
             if response.status_code not in [200, 201, 202]:
-                response.failure(f"Task submission failed: {response.status_code} - {response.text}")
+                response.failure(
+                    f"Task submission failed: {response.status_code} - {response.text}"
+                )
                 return
             response.success()
 
@@ -78,7 +84,9 @@ class SupremeAILoadTestUser(HttpUser):
                 catch_response=True,
             ) as sse_response:
                 if sse_response.status_code != 200:
-                    sse_response.failure(f"SSE Gate Blocked: {sse_response.status_code}")
+                    sse_response.failure(
+                        f"SSE Gate Blocked: {sse_response.status_code}"
+                    )
                     return
 
                 # রিয়েল-টাইম চাঙ্ক বাফার রিড লুপ

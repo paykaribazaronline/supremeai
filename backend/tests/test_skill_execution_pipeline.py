@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import pytest
-
 from core.base import BaseSkill
 from core.orchestration.orchestrator import Orchestrator
 from core.skill_manager import SkillManager
@@ -68,7 +67,9 @@ class TestSkillExecutionPipeline:
 
         # Orchestrator's execute_skill_chain mocks the execution and raises an error for Skill_B
         # if 'trigger_failure' is in the data.
-        result = await orch.execute_skill_chain(["Skill_A", "Skill_B"], {"trigger_failure": True})
+        result = await orch.execute_skill_chain(
+            ["Skill_A", "Skill_B"], {"trigger_failure": True}
+        )
         assert result.get("success") is False
         assert "error" in result or "fallback_executed" in result
 
@@ -86,6 +87,8 @@ class TestSkillExecutionPipeline:
         async def mock_synthesize(*args, **kwargs):
             return {"text": '{"success": true, "skill_name": "NewSkill"}'}
 
-        monkeypatch.setattr("core.skill_manager.llm_gateway.acompletion", mock_synthesize)
+        monkeypatch.setattr(
+            "core.skill_manager.llm_gateway.acompletion", mock_synthesize
+        )
         result = await manager.synthesize_skill_schema("test task")
         assert result["success"] is True

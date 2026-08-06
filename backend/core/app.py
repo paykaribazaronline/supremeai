@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import HTTPException
-
 from api.routers import register_all_routers
 from core.admin_routes import router as admin_router
 from core.app_builder import create_app
 from core.health_check import health_checker
+from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 app = create_app()
@@ -20,7 +19,9 @@ async def aggregated_health_check():
         return health_data
     except Exception as e:
         logger.error(f"Aggregated health check failed: {e}")
-        raise HTTPException(status_code=503, detail=f"Health check service unavailable: {e!s}") from e
+        raise HTTPException(
+            status_code=503, detail=f"Health check service unavailable: {e!s}"
+        ) from e
 
 
 app.include_router(admin_router)

@@ -4,7 +4,6 @@ import time
 from pathlib import Path
 
 from loguru import logger
-
 # শেয়ার্ড ইউটিলিটি — Firestore ও টেস্ট এনভায়রনমেন্ট চেক কেন্দ্রীভূত
 from utils.firestore_helpers import get_firestore_db
 
@@ -39,7 +38,9 @@ class AdminGodLayer:
         try:
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
         except (PermissionError, OSError) as e:
-            logger.warning(f"Permission denied creating directory for {self.db_path}: {e}. Falling back to /tmp/data.")
+            logger.warning(
+                f"Permission denied creating directory for {self.db_path}: {e}. Falling back to /tmp/data."
+            )
             self.db_path = Path("/tmp/data") / self.db_path.name
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self.sqlite_lock = threading.Lock()
@@ -51,10 +52,14 @@ class AdminGodLayer:
             try:
                 self._init_db()
             except Exception as e:
-                logger.warning(f"Failed to initialize Firestore for AdminGodLayer: {e}. Falling back to SQLite.")
+                logger.warning(
+                    f"Failed to initialize Firestore for AdminGodLayer: {e}. Falling back to SQLite."
+                )
                 self._db = None
         else:
-            logger.warning("Firestore unavailable or in test mode. AdminGodLayer using local SQLite fallback.")
+            logger.warning(
+                "Firestore unavailable or in test mode. AdminGodLayer using local SQLite fallback."
+            )
 
         self._init_sqlite_db()
 
@@ -63,7 +68,9 @@ class AdminGodLayer:
         from contextlib import closing
 
         with self.sqlite_lock:
-            with closing(sqlite3.connect(self.db_path, check_same_thread=False)) as conn:
+            with closing(
+                sqlite3.connect(self.db_path, check_same_thread=False)
+            ) as conn:
                 conn.execute("""
                     CREATE TABLE IF NOT EXISTS rules (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -77,28 +84,40 @@ class AdminGodLayer:
         # বাংলা মন্তব্য: নিরাপত্তার জন্য প্রথমবার চালানোর সময় সকল অ্যাডমিন অথরাইজেশন ডিফল্টভাবে 'false' রাখা হচ্ছে এবং সতর্কতা লগ করা হচ্ছে।
         if not self.get_rule("admin_authorized"):
             self.set_rule("admin_authorized", "false")
-            logger.warning("Defaulting 'admin_authorized' to 'false' for security. Please configure explicitly.")
+            logger.warning(
+                "Defaulting 'admin_authorized' to 'false' for security. Please configure explicitly."
+            )
         if not self.get_rule("autofix_authorized"):
             self.set_rule("autofix_authorized", "false")
             logger.warning("Defaulting 'autofix_authorized' to 'false' for security.")
         if not self.get_rule("autofix_reporting_authorized"):
             self.set_rule("autofix_reporting_authorized", "false")
-            logger.warning("Defaulting 'autofix_reporting_authorized' to 'false' for security.")
+            logger.warning(
+                "Defaulting 'autofix_reporting_authorized' to 'false' for security."
+            )
 
     def _init_db(self):
         if not self._db:
             return
         try:
             # বাংলা মন্তব্য: Firestore-এ autofix_authorized এবং admin_authorized নিয়মগুলো না থাকলে সেগুলো 'false' দিয়ে ইনিশিয়ালাইজ করা হচ্ছে।
-            doc_ref = self._db.collection(self.collection_name).document("admin_authorized")
+            doc_ref = self._db.collection(self.collection_name).document(
+                "admin_authorized"
+            )
             if not doc_ref.get().exists:
                 self.set_rule("admin_authorized", "false")
-                logger.warning("Firestore: Defaulting 'admin_authorized' to 'false' for security.")
+                logger.warning(
+                    "Firestore: Defaulting 'admin_authorized' to 'false' for security."
+                )
 
-            autofix_ref = self._db.collection(self.collection_name).document("autofix_authorized")
+            autofix_ref = self._db.collection(self.collection_name).document(
+                "autofix_authorized"
+            )
             if not autofix_ref.get().exists:
                 self.set_rule("autofix_authorized", "false")
-                logger.warning("Firestore: Defaulting 'autofix_authorized' to 'false' for security.")
+                logger.warning(
+                    "Firestore: Defaulting 'autofix_authorized' to 'false' for security."
+                )
         except Exception as e:
             logger.error(f"Error initializing AdminGodLayer DB: {e}")
 
@@ -117,7 +136,9 @@ class AdminGodLayer:
         from contextlib import closing
 
         with self.sqlite_lock:
-            with closing(sqlite3.connect(self.db_path, check_same_thread=False)) as conn:
+            with closing(
+                sqlite3.connect(self.db_path, check_same_thread=False)
+            ) as conn:
                 cur = conn.execute("SELECT value FROM rules WHERE key = ?", (key,))
                 row = cur.fetchone()
                 return row[0] if row else default
@@ -127,16 +148,22 @@ class AdminGodLayer:
             try:
                 doc_ref = self._db.collection(self.collection_name).document(key)
                 doc_ref.set({"value": value, "updated_at": time.time()})
-                logger.info(f"Constitutional rule updated in Firestore: {key} = {value}")
+                logger.info(
+                    f"Constitutional rule updated in Firestore: {key} = {value}"
+                )
                 return
             except Exception as e:
-                logger.error(f"Error setting rule {key} in Firestore: {e}. Falling back to SQLite.")
+                logger.error(
+                    f"Error setting rule {key} in Firestore: {e}. Falling back to SQLite."
+                )
 
         # বাংলা মন্তব্য: SQLite ব্যাকআপ ডাটাবেসে রুল সংরক্ষণ করা হচ্ছে
         from contextlib import closing
 
         with self.sqlite_lock:
-            with closing(sqlite3.connect(self.db_path, check_same_thread=False)) as conn:
+            with closing(
+                sqlite3.connect(self.db_path, check_same_thread=False)
+            ) as conn:
                 conn.execute(
                     """
                     INSERT INTO rules(key, value, updated_at)
@@ -157,4 +184,6 @@ class AdminGodLayer:
 
     def enforce(self, action: str) -> None:
         if not self.is_admin_action_allowed(action):
-            raise PermissionError("Action blocked by constitutional rules. Admin authorization required.")
+            raise PermissionError(
+                "Action blocked by constitutional rules. Admin authorization required."
+            )

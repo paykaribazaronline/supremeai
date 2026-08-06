@@ -14,20 +14,18 @@ Author: SupremeAI Core
 Date: July 18, 2026
 """
 
+import argparse
 import ast
-import os
-import sys
+import concurrent.futures
+import datetime
+import hashlib
 import json
 import logging
-import argparse
-import hashlib
-import concurrent.futures
-import threading
 import re
-import datetime
+import sys
+import threading
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from dataclasses import dataclass, field, asdict
-from typing import Any
 
 import litellm
 
@@ -45,14 +43,11 @@ except ImportError:
     from core.config import settings
 
 # --- Configuration ---
-logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
+logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 litellm.set_verbose = False
 litellm.max_retries = 3
-litellm.retry_strategy = {
-    "wait_time": 16,
-    "allowed_exceptions": [Exception]
-}
+litellm.retry_strategy = {"wait_time": 16, "allowed_exceptions": [Exception]}
 
 CACHE_FILE = Path(__file__).parent / ".bug_prophet_cache.sqlite"
 TARGET_DIRECTORIES = ["backend/core", "backend/tools"]
@@ -65,6 +60,7 @@ SEVERITY_MEDIUM = "MEDIUM"
 SEVERITY_LOW = "LOW"
 
 # --- Data Structures ---
+
 
 @dataclass
 class Issue:
@@ -101,14 +97,21 @@ class FileReport:
 
 # --- LLM Infrastructure (same pattern as ai_scribe_historian) ---
 
+
 class LLMCallError(Exception):
     """সব রিট্রাই শেষে LLM কল ব্যর্থ হলে এই এরর রেইজ হবে।"""
+
 
 key_index = 0
 api_key_lock = threading.Lock()
 
 
-def get_ai_response(prompt: str, temperature: float = 0.2, max_retries_per_key: int = 3, retry_backoff_seconds: float = 2.0) -> str:
+def get_ai_response(
+    prompt: str,
+    temperature: float = 0.2,
+    max_retries_per_key: int = 3,
+    retry_backoff_seconds: float = 2.0,
+) -> str:
     """
     প্রম্পট পাঠায় এবং LLM-এর উত্তর রিটার্ন করে। ব্যর্থ হলে LLMCallError রেইজ করে।
     """
@@ -117,7 +120,7 @@ def get_ai_response(prompt: str, temperature: float = 0.2, max_retries_per_key: 
     if not api_keys_str:
         raise LLMCallError("settings.gemini_api_key কনফিগার করা নেই।")
 
-    keys = [k.strip() for k in api_keys_str.split(',') if k.strip()]
+    keys = [k.strip() for k in api_keys_str.split(",") if k.strip()]
     if not keys:
         raise LLMCallError("কোনো বৈধ Gemini API key পাওয়া যায়নি।")
 
@@ -131,29 +134,40 @@ def get_ai_response(prompt: str, temperature: float = 0.2, max_retries_per_key: 
                 model=settings.gemini_model_name,
                 messages=[{"content": prompt, "role": "user"}],
                 temperature=temperature,
-                api_key=current_key
+                api_key=current_key,
             )
             return response.choices[0].message.content or ""
         except Exception as e:
             last_error = e
             error_msg = str(e)
-            recoverable = any(code in error_msg for code in (
-                "429", "RESOURCE_EXHAUSTED", "RateLimit", "403",
-                "PERMISSION_DENIED", "API_KEY_SERVICE_BLOCKED"
-            ))
+            recoverable = any(
+                code in error_msg
+                for code in (
+                    "429",
+                    "RESOURCE_EXHAUSTED",
+                    "RateLimit",
+                    "403",
+                    "PERMISSION_DENIED",
+                    "API_KEY_SERVICE_BLOCKED",
+                )
+            )
             if not recoverable:
                 raise
 
-            logging.warning(f"Key ending in ...{current_key[-4:]} failed (attempt {attempt+1}/{max_retries}), rotating key...")
+            logging.warning(
+                f"Key ending in ...{current_key[-4:]} failed (attempt {attempt+1}/{max_retries}), rotating key..."
+            )
             with api_key_lock:
                 key_index += 1
             import time
+
             time.sleep(retry_backoff_seconds * (2 ** (attempt // len(keys))))
 
     raise LLMCallError(f"সব API key দিয়ে চেষ্টার পরও ব্যর্থ: {last_error}")
 
 
 # --- Static Analysis Engine ---
+
 
 class StaticBugVisitor(ast.NodeVisitor):
     """
@@ -177,26 +191,30 @@ class StaticBugVisitor(ast.NodeVisitor):
         self.loop_nesting = 0
         self.current_function: str | None = None
 
-    def _add(self, rule_id: str, category: str, severity: str, message: str, node: ast.AST):
+    def _add(
+        self, rule_id: str, category: str, severity: str, message: str, node: ast.AST
+    ):
         snippet = ""
         try:
-            if hasattr(node, 'lineno') and node.lineno:
+            if hasattr(node, "lineno") and node.lineno:
                 idx = node.lineno - 1
                 if 0 <= idx < len(self.source_lines):
                     snippet = self.source_lines[idx].strip()
         except Exception:
             pass
 
-        self.issues.append(Issue(
-            rule_id=rule_id,
-            category=category,
-            severity=severity,
-            message=message,
-            line=getattr(node, 'lineno', 0),
-            column=getattr(node, 'col_offset', 0),
-            detection="static",
-            snippet=snippet,
-        ))
+        self.issues.append(
+            Issue(
+                rule_id=rule_id,
+                category=category,
+                severity=severity,
+                message=message,
+                line=getattr(node, "lineno", 0),
+                column=getattr(node, "col_offset", 0),
+                detection="static",
+                snippet=snippet,
+            )
+        )
 
     def visit_FunctionDef(self, node: ast.FunctionDef | ast.AsyncFunctionDef):
         self.function_nesting += 1
@@ -206,8 +224,13 @@ class StaticBugVisitor(ast.NodeVisitor):
         # BP007: Function too long
         body_lines = node.end_lineno - node.lineno if node.end_lineno else 0
         if body_lines > 50:
-            self._add("BP007", "Maintainability", SEVERITY_MEDIUM,
-                      f"Function '{node.name}' is {body_lines} lines long. Consider breaking it down.", node)
+            self._add(
+                "BP007",
+                "Maintainability",
+                SEVERITY_MEDIUM,
+                f"Function '{node.name}' is {body_lines} lines long. Consider breaking it down.",
+                node,
+            )
 
         # BP006: Too many arguments
         arg_count = len(node.args.args) + len(node.args.kwonlyargs)
@@ -216,13 +239,23 @@ class StaticBugVisitor(ast.NodeVisitor):
         if node.args.kwarg:
             arg_count += 1
         if arg_count > 7:
-            self._add("BP006", "Complexity", SEVERITY_MEDIUM,
-                      f"Function '{node.name}' has {arg_count} parameters. Consider using a data class or config object.", node)
+            self._add(
+                "BP006",
+                "Complexity",
+                SEVERITY_MEDIUM,
+                f"Function '{node.name}' has {arg_count} parameters. Consider using a data class or config object.",
+                node,
+            )
 
         # BP008: Deep nesting
         if self.function_nesting + self.loop_nesting > 4:
-            self._add("BP008", "Complexity", SEVERITY_MEDIUM,
-                      f"Deep nesting detected inside '{node.name}'. Refactor to reduce cognitive load.", node)
+            self._add(
+                "BP008",
+                "Complexity",
+                SEVERITY_MEDIUM,
+                f"Deep nesting detected inside '{node.name}'. Refactor to reduce cognitive load.",
+                node,
+            )
 
         self.generic_visit(node)
         self.current_function = prev_func
@@ -233,15 +266,25 @@ class StaticBugVisitor(ast.NodeVisitor):
     def visit_ExceptHandler(self, node: ast.ExceptHandler):
         # BP001: Bare except
         if node.type is None:
-            self._add("BP001", "Reliability", SEVERITY_HIGH,
-                      "Bare 'except:' clause catches KeyboardInterrupt and SystemExit. Use 'except Exception:' instead.", node)
+            self._add(
+                "BP001",
+                "Reliability",
+                SEVERITY_HIGH,
+                "Bare 'except:' clause catches KeyboardInterrupt and SystemExit. Use 'except Exception:' instead.",
+                node,
+            )
         self.generic_visit(node)
 
     def visit_For(self, node: ast.For | ast.While | ast.If | ast.With):
         self.loop_nesting += 1
         if self.loop_nesting > 3:
-            self._add("BP008", "Complexity", SEVERITY_LOW,
-                      "Deep loop/conditional nesting detected. Consider extracting helper functions.", node)
+            self._add(
+                "BP008",
+                "Complexity",
+                SEVERITY_LOW,
+                "Deep loop/conditional nesting detected. Consider extracting helper functions.",
+                node,
+            )
         self.generic_visit(node)
         self.loop_nesting -= 1
 
@@ -252,26 +295,50 @@ class StaticBugVisitor(ast.NodeVisitor):
     def visit_Call(self, node: ast.Call):
         # BP003: Dangerous builtins
         if isinstance(node.func, ast.Name) and node.func.id in self.DANGEROUS_BUILTINS:
-            self._add("BP003", "Security", SEVERITY_CRITICAL,
-                      f"Dangerous builtin '{node.func.id}()' used. This is a major security risk.", node)
+            self._add(
+                "BP003",
+                "Security",
+                SEVERITY_CRITICAL,
+                f"Dangerous builtin '{node.func.id}()' used. This is a major security risk.",
+                node,
+            )
 
         # BP005: SQL injection risk (heuristic)
         if isinstance(node.func, ast.Attribute) and node.func.attr in self.SQL_METHODS:
             for arg in node.args:
                 if isinstance(arg, (ast.JoinedStr, ast.Call)):
-                    if isinstance(arg, ast.Call) and isinstance(arg.func, ast.Attribute) and arg.func.attr in {"format", "replace"}:
-                        self._add("BP005", "Security", SEVERITY_CRITICAL,
-                                  f"Possible SQL injection via string formatting in '{node.func.attr}()'. Use parameterized queries.", node)
+                    if (
+                        isinstance(arg, ast.Call)
+                        and isinstance(arg.func, ast.Attribute)
+                        and arg.func.attr in {"format", "replace"}
+                    ):
+                        self._add(
+                            "BP005",
+                            "Security",
+                            SEVERITY_CRITICAL,
+                            f"Possible SQL injection via string formatting in '{node.func.attr}()'. Use parameterized queries.",
+                            node,
+                        )
                     elif isinstance(arg, ast.JoinedStr):
-                        self._add("BP005", "Security", SEVERITY_CRITICAL,
-                                  f"Possible SQL injection via f-string in '{node.func.attr}()'. Use parameterized queries.", node)
+                        self._add(
+                            "BP005",
+                            "Security",
+                            SEVERITY_CRITICAL,
+                            f"Possible SQL injection via f-string in '{node.func.attr}()'. Use parameterized queries.",
+                            node,
+                        )
 
         self.generic_visit(node)
 
     def visit_Assert(self, node: ast.Assert):
         # BP009: Assert in production code
-        self._add("BP009", "Reliability", SEVERITY_MEDIUM,
-                  "'assert' statements are removed when Python runs with -O. Do not use them for production logic.", node)
+        self._add(
+            "BP009",
+            "Reliability",
+            SEVERITY_MEDIUM,
+            "'assert' statements are removed when Python runs with -O. Do not use them for production logic.",
+            node,
+        )
         self.generic_visit(node)
 
     def scan_source_text(self, source: str):
@@ -282,16 +349,37 @@ class StaticBugVisitor(ast.NodeVisitor):
             for pattern in self.SECRET_PATTERNS:
                 if pattern.search(line) and not stripped.startswith("#"):
                     # Avoid matching env var lookups
-                    if "os.getenv" not in line and "environ" not in line and "settings." not in line:
-                        self._add("BP010", "Security", SEVERITY_HIGH,
-                                  "Possible hardcoded secret detected. Move to environment variables or secrets manager.",
-                                  type('obj', (object,), {'lineno': line_no, 'col_offset': line.index('=') if '=' in line else 0})())
+                    if (
+                        "os.getenv" not in line
+                        and "environ" not in line
+                        and "settings." not in line
+                    ):
+                        self._add(
+                            "BP010",
+                            "Security",
+                            SEVERITY_HIGH,
+                            "Possible hardcoded secret detected. Move to environment variables or secrets manager.",
+                            type(
+                                "obj",
+                                (object,),
+                                {
+                                    "lineno": line_no,
+                                    "col_offset": line.index("=") if "=" in line else 0,
+                                },
+                            )(),
+                        )
 
             # BP011: TODO/FIXME with high severity keywords
-            if "#" in stripped and any(k in stripped.lower() for k in ["hack", "temporary", "temp fix", "xxx"]):
-                self._add("BP011", "Maintainability", SEVERITY_LOW,
-                          "Temporary/hacky code comment found. Address before merging.",
-                          type('obj', (object,), {'lineno': line_no, 'col_offset': 0})())
+            if "#" in stripped and any(
+                k in stripped.lower() for k in ["hack", "temporary", "temp fix", "xxx"]
+            ):
+                self._add(
+                    "BP011",
+                    "Maintainability",
+                    SEVERITY_LOW,
+                    "Temporary/hacky code comment found. Address before merging.",
+                    type("obj", (object,), {"lineno": line_no, "col_offset": 0})(),
+                )
 
 
 def run_static_analysis(file_path: Path) -> list[Issue]:
@@ -300,8 +388,17 @@ def run_static_analysis(file_path: Path) -> list[Issue]:
     try:
         tree = ast.parse(content)
     except SyntaxError as e:
-        return [Issue("BP-SYNTAX", "ParseError", SEVERITY_CRITICAL,
-                      f"Syntax error: {e}", e.lineno or 1, e.offset or 0, "static")]
+        return [
+            Issue(
+                "BP-SYNTAX",
+                "ParseError",
+                SEVERITY_CRITICAL,
+                f"Syntax error: {e}",
+                e.lineno or 1,
+                e.offset or 0,
+                "static",
+            )
+        ]
 
     visitor = StaticBugVisitor(lines, str(file_path))
     visitor.visit(tree)
@@ -330,6 +427,7 @@ Analyze the following Python file and predict bugs, race conditions, logic error
 JSON Output:
 """
 
+
 def run_ai_analysis(file_path: Path) -> list[Issue]:
     # বাংলা মন্তব্য: এআই বিশ্লেষণ যা রানটাইম/লজিক বাগ এবং এপিআই মিসইউজ ধরতে পারে।
     content = file_path.read_text(encoding="utf-8")
@@ -338,12 +436,9 @@ def run_ai_analysis(file_path: Path) -> list[Issue]:
         raw = get_ai_response(prompt, temperature=0.2)
         # Extract JSON from possible markdown fences
         raw = raw.strip()
-        if raw.startswith("```json"):
-            raw = raw[7:]
-        if raw.startswith("```"):
-            raw = raw[3:]
-        if raw.endswith("```"):
-            raw = raw[:-3]
+        raw = raw.removeprefix("```json")
+        raw = raw.removeprefix("```")
+        raw = raw.removesuffix("```")
         raw = raw.strip()
 
         data = json.loads(raw)
@@ -353,16 +448,18 @@ def run_ai_analysis(file_path: Path) -> list[Issue]:
 
         issues = []
         for item in data:
-            issues.append(Issue(
-                rule_id=item.get("rule_id", "AI-UNKNOWN"),
-                category=item.get("category", "AI"),
-                severity=item.get("severity", SEVERITY_MEDIUM),
-                message=item.get("message", "AI-detected issue"),
-                line=item.get("line", 1),
-                column=item.get("column", 0),
-                detection="ai",
-                snippet=""
-            ))
+            issues.append(
+                Issue(
+                    rule_id=item.get("rule_id", "AI-UNKNOWN"),
+                    category=item.get("category", "AI"),
+                    severity=item.get("severity", SEVERITY_MEDIUM),
+                    message=item.get("message", "AI-detected issue"),
+                    line=item.get("line", 1),
+                    column=item.get("column", 0),
+                    detection="ai",
+                    snippet="",
+                )
+            )
         return issues
     except json.JSONDecodeError as e:
         logging.warning(f"AI analysis JSON parse failed for {file_path}: {e}")
@@ -377,12 +474,12 @@ def run_ai_analysis(file_path: Path) -> list[Issue]:
 # --- Cache & Hash ---
 import sqlite3
 
+
 def _get_db_connection():
     conn = sqlite3.connect(CACHE_FILE)
-    conn.execute(
-        "CREATE TABLE IF NOT EXISTS cache (key TEXT PRIMARY KEY, value TEXT)"
-    )
+    conn.execute("CREATE TABLE IF NOT EXISTS cache (key TEXT PRIMARY KEY, value TEXT)")
     return conn
+
 
 def load_cache() -> dict:
     cache = {}
@@ -396,6 +493,7 @@ def load_cache() -> dict:
         logging.warning(f"Failed to load cache: {e}")
     return cache
 
+
 def save_cache(cache: dict):
     try:
         with _get_db_connection() as conn:
@@ -403,7 +501,7 @@ def save_cache(cache: dict):
             for key, value in cache.items():
                 cursor.execute(
                     "INSERT OR REPLACE INTO cache (key, value) VALUES (?, ?)",
-                    (key, json.dumps(value))
+                    (key, json.dumps(value)),
                 )
             conn.commit()
     except Exception as e:
@@ -411,13 +509,18 @@ def save_cache(cache: dict):
 
 
 def get_file_hash(content: str) -> str:
-    return hashlib.sha256(content.encode('utf-8')).hexdigest()
+    return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
 
 # --- Report Generation ---
 def calculate_risk_score(issues: list[Issue]) -> float:
     score = 0.0
-    weights = {SEVERITY_CRITICAL: 3.0, SEVERITY_HIGH: 1.5, SEVERITY_MEDIUM: 0.7, SEVERITY_LOW: 0.2}
+    weights = {
+        SEVERITY_CRITICAL: 3.0,
+        SEVERITY_HIGH: 1.5,
+        SEVERITY_MEDIUM: 0.7,
+        SEVERITY_LOW: 0.2,
+    }
     for issue in issues:
         score += weights.get(issue.severity, 0.5)
     # Cap at 10.0, normalize roughly
@@ -442,17 +545,22 @@ def generate_markdown_report(reports: list[FileReport], output_path: Path):
         h = sum(1 for i in r.issues if i.severity == SEVERITY_HIGH)
         m = sum(1 for i in r.issues if i.severity == SEVERITY_MEDIUM)
         l = sum(1 for i in r.issues if i.severity == SEVERITY_LOW)
-        total_crit += c; total_high += h; total_med += m; total_low += l
+        total_crit += c
+        total_high += h
+        total_med += m
+        total_low += l
         lines.append(f"| `{r.file_path}` | {r.risk_score}/10 | {c} | {h} | {m} | {l} |")
 
-    lines.extend([
-        "",
-        f"**Totals:** {total_crit} Critical, {total_high} High, {total_med} Medium, {total_low} Low",
-        "",
-        "---",
-        "",
-        "## Detailed Findings",
-    ])
+    lines.extend(
+        [
+            "",
+            f"**Totals:** {total_crit} Critical, {total_high} High, {total_med} Medium, {total_low} Low",
+            "",
+            "---",
+            "",
+            "## Detailed Findings",
+        ]
+    )
 
     for r in reports:
         if not r.issues:
@@ -464,7 +572,9 @@ def generate_markdown_report(reports: list[FileReport], output_path: Path):
         lines.append("| Rule | Severity | Category | Line | Message |")
         lines.append("|------|----------|----------|------|---------|")
         for issue in sorted(r.issues, key=lambda x: (x.line, x.severity)):
-            lines.append(f"| `{issue.rule_id}` | {issue.severity} | {issue.category} | {issue.line} | {issue.message} |")
+            lines.append(
+                f"| `{issue.rule_id}` | {issue.severity} | {issue.category} | {issue.line} | {issue.message} |"
+            )
         lines.append("")
 
     output_path.write_text("\n".join(lines), encoding="utf-8")
@@ -472,7 +582,9 @@ def generate_markdown_report(reports: list[FileReport], output_path: Path):
 
 
 # --- Main Orchestrator ---
-def process_file(file_path: Path, cache: dict, force: bool, use_ai: bool) -> FileReport | None:
+def process_file(
+    file_path: Path, cache: dict, force: bool, use_ai: bool
+) -> FileReport | None:
     # বাংলা মন্তব্য: প্রতিটি ফাইলকে স্ক্যান করে এবং ক্যাশে আপডেট করে।
     logging.info(f"Scanning: {file_path}")
     content = file_path.read_text(encoding="utf-8")
@@ -480,7 +592,11 @@ def process_file(file_path: Path, cache: dict, force: bool, use_ai: bool) -> Fil
 
     cache_key = str(file_path)
     # বাংলা মন্তব্য: ক্যাশ কি চেক করা হচ্ছে 'file_hash' এর মাধ্যমে যাতে রিবিল্ড ফাস্ট হয়।
-    if not force and cache_key in cache and cache[cache_key].get("file_hash") == content_hash:
+    if (
+        not force
+        and cache_key in cache
+        and cache[cache_key].get("file_hash") == content_hash
+    ):
         logging.info(f"Skipping {file_path} (cached).")
         cached = cache[cache_key]
         report = FileReport(
@@ -502,7 +618,9 @@ def process_file(file_path: Path, cache: dict, force: bool, use_ai: bool) -> Fil
         try:
             ai_issues = run_ai_analysis(file_path)
             if ai_issues:
-                ai_summary = f"AI identified {len(ai_issues)} potential runtime/logic issue(s)."
+                ai_summary = (
+                    f"AI identified {len(ai_issues)} potential runtime/logic issue(s)."
+                )
         except LLMCallError as e:
             logging.error(f"AI analysis failed for {file_path}: {e}")
             ai_summary = "AI analysis unavailable due to LLM error."
@@ -522,7 +640,14 @@ def process_file(file_path: Path, cache: dict, force: bool, use_ai: bool) -> Fil
     return report
 
 
-def main(dry_run: bool = False, force: bool = False, workers: int = 4, use_ai: bool = True, files: list[str] | None = None, output: str = "bug_prophet_report.md"):
+def main(
+    dry_run: bool = False,
+    force: bool = False,
+    workers: int = 4,
+    use_ai: bool = True,
+    files: list[str] | None = None,
+    output: str = "bug_prophet_report.md",
+):
     if not settings.gemini_api_key:
         logging.error("FATAL: GEMINI_API_KEY is not set in backend settings.")
         return
@@ -536,7 +661,11 @@ def main(dry_run: bool = False, force: bool = False, workers: int = 4, use_ai: b
     reports: list[FileReport] = []
 
     if files:
-        file_paths = [Path(f) for f in files if Path(f).exists() and Path(f).name not in EXCLUDE_FILES]
+        file_paths = [
+            Path(f)
+            for f in files
+            if Path(f).exists() and Path(f).name not in EXCLUDE_FILES
+        ]
     else:
         file_paths = []
         for target_dir in TARGET_DIRECTORIES:
@@ -552,11 +681,14 @@ def main(dry_run: bool = False, force: bool = False, workers: int = 4, use_ai: b
         logging.info("No files to scan.")
         return
 
-    logging.info(f"BugProphet scanning {len(file_paths)} file(s) with {workers} workers...")
+    logging.info(
+        f"BugProphet scanning {len(file_paths)} file(s) with {workers} workers..."
+    )
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
         future_to_file = {
-            executor.submit(process_file, fp, cache, force, use_ai): fp for fp in file_paths
+            executor.submit(process_file, fp, cache, force, use_ai): fp
+            for fp in file_paths
         }
         for future in concurrent.futures.as_completed(future_to_file):
             try:
@@ -577,13 +709,31 @@ def main(dry_run: bool = False, force: bool = False, workers: int = 4, use_ai: b
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="BugProphet: AI-powered bug prediction agent")
-    parser.add_argument("--dry-run", action="store_true", help="Run without writing cache or reports.")
-    parser.add_argument("--force", action="store_true", help="Ignore cache and rescan everything.")
-    parser.add_argument("-w", "--workers", type=int, default=4, help="Concurrent workers.")
-    parser.add_argument("--no-ai", action="store_true", help="Disable AI analysis (static only).")
-    parser.add_argument("-o", "--output", type=str, default="bug_prophet_report.md", help="Output Markdown report path.")
-    parser.add_argument("--files", nargs="*", help="Specific files to scan (git hook mode).")
+    parser = argparse.ArgumentParser(
+        description="BugProphet: AI-powered bug prediction agent"
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Run without writing cache or reports."
+    )
+    parser.add_argument(
+        "--force", action="store_true", help="Ignore cache and rescan everything."
+    )
+    parser.add_argument(
+        "-w", "--workers", type=int, default=4, help="Concurrent workers."
+    )
+    parser.add_argument(
+        "--no-ai", action="store_true", help="Disable AI analysis (static only)."
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        default="bug_prophet_report.md",
+        help="Output Markdown report path.",
+    )
+    parser.add_argument(
+        "--files", nargs="*", help="Specific files to scan (git hook mode)."
+    )
     args = parser.parse_args()
 
     main(
@@ -598,7 +748,7 @@ if __name__ == "__main__":
 # --- Streaming Anomaly Detector ---
 import asyncio
 import math
-from collections import deque
+
 # বাংলা: এই ইমপোর্টে আগে try/except fallback ছিল না — ফলে যখন এই মডিউলটি লাইভ
 # backend অ্যাপ থেকে `run_anomaly_detector_loop` হিসেবে ইমপোর্ট করা হতো (core.lifespan
 # app_lifespan-এর ভেতর থেকে, যেখানে sys.path-এ শুধু backend/-এর ভেতরের প্যাকেজ
@@ -608,9 +758,12 @@ from collections import deque
 # দেখা যাচ্ছিল)। উপরের config import-এর মতোই একই try/except fallback প্যাটার্ন এখানে
 # প্রয়োগ করা হলো।
 try:
-    from backend.core.messaging.event_bus import error_event_bus, ErrorEvent, ErrorContext
+    from backend.core.messaging.event_bus import (ErrorContext, ErrorEvent,
+                                                  error_event_bus)
 except ImportError:
-    from core.messaging.event_bus import error_event_bus, ErrorEvent, ErrorContext
+    from core.messaging.event_bus import (ErrorContext, ErrorEvent,
+                                          error_event_bus)
+
 
 class AnomalyDetector:
     def __init__(self):
@@ -632,7 +785,7 @@ class AnomalyDetector:
 
             if module not in self.baseline_avg:
                 self.baseline_avg[module] = count
-                self.baseline_std[module] = 1.0 # Default std
+                self.baseline_std[module] = 1.0  # Default std
             else:
                 # Exponential moving average
                 alpha = 0.1
@@ -641,7 +794,9 @@ class AnomalyDetector:
 
                 # variance update
                 var = (count - self.baseline_avg[module]) ** 2
-                self.baseline_std[module] = math.sqrt((alpha * var) + ((1 - alpha) * (self.baseline_std[module] ** 2)))
+                self.baseline_std[module] = math.sqrt(
+                    (alpha * var) + ((1 - alpha) * (self.baseline_std[module] ** 2))
+                )
 
     def process_event(self, event: ErrorEvent):
         module = event.module
@@ -664,14 +819,16 @@ class AnomalyDetector:
 
         # If 10x more warnings than baseline (or very high Z-score)
         if current_count > 10 and current_count > (avg * 10) and z_score > 3.0:
-            logging.critical(f"[BugProphet] PREDICTED OUTAGE in {module}! Z-score: {z_score:.2f}, Count: {current_count}, Avg: {avg:.2f}")
+            logging.critical(
+                f"[BugProphet] PREDICTED OUTAGE in {module}! Z-score: {z_score:.2f}, Count: {current_count}, Avg: {avg:.2f}"
+            )
 
             outage_event = ErrorEvent(
                 module=module,
                 error_type="PREDICTED_OUTAGE",
                 message=f"Anomaly detected! Module '{module}' error rate is {current_count} (baseline {avg:.2f}).",
                 severity="CRITICAL",
-                structured_context=ErrorContext(module=module, env="production")
+                structured_context=ErrorContext(module=module, env="production"),
             )
             # Emit directly to bus (ensure we don't infinitely loop by checking error type)
             if event.error_type != "PREDICTED_OUTAGE":

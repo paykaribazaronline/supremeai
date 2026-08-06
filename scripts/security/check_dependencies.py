@@ -17,6 +17,7 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 
+
 def run_command(command: str, working_dir: Path) -> bool:
     """একটি নির্দিষ্ট ডিরেক্টরিতে একটি শেল কমান্ড চালায় এবং সফল হয়েছে কিনা তা রিটার্ন করে।"""
     print(f"\n📂 ডিরেক্টরি: {working_dir}")
@@ -44,6 +45,7 @@ def run_command(command: str, working_dir: Path) -> bool:
         print(e.stderr)
         return False
 
+
 def main():
     """মূল ফাংশন যা প্রজেক্টের সকল dependency স্ক্যান করে।"""
     print("ጤ SupremeAI Dependency Health Checker শুরু হচ্ছে...")
@@ -51,7 +53,7 @@ def main():
     overall_success = True
 
     # --- Node.js / pnpm Dependency Scan ---
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("🟢 Node.js (pnpm) ecosystem স্ক্যান করা হচ্ছে...")
     # `pnpm audit` কমান্ডটি পরিচিত দুর্বলতা খুঁজে বের করে।
     # যদি কোনো দুর্বলতা পাওয়া যায়, এটি একটি non-zero exit code রিটার্ন করবে।
@@ -60,7 +62,7 @@ def main():
         overall_success = False
 
     # --- Python / Poetry Dependency Scan ---
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("🐍 Python (Poetry) ecosystem স্ক্যান করা হচ্ছে...")
     backend_dir = PROJECT_ROOT / "backend"
     # `poetry check` কমান্ডটি pyproject.toml এবং poetry.lock ফাইলের মধ্যে অসামঞ্জস্য পরীক্ষা করে।
@@ -68,12 +70,15 @@ def main():
         print("\n🚨 Poetry dependency-তে অসামঞ্জস্য পাওয়া গেছে!")
         overall_success = False
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     if overall_success:
-        print("✅ অভিনন্দন! সকল dependency স্ক্যান সফল হয়েছে এবং কোনো ঝুঁকি পাওয়া যায়নি।")
+        print(
+            "✅ অভিনন্দন! সকল dependency স্ক্যান সফল হয়েছে এবং কোনো ঝুঁকি পাওয়া যায়নি।"
+        )
     else:
         print("❌ স্ক্যান ব্যর্থ হয়েছে। উপরে উল্লিখিত সমস্যাগুলো সমাধান করুন।")
-        exit(1) # CI/CD পাইপলাইনে ব্যর্থতা রিপোর্ট করার জন্য
+        exit(1)  # CI/CD পাইপলাইনে ব্যর্থতা রিপোর্ট করার জন্য
+
 
 if __name__ == "__main__":
     main()

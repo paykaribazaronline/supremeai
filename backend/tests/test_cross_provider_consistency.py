@@ -8,7 +8,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-
 from core.llm_router import LLMRouter, Provider, TaskType
 
 

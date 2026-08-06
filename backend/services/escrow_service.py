@@ -1,4 +1,3 @@
-# ruff: noqa: E501
 """
 SupremeAI — Escrow Service
 ============================
@@ -18,9 +17,8 @@ from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import Any
 
-from loguru import logger
-
 from core.cache import get_cache
+from loguru import logger
 
 # ── Constants ────────────────────────────────────────────────────────────────
 ESCROW_TTL = 30 * 24 * 3600  # 30 days
@@ -141,7 +139,9 @@ class EscrowService:
     def get_escrow_sync(self, escrow_id: str) -> Escrow | None:
         return self._escrows.get(escrow_id)
 
-    def update_escrow_status_sync(self, escrow_id: str, status: EscrowStatus) -> Escrow | None:
+    def update_escrow_status_sync(
+        self, escrow_id: str, status: EscrowStatus
+    ) -> Escrow | None:
         escrow = self._escrows.get(escrow_id)
         if not escrow:
             return None
@@ -155,7 +155,11 @@ class EscrowService:
             status=status,
             created_at=escrow.created_at,
             expires_at=escrow.expires_at,
-            released_at=(datetime.now(UTC) if status == EscrowStatus.RELEASED else escrow.released_at),
+            released_at=(
+                datetime.now(UTC)
+                if status == EscrowStatus.RELEASED
+                else escrow.released_at
+            ),
         )
         self._escrows[escrow_id] = updated
         return updated

@@ -5,7 +5,6 @@ import tempfile
 from unittest.mock import MagicMock
 
 import pytest
-
 from core.evolution.evolution_engine import EvolutionEngine
 
 

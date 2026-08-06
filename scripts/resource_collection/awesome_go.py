@@ -19,7 +19,7 @@ class AwesomeGoScraper(AwesomeListScraper):
         super().__init__(
             name="awesome-go",
             repo_url="https://github.com/avelino/awesome-go",
-            data_dir=data_dir
+            data_dir=data_dir,
         )
 
 

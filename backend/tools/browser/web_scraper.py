@@ -2,9 +2,8 @@ from typing import Any
 
 import httpx
 from bs4 import BeautifulSoup
-from loguru import logger
-
 from core.security import is_safe_url
+from loguru import logger
 
 
 class WebScraper:
@@ -18,8 +17,12 @@ class WebScraper:
                 "url": url,
             }
         try:
-            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-            response = httpx.get(url, headers=headers, timeout=15.0, follow_redirects=True)
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+            response = httpx.get(
+                url, headers=headers, timeout=15.0, follow_redirects=True
+            )
             response.raise_for_status()
             soup = BeautifulSoup(response.text, "html.parser")
             title = soup.title.string.strip() if soup.title else "No Title"

@@ -26,7 +26,12 @@ class TestViralReferralEngine:
         with patch.object(
             self.engine,
             "_calculate_reward",
-            return_value={"reward": 5.0, "credit_bonus": 10, "tier": "bronze", "count": 1},
+            return_value={
+                "reward": 5.0,
+                "credit_bonus": 10,
+                "tier": "bronze",
+                "count": 1,
+            },
         ):
             result = self.engine._calculate_reward("user-123")
             assert result["tier"] == "bronze"
@@ -36,7 +41,12 @@ class TestViralReferralEngine:
         with patch.object(
             self.engine,
             "_calculate_reward",
-            return_value={"reward": 50.0, "credit_bonus": 1000, "tier": "platinum", "count": 50},
+            return_value={
+                "reward": 50.0,
+                "credit_bonus": 1000,
+                "tier": "platinum",
+                "count": 50,
+            },
         ):
             result = self.engine._calculate_reward("user-999")
             assert result["tier"] == "platinum"
@@ -61,7 +71,9 @@ class TestViralReferralEngine:
     def test_fraud_detection_threshold(self):
         with patch("tools.social.viral_referral_engine.db") as mock_db:
             mock_db.client = None
-            result = self.engine._is_fraudulent("u1", "new-u", {"ip_address": "1.2.3.4"})
+            result = self.engine._is_fraudulent(
+                "u1", "new-u", {"ip_address": "1.2.3.4"}
+            )
             assert result is False
 
     def test_wallet_balance_new_user(self):

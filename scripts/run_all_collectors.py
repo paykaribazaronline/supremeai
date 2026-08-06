@@ -8,10 +8,11 @@ from pathlib import Path
 # Add the resource_collection directory to the path
 sys.path.insert(0, str(Path(__file__).parent / "resource_collection"))
 
-import awesome_selfhosted
 import awesome_go
 import awesome_python
+import awesome_selfhosted
 from ossinsight.client import main_ossinsight
+
 
 def run_all_collectors():
     """Run all available collectors and report results"""
@@ -67,6 +68,7 @@ def run_all_collectors():
     else:
         print("\n❌ SOME COLLECTORS FAILED")
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(run_all_collectors())

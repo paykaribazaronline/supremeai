@@ -176,9 +176,13 @@ class AnomalyDetector:
 
         # Simple heuristic: check if current hour is outside typical range
         avg_hour = sum(active_hours) / len(active_hours)
-        std_dev = (sum((h - avg_hour) ** 2 for h in active_hours) / len(active_hours)) ** 0.5
+        std_dev = (
+            sum((h - avg_hour) ** 2 for h in active_hours) / len(active_hours)
+        ) ** 0.5
 
-        if std_dev > 0 and abs(current_hour - avg_hour) > (self.unusual_hour_threshold * std_dev):
+        if std_dev > 0 and abs(current_hour - avg_hour) > (
+            self.unusual_hour_threshold * std_dev
+        ):
             return AnomalyAlert(
                 severity="medium",
                 user_id=user_id,
@@ -192,7 +196,9 @@ class AnomalyDetector:
 
         return None
 
-    def detect_rapid_actions(self, user_id: str, action: str, window_seconds: int = 60) -> AnomalyAlert | None:
+    def detect_rapid_actions(
+        self, user_id: str, action: str, window_seconds: int = 60
+    ) -> AnomalyAlert | None:
         """Detect rapid repeated actions (potential automation/bot).
 
         Args:
@@ -205,7 +211,9 @@ class AnomalyDetector:
         """
         cutoff = time.time() - window_seconds
         action_count = sum(
-            1 for e in self.tracker.events if e.user_id == user_id and e.action == action and e.timestamp > cutoff
+            1
+            for e in self.tracker.events
+            if e.user_id == user_id and e.action == action and e.timestamp > cutoff
         )
 
         # Threshold: more than 10 actions in 1 minute
@@ -261,7 +269,13 @@ class BehavioralAnalyzer:
         self.detector = AnomalyDetector(self.tracker)
         self.alert_handlers: list[callable] = []
 
-    def record_event(self, user_id: str, ip_address: str, action: str, metadata: dict[str, Any] | None = None) -> None:
+    def record_event(
+        self,
+        user_id: str,
+        ip_address: str,
+        action: str,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
         """Record a behavior event and check for anomalies.
 
         Args:
@@ -286,7 +300,9 @@ class BehavioralAnalyzer:
         for anomaly in anomalies:
             self._trigger_alert(anomaly)
 
-    def _check_anomalies(self, user_id: str, ip_address: str, action: str) -> list[AnomalyAlert]:
+    def _check_anomalies(
+        self, user_id: str, ip_address: str, action: str
+    ) -> list[AnomalyAlert]:
         """Run all anomaly detection checks.
 
         Args:

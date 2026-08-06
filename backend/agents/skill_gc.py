@@ -2,7 +2,6 @@
 import logging
 import shutil
 import tarfile
-
 # datetime class এবং timedelta উভয়ই import করা হচ্ছে — utcnow() ব্যবহারের জন্য
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -30,7 +29,9 @@ class SkillGarbageCollector:
             "mcp_router",
         ]
 
-    def run_daily_cleanup(self, usage_threshold: int = 5, days_threshold: int = 30) -> list[str]:
+    def run_daily_cleanup(
+        self, usage_threshold: int = 5, days_threshold: int = 30
+    ) -> list[str]:
         """কম ব্যবহৃত স্কিলগুলো আইডেন্টিফাই করে এবং গ্রেস পিরিয়ড ও আর্কাইভ এনফোর্স করে।"""
         index = self.index_manager.load_index()
         now = datetime.utcnow()
@@ -55,7 +56,9 @@ class SkillGarbageCollector:
                     # timestamp-এর শেষের আসল সংখ্যাও মুছে দিতে পারত (যেমন ...T00:00:00+00:00)।
                     # সঠিক ফিক্স: শুধু "Z" suffix-টা "+00:00" দিয়ে replace করা, বাড়তি strip না করে।
                     last_used = datetime.fromisoformat(
-                        last_used_raw[:-1] + "+00:00" if last_used_raw.endswith("Z") else last_used_raw
+                        last_used_raw[:-1] + "+00:00"
+                        if last_used_raw.endswith("Z")
+                        else last_used_raw
                     )
                 except ValueError:
                     # Parse করতে না পারলে খুব পুরনো ধরে নাও
@@ -92,7 +95,9 @@ class SkillGarbageCollector:
                             json.dump(global_index, f, indent=4)
 
                     purged_skills.append(skill_id)
-                    logger.info(f"✨ [GC PURGE] Stale asset '{skill_id}' successfully archived and cleared.")
+                    logger.info(
+                        f"✨ [GC PURGE] Stale asset '{skill_id}' successfully archived and cleared."
+                    )
 
         return purged_skills
 
@@ -102,6 +107,8 @@ class SkillGarbageCollector:
         if not target_path.exists():
             return
 
-        archive_file = self.archive_dir / f"{skill_id}_{utc_now().strftime('%Y%m%d')}.tar.gz"
+        archive_file = (
+            self.archive_dir / f"{skill_id}_{utc_now().strftime('%Y%m%d')}.tar.gz"
+        )
         with tarfile.open(archive_file, "w:gz") as tar:
             tar.add(target_path, arcname=skill_id)

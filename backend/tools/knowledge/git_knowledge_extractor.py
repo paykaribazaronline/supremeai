@@ -49,7 +49,9 @@ def init_db():
 
 def run_git(args):
     try:
-        return subprocess.check_output(["git", *args], stderr=subprocess.STDOUT).decode("utf-8")
+        return subprocess.check_output(["git", *args], stderr=subprocess.STDOUT).decode(
+            "utf-8"
+        )
     except Exception as e:
         logger.info(f"Error running git: {e}")
         return ""
@@ -59,7 +61,9 @@ def extract_knowledge():
     init_db()
     logger.info("🔍 Analyzing git log for knowledge extraction...")
     # Get last 50 commits with diffs
-    logs = run_git(["log", "-n", "50", "--pretty=format:COMMIT:%H%nSUBJECT:%s%nBODY:%b", "-p"])
+    logs = run_git(
+        ["log", "-n", "50", "--pretty=format:COMMIT:%H%nSUBJECT:%s%nBODY:%b", "-p"]
+    )
 
     knowledge_entries = []
     commits = logs.split("COMMIT:")
@@ -121,7 +125,9 @@ def extract_knowledge():
                 knowledge_entries,
             )
             conn.commit()
-        logger.info(f"✅ Extracted and stored {len(knowledge_entries)} entries into {DB_PATH}")
+        logger.info(
+            f"✅ Extracted and stored {len(knowledge_entries)} entries into {DB_PATH}"
+        )
 
 
 if __name__ == "__main__":

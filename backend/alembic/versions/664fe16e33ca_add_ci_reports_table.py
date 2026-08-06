@@ -38,7 +38,9 @@ def upgrade() -> None:
         )
         """)
     op.execute("CREATE INDEX IF NOT EXISTS idx_ci_reports_run_id ON ci_reports(run_id)")
-    op.execute("CREATE INDEX IF NOT EXISTS idx_ci_reports_created ON ci_reports(created_at DESC)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_ci_reports_created ON ci_reports(created_at DESC)"
+    )
 
 
 def downgrade() -> None:

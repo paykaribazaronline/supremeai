@@ -3,14 +3,10 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from core.security.auth_middleware import (AuthMiddleware, _decode_jwt,
+                                           _is_public_path,
+                                           verify_admin_session_fail_closed)
 from pydantic import SecretStr
-
-from core.security.auth_middleware import (
-    AuthMiddleware,
-    _decode_jwt,
-    _is_public_path,
-    verify_admin_session_fail_closed,
-)
 
 
 class TestDecodeJwtEdgeCases:

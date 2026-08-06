@@ -296,7 +296,14 @@ class HTMLAccessibilityChecker:
             link.get("href", "")
 
             # Check for generic link text
-            generic_texts = ["click here", "here", "link", "more", "read more", "continue"]
+            generic_texts = [
+                "click here",
+                "here",
+                "link",
+                "more",
+                "read more",
+                "continue",
+            ]
             if any(text in link_text.lower() for text in generic_texts):
                 self.issues.append(
                     AccessibilityIssue(
@@ -373,7 +380,9 @@ class HTMLAccessibilityChecker:
     def _check_color_contrast(self, soup: BeautifulSoup):
         """Check color contrast for text elements."""
         # This is a simplified check - in a real implementation, we'd parse CSS
-        text_elements = soup.find_all(["p", "div", "span", "h1", "h2", "h3", "h4", "h5", "h6", "a", "li", "td"])
+        text_elements = soup.find_all(
+            ["p", "div", "span", "h1", "h2", "h3", "h4", "h5", "h6", "a", "li", "td"]
+        )
 
         # For demo purposes, we'll just check if any elements have style attributes
         # In a real implementation, we'd extract actual colors
@@ -387,7 +396,9 @@ class HTMLAccessibilityChecker:
     def _check_keyboard_navigation(self, soup: BeautifulSoup):
         """Check keyboard navigation issues."""
         # Check for elements that should be focusable but aren't
-        interactive_elements = soup.find_all(["button", "input", "select", "textarea", "a"])
+        interactive_elements = soup.find_all(
+            ["button", "input", "select", "textarea", "a"]
+        )
 
         for elem in interactive_elements:
             tabindex = elem.get("tabindex")
@@ -409,7 +420,9 @@ class HTMLAccessibilityChecker:
 
     def _check_aria_attributes(self, soup: BeautifulSoup):
         """Check ARIA attributes for proper usage."""
-        elements_with_aria = soup.find_all(attrs=lambda x: x and any(attr.startswith("aria-") for attr in x.keys()))
+        elements_with_aria = soup.find_all(
+            attrs=lambda x: x and any(attr.startswith("aria-") for attr in x.keys())
+        )
 
         for elem in elements_with_aria:
             aria_attrs = {k: v for k, v in elem.attrs.items() if k.startswith("aria-")}
@@ -456,12 +469,29 @@ class AccessibilityComplianceEngine:
                 "low": [issue for issue in issues if issue.severity == "low"],
             },
             "by_principle": {
-                "perceivable": [issue for issue in issues if issue.principle == WCAGPrinciple.PERCEIVABLE],
-                "operable": [issue for issue in issues if issue.principle == WCAGPrinciple.OPERABLE],
-                "understandable": [issue for issue in issues if issue.principle == WCAGPrinciple.UNDERSTANDABLE],
-                "robust": [issue for issue in issues if issue.principle == WCAGPrinciple.ROBUST],
+                "perceivable": [
+                    issue
+                    for issue in issues
+                    if issue.principle == WCAGPrinciple.PERCEIVABLE
+                ],
+                "operable": [
+                    issue
+                    for issue in issues
+                    if issue.principle == WCAGPrinciple.OPERABLE
+                ],
+                "understandable": [
+                    issue
+                    for issue in issues
+                    if issue.principle == WCAGPrinciple.UNDERSTANDABLE
+                ],
+                "robust": [
+                    issue for issue in issues if issue.principle == WCAGPrinciple.ROBUST
+                ],
             },
-            "summary": {"pass": len(issues) == 0, "compliance_level": self._determine_compliance_level(issues)},
+            "summary": {
+                "pass": len(issues) == 0,
+                "compliance_level": self._determine_compliance_level(issues),
+            },
             "recommendations": self._generate_recommendations(issues),
         }
 
@@ -491,13 +521,17 @@ class AccessibilityComplianceEngine:
             recommendations.append("Implement proper heading structure (H1-H6)")
 
         if any(i.id == "link-generic-text" for i in issues):
-            recommendations.append("Use descriptive link text that indicates destination or purpose")
+            recommendations.append(
+                "Use descriptive link text that indicates destination or purpose"
+            )
 
         if any(i.id == "form-control-no-label" for i in issues):
             recommendations.append("Associate all form controls with labels")
 
         if not recommendations:
-            recommendations.append("No major accessibility issues found. Consider periodic reviews.")
+            recommendations.append(
+                "No major accessibility issues found. Consider periodic reviews."
+            )
 
         return recommendations
 
@@ -533,10 +567,18 @@ class AccessibilityComplianceEngine:
             "issues_found": self.compliance_report.get("total_issues", 0),
             "recommendations": self.compliance_report.get("recommendations", []),
             "detailed_findings": {
-                "critical_issues": len(self.compliance_report.get("by_severity", {}).get("critical", [])),
-                "high_issues": len(self.compliance_report.get("by_severity", {}).get("high", [])),
-                "medium_issues": len(self.compliance_report.get("by_severity", {}).get("medium", [])),
-                "low_issues": len(self.compliance_report.get("by_severity", {}).get("low", [])),
+                "critical_issues": len(
+                    self.compliance_report.get("by_severity", {}).get("critical", [])
+                ),
+                "high_issues": len(
+                    self.compliance_report.get("by_severity", {}).get("high", [])
+                ),
+                "medium_issues": len(
+                    self.compliance_report.get("by_severity", {}).get("medium", [])
+                ),
+                "low_issues": len(
+                    self.compliance_report.get("by_severity", {}).get("low", [])
+                ),
             },
         }
 

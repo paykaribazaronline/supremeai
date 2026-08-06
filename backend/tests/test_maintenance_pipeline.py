@@ -13,7 +13,6 @@ import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from core.maintenance_pipeline import MaintenancePipeline
 
 
@@ -76,7 +75,9 @@ class TestMaintenancePipeline:
         pipeline = MaintenancePipeline()
 
         with (
-            patch("core.maintenance_pipeline.probe_redis", return_value={"status": "up"}),
+            patch(
+                "core.maintenance_pipeline.probe_redis", return_value={"status": "up"}
+            ),
             patch(
                 "core.maintenance_pipeline.probe_database",
                 return_value={"status": "up"},
@@ -100,7 +101,9 @@ class TestMaintenancePipeline:
         pipeline = MaintenancePipeline()
 
         with (
-            patch("core.maintenance_pipeline.probe_redis", return_value={"status": "down"}),
+            patch(
+                "core.maintenance_pipeline.probe_redis", return_value={"status": "down"}
+            ),
             patch(
                 "core.maintenance_pipeline.probe_database",
                 return_value={"status": "up"},

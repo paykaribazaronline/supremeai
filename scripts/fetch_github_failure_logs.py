@@ -4,58 +4,62 @@ GitHub Actions Failed Job Detector & Log Extractor for SupremeAI Agents.
 বাংলা মন্তব্য: গিটহাব অ্যাকশনসের যেকোনো জব ব্যর্থ হলে তা চিহ্নিত করে পুরো লগ স্ট্রিম মার্কডাউন ফাইলে সেভ করবে।
 """
 
-import os
-import sys
-import json
-import zipfile
-import io
 import argparse
+import io
+import os
+import zipfile
 from datetime import datetime
-from typing import Dict, Any, List, Optional
+from typing import Any
+
 import requests
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
 
+
 class GitHubFailureDetector:
     """
     গিটহাব অ্যাকশনস ওয়ার্কফ্লো রান স্ক্যানার এবং ফেইলড জব লগ এক্সট্রাক্টর।
     """
 
-    def __init__(self, repo: str = "paykaribazaronline/supremeai", token: Optional[str] = None):
+    def __init__(
+        self, repo: str = "paykaribazaronline/supremeai", token: str | None = None
+    ):
         self.repo = repo
         self.token = token or os.getenv("GITHUB_TOKEN") or os.getenv("GITHUB_API_TOKEN")
         self.base_url = f"https://api.github.com/repos/{self.repo}"
         self.headers = {
             "Accept": "application/vnd.github.v3+json",
-            "User-Agent": "SupremeAI-Agent-Detector"
+            "User-Agent": "SupremeAI-Agent-Detector",
         }
         if self.token:
             self.headers["Authorization"] = f"token {self.token}"
 
-    def get_recent_failed_runs(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_recent_failed_runs(self, limit: int = 10) -> list[dict[str, Any]]:
         """
         সাম্প্রতিক ব্যর্থ হওয়া গিটহাব অ্যাকশনস ওয়ার্কফ্লো রানগুলো খুঁজে বের করা।
         """
         url = f"{self.base_url}/actions/runs?status=failure&per_page={limit}"
         response = requests.get(url, headers=self.headers)
-        
+
         if response.status_code != 200:
-            print(f"❌ Error fetching workflow runs (HTTP {response.status_code}): {response.text}")
+            print(
+                f"❌ Error fetching workflow runs (HTTP {response.status_code}): {response.text}"
+            )
             return []
 
         runs = response.json().get("workflow_runs", [])
         print(f"🔍 Found {len(runs)} failed workflow runs in repository '{self.repo}'.")
         return runs
 
-    def get_run_failed_jobs(self, run_id: int) -> List[Dict[str, Any]]:
+    def get_run_failed_jobs(self, run_id: int) -> list[dict[str, Any]]:
         """
         একটি সুনির্দিষ্ট ওয়ার্কফ্লো রানের ভেতরের ব্যর্থ হওয়া জবসমূহ তালিকাভুক্ত করা।
         """
         url = f"{self.base_url}/actions/runs/{run_id}/jobs"
         response = requests.get(url, headers=self.headers)
-        
+
         if response.status_code != 200:
             print(f"❌ Error fetching jobs for run #{run_id}: {response.text}")
             return []
@@ -64,7 +68,9 @@ class GitHubFailureDetector:
         failed_jobs = [job for job in jobs if job.get("conclusion") == "failure"]
         return failed_jobs
 
-    def download_job_logs_markdown(self, run_id: int, output_dir: str = "docs/04-ci-logs") -> Optional[str]:
+    def download_job_logs_markdown(
+        self, run_id: int, output_dir: str = "docs/04-ci-logs"
+    ) -> str | None:
         """
         ফেইলড জবের সম্পূর্ণ লগ ডাউনলোড করে একটি মার্কডাউন (.md) ফাইলে সংরক্ষণ করা।
         """
@@ -75,20 +81,24 @@ class GitHubFailureDetector:
 
         os.makedirs(output_dir, exist_ok=True)
         timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-        md_filename = os.path.join(output_dir, f"ci_failure_run_{run_id}_{timestamp_str}.md")
+        md_filename = os.path.join(
+            output_dir, f"ci_failure_run_{run_id}_{timestamp_str}.md"
+        )
 
         # Download ZIP archive of logs for the run
         logs_url = f"{self.base_url}/actions/runs/{run_id}/logs"
         response = requests.get(logs_url, headers=self.headers, stream=True)
 
-        log_contents: Dict[str, str] = {}
+        log_contents: dict[str, str] = {}
         if response.status_code == 200:
             try:
                 z = zipfile.ZipFile(io.BytesIO(response.content))
                 for file_info in z.infolist():
                     if file_info.filename.endswith(".txt"):
                         with z.open(file_info) as f:
-                            log_contents[file_info.filename] = f.read().decode('utf-8', errors='ignore')
+                            log_contents[file_info.filename] = f.read().decode(
+                                "utf-8", errors="ignore"
+                            )
             except Exception as e:
                 print(f"⚠️ Could not parse ZIP logs: {e}")
 
@@ -115,11 +125,17 @@ class GitHubFailureDetector:
             md_content.append("#### 🔍 Failed Steps:")
             for step in job.get("steps", []):
                 if step.get("conclusion") == "failure":
-                    md_content.append(f"- 💥 **{step.get('name')}** (Number: {step.get('number')})")
+                    md_content.append(
+                        f"- 💥 **{step.get('name')}** (Number: {step.get('number')})"
+                    )
 
             md_content.append("\n#### 📜 Log Output:")
             # Match job log file from extracted zip contents
-            matching_logs = [text for name, text in log_contents.items() if job_name.replace(" ", "_") in name or str(job.get("id")) in name]
+            matching_logs = [
+                text
+                for name, text in log_contents.items()
+                if job_name.replace(" ", "_") in name or str(job.get("id")) in name
+            ]
             if matching_logs:
                 raw_log = matching_logs[0]
                 # Truncate if ultra long to avoid huge files
@@ -131,7 +147,9 @@ class GitHubFailureDetector:
             else:
                 # Fallback step API message
                 md_content.append("```text")
-                md_content.append("Detailed ZIP log file not found or direct log download restricted. Check failed steps above.")
+                md_content.append(
+                    "Detailed ZIP log file not found or direct log download restricted. Check failed steps above."
+                )
                 md_content.append("```\n")
 
             md_content.append("---\n")
@@ -139,14 +157,29 @@ class GitHubFailureDetector:
         with open(md_filename, "w", encoding="utf-8") as f:
             f.write("\n".join(md_content))
 
-        print(f"✅ Full failure log saved to markdown: file:///{os.path.abspath(md_filename)}")
+        print(
+            f"✅ Full failure log saved to markdown: file:///{os.path.abspath(md_filename)}"
+        )
         return md_filename
 
+
 def main():
-    parser = argparse.ArgumentParser(description="SupremeAI GitHub Actions Failure Detector & Log Downloader")
-    parser.add_argument("--repo", default="paykaribazaronline/supremeai", help="GitHub Repository (owner/repo)")
-    parser.add_argument("--run-id", type=int, help="Specific Workflow Run ID to process")
-    parser.add_argument("--output-dir", default="docs/04-ci-logs", help="Directory to save markdown reports")
+    parser = argparse.ArgumentParser(
+        description="SupremeAI GitHub Actions Failure Detector & Log Downloader"
+    )
+    parser.add_argument(
+        "--repo",
+        default="paykaribazaronline/supremeai",
+        help="GitHub Repository (owner/repo)",
+    )
+    parser.add_argument(
+        "--run-id", type=int, help="Specific Workflow Run ID to process"
+    )
+    parser.add_argument(
+        "--output-dir",
+        default="docs/04-ci-logs",
+        help="Directory to save markdown reports",
+    )
     args = parser.parse_args()
 
     detector = GitHubFailureDetector(repo=args.repo)
@@ -161,8 +194,11 @@ def main():
 
         latest_failed_run = failed_runs[0]
         run_id = latest_failed_run["id"]
-        print(f"🚀 Processing latest failed run #{run_id} ({latest_failed_run.get('name')})...")
+        print(
+            f"🚀 Processing latest failed run #{run_id} ({latest_failed_run.get('name')})..."
+        )
         detector.download_job_logs_markdown(run_id, output_dir=args.output_dir)
+
 
 if __name__ == "__main__":
     main()

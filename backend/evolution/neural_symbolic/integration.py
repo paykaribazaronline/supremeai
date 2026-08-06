@@ -30,10 +30,9 @@ from typing import Any
 import sympy
 import torch
 import torch.nn as nn
+from core.error_bus import with_error_bus
 from loguru import logger
 from sympy.parsing.sympy_parser import parse_expr
-
-from core.error_bus import with_error_bus
 
 
 class SymbolicOperation(Enum):
@@ -115,7 +114,9 @@ class SymbolicReasoner:
         self.axioms = []
         self.theorems = []
 
-    def prove_theorem(self, statement: str, premises: list[str]) -> tuple[bool, list[str]]:
+    def prove_theorem(
+        self, statement: str, premises: list[str]
+    ) -> tuple[bool, list[str]]:
         """
         Attempt to prove a theorem using given premises.
 
@@ -139,7 +140,9 @@ class SymbolicReasoner:
             is_derivable = self._check_basic_derivability(goal_expr, premise_exprs)
 
             if is_derivable:
-                proof_steps.append(f"Statement '{statement}' is derivable from premises")
+                proof_steps.append(
+                    f"Statement '{statement}' is derivable from premises"
+                )
                 return True, proof_steps
             else:
                 return False, ["Could not derive statement from premises"]
@@ -148,7 +151,9 @@ class SymbolicReasoner:
             logger.error(f"Error in theorem proving: {e}")
             return False, [f"Error during proof: {e!s}"]
 
-    def _check_basic_derivability(self, goal: SymbolicExpression, premises: list[SymbolicExpression]) -> bool:
+    def _check_basic_derivability(
+        self, goal: SymbolicExpression, premises: list[SymbolicExpression]
+    ) -> bool:
         """Basic check for whether goal can be derived from premises."""
         # This is a simplified implementation
         # A full implementation would require sophisticated logical inference
@@ -165,7 +170,9 @@ class SymbolicReasoner:
                 goal_simplified = goal.simplify()
                 premise_simplified = premise.simplify()
 
-                if str(goal_simplified.parsed_expr) == str(premise_simplified.parsed_expr):
+                if str(goal_simplified.parsed_expr) == str(
+                    premise_simplified.parsed_expr
+                ):
                     return True
 
                 # Check if goal can be derived by substitution
@@ -177,12 +184,16 @@ class SymbolicReasoner:
 
         return False
 
-    def _check_substitution(self, goal: SymbolicExpression, premise: SymbolicExpression) -> bool:
+    def _check_substitution(
+        self, goal: SymbolicExpression, premise: SymbolicExpression
+    ) -> bool:
         """Check if goal can be derived from premise by substitution."""
         return True
 
     @with_error_bus("perform_mathematical_reasoning")
-    def perform_mathematical_reasoning(self, expression: str, variables: dict[str, float]) -> dict[str, Any]:
+    def perform_mathematical_reasoning(
+        self, expression: str, variables: dict[str, float]
+    ) -> dict[str, Any]:
         """
         Perform mathematical reasoning on an expression.
 
@@ -243,8 +254,12 @@ class NeuralModule(nn.Module):
         self.config = config
 
         # Embedding layers for symbols and operations
-        self.symbol_embedding = nn.Embedding(1000, config.embedding_dim)  # Vocabulary size placeholder
-        self.operation_embedding = nn.Embedding(len(SymbolicOperation), config.embedding_dim)
+        self.symbol_embedding = nn.Embedding(
+            1000, config.embedding_dim
+        )  # Vocabulary size placeholder
+        self.operation_embedding = nn.Embedding(
+            len(SymbolicOperation), config.embedding_dim
+        )
 
         # Neural reasoning network
         self.reasoning_network = nn.Sequential(
@@ -260,7 +275,9 @@ class NeuralModule(nn.Module):
         # Output layer for predictions
         self.output_layer = nn.Linear(config.embedding_dim, 1)  # Binary classification
 
-    def forward(self, symbol_indices: torch.Tensor, operation_indices: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self, symbol_indices: torch.Tensor, operation_indices: torch.Tensor
+    ) -> torch.Tensor:
         """
         Forward pass for neural reasoning.
 
@@ -333,11 +350,15 @@ class NeuralSymbolicIntegrator:
 
         # Convert to indices
         symbol_indices = torch.tensor([self.add_to_vocabulary(s) for s in symbols])
-        operation_indices = torch.tensor([[op.value for op in SymbolicOperation].index(op) for op in operations])
+        operation_indices = torch.tensor(
+            [[op.value for op in SymbolicOperation].index(op) for op in operations]
+        )
 
         return symbol_indices, operation_indices
 
-    def neural_symbolic_reasoning(self, expression: str, variables: dict[str, float] | None = None) -> dict[str, Any]:
+    def neural_symbolic_reasoning(
+        self, expression: str, variables: dict[str, float] | None = None
+    ) -> dict[str, Any]:
         """
         Perform reasoning using both neural and symbolic approaches.
 
@@ -353,12 +374,17 @@ class NeuralSymbolicIntegrator:
         # Perform symbolic reasoning
         try:
             if variables:
-                math_results = self.symbolic_reasoner.perform_mathematical_reasoning(expression, variables or {})
+                math_results = self.symbolic_reasoner.perform_mathematical_reasoning(
+                    expression, variables or {}
+                )
                 results["symbolic"] = math_results
             else:
                 # Just parse the expression
                 expr = SymbolicExpression(expression)
-                results["symbolic"] = {"parsed": str(expr.parsed_expr), "variables": expr.variables}
+                results["symbolic"] = {
+                    "parsed": str(expr.parsed_expr),
+                    "variables": expr.variables,
+                }
         except Exception as e:
             results["symbolic"] = {"error": str(e)}
 
@@ -404,7 +430,9 @@ class NeuralSymbolicIntegrator:
         """
         # In a real implementation, this would update the neural network
         # based on the feedback
-        logger.info(f"Learning from feedback: expression='{expression}', correct={feedback}")
+        logger.info(
+            f"Learning from feedback: expression='{expression}', correct={feedback}"
+        )
 
         # Update confidence in symbolic vs neural reasoning based on feedback
         if not feedback:
@@ -443,7 +471,9 @@ class NeuralSymbolicIntegrator:
             # Attempt to solve symbolically
             if len(expr.variables) > 0:
                 # This is a mathematical expression with variables
-                results["steps"].append("Identified mathematical expression with variables")
+                results["steps"].append(
+                    "Identified mathematical expression with variables"
+                )
 
                 # For now, just return the parsed form
                 results["solution"] = {
@@ -460,9 +490,14 @@ class NeuralSymbolicIntegrator:
 
                 # Try to prove or evaluate
                 if constraints:
-                    proved, proof_steps = self.symbolic_reasoner.prove_theorem(problem_statement, constraints)
+                    proved, proof_steps = self.symbolic_reasoner.prove_theorem(
+                        problem_statement, constraints
+                    )
                     results["steps"].extend(proof_steps)
-                    results["solution"] = {"proved": proved, "theorem": problem_statement}
+                    results["solution"] = {
+                        "proved": proved,
+                        "theorem": problem_statement,
+                    }
                 else:
                     # Just evaluate the expression
                     try:
@@ -521,7 +556,12 @@ class MathematicalReasoningEngine:
                 "standard_form": f"{expr} = 0",
                 "solutions": [str(sol) for sol in solutions],
                 "numeric_solutions": [
-                    float(complex(str(sol))) if complex(str(sol)).imag == 0 else complex(str(sol)) for sol in solutions
+                    (
+                        float(complex(str(sol)))
+                        if complex(str(sol)).imag == 0
+                        else complex(str(sol))
+                    )
+                    for sol in solutions
                 ],
                 "verification": [],
             }
@@ -547,18 +587,29 @@ class MathematicalReasoningEngine:
                         }
                     )
                 except Exception:
-                    results["verification"].append({"solution": str(sol), "error": "Could not verify"})
+                    results["verification"].append(
+                        {"solution": str(sol), "error": "Could not verify"}
+                    )
 
             # Add neural confidence
             neural_results = self.integrator.neural_symbolic_reasoning(equation)
-            results["confidence"] = neural_results.get("combined_confidence", 0.7)  # Default to medium confidence
+            results["confidence"] = neural_results.get(
+                "combined_confidence", 0.7
+            )  # Default to medium confidence
 
             return results
 
         except Exception as e:
-            return {"equation": equation, "variable": variable, "error": str(e), "confidence": 0.0}
+            return {
+                "equation": equation,
+                "variable": variable,
+                "error": str(e),
+                "confidence": 0.0,
+            }
 
-    def perform_calculus_operation(self, expression: str, operation: str, variable: str) -> dict[str, Any]:
+    def perform_calculus_operation(
+        self, expression: str, operation: str, variable: str
+    ) -> dict[str, Any]:
         """
         Perform calculus operations (differentiation/integration).
 
@@ -634,12 +685,16 @@ def demo_neural_symbolic_integration():
 
     # Test calculus
     print("\nTesting calculus operations...")
-    calc_result = engine.perform_calculus_operation("x**3 + 2*x**2 + x", "differentiate", "x")
+    calc_result = engine.perform_calculus_operation(
+        "x**3 + 2*x**2 + x", "differentiate", "x"
+    )
     print(f"Differentiation result: {calc_result}")
 
     # Test logical reasoning
     print("\nTesting logical reasoning...")
-    logic_result = integrator.solve_mathematical_problem("x**2 > 4", constraints=["x > 0"])
+    logic_result = integrator.solve_mathematical_problem(
+        "x**2 > 4", constraints=["x > 0"]
+    )
     print(f"Logical reasoning result: {logic_result}")
 
 

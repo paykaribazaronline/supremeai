@@ -70,9 +70,13 @@ class SecureRedisManager:
                     decode_responses=True,
                 )
                 self._client = aioredis.Redis(connection_pool=pool)
-                logger.info("⚡ Serverless Upstash Redis REST Provider Active with Connection Pool (limit=20).")
+                logger.info(
+                    "⚡ Serverless Upstash Redis REST Provider Active with Connection Pool (limit=20)."
+                )
             else:
-                logger.critical("🔥 CRITICAL: Serverless Redis Endpoint Missing! System entering Fail-Closed state.")
+                logger.critical(
+                    "🔥 CRITICAL: Serverless Redis Endpoint Missing! System entering Fail-Closed state."
+                )
             self._initialized = True
 
     async def get_client_async(self) -> Any:
@@ -124,7 +128,9 @@ class SecureRedisManager:
             logger.error(f"Redis SET error: {exc}")
             return False
 
-    async def set_cache(self, key: str, value: str, ex_seconds: int | None = None) -> bool:
+    async def set_cache(
+        self, key: str, value: str, ex_seconds: int | None = None
+    ) -> bool:
         """Alias for set(), supporting ex_seconds parameter."""
         return await self.set(key, value, ex=ex_seconds)
 
@@ -170,7 +176,9 @@ class SecureRedisManager:
     # pybreaker.CircuitBreaker.call() was called with a coroutine that was never awaited,
     # and the method was never actually called anywhere in the codebase.
 
-    async def incrbyfloat(self, key: str, amount: float, ex_seconds: int = 86400) -> float:
+    async def incrbyfloat(
+        self, key: str, amount: float, ex_seconds: int = 86400
+    ) -> float:
         """Increment floating point value in Redis with optional expiration.
 
         বাংলা: Redis-এ ফ্লোটিং পয়েন্ট মান বৃদ্ধি করে এবং TTL সেট করে।
@@ -204,12 +212,16 @@ class _AcquireIdempotencyLockContext:
         client = await redis_manager.get_client_async()
         if client:
             try:
-                self.acquired = await client.set(self.key, "locked", nx=True, ex=self.ttl)
+                self.acquired = await client.set(
+                    self.key, "locked", nx=True, ex=self.ttl
+                )
             except Exception as exc:
                 logger.error(f"Failed to set idempotency lock in Redis: {exc}")
                 self.acquired = False
         if not self.acquired and self.fail_closed:
-            raise IdempotencyUnavailableError(f"Idempotency lock unavailable for key: {self.key}")
+            raise IdempotencyUnavailableError(
+                f"Idempotency lock unavailable for key: {self.key}"
+            )
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -312,7 +324,12 @@ class MultiLevelCache:
     Optimization: L1 TTL L2 TTL-এর চেয়ে ছোট — stale data পড়ার রিস্ক কম
     """
 
-    def __init__(self, redis_mgr: SecureRedisManager | None = None, l1_ttl: int = 60, l2_ttl: int = 3600):
+    def __init__(
+        self,
+        redis_mgr: SecureRedisManager | None = None,
+        l1_ttl: int = 60,
+        l2_ttl: int = 3600,
+    ):
         self._l1_cache = TTLCacheDict(default_ttl=l1_ttl, maxsize=2000)
         self._l2_ttl = l2_ttl
         self.redis_cache = redis_mgr or redis_manager
@@ -383,7 +400,9 @@ class MultiLevelCache:
         self._l1_cache.set(key, value, ttl=l1_ttl)
         # L2 — পূর্ণ TTL
         await self.redis_cache.set_cache(
-            key, str(value) if not isinstance(value, str) else value, ex_seconds=effective_ttl
+            key,
+            str(value) if not isinstance(value, str) else value,
+            ex_seconds=effective_ttl,
         )
 
     def invalidate_local(self, key: str | None = None) -> None:

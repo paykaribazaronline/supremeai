@@ -21,13 +21,13 @@ import os
 import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
 
 @dataclass
 class ImportInfo:
     """Information about a single import statement."""
+
     file_path: str
     line_number: int
     module: str
@@ -39,6 +39,7 @@ class ImportInfo:
 @dataclass
 class ImportAnalysis:
     """Analysis results for a file's imports."""
+
     file_path: str
     imports: list[ImportInfo] = field(default_factory=list)
     unused_imports: list[ImportInfo] = field(default_factory=list)
@@ -58,23 +59,27 @@ def extract_imports(file_path: str) -> list[ImportInfo]:
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    imports.append(ImportInfo(
-                        file_path=file_path,
-                        line_number=node.lineno,
-                        module=alias.name,
-                        names=[alias.asname or alias.name],
-                        import_type="import",
-                    ))
+                    imports.append(
+                        ImportInfo(
+                            file_path=file_path,
+                            line_number=node.lineno,
+                            module=alias.name,
+                            names=[alias.asname or alias.name],
+                            import_type="import",
+                        )
+                    )
             elif isinstance(node, ast.ImportFrom):
                 module = node.module or ""
                 for alias in node.names:
-                    imports.append(ImportInfo(
-                        file_path=file_path,
-                        line_number=node.lineno,
-                        module=module,
-                        names=[alias.asname or alias.name],
-                        import_type="from",
-                    ))
+                    imports.append(
+                        ImportInfo(
+                            file_path=file_path,
+                            line_number=node.lineno,
+                            module=module,
+                            names=[alias.asname or alias.name],
+                            import_type="from",
+                        )
+                    )
 
     except (SyntaxError, UnicodeDecodeError) as e:
         print(f"  ⚠️  Skipping {file_path}: {e}", file=sys.stderr)
@@ -224,17 +229,19 @@ def analyze_imports(
         if check_unused:
             unused = check_import_usage(py_file, imports)
             if unused:
-                results["unused_imports"].append({
-                    "file": os.path.relpath(py_file),
-                    "imports": [
-                        {
-                            "module": imp.module,
-                            "names": imp.names,
-                            "line": imp.line_number,
-                        }
-                        for imp in unused
-                    ],
-                })
+                results["unused_imports"].append(
+                    {
+                        "file": os.path.relpath(py_file),
+                        "imports": [
+                            {
+                                "module": imp.module,
+                                "names": imp.names,
+                                "line": imp.line_number,
+                            }
+                            for imp in unused
+                        ],
+                    }
+                )
 
     # Detect circular imports
     if check_circular:
@@ -285,12 +292,12 @@ def print_summary(results: dict[str, Any]) -> None:
             for cycle in cycles[:2]:
                 print(f"    • {cycle}")
     else:
-        print(f"\n✅ No circular imports detected")
+        print("\n✅ No circular imports detected")
 
     # Most imported modules
     freq = results.get("import_frequency", {})
     if freq:
-        print(f"\n📈 Most imported modules:")
+        print("\n📈 Most imported modules:")
         sorted_freq = sorted(freq.items(), key=lambda x: x[1], reverse=True)
         for module, count in sorted_freq[:10]:
             print(f"    • {module}: {count} imports")
@@ -303,7 +310,8 @@ def main():
         description="Analyze Python imports in the SupremeAI 2.0 codebase"
     )
     parser.add_argument(
-        "--directory", "-d",
+        "--directory",
+        "-d",
         default="backend",
         help="Directory to analyze (default: backend)",
     )
@@ -320,12 +328,14 @@ def main():
         help="Check for circular imports",
     )
     parser.add_argument(
-        "--output", "-o",
+        "--output",
+        "-o",
         default="reports/import_analysis.json",
         help="Output file for JSON report (default: reports/import_analysis.json)",
     )
     parser.add_argument(
-        "--ignore", "-i",
+        "--ignore",
+        "-i",
         nargs="+",
         default=["tests", "migrations", "__pycache__", ".venv", "node_modules"],
         help="Directories to ignore",
@@ -352,7 +362,9 @@ def main():
     circular_count = len(results.get("circular_imports", {}))
 
     if unused_count > 0 or circular_count > 0:
-        print(f"\n⚠️  Found {unused_count} unused imports and {circular_count} circular dependencies.")
+        print(
+            f"\n⚠️  Found {unused_count} unused imports and {circular_count} circular dependencies."
+        )
         sys.exit(1)
     else:
         print("\n✅ No import issues found!")

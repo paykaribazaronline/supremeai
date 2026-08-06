@@ -1,6 +1,8 @@
 import re
 
-filepath = r"c:\Users\n\supremeai\supremeai_2.0\backend\core\resilience\auto_remediation.py"
+filepath = (
+    r"c:\Users\n\supremeai\supremeai_2.0\backend\core\resilience\auto_remediation.py"
+)
 with open(filepath, encoding="utf-8") as f:
     content = f.read()
 
@@ -45,7 +47,9 @@ new_method = '''
         )
 '''
 # Insert it after __init__
-content = content.replace("def _validate_file_path", new_method.strip() + "\n\n    def _validate_file_path")
+content = content.replace(
+    "def _validate_file_path", new_method.strip() + "\n\n    def _validate_file_path"
+)
 
 # 3. Use _create_github_pr instead of commit_changes
 content = content.replace(

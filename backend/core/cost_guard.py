@@ -1,8 +1,7 @@
 from core.error_bus import with_error_bus
 
-from .messaging.event_bus import (
-    ErrorContext,  # Fixed import path - using relative import
-)
+from .messaging.event_bus import \
+    ErrorContext  # Fixed import path - using relative import
 
 """This module, `cost_guard.py`, provides a robust mechanism for managing and enforcing budget constraints within the SupremeAI ecosystem. It features the `CostGuard` class, which offers methods for pre-flight budget checks against a database for individual tenants and a tier-based validation system designed to support multi-tier fallback strategies for AI task routing. A global singleton instance ensures easy access and backward compatibility for other modules like `task_router.py`.
 
@@ -20,10 +19,9 @@ Dependencies:
 
 from typing import Any
 
+from core.config import settings
 from fastapi import HTTPException
 from loguru import logger
-
-from core.config import settings
 
 
 class CostGuard:
@@ -33,8 +31,12 @@ class CostGuard:
         # বাংলা মন্তব্য: Config-driven — settings থেকে override করা যায়।
         self.tier_limits = {
             "free": 0.0,
-            "economy": float(getattr(settings, "cost_tier_economy_limit", 0.02)),  # প্রতি টাস্কে সর্বোচ্চ খরচ ২ সেন্ট
-            "premium": float(getattr(settings, "cost_tier_premium_limit", 0.50)),  # প্রিমিয়াম মডেলের বাজেট গেট
+            "economy": float(
+                getattr(settings, "cost_tier_economy_limit", 0.02)
+            ),  # প্রতি টাস্কে সর্বোচ্চ খরচ ২ সেন্ট
+            "premium": float(
+                getattr(settings, "cost_tier_premium_limit", 0.50)
+            ),  # প্রিমিয়াম মডেলের বাজেট গেট
         }
 
     async def connect(self) -> "CostGuard":
@@ -43,11 +45,17 @@ class CostGuard:
         এসিঙ্ক কানেক্ট গেটওয়ে মেথড যুক্ত করা হলো।
         """
         try:
-            logger.info("💰 CostGuard: Initializing resource budget guardian connection protocol...")
-            logger.info("✅ CostGuard: Budget guardian layer attached and armed successfully.")
+            logger.info(
+                "💰 CostGuard: Initializing resource budget guardian connection protocol..."
+            )
+            logger.info(
+                "✅ CostGuard: Budget guardian layer attached and armed successfully."
+            )
             return self
         except Exception as e:
-            logger.error(f"🚨 [COST_GUARD_CONNECT_LEAK]: Lifespan handshake failed: {e}")
+            logger.error(
+                f"🚨 [COST_GUARD_CONNECT_LEAK]: Lifespan handshake failed: {e}"
+            )
             raise
 
     @with_error_bus("check_budget")
@@ -64,7 +72,9 @@ class CostGuard:
             return True
 
         try:
-            doc_ref = self._db.collection(f"tenants/{tenant_id}/budget").document("status")
+            doc_ref = self._db.collection(f"tenants/{tenant_id}/budget").document(
+                "status"
+            )
 
             import asyncio
 
@@ -74,7 +84,9 @@ class CostGuard:
                 snapshot = doc_ref.get()
 
             if not snapshot.exists:
-                raise HTTPException(status_code=402, detail="Payment Required: No budget configured.")
+                raise HTTPException(
+                    status_code=402, detail="Payment Required: No budget configured."
+                )
 
             data = snapshot.to_dict()
             monthly_limit = float(data.get("monthly_limit", 0.0))
@@ -84,7 +96,9 @@ class CostGuard:
                 logger.warning(
                     f"Tenant {tenant_id} exceeded budget. Spent: {spent_amount}, Limit: {monthly_limit}, Estimated: {estimated_cost}"
                 )
-                raise HTTPException(status_code=402, detail="Payment Required: Budget Exceeded")
+                raise HTTPException(
+                    status_code=402, detail="Payment Required: Budget Exceeded"
+                )
 
             return True
         except HTTPException:
@@ -92,7 +106,8 @@ class CostGuard:
         except Exception as e:
             logger.error(f"CostGuard DB Error: {e}")
             try:
-                from core.messaging.event_bus import ErrorEvent, error_event_bus
+                from core.messaging.event_bus import (ErrorEvent,
+                                                      error_event_bus)
 
                 error_event_bus.emit(
                     ErrorEvent(
@@ -113,7 +128,9 @@ class CostGuard:
         নতুন মেthod: টাস্ক রাউটারের ৮০/১৫/৫ মাল্টি-টিয়ার ফলব্যাক চেইনের বাজেট ভ্যালিডেশনের জন্য।
         এটি চেক করবে ওই নির্দিষ্ট টিয়ারের কোটা এপিআই কলের জন্য খালি আছে কিনা।
         """
-        logger.info(f"[CostGuard] Validating execution safety gate for AI tier: '{tier}' for tenant: '{tenant_id}'")
+        logger.info(
+            f"[CostGuard] Validating execution safety gate for AI tier: '{tier}' for tenant: '{tenant_id}'"
+        )
 
         max_task_cost = self.tier_limits.get(tier)
         if max_task_cost is None or max_task_cost <= 0.0:
@@ -129,7 +146,8 @@ class CostGuard:
         except Exception as e:
             logger.error(f"[CostGuard] Redis unavailable, fail-safe reject: {e}")
             try:
-                from core.messaging.event_bus import ErrorEvent, error_event_bus
+                from core.messaging.event_bus import (ErrorEvent,
+                                                      error_event_bus)
 
                 error_event_bus.emit(
                     ErrorEvent(
@@ -153,7 +171,9 @@ class CostGuard:
 
         # Check 2: Will this task push it over?
         if spent + max_task_cost > cap:
-            logger.warning(f"[CostGuard] Tier '{tier}' task budget would exceed quota for {tenant_id}")
+            logger.warning(
+                f"[CostGuard] Tier '{tier}' task budget would exceed quota for {tenant_id}"
+            )
             return False
 
         return True
@@ -162,7 +182,9 @@ class CostGuard:
         # Default daily cap strategy based on tier limit (e.g. 10x the per task limit)
         return self.tier_limits.get(tier, 0.0) * 10.0
 
-    async def is_provider_quota_exceeded(self, provider: str, daily_limit: int = 1_000_000) -> bool:
+    async def is_provider_quota_exceeded(
+        self, provider: str, daily_limit: int = 1_000_000
+    ) -> bool:
         """
         Rule PSI-005: Stop routing when provider daily token quota reaches 80%.
         """
@@ -181,7 +203,9 @@ class CostGuard:
                 return True
             return False
         except Exception as exc:
-            logger.error(f"[CostGuard] Provider quota check error for {provider}: {exc}")
+            logger.error(
+                f"[CostGuard] Provider quota check error for {provider}: {exc}"
+            )
             return False
 
     @with_error_bus("record_spend")
@@ -195,7 +219,8 @@ class CostGuard:
         except Exception as e:
             logger.error(f"[CostGuard] Failed to record spend in Redis: {e}")
             try:
-                from core.messaging.event_bus import ErrorEvent, error_event_bus
+                from core.messaging.event_bus import (ErrorEvent,
+                                                      error_event_bus)
 
                 error_event_bus.emit(
                     ErrorEvent(

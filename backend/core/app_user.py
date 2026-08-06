@@ -3,12 +3,11 @@
 বাংলা মন্তব্য: ইউজার এপিআই এন্ট্রি পয়েন্ট যা শুধুমাত্র চ্যাট ও ইউজার-ফেসিং রাউটগুলো এক্সপোজ করে।
 """
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
 from api.routers import include_user_routers
 from core.app_builder import build_app_shell, router_health_check
 from core.config import settings
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 app: FastAPI = build_app_shell(title="SupremeAI User API")
 
@@ -32,8 +31,12 @@ if settings.env == "production":
     if not settings.user_cors_origins or "*" in settings.user_cors_origins:
         from loguru import logger
 
-        logger.warning("⚠️ Production User CORS wildcard/drift detected. Setting default trusted production origins.")
-        settings.user_cors_origins = [origin for origin in (settings.user_cors_origins or []) if origin != "*"] + [
+        logger.warning(
+            "⚠️ Production User CORS wildcard/drift detected. Setting default trusted production origins."
+        )
+        settings.user_cors_origins = [
+            origin for origin in (settings.user_cors_origins or []) if origin != "*"
+        ] + [
             "https://supremeai-lac.vercel.app",
             "https://supremeai-studio.vercel.app",
             "https://tiny-stroopwafel-2d981c.netlify.app",

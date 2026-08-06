@@ -4,22 +4,24 @@
 # Author: Gemini Code Assist
 # Date: July 12, 2026
 
-import os
 import argparse
-import json
-from pathlib import Path
-import hashlib
-import litellm
-import logging
-import concurrent.futures
-import threading
-
-import sys
 import ast
+import concurrent.futures
+import hashlib
+import json
+import logging
+import os
+import sys
+import threading
+from pathlib import Path
+
+import litellm
 
 # বাংলা মন্তব্য: প্রজেক্ট রুট থেকে সঠিক সিস্টেম পাথ রেজোলিউশন করা হচ্ছে যাতে CI-তে ModuleNotFoundError না হয়।
 # লগে দেখা গিয়েছিল: scripts/devops/ai_scribe_historian.py:28 → ModuleNotFoundError: No module named 'knowledge_indexer'
-_project_root = Path(__file__).resolve().parent.parent.parent  # scripts/devops/../../.. = project root
+_project_root = (
+    Path(__file__).resolve().parent.parent.parent
+)  # scripts/devops/../../.. = project root
 
 try:
     sys.path.insert(0, str(_project_root / "backend"))
@@ -29,6 +31,7 @@ except ImportError:
 
 # বাংলা মন্তব্য: যদি settings ইম্পোর্ট করা না যায় বা None হয়, তবে সরাসরি env vars থেকে fallback করা হবে।
 if settings is None:
+
     class FallbackSettings:
         @property
         def gemini_api_key(self) -> str:
@@ -39,6 +42,7 @@ if settings is None:
         def gemini_model_name(self) -> str:
             # বাংলা মন্তব্য: সরাসরি পরিবেশ ভেরিয়েবল থেকে Gemini মডেলের নাম পড়া হচ্ছে, না থাকলে ডিফল্ট মডেল ব্যবহার হবে।
             return os.environ.get("GEMINI_MODEL_NAME", "gemini/gemini-1.5-flash")
+
     settings = FallbackSettings()  # type: ignore[assignment]
 
 try:
@@ -52,28 +56,28 @@ except ImportError:
 
 
 # --- Configuration ---
-logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
+logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 # বাংলা মন্তব্য: এখানে আমরা litellm ব্যবহার করছি যাতে ভবিষ্যতে সহজেই মডেল পরিবর্তন করা যায় (Gemini, GPT, Claude ইত্যাদি)।
-litellm.set_verbose=False
+litellm.set_verbose = False
 CACHE_FILE = Path(__file__).parent / ".scribe_cache.json"
 litellm.max_retries = 3
 
 # বাংলা মন্তব্য: অনির্দিষ্ট Exceptions-এ রিট্রাই বন্ধ করা হলো এবং litellm এর ডিফল্ট হ্যান্ডলিং বা নির্দিষ্ট ক্লাস ব্যবহার করা হচ্ছে।
 try:
     import litellm.exceptions
+
     litellm.retry_strategy = {
         "wait_time": 16,
         "allowed_exceptions": [
             litellm.exceptions.RateLimitError,
             litellm.exceptions.Timeout,
             litellm.exceptions.APIConnectionError,
-            litellm.exceptions.InternalServerError
-        ]
+            litellm.exceptions.InternalServerError,
+        ],
     }
 except AttributeError:
     pass
-
 
 
 TARGET_DIRECTORIES = ["backend/core", "backend/tools"]
@@ -163,14 +167,19 @@ graph TD;
 <Full summary from file_summaries...>
 """
 
+
 # বাংলা মন্তব্য: সব রিট্রাই শেষে LLM কল পুরোপুরি ব্যর্থ হলে সাইলেন্ট ফেইলর এড়াতে এই এরর ব্যবহার করা হবে।
 class LLMCallError(Exception):
     """সব রিট্রাই শেষে LLM কল ব্যর্থ হলে এই এরর রেইজ হবে।"""
 
+
 key_index = 0
 api_key_lock = threading.Lock()
 
-def get_ai_response(prompt: str, max_retries_per_key: int = 3, retry_backoff_seconds: float = 2.0) -> str:
+
+def get_ai_response(
+    prompt: str, max_retries_per_key: int = 3, retry_backoff_seconds: float = 2.0
+) -> str:
     """
     বাংলা মন্তব্য: প্রম্পট পাঠায় এবং LLM-এর উত্তর রিটার্ন করে। ব্যর্থ হলে LLMCallError রেইজ করে।
     """
@@ -179,7 +188,7 @@ def get_ai_response(prompt: str, max_retries_per_key: int = 3, retry_backoff_sec
     if not api_keys_str:
         raise LLMCallError("settings.gemini_api_key কনফিগার করা নেই।")
 
-    keys = [k.strip() for k in api_keys_str.split(',') if k.strip()]
+    keys = [k.strip() for k in api_keys_str.split(",") if k.strip()]
     if not keys:
         raise LLMCallError("কোনো বৈধ Gemini API key পাওয়া যায়নি।")
 
@@ -193,27 +202,43 @@ def get_ai_response(prompt: str, max_retries_per_key: int = 3, retry_backoff_sec
                 model=settings.gemini_model_name,  # বাংলা মন্তব্য: হার্ডকোড না করে সেটিংস থেকে আনা হচ্ছে।
                 messages=[{"content": prompt, "role": "user"}],
                 temperature=0.1,
-                api_key=current_key
+                api_key=current_key,
             )
             return response.choices[0].message.content or ""
         except Exception as e:
             last_error = e
             error_msg = str(e)
             # বাংলা মন্তব্য: শুধুমাত্র transient/rate limit এবং key block এররের জন্য কী রোটেট বা রিট্রাই করা হবে। অথরাইজেশন এরর (403, PERMISSION_DENIED) সরাসরি রেইজ করা হবে।
-            recoverable = any(code in error_msg for code in ("429", "RESOURCE_EXHAUSTED", "RateLimit", "500", "502", "503", "504", "Timeout", "API_KEY_SERVICE_BLOCKED"))
+            recoverable = any(
+                code in error_msg
+                for code in (
+                    "429",
+                    "RESOURCE_EXHAUSTED",
+                    "RateLimit",
+                    "500",
+                    "502",
+                    "503",
+                    "504",
+                    "Timeout",
+                    "API_KEY_SERVICE_BLOCKED",
+                )
+            )
             if not recoverable:
                 # বাংলা মন্তব্য: অপ্রত্যাশিত বা স্থায়ী এরর সাথে সাথে থ্রো করা হচ্ছে।
                 raise
 
-
-            logging.warning(f"Key ending in ...{current_key[-4:]} failed (attempt {attempt+1}/{max_retries}), rotating key...")
+            logging.warning(
+                f"Key ending in ...{current_key[-4:]} failed (attempt {attempt+1}/{max_retries}), rotating key..."
+            )
             with api_key_lock:
                 key_index += 1
             # বাংলা মন্তব্য: rate limit এবং temporary ব্লকের ক্ষেত্রে exponential backoff দিয়ে sleep করা হচ্ছে।
             import time
+
             time.sleep(retry_backoff_seconds * (2 ** (attempt // len(keys))))
 
     raise LLMCallError(f"সব API key দিয়ে চেষ্টার পরও ব্যর্থ: {last_error}")
+
 
 def get_existing_docstring(content: str) -> str | None:
     """Safely extracts the module-level docstring using AST."""
@@ -223,21 +248,27 @@ def get_existing_docstring(content: str) -> str | None:
     except SyntaxError:
         return None
 
+
 def load_cache() -> dict:
     """Loads the cache file from disk."""
     if CACHE_FILE.exists():
         return json.loads(CACHE_FILE.read_text(encoding="utf-8"))
     return {}
 
+
 def save_cache(cache: dict):
     """Saves the cache to disk."""
     CACHE_FILE.write_text(json.dumps(cache, indent=2), encoding="utf-8")
 
+
 def get_file_hash(content: str) -> str:
     """Generates a SHA-256 hash of the file content."""
-    return hashlib.sha256(content.encode('utf-8')).hexdigest()
+    return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
-def update_file_with_docstring(file_path: Path, content: str, new_docstring: str) -> bool:
+
+def update_file_with_docstring(
+    file_path: Path, content: str, new_docstring: str
+) -> bool:
     """
     Updates a Python file with a new module-level docstring using AST.
     This is safer than string replacement.
@@ -261,23 +292,32 @@ def update_file_with_docstring(file_path: Path, content: str, new_docstring: str
 
         # Add a newline after the docstring if it's not the only thing in the file
         if len(tree.body) > 1:
-            tree.body[1].lineno = new_docstring_node.lineno + new_docstring.strip().count('\n') + 3
+            tree.body[1].lineno = (
+                new_docstring_node.lineno + new_docstring.strip().count("\n") + 3
+            )
 
         # Unparse the AST back to code (requires Python 3.9+)
         new_content = ast.unparse(tree)
         file_path.write_text(new_content, encoding="utf-8")
         return True
     except (SyntaxError, AttributeError, TypeError) as e:
-        logging.error(f"Failed to update file {file_path} using AST: {e}. Falling back to simple prepend.")
+        logging.error(
+            f"Failed to update file {file_path} using AST: {e}. Falling back to simple prepend."
+        )
         # Fallback for safety, though less ideal
         final_content = f'"""{new_docstring.strip()}"""\n\n{content}'
         file_path.write_text(final_content, encoding="utf-8")
         return True
     except Exception as e:
-        logging.error(f"An unexpected error occurred during file update for {file_path}: {e}")
+        logging.error(
+            f"An unexpected error occurred during file update for {file_path}: {e}"
+        )
         return False
 
-def generate_docstring_for_file(file_path: Path, cache: dict, force: bool = False) -> str | None:
+
+def generate_docstring_for_file(
+    file_path: Path, cache: dict, force: bool = False
+) -> str | None:
     """
     Generates a module-level docstring for a given Python file.
     Returns the docstring content if generated/updated, otherwise None.
@@ -288,7 +328,11 @@ def generate_docstring_for_file(file_path: Path, cache: dict, force: bool = Fals
     existing_docstring = get_existing_docstring(content)
 
     # Cache check: যদি হ্যাশ একই থাকে এবং force=False না হয়, তবে ক্যাশ থেকে ডকস্ট্রিং ব্যবহার করা হবে
-    if not force and file_path.name in cache and cache[file_path.name]["hash"] == content_hash:
+    if (
+        not force
+        and file_path.name in cache
+        and cache[file_path.name]["hash"] == content_hash
+    ):
         logging.info(f"Skipping {file_path}, content unchanged (from cache).")
         return cache[file_path.name]["docstring"]
 
@@ -296,14 +340,22 @@ def generate_docstring_for_file(file_path: Path, cache: dict, force: bool = Fals
     docstring = get_ai_response(prompt)
 
     if docstring:
-        clean_docstring = docstring.replace("```python", "").replace("```", "").replace('"""', '').strip()
+        clean_docstring = (
+            docstring.replace("```python", "")
+            .replace("```", "")
+            .replace('"""', "")
+            .strip()
+        )
         if update_file_with_docstring(file_path, content, clean_docstring):
-            logging.info(f"✅ Docstring {'updated' if existing_docstring else 'added'} for {file_path}")
+            logging.info(
+                f"✅ Docstring {'updated' if existing_docstring else 'added'} for {file_path}"
+            )
             # Update cache
             cache[file_path.name] = {"hash": content_hash, "docstring": clean_docstring}
             return clean_docstring
     logging.warning(f"Could not generate docstring for {file_path}")
     return None
+
 
 def generate_readme_for_dir(dir_path: Path, summaries: dict):
     """
@@ -311,9 +363,13 @@ def generate_readme_for_dir(dir_path: Path, summaries: dict):
     """
     logging.info(f"Generating README for directory: {dir_path}")
 
-    summary_text = "\n".join([f"### {fname}\n{summary}\n" for fname, summary in summaries.items()])
+    summary_text = "\n".join(
+        [f"### {fname}\n{summary}\n" for fname, summary in summaries.items()]
+    )
 
-    prompt = README_PROMPT_TEMPLATE.format(dir_path=dir_path, file_summaries=summary_text)
+    prompt = README_PROMPT_TEMPLATE.format(
+        dir_path=dir_path, file_summaries=summary_text
+    )
     readme_content = get_ai_response(prompt)
 
     if readme_content:
@@ -323,7 +379,10 @@ def generate_readme_for_dir(dir_path: Path, summaries: dict):
     else:
         logging.warning(f"Could not generate README for {dir_path}")
 
-def process_file(file_path: Path, cache: dict, force: bool, dry_run: bool) -> tuple[str, str | None]:
+
+def process_file(
+    file_path: Path, cache: dict, force: bool, dry_run: bool
+) -> tuple[str, str | None]:
     """Helper function to process a single file, for concurrency."""
     if dry_run:
         logging.info(f"[DRY-RUN] Would analyze {file_path}")
@@ -332,7 +391,13 @@ def process_file(file_path: Path, cache: dict, force: bool, dry_run: bool) -> tu
     summary = generate_docstring_for_file(file_path, cache, force)
     return file_path.name, summary
 
-def main(dry_run: bool = False, force: bool = False, workers: int = 4, files: list[str] | None = None):
+
+def main(
+    dry_run: bool = False,
+    force: bool = False,
+    workers: int = 4,
+    files: list[str] | None = None,
+):
     """
     Main function to orchestrate the documentation generation process.
     """
@@ -349,15 +414,24 @@ def main(dry_run: bool = False, force: bool = False, workers: int = 4, files: li
 
     if files:
         # --- Git Hook Mode: Process specific files ---
-        logging.info(f"AI Scribe (Git Hook Mode): Processing {len(files)} changed files...")
-        file_paths = [Path(f) for f in files if Path(f).exists() and Path(f).name not in EXCLUDE_FILES]
+        logging.info(
+            f"AI Scribe (Git Hook Mode): Processing {len(files)} changed files..."
+        )
+        file_paths = [
+            Path(f)
+            for f in files
+            if Path(f).exists() and Path(f).name not in EXCLUDE_FILES
+        ]
 
         if not file_paths:
             logging.info("No relevant Python files to process.")
             return
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
-            future_to_file = {executor.submit(process_file, fp, cache, force, dry_run): fp for fp in file_paths}
+            future_to_file = {
+                executor.submit(process_file, fp, cache, force, dry_run): fp
+                for fp in file_paths
+            }
             for future in concurrent.futures.as_completed(future_to_file):
                 try:
                     future.result()
@@ -385,9 +459,13 @@ def main(dry_run: bool = False, force: bool = False, workers: int = 4, files: li
             dir_path = Path(dir_path)
             py_files = list(dir_path.glob(FILE_PATTERN))
             # Filter out files in subdirectories, only process files in the current dir_path
-            py_files = [f for f in py_files if f.parent == dir_path and f.name not in EXCLUDE_FILES]
+            py_files = [
+                f
+                for f in py_files
+                if f.parent == dir_path and f.name not in EXCLUDE_FILES
+            ]
 
-            if not py_files: # যদি কোনো পাইথন ফাইল না থাকে
+            if not py_files:  # যদি কোনো পাইথন ফাইল না থাকে
                 continue
 
             file_summaries = {}
@@ -395,7 +473,10 @@ def main(dry_run: bool = False, force: bool = False, workers: int = 4, files: li
 
             with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as executor:
                 # Submit all file processing tasks to the executor
-                future_to_file = {executor.submit(process_file, fp, cache, force, dry_run): fp for fp in py_files}
+                future_to_file = {
+                    executor.submit(process_file, fp, cache, force, dry_run): fp
+                    for fp in py_files
+                }
                 for future in concurrent.futures.as_completed(future_to_file):
                     fname, summary = future.result()
                     if summary:
@@ -416,28 +497,32 @@ def main(dry_run: bool = False, force: bool = False, workers: int = 4, files: li
 
     logging.info("\nHistorian's work complete. The past is now documented. ✨")
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="AI Scribe: Codebase Historian - Auto-Doc Generator")
+    parser = argparse.ArgumentParser(
+        description="AI Scribe: Codebase Historian - Auto-Doc Generator"
+    )
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Run the script without modifying any files."
+        help="Run the script without modifying any files.",
     )
     parser.add_argument(
         "--force",
         action="store_true",
-        help="Force regeneration of all docstrings, ignoring the cache."
+        help="Force regeneration of all docstrings, ignoring the cache.",
     )
     parser.add_argument(
-        "-w", "--workers",
+        "-w",
+        "--workers",
         type=int,
         default=4,
-        help="Number of concurrent workers to use for processing files."
+        help="Number of concurrent workers to use for processing files.",
     )
     parser.add_argument(
         "--files",
-        nargs='*',
-        help="Run the script on a specific list of files (used by pre-commit hook)."
+        nargs="*",
+        help="Run the script on a specific list of files (used by pre-commit hook).",
     )
     args = parser.parse_args()
     main(args.dry_run, args.force, args.workers, args.files)

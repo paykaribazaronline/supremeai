@@ -45,7 +45,8 @@ class TestSubGoal:
 
     def test_subgoal_creation(self):
         """SubGoal should be creatable with all fields."""
-        from core.evolution.daily_learner import GoalStatus, LearningPriority, SubGoal
+        from core.evolution.daily_learner import (GoalStatus, LearningPriority,
+                                                  SubGoal)
 
         sg = SubGoal(
             id="sg_1",
@@ -166,7 +167,9 @@ class TestGoalDecomposer:
 
         with patch("core.evolution.daily_learner.get_cache", return_value=mock_cache):
             decomposer = GoalDecomposer(llm_router=mock_router)
-            result = await decomposer.decompose("Develop a code feature", force_refresh=True)
+            result = await decomposer.decompose(
+                "Develop a code feature", force_refresh=True
+            )
             assert len(result) > 0  # Should return heuristic fallback
 
     @pytest.mark.asyncio
@@ -223,12 +226,10 @@ class TestConstants:
 
     def test_constants(self):
         """Module constants should have correct values."""
-        from core.evolution.daily_learner import (
-            GOAL_DECOMPOSITION_TTL,
-            IMPACT_WEIGHTS,
-            LEARNER_CACHE_TTL,
-            MAX_CONCURRENT_LEARNS,
-        )
+        from core.evolution.daily_learner import (GOAL_DECOMPOSITION_TTL,
+                                                  IMPACT_WEIGHTS,
+                                                  LEARNER_CACHE_TTL,
+                                                  MAX_CONCURRENT_LEARNS)
 
         assert LEARNER_CACHE_TTL == 1800
         assert MAX_CONCURRENT_LEARNS == 5

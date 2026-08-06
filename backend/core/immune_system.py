@@ -90,11 +90,15 @@ class ASTSecurityScanner(ast.NodeVisitor):
             "builtins",
             "__builtins__",
         }:
-            raise SecuritySandboxError("Sandbox escape via subscript blocked: builtins/__builtins__ access")
+            raise SecuritySandboxError(
+                "Sandbox escape via subscript blocked: builtins/__builtins__ access"
+            )
         # Block chained dunder attribute access via subscript (e.g., obj.__class__.__bases__[0])
         if isinstance(node.value, ast.Attribute):
             if node.value.attr in self.banned_attributes:
-                raise SecuritySandboxError(f"Dunder attribute access via subscript blocked: {node.value.attr}")
+                raise SecuritySandboxError(
+                    f"Dunder attribute access via subscript blocked: {node.value.attr}"
+                )
         # Block dunder subscript access that can lead to subclass enumeration: "".__class__.__bases__[0].__subclasses__()
         if isinstance(node.value, ast.Attribute) and hasattr(node.value, "attr"):
             # Check for patterns like __class__, __bases__, __subclasses__ in the chain
@@ -107,7 +111,11 @@ class ASTSecurityScanner(ast.NodeVisitor):
                     break
 
             # Check if the chain contains dangerous patterns
-            if "__subclasses__" in attr_chain and "__bases__" in attr_chain and "__class__" in attr_chain:
+            if (
+                "__subclasses__" in attr_chain
+                and "__bases__" in attr_chain
+                and "__class__" in attr_chain
+            ):
                 raise SecuritySandboxError(
                     "Dangerous dunder method chain detected: potential subclass enumeration attack"
                 )
@@ -118,7 +126,9 @@ class ASTSecurityScanner(ast.NodeVisitor):
         if isinstance(node.func, ast.Attribute):
             # Block getattr/hasattr/setattr/delattr - critical for RCE bypass
             if node.func.attr in {"getattr", "hasattr", "setattr", "delattr"}:
-                raise SecuritySandboxError(f"Banned reflection function call detected: {node.func.attr}")
+                raise SecuritySandboxError(
+                    f"Banned reflection function call detected: {node.func.attr}"
+                )
             # Block dangerous module methods
             if node.func.attr in {
                 "import_module",
@@ -129,7 +139,9 @@ class ASTSecurityScanner(ast.NodeVisitor):
                 "run",
                 "run_async",
             }:
-                raise SecuritySandboxError(f"Banned method invocation detected: {node.func.attr}")
+                raise SecuritySandboxError(
+                    f"Banned method invocation detected: {node.func.attr}"
+                )
 
         # Block direct function calls like eval(), __import__()
         if isinstance(node.func, ast.Name) and node.func.id in self.banned_functions:
@@ -157,8 +169,14 @@ class ASTSecurityScanner(ast.NodeVisitor):
                 depth += 1
 
             # Check if the chain contains dangerous combinations
-            if "__subclasses__" in attr_chain and "__bases__" in attr_chain and "__class__" in attr_chain:
-                raise SecuritySandboxError("Dangerous dunder attribute chain detected: potential sandbox escape")
+            if (
+                "__subclasses__" in attr_chain
+                and "__bases__" in attr_chain
+                and "__class__" in attr_chain
+            ):
+                raise SecuritySandboxError(
+                    "Dangerous dunder attribute chain detected: potential sandbox escape"
+                )
         self.generic_visit(node)
 
     def visit_Name(self, node: ast.Name):
@@ -185,7 +203,9 @@ class ImmuneSystemScanner:
         try:
             tree = ast.parse(code)
             self.scanner.visit(tree)
-            logger.info("AST Static code scan passed successfully. Code is safe for execution.")
+            logger.info(
+                "AST Static code scan passed successfully. Code is safe for execution."
+            )
             return {"safe": True, "error": None}
         except SecuritySandboxError as sse:
             logger.critical(f"🚨 [IMMUNE SYSTEM] Security threat defused: {sse}")
@@ -198,7 +218,9 @@ class ImmuneSystemScanner:
             elif "Sandbox escape" in error_msg:
                 user_error = "Security validation failed: Banned attribute or dunder reflection access blocked."
             else:
-                user_error = "Security validation failed: Payload rejected by Immune System."
+                user_error = (
+                    "Security validation failed: Payload rejected by Immune System."
+                )
             return {"safe": False, "error": user_error}
 
         except SyntaxError as se:

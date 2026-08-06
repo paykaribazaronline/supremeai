@@ -27,9 +27,8 @@ import time
 from collections import defaultdict
 from dataclasses import dataclass
 
-from loguru import logger
-
 from core.persistence import pooled_pg
+from loguru import logger
 
 
 @dataclass
@@ -48,7 +47,9 @@ class WriteBehindBatcher:
         self._queue: queue.Queue[_PendingWrite] = queue.Queue()
         self._stop_event = threading.Event()
         self._lock = threading.Lock()
-        self._thread = threading.Thread(target=self._run, name=f"write-behind-{name}", daemon=True)
+        self._thread = threading.Thread(
+            target=self._run, name=f"write-behind-{name}", daemon=True
+        )
         self._thread.start()
         _registry.append(self)
 
@@ -109,7 +110,9 @@ class WriteBehindBatcher:
                 # Anti-Silent-Failure: log loudly. Requeue so a transient
                 # Postgres blip (e.g. pooler reconnect) doesn't silently
                 # drop rows — they'll be retried on the next flush cycle.
-                logger.error(f"write_behind[{self.name}]: flush failed ({len(items)} rows), requeueing: {exc}")
+                logger.error(
+                    f"write_behind[{self.name}]: flush failed ({len(items)} rows), requeueing: {exc}"
+                )
                 for item in items:
                     self._queue.put(item)
                 return 0
@@ -129,7 +132,9 @@ def flush_all() -> None:
         try:
             n = batcher.flush()
             if n:
-                logger.info(f"write_behind[{batcher.name}]: flushed {n} rows on shutdown.")
+                logger.info(
+                    f"write_behind[{batcher.name}]: flushed {n} rows on shutdown."
+                )
         except Exception as exc:
             logger.error(f"write_behind[{batcher.name}]: shutdown flush failed: {exc}")
 

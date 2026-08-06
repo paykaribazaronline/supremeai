@@ -16,7 +16,6 @@ Bengali:
 """
 
 import time
-
 # বাংলা মন্তব্য: cv2 টপ-লেভেলে import করলে CI-তে `No module named 'cv2'` এরর
 # core/__init__.py → evolution → এই ফাইলের মাধ্যমে পুরো টেস্ট স্যুটকে ক্র্যাশ করায়।
 # তাই এটি lazily শুধুমাত্র apply_robust_preprocessing()-এ import করা হচ্ছে।
@@ -74,17 +73,23 @@ class InputSanitizer:
     """
 
     @staticmethod
-    def normalize_input(x: torch.Tensor, mean: float = 0.0, std: float = 1.0) -> torch.Tensor:
+    def normalize_input(
+        x: torch.Tensor, mean: float = 0.0, std: float = 1.0
+    ) -> torch.Tensor:
         """Normalize input tensor."""
         return (x - mean) / std
 
     @staticmethod
-    def clip_input(x: torch.Tensor, min_val: float = 0.0, max_val: float = 1.0) -> torch.Tensor:
+    def clip_input(
+        x: torch.Tensor, min_val: float = 0.0, max_val: float = 1.0
+    ) -> torch.Tensor:
         """Clip input tensor to valid range."""
         return torch.clamp(x, min_val, max_val)
 
     @staticmethod
-    def gaussian_smoothing(x: torch.Tensor, kernel_size: int = 3, sigma: float = 1.0) -> torch.Tensor:
+    def gaussian_smoothing(
+        x: torch.Tensor, kernel_size: int = 3, sigma: float = 1.0
+    ) -> torch.Tensor:
         """Apply Gaussian smoothing to reduce high-frequency noise."""
         # Create Gaussian kernel
         coords = torch.arange(kernel_size, dtype=torch.float32)
@@ -101,7 +106,9 @@ class InputSanitizer:
         if x.dim() == 4:  # Batch of images
             channels = x.shape[1]
             kernel = kernel_2d.repeat(channels, 1, 1, 1)
-            x_smooth = torch.nn.functional.conv2d(x, kernel, groups=channels, padding=padding)
+            x_smooth = torch.nn.functional.conv2d(
+                x, kernel, groups=channels, padding=padding
+            )
         else:
             raise ValueError("Expected 4D input for Gaussian smoothing")
 
@@ -130,7 +137,9 @@ class AnomalyDetector:
         # Calculate mean and std of reference features
         all_features = torch.cat(self.reference_features, dim=0)
         self.feature_mean = torch.mean(all_features, dim=0)
-        self.feature_std = torch.std(all_features, dim=0) + 1e-8  # Avoid division by zero
+        self.feature_std = (
+            torch.std(all_features, dim=0) + 1e-8
+        )  # Avoid division by zero
 
     def detect_anomaly(self, features: torch.Tensor) -> tuple[bool, float]:
         """
@@ -147,7 +156,9 @@ class AnomalyDetector:
         distances = (features - self.feature_mean) / self.feature_std
         anomaly_score = torch.mean(torch.abs(distances)).item()
 
-        is_anomalous = anomaly_score > self.config.l2_norm_threshold * 10  # Heuristic threshold
+        is_anomalous = (
+            anomaly_score > self.config.l2_norm_threshold * 10
+        )  # Heuristic threshold
 
         return is_anomalous, anomaly_score
 
@@ -163,7 +174,9 @@ class AdversarialDetector:
         self.anomaly_detector = AnomalyDetector(config)
         self.attack_signatures = {}  # Known attack signatures
 
-    def detect_perturbation_norm(self, original: torch.Tensor, perturbed: torch.Tensor) -> dict[str, float]:
+    def detect_perturbation_norm(
+        self, original: torch.Tensor, perturbed: torch.Tensor
+    ) -> dict[str, float]:
         """Detect perturbations using different norm measures."""
         diff = perturbed - original
 
@@ -173,7 +186,9 @@ class AdversarialDetector:
 
         return {"l2_norm": l2_norm, "linf_norm": linf_norm, "l1_norm": l1_norm}
 
-    def detect_correlation(self, original: torch.Tensor, perturbed: torch.Tensor) -> float:
+    def detect_correlation(
+        self, original: torch.Tensor, perturbed: torch.Tensor
+    ) -> float:
         """Detect correlation between original and perturbed inputs."""
         if original.dim() == 4:  # Images
             flat_orig = original.view(original.size(0), -1)
@@ -216,7 +231,8 @@ class AdversarialDetector:
             center_x, center_y = magnitude.shape[0] // 2, magnitude.shape[1] // 2
             crop_size = min(magnitude.shape) // 4
             center_region = magnitude[
-                center_x - crop_size : center_x + crop_size, center_y - crop_size : center_y + crop_size
+                center_x - crop_size : center_x + crop_size,
+                center_y - crop_size : center_y + crop_size,
             ]
             total_energy = np.sum(magnitude)
             center_energy = np.sum(center_region)
@@ -227,7 +243,9 @@ class AdversarialDetector:
 
         return np.mean(noise_levels)
 
-    def detect_adversarial(self, original: torch.Tensor, processed: torch.Tensor, model: nn.Module) -> dict[str, Any]:
+    def detect_adversarial(
+        self, original: torch.Tensor, processed: torch.Tensor, model: nn.Module
+    ) -> dict[str, Any]:
         """
         Comprehensive adversarial detection.
 
@@ -258,8 +276,16 @@ class AdversarialDetector:
             conf_change = abs(orig_conf - proc_conf)
 
             # Calculate prediction entropy change
-            orig_entropy = torch.sum(-orig_probs * torch.log(orig_probs + 1e-8), dim=-1).mean().item()
-            proc_entropy = torch.sum(-proc_probs * torch.log(proc_probs + 1e-8), dim=-1).mean().item()
+            orig_entropy = (
+                torch.sum(-orig_probs * torch.log(orig_probs + 1e-8), dim=-1)
+                .mean()
+                .item()
+            )
+            proc_entropy = (
+                torch.sum(-proc_probs * torch.log(proc_probs + 1e-8), dim=-1)
+                .mean()
+                .item()
+            )
             entropy_change = abs(orig_entropy - proc_entropy)
 
         # Aggregate detection results
@@ -270,7 +296,9 @@ class AdversarialDetector:
         is_high_conf_change = conf_change > 0.2  # Heuristic threshold
 
         # Ensemble decision
-        num_indicators = sum([is_adv_l2, is_adv_linf, is_low_corr, is_high_noise, is_high_conf_change])
+        num_indicators = sum(
+            [is_adv_l2, is_adv_linf, is_low_corr, is_high_noise, is_high_conf_change]
+        )
 
         is_adversarial = num_indicators >= 3  # At least 3 indicators
 
@@ -312,7 +340,9 @@ class AdversarialDefenseSystem:
         x = self.input_sanitizer.gaussian_smoothing(x)
         return x
 
-    def detect_and_respond(self, original_input: torch.Tensor, model: nn.Module) -> tuple[torch.Tensor, dict[str, Any]]:
+    def detect_and_respond(
+        self, original_input: torch.Tensor, model: nn.Module
+    ) -> tuple[torch.Tensor, dict[str, Any]]:
         """
         Detect adversarial inputs and respond appropriately.
 
@@ -323,10 +353,14 @@ class AdversarialDefenseSystem:
         processed_input = self.preprocess_input(original_input)
 
         # Detect adversarial examples
-        detection_results = self.adversarial_detector.detect_adversarial(original_input, processed_input, model)
+        detection_results = self.adversarial_detector.detect_adversarial(
+            original_input, processed_input, model
+        )
 
         if detection_results["is_adversarial"] and self.config.defense_logging:
-            logger.warning(f"Adversarial input detected with score {detection_results['detection_score']:.3f}")
+            logger.warning(
+                f"Adversarial input detected with score {detection_results['detection_score']:.3f}"
+            )
 
             # Log attack for future analysis
             self.attack_history.append(
@@ -368,9 +402,12 @@ class AdversarialDefenseSystem:
                     # Apply bilateral filter to each channel separately
                     channel = x_np[i, c]
                     filtered = (
-                        cv2.bilateralFilter((channel * 255).astype(np.uint8), d=3, sigmaColor=50, sigmaSpace=50).astype(
-                            np.float32
-                        )
+                        cv2.bilateralFilter(
+                            (channel * 255).astype(np.uint8),
+                            d=3,
+                            sigmaColor=50,
+                            sigmaSpace=50,
+                        ).astype(np.float32)
                         / 255.0
                     )
                     x_np[i, c] = filtered
@@ -381,7 +418,11 @@ class AdversarialDefenseSystem:
     def get_defense_statistics(self) -> dict[str, Any]:
         """Get statistics about defense effectiveness."""
         if not self.attack_history:
-            return {"attacks_detected": 0, "average_detection_score": 0.0, "last_attack_time": None}
+            return {
+                "attacks_detected": 0,
+                "average_detection_score": 0.0,
+                "last_attack_time": None,
+            }
 
         detection_scores = [attack["detection_score"] for attack in self.attack_history]
 
@@ -414,12 +455,19 @@ class AdversarialTrainer:
     Trainer that incorporates adversarial training for improved robustness.
     """
 
-    def __init__(self, model: nn.Module, defense_system: AdversarialDefenseSystem, config: DefenseConfig):
+    def __init__(
+        self,
+        model: nn.Module,
+        defense_system: AdversarialDefenseSystem,
+        config: DefenseConfig,
+    ):
         self.model = model
         self.defense_system = defense_system
         self.config = config
 
-    def generate_fgsm_adversarial(self, x: torch.Tensor, y: torch.Tensor, eps: float = 0.03) -> torch.Tensor:
+    def generate_fgsm_adversarial(
+        self, x: torch.Tensor, y: torch.Tensor, eps: float = 0.03
+    ) -> torch.Tensor:
         """Generate FGSM adversarial examples for training."""
         self.model.eval()
         x_adv = x.clone().detach().requires_grad_(True)
@@ -451,7 +499,9 @@ class AdversarialTrainer:
         clean_loss = torch.nn.functional.cross_entropy(clean_outputs, y)
 
         # Generate adversarial examples
-        x_adv = self.generate_fgsm_adversarial(x, y, eps=self.config.adversarial_training_eps)
+        x_adv = self.generate_fgsm_adversarial(
+            x, y, eps=self.config.adversarial_training_eps
+        )
 
         # Adversarial loss
         adv_outputs = self.model(x_adv)
@@ -464,7 +514,11 @@ class AdversarialTrainer:
         total_loss.backward()
         optimizer.step()
 
-        return {"clean_loss": clean_loss.item(), "adversarial_loss": adv_loss.item(), "total_loss": total_loss.item()}
+        return {
+            "clean_loss": clean_loss.item(),
+            "adversarial_loss": adv_loss.item(),
+            "total_loss": total_loss.item(),
+        }
 
     def train_epoch_with_adversarial_augmentation(
         self, data_loader, optimizer: torch.optim.Optimizer
@@ -476,7 +530,9 @@ class AdversarialTrainer:
         num_batches = 0
 
         for x_batch, y_batch in data_loader:
-            losses = self.train_step_with_adversarial_regularization(x_batch, y_batch, optimizer)
+            losses = self.train_step_with_adversarial_regularization(
+                x_batch, y_batch, optimizer
+            )
 
             total_clean_loss += losses["clean_loss"]
             total_adv_loss += losses["adversarial_loss"]
@@ -525,7 +581,9 @@ def demo_adversarial_defense():
     dummy_input = torch.randn(4, 1, 28, 28)  # Batch of 4, 1x28x28 images
 
     # Apply defense
-    processed_input, detection_results = defense_system.detect_and_respond(dummy_input, model)
+    processed_input, detection_results = defense_system.detect_and_respond(
+        dummy_input, model
+    )
 
     print(f"Original input shape: {dummy_input.shape}")
     print(f"Processed input shape: {processed_input.shape}")
@@ -544,7 +602,9 @@ def demo_adversarial_defense():
 
     # Simulate one training step
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    losses = trainer.train_step_with_adversarial_regularization(dummy_dataset[0][0], dummy_dataset[0][1], optimizer)
+    losses = trainer.train_step_with_adversarial_regularization(
+        dummy_dataset[0][0], dummy_dataset[0][1], optimizer
+    )
 
     print(f"Training losses: {losses}")
 

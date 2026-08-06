@@ -59,7 +59,9 @@ async def search_database(query: str) -> str:
                     # বাংলা মন্তব্য: টেবিল না থাকলে শান্তভাবে এড়িয়ে যাও
                     pass
                 else:
-                    logger.debug(f"Table '{table}' search returned HTTP {resp.status_code}")
+                    logger.debug(
+                        f"Table '{table}' search returned HTTP {resp.status_code}"
+                    )
             except httpx.RequestError as exc:
                 logger.warning(f"Supabase search error for table '{table}': {exc}")
 
@@ -113,11 +115,15 @@ def check_system_health() -> str:
         try:
             import redis as redis_lib
 
-            r = redis_lib.from_url(redis_url, socket_connect_timeout=3, socket_timeout=3)
+            r = redis_lib.from_url(
+                redis_url, socket_connect_timeout=3, socket_timeout=3
+            )
             r.ping()
             health["redis"] = "ONLINE"
             info = r.info("memory")
-            health["redis_used_memory_mb"] = round(info.get("used_memory", 0) / (1024**2), 2)
+            health["redis_used_memory_mb"] = round(
+                info.get("used_memory", 0) / (1024**2), 2
+            )
         except Exception as exc:
             health["redis"] = f"OFFLINE ({exc})"
     else:
@@ -130,10 +136,15 @@ def check_system_health() -> str:
         try:
             resp = httpx.get(
                 f"{supabase_url}/rest/v1/",
-                headers={"apikey": supabase_key, "Authorization": f"Bearer {supabase_key}"},
+                headers={
+                    "apikey": supabase_key,
+                    "Authorization": f"Bearer {supabase_key}",
+                },
                 timeout=5.0,
             )
-            health["database"] = "ONLINE" if resp.status_code < 500 else f"ERROR ({resp.status_code})"
+            health["database"] = (
+                "ONLINE" if resp.status_code < 500 else f"ERROR ({resp.status_code})"
+            )
         except Exception as exc:
             health["database"] = f"OFFLINE ({exc})"
     else:
@@ -168,7 +179,9 @@ def execute_python_code(code: str) -> str:
     controlled local subprocess fallback আছে (dev/local env-এ)।
     Use: ইউজার explicitly code run বা complex math calculate করতে বললে।
     """
-    logger.info(f"⚙️ [TOOL] Executing Python code in sandbox (length={len(code)} chars)")
+    logger.info(
+        f"⚙️ [TOOL] Executing Python code in sandbox (length={len(code)} chars)"
+    )
 
     try:
         from tools.devops.docker_sandbox import DockerSandbox

@@ -1,4 +1,3 @@
-# ruff: noqa: E501
 """
 SupremeAI — Layer 5: Data & Analytics — ChurnProphet Agent
 ==========================================================
@@ -153,8 +152,12 @@ class BehavioralScorer:
         # Normalize each signal to 0-1 range
         signals = {
             "days_since_last_active": min(days_since_active / 30, 1.0),
-            "session_frequency_drop": (max(-session_freq_change / 100, 0) if session_freq_change < 0 else 0),
-            "feature_usage_decline": (max(-feature_usage_change / 100, 0) if feature_usage_change < 0 else 0),
+            "session_frequency_drop": (
+                max(-session_freq_change / 100, 0) if session_freq_change < 0 else 0
+            ),
+            "feature_usage_decline": (
+                max(-feature_usage_change / 100, 0) if feature_usage_change < 0 else 0
+            ),
             "support_ticket_spike": min(support_tickets_recent / 5, 1.0),
             "payment_delay": min(payment_delay_days / 14, 1.0),
         }
@@ -227,7 +230,9 @@ class RetentionStrategist:
             RetentionStrategy with recommendations.
         """
         # Base strategies from templates
-        base_strategies = RETENTION_TEMPLATES.get(risk_level, RETENTION_TEMPLATES[RiskLevel.LOW])
+        base_strategies = RETENTION_TEMPLATES.get(
+            risk_level, RETENTION_TEMPLATES[RiskLevel.LOW]
+        )
 
         # Generate personalized message via LLM for high/critical risk
         personalized = ""
@@ -266,7 +271,9 @@ class RetentionStrategist:
             UserSegment.AT_RISK: 0.55,
             UserSegment.DORMANT: 0.40,
         }
-        success_rate = base_success.get(segment, 0.50) * (1 - sum(factors.values()) / len(factors))
+        success_rate = base_success.get(segment, 0.50) * (
+            1 - sum(factors.values()) / len(factors)
+        )
 
         return RetentionStrategy(
             user_id=user_id,
@@ -389,19 +396,27 @@ class ChurnProphet:
             )
 
             # Payment status
-            payment_doc = await self.db.collection("user_payments").document(user_id).get()
+            payment_doc = (
+                await self.db.collection("user_payments").document(user_id).get()
+            )
 
             # Calculate derived metrics
             recent_count = recent_sessions[0][0].value if recent_sessions else 0
             prev_count = prev_sessions[0][0].value if prev_sessions else 0
 
-            session_freq_change = ((recent_count - prev_count) / prev_count * 100) if prev_count > 0 else 0
+            session_freq_change = (
+                ((recent_count - prev_count) / prev_count * 100)
+                if prev_count > 0
+                else 0
+            )
 
             last_active = user_data.get("last_active_at")
             if isinstance(last_active, str):
                 last_active = datetime.fromisoformat(last_active.replace("Z", "+00:00"))
 
-            days_since_active = (datetime.now(UTC) - last_active).days if last_active else 999
+            days_since_active = (
+                (datetime.now(UTC) - last_active).days if last_active else 999
+            )
 
             created_at = user_data.get("created_at")
             if isinstance(created_at, str):
@@ -432,7 +447,11 @@ class ChurnProphet:
             )
 
             feature_change = (
-                ((len(feature_usage) - len(prev_feature_usage)) / len(prev_feature_usage) * 100)
+                (
+                    (len(feature_usage) - len(prev_feature_usage))
+                    / len(prev_feature_usage)
+                    * 100
+                )
                 if len(prev_feature_usage) > 0
                 else 0
             )
@@ -441,7 +460,9 @@ class ChurnProphet:
                 "days_since_active": days_since_active,
                 "session_freq_change": session_freq_change,
                 "feature_usage_change": feature_change,
-                "support_tickets_recent": (recent_tickets[0][0].value if recent_tickets else 0),
+                "support_tickets_recent": (
+                    recent_tickets[0][0].value if recent_tickets else 0
+                ),
                 "payment_delay_days": payment_delay,
                 "account_age_days": account_age,
                 "total_sessions": recent_count + prev_count,
@@ -549,7 +570,9 @@ class ChurnProphet:
                 "factors": result.factors,
                 "segment": result.segment.value,
                 "predicted_churn_date": (
-                    result.predicted_churn_date.isoformat() if result.predicted_churn_date else None
+                    result.predicted_churn_date.isoformat()
+                    if result.predicted_churn_date
+                    else None
                 ),
             },
             ttl=self.cache_ttl,

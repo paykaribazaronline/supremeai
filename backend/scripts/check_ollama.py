@@ -50,7 +50,10 @@ def check_server() -> bool:
             return False
     except httpx.ConnectError:
         bprint(f"❌ সার্ভারে কানেক্ট করা যাচ্ছে না! — {OLLAMA_URL}", RED)
-        bprint("   🔧 সমাধান: `ollama serve` চালু করুন বা Windows-তে Ollama এপ খুলুন", YELLOW)
+        bprint(
+            "   🔧 সমাধান: `ollama serve` চালু করুন বা Windows-তে Ollama এপ খুলুন",
+            YELLOW,
+        )
         return False
     except Exception as e:
         bprint(f"❌ এরর: {e}", RED)
@@ -119,8 +122,12 @@ def ensure_model(model_name: str) -> bool:
                 bprint(f"  ✅ '{model_name}' Pull সম্পূর্ণ!", GREEN)
                 return True
     except httpx.TimeoutException:
-        bprint(f"  ❌ '{model_name}' pull হল সময়সীমা অতিক্রম করেনি ({PULL_TIMEOUT}s)", RED)
-        logger.error(f"Ollama model pull timed out for '{model_name}' after {PULL_TIMEOUT}s")
+        bprint(
+            f"  ❌ '{model_name}' pull হল সময়সীমা অতিক্রম করেনি ({PULL_TIMEOUT}s)", RED
+        )
+        logger.error(
+            f"Ollama model pull timed out for '{model_name}' after {PULL_TIMEOUT}s"
+        )
         return False
     except Exception as e:
         bprint(f"  ❌ Pull এরর: {e}", RED)
@@ -186,12 +193,16 @@ def main() -> int:
             all_ready = False
 
     if not all_ready:
-        bprint("\n⚠️  কিছু মডেল পাওয়া যাচ্ছে না, পরবর্তী চক্রেই পুনরায় চেক করবেন।", YELLOW)
+        bprint(
+            "\n⚠️  কিছু মডেল পাওয়া যাচ্ছে না, পরবর্তী চক্রেই পুনরায় চেক করবেন।", YELLOW
+        )
         return 1
 
     # Step 4: Generation Test
     bprint("\n🧪 [ধাপ 4] টেক্সট জেনারেশন চেক...", CYAN)
-    test_model = "qwen2.5:0.5b" if "qwen2.5:0.5b" in list_models() else MODELS_TO_CHECK[0]
+    test_model = (
+        "qwen2.5:0.5b" if "qwen2.5:0.5b" in list_models() else MODELS_TO_CHECK[0]
+    )
     if test_generation(test_model):
         bprint("\n🎉 সবকিছু ঠিক আছে! Ollama এই জবটি করতে পারবে।", GREEN)
         return 0

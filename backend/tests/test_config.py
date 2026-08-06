@@ -2,7 +2,6 @@ import os
 from unittest.mock import patch
 
 import pytest
-
 from core.config import Settings
 
 
@@ -12,7 +11,9 @@ def test_defaults(mock_fetch):
     Settings._cached_secrets = {}
     Settings._secrets_batch_loaded = False
     s = Settings()
-    s._set_cached_secret("SUPREMEAI_ADMIN_PASSWORD_HASH", "mock_SUPREMEAI_ADMIN_PASSWORD_HASH")
+    s._set_cached_secret(
+        "SUPREMEAI_ADMIN_PASSWORD_HASH", "mock_SUPREMEAI_ADMIN_PASSWORD_HASH"
+    )
     assert s.app_name == "SupremeAI 2.0"
     assert s.env == "local"
     assert s.debug is True
@@ -65,7 +66,9 @@ def test_defaults(mock_fetch):
 )
 @patch(
     "core.config.secret_vault.fetch_secret",
-    side_effect=lambda k, default="": os.environ.get(k) or os.environ.get(k.lower()) or default,
+    side_effect=lambda k, default="": os.environ.get(k)
+    or os.environ.get(k.lower())
+    or default,
 )
 @pytest.mark.skip(
     reason="Pre-existing test-isolation bug, unrelated to auth: conftest.py sets OPENROUTER_API_KEY (uppercase) via os.environ.setdefault at module level; this test's patch.dict uses lowercase 'openrouter_api_key', which does not override the existing uppercase key in os.environ. Needs test fix (use matching case) or conftest fix."
@@ -138,10 +141,19 @@ def test_cors_origins_production_strips_localhost(mock_fetch, monkeypatch):
     monkeypatch.setenv("ENV", "production")
     monkeypatch.setenv("OPENROUTER_API_KEY", "TEST_ONLY_OPENROUTER_API_KEY")
     monkeypatch.setenv("GEMINI_API_KEY", "TEST_ONLY_GEMINI_API_KEY")
-    monkeypatch.setenv("CORS_ORIGINS", '["http://127.0.0.1:3000", "https://example.com"]')
-    monkeypatch.setenv("USER_CORS_ORIGINS", '["http://127.0.0.1:3000", "https://example.com"]')
-    monkeypatch.setenv("ADMIN_CORS_ORIGINS", '["http://127.0.0.1:3000", "https://example.com"]')
-    monkeypatch.setenv("SUPREMEAI_JWT_SECRET", "TEST_ONLY_SUPREMEAI_JWT_SECRET_DO_NOT_USE_IN_PROD_12345678901234567890")
+    monkeypatch.setenv(
+        "CORS_ORIGINS", '["http://127.0.0.1:3000", "https://example.com"]'
+    )
+    monkeypatch.setenv(
+        "USER_CORS_ORIGINS", '["http://127.0.0.1:3000", "https://example.com"]'
+    )
+    monkeypatch.setenv(
+        "ADMIN_CORS_ORIGINS", '["http://127.0.0.1:3000", "https://example.com"]'
+    )
+    monkeypatch.setenv(
+        "SUPREMEAI_JWT_SECRET",
+        "TEST_ONLY_SUPREMEAI_JWT_SECRET_DO_NOT_USE_IN_PROD_12345678901234567890",
+    )
     monkeypatch.setenv("SUPREMEAI_ADMIN_PASSWORD_HASH", "mock_hash_value_for_test_pass")
     monkeypatch.setenv("ALLOWED_HOSTS", '["api.supremeai.com"]')
     monkeypatch.setenv("STRIPE_API_KEY", "TEST_ONLY_STRIPE_API_KEY")

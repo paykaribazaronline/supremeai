@@ -4,9 +4,9 @@ from unittest.mock import patch
 import pytest
 
 try:
+    from core.evolution.auto_skill_creator import AutoSkillCreator
     from skill_loader import SkillLoader
 
-    from core.evolution.auto_skill_creator import AutoSkillCreator
     from skills.installer import SkillInstaller
     from skills.registry import SkillRegistry
 
@@ -14,7 +14,10 @@ try:
 except (ImportError, ModuleNotFoundError):
     HAS_SKILLS_INSTALLER = False
 
-pytestmark = pytest.mark.skipif(not HAS_SKILLS_INSTALLER, reason="skills.installer module not available in environment")
+pytestmark = pytest.mark.skipif(
+    not HAS_SKILLS_INSTALLER,
+    reason="skills.installer module not available in environment",
+)
 
 
 @pytest.fixture
@@ -30,7 +33,9 @@ def clean_dynamic_skills(tmp_path):
     loader.skills_dir.mkdir(parents=True, exist_ok=True)
 
     # Mock SkillInstaller constructor to return our temp configured installer
-    with patch("core.evolution.auto_skill_creator.SkillInstaller", return_value=installer):
+    with patch(
+        "core.evolution.auto_skill_creator.SkillInstaller", return_value=installer
+    ):
         yield loader, registry, installer
 
 

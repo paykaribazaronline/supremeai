@@ -3,14 +3,14 @@ import re
 from collections import defaultdict
 
 test_root = "backend/tests"
-pattern = re.compile(r'^\s*def\s+(test_\w+)\s*\(', re.MULTILINE)
+pattern = re.compile(r"^\s*def\s+(test_\w+)\s*\(", re.MULTILINE)
 
 test_map = defaultdict(list)
 for root, _, files in os.walk(test_root):
     for f in files:
-        if f.endswith('.py'):
+        if f.endswith(".py"):
             path = os.path.join(root, f)
-            text = open(path, encoding='utf-8').read()
+            text = open(path, encoding="utf-8").read()
             for name in pattern.findall(text):
                 test_map[name].append(path)
 

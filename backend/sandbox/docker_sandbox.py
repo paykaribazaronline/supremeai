@@ -25,7 +25,9 @@ class DockerSandbox:
             raise ValueError("Invalid entry file name after sanitization")
         return safe_name
 
-    def run_quarantine_test(self, staging_path: Path, entry_file: str, test_payload: str) -> dict[str, Any]:
+    def run_quarantine_test(
+        self, staging_path: Path, entry_file: str, test_payload: str
+    ) -> dict[str, Any]:
         """
         Default-deny network এবং Read-only মাউন্টে একটি পাইথন ফাইল স্যান্ডবক্সে রান করায়।
         """
@@ -138,7 +140,9 @@ class DockerSandbox:
         # যাতে command injection (shell metacharacters) প্রতিরোধ হয়।
         script_path = None
         try:
-            with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False, encoding="utf-8") as f:
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".py", delete=False, encoding="utf-8"
+            ) as f:
                 f.write(script)
                 script_path = f.name
 
@@ -159,7 +163,9 @@ class DockerSandbox:
             ]
 
             try:
-                logger.info(f"⚡ Spawning Docker Sandbox for source volume: {bind_source}")
+                logger.info(
+                    f"⚡ Spawning Docker Sandbox for source volume: {bind_source}"
+                )
 
                 result = subprocess.run(
                     docker_command,
@@ -176,14 +182,18 @@ class DockerSandbox:
                 }
 
             except subprocess.TimeoutExpired:
-                logger.error(f"❌ Sandbox execution timed out after {self.timeout_seconds}s limit.")
+                logger.error(
+                    f"❌ Sandbox execution timed out after {self.timeout_seconds}s limit."
+                )
                 return {
                     "exit_code": 124,
                     "stdout": "",
                     "stderr": f"Execution barrier breached: Timeout of {self.timeout_seconds}s exceeded.",
                 }
             except Exception as e:
-                logger.error(f"Critical exception inside Docker execution wrapper: {e!s}")
+                logger.error(
+                    f"Critical exception inside Docker execution wrapper: {e!s}"
+                )
                 return {
                     "exit_code": -1,
                     "stdout": "",

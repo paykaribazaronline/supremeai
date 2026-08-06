@@ -32,8 +32,12 @@ def upgrade() -> None:
             created_at TIMESTAMPTZ NOT NULL DEFAULT now()
         )
         """)
-    op.execute("CREATE INDEX IF NOT EXISTS ix_patch_telemetry_error_id ON patch_telemetry (error_id)")
-    op.execute("CREATE INDEX IF NOT EXISTS ix_patch_telemetry_patch_id ON patch_telemetry (patch_id)")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS ix_patch_telemetry_error_id ON patch_telemetry (error_id)"
+    )
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS ix_patch_telemetry_patch_id ON patch_telemetry (patch_id)"
+    )
 
 
 def downgrade() -> None:

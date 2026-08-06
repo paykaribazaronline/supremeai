@@ -63,10 +63,14 @@ class AgentGenome:
 
         new_max_tokens = self.max_tokens
         if random.random() < mutation_rate:
-            new_max_tokens = max(256, min(8192, self.max_tokens + random.randint(-512, 512)))
+            new_max_tokens = max(
+                256, min(8192, self.max_tokens + random.randint(-512, 512))
+            )
 
         return AgentGenome(
-            genome_id=hashlib.sha256(f"{self.genome_id}:{time.time()}".encode()).hexdigest()[:16],
+            genome_id=hashlib.sha256(
+                f"{self.genome_id}:{time.time()}".encode()
+            ).hexdigest()[:16],
             parent_ids=(self.genome_id,),
             skills=tuple(new_skills),
             prompt_template=self.prompt_template,
@@ -198,7 +202,10 @@ class AgentEvolutionEngine(BaseSkill):
                 "genome_id": "seed_001",
                 "parent_ids": [],
                 "skills": ["web_search", "code_generation", "summarization"],
-                "prompt_template": ("You are a helpful AI assistant. " "Use available tools when needed."),
+                "prompt_template": (
+                    "You are a helpful AI assistant. "
+                    "Use available tools when needed."
+                ),
                 "temperature": 0.7,
                 "max_tokens": 2048,
                 "tool_allowlist": ["web_search", "code_executor"],
@@ -228,7 +235,9 @@ class AgentEvolutionEngine(BaseSkill):
         llm = await self._get_llm()
         for idx, genome in enumerate(self._population):
             score = await self._run_benchmark(genome, llm)
-            self._population[idx] = AgentGenome(**{**genome.to_dict(), "fitness_score": score})
+            self._population[idx] = AgentGenome(
+                **{**genome.to_dict(), "fitness_score": score}
+            )
 
     @with_error_bus("_run_benchmark")
     async def _run_benchmark(self, genome: AgentGenome, llm: LLMGateway) -> float:
@@ -262,7 +271,9 @@ class AgentEvolutionEngine(BaseSkill):
             return
 
         # Sort by fitness descending
-        sorted_pop = sorted(self._population, key=lambda g: g.fitness_score, reverse=True)
+        sorted_pop = sorted(
+            self._population, key=lambda g: g.fitness_score, reverse=True
+        )
         # Elitism: keep top performers
         elite_count = max(1, int(self._population_size * self._selection_pressure))
         new_population = sorted_pop[:elite_count]
@@ -288,11 +299,15 @@ class AgentEvolutionEngine(BaseSkill):
         child_skills = list(a.skills) if random.random() < 0.5 else list(b.skills)
         child_temp = a.temperature if random.random() < 0.5 else b.temperature
         child_max = a.max_tokens if random.random() < 0.5 else b.max_tokens
-        child_tools = list(a.tool_allowlist) if random.random() < 0.5 else list(b.tool_allowlist)
+        child_tools = (
+            list(a.tool_allowlist) if random.random() < 0.5 else list(b.tool_allowlist)
+        )
         child_prompt = a.prompt_template if random.random() < 0.5 else b.prompt_template
 
         return AgentGenome(
-            genome_id=hashlib.sha256(f"{a.genome_id}:{b.genome_id}:{time.time()}".encode()).hexdigest()[:16],
+            genome_id=hashlib.sha256(
+                f"{a.genome_id}:{b.genome_id}:{time.time()}".encode()
+            ).hexdigest()[:16],
             parent_ids=(a.genome_id, b.genome_id),
             skills=tuple(child_skills),
             prompt_template=child_prompt,
@@ -322,7 +337,9 @@ class AgentEvolutionEngine(BaseSkill):
                 "running": self._running,
                 "generation": self._generation_count,
                 "population_size": len(self._population),
-                "best_fitness": max((g.fitness_score for g in self._population), default=0.0),
+                "best_fitness": max(
+                    (g.fitness_score for g in self._population), default=0.0
+                ),
                 "genomes": [g.to_dict() for g in self._population[:5]],
             }
         if action == "inject_genome":

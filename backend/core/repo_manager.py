@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class PermissionDeniedError(PermissionError):
     """READ_ONLY স্কোপে মডিফিকেশন বা রাইট চেষ্টা করা হলে এই এরর রেইজ হবে।"""
+
     pass
 
 
@@ -49,12 +50,16 @@ class DynamicRepoManager:
             logger.info(f"Cloning target repository '{target.name}' to {target_dir}")
             clone_url = target.url
             if target.credentials_token and "https://" in clone_url:
-                clone_url = clone_url.replace("https://", f"https://{target.credentials_token}@")
+                clone_url = clone_url.replace(
+                    "https://", f"https://{target.credentials_token}@"
+                )
 
             cmd = ["git", "clone", "-b", target.branch, clone_url, str(target_dir)]
             subprocess.run(cmd, check=True, capture_output=True, text=True, timeout=60)
         else:
-            logger.info(f"Updating workspace for target '{target.id}' ({target.branch})")
+            logger.info(
+                f"Updating workspace for target '{target.id}' ({target.branch})"
+            )
             subprocess.run(
                 ["git", "-C", str(target_dir), "fetch", "origin"],
                 check=True,
@@ -86,7 +91,9 @@ class DynamicRepoManager:
 
         target_dir = self.base_dir / target_id
         if not target_dir.exists():
-            raise FileNotFoundError(f"Workspace for target '{target_id}' does not exist.")
+            raise FileNotFoundError(
+                f"Workspace for target '{target_id}' does not exist."
+            )
 
         logger.info(f"Executing git commit on FULL_CONTROL target '{target_id}'")
         subprocess.run(

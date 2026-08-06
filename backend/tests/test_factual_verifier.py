@@ -7,7 +7,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from core.factual_verifier import FactualVerifier, _safe_eval_math
 
 
@@ -75,7 +74,9 @@ class TestFactualVerifier:
             }
             mock_ddgs.text.return_value = mock_gen
 
-            result = await verifier.verify_with_web_search("What is the capital of France?")
+            result = await verifier.verify_with_web_search(
+                "What is the capital of France?"
+            )
             assert "is_verified" in result
             assert "sources" in result
 
@@ -86,7 +87,9 @@ class TestFactualVerifier:
             mock_gen.__next__.side_effect = StopIteration
             mock_ddgs.text.return_value = mock_gen
 
-            result = await verifier.verify_with_web_search("Some obscure question nobody knows")
+            result = await verifier.verify_with_web_search(
+                "Some obscure question nobody knows"
+            )
             assert result.get("is_verified") is False
 
     def test_verify_returns_results(self, verifier):

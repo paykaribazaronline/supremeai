@@ -15,10 +15,9 @@ HOW IT WORKS:
 OVER TIME: Self-sufficiency grows from 30% -> 80%+
 """
 
-from loguru import logger
-
 from brain.supreme_learning_engine import SupremeLearningEngine
 from core.llm_router import LLMRouter
+from loguru import logger
 
 _learning_engine: SupremeLearningEngine | None = None
 
@@ -81,11 +80,17 @@ class LLMGatewayWithLearning:
             return f"[SupremeAI Brain] {response}"
 
         # STEP 2: Fall back to external AI
-        logger.info(f"🤔 Confidence too low ({confidence:.2f}). Calling external AI model: {model}")
+        logger.info(
+            f"🤔 Confidence too low ({confidence:.2f}). Calling external AI model: {model}"
+        )
 
-        gen_resp = await self.router.async_generate(prompt=user_query, model_override=model, **kwargs)
+        gen_resp = await self.router.async_generate(
+            prompt=user_query, model_override=model, **kwargs
+        )
 
-        response = gen_resp.get("text", "") if isinstance(gen_resp, dict) else str(gen_resp)
+        response = (
+            gen_resp.get("text", "") if isinstance(gen_resp, dict) else str(gen_resp)
+        )
 
         # STEP 3: LEARN from this interaction
         if self.learning_enabled and response:

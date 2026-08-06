@@ -26,7 +26,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import subprocess
 import sys
@@ -64,9 +63,29 @@ CI_FAIL_SEVERITY = "high"  # Fail on critical and high findings
 
 # File patterns to scan
 SCAN_EXTENSIONS = {
-    ".py", ".js", ".ts", ".jsx", ".tsx", ".json", ".yaml", ".yml",
-    ".toml", ".env", ".sh", ".dart", ".go", ".rs", ".java", ".rb",
-    ".php", ".swift", ".kt", ".cs", ".ini", ".cfg", ".conf",
+    ".py",
+    ".js",
+    ".ts",
+    ".jsx",
+    ".tsx",
+    ".json",
+    ".yaml",
+    ".yml",
+    ".toml",
+    ".env",
+    ".sh",
+    ".dart",
+    ".go",
+    ".rs",
+    ".java",
+    ".rb",
+    ".php",
+    ".swift",
+    ".kt",
+    ".cs",
+    ".ini",
+    ".cfg",
+    ".conf",
 }
 
 
@@ -121,7 +140,7 @@ def scan_staged_files(hunter: SecretHunter) -> bool:
         critical = [f for f in findings if f.severity == "critical"]
         high = [f for f in findings if f.severity == "high"]
 
-        print(f"\n❌ SECRETS DETECTED IN STAGED FILES!")
+        print("\n❌ SECRETS DETECTED IN STAGED FILES!")
         print(f"   Critical: {len(critical)}, High: {len(high)}")
 
         for f in findings:
@@ -155,7 +174,9 @@ def scan_codebase(hunter: SecretHunter, path: str | None = None) -> bool:
     # Run the scan
     import asyncio
 
-    report = asyncio.run(hunter.scan_codebase(target, use_ai=False, min_severity=CI_FAIL_SEVERITY))
+    report = asyncio.run(
+        hunter.scan_codebase(target, use_ai=False, min_severity=CI_FAIL_SEVERITY)
+    )
 
     # Print summary
     findings = report.findings
@@ -172,7 +193,12 @@ def scan_codebase(hunter: SecretHunter, path: str | None = None) -> bool:
         # Print top findings
         print("\n📋 Top Findings:")
         for f in findings[:10]:  # Show first 10
-            severity_icon = {"critical": "🚨", "high": "⚠️", "medium": "⚡", "low": "ℹ️"}
+            severity_icon = {
+                "critical": "🚨",
+                "high": "⚠️",
+                "medium": "⚡",
+                "low": "ℹ️",
+            }
             icon = severity_icon.get(f.severity, "❓")
             print(f"   {icon} [{f.severity.upper()}] {f.file_path}:{f.line_number}")
             print(f"      Type: {f.secret_type}")
@@ -180,7 +206,9 @@ def scan_codebase(hunter: SecretHunter, path: str | None = None) -> bool:
                 print(f"      AI Confidence: {f.ai_confidence:.0%}")
 
         if findings:
-            print(f"\n   ... and {len(findings) - min(10, len(findings))} more findings")
+            print(
+                f"\n   ... and {len(findings) - min(10, len(findings))} more findings"
+            )
 
     # Set GitHub Actions output
     if GITHUB_OUTPUT:
@@ -189,7 +217,9 @@ def scan_codebase(hunter: SecretHunter, path: str | None = None) -> bool:
         _set_github_output("high_count", str(high_count))
 
     if critical_count > 0 or high_count > 0:
-        print(f"\n❌ FAILED: {critical_count + high_count} critical/high secrets detected!")
+        print(
+            f"\n❌ FAILED: {critical_count + high_count} critical/high secrets detected!"
+        )
         return False
 
     print("\n✅ PASSED: No critical or high severity secrets detected.")
@@ -243,7 +273,7 @@ def _set_github_output(name: str, value: str) -> None:
         try:
             with open(GITHUB_OUTPUT, "a") as f:
                 f.write(f"{name}={value}\n")
-        except (OSError, IOError) as e:
+        except OSError as e:
             print(f"⚠️  Failed to write GitHub output: {e}")
 
 

@@ -176,12 +176,8 @@ class TestRouteOptimizer:
     async def test_find_nearest_rider(self):
         """find_nearest_rider should return the closest available rider."""
         with patch.dict("sys.modules", {"core.cache": MagicMock()}):
-            from services.rider_tracker import (
-                Location,
-                Rider,
-                RiderStatus,
-                RouteOptimizer,
-            )
+            from services.rider_tracker import (Location, Rider, RiderStatus,
+                                                RouteOptimizer)
 
             now = datetime.now(UTC)
             loc_target = Location(latitude=23.8, longitude=90.4, timestamp=now)
@@ -206,7 +202,9 @@ class TestRouteOptimizer:
 
             optimizer = RouteOptimizer.__new__(RouteOptimizer)
             # find_nearest_rider একটি async মেথড, তাই await করা প্রয়োজন
-            result = await optimizer.find_nearest_rider({"r1": rider1, "r2": rider2}, loc_target)
+            result = await optimizer.find_nearest_rider(
+                {"r1": rider1, "r2": rider2}, loc_target
+            )
             assert result is not None
             assert result.rider_id == "r1"
 
@@ -214,12 +212,8 @@ class TestRouteOptimizer:
     async def test_find_nearest_rider_none_available(self):
         """find_nearest_rider should return None when no riders available."""
         with patch.dict("sys.modules", {"core.cache": MagicMock()}):
-            from services.rider_tracker import (
-                Location,
-                Rider,
-                RiderStatus,
-                RouteOptimizer,
-            )
+            from services.rider_tracker import (Location, Rider, RiderStatus,
+                                                RouteOptimizer)
 
             now = datetime.now(UTC)
             loc_target = Location(23.8, 90.4, now)

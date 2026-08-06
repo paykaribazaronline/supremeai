@@ -14,26 +14,27 @@ Environment Variables:
 - API_TABLE_MARKER_END: End marker for API table in README (default: <!-- API ENDPOINTS END -->)
 """
 
-import os
 import ast
-from pathlib import Path
-from typing import List, Dict
 import logging
+import os
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
 # Configuration
 ROUTES_DIR = os.getenv("ROUTES_DIR", "backend/api/routes")
 README_PATH = os.getenv("README_PATH", "README.md")
-API_TABLE_MARKER_START = os.getenv("API_TABLE_MARKER_START", "<!-- API ENDPOINTS START -->")
+API_TABLE_MARKER_START = os.getenv(
+    "API_TABLE_MARKER_START", "<!-- API ENDPOINTS START -->"
+)
 API_TABLE_MARKER_END = os.getenv("API_TABLE_MARKER_END", "<!-- API ENDPOINTS END -->")
 
-def extract_route_info_from_file(file_path: Path) -> List[Dict[str, str]]:
+
+def extract_route_info_from_file(file_path: Path) -> list[dict[str, str]]:
     """
     Extract route information from a Python file using AST parsing.
 
@@ -57,13 +58,23 @@ def extract_route_info_from_file(file_path: Path) -> List[Dict[str, str]]:
                 if isinstance(decorator, ast.Call):
                     if isinstance(decorator.func, ast.Attribute):
                         method_name = decorator.func.attr.lower()
-                        if method_name in ['get', 'post', 'put', 'delete', 'patch', 'options', 'head']:
+                        if method_name in [
+                            "get",
+                            "post",
+                            "put",
+                            "delete",
+                            "patch",
+                            "options",
+                            "head",
+                        ]:
                             # Get the path (first argument)
                             path = ""
                             if decorator.args:
                                 if isinstance(decorator.args[0], ast.Constant):
                                     path = decorator.args[0].value
-                                elif isinstance(decorator.args[0], ast.Str):  # Python < 3.8
+                                elif isinstance(
+                                    decorator.args[0], ast.Str
+                                ):  # Python < 3.8
                                     path = decorator.args[0].s
 
                             # Get function name and docstring
@@ -71,31 +82,50 @@ def extract_route_info_from_file(file_path: Path) -> List[Dict[str, str]]:
                             docstring = ast.get_docstring(node) or ""
 
                             # Clean up docstring for display (first line only)
-                            description = docstring.split('\n')[0] if docstring else "No description"
+                            description = (
+                                docstring.split("\n")[0]
+                                if docstring
+                                else "No description"
+                            )
 
-                            routes.append({
-                                "method": method_name.upper(),
-                                "path": path,
-                                "function": func_name,
-                                "description": description
-                            })
+                            routes.append(
+                                {
+                                    "method": method_name.upper(),
+                                    "path": path,
+                                    "function": func_name,
+                                    "description": description,
+                                }
+                            )
                 # Also handle direct attribute access like @app.get (without call)
                 elif isinstance(decorator, ast.Attribute):
                     method_name = decorator.attr.lower()
-                    if method_name in ['get', 'post', 'put', 'delete', 'patch', 'options', 'head']:
+                    if method_name in [
+                        "get",
+                        "post",
+                        "put",
+                        "delete",
+                        "patch",
+                        "options",
+                        "head",
+                    ]:
                         # This is less common but handle it
                         func_name = node.name
                         docstring = ast.get_docstring(node) or ""
-                        description = docstring.split('\n')[0] if docstring else "No description"
+                        description = (
+                            docstring.split("\n")[0] if docstring else "No description"
+                        )
 
-                        routes.append({
-                            "method": method_name.upper(),
-                            "path": "/",  # Default path when not specified in decorator
-                            "function": func_name,
-                            "description": description
-                        })
+                        routes.append(
+                            {
+                                "method": method_name.upper(),
+                                "path": "/",  # Default path when not specified in decorator
+                                "function": func_name,
+                                "description": description,
+                            }
+                        )
 
     return routes
+
 
 def generate_api_table() -> str:
     """Generate markdown table of all API routes."""
@@ -138,6 +168,7 @@ def generate_api_table() -> str:
         md += f"| {method} | `{path}` | {module} | {function} | {description} |\n"
 
     return md
+
 
 def update_readme(api_table: str) -> bool:
     """Update README.md with the API table."""
@@ -192,6 +223,7 @@ def update_readme(api_table: str) -> bool:
         logger.error(f"Error updating README: {e}")
         return False
 
+
 def main() -> int:
     """Main function to update README with API table."""
     print("📖 Starting README API table update...")
@@ -201,7 +233,9 @@ def main() -> int:
     try:
         # Generate the API table
         api_table = generate_api_table()
-        print(f"📊 Generated table with {len(api_table.split('|')[3:-2]) if '|' in api_table else 0} routes")
+        print(
+            f"📊 Generated table with {len(api_table.split('|')[3:-2]) if '|' in api_table else 0} routes"
+        )
 
         # Update the README
         if update_readme(api_table):
@@ -214,6 +248,7 @@ def main() -> int:
     except Exception as e:
         print(f"❌ Error during README update: {e}")
         return 1
+
 
 if __name__ == "__main__":
     exit(main())

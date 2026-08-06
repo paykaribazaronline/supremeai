@@ -13,6 +13,7 @@ docs/architecture/service_topology.yml পড়ে, .github/workflows/supreme-c
 Exit code 1 = mismatch পাওয়া গেছে (blocking)
 Exit code 0 = সব ঠিক আছে (known_exceptions warning-only)
 """
+
 from __future__ import annotations
 
 import re
@@ -48,8 +49,8 @@ def find_job_env_var(workflow_text: str, job_name: str) -> str | None:
 
 
 def main() -> None:
-    if hasattr(sys.stdout, 'reconfigure'):
-        sys.stdout.reconfigure(encoding='utf-8')
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     manifest = load_manifest()
     workflow_text = WORKFLOW_PATH.read_text(encoding="utf-8")
 
@@ -64,7 +65,9 @@ def main() -> None:
         actual_line = find_job_env_var(workflow_text, job)
 
         if actual_line is None:
-            warnings.append(f"[{job}] VITE_API_URL খুঁজে পাওয়া যায়নি — job renamed/removed হয়েছে কি?")
+            warnings.append(
+                f"[{job}] VITE_API_URL খুঁজে পাওয়া যায়নি — job renamed/removed হয়েছে কি?"
+            )
             continue
 
         if expected_var not in actual_line:
@@ -84,15 +87,21 @@ def main() -> None:
     # ২. rules সেকশন — env_var আর default backend সব target-এ ইউনিক কিনা
     env_vars = [t["env_var"] for t in manifest["targets"]]
     if len(env_vars) != len(set(env_vars)):
-        blocking_errors.append("দুই বা তার বেশি target একই env_var শেয়ার করছে — manifest নিজেই invalid।")
+        blocking_errors.append(
+            "দুই বা তার বেশি target একই env_var শেয়ার করছে — manifest নিজেই invalid।"
+        )
 
     defaults = [t["expected_backend_default"] for t in manifest["targets"]]
     if len(defaults) != len(set(defaults)):
-        blocking_errors.append("দুই বা তার বেশি target একই default backend URL শেয়ার করছে — manifest নিজেই invalid।")
+        blocking_errors.append(
+            "দুই বা তার বেশি target একই default backend URL শেয়ার করছে — manifest নিজেই invalid।"
+        )
 
     # ৩. known_exceptions শুধু warning
     for exc in manifest.get("known_exceptions", []):
-        warnings.append(f"[{exc['workflow_job']}] জানা exception: {exc['reason'].strip()}")
+        warnings.append(
+            f"[{exc['workflow_job']}] জানা exception: {exc['reason'].strip()}"
+        )
 
     print("=" * 60)
     print("Service Topology Check")

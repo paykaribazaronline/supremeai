@@ -8,18 +8,9 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
-from core.otp_router import (
-    CHANNEL_DISCORD,
-    CHANNEL_EMAIL,
-    CHANNEL_TELEGRAM,
-    CHANNEL_WHATSAPP,
-    _mask,
-    _sanitize_error,
-    get_active_channel,
-    send_otp,
-    set_active_channel,
-)
+from core.otp_router import (CHANNEL_DISCORD, CHANNEL_EMAIL, CHANNEL_TELEGRAM,
+                             CHANNEL_WHATSAPP, _mask, _sanitize_error,
+                             get_active_channel, send_otp, set_active_channel)
 
 
 class TestJITOTPFlow:
@@ -119,7 +110,9 @@ class TestJITOTPFlow:
 
             client_instance = AsyncMock()
             client_instance.post = AsyncMock(return_value=mock_response)
-            mock_client.return_value.__aenter__ = AsyncMock(return_value=client_instance)
+            mock_client.return_value.__aenter__ = AsyncMock(
+                return_value=client_instance
+            )
             mock_client.return_value.__aexit__ = AsyncMock()
 
             from core.otp_router import _send_discord
@@ -154,7 +147,9 @@ class TestJITOTPFlow:
 
             client_instance = AsyncMock()
             client_instance.post = AsyncMock(return_value=mock_response)
-            mock_client.return_value.__aenter__ = AsyncMock(return_value=client_instance)
+            mock_client.return_value.__aenter__ = AsyncMock(
+                return_value=client_instance
+            )
             mock_client.return_value.__aexit__ = AsyncMock()
 
             from core.otp_router import _send_email
@@ -194,7 +189,9 @@ class TestJITOTPFlow:
                 new_callable=AsyncMock,
                 return_value=False,
             ),
-            patch("core.otp_router._send_email", new_callable=AsyncMock, return_value=True),
+            patch(
+                "core.otp_router._send_email", new_callable=AsyncMock, return_value=True
+            ),
             patch("core.otp_router.redis_manager", None),
         ):
             mock_api_key = MagicMock()

@@ -12,7 +12,9 @@ API_KEY_LIMIT_PREFIX = "apikey:rate:"
 DEFAULT_MAX_REQUESTS_PER_MINUTE = 60
 
 
-async def enforce_api_key_rate_limit(api_key_hash: str, max_requests: int = DEFAULT_MAX_REQUESTS_PER_MINUTE) -> None:
+async def enforce_api_key_rate_limit(
+    api_key_hash: str, max_requests: int = DEFAULT_MAX_REQUESTS_PER_MINUTE
+) -> None:
     """Enforce rate limits per API Key hash using atomic Redis counters."""
     from core.cache.redis_manager import redis_manager
 
@@ -37,4 +39,6 @@ async def enforce_api_key_rate_limit(api_key_hash: str, max_requests: int = DEFA
     except HTTPException:
         raise
     except Exception as exc:
-        logger.warning(f"⚠️ API Key rate limiter error: {exc}. Failing open for resilience.")
+        logger.warning(
+            f"⚠️ API Key rate limiter error: {exc}. Failing open for resilience."
+        )

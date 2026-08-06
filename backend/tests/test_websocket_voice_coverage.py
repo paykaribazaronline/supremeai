@@ -62,7 +62,9 @@ class TestVoiceConnectionManager:
         ws = AsyncMock()
         ws.query_params = {"token": "good-token"}
 
-        with patch("api.routes.websocket_voice.verify_token", return_value={"sub": "test-user"}):
+        with patch(
+            "api.routes.websocket_voice.verify_token", return_value={"sub": "test-user"}
+        ):
             result = await mgr._authenticate(ws)
 
         assert result == {"sub": "test-user"}
@@ -76,7 +78,9 @@ class TestVoiceConnectionManager:
         ws = AsyncMock()
         ws.query_params = {"token": "bad-token"}
 
-        with patch("api.routes.websocket_voice.verify_token", side_effect=Exception("Invalid")):
+        with patch(
+            "api.routes.websocket_voice.verify_token", side_effect=Exception("Invalid")
+        ):
             result = await mgr._authenticate(ws)
 
         assert result is None

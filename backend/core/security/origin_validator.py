@@ -3,12 +3,11 @@
 
 import os
 
+from core.config import settings
+from core.logging_config import logger
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-
-from core.config import settings
-from core.logging_config import logger
 
 
 class TrustedOriginMiddleware(BaseHTTPMiddleware):
@@ -53,7 +52,11 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
                     headers=headers,
                 )
 
-        if os.getenv("ALLOW_TEST_ORIGIN_BYPASS", "").lower() == "true" or _env in {"test", "testing", "ci"}:
+        if os.getenv("ALLOW_TEST_ORIGIN_BYPASS", "").lower() == "true" or _env in {
+            "test",
+            "testing",
+            "ci",
+        }:
             pass
         elif origin and origin not in allowed:
             client_ip = request.client.host if request.client else "unknown"
@@ -62,12 +65,17 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
             )
             return JSONResponse(
                 status_code=status.HTTP_403_FORBIDDEN,
-                content={"detail": "Cross-Origin Request Blocked. Device identity unauthorized."},
+                content={
+                    "detail": "Cross-Origin Request Blocked. Device identity unauthorized."
+                },
             )
 
         # বাংলা মন্তব্য: পাবলিক পাথ (যেমন /api/v1/health) সবসময় হোস্ট ভেরিফিকেশন বাইপাস করবে।
         public_paths = settings.supremeai_public_paths
-        if any(request.url.path == p or request.url.path.startswith(p) for p in public_paths):
+        if any(
+            request.url.path == p or request.url.path.startswith(p)
+            for p in public_paths
+        ):
             response = await call_next(request)
             if origin and origin in allowed:
                 response.headers["Access-Control-Allow-Origin"] = origin
@@ -82,10 +90,14 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
             allowed_hosts.add("testserver")
             allowed_hosts.add("localhost")
             allowed_hosts.add("127.0.0.1")
-            is_allowed = host_header in allowed_hosts or any(host_header.endswith("." + h) for h in allowed_hosts)
+            is_allowed = host_header in allowed_hosts or any(
+                host_header.endswith("." + h) for h in allowed_hosts
+            )
 
         if host_header and not is_allowed:
-            logger.critical(f"🚨 Security Intrusion: Host Header Tampering Detected -> {host_header}")
+            logger.critical(
+                f"🚨 Security Intrusion: Host Header Tampering Detected -> {host_header}"
+            )
             return JSONResponse(
                 status_code=status.HTTP_403_FORBIDDEN,
                 content={"detail": "Host verification failure."},
@@ -100,13 +112,17 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         if request.url.scheme == "https":
-            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+            response.headers["Strict-Transport-Security"] = (
+                "max-age=31536000; includeSubDomains"
+            )
 
         # জিরো-গ্যাপ CORS হেডার ইনজেকশন (ওয়াইল্ডকার্ড মুক্ত)
         if origin and origin in allowed:
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Access-Control-Allow-Credentials"] = "true"
-            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH"
+            response.headers["Access-Control-Allow-Methods"] = (
+                "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH"
+            )
             response.headers["Access-Control-Allow-Headers"] = (
                 "Content-Type, Authorization, X-Requested-With, X-API-Key, Accept, Origin"
             )

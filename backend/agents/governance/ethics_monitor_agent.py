@@ -71,7 +71,9 @@ class EthicsMonitorAgent:
         return f"ethics:{hashlib.sha256(raw.encode()).hexdigest()[:16]}"
 
     @with_error_bus("assess_decision")
-    async def assess_decision(self, decision_context: str, decision_id: str = "") -> DecisionAssessment:
+    async def assess_decision(
+        self, decision_context: str, decision_id: str = ""
+    ) -> DecisionAssessment:
         """Assess a decision against ethical principles."""
         prompt = (
             f"Assess this decision against ethical principles (fairness, transparency, "
@@ -82,7 +84,9 @@ class EthicsMonitorAgent:
         )
 
         try:
-            result = await self.llm.route(prompt=prompt, task_type="reasoning", max_tokens=500)
+            result = await self.llm.route(
+                prompt=prompt, task_type="reasoning", max_tokens=500
+            )
             import json
 
             content = result.get("content", "{}")
@@ -94,7 +98,8 @@ class EthicsMonitorAgent:
             score = 1.0
 
         assessment = DecisionAssessment(
-            decision_id=decision_id or hashlib.sha256(decision_context.encode()).hexdigest()[:12],
+            decision_id=decision_id
+            or hashlib.sha256(decision_context.encode()).hexdigest()[:12],
             principles_checked=list(EthicalPrinciple),
             violations=violations,
             overall_score=score,
@@ -107,7 +112,14 @@ class EthicsMonitorAgent:
     def check_bias(self, input_data: dict[str, Any]) -> dict[str, Any]:
         """Check for potential biases in input data."""
         bias_flags = []
-        protected_attributes = ["race", "gender", "age", "religion", "disability", "sexual_orientation"]
+        protected_attributes = [
+            "race",
+            "gender",
+            "age",
+            "religion",
+            "disability",
+            "sexual_orientation",
+        ]
 
         for attr in protected_attributes:
             if attr in input_data:
@@ -123,12 +135,16 @@ class EthicsMonitorAgent:
             "has_bias_risk": len(bias_flags) > 0,
             "flags": bias_flags,
             "recommendation": (
-                "Review decision logic to ensure no discriminatory outcomes" if bias_flags else "No bias detected"
+                "Review decision logic to ensure no discriminatory outcomes"
+                if bias_flags
+                else "No bias detected"
             ),
         }
 
     @with_error_bus("validate_ethical_principle")
-    async def validate_ethical_principle(self, principle: EthicalPrinciple, context: str) -> EthicsVerdict:
+    async def validate_ethical_principle(
+        self, principle: EthicalPrinciple, context: str
+    ) -> EthicsVerdict:
         """Validate a decision against a specific ethical principle."""
         prompt = (
             f"Evaluate this context against the ethical principle of {principle.value}:\n\n"
@@ -138,7 +154,9 @@ class EthicsMonitorAgent:
         )
 
         try:
-            result = await self.llm.route(prompt=prompt, task_type="reasoning", max_tokens=300)
+            result = await self.llm.route(
+                prompt=prompt, task_type="reasoning", max_tokens=300
+            )
             import json
 
             content = result.get("content", "{}")
@@ -146,7 +164,9 @@ class EthicsMonitorAgent:
             return EthicsVerdict(
                 verdict=data.get("verdict", "flagged"),
                 confidence=float(data.get("confidence", 0.5)),
-                explanation=data.get("explanation", "Insufficient context for evaluation"),
+                explanation=data.get(
+                    "explanation", "Insufficient context for evaluation"
+                ),
                 reviewed_principles=data.get("reviewed_principles", [principle.value]),
             )
         except Exception:
@@ -165,7 +185,11 @@ class EthicsMonitorAgent:
             "total_assessments": total,
             "ethical_percentage": (ethical_count / total * 100) if total > 0 else 100,
             "flagged_decisions": total - ethical_count,
-            "average_score": sum(a.overall_score for a in self._assessments) / total if total > 0 else 1.0,
+            "average_score": (
+                sum(a.overall_score for a in self._assessments) / total
+                if total > 0
+                else 1.0
+            ),
             "report_generated_at": datetime.now(UTC).isoformat(),
         }
 

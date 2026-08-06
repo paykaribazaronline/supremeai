@@ -9,8 +9,8 @@ from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from core.billing_plans import SUBSCRIPTION_PLANS
+
 from tools.tenant_rate_limiter import TenantRateLimiter
 
 
@@ -40,7 +40,9 @@ class TestBillingZeroCost:
         assert res["status"] == "success"
         assert res.get("billed", 0.0) == 0.0
 
-    @pytest.mark.skip(reason="TenantRateLimiter accumulated total_cost mock calculation variance")
+    @pytest.mark.skip(
+        reason="TenantRateLimiter accumulated total_cost mock calculation variance"
+    )
     @pytest.mark.asyncio
     async def test_record_usage_calls_stripe_when_configured(self):
         """Test Stripe is called when API key is configured."""

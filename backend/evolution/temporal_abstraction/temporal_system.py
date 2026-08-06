@@ -177,17 +177,23 @@ class TemporalMemory:
         self, start_time: float, end_time: float, event_type: str | None = None
     ) -> list[TemporalEvent]:
         """Get events within a specific time range."""
-        filtered_events = [e for e in self.events if start_time <= e.timestamp <= end_time]
+        filtered_events = [
+            e for e in self.events if start_time <= e.timestamp <= end_time
+        ]
 
         if event_type:
             filtered_events = [e for e in filtered_events if e.event_type == event_type]
 
         return filtered_events
 
-    def get_recent_events(self, seconds: int, event_type: str | None = None) -> list[TemporalEvent]:
+    def get_recent_events(
+        self, seconds: int, event_type: str | None = None
+    ) -> list[TemporalEvent]:
         """Get events from the last N seconds."""
         current_time = time.time()
-        return self.get_events_in_range(current_time - seconds, current_time, event_type)
+        return self.get_events_in_range(
+            current_time - seconds, current_time, event_type
+        )
 
 
 class TemporalPatternDetector:
@@ -199,7 +205,9 @@ class TemporalPatternDetector:
         self.config = config
         self.temporal_memory = TemporalMemory(config)
 
-    def detect_periodic_patterns(self, events: list[TemporalEvent]) -> list[TemporalPattern]:
+    def detect_periodic_patterns(
+        self, events: list[TemporalEvent]
+    ) -> list[TemporalPattern]:
         """Detect periodic patterns in events."""
         if len(events) < 3:
             return []
@@ -237,10 +245,21 @@ class TemporalPatternDetector:
 
             # Find the most common interval range
             dominant_bin_idx = np.argmax(hist)
-            period_estimate = (bin_edges[dominant_bin_idx] + bin_edges[dominant_bin_idx + 1]) / 2
+            period_estimate = (
+                bin_edges[dominant_bin_idx] + bin_edges[dominant_bin_idx + 1]
+            ) / 2
 
             # Verify periodicity
-            if len([i for i in intervals if abs(i - period_estimate) < period_estimate * 0.2]) >= len(intervals) * 0.6:
+            if (
+                len(
+                    [
+                        i
+                        for i in intervals
+                        if abs(i - period_estimate) < period_estimate * 0.2
+                    ]
+                )
+                >= len(intervals) * 0.6
+            ):
                 # Calculate pattern strength (how regular the intervals are)
                 std_dev = np.std(intervals)
                 mean_interval = np.mean(intervals)
@@ -278,7 +297,11 @@ class TemporalPatternDetector:
 
         current_time = start_time
         while current_time < end_time:
-            window_events = [e for e in sorted_events if current_time <= e.timestamp < current_time + window_size]
+            window_events = [
+                e
+                for e in sorted_events
+                if current_time <= e.timestamp < current_time + window_size
+            ]
 
             windows.append(
                 {
@@ -327,7 +350,9 @@ class TemporalPatternDetector:
 
         return []
 
-    def detect_seasonal_patterns(self, events: list[TemporalEvent]) -> list[TemporalPattern]:
+    def detect_seasonal_patterns(
+        self, events: list[TemporalEvent]
+    ) -> list[TemporalPattern]:
         """Detect seasonal patterns (daily, weekly, etc.)."""
         if len(events) < 10:
             return []
@@ -367,7 +392,9 @@ class TemporalPatternDetector:
 
         return patterns
 
-    def _check_cyclic_pattern(self, timestamps: np.ndarray, cycle_period: float) -> float:
+    def _check_cyclic_pattern(
+        self, timestamps: np.ndarray, cycle_period: float
+    ) -> float:
         """Check if there's a cyclic pattern with the given period."""
         if len(timestamps) < 5:
             return 0.0
@@ -430,7 +457,9 @@ class TemporalPatternDetector:
 
         return anomalies
 
-    def identify_temporal_patterns(self, events: list[TemporalEvent]) -> list[TemporalPattern]:
+    def identify_temporal_patterns(
+        self, events: list[TemporalEvent]
+    ) -> list[TemporalPattern]:
         """Identify all types of temporal patterns in events."""
         patterns = []
 
@@ -441,7 +470,11 @@ class TemporalPatternDetector:
         patterns.extend(self.detect_anomalies(events))
 
         # Filter by confidence threshold
-        return [p for p in patterns if p.confidence >= self.config.pattern_confidence_threshold]
+        return [
+            p
+            for p in patterns
+            if p.confidence >= self.config.pattern_confidence_threshold
+        ]
 
 
 class TemporalPredictor:
@@ -453,7 +486,9 @@ class TemporalPredictor:
         self.config = config
         self.pattern_detector = TemporalPatternDetector(config)
 
-    def predict_next_event(self, events: list[TemporalEvent], event_type: str) -> tuple[float | None, float]:
+    def predict_next_event(
+        self, events: list[TemporalEvent], event_type: str
+    ) -> tuple[float | None, float]:
         """
         Predict when the next event of a specific type will occur.
 
@@ -470,7 +505,9 @@ class TemporalPredictor:
         patterns = self.pattern_detector.identify_temporal_patterns(filtered_events)
 
         # Prioritize periodic patterns for prediction
-        periodic_patterns = [p for p in patterns if p.pattern_type == TemporalPatternType.PERIODIC]
+        periodic_patterns = [
+            p for p in patterns if p.pattern_type == TemporalPatternType.PERIODIC
+        ]
 
         if periodic_patterns:
             # Use the strongest periodic pattern
@@ -484,7 +521,9 @@ class TemporalPredictor:
                 return predicted_time, confidence
 
         # If no strong periodic pattern, use trend analysis
-        trend_patterns = [p for p in patterns if p.pattern_type == TemporalPatternType.TREND]
+        trend_patterns = [
+            p for p in patterns if p.pattern_type == TemporalPatternType.TREND
+        ]
 
         if trend_patterns:
             trend = trend_patterns[0]  # Use the first trend
@@ -498,7 +537,10 @@ class TemporalPredictor:
 
         # If no patterns, use simple average interval
         sorted_events = sorted(filtered_events, key=lambda e: e.timestamp)
-        intervals = [sorted_events[i].timestamp - sorted_events[i - 1].timestamp for i in range(1, len(sorted_events))]
+        intervals = [
+            sorted_events[i].timestamp - sorted_events[i - 1].timestamp
+            for i in range(1, len(sorted_events))
+        ]
 
         if intervals:
             avg_interval = np.mean(intervals)
@@ -549,7 +591,9 @@ class TemporalAbstractionLayer:
         self.config = config
         self.abstraction_levels = {}
 
-    def create_abstraction(self, events: list[TemporalEvent], granularity: TemporalGranularity) -> list[dict[str, Any]]:
+    def create_abstraction(
+        self, events: list[TemporalEvent], granularity: TemporalGranularity
+    ) -> list[dict[str, Any]]:
         """
         Create temporal abstractions at the specified granularity.
 
@@ -576,7 +620,9 @@ class TemporalAbstractionLayer:
                 "event_count": len(period_events),
                 "event_types": list(set(e.event_type for e in period_events)),
                 "statistics": stats,
-                "representative_events": self._select_representative_events(period_events),
+                "representative_events": self._select_representative_events(
+                    period_events
+                ),
                 "complexity": self._calculate_complexity(period_events),
             }
 
@@ -607,7 +653,9 @@ class TemporalAbstractionLayer:
         if granularity == TemporalGranularity.SECOND:
             return f"{dt.year}-{dt.month:02d}-{dt.day:02d} {dt.hour:02d}:{dt.minute:02d}:{dt.second:02d}"
         elif granularity == TemporalGranularity.MINUTE:
-            return f"{dt.year}-{dt.month:02d}-{dt.day:02d} {dt.hour:02d}:{dt.minute:02d}"
+            return (
+                f"{dt.year}-{dt.month:02d}-{dt.day:02d} {dt.hour:02d}:{dt.minute:02d}"
+            )
         elif granularity == TemporalGranularity.HOUR:
             return f"{dt.year}-{dt.month:02d}-{dt.day:02d} {dt.hour:02d}:00"
         elif granularity == TemporalGranularity.DAY:
@@ -623,7 +671,9 @@ class TemporalAbstractionLayer:
             # For custom granularities, use a default approach
             return str(int(timestamp))
 
-    def _calculate_period_statistics(self, events: list[TemporalEvent]) -> dict[str, float]:
+    def _calculate_period_statistics(
+        self, events: list[TemporalEvent]
+    ) -> dict[str, float]:
         """Calculate statistics for a period of events."""
         if not events:
             return {}
@@ -648,13 +698,17 @@ class TemporalAbstractionLayer:
 
         return stats
 
-    def _select_representative_events(self, events: list[TemporalEvent]) -> list[TemporalEvent]:
+    def _select_representative_events(
+        self, events: list[TemporalEvent]
+    ) -> list[TemporalEvent]:
         """Select representative events from a group."""
         if not events:
             return []
 
         # Sort by priority and confidence
-        sorted_events = sorted(events, key=lambda e: e.priority * e.confidence, reverse=True)
+        sorted_events = sorted(
+            events, key=lambda e: e.priority * e.confidence, reverse=True
+        )
 
         # Return top 3 events or all if fewer than 3
         return sorted_events[:3]
@@ -666,7 +720,10 @@ class TemporalAbstractionLayer:
 
         # Calculate temporal irregularity
         sorted_events = sorted(events, key=lambda e: e.timestamp)
-        intervals = [sorted_events[i].timestamp - sorted_events[i - 1].timestamp for i in range(1, len(sorted_events))]
+        intervals = [
+            sorted_events[i].timestamp - sorted_events[i - 1].timestamp
+            for i in range(1, len(sorted_events))
+        ]
 
         if not intervals:
             return 0.0
@@ -713,11 +770,15 @@ class TemporalAbstractionSystem:
         self.pattern_detector.temporal_memory = self.temporal_memory
         # Note: We don't store patterns here as they're computed on demand
 
-    def get_temporal_patterns(self, time_window: int | None = None) -> list[TemporalPattern]:
+    def get_temporal_patterns(
+        self, time_window: int | None = None
+    ) -> list[TemporalPattern]:
         """Get temporal patterns in the specified time window."""
         if time_window:
             current_time = time.time()
-            events = self.temporal_memory.get_events_in_range(current_time - time_window, current_time)
+            events = self.temporal_memory.get_events_in_range(
+                current_time - time_window, current_time
+            )
         else:
             events = self.temporal_memory.events
 
@@ -725,11 +786,15 @@ class TemporalAbstractionSystem:
 
     def predict_future_events(self, horizon_seconds: int) -> list[dict[str, Any]]:
         """Predict events in the future."""
-        predictions = self.predictor.predict_event_sequence(self.temporal_memory.events, horizon_seconds)
+        predictions = self.predictor.predict_event_sequence(
+            self.temporal_memory.events, horizon_seconds
+        )
 
         return [
             {
-                "predicted_time": datetime.fromtimestamp(pred[0]).isoformat() if pred[0] else None,
+                "predicted_time": (
+                    datetime.fromtimestamp(pred[0]).isoformat() if pred[0] else None
+                ),
                 "event_type": pred[1],
                 "confidence": pred[2],
                 "timestamp": pred[0],
@@ -743,7 +808,9 @@ class TemporalAbstractionSystem:
         """Create temporal abstractions at the specified granularity."""
         if time_window:
             current_time = time.time()
-            events = self.temporal_memory.get_events_in_range(current_time - time_window, current_time)
+            events = self.temporal_memory.get_events_in_range(
+                current_time - time_window, current_time
+            )
         else:
             events = self.temporal_memory.events
 
@@ -767,7 +834,9 @@ class TemporalAbstractionSystem:
             type_counts[et] = type_counts.get(et, 0) + 1
 
         # Calculate event rate
-        event_rate = len(events) / (total_duration / 3600) if total_duration > 0 else 0  # Per hour
+        event_rate = (
+            len(events) / (total_duration / 3600) if total_duration > 0 else 0
+        )  # Per hour
 
         # Detect patterns
         patterns = self.get_temporal_patterns()
@@ -789,7 +858,9 @@ class TemporalAbstractionSystem:
             "detected_patterns": {
                 "total_patterns": len(patterns),
                 "pattern_types": list(set(pattern_types)),
-                "strong_patterns": [p.description for p in patterns if p.strength > 0.7],
+                "strong_patterns": [
+                    p.description for p in patterns if p.strength > 0.7
+                ],
             },
             "predictions": self.predict_future_events(self.config.prediction_horizon),
         }
@@ -800,7 +871,11 @@ class TemporalAbstractionSystem:
         """Get temporal hierarchy across different granularities."""
         hierarchy = {}
 
-        for granularity in [TemporalGranularity.HOUR, TemporalGranularity.DAY, TemporalGranularity.WEEK]:
+        for granularity in [
+            TemporalGranularity.HOUR,
+            TemporalGranularity.DAY,
+            TemporalGranularity.WEEK,
+        ]:
             abstraction = self.create_temporal_abstraction(granularity)
             hierarchy[granularity.value] = abstraction
 
@@ -873,16 +948,22 @@ def demo_temporal_abstraction():
     predictions = temp_system.predict_future_events(3600)  # Next hour
     print(f"Predicted {len(predictions)} events in the next hour:")
     for pred in predictions:
-        print(f"  - {pred['event_type']} at {pred['predicted_time']} (confidence: {pred['confidence']:.2f})")
+        print(
+            f"  - {pred['event_type']} at {pred['predicted_time']} (confidence: {pred['confidence']:.2f})"
+        )
 
     # Create abstractions
     print("\nCreating temporal abstractions...")
-    hourly_abstractions = temp_system.create_temporal_abstraction(TemporalGranularity.HOUR)
+    hourly_abstractions = temp_system.create_temporal_abstraction(
+        TemporalGranularity.HOUR
+    )
     print(f"Created {len(hourly_abstractions)} hourly abstractions")
 
     # Print first few abstractions
     for i, abst in enumerate(hourly_abstractions[:3]):
-        print(f"  {i+1}. {abst['time_period']}: {abst['event_count']} events, complexity: {abst['complexity']:.2f}")
+        print(
+            f"  {i+1}. {abst['time_period']}: {abst['event_count']} events, complexity: {abst['complexity']:.2f}"
+        )
 
     # Get comprehensive insights
     print("\nGetting temporal insights...")

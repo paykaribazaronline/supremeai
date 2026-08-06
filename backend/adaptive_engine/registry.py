@@ -18,8 +18,12 @@ class PlatformProfile:
     pricing_tier: str = "free"
     docs_url: str = ""
     status: str = "active"  # "active", "beta", "deprecated"
-    learned_at: datetime.datetime = field(default_factory=lambda: datetime.datetime.now(datetime.UTC))
-    last_updated: datetime.datetime = field(default_factory=lambda: datetime.datetime.now(datetime.UTC))
+    learned_at: datetime.datetime = field(
+        default_factory=lambda: datetime.datetime.now(datetime.UTC)
+    )
+    last_updated: datetime.datetime = field(
+        default_factory=lambda: datetime.datetime.now(datetime.UTC)
+    )
     success_rate: float = 1.0
 
 

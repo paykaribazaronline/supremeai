@@ -10,12 +10,11 @@ import json
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from qdrant_client import QdrantClient
-from qdrant_client.http import models
-
 from core.cache import get_redis_client
 from core.config import settings
 from core.logging import get_logger
+from qdrant_client import QdrantClient
+from qdrant_client.http import models
 
 
 @dataclass
@@ -41,18 +40,25 @@ class ContextManager:
 
         # Initialize Qdrant client for vector storage
         try:
-            self.vector_client = QdrantClient(url=settings.QDRANT_URL or "localhost", port=settings.QDRANT_PORT or 6333)
+            self.vector_client = QdrantClient(
+                url=settings.QDRANT_URL or "localhost",
+                port=settings.QDRANT_PORT or 6333,
+            )
         except Exception as e:
             self.logger.warning(f"Qdrant client initialization failed: {e}")
             self.vector_client = None
-            self.logger.warning("Qdrant not available, falling back to Redis-only context management")
+            self.logger.warning(
+                "Qdrant not available, falling back to Redis-only context management"
+            )
 
         # Create collection for conversation contexts if Qdrant is available
         if self.vector_client:
             try:
                 self.vector_client.recreate_collection(
                     collection_name="conversation_contexts",
-                    vectors_config=models.VectorParams(size=384, distance=models.Distance.COSINE),
+                    vectors_config=models.VectorParams(
+                        size=384, distance=models.Distance.COSINE
+                    ),
                 )
             except Exception as e:
                 self.logger.error(f"Failed to create Qdrant collection: {e}")
@@ -87,27 +93,35 @@ class ContextManager:
                         collection_name="conversation_contexts",
                         points=[
                             models.PointStruct(
-                                id=hashlib.md5(context.session_id.encode(), usedforsecurity=False).hexdigest(),
+                                id=hashlib.md5(
+                                    context.session_id.encode(), usedforsecurity=False
+                                ).hexdigest(),
                                 vector=context.context_embedding,
                                 payload={
                                     "user_id": context.user_id,
                                     "session_id": context.session_id,
                                     "timestamp": context.last_accessed.isoformat(),
-                                    "conversation_summary": self.summarize_conversation(context.conversation_history),
+                                    "conversation_summary": self.summarize_conversation(
+                                        context.conversation_history
+                                    ),
                                     "relevance_score": context.relevance_score,
                                 },
                             )
                         ],
                     )
                 except Exception as e:
-                    self.logger.error(f"Failed to store context in vector database: {e}")
+                    self.logger.error(
+                        f"Failed to store context in vector database: {e}"
+                    )
 
             return True
         except Exception as e:
             self.logger.error(f"Error storing context: {e}")
             return False
 
-    async def retrieve_context(self, session_id: str, user_id: str | None = None) -> ConversationContext | None:
+    async def retrieve_context(
+        self, session_id: str, user_id: str | None = None
+    ) -> ConversationContext | None:
         """Retrieve conversation context from Redis or vector database."""
         # First try Redis for quick access
         redis_key = f"context:{session_id}"
@@ -138,7 +152,9 @@ class ContextManager:
 
         return None
 
-    async def search_context_by_similarity(self, query: str, user_id: str | None = None) -> ConversationContext | None:
+    async def search_context_by_similarity(
+        self, query: str, user_id: str | None = None
+    ) -> ConversationContext | None:
         """Search for similar conversation contexts using semantic similarity."""
         if not self.vector_client:
             return None
@@ -167,7 +183,13 @@ class ContextManager:
                 limit=1,
                 score_threshold=0.7,  # Minimum similarity threshold
                 query_filter=(
-                    models.Filter(must=[models.FieldCondition(key="user_id", match=models.MatchValue(value=user_id))])
+                    models.Filter(
+                        must=[
+                            models.FieldCondition(
+                                key="user_id", match=models.MatchValue(value=user_id)
+                            )
+                        ]
+                    )
                     if user_id
                     else None
                 ),
@@ -216,7 +238,11 @@ class ContextManager:
 
         # Add new interaction to history
         context.conversation_history.append(
-            {"timestamp": datetime.now().isoformat(), "user_input": user_input, "ai_response": ai_response}
+            {
+                "timestamp": datetime.now().isoformat(),
+                "user_input": user_input,
+                "ai_response": ai_response,
+            }
         )
 
         # Limit history to prevent excessive growth

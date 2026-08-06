@@ -5,13 +5,13 @@ from .morphic import AgentReflection, DynamicCapability, ExecutionChain
 from .sentinel import ApiEndpoint, SystemDependency, SystemIncident
 
 __all__ = [
-    "DynamicAgent",
     "AgentReflection",
+    "AgentSession",
+    "ApiEndpoint",
+    "DynamicAgent",
     "DynamicCapability",
     "ExecutionChain",
-    "ApiEndpoint",
+    "ExecutionLog",
     "SystemDependency",
     "SystemIncident",
-    "AgentSession",
-    "ExecutionLog",
 ]

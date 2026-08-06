@@ -55,7 +55,11 @@ class TokenDeductor:
         actual_user_id = (
             user_id_param
             if isinstance(user_id_param, str)
-            else (session_or_user_id if isinstance(session_or_user_id, str) else "user_default")
+            else (
+                session_or_user_id
+                if isinstance(session_or_user_id, str)
+                else "user_default"
+            )
         )
         input_tokens = kwargs.get("input_tokens", tokens_to_deduct)
         output_tokens = kwargs.get("output_tokens", 0)
@@ -102,7 +106,9 @@ class TokenDeductor:
                         bal = getattr(wallet, "balance_usd", Decimal("0"))
                         if bal <= Decimal("0"):
                             return False
-                        if hasattr(session, "add") and callable(getattr(session, "add", None)):
+                        if hasattr(session, "add") and callable(
+                            getattr(session, "add", None)
+                        ):
                             session.add(MagicMock())
                         return True
                 return True
@@ -116,15 +122,25 @@ class TokenDeductor:
             # In production, never allow fallback behavior that could lead to double-spending
             # Check if Redis is configured first
             if not self.redis_client.configured:
-                logger.critical("Redis not configured in production - blocking token deduction for security")
+                logger.critical(
+                    "Redis not configured in production - blocking token deduction for security"
+                )
                 return TokenDeductionResult.SYSTEM_ERROR
             return await self._secure_deduct_tokens(
-                actual_user_id, total_tokens, transaction_id, deduce_cost, cost_multiplier
+                actual_user_id,
+                total_tokens,
+                transaction_id,
+                deduce_cost,
+                cost_multiplier,
             )
         else:
             # In non-production, allow more flexible behavior for testing
             return await self._secure_deduct_tokens(
-                actual_user_id, total_tokens, transaction_id, deduce_cost, cost_multiplier
+                actual_user_id,
+                total_tokens,
+                transaction_id,
+                deduce_cost,
+                cost_multiplier,
             )
 
     async def _secure_deduct_tokens(
@@ -147,7 +163,9 @@ class TokenDeductor:
         # Acquire distributed lock
         lock_acquired = await self._acquire_lock(lock_key, lock_value, lock_timeout)
         if not lock_acquired:
-            logger.warning(f"Could not acquire lock for token deduction for user {user_id}")
+            logger.warning(
+                f"Could not acquire lock for token deduction for user {user_id}"
+            )
             return TokenDeductionResult.DOUBLE_SPENDING_PREVENTION
 
         try:
@@ -155,7 +173,9 @@ class TokenDeductor:
             transaction_key = f"processed_tx:{transaction_id}"
             already_processed = await self.redis_client.get_cache(transaction_key)
             if already_processed:
-                logger.warning(f"Transaction {transaction_id} already processed for user {user_id}")
+                logger.warning(
+                    f"Transaction {transaction_id} already processed for user {user_id}"
+                )
                 return TokenDeductionResult.DOUBLE_SPENDING_PREVENTION
 
             # Get current balance
@@ -168,7 +188,9 @@ class TokenDeductor:
                 try:
                     current_balance = float(current_balance_str)
                 except ValueError:
-                    logger.error(f"Invalid balance value for user {user_id}: {current_balance_str}")
+                    logger.error(
+                        f"Invalid balance value for user {user_id}: {current_balance_str}"
+                    )
                     return TokenDeductionResult.SYSTEM_ERROR
 
             # Calculate deduction amount
@@ -189,24 +211,35 @@ class TokenDeductor:
             await self.redis_client.set_cache(balance_key, str(new_balance))
 
             # Mark transaction as processed to prevent double-spending
-            await self.redis_client.set_cache(transaction_key, "1", ex=3600)  # 1 hour TTL
+            await self.redis_client.set_cache(
+                transaction_key, "1", ex=3600
+            )  # 1 hour TTL
 
             logger.info(
-                f"Successfully deducted {total_deduction} tokens for user {user_id}. " f"New balance: {new_balance}"
+                f"Successfully deducted {total_deduction} tokens for user {user_id}. "
+                f"New balance: {new_balance}"
             )
             return TokenDeductionResult.SUCCESS
 
         except Exception as e:
-            logger.error(f"Unexpected error during token deduction for user {user_id}: {e}")
+            logger.error(
+                f"Unexpected error during token deduction for user {user_id}: {e}"
+            )
             return TokenDeductionResult.SYSTEM_ERROR
         finally:
             # Release the lock
             await self._release_lock(lock_key, lock_value)
 
-    def _acquire_distributed_lock(self, lock_key: str, lock_value: str, timeout: int = 10, **kwargs) -> bool:
+    def _acquire_distributed_lock(
+        self, lock_key: str, lock_value: str, timeout: int = 10, **kwargs
+    ) -> bool:
         """Helper method for distributed lock check with production fail-closed enforcement."""
-        if settings.env in ["production", "staging"] and not getattr(self.redis_client, "configured", True):
-            raise RuntimeError("Redis lock unavailable in production - fail-closed protection triggered")
+        if settings.env in ["production", "staging"] and not getattr(
+            self.redis_client, "configured", True
+        ):
+            raise RuntimeError(
+                "Redis lock unavailable in production - fail-closed protection triggered"
+            )
         return True
 
     def _release_distributed_lock(self, lock_key: str, lock_value: str) -> bool:
@@ -217,13 +250,17 @@ class TokenDeductor:
         """Acquire a distributed lock using Redis."""
         try:
             # Using SET with NX and EX options for atomic lock acquisition
-            result = await self.redis_client.client.set(lock_key, lock_value, nx=True, ex=timeout)
+            result = await self.redis_client.client.set(
+                lock_key, lock_value, nx=True, ex=timeout
+            )
             return result is not None
         except Exception as e:
             logger.error(f"Failed to acquire lock {lock_key}: {e}")
             # In production, if Redis is down, we should not allow operations that require coordination
             if settings.env in ["production", "staging"]:
-                logger.critical("Redis unavailable in production - blocking operation for safety")
+                logger.critical(
+                    "Redis unavailable in production - blocking operation for safety"
+                )
                 return False
             return False
 
@@ -237,7 +274,9 @@ class TokenDeductor:
                 return 0
             end
             """
-            result = await self.redis_client.client.eval(lua_script, 1, lock_key, lock_value)
+            result = await self.redis_client.client.eval(
+                lua_script, 1, lock_key, lock_value
+            )
             return result == 1
         except Exception as e:
             logger.error(f"Failed to release lock {lock_key}: {e}")

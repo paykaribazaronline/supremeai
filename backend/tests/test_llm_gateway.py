@@ -2,7 +2,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import litellm
 import pytest
-
 from core.llm.llm_gateway import LLMGateway
 
 
@@ -44,7 +43,9 @@ def test_load_routing_policy_file_not_found(monkeypatch, tmp_path):
 async def test_acompletion_cache_hit(monkeypatch):
     gateway = LLMGateway()
     mock_cache = MagicMock()
-    mock_cache.query_similar = AsyncMock(return_value=MagicMock(response="cached", model="m"))
+    mock_cache.query_similar = AsyncMock(
+        return_value=MagicMock(response="cached", model="m")
+    )
     monkeypatch.setattr(gateway, "cache", mock_cache)
 
     result = await gateway.acompletion(prompt="hello")
@@ -59,9 +60,13 @@ async def test_acompletion_success():
     mock_response.choices = [MagicMock(message=MagicMock(content="ok"))]
     mock_response._response_metadata = {}
 
-    with patch("litellm.acompletion", new_callable=AsyncMock, return_value=mock_response) as mock_call:
+    with patch(
+        "litellm.acompletion", new_callable=AsyncMock, return_value=mock_response
+    ) as mock_call:
         os.environ["GROQ_API_KEY"] = "mock_key"
-        result = await gateway.acompletion(prompt="hello", model="groq/llama-3.3-70b-versatile")
+        result = await gateway.acompletion(
+            prompt="hello", model="groq/llama-3.3-70b-versatile"
+        )
         assert result["success"] is True
         assert result["text"] == "ok"
         mock_call.assert_called_once()
@@ -91,7 +96,9 @@ async def test_acompletion_fallback_after_failure():
 @pytest.mark.anyio
 async def test_acompletion_all_models_fail():
     gateway = LLMGateway()
-    with patch("litellm.acompletion", new_callable=AsyncMock, side_effect=Exception("err")):
+    with patch(
+        "litellm.acompletion", new_callable=AsyncMock, side_effect=Exception("err")
+    ):
         os.environ["OPENAI_API_KEY"] = "mock_key"
         with pytest.raises(
             Exception
@@ -106,10 +113,15 @@ async def test_acompletion_difficulty_routing():
     mock_response.choices = [MagicMock(message=MagicMock(content="ok"))]
     mock_response._response_metadata = {}
 
-    with patch("litellm.acompletion", new_callable=AsyncMock, return_value=mock_response) as mock_call:
+    with patch(
+        "litellm.acompletion", new_callable=AsyncMock, return_value=mock_response
+    ) as mock_call:
         os.environ["OPENAI_API_KEY"] = "mock_key"
         await gateway.acompletion(prompt="solve x+1=2", task_type="math")
-        assert "hard" in [c.kwargs.get("model", "") for c in mock_call.call_args_list] or mock_call.call_count >= 1
+        assert (
+            "hard" in [c.kwargs.get("model", "") for c in mock_call.call_args_list]
+            or mock_call.call_count >= 1
+        )
 
 
 import os
@@ -128,8 +140,15 @@ async def test_stream_completion_yields_chunks():
     mock_response = MagicMock()
     mock_response.__aiter__ = lambda self: mock_stream()
 
-    with patch("litellm.acompletion", new_callable=AsyncMock, return_value=mock_response):
-        result = [chunk async for chunk in gateway._stream_completion([{"role": "user", "content": "hi"}], ["m"], 1.0)]
+    with patch(
+        "litellm.acompletion", new_callable=AsyncMock, return_value=mock_response
+    ):
+        result = [
+            chunk
+            async for chunk in gateway._stream_completion(
+                [{"role": "user", "content": "hi"}], ["m"], 1.0
+            )
+        ]
         assert result == ["hel", "lo"]
 
 
@@ -156,6 +175,9 @@ async def test_stream_completion_falls_back():
     with patch("litellm.acompletion", new_callable=AsyncMock) as mock_call:
         mock_call.side_effect = [fail_resp, ok_resp]
         result = [
-            chunk async for chunk in gateway._stream_completion([{"role": "user", "content": "hi"}], ["m1", "m2"], 1.0)
+            chunk
+            async for chunk in gateway._stream_completion(
+                [{"role": "user", "content": "hi"}], ["m1", "m2"], 1.0
+            )
         ]
         assert result == ["x", "ok"]

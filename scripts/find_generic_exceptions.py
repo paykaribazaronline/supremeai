@@ -2,9 +2,12 @@
 import os
 import re
 
+
 def find_generic_exceptions(directory):
     pattern = re.compile(r"except\s+Exception(\s+as\s+\w+)?:")
-    ble001_pattern = re.compile(r"except\s+Exception(\s+as\s+\w+)?:\s*#\s*noqa:\s*BLE001")
+    ble001_pattern = re.compile(
+        r"except\s+Exception(\s+as\s+\w+)?:\s*#\s*noqa:\s*BLE001"
+    )
 
     total_exceptions = 0
     total_ble001 = 0
@@ -43,7 +46,9 @@ def find_generic_exceptions(directory):
 
     print("\nRun this script to identify files that need specific exception handling.")
 
+
 if __name__ == "__main__":
     import sys
+
     search_dir = sys.argv[1] if len(sys.argv) > 1 else "."
     find_generic_exceptions(search_dir)

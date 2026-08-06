@@ -17,19 +17,13 @@ Bengali:
     ওপেনএআই সামঞ্জস্যপূর্ণ এপিআই প্রদান করে
 """
 
-import asyncio
-import json
 import os
 import time
 from datetime import datetime
-from typing import Dict, List, Optional
 
-import torch
 from fastapi import FastAPI, HTTPException, Request
 from loguru import logger
 from pydantic import BaseModel
-from transformers import AutoModelForCausalLM, AutoTokenizer
-
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 MODEL_PATH = os.environ.get("MODEL_ID", "/models/supreme-hybrid-8b-q4.gguf")
@@ -40,7 +34,7 @@ MAX_TOTAL_TOKENS = int(os.environ.get("MAX_TOTAL_TOKENS", "8192"))
 app = FastAPI(
     title="SupremeAI HuggingFace Space API",
     description="OpenAI-compatible API for Supreme Hybrid 8B model",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 
@@ -51,7 +45,7 @@ class GenerationRequest(BaseModel):
     temperature: float = 0.7
     top_p: float = 0.9
     top_k: int = 50
-    stop: Optional[List[str]] = None
+    stop: list[str] | None = None
     stream: bool = False
 
 
@@ -62,12 +56,12 @@ class ChatMessage(BaseModel):
 
 class ChatCompletionRequest(BaseModel):
     model: str = "supreme-hybrid-8b"
-    messages: List[ChatMessage]
+    messages: list[ChatMessage]
     max_tokens: int = 512
     temperature: float = 0.7
     top_p: float = 0.9
     top_k: int = 50
-    stop: Optional[List[str]] = None
+    stop: list[str] | None = None
     stream: bool = False
 
 
@@ -130,17 +124,14 @@ async def health_check():
         "status": "healthy",
         "model_loaded": model_loaded_time is not None,
         "model_path": MODEL_PATH,
-        "loaded_at": model_loaded_time.isoformat() if model_loaded_time else None
+        "loaded_at": model_loaded_time.isoformat() if model_loaded_time else None,
     }
 
 
 @app.get("/models")
 async def list_models():
     """List available models."""
-    return {
-        "object": "list",
-        "data": [ModelInfo()]
-    }
+    return {"object": "list", "data": [ModelInfo()]}
 
 
 @app.post("/generate")
@@ -163,10 +154,11 @@ async def generate(request: GenerationRequest):
             "usage": {
                 "prompt_tokens": len(request.prompt.split()),
                 "completion_tokens": len(generated_text.split()),
-                "total_tokens": len(request.prompt.split()) + len(generated_text.split())
+                "total_tokens": len(request.prompt.split())
+                + len(generated_text.split()),
             },
             "model": "supreme-hybrid-8b",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         logger.info(f"Generated response in {time.time() - start_time:.2f}s")
@@ -202,19 +194,18 @@ async def chat_completions(request: ChatCompletionRequest):
             "object": "chat.completion",
             "created": int(time.time()),
             "model": request.model,
-            "choices": [{
-                "index": 0,
-                "message": {
-                    "role": "assistant",
-                    "content": response_text
-                },
-                "finish_reason": "stop"
-            }],
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {"role": "assistant", "content": response_text},
+                    "finish_reason": "stop",
+                }
+            ],
             "usage": {
                 "prompt_tokens": len(full_prompt.split()),
                 "completion_tokens": len(response_text.split()),
-                "total_tokens": len(full_prompt.split()) + len(response_text.split())
-            }
+                "total_tokens": len(full_prompt.split()) + len(response_text.split()),
+            },
         }
 
         logger.info(f"Chat completion in {time.time() - start_time:.2f}s")
@@ -238,9 +229,5 @@ async def internal_error_handler(request: Request, exc: HTTPException):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=80,
-        log_level="info"
-    )
+
+    uvicorn.run(app, host="0.0.0.0", port=80, log_level="info")

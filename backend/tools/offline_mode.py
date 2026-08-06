@@ -2,10 +2,9 @@ import asyncio
 from typing import Any
 
 import httpx
-from loguru import logger
-
 from core.config import settings
 from database.supabase_client import db
+from loguru import logger
 
 
 class OfflineModeManager:
@@ -18,7 +17,9 @@ class OfflineModeManager:
         self.ollama_url = getattr(settings, "ollama_url", "http://127.0.0.1:11434")
         self.sync_queue: list[dict[str, Any]] = []
         self._is_syncing = False
-        logger.info(f"Initialized OfflineModeManager with local model {self.local_model_id}")
+        logger.info(
+            f"Initialized OfflineModeManager with local model {self.local_model_id}"
+        )
 
     async def _call_ollama(self, prompt: str) -> str:
         try:
@@ -37,7 +38,9 @@ class OfflineModeManager:
             logger.error(f"Ollama local fallback failed: {e}")
             return f"[Offline Error] Could not reach local Ollama instance: {e!s}"
 
-    async def execute_task(self, prompt: str, task_type: str = "general") -> dict[str, Any]:
+    async def execute_task(
+        self, prompt: str, task_type: str = "general"
+    ) -> dict[str, Any]:
         logger.info(f"Executing task offline via Ollama: {prompt}")
 
         local_response = await self._call_ollama(prompt)

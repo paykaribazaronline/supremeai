@@ -58,7 +58,9 @@ def _get_conn():
     return conn
 
 
-def create_pending_task(task_type: TaskType, payload: dict, created_by: str = "system") -> PendingTask:
+def create_pending_task(
+    task_type: TaskType, payload: dict, created_by: str = "system"
+) -> PendingTask:
     task = PendingTask(
         task_id=str(uuid.uuid4()),
         task_type=task_type,
@@ -92,7 +94,9 @@ def create_pending_task(task_type: TaskType, payload: dict, created_by: str = "s
 def list_pending() -> list[PendingTask]:
     conn = _get_conn()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM pending_tasks WHERE status = ?", (TaskStatus.PENDING,))
+    cursor.execute(
+        "SELECT * FROM pending_tasks WHERE status = ?", (TaskStatus.PENDING,)
+    )
     rows = cursor.fetchall()
     conn.close()
     return [row_to_task(row) for row in rows]
@@ -103,7 +107,9 @@ def update_task_status(
 ) -> PendingTask | None:
     conn = _get_conn()
     cursor = conn.cursor()
-    resolved_at = datetime.now(UTC).isoformat() if status != TaskStatus.PENDING else None
+    resolved_at = (
+        datetime.now(UTC).isoformat() if status != TaskStatus.PENDING else None
+    )
     cursor.execute(
         """
         UPDATE pending_tasks SET status = ?, resolved_by = ?, resolved_at = ?, reason = ?

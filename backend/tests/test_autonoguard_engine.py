@@ -13,14 +13,9 @@ import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
-from core.autonoguard_engine import (
-    SENSITIVE_OPS,
-    AutonoGuardEngine,
-    ChurnDetection,
-    OperationContext,
-    autonoguard_engine,
-)
+from core.autonoguard_engine import (SENSITIVE_OPS, AutonoGuardEngine,
+                                     ChurnDetection, OperationContext,
+                                     autonoguard_engine)
 
 # --- OperationContext Tests ---
 

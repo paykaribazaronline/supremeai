@@ -126,7 +126,9 @@ class RemediationEngine:
 
         # Start monitoring tasks
         self.monitoring_tasks.append(asyncio.create_task(self._monitor_services()))
-        self.monitoring_tasks.append(asyncio.create_task(self._monitor_resource_usage()))
+        self.monitoring_tasks.append(
+            asyncio.create_task(self._monitor_resource_usage())
+        )
         self.monitoring_tasks.append(asyncio.create_task(self._monitor_dependencies()))
 
     async def stop_monitoring(self):
@@ -151,13 +153,19 @@ class RemediationEngine:
 
                 for service in topology["services"]:
                     if service["status"] == "error":
-                        logger.warning(f"Service {service['name']} ({service['id']}) is in error state")
+                        logger.warning(
+                            f"Service {service['name']} ({service['id']}) is in error state"
+                        )
                         await self._handle_service_failure(service["id"], service)
                     elif service["status"] == "unknown":
                         # Perform additional health check
-                        is_healthy = await self.health_checker.check_service_health(service["id"])
+                        is_healthy = await self.health_checker.check_service_health(
+                            service["id"]
+                        )
                         if not is_healthy:
-                            logger.warning(f"Service {service['name']} ({service['id']}) health check failed")
+                            logger.warning(
+                                f"Service {service['name']} ({service['id']}) health check failed"
+                            )
                             await self._handle_service_failure(service["id"], service)
 
                 await asyncio.sleep(30)  # Check every 30 seconds
@@ -173,14 +181,20 @@ class RemediationEngine:
 
                 for util in topology["resource_utilization"]:
                     if util["cpu_percent"] > self.load_threshold * 100:
-                        logger.warning(f"High CPU usage detected for {util['service_name']}: {util['cpu_percent']}%")
-                        await self._handle_resource_overload(util["node_id"], "cpu", util["cpu_percent"])
+                        logger.warning(
+                            f"High CPU usage detected for {util['service_name']}: {util['cpu_percent']}%"
+                        )
+                        await self._handle_resource_overload(
+                            util["node_id"], "cpu", util["cpu_percent"]
+                        )
 
                     if util["memory_percent"] > self.load_threshold * 100:
                         logger.warning(
                             f"High memory usage detected for {util['service_name']}: {util['memory_percent']}%"
                         )
-                        await self._handle_resource_overload(util["node_id"], "memory", util["memory_percent"])
+                        await self._handle_resource_overload(
+                            util["node_id"], "memory", util["memory_percent"]
+                        )
 
                 await asyncio.sleep(45)  # Check every 45 seconds
             except Exception as e:
@@ -196,7 +210,9 @@ class RemediationEngine:
                 for flow in topology["data_flows"]:
                     # Check if reliability has dropped significantly
                     if flow["reliability"] < 0.8:  # Below 80% reliability
-                        logger.warning(f"Low reliability detected in flow {flow['id']}: {flow['reliability']}")
+                        logger.warning(
+                            f"Low reliability detected in flow {flow['id']}: {flow['reliability']}"
+                        )
                         await self._analyze_dependency_issue(flow)
 
                 await asyncio.sleep(60)  # Check every minute
@@ -226,7 +242,9 @@ class RemediationEngine:
         else:
             logger.info(f"Low impact failure, logging for manual review: {service_id}")
 
-    async def _handle_resource_overload(self, service_id: str, resource_type: str, usage_percent: float):
+    async def _handle_resource_overload(
+        self, service_id: str, resource_type: str, usage_percent: float
+    ):
         """Handle a detected resource overload."""
         issue_description = f"High {resource_type} usage detected: {usage_percent}%"
 
@@ -234,7 +252,9 @@ class RemediationEngine:
         if resource_type in ["cpu", "memory"]:
             traffic_sim = await self.impact_simulator.simulate_traffic_spike(
                 service_id,
-                multiplier=max(1.5, usage_percent / 50.0),  # Higher multiplier for higher usage
+                multiplier=max(
+                    1.5, usage_percent / 50.0
+                ),  # Higher multiplier for higher usage
                 duration_minutes=10,
             )
         else:
@@ -258,9 +278,7 @@ class RemediationEngine:
 
     async def _analyze_dependency_issue(self, flow_data: dict):
         """Analyze a dependency issue and determine remediation."""
-        issue_description = (
-            f"Low reliability in flow from {flow_data['source_node_id']} to {flow_data['target_node_id']}"
-        )
+        issue_description = f"Low reliability in flow from {flow_data['source_node_id']} to {flow_data['target_node_id']}"
 
         # Run simulation to understand impact
         impact_result = await self.impact_simulator.simulate_service_failure(
@@ -281,13 +299,19 @@ class RemediationEngine:
             await self._execute_remediation_plan(plan)
 
     async def _create_remediation_plan(
-        self, issue_description: str, affected_services: list[str], predicted_impact: str, confidence_score: float
+        self,
+        issue_description: str,
+        affected_services: list[str],
+        predicted_impact: str,
+        confidence_score: float,
     ) -> RemediationPlan:
         """Create a remediation plan based on the detected issue."""
         plan_id = f"remed_{int(datetime.utcnow().timestamp())}_{hash(issue_description) % 10000}"
 
         # Determine appropriate actions based on impact and affected services
-        actions = self._determine_remediation_actions(predicted_impact, affected_services, issue_description)
+        actions = self._determine_remediation_actions(
+            predicted_impact, affected_services, issue_description
+        )
 
         # Estimate recovery time based on action complexity
         est_recovery_time = self._estimate_recovery_time(actions)
@@ -306,7 +330,9 @@ class RemediationEngine:
         )
 
         self.active_plans[plan_id] = plan
-        logger.info(f"Created remediation plan {plan_id} for issue: {issue_description}")
+        logger.info(
+            f"Created remediation plan {plan_id} for issue: {issue_description}"
+        )
 
         return plan
 
@@ -316,10 +342,17 @@ class RemediationEngine:
         """Determine appropriate remediation actions based on impact."""
         actions = []
 
-        if "failed" in issue_description.lower() or "error" in issue_description.lower():
+        if (
+            "failed" in issue_description.lower()
+            or "error" in issue_description.lower()
+        ):
             if impact_level in ["high", "critical"]:
                 actions.extend(
-                    [RemediationAction.RESTART_SERVICE, RemediationAction.FAILOVER, RemediationAction.ACTIVATE_BACKUP]
+                    [
+                        RemediationAction.RESTART_SERVICE,
+                        RemediationAction.FAILOVER,
+                        RemediationAction.ACTIVATE_BACKUP,
+                    ]
                 )
             else:
                 actions.append(RemediationAction.RESTART_SERVICE)
@@ -331,8 +364,16 @@ class RemediationEngine:
             if len(affected_services) > 3:
                 actions.append(RemediationAction.THROTTLE_TRAFFIC)
 
-        elif "reliability" in issue_description.lower() or "slow" in issue_description.lower():
-            actions.extend([RemediationAction.APPLY_CIRCUIT_BREAKER, RemediationAction.ISOLATE_COMPONENT])
+        elif (
+            "reliability" in issue_description.lower()
+            or "slow" in issue_description.lower()
+        ):
+            actions.extend(
+                [
+                    RemediationAction.APPLY_CIRCUIT_BREAKER,
+                    RemediationAction.ISOLATE_COMPONENT,
+                ]
+            )
 
         # Add general safety measures
         if impact_level in ["high", "critical"]:
@@ -366,7 +407,10 @@ class RemediationEngine:
     def _can_rollback_issue(self, issue_description: str) -> bool:
         """Determine if the issue allows for rollback."""
         # Issues related to configuration changes can typically be rolled back
-        return "config" in issue_description.lower() or "deployment" in issue_description.lower()
+        return (
+            "config" in issue_description.lower()
+            or "deployment" in issue_description.lower()
+        )
 
     def _should_execute_remediation(self, impact_result: SimulationResult) -> bool:
         """Determine if remediation should be executed automatically."""
@@ -376,11 +420,15 @@ class RemediationEngine:
             and impact_result.confidence_score >= self.impact_threshold
         )
 
-    def _should_execute_remediation_for_resource(self, resource_type: str, usage_percent: float) -> bool:
+    def _should_execute_remediation_for_resource(
+        self, resource_type: str, usage_percent: float
+    ) -> bool:
         """Determine if resource overload remediation should be executed."""
         return usage_percent > self.load_threshold * 100
 
-    async def _execute_remediation_plan(self, plan: RemediationPlan) -> list[RemediationExecution]:
+    async def _execute_remediation_plan(
+        self, plan: RemediationPlan
+    ) -> list[RemediationExecution]:
         """Execute a remediation plan and track results."""
         executions = []
 
@@ -396,13 +444,17 @@ class RemediationEngine:
         # Update plan status based on execution results
         successful_actions = sum(1 for ex in executions if ex.success)
         if successful_actions == len(executions):
-            logger.info(f"All remediation actions completed successfully for plan {plan.id}")
+            logger.info(
+                f"All remediation actions completed successfully for plan {plan.id}"
+            )
         else:
             logger.warning(f"Some remediation actions failed for plan {plan.id}")
 
         return executions
 
-    async def _execute_single_action(self, plan_id: str, action: RemediationAction) -> RemediationExecution:
+    async def _execute_single_action(
+        self, plan_id: str, action: RemediationAction
+    ) -> RemediationExecution:
         """Execute a single remediation action."""
         start_time = time.time()
         executed_at = datetime.utcnow().isoformat()
@@ -454,7 +506,9 @@ class RemediationEngine:
         )
 
         self.execution_history.append(execution)
-        logger.info(f"Remediation action {action.value} completed with success={success}")
+        logger.info(
+            f"Remediation action {action.value} completed with success={success}"
+        )
 
         return execution
 
@@ -519,7 +573,9 @@ class RemediationEngine:
         """Get the status of a specific remediation plan."""
         return self.active_plans.get(plan_id)
 
-    async def get_execution_history(self, limit: int = 50) -> list[RemediationExecution]:
+    async def get_execution_history(
+        self, limit: int = 50
+    ) -> list[RemediationExecution]:
         """Get recent remediation execution history."""
         return self.execution_history[-limit:]
 
@@ -533,7 +589,11 @@ class RemediationEngine:
         successful_executions = sum(1 for ex in self.execution_history if ex.success)
         failed_executions = total_executions - successful_executions
 
-        success_rate = successful_executions / max(1, total_executions) if total_executions > 0 else 0
+        success_rate = (
+            successful_executions / max(1, total_executions)
+            if total_executions > 0
+            else 0
+        )
 
         return {
             "active_plans": len(self.active_plans),
@@ -545,14 +605,18 @@ class RemediationEngine:
             "uptime_hours": getattr(self, "_start_time", 0),  # Would need to track this
         }
 
-    async def manual_trigger_remediation(self, service_id: str, action: RemediationAction) -> RemediationExecution:
+    async def manual_trigger_remediation(
+        self, service_id: str, action: RemediationAction
+    ) -> RemediationExecution:
         """Manually trigger a specific remediation action."""
         plan_id = f"manual_{int(datetime.utcnow().timestamp())}"
 
         # Create a temporary plan-like execution
         execution = await self._execute_single_action(plan_id, action)
 
-        logger.info(f"Manual remediation triggered for {service_id}, action: {action.value}")
+        logger.info(
+            f"Manual remediation triggered for {service_id}, action: {action.value}"
+        )
 
         return execution
 
@@ -585,11 +649,15 @@ async def run_remediation_demo():
     print("\nSimulating manual remediation triggers...")
 
     # Restart a service
-    restart_result = await engine.manual_trigger_remediation("test_service", RemediationAction.RESTART_SERVICE)
+    restart_result = await engine.manual_trigger_remediation(
+        "test_service", RemediationAction.RESTART_SERVICE
+    )
     print(f"Restart action result: Success={restart_result.success}")
 
     # Scale up resources
-    scale_result = await engine.manual_trigger_remediation("api_gateway", RemediationAction.SCALE_UP)
+    scale_result = await engine.manual_trigger_remediation(
+        "api_gateway", RemediationAction.SCALE_UP
+    )
     print(f"Scale up action result: Success={scale_result.success}")
 
     # Get statistics

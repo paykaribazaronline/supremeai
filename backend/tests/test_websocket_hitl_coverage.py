@@ -61,9 +61,8 @@ class TestHITLConnectionManager:
     @pytest.mark.asyncio
     async def test_broadcast_handles_disconnect_error(self):
         """broadcast should handle WebSocketDisconnect and remove failed connections."""
-        from fastapi import WebSocketDisconnect
-
         from api.routes.websocket_hitl import HITLConnectionManager
+        from fastapi import WebSocketDisconnect
 
         mgr = HITLConnectionManager()
         ws1 = AsyncMock()

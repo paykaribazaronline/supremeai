@@ -74,7 +74,9 @@ class TestConnectionManager:
         ws = AsyncMock()
         ws.query_params = {"token": "bad-token"}
 
-        with patch("api.routes.websocket_agent.verify_token", side_effect=Exception("Invalid")):
+        with patch(
+            "api.routes.websocket_agent.verify_token", side_effect=Exception("Invalid")
+        ):
             result = await manager._authenticate(ws)
 
         assert result is None
@@ -109,7 +111,9 @@ class TestAnalyzeAndSavePreferences:
         from api.routes.websocket_agent import analyze_and_save_preferences
 
         mock_db = MagicMock()
-        mock_db.get_user_preferences.return_value = {"preferences": {"answering_style": "default"}}
+        mock_db.get_user_preferences.return_value = {
+            "preferences": {"answering_style": "default"}
+        }
 
         mock_response = {"text": '{"answering_style": "direct code"}'}
 

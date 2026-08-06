@@ -1,11 +1,10 @@
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Request
-from loguru import logger
-
 from api.routes.admin import get_current_admin
 from core.config import settings
-
+from fastapi import (APIRouter, BackgroundTasks, Depends, Header,
+                     HTTPException, Request)
+from loguru import logger
 # শেয়ার্ড ইউটিলিটি — Firestore ইনিশিয়ালাইজেশন কেন্দ্রীভূত
 from utils.firestore_helpers import get_firestore_db
 from workers.chaos_worker import NightlyChaosAuditor
@@ -58,7 +57,9 @@ class SupremeMetricsEngine:
                 "financial_metrics": {
                     "total_semantic_cache_hits": total_saved_requests,
                     "estimated_usd_saved": round(total_billing_saved, 4),
-                    "api_cost_reduction_ratio": ("90%" if total_saved_requests > 0 else "0%"),
+                    "api_cost_reduction_ratio": (
+                        "90%" if total_saved_requests > 0 else "0%"
+                    ),
                 },
                 "security_metrics": {
                     "duplicate_executions_prevented": total_duplicate_blocked,
@@ -99,7 +100,9 @@ async def run_bg_audit():
 
 
 @router.post("/trigger-nightly-chaos", operation_id="supreme_trigger_nightly_chaos")
-async def trigger_nightly_chaos(background_tasks: BackgroundTasks, x_chaos_key: str = Header(None)):
+async def trigger_nightly_chaos(
+    background_tasks: BackgroundTasks, x_chaos_key: str = Header(None)
+):
     """
     Secure Webhook Target for Google Cloud Scheduler.
     Triggers autonomous self-testing and loops it into the deployment gate.
@@ -108,10 +111,16 @@ async def trigger_nightly_chaos(background_tasks: BackgroundTasks, x_chaos_key: 
     expected_key = settings.jwt_secret  # অথবা Secret Manager থেকে ডেডিকেটেড CHAOS_KEY
 
     if not x_chaos_key or x_chaos_key != expected_key:
-        logger.warning("🚨 Unauthorized attempt to trigger Autonomous Chaos Engine blocked!")
-        raise HTTPException(status_code=401, detail="Unauthorized: Invalid Chaos Orchestration Key.")
+        logger.warning(
+            "🚨 Unauthorized attempt to trigger Autonomous Chaos Engine blocked!"
+        )
+        raise HTTPException(
+            status_code=401, detail="Unauthorized: Invalid Chaos Orchestration Key."
+        )
 
-    logger.info("🔌 Cloud Scheduler authenticated successfully. Spawning Chaos Auditor in background...")
+    logger.info(
+        "🔌 Cloud Scheduler authenticated successfully. Spawning Chaos Auditor in background..."
+    )
 
     # এপিআই রেসপন্স ইমিডিয়েট রিলিজ করে ব্যাকগ্রাউন্ড টাস্কে পুশ করা হলো যাতে শিডিউলার টাইমআউট না খায়
     background_tasks.add_task(run_bg_audit)
@@ -176,7 +185,9 @@ except ImportError:
 def record_request(method: str, path: str, status: int) -> None:
     if _PROMETHEUS_AVAILABLE:
         try:
-            http_requests_total.labels(method=method, endpoint=path, status=str(status)).inc()
+            http_requests_total.labels(
+                method=method, endpoint=path, status=str(status)
+            ).inc()
             supremeai_requests_total.labels(method=method, endpoint=path).inc()
         except Exception as exc:
             logger.debug(f"Failed to record request metrics: {exc}")
@@ -201,8 +212,12 @@ def record_request_duration(method: str, path: str, duration: float) -> None:
 
     if _PROMETHEUS_AVAILABLE:
         try:
-            request_duration_seconds.labels(method=method, endpoint=path).observe(duration)
-            supremeai_response_seconds.labels(method=method, endpoint=path).observe(duration)
+            request_duration_seconds.labels(method=method, endpoint=path).observe(
+                duration
+            )
+            supremeai_response_seconds.labels(method=method, endpoint=path).observe(
+                duration
+            )
         except Exception as exc:
             logger.debug(f"Failed to record request duration metrics: {exc}")
 

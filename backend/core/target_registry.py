@@ -12,22 +12,24 @@ Key Features:
 from __future__ import annotations
 
 import logging
+import threading
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
-import threading
 
 logger = logging.getLogger(__name__)
 
 
 class PermissionScope(str, Enum):
     """পারমিশন স্কোপ এনাম - রিড-অনলি বনাম ফুল-কন্ট্রোল।"""
+
     READ_ONLY = "READ_ONLY"
     FULL_CONTROL = "FULL_CONTROL"
 
 
 class TargetPlatformType(str, Enum):
     """টার্গেট প্ল্যাটফর্ম টাইপ এনাম।"""
+
     GIT_REPOSITORY = "GIT_REPOSITORY"
     CLOUD_SERVICE = "CLOUD_SERVICE"
     API_ENDPOINT = "API_ENDPOINT"
@@ -72,7 +74,9 @@ class TargetPlatformRegistry:
             url="origin/main",
             branch="main",
             scope=PermissionScope.READ_ONLY,
-            metadata={"description": "Protected primary codebase - read-only analysis only"}
+            metadata={
+                "description": "Protected primary codebase - read-only analysis only"
+            },
         )
         self._targets[main_target.id] = main_target
 
@@ -80,14 +84,18 @@ class TargetPlatformRegistry:
         """নতুন একটি টার্গেট রেপো বা প্ল্যাটফর্ম রেজিস্টার করে।"""
         with self._lock:
             self._targets[target.id] = target
-            logger.info(f"Registered target '{target.id}' ({target.name}) with scope {target.scope}")
+            logger.info(
+                f"Registered target '{target.id}' ({target.name}) with scope {target.scope}"
+            )
             return target
 
     def unregister_target(self, target_id: str) -> bool:
         """রেজিস্টার্ড টার্গেট সরিয়ে ফেলে (মেইন রেপো সরানো যাবে না)।"""
         with self._lock:
             if target_id == "main-repository":
-                raise ValueError("Protected main-repository target cannot be unregistered")
+                raise ValueError(
+                    "Protected main-repository target cannot be unregistered"
+                )
             if target_id in self._targets:
                 del self._targets[target_id]
                 logger.info(f"Unregistered target '{target_id}'")
@@ -110,7 +118,9 @@ class TargetPlatformRegistry:
         if not target:
             raise KeyError(f"Target '{target_id}' not found in registry")
         if target.is_read_only():
-            logger.warning(f"Write operation blocked for READ_ONLY target '{target_id}'")
+            logger.warning(
+                f"Write operation blocked for READ_ONLY target '{target_id}'"
+            )
             return False
         return True
 

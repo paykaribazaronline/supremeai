@@ -15,7 +15,9 @@ async def enforce_tenant_rate_limit(request: Request):
     from core.cache.redis_manager import redis_manager
 
     if not redis_manager or not getattr(redis_manager, "client", None):
-        logger.warning("⚠️ Redis manager unavailable. Bypassing rate limiter gateway for resilience.")
+        logger.warning(
+            "⚠️ Redis manager unavailable. Bypassing rate limiter gateway for resilience."
+        )
         return
 
     cache_key = f"rate_limit:{tenant_id}"
@@ -28,8 +30,12 @@ async def enforce_tenant_rate_limit(request: Request):
         current_hits = results[0]
 
         if current_hits > 100:
-            logger.critical(f"🚨 Rate Limit Exceeded for Tenant: {tenant_id} ({current_hits} hits)!")
-            raise HTTPException(status_code=429, detail="Too Many Requests. Rate limit exceeded.")
+            logger.critical(
+                f"🚨 Rate Limit Exceeded for Tenant: {tenant_id} ({current_hits} hits)!"
+            )
+            raise HTTPException(
+                status_code=429, detail="Too Many Requests. Rate limit exceeded."
+            )
     except HTTPException:
         raise
     except Exception as exc:

@@ -11,7 +11,9 @@ try:
 except (ImportError, ModuleNotFoundError):
     HAS_USS_SKILLS = False
 
-pytestmark = pytest.mark.skipif(not HAS_USS_SKILLS, reason="skills module not available in environment")
+pytestmark = pytest.mark.skipif(
+    not HAS_USS_SKILLS, reason="skills module not available in environment"
+)
 
 
 @pytest.fixture

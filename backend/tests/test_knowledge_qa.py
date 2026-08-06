@@ -7,7 +7,6 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import pytest
-
 from services.knowledge_qa import Citation, KnowledgeQAService
 
 

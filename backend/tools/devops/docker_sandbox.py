@@ -5,9 +5,8 @@ import subprocess
 import tempfile
 from typing import Any
 
-from loguru import logger
-
 from core.config import settings
+from loguru import logger
 
 
 class DockerSandbox:
@@ -31,7 +30,9 @@ class DockerSandbox:
             OSError,
             subprocess.CalledProcessError,
         ) as e:
-            logger.warning(f"Docker check failed: {e}. Docker-based execution will be unavailable.")
+            logger.warning(
+                f"Docker check failed: {e}. Docker-based execution will be unavailable."
+            )
             return False
 
     def execute_command(self, cmd: str) -> dict[str, Any]:
@@ -77,30 +78,38 @@ class DockerSandbox:
         if any(kw in cmd_lower for kw in harmful_keywords) or any(
             re.search(pat, cmd_lower) for pat in forbidden_patterns
         ):
-            logger.warning("Security Firewall: Command blocked due to high-risk pattern.")
+            logger.warning(
+                "Security Firewall: Command blocked due to high-risk pattern."
+            )
             return {
                 "success": False,
                 "error": "Security Firewall block: command contains forbidden patterns.",
             }
 
         if not self.docker_available:
-            env_name = getattr(settings, "env", None) or getattr(settings, "env", "").lower()
+            env_name = (
+                getattr(settings, "env", None) or getattr(settings, "env", "").lower()
+            )
             allow_fallback_str = getattr(settings, "allow_local_sandbox_fallback", None)
             if allow_fallback_str is not None:
                 allow_fallback = allow_fallback_str.lower() == "true"
             else:
-                allow_fallback = getattr(settings, "allow_local_sandbox_fallback", None) == "true" or getattr(
-                    settings, "allow_sandbox_fallback", False
-                )
+                allow_fallback = getattr(
+                    settings, "allow_local_sandbox_fallback", None
+                ) == "true" or getattr(settings, "allow_sandbox_fallback", False)
 
             if env_name in {"production", "staging"} or not allow_fallback:
-                logger.error("Docker is not available and local execution fallback is disabled.")
+                logger.error(
+                    "Docker is not available and local execution fallback is disabled."
+                )
                 return {
                     "success": False,
                     "error": "Sandbox execution failed: Docker is not running and local execution is disabled for safety.",
                 }
 
-            logger.warning("Docker is not available. Simulating command execution in local process.")
+            logger.warning(
+                "Docker is not available. Simulating command execution in local process."
+            )
             try:
                 # Security: Use shlex.split to avoid shell injection. Never use shell=True
                 # on any platform — shlex provides safe tokenization.
@@ -160,7 +169,9 @@ class DockerSandbox:
                 self.image,
                 *cmd_parts,
             ]
-            result = subprocess.run(docker_cmd, capture_output=True, text=True, timeout=10, check=True)
+            result = subprocess.run(
+                docker_cmd, capture_output=True, text=True, timeout=10, check=True
+            )
             return {
                 "success": True,
                 "stdout": result.stdout,
@@ -194,26 +205,34 @@ class DockerSandbox:
         """
         # Reuse firewall checks
         cmd_lower = code.lower()
-        if any(kw in cmd_lower for kw in ["rm -rf", "mkfs", "dd if=", "shutdown", "reboot"]):
+        if any(
+            kw in cmd_lower for kw in ["rm -rf", "mkfs", "dd if=", "shutdown", "reboot"]
+        ):
             return {
                 "success": False,
                 "error": "Security Firewall: code contains forbidden patterns.",
             }
 
         if not self.docker_available:
-            env_name = getattr(settings, "env", None) or getattr(settings, "env", "").lower()
+            env_name = (
+                getattr(settings, "env", None) or getattr(settings, "env", "").lower()
+            )
             allow_fallback = getattr(settings, "allow_local_sandbox_fallback", False)
             if allow_fallback is None:
                 allow_fallback = getattr(settings, "allow_sandbox_fallback", False)
 
             if env_name in {"production", "staging"} or not allow_fallback:
-                logger.error("Docker unavailable and local fallback disabled for code execution.")
+                logger.error(
+                    "Docker unavailable and local fallback disabled for code execution."
+                )
                 return {
                     "success": False,
                     "error": "Docker is not running and local execution is disabled for safety.",
                 }
 
-            logger.warning("Docker unavailable. Running code via secure local subprocess (fallback).")
+            logger.warning(
+                "Docker unavailable. Running code via secure local subprocess (fallback)."
+            )
             try:
                 result = subprocess.run(
                     ["python3", "-c", code],
@@ -250,8 +269,14 @@ class DockerSandbox:
 
             # Security: prevent path traversal in mount path
             if ".." in script_path:
-                logger.critical(f"Path traversal detected in temp script path: {script_path}")
-                return {"success": False, "error": "Invalid temp file path.", "simulated": False}
+                logger.critical(
+                    f"Path traversal detected in temp script path: {script_path}"
+                )
+                return {
+                    "success": False,
+                    "error": "Invalid temp file path.",
+                    "simulated": False,
+                }
 
             docker_cmd = [
                 "docker",

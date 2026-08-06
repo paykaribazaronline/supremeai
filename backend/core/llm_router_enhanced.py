@@ -79,11 +79,27 @@ class EnhancedLLMRouter:
         self.task_provider_map: dict[TaskCategory, list[Provider]] = {
             TaskCategory.BENGALI: [Provider.BHASHA, Provider.MOONSHOT, Provider.GEMINI],
             TaskCategory.CODE: [Provider.DEEPSEEK, Provider.TOGETHER, Provider.GEMINI],
-            TaskCategory.ANALYSIS: [Provider.MOONSHOT, Provider.TOGETHER, Provider.GEMINI],
+            TaskCategory.ANALYSIS: [
+                Provider.MOONSHOT,
+                Provider.TOGETHER,
+                Provider.GEMINI,
+            ],
             TaskCategory.CHAT: [Provider.MOONSHOT, Provider.GEMINI, Provider.DEEPSEEK],
-            TaskCategory.REASONING: [Provider.MOONSHOT, Provider.TOGETHER, Provider.GEMINI],
-            TaskCategory.CREATIVE: [Provider.GEMINI, Provider.MOONSHOT, Provider.TOGETHER],
-            TaskCategory.TRANSLATION: [Provider.GEMINI, Provider.MOONSHOT, Provider.DEEPSEEK],
+            TaskCategory.REASONING: [
+                Provider.MOONSHOT,
+                Provider.TOGETHER,
+                Provider.GEMINI,
+            ],
+            TaskCategory.CREATIVE: [
+                Provider.GEMINI,
+                Provider.MOONSHOT,
+                Provider.TOGETHER,
+            ],
+            TaskCategory.TRANSLATION: [
+                Provider.GEMINI,
+                Provider.MOONSHOT,
+                Provider.DEEPSEEK,
+            ],
         }
         self.logger = get_logger(__name__)
 
@@ -92,7 +108,9 @@ class EnhancedLLMRouter:
         command_lower = command.lower()
 
         # Bengali language detection
-        if any(ord(char) > 255 for char in command[:100]):  # Check for non-ASCII characters
+        if any(
+            ord(char) > 255 for char in command[:100]
+        ):  # Check for non-ASCII characters
             bangla_chars = [char for char in command if "\u0980" <= char <= "\u09ff"]
             if len(bangla_chars) > len(command) * 0.1:  # More than 10% Bangla chars
                 return TaskCategory.BENGALI
@@ -100,30 +118,63 @@ class EnhancedLLMRouter:
         # Keyword-based classification
         if any(
             keyword in command_lower
-            for keyword in ["code", "programming", "function", "debug", "algorithm", "implementation"]
+            for keyword in [
+                "code",
+                "programming",
+                "function",
+                "debug",
+                "algorithm",
+                "implementation",
+            ]
         ):
             return TaskCategory.CODE
         elif any(
-            keyword in command_lower for keyword in ["analyze", "analysis", "report", "trend", "pattern", "insight"]
+            keyword in command_lower
+            for keyword in [
+                "analyze",
+                "analysis",
+                "report",
+                "trend",
+                "pattern",
+                "insight",
+            ]
         ):
             return TaskCategory.ANALYSIS
         elif any(
-            keyword in command_lower for keyword in ["reason", "think", "logic", "problem", "solution", "explain"]
+            keyword in command_lower
+            for keyword in [
+                "reason",
+                "think",
+                "logic",
+                "problem",
+                "solution",
+                "explain",
+            ]
         ):
             return TaskCategory.REASONING
-        elif any(keyword in command_lower for keyword in ["write", "create", "generate", "story", "poem", "idea"]):
+        elif any(
+            keyword in command_lower
+            for keyword in ["write", "create", "generate", "story", "poem", "idea"]
+        ):
             return TaskCategory.CREATIVE
-        elif any(keyword in command_lower for keyword in ["translate", "convert", "language", "english", "bengali"]):
+        elif any(
+            keyword in command_lower
+            for keyword in ["translate", "convert", "language", "english", "bengali"]
+        ):
             return TaskCategory.TRANSLATION
         else:
             return TaskCategory.CHAT
 
-    async def select_optimal_model(self, command: str, context: dict | None = None) -> Provider:
+    async def select_optimal_model(
+        self, command: str, context: dict | None = None
+    ) -> Provider:
         """Select the optimal model based on command classification and context."""
         task_category = await self.classify_command(command)
 
         # Get available providers for this task category
-        available_providers = self.task_provider_map.get(task_category, [Provider.GEMINI])
+        available_providers = self.task_provider_map.get(
+            task_category, [Provider.GEMINI]
+        )
 
         # Filter out providers that are currently unavailable (based on circuit breakers)
         filtered_providers = []
@@ -144,7 +195,9 @@ class EnhancedLLMRouter:
             stats = self.performance_tracker.get(provider, ModelPerformanceStats())
             # Calculate a composite score based on success rate and efficiency
             score = (
-                (stats.success_rate * 0.4) + (1 / (stats.avg_response_time + 0.1) * 0.3) + (stats.accuracy_score * 0.3)
+                (stats.success_rate * 0.4)
+                + (1 / (stats.avg_response_time + 0.1) * 0.3)
+                + (stats.accuracy_score * 0.3)
             )
 
             if score > best_score:
@@ -154,7 +207,9 @@ class EnhancedLLMRouter:
         return best_provider
 
     @with_error_bus("route_request")
-    async def route_request(self, command: str, context: dict | None = None) -> RouteResult:
+    async def route_request(
+        self, command: str, context: dict | None = None
+    ) -> RouteResult:
         """Route the request to the optimal provider based on command and context."""
         start_time = time.time()
 
@@ -165,7 +220,9 @@ class EnhancedLLMRouter:
         gateway = get_llm_gateway()
 
         try:
-            response = await gateway.agenerate(prompt=command, provider=provider.value, **context or {})
+            response = await gateway.agenerate(
+                prompt=command, provider=provider.value, **context or {}
+            )
 
             end_time = time.time()
             latency_ms = (end_time - start_time) * 1000
@@ -190,10 +247,16 @@ class EnhancedLLMRouter:
 
             # Try fallback if primary provider failed
             task_category = await self.classify_command(command)
-            available_providers = self.task_provider_map.get(task_category, [Provider.GEMINI])
+            available_providers = self.task_provider_map.get(
+                task_category, [Provider.GEMINI]
+            )
 
             # Try next available provider
-            primary_idx = available_providers.index(provider) if provider in available_providers else -1
+            primary_idx = (
+                available_providers.index(provider)
+                if provider in available_providers
+                else -1
+            )
 
             for i in range(primary_idx + 1, len(available_providers)):
                 fallback_provider = available_providers[i]
@@ -202,13 +265,17 @@ class EnhancedLLMRouter:
                 if not cb.is_open():
                     try:
                         fallback_response = await gateway.agenerate(
-                            prompt=command, provider=fallback_provider.value, **context or {}
+                            prompt=command,
+                            provider=fallback_provider.value,
+                            **context or {},
                         )
 
                         fallback_latency = (time.time() - start_time) * 1000
 
                         # Update performance stats for successful fallback
-                        await self._update_performance_stats(fallback_provider, True, fallback_latency)
+                        await self._update_performance_stats(
+                            fallback_provider, True, fallback_latency
+                        )
 
                         return RouteResult(
                             provider=fallback_provider,
@@ -227,7 +294,9 @@ class EnhancedLLMRouter:
             # If all providers failed, raise the original exception
             raise e
 
-    async def _update_performance_stats(self, provider: Provider, success: bool, latency_ms: float):
+    async def _update_performance_stats(
+        self, provider: Provider, success: bool, latency_ms: float
+    ):
         """Update performance statistics for a provider."""
         if provider not in self.performance_tracker:
             self.performance_tracker[provider] = ModelPerformanceStats()
@@ -239,7 +308,9 @@ class EnhancedLLMRouter:
             stats.error_count += 1
 
         # Update moving average for response time
-        total_time = (stats.avg_response_time * (stats.usage_count - 1) + latency_ms) / stats.usage_count
+        total_time = (
+            stats.avg_response_time * (stats.usage_count - 1) + latency_ms
+        ) / stats.usage_count
         stats.avg_response_time = total_time
 
         # Update success rate

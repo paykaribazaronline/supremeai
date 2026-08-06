@@ -1,4 +1,3 @@
-
 def fix_contributing():
     path = "CONTRIBUTING.md"
     content = """# Contributing to SupremeAI 2.0
@@ -19,5 +18,6 @@ We use Python 3.11+, Poetry, Ruff, MyPy, and pytest.
 """
     with open(path, "w", encoding="utf-8") as f:
         f.write(content)
+
 
 fix_contributing()

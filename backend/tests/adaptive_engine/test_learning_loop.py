@@ -2,13 +2,9 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock
 
 import pytest
-
-from adaptive_engine.learning_loop import (
-    ExperienceClusterer,
-    LearningCycleResult,
-    LearningLoop,
-    PerformanceDriftDetector,
-)
+from adaptive_engine.learning_loop import (ExperienceClusterer,
+                                           LearningCycleResult, LearningLoop,
+                                           PerformanceDriftDetector)
 
 
 # Test cases for ExperienceClusterer

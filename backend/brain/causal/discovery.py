@@ -19,7 +19,9 @@ class CausalDiscoveryEngine:
         self.algorithm = algorithm
         self.graph = None
 
-    async def discover_graph(self, data: pd.DataFrame, alpha: float = 0.05, max_cond_vars: int = 3) -> dict[str, Any]:
+    async def discover_graph(
+        self, data: pd.DataFrame, alpha: float = 0.05, max_cond_vars: int = 3
+    ) -> dict[str, Any]:
         """
         Build Causal DAG from input dataframe metrics.
 
@@ -39,9 +41,13 @@ class CausalDiscoveryEngine:
                 val = corr.loc[col_i, col_j]
                 if abs(val) > 0.5:
                     # Direction heuristic: cause usually precedes or drives metrics
-                    edges.append({"source": col_i, "target": col_j, "weight": float(val)})
+                    edges.append(
+                        {"source": col_i, "target": col_j, "weight": float(val)}
+                    )
 
-        logger.info(f"🕸️ [Causal Discovery] Formed DAG with {len(cols)} nodes and {len(edges)} directed edges")
+        logger.info(
+            f"🕸️ [Causal Discovery] Formed DAG with {len(cols)} nodes and {len(edges)} directed edges"
+        )
 
         return {
             "algorithm": self.algorithm,

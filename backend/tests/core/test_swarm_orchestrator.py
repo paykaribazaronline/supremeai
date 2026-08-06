@@ -1,7 +1,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from models.shared_workspace import SharedWorkspace
 
 
@@ -24,11 +23,23 @@ def mock_agents():
     mock_reflection.reflect_and_persist = AsyncMock()
 
     with (
-        patch("core.orchestration.swarm_orchestrator.ArchitectureAgent", return_value=mock_architect),
-        patch("core.orchestration.swarm_orchestrator.CodeGeneratorAgent", return_value=mock_coder),
+        patch(
+            "core.orchestration.swarm_orchestrator.ArchitectureAgent",
+            return_value=mock_architect,
+        ),
+        patch(
+            "core.orchestration.swarm_orchestrator.CodeGeneratorAgent",
+            return_value=mock_coder,
+        ),
         patch("core.orchestration.swarm_orchestrator.QAAgent", return_value=mock_qa),
-        patch("core.orchestration.swarm_orchestrator.GuardianAgent", return_value=mock_guardian),
-        patch("core.orchestration.swarm_orchestrator.ReflectionAgent", return_value=mock_reflection),
+        patch(
+            "core.orchestration.swarm_orchestrator.GuardianAgent",
+            return_value=mock_guardian,
+        ),
+        patch(
+            "core.orchestration.swarm_orchestrator.ReflectionAgent",
+            return_value=mock_reflection,
+        ),
     ):
         from core.orchestration.swarm_orchestrator import SwarmOrchestrator
 
@@ -59,7 +70,9 @@ async def test_swarm_orchestrator_execute_task(mock_agents):
         new_callable=AsyncMock,
         return_value={"agent_name": "mocked"},
     ):
-        result = await orchestrator.execute_task("write a python script", user_id="user1")
+        result = await orchestrator.execute_task(
+            "write a python script", user_id="user1"
+        )
 
     from core.orchestration.swarm_orchestrator import ExecutionResult
 

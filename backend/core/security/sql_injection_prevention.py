@@ -31,12 +31,30 @@ from loguru import logger
 
 # Suspicious patterns that indicate potential SQL injection
 _SUSPICIOUS_PATTERNS: list[dict[str, Any]] = [
-    {"pattern": r'execute\s*\(\s*f["\']', "description": "f-string in execute() — potential SQL injection"},
-    {"pattern": r'execute\s*\(\s*["\'].*\{.*\}.*["\']\s*%', "description": "Format string in execute()"},
-    {"pattern": r'execute\s*\(\s*["\']\s*\+', "description": "String concatenation in execute()"},
-    {"pattern": r'raw_sql\s*=\s*f["\']', "description": "f-string assigned to raw SQL variable"},
-    {"pattern": r"cursor\.execute\s*\(.*['\"].*%s", "description": "Positional placeholder without params tuple"},
-    {"pattern": r'SELECT.*FROM.*WHERE.*=.*["\']\s*\+', "description": "String concat in WHERE clause"},
+    {
+        "pattern": r'execute\s*\(\s*f["\']',
+        "description": "f-string in execute() — potential SQL injection",
+    },
+    {
+        "pattern": r'execute\s*\(\s*["\'].*\{.*\}.*["\']\s*%',
+        "description": "Format string in execute()",
+    },
+    {
+        "pattern": r'execute\s*\(\s*["\']\s*\+',
+        "description": "String concatenation in execute()",
+    },
+    {
+        "pattern": r'raw_sql\s*=\s*f["\']',
+        "description": "f-string assigned to raw SQL variable",
+    },
+    {
+        "pattern": r"cursor\.execute\s*\(.*['\"].*%s",
+        "description": "Positional placeholder without params tuple",
+    },
+    {
+        "pattern": r'SELECT.*FROM.*WHERE.*=.*["\']\s*\+',
+        "description": "String concat in WHERE clause",
+    },
 ]
 
 # SQL keywords that should never appear in user input
@@ -168,7 +186,10 @@ class InputSanitizer:
             raise ValueError(f"Identifier '{identifier}' contains no valid characters")
 
         if sanitized != identifier:
-            logger.warning(f"Identifier sanitized: '{identifier}' → '{sanitized}'. " "Invalid characters removed.")
+            logger.warning(
+                f"Identifier sanitized: '{identifier}' → '{sanitized}'. "
+                "Invalid characters removed."
+            )
 
         return sanitized
 
@@ -381,7 +402,11 @@ class ParameterizedQueryBuilder:
             where_clauses.append(f"{col_safe} = ?")
             params.append(val)
 
-        query = f"UPDATE {table_safe} " f"SET {', '.join(set_clauses)} " f"WHERE {' AND '.join(where_clauses)}"
+        query = (
+            f"UPDATE {table_safe} "
+            f"SET {', '.join(set_clauses)} "
+            f"WHERE {' AND '.join(where_clauses)}"
+        )
 
         return query, params
 
@@ -717,7 +742,9 @@ def run_sql_audit(directory: str | None = None) -> dict[str, Any]:
     """
     if directory is None:
         # Default to project root's backend directory
-        directory = str(Path(__file__).resolve().parent.parent.parent.parent / "backend")
+        directory = str(
+            Path(__file__).resolve().parent.parent.parent.parent / "backend"
+        )
 
     target = Path(directory)
     if not target.exists():
@@ -731,13 +758,13 @@ __all__ = [
     "InputSanitizer",
     "ParameterizedQueryBuilder",
     "QueryInspector",
-    "SQLAuditor",
-    "sql_auditor",
-    "query_builder",
-    "input_sanitizer",
-    "safe_execute",
-    "is_safe_query",
-    "run_sql_audit",
     "SQLAuditFinding",
     "SQLAuditReport",
+    "SQLAuditor",
+    "input_sanitizer",
+    "is_safe_query",
+    "query_builder",
+    "run_sql_audit",
+    "safe_execute",
+    "sql_auditor",
 ]

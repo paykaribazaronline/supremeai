@@ -19,20 +19,19 @@ Environment Variables:
 - ADMIN_EMAIL: Email address for notifications about new tenants
 """
 
-import os
-import sys
-from typing import Dict, Any, Optional
 import logging
-from google.cloud import firestore
-from google.cloud import storage
+import os
 import smtplib
-from email.mime.text import MIMEText
+import sys
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from typing import Any
+
+from google.cloud import firestore, storage
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -43,7 +42,8 @@ DEFAULT_TEMPLATE = os.getenv("DEFAULT_TEMPLATE", "starter")
 WELCOME_EMAIL_TEMPLATE = os.getenv("WELCOME_EMAIL_TEMPLATE", "welcome_new_tenant")
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@supremeai.com")
 
-def get_firestore_client() -> Optional[firestore.Client]:
+
+def get_firestore_client() -> firestore.Client | None:
     """Get a Firestore client."""
     try:
         if DATABASE_ID:
@@ -54,7 +54,8 @@ def get_firestore_client() -> Optional[firestore.Client]:
         logger.error(f"Failed to create Firestore client: {e}")
         return None
 
-def get_storage_client() -> Optional[storage.Client]:
+
+def get_storage_client() -> storage.Client | None:
     """Get a Cloud Storage client."""
     try:
         return storage.Client(project=PROJECT_ID)
@@ -62,17 +63,20 @@ def get_storage_client() -> Optional[storage.Client]:
         logger.error(f"Failed to create Storage client: {e}")
         return None
 
-def create_tenant_document(db: firestore.Client, tenant_id: str, tenant_data: Dict[str, Any]) -> bool:
+
+def create_tenant_document(
+    db: firestore.Client, tenant_id: str, tenant_data: dict[str, Any]
+) -> bool:
     """Create the tenant document in Firestore."""
     try:
-        tenant_ref = db.collection('tenants').document(tenant_id)
+        tenant_ref = db.collection("tenants").document(tenant_id)
 
         # Set creation timestamp if not provided
-        if 'created_at' not in tenant_data:
-            tenant_data['created_at'] = firestore.SERVER_TIMESTAMP
+        if "created_at" not in tenant_data:
+            tenant_data["created_at"] = firestore.SERVER_TIMESTAMP
 
         # Set updated timestamp
-        tenant_data['updated_at'] = firestore.SERVER_TIMESTAMP
+        tenant_data["updated_at"] = firestore.SERVER_TIMESTAMP
 
         tenant_ref.set(tenant_data)
         logger.info(f"Created tenant document for {tenant_id}")
@@ -81,45 +85,52 @@ def create_tenant_document(db: firestore.Client, tenant_id: str, tenant_data: Di
         logger.error(f"Failed to create tenant document for {tenant_id}: {e}")
         return False
 
-def create_tenant_subcollections(db: firestore.Client, tenant_id: str, template: str) -> bool:
+
+def create_tenant_subcollections(
+    db: firestore.Client, tenant_id: str, template: str
+) -> bool:
     """Create default subcollections and documents for a tenant."""
     try:
-        tenant_ref = db.collection('tenants').document(tenant_id)
+        tenant_ref = db.collection("tenants").document(tenant_id)
 
         # Define default collections and their initial documents based on template
         template_configs = {
             "starter": {
                 "users": [
-                    {"role": "owner", "status": "active", "added_at": firestore.SERVER_TIMESTAMP}
+                    {
+                        "role": "owner",
+                        "status": "active",
+                        "added_at": firestore.SERVER_TIMESTAMP,
+                    }
                 ],
                 "config": {
                     "name": "Tenant Configuration",
                     "timezone": "UTC",
                     "language": "en",
-                    "features": {
-                        "chat": True,
-                        "automation": True,
-                        "analytics": True
-                    }
+                    "features": {"chat": True, "automation": True, "analytics": True},
                 },
                 "usage": {
                     "current_period": {
                         "start": firestore.SERVER_TIMESTAMP,
                         "api_calls": 0,
                         "storage_mb": 0,
-                        "compute_minutes": 0
+                        "compute_minutes": 0,
                     }
                 },
                 "limits": {
                     "api_calls_per_month": 10000,
                     "storage_mb": 1000,
                     "compute_minutes_per_month": 500,
-                    "max_users": 5
-                }
+                    "max_users": 5,
+                },
             },
             "professional": {
                 "users": [
-                    {"role": "owner", "status": "active", "added_at": firestore.SERVER_TIMESTAMP}
+                    {
+                        "role": "owner",
+                        "status": "active",
+                        "added_at": firestore.SERVER_TIMESTAMP,
+                    }
                 ],
                 "config": {
                     "name": "Tenant Configuration",
@@ -130,27 +141,31 @@ def create_tenant_subcollections(db: firestore.Client, tenant_id: str, template:
                         "automation": True,
                         "analytics": True,
                         "advanced_ai": True,
-                        "api_access": True
-                    }
+                        "api_access": True,
+                    },
                 },
                 "usage": {
                     "current_period": {
                         "start": firestore.SERVER_TIMESTAMP,
                         "api_calls": 0,
                         "storage_mb": 0,
-                        "compute_minutes": 0
+                        "compute_minutes": 0,
                     }
                 },
                 "limits": {
                     "api_calls_per_month": 100000,
                     "storage_mb": 10000,
                     "compute_minutes_per_month": 5000,
-                    "max_users": 25
-                }
+                    "max_users": 25,
+                },
             },
             "enterprise": {
                 "users": [
-                    {"role": "owner", "status": "active", "added_at": firestore.SERVER_TIMESTAMP}
+                    {
+                        "role": "owner",
+                        "status": "active",
+                        "added_at": firestore.SERVER_TIMESTAMP,
+                    }
                 ],
                 "config": {
                     "name": "Tenant Configuration",
@@ -163,24 +178,24 @@ def create_tenant_subcollections(db: firestore.Client, tenant_id: str, template:
                         "advanced_ai": True,
                         "api_access": True,
                         "custom_models": True,
-                        "dedicated_instances": True
-                    }
+                        "dedicated_instances": True,
+                    },
                 },
                 "usage": {
                     "current_period": {
                         "start": firestore.SERVER_TIMESTAMP,
                         "api_calls": 0,
                         "storage_mb": 0,
-                        "compute_minutes": 0
+                        "compute_minutes": 0,
                     }
                 },
                 "limits": {
                     "api_calls_per_month": 1000000,
                     "storage_mb": 100000,
                     "compute_minutes_per_month": 50000,
-                    "max_users": 100
-                }
-            }
+                    "max_users": 100,
+                },
+            },
         }
 
         config = template_configs.get(template, template_configs["starter"])
@@ -200,17 +215,20 @@ def create_tenant_subcollections(db: firestore.Client, tenant_id: str, template:
                     initial_data["created_at"] = firestore.SERVER_TIMESTAMP
                 doc_ref.set(initial_data)
 
-        logger.info(f"Created subcollections for tenant {tenant_id} using template '{template}'")
+        logger.info(
+            f"Created subcollections for tenant {tenant_id} using template '{template}'"
+        )
         return True
     except Exception as e:
         logger.error(f"Failed to create subcollections for tenant {tenant_id}: {e}")
         return False
 
+
 def setup_default_skills(db: firestore.Client, tenant_id: str) -> bool:
     """Assign default skills to a new tenant."""
     try:
         # Reference to the tenant's skills subcollection
-        skills_ref = db.collection('tenants').document(tenant_id).collection('skills')
+        skills_ref = db.collection("tenants").document(tenant_id).collection("skills")
 
         # Get list of available starter skills from the system
         # In a real implementation, this would query a global skills catalog
@@ -220,29 +238,29 @@ def setup_default_skills(db: firestore.Client, tenant_id: str) -> bool:
                 "name": "Text Generation",
                 "status": "active",
                 "assigned_at": firestore.SERVER_TIMESTAMP,
-                "usage_limit": 1000  # per month
+                "usage_limit": 1000,  # per month
             },
             {
                 "skill_id": "text_summarization",
                 "name": "Text Summarization",
                 "status": "active",
                 "assigned_at": firestore.SERVER_TIMESTAMP,
-                "usage_limit": 500
+                "usage_limit": 500,
             },
             {
                 "skill_id": "question_answering",
                 "name": "Question Answering",
                 "status": "active",
                 "assigned_at": firestore.SERVER_TIMESTAMP,
-                "usage_limit": 500
+                "usage_limit": 500,
             },
             {
                 "skill_id": "conversation",
                 "name": "Conversational AI",
                 "status": "active",
                 "assigned_at": firestore.SERVER_TIMESTAMP,
-                "usage_limit": 2000
-            }
+                "usage_limit": 2000,
+            },
         ]
 
         # Assign each skill to the tenant
@@ -251,13 +269,18 @@ def setup_default_skills(db: firestore.Client, tenant_id: str) -> bool:
             skill_ref = skills_ref.document(skill_id)
             skill_ref.set(skill_data)
 
-        logger.info(f"Assigned {len(starter_skills)} default skills to tenant {tenant_id}")
+        logger.info(
+            f"Assigned {len(starter_skills)} default skills to tenant {tenant_id}"
+        )
         return True
     except Exception as e:
         logger.error(f"Failed to set up default skills for tenant {tenant_id}: {e}")
         return False
 
-def send_welcome_email(tenant_email: str, tenant_name: str, tenant_id: str, template: str) -> bool:
+
+def send_welcome_email(
+    tenant_email: str, tenant_name: str, tenant_id: str, template: str
+) -> bool:
     """Send a welcome email to the new tenant."""
     try:
         # This is a simplified implementation
@@ -273,9 +296,9 @@ def send_welcome_email(tenant_email: str, tenant_name: str, tenant_id: str, temp
             return True  # Not fatal
 
         msg = MIMEMultipart()
-        msg['From'] = smtp_user or "noreply@supremeai.com"
-        msg['To'] = tenant_email
-        msg['Subject'] = f"Welcome to SupremeAI 2.0, {tenant_name}!"
+        msg["From"] = smtp_user or "noreply@supremeai.com"
+        msg["To"] = tenant_email
+        msg["Subject"] = f"Welcome to SupremeAI 2.0, {tenant_name}!"
 
         # In a real implementation, you would load the template and fill in variables
         body = f"""
@@ -297,7 +320,7 @@ def send_welcome_email(tenant_email: str, tenant_name: str, tenant_id: str, temp
         The SupremeAI Team
         """
 
-        msg.attach(MIMEText(body, 'plain'))
+        msg.attach(MIMEText(body, "plain"))
 
         # Only actually send if not in dry-run mode
         if os.getenv("DRY_RUN", "false").lower() != "true":
@@ -317,7 +340,10 @@ def send_welcome_email(tenant_email: str, tenant_name: str, tenant_id: str, temp
         logger.error(f"Failed to send welcome email to {tenant_email}: {e}")
         return False
 
-def notify_admin_of_new_tenant(tenant_id: str, tenant_email: str, template: str) -> bool:
+
+def notify_admin_of_new_tenant(
+    tenant_id: str, tenant_email: str, template: str
+) -> bool:
     """Notify administrators about a new tenant."""
     try:
         if not ADMIN_EMAIL:
@@ -325,12 +351,15 @@ def notify_admin_of_new_tenant(tenant_id: str, tenant_email: str, template: str)
 
         # Similar to send_welcome_email but for admin notification
         # For brevity, we'll just log this
-        logger.info(f"New tenant registered: {tenant_id} ({tenant_email}) using template '{template}'")
+        logger.info(
+            f"New tenant registered: {tenant_id} ({tenant_email}) using template '{template}'"
+        )
         print(f"📢 New tenant alert: {tenant_id} ({template})")
         return True
     except Exception as e:
         logger.error(f"Failed to notify admin about new tenant: {e}")
         return False
+
 
 def main() -> int:
     """Main function to set up a new tenant."""
@@ -343,13 +372,17 @@ def main() -> int:
     # Get tenant information from environment (would normally come from trigger)
     tenant_id = os.getenv("TENANT_ID")
     tenant_email = os.getenv("TENANT_EMAIL")
-    tenant_name = os.getenv("TENANT_NAME", tenant_email.split('@')[0] if tenant_email else "Unknown User")
+    tenant_name = os.getenv(
+        "TENANT_NAME", tenant_email.split("@")[0] if tenant_email else "Unknown User"
+    )
     template = os.getenv("TEMPLATE", DEFAULT_TEMPLATE)
 
     if not tenant_id:
         print("❌ Error: TENANT_ID environment variable is not set")
         print("   This script is typically triggered automatically by user signup")
-        print("   For manual testing, set TENANT_ID, TENANT_EMAIL, and optionally TEMPLATE")
+        print(
+            "   For manual testing, set TENANT_ID, TENANT_EMAIL, and optionally TEMPLATE"
+        )
         return 1
 
     if not tenant_email:
@@ -377,7 +410,7 @@ def main() -> int:
         "status": "active",
         "template": template,
         "created_at": firestore.SERVER_TIMESTAMP,
-        "updated_at": firestore.SERVER_TIMESTAMP
+        "updated_at": firestore.SERVER_TIMESTAMP,
     }
 
     if not create_tenant_document(db, tenant_id, tenant_data):
@@ -404,7 +437,9 @@ def main() -> int:
     # Step 4: Send welcome email
     if success and tenant_email:
         print("\n4️⃣ Sending welcome email...")
-        if not send_welcome_email(tenant_email, tenant_name, tenant_id, WELCOME_EMAIL_TEMPLATE):
+        if not send_welcome_email(
+            tenant_email, tenant_name, tenant_id, WELCOME_EMAIL_TEMPLATE
+        ):
             # Don't fail the entire process for email issues
             print("   ⚠️  Warning: Failed to send welcome email")
         else:
@@ -413,7 +448,9 @@ def main() -> int:
     # Step 5: Notify administrators
     if success:
         print("\n5️⃣ Notifying administrators...")
-        if not notify_admin_of_new_tenant(tenant_id, tenant_email or "unknown", template):
+        if not notify_admin_of_new_tenant(
+            tenant_id, tenant_email or "unknown", template
+        ):
             # Don't fail for notification issues
             print("   ⚠️  Warning: Failed to notify administrators")
         else:
@@ -425,6 +462,7 @@ def main() -> int:
     else:
         print(f"\n❌ Tenant {tenant_id} setup failed!")
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

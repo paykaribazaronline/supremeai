@@ -58,7 +58,8 @@ class TestRunDailyEvolution:
 
     def test_run_daily_evolution_success(self):
         """Valid admin call should return report."""
-        from api.routes.internal import RunEvolutionRequest, run_daily_evolution
+        from api.routes.internal import (RunEvolutionRequest,
+                                         run_daily_evolution)
 
         mock_request = MagicMock(spec=Request)
         mock_request.headers = {"X-Admin-Secret": "secret"}
@@ -74,7 +75,8 @@ class TestRunDailyEvolution:
 
     def test_run_daily_evolution_invalid_days(self):
         """Invalid days should raise 422."""
-        from api.routes.internal import RunEvolutionRequest, run_daily_evolution
+        from api.routes.internal import (RunEvolutionRequest,
+                                         run_daily_evolution)
 
         mock_request = MagicMock(spec=Request)
         mock_request.headers = {"X-Admin-Secret": "secret"}

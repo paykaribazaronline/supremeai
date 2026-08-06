@@ -3,12 +3,8 @@
 from unittest.mock import patch
 
 import pytest
-
-from core.security.secret_vault import (
-    ProductionSecretVault,
-    _CacheEntry,
-    reset_secret_vault,
-)
+from core.security.secret_vault import (ProductionSecretVault, _CacheEntry,
+                                        reset_secret_vault)
 
 
 @pytest.fixture(autouse=True)

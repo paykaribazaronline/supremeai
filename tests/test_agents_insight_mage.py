@@ -1,9 +1,9 @@
 # tests/test_agents_insight_mage.py
 """Tests for InsightMage - trend analysis and anomaly detection."""
 
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
-from datetime import datetime, timedelta
 
 
 class TestTrendDetector:
@@ -134,7 +134,7 @@ class TestReportFormatter:
         data = {
             "metrics": [
                 {"name": "users", "value": 100},
-                {"name": "queries", "value": 500}
+                {"name": "queries", "value": 500},
             ]
         }
 

@@ -16,11 +16,10 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+from core.error_bus import with_error_bus
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-
-from core.error_bus import with_error_bus
 
 try:
     from core.evolution.auto_skill_creator import AutoSkillCreator
@@ -53,7 +52,9 @@ class SelfEvolutionAgent:
         # Conditional instantiation to avoid AttributeError when imports failed
         if fitness_engine is None:
             if FitnessEngine is None:
-                raise RuntimeError("FitnessEngine failed to import - core.evolution.fitness_engine not available")
+                raise RuntimeError(
+                    "FitnessEngine failed to import - core.evolution.fitness_engine not available"
+                )
             fitness_engine = FitnessEngine()
         if auto_skill_creator is None:
             if AutoSkillCreator is None:
@@ -127,8 +128,13 @@ class SelfEvolutionAgent:
             return
 
         if score < self.refactor_penalty_threshold:
-            self._consecutive_penalties[skill_name] = self._consecutive_penalties.get(skill_name, 0) + 1
-            if self._consecutive_penalties[skill_name] >= self.max_consecutive_penalties:
+            self._consecutive_penalties[skill_name] = (
+                self._consecutive_penalties.get(skill_name, 0) + 1
+            )
+            if (
+                self._consecutive_penalties[skill_name]
+                >= self.max_consecutive_penalties
+            ):
                 await self._trigger_refactor(skill_name)
                 # বাংলা মন্তব্য: refactor পরে penalty 0-তে reset — pop নয় যাতে test assert করতে পারে
                 self._consecutive_penalties[skill_name] = 0
@@ -137,10 +143,14 @@ class SelfEvolutionAgent:
             self._consecutive_penalties[skill_name] = 0
 
         if score < self.fitness_threshold:
-            self.fitness_engine.evaluate_and_prune(skill_name, self.fitness_threshold, self.min_runs_before_action)
+            self.fitness_engine.evaluate_and_prune(
+                skill_name, self.fitness_threshold, self.min_runs_before_action
+            )
 
     async def _trigger_refactor(self, skill_name: str) -> None:
-        logger.warning(f"Skill '{skill_name}' hit consecutive penalty threshold. Refactoring...")
+        logger.warning(
+            f"Skill '{skill_name}' hit consecutive penalty threshold. Refactoring..."
+        )
         current_code = self._read_skill_code(skill_name)
         user_demand = (
             f"Refactor the existing skill '{skill_name}' to drastically improve its fitness score.\n"
@@ -149,8 +159,12 @@ class SelfEvolutionAgent:
         )
         refactored_name = f"{skill_name}_v2"
         # In actual execution, we route through process_new_skill_proposal with DB session
-        logger.info(f"Refactor triggered for {skill_name}. New proposal will be processed.")
-        await self.auto_skill_creator.generate_and_deploy_skill(user_demand, refactored_name)
+        logger.info(
+            f"Refactor triggered for {skill_name}. New proposal will be processed."
+        )
+        await self.auto_skill_creator.generate_and_deploy_skill(
+            user_demand, refactored_name
+        )
 
     def _read_skill_code(self, skill_name: str) -> str:
         base_dir = Path(__file__).resolve().parent.parent.parent
@@ -168,13 +182,17 @@ class SelfEvolutionAgent:
         skill_name = demand["skill_name"]
         logger.info(f"Processing demand for missing skill: {skill_name}")
         if not self._has_high_fitness_path(skill_name):
-            await self.auto_skill_creator.generate_and_deploy_skill(task_demand, skill_name)
+            await self.auto_skill_creator.generate_and_deploy_skill(
+                task_demand, skill_name
+            )
 
     async def _register_missing_path(self, task_demand: str, skill_name: str) -> None:
         # বাংলা মন্তব্য: async করা হয়েছে যাতে tests await করতে পারে এবং
         # auto_skill_creator.generate_and_deploy_skill() সরাসরি call হয়।
         if not self._has_high_fitness_path(skill_name):
-            await self.auto_skill_creator.generate_and_deploy_skill(task_demand, skill_name)
+            await self.auto_skill_creator.generate_and_deploy_skill(
+                task_demand, skill_name
+            )
 
     def _has_high_fitness_path(self, skill_name: str) -> bool:
         if not hasattr(self.fitness_engine, "registry"):
@@ -212,16 +230,22 @@ class SelfEvolutionAgent:
         # scan_code will check using ASTSecurityScanner under the hood
         res = self.scanner.scan_code(generated_code)
         if not res["safe"]:
-            logger.critical(f"AST Scanner BLOCKED proposal {proposal_id}: {res['error']}")
+            logger.critical(
+                f"AST Scanner BLOCKED proposal {proposal_id}: {res['error']}"
+            )
             await self._update_proposal_status(session, proposal_id, "rejected_by_ast")
             return False
 
         # If we reach here, AST is safe. Update state.
-        await self._update_proposal_status(session, proposal_id, "ast_validated", ast_validated=True)
+        await self._update_proposal_status(
+            session, proposal_id, "ast_validated", ast_validated=True
+        )
         logger.success(f"Proposal {proposal_id} passed AST Security Scan.")
 
         # Step 3: CI/CD Dry Run (MicroVM / Sandbox Execution)
-        ci_passed = await self._run_ci_cd_dry_run(proposal_id, skill_name, generated_code)
+        ci_passed = await self._run_ci_cd_dry_run(
+            proposal_id, skill_name, generated_code
+        )
 
         if not ci_passed:
             logger.error(f"CI/CD dry-run FAILED for proposal {proposal_id}")
@@ -229,15 +253,23 @@ class SelfEvolutionAgent:
             return False
 
         # Step 4: Final Approval for Merge/Apply
-        await self._update_proposal_status(session, proposal_id, "ci_passed", ci_passed=True)
-        logger.success(f"Evolution successful: {skill_name} ({proposal_id}) passed all zero-gap gates.")
+        await self._update_proposal_status(
+            session, proposal_id, "ci_passed", ci_passed=True
+        )
+        logger.success(
+            f"Evolution successful: {skill_name} ({proposal_id}) passed all zero-gap gates."
+        )
 
         return True
 
-    async def _update_proposal_status(self, session: AsyncSession, proposal_id: str, new_status: str, **kwargs):
+    async def _update_proposal_status(
+        self, session: AsyncSession, proposal_id: str, new_status: str, **kwargs
+    ):
         """Helper method to atomically update proposal state"""
         async with session.begin():
-            result = await session.execute(select(CodeProposal).where(CodeProposal.proposal_id == proposal_id))
+            result = await session.execute(
+                select(CodeProposal).where(CodeProposal.proposal_id == proposal_id)
+            )
             proposal = result.scalars().first()
             if proposal:
                 proposal.status = new_status
@@ -246,7 +278,9 @@ class SelfEvolutionAgent:
                 if "ci_passed" in kwargs:
                     proposal.ci_passed = kwargs["ci_passed"]
 
-    async def _run_ci_cd_dry_run(self, proposal_id: str, skill_name: str, code: str) -> bool:
+    async def _run_ci_cd_dry_run(
+        self, proposal_id: str, skill_name: str, code: str
+    ) -> bool:
         """
         Simulates a sandboxed test run.
         """

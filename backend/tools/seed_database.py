@@ -27,7 +27,9 @@ def _init_fts_db(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
-def _upsert_fts(conn: sqlite3.Connection, doc_id: str, title: str, content: str, source: str) -> None:
+def _upsert_fts(
+    conn: sqlite3.Connection, doc_id: str, title: str, content: str, source: str
+) -> None:
     # SQLite FTS5 ভার্চুয়াল টেবিলে সরাসরি UPSERT (ON CONFLICT) সাপোর্ট করে না।
     # তাই প্রথমে ডুপ্লিকেট rowid থাকলে তা ডিলেট করে নতুন করে ইনসার্ট করা হচ্ছে।
     conn.execute("DELETE FROM knowledge_fts WHERE rowid = ?", [doc_id])
@@ -56,7 +58,9 @@ def seed_all():
             module_name = filename[:-3]
             module_path = os.path.join(seed_data_dir, filename)
 
-            spec = importlib.util.spec_from_file_location(f"tools.seed_data.{module_name}", module_path)
+            spec = importlib.util.spec_from_file_location(
+                f"tools.seed_data.{module_name}", module_path
+            )
             if spec and spec.loader:
                 module = importlib.util.module_from_spec(spec)
                 sys.path.insert(0, seed_data_dir)
@@ -72,7 +76,9 @@ def seed_all():
                     if attr_name.isupper():
                         attr_val = getattr(module, attr_name)
                         if isinstance(attr_val, dict):
-                            logger.info(f"Processing dict '{attr_name}' in {module_name}...")
+                            logger.info(
+                                f"Processing dict '{attr_name}' in {module_name}..."
+                            )
                             for key, item in attr_val.items():
                                 if not isinstance(item, dict):
                                     continue
@@ -87,15 +93,19 @@ def seed_all():
                                 if "fix" in item:
                                     doc_content += f"Solution/Fix: {item['fix']}\n"
                                 if "description" in item:
-                                    doc_content += f"Description: {item['description']}\n"
-                                if "when_to_use" in item:
-                                    doc_content += f"When to use: {item['when_to_use']}\n"
-                                if "code_example" in item:
-                                    doc_content += f"Code Example:\n{item['code_example']}\n"
-                                if "do" in item:
                                     doc_content += (
-                                        f"DO: {', '.join(item['do']) if isinstance(item['do'], list) else item['do']}\n"
+                                        f"Description: {item['description']}\n"
                                     )
+                                if "when_to_use" in item:
+                                    doc_content += (
+                                        f"When to use: {item['when_to_use']}\n"
+                                    )
+                                if "code_example" in item:
+                                    doc_content += (
+                                        f"Code Example:\n{item['code_example']}\n"
+                                    )
+                                if "do" in item:
+                                    doc_content += f"DO: {', '.join(item['do']) if isinstance(item['do'], list) else item['do']}\n"
                                 if "dont" in item:
                                     doc_content += f"DONT: {', '.join(item['dont']) if isinstance(item['dont'], list) else item['dont']}\n"
                                 if "content" in item:

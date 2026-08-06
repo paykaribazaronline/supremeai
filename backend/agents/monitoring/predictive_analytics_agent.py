@@ -81,12 +81,16 @@ class TimeSeriesForecaster:
         return forecasted
 
     @staticmethod
-    def confidence_intervals(values: list[float], forecast: list[float]) -> list[tuple[float, float]]:
+    def confidence_intervals(
+        values: list[float], forecast: list[float]
+    ) -> list[tuple[float, float]]:
         """Calculate confidence intervals based on historical variance."""
         if len(values) < 2:
             return [(v * 0.8, v * 1.2) for v in forecast]
 
-        variance = sum((v - sum(values) / len(values)) ** 2 for v in values) / len(values)
+        variance = sum((v - sum(values) / len(values)) ** 2 for v in values) / len(
+            values
+        )
         std_dev = math.sqrt(variance) if variance > 0 else 1.0
 
         intervals = []
@@ -124,7 +128,9 @@ class TimeSeriesForecaster:
 
         n = len(values)
         mean = sum(values) / n
-        lag_7 = sum((values[i] - mean) * (values[i + 7] - mean) for i in range(n - 7)) / (n - 7)
+        lag_7 = sum(
+            (values[i] - mean) * (values[i + 7] - mean) for i in range(n - 7)
+        ) / (n - 7)
         variance = sum((v - mean) ** 2 for v in values) / n
 
         if variance == 0:
@@ -168,7 +174,9 @@ class PredictiveAnalyticsAgent:
 
         # Accuracy score: based on data quality and consistency
         n = len(historical_values)
-        accuracy = min(0.95, 0.3 + (n / 100) * 0.5 - (0.1 if seasonality and n < 30 else 0))
+        accuracy = min(
+            0.95, 0.3 + (n / 100) * 0.5 - (0.1 if seasonality and n < 30 else 0)
+        )
 
         result = ForecastResult(
             metric=metric_name,
@@ -223,13 +231,17 @@ class PredictiveAnalyticsAgent:
             recommendation=recommendation,
         )
 
-    async def get_system_forecast_summary(self, metrics: dict[str, list[float]]) -> dict[str, Any]:
+    async def get_system_forecast_summary(
+        self, metrics: dict[str, list[float]]
+    ) -> dict[str, Any]:
         """Generate a summary forecast for all system metrics."""
         forecasts = {}
         for name, values in metrics.items():
             result = await self.forecast_metric(name, values)
             forecasts[name] = {
-                "next_value": result.forecast_values[0] if result.forecast_values else 0,
+                "next_value": (
+                    result.forecast_values[0] if result.forecast_values else 0
+                ),
                 "trend": result.trend_direction,
                 "accuracy": result.accuracy_score,
             }
@@ -240,7 +252,9 @@ class PredictiveAnalyticsAgent:
 _predictive_instance: PredictiveAnalyticsAgent | None = None
 
 
-def get_predictive_analytics(db: TenantAwareFirestore | None = None) -> PredictiveAnalyticsAgent:
+def get_predictive_analytics(
+    db: TenantAwareFirestore | None = None,
+) -> PredictiveAnalyticsAgent:
     """Get or create the singleton PredictiveAnalyticsAgent."""
     global _predictive_instance
     if _predictive_instance is None:

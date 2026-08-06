@@ -65,7 +65,9 @@ class LoggingConfig:
         # Add file handler if needed (with rotation)
         if settings.env in ["production", "staging"]:
             try:
-                log_dir = Path(os.getenv("LOG_DIR", "/tmp/logs" if os.getenv("RENDER") else "logs"))
+                log_dir = Path(
+                    os.getenv("LOG_DIR", "/tmp/logs" if os.getenv("RENDER") else "logs")
+                )
                 log_dir.mkdir(parents=True, exist_ok=True)
                 log_file = log_dir / "app_{time}.log"
                 logger.add(
@@ -77,7 +79,9 @@ class LoggingConfig:
                     level="INFO",
                 )
             except Exception as exc:
-                sys.stderr.write(f"⚠️ Failed to initialize file logger sink: {exc}. Continuing with stdout logging.\n")
+                sys.stderr.write(
+                    f"⚠️ Failed to initialize file logger sink: {exc}. Continuing with stdout logging.\n"
+                )
 
     def _json_format(self, record: dict) -> str:
         """Custom JSON formatter with correlation ID."""
@@ -118,7 +122,11 @@ def inject_correlation_id():
     correlation_id = str(uuid.uuid4())
     try:
         context.set(HeaderKeys.correlation_id, correlation_id)
-    except (AttributeError, LookupError, NameError):  # Context may not be initialized in some cases
+    except (
+        AttributeError,
+        LookupError,
+        NameError,
+    ):  # Context may not be initialized in some cases
         pass
     return correlation_id
 

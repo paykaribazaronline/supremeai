@@ -34,8 +34,18 @@ class HumanBehaviorSimulators:
         for i in range(steps):
             t = i / float(steps - 1)
             # Cubic Bezier ফর্মুলা
-            x = (1 - t) ** 3 * x1 + 3 * (1 - t) ** 2 * t * control1_x + 3 * (1 - t) * t**2 * control2_x + t**3 * x2
-            y = (1 - t) ** 3 * y1 + 3 * (1 - t) ** 2 * t * control1_y + 3 * (1 - t) * t**2 * control2_y + t**3 * y2
+            x = (
+                (1 - t) ** 3 * x1
+                + 3 * (1 - t) ** 2 * t * control1_x
+                + 3 * (1 - t) * t**2 * control2_x
+                + t**3 * x2
+            )
+            y = (
+                (1 - t) ** 3 * y1
+                + 3 * (1 - t) ** 2 * t * control1_y
+                + 3 * (1 - t) * t**2 * control2_y
+                + t**3 * y2
+            )
             points.append((x, y))
         return points
 
@@ -43,7 +53,9 @@ class HumanBehaviorSimulators:
     async def natural_mouse_move_and_click(cls, page: Page, selector: str):
         """মাউস কার্সারকে Bezier কার্ভ দিয়ে মুভ করিয়ে র্যান্ডম অফসেট ক্লিক করবে।"""
         try:
-            element = await page.wait_for_selector(selector, state="visible", timeout=10000)
+            element = await page.wait_for_selector(
+                selector, state="visible", timeout=10000
+            )
             box = await element.bounding_box()
             if not box:
                 raise ValueError(f"Element {selector} has no layout bounding box.")
@@ -56,7 +68,9 @@ class HumanBehaviorSimulators:
             start_x = random.uniform(0, 100)
             start_y = random.uniform(0, 100)
 
-            path = cls._generate_bezier_points((start_x, start_y), (target_x, target_y), steps=random.randint(15, 30))
+            path = cls._generate_bezier_points(
+                (start_x, start_y), (target_x, target_y), steps=random.randint(15, 30)
+            )
 
             for x, y in path:
                 await page.mouse.move(x, y)
@@ -73,7 +87,9 @@ class HumanBehaviorSimulators:
     async def natural_type(cls, page: Page, selector: str, text: str):
         """Gaussian ডিস্ট্রিবিউশন ডিলে ব্যবহার করে কিবোর্ড টাইপিং সিমুলেট করবে।"""
         try:
-            element = await page.wait_for_selector(selector, state="visible", timeout=10000)
+            element = await page.wait_for_selector(
+                selector, state="visible", timeout=10000
+            )
             await element.focus()
             await asyncio.sleep(random.uniform(0.15, 0.3))
 

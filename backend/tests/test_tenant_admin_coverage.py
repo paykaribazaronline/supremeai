@@ -93,7 +93,9 @@ class TestDBListTenants:
         mock_client = MagicMock()
         mock_res = MagicMock()
         mock_res.data = [{"tenant_id": "t1"}, {"tenant_id": "t2"}]
-        mock_client.table.return_value.select.return_value.order.return_value.execute.return_value = mock_res
+        mock_client.table.return_value.select.return_value.order.return_value.execute.return_value = (
+            mock_res
+        )
 
         with patch("api.routes.tenant_admin._get_db", return_value=mock_client):
             result = await _db_list_tenants()
@@ -123,7 +125,9 @@ class TestDBGetTenant:
         mock_client = MagicMock()
         mock_res = MagicMock()
         mock_res.data = [{"tenant_id": "t1", "org_name": "Test"}]
-        mock_client.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_res
+        mock_client.table.return_value.select.return_value.eq.return_value.execute.return_value = (
+            mock_res
+        )
 
         with patch("api.routes.tenant_admin._get_db", return_value=mock_client):
             result = await _db_get_tenant("t1")
@@ -138,7 +142,9 @@ class TestDBGetTenant:
         mock_client = MagicMock()
         mock_res = MagicMock()
         mock_res.data = []
-        mock_client.table.return_value.select.return_value.eq.return_value.execute.return_value = mock_res
+        mock_client.table.return_value.select.return_value.eq.return_value.execute.return_value = (
+            mock_res
+        )
 
         with patch("api.routes.tenant_admin._get_db", return_value=mock_client):
             result = await _db_get_tenant("nonexistent")

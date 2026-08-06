@@ -87,7 +87,9 @@ class ExperienceDatabase:
                 import chromadb
 
                 logger.info("Initializing ChromaDB EphemeralClient lazily...")
-                self.chroma_collection = chromadb.EphemeralClient().get_or_create_collection("experience")
+                self.chroma_collection = (
+                    chromadb.EphemeralClient().get_or_create_collection("experience")
+                )
             except Exception as exc:
                 logger.error(f"ChromaDB lazy init failed: {exc}")
 
@@ -105,7 +107,9 @@ class ExperienceDatabase:
 
                 logger.info("Initializing QdrantClient(':memory:') lazily...")
                 self.qdrant_client = QdrantClient(":memory:")
-                if not self.qdrant_client.collection_exists(collection_name=self.qdrant_collection):
+                if not self.qdrant_client.collection_exists(
+                    collection_name=self.qdrant_collection
+                ):
                     self.qdrant_client.create_collection(
                         collection_name=self.qdrant_collection,
                         vectors_config=VectorParams(size=384, distance=Distance.COSINE),
@@ -148,10 +152,14 @@ class ExperienceDatabase:
                 # বাংলা মন্তব্য: ওটিপি চেক বা এপিআই স্টার্টআপে অপ্রয়োজনীয় ওভারহেড এড়াতে প্রথম ব্যবহারের সময় মডেলটি লোড করা হচ্ছে।
                 from sentence_transformers import SentenceTransformer
 
-                logger.info("Initializing SentenceTransformer('all-MiniLM-L6-v2') lazily...")
+                logger.info(
+                    "Initializing SentenceTransformer('all-MiniLM-L6-v2') lazily..."
+                )
                 self.encoder = SentenceTransformer("all-MiniLM-L6-v2")
             except Exception as exc:
-                logger.error(f"[ExperienceDB] Lazy SentenceTransformer initialization failed: {exc}")
+                logger.error(
+                    f"[ExperienceDB] Lazy SentenceTransformer initialization failed: {exc}"
+                )
 
         if self.encoder:
             try:
@@ -170,7 +178,10 @@ class ExperienceDatabase:
 
     def record_experience(self, exp: Experience) -> int:
         timestamp = (
-            exp.timestamp or __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat()
+            exp.timestamp
+            or __import__("datetime")
+            .datetime.now(__import__("datetime").timezone.utc)
+            .isoformat()
         )
         request_text = exp.request or ""
         embedding = self._embed(request_text)
@@ -209,7 +220,9 @@ class ExperienceDatabase:
             conn.commit()
             exp_id = int(cursor.lastrowid or 0)
         if embedding:
-            self._upsert_vector_db(exp_id, request_text, embedding, exp.result, response_text)
+            self._upsert_vector_db(
+                exp_id, request_text, embedding, exp.result, response_text
+            )
         return exp_id
 
     def _upsert_vector_db(
@@ -233,7 +246,9 @@ class ExperienceDatabase:
                 )
         except Exception as e:
             self.vector_backend_degraded = True
-            logger.error(f"Chroma upsert failed (vector memory degraded, exp_id={exp_id}): {e}")
+            logger.error(
+                f"Chroma upsert failed (vector memory degraded, exp_id={exp_id}): {e}"
+            )
         try:
             if self.qdrant_client:
                 from qdrant_client.models import PointStruct
@@ -254,7 +269,9 @@ class ExperienceDatabase:
                 )
         except Exception as e:
             self.vector_backend_degraded = True
-            logger.error(f"Qdrant upsert failed (vector memory degraded, exp_id={exp_id}): {e}")
+            logger.error(
+                f"Qdrant upsert failed (vector memory degraded, exp_id={exp_id}): {e}"
+            )
 
     def _cosine_similarity(self, a: list[float], b: list[float]) -> float:
         import math
@@ -266,7 +283,9 @@ class ExperienceDatabase:
             return 0.0
         return dot / (norm_a * norm_b)
 
-    def find_similar(self, query: str, limit: int = 5, threshold: float = 0.7) -> list[dict[str, Any]]:
+    def find_similar(
+        self, query: str, limit: int = 5, threshold: float = 0.7
+    ) -> list[dict[str, Any]]:
         # বাংলা মন্তব্য: মেমরি সাশ্রয়ের জন্য ভেক্টর ডেটাবেস ব্যবহারের ঠিক পূর্বে ইনিশিয়ালাইজেশন নিশ্চিত করা হচ্ছে।
         self._ensure_chroma()
         self._ensure_qdrant()
@@ -276,12 +295,16 @@ class ExperienceDatabase:
         hits: list[dict[str, Any]] = []
         try:
             if self.chroma_collection:
-                res = self.chroma_collection.query(query_embeddings=[embedding], n_results=limit)
+                res = self.chroma_collection.query(
+                    query_embeddings=[embedding], n_results=limit
+                )
                 ids = res.get("ids", [[]])[0]
                 metadatas = res.get("metadatas", [[]])[0]
                 distances = res.get("distances", [[]])[0]
                 documents = res.get("documents", [[]])[0]
-                for idx, meta, dist, doc in zip(ids, metadatas, distances, documents, strict=True):
+                for idx, meta, dist, doc in zip(
+                    ids, metadatas, distances, documents, strict=True
+                ):
                     # ChromaDB distance can be Euclidean (L2). Convert to approximate similarity
                     score = 1.0 - float(dist)
                     if score >= threshold:
@@ -324,7 +347,9 @@ class ExperienceDatabase:
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            cursor.execute("SELECT * FROM experiences ORDER BY id DESC LIMIT ?", (limit,))
+            cursor.execute(
+                "SELECT * FROM experiences ORDER BY id DESC LIMIT ?", (limit,)
+            )
             rows = cursor.fetchall()
             return [
                 Experience(
@@ -341,12 +366,16 @@ class ExperienceDatabase:
                     deployment_logs=r["deployment_logs"],
                     what_worked=json.loads(r["what_worked"] or "[]"),
                     what_failed=json.loads(r["what_failed"] or "[]"),
-                    suggested_improvements=json.loads(r["suggested_improvements"] or "[]"),
+                    suggested_improvements=json.loads(
+                        r["suggested_improvements"] or "[]"
+                    ),
                 )
                 for r in rows
             ]
 
-    def sync_to_gcs(self, bucket_name: str, blob_name: str = "experience_db_backup.sqlite.gz"):
+    def sync_to_gcs(
+        self, bucket_name: str, blob_name: str = "experience_db_backup.sqlite.gz"
+    ):
         """
         Compresses the SQLite database and uploads it to Google Cloud Storage.
         This minimizes bandwidth usage and prevents data loss on Cloud Run restarts.
@@ -373,9 +402,13 @@ class ExperienceDatabase:
 
             # Set metadata to indicate it's a gzipped sqlite file
             blob.content_encoding = "gzip"
-            blob.upload_from_filename(str(gz_path), content_type="application/x-sqlite3")
+            blob.upload_from_filename(
+                str(gz_path), content_type="application/x-sqlite3"
+            )
 
-            loguru.logger.info(f"Successfully synced experience db to GCS: gs://{bucket_name}/{blob_name}")
+            loguru.logger.info(
+                f"Successfully synced experience db to GCS: gs://{bucket_name}/{blob_name}"
+            )
 
             # Clean up local compressed file
             gz_path.unlink(missing_ok=True)

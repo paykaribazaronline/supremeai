@@ -1,15 +1,16 @@
 from unittest.mock import patch
 
 import pytest
+from core.app import app
+from core.config import settings
 from fastapi.testclient import TestClient
 from jose import jwt
 
-from core.app import app
-from core.config import settings
-
 client = TestClient(app)
 
-mock_token = jwt.encode({"user_id": "test-user-id", "role": "admin"}, settings.jwt_secret, algorithm="HS256")
+mock_token = jwt.encode(
+    {"user_id": "test-user-id", "role": "admin"}, settings.jwt_secret, algorithm="HS256"
+)
 auth_headers = {"Authorization": f"Bearer {mock_token}"}
 
 
@@ -61,6 +62,8 @@ def test_webhook_ignored_if_missing_config():
     # Verify webhook behaves gracefully when credentials/key are missing
     with patch("core.config.settings.STRIPE_WEBHOOK_SECRET", new=SecretStr("")):
         headers = {**auth_headers, "stripe-signature": "invalid-sig"}
-        resp = client.post("/payments/webhook", headers=headers, content=b"some-payload")
+        resp = client.post(
+            "/payments/webhook", headers=headers, content=b"some-payload"
+        )
         assert resp.status_code == 200
         assert resp.json()["status"] == "ignored"

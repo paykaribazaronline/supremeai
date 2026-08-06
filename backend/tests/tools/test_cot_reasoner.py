@@ -4,14 +4,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from backend.tools.code.cot_reasoner import (
-    ChainOfThoughtReasoner,
-    DeepReasoningChain,
-    Thought,
-    _eval_node,
-    _safe_eval_math,
-    verify_symbolic_math,
-)
+from backend.tools.code.cot_reasoner import (ChainOfThoughtReasoner,
+                                             DeepReasoningChain, Thought,
+                                             _eval_node, _safe_eval_math,
+                                             verify_symbolic_math)
 
 
 class FakeSympy:
@@ -342,7 +338,10 @@ class TestEvaluateThought:
 
     def test_score_clamped_to_one(self):
         r = ChainOfThoughtReasoner()
-        t = Thought("therefore thus conclusion final answer however although alternatively " + " ".join(["x"] * 20))
+        t = Thought(
+            "therefore thus conclusion final answer however although alternatively "
+            + " ".join(["x"] * 20)
+        )
         score = r.evaluate_thought(t, context="thus")
         assert score <= 1.0
 
@@ -374,7 +373,9 @@ class TestTreeSearch:
 
     def test_empty_parse_returns_early(self, monkeypatch):
         r = ChainOfThoughtReasoner()
-        monkeypatch.setattr(r, "parse", lambda raw: {"thoughts": [], "final_answer": "", "raw": raw})
+        monkeypatch.setattr(
+            r, "parse", lambda raw: {"thoughts": [], "final_answer": "", "raw": raw}
+        )
         out = r.tree_search("problem")
         assert out["best_branch"] == []
         assert out["best_score"] == 0.0
@@ -384,7 +385,9 @@ class TestTreeSearch:
 
         def fake_parse(raw):
             return {
-                "thoughts": [{"content": "thought1", "reasoning_depth": 0, "score": 0.3}],
+                "thoughts": [
+                    {"content": "thought1", "reasoning_depth": 0, "score": 0.3}
+                ],
                 "final_answer": "",
                 "raw": raw,
             }
@@ -405,7 +408,9 @@ class TestTreeSearch:
         def fake_parse(raw):
             if "Continue" not in raw:
                 return {
-                    "thoughts": [{"content": "thought1", "reasoning_depth": 0, "score": 0.3}],
+                    "thoughts": [
+                        {"content": "thought1", "reasoning_depth": 0, "score": 0.3}
+                    ],
                     "final_answer": "",
                     "raw": raw,
                 }
@@ -435,7 +440,9 @@ class TestVerifyExecution:
     def test_no_code_returns_no_exec(self):
         r = ChainOfThoughtReasoner()
         fake_module = MagicMock()
-        with patch.dict("sys.modules", {"tools.safe_executor": fake_module}, clear=False):
+        with patch.dict(
+            "sys.modules", {"tools.safe_executor": fake_module}, clear=False
+        ):
             result = r._verify_execution({})
         assert result["verified"] is True
         assert result["reason"] == "no_exec"
@@ -445,7 +452,9 @@ class TestVerifyExecution:
         fake_module = MagicMock()
         fake_module.run_restricted = MagicMock(return_value={"result": 42})
         # বাংলা মন্তব্য: মডিউল রিলোকেশন অনুযায়ী মক পাথ tools.code.safe_executor করা হলো।
-        with patch.dict("sys.modules", {"tools.code.safe_executor": fake_module}, clear=False):
+        with patch.dict(
+            "sys.modules", {"tools.code.safe_executor": fake_module}, clear=False
+        ):
             result = r._verify_execution({"exec_code": "x = 1"})
         assert result["success"] is True
 

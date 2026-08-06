@@ -3,9 +3,8 @@
 from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import pytest
-from starlette.responses import JSONResponse
-
 from core.security.origin_validator import TrustedOriginMiddleware
+from starlette.responses import JSONResponse
 
 
 class TestTrustedOriginMiddleware:
@@ -46,7 +45,9 @@ class TestTrustedOriginMiddleware:
     async def test_options_preflight_allowed_origin(self):
         app = AsyncMock()
         middleware = TrustedOriginMiddleware(app)
-        request = self._make_request(method="OPTIONS", origin="https://supremeai-admin.web.app")
+        request = self._make_request(
+            method="OPTIONS", origin="https://supremeai-admin.web.app"
+        )
         response = await middleware.dispatch(request, app)
         assert response.status_code == 200
 
@@ -101,7 +102,9 @@ class TestTrustedOriginMiddleware:
             "Origin": "http://evil-hacker.com",
         }
 
-        with patch.dict("os.environ", {"ENV": "production", "ALLOW_TEST_ORIGIN_BYPASS": "false"}):
+        with patch.dict(
+            "os.environ", {"ENV": "production", "ALLOW_TEST_ORIGIN_BYPASS": "false"}
+        ):
             with patch(
                 "core.security.origin_validator.TrustedOriginMiddleware.allowed_origins",
                 new_callable=PropertyMock,

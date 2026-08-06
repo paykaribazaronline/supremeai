@@ -73,7 +73,9 @@ class ErrorEvent(BaseModel):
     resolved: bool = False
     context: dict[str, Any] = Field(default_factory=dict)
     # বাংলা মন্তব্য: structured context — flat dict-এর পাশাপাশি type-safe correlation
-    structured_context: ErrorContext = Field(default_factory=lambda: ErrorContext(module="default"))
+    structured_context: ErrorContext = Field(
+        default_factory=lambda: ErrorContext(module="default")
+    )
     timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     def model_post_init(self, __context: Any) -> None:
@@ -105,9 +107,13 @@ class ErrorEventBus:
     """
 
     def __init__(self) -> None:
-        self._listeners: dict[str, list[Callable[[ErrorEvent], Any]]] = defaultdict(list)
+        self._listeners: dict[str, list[Callable[[ErrorEvent], Any]]] = defaultdict(
+            list
+        )
         self._lock = threading.RLock()  # Use RLock for better thread safety
-        self._registered_handlers: set[str] = set()  # Track registered handlers to prevent duplicates
+        self._registered_handlers: set[str] = (
+            set()
+        )  # Track registered handlers to prevent duplicates
         # বাংলা মন্তব্য: bounded queue — unbounded growth prevent করা হলো
         self._dlq: asyncio.Queue[DeadLetterQueueItem] = asyncio.Queue(maxsize=1000)
         self._dead_letter_handlers: list[Callable[[DeadLetterQueueItem], Any]] = []
@@ -152,23 +158,33 @@ class ErrorEventBus:
 
             self._listeners[event_type].append(actual_listener)
             self._registered_handlers.add(handler_id)
-            logger.debug(f"[ErrorEventBus] Registered listener for event type: {event_type}: {listener_name}")
+            logger.debug(
+                f"[ErrorEventBus] Registered listener for event type: {event_type}: {listener_name}"
+            )
 
-    def unregister_listener(self, event_type: str, listener: Callable[[ErrorEvent], Any]) -> None:
+    def unregister_listener(
+        self, event_type: str, listener: Callable[[ErrorEvent], Any]
+    ) -> None:
         """বাংলা মন্তব্য: Error event listener unregister করুন (thread-safe)."""
         with self._lock:
             if event_type in self._listeners:
                 try:
                     self._listeners[event_type].remove(listener)
-                    handler_id = f"{event_type}:{listener.__module__}:{listener.__name__}"
+                    handler_id = (
+                        f"{event_type}:{listener.__module__}:{listener.__name__}"
+                    )
                     self._registered_handlers.discard(handler_id)
                     logger.debug(
                         f"[ErrorEventBus] Unregistered listener for event type: {event_type}: {getattr(listener, '__name__', str(listener))}"
                     )
                 except ValueError:
-                    logger.debug(f"[ErrorEventBus] Listener not found for event type: {event_type}")
+                    logger.debug(
+                        f"[ErrorEventBus] Listener not found for event type: {event_type}"
+                    )
 
-    def register_dead_letter_handler(self, handler: Callable[[DeadLetterQueueItem], Any]) -> None:
+    def register_dead_letter_handler(
+        self, handler: Callable[[DeadLetterQueueItem], Any]
+    ) -> None:
         """বাংলা মন্তব্য: DLQ handler register করুন — handler failure alert পাঠাতে।"""
         self._dead_letter_handlers.append(handler)
 
@@ -243,7 +259,9 @@ class ErrorEventBus:
                         # বাংলা মন্তব্য: CancelledError কখনো suppress করা যাবে না
                         raise
                     except Exception as dl_exc:
-                        logger.error(f"[ErrorEventBus] Dead letter handler failed: {dl_exc}")
+                        logger.error(
+                            f"[ErrorEventBus] Dead letter handler failed: {dl_exc}"
+                        )
 
     async def _safe_invoke(self, handler: Callable, event: ErrorEvent) -> Any:
         """
@@ -278,7 +296,9 @@ class ErrorEventBus:
             }
         )
 
-        log_msg = f"[{event.module}] {event.error_type}: {event.message[:500]} | ctx={ctx}"
+        log_msg = (
+            f"[{event.module}] {event.error_type}: {event.message[:500]} | ctx={ctx}"
+        )
 
         if event.severity == "CRITICAL":
             logger.critical(log_msg)
@@ -303,7 +323,9 @@ class ErrorEventBus:
             "registered_listeners": len(self._listeners),
         }
 
-    async def process_dead_letter_queue(self, max_items: int = 10) -> list[DeadLetterQueueItem]:
+    async def process_dead_letter_queue(
+        self, max_items: int = 10
+    ) -> list[DeadLetterQueueItem]:
         """
         বাংলা মন্তব্য: DLQ থেকে items process করা।
         max_items bounded — unbounded processing prevent।
@@ -394,7 +416,9 @@ class IntelligentErrorBus(ErrorEventBus):
 
                 pool = _get_pool()
                 if pool:
-                    logger.info("[Self-Healing] Database connection pool checked/refreshed")
+                    logger.info(
+                        "[Self-Healing] Database connection pool checked/refreshed"
+                    )
                     event.resolved = True
             elif err_type == "API_TIMEOUT":
                 import os
@@ -405,7 +429,9 @@ class IntelligentErrorBus(ErrorEventBus):
                 logger.info(f"[Self-Healing] Scaled API timeout to {new_timeout}ms")
                 event.resolved = True
         except Exception as exc:
-            logger.error(f"[Self-Healing] Healing strategy failed for {err_type}: {exc}")
+            logger.error(
+                f"[Self-Healing] Healing strategy failed for {err_type}: {exc}"
+            )
             event.attempts += 1
 
 

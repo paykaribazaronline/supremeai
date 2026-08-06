@@ -101,7 +101,14 @@ class DisasterRecoveryAgent:
         }
 
         # Recovery priorities (order of restoration)
-        self.recovery_priority_order = ["configuration", "database", "user_data", "skills", "models", "logs"]
+        self.recovery_priority_order = [
+            "configuration",
+            "database",
+            "user_data",
+            "skills",
+            "models",
+            "logs",
+        ]
 
         # Initialize default recovery plans
         self.default_recovery_plans = {
@@ -143,7 +150,10 @@ class DisasterRecoveryAgent:
             logger.error(f"Error initializing recovery plans: {e}")
 
     async def create_backup(
-        self, backup_type: str = "full", components: list[str] | None = None, location_override: str | None = None
+        self,
+        backup_type: str = "full",
+        components: list[str] | None = None,
+        location_override: str | None = None,
     ) -> BackupResult:
         """
         Create a system backup.
@@ -173,15 +183,23 @@ class DisasterRecoveryAgent:
                     components = list(self.critical_components.keys())
 
             # Filter to only valid components
-            valid_components = [comp for comp in components if comp in self.critical_components]
+            valid_components = [
+                comp for comp in components if comp in self.critical_components
+            ]
 
-            logger.info(f"Starting backup {backup_id} for components: {valid_components}")
+            logger.info(
+                f"Starting backup {backup_id} for components: {valid_components}"
+            )
 
-            backup_location = location_override or getattr(settings, "BACKUP_LOCATION", "/backups/")
+            backup_location = location_override or getattr(
+                settings, "BACKUP_LOCATION", "/backups/"
+            )
             backup_path = os.path.join(backup_location, f"{backup_id}.zip")
 
             # Create backup archive
-            size_bytes = await self._create_backup_archive(backup_path, valid_components)
+            size_bytes = await self._create_backup_archive(
+                backup_path, valid_components
+            )
 
             # Generate verification hash
             verification_hash = await self._generate_file_hash(backup_path)
@@ -205,10 +223,16 @@ class DisasterRecoveryAgent:
 
             # Update system state
             await self._update_system_state(
-                {"last_backup": start_time.isoformat(), "backup_size": size_bytes, "backup_location": backup_path}
+                {
+                    "last_backup": start_time.isoformat(),
+                    "backup_size": size_bytes,
+                    "backup_location": backup_path,
+                }
             )
 
-            logger.info(f"Backup completed successfully: {backup_id}, size: {size_bytes} bytes")
+            logger.info(
+                f"Backup completed successfully: {backup_id}, size: {size_bytes} bytes"
+            )
             return backup_result
 
         except Exception as e:
@@ -230,7 +254,10 @@ class DisasterRecoveryAgent:
             return backup_result
 
     async def restore_from_backup(
-        self, backup_id: str, recovery_plan: str = "full_restoration", components: list[str] | None = None
+        self,
+        backup_id: str,
+        recovery_plan: str = "full_restoration",
+        components: list[str] | None = None,
     ) -> RecoveryResult:
         """
         Restore system from a backup using a specific recovery plan.
@@ -246,7 +273,9 @@ class DisasterRecoveryAgent:
         start_time = datetime.utcnow()
 
         try:
-            recovery_id = f"recovery_{int(start_time.timestamp())}_{os.urandom(4).hex()}"
+            recovery_id = (
+                f"recovery_{int(start_time.timestamp())}_{os.urandom(4).hex()}"
+            )
 
             # Get backup information
             backup_info = await self._get_backup_info(backup_id)
@@ -268,13 +297,17 @@ class DisasterRecoveryAgent:
 
             # Validate components exist in backup
             available_components = backup_info.get("components_backed_up", [])
-            valid_components = [comp for comp in restore_components if comp in available_components]
+            valid_components = [
+                comp for comp in restore_components if comp in available_components
+            ]
 
             # Restore components in priority order
             restored_components = []
             for component in self.recovery_priority_order:
                 if component in valid_components:
-                    success = await self._restore_component(component, backup_info["location"])
+                    success = await self._restore_component(
+                        component, backup_info["location"]
+                    )
                     if success:
                         restored_components.append(component)
 
@@ -285,7 +318,11 @@ class DisasterRecoveryAgent:
                 recovery_id=recovery_id,
                 timestamp=start_time,
                 backup_id=backup_id,
-                status="success" if len(restored_components) == len(valid_components) else "partial",
+                status=(
+                    "success"
+                    if len(restored_components) == len(valid_components)
+                    else "partial"
+                ),
                 recovered_components=restored_components,
                 duration_seconds=duration,
                 notes=f"Restored {len(restored_components)} of {len(valid_components)} components",
@@ -303,7 +340,9 @@ class DisasterRecoveryAgent:
                 }
             )
 
-            logger.info(f"Recovery completed: {recovery_id}, restored {len(restored_components)} components")
+            logger.info(
+                f"Recovery completed: {recovery_id}, restored {len(restored_components)} components"
+            )
             return recovery_result
 
         except Exception as e:
@@ -323,7 +362,9 @@ class DisasterRecoveryAgent:
             await self._store_recovery_result(recovery_result)
             return recovery_result
 
-    async def _create_backup_archive(self, archive_path: str, components: list[str]) -> int:
+    async def _create_backup_archive(
+        self, archive_path: str, components: list[str]
+    ) -> int:
         """Create a backup archive for specified components."""
         try:
             os.makedirs(os.path.dirname(archive_path), exist_ok=True)
@@ -364,16 +405,22 @@ class DisasterRecoveryAgent:
             restore_method = comp_info["restore_method"]
 
             if restore_method == "skip":
-                logger.info(f"Skipping restoration of {component} (restore_method: skip)")
+                logger.info(
+                    f"Skipping restoration of {component} (restore_method: skip)"
+                )
                 return True
 
             # Extract component from backup
             with zipfile.ZipFile(backup_path, "r") as zipf:
                 # Get all files for this component
-                comp_files = [f for f in zipf.namelist() if f.startswith(f"{component}/")]
+                comp_files = [
+                    f for f in zipf.namelist() if f.startswith(f"{component}/")
+                ]
 
                 if not comp_files:
-                    logger.warning(f"No files found for component {component} in backup")
+                    logger.warning(
+                        f"No files found for component {component} in backup"
+                    )
                     return False
 
                 # Extract files to destination
@@ -587,7 +634,10 @@ class DisasterRecoveryAgent:
         try:
             backup_info = await self._get_backup_info(backup_id)
             if not backup_info:
-                return {"status": "not_found", "message": f"Backup {backup_id} not found"}
+                return {
+                    "status": "not_found",
+                    "message": f"Backup {backup_id} not found",
+                }
 
             backup_path = backup_info["location"]
             stored_hash = backup_info["verification_hash"]
@@ -605,7 +655,11 @@ class DisasterRecoveryAgent:
 
             verification_result = {
                 "backup_id": backup_id,
-                "status": "verified" if (stored_hash == current_hash and is_valid_structure) else "corrupted",
+                "status": (
+                    "verified"
+                    if (stored_hash == current_hash and is_valid_structure)
+                    else "corrupted"
+                ),
                 "hash_match": stored_hash == current_hash,
                 "structure_valid": is_valid_structure,
                 "file_count": len(file_list) if is_valid_structure else 0,
@@ -632,7 +686,11 @@ disaster_recovery_agent = DisasterRecoveryAgent()
 # বাংলা: import-time-এ event loop না থাকলে RuntimeError এড়ানো হয়, আর টাস্কের রেফারেন্স ট্র্যাক করে
 # রাখা হয় যাতে GC হয়ে মাঝপথে বাতিল না হয়ে যায় (RUF006)।
 try:
-    track_task(asyncio.get_running_loop().create_task(disaster_recovery_agent.initialize_recovery_plans()))
+    track_task(
+        asyncio.get_running_loop().create_task(
+            disaster_recovery_agent.initialize_recovery_plans()
+        )
+    )
 except RuntimeError:
     logger.debug(
         "No running event loop at import time; skipping eager recovery plan init "

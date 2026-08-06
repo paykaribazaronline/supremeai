@@ -6,7 +6,6 @@ These tests verify the enhancements made to unify multiple gateways.
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-
 from core.llm.llm_gateway import LLMGateway, get_llm_gateway
 from core.llm_router import LLMRouter
 from core.resilience.circuit_breaker import CircuitBreaker
@@ -46,12 +45,16 @@ async def test_shared_circuit_breaker_manager():
 async def test_gateway_has_rate_limit_handling(llm_gateway):
     """Test that the enhanced gateway has rate limit handling."""
     # Check that the rate limit handler method exists
-    assert hasattr(llm_gateway, "_handle_rate_limit_error"), "LLMGateway should have rate limit handling method"
+    assert hasattr(
+        llm_gateway, "_handle_rate_limit_error"
+    ), "LLMGateway should have rate limit handling method"
 
     # Check that the method is async
     import inspect
 
-    assert inspect.iscoroutinefunction(llm_gateway._handle_rate_limit_error), "Rate limit handler should be async"
+    assert inspect.iscoroutinefunction(
+        llm_gateway._handle_rate_limit_error
+    ), "Rate limit handler should be async"
 
 
 @pytest.mark.asyncio
@@ -78,7 +81,9 @@ async def test_gateway_429_handling_simulation(llm_gateway):
     mock_response.status_code = 429
     mock_response.headers = {"Retry-After": "30"}  # 30 second delay
 
-    mock_exc = httpx.HTTPStatusError("Too Many Requests", response=mock_response, request=Mock())
+    mock_exc = httpx.HTTPStatusError(
+        "Too Many Requests", response=mock_response, request=Mock()
+    )
 
     # Mock the sleep function to avoid actual sleep
     with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
@@ -124,7 +129,9 @@ async def test_provider_taxonomy_consistency():
     ]
 
     for provider in expected_providers:
-        assert provider in gateway._MODEL_KEY_MAP, f"Gateway should support {provider} provider"
+        assert (
+            provider in gateway._MODEL_KEY_MAP
+        ), f"Gateway should support {provider} provider"
 
 
 @pytest.mark.asyncio
@@ -146,16 +153,16 @@ async def test_circuit_breaker_state_sharing():
     assert cb2.is_open, "Opening circuit breaker in one should affect shared instance"
 
 
-@pytest.mark.skip(reason="LLMGateway health endpoint route module import location variance")
+@pytest.mark.skip(
+    reason="LLMGateway health endpoint route module import location variance"
+)
 @pytest.mark.asyncio
 async def test_gateway_health_endpoint_simulation():
     """Test the health endpoint functionality."""
-    from fastapi.testclient import TestClient
-
     from core.api.routes.llm_gateway import router
-
     # বাংলা মন্তব্য: মেইন মডিউলের বদলে core.app থেকে অ্যাপ ইমপোর্ট করা হলো
     from core.app import app
+    from fastapi.testclient import TestClient
 
     # Add the router to the main app for testing
     app.include_router(router)
@@ -166,7 +173,11 @@ async def test_gateway_health_endpoint_simulation():
         response = client.get("/llm-gateway/health")
         # The response might be a 401 if authentication is required
         # That's OK, we just want to verify the endpoint exists
-        assert response.status_code in [200, 401, 403], "Health endpoint should exist (even if auth required)"
+        assert response.status_code in [
+            200,
+            401,
+            403,
+        ], "Health endpoint should exist (even if auth required)"
     except Exception as e:
         # If we can't test the endpoint due to setup issues, that's OK
         print(f"Could not test health endpoint (likely due to auth setup): {e}")
@@ -178,9 +189,13 @@ async def test_enhanced_gateway_features():
     gateway = get_llm_gateway()
 
     # Verify enhanced features exist
-    assert hasattr(gateway, "_handle_rate_limit_error"), "Enhanced gateway should have rate limit handler"
+    assert hasattr(
+        gateway, "_handle_rate_limit_error"
+    ), "Enhanced gateway should have rate limit handler"
 
-    assert hasattr(gateway, "_get_or_create_circuit_breaker"), "Enhanced gateway should have circuit breaker management"
+    assert hasattr(
+        gateway, "_get_or_create_circuit_breaker"
+    ), "Enhanced gateway should have circuit breaker management"
 
     # Verify it's using the centralized circuit breaker manager
     original_method = gateway._get_or_create_circuit_breaker

@@ -23,13 +23,17 @@ class SyntheticDataPipeline:
         self.episodic = episodic_memory or EpisodicMemory()
 
     async def generate_dataset(
-        self, output_path: str = "data/synthetic_ft_dataset.jsonl", min_score: float = 0.8
+        self,
+        output_path: str = "data/synthetic_ft_dataset.jsonl",
+        min_score: float = 0.8,
     ) -> dict[str, Any]:
         """
         Generate a synthetic instruction-tuning dataset from successful past agent executions.
         """
         try:
-            past_records = await self.episodic.get_similar_past_tasks(query="successful task execution", n=50)
+            past_records = await self.episodic.get_similar_past_tasks(
+                query="successful task execution", n=50
+            )
 
             dataset_entries = []
             for item in past_records:
@@ -60,7 +64,9 @@ class SyntheticDataPipeline:
                 "output_path": str(out_file),
                 "total_samples": len(dataset_entries),
             }
-            logger.info(f"Synthetic Data Pipeline generated {len(dataset_entries)} training samples -> {output_path}")
+            logger.info(
+                f"Synthetic Data Pipeline generated {len(dataset_entries)} training samples -> {output_path}"
+            )
             return result
         except Exception as e:
             logger.error(f"Synthetic Data Pipeline failed: {e}")

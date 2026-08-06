@@ -3,11 +3,10 @@ from __future__ import annotations
 import os
 
 import pytest
+from core.app import app as base_app
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from loguru import logger
-
-from core.app import app as base_app
 
 
 @pytest.fixture()
@@ -24,7 +23,9 @@ def test_app() -> FastAPI:
 
 def test_stream_audio_requires_text(test_app: FastAPI):
     client = TestClient(test_app)
-    resp = client.get("/api/voice/stream_audio", headers={"Authorization": "Bearer mock-admin-token"})
+    resp = client.get(
+        "/api/voice/stream_audio", headers={"Authorization": "Bearer mock-admin-token"}
+    )
     assert resp.status_code == 400
     assert "Text cannot be empty" in resp.text
 

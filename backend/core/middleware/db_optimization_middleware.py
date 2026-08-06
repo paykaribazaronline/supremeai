@@ -5,25 +5,24 @@ import time
 from collections.abc import Callable
 from typing import Any
 
-from fastapi import Request, Response
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from core.database.query_optimizer import (
-    DatabaseOptimizationMiddleware,
-    query_optimizer,
-    setup_query_profiling,
-)
+from core.database.query_optimizer import (DatabaseOptimizationMiddleware,
+                                           query_optimizer,
+                                           setup_query_profiling)
 from core.logging_config import logger
 from core.memory.memory_manager import memory_manager, track_memory_usage
 from core.security.secret_scanner import secret_scanner
 from core.security.sql_injection_guard import sql_injection_middleware
+from fastapi import Request, Response
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class ComprehensiveDBOptimizationMiddleware:
     """Comprehensive middleware that integrates all database optimization features."""
 
     def __init__(self):
-        self.query_optimizer_middleware = DatabaseOptimizationMiddleware(query_optimizer)
+        self.query_optimizer_middleware = DatabaseOptimizationMiddleware(
+            query_optimizer
+        )
         self.sql_guard_middleware = sql_injection_middleware
         self.request_start_time = None
         self.query_count_before = 0
@@ -66,7 +65,9 @@ class ComprehensiveDBOptimizationMiddleware:
                     form_dict = dict(form_data)
                     await self.sql_guard_middleware.validate_request_params(form_dict)
                 except Exception as _form_err:
-                    logger.debug(f"Form parsing skipped for non-form request: {_form_err}")
+                    logger.debug(
+                        f"Form parsing skipped for non-form request: {_form_err}"
+                    )
 
         except ValueError as e:
             logger.warning(f"SQL injection attempt detected: {e!s}")
@@ -79,24 +80,33 @@ class ComprehensiveDBOptimizationMiddleware:
         request_duration = time.time() - self.request_start_time
 
         # Check for N+1 queries
-        queries_during_request = len(query_optimizer.analyzer.queries) - self.query_count_before
+        queries_during_request = (
+            len(query_optimizer.analyzer.queries) - self.query_count_before
+        )
 
         if queries_during_request > 10:  # Threshold for concern
             n_plus_one_warnings = query_optimizer.analyzer.get_n_plus_one_warnings()
             if n_plus_one_warnings:
-                logger.warning(f"Potential N+1 issue in request {request.url}: {n_plus_one_warnings}")
+                logger.warning(
+                    f"Potential N+1 issue in request {request.url}: {n_plus_one_warnings}"
+                )
 
                 # Add performance header to response
-                response.headers["X-Performance-Warning"] = "Potential N+1 query detected"
+                response.headers["X-Performance-Warning"] = (
+                    "Potential N+1 query detected"
+                )
 
         # Log performance metrics
         logger.debug(
-            f"Request {request.url} completed in {request_duration:.3f}s " f"with {queries_during_request} queries"
+            f"Request {request.url} completed in {request_duration:.3f}s "
+            f"with {queries_during_request} queries"
         )
 
         # Take memory snapshot if significant activity occurred
         if queries_during_request > 5 or request_duration > 1.0:
-            memory_manager.take_memory_snapshot(f"post_request_{request.url.path.split('/')[-1]}")
+            memory_manager.take_memory_snapshot(
+                f"post_request_{request.url.path.split('/')[-1]}"
+            )
 
         # Update middleware statistics
         self.sql_guard_middleware.request_counter += 1
@@ -105,7 +115,9 @@ class ComprehensiveDBOptimizationMiddleware:
         """Handle errors during request processing."""
         request_duration = time.time() - self.request_start_time
 
-        logger.error(f"Request {request.url} failed after {request_duration:.3f}s: {error!s}")
+        logger.error(
+            f"Request {request.url} failed after {request_duration:.3f}s: {error!s}"
+        )
 
         # Update error statistics
         self.sql_guard_middleware.blocked_requests += 1
@@ -138,11 +150,17 @@ def _register_common_eager_load_strategies():
     from models.patch_telemetry import PatchTelemetry
 
     # Register relationships that are commonly accessed together
-    query_optimizer.register_eager_load_strategy(AgentSession, ["handoff_events"], strategy="selectinload")
+    query_optimizer.register_eager_load_strategy(
+        AgentSession, ["handoff_events"], strategy="selectinload"
+    )
 
-    query_optimizer.register_eager_load_strategy(PatchTelemetry, [], strategy="selectinload")
+    query_optimizer.register_eager_load_strategy(
+        PatchTelemetry, [], strategy="selectinload"
+    )
 
-    query_optimizer.register_eager_load_strategy(ExecutionPolicy, [], strategy="selectinload")
+    query_optimizer.register_eager_load_strategy(
+        ExecutionPolicy, [], strategy="selectinload"
+    )
 
 
 def get_optimization_stats() -> dict[str, Any]:
@@ -150,7 +168,9 @@ def get_optimization_stats() -> dict[str, Any]:
     return {
         "query_optimizer": {
             "total_queries": len(query_optimizer.analyzer.queries),
-            "n_plus_one_warnings": len(query_optimizer.analyzer.get_n_plus_one_warnings()),
+            "n_plus_one_warnings": len(
+                query_optimizer.analyzer.get_n_plus_one_warnings()
+            ),
             "cache_stats": query_optimizer.optimization_cache.stats(),
         },
         "memory_manager": memory_manager.get_memory_stats(),
@@ -200,16 +220,22 @@ def monitor_performance(func):
                 execution_time = time.time() - start_time
 
                 # Log performance metrics
-                logger.debug(f"Function {func.__name__} executed in {execution_time:.3f}s")
+                logger.debug(
+                    f"Function {func.__name__} executed in {execution_time:.3f}s"
+                )
 
                 # Take a memory snapshot if the function took a long time
                 if execution_time > 1.0:
-                    memory_manager.take_memory_snapshot(f"slow_function_{func.__name__}")
+                    memory_manager.take_memory_snapshot(
+                        f"slow_function_{func.__name__}"
+                    )
 
                 return result
             except Exception as e:
                 execution_time = time.time() - start_time
-                logger.error(f"Function {func.__name__} failed after {execution_time:.3f}s: {e!s}")
+                logger.error(
+                    f"Function {func.__name__} failed after {execution_time:.3f}s: {e!s}"
+                )
                 raise
 
     return wrapper

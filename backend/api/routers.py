@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from fastapi import FastAPI
-from loguru import logger
-
 from api import register_router
 from core.config import settings
+from fastapi import FastAPI
+from loguru import logger
 
 core_routers: list[tuple[str, str]] = [
     ("api.routes.memory", ""),
@@ -141,7 +140,9 @@ ADMIN_ROUTERS: list[tuple[str, str]] = [
 
 # USER_ROUTERS is all other routers
 # বাংলা মন্তব্ব্য: ইউজার এপিআই রাউটারসমূহ
-USER_ROUTERS: list[tuple[str, str]] = [r for r in (core_routers + optional_routers) if r[0] not in _admin_paths]
+USER_ROUTERS: list[tuple[str, str]] = [
+    r for r in (core_routers + optional_routers) if r[0] not in _admin_paths
+]
 
 
 def register_all_routers(app: FastAPI) -> None:
@@ -171,11 +172,11 @@ def include_admin_routers(app: FastAPI) -> None:
 
 
 __all__ = [
-    "register_all_routers",
-    "include_user_routers",
-    "include_admin_routers",
-    "core_routers",
-    "optional_routers",
-    "USER_ROUTERS",
     "ADMIN_ROUTERS",
+    "USER_ROUTERS",
+    "core_routers",
+    "include_admin_routers",
+    "include_user_routers",
+    "optional_routers",
+    "register_all_routers",
 ]

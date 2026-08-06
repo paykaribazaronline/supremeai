@@ -7,9 +7,8 @@ Goal: 70-80% local inference, 15-20% managed, 5-10% frontier.
 
 from typing import Any
 
-from loguru import logger
-
 from core.llm_router import LLMRouter
+from loguru import logger
 
 # Local inference configuration
 LOCAL_MODELS = {
@@ -54,7 +53,14 @@ class TaskComplexityAnalyzer:
         self.keywords = {
             "simple": ["summarize", "translate", "format", "convert", "list", "count"],
             "medium": ["explain", "compare", "analyze", "debug", "refactor", "review"],
-            "complex": ["design", "architect", "optimize", "research", "plan", "strategy"],
+            "complex": [
+                "design",
+                "architect",
+                "optimize",
+                "research",
+                "plan",
+                "strategy",
+            ],
             "extreme": ["innovate", "create", "invent", "discover", "prove", "theorem"],
         }
 
@@ -96,7 +102,9 @@ class SelfSovereignRouter:
             "total": 0,
             "cost_saved": 0.0,
         }
-        logger.info(f"[SelfSovereignRouter] Local inference available: {self.local_available}")
+        logger.info(
+            f"[SelfSovereignRouter] Local inference available: {self.local_available}"
+        )
 
     def _check_local_availability(self) -> bool:
         """
@@ -115,7 +123,9 @@ class SelfSovereignRouter:
                 or getattr(settings, "OLLAMA_URL", None)
                 or os.getenv("OLLAMA_URL", "http://localhost:11434")
             )
-            ollama_base = ollama_base.rstrip("/") if ollama_base else "http://localhost:11434"
+            ollama_base = (
+                ollama_base.rstrip("/") if ollama_base else "http://localhost:11434"
+            )
             url = f"{ollama_base}/api/tags"
 
             req = urllib.request.Request(url, method="GET")
@@ -124,7 +134,9 @@ class SelfSovereignRouter:
         except (TimeoutError, urllib.error.URLError, ValueError, OSError):
             return False
 
-    def route(self, prompt: str, task_type: str = "general", force_tier: str | None = None) -> dict[str, Any]:
+    def route(
+        self, prompt: str, task_type: str = "general", force_tier: str | None = None
+    ) -> dict[str, Any]:
         """
         Route request to appropriate tier based on complexity.
         """
@@ -162,7 +174,9 @@ class SelfSovereignRouter:
         actual_cost = (tokens / 1_000_000) * cost_per_1m
         self.stats["cost_saved"] += frontier_cost - actual_cost
 
-        logger.info(f"[SelfSovereignRouter] Complexity={complexity} -> Tier={tier} -> Model={model}")
+        logger.info(
+            f"[SelfSovereignRouter] Complexity={complexity} -> Tier={tier} -> Model={model}"
+        )
 
         return {
             "model": model,
@@ -173,7 +187,9 @@ class SelfSovereignRouter:
             "local_available": self.local_available,
         }
 
-    async def generate(self, prompt: str, task_type: str = "general", force_tier: str | None = None) -> str:
+    async def generate(
+        self, prompt: str, task_type: str = "general", force_tier: str | None = None
+    ) -> str:
         """Generate response using the routed model."""
         route_info = self.route(prompt, task_type, force_tier)
         model = route_info["model"]

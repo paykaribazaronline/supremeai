@@ -17,6 +17,8 @@ def test_analyze_compatibility():
 
 def test_implement_repo():
     agent = RepoDiscoveryAgent()
-    res = agent.implement_repo("https://github.com/TanStack/table", "npm", "customer-app")
+    res = agent.implement_repo(
+        "https://github.com/TanStack/table", "npm", "customer-app"
+    )
     assert res["status"] == "success"
     assert "npm" in res["method"]

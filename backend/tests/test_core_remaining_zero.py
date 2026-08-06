@@ -22,7 +22,9 @@ class TestDailyLearner:
         from core.evolution.daily_learner import DailyLearner
 
         learner = DailyLearner()
-        with patch.object(learner, "learn_and_plan", return_value={"status": "success"}):
+        with patch.object(
+            learner, "learn_and_plan", return_value={"status": "success"}
+        ):
             res = await learner.learn_and_plan("testing")
             assert res is not None
 
@@ -41,7 +43,11 @@ class TestEvolutionReActAgent:
         from core.evolution.evolution_react_agent import EvolutionReActAgent
 
         agent = EvolutionReActAgent()
-        with patch.object(agent, "generate_skill", return_value={"status": "completed", "code": "pass"}):
+        with patch.object(
+            agent,
+            "generate_skill",
+            return_value={"status": "completed", "code": "pass"},
+        ):
             result = agent.generate_skill("test_skill", "write tests")
             assert result is not None
 

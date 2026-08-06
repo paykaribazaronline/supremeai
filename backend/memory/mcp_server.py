@@ -43,6 +43,7 @@ Tools (MCP protocol):
     - save_learned_fact
     - search_learned_facts
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -60,10 +61,8 @@ if _BACKEND_DIR not in sys.path:
 try:
     from mcp.server import Server
     from mcp.server.stdio import stdio_server
-    from mcp.types import (
-        TextContent,
-        Tool,
-    )
+    from mcp.types import TextContent, Tool
+
     _MCP_AVAILABLE = True
 except ImportError:
     _MCP_AVAILABLE = False
@@ -71,30 +70,35 @@ except ImportError:
 # বাংলা মন্তব্য: মেমোরি লেয়ার সমূহ import করা হচ্ছে — ব্যর্থ হলে graceful degradation
 try:
     from memory.chromadb_store import ChromaDBStore
+
     _CHROMA_OK = True
 except Exception:
     _CHROMA_OK = False
 
 try:
     from memory.episodic_memory import EpisodicMemory
+
     _EPISODIC_OK = True
 except Exception:
     _EPISODIC_OK = False
 
 try:
     from memory.sliding_window import SlidingWindowConfig, SlidingWindowMemory
+
     _SLIDING_OK = True
 except Exception:
     _SLIDING_OK = False
 
 try:
     from memory.supabase_store import SupabaseStore
+
     _SUPABASE_OK = True
 except Exception:
     _SUPABASE_OK = False
 
 try:
     from memory.rag_pipeline import RAGPipeline
+
     _RAG_OK = True
 except Exception:
     _RAG_OK = False
@@ -105,6 +109,7 @@ logger = logging.getLogger("supremeai.memory.mcp")
 # Knowledge Graph Storage (Official MCP-compatible)
 # বাংলা মন্তব্য: Official MCP memory server-এর Knowledge Graph structure অনুসরণ করা হচ্ছে
 # =============================================================================
+
 
 class KnowledgeGraph:
     """
@@ -140,7 +145,11 @@ class KnowledgeGraph:
                 self._chroma.add_document(
                     doc_id=f"entity::{name}",
                     text=f"{name} ({record['entityType']}): {obs_text}",
-                    metadata={"type": "entity", "entity_name": name, "entity_type": record["entityType"]},
+                    metadata={
+                        "type": "entity",
+                        "entity_name": name,
+                        "entity_type": record["entityType"],
+                    },
                 )
             created.append(record)
         return created
@@ -153,15 +162,16 @@ class KnowledgeGraph:
                 del self._entities[name]
                 # বাংলা মন্তব্য: সংশ্লিষ্ট relations-ও সরানো হচ্ছে
                 self._relations = [
-                    r for r in self._relations
-                    if r["from"] != name and r["to"] != name
+                    r for r in self._relations if r["from"] != name and r["to"] != name
                 ]
                 if self._chroma:
                     try:
                         self._chroma.delete(f"entity::{name}")
                     except Exception as err:
                         # বাংলা মন্তব্য: ChromaDB entity ডিলেট না করা গেলে লগ রেকর্ড করা হচ্ছে
-                        logger.warning("Failed to delete entity %s from ChromaDB: %s", name, err)
+                        logger.warning(
+                            "Failed to delete entity %s from ChromaDB: %s", name, err
+                        )
                 deleted.append(name)
         return deleted
 
@@ -179,11 +189,17 @@ class KnowledgeGraph:
             self._chroma.add_document(
                 doc_id=f"entity::{entity_name}",
                 text=f"{entity_name} ({ent['entityType']}): {obs_text}",
-                metadata={"type": "entity", "entity_name": entity_name, "entity_type": ent["entityType"]},
+                metadata={
+                    "type": "entity",
+                    "entity_name": entity_name,
+                    "entity_type": ent["entityType"],
+                },
             )
         return new_obs
 
-    def delete_observations(self, entity_name: str, observations: list[str]) -> list[str]:
+    def delete_observations(
+        self, entity_name: str, observations: list[str]
+    ) -> list[str]:
         if entity_name not in self._entities:
             return []
         before = set(self._entities[entity_name]["observations"])
@@ -202,7 +218,8 @@ class KnowledgeGraph:
         for rel in relations:
             # বাংলা মন্তব্য: duplicate check করে তারপর যোগ করা হচ্ছে
             duplicate = any(
-                r["from"] == rel.get("from") and r["to"] == rel.get("to")
+                r["from"] == rel.get("from")
+                and r["to"] == rel.get("to")
                 and r["relationType"] == rel.get("relationType")
                 for r in self._relations
             )
@@ -219,9 +236,11 @@ class KnowledgeGraph:
     def delete_relations(self, relations: list[dict[str, Any]]) -> int:
         before = len(self._relations)
         self._relations = [
-            r for r in self._relations
+            r
+            for r in self._relations
             if not any(
-                d.get("from") == r["from"] and d.get("to") == r["to"]
+                d.get("from") == r["from"]
+                and d.get("to") == r["to"]
                 and d.get("relationType") == r["relationType"]
                 for d in relations
             )
@@ -241,7 +260,8 @@ class KnowledgeGraph:
         """Keyword search — ChromaDB vector search fallback।"""
         query_lower = query.lower()
         keyword_hits = [
-            ent for ent in self._entities.values()
+            ent
+            for ent in self._entities.values()
             if query_lower in ent["name"].lower()
             or query_lower in ent["entityType"].lower()
             or any(query_lower in obs.lower() for obs in ent["observations"])
@@ -268,8 +288,7 @@ class KnowledgeGraph:
     def open_nodes(self, names: list[str]) -> dict[str, Any]:
         entities = [self._entities[n] for n in names if n in self._entities]
         relations = [
-            r for r in self._relations
-            if r["from"] in names or r["to"] in names
+            r for r in self._relations if r["from"] in names or r["to"] in names
         ]
         return {"entities": entities, "relations": relations}
 
@@ -277,6 +296,7 @@ class KnowledgeGraph:
 # =============================================================================
 # MCP Server Builder
 # =============================================================================
+
 
 def build_server() -> Server:
     """
@@ -321,8 +341,14 @@ def build_server() -> Server:
                             "items": {
                                 "type": "object",
                                 "properties": {
-                                    "name": {"type": "string", "description": "Unique entity name"},
-                                    "entityType": {"type": "string", "description": "Category/type of entity"},
+                                    "name": {
+                                        "type": "string",
+                                        "description": "Unique entity name",
+                                    },
+                                    "entityType": {
+                                        "type": "string",
+                                        "description": "Category/type of entity",
+                                    },
                                     "observations": {
                                         "type": "array",
                                         "items": {"type": "string"},
@@ -384,7 +410,11 @@ def build_server() -> Server:
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "names": {"type": "array", "items": {"type": "string"}, "description": "List of entity names to delete"},
+                        "names": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "List of entity names to delete",
+                        },
                     },
                     "required": ["names"],
                 },
@@ -464,9 +494,18 @@ def build_server() -> Server:
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "doc_id": {"type": "string", "description": "Unique document identifier"},
-                        "text": {"type": "string", "description": "Document content to store"},
-                        "metadata": {"type": "object", "description": "Optional metadata dict"},
+                        "doc_id": {
+                            "type": "string",
+                            "description": "Unique document identifier",
+                        },
+                        "text": {
+                            "type": "string",
+                            "description": "Document content to store",
+                        },
+                        "metadata": {
+                            "type": "object",
+                            "description": "Optional metadata dict",
+                        },
                         "incremental": {
                             "type": "boolean",
                             "default": True,
@@ -487,7 +526,11 @@ def build_server() -> Server:
                     "type": "object",
                     "properties": {
                         "query": {"type": "string"},
-                        "n_results": {"type": "integer", "default": 5, "description": "Number of results to return"},
+                        "n_results": {
+                            "type": "integer",
+                            "default": 5,
+                            "description": "Number of results to return",
+                        },
                     },
                     "required": ["query"],
                 },
@@ -555,8 +598,14 @@ def build_server() -> Server:
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "event_type": {"type": "string", "description": "Filter by event type (optional)"},
-                        "min_importance": {"type": "number", "description": "Minimum importance threshold"},
+                        "event_type": {
+                            "type": "string",
+                            "description": "Filter by event type (optional)",
+                        },
+                        "min_importance": {
+                            "type": "number",
+                            "description": "Minimum importance threshold",
+                        },
                         "limit": {"type": "integer", "default": 10},
                     },
                 },
@@ -578,8 +627,14 @@ def build_server() -> Server:
                             "description": "New documents to add to the context window",
                         },
                         "session_id": {"type": "string", "default": "default"},
-                        "query": {"type": "string", "description": "Optional query to prioritize relevant chunks"},
-                        "budget": {"type": "integer", "description": "Max token budget (default: 4000)"},
+                        "query": {
+                            "type": "string",
+                            "description": "Optional query to prioritize relevant chunks",
+                        },
+                        "budget": {
+                            "type": "integer",
+                            "description": "Max token budget (default: 4000)",
+                        },
                     },
                     "required": ["documents"],
                 },
@@ -616,7 +671,11 @@ def build_server() -> Server:
                     "type": "object",
                     "properties": {
                         "content": {"type": "string", "description": "Fact content"},
-                        "tags": {"type": "array", "items": {"type": "string"}, "description": "Categorization tags"},
+                        "tags": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Categorization tags",
+                        },
                         "id": {"type": "string", "description": "Optional fact ID"},
                     },
                     "required": ["content"],
@@ -648,11 +707,24 @@ def build_server() -> Server:
         """সকল tool call এখানে route হয়।"""
         # বাংলা মন্তব্য: tool নাম অনুযায়ী সঠিক handler-এ dispatch করা হচ্ছে
         try:
-            result = await _dispatch(name, arguments, kg, episodic, sliding, supabase, chroma, rag)
-            return [TextContent(type="text", text=json.dumps(result, ensure_ascii=False, indent=2))]
+            result = await _dispatch(
+                name, arguments, kg, episodic, sliding, supabase, chroma, rag
+            )
+            return [
+                TextContent(
+                    type="text", text=json.dumps(result, ensure_ascii=False, indent=2)
+                )
+            ]
         except Exception as exc:
             logger.exception(f"Tool '{name}' failed: {exc}")
-            return [TextContent(type="text", text=json.dumps({"error": str(exc), "tool": name}, ensure_ascii=False))]
+            return [
+                TextContent(
+                    type="text",
+                    text=json.dumps(
+                        {"error": str(exc), "tool": name}, ensure_ascii=False
+                    ),
+                )
+            ]
 
     return server
 
@@ -828,6 +900,7 @@ async def _dispatch(
 # Entry Point
 # =============================================================================
 
+
 async def main() -> None:
     """
     বাংলা মন্তব্য: MEMORY_MCP_TRANSPORT env var দেখে transport নির্ধারণ করা হয়।
@@ -854,10 +927,10 @@ async def main() -> None:
     else:
         # বাংলা মন্তব্য: SSE transport — FastAPI/Starlette-এ mount করা হবে
         try:
+            import uvicorn
             from mcp.server.sse import SseServerTransport
             from starlette.applications import Starlette
-            from starlette.routing import Route, Mount
-            import uvicorn
+            from starlette.routing import Mount, Route
 
             sse_transport = SseServerTransport("/messages/")
 

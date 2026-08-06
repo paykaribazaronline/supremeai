@@ -15,11 +15,19 @@ from memory.rag_pipeline import RAGPipeline
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Ingest knowledge into SupremeAI ChromaDB Vector Memory.")
-    parser.add_argument("--doc-id", type=str, help="Unique Document ID for ChromaDB vector store")
+    parser = argparse.ArgumentParser(
+        description="Ingest knowledge into SupremeAI ChromaDB Vector Memory."
+    )
+    parser.add_argument(
+        "--doc-id", type=str, help="Unique Document ID for ChromaDB vector store"
+    )
     parser.add_argument("--content", type=str, help="Text content to ingest")
-    parser.add_argument("--file", type=str, help="File path whose content will be ingested")
-    parser.add_argument("--category", type=str, default="general", help="Category metadata tag")
+    parser.add_argument(
+        "--file", type=str, help="File path whose content will be ingested"
+    )
+    parser.add_argument(
+        "--category", type=str, default="general", help="Category metadata tag"
+    )
 
     args = parser.parse_args()
     rag = RAGPipeline()
@@ -29,7 +37,9 @@ def main():
         if file_path.exists():
             content = file_path.read_text(encoding="utf-8")
             doc_id = args.doc_id or f"doc_{file_path.stem}"
-            rag.ingest_document(doc_id, content, {"category": args.category, "source": str(file_path)})
+            rag.ingest_document(
+                doc_id, content, {"category": args.category, "source": str(file_path)}
+            )
             print(f"Successfully ingested file: {file_path}")
             return
         else:
@@ -52,12 +62,22 @@ def main():
     5. Supreme-Analyst-1.5B (supremeai-data/supreme-analyst-1.5b): SQL, JSON Schema, RAG, Vector Search, Database queries.
     Fault Tolerance: Overlapping core instruction layer (35%-50%) guarantees zero single point of failure.
     """
-    rag.ingest_document("doc_swarm_architecture_v2", swarm_knowledge, {"category": "architecture", "type": "swarm"})
+    rag.ingest_document(
+        "doc_swarm_architecture_v2",
+        swarm_knowledge,
+        {"category": "architecture", "type": "swarm"},
+    )
 
-    guide_path = Path(__file__).resolve().parent.parent / "docs" / "create_best_ai_model.md"
+    guide_path = (
+        Path(__file__).resolve().parent.parent / "docs" / "create_best_ai_model.md"
+    )
     if guide_path.exists():
         guide_content = guide_path.read_text(encoding="utf-8")
-        rag.ingest_document("doc_ultimate_model_guide", guide_content, {"category": "guide", "source": "create_best_ai_model.md"})
+        rag.ingest_document(
+            "doc_ultimate_model_guide",
+            guide_content,
+            {"category": "guide", "source": "create_best_ai_model.md"},
+        )
         print("Ingested docs/create_best_ai_model.md")
 
     print("Knowledge Ingestion Completed Successfully!")

@@ -5,9 +5,8 @@ import sqlite3
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from loguru import logger
-
 from core.config import settings
+from loguru import logger
 
 
 class MonthlyCostReporter:
@@ -48,7 +47,11 @@ class MonthlyCostReporter:
         }
 
     def _month_range(self, month: str) -> tuple[datetime, datetime]:
-        start = datetime.strptime(month, "%Y-%m") if "-" in month else datetime.strptime(month, "%Y%m")
+        start = (
+            datetime.strptime(month, "%Y-%m")
+            if "-" in month
+            else datetime.strptime(month, "%Y%m")
+        )
         next_month = (start.replace(day=28) + timedelta(days=4)).replace(day=1)
         end = next_month
         return start, end
@@ -68,7 +71,9 @@ class MonthlyCostReporter:
 
             url = f"https://api.telegram.org/bot{self.telegram_bot_token}/sendMessage"
             async with httpx.AsyncClient(timeout=10.0) as client:
-                await client.post(url, json={"chat_id": self.admin_chat_id, "text": text})
+                await client.post(
+                    url, json={"chat_id": self.admin_chat_id, "text": text}
+                )
             return True
         except Exception as exc:
             logger.error(f"Failed to send monthly cost report: {exc}")

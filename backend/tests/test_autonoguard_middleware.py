@@ -13,13 +13,12 @@ This module tests:
 
 from unittest.mock import AsyncMock, patch
 
-from fastapi import FastAPI
-from fastapi.responses import PlainTextResponse
-from fastapi.testclient import TestClient
-
 import core.autonoguard_engine as engine_module
 from core.autonoguard_engine import OperationContext
 from core.security.autonoguard_middleware import AutonoGuardMiddleware
+from fastapi import FastAPI
+from fastapi.responses import PlainTextResponse
+from fastapi.testclient import TestClient
 
 # --- Middleware Tests ---
 
@@ -55,7 +54,9 @@ class TestAutonoGuardMiddleware:
         def health_endpoint():
             return PlainTextResponse("healthy")
 
-        with patch("core.security.autonoguard_middleware.autonoguard_engine") as mock_engine:
+        with patch(
+            "core.security.autonoguard_middleware.autonoguard_engine"
+        ) as mock_engine:
             mock_engine.initialize = AsyncMock()
             mock_engine.enforce_operation = AsyncMock()
 
@@ -75,7 +76,9 @@ class TestAutonoGuardMiddleware:
         def test_endpoint(request):
             return PlainTextResponse("ok")
 
-        with patch("core.security.autonoguard_middleware.autonoguard_engine") as mock_engine:
+        with patch(
+            "core.security.autonoguard_middleware.autonoguard_engine"
+        ) as mock_engine:
             mock_engine.initialize = AsyncMock()
             mock_engine.enforce_operation = AsyncMock(return_value=(True, None))
 
@@ -92,7 +95,9 @@ class TestAutonoGuardMiddleware:
         def test_endpoint():
             return PlainTextResponse("ok")
 
-        with patch("core.security.autonoguard_middleware.autonoguard_engine") as mock_engine:
+        with patch(
+            "core.security.autonoguard_middleware.autonoguard_engine"
+        ) as mock_engine:
             mock_engine.initialize = AsyncMock()
             mock_engine.enforce_operation = AsyncMock(return_value=(True, None))
 
@@ -109,7 +114,9 @@ class TestAutonoGuardMiddleware:
         def test_endpoint():
             return PlainTextResponse("ok")
 
-        with patch("core.security.autonoguard_middleware.autonoguard_engine") as mock_engine:
+        with patch(
+            "core.security.autonoguard_middleware.autonoguard_engine"
+        ) as mock_engine:
             mock_engine.initialize = AsyncMock()
             mock_engine.enforce_operation = AsyncMock(return_value=(True, None))
 
@@ -130,7 +137,9 @@ class TestAutonoGuardMiddleware:
         def test_endpoint():
             return PlainTextResponse("ok")
 
-        with patch("core.security.autonoguard_middleware.autonoguard_engine") as mock_engine:
+        with patch(
+            "core.security.autonoguard_middleware.autonoguard_engine"
+        ) as mock_engine:
             mock_engine.initialize = AsyncMock()
             mock_engine.enforce_operation = AsyncMock(return_value=(True, None))
 
@@ -151,7 +160,9 @@ class TestAutonoGuardMiddleware:
         def test_endpoint():
             return PlainTextResponse("ok")
 
-        with patch("core.security.autonoguard_middleware.autonoguard_engine") as mock_engine:
+        with patch(
+            "core.security.autonoguard_middleware.autonoguard_engine"
+        ) as mock_engine:
             mock_engine.initialize = AsyncMock()
             mock_engine.enforce_operation = AsyncMock(return_value=(True, None))
 
@@ -171,7 +182,9 @@ class TestAutonoGuardMiddleware:
         def test_endpoint():
             return PlainTextResponse("ok")
 
-        with patch("core.security.autonoguard_middleware.autonoguard_engine") as mock_engine:
+        with patch(
+            "core.security.autonoguard_middleware.autonoguard_engine"
+        ) as mock_engine:
             mock_engine.initialize = AsyncMock()
             mock_engine.enforce_operation = AsyncMock(return_value=(True, None))
 
@@ -193,18 +206,26 @@ class TestAutonoGuardMiddleware:
 
         with patch.object(engine_module, "autonoguard_engine") as mock_engine:
             mock_engine.initialize = AsyncMock()
-            mock_engine.enforce_operation = AsyncMock(return_value=(False, "OTP required"))
+            mock_engine.enforce_operation = AsyncMock(
+                return_value=(False, "OTP required")
+            )
             mock_engine.heal_error = AsyncMock()
 
             app.add_middleware(AutonoGuardMiddleware, engine=mock_engine)
             client = TestClient(app)
 
             resp = client.get(
-                "/api/sensitive/test", headers={"Authorization": "Bearer test_admin_token", "X-JIT-OTP": "invalid"}
+                "/api/sensitive/test",
+                headers={
+                    "Authorization": "Bearer test_admin_token",
+                    "X-JIT-OTP": "invalid",
+                },
             )
 
             assert resp.status_code == 401
-            assert "OTP" in resp.json().get("detail", "") or "Security" in resp.json().get("title", "")
+            assert "OTP" in resp.json().get(
+                "detail", ""
+            ) or "Security" in resp.json().get("title", "")
 
     def test_fallback_to_unknown_for_missing_user(self):
         """Test fallback to 'unknown' when user identity missing."""

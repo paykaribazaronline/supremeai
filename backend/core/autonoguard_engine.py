@@ -18,9 +18,6 @@ import secrets
 import time
 from typing import Any
 
-from loguru import logger
-from pydantic import BaseModel
-
 from core.cache.redis_manager import redis_manager
 from core.config import settings
 from core.error_bus import with_error_bus
@@ -28,9 +25,10 @@ from core.error_remediation import error_remediator
 from core.failure_fingerprint import make_fingerprint
 from core.immune_system import ImmuneSystemScanner
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
-
 # Standardize on core.resilience CircuitBreaker
 from core.resilience.circuit_breaker import CircuitBreaker
+from loguru import logger
+from pydantic import BaseModel
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 
@@ -116,7 +114,9 @@ class AutonoGuardEngine:
         এটি Malware Immunity (DNA #5) এর অংশ।
         """
         if not redis_manager or not redis_manager.client:
-            return ChurnDetection(is_churn=False, previous_ips=[], first_seen=time.time(), churn_count=0)
+            return ChurnDetection(
+                is_churn=False, previous_ips=[], first_seen=time.time(), churn_count=0
+            )
 
         key = f"{_ip_churn_prefix}{admin_id}"
         now = time.time()
@@ -129,7 +129,11 @@ class AutonoGuardEngine:
             previous_ips = []
             first_seen = now
             for member_bytes, score in raw_entries:
-                ip_val = member_bytes.decode() if isinstance(member_bytes, bytes) else member_bytes
+                ip_val = (
+                    member_bytes.decode()
+                    if isinstance(member_bytes, bytes)
+                    else member_bytes
+                )
                 ts = float(score)
                 previous_ips.append(ip_val)
                 if ts < first_seen:
@@ -190,9 +194,12 @@ class AutonoGuardEngine:
                 await redis_manager.set_cache(
                     failure_key,
                     str(fail_count),
-                    ex_seconds=OTP_COOLDOWN_SECONDS * 12,  # 1 hour TTL for failure counter
+                    ex_seconds=OTP_COOLDOWN_SECONDS
+                    * 12,  # 1 hour TTL for failure counter
                 )
-                logger.warning(f"🔐 OTP verification failed for {admin_id} (failure #{fail_count})")
+                logger.warning(
+                    f"🔐 OTP verification failed for {admin_id} (failure #{fail_count})"
+                )
             except Exception as exc:
                 logger.debug(f"Failed to increment OTP failure counter: {exc}")
 
@@ -205,7 +212,11 @@ class AutonoGuardEngine:
         Redis-এ OTP-এর sha256 হ্যাশ হিসেবে স্টোর করা হয় যাতে verify_jit_otp deterministic থাকে।
         """
         requested_key = f"{_redis_key_prefix}{admin_id}:requested"
-        last_request = await redis_manager.get_cache(requested_key) if redis_manager and redis_manager.client else None
+        last_request = (
+            await redis_manager.get_cache(requested_key)
+            if redis_manager and redis_manager.client
+            else None
+        )
 
         if last_request:
             return False  # Cooldown active
@@ -238,7 +249,9 @@ class AutonoGuardEngine:
             effective_cooldown = OTP_COOLDOWN_SECONDS
 
         if redis_manager and redis_manager.client:
-            await redis_manager.set_cache(requested_key, "1", ex_seconds=effective_cooldown)
+            await redis_manager.set_cache(
+                requested_key, "1", ex_seconds=effective_cooldown
+            )
             # Store only hash for verification
             await redis_manager.set_cache(
                 f"{_redis_key_prefix}{admin_id}",
@@ -263,7 +276,9 @@ class AutonoGuardEngine:
 
         churn = await self.detect_ip_churn(admin_id, ip)
         if churn.is_churn:
-            logger.warning(f"🚨 IP Churn detected for admin {admin_id} ({churn.churn_count} IPs in 1h)")
+            logger.warning(
+                f"🚨 IP Churn detected for admin {admin_id} ({churn.churn_count} IPs in 1h)"
+            )
             return False
 
         return True
@@ -279,7 +294,9 @@ class AutonoGuardEngine:
 
     # ── Self-Healing Loop ───────────────────────────────────────────────────────
 
-    async def _verify_heal(self, exc: Exception, fix: str, context: OperationContext) -> bool:
+    async def _verify_heal(
+        self, exc: Exception, fix: str, context: OperationContext
+    ) -> bool:
         """Verify that a remediation fix was applied successfully.
 
         বাংলা: remediation fix প্রয়োগের পর verification চালায় — fix সত্যিই কাজ করছে কিনা নিশ্চিত করে।
@@ -305,7 +322,9 @@ class AutonoGuardEngine:
             is_retry_based = any(kw in fix_lower for kw in retry_keywords)
             is_retry_based = any(kw in fix_lower for kw in retry_keywords)
             if is_retry_based:
-                logger.info(f"✅ Self-Heal verification passed (retry-based fix): {fix[:60]}")
+                logger.info(
+                    f"✅ Self-Heal verification passed (retry-based fix): {fix[:60]}"
+                )
                 # বাংলা মন্তব্য: retry-based fix verification-এর পর Qdrant-এ store করা হয়
                 # যাতে ভবিষ্যতে একই error এ দ্রুত remediate করা যায়।
                 try:
@@ -382,7 +401,9 @@ class AutonoGuardEngine:
         fix = await error_remediator.lookup_fix(error_sig)
 
         if fix:
-            logger.info(f"🔧 AutonoGuard found remediation for {fingerprint[:16]}: {fix[:80]}")
+            logger.info(
+                f"🔧 AutonoGuard found remediation for {fingerprint[:16]}: {fix[:80]}"
+            )
 
             # বাংলা মন্তব্ব্য: Phase 2 — Verification Loop
             # fix প্রয়োগের পর verification চালানো হয় (Self-Healing DNA #6)
@@ -392,7 +413,9 @@ class AutonoGuardEngine:
                 logger.info(f"✅ Self-heal cycle COMPLETE for {fingerprint[:16]}")
                 return fix
             else:
-                logger.warning(f"⚠️ Self-heal fix applied but verification failed for {fingerprint[:16]}")
+                logger.warning(
+                    f"⚠️ Self-heal fix applied but verification failed for {fingerprint[:16]}"
+                )
                 # Verification failure-এ circuit breaker mark_failure করে না —
                 # কারণ fix নিজে সঠিক ছিল কিন্তু verification mechanism এ সমস্যা।
                 self._circuit_breaker.mark_success()
@@ -424,7 +447,9 @@ class AutonoGuardEngine:
         if ANTI_HACKING_ENABLED:
             bypass_key = f"{_redis_key_prefix}{admin_id}:bypass"
             bypass_verified = (
-                await redis_manager.get_cache(bypass_key) if redis_manager and redis_manager.client else None
+                await redis_manager.get_cache(bypass_key)
+                if redis_manager and redis_manager.client
+                else None
             )
 
             if not bypass_verified and not otp_code:
@@ -443,7 +468,9 @@ class AutonoGuardEngine:
 
                 # Mark session bypass
                 if redis_manager and redis_manager.client:
-                    await redis_manager.set_cache(bypass_key, "1", ex_seconds=OTP_COOLDOWN_SECONDS * 2)
+                    await redis_manager.set_cache(
+                        bypass_key, "1", ex_seconds=OTP_COOLDOWN_SECONDS * 2
+                    )
             elif not bypass_verified:
                 # বাংলা মন্তব্ব্য: bypass_verified False এবং otp_code ও নেই এমন কোনো অবস্থা
                 # এখানে থাকা উচিত নয় — defense-in-depth fail-closed guard।

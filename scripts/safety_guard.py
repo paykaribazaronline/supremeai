@@ -27,20 +27,15 @@ class SafetyGuard:
         # অথেন্টিকেশন এবং অথরাইজেশন
         r".*/(auth|authentication|permission|rbac).*\.py$",
         r".*/(security|jwt|token).*\.py$",
-
         # পেমেন্ট এবং বিলিং
         r".*/(payment|billing|pricing|subscription).*\.py$",
-
         # ডাটাবেস এবং স্টোরেজ
         r".*/(database|db_|migration).*\.py$",
         r".*/(alembic)/.*\.py$",
-
         # অ্যাডমিন এবং গভর্নেন্স
         r".*/(admin|god|superuser).*\.py$",
-
         # সিকিউরিটি রিলেটেড
         r".*/(secret|credential|vault|encryption).*\.py$",
-
         # CI/CD এবং ইনফ্রাস্ট্রাকচার
         r".*\.github/workflows/.*\.yml$",
         r".*/(terraform|docker|kubernetes).*",
@@ -49,12 +44,14 @@ class SafetyGuard:
     APPROVAL_REQUIRED_ADMINS = [
         "admin@supremeai.dev",
         "security@supremeai.dev",
-        "devops@supremeai.dev"
+        "devops@supremeai.dev",
     ]
 
     def __init__(self, repo_root: str = "."):
         self.repo_root = repo_root
-        self.critical_files_log = Path(repo_root) / "logs" / "critical_files_changes.json"
+        self.critical_files_log = (
+            Path(repo_root) / "logs" / "critical_files_changes.json"
+        )
         self.approval_requests = Path(repo_root) / "logs" / "approval_requests.json"
         self._ensure_log_dirs()
 
@@ -78,15 +75,23 @@ class SafetyGuard:
         normalized_path = file_path.replace("\\", "/").lower()
 
         # সর্বোচ্চ ঝুঁকিপূর্ণ ফাইল
-        if any(term in normalized_path for term in ["admin_god", "superuser", "secret", "payment"]):
+        if any(
+            term in normalized_path
+            for term in ["admin_god", "superuser", "secret", "payment"]
+        ):
             return "CRITICAL"
 
         # উচ্চ ঝুঁকি
-        if any(term in normalized_path for term in ["auth", "permission", "security", "token", "credential"]):
+        if any(
+            term in normalized_path
+            for term in ["auth", "permission", "security", "token", "credential"]
+        ):
             return "HIGH"
 
         # মধ্যম ঝুঁকি
-        if any(term in normalized_path for term in ["database", "migration", "workflow"]):
+        if any(
+            term in normalized_path for term in ["database", "migration", "workflow"]
+        ):
             return "MEDIUM"
 
         return "LOW"
@@ -100,7 +105,7 @@ class SafetyGuard:
                 cwd=self.repo_root,
                 capture_output=True,
                 text=True,
-                timeout=5
+                timeout=5,
             )
 
             if result.returncode != 0 or not result.stdout:
@@ -113,7 +118,7 @@ class SafetyGuard:
                 "diff": diff_content,
                 "additions": diff_content.count("\n+"),
                 "deletions": diff_content.count("\n-"),
-                "total_changes": diff_content.count("\n+") + diff_content.count("\n-")
+                "total_changes": diff_content.count("\n+") + diff_content.count("\n-"),
             }
 
         except Exception as e:
@@ -133,7 +138,7 @@ class SafetyGuard:
                 "machine-generated",
                 "claude",
                 "gpt-",
-                "gemini"
+                "gemini",
             ]
 
             return any(marker in first_lines for marker in ai_markers)
@@ -144,10 +149,7 @@ class SafetyGuard:
             return False
 
     def block_or_approve(
-        self,
-        file_path: str,
-        author: str = "ai-agent",
-        reason: str = ""
+        self, file_path: str, author: str = "ai-agent", reason: str = ""
     ) -> dict[str, Any]:
         """
         চেঞ্জ অনুমোদন করতে হবে কিনা সিদ্ধান্ত নিন
@@ -165,7 +167,7 @@ class SafetyGuard:
             return {
                 "allowed": True,
                 "reason": "File is not critical",
-                "requires_approval": False
+                "requires_approval": False,
             }
 
         risk_level = self.get_file_risk_level(file_path)
@@ -180,7 +182,7 @@ class SafetyGuard:
                 "reason": f"AI-generated changes to critical file ({risk_level} risk) require manual approval",
                 "requires_approval": True,
                 "approval_contacts": self.APPROVAL_REQUIRED_ADMINS,
-                "risk_level": risk_level
+                "risk_level": risk_level,
             }
 
         # ম্যানুয়াল চেঞ্জ কিন্তু ক্রিটিক্যাল ফাইল
@@ -190,21 +192,17 @@ class SafetyGuard:
                 "reason": f"Manual change to {risk_level} risk file (logged for audit)",
                 "requires_approval": False,
                 "requires_review": True,
-                "risk_level": risk_level
+                "risk_level": risk_level,
             }
 
         return {
             "allowed": True,
             "reason": "Low-risk change",
-            "requires_approval": False
+            "requires_approval": False,
         }
 
     def _log_approval_request(
-        self,
-        file_path: str,
-        author: str,
-        risk_level: str,
-        reason: str
+        self, file_path: str, author: str, risk_level: str, reason: str
     ):
         """অনুমোদন অনুরোধ লগ করুন"""
         try:
@@ -220,7 +218,7 @@ class SafetyGuard:
                 "risk_level": risk_level,
                 "reason": reason,
                 "status": "pending",
-                "approval_deadline": None
+                "approval_deadline": None,
             }
 
             requests.append(request)
@@ -243,14 +241,16 @@ class SafetyGuard:
         if self.approval_requests.exists():
             with open(self.approval_requests, "r") as f:
                 all_requests = json.load(f)
-                pending_approvals = [r for r in all_requests if r["status"] == "pending"]
+                pending_approvals = [
+                    r for r in all_requests if r["status"] == "pending"
+                ]
 
         return {
             "generated_at": datetime.now().isoformat(),
             "pending_approvals": len(pending_approvals),
             "critical_files_protected": len(self.CRITICAL_PATTERNS),
             "recent_blocked_changes": pending_approvals[:5],
-            "approval_contacts": self.APPROVAL_REQUIRED_ADMINS
+            "approval_contacts": self.APPROVAL_REQUIRED_ADMINS,
         }
 
 
@@ -303,13 +303,19 @@ exit $?
 
 
 if __name__ == "__main__":
-    import sys
     import argparse
+    import sys
 
     parser = argparse.ArgumentParser(description="SupremeAI Safety Guard CLI")
     parser.add_argument("file", nargs="?", default=None, help="File to check")
-    parser.add_argument("--check-only", action="store_true", help="Only check status without blocking execution")
-    parser.add_argument("--report-json", action="store_true", help="Output safety report in JSON format")
+    parser.add_argument(
+        "--check-only",
+        action="store_true",
+        help="Only check status without blocking execution",
+    )
+    parser.add_argument(
+        "--report-json", action="store_true", help="Output safety report in JSON format"
+    )
 
     args = parser.parse_args()
 
@@ -325,4 +331,3 @@ if __name__ == "__main__":
         # বাংলা মন্তব্য: পেন্ডিং অপ্রুভাল থাকলে এবং --check-only ফ্ল্যাগ না থাকলে exit 1 দেওয়া হবে।
         if report.get("pending_approvals", 0) > 0 and not args.check_only:
             sys.exit(1)
-

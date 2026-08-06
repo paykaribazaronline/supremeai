@@ -14,19 +14,19 @@ Environment Variables:
 - PULL_REQUEST: PR number (when called bytester (optional, for testing)
 """
 
+import json
+import logging
 import os
 import re
-import json
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any
+
 import requests
-import logging
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -63,6 +63,7 @@ ADR_TEMPLATE = """# {ADR_ID}: {title}
 *Source: PR #{pr_number} - "{pr_title}"*
 """
 
+
 def get_next_adr_id() -> str:
     """Get the next ADR ID based on existing files."""
     adr_path = Path(ADR_DIR)
@@ -74,7 +75,7 @@ def get_next_adr_id() -> str:
     existing_ids = []
     for file in adr_path.glob("[0-9]*.md"):
         try:
-            num = int(file.stem.split('-')[0])
+            num = int(file.stem.split("-")[0])
             existing_ids.append(num)
         except ValueError:
             continue
@@ -82,7 +83,8 @@ def get_next_adr_id() -> str:
     next_num = max(existing_ids) + 1 if existing_ids else 1
     return f"{next_num:04d}"
 
-def fetch_pr_data(pr_number: int) -> Optional[Dict[str, Any]]:
+
+def fetch_pr_data(pr_number: int) -> dict[str, Any] | None:
     """Fetch pull request data from GitHub API."""
     if not GITHUB_TOKEN or not REPOSITORY:
         logger.error("Missing GITHUB_TOKEN or REPOSITORY environment variables")
@@ -91,7 +93,7 @@ def fetch_pr_data(pr_number: int) -> Optional[Dict[str, Any]]:
     url = f"https://api.github.com/repos/{REPOSITORY}/pulls/{pr_number}"
     headers = {
         "Authorization": f"token {GITHUB_TOKEN}",
-        "Accept": "application/vnd.github.v3+json"
+        "Accept": "application/vnd.github.v3+json",
     }
 
     try:
@@ -102,7 +104,8 @@ def fetch_pr_data(pr_number: int) -> Optional[Dict[str, Any]]:
         logger.error(f"Failed to fetch PR #{pr_number}: {e}")
         return None
 
-def extract_adr_info_from_pr(pr_data: Dict[str, Any]) -> Dict[str, str]:
+
+def extract_adr_info_from_pr(pr_data: dict[str, Any]) -> dict[str, str]:
     """Extract ADR information from PR title and description."""
     title = pr_data.get("title", "")
     body = pr_data.get("body", "") or ""
@@ -112,19 +115,16 @@ def extract_adr_info_from_pr(pr_data: Dict[str, Any]) -> Dict[str, str]:
     adr_prefixes = ["adr:", "[adr]", "architecture decision record:"]
     for prefix in adr_prefixes:
         if title.lower().startswith(prefix):
-            adr_title = title[len(prefix):].strip()
+            adr_title = title[len(prefix) :].strip()
             break
 
     # Parse body sections
     sections = {
         "context": "Not specified",
         "decision": "Not specified",
-        "consequences": {
-            "positive": "Not specified",
-            "negative": "Not specified"
-        },
+        "consequences": {"positive": "Not specified", "negative": "Not specified"},
         "related": "None",
-        "status": "Proposed"
+        "status": "Proposed",
     }
 
     # Look for common section headers in the PR body
@@ -134,7 +134,7 @@ def extract_adr_info_from_pr(pr_data: Dict[str, Any]) -> Dict[str, str]:
         "positive": r"##?\s*(?:Positive Consequences?|Benefits?|Pros)\s*\n+(.*?)(?=\n##|\Z)",
         "negative": r"##?\s*(?:Negative Consequences?|Drawbacks?|Cons)\s*\n+(.*?)(?=\n##|\Z)",
         "related": r"##?\s*(?:Related|Related Decisions?|References?)\s*\n+(.*?)(?=\n##|\Z)",
-        "status": r"##?\s*(?:Status|Status\s*[:\-]?)\s*\n+(.*?)(?=\n##|\Z)"
+        "status": r"##?\s*(?:Status|Status\s*[:\-]?)\s*\n+(.*?)(?=\n##|\Z)",
     }
 
     for key, pattern in section_patterns.items():
@@ -149,7 +149,9 @@ def extract_adr_info_from_pr(pr_data: Dict[str, Any]) -> Dict[str, str]:
 
     # If no structured sections found, use the whole body as context
     if sections["context"] == "Not specified" and body.strip():
-        sections["context"] = body.strip()[:500] + ("..." if len(body.strip()) > 500 else "")
+        sections["context"] = body.strip()[:500] + (
+            "..." if len(body.strip()) > 500 else ""
+        )
 
     return {
         "title": adr_title or "Architecture Decision from PR",
@@ -158,10 +160,11 @@ def extract_adr_info_from_pr(pr_data: Dict[str, Any]) -> Dict[str, str]:
         "positive": sections["consequences"]["positive"],
         "negative": sections["consequences"]["negative"],
         "related": sections["related"],
-        "status": sections["status"].title() or "Proposed"
+        "status": sections["status"].title() or "Proposed",
     }
 
-def generate_adr(adr_id: str, adr_info: Dict[str, str], pr_data: Dict[str, Any]) -> str:
+
+def generate_adr(adr_id: str, adr_info: dict[str, str], pr_data: dict[str, Any]) -> str:
     """Generate ADR content from template."""
     return ADR_TEMPLATE.format(
         ADR_ID=adr_id,
@@ -174,8 +177,9 @@ def generate_adr(adr_id: str, adr_info: Dict[str, str], pr_data: Dict[str, Any])
         related=adr_info["related"],
         date=datetime.now().strftime("%Y-%m-%d"),
         pr_number=pr_data.get("number", "unknown"),
-        pr_title=pr_data.get("title", "Unknown PR")
+        pr_title=pr_data.get("title", "Unknown PR"),
     )
+
 
 def save_adr(adr_id: str, content: str) -> Path:
     """Save ADR to file."""
@@ -184,14 +188,15 @@ def save_adr(adr_id: str, content: str) -> Path:
 
     # Create filename: 0001-title.md
     # Clean title for filename: lowercase, spaces to dashes, remove special chars
-    title_slug = re.sub(r'[^\w\s-]', '', adr_info["title"].lower())
-    title_slug = re.sub(r'[-\s]+', '-', title_slug).strip('-')
+    title_slug = re.sub(r"[^\w\s-]", "", adr_info["title"].lower())
+    title_slug = re.sub(r"[-\s]+", "-", title_slug).strip("-")
 
     filename = f"{adr_id}-{title_slug[:50]}.md"  # Limit length
     filepath = adr_path / filename
 
     filepath.write_text(content, encoding="utf-8")
     return filepath
+
 
 def main() -> int:
     """Main function to generate ADR from PR."""
@@ -211,7 +216,7 @@ def main() -> int:
         github_event_path = os.getenv("GITHUB_EVENT_PATH")
         if github_event_path and os.path.exists(github_event_path):
             try:
-                with open(github_event_path, 'r') as f:
+                with open(github_event_path, "r") as f:
                     event_data = json.load(f)
                 if "pull_request" in event_data:
                     pr_number = event_data["pull_request"]["number"]
@@ -220,7 +225,9 @@ def main() -> int:
                 print(f"⚠️  Could not parse GitHub event: {e}")
 
     if not pr_number:
-        print("❌ No PR number specified. Set PULL_REQUEST environment variable or run via GitHub Actions.")
+        print(
+            "❌ No PR number specified. Set PULL_REQUEST environment variable or run via GitHub Actions."
+        )
         return 1
 
     # Fetch PR data
@@ -250,6 +257,7 @@ def main() -> int:
     except Exception as e:
         print(f"❌ Failed to save ADR: {e}")
         return 1
+
 
 if __name__ == "__main__":
     exit(main())

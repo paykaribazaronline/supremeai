@@ -10,11 +10,10 @@ import json
 from collections.abc import Awaitable, Callable
 from typing import Any
 
+from core.config import settings
 from jose import JWTError, jwt
 from jose.exceptions import ExpiredSignatureError
 from loguru import logger
-
-from core.config import settings
 from utils.environment import is_test_environment
 
 ASGIScope = dict[str, Any]
@@ -46,7 +45,9 @@ def _decode_jwt(token: str) -> dict[str, Any] | None:
         Decoded payload dict, or None if invalid/expired.
     """
     if not settings.jwt_secret:
-        logger.critical("JWT_SECRET is missing. Rejecting authentication under fail-closed security policy.")
+        logger.critical(
+            "JWT_SECRET is missing. Rejecting authentication under fail-closed security policy."
+        )
         return None
 
     try:
@@ -135,14 +136,18 @@ class AuthMiddleware:
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
 
-    async def __call__(self, scope: ASGIScope, receive: ASGIReceive, send: ASGISend) -> None:
+    async def __call__(
+        self, scope: ASGIScope, receive: ASGIReceive, send: ASGISend
+    ) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
 
         path = scope.get("path", "")
 
-        if _is_public_path(path) or (is_test_environment() and settings.allow_test_auth_bypass):
+        if _is_public_path(path) or (
+            is_test_environment() and settings.allow_test_auth_bypass
+        ):
             await self.app(scope, receive, send)
             return
 
@@ -236,8 +241,12 @@ async def verify_admin_session_fail_closed(request: Any) -> dict[str, Any]:
 
     # Fail-closed check for JWT secret config
     if not settings.jwt_secret:
-        logger.critical("JWT_SECRET is missing. Rejecting authentication under fail-closed security policy.")
-        raise HTTPException(status_code=500, detail="Authentication server configuration error")
+        logger.critical(
+            "JWT_SECRET is missing. Rejecting authentication under fail-closed security policy."
+        )
+        raise HTTPException(
+            status_code=500, detail="Authentication server configuration error"
+        )
 
     # Reuse _decode_jwt to avoid duplicate JWT decode logic
     payload = _decode_jwt(token)
@@ -246,7 +255,9 @@ async def verify_admin_session_fail_closed(request: Any) -> dict[str, Any]:
 
     role = payload.get("role")
     if role not in ("admin", "master_admin"):
-        logger.warning(f"Access denied: role '{role}' is not authorized for admin session")
+        logger.warning(
+            f"Access denied: role '{role}' is not authorized for admin session"
+        )
         raise HTTPException(status_code=401, detail="Not authorized")
 
     return payload

@@ -33,7 +33,9 @@ class TreeOfThoughtReasoner:
         """
         Generate multiple reasoning paths and evaluate the best reasoning chain.
         """
-        logger.info(f"Tree-of-Thought reasoning initiated for problem: '{problem_statement[:60]}...'")
+        logger.info(
+            f"Tree-of-Thought reasoning initiated for problem: '{problem_statement[:60]}...'"
+        )
 
         # Phase 1: Generate initial branches
         branches = self._generate_initial_thoughts(problem_statement)
@@ -52,7 +54,9 @@ class TreeOfThoughtReasoner:
             "reasoning_path": [node.content for node in scored_nodes],
         }
 
-        logger.info(f"Tree-of-Thought best path selected with score: {best_node.score:.2f}")
+        logger.info(
+            f"Tree-of-Thought best path selected with score: {best_node.score:.2f}"
+        )
         return result
 
     def _generate_initial_thoughts(self, problem: str) -> list[ThoughtNode]:

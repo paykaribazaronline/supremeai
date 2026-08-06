@@ -10,9 +10,7 @@ import pytest
 # যতক্ষণ পর্যন্ত এই ক্লাসগুলো cloud_sandbox_orchestrator-এ যোগ না হয়, টেস্টগুলো skip করা হবে।
 try:
     from core.orchestration.cloud_sandbox_orchestrator import (
-        PersistentSandbox,
-        SandboxSession,
-    )
+        PersistentSandbox, SandboxSession)
 
     _PERSISTENT_SANDBOX_AVAILABLE = True
 except ImportError:
@@ -21,7 +19,9 @@ except ImportError:
     SandboxSession = None  # type: ignore
 
 
-_skip_if_missing = pytest.mark.skipif(not _PERSISTENT_SANDBOX_AVAILABLE, reason="PersistentSandbox not yet implemented")
+_skip_if_missing = pytest.mark.skipif(
+    not _PERSISTENT_SANDBOX_AVAILABLE, reason="PersistentSandbox not yet implemented"
+)
 
 
 # বাংলা মন্তব্য: Mock environment variables for RunPod API
@@ -71,7 +71,9 @@ async def test_persistent_sandbox_create_with_volume(mock_env_runpod):
         "_get_client",
         return_value=MagicMock(post=MagicMock(return_value=mock_resp)),
     ):
-        result = await sandbox.create_with_volume(image="python:3.11-slim", volume_size_gb=10, ttl_hours=24)
+        result = await sandbox.create_with_volume(
+            image="python:3.11-slim", volume_size_gb=10, ttl_hours=24
+        )
 
     assert result is not None
     assert result.session_id == "session_abc"
@@ -149,7 +151,9 @@ async def test_upload_file(mock_env_runpod):
     sandbox = PersistentSandbox(provider="runpod")
 
     mock_client = MagicMock()
-    mock_client.post.return_value = _mock_response({"status": "success", "path": "/workspace/test.py"})
+    mock_client.post.return_value = _mock_response(
+        {"status": "success", "path": "/workspace/test.py"}
+    )
 
     with patch.object(sandbox, "_get_client", return_value=mock_client):
         session = SandboxSession(
@@ -160,7 +164,9 @@ async def test_upload_file(mock_env_runpod):
         )
         sandbox.sessions["test_session"] = session
 
-        result = await sandbox.upload_file("test_session", "/workspace/test.py", "print('hello')")
+        result = await sandbox.upload_file(
+            "test_session", "/workspace/test.py", "print('hello')"
+        )
 
     assert result is True
 
@@ -172,7 +178,9 @@ async def test_download_file(mock_env_runpod):
     sandbox = PersistentSandbox(provider="runpod")
 
     mock_client = MagicMock()
-    mock_client.get.return_value = _mock_response({"content": "print('downloaded content')"})
+    mock_client.get.return_value = _mock_response(
+        {"content": "print('downloaded content')"}
+    )
 
     with patch.object(sandbox, "_get_client", return_value=mock_client):
         session = SandboxSession(

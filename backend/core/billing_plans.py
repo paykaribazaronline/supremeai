@@ -5,7 +5,8 @@ Key Components:
 - `SUBSCRIPTION_PLANS`: A constant dict keyed by plan name, each containing details like price, cost (Decimal), currency, interval, and included features.
 
 Dependencies:
-- `pydantic`: Used for defining `CheckoutRequest` to ensure robust data validation and serialization."""
+- `pydantic`: Used for defining `CheckoutRequest` to ensure robust data validation and serialization.
+"""
 
 from dataclasses import dataclass
 from decimal import Decimal
@@ -59,7 +60,12 @@ SUBSCRIPTION_PLANS: dict[str, SubscriptionPlan] = {
         cost=Decimal("199.99"),
         currency="usd",
         interval="month",
-        features=["Unlimited AI Credits", "Dedicated Account Manager", "Custom SLAs", "API Access"],
+        features=[
+            "Unlimited AI Credits",
+            "Dedicated Account Manager",
+            "Custom SLAs",
+            "API Access",
+        ],
     ),
 }
 

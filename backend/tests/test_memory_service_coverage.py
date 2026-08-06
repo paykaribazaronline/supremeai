@@ -33,7 +33,9 @@ class TestMemoryService:
         service = CascadeMemoryService()
 
         # Test the backward-compatible store method
-        result = service.store("user1", "agent1", "Test memory content", {"type": "test"})
+        result = service.store(
+            "user1", "agent1", "Test memory content", {"type": "test"}
+        )
         assert result is None
 
     @pytest.mark.asyncio
@@ -91,6 +93,8 @@ class TestContextWindow:
         from services.memory_service import CascadeMemoryService
 
         service = CascadeMemoryService()
-        result = service.update_context_window("user1", [{"role": "user", "content": "test message"}])
+        result = service.update_context_window(
+            "user1", [{"role": "user", "content": "test message"}]
+        )
         # The method should execute without errors
         assert result is None  # update_context_window returns None

@@ -37,7 +37,9 @@ class InternetMonitorService:
             return
 
         try:
-            self.monitoring_task = asyncio.create_task(self.agent.start_monitoring_loop())
+            self.monitoring_task = asyncio.create_task(
+                self.agent.start_monitoring_loop()
+            )
             self.is_running = True
             logger.info("Internet monitoring started successfully")
         except Exception as e:

@@ -15,8 +15,8 @@
 
 import os
 import re
-import sys
 import subprocess
+import sys
 
 # কমন সিক্রেটের জন্য রেজেক্স প্যাটার্ন
 SECRET_PATTERNS = {
@@ -76,14 +76,17 @@ def scan_staged_files() -> bool:
 
         # টেস্ট ফাইল বা ফোল্ডার হলে স্কিপ করি (যাতে ডামি টোকেন চেক লক না করে)
         normalized_path = file_path.replace("\\", "/")
-        if "test_" in normalized_path or "/tests/" in normalized_path or "/test/" in normalized_path:
+        if (
+            "test_" in normalized_path
+            or "/tests/" in normalized_path
+            or "/test/" in normalized_path
+        ):
             continue
 
         # বাংলা মন্তব্য: auto-generated audit docs এবং autogen codebase dumps স্কিপ করা হচ্ছে —
         # এগুলো source code mirror, actual secret নয় (Patch: security_guard allowlist)
         if "modular_audits/" in normalized_path or "docs/autogen/" in normalized_path:
             continue
-
 
         try:
             with open(file_path, "r", encoding="utf-8", errors="ignore") as fh:

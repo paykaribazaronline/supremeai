@@ -47,19 +47,16 @@ class FakePool:
 
 
 # Ensure `core.app` is reloaded fresh in test runs (avoid cached app state)
-for _mod in [m for m in list(sys.modules) if m == "core.app" or m.startswith("core.app.")]:
+for _mod in [
+    m for m in list(sys.modules) if m == "core.app" or m.startswith("core.app.")
+]:
     del sys.modules[_mod]
 
 from api.routes.api_keys import router
 from core.app import app
 from core.rate_limiter import AsyncRateLimiter
-from core.security import (
-    API_KEY_PREFIX,
-    generate_api_key,
-    hash_api_key,
-    mask_api_key,
-    verify_api_key,
-)
+from core.security import (API_KEY_PREFIX, generate_api_key, hash_api_key,
+                           mask_api_key, verify_api_key)
 
 
 @pytest.fixture
@@ -145,7 +142,9 @@ class TestRateLimiter:
     @pytest.fixture(autouse=True)
     def patch_redis(self):
         fake_redis = FakeRedisClient()
-        with patch("core.rate_limiter.AsyncRateLimiter._get_redis", return_value=fake_redis):
+        with patch(
+            "core.rate_limiter.AsyncRateLimiter._get_redis", return_value=fake_redis
+        ):
             yield
             return
 
@@ -201,7 +200,9 @@ class TestRouterStructure:
 
 class TestIntegrationViaHeaders:
     def test_endpoints_accessible_without_api_key(self, client):
-        resp = client.get("/api/api-keys/", headers={"Authorization": "Bearer mock-token"})
+        resp = client.get(
+            "/api/api-keys/", headers={"Authorization": "Bearer mock-token"}
+        )
         assert resp.status_code == 200
 
     def test_api_key_header_accepted_in_test_mode(self, client):

@@ -88,7 +88,11 @@ class SecretReport:
                     "line_number": f.line_number,
                     "column_start": f.column_start,
                     "column_end": f.column_end,
-                    "matched_text": (f.matched_text[:50] + "..." if len(f.matched_text) > 50 else f.matched_text),
+                    "matched_text": (
+                        f.matched_text[:50] + "..."
+                        if len(f.matched_text) > 50
+                        else f.matched_text
+                    ),
                     "secret_type": f.secret_type,
                     "severity": f.severity,
                     "remediation": f.remediation,
@@ -219,7 +223,9 @@ class GitleaksRunner:
 
         return findings
 
-    def scan_directory(self, directory: Path, extensions: set[str] | None = None) -> list[SecretFinding]:
+    def scan_directory(
+        self, directory: Path, extensions: set[str] | None = None
+    ) -> list[SecretFinding]:
         """Scan a directory recursively for secrets."""
         if extensions is None:
             extensions = {
@@ -250,7 +256,10 @@ class GitleaksRunner:
 
                 if any(part.startswith(".") for part in rel_parts):
                     continue
-                if any(part in {"node_modules", "__pycache__", "tests"} for part in rel_parts):
+                if any(
+                    part in {"node_modules", "__pycache__", "tests"}
+                    for part in rel_parts
+                ):
                     continue
                 if any(part.startswith("tmp_") for part in rel_parts):
                     continue
@@ -261,7 +270,9 @@ class GitleaksRunner:
                 file_findings = self.scan_file(file_path)
                 findings.extend(file_findings)
 
-        logger.info(f"Scanned {total_files} files, found {len(findings)} potential secrets")
+        logger.info(
+            f"Scanned {total_files} files, found {len(findings)} potential secrets"
+        )
         return findings
 
 
@@ -297,7 +308,9 @@ Respond in JSON format:
         """Initialize the AI analyzer."""
         self.gateway = llm_gateway
 
-    async def analyze_finding(self, finding: SecretFinding, code_context: str) -> SecretFinding:
+    async def analyze_finding(
+        self, finding: SecretFinding, code_context: str
+    ) -> SecretFinding:
         """Analyze a finding with AI to reduce false positives."""
         try:
             prompt = self.ANALYSIS_PROMPT.format(
@@ -384,9 +397,13 @@ class SecretHunter:
                         context = finding.matched_text
 
                     try:
-                        finding = await self.ai_analyzer.analyze_finding(finding, context)
+                        finding = await self.ai_analyzer.analyze_finding(
+                            finding, context
+                        )
                     except Exception as e:
-                        logger.warning(f"AI secret analysis skipped due to network/API timeout: {e}")
+                        logger.warning(
+                            f"AI secret analysis skipped due to network/API timeout: {e}"
+                        )
                     if finding.severity != "info":  # Not a false positive
                         validated_findings.append(finding)
                 else:
@@ -396,7 +413,9 @@ class SecretHunter:
         # Filter by minimum severity
         severity_order = {"critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0}
         min_level = severity_order.get(min_severity, 2)
-        findings = [f for f in findings if severity_order.get(f.severity, 0) >= min_level]
+        findings = [
+            f for f in findings if severity_order.get(f.severity, 0) >= min_level
+        ]
 
         # Generate summary
         severity_counts: dict[str, int] = {}

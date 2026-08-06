@@ -43,9 +43,5 @@ __all__ = [
 ]
 
 # Re-export ephemeral executor types for convenience
-from .ephemeral_executor import (
-    ExecutionResult,
-    ExecutionStatus,
-    ResourceQuota,
-    SecurityScanner,
-)
+from .ephemeral_executor import (ExecutionResult, ExecutionStatus,
+                                 ResourceQuota, SecurityScanner)

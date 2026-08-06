@@ -4,9 +4,8 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from fastapi import HTTPException
-
 from core.cost_guard import CostGuard
+from fastapi import HTTPException
 
 
 @pytest.mark.asyncio
@@ -64,7 +63,9 @@ async def test_validate_budget_free_tier():
 @pytest.mark.asyncio
 async def test_validate_budget_economy_tier_success():
     cg = CostGuard()
-    with patch("core.cache.redis_manager.redis_manager.get_cache", new_callable=AsyncMock) as mock_redis:
+    with patch(
+        "core.cache.redis_manager.redis_manager.get_cache", new_callable=AsyncMock
+    ) as mock_redis:
         mock_redis.return_value = "0.05"
         res = await cg.validate_budget("tenant_1", "economy")
         assert res is True
@@ -73,6 +74,8 @@ async def test_validate_budget_economy_tier_success():
 @pytest.mark.asyncio
 async def test_record_spend():
     cg = CostGuard()
-    with patch("core.cache.redis_manager.redis_manager.incrbyfloat", new_callable=AsyncMock) as mock_incr:
+    with patch(
+        "core.cache.redis_manager.redis_manager.incrbyfloat", new_callable=AsyncMock
+    ) as mock_incr:
         await cg.record_spend("tenant_1", "economy", 0.02)
         mock_incr.assert_called_once()

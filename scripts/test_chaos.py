@@ -3,12 +3,15 @@ import os
 import sys
 
 # Add backend to path for imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../backend')))
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../backend"))
+)
 
 # Enable Chaos Mode manually for this test script
 os.environ["ENABLE_CHAOS_MODE"] = "True"
 
 from core.maintenance_pipeline import maintenance_pipeline
+
 
 async def test_chaos_and_recovery():
     print("Starting Chaos & Recovery Test...")
@@ -27,6 +30,7 @@ async def test_chaos_and_recovery():
 
     print(f"Current Health Score: {maintenance_pipeline.health_score}")
     print("Test Completed.")
+
 
 if __name__ == "__main__":
     asyncio.run(test_chaos_and_recovery())

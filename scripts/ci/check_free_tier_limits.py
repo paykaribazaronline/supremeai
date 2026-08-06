@@ -36,20 +36,21 @@ ROOT = Path(__file__).parent.parent.parent
 MB = 1024 * 1024
 GB = 1024 * MB
 
+
 class SizeLimit(NamedTuple):
-    label: str           # Human readable env name
-    path: str            # Relative path from root to measure
-    warn_bytes: int      # Warn at this size (80%)
-    block_bytes: int     # Block commit at this size (95%)
-    tip: str             # What to do if exceeded
+    label: str  # Human readable env name
+    path: str  # Relative path from root to measure
+    warn_bytes: int  # Warn at this size (80%)
+    block_bytes: int  # Block commit at this size (95%)
+    tip: str  # What to do if exceeded
 
 
 FREE_TIER_LIMITS: list[SizeLimit] = [
     SizeLimit(
         label="🟠 Render Free (backend deploy context)",
         path="backend",
-        warn_bytes=int(400 * MB),    # 400MB → warn (80% of 500MB)
-        block_bytes=int(475 * MB),   # 475MB → block (95% of 500MB)
+        warn_bytes=int(400 * MB),  # 400MB → warn (80% of 500MB)
+        block_bytes=int(475 * MB),  # 475MB → block (95% of 500MB)
         tip=(
             "Render free tier ~500MB RAM. Remove unused packages from "
             "pyproject.toml, delete large model files, or use .dockerignore "
@@ -59,8 +60,8 @@ FREE_TIER_LIMITS: list[SizeLimit] = [
     SizeLimit(
         label="🟡 GitHub Actions cache (CI cache quota)",
         path=".git",
-        warn_bytes=int(6 * GB),      # 6GB → warn
-        block_bytes=int(8 * GB),     # 8GB → block (our soft cap)
+        warn_bytes=int(6 * GB),  # 6GB → warn
+        block_bytes=int(8 * GB),  # 8GB → block (our soft cap)
         tip=(
             "GitHub cache approaches our 8GB soft cap. Run "
             "'git gc --aggressive --prune=now' to shrink .git, "
@@ -70,8 +71,8 @@ FREE_TIER_LIMITS: list[SizeLimit] = [
     SizeLimit(
         label="🔵 Vercel Hobby (frontend bundle per function)",
         path="apps/studio-client/dist",
-        warn_bytes=int(80 * MB),     # 80MB → warn (80% of 100MB)
-        block_bytes=int(95 * MB),    # 95MB → block (95% of 100MB)
+        warn_bytes=int(80 * MB),  # 80MB → warn (80% of 100MB)
+        block_bytes=int(95 * MB),  # 95MB → block (95% of 100MB)
         tip=(
             "Vercel hobby limit is 100MB per function. Run 'pnpm build' "
             "and check bundle analyzer output. Use dynamic imports, "
@@ -81,8 +82,8 @@ FREE_TIER_LIMITS: list[SizeLimit] = [
     SizeLimit(
         label="🟢 Firebase Hosting (static assets)",
         path="apps/studio-client/dist",
-        warn_bytes=int(800 * MB),    # 800MB → warn (80% of 1GB)
-        block_bytes=int(950 * MB),   # 950MB → block (95% of 1GB)
+        warn_bytes=int(800 * MB),  # 800MB → warn (80% of 1GB)
+        block_bytes=int(950 * MB),  # 950MB → block (95% of 1GB)
         tip=(
             "Firebase Hosting free tier allows 1GB storage. "
             "Compress images, use WebP format, and remove unused static assets."
@@ -91,8 +92,10 @@ FREE_TIER_LIMITS: list[SizeLimit] = [
     SizeLimit(
         label="📦 Git repo size (tracked files, excl. .git)",
         path=".",
-        warn_bytes=int(800 * MB),    # 800MB → warn (GitHub সাধারণত 2GB সীমার নিচে থাকা ভালো)
-        block_bytes=int(2 * GB),     # 2GB → block
+        warn_bytes=int(
+            800 * MB
+        ),  # 800MB → warn (GitHub সাধারণত 2GB সীমার নিচে থাকা ভালো)
+        block_bytes=int(2 * GB),  # 2GB → block
         tip=(
             "Repo working tree is large. Avoid committing binary files, model weights, "
             "or node_modules. Use Git LFS for large assets. "
@@ -106,10 +109,19 @@ FREE_TIER_LIMITS: list[SizeLimit] = [
 # ══════════════════════════════════════════════════════════════════════════════
 
 EXCLUDED_DIRS = {
-    "node_modules", "__pycache__", ".venv", "venv",
-    ".mypy_cache", ".pytest_cache", ".ruff_cache", "htmlcov",
+    "node_modules",
+    "__pycache__",
+    ".venv",
+    "venv",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".ruff_cache",
+    "htmlcov",
     ".git",  # বাংলা: .git আলাদাভাবে check হয়, repo size থেকে বাদ
-    ".worktrees", "dist", "build", "target",
+    ".worktrees",
+    "dist",
+    "build",
+    "target",
 }
 
 
@@ -155,6 +167,7 @@ def progress_bar(current: int, total: int, width: int = 30) -> str:
 # Main scan
 # ══════════════════════════════════════════════════════════════════════════════
 
+
 def run_checks() -> bool:
     """
     বাংলা মন্তব্য: সব free-tier limit চেক করে।
@@ -183,7 +196,9 @@ def run_checks() -> bool:
         print(f"  {bar}")
 
         if size >= limit.block_bytes:
-            print(f"  🔴 CRITICAL: Size exceeds {int(100 * limit.block_bytes / limit.block_bytes)}% of free-tier limit!")
+            print(
+                f"  🔴 CRITICAL: Size exceeds {int(100 * limit.block_bytes / limit.block_bytes)}% of free-tier limit!"
+            )
             print(f"  💡 Fix: {limit.tip}")
             any_block = True
 
@@ -211,7 +226,7 @@ def run_checks() -> bool:
     if not any_warn and not any_block:
         print("✅ All free-tier size checks passed!")
 
-    print("")
+    print()
     return False  # allow commit
 
 

@@ -8,7 +8,7 @@ files_to_move = [
     "llm_gateway.py",
     "token_budget.py",
     "token_deductor.py",
-    "free_tier_tracker.py"
+    "free_tier_tracker.py",
 ]
 
 os.makedirs(target_dir, exist_ok=True)

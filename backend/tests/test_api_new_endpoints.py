@@ -1,11 +1,10 @@
 import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from fastapi.testclient import TestClient
-
 # বাংলা মন্তব্য: sys.modules এ ডুপ্লিকেট মডিউল তৈরি হওয়া এড়াতে এবং monkeypatch ঠিকমতো কাজ করানোর জন্য ইমপোর্ট পাথ সংশোধন করা হলো।
 from api.routes import config as config_route
 from core.app import app
+from fastapi.testclient import TestClient
 
 auth_headers = {"Authorization": f"Bearer {'test-token'}"}
 client = TestClient(app)
@@ -54,7 +53,9 @@ def test_api_email_endpoints(mock_imap_ssl):
     )
     assert resp2.status_code == 200
     assert resp2.json()["status"] == "success"
-    mock_conn.login.assert_called_once_with("supremeai@paykaribazar.com", "secret_password")
+    mock_conn.login.assert_called_once_with(
+        "supremeai@paykaribazar.com", "secret_password"
+    )
 
 
 @patch("api.routes.github._get_agent", new_callable=AsyncMock)
@@ -62,7 +63,9 @@ def test_api_github_endpoints(mock_get_agent):
     mock_agent = MagicMock()
     mock_agent.verify_connection = AsyncMock(return_value=True)
     mock_agent.connect_repo = AsyncMock()
-    mock_agent.analyze_repo = AsyncMock(return_value={"status": "analyzed", "score": 85})
+    mock_agent.analyze_repo = AsyncMock(
+        return_value={"status": "analyzed", "score": 85}
+    )
     mock_agent.improve_code = AsyncMock(return_value={"status": "improved"})
     mock_agent.commit_changes = AsyncMock(
         return_value={
@@ -70,7 +73,9 @@ def test_api_github_endpoints(mock_get_agent):
             "branch": "supremeai-improvements-1718952000",
         }
     )
-    mock_agent.create_pr = AsyncMock(return_value={"status": "pr_created", "pr_url": "https://github.com/pulls/1"})
+    mock_agent.create_pr = AsyncMock(
+        return_value={"status": "pr_created", "pr_url": "https://github.com/pulls/1"}
+    )
     mock_get_agent.return_value = mock_agent
 
     # test /github/connect
@@ -192,9 +197,15 @@ def test_config_endpoint_admin_control(monkeypatch):
     monkeypatch.setattr(
         config_route.db,
         "get_config",
-        lambda key: (["awesome-selfhosted", "libraries.io"] if key == "marketplace.resource_sources" else None),
+        lambda key: (
+            ["awesome-selfhosted", "libraries.io"]
+            if key == "marketplace.resource_sources"
+            else None
+        ),
     )
-    monkeypatch.setattr(config_route.db, "set_config", lambda key, value, category="general": None)
+    monkeypatch.setattr(
+        config_route.db, "set_config", lambda key, value, category="general": None
+    )
 
     from api.routes.admin_dashboard import require_admin_token
 

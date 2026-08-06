@@ -18,13 +18,8 @@ except ImportError:
     sys.modules["opentelemetry.exporter.otlp.proto.grpc.trace_exporter"] = mock_exporter
     opentelemetry.exporter = mock_exporter
 
-from core.observability.telemetry import (
-    _NoOpSpan,
-    _RealSpan,
-    get_tracer,
-    setup_tracing,
-    trace_span,
-)
+from core.observability.telemetry import (_NoOpSpan, _RealSpan, get_tracer,
+                                          setup_tracing, trace_span)
 
 # বাংলা মন্তব্য: সব patch target core.observability.telemetry-তে করা হচ্ছে
 # কারণ setup_tracing, trace_span, get_tracer এই module-এ define করা আছে।
@@ -41,7 +36,9 @@ def test_setup_tracing_noop():
 
 def test_setup_tracing_with_endpoint():
     with (
-        patch("opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter") as mock_exporter,
+        patch(
+            "opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter"
+        ) as mock_exporter,
         patch(f"{_TEL}.BatchSpanProcessor") as mock_processor,
         patch(f"{_TEL}.TracerProvider") as mock_provider_class,
     ):
@@ -50,14 +47,20 @@ def test_setup_tracing_with_endpoint():
 
         setup_tracing("test-service", "http://127.0.0.1:4317")
 
-        mock_exporter.assert_called_once_with(endpoint="http://127.0.0.1:4317", insecure=True)
+        mock_exporter.assert_called_once_with(
+            endpoint="http://127.0.0.1:4317", insecure=True
+        )
         mock_processor.assert_called_once_with(mock_exporter.return_value)
-        mock_provider.add_span_processor.assert_called_once_with(mock_processor.return_value)
+        mock_provider.add_span_processor.assert_called_once_with(
+            mock_processor.return_value
+        )
 
 
 def test_setup_tracing_without_endpoint_no_exporter():
     with (
-        patch("opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter") as mock_exporter,
+        patch(
+            "opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter"
+        ) as mock_exporter,
         patch(f"{_TEL}.TracerProvider") as mock_provider_class,
     ):
         mock_provider = MagicMock()

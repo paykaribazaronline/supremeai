@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 ============================================================================
 SupremeAI 2.0 — Security Auditing & Compliance Suite (Defensive)
@@ -20,16 +19,11 @@ SupremeAI 2.0 — Security Auditing & Compliance Suite (Defensive)
 
 from __future__ import annotations
 
-import argparse
 import asyncio
 import json
-import os
-import subprocess
-import sys
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
 
 from loguru import logger
 
@@ -41,6 +35,7 @@ DEFAULT_TARGET_DIR = Path("backend")
 @dataclass
 class AuditFinding:
     """বাংলা মন্তব্য: সিকিউরিটি অডিটের মাধ্যমে পাওয়া দুর্বলতার বিবরণ"""
+
     title: str
     severity: str  # HIGH | MEDIUM | LOW | INFO
     description: str
@@ -52,6 +47,7 @@ class AuditFinding:
 @dataclass
 class AuditResult:
     """বাংলা মন্তব্য: সম্পূর্ণ অডিট রানের সামারি"""
+
     findings: list[AuditFinding] = field(default_factory=list)
     scan_duration: float = 0.0
     timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
@@ -75,9 +71,7 @@ class SecurityAuditor:
             # Run Bandit as a subprocess
             cmd = ["bandit", "-r", str(self.target_dir), "-f", "json"]
             process = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
             stdout, _ = await process.communicate()
 
@@ -85,17 +79,21 @@ class SecurityAuditor:
                 data = json.loads(stdout.decode())
                 results = data.get("results", [])
                 for issue in results:
-                    self.result.findings.append(AuditFinding(
-                        title=issue.get("issue_text", "Static Analysis Issue"),
-                        severity=issue.get("issue_severity", "MEDIUM"),
-                        description=issue.get("issue_details", ""),
-                        file_path=issue.get("filename", ""),
-                        line_number=issue.get("line_number", "N/A"),
-                        remediation="Review code implementation and replace insecure functions/patterns."
-                    ))
+                    self.result.findings.append(
+                        AuditFinding(
+                            title=issue.get("issue_text", "Static Analysis Issue"),
+                            severity=issue.get("issue_severity", "MEDIUM"),
+                            description=issue.get("issue_details", ""),
+                            file_path=issue.get("filename", ""),
+                            line_number=issue.get("line_number", "N/A"),
+                            remediation="Review code implementation and replace insecure functions/patterns.",
+                        )
+                    )
             logger.info("SAST scan completed.")
         except FileNotFoundError:
-            logger.warning("⚠️ Bandit is not installed. Run 'pip install bandit' to enable SAST.")
+            logger.warning(
+                "⚠️ Bandit is not installed. Run 'pip install bandit' to enable SAST."
+            )
         except Exception as e:
             logger.error(f"SAST scan failed: {e}")
 
@@ -107,9 +105,7 @@ class SecurityAuditor:
         try:
             cmd = ["pip-audit", "-f", "json"]
             process = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
             stdout, _ = await process.communicate()
 
@@ -119,16 +115,20 @@ class SecurityAuditor:
                 for dep in dependencies:
                     vulns = dep.get("vulns", [])
                     for vuln in vulns:
-                        self.result.findings.append(AuditFinding(
-                            title=f"Vulnerable Dependency: {dep.get('name')} ({dep.get('version')})",
-                            severity="HIGH",
-                            description=f"Advisory ID: {vuln.get('id')} - {vuln.get('description')}",
-                            file_path="requirements.txt / pyproject.toml",
-                            remediation=f"Upgrade {dep.get('name')} to a patched version."
-                        ))
+                        self.result.findings.append(
+                            AuditFinding(
+                                title=f"Vulnerable Dependency: {dep.get('name')} ({dep.get('version')})",
+                                severity="HIGH",
+                                description=f"Advisory ID: {vuln.get('id')} - {vuln.get('description')}",
+                                file_path="requirements.txt / pyproject.toml",
+                                remediation=f"Upgrade {dep.get('name')} to a patched version.",
+                            )
+                        )
             logger.info("Dependency scan completed.")
         except FileNotFoundError:
-            logger.warning("⚠️ pip-audit is not installed. Run 'pip install pip-audit' to enable dependency scan.")
+            logger.warning(
+                "⚠️ pip-audit is not installed. Run 'pip install pip-audit' to enable dependency scan."
+            )
         except Exception as e:
             logger.error(f"Dependency scan failed: {e}")
 
@@ -149,14 +149,16 @@ class SecurityAuditor:
                 for name, regex in patterns.items():
                     matches = re.finditer(regex, content)
                     for match in matches:
-                        self.result.findings.append(AuditFinding(
-                            title=f"Potential Hardcoded Secret: {name}",
-                            severity="HIGH",
-                            description=f"Secret variable definition detected: '{match.group(0)[:30]}...'",
-                            file_path=str(path),
-                            line_number=content[:match.start()].count("\n") + 1,
-                            remediation="Move secrets to environment variables or use a secret management service."
-                        ))
+                        self.result.findings.append(
+                            AuditFinding(
+                                title=f"Potential Hardcoded Secret: {name}",
+                                severity="HIGH",
+                                description=f"Secret variable definition detected: '{match.group(0)[:30]}...'",
+                                file_path=str(path),
+                                line_number=content[: match.start()].count("\n") + 1,
+                                remediation="Move secrets to environment variables or use a secret management service.",
+                            )
+                        )
             except Exception as e:
                 logger.debug(f"Failed to read file {path}: {e}")
         logger.info("Secrets exposure scan completed.")
@@ -220,12 +222,15 @@ class ReportGenerator:
 </body>
 </html>"""
 
-        file_path = self.output_dir / f"audit_report_{datetime.now(UTC):%Y%m%d_%H%M%S}.html"
+        file_path = (
+            self.output_dir / f"audit_report_{datetime.now(UTC):%Y%m%d_%H%M%S}.html"
+        )
         file_path.write_text(html, encoding="utf-8")
         return str(file_path)
 
 
 # ── Runner ───────────────────────────────────────────────────────────────────
+
 
 async def run_audit():
     start_time = time.time()
@@ -243,7 +248,9 @@ async def run_audit():
     html_file = generator.generate_html(auditor.result)
 
     print("\n" + "=" * 70)
-    print(f"🛡️  SupremeAI 2.0 Security Audit Completed in {auditor.result.scan_duration:.2f}s")
+    print(
+        f"🛡️  SupremeAI 2.0 Security Audit Completed in {auditor.result.scan_duration:.2f}s"
+    )
     print(f"Total Findings Found: {len(auditor.result.findings)}")
     print(f"Report Generated: {html_file}")
     print("=" * 70)

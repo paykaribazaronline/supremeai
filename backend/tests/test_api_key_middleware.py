@@ -2,12 +2,11 @@ import time
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from core.security import hash_api_key, mask_api_key
+from core.security.api_key_middleware import APIKeyAuthMiddleware
 from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse
 from starlette.testclient import TestClient
-
-from core.security import hash_api_key, mask_api_key
-from core.security.api_key_middleware import APIKeyAuthMiddleware
 
 
 async def acquire_true(*args, **kwargs):
@@ -24,7 +23,9 @@ class TestAPIKeyAuthMiddleware:
 
         @app.get("/api/test")
         def test_endpoint(request: Request):
-            return PlainTextResponse(f"user: {getattr(request.state, 'api_key', {}).get('id', 'none')}")
+            return PlainTextResponse(
+                f"user: {getattr(request.state, 'api_key', {}).get('id', 'none')}"
+            )
 
         mock_row = {
             "id": "key-123",

@@ -57,5 +57,7 @@ class TestCostOptimizer:
     async def test_get_optimal_route_complex_free(self):
         optimizer = CostOptimizer()
         with patch.object(optimizer, "_get_best_free_provider", return_value="groq"):
-            result = await optimizer.get_optimal_route({"prompt": "implement architecture"}, "free")
+            result = await optimizer.get_optimal_route(
+                {"prompt": "implement architecture"}, "free"
+            )
             assert result.startswith("groq")

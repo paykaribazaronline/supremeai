@@ -102,7 +102,9 @@ class CompetitorAnalysisAgent:
         raw = f"competitor:{prefix}:{datetime.now(UTC).strftime('%Y%m%d')}"
         return f"competitor:{hashlib.sha256(raw.encode()).hexdigest()[:16]}"
 
-    def register_competitor(self, name: str, products: list[str], focus_areas: list[str]) -> None:
+    def register_competitor(
+        self, name: str, products: list[str], focus_areas: list[str]
+    ) -> None:
         """Register a new competitor to track."""
         self._competitors[name] = {
             "products": products,
@@ -145,9 +147,17 @@ class CompetitorAnalysisAgent:
                 priority = (
                     "critical"
                     if feature.impact_score > 0.8
-                    else "high" if feature.impact_score > 0.6 else "medium" if feature.impact_score > 0.4 else "low"
+                    else (
+                        "high"
+                        if feature.impact_score > 0.6
+                        else "medium" if feature.impact_score > 0.4 else "low"
+                    )
                 )
-                effort = "high" if priority == "critical" else "medium" if priority in ("high", "medium") else "low"
+                effort = (
+                    "high"
+                    if priority == "critical"
+                    else "medium" if priority in ("high", "medium") else "low"
+                )
 
                 gaps.append(
                     FeatureGap(

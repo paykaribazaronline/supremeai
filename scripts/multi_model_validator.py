@@ -71,7 +71,7 @@ class MultiModelValidator:
             "timestamp": str(Path(file_path).stat().st_mtime),
             "validations": [],
             "overall_risk_level": "LOW",
-            "passed": True
+            "passed": True,
         }
 
         # প্রতিটি ভ্যালিডেটর দিয়ে চেক করুন
@@ -79,10 +79,7 @@ class MultiModelValidator:
             logger.info(f"🔍 Validating {file_path} with {model}...")
 
             validation_result = await self._validate_with_model(
-                model,
-                code_content,
-                file_ext,
-                validator_type
+                model, code_content, file_ext, validator_type
             )
             results["validations"].append(validation_result)
 
@@ -94,11 +91,7 @@ class MultiModelValidator:
         return results
 
     async def _validate_with_model(
-        self,
-        model: str,
-        code_content: str,
-        file_ext: str,
-        validator_type: str
+        self, model: str, code_content: str, file_ext: str, validator_type: str
     ) -> dict[str, Any]:
         """একটি নির্দিষ্ট মডেল দিয়ে কোড ভ্যালিডেট করুন"""
 
@@ -117,7 +110,6 @@ class MultiModelValidator:
   ],
   "risk_level": "CRITICAL|HIGH|MEDIUM|LOW"
 }}""",
-
             "logic_validator": f"""আপনি একজন সিনিয়র কোড রিভিউয়ার। নিচের {file_ext} কোডে লজিক্যাল এরর খুঁজুন:
 - ইনফিনিট লুপ
 - রেস কন্ডিশন
@@ -132,7 +124,6 @@ class MultiModelValidator:
   ],
   "risk_level": "CRITICAL|HIGH|MEDIUM|LOW"
 }}""",
-
             "budget_validator": f"""আপনি একজন পারফরম্যান্স এবং কস্ট অপটিমাইজেশন এক্সপার্ট। নিচের {file_ext} কোড রিভিউ করুন:
 - API কল ডুপ্লিকেশন
 - ইনএফিশিয়েন্ট লুপ
@@ -146,7 +137,7 @@ class MultiModelValidator:
     {{"issue": "...", "potential_cost_saving": "X%", "effort": "low|medium|high", "suggestion": "..."}}
   ],
   "risk_level": "MEDIUM|LOW"
-}}"""
+}}""",
         }
 
         try:
@@ -158,7 +149,7 @@ class MultiModelValidator:
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.3,
                 max_tokens=1000,
-                timeout=30
+                timeout=30,
             )
 
             response_text = response.choices[0].message.content
@@ -168,16 +159,13 @@ class MultiModelValidator:
                 parsed = json.loads(response_text)
             except json.JSONDecodeError:
                 # JSON না থাকলে plain text হিসেবে ট্রিট করুন
-                parsed = {
-                    "raw_response": response_text,
-                    "risk_level": "LOW"
-                }
+                parsed = {"raw_response": response_text, "risk_level": "LOW"}
 
             return {
                 "model": model,
                 "validator_type": validator_type,
                 **parsed,
-                "status": "success"
+                "status": "success",
             }
 
         except Exception as e:
@@ -187,7 +175,7 @@ class MultiModelValidator:
                 "validator_type": validator_type,
                 "status": "error",
                 "error": str(e),
-                "risk_level": "UNKNOWN"
+                "risk_level": "UNKNOWN",
             }
 
     async def validate_file_changes(self, diff_content: str) -> dict[str, Any]:
@@ -198,9 +186,10 @@ class MultiModelValidator:
         try:
             response = await litellm.acompletion(
                 model="groq/llama-3.3-70b-versatile",
-                messages=[{
-                    "role": "user",
-                    "content": f"""নিচের গিট ডিফে নিরাপত্তা বা লজিক্যাল সমস্যা আছে কিনা দেখুন। শুধু সমস্যা থাকলেই রিপোর্ট করুন।
+                messages=[
+                    {
+                        "role": "user",
+                        "content": f"""নিচের গিট ডিফে নিরাপত্তা বা লজিক্যাল সমস্যা আছে কিনা দেখুন। শুধু সমস্যা থাকলেই রিপোর্ট করুন।
 
 ডিফ:
 ```diff
@@ -208,10 +197,11 @@ class MultiModelValidator:
 ```
 
 রেসপন্স JSON:
-{{"has_issues": bool, "issues": [...], "risk_level": "CRITICAL|HIGH|MEDIUM|LOW"}}"""
-                }],
+{{"has_issues": bool, "issues": [...], "risk_level": "CRITICAL|HIGH|MEDIUM|LOW"}}""",
+                    }
+                ],
                 temperature=0.2,
-                max_tokens=500
+                max_tokens=500,
             )
 
             parsed = json.loads(response.choices[0].message.content)
@@ -242,7 +232,7 @@ async def validate_critical_files(repo_root: str = ".") -> dict[str, Any]:
         "**/security*.py",
         "**/payment*.py",
         "**/admin*.py",
-        "**/permissions*.py"
+        "**/permissions*.py",
     ]
 
     critical_files = []
@@ -253,7 +243,7 @@ async def validate_critical_files(repo_root: str = ".") -> dict[str, Any]:
         "validated_files": [],
         "total_files": len(critical_files),
         "critical_issues": 0,
-        "all_passed": True
+        "all_passed": True,
     }
 
     for file_path in critical_files[:5]:  # লিমিট করুন খরচ বাঁচানোর জন্য

@@ -14,11 +14,10 @@ Critical Security Note: ফেইল-ক্লোজড মোডে রেট �
 import time
 from typing import Literal
 
-from loguru import logger
-
 from core.cache.redis_manager import redis_manager
 from core.config import settings
 from core.error_bus import with_error_bus
+from loguru import logger
 
 
 class RateLimitExceededError(Exception):
@@ -93,7 +92,9 @@ class SlidingWindowRateLimiter:
         if not client:
             # In production, fail-closed: if Redis is unavailable, deny the request
             if settings.env in ["production", "staging"]:
-                logger.warning(f"Redis unavailable, denying request for {identifier} in {limit_type} rate limiter")
+                logger.warning(
+                    f"Redis unavailable, denying request for {identifier} in {limit_type} rate limiter"
+                )
                 return False, 0, 0
             else:
                 # In non-production, allow requests if Redis is down
@@ -111,7 +112,9 @@ class SlidingWindowRateLimiter:
 
             # Execute Lua script atomically
             current_time = int(time.time())
-            request_id = f"{current_time}_{hash(identifier) % 1000000}"  # Unique request ID
+            request_id = (
+                f"{current_time}_{hash(identifier) % 1000000}"  # Unique request ID
+            )
 
             if self.script_sha:
                 # Use EVALSHA for better performance

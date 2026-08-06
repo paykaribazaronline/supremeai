@@ -2,7 +2,6 @@ import os
 from unittest.mock import AsyncMock, patch
 
 import pytest
-
 from core.security.honeypot_middleware import HoneypotMiddleware
 
 

@@ -3,15 +3,16 @@
 SupremeAI 2.0 — ডুপ্লিকেট ও মিসকনফিগারেশন ফিক্সিং স্ক্রিপ্ট
 মাল্টি-স্টেপ অটোমেটেড ফিক্সেস
 """
-import os
-import json
+
 import shutil
 from pathlib import Path
 
 BASE = Path(r"C:\Users\n\supremeai\supremeai_2.0")
 
+
 def get_relative_path(path):
     return str(path.relative_to(BASE)).replace("\\", "/")
+
 
 print("=" * 70)
 print("🔧 FIX 1: Dockerfile ডিডপ্লিকেশন")
@@ -21,18 +22,20 @@ root_docker = BASE / "Dockerfile"
 backend_docker = BASE / "backend" / "Dockerfile"
 if root_docker.exists() and backend_docker.exists():
     # Read both files to compare
-    root_content = root_docker.read_text(encoding='utf-8')
-    bk_content = backend_docker.read_text(encoding='utf-8')
+    root_content = root_docker.read_text(encoding="utf-8")
+    bk_content = backend_docker.read_text(encoding="utf-8")
     if root_content != bk_content:
-        print("  ⚠️  দুটি Dockerfile আলাদা। backend/Dockerfile রুটের সাথে মিলিয়ে নিচ্ছি...")
+        print(
+            "  ⚠️  দুটি Dockerfile আলাদা। backend/Dockerfile রুটের সাথে মিলিয়ে নিচ্ছি..."
+        )
         # Rename backend Dockerfile as backup
         backup_name = BASE / "backend" / "Dockerfile.backup"
         if not backup_name.exists():
             backend_docker.rename(backup_name)
-            print(f"  ✅ backend/Dockerfile → backend/Dockerfile.backup (ব্যাকআপ)")
+            print("  ✅ backend/Dockerfile → backend/Dockerfile.backup (ব্যাকআপ)")
         # Copy root Dockerfile to backend
         shutil.copy2(root_docker, backend_docker)
-        print(f"  ✅ root Dockerfile → backend/Dockerfile (সিঙ্ক)")
+        print("  ✅ root Dockerfile → backend/Dockerfile (সিঙ্ক)")
     else:
         print("  ✅ দুটি Dockerfile ইতিমধ্যেই একই। কিছু করার নেই।")
 else:
@@ -43,14 +46,14 @@ print("🔧 FIX 2: python-jose → PyJWT (pyproject.toml আপডেট)")
 print("=" * 70)
 pyproject_path = BASE / "backend" / "pyproject.toml"
 if pyproject_path.exists():
-    content = pyproject_path.read_text(encoding='utf-8')
+    content = pyproject_path.read_text(encoding="utf-8")
     if "python-jose" in content:
         # Add comment about PyJWT migration
         new_content = content.replace(
             'python-jose = {extras = ["cryptography"], version = "^3.3.0"}',
-            '# FIXED: python-jose is deprecated. Use PyJWT instead.\n# python-jose = {extras = ["cryptography"], version = "^3.3.0"}  # TODO: migrate to PyJWT'
+            '# FIXED: python-jose is deprecated. Use PyJWT instead.\n# python-jose = {extras = ["cryptography"], version = "^3.3.0"}  # TODO: migrate to PyJWT',
         )
-        pyproject_path.write_text(new_content, encoding='utf-8')
+        pyproject_path.write_text(new_content, encoding="utf-8")
         print("  ✅ python-jose কমেন্ট আউট করা হয়েছে + TODO যোগ করা হয়েছে")
     else:
         print("  ✅ python-jose ইতিমধ্যেই ঠিক আছে")
@@ -61,17 +64,17 @@ print("=" * 70)
 q_file = BASE / "scripts" / "quality" / "check_ollama_test_coverage.py"
 t_file = BASE / "scripts" / "testing" / "check_ollama_test_coverage.py"
 if q_file.exists() and t_file.exists():
-    q_content = q_file.read_text(encoding='utf-8')
-    t_content = t_file.read_text(encoding='utf-8')
+    q_content = q_file.read_text(encoding="utf-8")
+    t_content = t_file.read_text(encoding="utf-8")
     if q_content == t_content:
         # Delete the duplicate, keep one reference
         t_file.unlink()
         # Create a stub that imports from the original
         t_file.write_text(
-            f'"""\nRedirecting to scripts/quality/check_ollama_test_coverage.py\nMerged from duplicate\n"""\n'
-            f'import sys; sys.path.insert(0, str(Path(__file__).parent.parent / "quality"))\n'
-            f'from check_ollama_test_coverage import *\n',
-            encoding='utf-8'
+            '"""\nRedirecting to scripts/quality/check_ollama_test_coverage.py\nMerged from duplicate\n"""\n'
+            'import sys; sys.path.insert(0, str(Path(__file__).parent.parent / "quality"))\n'
+            "from check_ollama_test_coverage import *\n",
+            encoding="utf-8",
         )
         print("  ✅ check_ollama_test_coverage.py — মার্জ করা হয়েছে")
     else:
@@ -86,7 +89,10 @@ r1 = BASE / "scripts" / "run_all_collectors.py"
 r2 = BASE / "scripts" / "resource_collection" / "run_all_collectors.py"
 if r1.exists() and r2.exists():
     r2.unlink()
-    r2.write_text(f'"""\nRedirecting to scripts/run_all_collectors.py\nMerged from duplicate\n"""\n', encoding='utf-8')
+    r2.write_text(
+        '"""\nRedirecting to scripts/run_all_collectors.py\nMerged from duplicate\n"""\n',
+        encoding="utf-8",
+    )
     print("  ✅ run_all_collectors.py — রিডাইরেক্ট করা হয়েছে")
 else:
     print("  ⚠️  কিছু ফাইল নেই")
@@ -105,7 +111,7 @@ if pytest_ini.exists():
         "# This file kept for backward compatibility only\n"
         "minversion = 6.0\n"
         "testpaths = tests backend/tests\n",
-        encoding='utf-8'
+        encoding="utf-8",
     )
     print("  ✅ pytest.ini মিনিমাইজ করা হয়েছে — pyproject.toml প্রাইমারি কনফিগ")
 else:
@@ -131,7 +137,7 @@ for py_file in root_pys:
         # Clear the root file (keep a minimal redirect stub)
         src.write_text(
             f'"""\nMoved to {get_relative_path(dst)}\n"""\nimport sys; sys.path.insert(0, str(Path(__file__).parent / "scripts" / "root_moved")); exec(Path(__file__).parent / "scripts" / "root_moved" / "{py_file}").read_text())\n',
-            encoding='utf-8'
+            encoding="utf-8",
         )
         print(f"  ✅ {py_file} → scripts/root_moved/")
     else:

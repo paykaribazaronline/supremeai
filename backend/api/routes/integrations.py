@@ -1,17 +1,16 @@
 from urllib.parse import urlencode
 
 import httpx
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import RedirectResponse
-from loguru import logger
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from api.dependencies import get_current_user_token
 from core.config import settings
 from core.security.security_vault import encrypt_token
 from database.session import get_db_session
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import RedirectResponse
+from loguru import logger
 from models.integration import Integration
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 # বাংলা মন্তব্য: GitHub OAuth — রিয়েল ইউজার আইডি ও DB পার্সিস্টেন্স সহ সম্পূর্ণ ফ্লো
 # আগের ভার্সনে user_id_placeholder = "test_user_id" হার্ডকোডেড ছিল এবং টোকেন DB-তে সেভ হতো না।
@@ -76,12 +75,16 @@ async def github_callback(
 
     async with httpx.AsyncClient(timeout=15.0) as client:
         # ⏱️ FIX: explicit timeout — default timeout infinite হলে serverless function hang করে বিল বাড়ায়
-        response = await client.post(token_url, json=payload, headers=headers, timeout=30.0)
+        response = await client.post(
+            token_url, json=payload, headers=headers, timeout=30.0
+        )
         data = response.json()
 
     access_token = data.get("access_token")
     if not access_token:
-        logger.warning(f"GitHub OAuth failed for user {user_id}: no access_token in response")
+        logger.warning(
+            f"GitHub OAuth failed for user {user_id}: no access_token in response"
+        )
         return RedirectResponse(
             url=f"{getattr(settings, 'frontend_base_url', 'http://localhost:5173')}/integrations?status=error&message=Failed to get access token"
         )

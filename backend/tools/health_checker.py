@@ -6,9 +6,8 @@ import sys
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from loguru import logger
-
 from core.config import settings
+from loguru import logger
 
 
 class HealthChecker:
@@ -130,17 +129,28 @@ class HealthChecker:
             return False
         lines = ["Anomaly Detection Alert"]
         for anomaly in anomalies:
-            lines.append("[" + anomaly["severity"] + "] " + anomaly["type"] + ": " + anomaly["details"])
+            lines.append(
+                "["
+                + anomaly["severity"]
+                + "] "
+                + anomaly["type"]
+                + ": "
+                + anomaly["details"]
+            )
         text = "\n".join(lines)
         if not self.telegram_bot_token or not self.admin_chat_id:
-            logger.warning("Telegram credentials not configured; anomaly report not sent")
+            logger.warning(
+                "Telegram credentials not configured; anomaly report not sent"
+            )
             return False
         try:
             import httpx
 
             url = f"https://api.telegram.org/bot{self.telegram_bot_token}/sendMessage"
             async with httpx.AsyncClient(timeout=10.0) as client:
-                await client.post(url, json={"chat_id": self.admin_chat_id, "text": text})
+                await client.post(
+                    url, json={"chat_id": self.admin_chat_id, "text": text}
+                )
             return True
         except Exception as exc:
             logger.error(f"Failed to report anomaly: {exc}")

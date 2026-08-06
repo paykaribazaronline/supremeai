@@ -179,7 +179,9 @@ class ComprehensiveHealthChecker:
                 "openrouter_api": bool(settings.openrouter_api_key),
                 "redis_configured": bool(settings.redis_url),
                 "stripe_configured": (
-                    bool(settings.stripe_api_key.get_secret_value()) if settings.stripe_api_key else False
+                    bool(settings.stripe_api_key.get_secret_value())
+                    if settings.stripe_api_key
+                    else False
                 ),
             }
 
@@ -344,9 +346,15 @@ class ComprehensiveHealthChecker:
                 checks[check_names[i]] = result.to_dict()
 
                 # Update overall status based on individual check
-                if result.status == HealthStatus.UNHEALTHY and overall_status != HealthStatus.UNHEALTHY:
+                if (
+                    result.status == HealthStatus.UNHEALTHY
+                    and overall_status != HealthStatus.UNHEALTHY
+                ):
                     overall_status = HealthStatus.UNHEALTHY
-                elif result.status == HealthStatus.DEGRADED and overall_status == HealthStatus.HEALTHY:
+                elif (
+                    result.status == HealthStatus.DEGRADED
+                    and overall_status == HealthStatus.HEALTHY
+                ):
                     overall_status = HealthStatus.DEGRADED
 
         total_response_time = (time.time() - start_time) * 1000
@@ -358,10 +366,18 @@ class ComprehensiveHealthChecker:
             "checks": checks,
             "summary": {
                 "total_checks": len(checks),
-                "healthy": sum(1 for check in checks.values() if check["status"] == "healthy"),
-                "degraded": sum(1 for check in checks.values() if check["status"] == "degraded"),
-                "unhealthy": sum(1 for check in checks.values() if check["status"] == "unhealthy"),
-                "unknown": sum(1 for check in checks.values() if check["status"] == "unknown"),
+                "healthy": sum(
+                    1 for check in checks.values() if check["status"] == "healthy"
+                ),
+                "degraded": sum(
+                    1 for check in checks.values() if check["status"] == "degraded"
+                ),
+                "unhealthy": sum(
+                    1 for check in checks.values() if check["status"] == "unhealthy"
+                ),
+                "unknown": sum(
+                    1 for check in checks.values() if check["status"] == "unknown"
+                ),
             },
         }
 

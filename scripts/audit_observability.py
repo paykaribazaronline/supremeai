@@ -5,16 +5,17 @@
 # চেক করে। যদি পাওয়া যায় তবে বিল্ড ফেইল (exit code 1) করায়।
 
 import ast
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Force UTF-8 stdout encoding where supported (e.g., Windows console)
-if hasattr(sys.stdout, 'reconfigure'):
+if hasattr(sys.stdout, "reconfigure"):
     try:
-        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stdout.reconfigure(encoding="utf-8")
     except Exception:
         pass
+
 
 def safe_print(msg: str):
     try:
@@ -22,12 +23,13 @@ def safe_print(msg: str):
     except Exception:
         # Fallback to writing bytes directly to stdout if encoding fails
         try:
-            sys.stdout.buffer.write((msg + '\n').encode('utf-8', errors='replace'))
+            sys.stdout.buffer.write((msg + "\n").encode("utf-8", errors="replace"))
             sys.stdout.buffer.flush()
         except Exception:
             # Absolute fallback: strip non-ASCII
-            clean_msg = "".join(c if ord(c) < 128 else '?' for c in msg)
+            clean_msg = "".join(c if ord(c) < 128 else "?" for c in msg)
             print(clean_msg)
+
 
 class SilentErrorDetector(ast.NodeVisitor):
     def __init__(self, filepath: str):
@@ -52,9 +54,11 @@ class SilentErrorDetector(ast.NodeVisitor):
         # Detect: if __name__ == "__main__":
         is_main = False
         if isinstance(node.test, ast.Compare):
-            if isinstance(node.test.left, ast.Name) and node.test.left.id == '__name__':
-                if len(node.test.comparators) == 1 and isinstance(node.test.comparators[0], ast.Constant):
-                    if node.test.comparators[0].value == '__main__':
+            if isinstance(node.test.left, ast.Name) and node.test.left.id == "__name__":
+                if len(node.test.comparators) == 1 and isinstance(
+                    node.test.comparators[0], ast.Constant
+                ):
+                    if node.test.comparators[0].value == "__main__":
                         is_main = True
 
         old_in_main = self.in_main_block
@@ -65,41 +69,63 @@ class SilentErrorDetector(ast.NodeVisitor):
 
     def visit_ExceptHandler(self, node: ast.ExceptHandler):
         # Check strictly for `except Exception` or bare `except:`
-        if node.type is None or (isinstance(node.type, ast.Name) and node.type.id == 'Exception'):
+        if node.type is None or (
+            isinstance(node.type, ast.Name) and node.type.id == "Exception"
+        ):
             # Check if body is strictly silent (pass, ellipsis, or empty)
             is_silent = all(
-                isinstance(stmt, ast.Pass) or
-                (isinstance(stmt, ast.Constant) and stmt.value is ...) or
-                (isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Constant) and stmt.value is ...)
+                isinstance(stmt, ast.Pass)
+                or (isinstance(stmt, ast.Constant) and stmt.value is ...)
+                or (
+                    isinstance(stmt, ast.Expr)
+                    and isinstance(stmt.value, ast.Constant)
+                    and stmt.value is ...
+                )
                 for stmt in node.body
             )
             if is_silent:
                 # বাংলা মন্তব্য: tests/ ডিরেক্টরিতে silent exception handler অনুমোদিত।
                 # কারণ: pytest fixtures এবং conftest teardown-এ `except Exception: pass`
                 # একটি স্বীকৃত প্যাটার্ন — DB cleanup failure টেস্ট রান বন্ধ করবে না।
-                normalized_path = self.filepath.replace('\\', '/')
+                normalized_path = self.filepath.replace("\\", "/")
                 is_test_file = (
-                    '/tests/' in normalized_path or
-                    normalized_path.endswith('conftest.py') or
-                    '/test_' in normalized_path
+                    "/tests/" in normalized_path
+                    or normalized_path.endswith("conftest.py")
+                    or "/test_" in normalized_path
                 )
                 if not is_test_file:
-                    self.violations.append(f"{self.filepath}:{node.lineno} - Silent exception handler (`except Exception: pass`)")
+                    self.violations.append(
+                        f"{self.filepath}:{node.lineno} - Silent exception handler (`except Exception: pass`)"
+                    )
         self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call):
         # Flag unsafe print() calls in backend
-        if isinstance(node.func, ast.Name) and node.func.id == 'print':
+        if isinstance(node.func, ast.Name) and node.func.id == "print":
             # Allow prints in scripts/, tests/, and scratch/ directories
             # Normalize path delimiters for Windows vs Unix compatibility
-            normalized_path = self.filepath.replace('\\', '/')
-            if 'backend/' in normalized_path and 'scripts/' not in normalized_path and 'tests/' not in normalized_path and 'scratch/' not in normalized_path:
+            normalized_path = self.filepath.replace("\\", "/")
+            if (
+                "backend/" in normalized_path
+                and "scripts/" not in normalized_path
+                and "tests/" not in normalized_path
+                and "scratch/" not in normalized_path
+            ):
                 # Allow prints in demo functions and inside if __name__ == "__main__":
-                if self.in_main_block or (self.current_function and any(x in self.current_function.lower() for x in ('demo', 'sample', 'simulate', 'test'))):
+                if self.in_main_block or (
+                    self.current_function
+                    and any(
+                        x in self.current_function.lower()
+                        for x in ("demo", "sample", "simulate", "test")
+                    )
+                ):
                     pass
                 else:
-                    self.violations.append(f"{self.filepath}:{node.lineno} - Unsafe `print()` statement in backend logic")
+                    self.violations.append(
+                        f"{self.filepath}:{node.lineno} - Unsafe `print()` statement in backend logic"
+                    )
         self.generic_visit(node)
+
 
 def run_audit():
     # Find the backend directory relative to this script directory
@@ -115,7 +141,7 @@ def run_audit():
         if ".venv" in py_file.parts or "venv" in py_file.parts:
             continue
         try:
-            tree = ast.parse(py_file.read_text(encoding='utf-8'))
+            tree = ast.parse(py_file.read_text(encoding="utf-8"))
             detector = SilentErrorDetector(str(py_file))
             detector.visit(tree)
             for v in detector.violations:
@@ -128,8 +154,11 @@ def run_audit():
         safe_print(f"\n🚨 Audit Failed: {total_violations} violations found.")
         sys.exit(1)
     else:
-        safe_print("\n✅ Audit Passed: Zero silent exceptions or unsafe prints detected.")
+        safe_print(
+            "\n✅ Audit Passed: Zero silent exceptions or unsafe prints detected."
+        )
         sys.exit(0)
+
 
 if __name__ == "__main__":
     run_audit()

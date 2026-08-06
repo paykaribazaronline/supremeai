@@ -40,7 +40,10 @@ def main():
                             new_content,
                         )
                         if "ErrorContext" not in new_content:
-                            new_content = "from core.messaging.event_bus import ErrorContext\n" + new_content
+                            new_content = (
+                                "from core.messaging.event_bus import ErrorContext\n"
+                                + new_content
+                            )
                     with open(filepath, "w", encoding="utf-8") as f:
                         f.write(new_content)
                     count += 1

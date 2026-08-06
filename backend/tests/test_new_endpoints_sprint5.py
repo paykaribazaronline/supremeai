@@ -12,9 +12,8 @@ os.environ.setdefault("OLLAMA_URL", "http://127.0.0.1:11434")
 
 from unittest.mock import MagicMock
 
-from fastapi.testclient import TestClient
-
 from core.app import app
+from fastapi.testclient import TestClient
 
 client = TestClient(app)
 
@@ -30,7 +29,9 @@ def _mock_db():
     db_mod.db.client = original
 
 
-@pytest.mark.skip(reason="Onboarding flow endpoint route prefix 404 in test environment")
+@pytest.mark.skip(
+    reason="Onboarding flow endpoint route prefix 404 in test environment"
+)
 class TestOnboardingFlow:
     def test_complete_onboarding_new_user(self, _mock_db):
         mock_upsert = MagicMock()
@@ -61,7 +62,9 @@ class TestOnboardingFlow:
                 "preferences": {"model_preference": "gpt-3.5-turbo"},
             }
         ]
-        _mock_db.table.return_value.select.return_value.eq.return_value.execute = existing
+        _mock_db.table.return_value.select.return_value.eq.return_value.execute = (
+            existing
+        )
         mock_upsert = MagicMock()
         _mock_db.table.return_value.upsert.return_value.execute = mock_upsert
 
@@ -86,7 +89,9 @@ class TestOnboardingFlow:
                 "default_model": "gpt-4o",
             }
         ]
-        _mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = existing
+        _mock_db.table.return_value.select.return_value.eq.return_value.execute.return_value = (
+            existing
+        )
 
         resp = client.get("/api/v1/onboarding/onboarding/status/user_abc")
         assert resp.status_code == 200
@@ -97,7 +102,11 @@ class TestOnboardingFlow:
 
 class TestSmellCheck:
     def test_smell_check_requires_path(self):
-        resp = client.post("/tools/smell-check", json={}, headers={"Authorization": "Bearer mock-token"})
+        resp = client.post(
+            "/tools/smell-check",
+            json={},
+            headers={"Authorization": "Bearer mock-token"},
+        )
         assert resp.status_code == 422
 
     def test_smell_check_invalid_path(self):
@@ -105,6 +114,8 @@ class TestSmellCheck:
 
         with patch("os.path.exists", return_value=False):
             resp = client.post(
-                "/tools/smell-check", json={"path": "/nonexistent/path"}, headers={"Authorization": "Bearer mock-token"}
+                "/tools/smell-check",
+                json={"path": "/nonexistent/path"},
+                headers={"Authorization": "Bearer mock-token"},
             )
             assert resp.status_code == 404

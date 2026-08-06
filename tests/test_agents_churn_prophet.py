@@ -1,9 +1,9 @@
 # tests/test_agents_churn_prophet.py
 """Tests for ChurnProphet - user behavior analysis and retention prediction."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
-from datetime import datetime, timedelta
 
 
 class TestBehavioralScorer:
@@ -23,7 +23,7 @@ class TestBehavioralScorer:
         custom_weights = {
             "login_frequency": 0.5,
             "session_duration": 0.3,
-            "feature_usage": 0.2
+            "feature_usage": 0.2,
         }
         scorer = BehavioralScorer(weights=custom_weights)
 
@@ -52,7 +52,7 @@ class TestUserSegment:
 
     def test_segment_regular_user(self):
         """Test regular user segmentation."""
-        from backend.agents.churn_prophet import UserSegment, BehavioralScorer
+        from backend.agents.churn_prophet import BehavioralScorer
 
         scorer = BehavioralScorer()
 
@@ -72,7 +72,8 @@ class TestChurnRiskScore:
 
     def test_churn_risk_score_creation(self):
         """Test creating a churn risk score."""
-        from backend.agents.churn_prophet import ChurnRiskScore, RiskLevel, UserSegment
+        from backend.agents.churn_prophet import (ChurnRiskScore, RiskLevel,
+                                                  UserSegment)
 
         score = ChurnRiskScore(
             user_id="test-user",
@@ -113,7 +114,7 @@ class TestChurnProphet:
     @pytest.fixture
     def mock_llm_router(self):
         """Mock LLM router for testing."""
-        with patch('core.llm_router.LLMRouter') as mock:
+        with patch("core.llm_router.LLMRouter") as mock:
             instance = MagicMock()
             mock.return_value = instance
             yield instance
@@ -146,8 +147,7 @@ class TestChurnProphet:
 
         try:
             result = await prophet.analyze_user(
-                tenant_id="test-tenant",
-                user_id="test-user"
+                tenant_id="test-tenant", user_id="test-user"
             )
             assert isinstance(result, object)
         except Exception:
@@ -169,8 +169,7 @@ class TestChurnProphet:
 
         try:
             results = await prophet.batch_analyze(
-                tenant_id="test-tenant",
-                user_ids=["user1", "user2", "user3"]
+                tenant_id="test-tenant", user_ids=["user1", "user2", "user3"]
             )
             assert isinstance(results, list)
         except Exception:

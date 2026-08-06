@@ -23,10 +23,9 @@ from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
 from typing import Any
 
-from loguru import logger
-
 from core.error_bus import with_error_bus
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
+from loguru import logger
 
 
 @dataclass
@@ -86,7 +85,9 @@ class AgentSupervisor:
             restart_delay: Initial delay before restart (doubles on each failure).
         """
         if name in self._agents and not self._agents[name].done():
-            logger.warning(f"Agent '{name}' is already running. Skipping duplicate start.")
+            logger.warning(
+                f"Agent '{name}' is already running. Skipping duplicate start."
+            )
             return
 
         self._health[name] = AgentHealth(
@@ -255,7 +256,9 @@ class AgentSupervisor:
                 health.last_error = str(exc)
                 health.status = "failed"
 
-                logger.error(f"❌ Agent '{name}' failed (attempt #{restart_count}): {exc}")
+                logger.error(
+                    f"❌ Agent '{name}' failed (attempt #{restart_count}): {exc}"
+                )
 
                 # Emit error event
                 try:
@@ -278,7 +281,9 @@ class AgentSupervisor:
 
                 # Check max restarts
                 if restart_count >= max_restarts:
-                    logger.critical(f"🔥 Agent '{name}' exceeded max restarts ({max_restarts}). Giving up permanently.")
+                    logger.critical(
+                        f"🔥 Agent '{name}' exceeded max restarts ({max_restarts}). Giving up permanently."
+                    )
                     health.status = "failed_permanent"
                     try:
                         error_event_bus.emit(
@@ -296,13 +301,16 @@ class AgentSupervisor:
                             )
                         )
                     except Exception as bus_exc:
-                        logger.warning(f"Failed to emit permanent failure event: {bus_exc}")
+                        logger.warning(
+                            f"Failed to emit permanent failure event: {bus_exc}"
+                        )
                     break
 
                 # Exponential backoff before restart
                 delay = min(restart_delay * (2 ** (restart_count - 1)), 30.0)
                 logger.info(
-                    f"🔄 Restarting agent '{name}' in {delay:.1f}s " f"(attempt {restart_count}/{max_restarts})..."
+                    f"🔄 Restarting agent '{name}' in {delay:.1f}s "
+                    f"(attempt {restart_count}/{max_restarts})..."
                 )
                 await asyncio.sleep(delay)
 
@@ -329,7 +337,10 @@ class AgentSupervisor:
                 if task and task.done() and not task.cancelled():
                     # Task died without triggering our exception handler
                     # (e.g., if the coroutine returned normally but shouldn't have)
-                    logger.warning(f"⚠️ Agent '{name}' task completed unexpectedly. " f"Status was '{health.status}'.")
+                    logger.warning(
+                        f"⚠️ Agent '{name}' task completed unexpectedly. "
+                        f"Status was '{health.status}'."
+                    )
                     health.status = "failed"
                     health.last_error = "Task completed unexpectedly"
 

@@ -28,7 +28,9 @@ class LegalAgent:
         """চুক্তি তৈরি করে (NDA, Service Agreement, ইত্যাদি)।"""
         logger.info(f"Generating {contract_type} for jurisdiction {jurisdiction}")
         parties_str = ", ".join(parties) if parties else "[Party A] and [Party B]"
-        terms_str = "\n".join(f"- {k}: {v}" for k, v in terms.items()) or "- [Specify terms]"
+        terms_str = (
+            "\n".join(f"- {k}: {v}" for k, v in terms.items()) or "- [Specify terms]"
+        )
         try:
             from brain.model_router import ModelRouter
 
@@ -39,7 +41,9 @@ class LegalAgent:
                 "Return ONLY the legal document text in Markdown, with numbered sections and placeholders "
                 "for dates/signatures."
             )
-            result = await router.async_route_and_generate(prompt, task_type="legal", max_cost=0.03)
+            result = await router.async_route_and_generate(
+                prompt, task_type="legal", max_cost=0.03
+            )
             doc = result.get("text", "") if isinstance(result, dict) else ""
             return {
                 "status": "success",
@@ -51,22 +55,30 @@ class LegalAgent:
             logger.error(f"Contract generation failed: {exc}")
             return {"status": "error", "error": str(exc)}
 
-    async def analyze_clause(self, clause_text: str, jurisdiction: str = "BD") -> dict[str, Any]:
+    async def analyze_clause(
+        self, clause_text: str, jurisdiction: str = "BD"
+    ) -> dict[str, Any]:
         """ক্লজ বিশ্লেষণ করে (রিস্ক, আইনি ইমপ্লিকেশন)।"""
         logger.info(f"Analyzing clause under {jurisdiction} jurisdiction...")
         # বাংলা মন্তব্য: স্থানীয় হিউরিস্টিক — একতরফা/অসমান অধিকার ক্লজ থাকলে সতর্ক করা হচ্ছে।
         risks: list[str] = []
         lowered = clause_text.lower()
         if "sole discretion" in lowered or "unilateral" in lowered:
-            risks.append("Clause grants unilateral discretion; may be unconscionable under consumer protection law.")
+            risks.append(
+                "Clause grants unilateral discretion; may be unconscionable under consumer protection law."
+            )
         if "waive" in lowered and "liability" in lowered:
             risks.append(
                 "Liability waiver detected; enforceability varies by jurisdiction and may be void if gross negligence."
             )
         if "indemnify" in lowered:
-            risks.append("Indemnification clause present; ensure mutual scope and caps are defined.")
+            risks.append(
+                "Indemnification clause present; ensure mutual scope and caps are defined."
+            )
         if "governing law" not in lowered and "jurisdiction" not in lowered:
-            risks.append(f"No governing law specified; defaulting to {jurisdiction} courts may be contested.")
+            risks.append(
+                f"No governing law specified; defaulting to {jurisdiction} courts may be contested."
+            )
         return {
             "status": "success",
             "jurisdiction": jurisdiction,
@@ -117,7 +129,9 @@ class LegalAgent:
             "compliant": all(f["severity"] != "high" for f in findings),
         }
 
-    async def generate_tos(self, product_description: str, jurisdiction: str = "BD") -> dict[str, Any]:
+    async def generate_tos(
+        self, product_description: str, jurisdiction: str = "BD"
+    ) -> dict[str, Any]:
         """Terms of Service / Privacy Policy জেনারেট করে।"""
         logger.info(f"Generating ToS/Privacy Policy for {jurisdiction}...")
         try:
@@ -129,7 +143,9 @@ class LegalAgent:
                 f"following product under {jurisdiction} law: {product_description}. "
                 "Return ONLY the combined legal text in Markdown with clear section headings."
             )
-            result = await router.async_route_and_generate(prompt, task_type="legal", max_cost=0.03)
+            result = await router.async_route_and_generate(
+                prompt, task_type="legal", max_cost=0.03
+            )
             doc = result.get("text", "") if isinstance(result, dict) else ""
             return {
                 "status": "success",

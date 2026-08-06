@@ -28,12 +28,12 @@ GCP চেক: নিচে commented-out রাখা হয়েছে।
   → GCP deploy enable করতে হলে শুধু uncomment করুন।
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 """
+
 import json
 import os
 import sys
 import urllib.error
 import urllib.request
-from typing import Optional
 
 # ──────────────────────────────────────────────────────────────
 # Production main repo — শুধু এই repo-তে Render/Vercel blocking থাকে।
@@ -61,7 +61,7 @@ def http_get(url: str, headers: dict, timeout: int = 8) -> int:
 # ──────────────────────────────────────────────────────────────
 # Render check
 # ──────────────────────────────────────────────────────────────
-def check_render(label: str, api_key: str, service_id: str) -> Optional[str]:
+def check_render(label: str, api_key: str, service_id: str) -> str | None:
     """
     বাংলা মন্তব্য: Render API-তে GET করে service ownership confirm করে।
     200 → ✅ Pass
@@ -72,20 +72,25 @@ def check_render(label: str, api_key: str, service_id: str) -> Optional[str]:
     """
     if not api_key:
         secret_name = "RENDER_API_KEY_BACKUP" if "BACKUP" in label else "RENDER_API_KEY"
-        return f"[{label}] ❌ FAIL: Secret is empty — set {secret_name} in GitHub Secrets"
+        return (
+            f"[{label}] ❌ FAIL: Secret is empty — set {secret_name} in GitHub Secrets"
+        )
 
     url = f"https://api.render.com/v1/services/{service_id}"
-    code = http_get(url, headers={
-        "Authorization": f"Bearer {api_key}",
-        "Accept": "application/json",
-    })
+    code = http_get(
+        url,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Accept": "application/json",
+        },
+    )
 
     diagnosis = {
         200: None,  # Pass
         401: "API key expired or revoked. Rotate the secret in GitHub Secrets.",
         403: "Key valid but permission denied. Check Render account permissions.",
         404: "Key valid but this service is NOT in this account. Configuration mismatch — wrong key for wrong account.",
-        -1:  "Network/DNS error or Render API unreachable. Check runner connectivity.",
+        -1: "Network/DNS error or Render API unreachable. Check runner connectivity.",
     }.get(code, f"Unexpected HTTP {code} from Render API.")
 
     if diagnosis is None:
@@ -106,17 +111,21 @@ def ping_render_warmup(label: str, service_url: str) -> None:
     এটি non-blocking — fail হলেও warning দেবে, CI থামাবে না।
     """
     health_url = f"{service_url.rstrip('/')}/health"
-    code = http_get(health_url, headers={"User-Agent": "SupremeAI-Preflight-Warmup/1.0"}, timeout=5)
+    code = http_get(
+        health_url, headers={"User-Agent": "SupremeAI-Preflight-Warmup/1.0"}, timeout=5
+    )
     if code == 200:
         print(f"  🔥 [{label}-WARMUP] ✅ Service is awake & active (HTTP 200)")
     else:
-        print(f"  ⏰ [{label}-WARMUP] Ping sent to {health_url} (HTTP {code}) — cold-start warm-up triggered in background.")
+        print(
+            f"  ⏰ [{label}-WARMUP] Ping sent to {health_url} (HTTP {code}) — cold-start warm-up triggered in background."
+        )
 
 
 # ──────────────────────────────────────────────────────────────
 # Vercel check
 # ──────────────────────────────────────────────────────────────
-def check_vercel(token: str) -> Optional[str]:
+def check_vercel(token: str) -> str | None:
     """
     বাংলা মন্তব্য: Vercel /v2/user endpoint-এ GET করে token validity নিশ্চিত করে।
     200 → ✅ Pass
@@ -140,35 +149,38 @@ def check_vercel(token: str) -> Optional[str]:
     diagnosis = {
         401: "Token expired or revoked. Regenerate VERCEL_TOKEN in Vercel Dashboard → Settings → Tokens.",
         403: "Token valid but insufficient permissions. Check token scope.",
-        -1:  "Network/DNS error or Vercel API unreachable.",
+        -1: "Network/DNS error or Vercel API unreachable.",
     }.get(code, f"Unexpected HTTP {code} from Vercel API.")
 
-    return (
-        f"[VERCEL] ❌ FAIL: HTTP {code}\n"
-        f"   → Diagnosis  : {diagnosis}"
-    )
+    return f"[VERCEL] ❌ FAIL: HTTP {code}\n" f"   → Diagnosis  : {diagnosis}"
 
 
 # ──────────────────────────────────────────────────────────────
 # Firebase check — WARNING ONLY (non-blocking)
 # ──────────────────────────────────────────────────────────────
-def check_firebase_warning(sa_json_str: str) -> Optional[str]:
+def check_firebase_warning(sa_json_str: str) -> str | None:
     """
     বাংলা মন্তব্য: Firebase service account JSON parse করে।
     deploy-এ continue-on-error: true আছে, তাই এটা warning-only।
     এই function কখনো blocking error ফেরত দেয় না।
     """
     if not sa_json_str:
-        print("  ⚠️  [FIREBASE] WARNING: FIREBASE_SERVICE_ACCOUNT secret is empty — Firebase deploy may fail.")
+        print(
+            "  ⚠️  [FIREBASE] WARNING: FIREBASE_SERVICE_ACCOUNT secret is empty — Firebase deploy may fail."
+        )
         return None  # Non-blocking
 
     try:
         data = json.loads(sa_json_str)
         project_id = data.get("project_id", "")
         if project_id:
-            print(f"  ✅ [FIREBASE] PASS  — service account JSON valid, project_id={project_id}")
+            print(
+                f"  ✅ [FIREBASE] PASS  — service account JSON valid, project_id={project_id}"
+            )
         else:
-            print("  ⚠️  [FIREBASE] WARNING: JSON parsed but 'project_id' field missing.")
+            print(
+                "  ⚠️  [FIREBASE] WARNING: JSON parsed but 'project_id' field missing."
+            )
     except json.JSONDecodeError as e:
         print(f"  ⚠️  [FIREBASE] WARNING: service account JSON invalid: {e}")
 
@@ -184,8 +196,12 @@ def check_secondary_mirror_warning(token: str) -> None:
     এটি Warning-only — খালি থাকলে বা সেট না থাকলে warning মেসেজ প্রিন্ট করে যাতে জানা যায় কেন মিররিং স্কিপ হতে পারে।
     """
     if not token:
-        print("  ⚠️  [SECONDARY-MIRROR] WARNING: MIRROR_REPO_TOKEN secret is empty or missing in GitHub Secrets.")
-        print("      → Secondary repository (SaifulHaqueNiloy/supremeai) will NOT automatically sync on push.")
+        print(
+            "  ⚠️  [SECONDARY-MIRROR] WARNING: MIRROR_REPO_TOKEN secret is empty or missing in GitHub Secrets."
+        )
+        print(
+            "      → Secondary repository (SaifulHaqueNiloy/supremeai) will NOT automatically sync on push."
+        )
     else:
         print("  ✅ [SECONDARY-MIRROR] PASS — MIRROR_REPO_TOKEN detected.")
 
@@ -252,21 +268,31 @@ def main() -> None:
     current_repo = os.environ.get("GITHUB_REPOSITORY", "")
     is_prod_repo = current_repo == PROD_REPO_SLUG
     if is_prod_repo:
-        print(f"🏭  Production repo detected ({current_repo}) — Render/Vercel checks are BLOCKING.\n")
+        print(
+            f"🏭  Production repo detected ({current_repo}) — Render/Vercel checks are BLOCKING.\n"
+        )
     else:
-        print(f"🧪  Non-production repo detected ({current_repo or 'unknown'}) — Render/Vercel checks are WARNING-ONLY.")
-        print(f"    (Blocking mode only applies on {PROD_REPO_SLUG}; deploy jobs are already repo-gated there too.)\n")
+        print(
+            f"🧪  Non-production repo detected ({current_repo or 'unknown'}) — Render/Vercel checks are WARNING-ONLY."
+        )
+        print(
+            f"    (Blocking mode only applies on {PROD_REPO_SLUG}; deploy jobs are already repo-gated there too.)\n"
+        )
 
     # ── Environment variables ─────────────────────────────────
-    render_key_primary  = os.environ.get("RENDER_API_KEY", "")
-    render_key_backup   = os.environ.get("RENDER_API_KEY_BACKUP", "")
-    primary_svc_id      = os.environ.get("PRIMARY_SVC_ID", "srv-d9d3n58js32c738n79k0")
-    backup_svc_id       = os.environ.get("BACKUP_SVC_ID",  "srv-d9fg48bh523c73f63bb0")
-    primary_svc_url     = os.environ.get("RENDER_PRIMARY_URL", "https://supremeai-backend.onrender.com")
-    backup_svc_url      = os.environ.get("RENDER_BACKUP_URL",  "https://supremeai-admin.onrender.com")
-    vercel_token        = os.environ.get("VERCEL_TOKEN", "")
-    firebase_sa         = os.environ.get("FIREBASE_SERVICE_ACCOUNT", "")
-    mirror_token        = os.environ.get("MIRROR_REPO_TOKEN", "")
+    render_key_primary = os.environ.get("RENDER_API_KEY", "")
+    render_key_backup = os.environ.get("RENDER_API_KEY_BACKUP", "")
+    primary_svc_id = os.environ.get("PRIMARY_SVC_ID", "srv-d9d3n58js32c738n79k0")
+    backup_svc_id = os.environ.get("BACKUP_SVC_ID", "srv-d9fg48bh523c73f63bb0")
+    primary_svc_url = os.environ.get(
+        "RENDER_PRIMARY_URL", "https://supremeai-backend.onrender.com"
+    )
+    backup_svc_url = os.environ.get(
+        "RENDER_BACKUP_URL", "https://supremeai-admin.onrender.com"
+    )
+    vercel_token = os.environ.get("VERCEL_TOKEN", "")
+    firebase_sa = os.environ.get("FIREBASE_SERVICE_ACCOUNT", "")
+    mirror_token = os.environ.get("MIRROR_REPO_TOKEN", "")
     # gcp_sa_key        = os.environ.get("GCP_SA_KEY", "")        # uncomment when GCP enabled
     # gcp_project_id    = os.environ.get("GCP_PROJECT_ID", "")    # uncomment when GCP enabled
 
@@ -280,7 +306,9 @@ def main() -> None:
         if is_prod_repo:
             blocking_errors.append(err)
         else:
-            print(f"  ⚠️  [RENDER-PRIMARY] WARNING (non-prod repo, non-blocking):\n{err}")
+            print(
+                f"  ⚠️  [RENDER-PRIMARY] WARNING (non-prod repo, non-blocking):\n{err}"
+            )
     else:
         ping_render_warmup("RENDER-PRIMARY", primary_svc_url)
 
@@ -291,7 +319,9 @@ def main() -> None:
         if is_prod_repo:
             blocking_errors.append(err)
         else:
-            print(f"  ⚠️  [RENDER-BACKUP] WARNING (non-prod repo, non-blocking):\n{err}")
+            print(
+                f"  ⚠️  [RENDER-BACKUP] WARNING (non-prod repo, non-blocking):\n{err}"
+            )
     else:
         ping_render_warmup("RENDER-BACKUP", backup_svc_url)
 
@@ -321,7 +351,9 @@ def main() -> None:
     # ── Result summary ────────────────────────────────────────
     print("\n" + "━" * 60)
     if blocking_errors:
-        print(f"❌  PREFLIGHT FAILED — {len(blocking_errors)} blocking issue(s) found:\n")
+        print(
+            f"❌  PREFLIGHT FAILED — {len(blocking_errors)} blocking issue(s) found:\n"
+        )
         for i, error in enumerate(blocking_errors, 1):
             print(f"  {i}. {error}\n")
         print("   Pipeline aborted. Fix credentials before re-running.")

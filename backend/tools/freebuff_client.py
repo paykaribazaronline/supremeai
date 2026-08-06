@@ -11,7 +11,9 @@ class FreebuffClient:
         self.timeout = timeout
 
     async def delegate_task(self, command_args: list) -> dict:
-        logger.info(f"📡 Delegating asynchronous workload to external CLI tool: {self.binary_path}")
+        logger.info(
+            f"📡 Delegating asynchronous workload to external CLI tool: {self.binary_path}"
+        )
         try:
             proc = await asyncio.create_subprocess_exec(
                 self.binary_path,
@@ -30,7 +32,7 @@ class FreebuffClient:
                 "stdout": stdout.decode().strip(),
                 "stderr": stderr.decode().strip(),
             }
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error(
                 f"🔴 Freebuff CLI execution timed out after {self.timeout}s. "
                 "Killing process."

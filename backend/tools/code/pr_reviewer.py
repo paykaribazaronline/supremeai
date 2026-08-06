@@ -2,9 +2,8 @@ import json
 import re
 from typing import Any
 
-from loguru import logger
-
 from core.config import settings
+from loguru import logger
 
 try:
     from github import Github
@@ -31,11 +30,15 @@ class PRReviewer:
     def __init__(self, github_token: str | None = None):
         self.github_token = github_token or getattr(settings, "github_token", None)
         if not self.github_token:
-            logger.warning("GITHUB_TOKEN not found. PR reviewer will run in dry-run mode.")
+            logger.warning(
+                "GITHUB_TOKEN not found. PR reviewer will run in dry-run mode."
+            )
             self.gh = None
         else:
             if not _GITHUB_AVAILABLE:
-                raise ImportError("PyGithub is not installed. Please run 'pip install PyGithub'")
+                raise ImportError(
+                    "PyGithub is not installed. Please run 'pip install PyGithub'"
+                )
             self.gh = Github(self.github_token)
 
     async def analyze_diff(self, diff_content: str) -> list[dict[str, Any]]:
@@ -110,7 +113,9 @@ class PRReviewer:
                 f"Diff:\n{diff_content[:4000]}"
             )
 
-            result = await router.async_route_and_generate(prompt, task_type="coding", max_cost=0.03)
+            result = await router.async_route_and_generate(
+                prompt, task_type="coding", max_cost=0.03
+            )
             text = result.get("text", "") if isinstance(result, dict) else str(result)
 
             cleaned = text.strip()
@@ -133,14 +138,18 @@ class PRReviewer:
                                 }
                             )
             except (json.JSONDecodeError, ValueError) as _json_err:
-                logger.warning(f"Failed to parse LLM response in PRReviewer: {_json_err}")
+                logger.warning(
+                    f"Failed to parse LLM response in PRReviewer: {_json_err}"
+                )
         except BaseException as _router_err:
             # বাংলা মন্তব্য: ExceptionGroup (Python 3.11+ TaskGroup) সহ সব ধরনের exception gracefully হ্যান্ডেল করা হচ্ছে।
             logger.warning(f"ModelRouter call failed in PRReviewer: {_router_err}")
 
         return issues
 
-    async def check_style_compliance(self, diff_content: str, repo_path: str = "default") -> list[dict[str, Any]]:
+    async def check_style_compliance(
+        self, diff_content: str, repo_path: str = "default"
+    ) -> list[dict[str, Any]]:
         """ব্যবহারকারীর শেখা স্টাইল দিয়ে কমপ্লায়েন্স চেক করে।"""
         issues: list[dict[str, Any]] = []
         try:
@@ -152,7 +161,9 @@ class PRReviewer:
                 # বাংলা মন্তব্য: স্টাইল গাইডলাইন লঙ্ঘন হলে সেটি ইস্যু হিসেবে যোগ করা হচ্ছে।
                 if "snake_case" in style_prompt:
                     for i, line in enumerate(diff_content.split("\n")):
-                        if line.startswith("+") and re.search(r"def\s+[a-z]+[A-Z]", line):
+                        if line.startswith("+") and re.search(
+                            r"def\s+[a-z]+[A-Z]", line
+                        ):
                             issues.append(
                                 {
                                     "path": "unknown",
@@ -175,8 +186,14 @@ class PRReviewer:
 
             detector = CodeSmellDetector()
             # বাংলা মন্তব্য: ডিফ থেকে শুধু যোগ করা (+) লাইনগুলো নিয়ে অস্থায়ী ফাইল বানিয়ে স্ক্যান করা হচ্ছে।
-            added_lines = [ln[1:] for ln in diff_content.split("\n") if ln.startswith("+") and not ln.startswith("+++")]
-            with tempfile.NamedTemporaryFile(suffix=".py", delete=False, mode="w") as tmp:
+            added_lines = [
+                ln[1:]
+                for ln in diff_content.split("\n")
+                if ln.startswith("+") and not ln.startswith("+++")
+            ]
+            with tempfile.NamedTemporaryFile(
+                suffix=".py", delete=False, mode="w"
+            ) as tmp:
                 tmp.write("\n".join(added_lines))
                 tmp_path = tmp.name
             try:
@@ -186,7 +203,9 @@ class PRReviewer:
                         {
                             "path": "unknown",
                             "line": s.get("line", 0),
-                            "severity": ("warning" if s.get("severity") == "warning" else "info"),
+                            "severity": (
+                                "warning" if s.get("severity") == "warning" else "info"
+                            ),
                             "body": f"Code Smell: {s.get('type')} — {s.get('message', '')}",
                         }
                     )
@@ -232,10 +251,18 @@ class PRReviewer:
             if comments:
                 summary_lines = ["### 🤖 AI Code Review Findings", ""]
                 for c in comments:
-                    sev_icon = "🔴" if c["severity"] == "critical" else ("🟡" if c["severity"] == "high" else "🔵")
-                    summary_lines.append(f"- {sev_icon} **[{c['severity'].upper()}]** in `{c['path']}`: {c['body']}")
+                    sev_icon = (
+                        "🔴"
+                        if c["severity"] == "critical"
+                        else ("🟡" if c["severity"] == "high" else "🔵")
+                    )
+                    summary_lines.append(
+                        f"- {sev_icon} **[{c['severity'].upper()}]** in `{c['path']}`: {c['body']}"
+                    )
 
-                await self._post_pr_comment(repo_full_name, pr_number, "\n".join(summary_lines))
+                await self._post_pr_comment(
+                    repo_full_name, pr_number, "\n".join(summary_lines)
+                )
 
             # বাংলা মন্তব্য: সব চেক পাস করলে অটো-অপ্রুভ করা হচ্ছে।
             if not comments and not has_critical:
@@ -246,7 +273,9 @@ class PRReviewer:
             logger.error(f"Error reviewing PR: {e}")
             return {"status": "error", "error": str(e), "comments": []}
 
-    async def _auto_approve(self, repo_full_name: str, pr_number: int) -> dict[str, Any]:
+    async def _auto_approve(
+        self, repo_full_name: str, pr_number: int
+    ) -> dict[str, Any]:
         """সব চেক পাস করলে PR অটো-অপ্রুভ করে।"""
         if not self.gh:
             logger.warning(f"Dry-run: Would auto-approve {repo_full_name}#{pr_number}")
@@ -263,11 +292,15 @@ class PRReviewer:
             logger.error(f"Auto-approve failed: {e}")
             return {"status": "error", "error": str(e)}
 
-    async def _post_pr_comment(self, repo_full_name: str, pr_number: int, comment_body: str) -> dict[str, Any]:
+    async def _post_pr_comment(
+        self, repo_full_name: str, pr_number: int, comment_body: str
+    ) -> dict[str, Any]:
         """Posts a comment on a pull request."""
         # বাংলা মন্তব্য: গিটহাব এপিআই দিয়ে পিআর-এ রিভিউ কমেন্ট পোস্ট করা হচ্ছে।
         if not self.gh:
-            logger.warning(f"Dry-run: Would post to {repo_full_name}#{pr_number}: {comment_body}")
+            logger.warning(
+                f"Dry-run: Would post to {repo_full_name}#{pr_number}: {comment_body}"
+            )
             return {"status": "success", "comment_url": "dry-run-url"}
 
         try:

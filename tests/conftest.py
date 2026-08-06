@@ -94,7 +94,9 @@ def mock_genai():
         mock_response.text = "Test answer from AI"
         mock_response.candidates = []
 
-        mock_genai_module.Client.return_value.models.generate_content.return_value = mock_response
+        mock_genai_module.Client.return_value.models.generate_content.return_value = (
+            mock_response
+        )
         yield mock_genai_module
 
 

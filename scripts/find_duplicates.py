@@ -16,15 +16,14 @@ import ast
 import json
 import os
 import sys
-from collections import defaultdict
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
 
 @dataclass
 class CodeBlock:
     """Represents a code block for duplicate detection."""
+
     file_path: str
     start_line: int
     end_line: int
@@ -37,6 +36,7 @@ class CodeBlock:
 @dataclass
 class DuplicateGroup:
     """Represents a group of duplicate code blocks."""
+
     blocks: list[CodeBlock] = field(default_factory=list)
     similarity_score: float = 0.0
 
@@ -73,9 +73,7 @@ def extract_functions(file_path: str) -> list[CodeBlock]:
 
                 # Get the code for this function
                 lines = source.splitlines()
-                func_code = "\n".join(
-                    lines[start_line - 1:end_line]
-                )
+                func_code = "\n".join(lines[start_line - 1 : end_line])
 
                 # Create AST dump for comparison
                 ast_dump = ast.dump(node)
@@ -83,15 +81,17 @@ def extract_functions(file_path: str) -> list[CodeBlock]:
                 # Calculate complexity
                 complexity = get_ast_complexity(node)
 
-                blocks.append(CodeBlock(
-                    file_path=file_path,
-                    start_line=start_line,
-                    end_line=end_line,
-                    function_name=node.name,
-                    code=func_code,
-                    ast_dump=ast_dump,
-                    complexity=complexity,
-                ))
+                blocks.append(
+                    CodeBlock(
+                        file_path=file_path,
+                        start_line=start_line,
+                        end_line=end_line,
+                        function_name=node.name,
+                        code=func_code,
+                        ast_dump=ast_dump,
+                        complexity=complexity,
+                    )
+                )
 
     except (SyntaxError, UnicodeDecodeError) as e:
         print(f"  ⚠️  Skipping {file_path}: {e}", file=sys.stderr)
@@ -221,14 +221,16 @@ def generate_report(
 
         for block in group.blocks:
             rel_path = os.path.relpath(block.file_path)
-            dup_entry["blocks"].append({
-                "file": rel_path,
-                "function": block.function_name,
-                "start_line": block.start_line,
-                "end_line": block.end_line,
-                "line_count": block.end_line - block.start_line + 1,
-                "complexity": block.complexity,
-            })
+            dup_entry["blocks"].append(
+                {
+                    "file": rel_path,
+                    "function": block.function_name,
+                    "start_line": block.start_line,
+                    "end_line": block.end_line,
+                    "line_count": block.end_line - block.start_line + 1,
+                    "complexity": block.complexity,
+                }
+            )
 
         report["duplicates"].append(dup_entry)
 
@@ -259,8 +261,10 @@ def print_summary(duplicates: list[DuplicateGroup]) -> None:
         print(f"\n  Group {i}: Similarity = {group.similarity_score:.1%}")
         for block in group.blocks:
             rel_path = os.path.relpath(block.file_path)
-            print(f"    • {rel_path}:{block.start_line}-{block.end_line} "
-                  f"({block.function_name}, {block.end_line - block.start_line + 1} lines)")
+            print(
+                f"    • {rel_path}:{block.start_line}-{block.end_line} "
+                f"({block.function_name}, {block.end_line - block.start_line + 1} lines)"
+            )
 
     if len(duplicates) > 20:
         print(f"\n  ... and {len(duplicates) - 20} more groups")
@@ -273,29 +277,34 @@ def main():
         description="Find duplicate code in the SupremeAI 2.0 codebase"
     )
     parser.add_argument(
-        "--directory", "-d",
+        "--directory",
+        "-d",
         default="backend",
         help="Directory to scan (default: backend)",
     )
     parser.add_argument(
-        "--min-lines", "-m",
+        "--min-lines",
+        "-m",
         type=int,
         default=5,
         help="Minimum lines for a block to be considered (default: 5)",
     )
     parser.add_argument(
-        "--min-similarity", "-s",
+        "--min-similarity",
+        "-s",
         type=float,
         default=0.7,
         help="Minimum similarity score (default: 0.7)",
     )
     parser.add_argument(
-        "--output", "-o",
+        "--output",
+        "-o",
         default="reports/duplicates.json",
         help="Output file for JSON report (default: reports/duplicates.json)",
     )
     parser.add_argument(
-        "--ignore", "-i",
+        "--ignore",
+        "-i",
         nargs="+",
         default=["tests", "migrations", "__pycache__", ".venv", "node_modules"],
         help="Directories to ignore",

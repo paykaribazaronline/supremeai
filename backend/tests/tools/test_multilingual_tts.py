@@ -13,9 +13,15 @@ class TestMultilingualTTS:
     def setup(self, monkeypatch, tmp_path):
         monkeypatch.setenv("ELEVENLABS_API_KEY", "")
         monkeypatch.setenv("TTS_CACHE_TTL", "86400")
-        monkeypatch.setattr("tools.media.multilingual_tts.os.path.join", lambda *parts: str(tmp_path))
-        monkeypatch.setattr("tools.media.multilingual_tts.os.makedirs", lambda *a, **k: None)
-        monkeypatch.setattr("tools.media.multilingual_tts.os.path.exists", lambda p: False)
+        monkeypatch.setattr(
+            "tools.media.multilingual_tts.os.path.join", lambda *parts: str(tmp_path)
+        )
+        monkeypatch.setattr(
+            "tools.media.multilingual_tts.os.makedirs", lambda *a, **k: None
+        )
+        monkeypatch.setattr(
+            "tools.media.multilingual_tts.os.path.exists", lambda p: False
+        )
         monkeypatch.setattr(
             "tools.media.multilingual_tts.os.path.getmtime",
             lambda p: time.time() - 99999,
@@ -70,31 +76,45 @@ class TestMultilingualTTS:
         assert "mp3" in path
 
     def test_cache_hit(self, monkeypatch, tmp_path):
-        monkeypatch.setattr("tools.media.multilingual_tts.os.path.exists", lambda p: True)
-        monkeypatch.setattr("tools.media.multilingual_tts.os.path.getmtime", lambda p: time.time() - 100)
+        monkeypatch.setattr(
+            "tools.media.multilingual_tts.os.path.exists", lambda p: True
+        )
+        monkeypatch.setattr(
+            "tools.media.multilingual_tts.os.path.getmtime", lambda p: time.time() - 100
+        )
         result = self.tts._cache_hit("hello", "en")
         # cache hit (TTL 86400)
         assert result is not None
 
     def test_cache_miss(self, monkeypatch):
-        monkeypatch.setattr("tools.media.multilingual_tts.os.path.exists", lambda p: False)
+        monkeypatch.setattr(
+            "tools.media.multilingual_tts.os.path.exists", lambda p: False
+        )
         result = self.tts._cache_hit("hello", "en")
         assert result is None
 
     def test_cache_stale(self, monkeypatch):
-        monkeypatch.setattr("tools.media.multilingual_tts.os.path.exists", lambda p: True)
+        monkeypatch.setattr(
+            "tools.media.multilingual_tts.os.path.exists", lambda p: True
+        )
         monkeypatch.setattr(
             "tools.media.multilingual_tts.os.path.getmtime",
             lambda p: time.time() - 99999,
         )
-        monkeypatch.setattr("tools.media.multilingual_tts.os.getenv", lambda k, d=None: "1")
+        monkeypatch.setattr(
+            "tools.media.multilingual_tts.os.getenv", lambda k, d=None: "1"
+        )
         result = self.tts._cache_hit("hello", "en")
         assert result is None
 
     @pytest.mark.asyncio
     async def test_synthesize_cache_hit(self, monkeypatch):
-        monkeypatch.setattr("tools.media.multilingual_tts.os.path.exists", lambda p: True)
-        monkeypatch.setattr("tools.media.multilingual_tts.os.path.getmtime", lambda p: time.time() - 100)
+        monkeypatch.setattr(
+            "tools.media.multilingual_tts.os.path.exists", lambda p: True
+        )
+        monkeypatch.setattr(
+            "tools.media.multilingual_tts.os.path.getmtime", lambda p: time.time() - 100
+        )
         result = await self.tts.synthesize("Hi there")
         assert result["status"] == "success"
         assert result["cached"] is True
@@ -102,7 +122,9 @@ class TestMultilingualTTS:
 
     @pytest.mark.asyncio
     async def test_synthesize_gtts(self, monkeypatch):
-        monkeypatch.setattr("tools.media.multilingual_tts.os.path.exists", lambda p: False)
+        monkeypatch.setattr(
+            "tools.media.multilingual_tts.os.path.exists", lambda p: False
+        )
         mock_gtts = MagicMock()
         mock_tts = MagicMock()
         mock_gtts.gTTS.return_value = mock_tts
@@ -114,7 +136,9 @@ class TestMultilingualTTS:
 
     @pytest.mark.asyncio
     async def test_synthesize_edge_tts(self, monkeypatch):
-        monkeypatch.setattr("tools.media.multilingual_tts.os.path.exists", lambda p: False)
+        monkeypatch.setattr(
+            "tools.media.multilingual_tts.os.path.exists", lambda p: False
+        )
         mock_communicate = AsyncMock()
         mock_communicate.save = AsyncMock()
         mock_edge = MagicMock()
@@ -127,7 +151,9 @@ class TestMultilingualTTS:
 
     @pytest.mark.asyncio
     async def test_synthesize_unsupported_language(self, monkeypatch):
-        monkeypatch.setattr("tools.media.multilingual_tts.os.path.exists", lambda p: False)
+        monkeypatch.setattr(
+            "tools.media.multilingual_tts.os.path.exists", lambda p: False
+        )
         with patch.dict("sys.modules", {"gtts": MagicMock(), "edge_tts": MagicMock()}):
             mock_gtts = MagicMock()
             mock_gtts.gTTS.side_effect = Exception("boom")
@@ -137,7 +163,9 @@ class TestMultilingualTTS:
 
     @pytest.mark.asyncio
     async def test_synthesize_edge_tts_import_error(self, monkeypatch):
-        monkeypatch.setattr("tools.media.multilingual_tts.os.path.exists", lambda p: False)
+        monkeypatch.setattr(
+            "tools.media.multilingual_tts.os.path.exists", lambda p: False
+        )
         with patch.dict("sys.modules", {"edge_tts": None, "gtts": MagicMock()}):
             mock_gtts = MagicMock()
             mock_gtts.gTTS.side_effect = Exception("gtts failed")
@@ -161,7 +189,9 @@ class TestMultilingualTTS:
             patch("os.makedirs"),
             patch("builtins.open", MagicMock()),
         ):
-            result = await self.tts._elevenlabs("Hello", "/tmp/out.mp3", "en", None, 0.5, 0.75)
+            result = await self.tts._elevenlabs(
+                "Hello", "/tmp/out.mp3", "en", None, 0.5, 0.75
+            )
         assert result["status"] == "success"
         assert result["provider"] == "elevenlabs"
 
@@ -177,7 +207,9 @@ class TestMultilingualTTS:
         mock_client.__aenter__.return_value = mock_aenter
 
         with patch("httpx.AsyncClient", return_value=mock_client):
-            result = await self.tts._elevenlabs("Hello", "/tmp/out.mp3", "en", None, 0.5, 0.75)
+            result = await self.tts._elevenlabs(
+                "Hello", "/tmp/out.mp3", "en", None, 0.5, 0.75
+            )
         assert result["status"] == "error"
         assert "500" in result["error"]
 
@@ -188,7 +220,9 @@ class TestMultilingualTTS:
         mock_aenter.post.side_effect = Exception("network error")
         mock_client.__aenter__.return_value = mock_aenter
         with patch("httpx.AsyncClient", return_value=mock_client):
-            result = await self.tts._elevenlabs("Hello", "/tmp/out.mp3", "en", None, 0.5, 0.75)
+            result = await self.tts._elevenlabs(
+                "Hello", "/tmp/out.mp3", "en", None, 0.5, 0.75
+            )
         assert result["status"] == "error"
 
     @pytest.mark.asyncio
@@ -281,7 +315,9 @@ class TestMultilingualTTS:
         mock_edge.Communicate.return_value = mock_communicate
 
         with (
-            patch.object(self.tts, "_elevenlabs_stream", side_effect=Exception("eleven error")),
+            patch.object(
+                self.tts, "_elevenlabs_stream", side_effect=Exception("eleven error")
+            ),
             patch.dict("sys.modules", {"edge_tts": mock_edge}),
         ):
             chunks = []

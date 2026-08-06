@@ -8,17 +8,15 @@ MCP Server for Supabase/Postgres Database Integration in SupremeAI 2.0.
 """
 
 import json
-
 # বাংলা মন্তব্য: পরিবেশের ভেরিয়েবল চেক করার জন্য os মডিউল ইমপোর্ট করা হলো
 import os
 from enum import StrEnum
 from typing import Any
 
 import psycopg2
+from core.config import settings
 from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, ConfigDict, Field
-
-from core.config import settings
 
 mcp = FastMCP("supabase_mcp")
 
@@ -47,8 +45,12 @@ class ExecuteQueryInput(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
     query: str = Field(..., description="এক্সিকিউট করার SQL কুয়েরি", min_length=1)
-    params: list[Any] | None = Field(default_factory=list, description="কুয়েরি প্যারামিটারস (ঐচ্ছিক)")
-    response_format: ResponseFormat = Field(default=ResponseFormat.MARKDOWN, description="আউটপুট ফরম্যাট")
+    params: list[Any] | None = Field(
+        default_factory=list, description="কুয়েরি প্যারামিটারস (ঐচ্ছিক)"
+    )
+    response_format: ResponseFormat = Field(
+        default=ResponseFormat.MARKDOWN, description="আউটপুট ফরম্যাট"
+    )
 
 
 class CreateTableInput(BaseModel):
@@ -56,8 +58,12 @@ class CreateTableInput(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
-    table_name: str = Field(..., description="তৈরি করার টেবিলের নাম", min_length=1, max_length=100)
-    columns: str = Field(..., description="কলাম ডেফিনিশন (SQL সিনট্যাক্স)", min_length=1)
+    table_name: str = Field(
+        ..., description="তৈরি করার টেবিলের নাম", min_length=1, max_length=100
+    )
+    columns: str = Field(
+        ..., description="কলাম ডেফিনিশন (SQL সিনট্যাক্স)", min_length=1
+    )
     if_not_exists: bool = Field(default=True, description="IF NOT EXISTS যোগ করবে কিনা")
 
 
@@ -66,7 +72,9 @@ class MigrationInput(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
-    migration_name: str = Field(..., description="মাইগ্রেশনের নাম", min_length=1, max_length=100)
+    migration_name: str = Field(
+        ..., description="মাইগ্রেশনের নাম", min_length=1, max_length=100
+    )
     up_sql: str = Field(..., description="UP migration SQL", min_length=1)
     down_sql: str = Field(..., description="DOWN migration SQL", min_length=1)
 
@@ -134,7 +142,9 @@ async def supabase_execute_sql(params: ExecuteQueryInput) -> str:
     )
     # বাংলা মন্তব্য: কেবলমাত্র সত্যিকারের ডেস্ট্রাকটিভ অপারেশনগুলো চেক করা হচ্ছে
     destructive_keywords = ["drop", "delete", "truncate", "alter"]
-    if not admin_authorized and any(kw in params.query.lower() for kw in destructive_keywords):
+    if not admin_authorized and any(
+        kw in params.query.lower() for kw in destructive_keywords
+    ):
         return json.dumps(
             {
                 "error": "Admin authorization required for destructive operations",
@@ -144,13 +154,17 @@ async def supabase_execute_sql(params: ExecuteQueryInput) -> str:
         )
 
     if not _get_supabase_db_url():
-        return json.dumps({"error": "SUPABASE_DATABASE_URL not configured"}, ensure_ascii=False)
+        return json.dumps(
+            {"error": "SUPABASE_DATABASE_URL not configured"}, ensure_ascii=False
+        )
 
     conn = None
     try:
         conn = _get_connection()
         if not conn:
-            return json.dumps({"error": "Failed to connect to database"}, ensure_ascii=False)
+            return json.dumps(
+                {"error": "Failed to connect to database"}, ensure_ascii=False
+            )
 
         cur = conn.cursor()
         cur.execute(params.query, params.params if params.params else None)
@@ -242,18 +256,33 @@ async def supabase_create_table(params: CreateTableInput) -> str:
         )
 
     if not _get_supabase_db_url():
-        return json.dumps({"error": "SUPABASE_DATABASE_URL not configured"}, ensure_ascii=False)
+        return json.dumps(
+            {"error": "SUPABASE_DATABASE_URL not configured"}, ensure_ascii=False
+        )
 
     # Security Fix: Validate table_name and columns to prevent SQL injection.
     # Only allow alphanumeric, underscore, and basic SQL type syntax.
     import re as _re
+
     if not _re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", params.table_name):
-        return json.dumps({"error": "Invalid table name. Only alphanumeric and underscore characters allowed."}, ensure_ascii=False)
+        return json.dumps(
+            {
+                "error": "Invalid table name. Only alphanumeric and underscore characters allowed."
+            },
+            ensure_ascii=False,
+        )
     # Remove backticks/quotes from columns and validate - allow only safe SQL column defs
     safe_columns = params.columns.replace("--", "").replace(";", "")
     _allowed_column_re = r"^[a-zA-Z_][a-zA-Z0-9_\s,().]+"
-    if not _re.match(_allowed_column_re, safe_columns) or ";" in safe_columns or "--" in safe_columns:
-        return json.dumps({"error": "Invalid column definition. Potentially dangerous SQL detected."}, ensure_ascii=False)
+    if (
+        not _re.match(_allowed_column_re, safe_columns)
+        or ";" in safe_columns
+        or "--" in safe_columns
+    ):
+        return json.dumps(
+            {"error": "Invalid column definition. Potentially dangerous SQL detected."},
+            ensure_ascii=False,
+        )
 
     if_not_exists = "IF NOT EXISTS" if params.if_not_exists else ""
     query = f"CREATE TABLE {if_not_exists} {params.table_name} ({safe_columns})"
@@ -262,7 +291,9 @@ async def supabase_create_table(params: CreateTableInput) -> str:
     try:
         conn = _get_connection()
         if not conn:
-            return json.dumps({"error": "Failed to connect to database"}, ensure_ascii=False)
+            return json.dumps(
+                {"error": "Failed to connect to database"}, ensure_ascii=False
+            )
 
         cur = conn.cursor()
         cur.execute(query)
@@ -320,16 +351,22 @@ async def supabase_run_migration(params: MigrationInput) -> str:
         or os.environ.get("ADMIN_AUTHORIZED", "false").lower() == "true"
     )
     if not admin_authorized:
-        return json.dumps({"error": "Admin authorization required for migrations"}, ensure_ascii=False)
+        return json.dumps(
+            {"error": "Admin authorization required for migrations"}, ensure_ascii=False
+        )
 
     if not _get_supabase_db_url():
-        return json.dumps({"error": "SUPABASE_DATABASE_URL not configured"}, ensure_ascii=False)
+        return json.dumps(
+            {"error": "SUPABASE_DATABASE_URL not configured"}, ensure_ascii=False
+        )
 
     conn = None
     try:
         conn = _get_connection()
         if not conn:
-            return json.dumps({"error": "Failed to connect to database"}, ensure_ascii=False)
+            return json.dumps(
+                {"error": "Failed to connect to database"}, ensure_ascii=False
+            )
 
         cur = conn.cursor()
 
@@ -343,7 +380,9 @@ async def supabase_run_migration(params: MigrationInput) -> str:
             )
         """)
 
-        cur.execute("SELECT id FROM migrations WHERE name = %s", (params.migration_name,))
+        cur.execute(
+            "SELECT id FROM migrations WHERE name = %s", (params.migration_name,)
+        )
         if cur.fetchone():
             conn.close()
             return json.dumps(
@@ -396,13 +435,17 @@ async def supabase_list_tables() -> str:
         str: টেবিল তালিকা JSON ফরম্যাটে
     """
     if not _get_supabase_db_url():
-        return json.dumps({"error": "SUPABASE_DATABASE_URL not configured"}, ensure_ascii=False)
+        return json.dumps(
+            {"error": "SUPABASE_DATABASE_URL not configured"}, ensure_ascii=False
+        )
 
     conn = None
     try:
         conn = _get_connection()
         if not conn:
-            return json.dumps({"error": "Failed to connect to database"}, ensure_ascii=False)
+            return json.dumps(
+                {"error": "Failed to connect to database"}, ensure_ascii=False
+            )
 
         cur = conn.cursor()
         cur.execute("""
@@ -437,8 +480,13 @@ class ExplainQueryInput(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
-    query: str = Field(..., description="বিশ্লেষণ করার জন্য SQL EXPLAIN কোয়েরি", min_length=5)
-    analyze: bool = Field(default=False, description="সত্যিই এক্সিকিউট করে নিখুঁত টাইম পরিমাপ করবে কি না (ANALYZE)")
+    query: str = Field(
+        ..., description="বিশ্লেষণ করার জন্য SQL EXPLAIN কোয়েরি", min_length=5
+    )
+    analyze: bool = Field(
+        default=False,
+        description="সত্যিই এক্সিকিউট করে নিখুঁত টাইম পরিমাপ করবে কি না (ANALYZE)",
+    )
 
 
 class DescribeTableInput(BaseModel):
@@ -446,7 +494,9 @@ class DescribeTableInput(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True, validate_assignment=True)
 
-    table_name: str = Field(..., description="যে টেবিলের কলাম ও ইনডেক্স স্ট্রাকচার দেখা হবে", min_length=1)
+    table_name: str = Field(
+        ..., description="যে টেবিলের কলাম ও ইনডেক্স স্ট্রাকচার দেখা হবে", min_length=1
+    )
 
 
 @mcp.tool(
@@ -473,7 +523,9 @@ async def supabase_explain_query(params: ExplainQueryInput) -> str:
     try:
         conn = _get_connection()
         if not conn:
-            return json.dumps({"error": "Failed to connect to database"}, ensure_ascii=False)
+            return json.dumps(
+                {"error": "Failed to connect to database"}, ensure_ascii=False
+            )
 
         explain_sql = f"EXPLAIN {'(ANALYZE, FORMAT JSON)' if params.analyze else '(FORMAT JSON)'} {params.query}"
 
@@ -483,7 +535,9 @@ async def supabase_explain_query(params: ExplainQueryInput) -> str:
         cur.close()
 
         if plan and plan[0]:
-            return json.dumps({"query": params.query, "plan": plan[0]}, ensure_ascii=False)
+            return json.dumps(
+                {"query": params.query, "plan": plan[0]}, ensure_ascii=False
+            )
         return json.dumps({"error": "No execution plan returned."}, ensure_ascii=False)
 
     except Exception as e:
@@ -520,7 +574,9 @@ async def supabase_describe_table(params: DescribeTableInput) -> str:
     try:
         conn = _get_connection()
         if not conn:
-            return json.dumps({"error": "Failed to connect to database"}, ensure_ascii=False)
+            return json.dumps(
+                {"error": "Failed to connect to database"}, ensure_ascii=False
+            )
 
         cur = conn.cursor()
         cur.execute(
@@ -542,12 +598,22 @@ async def supabase_describe_table(params: DescribeTableInput) -> str:
         cur.close()
 
         if not columns:
-            return json.dumps({"error": f"Table '{params.table_name}' not found"}, ensure_ascii=False)
+            return json.dumps(
+                {"error": f"Table '{params.table_name}' not found"}, ensure_ascii=False
+            )
 
         return json.dumps(
             {
                 "table": params.table_name,
-                "columns": [{"name": c[0], "type": c[1], "nullable": c[2] == "YES", "default": c[3]} for c in columns],
+                "columns": [
+                    {
+                        "name": c[0],
+                        "type": c[1],
+                        "nullable": c[2] == "YES",
+                        "default": c[3],
+                    }
+                    for c in columns
+                ],
                 "indexes": [{"name": i[0], "definition": i[1]} for i in indexes],
             },
             ensure_ascii=False,

@@ -61,7 +61,9 @@ class BrowserStealth:
             logger.info(f"Playwright stealth browser launching via proxy: {next_proxy}")
 
         self.context = await browser.new_context(**context_kwargs)
-        await self.context.route("**/*.{png,jpg,jpeg,gif,svg,woff,woff2}", lambda route: route.abort())
+        await self.context.route(
+            "**/*.{png,jpg,jpeg,gif,svg,woff,woff2}", lambda route: route.abort()
+        )
         await self.context.add_init_script("""
             (() => {
                 // --- General Navigator Spoofing ---

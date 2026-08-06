@@ -24,34 +24,25 @@ Usage:
 
 from __future__ import annotations
 
-from core.tier8.agent_evolution_engine import (
-    AgentEvolutionEngine,
-    get_agent_evolution_engine,
-)
-
+from core.tier8.agent_evolution_engine import (AgentEvolutionEngine,
+                                               get_agent_evolution_engine)
 # বাংলা মন্তব্য: `backend.core.*` → `core.*` ইম্পোর্ট path fix করা হলো।
 # Docker container-এ WORKDIR=/app/backend হওয়ায় `backend.` prefix runtime-এ ভুল ছিল।
 # এই ফিক্স না থাকায় Tier-8 agents production-এ কখনো load হয়নি।
-from core.tier8.self_improvement_agent import (
-    SelfImprovementAgent,
-    get_self_improvement_agent,
-)
+from core.tier8.self_improvement_agent import (SelfImprovementAgent,
+                                               get_self_improvement_agent)
 from core.tier8.skill_marketplace_curator import (
-    SkillMarketplaceCurator,
-    get_skill_marketplace_curator,
-)
-from core.tier8.swarm_coordination_agent import (
-    SwarmCoordinationAgent,
-    get_swarm_coordination_agent,
-)
+    SkillMarketplaceCurator, get_skill_marketplace_curator)
+from core.tier8.swarm_coordination_agent import (SwarmCoordinationAgent,
+                                                 get_swarm_coordination_agent)
 
 __all__ = [
-    "SelfImprovementAgent",
-    "get_self_improvement_agent",
     "AgentEvolutionEngine",
-    "get_agent_evolution_engine",
-    "SwarmCoordinationAgent",
-    "get_swarm_coordination_agent",
+    "SelfImprovementAgent",
     "SkillMarketplaceCurator",
+    "SwarmCoordinationAgent",
+    "get_agent_evolution_engine",
+    "get_self_improvement_agent",
     "get_skill_marketplace_curator",
+    "get_swarm_coordination_agent",
 ]

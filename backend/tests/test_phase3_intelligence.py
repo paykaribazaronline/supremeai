@@ -7,7 +7,6 @@ Unit tests for Phase 3 Intelligence Features:
 """
 
 import pytest
-
 from adaptive_engine.learning_loop import LearningLoop
 from pipelines.synthetic_data_pipeline import SyntheticDataPipeline
 from services.vision_service import VisionService
@@ -28,7 +27,9 @@ def test_ewc_loss_penalty():
     cur_weights = {"w1": 0.5, "w2": 0.9}
     old_weights = {"w1": 0.4, "w2": 0.9}
     fisher = {"w1": 1.0, "w2": 1.0}
-    penalty = loop.compute_ewc_loss_penalty(cur_weights, old_weights, fisher, ewc_lambda=0.5)
+    penalty = loop.compute_ewc_loss_penalty(
+        cur_weights, old_weights, fisher, ewc_lambda=0.5
+    )
     assert penalty > 0.0
 
 

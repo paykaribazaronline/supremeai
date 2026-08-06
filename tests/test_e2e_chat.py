@@ -2,7 +2,6 @@
 """End-to-end tests for chat functionality using Playwright."""
 
 import pytest
-from unittest.mock import MagicMock
 
 
 class TestE2EChatBasic:
@@ -67,8 +66,7 @@ class TestChatAPI:
         from backend.core.prompt_handler import format_unified_chat_prompt
 
         formatted = format_unified_chat_prompt(
-            message="What is 2+2?",
-            history=[{"user": "Hi"}, {"assistant": "Hello!"}]
+            message="What is 2+2?", history=[{"user": "Hi"}, {"assistant": "Hello!"}]
         )
 
         assert isinstance(formatted, str)

@@ -25,12 +25,16 @@ async def test_analyze_codebase_ast():
             mock_walk.return_value = [("backend/tools", [], ["test.py"])]
 
             with patch("builtins.open", new_callable=MagicMock) as mock_open:
-                mock_open.return_value.__enter__.return_value.read.return_value = "def my_function():\n    pass"
+                mock_open.return_value.__enter__.return_value.read.return_value = (
+                    "def my_function():\n    pass"
+                )
 
                 result = await learner.analyze_codebase("backend/tools")
 
     assert result is not None
-    assert "python" in result or "naming_convention" in result or "ast_patterns" in result
+    assert (
+        "python" in result or "naming_convention" in result or "ast_patterns" in result
+    )
 
 
 @pytest.mark.anyio
@@ -62,12 +66,16 @@ async def test_sync_team_style():
         "brain.model_router.ModelRouter.async_route_and_generate",
         new_callable=AsyncMock,
     ) as mock_generate:
-        mock_generate.return_value = {"text": '{"python": {"naming_convention": "snake_case"}}'}
+        mock_generate.return_value = {
+            "text": '{"python": {"naming_convention": "snake_case"}}'
+        }
 
         with patch("tools.style_learner.os.walk") as mock_walk:
             mock_walk.return_value = [("backend/tools", [], ["test.py"])]
             with patch("builtins.open", new_callable=MagicMock) as mock_open:
-                mock_open.return_value.__enter__.return_value.read.return_value = "def my_function():\n    pass"
+                mock_open.return_value.__enter__.return_value.read.return_value = (
+                    "def my_function():\n    pass"
+                )
 
                 result = await learner.sync_team_style("backend/tools", "team_1")
 

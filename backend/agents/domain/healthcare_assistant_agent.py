@@ -126,7 +126,9 @@ class HealthcareAssistantAgent:
         self.phi_scanner = PHIScanner()
 
     def _cache_key(self, prefix: str, identifier: str) -> str:
-        raw = f"healthcare:{prefix}:{identifier}:{datetime.now(UTC).strftime('%Y%m%d%H')}"
+        raw = (
+            f"healthcare:{prefix}:{identifier}:{datetime.now(UTC).strftime('%Y%m%d%H')}"
+        )
         return f"healthcare:{hashlib.sha256(raw.encode()).hexdigest()[:16]}"
 
     def check_vitals(self, metric: HealthMetricType, value: float) -> HealthInsight:
@@ -136,9 +138,7 @@ class HealthcareAssistantAgent:
 
         if value < lower * 0.8 or value > upper * 1.2:
             status = "critical"
-            recommendation = (
-                f"Immediate attention needed: {metric.value} is critically outside normal range ({lower}-{upper})"
-            )
+            recommendation = f"Immediate attention needed: {metric.value} is critically outside normal range ({lower}-{upper})"
         elif value < lower or value > upper:
             status = "attention"
             recommendation = f"Monitor {metric.value}: value ({value}) is outside normal range ({lower}-{upper})"
@@ -168,7 +168,9 @@ class HealthcareAssistantAgent:
 
     async def generate_wellness_tip(self, metrics: list[HealthRecord]) -> str:
         """Generate personalized wellness tip based on health metrics."""
-        context = "\n".join(f"{m.metric_type.value}: {m.value} {m.unit}" for m in metrics[-5:])
+        context = "\n".join(
+            f"{m.metric_type.value}: {m.value} {m.unit}" for m in metrics[-5:]
+        )
 
         prompt = (
             f"Based on these health metrics, provide a brief wellness tip:\n\n{context}\n\n"
@@ -181,7 +183,10 @@ class HealthcareAssistantAgent:
                 task_type="reasoning",
                 max_tokens=200,
             )
-            return result.get("content", "Maintain a balanced lifestyle with regular exercise and proper nutrition.")
+            return result.get(
+                "content",
+                "Maintain a balanced lifestyle with regular exercise and proper nutrition.",
+            )
         except Exception as e:
             logger.error("Failed to generate wellness tip: %s", e)
             return "Maintain a balanced lifestyle with regular exercise and proper nutrition."

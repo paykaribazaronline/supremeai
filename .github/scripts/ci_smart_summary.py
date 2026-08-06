@@ -1,7 +1,6 @@
 import json
 import os
 import re
-import sys
 import urllib.request
 from urllib.error import HTTPError, URLError
 
@@ -48,24 +47,32 @@ def extract_errors(log_text: str) -> list:
     errors = []
 
     # Python traceback খোঁজা
-    traceback_pattern = re.compile(r'(Traceback \(most recent call last\):[\s\S]+?(?:\n\S|$))', re.MULTILINE)
+    traceback_pattern = re.compile(
+        r"(Traceback \(most recent call last\):[\s\S]+?(?:\n\S|$))", re.MULTILINE
+    )
     for match in traceback_pattern.finditer(log_text):
         errors.append(match.group(1).strip())
 
     # Pytest ব্যর্থতা খোঁজা
-    pytest_pattern = re.compile(r'(_{3,}\s+.*?_{3,}\n[\s\S]+?)(?=\n_{3,}|\Z)', re.MULTILINE)
+    pytest_pattern = re.compile(
+        r"(_{3,}\s+.*?_{3,}\n[\s\S]+?)(?=\n_{3,}|\Z)", re.MULTILINE
+    )
     for match in pytest_pattern.finditer(log_text):
-        if 'E   ' in match.group(1) or 'FAILURES' in match.group(1):
+        if "E   " in match.group(1) or "FAILURES" in match.group(1):
             errors.append(match.group(1).strip())
 
     # কোনো ত্রুটি না পেলে generic error খোঁজা
     if not errors:
-        error_pattern = re.compile(r'^.*?(?:Error|Exception|Failed):.*$', re.MULTILINE | re.IGNORECASE)
+        error_pattern = re.compile(
+            r"^.*?(?:Error|Exception|Failed):.*$", re.MULTILINE | re.IGNORECASE
+        )
         for match in error_pattern.finditer(log_text):
             errors.append(match.group(0).strip())
 
     # সর্বোচ্চ ৫টি ইউনিক ত্রুটি ফেরত দেওয়া
-    return list(dict.fromkeys([e[:1000] + ('...' if len(e) > 1000 else '') for e in errors]))[:5]
+    return list(
+        dict.fromkeys([e[:1000] + ("..." if len(e) > 1000 else "") for e in errors])
+    )[:5]
 
 
 def extract_warnings(log_text: str) -> list:
@@ -77,32 +84,36 @@ def extract_warnings(log_text: str) -> list:
     warnings = []
 
     # GitHub Actions ::warning:: অ্যানোটেশন
-    for match in re.finditer(r'::warning[^:]*::(.+)', log_text, re.IGNORECASE):
+    for match in re.finditer(r"::warning[^:]*::(.+)", log_text, re.IGNORECASE):
         warnings.append(("GitHub Actions অ্যানোটেশন", match.group(0).strip()))
 
     # Python Warning (DeprecationWarning, UserWarning, FutureWarning ইত্যাদি)
     py_warn = re.compile(
-        r'^.*(DeprecationWarning|UserWarning|RuntimeWarning|FutureWarning|'
-        r'PendingDeprecationWarning|ResourceWarning|SyntaxWarning|UnicodeWarning|'
-        r'ImportWarning|EncodingWarning)[:\s].+$',
-        re.MULTILINE | re.IGNORECASE
+        r"^.*(DeprecationWarning|UserWarning|RuntimeWarning|FutureWarning|"
+        r"PendingDeprecationWarning|ResourceWarning|SyntaxWarning|UnicodeWarning|"
+        r"ImportWarning|EncodingWarning)[:\s].+$",
+        re.MULTILINE | re.IGNORECASE,
     )
     for match in py_warn.finditer(log_text):
         warnings.append(("Python Warning", match.group(0).strip()))
 
     # npm / Node.js WARN
-    for match in re.finditer(r'^.*(npm warn|npm WARN)\s+.+$', log_text, re.MULTILINE | re.IGNORECASE):
+    for match in re.finditer(
+        r"^.*(npm warn|npm WARN)\s+.+$", log_text, re.MULTILINE | re.IGNORECASE
+    ):
         warnings.append(("npm / Node.js WARN", match.group(0).strip()))
 
     # Flutter / Dart warning বা hint
-    for match in re.finditer(r'^.*\b(warning|hint)\b.*\.dart.*$', log_text, re.MULTILINE | re.IGNORECASE):
+    for match in re.finditer(
+        r"^.*\b(warning|hint)\b.*\.dart.*$", log_text, re.MULTILINE | re.IGNORECASE
+    ):
         warnings.append(("Flutter / Dart Warning", match.group(0).strip()))
 
     # Generic WARNING কীওয়ার্ড (অন্য সব টুল)
     generic = re.compile(
-        r'^(?!.*(?:npm warn|DeprecationWarning|UserWarning|RuntimeWarning|FutureWarning|::warning))'
-        r'.*\bWARNING\b.*$',
-        re.MULTILINE | re.IGNORECASE
+        r"^(?!.*(?:npm warn|DeprecationWarning|UserWarning|RuntimeWarning|FutureWarning|::warning))"
+        r".*\bWARNING\b.*$",
+        re.MULTILINE | re.IGNORECASE,
     )
     for match in generic.finditer(log_text):
         line = match.group(0).strip()
@@ -116,7 +127,7 @@ def extract_warnings(log_text: str) -> list:
         key = text[:200]
         if key not in seen:
             seen.add(key)
-            unique.append((category, text[:500] + ('...' if len(text) > 500 else '')))
+            unique.append((category, text[:500] + ("..." if len(text) > 500 else "")))
         if len(unique) >= 10:
             break
     return unique
@@ -137,7 +148,10 @@ def build_warnings_section(all_jobs: list, repo: str, token: str) -> list:
         if log_text:
             found = extract_warnings(log_text)
             if found:
-                jobs_with_warnings[job["name"]] = {"url": job["html_url"], "warnings": found}
+                jobs_with_warnings[job["name"]] = {
+                    "url": job["html_url"],
+                    "warnings": found,
+                }
 
     if not jobs_with_warnings:
         return []
@@ -145,7 +159,7 @@ def build_warnings_section(all_jobs: list, repo: str, token: str) -> list:
     total_warn = sum(len(v["warnings"]) for v in jobs_with_warnings.values())
     section = [
         f"\n### ⚠️ সতর্কতা সংগ্রহ — মোট `{total_warn}`টি Warning শনাক্ত",
-        "_এই সতর্কতাগুলো এখনই সিস্টেম ভাঙেনি, কিন্তু ভবিষ্যতে সমস্যা তৈরি করতে পারে। Admin-কে পর্যালোচনা করতে অনুরোধ করা হচ্ছে।_\n"
+        "_এই সতর্কতাগুলো এখনই সিস্টেম ভাঙেনি, কিন্তু ভবিষ্যতে সমস্যা তৈরি করতে পারে। Admin-কে পর্যালোচনা করতে অনুরোধ করা হচ্ছে।_\n",
     ]
     for job_name, data in jobs_with_warnings.items():
         section.append(f"#### ⚠️ জব: [{job_name}]({data['url']})")
@@ -188,7 +202,9 @@ def main():
     workflow_name = run.get("name", "SupremeAI Pipeline")
 
     # Fetch ALL jobs for this run dynamically (no hardcoding)
-    jobs_url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs?per_page=100"
+    jobs_url = (
+        f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs?per_page=100"
+    )
     jobs_data = fetch_json(jobs_url, token)
     all_jobs = jobs_data.get("jobs", [])
     total_jobs = len(all_jobs)
@@ -202,31 +218,43 @@ def main():
         f"### {status_icon} স্মার্ট সিআই পাইপলাইন সারসংক্ষেপ — `{workflow_name}`",
         f"**রান আইডি (Run ID):** [{run_id}](https://github.com/{repo}/actions/runs/{run_id}) | **কমিট (Commit):** `{run.get('head_sha', '')[:7]}`",
         f"- 📊 **মোট রান হওয়া জব:** `{total_jobs}`টি",
-        f"- ✅ **পাস করেছে:** `{len(passed_jobs)}`টি | ❌ **ব্যর্থ (Failed):** `{len(failed_jobs)}`টি | ⏭️ **স্কিপড/বাতিল:** `{len(skipped_jobs)}`টি | ⏳ **চলমান:** `{len(in_progress_jobs)}`টি\n"
+        f"- ✅ **পাস করেছে:** `{len(passed_jobs)}`টি | ❌ **ব্যর্থ (Failed):** `{len(failed_jobs)}`টি | ⏭️ **স্কিপড/বাতিল:** `{len(skipped_jobs)}`টি | ⏳ **চলমান:** `{len(in_progress_jobs)}`টি\n",
     ]
 
     if not failed_jobs:
-        summary_lines.append("🎉 **অভিনন্দন! কোনো ত্রুটি ছাড়াই পাইপলাইনের সমস্ত জব শতভাগ পাস করেছে!**")
+        summary_lines.append(
+            "🎉 **অভিনন্দন! কোনো ত্রুটি ছাড়াই পাইপলাইনের সমস্ত জব শতভাগ পাস করেছে!**"
+        )
     else:
-        summary_lines.append("### 🔴 ব্যর্থ হওয়া জবের বিশ্লেষণ ও মূল কারণ (Bangla Diagnosis)")
+        summary_lines.append(
+            "### 🔴 ব্যর্থ হওয়া জবের বিশ্লেষণ ও মূল কারণ (Bangla Diagnosis)"
+        )
         for job in failed_jobs:
             job_name = job["name"]
             job_url = job["html_url"]
             summary_lines.append(f"#### ❌ ব্যর্থ জব: [{job_name}]({job_url})")
 
-            log_url = f"https://api.github.com/repos/{repo}/actions/jobs/{job['id']}/logs"
+            log_url = (
+                f"https://api.github.com/repos/{repo}/actions/jobs/{job['id']}/logs"
+            )
             log_text = fetch_text(log_url, token)
 
             if log_text:
                 errors = extract_errors(log_text)
                 if errors:
                     for idx, err in enumerate(errors, 1):
-                        summary_lines.append(f"**আসল ত্রুটির ট্রেসব্যাক (Error Stacktrace #{idx}):**")
+                        summary_lines.append(
+                            f"**আসল ত্রুটির ট্রেসব্যাক (Error Stacktrace #{idx}):**"
+                        )
                         summary_lines.append("```python\n" + err + "\n```")
                 else:
-                    summary_lines.append("_লগ ফাইল থেকে সুনির্দিষ্ট ত্রুটি এক্সট্র্যাক্ট করা যায়নি। লিংক থেকে সরাসরি লগ পর্যবেক্ষণ করুন।_")
+                    summary_lines.append(
+                        "_লগ ফাইল থেকে সুনির্দিষ্ট ত্রুটি এক্সট্র্যাক্ট করা যায়নি। লিংক থেকে সরাসরি লগ পর্যবেক্ষণ করুন।_"
+                    )
             else:
-                summary_lines.append("_লগ ফাইল ডাউনলোড ব্যর্থ হয়েছে অথবা খালি পাওয়া গেছে।_")
+                summary_lines.append(
+                    "_লগ ফাইল ডাউনলোড ব্যর্থ হয়েছে অথবা খালি পাওয়া গেছে।_"
+                )
 
             summary_lines.append("---")
 
@@ -245,6 +273,6 @@ def main():
         f"({total_jobs} total jobs, warnings scan complete)."
     )
 
+
 if __name__ == "__main__":
     main()
-

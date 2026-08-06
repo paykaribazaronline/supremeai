@@ -1,10 +1,6 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-
 from brain.agent_departments import AgentDepartment
 from brain.autonomous_agent import AutonomousAgent
 from brain.langgraph_agent import SupremeOrchestrator
@@ -12,6 +8,9 @@ from brain.model_router import ModelRouter
 from core.generation_monitor import GenerationMonitor
 from core.orchestration.swarm_orchestrator import SwarmOrchestrator
 from core.security.rbac import RoleBasedAccessControl
+from fastapi import APIRouter, Request
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 agent_router = APIRouter(prefix="/api/v1/agents", tags=["agents"])
 
@@ -70,7 +69,9 @@ async def execute_agent(request: Request, body: AgentExecuteRequest):
 
     if body.department:
         result = agent_department.execute(body.department, body.task, body.task_type)
-        monitor.track_agent_call(prompt=body.task, provider=result.get("provider", "unknown"))
+        monitor.track_agent_call(
+            prompt=body.task, provider=result.get("provider", "unknown")
+        )
         return AgentExecuteResponse(
             success=result.get("success", False),
             output=result.get("output"),
@@ -81,7 +82,9 @@ async def execute_agent(request: Request, body: AgentExecuteRequest):
         )
 
     result = orchestrator.execute_task(body.task, body.task_type)
-    monitor.track_agent_call(prompt=body.task, provider=result.get("provider", "unknown"))
+    monitor.track_agent_call(
+        prompt=body.task, provider=result.get("provider", "unknown")
+    )
     return AgentExecuteResponse(
         success=result.get("success", False),
         output=result.get("result"),
@@ -110,7 +113,9 @@ async def execute_swarm(request: Request, body: SwarmExecuteRequest):
     and returns the final workspace state.
     """
     session_id = body.session_id or str(uuid.uuid4())
-    orchestrator = SwarmOrchestrator(user_id=body.user_id, session_id=session_id, task_prompt=body.task)
+    orchestrator = SwarmOrchestrator(
+        user_id=body.user_id, session_id=session_id, task_prompt=body.task
+    )
 
     # We await the orchestrator execution.
     # In a real heavy system this might be a background task,

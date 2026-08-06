@@ -47,7 +47,9 @@ contract MyToken {
 }
 """}
 
-        result = await agent.generate_contract(description="Create an ERC-20 token contract", standard="ERC20")
+        result = await agent.generate_contract(
+            description="Create an ERC-20 token contract", standard="ERC20"
+        )
 
     assert result is not None
     assert "MyToken" in result.get("contract")
@@ -72,13 +74,17 @@ contract VulnerableToken {
 }
 """
 
-    with patch("brain.model_router.ModelRouter.async_route_and_generate") as mock_router:
-        mock_router.return_value.async_route_and_generate = AsyncMock(return_value={"text": """
+    with patch(
+        "brain.model_router.ModelRouter.async_route_and_generate"
+    ) as mock_router:
+        mock_router.return_value.async_route_and_generate = AsyncMock(
+            return_value={"text": """
 Security Issues Found:
 1. Missing require statement for balance check - reentrancy risk
 2. No overflow protection - use SafeMath
 3. Missing events for transfer
-"""})
+"""}
+        )
 
         result = await agent.audit_contract(solidity_code)
 
@@ -193,7 +199,9 @@ contract MyNFT is ERC721 {
 }
 """}
 
-        result = await agent.generate_contract(description="Create an ERC-721 NFT contract", standard="ERC721")
+        result = await agent.generate_contract(
+            description="Create an ERC-721 NFT contract", standard="ERC721"
+        )
 
     assert result is not None
     assert "ERC721" in result.get("contract")

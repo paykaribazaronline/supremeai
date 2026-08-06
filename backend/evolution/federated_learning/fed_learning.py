@@ -80,7 +80,9 @@ class ModelHasher:
         """Create a hash of the model state dictionary."""
         # Serialize the state dict to bytes
         serialized = json.dumps(
-            {k: v.cpu().numpy().tolist() for k, v in state_dict.items()}, sort_keys=True, separators=(",", ":")
+            {k: v.cpu().numpy().tolist() for k, v in state_dict.items()},
+            sort_keys=True,
+            separators=(",", ":"),
         )
         return hashlib.sha256(serialized.encode()).hexdigest()
 
@@ -113,9 +115,11 @@ class DifferentialPrivacy:
         """Add noise to gradients for differential privacy."""
         for p in model.parameters():
             if p.grad is not None:
-                noise = torch.normal(mean=0.0, std=self.noise_multiplier * self.max_grad_norm, size=p.grad.size()).to(
-                    p.grad.device
-                )
+                noise = torch.normal(
+                    mean=0.0,
+                    std=self.noise_multiplier * self.max_grad_norm,
+                    size=p.grad.size(),
+                ).to(p.grad.device)
                 p.grad.data.add_(noise)
 
 
@@ -160,7 +164,9 @@ class ByzantineRobustAggregator:
     """Implements Byzantine-robust aggregation methods."""
 
     @staticmethod
-    def coordinate_median(parameters_list: list[list[torch.Tensor]]) -> list[torch.Tensor]:
+    def coordinate_median(
+        parameters_list: list[list[torch.Tensor]],
+    ) -> list[torch.Tensor]:
         """Compute coordinate-wise median of parameters."""
         if not parameters_list:
             return []
@@ -178,7 +184,9 @@ class ByzantineRobustAggregator:
         return result
 
     @staticmethod
-    def trimmed_mean(parameters_list: list[list[torch.Tensor]], trim_ratio: float = 0.1) -> list[torch.Tensor]:
+    def trimmed_mean(
+        parameters_list: list[list[torch.Tensor]], trim_ratio: float = 0.1
+    ) -> list[torch.Tensor]:
         """Compute trimmed mean of parameters."""
         if not parameters_list or trim_ratio <= 0 or trim_ratio >= 0.5:
             return parameters_list[0] if parameters_list else []
@@ -211,7 +219,9 @@ class LocalClient:
         self.local_model = model
         self.data_loader = data_loader
         self.config = config
-        self.optimizer = optim.SGD(self.local_model.parameters(), lr=config.learning_rate)
+        self.optimizer = optim.SGD(
+            self.local_model.parameters(), lr=config.learning_rate
+        )
         self.dp_mechanism = (
             DifferentialPrivacy(config.dp_noise_multiplier, config.dp_max_grad_norm)
             if config.differential_privacy
@@ -260,7 +270,11 @@ class LocalClient:
         self.train_losses.append(avg_loss)
         self.train_accuracies.append(accuracy)
 
-        return {"loss": avg_loss, "accuracy": accuracy, "samples_trained": total_samples}
+        return {
+            "loss": avg_loss,
+            "accuracy": accuracy,
+            "samples_trained": total_samples,
+        }
 
     def get_model_update(self, global_model: nn.Module) -> dict[str, torch.Tensor]:
         """Get the difference between local model and global model."""
@@ -293,7 +307,9 @@ class FederatedServer:
 
         # Initialize hash verification
         self.previous_model_hash = None
-        self.current_model_hash = ModelHasher.hash_model_state_dict(self.global_model.state_dict())
+        self.current_model_hash = ModelHasher.hash_model_state_dict(
+            self.global_model.state_dict()
+        )
 
     def register_client(self, client: LocalClient):
         """Register a client with the server."""
@@ -302,11 +318,15 @@ class FederatedServer:
 
     def select_clients(self) -> list[LocalClient]:
         """Select a fraction of clients for the current round."""
-        num_clients_to_select = max(1, int(len(self.clients) * self.config.client_fraction))
+        num_clients_to_select = max(
+            1, int(len(self.clients) * self.config.client_fraction)
+        )
         client_list = list(self.clients.values())
 
         # Random selection
-        selected_indices = np.random.choice(len(client_list), size=num_clients_to_select, replace=False)
+        selected_indices = np.random.choice(
+            len(client_list), size=num_clients_to_select, replace=False
+        )
 
         return [client_list[i] for i in selected_indices]
 
@@ -324,7 +344,9 @@ class FederatedServer:
                 aggregated[param_name] = torch.zeros_like(client_updates[0][param_name])
 
                 for update, weight in zip(client_updates, client_weights, strict=False):
-                    aggregated[param_name] += update[param_name] * (weight / total_weight)
+                    aggregated[param_name] += update[param_name] * (
+                        weight / total_weight
+                    )
 
         elif self.config.aggregation_method == AggregationMethod.FEDPROX:
             # FedProx aggregation with proximal term
@@ -337,7 +359,9 @@ class FederatedServer:
                 aggregated[param_name] = torch.zeros_like(client_updates[0][param_name])
 
                 for update, weight in zip(client_updates, client_weights, strict=False):
-                    aggregated[param_name] += update[param_name] * (weight / total_weight)
+                    aggregated[param_name] += update[param_name] * (
+                        weight / total_weight
+                    )
 
         elif self.config.aggregation_method == AggregationMethod.SCAFFOLD:
             # SCAFFOLD aggregation (simplified)
@@ -348,7 +372,9 @@ class FederatedServer:
                 aggregated[param_name] = torch.zeros_like(client_updates[0][param_name])
 
                 for update, weight in zip(client_updates, client_weights, strict=False):
-                    aggregated[param_name] += update[param_name] * (weight / total_weight)
+                    aggregated[param_name] += update[param_name] * (
+                        weight / total_weight
+                    )
 
         else:
             # Default to FedAvg
@@ -359,7 +385,9 @@ class FederatedServer:
                 aggregated[param_name] = torch.zeros_like(client_updates[0][param_name])
 
                 for update, weight in zip(client_updates, client_weights, strict=False):
-                    aggregated[param_name] += update[param_name] * (weight / total_weight)
+                    aggregated[param_name] += update[param_name] * (
+                        weight / total_weight
+                    )
 
         # Apply Byzantine-robust aggregation if needed
         if self.config.byzantine_tolerance > 0:
@@ -395,7 +423,9 @@ class FederatedServer:
 
         # Update model hash
         self.previous_model_hash = self.current_model_hash
-        self.current_model_hash = ModelHasher.hash_model_state_dict(self.global_model.state_dict())
+        self.current_model_hash = ModelHasher.hash_model_state_dict(
+            self.global_model.state_dict()
+        )
 
     def evaluate_global_model(self, test_loader) -> dict[str, float]:
         """Evaluate the global model on test data."""
@@ -422,13 +452,19 @@ class FederatedServer:
         avg_loss = total_loss / len(test_loader)
         accuracy = correct_predictions / total_samples
 
-        return {"loss": avg_loss, "accuracy": accuracy, "samples_evaluated": total_samples}
+        return {
+            "loss": avg_loss,
+            "accuracy": accuracy,
+            "samples_evaluated": total_samples,
+        }
 
     def run_federated_training(
         self, criterion: nn.Module, test_loader, convergence_check_interval: int = 5
     ) -> dict[str, Any]:
         """Run federated training for specified rounds."""
-        logger.info(f"Starting federated training for {self.config.max_communication_rounds} rounds")
+        logger.info(
+            f"Starting federated training for {self.config.max_communication_rounds} rounds"
+        )
 
         best_accuracy = 0.0
         patience_counter = 0
@@ -436,11 +472,15 @@ class FederatedServer:
         for round_num in range(self.config.max_communication_rounds):
             self.round_number = round_num
 
-            logger.info(f"Starting communication round {round_num + 1}/{self.config.max_communication_rounds}")
+            logger.info(
+                f"Starting communication round {round_num + 1}/{self.config.max_communication_rounds}"
+            )
 
             # Select clients for this round
             selected_clients = self.select_clients()
-            logger.info(f"Selected {len(selected_clients)} clients for round {round_num + 1}")
+            logger.info(
+                f"Selected {len(selected_clients)} clients for round {round_num + 1}"
+            )
 
             # Train on selected clients
             client_updates = []
@@ -466,7 +506,9 @@ class FederatedServer:
 
             # Aggregate updates
             if client_updates:
-                aggregated_updates = self.aggregate_model_updates(client_updates, client_weights)
+                aggregated_updates = self.aggregate_model_updates(
+                    client_updates, client_weights
+                )
 
                 # Update global model
                 self.update_global_model(aggregated_updates)
@@ -498,7 +540,9 @@ class FederatedServer:
 
                 # Early stopping check
                 if patience_counter >= self.config.early_stopping_patience:
-                    logger.info(f"Early stopping triggered after {round_num + 1} rounds")
+                    logger.info(
+                        f"Early stopping triggered after {round_num + 1} rounds"
+                    )
                     break
 
         logger.info("Federated training completed")
@@ -520,7 +564,9 @@ class FederatedLearningCoordinator:
         self.server: FederatedServer | None = None
         self.clients: list[LocalClient] = []
 
-    def setup_federated_system(self, global_model: nn.Module, client_data_loaders: list) -> FederatedServer:
+    def setup_federated_system(
+        self, global_model: nn.Module, client_data_loaders: list
+    ) -> FederatedServer:
         """Setup the federated learning system with server and clients."""
         # Initialize server
         self.server = FederatedServer(global_model, self.config)
@@ -528,7 +574,12 @@ class FederatedLearningCoordinator:
         # Register clients
         for i, data_loader in enumerate(client_data_loaders):
             client_id = f"client_{i}"
-            client = LocalClient(client_id=client_id, model=global_model, data_loader=data_loader, config=self.config)
+            client = LocalClient(
+                client_id=client_id,
+                model=global_model,
+                data_loader=data_loader,
+                config=self.config,
+            )
             self.server.register_client(client)
             self.clients.append(client)
 
@@ -536,7 +587,11 @@ class FederatedLearningCoordinator:
         return self.server
 
     def run_federated_experiment(
-        self, train_data_loaders: list, test_loader, model: nn.Module, criterion: nn.Module
+        self,
+        train_data_loaders: list,
+        test_loader,
+        model: nn.Module,
+        criterion: nn.Module,
     ) -> dict[str, Any]:
         """Run a complete federated learning experiment."""
         # Setup system
@@ -563,7 +618,9 @@ class FederatedLearningCoordinator:
             "final_loss": losses[-1] if losses else float("inf"),
             "average_accuracy": np.mean(accuracies) if accuracies else 0,
             "average_loss": np.mean(losses) if losses else float("inf"),
-            "accuracy_improvement": (accuracies[-1] - accuracies[0]) if len(accuracies) > 1 else 0,
+            "accuracy_improvement": (
+                (accuracies[-1] - accuracies[0]) if len(accuracies) > 1 else 0
+            ),
             "convergence_round": self._find_convergence_round(accuracies),
         }
 
@@ -641,7 +698,9 @@ def demo_federated_learning():
     samples_per_client = len(dummy_data) // num_clients
     for i in range(num_clients):
         start_idx = i * samples_per_client
-        end_idx = (i + 1) * samples_per_client if i < num_clients - 1 else len(dummy_data)
+        end_idx = (
+            (i + 1) * samples_per_client if i < num_clients - 1 else len(dummy_data)
+        )
 
         client_data = dummy_data[start_idx:end_idx]
         client_targets = dummy_labels[start_idx:end_idx]
@@ -662,7 +721,10 @@ def demo_federated_learning():
     # Run federated experiment
     criterion = nn.CrossEntropyLoss()
     results = coordinator.run_federated_experiment(
-        train_data_loaders=client_loaders, test_loader=test_loader, model=model, criterion=criterion
+        train_data_loaders=client_loaders,
+        test_loader=test_loader,
+        model=model,
+        criterion=criterion,
     )
 
     print("\nFederated Learning Results:")

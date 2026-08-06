@@ -1,7 +1,6 @@
 """Tests for core.security.input_sanitizer — InputSanitizer standalone module."""
 
 import pytest
-
 from core.security.input_sanitizer import InputSanitizer
 
 

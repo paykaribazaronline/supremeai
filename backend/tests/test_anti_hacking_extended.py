@@ -8,7 +8,6 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from middleware.anti_hacking import AntiHackingContextMiddleware, _octet3
 
 # ── _octet3 helper ───────────────────────────────────────────────────────────

@@ -111,7 +111,9 @@ class TestCredentials:
             patch("api.routes.browser.get_credential_store", return_value=mock_store),
             patch("api.routes.browser.get_audit", return_value=mock_audit),
         ):
-            cred_req = CredentialRequest(serviceName="github", username="testuser", password=_TEST_PASSWORD)
+            cred_req = CredentialRequest(
+                serviceName="github", username="testuser", password=_TEST_PASSWORD
+            )
             result = save_credential(cred_req)
             assert result["serviceName"] == "github"
             assert mock_audit.log_decision.called
@@ -167,11 +169,8 @@ class TestUrlPermissions:
 
     def test_add_allowed_url(self):
         """add_allowed_url should add a URL permission."""
-        from api.routes.browser import (
-            UrlPermissionRequest,
-            add_allowed_url,
-            get_allowed_urls,
-        )
+        from api.routes.browser import (UrlPermissionRequest, add_allowed_url,
+                                        get_allowed_urls)
 
         req = UrlPermissionRequest(urlPattern="https://github.com/*")
         add_allowed_url(req)
@@ -181,11 +180,8 @@ class TestUrlPermissions:
 
     def test_add_denied_url(self):
         """add_denied_url should add a denied URL permission."""
-        from api.routes.browser import (
-            UrlPermissionRequest,
-            add_denied_url,
-            get_denied_urls,
-        )
+        from api.routes.browser import (UrlPermissionRequest, add_denied_url,
+                                        get_denied_urls)
 
         req = UrlPermissionRequest(urlPattern="https://evil.com/*")
         add_denied_url(req)
@@ -212,7 +208,8 @@ class TestUrlPermissions:
 
     def test_url_request_decision(self):
         """decision should update request status."""
-        from api.routes.browser import PERMISSION_REQUESTS, DecisionRequest, decision
+        from api.routes.browser import (PERMISSION_REQUESTS, DecisionRequest,
+                                        decision)
 
         PERMISSION_REQUESTS.append({"id": "req_1", "status": "PENDING"})
         result = decision("req_1", DecisionRequest(approved=True))
@@ -221,9 +218,8 @@ class TestUrlPermissions:
 
     def test_url_request_decision_not_found(self):
         """decision should raise 404 for unknown request."""
-        from fastapi import HTTPException
-
         from api.routes.browser import DecisionRequest, decision
+        from fastapi import HTTPException
 
         with pytest.raises(HTTPException) as exc:
             decision("nonexistent", DecisionRequest(approved=False))

@@ -6,10 +6,9 @@ import sys
 import threading
 import traceback
 
-from loguru import logger
-
 from core.error_bus import with_error_bus
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
+from loguru import logger
 
 
 @with_error_bus("handle_unhandled_exception")

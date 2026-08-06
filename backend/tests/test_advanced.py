@@ -12,6 +12,7 @@ from core.queue.task_router import TaskRouter
 from memory.chromadb_store import ChromaDBStore
 from memory.rag_pipeline import RAGPipeline
 from memory.sqlite_store import SQLiteMemoryStore
+
 from tools.ai_agents.browser_agent import BrowserAgent
 from tools.ai_agents.computer_agent import ComputerAgent
 from tools.api_gateway import APIGateway
@@ -71,11 +72,15 @@ def test_rag_pipeline():
 async def test_browser_agent():
     agent = BrowserAgent()
     with patch("tools.ai_agents.browser_agent.is_safe_url", return_value=True):
-        with patch("tools.ai_agents.browser_agent.get_global_browser", new_callable=AsyncMock) as mock_browser:
+        with patch(
+            "tools.ai_agents.browser_agent.get_global_browser", new_callable=AsyncMock
+        ) as mock_browser:
             mock_browser.return_value = None
             with patch("httpx.get") as mock_get:
                 mock_resp = MagicMock()
-                mock_resp.text = "<html><title>Sample Site</title><body>Hello world</body></html>"
+                mock_resp.text = (
+                    "<html><title>Sample Site</title><body>Hello world</body></html>"
+                )
                 mock_resp.is_success = True
                 mock_get.return_value = mock_resp
 

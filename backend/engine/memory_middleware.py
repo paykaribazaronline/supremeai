@@ -27,14 +27,17 @@ class MemoryMiddleware:
 
             # বাংলা মন্তব্য: raw text সরাসরি পাঠানো হচ্ছে — embedding vector_db adapter
             # নিজেই free sentence-transformers দিয়ে তৈরি করবে। আর paid OpenAI দরকার নেই।
-            experiences = await self.vector_db.find_similar_experiences(task_prompt, top_k=2)
+            experiences = await self.vector_db.find_similar_experiences(
+                task_prompt, top_k=2
+            )
 
             # বাংলা মন্তব্য: degraded state চেক করা হচ্ছে — এটা "কোনো past experience নেই"
             # এর মতো না। memory backend নিজেই down/absent হলে agent ভুলে "clean slate"
             # ভাবতে পারে। তাই ERROR level-এ স্পষ্টভাবে জানানো হচ্ছে।
             if getattr(self.vector_db, "degraded", False):
                 logger.error(
-                    "🧠 MemoryMiddleware: vector memory backend is DEGRADED — " "proceeding WITHOUT historical context."
+                    "🧠 MemoryMiddleware: vector memory backend is DEGRADED — "
+                    "proceeding WITHOUT historical context."
                 )
                 return task_prompt
 
@@ -43,22 +46,23 @@ class MemoryMiddleware:
                 return task_prompt
 
             # 3. Add context to prompt
-            logger.info(f"🧠 MemoryMiddleware: Found {len(experiences)} relevant memory chunks. Augmenting prompt.")
+            logger.info(
+                f"🧠 MemoryMiddleware: Found {len(experiences)} relevant memory chunks. Augmenting prompt."
+            )
             memory_context = "\n".join(
                 [
                     f"- Past insight: {exp.get('metadata', {}).get('solution', exp.get('solution', 'Unknown'))}"
                     for exp in experiences
                 ]
             )
-            return (
-                f"{task_prompt}\n\n--- RELEVANT PAST EXPERIENCE ---\n{memory_context}\n--------------------------------"
-            )
+            return f"{task_prompt}\n\n--- RELEVANT PAST EXPERIENCE ---\n{memory_context}\n--------------------------------"
 
         except Exception as e:
             # বাংলা মন্তব্য: silent failure নিষিদ্ধ — ERROR level-এ log করা হচ্ছে
             # যাতে health monitoring এই failure ধরতে পারে।
             logger.error(
-                f"❌ MemoryMiddleware.augment_task() FAILED " f"(proceeding WITHOUT historical context): {e!r}"
+                f"❌ MemoryMiddleware.augment_task() FAILED "
+                f"(proceeding WITHOUT historical context): {e!r}"
             )
             return task_prompt  # Fallback to original prompt — never crash the agent
 

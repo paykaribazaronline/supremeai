@@ -26,18 +26,46 @@ class AutoCacheProxy:
             "user_dashboard": 0,  # Bypass cache / No TTL
         }
 
-    def infer_category_from_prompt(self, prompt: str, default_task: str = "general") -> str:
+    def infer_category_from_prompt(
+        self, prompt: str, default_task: str = "general"
+    ) -> str:
         """
         Infer query category from prompt content for dynamic TTL allocation.
         """
         prompt_lower = prompt.lower()
-        if any(w in prompt_lower for w in ["doc", "documentation", "guide", "tutorial", "readme", "manifest"]):
+        if any(
+            w in prompt_lower
+            for w in ["doc", "documentation", "guide", "tutorial", "readme", "manifest"]
+        ):
             return "static_docs"
-        elif any(w in prompt_lower for w in ["skill", "catalog", "tools", "capabilities"]):
+        elif any(
+            w in prompt_lower for w in ["skill", "catalog", "tools", "capabilities"]
+        ):
             return "skills_catalog"
-        elif any(w in prompt_lower for w in ["def ", "class ", "function", "code", "import ", "bug", "refactor"]):
+        elif any(
+            w in prompt_lower
+            for w in [
+                "def ",
+                "class ",
+                "function",
+                "code",
+                "import ",
+                "bug",
+                "refactor",
+            ]
+        ):
             return "code_gen"
-        elif any(w in prompt_lower for w in ["dashboard", "balance", "profile", "account", "wallet", "realtime"]):
+        elif any(
+            w in prompt_lower
+            for w in [
+                "dashboard",
+                "balance",
+                "profile",
+                "account",
+                "wallet",
+                "realtime",
+            ]
+        ):
             return "user_dashboard"
         return "ai_chat"
 
@@ -54,7 +82,9 @@ class AutoCacheProxy:
         cat = category or self.infer_category_from_prompt(prompt)
         return self.get_ttl_for_category(cat)
 
-    async def get_or_compute(self, key: str, category: str, compute_fn: Any, *args, **kwargs) -> Any:
+    async def get_or_compute(
+        self, key: str, category: str, compute_fn: Any, *args, **kwargs
+    ) -> Any:
         """
         ক্যাশ চেক করা এবং মিস হলে ডাইনামিক টিটিএল সহ মান হিসাব করে সঞ্চয় করা।
         """
@@ -64,7 +94,9 @@ class AutoCacheProxy:
 
         cached_val = await self.cache.get(key)
         if cached_val is not None:
-            logger.debug(f"[AutoCacheProxy] Cache hit for key '{key}' (Category: {category})")
+            logger.debug(
+                f"[AutoCacheProxy] Cache hit for key '{key}' (Category: {category})"
+            )
             return cached_val
 
         # Compute new value
@@ -73,7 +105,9 @@ class AutoCacheProxy:
             await self.cache.set(key, computed_val, ttl_seconds=ttl)
             logger.debug(f"[AutoCacheProxy] Cached key '{key}' with TTL {ttl}s")
 
-    def _calculate_cost(self, model: str, input_tokens: int, output_tokens: int) -> float:
+    def _calculate_cost(
+        self, model: str, input_tokens: int, output_tokens: int
+    ) -> float:
         """
         ইনপুট এবং আউটপুট টোকেন খরচের গতিশীল হিসাব করা।
         """
