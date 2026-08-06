@@ -98,7 +98,7 @@ _Generated for SupremeAI 2.0 — Admin Plan Execution_
 - **Universal Anti-Loop & Root-Cause First Rule (CRITICAL):**
   - **No Command/Execution Loop:** If ANY task, command, code fix, or Git operation fails twice consecutively, STOP immediately. Do NOT try a 3rd time with small variations.
   - **Root Cause Diagnosis:** Step back, inspect exact error logs/diffs, identify the core underlying issue, and present a clear single-line diagnostic summary to the user before proceeding.
-  - **No Assumption Code Edits:** Never modify code, schemas, or config files based on assumptions. Always view the full file context (`view_file` / `grep_search`) before applying patches.
+  - **Zero-Assumption & Empirical Verification Rule (STRICT):** Never modify code, schemas, or config files, nor answer architecture/workflow questions based on memory or assumptions. Always perform empirical inspection (`view_file`, `grep_search`, or log reads) of authoritative source files, CI workflows, and deployment manifests BEFORE formulating answers or executing actions.
 
 - **Zero Exaggeration & Strict Truthfulness Rule (NON-NEGOTIABLE):**
   - **No Fake Promises:** Never claim or promise that a script, file, or patch will fix "all errors" or "100% pass" unless empirical evidence (actual test runs/logs) proves it.
