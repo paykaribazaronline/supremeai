@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supremeai_mobile/providers/auth_provider.dart';
 
 void main() {
@@ -8,24 +9,22 @@ void main() {
   group('AuthProvider Tests', () {
     setUp(() {
       SharedPreferences.setMockInitialValues({});
+      FlutterSecureStorage.setMockInitialValues({});
     });
 
     test('Initial status should be unauthenticated', () async {
       final authProvider = AuthProvider();
-      // Wait for async _checkAuth to complete (reads prefs)
-      await Future(() {}); // microtask
-      await Future(() {}); // another cycle
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
       expect(authProvider.status, AuthStatus.unauthenticated);
     });
 
     test('continueAsGuest should update status to guest', () async {
-      SharedPreferences.setMockInitialValues({});
       final authProvider = AuthProvider();
-      await Future(() {}); // initial _checkAuth
-      await Future(() {});
+      await Future<void>.delayed(Duration.zero);
 
       await authProvider.continueAsGuest();
-      await Future(() {}); // allow notification propagation
+      await Future<void>.delayed(Duration.zero);
 
       expect(authProvider.status, AuthStatus.guest);
       expect(authProvider.isGuest, true);
@@ -35,15 +34,9 @@ void main() {
     });
 
     test('logout should clear status and token', () async {
-      // Setup: user is logged in as guest (no token, is_guest=true)
-      SharedPreferences.setMockInitialValues({
-        'is_guest': true,
-      });
-
       final authProvider = AuthProvider();
-      // Wait for _checkAuth to complete
-      await Future(() {});
-      await Future(() {});
+      await Future<void>.delayed(Duration.zero);
+      await authProvider.continueAsGuest();
 
       // Verify initial state is guest
       expect(authProvider.status, AuthStatus.guest);
@@ -51,8 +44,7 @@ void main() {
 
       // Perform logout
       await authProvider.logout();
-      // Wait for async operations to propagate
-      await Future(() {});
+      await Future<void>.delayed(Duration.zero);
 
       // Verify logged out
       expect(authProvider.status, AuthStatus.unauthenticated);

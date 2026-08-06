@@ -58,7 +58,8 @@ void main() {
         child: const MaterialApp(home: LoginScreen()),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text('⚡ SUPREME AI'), findsOneWidget);
     expect(find.byType(ElevatedButton), findsOneWidget);
