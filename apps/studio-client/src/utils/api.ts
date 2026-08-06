@@ -49,7 +49,7 @@ export const getApiBaseUrl = (): string => {
   if (import.meta.env.PROD) {
     return RENDER_BACKENDS[0];
   }
-  return window.location.origin;
+  return RENDER_BACKENDS[0];
 };
 
 export const getWebSocketBaseUrl = (): string => {
