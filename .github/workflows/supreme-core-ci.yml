@@ -1492,17 +1492,17 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
-          # credentials ধরে রাখি যাতে git push কাজ করে
-          persist-credentials: true
+          # disable persist-credentials so explicit remote PAT URL isn't overridden by default action credentials
+          persist-credentials: false
 
       - name: 🤖 Create or Update PR to Main Repository
         env:
-          # gh CLI শুধু GITHUB_TOKEN নামটিই auto-detect করে
-          GITHUB_TOKEN: ${{ secrets.MAIN_REPO_TOKEN }}
+          # gh CLI uses GITHUB_TOKEN; fallback to default secrets.GITHUB_TOKEN if MAIN_REPO_TOKEN is empty
+          GITHUB_TOKEN: ${{ secrets.MAIN_REPO_TOKEN || secrets.GITHUB_TOKEN }}
           STAGING_HEAD: ${{ github.sha }}
         run: |
           if [ -z "$GITHUB_TOKEN" ]; then
-            echo "❌ MAIN_REPO_TOKEN secret is missing or empty."
+            echo "❌ GITHUB_TOKEN / MAIN_REPO_TOKEN secret is missing or empty."
             echo "   Settings → Secrets and variables → Actions → MAIN_REPO_TOKEN"
             echo "   PAT scope প্রয়োজন: repo (full), workflow"
             exit 1
