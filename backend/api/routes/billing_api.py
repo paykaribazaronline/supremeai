@@ -1,4 +1,4 @@
-# Secure billing and transactional routing endpoints
+﻿# Secure billing and transactional routing endpoints
 # বাংলা মন্তব্য: ওয়ালেট ব্যালেন্স চেক, পেমেন্ট টপ-আপ, এবং স্ট্রাইপ/লোকাল পেমেন্ট গেটওয়ে ওয়েবহুক রাউট।
 
 import os
@@ -141,10 +141,12 @@ async def add_funds(
     checkout_id = str(uuid.uuid4())
 
     # বাংলা মন্তব্য: ডাইনামিক অরিজিন ডিটেকশন (Zero-Config)
-    checkout_base = getattr(settings, "checkout_base_url", None)
+    checkout_base = settings.checkout_base_url
     if not checkout_base:
-        checkout_base = request.headers.get("origin") or request.headers.get("referer", "http://localhost:3000")
-    checkout_base = checkout_base.rstrip("/")
+        checkout_base = request.headers.get("origin") or request.headers.get("referer") or ""
+        if not checkout_base and settings.env not in ("local", "test"):
+            logger.error("CHECKOUT_BASE_URL not set and no origin/referer header - checkout URL will be empty!")
+    checkout_base = checkout_base.rstrip("/") if checkout_base else ""
 
     return {
         "status": "pending",

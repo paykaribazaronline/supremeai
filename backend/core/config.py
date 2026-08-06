@@ -1,4 +1,4 @@
-# mypy: ignore-errors
+﻿# mypy: ignore-errors
 """This module, `backend.core.config`, serves as the single, authoritative source
 for all application settings within the SupremeAI project. It implements a robust,
 "Fail-Fast" configuration layer using Pydantic, ensuring that all critical parameters
@@ -268,8 +268,6 @@ class Settings(BaseSettings):
 
     sentry_dsn: str = Field(default="", validation_alias="SENTRY_DSN")
 
-    # বাংলা মন্তব্য: OLLAMA_URL — fail-fast, কোনো localhost fallback নেই
-    ollama_url: str = Field(default="", validation_alias="OLLAMA_URL")
 
     gcp_project_id: str = Field(default="", validation_alias="GCP_PROJECT_ID")
     gcp_region: str = Field(default="us-central1", validation_alias="GCP_REGION")
@@ -357,6 +355,9 @@ class Settings(BaseSettings):
         "SUPREMEAI_ENCRYPTION_KEY",
         "STRIPE_API_KEY",
         "STRIPE_WEBHOOK_SECRET",
+        "FRONTEND_BASE_URL",
+        "CHECKOUT_BASE_URL",
+        "OLLAMA_URL",
     ]
 
     def _ensure_secrets_loaded(self) -> None:
@@ -567,7 +568,10 @@ class Settings(BaseSettings):
 
     @property
     def neo4j_uri(self) -> str:
-        return self._get_cached_secret("NEO4J_URI") or "bolt://localhost:7687"
+        uri = self._get_cached_secret("NEO4J_URI")
+        if not uri and self.env not in ("local", "test") and "pytest" not in sys.modules:
+            logger.warning("NEO4J_URI not configured — GraphService will run in dry-run mode.")
+        return uri
 
     @property
     def neo4j_user(self) -> str:
@@ -576,6 +580,27 @@ class Settings(BaseSettings):
     @property
     def neo4j_password(self) -> str:
         return self._get_cached_secret("NEO4J_PASSWORD") or ""
+
+    @property
+    def frontend_base_url(self) -> str:
+        """বাংলা: OAuth/Integration রিডাইরেক্টের জন্য ফ্রন্টএন্ড বেস URL।"""
+        url = self._get_cached_secret("FRONTEND_BASE_URL")
+        if not url and not is_test_environment() and self.env not in ("local", "test"):
+            logger.warning("FRONTEND_BASE_URL not set in production — OAuth redirects may fail!")
+        return url
+
+    @property
+    def checkout_base_url(self) -> str:
+        """বাংলা: পেমেন্ট চেকআউট রিডাইরেক্টের জন্য বেস URL।"""
+        url = self._get_cached_secret("CHECKOUT_BASE_URL")
+        if not url and not is_test_environment() and self.env not in ("local", "test"):
+            logger.warning("CHECKOUT_BASE_URL not set — payment checkout URLs may be incorrect!")
+        return url
+
+    @property
+    def ollama_url(self) -> str:
+        """বাংলা: Ollama URL।"""
+        return self._get_cached_secret("OLLAMA_URL")
 
     # ── Admin Password Hash — Infisical-backed lazy property ────────────────
     # বাংলা মন্তব্য: Pydantic Field(validation_alias=...) সরাসরি OS env var থেকে পড়ে, যা Infisical
@@ -1085,8 +1110,6 @@ except Exception as _boot_exc:
         f"🔥 FATAL CONFIG ERROR: {_boot_exc}\nServer startup ABORTED (Fail-Fast applied). Fix the configuration."
     )
     sys.exit(1)
-
-
 def get_production_env(var_name: str, default: str | None = None) -> str:
     """বাংলা মন্তব্য: Strict Fail-Fast Config Guard.
     যেকোনো এনভায়রনমেন্টে কোনো ক্রিটিক্যাল সিক্রেট মিসিং থাকলে সরাসরি হার্ড ক্র্যাশ করবে,

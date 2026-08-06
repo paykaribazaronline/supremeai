@@ -1,4 +1,4 @@
-# backend/brain/smart_router.py
+﻿# backend/brain/smart_router.py
 """
 SupremeAI Self-Sovereign Smart Router
 Routes requests to local inference FIRST, then managed, then frontier.
@@ -110,12 +110,12 @@ class SelfSovereignRouter:
 
             from core.config import settings
 
-            ollama_base = (
-                getattr(settings, "ollama_url", None)
-                or getattr(settings, "OLLAMA_URL", None)
-                or os.getenv("OLLAMA_URL", "http://localhost:11434")
-            )
-            ollama_base = ollama_base.rstrip("/") if ollama_base else "http://localhost:11434"
+            # বাংলা মন্তব্য: settings.ollama_url বা env ভেরিয়েবল ব্যবহার (কোনো ডিফল্ট localhost fallback নেই)
+            # শুধুমাত্র local development-এ localhost:11434 এ ফলব্যাক করবে।
+            ollama_base = settings.ollama_url or os.getenv("OLLAMA_URL", "")
+            if not ollama_base and settings.env == "local":
+                ollama_base = "http://localhost:11434"
+            ollama_base = ollama_base.rstrip("/") if ollama_base else ""
             url = f"{ollama_base}/api/tags"
 
             req = urllib.request.Request(url, method="GET")

@@ -1,4 +1,4 @@
-from urllib.parse import urlencode
+﻿from urllib.parse import urlencode
 
 import httpx
 from fastapi import APIRouter, Depends, Request
@@ -25,7 +25,7 @@ def _build_github_redirect_uri() -> str:
     ডায়নামিক রিডাইরেক্ট URI তৈরি করে — প্রোডাকশনে settings.frontend_base_url ব্যবহার করবে,
     লোকালে ডিফল্ট localhost:8000।
     """
-    base = getattr(settings, "frontend_base_url", "http://localhost:8000")
+    base = settings.frontend_base_url
     return f"{base}/api/v1/integrations/github/callback"
 
 
@@ -61,7 +61,7 @@ async def github_callback(
     if not user_id:
         logger.error("GitHub OAuth callback: Token payload missing 'sub' claim.")
         return RedirectResponse(
-            url=f"{getattr(settings, 'frontend_base_url', 'http://localhost:5173')}/integrations?status=error&message=Invalid token"
+            url=f"{settings.frontend_base_url}/integrations?status=error&message=Invalid token"
         )
 
     redirect_uri = _build_github_redirect_uri()
@@ -83,7 +83,7 @@ async def github_callback(
     if not access_token:
         logger.warning(f"GitHub OAuth failed for user {user_id}: no access_token in response")
         return RedirectResponse(
-            url=f"{getattr(settings, 'frontend_base_url', 'http://localhost:5173')}/integrations?status=error&message=Failed to get access token"
+            url=f"{settings.frontend_base_url}/integrations?status=error&message=Failed to get access token"
         )
 
     # ২. টোকেন এনক্রিপ্ট করা (AES-256 Fernet)
@@ -114,9 +114,9 @@ async def github_callback(
         await db.rollback()
         logger.error(f"Failed to save GitHub integration for user '{user_id}': {exc}")
         return RedirectResponse(
-            url=f"{getattr(settings, 'frontend_base_url', 'http://localhost:5173')}/integrations?status=error&message=Database error"
+            url=f"{settings.frontend_base_url}/integrations?status=error&message=Database error"
         )
 
     # ৪. ফ্রন্টএন্ডে রিডাইরেক্ট — ডায়নামিক URL
-    frontend_base = getattr(settings, "frontend_base_url", "http://localhost:5173")
+    frontend_base = settings.frontend_base_url
     return RedirectResponse(url=f"{frontend_base}/integrations?status=success")
