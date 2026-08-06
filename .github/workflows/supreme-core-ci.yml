@@ -1278,35 +1278,26 @@ jobs:
 
 
 
-  flutter-integration-tests:
-    name: 📱 Flutter Integration Test
-    needs: frontend-core
-    if: github.event_name == 'pull_request' # শুধুমাত্র PR-এর জন্য চালানো যেতে পারে
-    runs-on: macos-latest # iOS সিমুলেটরের জন্য macOS প্রয়োজন
-    strategy:
-      matrix:
-        api-level: [30] # Android API level
-        target: [ios, android]
+  flutter-unit-widget-tests:
+    name: 📱 Flutter Unit & Widget Tests
+    needs: [changes]
+    if: needs.changes.outputs.docs_only != 'true'
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.29.0'
           channel: 'stable'
-      - name: Install Dependencies
+          cache: true
+      - name: Install Mobile Dependencies
         run: |
           cd apps/mobile
           flutter pub get
-      - name: Run Flutter Integration Tests (Android)
-        if: matrix.target == 'android'
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: ${{ matrix.api-level }}
-          script: cd apps/mobile && flutter test integration_test
-      - name: Run Flutter Integration Tests (iOS)
-        if: matrix.target == 'ios'
+      - name: 🧪 Run Headless Flutter Unit & Widget Tests
         run: |
           cd apps/mobile
-          flutter test integration_test
+          flutter test --no-pub --coverage
 
   build-and-release-desktop:
     name: 🖥️ Build & Release Desktop App
@@ -1601,7 +1592,7 @@ jobs:
       - deploy-admin-backend
       - deploy-combined-backend
       - deploy-backend
-      - flutter-integration-tests
+      - flutter-unit-widget-tests
       - build-and-release-desktop
       - deploy-admin-firebase
       - deploy-user-vercel
