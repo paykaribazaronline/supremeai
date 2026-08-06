@@ -1,7 +1,7 @@
-// বাংলা মন্তব্য: প্রধান অ্যাকাউন্টের লিমিট শেষ হওয়ায় ব্যাকআপ ইউআরএলটি এখন প্রাইমারি হিসেবে ব্যবহার করা হচ্ছে।
+// বাংলা মন্তব্য: রোল-ভিত্তিক ব্যাকএন্ড ইউআরএল সেপারেশন (User Backend vs Admin Backend)
 export const RENDER_BACKENDS = [
-  import.meta.env.VITE_PRIMARY_BACKEND || 'https://supremeai-backend.onrender.com', // Primary (Backup account active service)
-  import.meta.env.VITE_SECONDARY_BACKEND || 'https://supremeai-backend-65hl.onrender.com' // Fallback (New image service)
+  import.meta.env.VITE_PRIMARY_BACKEND || 'https://supremeai-backend.onrender.com', // Primary User Backend (srv-d9d3n58js32c738n79k0)
+  import.meta.env.VITE_SECONDARY_BACKEND || 'https://supremeai-admin.onrender.com' // Admin Backend (srv-d9fg48bh523c73f63bb0)
 ];
 
 export const switchActiveBackend = (): string => {
@@ -19,12 +19,13 @@ export const getApiBaseUrl = (): string => {
     return url || RENDER_BACKENDS[0];
   }
 
-  // বাংলা: প্রোডাকশনে build-time env var সবসময় sessionStorage cache-এর চেয়ে অগ্রাধিকার পাবে,
-  // যাতে পুরনো/dev সেশনে ভুলবশত সেট হওয়া cached URL (যেমন 127.0.0.1:8000) কখনো
-  // আসল প্রোডাকশন ব্যাকএন্ডকে override করতে না পারে।
-  if (import.meta.env.PROD) {
-    if (import.meta.env.VITE_API_BASE) return import.meta.env.VITE_API_BASE;
-    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  // Build-time explicit env override
+  if (import.meta.env.VITE_API_BASE) return import.meta.env.VITE_API_BASE;
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+
+  // Check portal build type (admin vs user)
+  if (import.meta.env.VITE_PORTAL_TYPE === 'admin' || window.location.hostname.includes('admin')) {
+    return 'https://supremeai-admin.onrender.com';
   }
 
   const cached = sessionStorage.getItem('supremeai_active_backend');
@@ -34,21 +35,9 @@ export const getApiBaseUrl = (): string => {
     return cached as string;
   }
   if (cached) {
-    // বাংলা: অকার্যকর/লোকাল ক্যাশড ভ্যালু পরিষ্কার করা হচ্ছে যাতে এটি বারবার আটকে না থাকে
     sessionStorage.removeItem('supremeai_active_backend');
   }
 
-  if (import.meta.env.VITE_API_BASE) {
-    return import.meta.env.VITE_API_BASE;
-  }
-
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
-  }
-
-  if (import.meta.env.PROD) {
-    return RENDER_BACKENDS[0];
-  }
   return RENDER_BACKENDS[0];
 };
 
