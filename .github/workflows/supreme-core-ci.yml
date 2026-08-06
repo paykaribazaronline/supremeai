@@ -1498,31 +1498,31 @@ jobs:
           fi
 
           echo "✅ Staging CI Pipeline passed (GREEN 🟢)!"
-          echo "🔄 Checking for existing PR from SaifulHaqueNiloy:main to paykaribazaronline:main..."
+          PR_BRANCH="promotion/staging-latest"
 
-          EXISTING_PR=$(gh pr list --repo paykaribazaronline/supremeai --head SaifulHaqueNiloy:main --base main --json number --jq '.[0].number')
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global lfs.allowincompletepush true
+          git config lfs.allowincompletepush true
 
-          if [ -n "$EXISTING_PR" ] && [ "$EXISTING_PR" != "null" ]; then
-            echo "ℹ️ Existing promotion PR #$EXISTING_PR found. Updated automatically."
+          git remote add target https://x-access-token:${GH_TOKEN}@github.com/paykaribazaronline/supremeai.git || true
+          git fetch target main || true
+
+          if git diff --quiet HEAD target/main 2>/dev/null; then
+            echo "ℹ️ No new commits to promote. Branches are identical. Skipping PR creation/update."
           else
-            echo "🔍 Configuring remote to check differences and push..."
-            
-            git config --global user.name "github-actions[bot]"
-            git config --global user.email "github-actions[bot]@users.noreply.github.com"
-            git config --global lfs.allowincompletepush true
-            git config lfs.allowincompletepush true
-            
-            git remote add target https://x-access-token:${GH_TOKEN}@github.com/paykaribazaronline/supremeai.git
-            git fetch target main
-            
-            if git diff --quiet HEAD target/main; then
-              echo "ℹ️ No new commits to promote. Branches are identical. Skipping PR creation."
+            echo "🚀 Pushing to persistent staging branch ($PR_BRANCH)..."
+            git checkout -B $PR_BRANCH
+            git push target $PR_BRANCH --force
+
+            EXISTING_PR=$(gh pr list --repo paykaribazaronline/supremeai --head $PR_BRANCH --base main --json number --jq '.[0].number')
+
+            if [ -n "$EXISTING_PR" ] && [ "$EXISTING_PR" != "null" ]; then
+              echo "ℹ️ Existing promotion PR #$EXISTING_PR found. Updating title and body..."
+              gh pr edit $EXISTING_PR \
+                --repo paykaribazaronline/supremeai \
+                --title "🟢 [Staging Promotion] Verified CI Green Build (${STAGING_HEAD:0:7})"
             else
-              echo "🚀 Pushing staging branch to target repository..."
-              PR_BRANCH="promotion/staging-${STAGING_HEAD:0:7}"
-              git checkout -b $PR_BRANCH
-              git push target $PR_BRANCH --force
-              
               echo "🚀 Opening new automated Staging Promotion PR..."
               gh pr create \
                 --repo paykaribazaronline/supremeai \
