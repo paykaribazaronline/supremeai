@@ -165,6 +165,9 @@ class MockSettingsProvider extends ChangeNotifier implements SettingsProvider {
 
   @override
   Future<bool> saveToBackend({String? authToken}) async => true;
+
+  @override
+  Future<void> listenToThemeSyncStream(String userId) async {}
 }
 
 void main() {
