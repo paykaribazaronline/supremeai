@@ -365,7 +365,9 @@ jobs:
         run: |
           # বাংলা মন্তব্য: GitHub API রেট লিমিট এবং ইনস্টল স্ক্রিপ্ট ফেইলর এড়াতে সরাসরি বাইনারি ডাউনলোড করা হচ্ছে
           mkdir -p ./bin
-          wget -qO- https://github.com/aquasecurity/trivy/releases/download/v0.48.3/trivy_0.48.3_Linux-64bit.tar.gz | tar -xzf - -C ./bin trivy
+          curl -sSfL "https://github.com/aquasecurity/trivy/releases/download/v0.48.3/trivy_0.48.3_Linux-64bit.tar.gz" -o trivy.tar.gz
+          tar -xzf trivy.tar.gz -C ./bin trivy
+          rm trivy.tar.gz
           ./bin/trivy fs --format sarif --output trivy-python.sarif --severity CRITICAL,HIGH backend &
           ./bin/trivy fs --format sarif --output trivy-nodejs.sarif --severity CRITICAL,HIGH . &
           wait
