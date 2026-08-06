@@ -474,11 +474,13 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: 🧠 Run Smart CI Failure Detector
+        if: always()
         working-directory: backend
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: poetry run python ../.github/scripts/ci_smart_summary.py
       - name: 🚨 Generate Detailed Error Report (Bangla Diagnosis)
+        if: always()
         working-directory: backend
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

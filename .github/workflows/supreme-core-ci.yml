@@ -1632,11 +1632,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: 🧠 Generate Smart Pipeline Summary (Zero-Dependency)
+        if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: python3 .github/scripts/ci_smart_summary.py
       - name: 🚨 Generate Detailed Error Report (Bangla Diagnosis)
+        if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_RUN_ID: ${{ github.run_id }}

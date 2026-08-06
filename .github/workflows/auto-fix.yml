@@ -168,12 +168,14 @@ jobs:
         with:
           python-version: '3.11'
       - name: 🧠 Generate Smart Pipeline Summary (API Key Free)
+        if: always()
         working-directory: backend
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: poetry run python ../.github/scripts/ci_smart_summary.py
       - name: 🚨 Generate Detailed Error Report (Bangla Diagnosis)
+        if: always()
         working-directory: backend
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
