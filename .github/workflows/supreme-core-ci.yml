@@ -1297,7 +1297,7 @@ jobs:
       - name: 🧪 Run Headless Flutter Unit & Widget Tests
         run: |
           cd apps/mobile
-          flutter test --no-pub --coverage
+          flutter test --coverage
 
   build-and-release-desktop:
     name: 🖥️ Build & Release Desktop App
