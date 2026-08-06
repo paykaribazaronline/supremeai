@@ -33,8 +33,8 @@ describe('api.ts', () => {
       expect(getApiBaseUrl()).toBe(RENDER_BACKENDS[0]);
     });
 
-    it('returns origin when no env and not production', () => {
-      expect(getApiBaseUrl()).toBe(window.location.origin);
+    it('returns default primary backend when no env and not production', () => {
+      expect(getApiBaseUrl()).toBe(RENDER_BACKENDS[0]);
     });
 
     it('prefers VITE_API_BASE over VITE_API_URL', () => {
