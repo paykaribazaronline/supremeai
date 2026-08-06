@@ -498,7 +498,7 @@ jobs:
         working-directory: backend
         run: |
           echo "## 📊 নলেজ গ্রাফ জেনারেশন" >> $GITHUB_STEP_SUMMARY
-          python ../scripts/codegraph_integration.py --full --output-dir ../docs/codebase/knowledge_graph 2>&1 || true
+          poetry run python ../scripts/codegraph_integration.py --full --output-dir ../docs/codebase/knowledge_graph 2>&1 || true
           echo "✅ নলেজ গ্রাফ আপডেট করা হয়েছে" >> $GITHUB_STEP_SUMMARY
 
       - name: 📤 Upload Production Readiness Reports
