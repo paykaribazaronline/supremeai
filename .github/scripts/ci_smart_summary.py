@@ -111,20 +111,20 @@ def main():
 
     status_icon = "🟢" if len(failed_jobs) == 0 else "🚨"
     summary_lines = [
-        f"### {status_icon} Smart CI Pipeline Summary — `{workflow_name}`",
-        f"**Run ID:** [{run_id}](https://github.com/{repo}/actions/runs/{run_id}) | **Commit:** `{run.get('head_sha', '')[:7]}`",
-        f"- 📊 **Total Real Jobs:** `{total_jobs}`",
-        f"- ✅ **Passed:** `{len(passed_jobs)}` | ❌ **Failed:** `{len(failed_jobs)}` | ⏭️ **Skipped/Cancelled:** `{len(skipped_jobs)}` | ⏳ **In Progress:** `{len(in_progress_jobs)}`\n"
+        f"### {status_icon} স্মার্ট সিআই পাইপলাইন সারসংক্ষেপ — `{workflow_name}`",
+        f"**রান আইডি (Run ID):** [{run_id}](https://github.com/{repo}/actions/runs/{run_id}) | **কমিট (Commit):** `{run.get('head_sha', '')[:7]}`",
+        f"- 📊 **মোট রান হওয়া জব:** `{total_jobs}`টি",
+        f"- ✅ **পাস করেছে:** `{len(passed_jobs)}`টি | ❌ **ব্যর্থ (Failed):** `{len(failed_jobs)}`টি | ⏭️ **স্কিপড/বাতিল:** `{len(skipped_jobs)}`টি | ⏳ **চলমান:** `{len(in_progress_jobs)}`টি\n"
     ]
 
     if not failed_jobs:
-        summary_lines.append("🎉 **All executed jobs completed successfully with zero failures!**")
+        summary_lines.append("🎉 **অভিনন্দন! কোনো ত্রুটি ছাড়াই পাইপলাইনের সমস্ত জব শতভাগ পাস করেছে!**")
     else:
-        summary_lines.append("### 🔴 Failed Job Analysis & Diagnosis")
+        summary_lines.append("### 🔴 ব্যর্থ হওয়া জবের বিশ্লেষণ ও মূল কারণ (Bangla Diagnosis)")
         for job in failed_jobs:
             job_name = job["name"]
             job_url = job["html_url"]
-            summary_lines.append(f"#### ❌ Job: [{job_name}]({job_url})")
+            summary_lines.append(f"#### ❌ ব্যর্থ জব: [{job_name}]({job_url})")
 
             log_url = f"https://api.github.com/repos/{repo}/actions/jobs/{job['id']}/logs"
             log_text = fetch_text(log_url, token)
@@ -133,12 +133,12 @@ def main():
                 errors = extract_errors(log_text)
                 if errors:
                     for idx, err in enumerate(errors, 1):
-                        summary_lines.append(f"**Extracted Traceback {idx}:**")
+                        summary_lines.append(f"**আসল ত্রুটির ট্রেসব্যাক (Error Stacktrace #{idx}):**")
                         summary_lines.append("```python\n" + err + "\n```")
                 else:
-                    summary_lines.append("_Could not extract specific error stacktrace from logs._")
+                    summary_lines.append("_লগ ফাইল থেকে সুনির্দিষ্ট ত্রুটি এক্সট্র্যাক্ট করা যায়নি। লিংক থেকে সরাসরি লগ পর্যবেক্ষণ করুন।_")
             else:
-                summary_lines.append("_Log download failed or logs empty._")
+                summary_lines.append("_লগ ফাইল ডাউনলোড ব্যর্থ হয়েছে অথবা খালি পাওয়া গেছে।_")
 
             summary_lines.append("---")
 

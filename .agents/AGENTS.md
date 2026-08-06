@@ -132,6 +132,10 @@ _Generated for SupremeAI 2.0 — Admin Plan Execution_
 
 - **Commit All Uncommitted Files & Impact Report:** When performing a commit, ALWAYS inspect all uncommitted files (`git status` / `git diff`), stage all uncommitted files, and provide a short, concise summary report explaining how the uncommitted files make the system better and what specific improvements/benefits they bring.
 
+- **Homologous & Scope-Wide Verification Rule (MANDATORY):**
+  - Whenever a bug, breaking change, type mismatch, refactoring, or feature update is identified in a specific file or module, the AI agent MUST NOT limit fixes to that single file alone.
+  - The AI agent MUST proactively search (`grep_search`) for all related, homologous, duplicate, or caller components across all platforms (Backend, Web Studio, Mobile, Extensions, CI/CD scripts) and fix or update them consistently in the same execution scope.
+
 - **Code Comments (Bangla):** Whenever making changes to the codebase, always try to add explanatory comments in **Bangla** so that the rationale behind the changes is easily understood later by the team.
 
 - **Production-Ready Implementation:** DO NOT use mocks, stubs, or dummy implementations. All code must be production-ready and fully functional. If integrating a feature, integrate it with the real backing services (e.g., Supabase, database).
