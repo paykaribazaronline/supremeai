@@ -2,6 +2,9 @@
 // 🚨 CRITICAL CHECK: No external imports allowed here to bypass Vite Rollup blocks
 
 export const adminTokenStore = {
+  getRawToken: (): string | null => {
+    return localStorage.getItem('supreme_admin_jwt');
+  },
   getDecodedToken: (): Record<string, unknown> | null => {
     const token = localStorage.getItem('supreme_admin_jwt');
     if (!token) return null;

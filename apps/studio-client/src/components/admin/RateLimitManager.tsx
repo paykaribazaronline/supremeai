@@ -43,7 +43,7 @@ export const RateLimitManager: React.FC = () => {
   const [saving, setSaving] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<Partial<TenantLimit>>({});
-  const { toast } = useToast();
+  const { showToast } = useToast();
   const [newTenant, setNewTenant] = useState({ tenant_id: '', org_name: '', billing_tier: 'free' as const });
   const [showNewForm, setShowNewForm] = useState(false);
 
@@ -52,7 +52,7 @@ export const RateLimitManager: React.FC = () => {
     setError(null);
     try {
       const resp = await fetch(`${API_BASE}/admin/tenant-limits`, {
-        headers: { 'Authorization': `Bearer ${adminTokenStore.getDecodedToken()}` }
+        headers: { 'Authorization': `Bearer ${adminTokenStore.getRawToken()}` }
       });
 
       // 🛡️ এপিআই স্ট্যাটাস হ্যান্ডশেক এবং সাইলেন্ট ফেইলর প্রোটেকশন
@@ -72,14 +72,10 @@ export const RateLimitManager: React.FC = () => {
       setTenants([]);
 
       // 🚨 অ্যাডমিনকে লাইভ ইনফর্ম করার জন্য টোস্ট নোটিফিকেশন ফায়ার
-      toast({
-        title: '⚠️ System Synchronization Failed',
-        description: errMsg,
-        variant: 'destructive',
-      });
+      showToast('error', `⚠️ System Synchronization Failed: ${errMsg}`);
     }
     setLoading(false);
-  }, [toast]);
+  }, [showToast]);
 
   useEffect(() => {
     fetchData();
@@ -102,19 +98,19 @@ export const RateLimitManager: React.FC = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminTokenStore.getDecodedToken()}`,
+          'Authorization': `Bearer ${adminTokenStore.getRawToken()}`,
         },
         body: JSON.stringify(editValues),
       });
       if (resp.ok) {
-        toast({ title: 'Success', description: `✅ ${tenant_id} limits saved`, variant: 'default' });
+        showToast('success', `✅ ${tenant_id} limits saved`);
         setTenants(prev => prev.map(t => t.tenant_id === tenant_id ? { ...t, ...editValues } : t));
         setEditingId(null);
       } else {
-        toast({ title: 'Error', description: `❌ Save failed: ${resp.status}`, variant: 'destructive' });
+        showToast('error', `❌ Save failed: ${resp.status}`);
       }
     } catch {
-      toast({ title: 'Error', description: `❌ Save failed - server unreachable`, variant: 'destructive' });
+      showToast('error', `❌ Save failed - server unreachable`);
     }
     setSaving(null);
   };
@@ -128,8 +124,8 @@ export const RateLimitManager: React.FC = () => {
     try {
       const resp = await fetch(`${API_BASE}/admin/tenant-limits`, {
         method: 'POST',
-        // বাংলা মন্তব্য: getAdminToken এর পরিবর্তে প্রপার adminTokenStore.getDecodedToken() মেথড কল যোগ করা হলো
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminTokenStore.getDecodedToken()}` },
+        // বাংলা মন্তব্য: getAdminToken এর পরিবর্তে প্রপার adminTokenStore.getRawToken() মেথড কল যোগ করা হলো
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminTokenStore.getRawToken()}` },
         body: JSON.stringify(record),
       });
       if (!resp.ok) {
@@ -138,9 +134,9 @@ export const RateLimitManager: React.FC = () => {
       setTenants(prev => [...prev, record]);
       setNewTenant({ tenant_id: '', org_name: '', billing_tier: 'free' });
       setShowNewForm(false);
-      toast({ title: 'Success', description: `✅ Tenant ${record.tenant_id} created`, variant: 'default' });
+      showToast('success', `✅ Tenant ${record.tenant_id} created`);
     } catch (e: unknown) {
-      toast({ title: 'Error', description: `❌ Failed to create tenant: ${e instanceof Error ? e.message : 'Unknown error'}`, variant: 'destructive' });
+      showToast('error', `❌ Failed to create tenant: ${e instanceof Error ? e.message : 'Unknown error'}`);
     }
   };
 

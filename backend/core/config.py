@@ -198,6 +198,7 @@ class Settings(BaseSettings):
 
     max_prompt_tokens: int = Field(default=4_000, validation_alias="MAX_PROMPT_TOKENS")
     max_response_tokens: int = Field(default=1_500, validation_alias="MAX_RESPONSE_TOKENS")
+    jwt_algorithm: str = Field(default="HS256", validation_alias="JWT_ALGORITHM")
     max_cost_per_task: float = Field(default=0.01, validation_alias="MAX_COST_PER_TASK")
     enable_token_compression: bool = True
 
@@ -927,9 +928,8 @@ class Settings(BaseSettings):
             if not self.ci_webhook_secret:
                 missing.append("CI_WEBHOOK_SECRET")
             if missing:
-                logger.warning(
-                    f"⚠️ Missing config vars: {', '.join(missing)}. Bypassing hard crash for server resilience."
-                )
+                logger.critical(f"🚨 FATAL: Missing critical config vars: {', '.join(missing)}. Fail-Fast enforced.")
+                sys.exit(1)
         return self
 
     @field_validator(

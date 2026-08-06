@@ -35,8 +35,7 @@ def scan_todos():
                                     "message": message
                                 })
                 except Exception as e:
-                    # silent ignore for unreadable files
-                    pass
+                    print(f"Warning: Unable to read file {file_path}: {e}")
     return todos
 
 def create_github_issues(todos):

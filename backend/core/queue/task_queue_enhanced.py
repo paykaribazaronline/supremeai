@@ -569,7 +569,7 @@ try:
 
     celery_app = _Celery(
         "supremeai",
-        broker=getattr(settings, "REDIS_URL", "redis://localhost:6379/0"),
+        broker=getattr(settings, "redis_url", "redis://localhost:6379/0"),
     )
 except ImportError as _celery_import_err:
     logger.warning(f"Celery not installed, running without Celery worker support: {_celery_import_err}")

@@ -5,7 +5,7 @@ import { adminTokenStore } from './adminTokenStore';
 
 
 const getAuthToken = () => {
-    return adminTokenStore.getDecodedToken();
+    return adminTokenStore.getRawToken();
 };
 
 export const uploadFileToR2 = async (file: File) => {

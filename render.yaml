@@ -56,6 +56,8 @@ services:
         sync: false
       - key: CORS_ORIGINS
         value: '["https://supremeai-studio-client.onrender.com","https://supremeai-lac.vercel.app","https://supremeai-studio.vercel.app","https://supremeai-a.web.app","https://supremeai-admin.web.app"]'
+      - key: USER_CORS_ORIGINS
+        value: '["https://supremeai-studio-client.onrender.com","https://supremeai-lac.vercel.app","https://supremeai-studio.vercel.app","https://supremeai-a.web.app","https://supremeai-admin.web.app"]'
       # বাংলা মন্তব্য: core/app_user.py এই User-role instance-এ CORS_ORIGINS নয়, USER_CORS_ORIGINS
       # পড়ে এবং production-এ খালি থাকলে বুট-টাইমে crash করে (Fail-Fast) — তাই আলাদাভাবে সেট করা হলো,
 

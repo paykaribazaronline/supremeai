@@ -124,8 +124,8 @@ class GCPClient:
             result = subprocess.run(["gcloud", "auth", "print-access-token"], capture_output=True, text=True, timeout=10)
             if result.returncode == 0:
                 return result.stdout.strip()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Failed to obtain GCP access token: {e}")
         return ""
 
     def get_service_usage(self) -> list[dict]:

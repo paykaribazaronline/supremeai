@@ -401,7 +401,7 @@ class SecretsRotationManager:
             "--no-traffic",
         ]
 
-        if os.getenv("SUPREME_ENV") == "production":
+        if os.getenv("ENV") == "production":
             logger.info(f"Would execute: {' '.join(gcloud_cmd)}")
             return True
         return True
@@ -427,6 +427,7 @@ class SecretsRotationManager:
 
     async def _health_check(self) -> bool:
         """Pre-rotation system health check."""
+        healthy = True
         try:
             import redis.asyncio as aioredis
             redis_url = os.getenv("REDIS_URL", "")
@@ -436,6 +437,7 @@ class SecretsRotationManager:
                 await r.aclose()
         except Exception as e:
             logger.warning(f"Redis health check failed: {e}")
+            healthy = False
 
         try:
             from google.cloud import firestore
@@ -443,8 +445,9 @@ class SecretsRotationManager:
             db.collection("_health").document("check").get()
         except Exception as e:
             logger.warning(f"Firestore health check failed: {e}")
+            healthy = False
 
-        return True
+        return healthy
 
     async def _write_audit_log(self, event_id: str, secret_type: SecretType,
                                old_hash: str | None, new_hash: str | None, status: str) -> None:

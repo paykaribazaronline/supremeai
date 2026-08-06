@@ -100,6 +100,11 @@ _Generated for SupremeAI 2.0 — Admin Plan Execution_
   - **Empirical Grounding:** Every statement or answer must be directly backed by verified file contents (`view_file`), search results (`grep_search`), or real execution logs (`run_command`).
   - **Direct Truth Presentation:** Present facts, raw numbers, and status clearly, directly, and transparently without exaggeration, smoothing over failures, or soft promises.
 
+- **Strict Execution Log & Status Verification Rule (NON-NEGOTIABLE):**
+  - **No Unverified Success Claims:** NEVER claim a script, deployment, API call, or build has "completed", "triggered", or "succeeded" without explicitly reading the raw execution output log (`view_file` on log URI or command stdout) first.
+  - **Strict Status Inspection:** Always verify exact HTTP status codes, error tracebacks, and service IDs from actual logs BEFORE reporting status to the user.
+  - **No Speculative Confirmation:** If a deployment script outputs 404, error, or skipping messages, report the exact error directly. Do NOT assume or promise that background services are updating.
+
 - **Universal Anti-Loop & Root-Cause First Rule (CRITICAL):**
   - **No Command/Execution Loop:** If ANY task, command, code fix, or Git operation fails twice consecutively, STOP immediately. Do NOT try a 3rd time with small variations.
   - **Root Cause Diagnosis:** Step back, inspect exact error logs/diffs, identify the core underlying issue, and present a clear single-line diagnostic summary to the user before proceeding.
@@ -225,9 +230,9 @@ Classify করতে না পারলে — সরাসরি উত্ত
 
 ## 🇧🇩 Bengali Language Excellence (BLE-001~003)
 
-- **BLE-001:** Customer বাংলায় লিখলে উত্তর সম্পূর্ণ বাংলায় — **Banglish নিষিদ্ধ**।
+- **BLE-001:** প্রজেক্টের **ডিফল্ট ভাষা বাংলা** (Default Language is Bangla)। ইউজার যেকোনো ভাষায় (বাংলা বা ইংরেজি) প্রশ্ন করলেও উত্তর সবসময় স্পষ্ট ও সাবলীল বাংলায় দিতে হবে — **Banglish সম্পূর্ণ নিষিদ্ধ**।
 - **BLE-002:** Customer-কে সর্বদা **'আপনি'** সম্বোধন করো — 'তুমি' নয়।
-- **BLE-003:** Code সবসময় English-এ — শুধু comments বাংলায় থাকতে পারে।
+- **BLE-003:** Code সবসময় English-এ — তবে কোডের মন্তব্য (comments) বাধ্যতামূলক বাংলায় থাকতে হবে।
 
 ## 💰 Zero-Cost Optimization (ZCO-001~002)
 

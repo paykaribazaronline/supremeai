@@ -64,7 +64,7 @@ export function ActionCard({ rawContent, onSaveToProject, onPreview }: ActionCar
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${adminTokenStore.getDecodedToken()}`
+              'Authorization': `Bearer ${adminTokenStore.getRawToken()}`
             }
           });
           if (res.ok) {

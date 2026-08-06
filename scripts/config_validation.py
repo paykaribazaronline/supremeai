@@ -62,7 +62,7 @@ async def validate_config():
     # Validate database settings
     print("\n💾 Validating database settings...")
     try:
-        if settings.database_url:
+        if settings.supabase_database_url:
             print("✅ Database URL is configured")
             validation_results.append(("Database URL", True, "Configured"))
         else:
