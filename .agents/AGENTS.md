@@ -281,4 +281,10 @@ _(পুরো যুক্তি ও উদাহরণ: [`docs/long-term-maint
 - **Blast-Radius Classification:** কাজ শুরুর আগে LOW/MEDIUM/HIGH tier-এ classify করো:
   - **LOW** (rename, comment, dead code, lint fix) — পুরোপুরি autonomous, approval লাগবে না।
   - **MEDIUM** (নতুন module/ফাংশন, অন্য module-কে touch না করা logic change) — autonomous, কিন্তু commit message-এ `MEDIUM-RISK` ট্যাগ ও PHASE_LOG এন্ট্রি বাধ্যতামূলক।
-  - **HIGH** (auth/permission logic, payment integration, DB schema migration, secret/env handling, production deploy config, CI gate condition যেমন repo-check) — **explicit user confirmation ছাড়া apply করবে না।** শুধু ready patch/diff হিসেবে দেখাবে এবং approval-এর অপেক্ষা করবে। এই ক্ষেত্রে "১০০% autonomy" ও "DIRECT EXECUTION COMMAND" rule প্রযোজ্য না।
+  - **HIGH** (auth/permission logic, payment integration, DB schema migration, secret/env handling, production deploy config, CI gate condition যেমন repo-check) — **explicit user confirmation ছাড়া apply করবে না।** শুধু ready patch/diff `docs/audit_reports/PENDING_APPROVALS.md`-এ যোগ করবে এবং approval-এর অপেক্ষা করবে। এই ক্ষেত্রে "১০০% autonomy" ও "DIRECT EXECUTION COMMAND" rule প্রযোজ্য না।
+
+- **Freeze Switch:** কাজ শুরুর আগে প্রতিবার চেক করো `.agents/FREEZE` ফাইল আছে কিনা। থাকলে কোনো commit/push করবে না — শুধু analysis/report করবে।
+
+- **Checkpoint Tag:** MEDIUM বা HIGH-tier কাজ apply করার ঠিক আগে `git tag checkpoint-$(date -u +%Y%m%d-%H%M) && git push origin --tags` চালাও, যাতে rollback সহজ থাকে।
+
+- **CODEOWNERS Respect:** `.github/CODEOWNERS`-এ লিস্ট করা path (payment, auth, secrets, migrations, deploy config, `.agents/**`) — এগুলোতে সরাসরি `main`-এ push না করে, সবসময় PR বানিয়ে admin review-এর জন্য রেখে দাও, `main` protection bypass করার চেষ্টা কখনো করবে না।

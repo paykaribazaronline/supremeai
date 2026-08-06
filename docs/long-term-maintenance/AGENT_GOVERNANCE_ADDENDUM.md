@@ -74,6 +74,60 @@ ruff check <changed_file>
 
 ---
 
+## ৪. Technical Enforcement — CODEOWNERS (এটাই আসল "দাঁত")
+
+**সমস্যা:** উপরের ৩টা layer সবই markdown/policy-based — agent নিজে মানবে এই ভরসায় নির্ভর করে। AGENTS.md-এ আগে থেকেই "production-ready, no mock" লেখা থাকা সত্ত্বেও payment integration mock অবস্থায় ছিল — অর্থাৎ শুধু policy লিখে রাখলেই guarantee হয় না।
+
+**⚠️ Correction (2026-08-06):** প্রথম সংস্করণে এই gate ভুলবশত এই (staging) repo-তে বসানো হয়েছিল। কিন্তু dual-repo architecture অনুযায়ী **staging repo হলো AI-এর free work zone** — payment/auth/যেকোনো কোড এখানে বাধাহীনভাবে push/pull/correct/improve হবে, কারণ এখান থেকে কখনো production deploy হয় না। **আসল gate থাকা উচিত `paykaribazaronline/supremeai` (main/production repo)-তে।**
+
+**এই repo (staging)-এ শুধু governance self-protection:**
+
+`.github/CODEOWNERS` (এই repo-তে) শুধু `.agents/**`, `AGENTS.md`, `.github/CODEOWNERS` protect করে — যাতে কোনো agent নিজের safety rule নিজেই চুপচাপ মুছে দিতে না পারে। বাকি সব (payment, auth, config, ইত্যাদি) সম্পূর্ণ free।
+
+**Production repo (`paykaribazaronline/supremeai`)-এ পূর্ণ CODEOWNERS:** payment/billing, auth, secrets/env, DB migration, deploy config (`.github/workflows/**`), `.agents/**` — সব admin-এর mandatory review-এর আওতায়। এই ফাইলটা ঐ repo-তে আলাদাভাবে যোগ করতে হবে (এই staging repo-র token দিয়ে সেখানে push করা যায় না — আলাদা scoped token লাগবে, অথবা admin নিজে GitHub UI থেকে যোগ করতে পারেন)।
+
+**⚠️ দুটো repo-তেই একটা one-time manual ধাপ লাগবে:**
+
+> GitHub repo → **Settings → Branches** → `main`-এর branch protection rule → ✅ **"Require a pull request before merging"** এবং ✅ **"Require review from Code Owners"** → Save।
+
+`paykaribazaronline/supremeai`-তে "Require a pull request before merging" বিশেষভাবে গুরুত্বপূর্ণ — এটাই সেই gap বন্ধ করে দেয় যেখানে `main`-এ direct push করলেও deploy job trigger হয়ে যেত, staging→PR→admin-review flow সম্পূর্ণ বাইপাস করে (এই সমস্যাটা এই session-এর একদম শুরুতে ধরা পড়েছিল)।
+
+`CODEOWNERS`-এর ভেতরে placeholder username (`@SaifulHaqueNiloy`) আছে — আসল admin GitHub username দিয়ে confirm/আপডেট করে নিন।
+
+---
+
+## ৫. Freeze Switch (emergency one-click pause)
+
+**সমস্যা:** কিছু ভুল হচ্ছে বুঝলে admin-কে token revoke করতে হয় বা workflow disable করতে হয় — কয়েক ধাপ, দেরি হয়।
+
+**প্রস্তাব:** repo root-এ `.agents/FREEZE` নামে একটা ফাইল থাকলে (content যাই হোক), agent বাধ্যতামূলকভাবে **কোনো commit/push করবে না** — শুধু analysis/report করবে। ফাইলটা GitHub UI থেকে সরাসরি create/delete করা যায় (১০ সেকেন্ড, কোনো token লাগে না)।
+
+---
+
+## ৬. Checkpoint Tag (রোলব্যাক সেফটি নেট)
+
+**সমস্যা:** MEDIUM/HIGH-tier কাজ apply করার পর কিছু ভাঙলে "আগের অবস্থায় ফিরে যাওয়া" ম্যানুয়ালি খুঁজে বের করতে হয়।
+
+**প্রস্তাব:** MEDIUM বা HIGH-tier কাজ apply করার ঠিক আগে agent একটা lightweight tag বানাবে:
+
+```bash
+git tag checkpoint-$(date -u +%Y%m%d-%H%M) && git push origin --tags
+```
+
+কিছু ভুল হলে admin এক কমান্ডেই ফিরে যেতে পারবেন:
+
+```bash
+git reset --hard checkpoint-<timestamp> && git push --force-with-lease
+```
+
+---
+
+## ৭. Pending-Approval Queue (admin-এর জন্য সবচেয়ে কম effort)
+
+**প্রস্তাব:** HIGH-tier প্রস্তাবিত পরিবর্তন কোডে না বসিয়ে `docs/audit_reports/PENDING_APPROVALS.md`-এ এক-লাইনে লিস্ট হবে। Admin-এর কাজ শুধু Decision কলামে `APPROVED`/`REJECTED` লেখা — পুরো diff/কোড ঘাঁটতে হবে না, চাইলে দেখতে পারেন লিংক থেকে।
+
+---
+
 ## `.agents/AGENTS.md`-এ যোগ করার প্রস্তাবিত rule (সংক্ষিপ্ত সংস্করণ)
 
 নিচের ব্লকটা `.agents/AGENTS.md`-এর শেষে "Custom Learned Rule" হিসেবে যোগ করা হয়েছে (দেখুন সেই ফাইলের নিচে):
