@@ -363,8 +363,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # বাংলা মন্তব্য: Trivy রিলিজ অ্যাসেটের নির্দিষ্ট নাম পরিবর্তন এড়াতে অফিশিয়াল ইনস্টল স্ক্রিপ্ট ব্যবহার করা হচ্ছে
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b ./bin v0.48.3
+          # বাংলা মন্তব্য: GitHub API রেট লিমিট এবং ইনস্টল স্ক্রিপ্ট ফেইলর এড়াতে সরাসরি বাইনারি ডাউনলোড করা হচ্ছে
+          mkdir -p ./bin
+          wget -qO- https://github.com/aquasecurity/trivy/releases/download/v0.48.3/trivy_0.48.3_Linux-64bit.tar.gz | tar -xzf - -C ./bin trivy
           ./bin/trivy fs --format sarif --output trivy-python.sarif --severity CRITICAL,HIGH backend &
           ./bin/trivy fs --format sarif --output trivy-nodejs.sarif --severity CRITICAL,HIGH . &
           wait
