@@ -31,6 +31,12 @@
 
 ---
 
+## 📐 Error-Check ক্রম (small → big)
+
+প্রতিটা Phase-এর ভেতরে কোন ধরনের error আগে খুঁজবেন, কোনটা পরে — তার বিস্তারিত ক্রম ও যুক্তি দেওয়া আছে [`CODE_QUALITY_CHECK_SEQUENCE.md`](./CODE_QUALITY_CHECK_SEQUENCE.md)-এ (syntax → lint → dead code → bare except → import cycles → types → tests → security → architecture)। প্রতিটা Phase শুরুর আগে এই ফাইলটা একবার পড়ে নিন।
+
+---
+
 ## Phase 0 — সেটআপ ও বেসলাইন (আজ, ~১-২ ঘণ্টা)
 
 **লক্ষ্য:** টুলিং বসানো, ফাইল ইনভেন্টরি, স্ট্যাটিক অ্যানালাইজার রান করা যাতে AI-এর pure-LLM অনুমানের উপর নির্ভর করতে না হয়।
