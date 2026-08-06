@@ -701,6 +701,7 @@ class Settings(BaseSettings):
                 "https://supremeai.com",
                 "https://app.supremeai.com",
                 "https://admin.supremeai.com",
+                "https://supremeai-admin.web.app",
                 "https://supremeai-studio.vercel.app",
                 "https://supremeai-backend.onrender.com",
                 "https://supremeai-admin.onrender.com",
