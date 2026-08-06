@@ -16,6 +16,7 @@ import asyncio
 import hashlib
 import json
 import re
+import shlex
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
@@ -262,10 +263,27 @@ class HeadlessTerminalAgent:
         return any(stripped.startswith(c + " ") or stripped == c for c in cmd_indicators)
 
     async def _run_command(self, command: str) -> CommandResult:
-        """Run command safely."""
+        """Run command safely.
+
+        বাংলা: শেল İnjeksion প্রতিরোধে `create_subprocess_shell` এর বদলে
+        `create_subprocess_exec` + `shlex.split` ব্যবহার করা হয়েছে।
+        LLM-উৎপন্ন commands সরাসরি shell-এ execute করা হয় না —
+        tokenized argument list-এ রূপান্তর করা হয়।
+        """
         try:
-            process = await asyncio.create_subprocess_shell(
-                command,
+            # 🔒 P0 FIX: shlex.split দিয়ে command tokenize করে shell injection প্রতিরোধ
+            tokens = shlex.split(command)
+            if not tokens:
+                return CommandResult(
+                    command=command,
+                    exit_code=1,
+                    output="Empty command after tokenization",
+                    safety_status=CommandSafety.BLOCKED,
+                    explanation="Empty command",
+                )
+
+            process = await asyncio.create_subprocess_exec(
+                *tokens,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
@@ -324,7 +342,8 @@ class HeadlessTerminalAgent:
                 max_tokens=200,
             )
             return result.get("content", "").strip()
-        except Exception:
+        except Exception as exc:
+            logger.error(f"[HeadlessTerminalAgent] suggest() failed: {exc}")
             return ""
 
     @with_error_bus("explain_output")
@@ -339,7 +358,8 @@ class HeadlessTerminalAgent:
                 max_tokens=200,
             )
             return result.get("content", "").strip()
-        except Exception:
+        except Exception as exc:
+            logger.error(f"[HeadlessTerminalAgent] explain_output() failed: {exc}")
             return "Unable to explain output."
 
 

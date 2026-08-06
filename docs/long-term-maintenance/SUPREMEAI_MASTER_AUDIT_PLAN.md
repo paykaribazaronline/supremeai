@@ -1,128 +1,129 @@
-# SupremeAI 2.0 — Enterprise Master Audit & Prevention Blueprint v2 (Dev & Prod Continuous Plan)
+# SupremeAI 2.0 — Full Project Audit Master Plan (0% → 100%)
 
-**উদ্দেশ্য:** পুরো SupremeAI 2.0 মনোরিপো (backend + 5টি app + packages + infra) সিস্টেমেটিক্যালি অডিট করা এবং ডেভেলপমেন্ট (Dev) ও প্রোডাকশন (Prod) উভয় ফেজে টেকনিক্যাল বাগ, সিকিউরিটি ভায়োলেশন, সাইলেন্ট এরর, কনফিগারেশন ড্রিফট এবং **AI-agent-specific attack surface** সম্পূর্ণ স্বয়ংক্রিয়ভাবে প্রতিরোধ করা।
+**উদ্দেশ্য:** পুরো `supremeai` মনোরিপো (backend + 5টা app + packages + infra) root থেকে systematically audit করা — security bug, silent error, dead/fake-success কোড, config drift, docs-vs-code মিথ্যা claim — সব ধরনের ইস্যু বের করা, প্রতিটা claim verify-সহ।
 
-> **v2 changelog:** AI/Agent Security phase, P0 Stop-the-Line Protocol, per-phase Exit Criteria, Independent Verification rule, Supply Chain/CI-CD security, LLM Cost/Quota Guard, Cross-App Contract Testing, RBAC/Data Privacy pass, Rollback Strategy, Time & Parallelization matrix।
+**কিভাবে ব্যবহার করবেন:**
+এই পুরো ফাইলটা লোকাল AI (Claude Code) এর কাছে দিন। প্রতিদিন বলুন: *"AUDIT_PLAN.md পড়ো, Phase N চালাও, শেষে PHASE_LOG.md আপডেট করো।"* — একদিনে একটা Phase-এর বেশি না করাই ভালো (context/quality-এর জন্য)।
 
 ---
 
-## 0. গ্লোবাল অডিট ও প্রিভেনশন রুলস (NON-NEGOTIABLE)
+## ০. গ্লোবাল রুলস (সব Phase-এ বাধ্যতামূলক — AI-কে এই সেকশন প্রতিবার আগে পড়াবেন)
 
-1. **Empirical Evidence Required:** প্রমাণ (grep count / static tool log / test run) ছাড়া কোনো ইস্যু "Fixed" দাবি করা যাবে না।
-2. **Batching & Sub-task Limits:** বড় মডিউলের ফাইলগুলো ব্যাচ আকারে পড়তে হবে (একবারে সর্বাধিক ২০-৩০ ফাইল)।
-3. **Strict Issue Reporting Format:**
+1. **কোনো ইস্যু "Fixed" লেখা যাবে না যতক্ষণ না প্রমাণ (grep count / test output / diff) দেখানো হয়েছে।** শুধু prose summary ("এখন ঠিক আছে") গ্রহণযোগ্য না।
+2. **একবারে পুরো Phase-এর সব ফাইল "পড়েছি" দাবি করা যাবে না** — যদি ফাইল সংখ্যা বেশি হয়, sub-batch-এ ভাগ করে প্রতিটা batch শেষে ফাইল কাউন্ট রিপোর্ট করতে হবে (কতটা পড়া হলো / কতটা বাকি)।
+3. **প্রতিটা ইস্যুর ফরম্যাট বাধ্যতামূলক:**
    ```
-   [ID] [Severity: P0/P1/P2/P3] [Technical Error Term] [ফাইল:লাইন]
-   সমস্যা: (১ লাইনে)
-   Root Cause: (২-৩ লাইনে)
-   প্রমাণ: (কোড স্নিপেট / grep আউটপুট)
-   Dev Guard / Prod Monitoring Solution: (প্রতিরোধমূলক ব্যবস্থা)
+   [ID] [Severity: P0/P1/P2/P3] [ফাইল:লাইন]
+   সমস্যা: (এক লাইনে)
+   কেন এটা সমস্যা / root cause: (২-৩ লাইন)
+   প্রমাণ: (কোড স্নিপেট বা grep আউটপুট)
+   সাজেস্টেড ফিক্স: (fix পরে, আলাদা approval-এর পর করা হবে — এই ধাপে শুধু ইস্যু লিস্ট)
    ```
-4. **Severity Matrix & Technical Mapping:**
-   - **P0 (Critical):** `Cross-Site Scripting (XSS)`, `Command Injection`, `Prompt Injection → Tool Execution`, `Secret Invalidation/Rotation Drift`, Auth Bypass, `Data Loss / Corruption`, Production Outage Risk.
-   - **P1 (High):** `False-Positive Claim (Regressive Bug)`, `Silent Failure / Exception Swallowing`, `Session Cache Poisoning`, `Agent Sandbox Escape`, `Runaway Cost / Quota Breach`.
-   - **P2 (Medium):** `Content Security Policy (CSP) Violation`, `Cross-Origin Resource Sharing (CORS) Blocked`, `Configuration Drift`, `Hardcoded Endpoint Binding`, `Memory Leak`, `API Contract Breakage`.
-   - **P3 (Low):** `Unused / Dead Code Dependency`, `Health Check Timeout`, Missing Tests, Code Style/TODO.
-5. **Docs & Claims vs Code Truth:** `docs/` বা README-এর দাবি বিশ্বাস করা যাবে না; সরাসরি কোড এবং ডিপ্লয়েড স্টেট চেক করতে হবে।
-6. **NEW — P0 Stop-the-Line Protocol:** যেকোনো ফেজে P0 পাওয়া গেলে সেই ফেজের বাকি কাজ থামিয়ে **অবিলম্বে** একটা আলাদা `hotfix/P0-<id>` ব্র্যাঞ্চে ফিক্স নেওয়া হবে, prod-এ deploy ও verify করার পর মূল ফেজে ফেরত আসা হবে। P0 কখনো "পরে দেখব" তালিকায় যাবে না।
-7. **NEW — Independent Verification Rule:** যে এজেন্ট/ব্যক্তি ইস্যু ফিক্স করেছে, সে নিজে "Empirically Verified" ট্যাগ দিতে পারবে না — একটা দ্বিতীয় স্বাধীন রান (fresh grep/test/tool output, ভিন্ন সেশনে) দিয়ে ক্রস-চেক বাধ্যতামূলক। এই ছাড়া কোনো ইস্যু "Closed" স্ট্যাটাসে যাবে না।
-8. **NEW — Per-Phase Exit Criteria (Definition of Done):** কোনো ফেজ "সম্পূর্ণ" ধরা হবে শুধুমাত্র যদি: (a) নির্ধারিত ফাইল কভারেজ ≥ ৯৫%, (b) সব P0/P1 issue হয় Closed নয়তো explicit owner + deadline সহ ট্র্যাকড, (c) সংশ্লিষ্ট automated guard (lint rule/CI check/monitor) লাইভ, (d) Independent Verification সম্পন্ন।
+4. **Severity taxonomy:**
+   - **P0** — secret leak, RCE/injection, auth bypass, data loss risk, production down করতে পারে এমন কিছু
+   - **P1** — fake/mocked success (কাজ করছে বলে দাবি করে কিন্তু persist/execute করে না), silent exception swallow যা ডেটা করাপশন ঘটাতে পারে
+   - **P2** — config drift (IaC বনাম বাস্তব deploy), dead code, ডুপ্লিকেট লজিক, resource leak
+   - **P3** — style, missing test, minor perf, TODO/FIXME স্তূপ
+5. **Fix করার আগে approval লাগবে** — audit ও fix আলাদা ধাপ। Phase-এর কাজ শুধু *খুঁজে বের করা ও রিপোর্ট করা*, নিজে থেকে কোড পাল্টে ফেলা না (যদি না user "ঠিক করে দাও" বলে)।
+6. **প্রতিটা Phase শেষে self-verification ধাপ বাধ্যতামূলক** — AI নিজেই grep/count চালিয়ে নিজের ৩টা প্রধান finding প্রমাণ করে দেখাবে। এটা স্কিপ করা যাবে না।
+7. **Docs-কে সোর্স অফ ট্রুথ হিসেবে ধরা যাবে না** — `docs/bangla/*AUDIT*` বা যেকোনো README-তে "✅ Fixed/Done" লেখা থাকলেও কোড গিয়ে সরাসরি verify করতে হবে (কারণ আগেই একটা এমন মিথ্যা claim পাওয়া গেছে — CSP বাগ শুধু ১টা ফাইলে ফিক্স হয়ে বাকি ৩টায় হয়নি)।
+8. প্রতিটা Phase-এর শেষে `PHASE_LOG.md`-এ এন্ট্রি যোগ করবে (ফরম্যাট নিচে ধাপ "মাস্টার লগ"-এ)।
 
 ---
 
-## 0.1 ঐতিহাসিক প্রস্তুতকৃত অডিট বেসলাইন (Historical Known Baseline Issues)
+## Phase 0 — সেটআপ ও বেসলাইন (আজ, ~১-২ ঘণ্টা)
 
-- **JWT Secret Instability (P0):** `backend/core/config.py`-এ `SUPREMEAI_JWT_SECRET` ডায়নামিকভাবে প্রতি রিস্টার্টে জেনারেট হচ্ছে কিনা রি-চেক।
-- **Docker Image Secret Leak (P0):** `.dockerignore`-এ `.env*` এক্সক্লুড নিশ্চিত করা।
-- **Middleware Chain Vulnerability (P0):** `ChaosInjector`/`HoneypotMiddleware` যেন Auth Middleware-এর আগে না চলে।
-- **Secret Vault Fallback Vulnerability (P0):** `secret_vault.py` অনুপস্থিত সিক্রেটের জন্য `""` না দিয়ে `SecretNotFoundError` থ্রো করবে।
-- **Thread Safety in Event Bus (P1):** `ErrorEventBus` রেস কন্ডিশন মুক্ত।
-- **OTLP Exporter Missing (P1):** OpenTelemetry ডিপেন্ডেন্সি মিসিং থাকায় সাইলেন্ট ড্রপ বন্ধ।
+**লক্ষ্য:** টুলিং বসানো, ফাইল ইনভেন্টরি, স্ট্যাটিক অ্যানালাইজার রান করা যাতে AI-এর pure-LLM অনুমানের উপর নির্ভর করতে না হয়।
 
----
-
-## Phase 0 — টুলিং, বেসলাইন ও অটোমেটেড প্রিভেনশন সেটআপ (~২-৩ ঘণ্টা)
-
-1. **Static Analysis & Security Scanner Run:**
-   - Python: `ruff check .`, `bandit -r backend/core`, `mypy backend/`
-   - TS/Web/Extension: `eslint .`
-   - Flutter: `flutter analyze`
-   - Secrets: `gitleaks detect --verbose`
-   - **NEW — Supply chain:** `pip-audit`, `npm audit --production`, dependency lockfile integrity check, license scan (`pip-licenses`, `license-checker`)
-2. **Dev Guard Rules:** pre-commit হুকে `gitleaks`, `eslint`, `ruff` + CSP duplicate-config grep রুল।
-3. **Prod Guard Setup:** Infisical / GitHub Actions Environment Var Checker চালু।
-4. **NEW — CI/CD Pipeline Self-Audit:** GitHub Actions workflow files নিজেই স্ক্যান করা — pull_request_target misuse, unpinned third-party actions (SHA pin না থাকা), secrets exposure to fork PRs।
-5. **Master Log:** রুটে `PHASE_LOG.md` তৈরি ও ট্র্যাক।
+কাজ:
+1. রিপো রুটে ফাইল ইনভেন্টরি বানাও: প্রতিটা top-level ফোল্ডারে কতগুলো ফাইল, কোন ভাষা।
+2. স্ট্যাটিক টুল চালাও (থাকলে, না থাকলে ইন্সটল করে):
+   - Python: `ruff check .`, `bandit -r backend`, `mypy` (যেখানে config আছে)
+   - TS/JS: `eslint .` (studio-client, vscode-extension, packages-এ)
+   - Dart: `flutter analyze` (mobile)
+   - Secrets: `git secrets`/`gitleaks` দিয়ে পুরো git history স্ক্যান (আগে একটা লিক হওয়া JWT secret পাওয়া গিয়েছিল, ইতিহাসে আরও থাকতে পারে)
+3. `PHASE_LOG.md` ফাইল বানাও (root-এ) — টেমপ্লেট নিচে।
+4. এই প্ল্যানের Phase 1-16 এর তালিকা `PHASE_LOG.md`-এ "Not Started" স্ট্যাটাসসহ বসাও।
 
 ---
 
-## ১. অডিট ফেজসমূহ (Phase 1 → Phase 18)
+## Phase তালিকা (ফাইল কাউন্টসহ — বাস্তব রিপো অনুযায়ী)
 
-| Phase | মডিউল | টেকনিক্যাল ফোকাস | Dev & Prod Guard | Est. Time | Parallel? |
-|---|---|---|---|---|---|
-| **1** | `backend/core/` (~205 files) | Command Injection, Silent Failure, Cascading Failure | Dev: AST shell-exec audit / Prod: Sentry error bus | 2-3d | — |
-| **2** | `backend/api/`+`middleware/`+`database/` (~104) | CORS Blocked, Auth Bypass, Race Condition | Dev: dynamic CORS test / Prod: gateway CORS audit | 1-2d | — |
-| **3** | `backend/agents/`+`brain/`+`evolution/` (~86) | False-Positive Claim, Rate Limit (429) | Dev: provider fallback tests / Prod: Redis rate monitor | 2d | with 6.5 |
-| **4** | `backend/tools/`+`scripts/`+`utils/` (~154) | Dead Code, Silent Failure | Dev: `vulture` / Prod: log-level enforcement | 1-2d | with 5 |
-| **5** | `backend/memory/`+`skills/`+`models/`+`schemas/` (~55) | Data Corruption, Session Cache Poisoning | Dev: Pydantic v2 validation / Prod: Redis TTL audit | 1d | with 4 |
-| **6** | `backend/sandbox/`+`ws/`+`p2p/`+`admin/` (~43) | Command Injection, Memory Leak, Event Loop Blocking | Dev: cgroups limit test / Prod: Prometheus WS metric | 1-2d | — |
-| **6.5 (NEW)** | AI/Agent Security — prompt injection surface, tool-permission scoping, agent-to-agent trust boundary, sandbox escape from tool execution | `Prompt Injection → Tool Execution`, `Agent Sandbox Escape`, `Unauthorized Tool Invocation` | Dev: adversarial prompt test suite, tool allow-list enforcement test / Prod: anomalous tool-call pattern alerting | 2-3d | with 3 |
-| **7** | `backend/tests/` (~367) | Unmocked Network Timeout, Fake Assertion | Dev: `pytest-socket` / Prod: coverage gate (state actual target, not 38% floor) | 2d | — |
-| **8** | `apps/studio-client/` (~348) | Hardcoded Endpoint, Session Cache Poisoning, XSS | Dev: `no-hardcoded-url` ESLint / Prod: `VITE_API_BASE` enforcement | 3d | with 9,10,11 |
-| **9** | `tools/vscode-extension/` (~50) | CSP Violation, Message Contract Breakage | Dev: Webview CSP test / Prod: extension telemetry | 1d | with 8,10,11 |
-| **10** | `apps/mobile/` (Flutter ~92) | Token Leak, Insecure Storage, Deep Link Flaw | Dev: Secure Storage check / Prod: API failover ping | 2d | with 8,9,11 |
-| **11** | `apps/desktop-app/`+`java-worker/`+`hf-space/` | Electron `nodeIntegration` Leak, Docker Secret Leak | Dev: contextIsolation test / Prod: container image scan | 1-2d | with 8,9,10 |
-| **12** | `infrastructure/`+`render.yaml`+Cloudflare+Firebase | Config Drift, Secret Rotation Drift, Health Probe Timeout | Dev: `sync_all_platforms_env.py --check` / Prod: health probe monitor | 1d | — |
-| **13** | `packages/`+`shared/` (~20+) | Regressive Bug, Shared Dependency Mismatch | Dev: monorepo typecheck / Prod: artifact verifier | 1d | — |
-| **13.5 (NEW)** | Cross-App API Contract Testing — backend ↔ studio-client/mobile/desktop/vscode/hf-space | `API Contract Breakage` | Dev: schema-diff / consumer-driven contract tests (Pact-style) / Prod: contract violation alert on deploy | 1-2d | — |
-| **14** | Dependency / Vulnerability + Supply Chain (All Repos) | CVE, License Risk, Unpinned Action Risk | Dev: `npm audit`/`pip-audit` / Prod: Dependabot/Snyk PR alerts | 1d | — |
-| **14.5 (NEW)** | RBAC & Data Privacy Pass | Missing role checks, PII in logs, over-broad data exposure | Dev: permission-matrix test / Prod: PII log scrubber verification | 1-2d | — |
-| **14.75 (NEW)** | LLM Cost/Quota Governance | `Runaway Cost / Quota Breach` | Dev: per-agent token-budget unit test / Prod: real-time spend dashboard + hard kill-switch | 1d | — |
-| **15** | Docs-vs-Code Consistency | False Documentation Claims | Dev: cross-verify docs vs grep / Prod: automated KB verification | 1d | — |
-| **16** | End-to-End Integration & Master Roadmap | System-wide Cascading Failure | Dev: full E2E simulation / Prod: live synthetic transaction ping | 1-2d | — |
-| **17 (NEW)** | Rollback & Deployment Safety | Bad deploy without safe revert path | Dev: blue-green/canary dry-run / Prod: automated rollback trigger on health-check failure | 1d | — |
+| Phase | মডিউল | আনুমানিক ফাইল | ফোকাস |
+|---|---|---|---|
+| 1 | `backend/core/` | 205 | সবচেয়ে বড়/গুরুত্বপূর্ণ — orchestration core, security-critical |
+| 2 | `backend/api/` + `middleware/` + `database/` | ~104 | Route auth, input validation, DB access pattern |
+| 3 | `backend/agents/` + `brain/` + `adaptive_engine/` + `evolution/` | ~86 | Agent logic, self-evolution — fake-success risk বেশি এখানে |
+| 4 | `backend/tools/` + `scripts/` + `utils/` | ~154 | Utility/tool কোড — dead code বেশি থাকতে পারে |
+| 5 | `backend/memory/` + `skills/` + `models/` + `schemas/` + `storage/` | ~55 | ডেটা মডেল ও পার্সিস্টেন্স সঠিকতা |
+| 6 | `backend/p2p/`, `byoc/`, `workers/`, `sandbox/`, `ws/`, `monitoring/`, `services/`, `scout/`, `pipelines/`, `reports/`, `admin/` | ~43 | ছোট মডিউলের গুচ্ছ — sandbox/exec risk বিশেষভাবে দেখা |
+| 7 | `backend/tests/` | 367 | টেস্ট **quality** audit — টেস্ট আছে মানেই কাজ করে তা না; সব pass কিন্তু কিছু test করছে না এমন কিছু আছে কিনা |
+| 8 | `apps/studio-client/` (web frontend) | 348 | API client consistency (আজ যেমন দুটো apiClient পাওয়া গেছে), auth token storage, XSS |
+| 9 | `tools/vscode-extension/` (বাকি অংশ, CSP বাদে) | 50 | Command registration সব কাজ করে কিনা, webview↔extension message contract |
+| 10 | `apps/mobile/` (Flutter) | 92 | Token storage, deep link handling, hardcoded API URL |
+| 11 | `apps/desktop-app/` + `apps/java-worker/` + `apps/hf-space/` | — | Electron security (nodeIntegration/contextIsolation), Dockerfile secret |
+| 12 | `infrastructure/` + `cloudflare-worker/` + `config/` + `configs/` + `render.yaml`/`render.admin.yaml`/docker-compose/terraform | — | IaC বনাম বাস্তব deploy mismatch (render.yaml gap-এর মতো আরও আছে কিনা) |
+| 13 | `packages/` + `shared/` + root `src/` + root `skills/` | ~20+ | Shared code — একটা বাগ থাকলে multiple app-এ ছড়ায় |
+| 14 | Dependency/CVE scan | সব | `npm audit`, `pip-audit`, `flutter pub outdated`, license check |
+| 15 | Docs-vs-Code সামঞ্জস্য পাস | সব `docs/bangla/*AUDIT*`, README | প্রতিটা "✅ Fixed/Done" claim কোডে গিয়ে re-verify |
+| 16 | ফাইনাল ইন্টিগ্রেশন পাস | — | Critical flow end-to-end trace (login → chat → billing → agent execution), মাস্টার রিপোর্ট + prioritized roadmap |
 
-**মোট আনুমানিক সময়:** সিকোয়েনশিয়াল হলে ~২৮-৩২ দিন; উপরের parallel gruoping ব্যবহার করলে ~১৮-২০ দিনে নামানো সম্ভব (ধরে নিয়ে একাধিক reviewer/agent সমান্তরালে কাজ করছে)।
+> বড় প্রজেক্ট (২৩৬৭+ ফাইল), তাই ১৬ দিন/সেশন লাগতে পারে। চাইলে ২-৩টা ছোট Phase একদিনে একসাথে করানো যায় (যেমন Phase 6 + 13), কিন্তু Phase 1, 7, 8 আলাদা রাখাই ভালো (বড়/ক্রিটিক্যাল)।
 
 ---
 
-## ২. ডেভেলপমেন্ট ও প্রোডাকশন কন্টিনিউয়াস মনিটরিং ফ্রেমওয়ার্ক
+## প্রতিদিন ব্যবহারের প্রম্পট টেমপ্লেট
 
-### A. Development Phase Guard
-1. Pre-commit: `gitleaks`, `ruff`, `eslint`, CSP duplicate-check grep।
-2. `pytest-socket` দিয়ে unmocked network কল ব্লক।
-3. `.env` পরিবর্তনে `sync_all_platforms_env.py` বাধ্যতামূলক।
-4. **NEW:** Adversarial prompt-injection regression suite — নতুন agent/tool যোগ হলেই রান হবে।
-5. **NEW:** CI-তে unpinned GitHub Action ব্যবহার ব্লক করা (SHA-pin বাধ্যতামূলক)।
+```
+SUPREMEAI_FULL_AUDIT_PLAN.md ফাইলটা পড়ো।
+আজ Phase [N] চালাও: [মডিউল পাথ]।
 
-### B. Production Phase Guard
-1. Health probe tracking (`/health`), backup backend sync cron (৬ ঘণ্টায়)।
-2. Sentry/Datadog দিয়ে Silent Failure রিয়েল-টাইম ক্যাচ।
-3. CORS/session watchdog — ব্রাউজার কনসোল এরর ট্র্যাকিং।
-4. **NEW:** LLM spend dashboard + per-tenant/per-agent hard budget kill-switch।
-5. **NEW:** Anomalous tool-invocation pattern alert (agent একটা tool normal-এর চেয়ে অস্বাভাবিক বেশি/অপ্রত্যাশিতভাবে কল করলে flag)।
-6. **NEW:** Automated rollback — health check ফেল করলে পূর্ববর্তী stable deploy-এ auto-revert।
+নিয়ম (Section ০ থেকে):
+- Fixed বলার আগে প্রমাণ দাও
+- ব্যাচে পড়ো, প্রতি ব্যাচ শেষে ফাইল কাউন্ট রিপোর্ট করো
+- ইস্যু ফরম্যাট মেনে চলো (ID/Severity/ফাইল:লাইন/কারণ/প্রমাণ)
+- এখনই fix কোরো না, শুধু ইস্যু লিস্ট দাও
+- Phase শেষে নিজে grep/count দিয়ে টপ ৩ finding verify করে দেখাও
+- PHASE_LOG.md-এ এন্ট্রি যোগ করো
 
----
-
-## ৩. মাস্টার লগ ফরম্যাট (`PHASE_LOG.md`)
-
-```markdown
-## Phase [N] — [মডিউল নাম] — [তারিখ]
-- ফাইল কভারেজ: X/Y সোর্স ফাইল স্ক্যান করা হয়েছে
-- ইস্যু সংখ্যা: P0=?, P1=?, P2=?, P3=?
-- টেকনিক্যাল এরর ক্যাটাগরি ফোকাস: [...]
-- Top 3 Critical Findings:
-  1. [ID] [Severity] [Technical Error Term] [ফাইল:লাইন] — বিবরণ
-  2. ...
-  3. ...
-- Dev Guard Action: [...]
-- Prod Guard Action: [...]
-- Exit Criteria Met: [ ] File coverage ≥95%  [ ] P0/P1 closed or tracked  [ ] Guard live  [ ] Independent verification done
-- Self-Verification: ✅ Empirically Verified by [name/agent, different from fixer] (Grep/Logs/Test Output attached)
-- P0 Stop-the-Line Triggered: Yes/No — if yes, hotfix branch: [link]
+শেষে আমাকে সংক্ষেপে বলো: কতগুলো P0/P1/P2/P3 পাওয়া গেছে, আর কালকের Phase [N+1] শুরু করার আগে কিছু জানা দরকার কিনা।
 ```
 
 ---
 
-_SupremeAI 2.0 — Comprehensive Master Audit & Continuous Quality Blueprint
+## মাস্টার লগ ফরম্যাট (`PHASE_LOG.md`-এ প্রতিটা Phase শেষে এই এন্ট্রি)
+
+```markdown
+## Phase [N] — [মডিউল নাম] — [তারিখ]
+- ফাইল কভারেজ: X/Y পড়া হয়েছে
+- পাওয়া গেছে: P0=?, P1=?, P2=?, P3=?
+- Top 3 findings (ID সহ):
+  1. ...
+  2. ...
+  3. ...
+- Self-verification স্ট্যাটাস: ✅ grep/test দিয়ে প্রমাণিত | ⚠️ আংশিক | ❌ শুধু prose claim
+- পরবর্তী Phase-এর জন্য নোট: ...
+```
+
+এই লগ ফাইলটাই আপনার "single source of truth" — কোনদিন কী পাওয়া গেছে, কী এখনো ভেরিফাই হয়নি, সব একনজরে দেখা যাবে।
+
+---
+
+## Phase 16 শেষে (ফাইনাল রিপোর্ট)
+
+সব Phase শেষ হলে AI-কে বলুন:
+```
+PHASE_LOG.md-এর সব এন্ট্রি একসাথে করে একটা কনসোলিডেটেড রিপোর্ট বানাও:
+1. সব P0 ইস্যু এক জায়গায়, ফিক্স-অর্ডার priority সহ
+2. মডিউল ধরে ধরে risk heatmap (কোন মডিউলে সবচেয়ে বেশি P0/P1)
+3. এমন কোনো cross-module প্যাটার্ন আছে কিনা যেটা বারবার ঘটছে (যেমন: duplicate API client লজিক, fake-success pattern) — সেগুলো আলাদা করে হাইলাইট করো
+```
+
+---
+
+## আমার সাজেশন (ভালো আইডিয়া হিসেবে যোগ করছি)
+
+1. **শুধু LLM-এর অনুমানের উপর নির্ভর না করে static tool + AI hybrid করুন** (Phase 0-এ যোগ করা হয়েছে) — `bandit`/`ruff`/`eslint`/`gitleaks` প্রথমে concrete সিগন্যাল দেবে, AI সেটার উপর ভিত্তি করে বিশ্লেষণ করলে hallucination অনেক কমে।
+2. **প্রতিটা Phase-এর "Fixed" claim একটা *ফ্রেশ* AI সেশনে (বা পরদিন) আবার cross-check করান** — একই সেশনে যে AI ফিক্স করেছে, সে নিজের ভুল স্বীকার করতে দ্বিধা করতে পারে। নতুন সেশনে "এই claim-টা সত্যি কিনা grep করে দেখাও" জিজ্ঞেস করলে exactly আজকের CSP বাগের মতো জিনিস ধরা পড়বে।
+3. **PHASE_LOG.md রিপোতেই কমিট রাখুন** (git-এ) — তাহলে সময়ের সাথে audit history ট্র্যাক থাকবে, আর ভবিষ্যতে কোনো AI সেশন context হিসেবে পুরনো findings পড়তে পারবে।
+4. **Phase 7 (tests) আর Phase 15 (docs) স্কিপ করবেন না** — এই দুইটাই সাধারণত সবচেয়ে অবহেলিত, অথচ এখানেই "সব ঠিক আছে বলে দাবি" আর "বাস্তবে যা হচ্ছে" এর গ্যাপ সবচেয়ে বেশি ধরা পড়ে।

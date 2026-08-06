@@ -55,7 +55,7 @@ class OnPremiseDeployer:
                     "image": "postgres:15-alpine",
                     "environment": {
                         "POSTGRES_USER": "supremeai",
-                        "POSTGRES_PASSWORD": "change-me-in-production",
+                        "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:-}",
                         "POSTGRES_DB": "supremeai",
                     },
                     "volumes": ["pgdata:/var/lib/postgresql/data"],
@@ -107,14 +107,14 @@ class OnPremiseDeployer:
                 "image": {"repository": "postgres", "tag": "15-alpine"},
                 "auth": {
                     "username": "supremeai",
-                    "password": "change-me",
+                    "password": "${POSTGRES_PASSWORD}",
                     "database": "supremeai",
                 },
                 "persistence": {"size": "20Gi", "storageClass": "standard"},
             },
             "redis": {
                 "image": {"repository": "redis", "tag": "7-alpine"},
-                "auth": {"enabled": True, "password": "change-me"},
+                "auth": {"enabled": True, "password": "${REDIS_PASSWORD}"},
                 "persistence": {"size": "5Gi"},
             },
             "resources": {

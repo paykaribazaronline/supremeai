@@ -23,15 +23,18 @@ from typing import Any
 from fastapi import HTTPException
 from loguru import logger
 
+from core.config import settings
+
 
 class CostGuard:
     def __init__(self, db: Any = None):
         self._db = db
         # টাস্ক রাউটারের বাজেট ট্র্যাকিংয়ের জন্য ডিফল্ট টিয়ার থ্রেশহোল্ড
+        # বাংলা মন্তব্য: Config-driven — settings থেকে override করা যায়।
         self.tier_limits = {
             "free": 0.0,
-            "economy": 0.02,  # প্রতি টাস্কে সর্বোচ্চ খরচ ২ সেন্ট
-            "premium": 0.50,  # প্রিমিয়াম মডেলের বাজেট গেট
+            "economy": float(getattr(settings, "cost_tier_economy_limit", 0.02)),  # প্রতি টাস্কে সর্বোচ্চ খরচ ২ সেন্ট
+            "premium": float(getattr(settings, "cost_tier_premium_limit", 0.50)),  # প্রিমিয়াম মডেলের বাজেট গেট
         }
 
     async def connect(self) -> "CostGuard":

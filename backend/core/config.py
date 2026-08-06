@@ -301,6 +301,10 @@ class Settings(BaseSettings):
     # এখন এই factor settings থেকে নিয়ন্ত্রিত হয় যা runtime-এ override করা যাবে।
     llm_cost_per_token: float = Field(default=0.00001, validation_alias="LLM_COST_PER_TOKEN")
 
+    # বাংলা মন্তব্য: CostGuard-এর tier limits — env থেকে override করা যাবে।
+    cost_tier_economy_limit: float = Field(default=0.02, validation_alias="COST_TIER_ECONOMY_LIMIT")
+    cost_tier_premium_limit: float = Field(default=0.50, validation_alias="COST_TIER_PREMIUM_LIMIT")
+
     # ── Task Queue Config — env-driven ──────────────────────────────────────
     # বাংলা মন্তব্য: task_queue_enhanced.py-এ TTL এবং backend priority এখন config-driven।
     task_result_ttl_seconds: int = Field(default=3600, validation_alias="TASK_RESULT_TTL_SECONDS")

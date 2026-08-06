@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supremeai_mobile/screens/home_screen.dart'; // Import the new home screen
 
 void main() {
@@ -45,11 +45,10 @@ class _HomePageState extends State<HomePage> {
     _loadAuthToken();
   }
 
+  static const _secureStorage = FlutterSecureStorage();
+
   Future<void> _loadAuthToken() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _authToken = prefs.getString('authToken');
-    });
+    _authToken = await _secureStorage.read(key: 'auth_token');
 
     if (_authToken != null) {
       _connectWebSocket();
@@ -60,8 +59,20 @@ class _HomePageState extends State<HomePage> {
     if (_authToken == null) return;
 
     try {
+      // বাংলা মন্তব্য: API_BASE_URL থেকে WebSocket URL derive করা হয়, hardcoded localhost নয়।
+      // Token URL query-তে না পাঠিয়ে header-এ পাঠানো হয় — token leak প্রতিরোধ।
+      const apiBase = String.fromEnvironment(
+        'API_BASE_URL',
+        defaultValue: 'https://supremeai-a.web.app',
+      );
+      final wsBase = apiBase.replaceFirst('https://', 'wss://').replaceFirst('http://', 'ws://');
+      final wsUri = Uri.parse('$wsBase/api/ws/chat');
+
       _channel = WebSocketChannel.connect(
-        Uri.parse('ws://localhost:8000/api/ws/chat?token=$_authToken'),
+        wsUri,
+        headers: {
+          'Authorization': 'Bearer $_authToken',
+        },
       );
 
       _channel.stream.listen(_handleMessage,
@@ -228,8 +239,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _logout() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('authToken');
+    await _secureStorage.delete(key: 'auth_token');
 
     setState(() {
       _authToken = null;

@@ -1,10 +1,11 @@
 from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 from pydantic import BaseModel
 
+from api.routes.admin_dashboard import require_admin_token
 from core.error_bus import with_error_bus
 from core.observability.audit_logger import AuditLogger
 from core.security.secure_credential_store import SecureCredentialStore
@@ -98,7 +99,7 @@ def get_recent_activity():
     return {"activities": RECENT_ACTIVITIES}
 
 
-@router.get("/credentials")
+@router.get("/credentials", dependencies=[Depends(require_admin_token)])
 @with_error_bus("get_credentials")
 def get_credentials(userId: str = "default"):
     import json
@@ -134,7 +135,7 @@ def get_credentials(userId: str = "default"):
     return {"credentials": user_creds}
 
 
-@router.post("/credentials")
+@router.post("/credentials", dependencies=[Depends(require_admin_token)])
 def save_credential(cred: CredentialRequest):
     import json
 
@@ -156,7 +157,7 @@ def save_credential(cred: CredentialRequest):
     return {"id": new_cred["id"], "serviceName": cred.serviceName}
 
 
-@router.delete("/credentials/{id}")
+@router.delete("/credentials/{id}", dependencies=[Depends(require_admin_token)])
 def delete_credential(credential_id: str):
     global CREDENTIALS
     CREDENTIALS = [c for c in CREDENTIALS if c.get("id") != credential_id]
@@ -198,7 +199,7 @@ def get_denied_urls(userId: str = "default"):
     return {"urls": denied}
 
 
-@router.post("/urls/allowed")
+@router.post("/urls/allowed", dependencies=[Depends(require_admin_token)])
 def add_allowed_url(req: UrlPermissionRequest):
     perm = req.model_dump()
     perm["id"] = f"perm_{len(URL_PERMISSIONS) + 1}"
@@ -207,7 +208,7 @@ def add_allowed_url(req: UrlPermissionRequest):
     return perm
 
 
-@router.post("/urls/denied")
+@router.post("/urls/denied", dependencies=[Depends(require_admin_token)])
 def add_denied_url(req: UrlPermissionRequest):
     perm = req.model_dump()
     perm["id"] = f"perm_{len(URL_PERMISSIONS) + 1}"
@@ -216,7 +217,7 @@ def add_denied_url(req: UrlPermissionRequest):
     return perm
 
 
-@router.post("/urls/allowAll")
+@router.post("/urls/allowAll", dependencies=[Depends(require_admin_token)])
 def allow_all_urls(userId: str = "default"):
     perm = {
         "id": f"perm_{len(URL_PERMISSIONS) + 1}",
@@ -229,7 +230,7 @@ def allow_all_urls(userId: str = "default"):
     return perm
 
 
-@router.delete("/urls/{id}")
+@router.delete("/urls/{id}", dependencies=[Depends(require_admin_token)])
 def delete_url(url_id: str):
     global URL_PERMISSIONS
     URL_PERMISSIONS = [u for u in URL_PERMISSIONS if u.get("id") != url_id]
@@ -493,9 +494,6 @@ def delete_session(session_id: str):
     return {"success": True}
 
 
-from fastapi import Depends
-
-from api.routes.admin_dashboard import require_admin_token
 from tools.ai_agents.browser_agent import BrowserAgent, BrowseRequest
 
 _agent = BrowserAgent()

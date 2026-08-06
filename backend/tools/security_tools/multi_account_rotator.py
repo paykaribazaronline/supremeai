@@ -295,7 +295,7 @@ class MultiAccountRotator:
                 except Exception as form_err:
                     logger.warning(f"[SUPREME-AI] Form filling warning/error (continuing): {form_err}")
 
-                # Wait for verification (Firestore with SQLite fallback)
+# Wait for verification (Firestore with SQLite fallback)
                 verification_data = await self._wait_for_verification(new_email, timeout=10)
 
                 if verification_data:
@@ -304,13 +304,16 @@ class MultiAccountRotator:
                     try:
                         if verification_data.get("code"):
                             otp_code = verification_data["code"]
-                            logger.info(f"[SUPREME-AI] OTP code: {otp_code}. Attempting to enter OTP.")
+                            # বাংলা মন্তব্য: PII/OTP লগে প্লেইনটেক্সট লিখলে সিকিউরিটি লগ রেকর্ডে সংবেদনশীল তথ্য ফাঁস হয়।
+                            # শুধু status (present/absent) লগ করা হচ্ছে, OTP নিজে নয়।
+                            logger.info("[SUPREME-AI] OTP received. Attempting to enter OTP.")
                             await page.fill('input[id="otp-code"]', otp_code)
                             await page.click('button[id="verify-otp-button"]')
                             logger.info("[SUPREME-AI] Entered OTP and submitted for verification.")
                         elif verification_data.get("link"):
                             verification_link = verification_data["link"]
-                            logger.info(f"[SUPREME-AI] Verification link: {verification_link}. Navigating to link.")
+                            # বাংলা মন্তব্য: ভেরিফিকেশন লিংকে token থাকতে পারে — plaintext লগ করা হলে লিক হয়।
+                            logger.info("[SUPREME-AI] Verification link received. Navigating to link.")
                             await page.goto(verification_link)
                             logger.info("[SUPREME-AI] Navigated to verification link.")
                     except Exception as verify_err:

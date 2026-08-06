@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
@@ -9,6 +9,8 @@ class ApiService {
     defaultValue: 'https://supremeai-a.web.app',
   );
 
+  static const _secureStorage = FlutterSecureStorage();
+
   String? _token;
   final http.Client client;
 
@@ -16,28 +18,25 @@ class ApiService {
 
   Future<String?> getToken() async {
     if (_token != null) return _token;
-    final prefs = await SharedPreferences.getInstance();
-    _token = prefs.getString('auth_token');
-    if (_token == null && (prefs.getBool('is_guest') ?? false)) {
-      return "GUEST_MODE";
-    }
+    _token = await _secureStorage.read(key: 'auth_token');
     return _token;
   }
 
   Future<Map<String, dynamic>> firebaseLogin(String idToken) async {
     try {
-      final response = await client.post(
-        Uri.parse('$_baseUrl/api/auth/firebase-login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'idToken': idToken}),
-      );
+      final response = await client
+          .post(
+            Uri.parse('$_baseUrl/api/auth/firebase-login'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'idToken': idToken}),
+          )
+          .timeout(const Duration(seconds: 30));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         if (data['status'] == 'success') {
           _token = data['token'] ?? data['idToken'];
           if (_token != null) {
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.setString('auth_token', _token!);
+            await _secureStorage.write(key: 'auth_token', value: _token!);
           }
           return {'success': true, 'data': data};
         }
@@ -51,15 +50,17 @@ class ApiService {
   Future<Map<String, dynamic>> register(
       String email, String password, String displayName) async {
     try {
-      final response = await client.post(
-        Uri.parse('$_baseUrl/api/auth/register'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-          'displayName': displayName,
-        }),
-      );
+      final response = await client
+          .post(
+            Uri.parse('$_baseUrl/api/auth/register'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'email': email,
+              'password': password,
+              'displayName': displayName,
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;
         return {'success': true, 'data': data};
@@ -73,13 +74,15 @@ class ApiService {
   Future<Map<String, dynamic>> getUserProfile() async {
     try {
       final token = await getToken();
-      final response = await client.get(
-        Uri.parse('$_baseUrl/api/auth/profile'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      );
+      final response = await client
+          .get(
+            Uri.parse('$_baseUrl/api/auth/profile'),
+            headers: {
+              'Content-Type': 'application/json',
+              if (token != null) 'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 30));
       if (response.statusCode == 200) {
         return {'success': true, 'data': jsonDecode(response.body)};
       }
@@ -92,13 +95,15 @@ class ApiService {
   Future<List<Map<String, dynamic>>> getConfiguredProviders() async {
     try {
       final token = await getToken();
-      final response = await client.get(
-        Uri.parse('$_baseUrl/api/admin/providers/configured'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      );
+      final response = await client
+          .get(
+            Uri.parse('$_baseUrl/api/admin/providers/configured'),
+            headers: {
+              'Content-Type': 'application/json',
+              if (token != null) 'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 30));
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         final list = decoded['data']?['providers'] ?? decoded['data'] ?? decoded;
@@ -117,13 +122,15 @@ class ApiService {
   Future<Map<String, dynamic>> getAgentStatus() async {
     try {
       final token = await getToken();
-      final response = await client.get(
-        Uri.parse('$_baseUrl/api/v1/agents/monitor/latency'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      );
+      final response = await client
+          .get(
+            Uri.parse('$_baseUrl/api/v1/agents/monitor/latency'),
+            headers: {
+              'Content-Type': 'application/json',
+              if (token != null) 'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 30));
       if (response.statusCode == 200) return {'success': true, 'data': jsonDecode(response.body)};
       return {'success': false, 'error': 'Failed to load agent status'};
     } catch (e) {
@@ -135,18 +142,20 @@ class ApiService {
       String task, String taskType, {String? department}) async {
     try {
       final token = await getToken();
-      final response = await client.post(
-        Uri.parse('$_baseUrl/api/v1/agents/execute'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'task': task,
-          'task_type': taskType,
-          'department': department,
-        }),
-      );
+      final response = await client
+          .post(
+            Uri.parse('$_baseUrl/api/v1/agents/execute'),
+            headers: {
+              'Content-Type': 'application/json',
+              if (token != null) 'Authorization': 'Bearer $token',
+            },
+            body: jsonEncode({
+              'task': task,
+              'task_type': taskType,
+              'department': department,
+            }),
+          )
+          .timeout(const Duration(seconds: 60));
       return {'success': response.statusCode == 200, 'data': jsonDecode(response.body)};
     } catch (e) {
       return {'success': false, 'error': '$e'};
@@ -155,7 +164,6 @@ class ApiService {
 
   Future<void> logout() async {
     _token = null;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    await _secureStorage.delete(key: 'auth_token');
   }
 }

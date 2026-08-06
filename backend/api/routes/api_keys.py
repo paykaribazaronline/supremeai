@@ -6,10 +6,11 @@ from __future__ import annotations
 
 import time
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from loguru import logger
 from pydantic import BaseModel, Field, field_validator
 
+from api.dependencies import get_current_user_token
 from core.rate_limiter import AsyncRateLimiter
 from core.security import generate_api_key, hash_api_key, mask_api_key, verify_api_key
 from models.api_key import create_api_key as db_create_api_key
@@ -70,6 +71,13 @@ def _get_current_user(request: Request) -> str:
     return user.get("sub", "") if isinstance(user, dict) else str(user)
 
 
+def _require_admin(payload: dict = Depends(get_current_user_token)) -> dict:
+    """Enforce admin role for sensitive API key admin routes."""
+    if payload.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return payload
+
+
 def _get_api_key_owner(request: Request) -> str | None:
     ak = getattr(request.state, "api_key", None)
     if not ak:
@@ -128,8 +136,13 @@ async def list_user_keys(request: Request, limit: int = 50, offset: int = 0):
 
 
 @router.get("/all")
-async def list_all_keys(request: Request, limit: int = 100, offset: int = 0):
-    _get_current_user(request)
+async def list_all_keys(
+    request: Request,
+    limit: int = 100,
+    offset: int = 0,
+    admin_user: dict = Depends(_require_admin),
+):
+    """List ALL API keys across users — admin only."""
     keys = await get_all_api_keys(limit=limit, offset=offset)
     return {"keys": keys, "total": len(keys)}
 
@@ -252,12 +265,16 @@ async def quota_alert(key_id: int, request: Request):
 
 
 @router.post("/admin/bulk-delete")
-async def bulk_delete(request: Request, req: BulkDeleteRequest):
-    owner = _get_current_user(request)
+async def bulk_delete(
+    request: Request,
+    req: BulkDeleteRequest,
+    admin_user: dict = Depends(_require_admin),
+):
+    """Bulk delete API keys — admin only."""
     results: dict[str, list[int]] = {"deleted": [], "failed": []}
     for kid in req.key_ids[:50]:
         rec = await get_api_key_by_id(kid)
-        if not rec or rec["user_id"] != owner:
+        if not rec:
             results["failed"].append(kid)
             continue
         ok = await delete_api_key(kid)
