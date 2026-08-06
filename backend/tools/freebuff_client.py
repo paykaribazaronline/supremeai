@@ -38,8 +38,8 @@ class FreebuffClient:
             try:
                 proc.kill()
                 await proc.wait()
-            except Exception:
-                pass
+            except Exception as kill_err:
+                logger.warning(f"Process kill cleanup warning: {kill_err}")
             return {
                 "exit_code": -1,
                 "stdout": "",

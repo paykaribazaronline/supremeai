@@ -552,9 +552,10 @@ jobs:
   backend-core:
     name: 🐍 Backend (Test)
     timeout-minutes: 10
-    needs: [changes, docker-build, service-preflight]
+    needs: [changes, docker-build, service-preflight, pre-merge-gate]
     if: >
       always() &&
+      (needs.pre-merge-gate.result == 'success') &&
       (needs.docker-build.result == 'success' || needs.docker-build.result == 'skipped') &&
       (needs.changes.outputs.backend == 'true' || needs.changes.outputs.docker_build == 'true' || github.event_name == 'workflow_dispatch' || github.run_attempt > 1)
     runs-on: ubuntu-latest
