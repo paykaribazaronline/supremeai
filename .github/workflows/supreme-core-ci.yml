@@ -360,11 +360,13 @@ jobs:
 
       - name: 🔍 Parallel Security Scan
         if: (needs.changes.outputs.trivial_change != 'true' && (github.event_name == 'schedule' || needs.changes.outputs.dependencies == 'true' || github.run_attempt > 1)) || (github.event_name == 'workflow_dispatch' && (github.event.inputs.run_backend_core == 'true' || github.event.inputs.ignore_dependencies == 'true'))
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # বাংলা মন্তব্য: Trivy রিলিজ অ্যাসেটের নির্দিষ্ট নাম পরিবর্তন এড়াতে অফিশিয়াল ইনস্টল স্ক্রিপ্ট ব্যবহার করা হচ্ছে
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin v0.48.3
-          trivy fs --format sarif --output trivy-python.sarif --severity CRITICAL,HIGH backend &
-          trivy fs --format sarif --output trivy-nodejs.sarif --severity CRITICAL,HIGH . &
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b ./bin v0.48.3
+          ./bin/trivy fs --format sarif --output trivy-python.sarif --severity CRITICAL,HIGH backend &
+          ./bin/trivy fs --format sarif --output trivy-nodejs.sarif --severity CRITICAL,HIGH . &
           wait
 
       - name: Upload Trivy Python SARIF
