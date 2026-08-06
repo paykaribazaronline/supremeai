@@ -156,11 +156,15 @@ class AuthMiddleware:
 
         if not token:
             if is_test_auth_bypassed:
-                scope["user"] = {
+                user_data = {
                     "sub": "test_admin",
                     "role": "admin",
                     "tenant_id": "test_tenant",
                 }
+                scope["user"] = user_data
+                if "state" not in scope:
+                    scope["state"] = {}
+                scope["state"]["user"] = user_data
                 await self.app(scope, receive, send)
                 return
 
@@ -178,22 +182,30 @@ class AuthMiddleware:
         if settings.supremeai_api_token and hmac.compare_digest(
             token.encode("utf-8"), settings.supremeai_api_token.encode("utf-8")
         ):
-            scope["user"] = {
+            user_data = {
                 "sub": "system_api_key",
                 "role": "admin",
                 "tenant_id": None,
             }
+            scope["user"] = user_data
+            if "state" not in scope:
+                scope["state"] = {}
+            scope["state"]["user"] = user_data
             await self.app(scope, receive, send)
             return
 
         payload = _decode_jwt(token)
         if not payload:
             if is_test_auth_bypassed:
-                scope["user"] = {
+                user_data = {
                     "sub": "test_admin",
                     "role": "admin",
                     "tenant_id": "test_tenant",
                 }
+                scope["user"] = user_data
+                if "state" not in scope:
+                    scope["state"] = {}
+                scope["state"]["user"] = user_data
                 await self.app(scope, receive, send)
                 return
 
@@ -206,11 +218,15 @@ class AuthMiddleware:
             return
 
         # Attach user info to scope for downstream handlers
-        scope["user"] = {
+        user_data = {
             "sub": payload.get("sub"),
             "role": payload.get("role", "viewer"),
             "tenant_id": payload.get("tenant_id"),
         }
+        scope["user"] = user_data
+        if "state" not in scope:
+            scope["state"] = {}
+        scope["state"]["user"] = user_data
 
         await self.app(scope, receive, send)
 

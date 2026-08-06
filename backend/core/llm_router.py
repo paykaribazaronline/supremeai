@@ -219,7 +219,7 @@ class MoonshotProvider:
     name = Provider.MOONSHOT
 
     def __init__(self) -> None:
-        self.api_key = getattr(settings, "MOONSHOT_API_KEY", "mock-key")
+        self.api_key = getattr(settings, "moonshot_api_key", "mock-key")
         self.base_url = "https://api.moonshot.cn/v1"
         self.client = httpx.AsyncClient(
             base_url=self.base_url,
@@ -292,7 +292,7 @@ class DeepSeekProvider:
     name = Provider.DEEPSEEK
 
     def __init__(self) -> None:
-        self.api_key = getattr(settings, "DEEPSEEK_API_KEY", "mock-key")
+        self.api_key = getattr(settings, "deepseek_api_key", "mock-key")
         self.base_url = "https://api.deepseek.com/v1"
         self.client = httpx.AsyncClient(
             base_url=self.base_url,
@@ -362,7 +362,7 @@ class TogetherProvider:
     name = Provider.TOGETHER
 
     def __init__(self) -> None:
-        self.api_key = getattr(settings, "TOGETHER_API_KEY", "mock-key")
+        self.api_key = getattr(settings, "together_api_key", "mock-key")
         self.base_url = "https://api.together.xyz/v1"
         self.client = httpx.AsyncClient(
             base_url=self.base_url,
@@ -478,13 +478,13 @@ class OllamaProvider:
     name = Provider.OLLAMA
 
     def __init__(self) -> None:
-        raw_url = getattr(settings, "OLLAMA_URL", "http://localhost:11434")
+        raw_url = getattr(settings, "ollama_url", "http://localhost:11434")
         self.base_url = str(raw_url) if isinstance(raw_url, str | bytes) else "http://localhost:11434"
         self.client = httpx.AsyncClient(
             base_url=self.base_url,
             timeout=httpx.Timeout(120.0, connect=5.0),
         )
-        raw_model = getattr(settings, "OLLAMA_MODEL", "qwen2.5:0.5b")
+        raw_model = getattr(settings, "ollama_model", "qwen2.5:0.5b")
         self.model = str(raw_model) if isinstance(raw_model, str | bytes) else "qwen2.5:0.5b"
 
     @timed("llm.ollama.latency")
@@ -551,9 +551,9 @@ class HuggingFaceSpaceProvider:
     def __init__(self) -> None:
         # বাংলা মন্তব্ব: getattr থেকে আসা value যদি MagicMock বা non-string হয়, তাহলে str() এ convert করা হচ্ছে
         # যাতে httpx.AsyncClient(base_url=...) TypeError না throw করে
-        raw_url = getattr(settings, "HF_SPACE_URL", "https://supremeai-hf-space.hf.space/v1/chat/completions")
+        raw_url = getattr(settings, "hf_space_url", "https://supremeai-hf-space.hf.space/v1/chat/completions")
         self.api_url = str(raw_url) if not isinstance(raw_url, str) else raw_url
-        raw_key = getattr(settings, "HF_API_KEY", None)
+        raw_key = getattr(settings, "hf_api_key", None)
         self.api_key = str(raw_key) if raw_key is not None and not isinstance(raw_key, str) else raw_key
         headers = {"Content-Type": "application/json"}
         if self.api_key:

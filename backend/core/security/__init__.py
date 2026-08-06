@@ -254,12 +254,12 @@ async def is_token_revoked(jti: str) -> bool:
     from core.cache.redis_manager import redis_manager
 
     if not redis_manager or not getattr(redis_manager, "client", None):
-        return True  # Fail-closed: Redis down means we cannot verify, so reject
+        return False  # Fail-open: Redis down means we cannot verify revocation, allow valid JWTs
     try:
         return await redis_manager.client.exists(f"{BLACKLIST_PREFIX}{jti}") > 0
     except Exception as e:
         logger.warning(f"Failed to check token revocation status: {e}")
-        return True
+        return False
 
 
 def verify_token(token: str) -> dict:

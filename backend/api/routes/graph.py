@@ -25,9 +25,9 @@ def get_graph_service():
 
 # বাংলা মন্তব্য: কাস্টম অথরাইজেশন ডিপেন্ডেন্সি হেল্পার
 async def require_auth_token(current_user=Depends(optional_current_user)):
-    if getattr(settings, "supremeai_api_token", None) and current_user is None:
+    if current_user is None:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    return current_user or {"user_id": "dummy_user"}
+    return current_user
 
 
 @router.get("/skills", response_model=dict[str, list[dict[str, Any]]])

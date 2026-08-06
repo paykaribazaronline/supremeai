@@ -19,14 +19,14 @@ export const getApiBaseUrl = (): string => {
     return url || RENDER_BACKENDS[0];
   }
 
-  // বাংলা মন্তব্য: ফায়ারবেস হোস্টিং ডোমেইনে (web.app) থাকলে রিলেটিভ পাথ ('') ব্যবহার করা যেন firebase.json রিরাইট প্রক্সি কাজ করে
-  if (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com')) {
-    return '';
-  }
-
   // বাংলা মন্তব্য: অ্যাডমিন ডোমেইন বা অ্যাডমিন পোর্টেলে রেন্ডার ব্যাকএন্ড ব্যবহার
   if (import.meta.env.VITE_PORTAL_TYPE === 'admin' || window.location.hostname.includes('admin')) {
     return 'https://supremeai-admin.onrender.com';
+  }
+
+  // বাংলা মন্তব্য: ফায়ারবেস হোস্টিং ডোমেইনে (web.app) থাকলে রিলেটিভ পাথ ('') ব্যবহার করা যেন firebase.json রিরাইট প্রক্সি কাজ করে
+  if (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com')) {
+    return '';
   }
 
   if (import.meta.env.VITE_API_BASE) return import.meta.env.VITE_API_BASE;

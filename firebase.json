@@ -48,6 +48,47 @@
           ]
         }
       ]
+    },
+    {
+      "target": "user",
+      "public": "apps/studio-client/dist-user",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**",
+        "**/src/**",
+        "**/scripts/**",
+        "build.gradle*",
+        "gradlew*",
+        ".env*",
+        "*.log",
+        "package-lock.json"
+      ],
+      "rewrites": [
+        { "source": "/api/v1/**", "destination": "https://supremeai-backend.onrender.com/api/v1/**" },
+        { "source": "/api/**", "destination": "https://supremeai-backend.onrender.com/api/**" },
+        { "source": "**", "destination": "/index.html" }
+      ],
+      "headers": [
+        {
+          "source": "/index.html",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        },
+        {
+          "source": "/assets/**",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
+        }
+      ]
     }
   ],
   "functions": [

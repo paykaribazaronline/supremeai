@@ -176,7 +176,7 @@ async def create_checkout_session(payload: CheckoutRequest, token_payload: dict 
     try:
         stripe_key = settings.stripe_api_key
         if not stripe_key:
-            if os.environ.get("SUPREMEAI_ENV") == "production":
+            if settings.env == "production":
                 raise RuntimeError("Stripe API key not configured in production. Payment processing is unavailable.")
             logger.warning("Stripe API key not set in settings. Using mock checkout session.")
             return {

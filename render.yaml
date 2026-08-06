@@ -164,7 +164,7 @@ services:
     region: singapore
     plan: free
     autoDeploy: true
-    startCommand: "python -c \"import asyncio; from core.maintenance_pipeline import maintenance_pipeline; maintenance_pipeline.start_monitoring(); from core.agent_supervisor import agent_supervisor; from core.sentinel_agent import sentinel; asyncio.run(agent_supervisor.start_agent('sentinel', lambda: sentinel.run_periodic_loop(), health_check_interval=60, max_restarts=10, restart_delay=1.0)); asyncio.run(agent_supervisor.start_monitor(check_interval=30)); asyncio.get_event_loop().run_forever()\""
+    startCommand: "python -c \"import asyncio; from core.maintenance_pipeline import maintenance_pipeline; from core.agent_supervisor import agent_supervisor; from core.sentinel_agent import sentinel; async def main(): maintenance_pipeline.start_monitoring(); asyncio.create_task(agent_supervisor.start_agent('sentinel', lambda: sentinel.run_periodic_loop(), health_check_interval=60, max_restarts=10, restart_delay=1.0)); await agent_supervisor.start_monitor(check_interval=30); asyncio.run(main())\""
     envVars:
       - key: ENV
         value: production
