@@ -177,14 +177,14 @@ def generate_adr(adr_id: str, adr_info: Dict[str, str], pr_data: Dict[str, Any])
         pr_title=pr_data.get("title", "Unknown PR")
     )
 
-def save_adr(adr_id: str, content: str) -> Path:
+def save_adr(adr_id: str, content: str, title: str = "adr") -> Path:
     """Save ADR to file."""
     adr_path = Path(ADR_DIR)
     adr_path.mkdir(parents=True, exist_ok=True)
 
     # Create filename: 0001-title.md
     # Clean title for filename: lowercase, spaces to dashes, remove special chars
-    title_slug = re.sub(r'[^\w\s-]', '', adr_info["title"].lower())
+    title_slug = re.sub(r'[^\w\s-]', '', title.lower())
     title_slug = re.sub(r'[-\s]+', '-', title_slug).strip('-')
 
     filename = f"{adr_id}-{title_slug[:50]}.md"  # Limit length
@@ -243,7 +243,7 @@ def main() -> int:
 
     # Save ADR file
     try:
-        filepath = save_adr(adr_id, adr_content)
+        filepath = save_adr(adr_id, adr_content, adr_info.get("title", "adr"))
         print(f"✅ ADR saved to: {filepath}")
         print(f"📄 ADR {adr_id}: {adr_info['title']}")
         return 0

@@ -64,9 +64,9 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
                     logger.warning(f"Redis cache write failed for API key: {exc}")
                 return dict(row)
         except Exception as exc:
+            # বাংলা মন্তব্য: DB আউটেজ হলে 503 ডায়াগনস্টিক সিগন্যাল দিতে Sentinel নির্দেশক অবজেক্ট রিটার্ন করা হচ্ছে
             logger.error(f"Database operation failed for API key {mask_api_key(key_hash)}: {exc}")
-            # Return None to indicate failure, but we'll handle it gracefully
-            pass
+            return {"_db_error": True, "_error": str(exc)}
 
         return None
 
@@ -107,8 +107,11 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
 
         key_hash = hash_api_key(api_key_header)
         row = await self._get_cached_api_key(key_hash)
+        if row and row.get("_db_error"):
+            logger.error(f"DB outage during API key lookup: {mask_api_key(api_key_header)}")
+            return JSONResponse(status_code=503, content={"detail": "Database service temporarily unavailable"})
         if row is None:
-            logger.warning(f"Invalid API key attempt or DB unavailable: {mask_api_key(api_key_header)}")
+            logger.warning(f"Invalid API key attempt: {mask_api_key(api_key_header)}")
             return JSONResponse(status_code=401, content={"detail": "Invalid API key"})
         if row["revoked"]:
             logger.warning(f"Revoked API key used: {row['id']}")

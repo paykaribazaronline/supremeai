@@ -58,7 +58,11 @@ def process_file(filepath: Path, dry_run: bool = True) -> bool:
             else:
                 break
         if closest_func:
-            funcs_to_decorate.add(closest_func)
+            # বাংলা মন্তব্য: ইতিমধ্যেই ডেকোরেট করা ফাংশন ডুপ্লিকেট রিনেমিং/ডেকোরেটিং প্রতিরোধে ফিল্টার করা হচ্ছে
+            f_idx = closest_func[0]
+            prev_lines = "".join(lines[max(0, f_idx - 3):f_idx])
+            if "@with_error_bus" not in prev_lines:
+                funcs_to_decorate.add(closest_func)
 
     if not funcs_to_decorate:
         return False

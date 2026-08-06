@@ -34,7 +34,7 @@ import sys
 import textwrap
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, get_args, get_origin
+from typing import Any, Union, get_args, get_origin
 
 # ── Add backend to sys.path ──────────────────────────────────────────────────
 _BACKEND_DIR = Path(__file__).resolve().parent.parent / "backend"

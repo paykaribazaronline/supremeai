@@ -10,6 +10,18 @@ from typing import Dict, Any, List
 from dataclasses import dataclass
 from enum import Enum
 
+try:
+    from scripts.core_engine.multicatalog_search import CatalogSource
+except ImportError:
+    try:
+        from multicatalog_search import CatalogSource
+    except ImportError:
+        class CatalogSource(Enum):
+            AWESOME_SELFHOSTED = "awesome-selfhosted"
+            AWESOME_GO = "awesome-go"
+            AWESOME_PYTHON = "awesome-python"
+            OSSINSIGHT = "ossinsight"
+
 
 class RankingFactor(Enum):
     """Factors used in the ranking algorithm"""

@@ -178,7 +178,9 @@ class AutonoGuardEngine:
                     await redis_manager.client.delete(key)
                     await redis_manager.client.delete(failure_key)
             except Exception as exc:
-                logger.debug(f"Failed to delete OTP keys: {exc}")
+                # বাংলা মন্তব্য: সিকিউরিটি গার্ড — ব্যবহৃত OTP মুছতে না পারলে রিপ্লে উইন্ডো বন্ধ করতে ভেরিফিকেশন ফেইল করানো হচ্ছে
+                logger.error(f"Failed to delete OTP key for {admin_id}: {exc}")
+                return False
             logger.info(f"🔓 OTP verified for admin {admin_id}")
             return True
 

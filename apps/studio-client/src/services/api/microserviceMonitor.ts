@@ -15,18 +15,26 @@ export const fetchJavaWorkerHealth = async (): Promise<JavaWorkerHealth> => {
   // For now, returning mocked data to simulate the Java worker metrics
   try {
     const response = await apiClient.get<JavaWorkerHealth>('/admin/microservices/java-worker/health');
-    return response.data;
+    return response.data || {
+      status: 'OFFLINE',
+      uptimeSeconds: 0,
+      activeTasks: 0,
+      queuedTasks: 0,
+      memoryUsageMb: 0,
+      cpuLoadPercentage: 0,
+      totalTasksProcessed: 0
+    };
   } catch (error) {
-    // Return dummy data if backend route is not ready
-    console.warn("Using mock data for Java worker health");
+    // বাংলা মন্তব্য: মাইক্রোসার্ভিস সংযোগ ব্যর্থ হলে ফেক ডাটার পরিবর্তে অফলাইন স্ট্যাটাস দেওয়া হচ্ছে
+    console.warn("Java worker health check failed:", error);
     return {
-      status: 'HEALTHY',
-      uptimeSeconds: Math.floor(Math.random() * 86400),
-      activeTasks: Math.floor(Math.random() * 5),
-      queuedTasks: Math.floor(Math.random() * 10),
-      memoryUsageMb: 256 + Math.floor(Math.random() * 128),
-      cpuLoadPercentage: Math.floor(Math.random() * 40) + 10,
-      totalTasksProcessed: 1250 + Math.floor(Math.random() * 50)
+      status: 'OFFLINE',
+      uptimeSeconds: 0,
+      activeTasks: 0,
+      queuedTasks: 0,
+      memoryUsageMb: 0,
+      cpuLoadPercentage: 0,
+      totalTasksProcessed: 0
     };
   }
 };

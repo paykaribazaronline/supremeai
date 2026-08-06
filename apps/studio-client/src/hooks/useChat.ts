@@ -64,8 +64,8 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
       try {
         const res = await fetch(`${getApiBaseUrl()}/api/chat/stream`, {
           method: 'POST',
-          // বাংলা মন্তব্য: ...getAuthHeaders() যোগ — আগে streaming fetch তে Authorization header ছিল না, backend 401 দিতো
-          headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+          // বাংলা মন্তব্য: await getAuthHeaders() যোগ — আগে streaming fetch তে Authorization header Promise Unhandled ছিল
+          headers: { ...(await getAuthHeaders()), 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message: userMsg.content,
             project_id: projectId,
@@ -132,8 +132,8 @@ export function useChat(options: UseChatOptions = {}): UseChatReturn {
       try {
         const res = await fetch(`${getApiBaseUrl()}/api/chat`, {
           method: 'POST',
-          // বাংলা মন্তব্য: non-streaming path এও auth header যোগ হলো
-          headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+          // বাংলা মন্তব্য: non-streaming path এও await auth header যোগ হলো
+          headers: { ...(await getAuthHeaders()), 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message: userMsg.content,
             project_id: projectId,

@@ -138,7 +138,9 @@ async def verify_takeover_token(token: str) -> bool:
                     logger.warning(f"Replay attempt detected for already-used takeover token: {token[:10]}...")
                     return False
             except Exception as exc:
-                logger.warning(f"Redis single-use check failed, allowing on base validation only: {exc}")
+                # বাংলা মন্তব্য: সিকিউরিটি গার্ড — Redis চেক ফেইল করলে রিপ্লে অ্যাটাক রোধে টোকেন রিজেক্ট করা হচ্ছে
+                logger.error(f"Redis single-use check failed — rejecting takeover token (fail-closed): {exc}")
+                return False
 
         return True
     except Exception as e:

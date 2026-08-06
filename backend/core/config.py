@@ -379,9 +379,8 @@ class Settings(BaseSettings):
                 if val:
                     self._cached_secrets[secret_key] = val
             except Exception as _secret_err:
-                # বাংলা: RuntimeError সহ সব exception gracefully handle করা হচ্ছে।
-                # যদি কোনো optional secret missing থাকে, server startup block হবে না।
-                logger.debug(f"Secret {secret_key} not available during batch load: {_secret_err}")
+                # বাংলা মন্তব্য: সিক্রেট ভল্ট থেকে কী লোড ফেইল করলে কভার-আপ এড়াতে WARNING লেভেলে স্পষ্ট লগ দেওয়া হচ্ছে
+                logger.warning(f"Secret {secret_key} not available during batch load: {_secret_err}")
         self._secrets_batch_loaded = True
 
     def _get_cached_secret(self, key: str) -> str:

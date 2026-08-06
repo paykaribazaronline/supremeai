@@ -262,8 +262,9 @@ class CascadeMemoryService:
             try:
                 pooled_pg.execute("DELETE FROM file_memories WHERE file_path = %s", (file_path,))
             except Exception as exc:
+                # বাংলা মন্তব্য: সাইলেন্ট ডিলিট ফেইলিয়ার এড়াতে Postgres ডিলিট ফেইল করলে এক্সেপশন রেইজ করা হচ্ছে
                 logger.error(f"CascadeMemoryService.delete_memory: Postgres delete failed: {exc}")
-            return
+                raise
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()

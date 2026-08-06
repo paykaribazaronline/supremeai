@@ -48,6 +48,8 @@ async def log_security_event(
             pipe.ltrim(AUDIT_LIST_PREFIX, 0, MAX_RECENT_EVENTS - 1)
             await pipe.execute()
         except Exception as exc:
-            logger.warning(f"⚠️ Failed to persist security audit event {event_id}: {exc}")
+            # বাংলা মন্তব্য: সিকিউরিটি গার্ড — সিকিউরিটি অডিট ইভেন্ট পারসিস্ট না হলে সাইলেন্ট ফেলিয়ার প্রতিরোধে এরর রেইজ করা হচ্ছে
+            logger.error(f"⚠️ Failed to persist security audit event {event_id}: {exc}")
+            raise RuntimeError(f"Audit logger persistence failed for event {event_id}: {exc}") from exc
 
     return event_id

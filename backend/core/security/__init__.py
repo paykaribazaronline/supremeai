@@ -229,7 +229,7 @@ BLACKLIST_PREFIX = "jwt:blacklist:"
 BLACKLIST_TTL = 86400  # 24 hours
 
 
-async def revoke_token(jti: str, exp: int | None = None) -> None:
+async def revoke_token(jti: str, exp: int | None = None) -> bool:
     """বাংলা মন্তব্য: JWT ID (jti) দিয়ে টোকেন রিভোক করে। Redis TTL দিয়ে অটো-ক্লিন হয়।"""
     import time
 
@@ -240,8 +240,13 @@ async def revoke_token(jti: str, exp: int | None = None) -> None:
         try:
             await redis_manager.client.setex(f"{BLACKLIST_PREFIX}{jti}", min(ttl, BLACKLIST_TTL), "revoked")
             logger.info(f"✅ JWT Token revoked: {jti}")
+            return True
         except Exception as e:
-            logger.warning(f"⚠️ Failed to revoke token in Redis: {e}")
+            # বাংলা মন্তব্য: সিকিউরিটি গার্ড — টোকেন রিভোকেশন ফেইল করলে নীরব না থেকে এরর রেইজ করা হচ্ছে
+            logger.error(f"⚠️ Failed to revoke token in Redis: {e}")
+            raise RuntimeError(f"Failed to revoke JWT token: {e}") from e
+    logger.warning(f"Redis manager unavailable, token revocation skipped: {jti}")
+    return False
 
 
 async def is_token_revoked(jti: str) -> bool:

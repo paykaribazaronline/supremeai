@@ -120,7 +120,9 @@ class AuditLogger:
                 )
                 conn.commit()
         except Exception as e:
+            # বাংলা মন্তব্য: সিকিউরিটি গার্ড — tamper-evident অডিট ট্রেইল রাইট ফেইল করলে সাইলেন্ট না থেকে এরর রেইজ করা হচ্ছে
             logger.error(f"Failed to write to audit database: {e}")
+            raise
 
     def get_audit_trail(self) -> list:
         if self._ensure_schema():

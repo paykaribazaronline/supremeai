@@ -95,6 +95,11 @@ _Generated for SupremeAI 2.0 — Admin Plan Execution_
 
 ## Agent Behavioral Rules
 
+- **Empirical Truth & Direct Factuality Rule (STRICT & NON-NEGOTIABLE):**
+  - **No Speculation or Unverified Assumptions:** Never state conclusions, code behavior, error root causes, or architectural facts based on memory, guesses, or assumed context.
+  - **Empirical Grounding:** Every statement or answer must be directly backed by verified file contents (`view_file`), search results (`grep_search`), or real execution logs (`run_command`).
+  - **Direct Truth Presentation:** Present facts, raw numbers, and status clearly, directly, and transparently without exaggeration, smoothing over failures, or soft promises.
+
 - **Universal Anti-Loop & Root-Cause First Rule (CRITICAL):**
   - **No Command/Execution Loop:** If ANY task, command, code fix, or Git operation fails twice consecutively, STOP immediately. Do NOT try a 3rd time with small variations.
   - **Root Cause Diagnosis:** Step back, inspect exact error logs/diffs, identify the core underlying issue, and present a clear single-line diagnostic summary to the user before proceeding.

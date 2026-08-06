@@ -32,7 +32,7 @@ export const fetchSkillCatalog = async (): Promise<CatalogResponse> => {
   const API_BASE = getApiBaseUrl();
   const response = await fetch(`${API_BASE}/api/skills/catalog`, {
     method: 'GET',
-    headers: getAuthHeaders(),
+    headers: await getAuthHeaders(),
   });
 
   if (!response.ok) {

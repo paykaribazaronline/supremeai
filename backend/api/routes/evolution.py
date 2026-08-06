@@ -191,7 +191,9 @@ async def quarantine_skill(
                     + "\n"
                 )
         except Exception as log_err:
-            logger.warning(f"Failed to append quarantine log: {log_err}")
+            # বাংলা মন্তব্য: সিকিউরিটি গার্ড — কোয়ারেন্টাইন অডিট লগ ফাইল অ্যাপেন্ড ফেইল করলে এরর রেইজ করা হচ্ছে
+            logger.error(f"Failed to append quarantine log: {log_err}")
+            raise
         return {"success": True, "skill_name": skill_name, "new_status": "QUARANTINED"}
     except HTTPException:
         raise

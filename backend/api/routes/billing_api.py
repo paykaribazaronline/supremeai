@@ -1,4 +1,4 @@
-﻿# Secure billing and transactional routing endpoints
+# Secure billing and transactional routing endpoints
 # বাংলা মন্তব্য: ওয়ালেট ব্যালেন্স চেক, পেমেন্ট টপ-আপ, এবং স্ট্রাইপ/লোকাল পেমেন্ট গেটওয়ে ওয়েবহুক রাউট।
 
 import os
@@ -290,7 +290,9 @@ async def stripe_webhook(request: Request, session: AsyncSession = Depends(get_d
                         }
                     )
                 except Exception as e:
+                    # বাংলা মন্তব্য: Firestore সাবস্ক্রিপশন আপডেট ফেইল করলে এরর রেইজ করা হচ্ছে যাতে Stripe ওয়েবহুক রিট্রাই করে
                     logger.error(f"Failed to update user subscription status in Firestore: {e}")
+                    raise
 
                 try:
                     from core.observability.posthog_client import posthog_client

@@ -140,7 +140,9 @@ async def _db_delete_tenant(tenant_id: str) -> bool:
             client.table("tenant_limits").delete().eq("tenant_id", tenant_id).execute()
             return True
         except Exception as exc:
-            logger.warning(f"Supabase delete failed: {exc}")
+            # বাংলা মন্তব্য: DB ডিলিট ফেইল করলে লোকাল মেমোরি স্টোর মোছা এবং ভুয়া True রিটার্ন করা বন্ধ করা হলো
+            logger.error(f"Supabase delete failed for tenant {tenant_id}: {exc}")
+            return False
     tenants = _local_store.setdefault("tenants", [])
     _local_store["tenants"] = [t for t in tenants if t["tenant_id"] != tenant_id]
     return True

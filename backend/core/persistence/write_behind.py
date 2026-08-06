@@ -131,7 +131,9 @@ def flush_all() -> None:
             if n:
                 logger.info(f"write_behind[{batcher.name}]: flushed {n} rows on shutdown.")
         except Exception as exc:
-            logger.error(f"write_behind[{batcher.name}]: shutdown flush failed: {exc}")
+            # বাংলা মন্তব্য: শাটডাউন ফ্লাশ ফেইল করলে ক্রিটিক্যাল অ্যালার্ট লগ দেওয়া হচ্ছে যাতে ডেটা লস চিহ্নিত হয়
+            logger.critical(f"CRITICAL DATA LOSS WARNING: write_behind[{batcher.name}]: shutdown flush failed: {exc}")
+            raise
 
 
 atexit.register(flush_all)
