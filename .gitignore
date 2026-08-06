@@ -132,6 +132,8 @@ data/**/*.db
 scratch/
 .firebase/
 
+# বাংলা মন্তব্য: গিটহাবে অ্যাকশন চেকআউট সাবমডিউল এরর এড়াতে এমবেডেড সুপ্রিমএআই ফোল্ডার ইগনোর
+supremeai/
 codebase.md
 
 # Local database & test lock files
