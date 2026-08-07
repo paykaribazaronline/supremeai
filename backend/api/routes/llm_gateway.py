@@ -146,7 +146,7 @@ async def completion(
                 temperature=req.temperature,
             )
             return {"response": response, "source": "learning_engine"}
-        except Exception as exc:  # noqa: BLE001 — safe fallback to standard path
+        except Exception as exc:  # — safe fallback to standard path
             logger.warning(f"Learning gateway failed, falling back to standard router: {exc}")
 
     # STANDARD PATH (safe fallback / flag off)

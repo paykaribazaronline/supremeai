@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 router = APIRouter(prefix="/admin-api/commandcenter", tags=["Command Center"])
 
+
 class OverviewResponse(BaseModel):
     active_agents: int
     active_tasks: int
@@ -12,6 +13,7 @@ class OverviewResponse(BaseModel):
     error_rate: float
     cost_per_hour: float
     health_percent: float
+
 
 @router.get("/overview", response_model=OverviewResponse)
 async def get_overview():

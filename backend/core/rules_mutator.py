@@ -17,6 +17,7 @@ class RulesMutator:
 
     def is_ip_blocked(self, ip_address: str) -> bool:
         import time
+
         now = time.time()
         # চেক করি ৩-সেকেন্ডের লোকাল ক্যাশে আছে কিনা
         if ip_address in self._local_blocked_cache:
@@ -32,7 +33,7 @@ class RulesMutator:
             try:
                 val = services.redis_queue.get(redis_key)
                 if val is not None:
-                    is_blocked = (val != "ok")
+                    is_blocked = val != "ok"
             except Exception as e:
                 logger.error(f"Redis connection failed during is_ip_blocked: {e}")
 

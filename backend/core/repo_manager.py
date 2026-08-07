@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class PermissionDeniedError(PermissionError):
     """READ_ONLY স্কোপে মডিফিকেশন বা রাইট চেষ্টা করা হলে এই এরর রেইজ হবে।"""
+
     pass
 
 

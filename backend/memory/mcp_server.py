@@ -43,6 +43,7 @@ Tools (MCP protocol):
     - save_learned_fact
     - search_learned_facts
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -64,6 +65,7 @@ try:
         TextContent,
         Tool,
     )
+
     _MCP_AVAILABLE = True
 except ImportError:
     _MCP_AVAILABLE = False
@@ -71,30 +73,35 @@ except ImportError:
 # বাংলা মন্তব্য: মেমোরি লেয়ার সমূহ import করা হচ্ছে — ব্যর্থ হলে graceful degradation
 try:
     from memory.chromadb_store import ChromaDBStore
+
     _CHROMA_OK = True
 except Exception:
     _CHROMA_OK = False
 
 try:
     from memory.episodic_memory import EpisodicMemory
+
     _EPISODIC_OK = True
 except Exception:
     _EPISODIC_OK = False
 
 try:
     from memory.sliding_window import SlidingWindowConfig, SlidingWindowMemory
+
     _SLIDING_OK = True
 except Exception:
     _SLIDING_OK = False
 
 try:
     from memory.supabase_store import SupabaseStore
+
     _SUPABASE_OK = True
 except Exception:
     _SUPABASE_OK = False
 
 try:
     from memory.rag_pipeline import RAGPipeline
+
     _RAG_OK = True
 except Exception:
     _RAG_OK = False
@@ -105,6 +112,7 @@ logger = logging.getLogger("supremeai.memory.mcp")
 # Knowledge Graph Storage (Official MCP-compatible)
 # বাংলা মন্তব্য: Official MCP memory server-এর Knowledge Graph structure অনুসরণ করা হচ্ছে
 # =============================================================================
+
 
 class KnowledgeGraph:
     """
@@ -152,10 +160,7 @@ class KnowledgeGraph:
             if name in self._entities:
                 del self._entities[name]
                 # বাংলা মন্তব্য: সংশ্লিষ্ট relations-ও সরানো হচ্ছে
-                self._relations = [
-                    r for r in self._relations
-                    if r["from"] != name and r["to"] != name
-                ]
+                self._relations = [r for r in self._relations if r["from"] != name and r["to"] != name]
                 if self._chroma:
                     try:
                         self._chroma.delete(f"entity::{name}")
@@ -202,7 +207,8 @@ class KnowledgeGraph:
         for rel in relations:
             # বাংলা মন্তব্য: duplicate check করে তারপর যোগ করা হচ্ছে
             duplicate = any(
-                r["from"] == rel.get("from") and r["to"] == rel.get("to")
+                r["from"] == rel.get("from")
+                and r["to"] == rel.get("to")
                 and r["relationType"] == rel.get("relationType")
                 for r in self._relations
             )
@@ -219,10 +225,10 @@ class KnowledgeGraph:
     def delete_relations(self, relations: list[dict[str, Any]]) -> int:
         before = len(self._relations)
         self._relations = [
-            r for r in self._relations
+            r
+            for r in self._relations
             if not any(
-                d.get("from") == r["from"] and d.get("to") == r["to"]
-                and d.get("relationType") == r["relationType"]
+                d.get("from") == r["from"] and d.get("to") == r["to"] and d.get("relationType") == r["relationType"]
                 for d in relations
             )
         ]
@@ -241,7 +247,8 @@ class KnowledgeGraph:
         """Keyword search — ChromaDB vector search fallback।"""
         query_lower = query.lower()
         keyword_hits = [
-            ent for ent in self._entities.values()
+            ent
+            for ent in self._entities.values()
             if query_lower in ent["name"].lower()
             or query_lower in ent["entityType"].lower()
             or any(query_lower in obs.lower() for obs in ent["observations"])
@@ -267,16 +274,14 @@ class KnowledgeGraph:
 
     def open_nodes(self, names: list[str]) -> dict[str, Any]:
         entities = [self._entities[n] for n in names if n in self._entities]
-        relations = [
-            r for r in self._relations
-            if r["from"] in names or r["to"] in names
-        ]
+        relations = [r for r in self._relations if r["from"] in names or r["to"] in names]
         return {"entities": entities, "relations": relations}
 
 
 # =============================================================================
 # MCP Server Builder
 # =============================================================================
+
 
 def build_server() -> Server:
     """
@@ -384,7 +389,11 @@ def build_server() -> Server:
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "names": {"type": "array", "items": {"type": "string"}, "description": "List of entity names to delete"},
+                        "names": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "List of entity names to delete",
+                        },
                     },
                     "required": ["names"],
                 },
@@ -727,10 +736,7 @@ async def _dispatch(
             n_results=args.get("n_results", 5),
         )
         return {
-            "results": [
-                {"doc_id": doc_id, "score": round(score, 4), "data": data}
-                for doc_id, score, data in results
-            ]
+            "results": [{"doc_id": doc_id, "score": round(score, 4), "data": data} for doc_id, score, data in results]
         }
 
     if name == "ingest_document_rag":
@@ -828,6 +834,7 @@ async def _dispatch(
 # Entry Point
 # =============================================================================
 
+
 async def main() -> None:
     """
     বাংলা মন্তব্য: MEMORY_MCP_TRANSPORT env var দেখে transport নির্ধারণ করা হয়।
@@ -854,17 +861,15 @@ async def main() -> None:
     else:
         # বাংলা মন্তব্য: SSE transport — FastAPI/Starlette-এ mount করা হবে
         try:
+            import uvicorn
             from mcp.server.sse import SseServerTransport
             from starlette.applications import Starlette
-            from starlette.routing import Route, Mount
-            import uvicorn
+            from starlette.routing import Mount, Route
 
             sse_transport = SseServerTransport("/messages/")
 
             async def handle_sse(request):
-                async with sse_transport.connect_sse(
-                    request.scope, request.receive, request._send
-                ) as streams:
+                async with sse_transport.connect_sse(request.scope, request.receive, request._send) as streams:
                     await server.run(
                         streams[0],
                         streams[1],

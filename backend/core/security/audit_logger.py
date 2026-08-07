@@ -47,6 +47,7 @@ async def log_security_event(
             pipe.lpush(AUDIT_LIST_PREFIX, payload)
             pipe.ltrim(AUDIT_LIST_PREFIX, 0, MAX_RECENT_EVENTS - 1)
             import inspect
+
             res = pipe.execute()
             # বাংলা মন্তব্য: টেস্টে যদি MagicMock ব্যবহার করা হয় যা awaitable নয়, তা হ্যান্ডেল করার জন্য চেক যোগ করা হলো
             if inspect.isawaitable(res):

@@ -60,9 +60,7 @@ async def github_callback(
     user_id = token_payload.get("sub")
     if not user_id:
         logger.error("GitHub OAuth callback: Token payload missing 'sub' claim.")
-        return RedirectResponse(
-            url=f"{settings.frontend_base_url}/integrations?status=error&message=Invalid token"
-        )
+        return RedirectResponse(url=f"{settings.frontend_base_url}/integrations?status=error&message=Invalid token")
 
     redirect_uri = _build_github_redirect_uri()
     token_url = "https://github.com/login/oauth/access_token"
@@ -113,9 +111,7 @@ async def github_callback(
     except Exception as exc:
         await db.rollback()
         logger.error(f"Failed to save GitHub integration for user '{user_id}': {exc}")
-        return RedirectResponse(
-            url=f"{settings.frontend_base_url}/integrations?status=error&message=Database error"
-        )
+        return RedirectResponse(url=f"{settings.frontend_base_url}/integrations?status=error&message=Database error")
 
     # ৪. ফ্রন্টএন্ডে রিডাইরেক্ট — ডায়নামিক URL
     frontend_base = settings.frontend_base_url

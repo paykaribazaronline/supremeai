@@ -4,6 +4,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
+
 @dataclass
 class ModelPerformanceMetrics:
     response_time: float
@@ -13,10 +14,12 @@ class ModelPerformanceMetrics:
     last_used: float
     error_count: int
 
+
 class ModelTier(Enum):
     EXPENSIVE = "expensive"
     BALANCED = "balanced"
     BUDGET = "budget"
+
 
 @dataclass
 class RouteDecision:
@@ -25,6 +28,7 @@ class RouteDecision:
     priority_score: float
     expected_cost: float
     expected_latency: float
+
 
 class AdvancedModelRouter:
     """
@@ -43,42 +47,30 @@ class AdvancedModelRouter:
                 "preferred_models": [
                     "groq/llama-3.3-70b-versatile",
                     "openrouter/deepseek/deepseek-coder",
-                    "gpt-4o-mini"
+                    "gpt-4o-mini",
                 ],
-                "tier_preference": ModelTier.BALANCED
+                "tier_preference": ModelTier.BALANCED,
             },
             "reasoning": {
                 "preferred_models": [
                     "openrouter/meta-llama/llama-3.3-70b-instruct",
                     "claude-3-haiku",
-                    "gemini-1.5-flash"
+                    "gemini-1.5-flash",
                 ],
-                "tier_preference": ModelTier.BUDGET
+                "tier_preference": ModelTier.BUDGET,
             },
             "creative": {
-                "preferred_models": [
-                    "gpt-4o",
-                    "claude-3-sonnet",
-                    "gemini-1.5-pro"
-                ],
-                "tier_preference": ModelTier.EXPENSIVE
+                "preferred_models": ["gpt-4o", "claude-3-sonnet", "gemini-1.5-pro"],
+                "tier_preference": ModelTier.EXPENSIVE,
             },
             "analysis": {
-                "preferred_models": [
-                    "openrouter/openai/gpt-4o",
-                    "claude-3-opus",
-                    "gemini-1.5-pro"
-                ],
-                "tier_preference": ModelTier.BALANCED
+                "preferred_models": ["openrouter/openai/gpt-4o", "claude-3-opus", "gemini-1.5-pro"],
+                "tier_preference": ModelTier.BALANCED,
             },
             "general": {
-                "preferred_models": [
-                    "groq/llama-3.3-70b-versatile",
-                    "gemini-1.5-flash",
-                    "gpt-4o-mini"
-                ],
-                "tier_preference": ModelTier.BUDGET
-            }
+                "preferred_models": ["groq/llama-3.3-70b-versatile", "gemini-1.5-flash", "gpt-4o-mini"],
+                "tier_preference": ModelTier.BUDGET,
+            },
         }
 
     def analyze_prompt_complexity(self, prompt: str) -> dict[str, float]:
@@ -88,8 +80,17 @@ class AdvancedModelRouter:
 
         length_score = min(len(prompt) / 1000.0, 1.0)
         complexity_indicators = [
-            "analyze", "compare", "evaluate", "summarize", "synthesize",
-            "reason", "think step by step", "consider", "examine", "code", "algorithm"
+            "analyze",
+            "compare",
+            "evaluate",
+            "summarize",
+            "synthesize",
+            "reason",
+            "think step by step",
+            "consider",
+            "examine",
+            "code",
+            "algorithm",
         ]
 
         indicator_score = sum(1 for indicator in complexity_indicators if indicator.lower() in prompt.lower())
@@ -98,7 +99,7 @@ class AdvancedModelRouter:
         return {
             "length": float(round(length_score, 4)),
             "complexity": float(round(indicator_score, 4)),
-            "overall": float(round((length_score + indicator_score) / 2.0, 4))
+            "overall": float(round((length_score + indicator_score) / 2.0, 4)),
         }
 
     def get_available_models(self, task_type: str) -> list[tuple[str, str]]:
@@ -134,13 +135,7 @@ class AdvancedModelRouter:
             return 0.5
         return 1.2
 
-    def calculate_model_score(
-        self,
-        provider: str,
-        model: str,
-        task_type: str,
-        complexity: dict[str, float]
-    ) -> float:
+    def calculate_model_score(self, provider: str, model: str, task_type: str, complexity: dict[str, float]) -> float:
         """Calculate priority score for a model considering latency, complexity, and performance metrics."""
         model_key = f"{provider}/{model}"
         metrics = self.performance_metrics.get(model_key)
@@ -155,7 +150,7 @@ class AdvancedModelRouter:
             base_score *= metrics.success_rate
             if metrics.response_time > 0:
                 norm_latency = min(metrics.response_time / 5.0, 1.0)
-                base_score *= (1.0 - norm_latency * 0.5)
+                base_score *= 1.0 - norm_latency * 0.5
 
         return float(round(base_score, 4))
 
@@ -164,7 +159,7 @@ class AdvancedModelRouter:
         prompt: str,
         task_type: str = "general",
         user_id: str | None = None,
-        budget_constraint: float | None = None
+        budget_constraint: float | None = None,
     ) -> RouteDecision:
         """
         Intelligent routing based on task type, performance metrics, and cost optimization.
@@ -184,7 +179,7 @@ class AdvancedModelRouter:
                     model=model,
                     priority_score=score,
                     expected_cost=expected_cost,
-                    expected_latency=expected_latency
+                    expected_latency=expected_latency,
                 )
             )
 
@@ -195,10 +190,14 @@ class AdvancedModelRouter:
             if filtered:
                 return filtered[0]
 
-        return scored_models[0] if scored_models else RouteDecision(
-            provider="groq",
-            model="llama-3.3-70b-versatile",
-            priority_score=1.0,
-            expected_cost=0.0001,
-            expected_latency=0.3
+        return (
+            scored_models[0]
+            if scored_models
+            else RouteDecision(
+                provider="groq",
+                model="llama-3.3-70b-versatile",
+                priority_score=1.0,
+                expected_cost=0.0001,
+                expected_latency=0.3,
+            )
         )

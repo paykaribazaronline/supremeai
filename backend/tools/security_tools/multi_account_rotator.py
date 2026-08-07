@@ -294,7 +294,7 @@ class MultiAccountRotator:
                 except Exception as form_err:
                     logger.warning(f"[SUPREME-AI] Form filling warning/error (continuing): {form_err}")
 
-# Wait for verification (Firestore with SQLite fallback)
+                # Wait for verification (Firestore with SQLite fallback)
                 verification_data = await self._wait_for_verification(new_email, timeout=10)
 
                 if verification_data:
