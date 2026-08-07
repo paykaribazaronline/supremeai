@@ -11,14 +11,14 @@ on:
   schedule:
     - cron: '0 3 * * 1'  # প্রতি সোমবার ৩টা UTC
   workflow_dispatch: {}
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref_name || github.run_id }}
-  cancel-in-progress: true
+  pull_request:
+    branches: [main, develop]
 
 jobs:
   self-audit:
     runs-on: ubuntu-latest
+    # promotion/staging-* PR ইতিমধ্যে second repo-তে verified — এখানে আবার audit চালানোর দরকার নেই।
+    if: "!startsWith(github.head_ref, 'promotion/staging')"
     steps:
       - uses: actions/checkout@v4
 

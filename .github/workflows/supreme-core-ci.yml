@@ -59,6 +59,11 @@ jobs:
 
   changes:
     runs-on: ubuntu-latest
+    # promotion/staging-* branch থেকে আসা PR-এর কোড second repo-তে ইতিমধ্যে পুরো
+    # supreme-core-ci pipeline দিয়ে verified — তাই এই pull_request-triggered রান স্কিপ করা হচ্ছে।
+    # merge-এর পরে main-এ push হওয়ার সময় এই একই workflow স্বাভাবিকভাবে আবার চলবে (deploy জবগুলোর জন্য দরকার),
+    # কারণ github.head_ref শুধু pull_request ইভেন্টেই সেট থাকে, push ইভেন্টে খালি — তাই এই condition push-কে touch করে না।
+    if: "!startsWith(github.head_ref, 'promotion/staging')"
     outputs:
       backend: ${{ steps.filter.outputs.backend == 'true' || steps.detect.outputs.force_backend == 'true' || github.run_attempt > 1 }}
       docker_build: ${{ steps.filter.outputs.docker_build == 'true' || steps.detect.outputs.force_docker_build == 'true' || github.run_attempt > 1 }}

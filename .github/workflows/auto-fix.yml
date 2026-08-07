@@ -17,6 +17,9 @@ env:
 jobs:
   auto-fix:
     runs-on: ubuntu-latest
+    # promotion/staging-* PR মানে কোড ইতিমধ্যে second repo-তে পুরো CI দিয়ে verify হয়ে এসেছে —
+    # তাই এখানে আবার auto-fix চালানো redundant, শুধু GHA free-tier minute খরচ করে।
+    if: "!startsWith(github.head_ref, 'promotion/staging')"
     steps:
       - uses: actions/checkout@v4
         with:
