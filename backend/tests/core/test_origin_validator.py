@@ -44,8 +44,18 @@ class TestTrustedOriginMiddleware:
 
     @pytest.mark.asyncio
     async def test_options_preflight_allowed_origin(self):
+        """বাংলা: ডিফল্ট portal_role='user' — তাই ইউজার অরিজিনের preflight 200 পাবে।"""
         app = AsyncMock()
         middleware = TrustedOriginMiddleware(app)
+        request = self._make_request(method="OPTIONS", origin="https://supremeai-a.web.app")
+        response = await middleware.dispatch(request, app)
+        assert response.status_code == 200
+
+    @pytest.mark.asyncio
+    async def test_options_preflight_allowed_origin_admin_portal(self):
+        """বাংলা: admin portal-এ অ্যাডমিন কনসোল অরিজিনের preflight 200 পাবে।"""
+        app = AsyncMock()
+        middleware = TrustedOriginMiddleware(app, portal_role="admin")
         request = self._make_request(method="OPTIONS", origin="https://supremeai-admin.web.app")
         response = await middleware.dispatch(request, app)
         assert response.status_code == 200
@@ -139,9 +149,22 @@ class TestTrustedOriginMiddleware:
             await middleware.dispatch(request, app)
             app.assert_awaited_once()
 
-    def test_allowed_origins_property(self):
+    def test_allowed_origins_property_user_portal(self):
+        """বাংলা: User instance শুধু ইউজার অরিজিন ট্রাস্ট করবে — অ্যাডমিন কনসোল অরিজিন নয়।"""
         app = AsyncMock()
-        middleware = TrustedOriginMiddleware(app)
+        middleware = TrustedOriginMiddleware(app, portal_role="user")
+        origins = middleware.allowed_origins
+        assert "https://supremeai-backend.onrender.com" in origins
+        assert "https://supremeai-a.web.app" in origins
+        assert "https://supremeai-admin.web.app" not in origins, "User instance-এ admin console origin leak!"
+        assert "https://supremeai-admin.onrender.com" not in origins
+
+    def test_allowed_origins_property_admin_portal(self):
+        """বাংলা: Admin instance শুধু অ্যাডমিন কনসোল অরিজিন ট্রাস্ট করবে — ইউজার অরিজিন নয়।"""
+        app = AsyncMock()
+        middleware = TrustedOriginMiddleware(app, portal_role="admin")
         origins = middleware.allowed_origins
         assert "https://supremeai-admin.web.app" in origins
-        assert "https://supremeai-backend.onrender.com" in origins
+        assert "https://supremeai-a.web.app" not in origins, "Admin instance-এ user origin leak!"
+        assert "https://supremeai-lac.vercel.app" not in origins
+        assert "https://supremeai-backend.onrender.com" not in origins

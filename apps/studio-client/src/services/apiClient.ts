@@ -1,7 +1,7 @@
 // Centralized API Client for SupremeAI 2.0
 // বাংলা মন্তব্য: এটি অ্যাপ্লিকেশনের সেন্ট্রাল এপিআই ক্লায়েন্ট যা হেডার, টোকেন এবং সিকিউর রেট লিমিট (429) / ভ্যালিডেশন এরর ইন্টারসেপ্ট করে।
 
-import { getApiBaseUrl, switchActiveBackend } from '../utils/api';
+import { getApiBaseUrl } from '../utils/api';
 import { getDeviceFingerprint } from '../utils/deviceFingerprint';
 import PQueue from 'p-queue';
 
@@ -143,14 +143,14 @@ const fetchWithTimeout = async (url: string, options: RequestInit, timeoutMs = D
 // বাংলা মন্তব্য: throttledFetch — p-queue দিয়ে একসাথে অতিরিক্ত রিকোয়েস্ট না যাওয়ার নিশ্চয়তা
 const throttledFetch = async (url: string, options: RequestInit): Promise<Response> => {
   return requestQueue.add(async () => {
-    let currentUrl = url;
+    const currentUrl = url;
     let attempts = 0;
     options.credentials = 'include';
 
     while (attempts < 2) {
       try {
         const res = await fetchWithTimeout(currentUrl, options);
-        // 502/503/504 পেলে রেন্ডার সার্ভার স্লিপিং বা ডাউন, ফেইলওভার ট্রিগার করব
+        // 502/503/504 মানে রেন্ডার সার্ভার স্লিপিং বা ডাউন — একই backend-এ রিট্রাই করব
         if (res.status >= 502 && res.status <= 504) {
           throw new Error("Server sleeping or down (50x)");
         }
@@ -162,18 +162,14 @@ const throttledFetch = async (url: string, options: RequestInit): Promise<Respon
           throw e;
         }
 
-        if (isDev()) console.warn(`[Failover] Network error detected: ${e.message}. Switching active backend...`);
-        const newBase = switchActiveBackend();
-
-        // currentUrl থেকে পুরনো বেস URL সরিয়ে নতুনটি বসানো
-        const urlObj = new URL(currentUrl);
-        currentUrl = `${newBase}${urlObj.pathname}${urlObj.search}`;
-
-        // স্লিপিং থেকে ওঠার জন্য একটু অপেক্ষা করে রিট্রাই
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // বাংলা মন্তব্য: একই URL-এ backoff retry — backend কখনোই পাল্টানো হয় না (portal isolation)।
+        // Render free tier cold start (৩০-৫০ সেকেন্ড) সামলাতে delay বাড়ানো হলো।
+        const delayMs = 2000 * attempts;
+        if (isDev()) console.warn(`[Retry] Network error: ${e.message}. Retrying same backend in ${delayMs}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
       }
     }
-    throw new Error("All backends failed");
+    throw new Error("Backend request failed after retries");
   }) as Promise<Response>;
 };
 
