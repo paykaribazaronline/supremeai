@@ -12,10 +12,10 @@ Key Features:
 from __future__ import annotations
 
 import logging
+import threading
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
-import threading
 
 logger = logging.getLogger(__name__)
 

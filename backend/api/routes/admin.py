@@ -13,7 +13,6 @@ from core.cache.redis_manager import redis_manager
 from core.health.self_healer import SelfHealerService
 from utils.firestore_helpers import get_firestore_db
 
-
 router = APIRouter(
     prefix="/api/admin",
     tags=["Core Admin"],

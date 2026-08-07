@@ -1,9 +1,11 @@
 # SupremeAI 2.0 — Hybrid RAG Search API Router
 # বাংলা মন্তব্য: এটি ডেন্স এবং স্পার্স হাইব্রিড সার্চের জন্য FastAPI এন্ডপয়েন্ট সরবরাহ করে।
 
+from typing import Any
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Any
+
 from backend.core.rag.hybrid_retriever import HybridRetriever
 
 router = APIRouter(prefix="/api/v1/rag", tags=["RAG Hybrid Search"])
