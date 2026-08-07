@@ -559,6 +559,7 @@ jobs:
         id: string
         run: |
           echo "REPO_LOWER=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
+          echo "OWNER_LOWER=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_OUTPUT
 
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
@@ -566,10 +567,10 @@ jobs:
           context: .
           file: ./backend/Dockerfile.ci
           push: true
-          tags: ghcr.io/${{ steps.string.outputs.REPO_LOWER }}/backend-ci-base:latest
+          tags: ghcr.io/${{ steps.string.outputs.OWNER_LOWER }}/backend-ci-base:latest
           # বাংলা মন্তব্য: GHCR registry cache ব্যবহার করা হচ্ছে কারণ GHA cache (10GB limit) Poetry/pnpm cache evict করে দিচ্ছিল
-          cache-from: type=registry,ref=ghcr.io/${{ steps.string.outputs.REPO_LOWER }}/backend-ci-base:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ steps.string.outputs.REPO_LOWER }}/backend-ci-base:buildcache,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ steps.string.outputs.OWNER_LOWER }}/backend-ci-base:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ steps.string.outputs.OWNER_LOWER }}/backend-ci-base:buildcache,mode=max
 
   backend-core:
     name: 🐍 Backend (Test)
@@ -582,7 +583,7 @@ jobs:
       (needs.changes.outputs.backend == 'true' || needs.changes.outputs.docker_build == 'true' || github.event_name == 'workflow_dispatch' || github.run_attempt > 1)
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/saifulhaqueniloy/supremeai/backend-ci-base:latest
+      image: ghcr.io/${{ github.repository_owner }}/backend-ci-base:latest
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
@@ -937,7 +938,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ steps.string.outputs.REPO_LOWER }}/supremeai-backend
+          images: ghcr.io/${{ steps.string.outputs.OWNER_LOWER }}/supremeai-backend
           tags: |
             type=raw,value=latest
             type=sha
@@ -951,8 +952,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # বাংলা মন্তব্য: GHCR registry cache ব্যবহার করা হচ্ছে — আলাদা storage quota তাই 10GB GHA limit স্পর্শ করে না
-          cache-from: type=registry,ref=ghcr.io/${{ steps.string.outputs.REPO_LOWER }}/supremeai-backend:buildcache
-          cache-to: type=registry,ref=ghcr.io/${{ steps.string.outputs.REPO_LOWER }}/supremeai-backend:buildcache,mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ steps.string.outputs.OWNER_LOWER }}/supremeai-backend:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ steps.string.outputs.OWNER_LOWER }}/supremeai-backend:buildcache,mode=max
 
   deploy-user-backend:
     name: 🚀 Deploy User Backend (Render)
@@ -973,7 +974,7 @@ jobs:
         if: needs.check-render-quota.outputs.use_github_build == 'true'
         run: |
           OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE_URL="ghcr.io/${OWNER_LOWER}/supremeai/supremeai-backend:sha-${{ github.sha }}"
+          IMAGE_URL="ghcr.io/${OWNER_LOWER}/supremeai-backend:sha-${{ github.sha }}"
           echo "🐳 GitHub build mode ACTIVE! Deploying pre-built image: $IMAGE_URL"
           PRIMARY_SVC_ID="srv-d9d3n58js32c738n79k0"
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
@@ -1053,7 +1054,7 @@ jobs:
         if: needs.check-render-quota.outputs.use_github_build == 'true'
         run: |
           OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE_URL="ghcr.io/${OWNER_LOWER}/supremeai/supremeai-backend:sha-${{ github.sha }}"
+          IMAGE_URL="ghcr.io/${OWNER_LOWER}/supremeai-backend:sha-${{ github.sha }}"
           echo "🐳 GitHub build mode ACTIVE! Deploying pre-built image: $IMAGE_URL"
           BACKUP_SVC_ID="srv-d9fg48bh523c73f63bb0"
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
@@ -1138,8 +1139,8 @@ jobs:
       - name: Trigger Combined Render Deploy (Prebuilt Image)
         if: needs.check-render-quota.outputs.use_github_build == 'true'
         run: |
-          # বাংলা মন্তব্য: GitHub Build মোড সক্রিয় থাকলে একই প্রি-বিল্ট ডকার ইমেজ Primary এবং Backup উভয় ব্যাকএন্ড সার্ভিসে ডেপ্লয় করা হচ্ছে।
-          IMAGE_URL="ghcr.io/${{ github.repository_owner }}/supremeai/supremeai-backend:sha-${{ github.sha }}"
+          OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_URL="ghcr.io/${OWNER_LOWER}/supremeai-backend:sha-${{ github.sha }}"
           echo "🐳 GitHub build mode ACTIVE! Deploying pre-built image: $IMAGE_URL"
           PRIMARY_SVC_ID="srv-d9d3n58js32c738n79k0"
           BACKUP_SVC_ID="srv-d9fg48bh523c73f63bb0"

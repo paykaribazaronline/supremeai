@@ -5,7 +5,7 @@ services:
     name: supremeai-backend
     env: image
     image:
-      url: ghcr.io/paykaribazaronline/supremeai/supremeai-backend:latest
+      url: ghcr.io/paykaribazaronline/supremeai-backend:latest
     region: singapore
     plan: free
     healthCheckPath: /health
@@ -73,7 +73,7 @@ services:
     name: supremeai-admin
     env: image
     image:
-      url: ghcr.io/paykaribazaronline/supremeai/supremeai-backend:latest
+      url: ghcr.io/paykaribazaronline/supremeai-backend:latest
     region: singapore
     plan: free
     healthCheckPath: /health
@@ -140,7 +140,7 @@ services:
     name: supremeai-background-worker
     env: image
     image:
-      url: ghcr.io/paykaribazaronline/supremeai/supremeai-backend:latest
+      url: ghcr.io/paykaribazaronline/supremeai-backend:latest
     region: singapore
     plan: free
     autoDeploy: true
