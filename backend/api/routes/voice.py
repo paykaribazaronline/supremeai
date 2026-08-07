@@ -17,6 +17,20 @@ def get_tts_engine():
     return _tts_engine
 
 
+@router.get("/voices")
+async def list_voices():
+    # বাংলা মন্তব্য: ফ্রন্টএন্ড chatService.getVoices() /api/voice/voices কল করে,
+    # কিন্তু আগে এই path-এর কোনো handler ছিল না (multilingual_tts.py-এর router টা
+    # কখনো app-এ include_router হয়নি, তাই ওটার /voices ও অ্যাক্সেসযোগ্য ছিল না)।
+    # এখন সরাসরি একই engine-এর get_voices() reuse করে গ্যাপটা বন্ধ করা হলো।
+    """List available TTS voices (ElevenLabs, requires API key; falls back gracefully)."""
+    try:
+        return await get_tts_engine().get_voices()
+    except Exception as e:
+        logger.error(f"Failed to list voices: {e}")
+        raise HTTPException(status_code=502, detail="Voice provider unavailable") from e
+
+
 @router.get("/stream_audio")
 async def stream_audio(text: str = "", voice: str | None = None):
     # বাংলা মন্তব্য: text প্যারামিটারটি ঐচ্ছিক করা হলো যাতে টেক্সট না থাকলে ৪২২ এর বদলে ৪০০ রেসপন্স জেনারেট হয়
