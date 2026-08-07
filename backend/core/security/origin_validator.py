@@ -97,14 +97,18 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
         # অকারণে প্রতিটা request crash করবে না।
         allowed = self.allowed_origins if origin else set()
 
-        # বাংলা মন্তব্য: OPTIONS preflight রিকোয়েস্ট সরাসরি 200 OK রেসপন্স ও CORS হেডার ফেরত পাঠাবে
+        # বাংলা মন্তব্য: OPTIONS preflight রিকোয়েস্ট সরাসরি 200 OK রেসপন্স ও ক্লায়েন্টের প্রয়োজনীয় CORS হেডার ফেরত পাঠাবে
         if request.method == "OPTIONS":
             if not origin or origin in allowed:
+                requested_headers = request.headers.get(
+                    "Access-Control-Request-Headers",
+                    "Content-Type, Authorization, X-Requested-With, X-API-Key, Accept, Origin, X-Device-Fingerprint, X-CSRF-Token, X-JIT-OTP, X-Request-ID, X-Tenant-ID, X-Correlation-ID",
+                )
                 headers = {
                     "Access-Control-Allow-Origin": origin or "*",
                     "Access-Control-Allow-Credentials": "true",
                     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH",
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, X-API-Key, Accept, Origin",
+                    "Access-Control-Allow-Headers": requested_headers,
                 }
                 return JSONResponse(
                     status_code=status.HTTP_200_OK,
