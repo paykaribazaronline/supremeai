@@ -76,7 +76,7 @@ services:
       url: ghcr.io/paykaribazaronline/supremeai-backend:latest
     region: singapore
     plan: free
-    healthCheckPath: /health
+    healthCheckPath: /api/v1/health
     autoDeploy: true
     envVars:
       - key: PORT
