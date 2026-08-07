@@ -31,7 +31,6 @@ on:
         default: false
   push:
     branches: [main, develop]
-    paths-ignore: ['**.md', 'docs/**', 'LICENSE', '.gitignore', 'logs/**']
   pull_request:
     branches: [main, develop]
 
