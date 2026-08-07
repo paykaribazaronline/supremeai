@@ -1,9 +1,11 @@
 import { QuickPresets } from './customer/QuickPresets';
-import { CodeEditor } from './customer/CodeEditor';
 import { ChatPanel } from './customer/ChatPanel';
 import { HomeFeed } from './customer/HomeFeed';
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import type { ChatMessage } from '../types';
+
+// বাংলা মন্তব্য: CodeEditor (Monaco) lazy load — ইনিশিয়াল বান্ডিল থেকে সরানো হয়েছে।
+const CodeEditor = lazy(() => import('./customer/CodeEditor').then(m => ({ default: m.CodeEditor })));
 
 interface OperatorStudioProps {
   code: string;
@@ -69,7 +71,7 @@ export function OperatorStudio({
           ) : (
             <HomeFeed />
           )}
-          <div className="flex-1"><CodeEditor code={code} onChange={setCode} /></div>
+          <div className="flex-1"><Suspense fallback={<div className="h-64 w-full animate-pulse rounded bg-zinc-800/40" />}><CodeEditor code={code} onChange={setCode} /></Suspense></div>
           <div className="flex-1">
             <ChatPanel
               messages={customerMessages}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import {
   MessageSquare,
   FolderOpen,
@@ -20,7 +20,8 @@ import {
 } from 'lucide-react';
 import { HomeFeed } from './HomeFeed';
 import { QuickPresets } from './QuickPresets';
-import { CodeEditor } from './CodeEditor';
+// বাংলা মন্তব্য: CodeEditor (Monaco) ভারী লাইব্রেরি — ইনিশিয়াল বান্ডিলে না যাওয়ার জন্য lazy load করা হয়েছে।
+const CodeEditor = lazy(() => import('./CodeEditor').then(m => ({ default: m.CodeEditor })));
 import { ChatPanel } from './ChatPanel';
 // বাংলা মন্তব্য: নতুন ইন্টারঅ্যাক্টিভ চ্যাট ট্যাব ইম্পোর্ট করা হলো
 import { InteractiveChatTab } from '../admin/InteractiveChatTab';
@@ -397,7 +398,9 @@ export function UserDashboard({
       {activeTab === 'presets' && (
         <div className="px-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
           <QuickPresets onSelectPreset={setCustomerInput} />
-          <CodeEditor code={code} onChange={setCode} />
+          <Suspense fallback={<div className="h-64 w-full animate-pulse rounded bg-zinc-800/40" />}>
+            <CodeEditor code={code} onChange={setCode} />
+          </Suspense>
         </div>
       )}
 

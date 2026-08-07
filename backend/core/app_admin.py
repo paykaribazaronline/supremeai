@@ -21,11 +21,12 @@ if settings.env == "production":
     if not settings.admin_cors_origins or "*" in settings.admin_cors_origins:
         from loguru import logger
 
+        # বাংলা মন্তব্য: Admin CORS ফলব্যাকে শুধুমাত্র অ্যাডমিন কনসোল origin রাখা হচ্ছে।
+        # আগে ভুলবশত supremeai-backend* user backend URLs যোগ হয়েছিল — এগুলো CORS origin নয়,
+        # বরং এগুলো server-to-server URLs। এটিই preflight OPTIONS এ HTTP ok status না পাওয়ার কারণ।
         logger.warning("⚠️ Production Admin CORS wildcard/drift detected. Setting default trusted admin origins.")
         settings.admin_cors_origins = [origin for origin in (settings.admin_cors_origins or []) if origin != "*"] + [
             "https://supremeai-admin.web.app",
-            "https://supremeai-backend.onrender.com",
-            "https://supremeai-backend-08zd.onrender.com",
         ]
 
 app.add_middleware(

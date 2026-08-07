@@ -15,6 +15,8 @@ Memory: Starts at ~500MB, grows to ~2-5GB as it learns.
 
 import hashlib
 import json
+import math
+import re
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
@@ -22,6 +24,15 @@ from pathlib import Path
 from typing import Any
 
 from loguru import logger
+
+# বাংলা মন্তব্য: similarity embedder-এর জন্য স্টপওয়ার্ড + regex (MD5 signature-এর বদলে ব্যবহৃত)
+_STOPWORDS = {
+    "the", "and", "for", "with", "you", "your", "how", "what", "why", "when",
+    "this", "that", "from", "into", "have", "will", "can", "are", "was", "were",
+    "does", "done", "please", "using", "use", "would", "could", "should", "write",
+    "make", "create", "give", "explain", "tell", "show", "need", "want", "about",
+}
+re_findall = re.findall
 
 
 @dataclass
@@ -250,15 +261,53 @@ class SupremeLearningEngine:
         logger.info("✅ Generated independent response using learned pattern")
         return response
 
-    def _extract_signature(self, query: str) -> str:
-        words = query.lower().split()
-        signature_words = []
-        for word in words:
-            if len(word) > 6 and word.isalpha():
-                signature_words.append("{entity}")
-            else:
-                signature_words.append(word)
-        return hashlib.md5(" ".join(signature_words).encode(), usedforsecurity=False).hexdigest()[:16]
+    def _embed(self, text: str) -> list[float]:
+        """Lightweight, dependency-free embedding (bag-of-words TF vector).
+
+        বাংলা মন্তব্য: আগে MD5 hash ব্যবহার করা হতো যা শব্দের অর্থ বদলালেই mismatch দিত —
+        তাই সাদৃশ্য (similarity) খোঁজা যেত না। এখন hashing-based vector দিয়ে cosine
+        similarity মিলানো হয়, ফলে "sort a list" ও "sort an array" মিলে যায়।
+        sentence-transformers ইনস্টল থাকলে সেটা ব্যবহার হয় (ঐচ্ছিক, lazy)।
+        """
+        if self._embedder is not None:
+            try:
+                vec = self._embedder(text)
+                if vec:
+                    return vec
+            except Exception:
+                pass
+        # Pure-python fallback: normalized bag-of-words vector.
+        vec: dict[str, float] = {}
+        for tok in self._tokenize(text):
+            vec[tok] = vec.get(tok, 0.0) + 1.0
+        norm = math.sqrt(sum(v * v for v in vec.values())) or 1.0
+        return [vec.get(t, 0.0) / norm for t in sorted(vec)]
+
+    def _embed_vec(self, text: str) -> dict[str, float]:
+        """Sparse vector form for cosine similarity (fallback embedder)."""
+        vec: dict[str, float] = {}
+        for tok in self._tokenize(text):
+            vec[tok] = vec.get(tok, 0.0) + 1.0
+        norm = math.sqrt(sum(v * v for v in vec.values())) or 1.0
+        return {t: v / norm for t, v in vec.items()}
+
+    @staticmethod
+    def _tokenize(text: str) -> list[str]:
+        text = (text or "").lower()
+        toks = re_findall(r"[a-z0-9]+", text)
+        # ছোট স্টপওয়ার্ড বাদ দিই যাতে ভেক্টর অর্থপূর্ণ থাকে
+        return [t for t in toks if len(t) > 2 and t not in _STOPWORDS]
+
+    def _cosine(self, a: dict[str, float], b: dict[str, float]) -> float:
+        if not a or not b:
+            return 0.0
+        common = set(a) & set(b)
+        dot = sum(a[t] * b[t] for t in common)
+        na = math.sqrt(sum(v * v for v in a.values()))
+        nb = math.sqrt(sum(v * v for v in b.values()))
+        if na == 0.0 or nb == 0.0:
+            return 0.0
+        return dot / (na * nb)
 
     def _extract_reasoning(self, response: str) -> list[str]:
         reasoning = []
