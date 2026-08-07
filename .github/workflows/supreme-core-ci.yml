@@ -582,11 +582,6 @@ jobs:
       (needs.docker-build.result == 'success' || needs.docker-build.result == 'skipped') &&
       (needs.changes.outputs.backend == 'true' || needs.changes.outputs.docker_build == 'true' || github.event_name == 'workflow_dispatch' || github.run_attempt > 1)
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/${{ github.repository_owner }}/backend-ci-base:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
     services:
       postgres:
         image: postgres:15-alpine
@@ -617,9 +612,9 @@ jobs:
       PYTHONPATH: ${{ github.workspace }}/backend
       GITHUB_TOKEN: "mock_dummy_token"
       RENDER_API_KEY: "mock_render_key"
-      SUPABASE_DATABASE_URL: "postgresql+asyncpg://test_user:test_password@postgres:5432/supreme_test_db"
-      SUPABASE_DATABASE_URL_POOLER: "postgresql+asyncpg://test_user:test_password@postgres:5432/supreme_test_db"
-      REDIS_URL: "redis://redis:6379/0"
+      SUPABASE_DATABASE_URL: "postgresql+asyncpg://test_user:test_password@127.0.0.1:5432/supreme_test_db"
+      SUPABASE_DATABASE_URL_POOLER: "postgresql+asyncpg://test_user:test_password@127.0.0.1:5432/supreme_test_db"
+      REDIS_URL: "redis://127.0.0.1:6379/0"
       SUPREMEAI_JWT_SECRET: "supremeai_secure_jwt_secret_value_at_least_64_bytes_long_test_string_pad_pad_pad_pad"
       ADMIN_AUTHORIZED: "true"
       DOCS_PASSWORD: "mock_docs_password"
@@ -639,6 +634,16 @@ jobs:
       ALLOW_TEST_ORIGIN_BYPASS: "true"
     steps:
       - uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 📦 Install Poetry
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
 
       - name: ⚙️ Setup Poetry Cache
         uses: actions/cache@v4
