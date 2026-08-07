@@ -131,6 +131,10 @@ _Generated for SupremeAI 2.0 — Admin Plan Execution_
   - Always keep answers as short, direct, and minimal as possible.
   - Do NOT write multi-paragraph explanations or background details unless the user explicitly asks "explain" or "why".
 
+- **Single Definite Root-Cause Answer Rule (STRICT & MANDATORY):**
+  - **No Multi-Option Speculation:** Never provide 2, 3, or multiple speculative reasons for an error or failure.
+  - **Single Verified Truth:** Always perform empirical inspection, trace code, and identify the single exact root cause before answering. Present exactly ONE definitive, verified answer without guessing or hedging.
+
 - **Strict Git Push Rule (NON-NEGOTIABLE):** The AI agent MUST NEVER run `git push` under any circumstances unless the user explicitly sends a prompt that contains the exact word `"push"`. Generic user approvals (e.g. "ok", "do that", "fix it", "yes") DO NOT grant push permission. Without the literal word `"push"` present in the user's message, the AI will NEVER push to GitHub.
 
 - **No Background Timers Rule (STRICT):** The AI agent MUST NEVER schedule background timers or interval scheduler tasks after `git push` or during any execution unless the user explicitly requests a timer.
