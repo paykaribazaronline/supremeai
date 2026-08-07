@@ -150,18 +150,18 @@ export const IdeWorkspace: React.FC = () => {
         <PanelGroup orientation="horizontal">
 
           {/* LEFT: File Explorer */}
-          <Panel defaultSize={20} minSize={10} maxSize={40}>
+          <Panel defaultSize="20%" minSize="10%" maxSize="40%">
             <FileExplorer />
           </Panel>
 
           <PanelResizeHandle className="w-1 bg-[#252526] hover:bg-blue-500 cursor-col-resize transition-colors" />
 
           {/* RIGHT: Editor + Terminal */}
-          <Panel defaultSize={80}>
+          <Panel defaultSize="80%">
             <PanelGroup orientation="vertical">
 
               {/* TOP: Editor */}
-              <Panel defaultSize={70} minSize={30}>
+              <Panel defaultSize="70%" minSize="30%">
                 <div className="flex flex-col h-full bg-[#1e1e1e]">
                   <EditorTabs />
                   <div className="flex-1 min-h-0">
@@ -186,7 +186,7 @@ export const IdeWorkspace: React.FC = () => {
               <PanelResizeHandle className="h-1 bg-[#252526] hover:bg-blue-500 cursor-row-resize transition-colors" />
 
               {/* BOTTOM: Terminal */}
-              <Panel defaultSize={30} minSize={10}>
+              <Panel defaultSize="30%" minSize="10%">
                 <div className="flex flex-col h-full bg-[#1e1e1e]">
                   <div className="h-8 bg-[#252526] border-b border-[#1e1e1e] flex items-center px-3 text-xs text-gray-400">
                     TERMINAL

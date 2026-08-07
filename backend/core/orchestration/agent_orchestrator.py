@@ -438,9 +438,7 @@ class SupremeAgentOrchestrator:
             if res and isinstance(res, dict) and "output" in res:
                 validated_responses.append(res)
             else:
-                logger.warning(
-                    f"⚠️ [MALFORMED_AGENT_RESPONSE]: Agent '{agent_name}' returned invalid signature packet."
-                )
+                logger.warning(f"⚠️ [MALFORMED_AGENT_RESPONSE]: Agent '{agent_name}' returned invalid signature packet.")
 
         if not validated_responses:
             raise SwarmOrchestrationError(

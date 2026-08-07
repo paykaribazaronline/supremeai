@@ -165,9 +165,9 @@ class TestPromptInjectionDefender:
 
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
-        mock_response.choices[0].message.content = (
-            '{"is_injection": false, "confidence": 0.9, "technique": "none", "severity": "low"}'
-        )
+        mock_response.choices[
+            0
+        ].message.content = '{"is_injection": false, "confidence": 0.9, "technique": "none", "severity": "low"}'
 
         async def mock_acomplete(*args, **kwargs):
             return mock_response
