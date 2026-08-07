@@ -145,11 +145,7 @@ class CompetitorAnalysisAgent:
                 priority = (
                     "critical"
                     if feature.impact_score > 0.8
-                    else "high"
-                    if feature.impact_score > 0.6
-                    else "medium"
-                    if feature.impact_score > 0.4
-                    else "low"
+                    else "high" if feature.impact_score > 0.6 else "medium" if feature.impact_score > 0.4 else "low"
                 )
                 effort = "high" if priority == "critical" else "medium" if priority in ("high", "medium") else "low"
 
