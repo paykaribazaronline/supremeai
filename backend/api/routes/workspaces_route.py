@@ -18,7 +18,12 @@ from pydantic import BaseModel, Field
 
 from api.dependencies import get_current_admin
 from core.repo_manager import repo_manager
-from core.target_registry import PermissionScope, TargetEntity, TargetPlatformType, target_registry
+from core.target_registry import (
+    PermissionScope,
+    TargetEntity,
+    TargetPlatformType,
+    target_registry,
+)
 
 logger = logging.getLogger(__name__)
 

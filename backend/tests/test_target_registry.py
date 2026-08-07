@@ -8,15 +8,16 @@ Validates:
 
 import tempfile
 from pathlib import Path
+
 import pytest
 
+from core.repo_manager import DynamicRepoManager, PermissionDeniedError
 from core.target_registry import (
     PermissionScope,
     TargetEntity,
     TargetPlatformRegistry,
     TargetPlatformType,
 )
-from core.repo_manager import DynamicRepoManager, PermissionDeniedError
 
 
 def test_default_main_repo_is_read_only():

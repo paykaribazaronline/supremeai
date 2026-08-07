@@ -4,13 +4,12 @@ import json
 import math
 import os
 import sqlite3
+import zlib
 from typing import Any
 
 from loguru import logger
 
 from core.persistence import pooled_pg
-
-import zlib
 
 # বাংলা মন্তব্য: রেন্ডার ফ্রি টায়ারে মেমোরি সংকট এড়াতে LOW_MEMORY_MODE চেক করা হচ্ছে
 # বাংলা মন্তব্য: ব্যাকএন্ড সিআই পাইপলাইন ফুল রান ট্র্রিগার করার জন্য আপডেট করা হলো

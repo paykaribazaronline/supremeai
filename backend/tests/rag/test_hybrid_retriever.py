@@ -1,8 +1,8 @@
 # SupremeAI 2.0 — Hybrid RAG Search Test Suite
 # বাংলা মন্তব্য: এটি Sparse BM25, RRF র‍্যাংক ফিউশন এবং বাংলা টেক্সট টোকেনাইজেশনের ইউনিট টেস্ট পরিচালনা করে।
 
-from backend.core.rag.sparse_bm25 import SparseBM25Index
 from backend.core.rag.hybrid_retriever import HybridRetriever
+from backend.core.rag.sparse_bm25 import SparseBM25Index
 
 
 def test_sparse_bm25_tokenization():

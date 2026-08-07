@@ -861,10 +861,10 @@ async def main() -> None:
     else:
         # বাংলা মন্তব্য: SSE transport — FastAPI/Starlette-এ mount করা হবে
         try:
+            import uvicorn
             from mcp.server.sse import SseServerTransport
             from starlette.applications import Starlette
-            from starlette.routing import Route, Mount
-            import uvicorn
+            from starlette.routing import Mount, Route
 
             sse_transport = SseServerTransport("/messages/")
 
