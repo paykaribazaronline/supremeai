@@ -59,7 +59,9 @@ jobs:
           # না থাকলে push/PR তৈরি করবে না, ফলে continuous loop বন্ধ হবে।
           echo "🔍 Checking for diff against target/main before pushing..."
           git fetch target main
-          if git diff --quiet target/main HEAD -- . ':(exclude).github/workflows'; then
+          # শুধু এই promote workflow ফাইলটাকেই exclude করা হচ্ছে (নিজেকে নিজে ট্রিগার করা ঠেকাতে) —
+          # বাকি সব .github/workflows/*.yml পরিবর্তন (CI fixes, new gates ইত্যাদি) এখন সঠিকভাবে promote হবে।
+          if git diff --quiet target/main HEAD -- . ':(exclude).github/workflows/auto-promote-to-prod.yml'; then
             echo "✅ No code difference vs target/main — skipping push/PR to prevent infinite loop."
             echo "PROMOTE_BRANCH=" >> "$GITHUB_ENV"
             exit 0
