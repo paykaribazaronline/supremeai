@@ -82,7 +82,8 @@ _Last Updated: 2026-08-07_
   - **Step 4 — Single Empirical Root-Cause Analysis:** Diagnose exact underlying failures (e.g., pytest assertion mismatches, working-directory misconfigurations, syntax errors, detached HEAD git auto-commits) with zero multi-option speculation.
   - **Step 5 — Homologous Fix Implementation:** Implement production-ready fixes across all caller and homologous files (backend, frontend, CI scripts). Add explanatory code comments in **Bangla**.
   - **Step 6 — Full Verification & Uncommitted Files Report:** Run local test/build verification, stage all uncommitted files (`git add`), and generate a short impact summary of all staged changes.
-  - **Step 7 — Explicit Push Authorization:** NEVER run `git push` unless the user's prompt literally contains the exact word `"push"`.
+  - **Step 7 — Explicit Push Authorization & Single Remote Rule:** The AI agent MUST ONLY push to `origin` (`SaifulHaqueNiloy/supremeai`). Direct pushes to `target` (`paykaribazaronline`) are STRICTLY FORBIDDEN. Never run `git push` unless the user's prompt literally contains the exact word `"push"`.
+  - **Token-Efficient CI Verification Protocol:** To conserve context and token limits, avoid high-frequency polling. Execute batch API background scripts, monitor until `paykaribazaronline` reaches 100% SUCCESS GREEN, and extract the clean final report efficiently.
   - **Continuous Green Loop Mandate:** This diagnostic, fixing, log extraction, and verification process MUST run continuously in an iterative loop across both target (`target`) and primary (`origin`) repositories until EVERY SINGLE WORKFLOW RUN IS 100% FULL GREEN (zero failures).
 
 ---
