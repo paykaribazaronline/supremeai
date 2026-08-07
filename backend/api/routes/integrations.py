@@ -1,4 +1,4 @@
-﻿from urllib.parse import urlencode
+from urllib.parse import urlencode
 
 import httpx
 from fastapi import APIRouter, Depends, Request

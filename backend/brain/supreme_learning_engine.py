@@ -83,8 +83,12 @@ class SupremeLearningEngine:
         self.kg_path = self.data_dir / "knowledge_graph.json"
         self.knowledge_graph = self._load_kg()
 
+        # বাংলা মন্তব্য: _mini_models আগে প্রারম্ভিকতে লোড হতো (torch থাকলে ৩টি HF মডেল ডাউনলোড),
+        # কিন্তু কখনো ব্যবহৃত হয় নি। Lazy-ভাবে সংরক্ষণ করা হয়েছে — _load_mini_models() শুধুমাত্র
+        # আহ্বানে চলে, এবং বর্তমানে কোনো caller আহ্বান করে না।
         self._mini_models: dict[str, Any] = {}
-        self._load_mini_models()
+        self._embedder: Any | None = None
+        self._try_load_embedder()
 
         self.stats = {
             "total_interactions": 0,
@@ -97,6 +101,17 @@ class SupremeLearningEngine:
         logger.info("🧠 SupremeLearningEngine initialized")
         logger.info(f"   📊 Patterns DB: {self.db_path}")
         logger.info(f"   🕸️  Knowledge Graph: {len(self.knowledge_graph.get('nodes', {}))} nodes")
+
+    def _try_load_embedder(self) -> None:
+        """ঐচ্ছিক embedding model — না থাকলে bag-of-words fallback চালু থাকে।"""
+        try:
+            from sentence_transformers import SentenceTransformer  # type: ignore
+
+            self._embedder = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+            logger.info("🧠 Using sentence-transformers embedder for similarity matching.")
+        except Exception as exc:
+            self._embedder = None
+            logger.info(f"ℹ️ No sentence-transformers; using lightweight TF embedder. ({exc})")
 
     def _init_db(self):
         """Initialize SQLite database for patterns."""
@@ -115,15 +130,21 @@ class SupremeLearningEngine:
                 created_at TEXT,
                 last_used TEXT,
                 domain TEXT,
-                complexity TEXT
-            )
-        """)
+                complexity TEXT,
+                embedding TEXT
+             )
+         """)
         conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_signature ON patterns(query_signature)
         """)
         conn.execute("""
             CREATE INDEX IF NOT EXISTS idx_domain ON patterns(domain)
         """)
+        # বাংলা মন্তব্য: পুরোনো DB-তে embedding কলাম যোগ করার আপডেট (idempotent)।
+        try:
+            conn.execute("ALTER TABLE patterns ADD COLUMN embedding TEXT")
+        except sqlite3.OperationalError:
+            pass  # already exists
         conn.commit()
         conn.close()
 
@@ -194,13 +215,14 @@ class SupremeLearningEngine:
         """Learn from EVERY interaction with external AI."""
         self.stats["total_interactions"] += 1
 
-        query_sig = self._extract_signature(query)
+        # বাংলা মন্তব্য: আগে MD5 signature — শব্দের অর্থ বদলালেই mismatch। এখন dense embedding।
+        query_embed = json.dumps(self._embed_vec(query))
         reasoning = self._extract_reasoning(response)
         template = self._create_template(query, response)
         complexity = self._analyze_complexity(query)
 
         pattern = self._store_pattern(
-            query_sig=query_sig,
+            query_sig=query_embed,
             query_template=template["query_template"],
             response_template=template["response_template"],
             reasoning=reasoning,
@@ -226,7 +248,7 @@ class SupremeLearningEngine:
         min_confidence: float = 0.75,
     ) -> tuple[bool, float, dict | None]:
         """Decide: Can SupremeAI answer this WITHOUT calling external AI?"""
-        query_sig = self._extract_signature(query)
+        query_sig = json.dumps(self._embed_vec(query))
         pattern = self._find_best_pattern(query_sig, task_type)
 
         if pattern is None:
@@ -269,19 +291,19 @@ class SupremeLearningEngine:
         similarity মিলানো হয়, ফলে "sort a list" ও "sort an array" মিলে যায়।
         sentence-transformers ইনস্টল থাকলে সেটা ব্যবহার হয় (ঐচ্ছিক, lazy)।
         """
-        if self._embedder is not None:
+        if getattr(self, "_embedder", None) is not None:
             try:
                 vec = self._embedder(text)
                 if vec:
                     return vec
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning(f"Embedder failed, falling back to TF-vector: {exc}")
         # Pure-python fallback: normalized bag-of-words vector.
-        vec: dict[str, float] = {}
+        vec_dict: dict[str, float] = {}
         for tok in self._tokenize(text):
-            vec[tok] = vec.get(tok, 0.0) + 1.0
-        norm = math.sqrt(sum(v * v for v in vec.values())) or 1.0
-        return [vec.get(t, 0.0) / norm for t in sorted(vec)]
+            vec_dict[tok] = vec_dict.get(tok, 0.0) + 1.0
+        norm = math.sqrt(sum(v * v for v in vec_dict.values())) or 1.0
+        return [vec_dict.get(t, 0.0) / norm for t in sorted(vec_dict)]
 
     def _embed_vec(self, text: str) -> dict[str, float]:
         """Sparse vector form for cosine similarity (fallback embedder)."""
@@ -354,38 +376,82 @@ class SupremeLearningEngine:
         complexity: str,
         feedback: float | None,
     ) -> dict:
-        pattern_id = hashlib.md5(f"{query_sig}:{domain}".encode(), usedforsecurity=False).hexdigest()[:16]
+        # বাংলা মন্তব্য: query_sig এখন JSON-encoded embedding। pattern_id deterministic hashing এখন
+        # embedding থেকে (MD5 শুধু consistency রাখতে ব্যবহৃত)।
+        query_embed = json.loads(query_sig) if isinstance(query_sig, str) and query_sig else {}
+        pattern_id = hashlib.md5(
+            (json.dumps(query_embed, sort_keys=True) + ":" + domain).encode(),
+            usedforsecurity=False,
+        ).hexdigest()[:16]
 
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
-        cursor.execute("SELECT * FROM patterns WHERE pattern_id = ?", (pattern_id,))
-        existing = cursor.fetchone()
+        # বাংলা মন্তব্ট: সাদৃশ্যের ভিত্তিতে সবচে সাদৃশ্যপূর্ণ existing pattern খুঁজি
+        # (exact embedding match নয়) — ফলে "sort a list"/"sort an array" মিলে।
+        existing = self._find_similar_in_domain(cursor, query_embed, domain, threshold=0.85)
 
         if existing:
+            row_id = existing["row_id"]
+            cur_conf = existing["confidence"]
+            cur_success = existing["success_count"]
+            cur_models = existing["source_models"]
+            cur_sim = existing["similarity"]
+            # বাংলা মন্তব্ট: রিয়েল ফিডব্যাক → confidence পরিবর্তন (আগে শুধু +0.02 হতো)।
+            if feedback is not None:
+                # feedback 1.0 = positive, -1.0 = negative, 0 = neutral
+                delta = 0.05 if feedback >= 0 else -0.08
+                new_conf = min(0.99, max(0.1, cur_conf + delta))
+                if feedback < 0:
+                    cursor.execute(
+                        "UPDATE patterns SET failure_count = failure_count + 1 WHERE rowid = ?",
+                        (row_id,),
+                    )
+                else:
+                    cursor.execute(
+                        "UPDATE patterns SET success_count = success_count + 1 WHERE rowid = ?",
+                        (row_id,),
+                    )
+            else:
+                cursor.execute(
+                    "UPDATE patterns SET success_count = success_count + 1 WHERE rowid = ?",
+                    (row_id,),
+                )
+                new_conf = min(0.99, cur_conf + 0.02)
             cursor.execute(
                 """
                 UPDATE patterns SET
-                    success_count = success_count + 1,
-                    confidence = MIN(0.99, confidence + 0.02),
+                    confidence = ?,
                     last_used = ?,
-                    source_models = ?
-                WHERE pattern_id = ?
+                    source_models = ?,
+                    query_template = CASE WHEN length(?) > length(query_template) THEN ? ELSE query_template END,
+                    response_template = CASE WHEN length(?) > length(response_template) THEN ? ELSE response_template END,
+                    embedding = ?
+                WHERE rowid = ?
             """,
                 (
+                    new_conf,
                     datetime.now().isoformat(),
-                    json.dumps(list(set([*json.loads(existing[8]), model]))),
-                    pattern_id,
+                    json.dumps(list(set([*cur_models, model]))),
+                    response_template, response_template,
+                    query_template, query_template,
+                    json.dumps(query_embed),
+                    row_id,
                 ),
             )
+            confidence = new_conf
         else:
             cursor.execute(
                 """
-                INSERT INTO patterns VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO patterns
+                (pattern_id, query_signature, query_template, response_template,
+                 reasoning_chain, confidence, success_count, failure_count,
+                 source_models, created_at, last_used, domain, complexity, embedding)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
                 (
                     pattern_id,
-                    query_sig,
+                    json.dumps(query_embed),
                     query_template,
                     response_template,
                     json.dumps(reasoning),
@@ -397,63 +463,116 @@ class SupremeLearningEngine:
                     datetime.now().isoformat(),
                     domain,
                     complexity,
+                    json.dumps(query_embed),
                 ),
             )
             self.stats["patterns_learned"] += 1
+            confidence = 0.5
 
         conn.commit()
         conn.close()
 
         return {
             "pattern_id": pattern_id,
-            "confidence": 0.5 if not existing else min(0.99, existing[5] + 0.02),
+            "confidence": confidence,
             "query_template": query_template,
             "response_template": response_template,
+            "similarity": cur_sim if existing else 1.0,
         }
 
+    def _find_similar_in_domain(self, cursor, query_embed: dict, domain: str, threshold: float) -> dict | None:
+        """Find the most similar pattern in the same domain via cosine similarity."""
+        if not query_embed:
+            return None
+        cursor.execute(
+            "SELECT rowid, query_signature, confidence, success_count, source_models, embedding FROM patterns WHERE domain = ?",
+            (domain,),
+        )
+        best: dict | None = None
+        best_sim = 0.0
+        for row in cursor.fetchall():
+            try:
+                stored = json.loads(row[5]) if row[5] else {}
+            except (json.JSONDecodeError, TypeError):
+                continue
+            if not isinstance(stored, dict):
+                continue
+            sim = self._cosine(query_embed, stored)
+            if sim > best_sim:
+                best_sim = sim
+                best = {
+                    "row_id": row[0],
+                    "confidence": row[2],
+                    "success_count": row[3],
+                    "source_models": json.loads(row[4]) if row[4] else [],
+                    "similarity": sim,
+                }
+        if best is not None and best_sim >= threshold:
+            return best
+        return None if best_sim < threshold else best
+
     def _find_best_pattern(self, query_sig: str, domain: str) -> dict | None:
+        query_embed = json.loads(query_sig) if isinstance(query_sig, str) and query_sig else {}
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
 
         cursor.execute(
             """
-            SELECT * FROM patterns
-            WHERE query_signature = ? AND domain = ?
-            ORDER BY confidence DESC, success_count DESC
-            LIMIT 1
+            SELECT rowid, query_signature, query_template, response_template,
+                   reasoning_chain, confidence, success_count, failure_count,
+                   source_models, embedding
+            FROM patterns
+            WHERE domain = ?
         """,
-            (query_sig, domain),
+            (domain,),
         )
 
-        row = cursor.fetchone()
+        best_row = None
+        best_sim = 0.0
+        for row in cursor.fetchall():
+            try:
+                stored = json.loads(row[9]) if row[9] else {}
+            except (json.JSONDecodeError, TypeError):
+                continue
+            if not isinstance(stored, dict):
+                continue
+            sim = self._cosine(query_embed, stored) if query_embed else 0.0
+            # বাংলা মন্তব্ট: similarity + confidence দুটোই বেশি দরকার
+            score = sim * row[5]
+            if score > best_sim:
+                best_sim = score
+                best_row = row
+
         conn.close()
 
-        if row:
+        if best_row:
             return {
-                "pattern_id": row[0],
-                "query_signature": row[1],
-                "query_template": row[2],
-                "response_template": row[3],
-                "reasoning_chain": json.loads(row[4]),
-                "confidence": row[5],
-                "success_count": row[6],
-                "failure_count": row[7],
-                "source_models": json.loads(row[8]),
+                "pattern_id": "",
+                "query_signature": best_row[1],
+                "query_template": best_row[2],
+                "response_template": best_row[3],
+                "reasoning_chain": json.loads(best_row[4]),
+                "confidence": best_row[5],
+                "success_count": best_row[6],
+                "failure_count": best_row[7],
+                "source_models": json.loads(best_row[8]),
+                "similarity": best_sim,
             }
         return None
 
     def _calculate_confidence(self, pattern: dict, query: str) -> float:
+        # বাংলা মন্তব্ট: আগে confidence শুধু +0.02 করে ধীরে ধীরে 0.99-এ উঠত। এখন
+        # (a) সাদৃশ্য similarity এবং (b) সঠিক/ভুল ফিডব্যাক দুটোই ফ্যাক্টর।
         base_confidence = pattern["confidence"]
         total = pattern["success_count"] + pattern["failure_count"]
         if total > 0:
             success_rate = pattern["success_count"] / total
             base_confidence = (base_confidence + success_rate) / 2
 
-        query_words = set(query.lower().split())
-        template_words = set(pattern["query_template"].lower().split())
-        overlap = len(query_words & template_words) / len(query_words | template_words)
+        # similarity (0..1) থেকে আসা প্যাটার্ন ম্যাচের গুণমান — sparse embedder ব্যবহৃত
+        similarity = float(pattern.get("similarity", 0.0))
 
-        confidence = base_confidence * (0.5 + 0.5 * overlap)
+        confidence = base_confidence * (0.3 + 0.7 * similarity)
         return min(1.0, max(0.0, confidence))
 
     def _fill_template(self, template: str, query: str, context: dict | None) -> str:

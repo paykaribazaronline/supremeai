@@ -1,4 +1,4 @@
-﻿# backend/brain/smart_router.py
+# backend/brain/smart_router.py
 """
 SupremeAI Self-Sovereign Smart Router
 Routes requests to local inference FIRST, then managed, then frontier.
