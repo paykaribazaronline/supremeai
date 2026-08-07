@@ -376,7 +376,13 @@ jobs:
         run: |
           # বাংলা মন্তব্য: GitHub API রেট লিমিট এবং ইনস্টল স্ক্রিপ্ট ফেইলর এড়াতে সরাসরি বাইনারি ডাউনলোড করা হচ্ছে
           mkdir -p ./bin
-          curl -sSfL "https://github.com/aquasecurity/trivy/releases/download/v0.48.3/trivy_0.48.3_Linux-64bit.tar.gz" -o trivy.tar.gz
+          # বাংলা মন্তব্য: GitHub API থেকে dynamic ভাবে লেটেস্ট Trivy ভার্সন এবং তার ডাউনলোড URL বের করা হচ্ছে যাতে ৪MD বা অবসোলেট রিলিজের কারণে বিল্ড ফেইল না করে
+          TRIVY_VERSION=$(curl -sL https://api.github.com/repos/aquasecurity/trivy/releases/latest | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+          if [ -z "$TRIVY_VERSION" ]; then
+            TRIVY_VERSION="0.55.0"
+          fi
+          echo "Downloading Trivy version: $TRIVY_VERSION"
+          curl -sSfL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" -o trivy.tar.gz
           tar -xzf trivy.tar.gz -C ./bin trivy
           rm trivy.tar.gz
           ./bin/trivy fs --format sarif --output trivy-python.sarif --severity CRITICAL,HIGH backend &
