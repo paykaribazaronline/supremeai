@@ -917,6 +917,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       always() &&
+      github.repository == 'paykaribazaronline/supremeai' &&
       needs.backend-core.result != 'failure' && needs.backend-core.result != 'cancelled' && needs.backend-core.result != 'skipped' &&
       (
         github.ref == 'refs/heads/main' ||
