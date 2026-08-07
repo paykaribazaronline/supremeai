@@ -38,11 +38,11 @@ export const getApiBaseUrl = (): string => {
     return BACKEND_URL;
   }
 
-  // বাংলা মন্তব্য: Firebase hosting-এ (web.app/firebaseapp.com) relative path ব্যবহার।
-  // ব্রাউজার একই origin-এ request করে, Firebase server-side proxy করে Render-এ।
+  // বাংলা মন্তব্য: Firebase hosting (web.app/firebaseapp.com) এবং Vercel-এ (vercel.app) relative path ('') ব্যবহার।
+  // ব্রাউজার একই origin-এ request করে, hosting provider server-side proxy করে Render-এ।
   // CORS preflight সম্পূর্ণ বাদ — Render free tier-এ সবচেয়ে নির্ভরযোগ্য পদ্ধতি।
   const hostname = window.location.hostname;
-  if (hostname.includes('web.app') || hostname.includes('firebaseapp.com')) {
+  if (hostname.includes('web.app') || hostname.includes('firebaseapp.com') || hostname.includes('vercel.app')) {
     return '';
   }
 
