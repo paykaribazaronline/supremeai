@@ -32,26 +32,13 @@ if _resolved_user_origins != _configured_user_origins:
 
 settings.user_cors_origins = _resolved_user_origins
 
-# বাংলা মন্তব্য: Anti-Hacking ও CSRF সিকিউরিটি হেডারগুলো allow_headers-এ অন্তর্ভুক্ত করা হলো
+# বাংলা মন্তব্য: Anti-Hacking, Cache-Control ও CSRF সিকিউরিটি হেডারগুলোর প্রিফ্লাইট সামলাতে allow_headers=["*"] সেট করা হলো
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.user_cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allow_headers=[
-        "Authorization",
-        "Content-Type",
-        "X-Request-ID",
-        "X-Tenant-ID",
-        "X-API-Key",
-        "X-Correlation-ID",
-        "X-Device-Fingerprint",
-        "X-CSRF-Token",
-        "X-JIT-OTP",
-        "X-Requested-With",
-        "Accept",
-        "Origin",
-    ],
+    allow_headers=["*"],
 )
 
 include_user_routers(app)
