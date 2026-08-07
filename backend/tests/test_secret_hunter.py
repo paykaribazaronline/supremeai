@@ -196,9 +196,9 @@ class TestAISecretAnalyzer:
 
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
-        mock_response.choices[
-            0
-        ].message.content = '{"is_true_positive": true, "secret_type": "API Key", "severity": "critical", "confidence": 0.95, "remediation": "Remove the key"}'
+        mock_response.choices[0].message.content = (
+            '{"is_true_positive": true, "secret_type": "API Key", "severity": "critical", "confidence": 0.95, "remediation": "Remove the key"}'
+        )
 
         async def mock_acomplete(*args, **kwargs):
             return mock_response
@@ -229,9 +229,7 @@ class TestAISecretAnalyzer:
 
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
-        mock_response.choices[
-            0
-        ].message.content = (
+        mock_response.choices[0].message.content = (
             '{"is_true_positive": false, "secret_type": "placeholder", "severity": "low", "confidence": 0.1}'
         )
 
