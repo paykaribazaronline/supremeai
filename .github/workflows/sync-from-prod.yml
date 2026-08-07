@@ -2,25 +2,33 @@ name: 🔄 Sync from Production
 
 on:
   workflow_dispatch:
-#  push:
-#    branches:
-#      - main
-#      - master
-#    # This workflow should only run in the staging repo
-#    if: github.repository == 'saifulhaqueniloy/supremeai'
+  # main-repo/.github/workflows/notify-staging.yml admin push হলে এই event পাঠায়
+  repository_dispatch:
+    types: [production-changed]
 
 jobs:
   sync-code:
     name: ↔️ Sync Code from Production
     runs-on: ubuntu-latest
     # Condition to avoid infinite loops: only run if the commit is not from the bot
-    if: "contains(github.event.head_commit.message, '[CI-SYNC]') == false"
+    # (head_commit only exists on push events; guard with fromJSON fallback for dispatch events)
+    if: "!contains(github.event.head_commit.message || '', '[CI-SYNC]')"
 
     steps:
+      - name: Resolve target branch
+        id: resolve
+        run: |
+          # repository_dispatch payload থেকে ref আসে (main repo যে branch-এ push হয়েছিল),
+          # workflow_dispatch হলে যে branch থেকে manually ট্রিগার করা হয়েছে সেটাই ব্যবহার হয়
+          REF="${{ github.event.client_payload.ref }}"
+          if [ -z "$REF" ]; then REF="${{ github.ref_name }}"; fi
+          echo "branch=$REF" >> "$GITHUB_OUTPUT"
+
       - name: checkout staging repo
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ steps.resolve.outputs.branch }}
+          fetch-depth: 0
 
       - name: Configure Git
         run: |
@@ -33,9 +41,10 @@ jobs:
 
       - name: Fetch and merge from production
         run: |
-          git fetch production ${{ github.ref_name }}
+          BRANCH="${{ steps.resolve.outputs.branch }}"
+          git fetch production "$BRANCH"
           # Use a merge strategy that prefers production changes in case of conflict
-          git merge --strategy-option theirs production/${{ github.ref_name }} -m "Merge remote-tracking branch 'production/${{ github.ref_name }}' [CI-SYNC]"
+          git merge --strategy-option theirs "production/$BRANCH" -m "Merge remote-tracking branch 'production/$BRANCH' [CI-SYNC]"
 
       - name: Push changes to staging
-        run: git push origin ${{ github.ref_name }}
+        run: git push origin "${{ steps.resolve.outputs.branch }}"
