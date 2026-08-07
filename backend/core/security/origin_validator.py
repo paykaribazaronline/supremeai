@@ -30,9 +30,13 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
         allowed: set[str] = set(self._default_origins)
         try:
             user_origins = set(settings.cors_origins) if settings.cors_origins else set()
-            admin_origins = set(settings.admin_cors_origins) if hasattr(settings, "admin_cors_origins") and settings.admin_cors_origins else set()
+            admin_origins = (
+                set(settings.admin_cors_origins)
+                if hasattr(settings, "admin_cors_origins") and settings.admin_cors_origins
+                else set()
+            )
             allowed = allowed.union(user_origins, admin_origins)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             # Defensive: never let a settings/parse error turn an OPTIONS preflight into a 500
             from core.logging_config import logger
 
