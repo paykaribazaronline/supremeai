@@ -63,22 +63,23 @@ async def health_check(request: Request, response: Response):
             await redis_manager.client.ping()
         except Exception as e:
             logger.debug(f"Redis health check failed: {e}")
-            subsystems["redis"] = "down"
-
-    has_critical_failure = any(subsystems.get(k) == "down" for k in ["db", "redis"])
+    # বাংলা মন্তব্য: Redis হলো optional/fallback cache layer — এটি down থাকলেও সিস্টেম সচল থাকে।
+    # Render infrastructure probe যেন 503 পেয়ে কন্টেইনার ফেল না করে, সেজন্য শুধু DB down হলেই 503 দেওয়া হবে।
+    has_critical_failure = subsystems.get("db") == "down"
 
     if has_critical_failure:
         response.status_code = 503
         return {
-            "status": "degraded",
+            "status": "unhealthy",
             "service": "supremeai-backend",
             "version": "2.0",
             "timestamp": _timestamp(),
             "subsystems": subsystems,
         }
 
+    is_degraded = any(subsystems.get(k) == "down" for k in ["redis"])
     return {
-        "status": "ok",
+        "status": "degraded" if is_degraded else "ok",
         "service": "supremeai-backend",
         "version": "2.0",
         "timestamp": _timestamp(),
