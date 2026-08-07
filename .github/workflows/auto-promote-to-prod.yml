@@ -36,6 +36,7 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Guard — fail loudly if the promote token is missing
         env:
@@ -51,6 +52,8 @@ jobs:
         env:
           TARGET_TOKEN: ${{ secrets.MAIN_REPO_TOKEN }}
         run: |
+          # বাংলা মন্তব্য: checkout action-এর ডিফল্ট GITHUB_TOKEN সরাতে অতিরিক্ত হেডার আনসেট করা হচ্ছে, যাতে MAIN_REPO_TOKEN সঠিকভাবে কাজ করে।
+          git config --unset-all http.https://github.com/.extraheader || true
           git config --global user.name "SupremeAI Continuous Sync Bot"
           git config --global user.email "sync-bot@supremeai.dev"
           BRANCH="promote/staging-${{ github.event.workflow_run.head_sha }}"
