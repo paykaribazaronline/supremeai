@@ -71,7 +71,7 @@ def test_has_permission_invalid_args_exception():
 def test_authorize():
     assert authorize("owner", "read") is True
     assert authorize("viewer", "write") is False
-    assert authorize("viewer", "write", context={"bypass_rbac": True}) is True
+    assert authorize("viewer", "write", context={"bypass_rbac": True}) is False
 
 
 def test_unknown_role_no_permission(rbac):
