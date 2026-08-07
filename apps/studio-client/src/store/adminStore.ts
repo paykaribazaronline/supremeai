@@ -87,9 +87,10 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     try {
       const API_BASE = getApiBaseUrl();
 
-      // Dynamic import to avoid hydration issues if firebase isn't initialized yet
-      const { getAuth, signInWithEmailAndPassword } = await import('firebase/auth');
-      const auth = getAuth();
+      // বাংলা মন্তব্য: getFirebaseAuth() ব্যবহার করা হচ্ছে যাতে Firebase app ইনিশিয়ালাইজেশন (initializeApp) সঠিকভাবে সম্পন্ন হয়
+      const { getFirebaseAuth } = await import('../firebase');
+      const { signInWithEmailAndPassword } = await import('firebase/auth');
+      const auth = await getFirebaseAuth();
 
       let idToken = '';
 
@@ -181,8 +182,10 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   },
   handleAdminLogout: async () => {
     try {
-      const { getAuth, signOut } = await import('firebase/auth');
-      await signOut(getAuth());
+      const { getFirebaseAuth } = await import('../firebase');
+      const { signOut } = await import('firebase/auth');
+      const auth = await getFirebaseAuth();
+      await signOut(auth);
       const API_BASE = getApiBaseUrl();
       await fetch(`${API_BASE}/api/admin/logout`, { method: 'POST', credentials: 'include' });
       localStorage.removeItem('adminToken');
