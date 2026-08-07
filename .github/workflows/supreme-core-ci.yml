@@ -1574,7 +1574,7 @@ jobs:
 
           echo "🚀 Pushing clean branch to persistent staging branch ($PR_BRANCH)..."
           git checkout -B $PR_BRANCH
-          git push target $PR_BRANCH --force
+          git push target $PR_BRANCH --force -o ci.skip
 
           # gh CLI — GITHUB_TOKEN env auto-detected করে cross-repo কাজ করে
           EXISTING_PR=$(gh pr list \
