@@ -1,62 +1,66 @@
-// বাংলা মন্তব্য: ফায়ারবেস হোস্টিং রিরাইট ও রেন্ডার ব্যাকএন্ড সিঙ্ক (User Backend vs Admin Backend)
-export const RENDER_BACKENDS = [
-  import.meta.env.VITE_PRIMARY_BACKEND || 'https://supremeai-backend.onrender.com', // Primary User Backend
-  import.meta.env.VITE_SECONDARY_BACKEND || 'https://supremeai-admin.onrender.com' // Admin Backend
-];
+// বাংলা মন্তব্য: Portal-ভিত্তিক একক backend নির্ধারণ — কোনো cross-portal failover নেই।
+// Admin build (VITE_PORTAL_TYPE=admin) শুধু Admin backend-এ কথা বলে, User build শুধু User backend-এ।
+// Firebase hosting-এ relative path ('') রেখে CORS preflight সম্পূর্ণ এড়ানো হয় (firebase.json rewrite proxy)।
 
-export const switchActiveBackend = (): string => {
-  const current = sessionStorage.getItem('supremeai_active_backend') || RENDER_BACKENDS[0];
-  const next = current === RENDER_BACKENDS[0] ? RENDER_BACKENDS[1] : RENDER_BACKENDS[0];
-  sessionStorage.setItem('supremeai_active_backend', next);
-  console.error(`[Failover] Switched backend to: ${next}`);
-  return next;
-};
+/** Admin portal-এর canonical backend URL (build-time resolved) */
+export const ADMIN_BACKEND_URL: string =
+  import.meta.env.VITE_ADMIN_BACKEND || 'https://supremeai-admin.onrender.com';
+
+/** User portal-এর canonical backend URL (build-time resolved) */
+export const USER_BACKEND_URL: string =
+  import.meta.env.VITE_USER_BACKEND ||
+  import.meta.env.VITE_API_BASE ||
+  import.meta.env.VITE_API_URL ||
+  'https://supremeai-backend.onrender.com';
+
+/**
+ * বর্তমান portal-এর canonical backend URL — heartbeat ও অন্যান্য সার্ভিস এটিই ব্যবহার করে।
+ * বাংলা মন্তব্য: runtime hostname sniffing নয়, build-time VITE_PORTAL_TYPE দিয়ে নির্ধারিত।
+ */
+export const BACKEND_URL: string =
+  import.meta.env.VITE_PORTAL_TYPE === 'admin' ? ADMIN_BACKEND_URL : USER_BACKEND_URL;
+
+/**
+ * @deprecated পুরনো failover array — শুধু backward compatibility-র জন্য readonly রাখা হয়েছে।
+ * নতুন কোডে কখনোই এটি ব্যবহার করবেন না; সবসময় `BACKEND_URL` ব্যবহার করুন।
+ * বাংলা মন্তব্য: index দিয়ে অন্য portal-এর backend বেছে নিলে আইসোলেশন ভেঙে যাবে।
+ */
+export const RENDER_BACKENDS: readonly string[] = [USER_BACKEND_URL, ADMIN_BACKEND_URL] as const;
+
+// বাংলা মন্তব্য: switchActiveBackend() সরানো হয়েছে — user→admin (বা উল্টো) failover
+// আর্কিটেকচারাল আইসোলেশন ভাঙত এবং CORS/RBAC ঝুঁকি তৈরি করত।
+// নেটওয়ার্ক ব্যর্থতা বা 502/503/504-এ apiClient একই URL-এ backoff retry করে।
 
 export const getApiBaseUrl = (): string => {
   if (typeof window === 'undefined') {
-    const url = import.meta.env.VITE_API_BASE || import.meta.env.VITE_API_URL;
-    if (!url && import.meta.env.PROD) throw new Error("API URL missing in production");
-    return url || RENDER_BACKENDS[0];
+    // বাংলা মন্তব্য: SSR/Node.js কনটেক্সটে সরাসরি backend URL
+    if (!BACKEND_URL && import.meta.env.PROD) throw new Error('API URL missing in production');
+    return BACKEND_URL;
   }
 
-  // বাংলা মন্তব্য: অ্যাডমিন ডোমেইন বা অ্যাডমিন পোর্টেলে রেন্ডার ব্যাকএন্ড ব্যবহার
-  if (import.meta.env.VITE_PORTAL_TYPE === 'admin' || window.location.hostname.includes('admin')) {
-    return 'https://supremeai-admin.onrender.com';
-  }
-
-  // বাংলা মন্তব্য: ফায়ারবেস হোস্টিং ডোমেইনে (web.app) থাকলে রিলেটিভ পাথ ('') ব্যবহার করা যেন firebase.json রিরাইট প্রক্সি কাজ করে
-  if (window.location.hostname.includes('web.app') || window.location.hostname.includes('firebaseapp.com')) {
+  // বাংলা মন্তব্য: Firebase hosting-এ (web.app/firebaseapp.com) relative path ব্যবহার।
+  // ব্রাউজার একই origin-এ request করে, Firebase server-side proxy করে Render-এ।
+  // CORS preflight সম্পূর্ণ বাদ — Render free tier-এ সবচেয়ে নির্ভরযোগ্য পদ্ধতি।
+  const hostname = window.location.hostname;
+  if (hostname.includes('web.app') || hostname.includes('firebaseapp.com')) {
     return '';
   }
 
-  if (import.meta.env.VITE_API_BASE) return import.meta.env.VITE_API_BASE;
-  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-
-  // বাংলা মন্তব্য: পুরনো লোকালহোল্ড সেশন ক্যাশ মুছে দেওয়া
-  const cached = sessionStorage.getItem('supremeai_active_backend');
-  const isSafeCachedBackend =
-    !!cached && /^https:\/\//.test(cached) && !/localhost|127\.0\.0\.1/.test(cached);
-  if (isSafeCachedBackend) {
-    return cached as string;
-  }
-  if (cached) {
-    sessionStorage.removeItem('supremeai_active_backend');
-  }
-
-  return RENDER_BACKENDS[0];
+  // বাংলা মন্তব্য: Vercel বা local dev-এ সরাসরি portal-নির্দিষ্ট backend URL
+  return BACKEND_URL;
 };
 
 export const getWebSocketBaseUrl = (): string => {
-  // বাংলা মন্তব্য: প্রোডাকশন ক্লাউড ডোমেইনের জন্য WSS এন্ডপয়েন্ট (Firebase Web App -> Render WSS Backend)
+  // বাংলা মন্তব্য: এক্সপ্লিসিট override সবার আগে
   if (import.meta.env.VITE_WS_BASE_URL) {
     return import.meta.env.VITE_WS_BASE_URL;
   }
 
   const apiBase = getApiBaseUrl();
-  if (apiBase === '' && typeof window !== 'undefined') {
-    // ফায়ারবেস হোস্টিং থেকে রেন্ডার WSS ব্যাকএন্ডে ডিরেক্ট সকেট কানেকশন
-    const isAdmin = window.location.hostname.includes('admin');
-    return isAdmin ? 'wss://supremeai-admin.onrender.com' : 'wss://supremeai-backend.onrender.com';
+
+  // বাংলা মন্তব্য: Firebase hosting থেকে direct WSS — WebSocket firebase.json rewrite দিয়ে proxy হয় না
+  if (apiBase === '') {
+    return BACKEND_URL.replace(/^https?:\/\//, 'wss://');
   }
 
   if (apiBase.startsWith('https://')) {

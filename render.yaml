@@ -55,36 +55,16 @@ services:
       - key: INFISICAL_CLIENT_SECRET
         sync: false
       - key: CORS_ORIGINS
-        value: '["https://supremeai-studio-client.onrender.com","https://supremeai-lac.vercel.app","https://supremeai-studio.vercel.app","https://supremeai-a.web.app","https://supremeai-admin.web.app"]'
+        value: '["https://supremeai-studio-client.onrender.com","https://supremeai-lac.vercel.app","https://supremeai-studio.vercel.app","https://supremeai-a.web.app"]'
       - key: USER_CORS_ORIGINS
-        value: '["https://supremeai-studio-client.onrender.com","https://supremeai-lac.vercel.app","https://supremeai-studio.vercel.app","https://supremeai-a.web.app","https://supremeai-admin.web.app"]'
+        value: '["https://supremeai-studio-client.onrender.com","https://supremeai-lac.vercel.app","https://supremeai-studio.vercel.app","https://supremeai-a.web.app"]'
       # বাংলা মন্তব্য: core/app_user.py এই User-role instance-এ CORS_ORIGINS নয়, USER_CORS_ORIGINS
-      # পড়ে এবং production-এ খালি থাকলে বুট-টাইমে crash করে (Fail-Fast) — তাই আলাদাভাবে সেট করা হলো,
-
-  # 1b. Backend Failover (Backup Account Active Service)
-  - type: web
-    name: supremeai-backend-65hl
-    env: image
-    image:
-      url: ghcr.io/paykaribazaronline/supremeai/supremeai-backend:latest
-    region: singapore
-    plan: free
-    healthCheckPath: /health
-    autoDeploy: true
-    envVars:
-      - key: PORT
-        value: 8080
-      - key: ENV
-        value: production
-      - key: CORS_ORIGINS
-        value: '["https://supremeai-studio-client.onrender.com","https://supremeai-lac.vercel.app","https://supremeai-studio.vercel.app","https://supremeai-a.web.app","https://supremeai-admin.web.app"]'
-      # যাতে User API কঠোরভাবে শুধু Vercel/Netlify/Render client-গুলোকেই ট্রাস্ট করে (Admin console নয়)।
-      - key: USER_CORS_ORIGINS
-        value: '["https://supremeai-studio-client.onrender.com","https://supremeai-lac.vercel.app","https://supremeai-studio.vercel.app","https://supremeai-a.web.app","https://supremeai-admin.web.app"]'
+      # পড়ে এবং production-এ খালি থাকলে বুট-টাইমে crash করে (Fail-Fast) — তাই আলাদাভাবে সেট করা হলো।
+      # https://supremeai-admin.web.app ইচ্ছাকৃতভাবে বাদ — User API অ্যাডমিন কনসোলকে ট্রাস্ট করে না
+      # (সম্পূর্ণ আর্কিটেকচারাল আইসোলেশন; app_user.py-তেও denylist guard আছে)।
+      # বাংলা মন্তব্য: SERVICE_ROLE explicit রাখা জরুরি — ডিফল্ট পরিবর্তন হলে admin routes user instance-এ leak হতে পারে।
       - key: SERVICE_ROLE
         value: user
-      - key: ALLOWED_HOSTS
-        value: 'supremeai-backend.onrender.com,supremeai-backend-65hl.onrender.com'
 
   # 1.5. Admin Backend (Isolated Render instance — core/app_admin.py)
   # Note: Previously missing from render.yaml, now deployed as separate service for true isolation.

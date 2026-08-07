@@ -1422,9 +1422,8 @@ jobs:
         run: pnpm install
       - name: Build Admin
         env:
-          VITE_API_URL: ${{ vars.SUPREMEAI_ADMIN_API_URL || 'https://supremeai-admin.onrender.com' }}
-          VITE_API_BASE: ${{ vars.SUPREMEAI_ADMIN_API_URL || 'https://supremeai-admin.onrender.com' }}
-        run: VITE_PORTAL_TYPE=admin pnpm --dir apps/studio-client run build
+          VITE_ADMIN_BACKEND: ${{ vars.SUPREMEAI_ADMIN_API_URL || 'https://supremeai-admin.onrender.com' }}
+        run: pnpm --dir apps/studio-client run build:admin
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         continue-on-error: true
@@ -1455,9 +1454,8 @@ jobs:
         run: pnpm install
       - name: Build User Portal
         env:
-          VITE_API_URL: ${{ vars.SUPREMEAI_USER_API_URL || 'https://supremeai-backend.onrender.com' }}
-          VITE_API_BASE: ${{ vars.SUPREMEAI_USER_API_URL || 'https://supremeai-backend.onrender.com' }}
-        run: VITE_PORTAL_TYPE=user pnpm --dir apps/studio-client run build
+          VITE_USER_BACKEND: ${{ vars.SUPREMEAI_USER_API_URL || 'https://supremeai-backend.onrender.com' }}
+        run: pnpm --dir apps/studio-client run build:user
       - name: Deploy to Vercel
         run: |
           pnpm exec vercel deploy --prod --token=$VERCEL_TOKEN --scope=$VERCEL_ORG_ID

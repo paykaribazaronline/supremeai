@@ -9,24 +9,30 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.routers import include_user_routers
 from core.app_builder import build_app_shell, router_health_check
 from core.config import settings
+from core.cors_policy import ADMIN_ORIGIN_DENYLIST, resolve_user_cors_origins
 
 app: FastAPI = build_app_shell(title="SupremeAI User API")
 
 if settings.env == "production":
-    # বাংলা মন্তব্য: প্রোডাকশনে CORS অরিজিনে '*' থাকলে বা খালি হলে ক্র্যাশ এড়াতে সেফ প্রোডাকশন অরিজিন সেট করা হচ্ছে
-    if not settings.user_cors_origins or "*" in settings.user_cors_origins:
+    # বাংলা মন্তব্য: ইউজার ব্যাকএন্ড শুধু Vercel/Netlify ও Firebase user domain থেকে request গ্রহণ করবে।
+    # admin.web.app (এবং admin Render host) ইচ্ছাকৃতভাবে বাদ — সম্পূর্ণ আর্কিটেকচারাল আইসোলেশন।
+    # অব্যবহৃত backup সার্ভিস অরিজিন (supremeai-backend-08zd) ডিফল্ট তালিকা থেকে সরানো হয়েছে।
+    # wildcard/খালি হলে boot crash এড়াতে নিরাপদ ডিফল্ট বসানো হয় (resolve_user_cors_origins দেখুন)।
+    _configured_user_origins = list(settings.user_cors_origins or [])
+    _resolved_user_origins = resolve_user_cors_origins(_configured_user_origins)
+
+    if _resolved_user_origins != _configured_user_origins:
         from loguru import logger
 
-        logger.warning("⚠️ Production User CORS wildcard/drift detected. Setting default trusted production origins.")
-        settings.user_cors_origins = [origin for origin in (settings.user_cors_origins or []) if origin != "*"] + [
-            "https://supremeai-lac.vercel.app",
-            "https://supremeai-studio.vercel.app",
-            "https://tiny-stroopwafel-2d981c.netlify.app",
-            "https://supremeai-admin.web.app",
-            "https://supremeai-a.web.app",
-            "https://supremeai-backend.onrender.com",
-            "https://supremeai-backend-08zd.onrender.com",
-        ]
+        _dropped = [o for o in _configured_user_origins if o not in _resolved_user_origins]
+        if any(o in ADMIN_ORIGIN_DENYLIST for o in _dropped):
+            logger.warning(f"⚠️ Admin origin(s) stripped from User CORS for isolation: {_dropped}")
+        else:
+            logger.warning(
+                "⚠️ Production User CORS wildcard/drift detected. Setting default trusted production origins."
+            )
+
+    settings.user_cors_origins = _resolved_user_origins
 
 app.add_middleware(
     CORSMiddleware,
