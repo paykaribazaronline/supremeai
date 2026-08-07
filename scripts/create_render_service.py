@@ -21,7 +21,7 @@ data = {
         "region": "singapore",
         "envSpecificDetails": {
             "image": {
-                "imagePath": "ghcr.io/paykaribazaronline/supremeai/supremeai-backend:latest"
+                "imagePath": "ghcr.io/paykaribazaronline/supremeai-backend:latest"
             }
         }
     }

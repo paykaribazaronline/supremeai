@@ -24,7 +24,7 @@ services:
     name: supremeai-admin
     env: image
     image:
-      url: ghcr.io/paykaribazaronline/supremeai/supremeai-backend:latest
+      url: ghcr.io/paykaribazaronline/supremeai-backend:latest
     region: singapore
     plan: free
     healthCheckPath: /api/v1/health
