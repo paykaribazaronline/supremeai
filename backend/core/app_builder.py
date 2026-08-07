@@ -22,7 +22,6 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from loguru import logger
 
@@ -168,16 +167,15 @@ def create_app(title: str = settings.PROJECT_NAME) -> FastAPI:
     # 13. Idempotency middleware - After authentication to ensure idempotency per user
     app.add_middleware(IdempotencyMiddleware)
 
-    # 14. CORS: Cross-origin resource sharing configuration - Last in security chain
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.cors_origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-        # বাংলা মন্তব্ব্য: প্রোডাকশনে কখনো expose_headers=["Authorization"] না করা
-        # কারণ এটি sensitive info লিক করতে পারে
-    )
+    # 14. CORS: বাংলা মন্তব্য — এই জেনেরিক CORSMiddleware ইচ্ছাকৃতভাবে বাদ দেওয়া হয়েছে।
+    # app_user.py এবং app_admin.py — দুটোই build_app_shell() কল করার পর নিজেদের
+    # role-specific CORSMiddleware (user_cors_origins / admin_cors_origins) আলাদাভাবে
+    # যোগ করে। এখানে আরেকটা CORSMiddleware যোগ করলে একই app-এ দুইটা CORS middleware
+    # স্ট্যাক হয়ে যেত — ফলে response-এ Access-Control-Allow-Origin header দুইবার
+    # (duplicate) যেত এবং ব্রাউজার পুরো response-টাকেই invalid CORS ধরে block করে
+    # দিত। এটাই web frontend-এর "backend connect হচ্ছে না" সমস্যার root cause ছিল।
+    # ঠিক করা: এখানে থেকে CORS middleware সরিয়ে entrypoint-নির্দিষ্ট মিডলওয়্যারের
+    # উপরই ছেড়ে দেওয়া হলো, যাতে প্রতিটা app-এ ঠিক একটাই CORSMiddleware থাকে।
 
     # 15. Response standardization - Last to standardize all responses
     app.add_middleware(ResponseStandardizationMiddleware)

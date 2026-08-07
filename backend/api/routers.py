@@ -39,6 +39,11 @@ core_routers: list[tuple[str, str]] = [
     ("api.routes.agent", ""),
     ("api.routes.admin", ""),
     ("api.routes.tools_registry", ""),
+    # বাংলা মন্তব্য: AUDIT-018 ফিক্স — এই router-টা আগে কোথাও register-ই করা হয়নি,
+    # ফলে frontend-এর skillsService.fetchSkillCatalog() /api/skills/catalog-এ
+    # সবসময় 404 পেত। router-এর নিজস্ব prefix ("/skills") + এখানে "/api" যোগ করলে
+    # final path মিলে যায়।
+    ("api.routes.skills", "/api"),
     ("api.routes.preferences", "/api"),
     ("api.routes.usage_metrics", ""),
     ("api.routes.sso", ""),
