@@ -14,6 +14,15 @@ if (import.meta.env.PROD) {
   startAntiSleepHeartbeat();
 }
 
+// বাংলা মন্তব্য: অ্যাপ বুটের সাথে সাথে Firebase App ইনিশিয়ালাইজ করা হচ্ছে যাতে
+// পরবর্তীতে কোনো auth call-এ "No Firebase App '[DEFAULT]'" এরর না আসে।
+import { initFirebase } from './firebase';
+initFirebase().catch((e) => {
+  if (import.meta.env.PROD) {
+    console.error('[Firebase] Eager initialization failed:', e);
+  }
+});
+
 import { ThemeProvider } from './contexts/ThemeProvider'
 // Shared providers (react-query, monaco defaults)
 import { SharedProviders } from '@supremeai/ui-components'
