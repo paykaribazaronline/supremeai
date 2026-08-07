@@ -19,9 +19,14 @@ class CollaborativeEditor:
         self.redis_listeners: dict[str, asyncio.Task] = {}
 
         # বাংলা মন্তব্য: Redis কানেকশন সেটআপ (Upstash, Local, বা CI Mock)
+        # Production-এ REDIS_URL সেট না থাকলে বা ফর্ম্যাট ভুল থাকলে সাইলেন্টলি localhost-এ ফলব্যাক না করে এরর লগ করা হয়।
         redis_url = settings.redis_url
         if not redis_url or not str(redis_url).startswith(("redis://", "rediss://", "unix://")):
-            redis_url = "redis://localhost:6379"
+            if getattr(settings, "env", "local") == "local":
+                redis_url = "redis://localhost:6379"
+            else:
+                logger.error("REDIS_URL not configured — CollaborativeEditor Pub/Sub will fail!")
+                redis_url = "redis://localhost:6379"
         self.redis = redis.from_url(redis_url, decode_responses=True)
         logger.info("Initialized CollaborativeEditor with Redis Pub/Sub and State Persistence")
 

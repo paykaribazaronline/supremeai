@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useLogParserWorker } from '../../hooks/useLogParserWorker';
 
 interface LiveLogsProps {
   liveLogs: string[];
@@ -8,21 +9,26 @@ interface LiveLogsProps {
 export function LiveLogs({ liveLogs, setLiveLogs }: LiveLogsProps) {
   const [filterLevel, setFilterLevel] = useState<'ALL' | 'INFO' | 'WARN' | 'ERROR'>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
+  const [filteredLogs, setFilteredLogs] = useState<string[]>([]);
+  const { filterLogs } = useLogParserWorker();
+
+  // বাংলা মন্তব্য: লগ filter/search কাজটি web worker-এ অফলোড করা হয় (বড় লগ অ্যারেতে main thread block রোধ)।
+  // worker না থাকলে filterLogs নিজেই মেইন থ্রেডে সেফ fallback করে।
+  useEffect(() => {
+    let cancelled = false;
+    filterLogs(liveLogs, filterLevel, searchTerm).then((res) => {
+      if (!cancelled) setFilteredLogs(res);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [liveLogs, filterLevel, searchTerm, filterLogs]);
 
   // Extract log level counters
   const safeLogs = Array.isArray(liveLogs) ? liveLogs : [];
   const infoCount = safeLogs.filter(log => log.toUpperCase().includes('INFO')).length;
   const warnCount = safeLogs.filter(log => log.toUpperCase().includes('WARN') || log.toUpperCase().includes('WARNING')).length;
   const errCount = safeLogs.filter(log => log.toUpperCase().includes('ERROR') || log.toUpperCase().includes('ERR') || log.toUpperCase().includes('FAIL')).length;
-
-  const filteredLogs = safeLogs.filter(log => {
-    const matchesSearch = log.toLowerCase().includes(searchTerm.toLowerCase());
-    if (filterLevel === 'ALL') return matchesSearch;
-    if (filterLevel === 'INFO') return matchesSearch && log.toUpperCase().includes('INFO');
-    if (filterLevel === 'WARN') return matchesSearch && (log.toUpperCase().includes('WARN') || log.toUpperCase().includes('WARNING'));
-    if (filterLevel === 'ERROR') return matchesSearch && (log.toUpperCase().includes('ERROR') || log.toUpperCase().includes('ERR') || log.toUpperCase().includes('FAIL'));
-    return matchesSearch;
-  });
 
   return (
     <div className="flex-grow flex flex-col bg-[#030611] p-4 font-mono text-xs overflow-y-auto text-[var(--foreground)]">

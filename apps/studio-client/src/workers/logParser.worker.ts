@@ -42,6 +42,24 @@ self.onmessage = function(e) {
       break;
     }
 
+    case 'FILTER_LOGS': {
+      // বাংলা মন্তব্য: LiveLogs কম্পোনেন্টের filter/search লজিক এখানে অফলোড করা হয়েছে
+      // যাতে বড় লগ অ্যারের ওপর main thread block না হয়।
+      const { logs, level, searchTerm } = e.data.payload;
+      const term = (searchTerm || '').toLowerCase();
+      const filtered = (logs as string[]).filter((log: string) => {
+        const up = log.toUpperCase();
+        const matchesSearch = log.toLowerCase().includes(term);
+        if (level === 'ALL') return matchesSearch;
+        if (level === 'INFO') return matchesSearch && up.includes('INFO');
+        if (level === 'WARN') return matchesSearch && (up.includes('WARN') || up.includes('WARNING'));
+        if (level === 'ERROR') return matchesSearch && (up.includes('ERROR') || up.includes('ERR') || up.includes('FAIL'));
+        return matchesSearch;
+      });
+      self.postMessage({ action: 'FILTERED_LOGS', result: filtered });
+      break;
+    }
+
     default:
       self.postMessage({ action: 'UNKNOWN', error: 'Unknown action: ' + action });
   }
