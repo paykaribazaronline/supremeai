@@ -279,10 +279,12 @@ def verify_token(token: str) -> dict:
 
                 if loop and loop.is_running():
                     result = [False]
+
                     def run():
                         new_loop = asyncio.new_event_loop()
                         result[0] = new_loop.run_until_complete(is_token_revoked(jti))
                         new_loop.close()
+
                     t = threading.Thread(target=run)
                     t.start()
                     t.join()

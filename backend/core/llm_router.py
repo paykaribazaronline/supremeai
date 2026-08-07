@@ -131,7 +131,7 @@ PROVIDER_COSTS: dict[Provider, tuple[float, float]] = {
     Provider.DEEPSEEK: (0.001, 0.002),  # Cost-efficient
     Provider.TOGETHER: (0.003, 0.009),  # Paid - use sparingly
     Provider.GEMINI: (0.0005, 0.0015),  # Google free tier
-    Provider.OLLAMA: (0.0, 0.0),        # Local Ollama is free
+    Provider.OLLAMA: (0.0, 0.0),  # Local Ollama is free
     Provider.HUGGINGFACE_SPACE: (0.0, 0.0),  # Free HuggingFace Space
 }
 
@@ -153,7 +153,6 @@ FALLBACK_CHAINS: dict[TaskType, list[Provider]] = {
     TaskType.CLASSIFY: [Provider.DEEPSEEK, Provider.MOONSHOT, Provider.HUGGINGFACE_SPACE, Provider.OLLAMA],
     TaskType.EMBEDDING: [Provider.GEMINI, Provider.OLLAMA],  # Prefer free/OSS
 }
-
 
 
 # ── Data Classes ──────────────────────────────────────────────────────────────

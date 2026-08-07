@@ -31,10 +31,7 @@ class FreebuffClient:
                 "stderr": stderr.decode().strip(),
             }
         except TimeoutError:
-            logger.error(
-                f"🔴 Freebuff CLI execution timed out after {self.timeout}s. "
-                "Killing process."
-            )
+            logger.error(f"🔴 Freebuff CLI execution timed out after {self.timeout}s. " "Killing process.")
             try:
                 proc.kill()
                 await proc.wait()

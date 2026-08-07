@@ -5,6 +5,7 @@ import math
 import re
 from typing import Any
 
+
 class SparseBM25Index:
     def __init__(self, k1: float = 1.5, b: float = 0.75):
         self.k1 = k1
@@ -20,7 +21,7 @@ class SparseBM25Index:
         # বাংলা মন্তব্য: বাংলা এবং ইংরেজি অক্ষর সমন্বিত টোকেনাইজেশন
         if not text:
             return []
-        text_clean = re.sub(r'[^\w\s\u0980-\u09FF]', ' ', text.lower())
+        text_clean = re.sub(r"[^\w\s\u0980-\u09FF]", " ", text.lower())
         tokens = [t.strip() for t in text_clean.split() if t.strip()]
         return tokens
 

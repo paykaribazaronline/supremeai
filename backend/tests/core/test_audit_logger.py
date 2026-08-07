@@ -101,4 +101,3 @@ class TestLogSecurityEvent:
                     user_id="user",
                     details={},
                 )
-

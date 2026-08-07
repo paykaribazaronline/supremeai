@@ -2,7 +2,9 @@
 # বাংলা মন্তব্য: এটি প্রম্পট এনালাইসিস, টাস্ক-বেসড মডেল সিলেকশন এবং বাজেটিং ফিল্টারিংয়ের ইউনিট টেস্ট পরিচালনা করে।
 
 import pytest
+
 from backend.core.llm.advanced_model_router import AdvancedModelRouter
+
 
 @pytest.mark.asyncio
 async def test_prompt_complexity_analysis():
@@ -14,6 +16,7 @@ async def test_prompt_complexity_analysis():
     assert complexity["complexity"] > 0.0
     assert complexity["overall"] > 0.0
 
+
 @pytest.mark.asyncio
 async def test_get_available_models_by_task():
     router = AdvancedModelRouter()
@@ -23,6 +26,7 @@ async def test_get_available_models_by_task():
 
     reasoning_models = router.get_available_models("reasoning")
     assert len(reasoning_models) >= 1
+
 
 @pytest.mark.asyncio
 async def test_route_request_default():
@@ -35,6 +39,7 @@ async def test_route_request_default():
     assert decision.priority_score > 0.0
     assert decision.expected_cost >= 0.0
     assert decision.expected_latency > 0.0
+
 
 @pytest.mark.asyncio
 async def test_route_request_budget_filtering():

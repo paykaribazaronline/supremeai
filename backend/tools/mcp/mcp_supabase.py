@@ -247,13 +247,18 @@ async def supabase_create_table(params: CreateTableInput) -> str:
     # Security Fix: Validate table_name and columns to prevent SQL injection.
     # Only allow alphanumeric, underscore, and basic SQL type syntax.
     import re as _re
+
     if not _re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", params.table_name):
-        return json.dumps({"error": "Invalid table name. Only alphanumeric and underscore characters allowed."}, ensure_ascii=False)
+        return json.dumps(
+            {"error": "Invalid table name. Only alphanumeric and underscore characters allowed."}, ensure_ascii=False
+        )
     # Remove backticks/quotes from columns and validate - allow only safe SQL column defs
     safe_columns = params.columns.replace("--", "").replace(";", "")
     _allowed_column_re = r"^[a-zA-Z_][a-zA-Z0-9_\s,().]+"
     if not _re.match(_allowed_column_re, safe_columns) or ";" in safe_columns or "--" in safe_columns:
-        return json.dumps({"error": "Invalid column definition. Potentially dangerous SQL detected."}, ensure_ascii=False)
+        return json.dumps(
+            {"error": "Invalid column definition. Potentially dangerous SQL detected."}, ensure_ascii=False
+        )
 
     if_not_exists = "IF NOT EXISTS" if params.if_not_exists else ""
     query = f"CREATE TABLE {if_not_exists} {params.table_name} ({safe_columns})"

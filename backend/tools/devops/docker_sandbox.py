@@ -242,9 +242,7 @@ class DockerSandbox:
         # Docker path: write code to temp file, mount read-only, execute
         script_path = None
         try:
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".py", delete=False, encoding="utf-8"
-            ) as f:
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False, encoding="utf-8") as f:
                 f.write(code)
                 script_path = f.name
 

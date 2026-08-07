@@ -53,10 +53,9 @@ import struct
 import time
 import uuid
 
-from redis.exceptions import RedisError
-
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from loguru import logger
+from redis.exceptions import RedisError
 
 # বাংলা মন্তব্য: TOTP ব্রুট-ফোর্স প্রতিরোধে Redis lockout constants
 _TOTP_MAX_ATTEMPTS = 5
@@ -246,7 +245,7 @@ async def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
             logger.error(f"Redis unavailable during TOTP validation: {exc}")
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Authentication security service temporarily unavailable"
+                detail="Authentication security service temporarily unavailable",
             )
         except Exception as e:
             logger.error(f"Failed to retrieve TOTP secret: {e}")

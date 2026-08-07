@@ -118,7 +118,6 @@ class Settings(BaseSettings):
     target_repo_token: SecretStr = Field(default=SecretStr(""), validation_alias="TARGET_REPO_TOKEN")
     workspace_base_dir: str = Field(default="storage/workspaces", validation_alias="WORKSPACE_BASE_DIR")
 
-
     # ── LLM Gateway & Streaming Configuration ────────────────────────────────
     LLM_CONNECT_TIMEOUT: float = Field(default=5.0, validation_alias="LLM_CONNECT_TIMEOUT")
     LLM_READ_TIMEOUT: float = Field(default=30.0, validation_alias="LLM_READ_TIMEOUT")
@@ -273,7 +272,6 @@ class Settings(BaseSettings):
     )
 
     sentry_dsn: str = Field(default="", validation_alias="SENTRY_DSN")
-
 
     gcp_project_id: str = Field(default="", validation_alias="GCP_PROJECT_ID")
     gcp_region: str = Field(default="us-central1", validation_alias="GCP_REGION")
@@ -1118,6 +1116,8 @@ except Exception as _boot_exc:
         f"🔥 FATAL CONFIG ERROR: {_boot_exc}\nServer startup ABORTED (Fail-Fast applied). Fix the configuration."
     )
     sys.exit(1)
+
+
 def get_production_env(var_name: str, default: str | None = None) -> str:
     """বাংলা মন্তব্য: Strict Fail-Fast Config Guard.
     যেকোনো এনভায়রনমেন্টে কোনো ক্রিটিক্যাল সিক্রেট মিসিং থাকলে সরাসরি হার্ড ক্র্যাশ করবে,

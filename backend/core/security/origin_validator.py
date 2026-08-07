@@ -28,7 +28,7 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
         # বাংলা মন্তব্য: উভয় user এবং admin CORS origins কে combine করা হচ্ছে
         # যাতে admin panel থেকে আসা request গুলোও accept করা যায়
         user_origins = set(settings.cors_origins) if settings.cors_origins else set()
-        admin_origins = set(settings.admin_cors_origins) if hasattr(settings, 'admin_cors_origins') else set()
+        admin_origins = set(settings.admin_cors_origins) if hasattr(settings, "admin_cors_origins") else set()
         configured = user_origins.union(admin_origins)
         return configured.union(self._default_origins)
 
