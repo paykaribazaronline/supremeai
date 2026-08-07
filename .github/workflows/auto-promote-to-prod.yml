@@ -65,7 +65,7 @@ jobs:
             exit 0
           fi
           echo "⚠️ Difference detected — pushing promotion branch to target."
-          git push target "HEAD:refs/heads/${BRANCH}" --force-with-lease
+          git push target "HEAD:refs/heads/${BRANCH}" --force-with-lease -o ci.skip
           echo "PROMOTE_BRANCH=${BRANCH}" >> "$GITHUB_ENV"
 
       - name: Open (or update) the PR on the main repo
