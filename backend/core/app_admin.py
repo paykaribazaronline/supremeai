@@ -14,30 +14,28 @@ from middleware.anti_hacking import AntiHackingContextMiddleware
 
 app: FastAPI = build_app_shell(title="SupremeAI Admin API")
 
-# বাংলা মন্তব্য: Production-এ ADMIN_CORS_ORIGINS ফাঁকা (empty) হলে
-# বুট-টাইমে crash এড়াতে ডিফল্ট অ্যাডমিন origin অটো-পপুলেট করা হচ্ছে।
-# শুধুমাত্র অ্যাডমিন কনসোল origin — Vercel/Netlify user client নয়।
-if settings.env == "production":
-    # বাংলা মন্তব্য: self-healing guard — '*' সরানো হয়, admin console origin নিশ্চিত করা হয়,
-    # এবং ইউজার ফ্রন্টএন্ড origin গুলো (denylist) misconfigured env var থেকে এলেও ছেঁকে ফেলা হয়।
-    _configured_admin_origins = list(settings.admin_cors_origins or [])
-    _admin_origins = resolve_admin_cors_origins(_configured_admin_origins)
+# বাংলা মন্তব্য: ADMIN_CORS_ORIGINS ফাঁকা (empty) বা অসঙ্গতিপূর্ণ থাকলে
+# বুট-টাইমে crash/preflight 403 এড়াতে ডিফল্ট অ্যাডমিন origin অটো-পপুলেট করা হচ্ছে।
+# শুধুমাত্র অ্যাডমিন কনসোল origin (supremeai-admin.web.app) — Vercel/Netlify user client নয়।
+_configured_admin_origins = list(settings.admin_cors_origins or [])
+_admin_origins = resolve_admin_cors_origins(_configured_admin_origins)
 
-    if _admin_origins != _configured_admin_origins:
-        from loguru import logger
+if _admin_origins != _configured_admin_origins:
+    from loguru import logger
 
-        if "*" in _configured_admin_origins:
-            logger.warning("⚠️ Production Admin CORS wildcard detected. Removing '*' and forcing admin console origin.")
-        _leaked_user_origins = [o for o in _configured_admin_origins if o in USER_ORIGIN_DENYLIST]
-        if _leaked_user_origins:
-            logger.warning(f"⚠️ User origin(s) stripped from Admin CORS for isolation: {_leaked_user_origins}")
-        if "https://supremeai-admin.web.app" not in _configured_admin_origins:
-            logger.warning(
-                "⚠️ admin_cors_origins missing admin web console origin — adding it to prevent preflight 403/500."
-            )
+    if "*" in _configured_admin_origins:
+        logger.warning("⚠️ Admin CORS wildcard detected. Removing '*' and forcing admin console origin.")
+    _leaked_user_origins = [o for o in _configured_admin_origins if o in USER_ORIGIN_DENYLIST]
+    if _leaked_user_origins:
+        logger.warning(f"⚠️ User origin(s) stripped from Admin CORS for isolation: {_leaked_user_origins}")
+    if "https://supremeai-admin.web.app" not in _configured_admin_origins:
+        logger.warning(
+            "⚠️ admin_cors_origins missing admin web console origin — adding it to prevent preflight 403/500."
+        )
 
-    settings.admin_cors_origins = _admin_origins
+settings.admin_cors_origins = _admin_origins
 
+# বাংলা মন্তব্য: Anti-Hacking ও CSRF সিকিউরিটি হেডারগুলো (X-Device-Fingerprint, X-CSRF-Token, X-JIT-OTP) allow_headers-এ যুক্ত করা হলো
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.admin_cors_origins,
@@ -50,6 +48,12 @@ app.add_middleware(
         "X-Tenant-ID",
         "X-API-Key",
         "X-Correlation-ID",
+        "X-Device-Fingerprint",
+        "X-CSRF-Token",
+        "X-JIT-OTP",
+        "X-Requested-With",
+        "Accept",
+        "Origin",
     ],
 )
 

@@ -13,27 +13,26 @@ from core.cors_policy import ADMIN_ORIGIN_DENYLIST, resolve_user_cors_origins
 
 app: FastAPI = build_app_shell(title="SupremeAI User API")
 
-if settings.env == "production":
-    # বাংলা মন্তব্য: ইউজার ব্যাকএন্ড শুধু Vercel/Netlify ও Firebase user domain থেকে request গ্রহণ করবে।
-    # admin.web.app (এবং admin Render host) ইচ্ছাকৃতভাবে বাদ — সম্পূর্ণ আর্কিটেকচারাল আইসোলেশন।
-    # অব্যবহৃত backup সার্ভিস অরিজিন (supremeai-backend-08zd) ডিফল্ট তালিকা থেকে সরানো হয়েছে।
-    # wildcard/খালি হলে boot crash এড়াতে নিরাপদ ডিফল্ট বসানো হয় (resolve_user_cors_origins দেখুন)।
-    _configured_user_origins = list(settings.user_cors_origins or [])
-    _resolved_user_origins = resolve_user_cors_origins(_configured_user_origins)
+# বাংলা মন্তব্য: ইউজার ব্যাকএন্ড শুধু Vercel/Netlify ও Firebase user domain থেকে request গ্রহণ করবে।
+# admin.web.app (এবং admin Render host) ইচ্ছাকৃতভাবে বাদ — সম্পূর্ণ আর্কিটেকচারাল আইসোলেশন।
+# wildcard/খালি হলে boot crash এড়াতে নিরাপদ ডিফল্ট বসানো হয় (resolve_user_cors_origins দেখুন)।
+_configured_user_origins = list(settings.user_cors_origins or [])
+_resolved_user_origins = resolve_user_cors_origins(_configured_user_origins)
 
-    if _resolved_user_origins != _configured_user_origins:
-        from loguru import logger
+if _resolved_user_origins != _configured_user_origins:
+    from loguru import logger
 
-        _dropped = [o for o in _configured_user_origins if o not in _resolved_user_origins]
-        if any(o in ADMIN_ORIGIN_DENYLIST for o in _dropped):
-            logger.warning(f"⚠️ Admin origin(s) stripped from User CORS for isolation: {_dropped}")
-        else:
-            logger.warning(
-                "⚠️ Production User CORS wildcard/drift detected. Setting default trusted production origins."
-            )
+    _dropped = [o for o in _configured_user_origins if o not in _resolved_user_origins]
+    if any(o in ADMIN_ORIGIN_DENYLIST for o in _dropped):
+        logger.warning(f"⚠️ Admin origin(s) stripped from User CORS for isolation: {_dropped}")
+    else:
+        logger.warning(
+            "⚠️ User CORS wildcard/drift detected. Setting default trusted production origins."
+        )
 
-    settings.user_cors_origins = _resolved_user_origins
+settings.user_cors_origins = _resolved_user_origins
 
+# বাংলা মন্তব্য: Anti-Hacking ও CSRF সিকিউরিটি হেডারগুলো allow_headers-এ অন্তর্ভুক্ত করা হলো
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.user_cors_origins,
@@ -46,6 +45,12 @@ app.add_middleware(
         "X-Tenant-ID",
         "X-API-Key",
         "X-Correlation-ID",
+        "X-Device-Fingerprint",
+        "X-CSRF-Token",
+        "X-JIT-OTP",
+        "X-Requested-With",
+        "Accept",
+        "Origin",
     ],
 )
 
