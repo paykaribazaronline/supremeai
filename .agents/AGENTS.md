@@ -84,6 +84,7 @@ _Last Updated: 2026-08-07_
   - **Step 6 — Full Verification & Uncommitted Files Report:** Run local test/build verification, stage all uncommitted files (`git add`), and generate a short impact summary of all staged changes.
   - **Step 7 — Explicit Push Authorization & Single Remote Rule:** The AI agent MUST ONLY push to `origin` (`SaifulHaqueNiloy/supremeai`). Direct pushes to `target` (`paykaribazaronline`) are STRICTLY FORBIDDEN. Never run `git push` unless the user's prompt literally contains the exact word `"push"`.
   - **Token-Efficient CI Verification Protocol:** To conserve context and token limits, avoid high-frequency polling. Execute batch API background scripts, monitor until `paykaribazaronline` reaches 100% SUCCESS GREEN, and extract the clean final report efficiently.
+  - **2-Minute Maximum CI Polling Rule:** When tracking GitHub Actions workflow runs after a push, the AI agent MUST poll status at 15-30 second intervals and deliver an empirical status update or failure log diagnosis within **2 minutes maximum**. Never leave CI status unverified beyond 2 minutes.
   - **Continuous Green Loop Mandate:** This diagnostic, fixing, log extraction, and verification process MUST run continuously in an iterative loop across both target (`target`) and primary (`origin`) repositories until EVERY SINGLE WORKFLOW RUN IS 100% FULL GREEN (zero failures).
 
 ---
