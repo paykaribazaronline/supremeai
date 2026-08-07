@@ -10,6 +10,8 @@ from loguru import logger
 
 from core.persistence import pooled_pg
 
+import zlib
+
 # বাংলা মন্তব্য: রেন্ডার ফ্রি টায়ারে মেমোরি সংকট এড়াতে LOW_MEMORY_MODE চেক করা হচ্ছে
 LOW_MEMORY_MODE = os.getenv("LOW_MEMORY_MODE", "false").lower() == "true"
 HAS_SENTENCE_TRANSFORMERS = (not LOW_MEMORY_MODE) and importlib.util.find_spec("sentence_transformers") is not None
@@ -21,22 +23,26 @@ def hash_vectorize(text: str, size: int = 384) -> list[float]:
     Serves as a robust, zero-cost fallback when SentenceTransformer is unavailable.
     """
     vector = [0.0] * size
-    words = [w.lower() for w in text.split() if len(w) > 1]
+    # বাংলা মন্তব্য: সিঙ্গেল ক্যারেক্টার ওয়ার্ড এবং ডিটারমিনিস্টিক zlib.crc32 ব্যবহার করা হয়েছে
+    words = [w.lower() for w in text.split() if len(w) > 0]
     if not words:
         # Return a non-empty unit vector to prevent division by zero
         vector[0] = 1.0
         return vector
 
     for word in words:
-        # Generate stable hash key using fnv1a style simple hashing
-        h = abs(hash(word)) % size
-        sign = 1 if (abs(hash(word)) // size) % 2 == 0 else -1
+        # Generate stable, cross-platform deterministic hash key using crc32
+        h_val = zlib.crc32(word.encode("utf-8"))
+        h = h_val % size
+        sign = 1 if (h_val // size) % 2 == 0 else -1
         vector[h] += sign
 
     # L2 Normalization
     norm = math.sqrt(sum(x * x for x in vector))
     if norm > 0:
         vector = [x / norm for x in vector]
+    else:
+        vector[0] = 1.0
     return vector
 
 

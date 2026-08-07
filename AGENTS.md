@@ -75,9 +75,15 @@ _Last Updated: 2026-08-07_
   - **Empirical Evidence First:** Every finding MUST contain concrete evidence (exact file path, line number, grep output, or test log). Never claim an issue is "Fixed" without verifying code changes.
   - **Technical Taxonomy:** Audit findings MUST be categorized using standard technical error terms (`Content Security Policy Violation`, `CORS Blocked`, `Configuration Drift`, `Silent Failure`, `Race Condition`, etc.) and P0-P3 severity matrix.
 
-- **Strict Documentation Architecture Rule (MANDATORY):**
-  - Whenever generating, updating, or maintaining ANY technical documentation, design specs, or knowledge items, the AI agent **MUST strictly follow the Master Documentation Plan and Benefits specification** ([docs/long-term-maintenance/master-documentation-plan-and-benefits.md](file:///g:/supremeai%20backup/docs/long-term-maintenance/master-documentation-plan-and-benefits.md) / [docs/english/01-admin-plans/MASTER_DOCUMENTATION_PLAN_AND_BENEFITS.md](file:///g:/supremeai%20backup/docs/english/01-admin-plans/MASTER_DOCUMENTATION_PLAN_AND_BENEFITS.md)).
-  - All new technical documents must be placed within the AI-Native Engineering Knowledge Base (`docs/kb/`) or categorized subfolders (`docs/bangla/<category>` / `docs/english/<category>`), fully adhering to the 12 Core Pillars, Knowledge Cards, Living Impact Analysis, and Mermaid Diagram standards.
+- **End-to-End Diagnostic, Verification & Push Protocol (MANDATORY & NON-NEGOTIABLE):**
+  - **Step 1 — Remote & Environment Discovery:** Always check target repositories (`git remote -v`) to clearly distinguish primary (`origin`) vs target (`target`) repos before running checks.
+  - **Step 2 — Direct API Failure Retrieval:** Query GitHub API (`/actions/runs?status=failure`) to extract the exact list of failed runs, workflow names, run numbers, branch names, commit SHAs, and trigger events.
+  - **Step 3 — Raw Execution Log Extraction:** Fetch raw job logs and inspect failed steps directly. When encountering HTTP 403 authorization redirects on log artifacts, handle signed URL redirects by stripping auth headers on S3 targets.
+  - **Step 4 — Single Empirical Root-Cause Analysis:** Diagnose exact underlying failures (e.g., pytest assertion mismatches, working-directory misconfigurations, syntax errors, detached HEAD git auto-commits) with zero multi-option speculation.
+  - **Step 5 — Homologous Fix Implementation:** Implement production-ready fixes across all caller and homologous files (backend, frontend, CI scripts). Add explanatory code comments in **Bangla**.
+  - **Step 6 — Full Verification & Uncommitted Files Report:** Run local test/build verification, stage all uncommitted files (`git add`), and generate a short impact summary of all staged changes.
+  - **Step 7 — Explicit Push Authorization:** NEVER run `git push` unless the user's prompt literally contains the exact word `"push"`.
+  - **Continuous Green Loop Mandate:** This diagnostic, fixing, log extraction, and verification process MUST run continuously in an iterative loop across both target (`target`) and primary (`origin`) repositories until EVERY SINGLE WORKFLOW RUN IS 100% FULL GREEN (zero failures).
 
 ---
 

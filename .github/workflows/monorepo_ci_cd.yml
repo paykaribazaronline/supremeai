@@ -35,16 +35,20 @@ jobs:
           python-version: '3.11'
 
       - name: 🔐 Iron Curtain SecretHunter Scan
+        working-directory: backend
+        # বাংলা মন্তব্য: পয়েট্রি রুটে pyproject.toml খুঁজে পাওয়ার জন্য backend ডিরেক্টরি থেকে স্ক্রিপ্ট রান করানো হচ্ছে
         run: |
-          poetry run python scripts/devops/secret_scan_ci.py --path backend/ --json
+          poetry run python ../scripts/devops/secret_scan_ci.py --path ../backend/ --json
 
       - name: Run type generation
+        working-directory: backend
         run: |
-          poetry run python scripts/generate_types.py
+          poetry run python ../scripts/generate_types.py
 
       - name: Check for drift
+        working-directory: backend
         run: |
-          poetry run python scripts/generate_types.py --validate
+          poetry run python ../scripts/generate_types.py --validate
 
       - name: Verify generated files exist
         run: |

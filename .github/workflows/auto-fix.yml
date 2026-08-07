@@ -62,6 +62,8 @@ jobs:
           commit-message: "🤖 Auto-fix: CI linting fixes [skip ci]"
           title: "🤖 Auto-fix: CI linting fixes"
           branch: "chore/auto-fix-${{ github.run_id }}"
+          # বাংলা মন্তব্য: Detached HEAD কমিটে ক্র্যাশ এড়াতে base ব্রাঞ্চ প্যারামিটার ডিফাইন করা হলো
+          base: ${{ github.head_ref || github.ref_name }}
           labels: "maintenance, automated"
           body: |
             Automated CI linting fixes from the Auto-Fix CI Pipeline.
