@@ -1559,27 +1559,26 @@ jobs:
 
           if [ -z "$EXISTING_PR" ]; then
             echo "🚀 Opening new automated Staging Promotion PR..."
-            EXISTING_PR=$(gh pr create \
+            PR_URL=$(gh pr create \
               --repo "$TARGET_REPO" \
               --head "$PR_BRANCH" \
               --base main \
               --title "🟢 [Staging Promotion] Verified CI Green Build (${STAGING_HEAD:0:7})" \
-              --body "$PR_BODY" \
-              --json number --jq '.number' || true)
+              --body "$PR_BODY")
+            echo "✅ Created PR: $PR_URL"
+            EXISTING_PR=$(gh pr list --repo "$TARGET_REPO" --head "$PR_BRANCH" --base main --state open --json number --jq '.[0].number')
           else
             echo "ℹ️ Existing promotion PR #$EXISTING_PR found. Updating title/body..."
             gh pr edit "$EXISTING_PR" \
               --repo "$TARGET_REPO" \
               --title "🟢 [Staging Promotion] Verified CI Green Build (${STAGING_HEAD:0:7})" \
-              --body "$PR_BODY" || true
+              --body "$PR_BODY"
           fi
 
-          # 🤖 AUTO-MERGE EXECUTION: CI Green পাস করলে স্বয়ংক্রিয়ভাবে PR মার্জ হয়ে যাবে
           if [ -n "$EXISTING_PR" ]; then
             echo "⚡ Auto-merging PR #$EXISTING_PR directly to target main branch..."
             gh pr merge "$EXISTING_PR" --repo "$TARGET_REPO" --admin --squash --delete-branch=false || \
-            gh pr merge "$EXISTING_PR" --repo "$TARGET_REPO" --squash --delete-branch=false || \
-            echo "⚠️ Auto-merge notice: PR #$EXISTING_PR updated. Please merge manually if branch rules require sign-off."
+            gh pr merge "$EXISTING_PR" --repo "$TARGET_REPO" --squash --delete-branch=false
           fi
 
   canary-deploy:
