@@ -28,7 +28,9 @@ if settings.env == "production":
     if "https://supremeai-admin.web.app" not in _admin_origins:
         from loguru import logger
 
-        logger.warning("⚠️ admin_cors_origins missing admin web console origin — adding it to prevent preflight 403/500.")
+        logger.warning(
+            "⚠️ admin_cors_origins missing admin web console origin — adding it to prevent preflight 403/500."
+        )
         _admin_origins.append("https://supremeai-admin.web.app")
     settings.admin_cors_origins = _admin_origins
 
