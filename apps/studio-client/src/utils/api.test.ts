@@ -118,13 +118,11 @@ describe('api.ts — portal-ভিত্তিক backend resolution', () => {
       expect(getApiBaseUrl()).toBe('');
     });
 
-    it('Vercel ডোমেইনে relative path রিটার্ন করে (proxy rewrite ব্যবহার করে CORS এড়ানোর জন্য)', async () => {
+    it('Vercel ডোমেইনে সরাসরি user backend URL রিটার্ন করে', async () => {
       env.VITE_PORTAL_TYPE = 'user';
       setHostname('supremeai-lac.vercel.app');
       const { getApiBaseUrl } = await loadApi();
-      // বাংলা মন্তব্য: vercel.app-এ Firebase Hosting-এর মতো relative path ব্যবহার করা হয়
-      // vercel.json-এর proxy rewrites সার্ভার-সাইড ফরোয়ার্ড করে — CORS preflight বাদ
-      expect(getApiBaseUrl()).toBe('');
+      expect(getApiBaseUrl()).toBe('https://supremeai-backend.onrender.com');
     });
   });
 
