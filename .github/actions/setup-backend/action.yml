@@ -52,12 +52,10 @@ runs:
           ~/.cache/pypoetry
           ~/.cache/pip
           ${{ inputs.working-directory }}/.venv
-        # বাংলা মন্তব্য: deps: prefix — cache-janitor-এ dependency cache হিসেবে চিহ্নিত হবে,
-        # ফলে build cache-এর আগে evict হবে না (venv দীর্ঘ সময় কার্যকর থাকে)।
-        key: deps:venv-${{ runner.os }}-py${{ inputs.python-version }}-${{ hashFiles(format('{0}/poetry.lock', inputs.working-directory)) }}
+        key: venv-${{ runner.os }}-py${{ inputs.python-version }}-${{ hashFiles(format('{0}/poetry.lock', inputs.working-directory)) }}
         restore-keys: |
-          deps:venv-${{ runner.os }}-py${{ inputs.python-version }}-
-          deps:venv-${{ runner.os }}-
+          venv-${{ runner.os }}-py${{ inputs.python-version }}-
+          venv-${{ runner.os }}-
 
     # বাংলা মন্তব্য: cache hit হলে build tool আপগ্রেড যথেষ্ট — full install দরকার নেই।
     # cache miss হলেই শুধু পুরো poetry install চলবে।
