@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SupremeAI Security Guard - Pre-commit secret scanner.
+"""SupremeAI Security Guard — কমিটের আগে সিক্রেট শনাক্তকারী স্ক্যানার।
 
 এই স্ক্রিপ্টটি গিট কমিট করার আগে স্টেজ করা ফাইলগুলো স্ক্যান করে হার্ডকোডেড
 সিক্রেট (API Key, Deploy Hook, Service Account ইত্যাদি) খুঁজে বের করে। কোনো
@@ -71,6 +71,7 @@ def scan_staged_files() -> bool:
         if file_path.endswith(SKIP_EXTENSIONS):
             continue
 
+        # নিজের ফাইল স্কিপ — এখানে রেজেক্স প্যাটার্নগুলোই আছে, প্রকৃত সিক্রেট নয়
         if "security_guard.py" in file_path:
             continue
 
@@ -79,11 +80,10 @@ def scan_staged_files() -> bool:
         if "test_" in normalized_path or "/tests/" in normalized_path or "/test/" in normalized_path:
             continue
 
-        # বাংলা মন্তব্য: auto-generated audit docs এবং autogen codebase dumps স্কিপ করা হচ্ছে —
-        # এগুলো source code mirror, actual secret নয় (Patch: security_guard allowlist)
+        # অটো-জেনারেটেড অডিট ডকুমেন্ট ও কোডবেস ডাম্প স্কিপ করা হচ্ছে —
+        # এগুলো সোর্স কোডের প্রতিলিপি (mirror), প্রকৃত সিক্রেট নয়
         if "modular_audits/" in normalized_path or "docs/autogen/" in normalized_path:
             continue
-
 
         try:
             with open(file_path, "r", encoding="utf-8", errors="ignore") as fh:
@@ -94,13 +94,14 @@ def scan_staged_files() -> bool:
                                 f"  - {file_path}:{line_no} -> Possible {name} detected!"
                             )
         except (OSError, UnicodeDecodeError):
-            # পড়া যায়নি এমন ফাইল স্কিপ
+            # পড়া যায়নি এমন ফাইল স্কিপ
             continue
 
     if violations:
         try:
             print("\n🚨 [SupremeAI Security Guard] COMMIT BLOCKED!")
         except UnicodeEncodeError:
+            # কিছু উইন্ডোজ টার্মিনাল ইমোজি রেন্ডার করতে পারে না — সাধারণ টেক্সটে ফলব্যাক
             print("\n[!] [SupremeAI Security Guard] COMMIT BLOCKED!")
         print("You are trying to commit hardcoded secrets:")
         for v in violations:
