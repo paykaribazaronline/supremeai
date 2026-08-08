@@ -175,13 +175,16 @@ services:
         value: 'supremeai-backend.onrender.com'
 
   # 3. Frontend (Render Free Static Hosting)
-  # Build command and env vars explicitly set for correct backend URL.
+  # Build command, env vars and FREE PR Previews explicitly enabled.
   - type: web
     name: supremeai-studio-client
     env: static
     buildCommand: "cd apps/studio-client && pnpm install && pnpm run build:user"
     staticPublishPath: "./apps/studio-client/dist-user"
     autoDeploy: true
+    pullRequestPreviewsEnabled: true
+    previews:
+      generation: automatic
     envVars:
       - key: VITE_API_URL
         value: https://supremeai-backend.onrender.com
