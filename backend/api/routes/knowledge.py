@@ -76,7 +76,7 @@ async def search_knowledge(
                     results.append(data)
                     if len(results) >= limit:
                         break
-            except Exception:
+            except Exception:  # noqa: S112 — বাংলা: ফাইল রিড ত্রুটি হলে স্কিপ করে পরবর্তী ফাইলের জন্য লুপ চালু রাখা হয়
                 continue
     return {"results": results, "total": len(results), "query": request.question}
 

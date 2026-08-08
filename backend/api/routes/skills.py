@@ -65,7 +65,7 @@ async def search_skills(query: str = "", installed_only: bool = False):
                 results.append(manifest_data)
                 if len(results) > 100:
                     break
-        except Exception:
+        except Exception:  # noqa: S112 — বাংলা: ফাইল রিড ত্রুটি হলে স্কিপ করে পরবর্তী ফাইলের জন্য লুপ চালু রাখা হয়
             continue
     return results
 
