@@ -700,7 +700,7 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: |
           cd backend
-          poetry run python -m playwright install --with-deps chromium || poetry run python -m playwright install chromium || true
+          poetry run python -m playwright install --with-deps chromium || python -m playwright install --with-deps chromium || poetry run python -m playwright install chromium || true
 
       # বাংলা মন্তব্য: cache hit/miss স্ট্যাটাস GitHub Step Summary-তে লগ করা হচ্ছে।
       - name: 📊 Backend Cache Status Report
@@ -728,11 +728,19 @@ jobs:
           POSTGRES_PASSWORD: "test_password"
           POSTGRES_DB: "supreme_test_db"
         run: |
+          # বাংলা মন্তব্য: POETRY_VIRTUALENVS_CREATE=false থাকায় system python-এ ইন্সটল হয়।
+          # `poetry run pytest` চালালে virtualenv না থাকায় `Command not found: pytest` এরর দেয়।
+          # তাই `poetry run pytest` অথবা ফলব্যাক `python -m pytest` ব্যবহার করা হচ্ছে।
+          PYTEST_CMD="poetry run pytest"
+          if ! poetry run pytest --version >/dev/null 2>&1; then
+            PYTEST_CMD="python -m pytest"
+          fi
+          
           if [ "${{ needs.changes.outputs.backend }}" = 'true' ] || [ "${{ needs.changes.outputs.shared }}" = 'true' ]; then
-            poetry run pytest -n auto --dist=loadfile --timeout=120 --md pytest-report.md --cov=core --cov-report=json:coverage.json --cov-report=term-missing --cov-fail-under=38 -k "not chaos"
+            $PYTEST_CMD -n auto --dist=loadfile --timeout=120 --md pytest-report.md --cov=core --cov-report=json:coverage.json --cov-report=term-missing --cov-fail-under=38 -k "not chaos"
           else
             echo "Skipping full backend tests, only running smoke tests."
-            poetry run pytest -n auto tests/test_health.py -q
+            $PYTEST_CMD -n auto tests/test_health.py -q
           fi
 
       - name: Add Backend Test Results to GitHub Summary
