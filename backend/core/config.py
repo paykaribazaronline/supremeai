@@ -924,12 +924,8 @@ class Settings(BaseSettings):
         # General resilience guard for non-test environments
         if self.env not in {"test"}:
             missing: list[str] = []
-            if not self.openrouter_api_key:
-                missing.append("OPENROUTER_API_KEY")
             if not self.encryption_key.get_secret_value():
                 missing.append("ENCRYPTION_KEY")
-            if not self.ci_webhook_secret:
-                missing.append("CI_WEBHOOK_SECRET")
             if missing:
                 logger.critical(f"🚨 FATAL: Missing critical config vars: {', '.join(missing)}. Fail-Fast enforced.")
                 sys.exit(1)
