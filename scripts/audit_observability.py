@@ -73,18 +73,34 @@ class SilentErrorDetector(ast.NodeVisitor):
                 (isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Constant) and stmt.value is ...)
                 for stmt in node.body
             )
-            if is_silent:
-                # বাংলা মন্তব্য: tests/ ডিরেক্টরিতে silent exception handler অনুমোদিত।
-                # কারণ: pytest fixtures এবং conftest teardown-এ `except Exception: pass`
-                # একটি স্বীকৃত প্যাটার্ন — DB cleanup failure টেস্ট রান বন্ধ করবে না।
-                normalized_path = self.filepath.replace('\\', '/')
-                is_test_file = (
-                    '/tests/' in normalized_path or
-                    normalized_path.endswith('conftest.py') or
-                    '/test_' in normalized_path
+
+            # Check for silent return True or masked success without logging
+            has_unlogged_return_success = False
+            has_logger_call = any(
+                isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Call) and (
+                    (isinstance(stmt.value.func, ast.Attribute) and 'log' in stmt.value.func.attr.lower()) or
+                    (isinstance(stmt.value.func, ast.Name) and 'log' in stmt.value.func.id.lower())
                 )
-                if not is_test_file:
+                for stmt in node.body
+            )
+            
+            if not has_logger_call:
+                for stmt in node.body:
+                    if isinstance(stmt, ast.Return) and isinstance(stmt.value, ast.Constant) and stmt.value is True:
+                        has_unlogged_return_success = True
+                        break
+
+            normalized_path = self.filepath.replace('\\', '/')
+            is_test_file = (
+                '/tests/' in normalized_path or
+                normalized_path.endswith('conftest.py') or
+                '/test_' in normalized_path
+            )
+            if not is_test_file:
+                if is_silent:
                     self.violations.append(f"{self.filepath}:{node.lineno} - Silent exception handler (`except Exception: pass`)")
+                elif has_unlogged_return_success:
+                    self.violations.append(f"{self.filepath}:{node.lineno} - Masked success exception handler (`except Exception: return True` without logging)")
         self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call):

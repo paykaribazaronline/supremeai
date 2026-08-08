@@ -230,16 +230,20 @@ class HealthChecker:
                     try:
                         health_data = response.json()
                         # Check if the service reports itself as healthy
-                        if isinstance(health_data, dict) and health_data.get("status") == "healthy":
-                            return True
+                        if isinstance(health_data, dict):
+                            status = health_data.get("status")
+                            if status == "healthy":
+                                return True
+                            logger.warning(f"Health check reported non-healthy status: {status} in response: {health_data}")
+                            return False
                         elif isinstance(health_data, str) and "healthy" in health_data.lower():
                             return True
                         else:
-                            # If no explicit status, assume OK response means healthy
-                            return True
+                            logger.warning(f"Health check response format unverified: {health_data}")
+                            return False
                     except ValueError:
-                        # If not JSON, just check status code
-                        return True
+                        logger.warning(f"Health check response is not valid JSON: {response.text[:100]}")
+                        return False
                 else:
                     logger.warning(f"Health check returned status {response.status_code}")
 
