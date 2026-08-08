@@ -18,8 +18,11 @@
 
 - **কঠোর গিট পুশ নীতি (Strict Git Push Rule):**
   - **Push Stop State:** ইউজার যদি একবার "push stop" নির্দেশ দেন (বা ডিফল্ট অবস্থায়), তবে পরবর্তীতে ইউজার স্পষ্টভাবে "push start" বা "push continue" না বলা পর্যন্ত গিট পুশ সম্পূর্ণ বন্ধ থাকবে।
-  - **Push Start / Continue State:** কেবল ইউজার স্পষ্টভাবে "push start", "push continue" বা সরাসরি পুশ করার নির্দেশ দিলেই কেবল `origin` (`SaifulHaqueNiloy/supremeai`) এ পুশ করা যাবে।
+  - **Push Start / Continue State:** কেবল ইউজার স্পষ্টভাবে "push start", "push continue" বা সরাসরি পুশ করার নির্দেশ দিলে সেই মুহূর্ত থেকে Push State চালু হবে এবং পরবর্তীতে ইউজার "push stop" না বলা পর্যন্ত গিট পুশ সচল থাকবে (সবসময় সর্বশেষ আদেশ প্রযোজ্য)।
   - ইউজারের সাধারণ সম্মতি (যেমন "ok", "do that", "fix it", "yes") দিয়ে পুশ করার অনুমতি প্রদান করা হয় না।
+
+- **সর্বশেষ আদেশচালিত স্টেট নীতি (Last-Order Driven Stateful Rules):**
+  - `AGENTS.md`-এর সকল বিপরীতমুখী কমান্ড বা অ্যাকশনের ক্ষেত্রে (যেমন: `push start` vs `push stop`, `timer on` vs `timer off`, `explain/plan` vs `start work/implement`) সবসময় ইউজারের **সর্বশেষ প্রদত্ত আদেশ (Last Order)** সক্রিয় থাকবে এবং নতুন বিপরীত আদেশ না আসা পর্যন্ত সেই স্টেট নিরবচ্ছিন্নভাবে কার্যকর থাকবে।
 
 - **ব্যাকগ্রাউন্ড টাইমার নিষিদ্ধকরণ নীতি (No Background Timers Rule):** `git push` এর পর বা রান টাইম চলাকালীন ইউজার স্পষ্ট নির্দেশ না দিলে ব্যাকগ্রাউন্ড টাইমার বা শিডিউলার সেট করা যাবে না।
 
