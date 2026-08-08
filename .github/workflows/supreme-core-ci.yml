@@ -655,6 +655,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install poetry
+          poetry config virtualenvs.create true
           poetry config virtualenvs.in-project true
 
       # বাংলা মন্তব্য: পূর্বে শুধু global pypoetry/pip cache করা হতো।
@@ -684,11 +685,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-playwright-
 
-      # বাংলা মন্তব্য: poetry config in-project virtualenv সেট করা হচ্ছে এবং cache hit হলেও fast poetry install দিয়ে ডিপেনডেন্সি নিশ্চিত করা হচ্ছে।
+      # বাংলা মন্তব্য: poetry config virtualenvs.create true এবং in-project virtualenv সেট করা হচ্ছে যাতে যেকোনো রানারে .venv সঠিকভাবে তৈরি হয়।
       - name: 📦 Install Dependencies (Smart Sync)
         run: |
           mkdir -p backend
           cd backend
+          poetry config virtualenvs.create true
           poetry config virtualenvs.in-project true
           if [ "${{ steps.poetry-cache.outputs.cache-hit }}" != "true" ] || [ ! -d ".venv" ]; then
             poetry install --with dev
@@ -730,7 +732,8 @@ jobs:
           POSTGRES_PASSWORD: "test_password"
           POSTGRES_DB: "supreme_test_db"
         run: |
-          # বাংলা মন্তব্য: in-project virtualenv নিশ্চিত করে poetry run pytest সরাসরি চালানো হচ্ছে।
+          # বাংলা মন্তব্য: virtualenvs.create true এবং in-project virtualenv নিশ্চিত করে poetry run pytest চালানো হচ্ছে।
+          poetry config virtualenvs.create true
           poetry config virtualenvs.in-project true
           if [ "${{ needs.changes.outputs.backend }}" = 'true' ] || [ "${{ needs.changes.outputs.shared }}" = 'true' ]; then
             poetry run pytest -n auto --dist=loadfile --timeout=120 --md pytest-report.md --cov=core --cov-report=json:coverage.json --cov-report=term-missing --cov-fail-under=38 -k "not chaos"
