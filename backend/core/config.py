@@ -922,6 +922,9 @@ class Settings(BaseSettings):
                 )
 
         # General resilience guard for non-test environments
+        # বাংলা মন্তব্য: প্রজেক্টের "Zero-Cost Mode" নীতি অনুসারে OPENROUTER_API_KEY বা অন্যান্য LLM API Key
+        # না থাকলেও সার্ভার বুট হবে এবং Degraded Zero-Cost Mode-এ চলবে। তাই এখানে OPENROUTER_API_KEY
+        # না থাকলে sys.exit(1) দিয়ে সার্ভিস ক্র্যাশ করানো যাবে না (Render free tier boot resiliency)।
         if self.env not in {"test"}:
             missing: list[str] = []
             if not self.encryption_key.get_secret_value():
