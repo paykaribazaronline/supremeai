@@ -1414,6 +1414,11 @@ jobs:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           GCP_REGION: ${{ vars.GCP_REGION || 'us-central1' }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          SUPABASE_DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+          SUPABASE_DATABASE_URL_POOLER: ${{ secrets.SUPABASE_DATABASE_URL_POOLER }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SERVICE_ROLE: ${{ vars.SERVICE_ROLE || 'user' }}
         run: python .github/scripts/supreme_ci.py deploy
 
 

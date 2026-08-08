@@ -182,6 +182,23 @@ def cmd_deploy(args):
         "--quiet"
     ]
 
+    # বাংলা মন্তব্য: Cloud Run-এ আবশ্যক এনভায়রনমেন্ট ভেরিয়েবলগুলো ডিপ্লয় কমান্ডে সরাসরি
+    # পাস করা হচ্ছে, যাতে রিডিপ্লয়ের পরেও SUPABASE_DATABASE_URL_POOLER-এর মতো
+    # ক্রিটিক্যাল সিক্রেট হারিয়ে না যায় (আগে অনুপস্থিত থাকায় /api/v1/health 503 দিত)।
+    required_env = [
+        "ENV",
+        "SUPABASE_DATABASE_URL",
+        "SUPABASE_DATABASE_URL_POOLER",
+        "SUPABASE_URL",
+        "SUPABASE_KEY",
+        "GCP_PROJECT_ID",
+        "GCP_REGION",
+        "SERVICE_ROLE",
+    ]
+    env_pairs = [f"{k}={os.environ[k]}" for k in required_env if os.environ.get(k)]
+    if env_pairs:
+        deploy_cmd += ["--set-env-vars", ",".join(env_pairs)]
+
     res = subprocess.run(deploy_cmd, capture_output=True, text=True)
     if res.returncode != 0:
         raise Exception(f"DEPLOYMENT FAILED!\n{res.stderr}")
