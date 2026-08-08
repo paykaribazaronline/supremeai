@@ -6,6 +6,19 @@
 # ২. main repo-তে সরাসরি push না করে একটা PR তৈরি করে (create-pull-request action / gh CLI)।
 # ৩. যদি main repo-র branch protection-এ "Allow auto-merge" চালু থাকে এবং সেখানকার
 #    required checks pass করে, তাহলে auto-merge enable করে দেয়।
+#
+# ==============================================================================
+# বর্তমান আর্কিটেকচার (Current — One-Way):
+#   SaifulHaqueNiloy  ──(CI Pass)──→  paykaribazaronline  →  Render
+#
+# ভবিষ্যতে Bidirectional Sync (Upgrade Path):
+#   যদি ভবিষ্যতে paykaribazaronline থেকে SaifulHaqueNiloy-এ code পাঠাতে চান,
+#   তাহলে paykaribazaronline-এ `sync-back-to-staging.yml` যোগ করুন।
+#   সেক্ষেত্রে এই ফাইলে infinite loop এড়াতে নিচের diff check-এ
+#   `sync-back-to-staging.yml` ও exclude করতে হবে:
+#     ':(exclude).github/workflows/sync-back-to-staging.yml'
+#   রেফারেন্স: implementation_plan.md (Bidirectional Sync Plan)
+# ==============================================================================
 
 name: 🚀 Promote Staging to Production (PR-based)
 

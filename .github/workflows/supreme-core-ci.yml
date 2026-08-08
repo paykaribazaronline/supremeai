@@ -1518,6 +1518,27 @@ jobs:
           echo "⚠️ Difference detected — pushing to mirror main."
           git push --force mirror main:refs/heads/main
 
+  # ==============================================================================
+  # 🟢 STAGING → PRODUCTION PROMOTION JOB
+  # ==============================================================================
+  # বর্তমান আর্কিটেকচার (Current Flow):
+  #   SaifulHaqueNiloy/supremeai  ──(CI Pass)──→  paykaribazaronline/supremeai  →  Render
+  #
+  # এই job-এর কাজ:
+  #   সব critical CI job সফলভাবে পাস হলে, SaifulHaqueNiloy থেকে
+  #   paykaribazaronline/supremeai-এ একটি PR তৈরি করে। auto-promote-to-prod.yml
+  #   সেই PR দেখে Render-এ ডিপ্লয় করে।
+  #
+  # ভবিষ্যতে Bidirectional Sync (Upgrade Path):
+  #   যদি ভবিষ্যতে পরিকল্পনা পরিবর্তন করতে চান এবং paykaribazaronline থেকে
+  #   SaifulHaqueNiloy-এ code পাঠাতে চান (reverse flow), তাহলে:
+  #   ১. paykaribazaronline-এ `sync-back-to-staging.yml` যোগ করুন।
+  #   ২. এই staging-pr-promotion job-এর `if` condition এ
+  #      `[CI-verified]` commit message check যোগ করুন যাতে
+  #      শুধু SaifulHaqueNiloy-validated code-ই paykaribazaronline-এ যায়।
+  #   ৩. Docker build step-এ `[CI-verified]` check যোগ করুন।
+  #   রেফারেন্স: implementation_plan.md (Bidirectional Sync Plan)
+  # ==============================================================================
   staging-pr-promotion:
     name: 🟢 Auto Create Promotion PR from Staging to Main Repo
     needs: [backend-core, frontend-core]
