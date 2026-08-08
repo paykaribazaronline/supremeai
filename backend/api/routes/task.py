@@ -269,9 +269,8 @@ def format_response(text: str, task_type: str) -> str:
     )
 
 
-# বাংলা মন্তব্য: AUDIT-018 ফিক্স — রুটটি `/api/task/execute` করে পরিবর্তন করা হয়েছে
-# (পূরোনো `/task/execute`-এর চেয়ে `/api/` প্রিফিক্সযুক্ত একই রাখা প্রয়োজন
-# কারণ Studio Client `chatService.sendMessage()` সর্বদা `/api/task/execute`-এ কল করে)।
+# বাংলা মন্তব্য: টেস্ট ও ক্লায়েন্ট উভয়ের সামঞ্জস্যের জন্য /task/execute এবং /api/task/execute উভয় রুটই সাপোর্ট করা হলো
+@router.post("/task/execute")
 @router.post("/api/task/execute")
 async def execute_task(req: TaskRequest, background_tasks: BackgroundTasks):
     import core.services as app_mod
