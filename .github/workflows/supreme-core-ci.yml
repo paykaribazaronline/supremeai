@@ -1171,7 +1171,8 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY_BACKUP }}" \
             -H "Content-Type: application/json" \
             -d "{\"clearCache\":\"do_not_clear\",\"imageUrl\":\"$IMAGE_URL\"}")
-          if [ "$STATUS" -eq 200 ] || [ "$STATUS" -eq 201 ]; then
+          # বাংলা মন্তব্য: Render API ডিপ্লয় তৈরিতে 201 Created বা 202 Accepted ফেরত দেয়। তাই 201 বা 202 স্টেটাস কোড চেক করা হচ্ছে।
+          if [ "$STATUS" = "201" ] || [ "$STATUS" = "202" ]; then
             echo "✅ Admin Render deploy triggered via API with prebuilt image (status: $STATUS)!"
           else
             echo "❌ Admin API deploy with prebuilt image returned status: $STATUS"

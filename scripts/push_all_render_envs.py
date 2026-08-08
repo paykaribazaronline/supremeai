@@ -79,6 +79,10 @@ for service in SERVICES:
     # Merge strategy: Existing Dashboard keys preserved, Local .env overrides/adds
     merged_envs = existing_envs.copy()
     merged_envs.update(local_envs)
+    if "Admin" in name:
+        merged_envs["SERVICE_ROLE"] = "admin"
+    else:
+        merged_envs["SERVICE_ROLE"] = "user"
 
     payload = [{'key': k, 'value': v} for k, v in merged_envs.items() if k and v is not None]
 
