@@ -13,15 +13,12 @@ if hasattr(sys.stdout, "reconfigure"):
 
 load_dotenv('.env')
 
-key = os.getenv('RENDER_API_KEY')
-if not key:
+key_primary = os.getenv('RENDER_API_KEY')
+key_backup = os.getenv('RENDER_API_KEY_BACKUP')
+
+if not key_primary:
     print("Error: RENDER_API_KEY not found in .env")
     sys.exit(1)
-
-headers = {
-    'Authorization': f'Bearer {key}',
-    'Content-Type': 'application/json'
-}
 
 SERVICES = [
     {"name": "User Backend (Primary)", "service_id": "srv-d9d3n58js32c738n79k0"},
@@ -46,10 +43,25 @@ with open('.env', 'r', encoding='utf-8') as f:
 
 print(f"🔑 Loaded {len(local_envs)} valid environment keys from local .env.")
 
-# 2. Safely sync to each Render service (GET existing -> Merge -> PUT)
 for service in SERVICES:
     name = service["name"]
     svc_id = service["service_id"]
+    
+    # Select the right API key
+    if "Backup" in name:
+        current_key = key_backup
+    else:
+        current_key = key_primary
+        
+    if not current_key:
+        print(f"  ⚠️ Warning: API Key for {name} is missing. Skipping.")
+        continue
+
+    headers = {
+        'Authorization': f'Bearer {current_key}',
+        'Content-Type': 'application/json'
+    }
+    
     print(f"\n🔄 Merging & syncing environment variables for {name} ({svc_id})...")
 
     # Fetch existing env vars from Render
