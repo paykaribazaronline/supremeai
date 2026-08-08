@@ -1,7 +1,6 @@
 import { ResilientExecutor } from '../infrastructure/resilient-executor';
 import { JITDefense } from '../security/jit-defense';
 
-// বাংলা মন্তব্য: রেজিলিয়েন্ট এক্সিকিউটর এবং JIT OTP ভ্যালিডেশনের বাস্তব প্রোডাকশন ডেমো সার্ভিস।
 /**
  * ExternalApiService — বাইরের API কল করার সময় রেজিলিয়েন্ট এক্সিকিউটর ও
  * JIT OTP যাচাই কীভাবে ব্যবহার করতে হয় তার বাস্তব উদাহরণ।
