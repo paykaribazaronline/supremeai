@@ -97,6 +97,8 @@ class MetaLearningAgent:
                     reasoning=data.get("reasoning", "Initial recommendation based on task type"),
                 )
             except Exception:
+                # বাংলা: ইনফারেন্স ফেইল করলে নীরবে ডিফল্ট স্ট্র্যাটেজি দেওয়া হচ্ছে — এররটি লগ করা হলো যাতে পরে ডিবাগ করা যায়
+                logger.warning("Meta-learning strategy inference failed; falling back to default strategy.", exc_info=True)
                 return LearningStrategy(
                     task_type=task_type,
                     recommended_strategy="chain-of-thought",

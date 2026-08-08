@@ -372,6 +372,8 @@ class GovernanceAgent:
             # For demonstration, return some default permissions
             return ["read_profile", "read_dashboard"]
         except Exception:
+            # বাংলা: পারমিশন ফেচ ফেইল করলে fail-closed (কোনো পারমিশন নেই) — এররটি লগ করা হলো যাতে অদৃশ্য না থাকে
+            logger.warning("Failed to fetch user permissions; defaulting to no permissions (fail-closed).", exc_info=True)
             return []
 
     async def _check_rate_limit(self, user_id: str, action: str) -> dict[str, Any]:
