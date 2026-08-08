@@ -655,6 +655,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install poetry
+          poetry config virtualenvs.in-project true
 
       # বাংলা মন্তব্য: পূর্বে শুধু global pypoetry/pip cache করা হতো।
       # এখন backend/.venv-ও cache করা হচ্ছে — poetry.lock অপরিবর্তিত থাকলে
@@ -683,16 +684,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-playwright-
 
-      # বাংলা মন্তব্য: venv cache miss হলেই poetry install চলবে — hit হলে skip।
+      # বাংলা মন্তব্য: poetry config in-project virtualenv সেট করা হচ্ছে এবং cache hit হলেও fast poetry install দিয়ে ডিপেনডেন্সি নিশ্চিত করা হচ্ছে।
       - name: 📦 Install Dependencies (Smart Sync)
         run: |
           mkdir -p backend
           cd backend
-          if [ "${{ steps.poetry-cache.outputs.cache-hit }}" != "true" ]; then
+          poetry config virtualenvs.in-project true
+          if [ "${{ steps.poetry-cache.outputs.cache-hit }}" != "true" ] || [ ! -d ".venv" ]; then
             poetry install --with dev
           else
-            echo "venv cache HIT — skipping full poetry install"
-            poetry install --no-root --sync --with dev --dry-run 2>&1 | head -5 || true
+            echo "venv cache HIT — syncing dependencies with poetry"
+            poetry install --no-root --with dev
           fi
 
       # বাংলা মন্তব্য: Playwright browser cache miss হলেই download হবে — hit হলে skip।
@@ -728,19 +730,13 @@ jobs:
           POSTGRES_PASSWORD: "test_password"
           POSTGRES_DB: "supreme_test_db"
         run: |
-          # বাংলা মন্তব্য: POETRY_VIRTUALENVS_CREATE=false থাকায় system python-এ ইন্সটল হয়।
-          # `poetry run pytest` চালালে virtualenv না থাকায় `Command not found: pytest` এরর দেয়।
-          # তাই `poetry run pytest` অথবা ফলব্যাক `python -m pytest` ব্যবহার করা হচ্ছে।
-          PYTEST_CMD="poetry run pytest"
-          if ! poetry run pytest --version >/dev/null 2>&1; then
-            PYTEST_CMD="python -m pytest"
-          fi
-          
+          # বাংলা মন্তব্য: in-project virtualenv নিশ্চিত করে poetry run pytest সরাসরি চালানো হচ্ছে।
+          poetry config virtualenvs.in-project true
           if [ "${{ needs.changes.outputs.backend }}" = 'true' ] || [ "${{ needs.changes.outputs.shared }}" = 'true' ]; then
-            $PYTEST_CMD -n auto --dist=loadfile --timeout=120 --md pytest-report.md --cov=core --cov-report=json:coverage.json --cov-report=term-missing --cov-fail-under=38 -k "not chaos"
+            poetry run pytest -n auto --dist=loadfile --timeout=120 --md pytest-report.md --cov=core --cov-report=json:coverage.json --cov-report=term-missing --cov-fail-under=38 -k "not chaos"
           else
             echo "Skipping full backend tests, only running smoke tests."
-            $PYTEST_CMD -n auto tests/test_health.py -q
+            poetry run pytest -n auto tests/test_health.py -q
           fi
 
       - name: Add Backend Test Results to GitHub Summary
