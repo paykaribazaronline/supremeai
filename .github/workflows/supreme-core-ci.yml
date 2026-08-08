@@ -621,7 +621,10 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
-      POETRY_VIRTUALENVS_CREATE: "false"
+      # বাংলা মন্তব্য: POETRY_VIRTUALENVS_CREATE="false" থাকলে poetry config virtualenvs.create true-ও override হয়ে যায়
+      # (environment variable কনফিগ ফাইলের চেয়ে বেশি priority পায়), ফলে কোনো virtualenv তৈরি হয় না
+      # এবং poetry run pytest-এ "Command not found: pytest" error হয় (paykaribazaronline repo-তে cache miss-এর পর নিশ্চিত fail)।
+      # তাই এই env-var সম্পূর্ণ বাদ দেওয়া হলো — নিচের poetry config virtualenvs.create true-ই কার্যকর হবে।
       SETUPTOOLS_USE_DISTUTILS: stdlib
       SUPREMEAI_ENCRYPTION_KEY: "CwE60g_bA67m-mock-encryption-key-padded-len="
       PYTHONPATH: ${{ github.workspace }}/backend
