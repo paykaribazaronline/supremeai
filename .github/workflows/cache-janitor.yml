@@ -12,10 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # বাংলা মন্তব্য: প্রতিটি cache-এর key prefix দেখে আলাদা TTL (Time-To-Live) প্রয়োগ করা হচ্ছে।
-      # - turbo/* (build cache): ৩ দিন — প্রতিটি build-এ এগুলো নতুন হয়
-      # - playwright/*: ৭ দিন — browser binary বড় কিন্তু কম পরিবর্তন হয়
-      # - venv/pycache/pnpm: ১৪ দিন — dependency cache দীর্ঘ সময় কার্যকর থাকে
-      - name: Priority TTL Eviction (turbo=3d, playwright=7d, deps=14d)
+      # - turbo: prefix (build cache): ৩ দিন — প্রতিটি build-এ এগুলো নতুন হয়
+      # - deps: prefix (dependency cache): ১৪ দিন — venv/pnpm/playwright দীর্ঘ সময় কার্যকর থাকে
+      # - legacy (prefix ছাড়া): ৭ দিন — পুরানো key গুলো ধীরে ধীরে পরিষ্কার হবে
+      - name: Priority TTL Eviction (turbo=3d, legacy=7d, deps=14d)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -36,16 +36,18 @@ jobs:
             id=$(echo "$c" | jq -r '.id')
             size_mb=$(echo "$c" | jq -r '.sizeInBytes // 0 | . / 1048576 | floor')
 
-            # বাংলা মন্তব্য: key prefix দেখে TTL নির্ধারণ করা হচ্ছে
-            if [[ "$key" == *"turbo"* ]]; then
+            # বাংলা মন্তব্য: purpose prefix দেখে TTL নির্ধারণ করা হচ্ছে
+            # turbo: = build cache (দ্রুত evict), deps: = dependency cache (দীর্ঘ রাখা)
+            if [[ "$key" == turbo:* ]]; then
               TTL_DAYS=3
               CATEGORY="build/turbo"
-            elif [[ "$key" == *"playwright"* ]]; then
-              TTL_DAYS=7
-              CATEGORY="playwright"
-            else
+            elif [[ "$key" == deps:* ]]; then
               TTL_DAYS=14
               CATEGORY="deps"
+            else
+              # বাংলা মন্তব্য: legacy key (prefix ছাড়া) — ৭ দিন TTL, ধীরে ধীরে নতুন prefix-এ migrate হবে
+              TTL_DAYS=7
+              CATEGORY="legacy"
             fi
 
             CUTOFF=$(date -d "${TTL_DAYS} days ago" +%s)
@@ -70,8 +72,8 @@ jobs:
           REPO="${{ github.repository }}"
           SOFT_CAP_BYTES=$((8 * 1024 * 1024 * 1024))
 
-          # বাংলা মন্তব্য: key prefix দেখে priority score নির্ধারণ — ছোট score = আগে মুছবে
-          # 1=turbo (build), 2=playwright, 3=venv/pnpm (deps সবশেষে)
+          # বাংলা মন্তব্য: purpose prefix দেখে priority score নির্ধারণ — ছোট score = আগে মুছবে
+          # 1=turbo: (build), 2=legacy (prefix ছাড়া), 3=deps: (সবশেষে)
           gh cache list --repo "$REPO" --limit 100 --json id,key,createdAt,sizeInBytes \
             --jq 'sort_by(.createdAt)' > sorted_caches.json
 
@@ -85,8 +87,9 @@ jobs:
 
           echo "⚠️ 8GB soft cap ছাড়িয়েছে — priority-based eviction শুরু হচ্ছে..." >> $GITHUB_STEP_SUMMARY
 
-          # Priority 1: turbo/build cache (আগে মুছবে)
-          for PATTERN in "turbo" "playwright" "venv" "pycache" "pnpm"; do
+          # বাংলা মন্তব্য: eviction priority — turbo: (build) আগে, তারপর legacy, deps: সবশেষে
+          # deps: prefix-যুক্ত cache (venv/pnpm/playwright) সবচেয়ে দীর্ঘ সময় টিকে থাকবে
+          for PATTERN in "turbo:" "legacy" "deps:"; do
             jq -c '.[]' sorted_caches.json | while read -r c; do
               if [ "$TOTAL" -le "$SOFT_CAP_BYTES" ]; then break; fi
               key=$(echo "$c" | jq -r '.key')

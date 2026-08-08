@@ -582,6 +582,10 @@ jobs:
           # বাংলা মন্তব্য: GHCR registry cache ব্যবহার করা হচ্ছে কারণ GHA cache (10GB limit) Poetry/pnpm cache evict করে দিচ্ছিল
           cache-from: type=registry,ref=ghcr.io/${{ steps.string.outputs.OWNER_LOWER }}/backend-ci-base:buildcache
           cache-to: type=registry,ref=ghcr.io/${{ steps.string.outputs.OWNER_LOWER }}/backend-ci-base:buildcache,mode=max
+          # বাংলা মন্তব্য: CACHEBUST build-arg — Dockerfile.ci বদলালে cache অটোমেটিক invalid হবে,
+          # ফলে পুরানো Dockerfile-এর ভিত্তিতে ভুল cache hit হওয়া প্রতিরোধ হবে।
+          build-args: |
+            CACHEBUST=${{ hashFiles('backend/Dockerfile.ci') }}
 
   backend-core:
     name: 🐍 Backend (Test)
@@ -669,10 +673,12 @@ jobs:
             ~/.cache/pypoetry
             ~/.cache/pip
             backend/.venv
-          key: ${{ runner.os }}-poetry-v4-py3.11-${{ hashFiles('backend/poetry.lock') }}
+          # বাংলা মন্তব্য: deps: prefix — cache-janitor-এ dependency cache হিসেবে চিহ্নিত হবে,
+          # ফলে build cache-এর আগে evict হবে না (venv দীর্ঘ সময় কার্যকর থাকে)।
+          key: deps:${{ runner.os }}-poetry-v4-py3.11-${{ hashFiles('backend/poetry.lock') }}
           restore-keys: |
-            ${{ runner.os }}-poetry-v4-py3.11-
-            ${{ runner.os }}-poetry-v4-
+            deps:${{ runner.os }}-poetry-v4-py3.11-
+            deps:${{ runner.os }}-poetry-v4-
 
       # বাংলা মন্তব্য: Playwright Chromium বাইনারি (~200MB) cache করা হচ্ছে।
       # poetry.lock পরিবর্তন না হলে এই বড় ডাউনলোড প্রতি রানে skip হবে।
@@ -681,9 +687,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('backend/poetry.lock') }}-v1
+          # বাংলা মন্তব্য: deps: prefix — browser binary dependency cache হিসেবে চিহ্নিত হবে,
+          # build cache-এর আগে evict হবে না (বড় binary, কম পরিবর্তন হয়)।
+          key: deps:${{ runner.os }}-playwright-${{ hashFiles('backend/poetry.lock') }}-v1
           restore-keys: |
-            ${{ runner.os }}-playwright-
+            deps:${{ runner.os }}-playwright-
 
       # বাংলা মন্তব্য: poetry config virtualenvs.create true এবং in-project virtualenv সেট করা হচ্ছে যাতে যেকোনো রানারে .venv সঠিকভাবে তৈরি হয়।
       - name: 📦 Install Dependencies (Smart Sync)
@@ -811,9 +819,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          # বাংলা মন্তব্য: deps: prefix — cache-janitor-এ dependency cache হিসেবে চিহ্নিত হবে,
+          # ফলে build cache-এর আগে evict হবে না।
+          key: deps:${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-
+            deps:${{ runner.os }}-pnpm-
 
       - name: 📦 Install Pnpm Dependencies
         run: |
@@ -824,14 +834,18 @@ jobs:
       # বাংলা মন্তব্য: পূর্বে github.sha ব্যবহার করা হতো — ফলে প্রতিটি commit-এ নতুন key,
       # cache hit-rate ছিল শূন্যের কাছাকাছি। এখন lockfile ও package.json hash ব্যবহার করা হচ্ছে
       # যাতে dependency না বদলালে Turborepo build cache পুনরায় ব্যবহার হয়।
+      # node version-ও key-তে যোগ করা হয়েছে যাতে Node.js আপগ্রেড করলে cache invalid হয়।
       - name: Cache Turborepo
         id: turbo-cache
         uses: actions/cache@v4
         with:
           path: .turbo
-          key: ${{ runner.os }}-turbo-${{ hashFiles('pnpm-lock.yaml', 'apps/**/package.json', 'tools/**/package.json') }}
+          # বাংলা মন্তব্য: turbo: prefix — cache-janitor-এ build cache হিসেবে চিহ্নিত হবে,
+          # ফলে deps cache-এর আগে evict হবে (build artifacts দ্রুত পরিবর্তন হয়)।
+          key: turbo:${{ runner.os }}-turbo-${{ hashFiles('pnpm-lock.yaml', 'apps/**/package.json', 'tools/**/package.json') }}-node${{ env.NODE_VERSION }}
           restore-keys: |
-            ${{ runner.os }}-turbo-
+            turbo:${{ runner.os }}-turbo-node${{ env.NODE_VERSION }}-
+            turbo:${{ runner.os }}-turbo-
 
       # বাংলা মন্তব্য: Turbo cache hit/miss রিপোর্ট GitHub Step Summary-তে দেখানো হচ্ছে।
       - name: 📊 Turbo Cache Report
@@ -1035,6 +1049,10 @@ jobs:
           # বাংলা মন্তব্য: GHCR registry cache ব্যবহার করা হচ্ছে — আলাদা storage quota তাই 10GB GHA limit স্পর্শ করে না
           cache-from: type=registry,ref=ghcr.io/${{ steps.string.outputs.OWNER_LOWER }}/supremeai-backend:buildcache
           cache-to: type=registry,ref=ghcr.io/${{ steps.string.outputs.OWNER_LOWER }}/supremeai-backend:buildcache,mode=max
+          # বাংলা মন্তব্য: CACHEBUST build-arg — Dockerfile বা poetry.lock বদলালে cache অটোমেটিক invalid হবে,
+          # ফলে পুরানো Dockerfile-এর ভিত্তিতে ভুল cache hit হওয়া প্রতিরোধ হবে।
+          build-args: |
+            CACHEBUST=${{ hashFiles('backend/Dockerfile', 'backend/poetry.lock') }}
 
   deploy-user-backend:
     name: 🚀 Deploy User Backend (Render)
@@ -1579,7 +1597,8 @@ jobs:
           # না থাকলে push করবে না, ফলে অবাঞ্ছিত cross-repo push loop বন্ধ হবে।
           echo "🔍 Checking for diff against mirror/main before pushing..."
           git fetch mirror main
-          if git diff --quiet mirror/main HEAD -- . ':(exclude).github/workflows'; then
+          # বাংলা: .github/workflows ফোল্ডার এখন diff-এ অন্তর্ভুক্ত — CI কনফিগ পরিবর্তন sync হওয়া দরকার
+          if git diff --quiet mirror/main HEAD -- . ; then
             echo "✅ No code difference vs mirror/main — skipping push to prevent infinite loop."
             exit 0
           fi
@@ -1662,7 +1681,8 @@ jobs:
           # বাংলা: Git diff গার্ড — rebase-এর পরেও যদি target/main-এর সাথে কোনো কোড পার্থক্য না থাকে,
           # তাহলে push করবে না (এতে অবাঞ্ছিত promotion loop বন্ধ হবে)।
           echo "🔍 Checking for diff against target/main after rebase..."
-          if git diff --quiet target/main HEAD -- . ':(exclude).github/workflows'; then
+          # বাংলা: .github/workflows ফোল্ডার এখন diff-এ অন্তর্ভুক্ত — CI কনফিগ পরিবর্তন sync হওয়া দরকার
+          if git diff --quiet target/main HEAD -- . ; then
             echo "✅ No code difference vs target/main — skipping promotion push."
             exit 0
           fi
