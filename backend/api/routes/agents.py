@@ -40,8 +40,6 @@ class SummarizeRequest(BaseModel):
     style: str = "apa"
 
 
-
-
 # বাংলা মন্তব্ত: AUDIT-018 ফিক্স — Studio Client-এর agentService.listAgents()
 # GET /api/v1/agents কল করে (আগে এই endpoint ছিল না, 404 পেত)।
 @router.get("/", tags=["specialized-agents"])
@@ -67,6 +65,8 @@ async def get_agent_status(agent_id: str):
         "status": "active",
         "last_activity": "2026-01-01T00:00:00Z",
     }
+
+
 @router.post("/legal/analyze")
 async def legal_analyze(payload: LegalAnalysisRequest):
     try:

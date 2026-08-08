@@ -66,6 +66,7 @@ async def search_knowledge(
     """Search the knowledge base for relevant documents matching the query."""
     import json
     from pathlib import Path
+
     manifest_dir = Path(__file__).resolve().parent.parent.parent / "skills" / "manifests"
     results = []
     if manifest_dir.exists():

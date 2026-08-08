@@ -1060,6 +1060,7 @@ def get_customers():
 def get_config():
     """Get environment configuration for the admin dashboard."""
     import os
+
     config = {}
     for key in ["ENV", "DEBUG", "LOG_LEVEL", "REDIS_URL", "DATABASE_URL"]:
         val = os.environ.get(key, "")
@@ -1072,6 +1073,7 @@ def get_config():
 def update_config(payload: dict):
     """Update environment configuration (writes to settings.json)."""
     import os
+
     config = _load_json_data(os.path.join(os.path.dirname(__file__), "..", "..", "data", "settings.json"), {})
     config.update(payload)
     _save_json_data(os.path.join(os.path.dirname(__file__), "..", "..", "data", "settings.json"), config)

@@ -40,7 +40,9 @@ else:
 # এখন `app` লেজি `__getattr__`-এর মাধ্যমে দেওয়া হয়: শুধু যারা সত্যিই
 # `from main import app` করে (schema_exporter, generate_openapi, legacy tests)
 # তারাই full app তৈরি করবে; সার্ভার বুট পথে এটি আর তৈরি হবে না।
-__all__ = ["app"]  # noqa: F822 — `app` লেজি __getattr__-এর মাধ্যমে দেওয়া হয়, তাই Ruff স্ট্যাটিক অ্যানালাইসিসে খুঁজে পায় না
+__all__ = [
+    "app"
+]  # — `app` লেজি __getattr__-এর মাধ্যমে দেওয়া হয়, তাই Ruff স্ট্যাটিক অ্যানালাইসিসে খুঁজে পায় না
 
 
 def __getattr__(name: str) -> Any:

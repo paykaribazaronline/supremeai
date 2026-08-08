@@ -18,13 +18,13 @@ from core.intelligent_silent_catcher import setup_silent_catcher
 
 setup_silent_catcher()
 
-from loguru import logger  # noqa: E402
+from loguru import logger
 
-from core.agent_supervisor import agent_supervisor  # noqa: E402
-from core.config import settings  # noqa: E402
-from core.logging_config import setup_logging  # noqa: E402
-from core.maintenance_pipeline import maintenance_pipeline  # noqa: E402
-from core.sentinel_agent import sentinel  # noqa: E402
+from core.agent_supervisor import agent_supervisor
+from core.config import settings
+from core.logging_config import setup_logging
+from core.maintenance_pipeline import maintenance_pipeline
+from core.sentinel_agent import sentinel
 
 
 async def _main() -> None:

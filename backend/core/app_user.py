@@ -26,9 +26,7 @@ if _resolved_user_origins != _configured_user_origins:
     if any(o in ADMIN_ORIGIN_DENYLIST for o in _dropped):
         logger.warning(f"⚠️ Admin origin(s) stripped from User CORS for isolation: {_dropped}")
     else:
-        logger.warning(
-            "⚠️ User CORS wildcard/drift detected. Setting default trusted production origins."
-        )
+        logger.warning("⚠️ User CORS wildcard/drift detected. Setting default trusted production origins.")
 
 settings.user_cors_origins = _resolved_user_origins
 

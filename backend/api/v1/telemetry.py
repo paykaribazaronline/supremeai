@@ -123,6 +123,7 @@ async def get_detailed_status():
 async def report_frontend_error(payload: dict):
     """Receive and log frontend error reports from the Studio Client."""
     import logging
+
     logger = logging.getLogger("supremeai.telemetry.frontend")
     logger.error(f"Frontend error report: {payload}")
     return {"status": "logged", "message": "Frontend error report received"}
