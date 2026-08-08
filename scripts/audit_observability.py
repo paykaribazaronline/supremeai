@@ -64,43 +64,82 @@ class SilentErrorDetector(ast.NodeVisitor):
         self.in_main_block = old_in_main
 
     def visit_ExceptHandler(self, node: ast.ExceptHandler):
-        # Check strictly for `except Exception` or bare `except:`
-        if node.type is None or (isinstance(node.type, ast.Name) and node.type.id == 'Exception'):
-            # Check if body is strictly silent (pass, ellipsis, or empty)
-            is_silent = all(
-                isinstance(stmt, ast.Pass) or
-                (isinstance(stmt, ast.Constant) and stmt.value is ...) or
-                (isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Constant) and stmt.value is ...)
-                for stmt in node.body
-            )
+        # Broad match: bare `except:`, `except Exception`, or `except (..., Exception, ...)`.
+        def _is_broad(exc_type) -> bool:
+            if exc_type is None:
+                return True
+            if isinstance(exc_type, ast.Name) and exc_type.id == 'Exception':
+                return True
+            if isinstance(exc_type, ast.Tuple):
+                return any(isinstance(e, ast.Name) and e.id == 'Exception' for e in exc_type.elts)
+            return False
 
-            # Check for silent return True or masked success without logging
-            has_unlogged_return_success = False
-            has_logger_call = any(
-                isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Call) and (
-                    (isinstance(stmt.value.func, ast.Attribute) and 'log' in stmt.value.func.attr.lower()) or
-                    (isinstance(stmt.value.func, ast.Name) and 'log' in stmt.value.func.id.lower())
+        if not _is_broad(node.type):
+            self.generic_visit(node)
+            return
+
+        exc_var = node.name  # the `as <var>` binding name, or None
+
+        has_reraise = any(isinstance(n, ast.Raise) for n in ast.walk(node))
+
+        has_logger_call = any(
+            isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Call) and (
+                (isinstance(stmt.value.func, ast.Attribute) and 'log' in stmt.value.func.attr.lower()) or
+                (isinstance(stmt.value.func, ast.Name) and 'log' in stmt.value.func.id.lower())
+            )
+            for stmt in node.body
+        )
+
+        is_silent = all(
+            isinstance(stmt, ast.Pass) or
+            (isinstance(stmt, ast.Constant) and stmt.value is ...) or
+            (isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Constant) and stmt.value is ...)
+            for stmt in node.body
+        )
+
+        has_unlogged_return_success = False
+        if not has_logger_call:
+            for stmt in node.body:
+                if isinstance(stmt, ast.Return) and isinstance(stmt.value, ast.Constant) and stmt.value.value is True:
+                    has_unlogged_return_success = True
+                    break
+
+        # Does the handler reference the caught exception variable anywhere?
+        # If not, the error is being discarded (unless it logs or re-raises).
+        uses_exc_var = False
+        if exc_var:
+            for n in ast.walk(node):
+                if isinstance(n, ast.Name) and n.id == exc_var:
+                    uses_exc_var = True
+                    break
+
+        normalized_path = self.filepath.replace('\\', '/')
+        is_test_file = (
+            '/tests/' in normalized_path or
+            normalized_path.endswith('conftest.py') or
+            '/test_' in normalized_path
+        )
+
+        if not is_test_file:
+            if is_silent:
+                self.violations.append(
+                    f"{self.filepath}:{node.lineno} - Silent exception handler (`except Exception: pass`)"
                 )
-                for stmt in node.body
-            )
-            
-            if not has_logger_call:
-                for stmt in node.body:
-                    if isinstance(stmt, ast.Return) and isinstance(stmt.value, ast.Constant) and stmt.value is True:
-                        has_unlogged_return_success = True
-                        break
+            elif has_unlogged_return_success:
+                self.violations.append(
+                    f"{self.filepath}:{node.lineno} - Masked success exception handler (`except Exception: return True` without logging)"
+                )
+            elif not has_reraise and not has_logger_call:
+                # Only flag handlers that bind the exception variable (`as e`),
+                # because then we can prove the error is discarded (variable unused).
+                # Bare `except Exception:` (no `as`) is left to manual review to
+                # avoid false positives on intentional skip/continue loops that
+                # return an explicit error payload to the caller.
+                if exc_var is not None and not uses_exc_var:
+                    self.violations.append(
+                        f"{self.filepath}:{node.lineno} - Broad exception handler discards exception (no log/re-raise, error not surfaced to caller)"
+                    )
 
-            normalized_path = self.filepath.replace('\\', '/')
-            is_test_file = (
-                '/tests/' in normalized_path or
-                normalized_path.endswith('conftest.py') or
-                '/test_' in normalized_path
-            )
-            if not is_test_file:
-                if is_silent:
-                    self.violations.append(f"{self.filepath}:{node.lineno} - Silent exception handler (`except Exception: pass`)")
-                elif has_unlogged_return_success:
-                    self.violations.append(f"{self.filepath}:{node.lineno} - Masked success exception handler (`except Exception: return True` without logging)")
         self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call):
