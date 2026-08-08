@@ -139,7 +139,6 @@ class SilentErrorDetector(ast.NodeVisitor):
                     self.violations.append(
                         f"{self.filepath}:{node.lineno} - Broad exception handler discards exception (no log/re-raise, error not surfaced to caller)"
                     )
-
         self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call):
