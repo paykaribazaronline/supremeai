@@ -684,17 +684,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-playwright-
 
-      # বাংলা মন্তব্য: poetry config in-project virtualenv সেট করা হচ্ছে এবং cache hit হলেও fast poetry install দিয়ে ডিপেনডেন্সি নিশ্চিত করা হচ্ছে।
+      # বাংলা মন্তব্য: venv cache miss হলেই poetry install চলবে — hit হলে skip।
       - name: 📦 Install Dependencies (Smart Sync)
         run: |
           mkdir -p backend
           cd backend
-          poetry config virtualenvs.in-project true
-          if [ "${{ steps.poetry-cache.outputs.cache-hit }}" != "true" ] || [ ! -d ".venv" ]; then
+          if [ "${{ steps.poetry-cache.outputs.cache-hit }}" != "true" ]; then
             poetry install --with dev
           else
-            echo "venv cache HIT — syncing dependencies with poetry"
-            poetry install --no-root --with dev
+            echo "venv cache HIT — skipping full poetry install"
+            poetry install --no-root --sync --with dev --dry-run 2>&1 | head -5 || true
           fi
 
       # বাংলা মন্তব্য: Playwright browser cache miss হলেই download হবে — hit হলে skip।
@@ -702,7 +701,7 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: |
           cd backend
-          poetry run python -m playwright install --with-deps chromium || python -m playwright install --with-deps chromium || poetry run python -m playwright install chromium || true
+          poetry run python -m playwright install --with-deps chromium || poetry run python -m playwright install chromium || true
 
       # বাংলা মন্তব্য: cache hit/miss স্ট্যাটাস GitHub Step Summary-তে লগ করা হচ্ছে।
       - name: 📊 Backend Cache Status Report
