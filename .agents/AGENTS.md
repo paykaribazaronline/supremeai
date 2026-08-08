@@ -1,66 +1,62 @@
-# SupremeAI 2.0 Agent Rules
+# SupremeAI 2.0 Agent Rules (এজেন্ট পরিচালনার মূল নীতিমালা)
 
-- **Full Path Terminal Commands (Bangla/English):** Whenever suggesting or explaining terminal commands (e.g. `npx`, `pnpm`, `npm`, `python`, `git`), always provide the commands with the exact target directory location or full absolute path (e.g. specifying `F:\supremeai backup\apps\studio-client` or using `cd` guides with full paths) so that the user knows exactly where to run the command.
+- **ফুল পাথ টার্মিনাল কমান্ড (Full Path Terminal Commands):** যেকোনো টার্মিনাল কমান্ড (যেমন `npx`, `pnpm`, `npm`, `python`, `git`) দেওয়ার সময় সবসময় সঠিক টার্গেট ডিরেক্টরি বা সম্পূর্ণ পাথ উল্লেখ করতে হবে (যেমন: `F:\supremeai backup\apps\studio-client` বা সম্পূর্ণ `cd` গাইডসহ), যাতে ইউজার বুঝতে পারেন ঠিক কোথায় কমান্ডটি চালাতে হবে।
 
-- **Render Deployment Failure Logging (Bangla/English):** যেকোনো সময় Render ডিপ্লয় ফেইল করলে (Render Deploy Failure), প্রতিটি ফেইল্ড সার্ভিসের সম্পূর্ণ র (raw) লগ সংগ্রহ করে `render_deployment_failure_logs.md` নামে একটি ডেসক্রিপ্টিভ মার্কডাউন ফাইল (Artifact) তৈরি করতে হবে।
+- **Render ডিপ্লয়মেন্ট ফেইলিয়র লগিং (Render Deployment Failure Logging):** যেকোনো সময় Render ডিপ্লয় ফেইল করলে, প্রতিটি ফেইল্ড সার্ভিসের সম্পূর্ণ র (raw) লগ সংগ্রহ করে `render_deployment_failure_logs.md` নামে একটি ডেসক্রিপ্টিভ মার্কডাউন ফাইল (Artifact) তৈরি করতে হবে।
 
-- **Timer & User Interaction Control Rule:**
-  - If the user explicitly says `"stop"` or expresses frustration, immediately kill all background timers/tasks using `manage_task(Action='kill')` and DO NOT set any new timers unless explicitly requested.
-  - Keep responses concise, objective, and focused on empirical log evidence without defensive explanations.
+- **টাইমার ও ইউজার ইন্টারঅ্যাকশন কন্ট্রোল (Timer & User Interaction Control):**
+  - ইউজার যদি স্পষ্টভাবে "stop" বলেন বা অসন্তোষ প্রকাশ করেন, তবে অবিলম্বে `manage_task(Action='kill')` ব্যবহার করে সব ব্যাকগ্রাউন্ড টাইমার/টাস্ক বন্ধ করতে হবে এবং স্পষ্ট নির্দেশ ছাড়া নতুন কোনো টাইমার সেট করা যাবে না।
+  - উত্তর সবসময় সংক্ষিপ্ত, বস্তুনিষ্ঠ এবং বাস্তবিক লগের ওপর ভিত্তি করে দিতে হবে; কোনো আত্মরক্ষামূলক ব্যাখ্যা দেওয়া যাবে না।
 
-- **Ultra-Concise Responses Rule (CRITICAL):**
-  - Always keep answers as short, direct, and minimal as possible.
-  - Do NOT write multi-paragraph explanations or background details unless the user explicitly asks "explain" or "why".
+- **অতি-সংক্ষিপ্ত প্রতিক্রিয়া নীতি (Ultra-Concise Responses Rule):**
+  - উত্তর সবসময় যতদূর সম্ভব ছোট, সরাসরি এবং ন্যূনতম রাখতে হবে।
+  - ইউজার স্পষ্টভাবে "explain" বা "why" না জানালে একাধিক অনুচ্ছেদে বিস্তারিত ব্যাখ্যা দেওয়া যাবে না।
 
-- **Single Definite Root-Cause Answer Rule (STRICT & MANDATORY):**
-  - **No Multi-Option Speculation:** Never provide 2, 3, or multiple speculative reasons for an error or failure.
-  - **Single Verified Truth:** Always perform empirical inspection, trace code, and identify the single exact root cause before answering. Present exactly ONE definitive, verified answer without guessing or hedging.
+- **একক ও সুনির্দিষ্ট মূল-কারণ নির্ধারণ নীতি (Single Definite Root-Cause Answer Rule):**
+  - **একাধিক অনুমানের মানা:** কোনো এরর বা ব্যর্থতার জন্য একাধিক সম্ভাব্য কারণ বা অনুমানপ্রসূত তালিকা দেওয়া যাবে না।
+  - **একক প্রমাণিত সত্য:** কোড ট্র্যাকিং ও অডিট করে কেবল একটি শতভাগ নিশ্চিত ও সত্য মূল কারণ বের করে উত্তর দিতে হবে।
 
-- **Strict Git Push Rule (NON-NEGOTIABLE):** The AI agent MUST NEVER run `git push` under any circumstances unless the user explicitly sends a prompt that contains the exact word `"push"`. Generic user approvals (e.g. "ok", "do that", "fix it", "yes") DO NOT grant push permission. Without the literal word `"push"` present in the user's message, the AI will NEVER push to GitHub.
+- **কঠোর গিট পুশ নীতি (Strict Git Push Rule):** ইউজারের মেসেজে যদি স্পষ্টভাবে "push" শব্দটি না থাকে, তবে এআই এজেন্ট কখনোই `git push` চালাবে না। ইউজারের সাধারণ সম্মতি (যেমন "ok", "do that", "fix it", "yes") দিয়ে পুশ করার অনুমতি প্রদান করা হয় না।
 
-- **No Background Timers Rule (STRICT):** The AI agent MUST NEVER schedule background timers or interval scheduler tasks after `git push` or during any execution unless the user explicitly requests a timer.
+- **ব্যাকগ্রাউন্ড টাইমার নিষিদ্ধকরণ নীতি (No Background Timers Rule):** `git push` এর পর বা রান টাইম চলাকালীন ইউজার স্পষ্ট নির্দেশ না দিলে ব্যাকগ্রাউন্ড টাইমার বা শিডিউলার সেট করা যাবে না।
 
-- **Execution Time-Tracking & Hang Prevention Rule (CRITICAL):**
-  - **Estimate Expected Runtime:** Before launching any test, build, or script, estimate its expected duration (unit tests should run in < 15 seconds; builds < 30 seconds).
-  - **Strict Time-Tracking:** Keep track of elapsed time vs expected duration. If a test or command takes significantly longer than expected (e.g., > 2x estimated time or > 30 seconds), inspect log output immediately or terminate it to diagnose unmocked network calls.
-  - **No Silent Network Blockers:** Ensure all external LLM routes (`core.llm_router.LLMRouter`) and database connections (`core.tenant_db.TenantAwareFirestore`) are fully mocked before executing test suites to prevent network connection timeouts.
+- **এক্সিকিউশন টাইম-ট্র্যাকিং ও হ্যাং প্রতিরোধ নীতি (Execution Time-Tracking & Hang Prevention Rule):**
+  - **আনুমানিক সময় হিসাব:** যেকোনো টেস্ট বা কমান্ড চালানোর আগে আনুমানিক সময় অনুমান করতে হবে (ইউনিট টেস্ট < ১৫ সেকেন্ড, বিল্ড < ৩০ সেকেন্ড)।
+  - **টাইম-ট্র্যাকিং:** আনুমানিক সময়ের চেয়ে দ্বিগুণ বা ৩০ সেকেন্ডের বেশি সময় লাগলে সাথে সাথে লগ স্ক্যান করতে হবে বা টাস্ক থামিয়ে আনমকড নেটওয়ার্ক কল ডায়াগনস্টিক করতে হবে।
+  - **নেটওয়ার্ক ব্লকার প্রতিরোধ:** টেস্ট সুইট চালানোর আগে সব এক্সটার্নাল রাউট (`core.llm_router.LLMRouter`) এবং ডাটাবেজ কানেকশন সম্পূর্ণ মক করা নিশ্চিত করতে হবে।
 
-- **Commit All Uncommitted Files & Impact Report:** When performing a commit, ALWAYS inspect all uncommitted files (`git status` / `git diff`), stage all uncommitted files, and provide a short, concise summary report explaining how the uncommitted files make the system better and what specific improvements/benefits they bring.
+- **আনকমিটেড ফাইল কমিট ও প্রভাব রিপোর্ট (Commit All Uncommitted Files & Impact Report):** কমিট করার সময় সব আনকমিটেড ফাইল স্টেজ (`git add`) করতে হবে এবং ফাইলগুলো সিস্টেমের কী কী উন্নতি করছে তার একটি সংক্ষিপ্ত সারসংক্ষেপ প্রকাশ করতে হবে।
 
-- **Homologous & Scope-Wide Verification Rule (MANDATORY):**
-  - Whenever a bug, breaking change, type mismatch, refactoring, or feature update is identified in a specific file or module, the AI agent MUST NOT limit fixes to that single file alone.
-  - The AI agent MUST proactively search (`grep_search`) for all related, homologous, duplicate, or caller components across all platforms (Backend, Web Studio, Mobile, Extensions, CI/CD scripts) and fix or update them consistently in the same execution scope.
+- **সমজাতীয় ও স্কোপ-ওয়াইড ভেরিফিকেশন নীতি (Homologous & Scope-Wide Verification Rule):**
+  - কোনো ফাইলে বাগ বা ব্রেকিং চেঞ্জ পাওয়া গেলে কেবল সেই একটি ফাইলে ফিক্স সীমাবদ্ধ রাখা যাবে না।
+  - সব প্ল্যাটফর্মে (Backend, Web Studio, Mobile, Extensions, CI/CD) সম্পর্কিত অন্যান্য সব সমজাতীয় বা কলিং ফাইলে অনুসন্ধান (`grep_search`) করে একসাথে সংশোধন করতে হবে।
 
-- **Code Comments (Bangla):** Whenever making changes to the codebase, always try to add explanatory comments in **Bangla** so that the rationale behind the changes is easily understood later by the team.
+- **কোড কমেন্ট (Code Comments - Bangla):** কোডবেসে পরিবর্তন করার সময় সবসময় **বাংলায়** ব্যাখ্যামূলক মন্তব্য যুক্ত করতে হবে যাতে পরবর্তীতে টিমের সবাই পরিবর্তনের কারণ বুঝতে পারে।
 
-- **Production-Ready Implementation:** DO NOT use mocks, stubs, or dummy implementations. All code must be production-ready and fully functional. If integrating a feature, integrate it with the real backing services (e.g., Supabase, database).
+- **প্রোডাকশন-রেডি বাস্তবায়ন (Production-Ready Implementation):** কোনো ফেক, মক বা ডামি ইমপ্লিমেন্টেশন ব্যবহার করা যাবে না। সব কোড প্রোডাকশন-রেডি ও অরিজিনাল ব্যাকএন্ড সার্ভিসের সাথে পুরোপুরি কার্যকর হতে হবে।
 
-- **Production-Grade Infrastructure Rule (STRICT):**
-  - There are NO local-only environment hacks or local targets. All code, setups, dependencies, models, and workflows MUST be production-grade targeting live cloud infrastructure (GCP Cloud Run, Render, Vercel, Infisical, Supabase, Cloudflare, GitHub Actions).
-  - Speculative local-path fallbacks, mock-type checking in production code, or local-only workarounds are strictly forbidden.
+- **প্রোডাকশন-গ্রেড ইনফ্রাস্ট্রাকচার নীতি (Production-Grade Infrastructure Rule):** কোনো লোকাল-অনলি হ্যাফ বা লোকাল টার্গেট থাকা যাবে না। সব কোড ও ওয়ার্কফ্লো রিয়েল ক্লাউড ইনফ্রাস্ট্রাকচার (Cloud Run, Render, Vercel, Supabase, Cloudflare, GitHub Actions) কেন্দ্রিক হতে হবে।
 
-- **Strict Master Audit Execution Rule (MANDATORY):**
-  - Whenever the user requests an audit (e.g., "audit", "run audit", "check code", "phase audit"), the AI agent **MUST strictly execute the Master Audit Blueprint** defined in [`docs/long-term-maintenance/SUPREMEAI_MASTER_AUDIT_PLAN.md`](file:///g:/supremeai%20backup/docs/long-term-maintenance/SUPREMEAI_MASTER_AUDIT_PLAN.md).
-  - **Audit Reports Location:** Every Phase report MUST be saved as a separate markdown file inside the `docs/audit_reports/` directory (e.g., `docs/audit_reports/PHASE_01_CORE_BACKEND.md`).
-  - **Empirical Evidence First:** Every finding MUST contain concrete evidence (exact file path, line number, grep output, or test log). Never claim an issue is "Fixed" without verifying code changes.
-  - **Technical Taxonomy:** Audit findings MUST be categorized using standard technical error terms (`Content Security Policy Violation`, `CORS Blocked`, `Configuration Drift`, `Silent Failure`, `Race Condition`, etc.) and P0-P3 severity matrix.
+- **কঠোর মাস্টার অডিট এক্সিকিউশন নীতি (Strict Master Audit Execution Rule):**
+  - অডিটের অনুরোধ করা হলে [`docs/long-term-maintenance/SUPREMEAI_MASTER_AUDIT_PLAN.md`](file:///g:/supremeai%20backup/docs/long-term-maintenance/SUPREMEAI_MASTER_AUDIT_PLAN.md) ফাইলের মাস্টার অডিট ব্লুপ্রিন্ট কঠোরভাবে অনুসরণ করতে হবে।
+  - অডিট রিপোর্টগুলো `docs/audit_reports/` ডিরেক্টরিতে আলাদা মার্কডাউন ফাইল হিসেবে সেভ করতে হবে।
+  - প্রতিটি তথে concretely ফাইল পাথ, লাইন নম্বর বা টেস্ট লগ থাকতে হবে।
 
-- **End-to-End Diagnostic, Verification & Push Protocol (MANDATORY & NON-NEGOTIABLE):**
-  - **Step 1 — Remote & Environment Discovery:** Always check target repositories (`git remote -v`) to clearly distinguish primary (`origin`) vs target (`target`) repos before running checks.
-  - **Step 2 — Direct API Failure Retrieval:** Query GitHub API (`/actions/runs?status=failure`) to extract the exact list of failed runs, workflow names, run numbers, branch names, commit SHAs, and trigger events.
-  - **Step 3 — Raw Execution Log Extraction:** Fetch raw job logs and inspect failed steps directly. When encountering HTTP 403 authorization redirects on log artifacts, handle signed URL redirects by stripping auth headers on S3 targets.
-  - **Step 4 — Single Empirical Root-Cause Analysis:** Diagnose exact underlying failures (e.g., pytest assertion mismatches, working-directory misconfigurations, syntax errors, detached HEAD git auto-commits) with zero multi-option speculation.
-  - **Step 5 — Homologous Fix Implementation:** Implement production-ready fixes across all caller and homologous files (backend, frontend, CI scripts). Add explanatory code comments in **Bangla**.
-  - **Step 6 — Full Verification & Uncommitted Files Report:** Run local test/build verification, stage all uncommitted files (`git add`), and generate a short impact summary of all staged changes.
-  - **Step 7 — Explicit Push Authorization & Single Remote Rule:** The AI agent MUST ONLY push to `origin` (`SaifulHaqueNiloy/supremeai`). Direct pushes to `target` (`paykaribazaronline`) are STRICTLY FORBIDDEN. Never run `git push` unless the user's prompt literally contains the exact word `"push"`.
-  - **Token-Efficient CI Verification Protocol:** To conserve context and token limits, avoid high-frequency polling. Execute batch API background scripts, monitor until `paykaribazaronline` reaches 100% SUCCESS GREEN, and extract the clean final report efficiently.
-  - **2-Minute Maximum CI Polling Rule:** When tracking GitHub Actions workflow runs after a push, the AI agent MUST poll status at 15-30 second intervals and deliver an empirical status update or failure log diagnosis within **2 minutes maximum**. Never leave CI status unverified beyond 2 minutes.
-  - **Continuous Green Loop Mandate:** This diagnostic, fixing, log extraction, and verification process MUST run continuously in an iterative loop across both target (`target`) and primary (`origin`) repositories until EVERY SINGLE WORKFLOW RUN IS 100% FULL GREEN (zero failures).
+- **এন্ড-টু-এন্ড ডায়াগনস্টিক, ভেরিফিকেশন ও পুশ প্রোটোকল (End-to-End Diagnostic, Verification & Push Protocol):**
+  - **ধাপ ১:** `git remote -v` চেক করে `origin` এবং `target` পৃথকীকরণ।
+  - **ধাপ ২:** GitHub API ব্যবহার করে ফেইল্ড রান এবং এরর স্টেপ বের করা।
+  - **ধাপ ৩:** র (raw) লগ ফেচ করা ও মূল সমস্যা চিহ্নিত করা।
+  - **ধাপ ৪:** একটি মাত্র প্রমাণিত মূল কারণ বিশ্লেষণ।
+  - **ধাপ ৫:** সব সমজাতীয় ফাইল ও প্ল্যাটফর্মে একসাথে ফিক্স প্রদান ও বাংলায় কমেন্ট যোগ।
+  - **ধাপ ৬:** লোকাল ভেরিফিকেশন ও আনকমিটেড ফাইলের প্রভাব রিপোর্ট প্রকাশ।
+  - **ধাপ ৭:** ইউজার সরাসরি "push" লিখলেই কেবল `origin` (`SaifulHaqueNiloy/supremeai`) এ পুশ করা। `target`-এ সরাসরি পুশ সম্পূর্ণ নিষিদ্ধ।
+  - **২-মিনিট সর্বোচ্চ সিআই পোলিং রুল:** সিআই ট্র্যাকিংয়ের সময় সর্বোচ্চ ১৫-৩০ সেকেন্ড পর পোল করতে হবে এবং ২ মিনিটের মধ্যে রেজাল্ট জানাতে হবে।
+  - **কন্টিনিউয়াস গ্রিন লুপ:** সব সিআই পাইপলাইন ১০০% গ্রিন (ZERO Failure) না হওয়া পর্যন্ত অডিট ও ফিক্স লুপ চালু রাখতে হবে।
 
 ---
 
-## 🇧🇩 Bengali Language Excellence (BLE-001~003)
+## 🇧🇩 মেধা ও ভাষাগত উৎকর্ষ (Bengali Language Excellence - BLE-001~003)
 
-- **BLE-001:** প্রজেক্টের **ডিফল্ট ভাষা বাংলা** (Default Language is Bangla)। ইউজার যেকোনো ভাষায় (বাংলা বা ইংরেজি) প্রশ্ন করলেও উত্তর সবসময় স্পষ্ট ও সাবলীল বাংলায় দিতে হবে — **Banglish সম্পূর্ণ নিষিদ্ধ**।
+- **BLE-001:** প্রজেক্টের **ডিফল্ট ভাষা বাংলা** (Default Language is Bangla)। ইউজার যেকোনো ভাষায় প্রশ্ন করলেও উত্তর সবসময় স্পষ্ট ও সাবলীল বাংলায় দিতে হবে — **Banglish সম্পূর্ণ নিষিদ্ধ**।
 - **BLE-002:** Customer-কে সর্বদা **'আপনি'** সম্বোধন করো — 'তুমি' নয়।
 - **BLE-003:** Code সবসময় English-এ — তবে কোডের মন্তব্য (comments) বাধ্যতামূলক বাংলায় থাকতে হবে।
