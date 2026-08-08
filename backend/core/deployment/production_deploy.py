@@ -234,7 +234,9 @@ class HealthChecker:
                             status = health_data.get("status")
                             if status == "healthy":
                                 return True
-                            logger.warning(f"Health check reported non-healthy status: {status} in response: {health_data}")
+                            logger.warning(
+                                f"Health check reported non-healthy status: {status} in response: {health_data}"
+                            )
                             return False
                         elif isinstance(health_data, str) and "healthy" in health_data.lower():
                             return True
