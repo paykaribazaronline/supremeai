@@ -107,7 +107,7 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
         if request.method == "OPTIONS":
             requested_headers = request.headers.get(
                 "Access-Control-Request-Headers",
-                "Content-Type, Authorization, X-Requested-With, X-API-Key, Accept, Origin, X-Device-Fingerprint, X-CSRF-Token, X-JIT-OTP, X-Request-ID, X-Tenant-ID, X-Correlation-ID, Cache-Control, Pragma, *",
+                "Content-Type, Authorization, X-Requested-With, X-API-Key, Accept, Origin, X-Device-Fingerprint, X-CSRF-Token, X-JIT-OTP, X-Request-ID, X-Tenant-ID, X-Correlation-ID",
             )
             headers = {
                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH",
