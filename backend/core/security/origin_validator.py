@@ -97,24 +97,30 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
         # অকারণে প্রতিটা request crash করবে না।
         allowed = self.allowed_origins if origin else set()
 
-        # বাংলা মন্তব্য: OPTIONS preflight রিকোয়েস্ট সরাসরি 200 OK রেসপন্স ও ক্লায়েন্টের প্রয়োজনীয় CORS হেডার ফেরত পাঠাবে
+        # বাংলা মন্তব্য: OPTIONS preflight রিকোয়েস্ট সরাসরি 200 OK রেসপন্স ও ক্লায়েন্টের প্রয়োজনীয় CORS হেডার ফেরত পাঠাবে।
+        # Defense-in-depth: অনুমোদিত অরিজিনের preflight সবসময় 200 দেবে এবং ভিতরের Auth/APIKey/AutonoGuard/Honeypot/Chaos
+        # মিডলওয়্যারে যাবে না। আগে শর্ত ছিল `origin in allowed` — ফলে যদি admin origin allowlist-এ না থাকতো,
+        # preflight ভিতরের AuthMiddleware-এ গিয়ে 401/403 দিত ও ব্রাউজার CORS preflight fail করত ("doesn't have HTTP ok status")।
+        # এখন যেকোনো OPTIONS (যার Access-Control-Request-Method আছে = আসল preflight) সরাসরি 200 দেওয়া হয়;
+        # শুধু অনুমোদিত অরিজিনের জন্যই Access-Control-Allow-Origin হেডার সেট করা হয়, বাকিগুলো 200 দেয় কিন্তু
+        # allow-origin দেয় না — তাই ব্রাউজার তখনই ব্লক করে, কিন্তু preflight নিজে 200 পায় (auth middleware-এর 401 নয়)।
         if request.method == "OPTIONS":
+            requested_headers = request.headers.get(
+                "Access-Control-Request-Headers",
+                "Content-Type, Authorization, X-Requested-With, X-API-Key, Accept, Origin, X-Device-Fingerprint, X-CSRF-Token, X-JIT-OTP, X-Request-ID, X-Tenant-ID, X-Correlation-ID",
+            )
+            headers = {
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH",
+                "Access-Control-Allow-Headers": requested_headers,
+            }
             if not origin or origin in allowed:
-                requested_headers = request.headers.get(
-                    "Access-Control-Request-Headers",
-                    "Content-Type, Authorization, X-Requested-With, X-API-Key, Accept, Origin, X-Device-Fingerprint, X-CSRF-Token, X-JIT-OTP, X-Request-ID, X-Tenant-ID, X-Correlation-ID",
-                )
-                headers = {
-                    "Access-Control-Allow-Origin": origin or "*",
-                    "Access-Control-Allow-Credentials": "true",
-                    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH",
-                    "Access-Control-Allow-Headers": requested_headers,
-                }
-                return JSONResponse(
-                    status_code=status.HTTP_200_OK,
-                    content={"status": "ok"},
-                    headers=headers,
-                )
+                headers["Access-Control-Allow-Origin"] = origin or "*"
+                headers["Access-Control-Allow-Credentials"] = "true"
+            return JSONResponse(
+                status_code=status.HTTP_200_OK,
+                content={"status": "ok"},
+                headers=headers,
+            )
 
         if os.getenv("ALLOW_TEST_ORIGIN_BYPASS", "").lower() == "true" or _env in {"test", "testing", "ci"}:
             pass
