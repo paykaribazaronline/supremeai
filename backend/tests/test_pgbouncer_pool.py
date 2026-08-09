@@ -1,4 +1,4 @@
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import ANY, AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -29,6 +29,9 @@ async def test_connect():
             max_size=12,
             max_inactive_connection_lifetime=300,
             statement_cache_size=0,
+            # বাংলা মন্তব্য: PgBouncer-এর সাথে সামঞ্জস্যের জন্য যোগ করা ইউনিক prepared statement নাম জেনারেটর
+            # (lambda) — মান ANY দিয়ে চেক করা হচ্ছে যাতে এর বাস্তব মান পরিবর্তন করলেও টেস্ট ভেঙে না যায়।
+            prepared_statement_name_func=ANY,
             command_timeout=30,
         )
         assert pool._pool is mock_pool
