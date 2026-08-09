@@ -219,12 +219,115 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ==============================================================================
+  # ENV DRIFT CHECK (NON-RENDER ENVS): secrets_registry.yaml-এর বিপরীতে github-actions,
+  # vercel, cloudflare, firebase, infisical environment-এর জন্য GitHub repo secrets-এর
+  # presence যাচাই করে (এই env গুলোর deploy/boot token গুলো GitHub-এই থাকে)।
+  # Render env গুলো আলাদা render-env-live-check job-এ আসল runtime থেকে যাচাই হয়।
+  # ==============================================================================
+  env-drift-check:
+    name: 🔑 Env/Secret Drift Check (${{ matrix.env }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    strategy:
+      fail-fast: false
+      matrix:
+        env: [github-actions, vercel-frontend, cloudflare-worker, firebase-gcp, infisical-vault]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install PyYAML
+        run: pip install pyyaml
+      - name: 🔍 Audit env usage vs registry [${{ matrix.env }}]
+        # বাংলা: GitHub repo secrets থেকে সব সম্ভাব্য key ইনজেক্ট; script শুধু ওই --env-এর
+        # relevant key গুলোই check করবে। Actual value কখনোই log-এ যায় না।
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_API_KEY_BACKUP: ${{ secrets.RENDER_API_KEY_BACKUP }}
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          RENDER_DEPLOY_HOOK_URL_BACKUP: ${{ secrets.RENDER_DEPLOY_HOOK_URL_BACKUP }}
+          RENDER_PRIMARY_SVC_ID: ${{ secrets.RENDER_PRIMARY_SVC_ID }}
+          RENDER_BACKUP_SVC_ID: ${{ secrets.RENDER_BACKUP_SVC_ID }}
+          MIRROR_REPO_TOKEN: ${{ secrets.MIRROR_REPO_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_OIDC_TOKEN: ${{ secrets.VERCEL_OIDC_TOKEN }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          CLOUDFLARE_WORKERS_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_API_TOKEN }}
+          FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
+          INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+          INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
+          INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_API_TOKEN: ${{ secrets.GITHUB_API_TOKEN }}
+          SUPREMEAI_GITHUB_TOKEN: ${{ secrets.SUPREMEAI_GITHUB_TOKEN }}
+          GITHUB_CLIENT_ID: ${{ secrets.GITHUB_CLIENT_ID }}
+          GITHUB_CLIENT_SECRET: ${{ secrets.GITHUB_CLIENT_SECRET }}
+          CI_WEBHOOK_SECRET: ${{ secrets.CI_WEBHOOK_SECRET }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_API_BASE: ${{ vars.VITE_API_BASE }}
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+        run: python scripts/audit_env_usage.py --env ${{ matrix.env }}
+
+  # ==============================================================================
+  # RENDER RUNTIME ENV CHECK (Gap #3): Render API থেকে আসল service env vars fetch করে
+  # যাচাই করে। CI GitHub secrets-এ set থাকলেও Render-এ নাই -> এখানে ধরা পড়বে।
+  # (Render API সিক্রেট ভ্যালু লুকায়, তাই key-এর presence চেক হয়)।
+  # ==============================================================================
+  render-env-live-check:
+    name: 🔌 Render Runtime Env Check (${{ matrix.env }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    strategy:
+      fail-fast: false
+      matrix:
+        env: [render-backend, render-admin, render-worker]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install PyYAML
+        run: pip install pyyaml
+      - name: 🔍 Verify Render runtime env [${{ matrix.env }}]
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          # বাংলা: service id mapping — backend=primary, admin=backup, worker=নিজস্ব (যদি থাকে)
+          RENDER_PRIMARY_SVC_ID: ${{ secrets.RENDER_PRIMARY_SVC_ID || vars.RENDER_PRIMARY_SVC_ID || 'srv-d9d3n58js32c738n79k0' }}
+          RENDER_BACKUP_SVC_ID: ${{ secrets.RENDER_BACKUP_SVC_ID || vars.RENDER_BACKUP_SVC_ID || 'srv-d9fg48bh523c73f63bb0' }}
+          RENDER_WORKER_SVC_ID: ${{ secrets.RENDER_WORKER_SVC_ID || vars.RENDER_WORKER_SVC_ID || '' }}
+        run: |
+          if [ "${{ matrix.env }}" = "render-backend" ]; then SVC="$RENDER_PRIMARY_SVC_ID"
+          elif [ "${{ matrix.env }}" = "render-admin" ]; then SVC="$RENDER_BACKUP_SVC_ID"
+          else SVC="$RENDER_WORKER_SVC_ID"; fi
+          if [ -z "$SVC" ]; then
+            echo "::warning::[${{ matrix.env }}] RENDER_WORKER_SVC_ID চার্জ করা নাই — worker runtime check skip করা হলো"
+            exit 0
+          fi
+          python scripts/verify_render_env.py --env ${{ matrix.env }} --service-id "$SVC"
+
+  # ==============================================================================
   # PRE-MERGE GATE: Iron Curtain — যেকোনো কোড মার্জের আগে বাধ্যতামূলক চেক
   # এই job fail হলে অন্য কোনো job চলবে না।
   # ==============================================================================
   pre-merge-gate:
     name: 🚧 Pre-Merge Gate (Iron Curtain)
-    needs: [changes, service-preflight]
+    needs: [changes, service-preflight, env-drift-check, render-env-live-check]
     runs-on: ubuntu-latest
     permissions:
       actions: write
