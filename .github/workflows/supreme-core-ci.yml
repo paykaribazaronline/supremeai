@@ -275,6 +275,10 @@ jobs:
           GITHUB_CLIENT_ID: ${{ secrets.GITHUB_CLIENT_ID }}
           GITHUB_CLIENT_SECRET: ${{ secrets.GITHUB_CLIENT_SECRET }}
           CI_WEBHOOK_SECRET: ${{ secrets.CI_WEBHOOK_SECRET }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          SUPREMEAI_ADMIN_PASSWORD_HASH: ${{ secrets.SUPREMEAI_ADMIN_PASSWORD_HASH }}
+          SUPREMEAI_ENCRYPTION_KEY: ${{ secrets.SUPREMEAI_ENCRYPTION_KEY }}
+          SUPREMEAI_JWT_SECRET: ${{ secrets.SUPREMEAI_JWT_SECRET }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
@@ -307,6 +311,7 @@ jobs:
       - name: 🔍 Verify Render runtime env [${{ matrix.env }}]
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_API_KEY_BACKUP: ${{ secrets.RENDER_API_KEY_BACKUP }}
           # বাংলা: service id mapping — backend=primary, admin=backup, worker=নিজস্ব (যদি থাকে)
           RENDER_PRIMARY_SVC_ID: ${{ secrets.RENDER_PRIMARY_SVC_ID || vars.RENDER_PRIMARY_SVC_ID || 'srv-d9d3n58js32c738n79k0' }}
           RENDER_BACKUP_SVC_ID: ${{ secrets.RENDER_BACKUP_SVC_ID || vars.RENDER_BACKUP_SVC_ID || 'srv-d9fg48bh523c73f63bb0' }}
