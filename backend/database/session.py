@@ -61,8 +61,12 @@ def _build_engine_kwargs(async_url: str) -> dict[str, Any]:
                 "pool_pre_ping": True,
                 "connect_args": {
                     "command_timeout": 30,
-                    "server_settings": {"application_name": f"supremeai_2.0_{_role}"},
+                    "server_settings": {"application_name": f"supremeai_2_0_{_role}"},
+                    # বাংলা মন্তব্য: PgBouncer (transaction/statement pool mode) এর সাথে সামঞ্জস্যের জন্য
+                    # prepared statement ক্যাশে বন্ধ করা হয়েছে এবং ইউনিক নাম জেনারেটর যোগ করা হয়েছে,
+                    # যাতে 'prepared statement already exists' (DuplicatePreparedStatementError) এড়ানো যায়।
                     "statement_cache_size": 0,
+                    "prepared_statement_name_func": lambda: f"__sai_{id(object())}_{__import__('secrets').token_hex(8)}__",
                 },
             }
         )

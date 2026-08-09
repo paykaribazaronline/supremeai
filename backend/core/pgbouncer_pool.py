@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import os
+import secrets
 from contextlib import asynccontextmanager
 
 try:
@@ -45,7 +46,10 @@ class PgBouncerConnectionPool:
             min_size=min_size,
             max_size=max_size,
             max_inactive_connection_lifetime=300,
+            # বাংলা মন্তব্য: PgBouncer (transaction/statement mode) এর সাথে সামঞ্জস্যের জন্য
+            # statement_cache_size=0 এবং ইউনিক prepared statement নাম — 'DuplicatePreparedStatementError' প্রতিরোধ করে।
             statement_cache_size=0,
+            prepared_statement_name_func=lambda: f"__sai_{id(object())}_{secrets.token_hex(8)}__",
             command_timeout=30,
         )
         logger.info(
