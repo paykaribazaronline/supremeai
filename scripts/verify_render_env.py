@@ -42,7 +42,7 @@ def load_registry(path: str) -> dict:
 
 def fetch_render_env(service_id: str, api_key: str) -> set:
     """বাংলা: Render API থেকে service env var-এর key গুলোর set ফেরত দেয়।"""
-    url = f"{RENDER_API}/services/{service_id}/env-vars"
+    url = f"{RENDER_API}/services/{service_id}/env-vars?limit=100"
     req = urllib.request.Request(url, headers={"Authorization": f"Bearer {api_key}"})
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:

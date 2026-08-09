@@ -66,7 +66,7 @@ for service in SERVICES:
 
     # Fetch existing env vars from Render
     existing_envs = {}
-    get_res = requests.get(f'https://api.render.com/v1/services/{svc_id}/env-vars', headers=headers, timeout=15)
+    get_res = requests.get(f'https://api.render.com/v1/services/{svc_id}/env-vars?limit=100', headers=headers, timeout=15)
     if get_res.status_code == 200:
         for item in get_res.json():
             # Render API response can be wrapped in envVar object or flat dict
