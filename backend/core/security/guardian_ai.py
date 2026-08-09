@@ -233,7 +233,8 @@ class PromptInjectionDefender:
     BANGLA_INJECTION_PATTERNS: list[dict[str, Any]] = [
         {
             "name": "bn_ignore_instructions",
-            "pattern": r"(?:আগের|পূর্ববর্তী|উপরের)\s+(?:সব|সমস্ত)\s+(?:নির্দেশনা|ইনস্ট্রাকশন)" r"\s+(?:ভুলে|বাদ দাও|এড়িয়ে যাও)",
+            "pattern": r"(?:আগের|পূর্ববর্তী|উপরের)\s+(?:সব|সমস্ত)\s+(?:নির্দেশনা|ইনস্ট্রাকশন)"
+            r"\s+(?:ভুলে|বাদ দাও|এড়িয়ে যাও)",
             "severity": ThreatLevel.HIGH,
         },
     ]
