@@ -71,9 +71,13 @@ def main() -> int:
     parser.add_argument("--service-id", required=True, help="Render service ID")
     args = parser.parse_args()
 
-    api_key = os.environ.get("RENDER_API_KEY")
+    if args.env == "render-admin":
+        api_key = os.environ.get("RENDER_API_KEY_BACKUP") or os.environ.get("RENDER_API_KEY")
+    else:
+        api_key = os.environ.get("RENDER_API_KEY")
+        
     if not api_key:
-        print("::error::RENDER_API_KEY env চার্জ করা হয়নি (GitHub secret থেকে ইনজেক্ট করুন)।")
+        print("::error::RENDER_API_KEY/BACKUP env চার্জ করা হয়নি (GitHub secret থেকে ইনজেক্ট করুন)।")
         sys.exit(1)
 
     registry = load_registry(REGISTRY_PATH)
