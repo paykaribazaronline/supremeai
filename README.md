@@ -19,7 +19,7 @@
 
 ## 🎯 What is SupremeAI 2.0?
 
-SupremeAI 2.0 is an **AI-native engineering platform** that enables developers to build, deploy, and manage intelligent AI agents at scale. It provides a complete ecosystem for creating AI solutions that understand, remember, and act.
+SupremeAI 2.0 is a **Universal AI Infrastructure Engine** designed to dynamically handle, adapt to, and fulfill any user demand or workload—from offline local models to cloud swarms—on-demand (0 to N scaling) without making restrictive pre-assumptions about user tasks.
 
 ### Key Features
 

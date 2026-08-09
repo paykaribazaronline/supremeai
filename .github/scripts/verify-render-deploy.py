@@ -202,11 +202,11 @@ def monitor_service(service):
                     print(f"🎉 Deploy {deploy_id} is now LIVE on Render!")
                     return check_http_health(service["url"], name)
                 elif status in ["update_failed", "build_failed", "canceled"]:
-                    print(f"⚠️ Deploy {deploy_id} reported status: {status}. Verifying direct HTTP health fallback...")
-                    if check_http_health(service["url"], name):
-                        print(f"✅ {name} HTTP health check passed despite deploy status '{status}'. Service is functional.")
-                        return True
-                    print(f"❌ Deploy {deploy_id} failed with status: {status} and HTTP health check also failed.")
+                    # বাংলা মন্তব্য: ডিপ্লয় ফেইল হলে সরাসরি HTTP হেলথ চেক দিয়ে পাশ করা যাবে না।
+                    # কারণ HTTP 200 শুধু পুরনো চলমান ভার্সন থেকে আসে (নতুন বিল্ড ডিপ্লয়ই হয়নি),
+                    # যা ফলস-পজিটিভ (সবুজ CI) তৈরি করে। তাই ফেইল স্ট্যাটাস = সরাসরি HARD FAIL।
+                    print(f"⚠️ Deploy {deploy_id} reported status: {status}. This is a HARD FAIL — the new build did not deploy.")
+                    print(f"❌ {name} deployment FAILED (status: {status}). HTTP health fallback is intentionally skipped because it would only reflect the previous running version, masking the failure.")
                     return False
             else:
                 print(f"⚠️ Error fetching deploy details: HTTP {res.status_code}")

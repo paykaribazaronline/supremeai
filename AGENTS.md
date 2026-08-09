@@ -1,92 +1,71 @@
-# SupremeAI 2.0 — AGENTS.md
-_Status: ACTIVE_
-_Last Updated: 2026-06-22_
+# SupremeAI 2.0 Agent Rules (এজেন্ট পরিচালনার মূল নীতিমালা)
+
+- **ফুল পাথ টার্মিনাল কমান্ড (Full Path Terminal Commands):** যেকোনো টার্মিনাল কমান্ড (যেমন `npx`, `pnpm`, `npm`, `python`, `git`) দেওয়ার সময় সবসময় সঠিক টার্গেট ডিরেক্টরি বা সম্পূর্ণ পাথ উল্লেখ করতে হবে (যেমন: `F:\supremeai backup\apps\studio-client` বা সম্পূর্ণ `cd` গাইডসহ), যাতে ইউজার বুঝতে পারেন ঠিক কোথায় কমান্ডটি চালাতে হবে।
+
+- **Render ডিপ্লয়মেন্ট ফেইলিয়র লগিং (Render Deployment Failure Logging):** যেকোনো সময় Render ডিপ্লয় ফেইল করলে, প্রতিটি ফেইল্ড সার্ভিসের সম্পূর্ণ র (raw) লগ সংগ্রহ করে `render_deployment_failure_logs.md` নামে একটি ডেসক্রিপ্টিভ মার্কডাউন ফাইল (Artifact) তৈরি করতে হবে।
+
+- **টাইমার ও ইউজার ইন্টারঅ্যাকশন কন্ট্রোল (Timer & User Interaction Control):**
+  - ইউজার যদি স্পষ্টভাবে "stop" বলেন বা অসন্তোষ প্রকাশ করেন, তবে অবিলম্বে `manage_task(Action='kill')` ব্যবহার করে সব ব্যাকগ্রাউন্ড টাইমার/টাস্ক বন্ধ করতে হবে এবং স্পষ্ট নির্দেশ ছাড়া নতুন কোনো টাইমার সেট করা যাবে না।
+  - উত্তর সবসময় সংক্ষিপ্ত, বস্তুনিষ্ঠ এবং বাস্তবিক লগের ওপর ভিত্তি করে দিতে হবে; কোনো আত্মরক্ষামূলক ব্যাখ্যা দেওয়া যাবে না।
+
+- **অতি-সংক্ষিপ্ত প্রতিক্রিয়া নীতি (Ultra-Concise Responses Rule):**
+  - উত্তর সবসময় যতদূর সম্ভব ছোট, সরাসরি এবং ন্যূনতম রাখতে হবে।
+  - ইউজার স্পষ্টভাবে "explain" বা "why" না জানালে একাধিক অনুচ্ছেদে বিস্তারিত ব্যাখ্যা দেওয়া যাবে না।
+
+- **একক ও সুনির্দিষ্ট মূল-কারণ নির্ধারণ নীতি (Single Definite Root-Cause Answer Rule):**
+  - **একাধিক অনুমানের মানা:** কোনো এরর বা ব্যর্থতার জন্য একাধিক সম্ভাব্য কারণ বা অনুমানপ্রসূত তালিকা দেওয়া যাবে না।
+  - **একক প্রমাণিত সত্য:** কোড ট্র্যাকিং ও অডিট করে কেবল একটি শতভাগ নিশ্চিত ও সত্য মূল কারণ বের করে উত্তর দিতে হবে।
+
+- **কঠোর গিট পুশ নীতি (Strict Git Push Rule):**
+  - **Push Stop State:** ইউজার যদি একবার "push stop" নির্দেশ দেন (বা ডিফল্ট অবস্থায়), তবে পরবর্তীতে ইউজার স্পষ্টভাবে "push start" বা "push continue" না বলা পর্যন্ত গিট পুশ সম্পূর্ণ বন্ধ থাকবে।
+  - **Push Start / Continue State:** কেবল ইউজার স্পষ্টভাবে "push start", "push continue" বা সরাসরি পুশ করার নির্দেশ দিলে সেই মুহূর্ত থেকে Push State চালু হবে এবং পরবর্তীতে ইউজার "push stop" না বলা পর্যন্ত গিট পুশ সচল থাকবে (সবসময় সর্বশেষ আদেশ প্রযোজ্য)।
+  - ইউজারের সাধারণ সম্মতি (যেমন "ok", "do that", "fix it", "yes") দিয়ে পুশ করার অনুমতি প্রদান করা হয় না।
+
+- **সর্বশেষ আদেশচালিত স্টেট নীতি (Last-Order Driven Stateful Rules):**
+  - `AGENTS.md`-এর সকল বিপরীতমুখী কমান্ড বা অ্যাকশনের ক্ষেত্রে (যেমন: `push start` vs `push stop`, `timer on` vs `timer off`, `explain/plan` vs `start work/implement`) সবসময় ইউজারের **সর্বশেষ প্রদত্ত আদেশ (Last Order)** সক্রিয় থাকবে এবং নতুন বিপরীত আদেশ না আসা পর্যন্ত সেই স্টেট নিরবচ্ছিন্নভাবে কার্যকর থাকবে।
+
+- **ব্যাকগ্রাউন্ড টাইমার নিষিদ্ধকরণ নীতি (No Background Timers Rule):** `git push` এর পর বা রান টাইম চলাকালীন ইউজার স্পষ্ট নির্দেশ না দিলে ব্যাকগ্রাউন্ড টাইমার বা শিডিউলার সেট করা যাবে না।
+
+- **এক্সিকিউশন টাইম-ট্র্যাকিং ও হ্যাং প্রতিরোধ নীতি (Execution Time-Tracking & Hang Prevention Rule):**
+  - **আনুমানিক সময় হিসাব:** যেকোনো টেস্ট বা কমান্ড চালানোর আগে আনুমানিক সময় অনুমান করতে হবে (ইউনিট টেস্ট < ১৫ সেকেন্ড, বিল্ড < ৩০ সেকেন্ড)।
+  - **টাইম-ট্র্যাকিং:** আনুমানিক সময়ের চেয়ে দ্বিগুণ বা ৩০ সেকেন্ডের বেশি সময় লাগলে সাথে সাথে লগ স্ক্যান করতে হবে বা টাস্ক থামিয়ে আনমকড নেটওয়ার্ক কল ডায়াগনস্টিক করতে হবে।
+  - **নেটওয়ার্ক ব্লকার প্রতিরোধ:** টেস্ট সুইট চালানোর আগে সব এক্সটার্নাল রাউট (`core.llm_router.LLMRouter`) এবং ডাটাবেজ কানেকশন সম্পূর্ণ মক করা নিশ্চিত করতে হবে।
+
+- **আনকমিটেড ফাইল কমিট ও প্রভাব রিপোর্ট (Commit All Uncommitted Files & Impact Report):** কমিট করার সময় সব আনকমিটেড ফাইল স্টেজ (`git add`) করতে হবে এবং ফাইলগুলো সিস্টেমের কী কী উন্নতি করছে তার একটি সংক্ষিপ্ত সারসংক্ষেপ প্রকাশ করতে হবে।
+
+- **সমজাতীয় ও স্কোপ-ওয়াইড ভেরিফিকেশন নীতি (Homologous & Scope-Wide Verification Rule):**
+  - কোনো ফাইলে বাগ বা ব্রেকিং চেঞ্জ পাওয়া গেলে কেবল সেই একটি ফাইলে ফিক্স সীমাবদ্ধ রাখা যাবে না।
+  - সব প্ল্যাটফর্মে (Backend, Web Studio, Mobile, Extensions, CI/CD) সম্পর্কিত অন্যান্য সব সমজাতীয় বা কলিং ফাইলে অনুসন্ধান (`grep_search`) করে একসাথে সংশোধন করতে হবে।
+
+- **কোড কমেন্ট (Code Comments - Bangla):** কোডবেসে পরিবর্তন করার সময় সবসময় **বাংলায়** ব্যাখ্যামূলক মন্তব্য যুক্ত করতে হবে যাতে পরবর্তীতে টিমের সবাই পরিবর্তনের কারণ বুঝতে পারে।
+
+- **প্রোডাকশন-রেডি বাস্তবায়ন (Production-Ready Implementation):** কোনো ফেক, মক বা ডামি ইমপ্লিমেন্টেশন ব্যবহার করা যাবে না। সব কোড প্রোডাকশন-রেডি ও অরিজিনাল ব্যাকএন্ড সার্ভিসের সাথে পুরোপুরি কার্যকর হতে হবে।
+
+- **প্রোডাকশন-গ্রেড ইনফ্রাস্ট্রাকচার নীতি (Production-Grade Infrastructure Rule):** কোনো লোকাল-অনলি হ্যাফ বা লোকাল টার্গেট থাকা যাবে না। সব কোড ও ওয়ার্কফ্লো রিয়েল ক্লাউড ইনফ্রাস্ট্রাকচার (Cloud Run, Render, Vercel, Supabase, Cloudflare, GitHub Actions) কেন্দ্রিক হতে হবে।
+
+- **কঠোর মাস্টার অডিট এক্সিকিউশন নীতি (Strict Master Audit Execution Rule):**
+  - অডিটের অনুরোধ করা হলে [`docs/long-term-maintenance/SUPREMEAI_MASTER_AUDIT_PLAN.md`](file:///g:/supremeai%20backup/docs/long-term-maintenance/SUPREMEAI_MASTER_AUDIT_PLAN.md) ফাইলের মাস্টার অডিট ব্লুপ্রিন্ট কঠোরভাবে অনুসরণ করতে হবে।
+  - অডিট রিপোর্টগুলো `docs/audit_reports/` ডিরেক্টরিতে আলাদা মার্কডাউন ফাইল হিসেবে সেভ করতে হবে।
+  - প্রতিটি তথে concretely ফাইল পাথ, line number বা টেস্ট লগ থাকতে হবে।
+
+- **এন্ড-টু-এন্ড ডায়াগনস্টিক, ভেরিফিকেশন ও পুশ প্রোটোকল (End-to-End Diagnostic, Verification & Push Protocol):**
+  - **ধাপ ১:** `git remote -v` চেক করে `origin` এবং `target` পৃথকীকরণ।
+  - **ধাপ ২:** GitHub API ব্যবহার করে ফেইল্ড রান এবং এরর স্টেপ বের করা।
+  - **ধাপ ৩:** র (raw) লগ ফেচ করা ও মূল সমস্যা চিহ্নিত করা।
+  - **ধাপ ৪:** একটি মাত্র প্রমাণিত মূল কারণ বিশ্লেষণ।
+  - **ধাপ ৫:** সব সমজাতীয় ফাইল ও প্ল্যাটফর্মে একসাথে ফিক্স প্রদান ও বাংলায় কমেন্ট যোগ।
+  - **ধাপ ৬:** লোকাল ভেরিফিকেশন ও আনকমিটেড ফাইলের প্রভাব রিপোর্ট প্রকাশ।
+  - **ধাপ ৭:** ইউজার সরাসরি "push" লিখলেই কেবল `origin` (`SaifulHaqueNiloy/supremeai`) এ পুশ করা। `target`-এ সরাসরি পুশ সম্পূর্ণ নিষিদ্ধ।
+  - **২-মিনিট সর্বোচ্চ সিআই পোলিং রুল:** সিআই ট্র্যাকিংয়ের সময় সর্বোচ্চ ১৫-৩০ সেকেন্ড পর পোল করতে হবে এবং ২ মিনিটের মধ্যে রেজাল্ট জানাতে হবে।
+  - **কন্টিনিউয়াস গ্রিন লুপ:** সব সিআই পাইপলাইন ১০০% গ্রিন (ZERO Failure) না হওয়া পর্যন্ত অডিট ও ফিক্স লুপ চালু রাখতে হবে।
 
 ---
 
-## Project Overview
+## 🇧🇩 মেধা ও ভাষাগত উৎকর্ষ (Bengali Language Excellence - BLE-001~003)
 
-SupremeAI 2.0 is a multi-cloud AI orchestration platform built on FastAPI with React/Vite frontend, Flutter mobile, and VS Code extension. It targets zero-cost operation through aggressive free-tier utilization across 8+ AI providers.
+- **BLE-001:** প্রজেক্টের **ডিফল্ট ভাষা বাংলা** (Default Language is Bangla)। ইউজার যেকোনো ভাষায় প্রশ্ন করলেও উত্তর সবসময় স্পষ্ট ও সাবলীল বাংলায় দিতে হবে — **Banglish সম্পূর্ণ নিষিদ্ধ**।
+- **BLE-002:** Customer-কে সর্বদা **'আপনি'** সম্বোধন করো — 'তুমি' নয়।
+- **BLE-003:** Code সবসময় English-এ — তবে কোডের মন্তব্য (comments) বাধ্যতামূলক বাংলায় থাকতে হবে।
 
-## Core Directories
-
-| Directory | Purpose |
-|-----------|---------|
-| `backend/` | FastAPI backend (Python 3.11+, Poetry) |
-| `apps/studio-client/` | React/Vite web client |
-| `apps/mobile/` | Flutter mobile app |
-| `tools/vscode-extension/` | VS Code extension |
-| `admin/` | Admin god mode |
-| `skills/` | Dynamic skills registry |
-| `evolution/` | Self-learning engine |
-| `infrastructure/` | Terraform, Cloudflare, Firebase |
-| `docs/` | Project documentation |
-| `scripts/` | Helper scripts (bootstrap, deploy, worktrees, runner, benchmark) |
-
-## Key Commands
-
-```bash
-# Bootstrap environment
-python scripts/bootstrap_env.py
-
-# Setup worktree for isolated task
-bash scripts/worktrees/setup_worktree.sh create <task-name>
-
-# Run task in worktree
-bash scripts/worktrees/run_task.sh <task-name> pytest
-
-# Setup local or docker runner
-bash scripts/runner/setup_runner.sh local
-
-# Create isolated test environment
-bash scripts/testenv/setup_test_env.sh create
-
-# Run performance benchmark
-python scripts/benchmark/perf_benchmark.py --url http://127.0.0.1:8000 --requests 50
-
-# Backend dev server
-pnpm backend:dev
-
-# Run tests
-pnpm backend:test
-```
-
-## Coding Standards
-
-- Python: Ruff lint, MyPy typecheck, pytest tests
-- TypeScript: ESLint, Prettier, Vitest
-- No hardcoded secrets
-- All admin endpoints require JWT admin role
-- Use `settings` from `core.config` (single source of truth)
-- Test coverage target: >= 38%
-
-## Branching Strategy
-
-- `main` / `master` — production
-- `develop` — integration
-- `feature/*` — new features
-- `fix/*` — bug fixes
-- `agent/*` — Agent Manager worktrees
-
-## CI/CD
-
-- GitHub Actions: `.github/workflows/monorepo_ci_cd.yml`
-- Change detection via `dorny/paths-filter`
-- Backend: Poetry + pytest + coverage
-- Frontend: pnpm + turbo + build
-- Deploy: Cloud Run (GCP) + Firebase Hosting
-- Notify: Discord webhooks
-
-## Next Actions
-
-1. Run `kilo.json` commands to bootstrap
-2. Execute rerun checklist in `docs/02-admin/rerun-checklist.md`
-3. Separate test env via `scripts/testenv/setup_test_env.sh`
-
----
-
-_Generated for SupremeAI 2.0 — Admin Plan Execution_
-
-## Agent Behavioral Rules
-
-- **Code Comments (Bangla):** Whenever making changes to the codebase, always try to add explanatory comments in **Bangla** so that the rationale behind the changes is easily understood later by the team.
+- **স্বয়ংক্রিয় সিক্রেট ও এনভায়রনমেন্ট সিঙ্ক্রোনাইজেশন নীতি (Auto Secret & Env Sync Rule):**
+  - লোকাল .env ফাইলের API Key বা কাস্টম ক্রেডেনশিয়ালস ব্যবহার করে ক্লাউড প্ল্যাটফর্মে (যেমন Render API, Vercel API) যেসব কনফিগ, ভেরিয়েবল আপডেট বা সিঙ্ক্রোনাইজেশন সমাধান করা সম্ভব, তা ইউজারকে না বসিয়ে রেখে স্বায়ত্তশাসিতভাবে দ্রুত সম্পন্ন করতে হবে।

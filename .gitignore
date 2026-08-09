@@ -260,3 +260,21 @@ archive/
 *.bak
 backend/tmp_test_learning_data/
 New folder/
+
+# IDE and Agent Extensions
+.continue/
+.actrc
+.blackboxrules
+
+# Temporary and Root Script Files
+f
+fix_bare_yields.py
+sphere.html
+fix_flutter_deps.ps1
+fix_flutter_deps.sh
+blackbox_mcp_settings.example.json
+
+# Auto-Generated Firebase DataConnect SDKs
+dataconnect-generated/
+dataconnect_generated/
+dataconnect-admin-generated/

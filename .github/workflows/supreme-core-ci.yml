@@ -582,6 +582,10 @@ jobs:
           # বাংলা মন্তব্য: GHCR registry cache ব্যবহার করা হচ্ছে কারণ GHA cache (10GB limit) Poetry/pnpm cache evict করে দিচ্ছিল
           cache-from: type=registry,ref=ghcr.io/${{ steps.string.outputs.OWNER_LOWER }}/backend-ci-base:buildcache
           cache-to: type=registry,ref=ghcr.io/${{ steps.string.outputs.OWNER_LOWER }}/backend-ci-base:buildcache,mode=max
+          # বাংলা মন্তব্য: CACHEBUST build-arg — Dockerfile.ci বদলালে cache অটোমেটিক invalid হবে,
+          # ফলে পুরানো Dockerfile-এর ভিত্তিতে ভুল cache hit হওয়া প্রতিরোধ হবে।
+          build-args: |
+            CACHEBUST=${{ hashFiles('backend/Dockerfile.ci') }}
 
   backend-core:
     name: 🐍 Backend (Test)
@@ -617,7 +621,10 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
-      POETRY_VIRTUALENVS_CREATE: "false"
+      # বাংলা মন্তব্য: POETRY_VIRTUALENVS_CREATE="false" থাকলে poetry config virtualenvs.create true-ও override হয়ে যায়
+      # (environment variable কনফিগ ফাইলের চেয়ে বেশি priority পায়), ফলে কোনো virtualenv তৈরি হয় না
+      # এবং poetry run pytest-এ "Command not found: pytest" error হয় (paykaribazaronline repo-তে cache miss-এর পর নিশ্চিত fail)।
+      # তাই এই env-var সম্পূর্ণ বাদ দেওয়া হলো — নিচের poetry config virtualenvs.create true-ই কার্যকর হবে।
       SETUPTOOLS_USE_DISTUTILS: stdlib
       SUPREMEAI_ENCRYPTION_KEY: "CwE60g_bA67m-mock-encryption-key-padded-len="
       PYTHONPATH: ${{ github.workspace }}/backend
@@ -655,6 +662,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install poetry
+          # বাংলা মন্তব্য: poetry ইনস্টলের সাথে সাথেই virtualenvs.create true ও in-project সেট করা হচ্ছে
+          # যাতে পরবর্তী poetry install-এ .venv সঠিকভাবে তৈরি হয় এবং poetry run pytest কাজ করে।
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
 
       # বাংলা মন্তব্য: পূর্বে শুধু global pypoetry/pip cache করা হতো।
       # এখন backend/.venv-ও cache করা হচ্ছে — poetry.lock অপরিবর্তিত থাকলে
@@ -683,16 +694,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-playwright-
 
-      # বাংলা মন্তব্য: venv cache miss হলেই poetry install চলবে — hit হলে skip।
+      # বাংলা মন্তব্য: poetry config virtualenvs.create true ও in-project সেট করা হচ্ছে যাতে
+      # cache থেকে restore হওয়া পুরনো config (যেখানে virtualenvs.create=false থাকতে পারে) override হয়।
+      # cache hit হলেও --dry-run নয় — বরং --sync দিয়ে আসল install নিশ্চিত করা হয়,
+      # যাতে .venv-এ pytest (dev dependency) অবশ্যই থাকে।
       - name: 📦 Install Dependencies (Smart Sync)
         run: |
           mkdir -p backend
           cd backend
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
           if [ "${{ steps.poetry-cache.outputs.cache-hit }}" != "true" ]; then
             poetry install --with dev
           else
-            echo "venv cache HIT — skipping full poetry install"
-            poetry install --no-root --sync --with dev --dry-run 2>&1 | head -5 || true
+            echo "venv cache HIT — syncing dependencies with poetry"
+            poetry install --no-root --sync --with dev
           fi
 
       # বাংলা মন্তব্য: Playwright browser cache miss হলেই download হবে — hit হলে skip।
@@ -728,6 +744,9 @@ jobs:
           POSTGRES_PASSWORD: "test_password"
           POSTGRES_DB: "supreme_test_db"
         run: |
+          # বাংলা মন্তব্য: virtualenvs.create true ও in-project নিশ্চিত করে poetry run pytest সরাসরি চালানো হচ্ছে।
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
           if [ "${{ needs.changes.outputs.backend }}" = 'true' ] || [ "${{ needs.changes.outputs.shared }}" = 'true' ]; then
             poetry run pytest -n auto --dist=loadfile --timeout=120 --md pytest-report.md --cov=core --cov-report=json:coverage.json --cov-report=term-missing --cov-fail-under=38 -k "not chaos"
           else
@@ -804,9 +823,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          # বাংলা মন্তব্য: deps: prefix — cache-janitor-এ dependency cache হিসেবে চিহ্নিত হবে,
+          # ফলে build cache-এর আগে evict হবে না।
+          key: deps:${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-pnpm-
+            deps:${{ runner.os }}-pnpm-
 
       - name: 📦 Install Pnpm Dependencies
         run: |
@@ -824,7 +845,17 @@ jobs:
           path: .turbo
           key: ${{ runner.os }}-turbo-${{ hashFiles('pnpm-lock.yaml', 'apps/**/package.json', 'tools/**/package.json') }}
           restore-keys: |
-            ${{ runner.os }}-turbo-
+            turbo:${{ runner.os }}-turbo-node${{ env.NODE_VERSION }}-
+            turbo:${{ runner.os }}-turbo-
+
+      # বাংলা মন্তব্য: Turbo cache hit/miss রিপোর্ট GitHub Step Summary-তে দেখানো হচ্ছে।
+      - name: 📊 Turbo Cache Report
+        run: |
+          if [ "${{ steps.turbo-cache.outputs.cache-hit }}" == "true" ]; then
+            echo "- Turbo cache: HIT — build artifacts restored from cache" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Turbo cache: MISS — fresh build running" >> $GITHUB_STEP_SUMMARY
+          fi
 
       # বাংলা মন্তব্য: Turbo cache hit/miss রিপোর্ট GitHub Step Summary-তে দেখানো হচ্ছে।
       - name: 📊 Turbo Cache Report
@@ -1028,6 +1059,10 @@ jobs:
           # বাংলা মন্তব্য: GHCR registry cache ব্যবহার করা হচ্ছে — আলাদা storage quota তাই 10GB GHA limit স্পর্শ করে না
           cache-from: type=registry,ref=ghcr.io/${{ steps.string.outputs.OWNER_LOWER }}/supremeai-backend:buildcache
           cache-to: type=registry,ref=ghcr.io/${{ steps.string.outputs.OWNER_LOWER }}/supremeai-backend:buildcache,mode=max
+          # বাংলা মন্তব্য: CACHEBUST build-arg — Dockerfile বা poetry.lock বদলালে cache অটোমেটিক invalid হবে,
+          # ফলে পুরানো Dockerfile-এর ভিত্তিতে ভুল cache hit হওয়া প্রতিরোধ হবে।
+          build-args: |
+            CACHEBUST=${{ hashFiles('backend/Dockerfile', 'backend/poetry.lock') }}
 
   deploy-user-backend:
     name: 🚀 Deploy User Backend (Render)
@@ -1136,7 +1171,8 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY_BACKUP }}" \
             -H "Content-Type: application/json" \
             -d "{\"clearCache\":\"do_not_clear\",\"imageUrl\":\"$IMAGE_URL\"}")
-          if [ "$STATUS" -eq 200 ] || [ "$STATUS" -eq 201 ]; then
+          # বাংলা মন্তব্য: Render API ডিপ্লয় তৈরিতে 201 Created বা 202 Accepted ফেরত দেয়। তাই 201 বা 202 স্টেটাস কোড চেক করা হচ্ছে।
+          if [ "$STATUS" = "201" ] || [ "$STATUS" = "202" ]; then
             echo "✅ Admin Render deploy triggered via API with prebuilt image (status: $STATUS)!"
           else
             echo "❌ Admin API deploy with prebuilt image returned status: $STATUS"
@@ -1326,6 +1362,9 @@ jobs:
             exit 1
           fi
 
+      # বাংলা মন্তব্য: continue-on-error: true সরানো হয়েছে — কারণ এটি real deployment failure mask করছিল।
+      # User Backend (primary) fail হলেও CI pipeline সবুজ দেখাচ্ছিল, কিন্তু Render-এ আসলে service unhealthy ছিল।
+      # এখন verify-render-deploy.py সঠিকভাবে exit code 1 return করলে job fail হবে এবং CI লাল দেখাবে।
       - name: Verify Render Deploy Health
         run: python .github/scripts/verify-render-deploy.py
         env:
@@ -1376,6 +1415,11 @@ jobs:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           GCP_REGION: ${{ vars.GCP_REGION || 'us-central1' }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          SUPABASE_DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+          SUPABASE_DATABASE_URL_POOLER: ${{ secrets.SUPABASE_DATABASE_URL_POOLER }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SERVICE_ROLE: ${{ vars.SERVICE_ROLE || 'user' }}
         run: python .github/scripts/supreme_ci.py deploy
 
 
@@ -1568,7 +1612,8 @@ jobs:
           # না থাকলে push করবে না, ফলে অবাঞ্ছিত cross-repo push loop বন্ধ হবে।
           echo "🔍 Checking for diff against mirror/main before pushing..."
           git fetch mirror main
-          if git diff --quiet mirror/main HEAD -- . ':(exclude).github/workflows'; then
+          # বাংলা: .github/workflows ফোল্ডার এখন diff-এ অন্তর্ভুক্ত — CI কনফিগ পরিবর্তন sync হওয়া দরকার
+          if git diff --quiet mirror/main HEAD -- . ; then
             echo "✅ No code difference vs mirror/main — skipping push to prevent infinite loop."
             exit 0
           fi
@@ -1651,7 +1696,8 @@ jobs:
           # বাংলা: Git diff গার্ড — rebase-এর পরেও যদি target/main-এর সাথে কোনো কোড পার্থক্য না থাকে,
           # তাহলে push করবে না (এতে অবাঞ্ছিত promotion loop বন্ধ হবে)।
           echo "🔍 Checking for diff against target/main after rebase..."
-          if git diff --quiet target/main HEAD -- . ':(exclude).github/workflows'; then
+          # বাংলা: .github/workflows ফোল্ডার এখন diff-এ অন্তর্ভুক্ত — CI কনফিগ পরিবর্তন sync হওয়া দরকার
+          if git diff --quiet target/main HEAD -- . ; then
             echo "✅ No code difference vs target/main — skipping promotion push."
             exit 0
           fi
