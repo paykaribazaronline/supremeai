@@ -1542,6 +1542,7 @@ jobs:
       - name: Build Admin
         env:
           VITE_ADMIN_BACKEND: ${{ vars.SUPREMEAI_ADMIN_API_URL || 'https://supremeai-admin.onrender.com' }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
         run: pnpm --dir apps/studio-client run build:admin
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
