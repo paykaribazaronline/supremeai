@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../../store/useStore';
 import { AppDefaults } from '../../config/constants';
 import { apiClient, setApiConcurrency } from '../../services/apiClient';
@@ -9,20 +9,31 @@ interface GlobalConfigInitializerProps {
 }
 
 // বাংলা মন্তব্য: সেলফ-হিলিং রিট্রাই এর বাউন্ডেড লিমিট ও ব্যাকঅফ (ইনফিনিট লুপ প্রতিরোধ)।
-const MAX_RETRIES = 3;
+// পাবলিক কনফিগ ব্যর্থ হলে দ্রুত fallback নিতে ১ রিট্রাই যথেষ্ট।
+const MAX_RETRIES = 1;
 const BASE_BACKOFF_MS = 1000;
+// বাংলা মন্তব্য: Render কোল্ড স্টার্ট ৩০-৫০ সেকেন্ড হতে পারে; ৮ সেকেন্ডের মধ্যে রিয়েল কনফিগ না এলে
+// সাথে সাথে AppDefaults দিয়ে UI রেন্ডার শুরু করব (non-blocking) — দীর্ঘ কালো স্ক্রিন রোধ।
+const CONFIG_DEADLINE_MS = 8000;
 
 export const GlobalConfigInitializer: React.FC<GlobalConfigInitializerProps> = ({ children }) => {
-  const { isConfigLoaded, setConfig } = useStore();
+  const { setConfig } = useStore();
   const [error, setError] = useState<string | null>(null);
-  const [isHealing, setIsHealing] = useState(false);
+  const startedRef = useRef(false);
 
   useEffect(() => {
+    // বাংলা মন্তব্য: শুধু একবারই ইনিশিয়ালাইজ করব; isConfigLoaded পরিবর্তনে রি-রান করবে না
+    // (রি-রান করলে ইন-ফ্লাইট ব্যাকগ্রাউন্ড ফেচ বাতিল হয়ে রিয়েল কনফিগ কখনো আসত না)।
+    if (startedRef.current) return;
+    startedRef.current = true;
+
     let cancelled = false;
     let retryCount = 0;
     let backoffTimer: ReturnType<typeof setTimeout> | null = null;
+    let deadlineTimer: ReturnType<typeof setTimeout> | null = null;
 
     const applyConfig = (data: any) => {
+      if (cancelled) return;
       setConfig(data);
       if (data?.maxConcurrency) {
         setApiConcurrency(data.maxConcurrency);
@@ -39,6 +50,7 @@ export const GlobalConfigInitializer: React.FC<GlobalConfigInitializerProps> = (
       try {
         const data = await apiClient.get<any>('/api/config/public');
         if (cancelled) return;
+        // বাংলা মন্তব্য: রিয়েল কনফিগ এসেছে — AppDefaults fallback-এর ওপর আপডেট করবে
         applyConfig(data);
       } catch (err) {
         if (cancelled) return;
@@ -50,17 +62,17 @@ export const GlobalConfigInitializer: React.FC<GlobalConfigInitializerProps> = (
           ?? AppDefaults.features.selfHealing;
         if (healingEnabled && retryCount < MAX_RETRIES) {
           retryCount += 1;
-          setIsHealing(true);
           const delay = BASE_BACKOFF_MS * Math.pow(2, retryCount - 1);
           console.warn(`[Self-Healing] Retry ${retryCount}/${MAX_RETRIES} in ${delay}ms`);
           backoffTimer = setTimeout(fetchConfig, delay);
           return;
         }
 
-        // বাংলা মন্তব্য: retry শেষেও fail → safe-default fallback (graceful degradation)
-        applyConfig(AppDefaults);
-        setIsHealing(false);
-        setError("Failed to connect to SupremeAI core. Using safe-default configurations.");
+        // বাংলা মন্তব্য: শুধু তখনই fallback করব যদি এখনও কোনো কনফিগ লোড না হয়ে থাকে
+        if (!useStore.getState().isConfigLoaded) {
+          applyConfig(AppDefaults);
+          setError("Failed to connect to SupremeAI core. Using safe-default configurations.");
+        }
       }
     };
 
@@ -75,12 +87,18 @@ export const GlobalConfigInitializer: React.FC<GlobalConfigInitializerProps> = (
       }
     };
 
-    if (!isConfigLoaded) {
-      const loadConfig = async () => {
-        await fetchConfig();
-      };
-      loadConfig();
-    }
+    // বাংলা মন্তব্য: রিয়েল কনফিগ ব্যাকগ্রাউন্ডে আনবে (non-blocking) — UI আটকাবে না
+    fetchConfig();
+
+        // বাংলা মন্তব্য: ৮ সেকেন্ড ডেডলাইন — রিয়েল কনফিগ না এলে সাথে সাথে AppDefaults apply করে UI আনব্লক করব
+        deadlineTimer = setTimeout(() => {
+          if (cancelled) return;
+          if (!useStore.getState().isConfigLoaded) {
+            console.warn(`[Config] Deadline ${CONFIG_DEADLINE_MS}ms exceeded. Falling back to safe defaults.`);
+            applyConfig(AppDefaults);
+            setError("Connecting to SupremeAI core is taking longer than expected. Showing safe-default view.");
+          }
+        }, CONFIG_DEADLINE_MS);
 
     if (typeof window !== 'undefined') {
       window.addEventListener('online', onDeviceOnline);
@@ -89,25 +107,14 @@ export const GlobalConfigInitializer: React.FC<GlobalConfigInitializerProps> = (
     return () => {
       cancelled = true;
       if (backoffTimer) clearTimeout(backoffTimer);
+      if (deadlineTimer) clearTimeout(deadlineTimer);
       if (typeof window !== 'undefined') {
         window.removeEventListener('online', onDeviceOnline);
       }
     };
-  }, [isConfigLoaded, setConfig]);
+  }, [setConfig]);
 
-  if (!isConfigLoaded) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-[#0a0a0a] text-white">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-indigo-500"></div>
-          <p className="text-sm font-medium tracking-wide text-gray-400">
-            {isHealing ? 'Recovering Core Telemetry...' : 'Initializing Core Telemetry...'}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
+  // বাংলা মন্তব্য: আর কোনো ব্লকিং স্পিনার নেই — কনফিগ লোড হোক বা না হোক children সবসময় রেন্ডার হবে
   return (
     <>
       {error && (

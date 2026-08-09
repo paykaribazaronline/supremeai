@@ -79,7 +79,11 @@ export function setupGlobalFetchInterceptor() {
       return response;
     } catch (error) {
       const win = window as unknown as { showGlobalToast?: (type: string, msg: string) => void };
-      if (win.showGlobalToast) {
+      // বাংলা মন্তব্য: AbortError (timeout বা signal abort) হলে raw মেসেজ ("signal is aborted without reason")
+      // ইউজারকে না দেখিয়ে নীরবে caller-কে throw করব; GlobalConfigInitializer নিজেই fallback দেখাবে।
+      const isAbort = error instanceof Error &&
+        (error.name === 'AbortError' || error.message.includes('aborted') || error.message.includes('aborted without reason'));
+      if (!isAbort && win.showGlobalToast) {
         win.showGlobalToast('error', `Network Error: ${error instanceof Error ? error.message : 'Unknown'}`);
       }
       throw error;

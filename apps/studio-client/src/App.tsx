@@ -32,6 +32,8 @@ const ErrorPage = React.lazy(() => import("./pages/ErrorPage"));
 // Services & Hooks
 import { getAethelResponse } from "./services/chatService";
 import type { ChatMessage as ApiChatMessage } from "./services/chatService";
+// বাংলা মন্তব্য: SSE স্ট্রিম হুক মাউন্ট করে ব্যাকএন্ডের রিয়েল অনলাইন স্ট্যাটাস (isServerOnline) সেট করা হয়
+import { useServerStream } from './hooks/useServerStream';
 import ErrorBoundary from './components/admin/DashboardErrorBoundary';
 import { primeDeviceFingerprint } from "./utils/deviceFingerprint";
 
@@ -76,6 +78,8 @@ export const App: React.FC = () => {
 
 const AppContent: React.FC = () => {
   const { isServerOnline, deployGate } = useStore();
+  // বাংলা মন্তব্য: SSE স্ট্রিম কানেক্ট করে সার্ভার অনলাইন স্ট্যাটাস ট্র্যাক করা হচ্ছে (এর আগে হুকটি কোথাও মাউন্ট ছিল না, তাই CORE সবসময় OFFLINE দেখাত)
+  useServerStream();
 
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');

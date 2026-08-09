@@ -38,21 +38,18 @@ export default {
     const targets = [
       env.PRIMARY_URL || "https://supremeai-backend.onrender.com/health",
       env.ADMIN_URL || "https://supremeai-admin.onrender.com/health",
-      env.BACKUP_HEALTH || "https://supremeai-studio-client-qb34.onrender.com/api/v1/health",
+      env.BACKUP_HEALTH || "https://supremeai-studio-client.onrender.com/api/v1/health",
     ];
 
-    // Ping each target multiple times to ensure wake-up
+    // বাংলা মন্তব্য: ঘুমন্ত Render সার্ভার ৩০-৫০ সেকেন্ডে ওয়েক আপ করে। তাই পিংগুলো বুট উইন্ডো জুড়ে ছড়িয়ে দেওয়া হলো:
+    // প্রথম পিং → ~২৫ সেকেন্ড অপেক্ষা → দ্বিতীয় পিং, যাতে ওয়েক-আপ সম্পূর্ণ হয় এবং অন্তত একটি পিং সফল হয়।
     const results = [];
     for (const url of targets) {
-      // Send 3 consecutive pings to ensure service wakes up
-      for (let i = 0; i < 3; i++) {
-        const result = await this.pingWithRetry(url, 2);
-        results.push({ url, attempt: i + 1, success: result });
-        if (result && i < 2) {
-          // Brief pause between pings to space them out
-          await this.sleep(1000);
-        }
-      }
+      const result1 = await this.pingWithRetry(url, 1);
+      results.push({ url, attempt: 1, success: result1 });
+      await this.sleep(25000);
+      const result2 = await this.pingWithRetry(url, 1);
+      results.push({ url, attempt: 2, success: result2 });
     }
 
     const successfulPings = results.filter(r => r.success).length;
@@ -98,7 +95,8 @@ export default {
       try {
         const response = await fetch(url, {
           headers: { "User-Agent": "Cloudflare-KeepAlive-Worker/2.0 (Aggressive)" },
-          signal: AbortSignal.timeout(10000),
+          // বাংলা মন্তব্য: Render কোল্ড স্টার্ট ৩০-৫০ সেকেন্ড, তাই ৬০ সেকেন্ড টাইমআউট দিতে হবে
+          signal: AbortSignal.timeout(60000),
         });
         if (response.ok) return true;
         console.warn(`⚠️ Ping ${url} returned ${response.status}, retry ${i + 1}/${maxRetries}`);
