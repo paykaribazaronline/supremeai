@@ -9,6 +9,9 @@ compatibility_date = "2026-07-01"
 crons = ["*/8 * * * *"]  # Pings every 8 minutes (Render sleeps after 15 min idle, 8 min guarantees 100% active state)
 
 [vars]
+# বাংলা মন্তব্য: ইউজার ব্যাকএন্ড এবং অ্যাডমিন ব্যাকএন্ড উভয়কে অ্যাক্টিভ রাখার ইউআরএল
+USER_BACKEND_URL = "https://supremeai-backend.onrender.com"
+ADMIN_BACKEND_URL = "https://supremeai-admin.onrender.com"
 GCP_CLOUD_RUN_URL = "https://supremeai-backend.onrender.com"
 GCP_REGION = "us-central1"
 GCP_WEIGHT = "100"

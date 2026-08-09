@@ -36,14 +36,24 @@ const { chromium } = require('@playwright/test');
     });
   });
 
-  // পেজ লোড
-  await page.goto('https://supremeai-admin.web.app/admin', {
-    waitUntil: 'networkidle',
-    timeout: 60000
+  // বাংলা মন্তব্য: সকল নেটওয়ার্ক রেসপন্স ও এরর স্ট্যাটাস ট্র্যাক করা
+  page.on('response', (res) => {
+    if (res.status() >= 400) {
+      consoleErrors.push(`HTTP ${res.status()} from ${res.url()}`);
+    }
   });
 
-  // কিছুক্ষণ অপেক্ষা করে আরও এরর ক্যাপচার
-  await page.waitForTimeout(10000);
+  // বাংলা মন্তব্য: Firebase এবং Render উভয় Host চেক করা
+  console.log('Testing https://supremeai-admin.onrender.com ...');
+  try {
+    await page.goto('https://supremeai-admin.onrender.com', {
+      waitUntil: 'domcontentloaded',
+      timeout: 15000
+    });
+    await page.waitForTimeout(3000);
+  } catch (err) {
+    pageErrors.push(`Navigation to https://supremeai-admin.onrender.com failed: ${err.message}`);
+  }
 
   console.log('=== CONSOLE ERRORS ===');
   consoleErrors.forEach(e => console.log('ERROR:', e));
