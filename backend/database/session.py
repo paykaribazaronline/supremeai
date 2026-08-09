@@ -66,6 +66,7 @@ def _build_engine_kwargs(async_url: str) -> dict[str, Any]:
                     # prepared statement ক্যাশে বন্ধ করা হয়েছে এবং ইউনিক নাম জেনারেটর যোগ করা হয়েছে,
                     # যাতে 'prepared statement already exists' (DuplicatePreparedStatementError) এড়ানো যায়।
                     "statement_cache_size": 0,
+                    "prepared_statement_cache_size": 0,
                     "prepared_statement_name_func": lambda: f"__sai_{id(object())}_{__import__('secrets').token_hex(8)}__",
                 },
             }
