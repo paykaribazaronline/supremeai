@@ -107,7 +107,7 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
         if request.method == "OPTIONS":
             requested_headers = request.headers.get(
                 "Access-Control-Request-Headers",
-                "Content-Type, Authorization, X-Requested-With, X-API-Key, Accept, Origin, X-Device-Fingerprint, X-CSRF-Token, X-JIT-OTP, X-Request-ID, X-Tenant-ID, X-Correlation-ID",
+                "Content-Type, Authorization, X-Requested-With, X-API-Key, Accept, Origin, X-Device-Fingerprint, X-CSRF-Token, X-JIT-OTP, X-Request-ID, X-Tenant-ID, X-Correlation-ID, Cache-Control, Pragma, *",
             )
             headers = {
                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH",
@@ -171,13 +171,15 @@ class TrustedOriginMiddleware(BaseHTTPMiddleware):
         if request.url.scheme == "https":
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
-        # জিরো-গ্যাপ CORS হেডার ইনজেকশন (ওয়াইল্ডকার্ড মুক্ত)
+        # বাংলা মন্তব্য: জিরো-গ্যাপ CORS হেডার ইনজেকশন — Cache-Control, Pragma সহ ফ্রন্টএন্ড হেডার অনুমোদিত
         if origin and origin in allowed:
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Access-Control-Allow-Credentials"] = "true"
             response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH"
             response.headers["Access-Control-Allow-Headers"] = (
-                "Content-Type, Authorization, X-Requested-With, X-API-Key, Accept, Origin"
+                "Content-Type, Authorization, X-Requested-With, X-API-Key, Accept, Origin, "
+                "X-Device-Fingerprint, X-CSRF-Token, X-JIT-OTP, X-Request-ID, X-Tenant-ID, "
+                "X-Correlation-ID, Cache-Control, Pragma, *"
             )
 
         return response
