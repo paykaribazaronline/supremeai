@@ -140,9 +140,6 @@ importers:
 
   apps/studio-client:
     dependencies:
-      '@dataconnect/generated':
-        specifier: file:src/dataconnect-generated
-        version: file:apps/studio-client/src/dataconnect-generated(@tanstack-query-firebase/react@2.1.1(@tanstack/react-query@5.101.2(react@19.2.7))(firebase@12.16.0))(firebase@12.16.0)
       '@dnd-kit/core':
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -376,9 +373,6 @@ importers:
 
   tools/vscode-extension:
     dependencies:
-      '@dataconnect/generated':
-        specifier: file:src/dataconnect-generated
-        version: file:tools/vscode-extension/src/dataconnect-generated(firebase@12.16.0)
       '@supremeai/design-tokens':
         specifier: workspace:^
         version: link:../../packages/design-tokens
@@ -1436,19 +1430,6 @@ packages:
     engines: {node: '>=18'}
     peerDependencies:
       postcss: ^8.4
-
-  '@dataconnect/generated@file:apps/studio-client/src/dataconnect-generated':
-    resolution: {directory: apps/studio-client/src/dataconnect-generated, type: directory}
-    engines: {node: ' >=18.0'}
-    peerDependencies:
-      '@tanstack-query-firebase/react': ^2.0.0
-      firebase: ^12.11.0
-
-  '@dataconnect/generated@file:tools/vscode-extension/src/dataconnect-generated':
-    resolution: {directory: tools/vscode-extension/src/dataconnect-generated, type: directory}
-    engines: {node: ' >=18.0'}
-    peerDependencies:
-      firebase: ^12.11.0
 
   '@develar/schema-utils@2.6.5':
     resolution: {integrity: sha512-0cp4PsWQ/9avqTVMCtZ+GirikIA36ikvjtHweU4/j8yLtgObI0+JUPhYFScgwlteveGB1rt3Cm8UhN04XayDig==}
@@ -3487,12 +3468,6 @@ packages:
     resolution: {integrity: sha512-eHpMeX4JXfVNJDEcsouTeCBubJBTcTLigeaw/NTUW6PB5ATKKXdyonnXgTBX2VuRbjz1hjfz6C5XAhr52ImQXA==}
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7 || ^8
-
-  '@tanstack-query-firebase/react@2.1.1':
-    resolution: {integrity: sha512-1hOEcfxLgorg0TwadBJeeEvoD7P4JMCJLhdO1doUQWZRs83WmwTlBJGv8GiO1y2KWaKjQh+JdgsuYCqG2dPXcA==}
-    peerDependencies:
-      '@tanstack/react-query': ^5
-      firebase: ^11.3.0 || ^12.0.0
 
   '@tanstack/query-core@5.101.2':
     resolution: {integrity: sha512-hH5MLoJhF7KaIGd7q3xTXGXvslI+GYlM1Z/35aSHHWaCJWB7XvTSHYuV3eM7tw+aE0mT/xMro4M4Q9rCGHT0lw==}
@@ -11207,15 +11182,6 @@ snapshots:
     dependencies:
       postcss: 8.5.16
 
-  '@dataconnect/generated@file:apps/studio-client/src/dataconnect-generated(@tanstack-query-firebase/react@2.1.1(@tanstack/react-query@5.101.2(react@19.2.7))(firebase@12.16.0))(firebase@12.16.0)':
-    dependencies:
-      '@tanstack-query-firebase/react': 2.1.1(@tanstack/react-query@5.101.2(react@19.2.7))(firebase@12.16.0)
-      firebase: 12.16.0
-
-  '@dataconnect/generated@file:tools/vscode-extension/src/dataconnect-generated(firebase@12.16.0)':
-    dependencies:
-      firebase: 12.16.0
-
   '@develar/schema-utils@2.6.5':
     dependencies:
       ajv: 6.15.0
@@ -14224,11 +14190,6 @@ snapshots:
       '@tailwindcss/oxide': 4.3.2
       tailwindcss: 4.3.2
       vite: 7.3.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.49.0)(yaml@2.9.0)
-
-  '@tanstack-query-firebase/react@2.1.1(@tanstack/react-query@5.101.2(react@19.2.7))(firebase@12.16.0)':
-    dependencies:
-      '@tanstack/react-query': 5.101.2(react@19.2.7)
-      firebase: 12.16.0
 
   '@tanstack/query-core@5.101.2': {}
 

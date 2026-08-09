@@ -407,7 +407,6 @@
     "vscode": "^1.1.37"
   },
   "dependencies": {
-    "@dataconnect/generated": "file:src/dataconnect-generated",
     "@supremeai/design-tokens": "workspace:^",
     "fast-levenshtein": "^3.0.0"
   }
