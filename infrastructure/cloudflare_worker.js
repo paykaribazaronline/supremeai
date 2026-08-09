@@ -21,23 +21,37 @@ function getKV() {
 }
 
 function getBackends() {
-  const gcp_url = typeof env !== 'undefined' ? env.GCP_CLOUD_RUN_URL : (typeof GCP_CLOUD_RUN_URL !== 'undefined' ? GCP_CLOUD_RUN_URL : '');
+  // বাংলা মন্তব্য: ইউজার ব্যাকএন্ড এবং অ্যাডমিন ব্যাকএন্ড উভয় ইউআরএল এক্সট্র্যাক্ট করা
+  const gcp_url = typeof env !== 'undefined' ? (env.USER_BACKEND_URL || env.GCP_CLOUD_RUN_URL) : (typeof GCP_CLOUD_RUN_URL !== 'undefined' ? GCP_CLOUD_RUN_URL : '');
+  const admin_url = typeof env !== 'undefined' ? env.ADMIN_BACKEND_URL : (typeof ADMIN_BACKEND_URL !== 'undefined' ? ADMIN_BACKEND_URL : '');
 
   const gcp_weight = typeof env !== 'undefined' ? env.GCP_WEIGHT : (typeof GCP_WEIGHT !== 'undefined' ? GCP_WEIGHT : '50');
-
   const gcp_region = typeof env !== 'undefined' ? env.GCP_REGION : (typeof GCP_REGION !== 'undefined' ? GCP_REGION : 'us-central1');
 
-  return [
-    {
+  const list = [];
+  if (gcp_url) {
+    list.push({
       name: 'gcp-cloud-run',
       url: gcp_url,
-      health: gcp_url ? `${gcp_url}/health` : '',
+      health: `${gcp_url.replace(/\/$/, '')}/api/v1/health`,
       region: gcp_region,
       timeout: 5000,
       retries: 3,
       weight: parseInt(gcp_weight || '50', 10),
-    }
-  ].filter(b => b.url)
+    });
+  }
+  if (admin_url) {
+    list.push({
+      name: 'admin-backend',
+      url: admin_url,
+      health: `${admin_url.replace(/\/$/, '')}/health`,
+      region: gcp_region,
+      timeout: 5000,
+      retries: 3,
+      weight: parseInt(gcp_weight || '50', 10),
+    });
+  }
+  return list;
 }
 
 async function handleRequest(request) {

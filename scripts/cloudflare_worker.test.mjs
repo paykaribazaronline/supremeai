@@ -12,7 +12,7 @@ describe('Cloudflare Worker Circuit Breaker E2E Test', () => {
         backendState = { isHealthy: true };
 
         server = createServer((req, res) => {
-            if (req.url === '/health') {
+            if (req.url === '/health' || req.url === '/api/v1/health') {
                 res.writeHead(backendState.isHealthy ? 200 : 503);
                 res.end(backendState.isHealthy ? 'OK' : 'Service Unavailable');
                 return;
