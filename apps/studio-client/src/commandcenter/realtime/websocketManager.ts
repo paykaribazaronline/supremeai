@@ -92,7 +92,7 @@ export class WebSocketManager {
         }
       };
 
-      this.ws.onerror = (event) => {
+      this.ws.onerror = () => {
         this.setStatus('error');
         this.options.onError(new Error('WebSocket connection error'));
       };

@@ -155,7 +155,7 @@ const throttledFetch = async (url: string, options: RequestInit): Promise<Respon
           throw new Error("Server sleeping or down (50x)");
         }
         return res;
-      } catch (e: any) {
+      } catch (e: unknown) {
         attempts++;
         if (attempts >= 2) {
           if (isDev()) console.error(`[Queue Interceptor] Network failure for ${currentUrl} after 2 attempts:`, e);
@@ -165,7 +165,7 @@ const throttledFetch = async (url: string, options: RequestInit): Promise<Respon
         // বাংলা মন্তব্য: একই URL-এ backoff retry — backend কখনোই পাল্টানো হয় না (portal isolation)।
         // Render free tier cold start (৩০-৫০ সেকেন্ড) সামলাতে delay বাড়ানো হলো।
         const delayMs = 2000 * attempts;
-        if (isDev()) console.warn(`[Retry] Network error: ${e.message}. Retrying same backend in ${delayMs}ms...`);
+        if (isDev()) console.warn(`[Retry] Network error: ${(e as Error).message}. Retrying same backend in ${delayMs}ms...`);
         await new Promise(resolve => setTimeout(resolve, delayMs));
       }
     }

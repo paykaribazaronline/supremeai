@@ -83,6 +83,7 @@ export const IdeWorkspace: React.FC = () => {
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once
 
   // Handle Monaco Editor Change
@@ -120,6 +121,7 @@ export const IdeWorkspace: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeFile, files, webContainer]);
 
   const currentFileData = activeFile ? files[activeFile] : null;

@@ -27,11 +27,11 @@ export interface Skill {
 export interface Checkpoint {
   task_id: string;
   step_index: number;
-  state: Record<string, any>;
+  state: Record<string, unknown>;
 }
 
 export interface CloudStats {
-  distribution: Record<string, any>;
+  distribution: Record<string, unknown>;
   total_requests: number;
   active_providers: number;
   strategy: string;
@@ -39,10 +39,10 @@ export interface CloudStats {
 
 export interface GcpHealth {
   status: string;
-  cloud_run: any;
+  cloud_run: Record<string, unknown>;
   firestore_mode: string;
   pubsub_mode: string;
-  cloud_functions: any;
+  cloud_functions: Record<string, unknown>;
 }
 
 export interface HealthMap {
@@ -71,7 +71,7 @@ export interface CIReport {
   runtime_seconds: number;
   commit_sha: string;
   branch: string;
-  jobs_summary: Record<string, any> | null;
+  jobs_summary: Record<string, unknown> | null;
   error_logs: string | null;
   created_at: number;
 }

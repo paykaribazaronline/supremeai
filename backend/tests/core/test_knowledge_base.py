@@ -92,9 +92,9 @@ def test_memory_file_path_is_correct():
     assert os.path.exists(MEMORY_FILE_PATH) or os.path.isdir(os.path.dirname(MEMORY_FILE_PATH))
 
 
-def test_memory_file_is_json_serializable():
+def test_memory_file_is_json_serializable(temp_memory_file):
     save_to_memory("test", "valid json")
-    with open(MEMORY_FILE_PATH) as f:
+    with open(temp_memory_file) as f:
         data = json.load(f)
     assert isinstance(data, dict)
 

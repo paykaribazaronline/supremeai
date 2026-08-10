@@ -5,7 +5,7 @@ import { StatusPill, ConfirmModal, EmptyState } from '../../kit';
 
 export function ModelRouter() {
   const { data: router, isLoading: routerLoading } = useRouterConfig();
-  const { data: providers, isLoading: providersLoading } = useProviders();
+  const { data: providers } = useProviders();
   const updateRules = useUpdateRules();
 
   const [showOverride, setShowOverride] = useState(false);

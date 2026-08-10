@@ -63,7 +63,7 @@ export async function sendMessageStream(
     }
 
     const decoder = new TextDecoder();
-    let fullText = '';
+    let _fullText = '';
 
     while (true) {
       const { value, done } = await reader.read();
@@ -77,12 +77,12 @@ export async function sendMessageStream(
           try {
             const parsed = JSON.parse(payload);
             if (parsed.token) {
-              fullText += parsed.token;
+              _fullText += parsed.token;
               onToken(parsed.token);
             }
           } catch {
             // flat token fallback
-            fullText += payload;
+            _fullText += payload;
             onToken(payload);
           }
         }

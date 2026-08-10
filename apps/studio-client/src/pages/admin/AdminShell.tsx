@@ -70,6 +70,7 @@ export function AdminShell() {
 
     loadEnvConfig();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adminAuthenticated]);
 
   const handleAdminOtpVerify = () => {

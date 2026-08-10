@@ -1,7 +1,8 @@
 import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { SupremeCard } from '../../../../src/components/SupremeCard';
+import '@testing-library/jest-dom';
+import { SupremeCard } from './SupremeCard';
 
 describe('SupremeCard', () => {
   it('renders children', () => {

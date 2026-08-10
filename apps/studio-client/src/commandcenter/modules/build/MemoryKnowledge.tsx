@@ -4,7 +4,7 @@ import { KpiTile, StatusPill, EmptyState } from '../../kit';
 
 export function MemoryKnowledge() {
   const { data: memory, isLoading: memoryLoading } = useMemoryStats(30_000);
-  const { data: knowledge, isLoading: knowledgeLoading } = useKnowledgeStats(30_000);
+  const { data: knowledge } = useKnowledgeStats(30_000);
 
   if (!memory && memoryLoading) {
     return <EmptyState title="মেমরি লোড হচ্ছে..." message="মেমরি স্ট্যাটস ফেচ করা হচ্ছে..." loading />;

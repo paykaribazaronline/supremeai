@@ -99,7 +99,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         try {
           const userCredential = await signInWithEmailAndPassword(auth, cleanEmail, cleanPassword);
           idToken = await userCredential.user.getIdToken(true);
-        } catch (fbErr: any) {
+        } catch {
           set({ adminError: 'Invalid email or password.' });
           return;
         }

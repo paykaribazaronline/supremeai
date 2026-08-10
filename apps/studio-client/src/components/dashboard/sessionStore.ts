@@ -97,7 +97,7 @@ export async function saveSessions(sessions: DashboardSession[]): Promise<void> 
     try {
       localStorage.removeItem('supremeai_pending_sessions');
     } catch (cleanupErr) {
-      console.debug('[Storage] Could not clear pending sessions queue:', cleanupErr);
+      console.warn('[Storage] Could not clear pending sessions queue:', cleanupErr);
     }
   }
 
@@ -146,7 +146,7 @@ export async function deleteSession(id: string): Promise<DashboardSession[]> {
       const updated = pending.filter((pid) => pid !== id);
       localStorage.setItem('supremeai_pending_deletes', JSON.stringify(updated));
     } catch (e) {
-      console.debug('[Storage] Could not clean pending-delete queue:', e);
+      console.warn('[Storage] Could not clean pending-delete queue:', e);
     }
   } catch (err) {
     // বাংলা মন্তব্য: API delete ব্যর্থ — pending-delete কিউতে id জমা করি, পরে sync হবে
@@ -163,7 +163,7 @@ export async function deleteSession(id: string): Promise<DashboardSession[]> {
         }));
       }
     } catch (queueErr) {
-      console.debug('[Storage] Could not save pending-delete queue:', queueErr);
+      console.warn('[Storage] Could not save pending-delete queue:', queueErr);
     }
   }
   saveLocalSessions(filtered);
@@ -180,7 +180,7 @@ export async function reconcilePendingDeletes(): Promise<void> {
     for (const id of pending) {
       try {
         await apiClient.delete(`/api/browser/sessions/${id}`);
-        console.debug(`[Sync] Pending delete reconciled for session ${id}`);
+        console.warn(`[Sync] Pending delete reconciled for session ${id}`);
       } catch {
         stillPending.push(id);
       }
@@ -188,6 +188,6 @@ export async function reconcilePendingDeletes(): Promise<void> {
     localStorage.setItem('supremeai_pending_deletes', JSON.stringify(stillPending));
   } catch (e) {
     // বাংলা মন্তব্য: reconcile ব্যর্থ হলে debug লগ দিই; পরের save-এ আবার চেষ্টা হবে
-    console.debug('[Storage] reconcilePendingDeletes failed, will retry on next save:', e);
+    console.warn('[Storage] reconcilePendingDeletes failed, will retry on next save:', e);
   }
 }

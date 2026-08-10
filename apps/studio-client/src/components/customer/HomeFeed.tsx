@@ -32,6 +32,7 @@ export function HomeFeed() {
         settings: { content: w.content },
       })));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const displayWidgets: Widget[] = (storeWidgets && storeWidgets.length > 0)

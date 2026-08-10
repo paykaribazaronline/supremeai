@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 /**
  * ব্যাকএন্ড API-এর বেস URL নির্ধারণ করে।
  *

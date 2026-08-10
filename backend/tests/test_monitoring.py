@@ -26,7 +26,7 @@ def test_docker_sandbox_simulated_run(monkeypatch):
     monkeypatch.setattr(settings, "env", "development")
     sandbox = DockerSandbox()
     sandbox.docker_available = False
-    res = sandbox.execute_command("echo hello")
+    res = sandbox.execute_command("python -c \"print('hello')\"")
     assert res["success"] is True
     assert "hello" in res.get("stdout", "").strip()
 

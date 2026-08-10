@@ -31,7 +31,7 @@ const pingServers = () => {
       } else {
         console.warn(`[Heartbeat] ⚠️ Non-ok response from: ${url}/api/v1/live (${response.status})`);
       }
-    } catch (err) {
+    } catch {
       console.warn(`[Heartbeat] ❌ Could not reach: ${url}/api/v1/live`);
     }
   });

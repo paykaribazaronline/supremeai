@@ -119,6 +119,7 @@ def test_existing_gcp_roundtrip_coverage():
             "pytest",
             "-p",
             "no:pytest_cov",
+            "--timeout=60",
             "--override-ini=addopts=",
             f"{test_path_prefix}/test_gcp_integration.py::test_gcp_firestore_integration_queue",
             f"{test_path_prefix}/test_gcp_integration.py::test_gcp_pubsub_publish_pull",

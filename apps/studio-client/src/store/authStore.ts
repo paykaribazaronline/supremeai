@@ -103,7 +103,7 @@ export const useAuthStore = create<AuthState>((set) => ({
             avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(response.role)}&background=random`,
           }
         });
-      } catch (e) {
+      } catch {
         localStorage.removeItem('supremeai_auth_token');
         updateTokenCache(null);
         set({ status: AuthStatus.LOGGED_OUT });

@@ -83,7 +83,7 @@ export function SiteActionsPage() {
     setError('');
 
     // Clean up draft payload
-    const { fallback_input, ...payload } = draft;
+    const { fallback_input: _fallback_input, ...payload } = draft;
 
     try {
       if (editingId != null) {

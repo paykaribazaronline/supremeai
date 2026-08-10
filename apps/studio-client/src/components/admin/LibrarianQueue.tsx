@@ -37,7 +37,7 @@ export const LibrarianQueue: React.FC = () => {
         // সফল হলে লোকাল স্টেট থেকে রিমুভ
         setQueue(prev => prev.filter(item => item.skill_id !== skillId));
       }
-    } catch (error) {
+    } catch {
       alert("Failed to execute librarian action.");
     }
   };

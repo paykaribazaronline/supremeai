@@ -86,7 +86,7 @@ export function LoginView({
       if (!otpRequired) {
         setLocalPassword('');
       }
-    } catch (err) {
+    } catch {
       // Increment attempt counter for rate limiting
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);

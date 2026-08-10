@@ -43,7 +43,7 @@ export const MockSwarmProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           });
           setConnectionStatus('connected');
         }
-      } catch (err) {
+      } catch {
         if (isMounted) {
           // বাংলা মন্তব্য: ব্যাকএন্ড রিচ করতে না পারলে ডিসকানেক্টেড দেখানো হচ্ছে এবং মেট্রিক্স শুন্য করা হচ্ছে
           setConnectionStatus('disconnected');

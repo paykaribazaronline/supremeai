@@ -139,7 +139,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRet
         setStatus('error');
         onErrorRef.current?.(event);
       };
-    } catch (err) {
+    } catch {
       if (!mountedRef.current) return;
       setStatus('error');
     }

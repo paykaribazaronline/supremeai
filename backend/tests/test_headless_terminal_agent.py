@@ -42,19 +42,9 @@ async def test_execute_natural_language_interpret_path():
     mock_proc.communicate = AsyncMock(return_value=(b"out", b""))
     mock_proc.returncode = 0
 
-    with (
-        patch(
-            "agents.headless_terminal_agent.asyncio.create_subprocess_shell",
-            new_callable=AsyncMock,
-            return_value=mock_proc,
-        ),
-        patch(
-            "agents.headless_terminal_agent.asyncio.wait_for",
-            new_callable=AsyncMock,
-            return_value=(b"out", b""),
-        ),
-    ):
-        res = await agent.execute("what is the status", auto_confirm=True, context={})
+    with patch("agents.headless_terminal_agent.asyncio.create_subprocess_exec", new_callable=AsyncMock, return_value=mock_proc):
+        with patch("agents.headless_terminal_agent.asyncio.wait_for", new_callable=AsyncMock, return_value=(b"out", b"")):
+            res = await agent.execute("what is the status", auto_confirm=True, context={})
 
     assert res.exit_code == 0
     assert "out" in res.output
@@ -69,18 +59,8 @@ async def test_execute_command_timeout():
     mock_proc.returncode = None
     mock_proc.kill = MagicMock()
 
-    with (
-        patch(
-            "agents.headless_terminal_agent.asyncio.create_subprocess_shell",
-            new_callable=AsyncMock,
-            return_value=mock_proc,
-        ),
-        patch(
-            "agents.headless_terminal_agent.asyncio.wait_for",
-            new_callable=AsyncMock,
-            side_effect=TimeoutError,
-        ),
-    ):
-        res = await agent.execute("ls")
+    with patch("agents.headless_terminal_agent.asyncio.create_subprocess_exec", new_callable=AsyncMock, return_value=mock_proc):
+        with patch("agents.headless_terminal_agent.asyncio.wait_for", new_callable=AsyncMock, side_effect=TimeoutError):
+            res = await agent.execute("ls")
 
     assert res.exit_code == 124

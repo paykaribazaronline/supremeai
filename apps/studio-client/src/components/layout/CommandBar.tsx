@@ -51,6 +51,7 @@ export const CommandBar: React.FC<CommandBarProps> = ({ isOpen: controlledOpen, 
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, controlledOpen]);
 
   const commands: CommandItem[] = [

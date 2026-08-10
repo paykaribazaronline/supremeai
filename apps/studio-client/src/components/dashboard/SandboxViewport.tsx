@@ -29,7 +29,7 @@ export const SandboxViewport: React.FC = () => {
                     };
                     img.src = `data:image/jpeg;base64,${parsed.data}`;
                 }
-            } catch (err) {
+            } catch {
                 // Ignore parsing errors for other channels
             }
         };

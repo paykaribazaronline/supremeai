@@ -281,7 +281,7 @@ const useSupremeStore = create<SupremeStore>()(
           });
           const newWorkspace = await response.json();
           set(state => ({ workspaces: [...state.workspaces, newWorkspace] }));
-        } catch (err) {
+        } catch {
           set({ error: 'Failed to create workspace' });
         } finally {
           set({ loading: false });
@@ -301,7 +301,7 @@ const useSupremeStore = create<SupremeStore>()(
               ws.id === workspaceId ? { ...ws, ...updatedWorkspace } : ws
             )
           }));
-        } catch (err) {
+        } catch {
           set({ error: 'Failed to update workspace' });
         } finally {
           set({ loading: false });
@@ -314,7 +314,7 @@ const useSupremeStore = create<SupremeStore>()(
           set(state => ({
             workspaces: state.workspaces.filter(ws => ws.id !== workspaceId)
           }));
-        } catch (err) {
+        } catch {
           set({ error: 'Failed to delete workspace' });
         } finally {
           set({ loading: false });
@@ -326,7 +326,7 @@ const useSupremeStore = create<SupremeStore>()(
           const response = await fetch(`${getApiBaseUrl()}/admin-api/workspaces`);
           const workspaces = await response.json();
           set({ workspaces });
-        } catch (err) {
+        } catch {
           set({ error: 'Failed to fetch workspaces' });
         } finally {
           set({ loading: false });
@@ -346,7 +346,7 @@ const useSupremeStore = create<SupremeStore>()(
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(get().settings)
           });
-        } catch (err) {
+        } catch {
           set({ error: 'Failed to save settings' });
         } finally {
           set({ loading: false });
@@ -358,7 +358,7 @@ const useSupremeStore = create<SupremeStore>()(
           const response = await fetch(`${getApiBaseUrl()}/admin-api/settings`);
           const settings = await response.json();
           set({ settings });
-        } catch (err) {
+        } catch {
           set({ error: 'Failed to load settings' });
         } finally {
           set({ loading: false });
@@ -385,7 +385,7 @@ const useSupremeStore = create<SupremeStore>()(
           const response = await fetch(`${getApiBaseUrl()}/admin-api/sessions`);
           const sessions = await response.json();
           set({ sessions });
-        } catch (err) {
+        } catch {
           set({ error: 'Failed to fetch sessions' });
         } finally {
           set({ loading: false });
@@ -417,7 +417,7 @@ const useSupremeStore = create<SupremeStore>()(
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ content: get().editorContent[filePath] })
           });
-        } catch (err) {
+        } catch {
           set({ error: 'Failed to save file' });
         } finally {
           set({ loading: false });
@@ -441,7 +441,7 @@ const useSupremeStore = create<SupremeStore>()(
           const response = await fetch(`${getApiBaseUrl()}/admin-api/customers`);
           const customers = await response.json();
           set({ customers });
-        } catch (err) {
+        } catch {
           set({ error: 'Failed to fetch customers' });
         } finally {
           set({ loading: false });
@@ -459,7 +459,7 @@ const useSupremeStore = create<SupremeStore>()(
             get().fetchSessions(),
             get().fetchCustomers()
           ]);
-        } catch (err) {
+        } catch {
           set({ error: 'Initialization failed' });
         } finally {
           set({ loading: false });

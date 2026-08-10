@@ -19,6 +19,8 @@ export interface MetricData {
 // Core hook for real-time metrics
 import { useEffect, useState } from 'react';
 
+// বাংলা মন্তব্য: এই ফাইলটি হুক ও কনস্ট্যান্ট এক্সপোর্ট করে (শুধু কম্পোনেন্ট নয়) — react-refresh নিয়ম ইচ্ছাকৃতভাবে disable।
+/* eslint-disable-next-line react-refresh/only-export-components */
 export function useSujonMetrics() {
   const [metrics, setMetrics] = useState<MetricData[]>([]);
   const [loading, setLoading] = useState(true);

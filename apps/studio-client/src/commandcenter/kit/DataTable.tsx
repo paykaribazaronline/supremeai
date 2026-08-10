@@ -59,6 +59,8 @@ export function DataTable<T extends Record<string, unknown>>({
     }, [data, sortKey, sortDir]);
 
     const containerRef = useRef<HTMLDivElement>(null);
+    // বাংলা মন্তব্য: TanStack Virtual-এর useVirtualizer রিএক্ট কম্পাইলারের সাথে সামঞ্জস্যপূর্ণ নয় — এটি ইচ্ছাকৃতভাবে স্কিপ করা হয়েছে।
+    /* eslint-disable-next-line react-hooks/incompatible-library */
     const virtualizer = useVirtualizer({
         count: sorted.length,
         getScrollElement: () => containerRef.current,

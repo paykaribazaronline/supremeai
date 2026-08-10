@@ -11,7 +11,8 @@ export interface AgentTask {
 }
 
 export const agentService = {
-  executeAgentTask: async (agentId: string, instruction: string): Promise<AgentTask> => {
+  // বাংলা মন্তব্য: agentId প্যারামিটার বর্তমানে ব্যবহৃত হচ্ছে না, তাই tsc/eslint warning এড়াতে '_' প্রিফিক্স দেওয়া হলো।
+  executeAgentTask: async (_agentId: string, instruction: string): Promise<AgentTask> => {
     return apiClient.post<AgentTask>('/api/v1/agents/execute', {
       instruction,
     });
