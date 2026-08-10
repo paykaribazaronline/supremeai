@@ -20,7 +20,7 @@
 | 14 | `STRIPE_PUBLISHABLE_KEY` | Stripe পাবলিক / ক্লায়েন্ট কী |
 | 15 | `STRIPE_WEBHOOK_SECRET` | Stripe পেমেন্ট ইভেন্ট ওয়েবহুক সিক্রেট |
 | 16 | `SUPREMEAI_ADMIN_PASSWORD_HASH` | Admin এক্সেসের জন্য পাসওয়ার্ড হ্যাশ |
-| 17 | `SUPREMEAI_ENCRYPTION_KEY` | SupremeAI কাস্টম এনক্রিপশন সিক্রেট কী |
+| 17 | `ENCRYPTION_KEY` | SupremeAI কাস্টম এনক্রিপশন সিক্রেট কী |
 | 18 | `SUPREMEAI_JWT_SECRET` | SupremeAI অ্যাডমিন সেসন JWT সিক্রেট |
 | 19 | `UPSTASH_REDIS_REST_TOKEN` | Upstash Serverless Redis REST API টোকেন |
 | 20 | `UPSTASH_REDIS_REST_URL` | Upstash Serverless Redis REST endpoint URL |

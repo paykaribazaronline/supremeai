@@ -58,11 +58,11 @@ services:
         sync: false
       - key: SUPREMEAI_ADMIN_PASSWORD_HASH
         sync: false
-      - key: SUPREMEAI_ENCRYPTION_KEY
+      - key: ENCRYPTION_KEY
         sync: false
       - key: SUPREMEAI_DOCS_PASSWORD
         sync: false
-      - key: SUPREMEAI_API_TOKEN
+      - key: SUPREMEAI_API_KEY
         sync: false
       # Admin-only: JIT OTP delivery channels
       - key: DISCORD_OTP_WEBHOOK_URL

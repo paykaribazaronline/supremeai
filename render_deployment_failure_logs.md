@@ -78,7 +78,7 @@ CI成功 but Render failed:
 2. **Verify Render Environment Variables** — Ensure all critical secrets are configured:
    - `SUPREMEAI_ADMIN_PASSWORD_HASH`
    - `SUPREMEAI_JWT_SECRET`
-   - `SUPREMEAI_ENCRYPTION_KEY`
+   - `ENCRYPTION_KEY`
    - `SUPABASE_DATABASE_URL_POOLER`
    - `REDIS_URL`
    - All LLM API keys

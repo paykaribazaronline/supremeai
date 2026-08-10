@@ -80,7 +80,7 @@ sys.modules["docker"] = create_mock_module("docker", is_package=True)
 sys.modules["docker.errors"] = create_mock_module("docker.errors")
 
 # ✅ SECURITY: Use explicit test-only placeholders that cannot be mistaken for real credentials.
-os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "TEST_ONLY_SUPREMEAI_ENCRYPTION_KEY_DO_NOT_USE_IN_PROD"
+os.environ["ENCRYPTION_KEY"] = "TEST_ONLY_SUPREMEAI_ENCRYPTION_KEY_DO_NOT_USE_IN_PROD"
 os.environ["ENCRYPTION_KEY"] = "TEST_ONLY_ENCRYPTION_KEY_DO_NOT_USE_IN_PROD"
 os.environ["STRIPE_API_KEY"] = "TEST_ONLY_STRIPE_API_KEY"
 os.environ["STRIPE_WEBHOOK_SECRET"] = "TEST_ONLY_STRIPE_WEBHOOK_SECRET"
@@ -175,7 +175,7 @@ _TEST_ENV_DEFAULTS = {
     "NVIDIA_API_KEY": "TEST_ONLY_NVIDIA_API_KEY",
     "FIRECRAWL_API_KEY": "TEST_ONLY_FIRECRAWL_API_KEY",
     "OLLAMA_URL": "http://127.0.0.1:11434",
-    "SUPREMEAI_API_TOKEN": "",
+    "SUPREMEAI_API_KEY": "",
     "SENTRY_DSN": "",
     "GCP_PROJECT_ID": "",
     "GCP_REGION": "",
@@ -340,7 +340,7 @@ def clear_settings_cache():
     settings._cached_secrets.clear()
     secret_vault.invalidate_cache()
 
-    os.environ["SUPREMEAI_API_TOKEN"] = ""
+    os.environ["SUPREMEAI_API_KEY"] = ""
     yield
 
 

@@ -247,7 +247,7 @@ def test_settings_llm_critical_keys_validation():
 
 def test_settings_encryption_key_not_empty():
     """Test that encryption key is not empty."""
-    with patch.dict(os.environ, {'SUPREMEAI_ENCRYPTION_KEY': 'test-encryption-key'}):
+    with patch.dict(os.environ, {'ENCRYPTION_KEY': 'test-encryption-key'}):
         settings = Settings()
         assert settings.encryption_key.get_secret_value() == 'test-encryption-key'
 

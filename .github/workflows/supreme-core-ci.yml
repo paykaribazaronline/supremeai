@@ -277,7 +277,7 @@ jobs:
           CI_WEBHOOK_SECRET: ${{ secrets.CI_WEBHOOK_SECRET }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
           SUPREMEAI_ADMIN_PASSWORD_HASH: ${{ secrets.SUPREMEAI_ADMIN_PASSWORD_HASH }}
-          SUPREMEAI_ENCRYPTION_KEY: ${{ secrets.SUPREMEAI_ENCRYPTION_KEY }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
           SUPREMEAI_JWT_SECRET: ${{ secrets.SUPREMEAI_JWT_SECRET }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
@@ -734,7 +734,7 @@ jobs:
       # এবং poetry run pytest-এ "Command not found: pytest" error হয় (paykaribazaronline repo-তে cache miss-এর পর নিশ্চিত fail)।
       # তাই এই env-var সম্পূর্ণ বাদ দেওয়া হলো — নিচের poetry config virtualenvs.create true-ই কার্যকর হবে।
       SETUPTOOLS_USE_DISTUTILS: stdlib
-      SUPREMEAI_ENCRYPTION_KEY: "CwE60g_bA67m-mock-encryption-key-padded-len="
+      ENCRYPTION_KEY: "CwE60g_bA67m-mock-encryption-key-padded-len="
       PYTHONPATH: ${{ github.workspace }}/backend
       GITHUB_TOKEN: "mock_dummy_token"
       RENDER_API_KEY: "mock_render_key"

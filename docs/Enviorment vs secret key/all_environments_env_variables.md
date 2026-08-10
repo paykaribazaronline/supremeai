@@ -16,9 +16,9 @@
 | 5 | `ALLOWED_HOSTS` | Host header validation whitelist (`supremeai-backend.onrender.com`) |
 | 6 | `SUPREMEAI_USER_BACKEND_URL` | User Backend Public Service URL |
 | 7 | `SUPREMEAI_JWT_SECRET` / `JWT_SECRET` | JWT टोकन সাইনিং এবং ভেরিফিকেশনের সিক্রেট |
-| 8 | `SUPREMEAI_ENCRYPTION_KEY` / `ENCRYPTION_KEY` | কাস্টম ইউজার সিক্রেট ও API Keys এনক্রিপশন কী |
+| 8 | `ENCRYPTION_KEY` / `ENCRYPTION_KEY` | কাস্টম ইউজার সিক্রেট ও API Keys এনক্রিপশন কী |
 | 9 | `SUPREMEAI_DOCS_PASSWORD` / `DOCS_PASSWORD` | FastAPI `/docs` এবং `/redoc` পাসওয়ার্ড প্রোটেকশন |
-| 10 | `SUPREMEAI_API_TOKEN` | অভ্যন্তরীণ সার্ভিস এবং এডমিন ইন্টার-কমিউনিকেশন টোকেন |
+| 10 | `SUPREMEAI_API_KEY` | অভ্যন্তরীণ সার্ভিস এবং এডমিন ইন্টার-কমিউনিকেশন টোকেন |
 | 11 | `REDIS_URL` | Redis ক্যাশিং এবং সেসন ডাটাবেজ URL |
 | 12 | `UPSTASH_REDIS_REST_URL` | Upstash Serverless Redis REST endpoint URL |
 | 13 | `UPSTASH_REDIS_REST_TOKEN` | Upstash Serverless Redis REST token |
@@ -53,9 +53,9 @@
 | 7 | `SUPREMEAI_ADMIN_BACKEND_URL` | Admin Backend Public Service URL |
 | 8 | `SUPREMEAI_ADMIN_PASSWORD_HASH` | Admin প্যানেল এক্সেস করার জন্য ক্রিপ্টোগ্রাফিক পাসওয়ার্ড হ্যাশ |
 | 9 | `SUPREMEAI_JWT_SECRET` / `JWT_SECRET` | Admin সেসন JWT টোকেন সাইনিং সিক্রেট |
-| 10 | `SUPREMEAI_ENCRYPTION_KEY` / `ENCRYPTION_KEY` | সিস্টেম ওয়াইড মাস্টার এনক্রিপশন কী |
+| 10 | `ENCRYPTION_KEY` / `ENCRYPTION_KEY` | সিস্টেম ওয়াইড মাস্টার এনক্রিপশন কী |
 | 11 | `SUPREMEAI_DOCS_PASSWORD` / `DOCS_PASSWORD` | Admin API Docs এক্সেস পাসওয়ার্ড |
-| 12 | `SUPREMEAI_API_TOKEN` | অ্যাডমিন সার্ভিস ইন্টার-কমিউনিকেশন টোকেন |
+| 12 | `SUPREMEAI_API_KEY` | অ্যাডমিন সার্ভিস ইন্টার-কমিউনিকেশন টোকেন |
 | 13 | `REDIS_URL` | Redis ক্যাশিং URL |
 | 14 | `UPSTASH_REDIS_REST_URL` | Upstash Serverless Redis REST endpoint URL |
 | 15 | `UPSTASH_REDIS_REST_TOKEN` | Upstash Serverless Redis REST token |

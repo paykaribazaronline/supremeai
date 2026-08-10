@@ -16,14 +16,14 @@ class SupremeAILoadTester(HttpUser):
         from environment context instead of static hardcoded strings.
         """
         self.session_id = f"test-session-{uuid.uuid4()}"
-        api_token = os.getenv("SUPREMEAI_API_TOKEN")
+        api_token = os.getenv("SUPREMEAI_API_KEY")
         app_env = os.getenv("APP_ENV", "development").lower()
 
         if not api_token:
             if app_env == "production":
                 # বাংলা মন্তব্য: প্রোডাকশনে কোনোভাবেই ফলব্যাক টোকেন চলতে পারে না!
-                logger.critical("CRITICAL: SUPREMEAI_API_TOKEN env var is missing in production environment!")
-                raise ValueError("SUPREMEAI_API_TOKEN environment variable is mandatory for production load tests.")
+                logger.critical("CRITICAL: SUPREMEAI_API_KEY env var is missing in production environment!")
+                raise ValueError("SUPREMEAI_API_KEY environment variable is mandatory for production load tests.")
 
             # লোকাল এনভায়রনমেন্টে নন-সেন্সিটিভ টেস্টিংয়ের জন্য ফলব্যাক
             api_token = "test-token-" + "secure-bypass"

@@ -572,7 +572,7 @@ from loguru import logger
 # বাংলা মন্তব্য: pytest কালেকশনের সময় loguru-এর ডিফল্ট stderr হ্যান্ডলার যেন I/O error না দেয়, তাই প্রথমেই সেটি রিমুভ করা হলো।
 logger.remove()
 
-os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno="
+os.environ["ENCRYPTION_KEY"] = "9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno="
 os.environ["ENCRYPTION_KEY"] = "9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno="
 os.environ["STRIPE_API_KEY"] = "sk_test_dummy"
 os.environ["STRIPE_WEBHOOK_SECRET"] = "whsec_dummy"
@@ -650,7 +650,7 @@ _TEST_ENV_DEFAULTS = {
     "NVIDIA_API_KEY": "mock_nvidia",
     "FIRECRAWL_API_KEY": "mock_firecrawl",
     "OLLAMA_URL": "http://127.0.0.1:11434",
-    "SUPREMEAI_API_TOKEN": "",
+    "SUPREMEAI_API_KEY": "",
     "SENTRY_DSN": "",
     "GCP_PROJECT_ID": "",
     "GCP_REGION": "",

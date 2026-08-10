@@ -100,7 +100,7 @@ if __name__ == "__main__":
     
     repo = "SaifulHaqueNiloy/supremeai"
     
-    keys_to_sync = ["INFISICAL_TOKEN", "INFISICAL_PROJECT_ID", "INFISICAL_CLIENT_ID"]
+    keys_to_sync = ["INFISICAL_TOKEN", "INFISICAL_PROJECT_ID", "INFISICAL_CLIENT_ID", "INFISICAL_CLIENT_SECRET"]
     
     print("🚀 Starting sync to GitHub and Vercel...")
     for key in keys_to_sync:

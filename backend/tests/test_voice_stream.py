@@ -12,7 +12,7 @@ from core.app import app as base_app
 
 @pytest.fixture()
 def test_app() -> FastAPI:
-    os.environ["SUPREMEAI_API_TOKEN"] = "test-token"
+    os.environ["SUPREMEAI_API_KEY"] = "test-token"
     from api.routes.voice import router as voice_router
 
     try:

@@ -15,7 +15,7 @@ auth_headers = {"Authorization": "Bearer test-token"}
 
 @pytest.fixture(autouse=True)
 def reset_globals():
-    os.environ["SUPREMEAI_API_TOKEN"] = "test-token"
+    os.environ["SUPREMEAI_API_KEY"] = "test-token"
     import api.routes.browser as browser_mod
 
     browser_mod.CREDENTIALS.clear()
@@ -25,7 +25,7 @@ def reset_globals():
     try:
         yield
     finally:
-        os.environ.pop("SUPREMEAI_API_TOKEN", None)
+        os.environ.pop("SUPREMEAI_API_KEY", None)
 
 
 def test_secure_credential_store_encrypt_decrypt(monkeypatch):

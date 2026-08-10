@@ -232,7 +232,7 @@ jobs:
           SUPABASE_DATABASE_URL: "postgresql+asyncpg://mock:mock@localhost:5432/mock_db"
           SUPABASE_DATABASE_URL_POOLER: "postgresql+asyncpg://mock:mock@localhost:5432/mock_db"
           SUPREMEAI_JWT_SECRET: ${{ secrets.SUPREMEAI_JWT_SECRET || 'supremeai_secure_jwt_secret_value_at_least_64_bytes_long_test_string_pad_pad_pad_pad' }}
-          SUPREMEAI_ENCRYPTION_KEY: "CwE60g_bA67m-mock-encryption-key-padded-len="
+          ENCRYPTION_KEY: "CwE60g_bA67m-mock-encryption-key-padded-len="
         run: |
           VENV_PYTHON=$(cd backend && poetry env info --path)/bin/python
           $VENV_PYTHON scripts/generate_openapi.py
@@ -332,7 +332,7 @@ jobs:
           SUPABASE_DATABASE_URL: "postgresql+asyncpg://mock:mock@localhost:5432/mock_db"
           SUPABASE_DATABASE_URL_POOLER: "postgresql+asyncpg://mock:mock@localhost:5432/mock_db"
           SUPREMEAI_JWT_SECRET: ${{ secrets.SUPREMEAI_JWT_SECRET || 'supremeai_secure_jwt_secret_value_at_least_64_bytes_long_test_string_pad_pad_pad_pad' }}
-          SUPREMEAI_ENCRYPTION_KEY: "CwE60g_bA67m-mock-encryption-key-padded-len="
+          ENCRYPTION_KEY: "CwE60g_bA67m-mock-encryption-key-padded-len="
         run: |
           mkdir -p ../docs/autogen
           poetry run erdantic models -o ../docs/autogen/db_schema.png || poetry run python -m erdantic models -o ../docs/autogen/db_schema.png || true
@@ -393,7 +393,7 @@ jobs:
         working-directory: backend
         env:
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
-          SUPREMEAI_ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY || 'CwE60g_bA67m-mock-encryption-key-padded-len=' }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY || 'CwE60g_bA67m-mock-encryption-key-padded-len=' }}
           SUPREMEAI_API_URL: http://127.0.0.1:8000
           SUPABASE_URL: "https://mock-health-check.supabase.co"
           SUPABASE_KEY: "mock_key"
@@ -621,7 +621,7 @@ jobs:
           SUPABASE_DATABASE_URL_POOLER: "postgresql+asyncpg://mock:mock@localhost:5432/mock_db"
           SUPREMEAI_JWT_SECRET: ${{ secrets.SUPREMEAI_JWT_SECRET || 'supremeai_secure_jwt_secret_value_at_least_64_bytes_long_test_string_pad_pad_pad_pad' }}
           CI: "true"
-          SUPREMEAI_ENCRYPTION_KEY: "CwE60g_bA67m-mock-encryption-key-padded-len="
+          ENCRYPTION_KEY: "CwE60g_bA67m-mock-encryption-key-padded-len="
         run: poetry run python ../scripts/generate_api_health_report.py >> $GITHUB_STEP_SUMMARY
 
   cost-guard-defcon:

@@ -1022,7 +1022,7 @@ jobs:
       )
     runs-on: ubuntu-latest
     env:
-      SUPREMEAI_ENCRYPTION_KEY: "CwE60g_bA67m-mock-encryption-key-padded-len="
+      ENCRYPTION_KEY: "CwE60g_bA67m-mock-encryption-key-padded-len="
       PYTHONPATH: ${{ github.workspace }}/backend
       GITHUB_TOKEN: "mock_dummy_token"
       RENDER_API_KEY: "mock_render_key"

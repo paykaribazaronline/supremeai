@@ -10,9 +10,9 @@
 | 5 | `ALLOWED_HOSTS` | Host header validation whitelist (`supremeai-backend.onrender.com`) | Configured |
 | 6 | `SUPREMEAI_USER_BACKEND_URL` | User Backend Public Service URL | Configured |
 | 7 | `SUPREMEAI_JWT_SECRET` / `JWT_SECRET` | JWT সেসন টোকেন সাইনিং সিক্রেট | Vault / Secret |
-| 8 | `SUPREMEAI_ENCRYPTION_KEY` / `ENCRYPTION_KEY` | কাস্টম ইউজার সিক্রেট ও API Keys এনক্রিপশন কী | Vault / Secret |
+| 8 | `ENCRYPTION_KEY` / `ENCRYPTION_KEY` | কাস্টম ইউজার সিক্রেট ও API Keys এনক্রিপশন কী | Vault / Secret |
 | 9 | `SUPREMEAI_DOCS_PASSWORD` / `DOCS_PASSWORD` | FastAPI `/docs` এবং `/redoc` পাসওয়ার্ড প্রোটেকশন | Vault / Secret |
-| 10 | `SUPREMEAI_API_TOKEN` | অভ্যন্তরীণ সার্ভিস এবং এডমিন ইন্টার-কমিউনিকেশন টোকেন | Vault / Secret |
+| 10 | `SUPREMEAI_API_KEY` | অভ্যন্তরীণ সার্ভিস এবং এডমিন ইন্টার-কমিউনিকেশন টোকেন | Vault / Secret |
 | 11 | `REDIS_URL` | Redis ক্যাশিং এবং সেসন ডাটাবেজ URL | Vault / Secret |
 | 12 | `UPSTASH_REDIS_REST_URL` | Upstash Serverless Redis REST endpoint URL | Vault / Secret |
 | 13 | `UPSTASH_REDIS_REST_TOKEN` | Upstash Serverless Redis REST token | Vault / Secret |

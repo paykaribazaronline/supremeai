@@ -6,7 +6,7 @@ When we started, there were **79 failing tests**. Almost all of them were failin
 
 ### The Detective Work 🕵️‍♂️
 
-I discovered that the test suite was suffering from **Test State Bleeding** across three different caching layers. Some tests (like `test_stream.py`) were manually mutating `os.environ["SUPREMEAI_API_TOKEN"]` to test token validation, but failing to clean it up afterwards. This tainted the environment for all subsequent tests.
+I discovered that the test suite was suffering from **Test State Bleeding** across three different caching layers. Some tests (like `test_stream.py`) were manually mutating `os.environ["SUPREMEAI_API_KEY"]` to test token validation, but failing to clean it up afterwards. This tainted the environment for all subsequent tests.
 
 The architecture had three layers of caching that held onto this tainted state:
 1. **`os.environ`**: Directly mutated by some tests.
@@ -34,7 +34,7 @@ def clear_settings_cache():
     secret_vault.invalidate_cache()
     
     # 3. Clear os.environ (set to "" to safely bypass secret_vault mock injection)
-    os.environ["SUPREMEAI_API_TOKEN"] = ""
+    os.environ["SUPREMEAI_API_KEY"] = ""
     yield
 ```
 

@@ -4,7 +4,7 @@ import pytest
 
 # Set mock environment variables for encryption key and stripe configuration before importing core modules
 # বাংলা মন্তব্য: রানিং টেস্টে ক্লাউড কানেকশন ড্রাইভার ফাস্ট-ফেইল আটকাতে মক এনক্রিপশন কী সেট করা হলো
-os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "4vW8yO_tWn8_bM6W_vW7LDw8qddv6QRw2wKKyJue7sE="
+os.environ["ENCRYPTION_KEY"] = "4vW8yO_tWn8_bM6W_vW7LDw8qddv6QRw2wKKyJue7sE="
 os.environ["STRIPE_SECRET_KEY"] = "dummy_stripe_key"
 os.environ["STRIPE_WEBHOOK_SECRET"] = "whsec_test"
 

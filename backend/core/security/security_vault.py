@@ -22,7 +22,7 @@ from core.security.secure_credential_store import RotatingFernet
 strict_enabled = os.environ.get("STRICT_ENCRYPTION_CHECK") == "true"
 
 if strict_enabled:
-    ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY") or os.environ.get("SUPREMEAI_ENCRYPTION_KEY")
+    ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY") or os.environ.get("ENCRYPTION_KEY")
     if not ENCRYPTION_KEY:
         error_event_bus.emit(
             ErrorEvent(

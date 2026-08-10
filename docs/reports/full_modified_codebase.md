@@ -252,7 +252,7 @@ class Settings(BaseSettings):
     # বাংলা মন্তব্য: Encryption key — fail-fast on missing
     encryption_key: SecretStr = Field(
         default=SecretStr(""),
-        validation_alias="SUPREMEAI_ENCRYPTION_KEY",
+        validation_alias="ENCRYPTION_KEY",
     )
 
     # ── Stripe credentials — SecretStr দিয়ে log-safe ────────────────────────
@@ -497,12 +497,12 @@ class Settings(BaseSettings):
         return self._get_cached_secret("SUPABASE_KEY")
 
     # ── System API Token — settings-এ মাইগ্রেট করা হলো ──────────────────────
-    # বাংলা মন্তব্য: আগে auth_middleware.py সরাসরি os.getenv("SUPREMEAI_API_TOKEN") করত।
+    # বাংলা মন্তব্য: আগে auth_middleware.py সরাসরি os.getenv("SUPREMEAI_API_KEY") করত।
     # এখন এই computed field settings-এর Single Source of Truth।
     @computed_field
     @property
     def supremeai_api_token(self) -> str:
-        return self._get_cached_secret("SUPREMEAI_API_TOKEN")
+        return self._get_cached_secret("SUPREMEAI_API_KEY")
 
     @computed_field
     @property
@@ -2944,11 +2944,11 @@ services:
         sync: false
       - key: SUPREMEAI_ADMIN_PASSWORD_HASH
         sync: false
-      - key: SUPREMEAI_ENCRYPTION_KEY
+      - key: ENCRYPTION_KEY
         sync: false
       - key: SUPREMEAI_DOCS_PASSWORD
         sync: false
-      - key: SUPREMEAI_API_TOKEN
+      - key: SUPREMEAI_API_KEY
         sync: false
       - key: STRIPE_API_KEY
         sync: false
@@ -3009,11 +3009,11 @@ services:
         sync: false
       - key: SUPREMEAI_ADMIN_PASSWORD_HASH
         sync: false
-      - key: SUPREMEAI_ENCRYPTION_KEY
+      - key: ENCRYPTION_KEY
         sync: false
       - key: SUPREMEAI_DOCS_PASSWORD
         sync: false
-      - key: SUPREMEAI_API_TOKEN
+      - key: SUPREMEAI_API_KEY
         sync: false
       - key: DISCORD_OTP_WEBHOOK_URL
         sync: false
@@ -3113,11 +3113,11 @@ services:
         sync: false
       - key: SUPREMEAI_ADMIN_PASSWORD_HASH
         sync: false
-      - key: SUPREMEAI_ENCRYPTION_KEY
+      - key: ENCRYPTION_KEY
         sync: false
       - key: SUPREMEAI_DOCS_PASSWORD
         sync: false
-      - key: SUPREMEAI_API_TOKEN
+      - key: SUPREMEAI_API_KEY
         sync: false
       # Admin-only: JIT OTP delivery channels
       - key: DISCORD_OTP_WEBHOOK_URL

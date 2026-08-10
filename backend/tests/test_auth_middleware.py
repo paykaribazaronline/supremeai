@@ -70,11 +70,11 @@ class TestAuthMiddleware:
     async def test_middleware_valid_api_token(self, monkeypatch):
         """সঠিক API টোকেন সহ মিডলওয়্যার বংয়েজ করা হচ্ছে।"""
         # বাংলা মন্তব্য: autouse fixture-এর ওভাররাইট এড়াতে monkeypatch ব্যবহার করে টোকেন ও ক্যাশ সেট করা হচ্ছে।
-        monkeypatch.setenv("SUPREMEAI_API_TOKEN", "test-token")
+        monkeypatch.setenv("SUPREMEAI_API_KEY", "test-token")
         from core.config import secret_vault, settings
 
-        settings._cached_secrets["SUPREMEAI_API_TOKEN"] = "test-token"
-        secret_vault._cache["SUPREMEAI_API_TOKEN"] = "test-token"
+        settings._cached_secrets["SUPREMEAI_API_KEY"] = "test-token"
+        secret_vault._cache["SUPREMEAI_API_KEY"] = "test-token"
 
         mock_app = AsyncMock()
         middleware = AuthMiddleware(mock_app)
@@ -91,12 +91,12 @@ class TestAuthMiddleware:
     async def test_middleware_invalid_api_token(self, monkeypatch):
         """ভুল API টোকেন রিজেক্স করা হচ্ছে।"""
         # বাংলা মন্তব্য: autouse fixture-এর ওভাররাইট এড়াতে monkeypatch ব্যবহার করে টোকেন ও ক্যাশ সেট করা হচ্ছে।
-        monkeypatch.setenv("SUPREMEAI_API_TOKEN", "test-token")
+        monkeypatch.setenv("SUPREMEAI_API_KEY", "test-token")
         from core.config import secret_vault, settings
 
         # বাংলা মন্তব্য: explicit cache set করা হচ্ছে এবং bypass নিষ্ক্রিয় করা হচ্ছে
-        settings._cached_secrets["SUPREMEAI_API_TOKEN"] = "test-token"
-        secret_vault._cache["SUPREMEAI_API_TOKEN"] = "test-token"
+        settings._cached_secrets["SUPREMEAI_API_KEY"] = "test-token"
+        secret_vault._cache["SUPREMEAI_API_KEY"] = "test-token"
 
         mock_app = AsyncMock()
         middleware = AuthMiddleware(mock_app)
@@ -117,12 +117,12 @@ class TestAuthMiddleware:
     async def test_middleware_no_api_token_env(self, monkeypatch):
         """API টোকেন এনভ ভ্যারিয়েbl না থাকলে মিডলওয়্যার বংয়েজ করা হচ্ছে।"""
         # বাংলা মন্তব্য: autouse fixture-এর ওভাররাইট এড়াতে monkeypatch ব্যবহার করে টোকেন ও ক্যাশ সেট করা হচ্ছে।
-        monkeypatch.setenv("SUPREMEAI_API_TOKEN", "test-token")
+        monkeypatch.setenv("SUPREMEAI_API_KEY", "test-token")
         from core.config import secret_vault, settings
 
         # বাংলা মন্তব্য: empty token দিয়ে set করা হচ্ছে যাতে API token check fail হয়
-        settings._cached_secrets["SUPREMEAI_API_TOKEN"] = "test-token"
-        secret_vault._cache["SUPREMEAI_API_TOKEN"] = "test-token"
+        settings._cached_secrets["SUPREMEAI_API_KEY"] = "test-token"
+        secret_vault._cache["SUPREMEAI_API_KEY"] = "test-token"
 
         mock_app = AsyncMock()
         middleware = AuthMiddleware(mock_app)

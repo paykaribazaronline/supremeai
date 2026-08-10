@@ -163,7 +163,7 @@ def test_docs_disabled_in_production():
         os.environ["SUPREMEAI_JWT_SECRET"] = "secure_jwt_secret_value_at_least_64_bytes_long_test_string_pad_pad_pad_pad"
         os.environ["CORS_ORIGINS"] = '["https://example.com"]'
         os.environ["ALLOWED_HOSTS"] = '["example.com"]'
-        os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "CwE60g_bA67m-mock-encryption-key-padded-len="
+        os.environ["ENCRYPTION_KEY"] = "CwE60g_bA67m-mock-encryption-key-padded-len="
         os.environ["CI_WEBHOOK_SECRET"] = "secure-ci-webhook-secret-for-testing-2026"
         os.environ["SUPREMEAI_ADMIN_PASSWORD_HASH"] = "mock_hash_for_production_test"
         os.environ["ADMIN_NOTIFICATION_EMAIL"] = "admin@example.com"

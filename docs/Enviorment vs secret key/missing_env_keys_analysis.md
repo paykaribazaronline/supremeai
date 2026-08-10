@@ -23,7 +23,7 @@ Here are the highly critical and important keys that are **currently missing** f
 *   `GITHUB_API_TOKEN`
 *   `JIT_OTP_SECRET`
 *   `SUPREMEAI_ADMIN_TOTP_SECRET`
-*   `SUPREMEAI_API_KEY` (Document has `SUPREMEAI_API_TOKEN`, but both exist)
+*   `SUPREMEAI_API_KEY` (Document has `SUPREMEAI_API_KEY`, but both exist)
 *   `INFISICAL_PROJECT_ID` (Only Token, Client ID, and Client Secret are documented)
 
 ### 4. Infrastructure, Deployment & Backup

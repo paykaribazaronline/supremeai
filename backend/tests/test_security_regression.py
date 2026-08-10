@@ -41,7 +41,7 @@ def test_auth_middleware_rejects_invalid_api_token():
     # Setup expected API token env var and test that an invalid token (like 'test-token') gets 401
     with (
         patch.dict(
-            os.environ, {"ALLOW_TEST_AUTH_BYPASS": "false", "SUPREMEAI_API_TOKEN": "super-secure-production-api-token"}
+            os.environ, {"ALLOW_TEST_AUTH_BYPASS": "false", "SUPREMEAI_API_KEY": "super-secure-production-api-token"}
         ),
         patch("core.config.settings.allow_test_auth_bypass", False),
     ):

@@ -50,9 +50,9 @@ _সরাসরি `render.yaml` থেকে (`sync: false` মানে Rende
 | `OPENAI_API_KEY` / `OPENROUTER_API_KEY` / `GEMINI_API_KEY` | 1 | LLM-এর অন্তত একটা লাগবে |
 | `SUPREMEAI_JWT_SECRET` | **0 (crash)** | ≥64 bytes |
 | `SUPREMEAI_ADMIN_PASSWORD_HASH` | **0 (crash)** | |
-| `SUPREMEAI_ENCRYPTION_KEY` / `ENCRYPTION_KEY` | **0 (crash)** | ⚠️ দুইটা আলাদা নামে আছে — নিচে গ্যাপ সেকশনে দেখুন |
+| `ENCRYPTION_KEY` / `ENCRYPTION_KEY` | **0 (crash)** | ⚠️ দুইটা আলাদা নামে আছে — নিচে গ্যাপ সেকশনে দেখুন |
 | `SUPREMEAI_DOCS_PASSWORD` | 2 | না থাকলে fallback password ব্যবহার হয় (নিরাপত্তা ঝুঁকি!) |
-| `SUPREMEAI_API_TOKEN` | 1 | |
+| `SUPREMEAI_API_KEY` | 1 | |
 | `STRIPE_API_KEY` / `STRIPE_WEBHOOK_SECRET` | 1 | |
 | `CI_WEBHOOK_SECRET` | 1 | |
 | `INFISICAL_TOKEN` / `INFISICAL_CLIENT_SECRET` | 2 | vault access-এর জন্য নিজেই |
@@ -131,7 +131,7 @@ Secret না, শুধু public build-time URL:
 
 - **`ANTHROPIC_API_KEY`** — কোডে ব্যবহার হয় (LLM router-এ), কিন্তু registry doc-এ নেই
 - **`INFISICAL_CLIENT_ID`** — vault authentication-এর একটা অংশ, কোডে আছে, registry-তে নেই (শুধু `INFISICAL_TOKEN`/`INFISICAL_CLIENT_SECRET` আছে — এই ৩টা মিলে vault client auth করে, একটা বাদ পড়লে vault access আংশিক ভাঙবে)
-- **`ENCRYPTION_KEY` vs `SUPREMEAI_ENCRYPTION_KEY`** — কোডে দুটো আলাদা নাম ব্যবহার হয়েছে (একটা crash করায়, আরেকটা batch-secret) — এটা সম্ভবত ঐতিহাসিক duplication, স্পষ্ট করা দরকার কোনটা আসল single source of truth
+- **`ENCRYPTION_KEY` vs `ENCRYPTION_KEY`** — কোডে দুটো আলাদা নাম ব্যবহার হয়েছে (একটা crash করায়, আরেকটা batch-secret) — এটা সম্ভবত ঐতিহাসিক duplication, স্পষ্ট করা দরকার কোনটা আসল single source of truth
 - **Optional integration keys সম্পূর্ণ অনুপস্থিত registry থেকে**: `MINIO_ACCESS_KEY`/`MINIO_SECRET_KEY`, `PINECONE_API_KEY`, `QDRANT_URL`(alt names আছে কিন্তু host-level নেই), `R2_ACCESS_KEY`/`R2_SECRET_KEY`, `NATS_TOKEN`, `SLACK_BOT_TOKEN`, `TELEGRAM_BOT_TOKEN`, `POSTHOG_API_KEY` — এগুলো code-এ genuinely ব্যবহৃত হয় (optional feature হিসেবে) কিন্তু registry-তে documented না
 - **Coding-agent keys** (`AIDER_API_KEY`, `CLINE_API_KEY`, `CODEIUM_API_KEY`, `CONTINUE_API_KEY`, `OPENHANDS_API_KEY`, `PLANDEX_API_KEY`, `PYTHAGORA_API_KEY`) — এগুলো optional third-party dev-tool integration, registry-তে নেই
 - **৮টা placeholder file খালি** (`env_cloudflare.md`, `env_render_backend.md`, `env_render_admin.md`, `env_vercel_netlify.md`, `env_github_actions.md`, `env_dotenv.md`, `env_infisical.md`, `env_firebase_gcp.md`) — তৈরি হয়েছে কিন্তু কখনো লেখা হয়নি

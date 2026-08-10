@@ -10,7 +10,7 @@
 | 4 | `MISTRAL_API_KEY` | `S5bglgca0bLpg3oPWaSvpc8ATCr2MLEB` | Mistral AI API |
 | 5 | `FIRECRAWL_API_KEY` | 2 Keys (`fc-557b...`) | Web Scraping & Extraction |
 | 6 | `OPENHANDS_API_KEY` | `sk-oh-LKqQq...` | OpenHands Execution Agent |
-| 7 | `SUPREMEAI_API_KEY_FIRST` | `sk-supreme-DP7w...` | SupremeAI Custom API Gateway |
+| 7 | `SUPREMEAI_API_KEY` | `sk-supreme-DP7w...` | SupremeAI Custom API Gateway |
 | 8 | `OLLAMA_URL` | `http://localhost:11434` | Local Ollama LLM Service |
 | 9 | `OPENAI_API_KEY` | Scanned (`sk-proj-...` - quota ended) | OpenAI Models |
 | 10 | `HF_API_KEY` | 7 Rotated Keys (`hf_aFbn...`) | HuggingFace Inference API |

@@ -44,7 +44,7 @@ def test_auth_middleware_blocks_protected_route_without_token():
         resp = client.get("/api/task/execute")
     assert resp.status_code == 401
 
-    os.environ["SUPREMEAI_API_TOKEN"] = "secure-test-token-value"
+    os.environ["SUPREMEAI_API_KEY"] = "secure-test-token-value"
     app = FastAPI()
 
     @app.get("/api/task/execute")
@@ -63,4 +63,4 @@ def test_auth_middleware_blocks_protected_route_without_token():
             )
         assert resp.status_code == 200
     finally:
-        os.environ.pop("SUPREMEAI_API_TOKEN", None)
+        os.environ.pop("SUPREMEAI_API_KEY", None)

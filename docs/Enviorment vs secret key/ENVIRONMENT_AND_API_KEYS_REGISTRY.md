@@ -14,12 +14,12 @@ _Last Updated: 2026-07-27_
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
 | **`ENV`** | ✅ MUST | ✅ MUST | 🟡 Opt | ❌ | ❌ | ❌ | ✅ MUST | ✅ | Environment name (`production`/`staging`) |
 | **`SUPREMEAI_JWT_SECRET`** | ✅ MUST | ✅ MUST | ❌ | ❌ | ❌ | ❌ | ✅ MUST | ✅ | JWT token secret |
-| **`SUPREMEAI_ENCRYPTION_KEY`** | ✅ MUST | ✅ MUST | ❌ | ❌ | ❌ | ❌ | ✅ MUST | ✅ | Data encryption key |
+| **`ENCRYPTION_KEY`** | ✅ MUST | ✅ MUST | ❌ | ❌ | ❌ | ❌ | ✅ MUST | ✅ | Data encryption key |
 | **`ENCRYPTION_KEY`** | ✅ MUST | ✅ MUST | ❌ | ❌ | ❌ | ❌ | ✅ MUST | ✅ | Payload encryption key |
 | **`SUPREMEAI_ADMIN_PASSWORD_HASH`** | ✅ MUST | ✅ MUST | ❌ | ❌ | ❌ | ❌ | ✅ MUST | ❌ | Hashed admin password |
 | **`SUPREMEAI_ADMIN_TOTP_SECRET`** | ✅ MUST | ✅ MUST | ❌ | ❌ | ❌ | ❌ | ✅ MUST | ✅ | Admin 2FA TOTP secret |
-| **`SUPREMEAI_API_TOKEN`** | ✅ MUST | ✅ MUST | ❌ | ❌ | ❌ | ❌ | ✅ MUST | ❌ | Primary API authentication token |
-| **`SUPREMEAI_API_KEY_FIRST`** | ✅ MUST | ✅ MUST | ❌ | ❌ | ❌ | ❌ | ✅ MUST | ✅ | Primary API authentication token (first key) |
+| **`SUPREMEAI_API_KEY`** | ✅ MUST | ✅ MUST | ❌ | ❌ | ❌ | ❌ | ✅ MUST | ❌ | Primary API authentication token |
+| **`SUPREMEAI_API_KEY`** | ✅ MUST | ✅ MUST | ❌ | ❌ | ❌ | ❌ | ✅ MUST | ✅ | Primary API authentication token (first key) |
 | **`SUPREMEAI_DOCS_PASSWORD`** | ❌ | ✅ MUST | ❌ | ❌ | ❌ | ❌ | ✅ MUST | ✅ | Admin docs protected password |
 | **`SUPREMEAI_DOCS_USERNAME`** | ❌ | ✅ MUST | ❌ | ❌ | ❌ | ❌ | ✅ MUST | ❌ | Admin docs username |
 | **`ADMIN_AUTHORIZED`** | ✅ MUST | ✅ MUST | ❌ | ❌ | ❌ | ❌ | ✅ MUST | ❌ | Admin authorization flag |

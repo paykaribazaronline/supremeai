@@ -24,12 +24,12 @@ _REG = [
     # ── Core Authentication & Security ──
     ("ENV", "rb:I,ra:I,vf:O,iv:I", "Environment name (production/staging)"),
     ("SUPREMEAI_JWT_SECRET", "rb:C,ra:C,rw:C,iv:C", "JWT secret; <64 bytes হলে RuntimeError (config.py)"),
-    ("SUPREMEAI_ENCRYPTION_KEY", "rb:C,ra:C,rw:C,iv:C", "Data encryption key (canonical)"),
-    ("ENCRYPTION_KEY", "rb:C,ra:C,rw:C,iv:C", "Payload encryption key (duplicate of SUPREMEAI_ENCRYPTION_KEY)"),
+    ("ENCRYPTION_KEY", "rb:C,ra:C,rw:C,iv:C", "Data encryption key (canonical)"),
+    ("ENCRYPTION_KEY", "rb:C,ra:C,rw:C,iv:C", "Payload encryption key (duplicate of ENCRYPTION_KEY)"),
     ("SUPREMEAI_ADMIN_PASSWORD_HASH", "rb:C,ra:C,iv:C", "Hashed admin password (config.py required)"),
     ("SUPREMEAI_ADMIN_TOTP_SECRET", "rb:I,ra:I,iv:I", "Admin 2FA TOTP secret"),
-    ("SUPREMEAI_API_TOKEN", "rb:I,ra:I,iv:I", "Primary API authentication token"),
-    ("SUPREMEAI_API_KEY_FIRST", "rb:I,ra:I,iv:I", "Primary API key (first)"),
+    ("SUPREMEAI_API_KEY", "rb:I,ra:I,iv:I", "Primary API authentication token"),
+    ("SUPREMEAI_API_KEY", "rb:I,ra:I,iv:I", "Primary API key (first)"),
     ("SUPREMEAI_API_KEY", "rb:I,ra:I,iv:I", "Primary API key (alt name)"),
     ("SUPREMEAI_DOCS_PASSWORD", "ra:I,iv:I", "Admin docs protected password"),
     ("SUPREMEAI_DOCS_USERNAME", "ra:I,iv:I", "Admin docs username"),
@@ -162,7 +162,7 @@ _REG = [
 # বাংলা: যেসব key-এর validity (length) check করা দরকার
 _MIN_LENGTH = {
     "SUPREMEAI_JWT_SECRET": 64,
-    "SUPREMEAI_ENCRYPTION_KEY": 16,
+    "ENCRYPTION_KEY": 16,
     "ENCRYPTION_KEY": 16,
 }
 

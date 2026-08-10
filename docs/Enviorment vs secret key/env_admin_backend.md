@@ -12,9 +12,9 @@
 | 7 | `SUPREMEAI_ADMIN_BACKEND_URL` | Admin Backend Public Service URL | Configured |
 | 8 | `SUPREMEAI_ADMIN_PASSWORD_HASH` | Admin প্যানেল এক্সেস করার জন্য পাসওয়ার্ড হ্যাশ | Vault / Secret |
 | 9 | `SUPREMEAI_JWT_SECRET` / `JWT_SECRET` | Admin সেসন JWT টোকেন সাইনিং সিক্রেট | Vault / Secret |
-| 10 | `SUPREMEAI_ENCRYPTION_KEY` / `ENCRYPTION_KEY` | কাস্টম এনক্রিপশন কী | Vault / Secret |
+| 10 | `ENCRYPTION_KEY` / `ENCRYPTION_KEY` | কাস্টম এনক্রিপশন কী | Vault / Secret |
 | 11 | `SUPREMEAI_DOCS_PASSWORD` / `DOCS_PASSWORD` | Admin API Docs পাসওয়ার্ড | Vault / Secret |
-| 12 | `SUPREMEAI_API_TOKEN` | অ্যাডমিন সার্ভিস ইন্টার-কমিউনিকেশন টোকেন | Vault / Secret |
+| 12 | `SUPREMEAI_API_KEY` | অ্যাডমিন সার্ভিস ইন্টার-কমিউনিকেশন টোকেন | Vault / Secret |
 | 13 | `REDIS_URL` | Redis ক্যাশিং URL | Vault / Secret |
 | 14 | `UPSTASH_REDIS_REST_URL` | Upstash Serverless Redis REST endpoint URL | Vault / Secret |
 | 15 | `UPSTASH_REDIS_REST_TOKEN` | Upstash Serverless Redis REST token | Vault / Secret |

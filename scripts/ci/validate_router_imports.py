@@ -46,8 +46,8 @@ if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
 
 # Ensure encryption key exists for testing
-if "SUPREMEAI_ENCRYPTION_KEY" not in os.environ and "ENCRYPTION_KEY" not in os.environ:
-    os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "TEST_ONLY_SUPREMEAI_ENCRYPTION_KEY_DO_NOT_USE_IN_PROD="
+if "ENCRYPTION_KEY" not in os.environ and "ENCRYPTION_KEY" not in os.environ:
+    os.environ["ENCRYPTION_KEY"] = "TEST_ONLY_SUPREMEAI_ENCRYPTION_KEY_DO_NOT_USE_IN_PROD="
 
 # ── Router lists (mirrors backend/api/routers.py) ─────────────────────────────
 CORE_ROUTERS = [

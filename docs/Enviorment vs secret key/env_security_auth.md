@@ -5,9 +5,9 @@
 | No. | Real Environment Variable Key | Real Scanned Value / Pattern | Status / Description |
 | :--- | :--- | :--- | :--- |
 | 1 | `SUPREMEAI_JWT_SECRET` | 64-Byte Hex String (`a47ee260ff2d...`) | Master JWT Session Signing Secret |
-| 2 | `SUPREMEAI_ENCRYPTION_KEY` | `9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno=` | Core Data Encryption Key |
+| 2 | `ENCRYPTION_KEY` | `9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno=` | Core Data Encryption Key |
 | 3 | `ENCRYPTION_KEY` | `X-mE_EtEtiznG1yU-Z0cQjhdh_ZjO1QT4gv1gSIx4ao=` | Secondary Data Encryption Key |
-| 4 | `ENCRYPTION_KEY_VERIFY` | `CLXfPaAy8Zy7yCdqo3iU8Y05D-MEKKcR4fYQH-2UdvU=` | Encryption Verification Key |
+| 4 | `ENCRYPTION_KEY` | `CLXfPaAy8Zy7yCdqo3iU8Y05D-MEKKcR4fYQH-2UdvU=` | Encryption Verification Key |
 | 5 | `SUPREMEAI_ADMIN_PASSWORD_HASH` | `$2b$12$LJ3m8yV6qN4xZ7wE5rT8yU...` | Admin Login Cryptographic Password Hash |
 | 6 | `SUPREMEAI_ADMIN_TOTP_SECRET` | `JBSWY3DPEHPK3PXP` | Admin 2FA TOTP Secret Key |
 | 7 | `DOCS_PASSWORD` | `supreme-admin-2026-prod` | FastAPI Docs Access Protection Password |

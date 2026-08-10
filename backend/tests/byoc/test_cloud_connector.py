@@ -2,7 +2,7 @@ import json
 import os
 import sys
 
-os.environ["SUPREMEAI_ENCRYPTION_KEY"] = "9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno="
+os.environ["ENCRYPTION_KEY"] = "9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno="
 
 sys.path.append("../..")
 from byoc.cloud_connector import CloudStatus, list_resources, ping
