@@ -59,6 +59,7 @@ def get_firestore_db(project_id: str | None = None) -> Any | None:
         for k in (
             "GOOGLE_APPLICATION_CREDENTIALS",
             "GCP_SERVICE_ACCOUNT_JSON",
+            "FIREBASE_SERVICE_ACCOUNT_JSON",
             "FIREBASE_SERVICE_ACCOUNT",
             "FIREBASE_ADMIN_CREDENTIALS",
             "K_SERVICE",
@@ -72,7 +73,15 @@ def get_firestore_db(project_id: str | None = None) -> Any | None:
         return _client_cache[resolved_project]
 
     try:
-        client = firestore.Client(project=resolved_project)
+        credentials = None
+        sa_json_str = os.getenv("GCP_SERVICE_ACCOUNT_JSON") or os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
+        if sa_json_str:
+            import json
+            from google.oauth2 import service_account
+            sa_info = json.loads(sa_json_str)
+            credentials = service_account.Credentials.from_service_account_info(sa_info)
+            
+        client = firestore.Client(project=resolved_project, credentials=credentials)
         _client_cache[resolved_project] = client
         logger.info(f"Firestore client initialized for project: {resolved_project}")
         return client
