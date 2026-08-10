@@ -4,6 +4,7 @@ import os
 import sys
 import urllib.parse
 import urllib.request
+import ssl
 from typing import Dict, List
 
 
@@ -40,8 +41,13 @@ def api_get(path: str, params: Dict = None) -> Dict:
     if params:
         url += "?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers=HEADERS, method="GET")
+    
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+
     try:
-        with urllib.request.urlopen(req) as resp:
+        with urllib.request.urlopen(req, context=ctx) as resp:
             body = resp.read().decode("utf-8")
             status = resp.status
     except urllib.error.HTTPError as e:
