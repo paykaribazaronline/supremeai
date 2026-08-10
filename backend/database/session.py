@@ -67,6 +67,7 @@ def _build_engine_kwargs(async_url: str) -> dict[str, Any]:
                     "server_settings": {"application_name": f"supremeai_2_0_{_role}"},
                     # asyncpg-এর নিজস্ব কানেকশন আর্গুমেন্ট হিসেবে statement_cache_size 0 করা হলো
                     "statement_cache_size": 0,
+                    "max_cached_statement_lifetime": 0,
                 },
             }
         )
