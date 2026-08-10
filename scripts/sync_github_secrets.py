@@ -1,56 +1,82 @@
-# scripts/sync_github_secrets.py
-# বাংলা মন্তব্য: এই স্ক্রিপ্টটি কমান্ড লাইন আর্গুমেন্টে Secret না পাঠিয়ে নিরাপদ STDIN প্রসেস পাইপিংয়ের মাধ্যমে 
-# GitHub Actions Repository Secrets সেট করে, যাতে সিস্টেমে প্রসেস ট্র্যাকিং থেকে Secret লিকেজ রোধ করা যায়।
-
 import os
-import subprocess
-import re
-import sys
-from dotenv import load_dotenv
+import requests
+from base64 import b64encode
+from nacl import encoding, public
+import argparse
+import time
 
-if hasattr(sys.stdout, "reconfigure"):
-    sys.stdout.reconfigure(encoding="utf-8")
+def parse_env_file(filepath):
+    env_vars = {}
+    with open(filepath, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            if '=' in line:
+                key, val = line.split('=', 1)
+                key = key.strip()
+                val = val.strip()
+                if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
+                    val = val[1:-1]
+                env_vars[key] = val
+    return env_vars
 
-load_dotenv('.env')
+def encrypt(public_key: str, secret_value: str) -> str:
+    public_key_obj = public.PublicKey(public_key.encode("utf-8"), encoding.Base64Encoder())
+    sealed_box = public.SealedBox(public_key_obj)
+    encrypted = sealed_box.encrypt(secret_value.encode("utf-8"))
+    return b64encode(encrypted).decode("utf-8")
 
-valid_key_pattern = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_.-]*$')
-
-env_vars = {}
-with open('.env', 'r', encoding='utf-8') as f:
-    for line in f:
-        line = line.strip()
-        if not line or line.startswith('#') or '=' not in line:
+def sync_github_secrets(repo, token, env_vars):
+    headers = {
+        "Authorization": f"token {token}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    
+    print(f"Fetching public key for {repo}...")
+    r = requests.get(f"https://api.github.com/repos/{repo}/actions/secrets/public-key", headers=headers)
+    if r.status_code != 200:
+        print(f"Failed to fetch GH public key: {r.status_code} {r.text}")
+        return
+        
+    data = r.json()
+    key_id = data["key_id"]
+    public_key = data["key"]
+    
+    success = 0
+    failed = 0
+    
+    print(f"Starting sync of {len(env_vars)} secrets to GitHub Actions...")
+    for key, val in env_vars.items():
+        if not val:
             continue
-        k, v = line.split('=', 1)
-        k = k.strip()
-        v = v.strip().strip('"').strip("'")
-        if valid_key_pattern.match(k):
-            env_vars[k] = v
+            
+        encrypted_value = encrypt(public_key, val)
+        put_url = f"https://api.github.com/repos/{repo}/actions/secrets/{key}"
+        payload = {
+            "encrypted_value": encrypted_value,
+            "key_id": key_id
+        }
+        
+        r2 = requests.put(put_url, headers=headers, json=payload)
+        if r2.status_code in [201, 204]:
+            print(f"Synced: {key}")
+            success += 1
+        else:
+            print(f"Failed: {key} ({r2.status_code})")
+            failed += 1
+            
+        time.sleep(0.1) # Small delay to avoid API rate limits
 
-print(f"Found {len(env_vars)} valid keys in .env. Updating GitHub Secrets securely via STDIN...")
+    print(f"\nSync Complete! Success: {success}, Failed: {failed}")
 
-env = os.environ.copy()
-env.pop('GITHUB_TOKEN', None)
-
-success = 0
-failed = 0
-
-for k, v in env_vars.items():
-    if not v:
-        continue
-    # Secure stdin piping without passing secret values as CLI arguments
-    p = subprocess.run(
-        ['gh', 'secret', 'set', k, '--repo', 'paykaribazaronline/supremeai'],
-        input=v,
-        text=True,
-        capture_output=True,
-        env=env
-    )
-    if p.returncode == 0:
-        success += 1
-        print(f"[OK] Set GitHub Secret: {k}", flush=True)
-    else:
-        failed += 1
-        print(f"[FAIL] Failed to set {k}: {p.stderr.strip()}", flush=True)
-
-print(f"\nDone! Updated {success} secrets ({failed} failed).")
+if __name__ == "__main__":
+    env_vars = parse_env_file(".env")
+    gh_token = env_vars.get("GITHUB_API_TOKEN") or env_vars.get("GITHUB_TOKEN") or env_vars.get("GITHUB_PAT_NILOYJOY7")
+    repo = "SaifulHaqueNiloy/supremeai"
+    
+    if not gh_token:
+        print("Error: GitHub Token not found in .env!")
+        exit(1)
+        
+    sync_github_secrets(repo, gh_token, env_vars)
