@@ -932,7 +932,9 @@ class Settings(BaseSettings):
             if not self.encryption_key.get_secret_value():
                 missing.append("ENCRYPTION_KEY")
             if missing:
-                logger.critical(f"🚨 FATAL: মিসিং সিকিউরিটি ভেরিয়েবল: {', '.join(missing)}। Fail-Fast প্রয়োগ করা হলো।")
+                logger.critical(
+                    f"🚨 FATAL: মিসিং সিকিউরিটি ভেরিয়েবল: {', '.join(missing)}। Fail-Fast প্রয়োগ করা হলো।"
+                )
                 sys.exit(1)
         return self
 
