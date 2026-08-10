@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { getApiBaseUrl } from '../utils/api';
+import { getFirebaseAuth } from '../firebase';
+import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 
 const decodeJwt = (token: string): Record<string, unknown> | null => {
   try {
@@ -88,8 +90,6 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       const API_BASE = getApiBaseUrl();
 
       // বাংলা মন্তব্য: getFirebaseAuth() ব্যবহার করা হচ্ছে যাতে Firebase app ইনিশিয়ালাইজেশন (initializeApp) সঠিকভাবে সম্পন্ন হয়
-      const { getFirebaseAuth } = await import('../firebase');
-      const { signInWithEmailAndPassword } = await import('firebase/auth');
       const auth = await getFirebaseAuth();
 
       let idToken = '';
@@ -182,8 +182,6 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   },
   handleAdminLogout: async () => {
     try {
-      const { getFirebaseAuth } = await import('../firebase');
-      const { signOut } = await import('firebase/auth');
       const auth = await getFirebaseAuth();
       await signOut(auth);
       const API_BASE = getApiBaseUrl();
