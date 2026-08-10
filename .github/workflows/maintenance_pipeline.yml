@@ -392,7 +392,6 @@ jobs:
       - name: Start Backend Server
         working-directory: backend
         env:
-          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY || 'CwE60g_bA67m-mock-encryption-key-padded-len=' }}
           SUPREMEAI_API_URL: http://127.0.0.1:8000
           SUPABASE_URL: "https://mock-health-check.supabase.co"
