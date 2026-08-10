@@ -65,7 +65,8 @@ export function ActionCard({ rawContent, onSaveToProject, onPreview }: ActionCar
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${adminTokenStore.getRawToken()}`
-            }
+            },
+            body: JSON.stringify({ code: content, filename: metadata?.filename || 'component.tsx' })
           });
           if (res.ok) {
             const data = await res.json();

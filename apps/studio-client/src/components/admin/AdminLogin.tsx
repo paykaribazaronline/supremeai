@@ -86,10 +86,11 @@ export function LoginView({
       if (!otpRequired) {
         setLocalPassword('');
       }
-    } catch {
+    } catch (err) {
       // Increment attempt counter for rate limiting
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
+      setLocalError(err instanceof Error ? err.message : 'Login failed. Please check your credentials.');
       if (newAttempts >= MAX_ATTEMPTS) {
         const lockUntil = Date.now() + LOCKOUT_MS;
         setLockedUntil(lockUntil);

@@ -12,13 +12,14 @@ import { useMetrics } from '../../hooks/useDashboardData';
 import { useDashboardStore } from '../../store/dashboardStore';
 
 export function RealTimeMetricsPanel() {
-  const { data: metrics, isLoading } = useMetrics(5000);
+  const { data: metrics, isLoading, dataUpdatedAt } = useMetrics(5000);
   const dashboardMode = useDashboardStore((s) => s.dashboardMode);
   const isSimple = dashboardMode === 'simple';
 
-  // বাংলা মন্তব্য: লিন্ট এরর এড়াতে purity রুল ডিজেবল করা হলো (এটি গ্রাফের টাইমস্ট্যাম্পের জন্য নিরাপদ)
-  // eslint-disable-next-line react-hooks/purity
-  const now = Date.now();
+  // বাংলা মন্তব্য: Date.now() render-এ কল করা React purity নিয়ম ভঙ্গ করে।
+  // react-query-এর dataUpdatedAt (stable timestamp) ব্যবহার করা হচ্ছে — এটি
+  // ডেটা আপডেটের সময় পরিবর্তিত হয়, তাই গ্রাফের X-অক্ষ টাইমস্ট্যাম্প সঠিক থাকে।
+  const now = dataUpdatedAt;
 
   const series = useMemo(() => {
     if (!metrics) return [];
@@ -95,7 +96,7 @@ export function RealTimeMetricsPanel() {
           Live Metrics
         </span>
         <span className="text-[9px] font-mono text-slate-400">
-          {new Date().toLocaleTimeString()}
+          {new Date(dataUpdatedAt).toLocaleTimeString()}
         </span>
       </div>
 

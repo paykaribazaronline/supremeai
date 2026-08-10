@@ -156,7 +156,7 @@ export const JITOTPModal: FC<JITOTPModalProps> = ({
               border: '1px solid #4b5563',
               color: '#ffffff',
               outline: 'none',
-              boxSizing: 'border me-box' as any,
+              boxSizing: 'border-box',
             }}
             disabled={isVerifying || attempts >= maxAttempts}
             autoFocus

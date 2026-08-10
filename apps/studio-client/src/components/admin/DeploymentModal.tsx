@@ -45,7 +45,7 @@ const DeploymentModal: React.FC<DeploymentModalProps> = ({
     enabled: isDeploymentModalOpen,
   });
 
-  // ডিপ্লয় múTETION - প旗袍শন লাইফসাইকেল ম্যানেজ করার জন্য
+  // ডিপ্লয় মিউটেশন - ডিপ্লয়মেন্ট লাইফসাইকেল ম্যানেজ করার জন্য
   const deployMutation = useMutation({
     mutationFn: () =>
       apiClient.post<{ message: string }>('/admin-api/deploy', {
@@ -91,7 +91,7 @@ const DeploymentModal: React.FC<DeploymentModalProps> = ({
     return () => clearInterval(interval);
   }, [isDeploymentModalOpen, deploymentStatus]);
 
-  // CI লগগুলো প্রসেস করে ডিসপ্লেble logs এ রূপান্তরকারী
+  // CI লগগুলো প্রসেস করে ডিসপ্লেবল লগে রূপান্তরকারী
   useEffect(() => {
     if (!ciLogs) return;
 

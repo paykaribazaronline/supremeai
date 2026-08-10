@@ -203,7 +203,10 @@ export function useDashboardSSE() {
   useEffect(() => {
     if (!hasToken()) return;
     const backendUrl = getApiBaseUrl();
-    const sse = new EventSource(`${backendUrl}/api/dashboard/stream`);
+    const rawToken = adminTokenStore.getRawToken();
+    // EventSource can't set Authorization headers, so pass the token via query param
+    // (backend AuthMiddleware now accepts ?token=<jwt> for SSE endpoints).
+    const sse = new EventSource(`${backendUrl}/api/dashboard/stream?token=${encodeURIComponent(rawToken || '')}`);
 
     sse.addEventListener('dashboard_events', (e) => {
       try {

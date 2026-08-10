@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { getApiBaseUrl } from '../../utils/api';
+import { adminTokenStore } from '../../services/adminTokenStore';
 
 // --- Bangla comment: UnifiedChatBubble-এ action button-এর জন্য প্রপস ---
 interface PromptActionMeta {
@@ -68,7 +70,7 @@ export function UnifiedChatBubble({
     )
     : null;
 
-  const handleActionButton = async (act: ActionItem, content: string) => {
+  const handleActionButton = async (act: ActionItem, content: string, filename?: string) => {
     try {
       if (act.type === 'save' && onSaveToProject) {
         onSaveToProject(content);
@@ -86,7 +88,24 @@ export function UnifiedChatBubble({
         setTimeout(() => setActionStatus('✅ Executed!'), 1500);
       } else if (act.type === 'deploy') {
         setActionStatus('🚀 Deploying...');
-        setTimeout(() => setActionStatus('✅ Deployed!'), 2000);
+        try {
+          const res = await fetch(`${getApiBaseUrl()}/admin-api/deploy`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${adminTokenStore.getRawToken()}`
+            },
+            body: JSON.stringify({ code: content, filename: filename || 'component.tsx' })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setActionStatus(`✅ ${data.message || 'Deployed!'}`);
+          } else {
+            setActionStatus('❌ Deploy failed (unauthorized or server error).');
+          }
+        } catch (e: any) {
+          setActionStatus(`❌ Deploy failed: ${e.message}`);
+        }
       } else if (act.type === 'share') {
         setActionStatus('🔗 Share link copied!');
       }
@@ -143,7 +162,7 @@ export function UnifiedChatBubble({
                 {parsed.metadata.actions.map((act) => (
                   <button
                     key={act.id}
-                    onClick={() => handleActionButton(act, parsed.content)}
+                    onClick={() => handleActionButton(act, parsed.content, parsed.metadata?.filename)}
                     className="text-[11px] px-2.5 py-1.5 rounded-lg bg-[#121420] border border-[#bc13fe]/30 hover:border-[#bc13fe] hover:bg-[#1a1c2e] text-slate-300 font-semibold transition-all duration-200"
                   >
                     {act.label}

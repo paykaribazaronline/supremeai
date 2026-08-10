@@ -37,6 +37,34 @@ def _get_bearer_token(headers: Headers) -> str | None:
     return None
 
 
+def _get_token_from_query(scope: ASGIScope) -> str | None:
+    """Extract an Auth token from the query string for SSE/EventSource.
+
+    EventSource (and <img>/<script>) cannot set an Authorization header, so
+    SSE endpoints must accept the token via a query parameter:
+        /api/dashboard/stream?token=<jwt>
+
+    বাংলা: EventSource Authorization হেডার পাঠাতে পারে না, তাই SSE এন্ডপয়েন্টে
+    টোকেন query parameter হিসাবে গ্রহণ করা হয়।
+    """
+    qs = scope.get("query_string", b"")
+    if not qs:
+        return None
+    try:
+        query = qs.decode("utf-8", errors="replace")
+    except Exception:
+        return None
+    for part in query.split("&"):
+        if "=" not in part:
+            continue
+        key, value = part.split("=", 1)
+        if key == "token" and value:
+            from urllib.parse import unquote
+
+            return unquote(value)
+    return None
+
+
 def _decode_jwt(token: str) -> dict[str, Any] | None:
     """Decode and validate a JWT token.
 
@@ -147,7 +175,7 @@ class AuthMiddleware:
             return
 
         headers: Headers = scope.get("headers", [])
-        token = _get_bearer_token(headers)
+        token = _get_bearer_token(headers) or _get_token_from_query(scope)
 
         allow_bypass = getattr(settings, "allow_test_auth_bypass", False)
         if not isinstance(allow_bypass, bool):
