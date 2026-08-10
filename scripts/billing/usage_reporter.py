@@ -105,7 +105,11 @@ class UsageReporter:
         if AsyncSession and self.database_url:
             try:
                 from sqlalchemy.ext.asyncio import create_async_engine
-                engine = create_async_engine(self.database_url)
+                engine = create_async_engine(
+                    self.database_url,
+                    prepared_statement_cache_size=0,
+                    connect_args={"statement_cache_size": 0}
+                )
                 self.db_session = AsyncSession(engine)
                 logger.info("Database session initialized")
             except Exception as e:

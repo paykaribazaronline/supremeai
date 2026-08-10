@@ -59,15 +59,14 @@ def _build_engine_kwargs(async_url: str) -> dict[str, Any]:
                 "pool_timeout": 30,
                 "pool_recycle": 1800,
                 "pool_pre_ping": True,
+                # SQLAlchemy-এর asyncpg ডায়ালেক্টের আর্গুমেন্ট হিসেবে এগুলো সরাসরি engine_kwargs-এ থাকতে হবে
+                "prepared_statement_cache_size": 0,
+                "prepared_statement_name_func": lambda: f"__sai_{id(object())}_{__import__('secrets').token_hex(8)}__",
                 "connect_args": {
                     "command_timeout": 30,
                     "server_settings": {"application_name": f"supremeai_2_0_{_role}"},
-                    # বাংলা মন্তব্য: PgBouncer (transaction/statement pool mode) এর সাথে সামঞ্জস্যের জন্য
-                    # prepared statement ক্যাশে বন্ধ করা হয়েছে এবং ইউনিক নাম জেনারেটর যোগ করা হয়েছে,
-                    # যাতে 'prepared statement already exists' (DuplicatePreparedStatementError) এড়ানো যায়।
+                    # asyncpg-এর নিজস্ব কানেকশন আর্গুমেন্ট হিসেবে statement_cache_size 0 করা হলো
                     "statement_cache_size": 0,
-                    "prepared_statement_cache_size": 0,
-                    "prepared_statement_name_func": lambda: f"__sai_{id(object())}_{__import__('secrets').token_hex(8)}__",
                 },
             }
         )
