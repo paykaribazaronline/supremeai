@@ -64,15 +64,7 @@ pyasn1 = "^0.6.4"  # transitive via google-auth; explicit floor for CVE fix (AUD
 openai = ">=1.54.0"
 anthropic = "^0.120.0"
 infisical-python = "2.3.5"
-# বাংলা মন্তব্য: litellm ১.৮৪+ ভার্সন থেকে প্রতিটা release-এ python upper-bound cap
-# যোগ হয়েছে (<3.14, <3.15 ইত্যাদি, ভার্সনভেদে ভিন্ন), যেখানে এই প্রজেক্টের
-# python = "^3.11" মানে ">=3.11,<4.0" — একটা খোলা upper bound যেটা litellm-এর
-# কোনো single version কখনোই পুরোপুরি cover করতে পারবে না (poetry lock তাই
-# SolverProblemError দেয়)। CI বাস্তবে শুধু Python 3.11-এ চলে (workflows-এর
-# PYTHON_VERSION: '3.11'), তাই global python constraint না বদলে শুধু litellm-এর
-# জন্য একটা bounded python marker যোগ করা হলো — poetry নিজেই এই সমাধান suggest
-# করেছিল ("set the python property")।
-litellm = {version = ">=1.84.0,<2.0.0", python = ">=3.11,<3.14"}  # CVE fix floor (AUDIT-014)
+litellm = ">=1.50.0,<2.0.0"
 sse-starlette = "^2.1.3"
 plotly = "^5.24.1"
 scipy = "^1.14.1"
