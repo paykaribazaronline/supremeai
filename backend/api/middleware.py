@@ -120,7 +120,7 @@ class ResponseStandardizationMiddleware(BaseHTTPMiddleware):
             # সাথে সেগুলো নিজে থেকেই ঠিকভাবে সেট হবে)।
             standardized = JSONResponse(status_code=response.status_code, content=body)
             for key, value in response.headers.items():
-                if key.lower() not in ("content-type", "content-length"):
+                if key.lower() not in ("content-type", "content-length", "content-encoding", "transfer-encoding"):
                     standardized.headers[key] = value
             return standardized
         return response

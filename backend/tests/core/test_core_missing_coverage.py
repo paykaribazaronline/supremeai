@@ -959,7 +959,8 @@ class TestNATSMessagingMissingBranches:
             pytest.skip("nats module not installed")
         client = NATSClient()
         assert client.url == "nats://localhost:4222"
-        assert client.token == "super_secret_token"
+        # বাংলা মন্তব্য: token এখন NATS_TOKEN env var থেকে ডিফল্ট হিসেবে আসে
+        assert client.token == os.getenv("NATS_TOKEN")
         assert client.nc is None
         assert client.js is None
         assert client.kv_store is None
