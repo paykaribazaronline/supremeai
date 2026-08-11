@@ -23,12 +23,14 @@ except ImportError:
     print("::error::PyYAML ইনস্টল করা নাই — `pip install pyyaml` চালান।")
     sys.exit(1)
 
-REGISTRY_PATH = os.path.join(os.path.dirname(__file__), "..", "secrets_registry.yaml")
+POLICY_PATH = os.path.join(os.path.dirname(__file__), "..", "docs", "env_maintenance_policy.md")
 
-def load_registry(path: str) -> dict:
-    with open(path, "r", encoding="utf-8") as fh:
-        data = yaml.safe_load(fh)
-    return {e["name"]: e.get("criticality", {}) for e in data.get("keys", [])}
+sys.path.insert(0, os.path.dirname(__file__))
+from parse_env_policy import parse_policy
+
+def get_required_keys() -> set:
+    categories = parse_policy(POLICY_PATH)
+    return categories.get('infisical-vault', set())
 
 def get_infisical_token(client_id: str, client_secret: str) -> str:
     url = "https://app.infisical.com/api/v1/auth/universal-auth/login"
@@ -75,28 +77,19 @@ def main() -> int:
         print("[info] Using Universal Auth (Machine Identity) for authentication.")
         access_token = get_infisical_token(client_id, client_secret)
         
-    registry = load_registry(REGISTRY_PATH)
+    required_keys = get_required_keys()
     present = fetch_infisical_secrets(project_id, access_token, env)
     
     print(f"=== Infisical Vault Health Check [{env}] ===")
     print(f"[info] Infisical-এ সর্বমোট সিক্রেট সংখ্যা: {len(present)}")
+    print(f"[info] Policy-তে required সিক্রেট সংখ্যা: {len(required_keys)}")
     
     has_critical_failure = False
     
-    for name, crit_map in sorted(registry.items()):
-        tier = crit_map.get("infisical-vault")
-        if not tier:
-            continue
-        if name in present:
-            continue
-            
-        if tier == "critical":
+    for name in required_keys:
+        if name not in present:
             print(f"::error::CRITICAL secret missing in Infisical: {name} (production boot will crash)")
             has_critical_failure = True
-        elif tier == "important":
-            print(f"::warning::IMPORTANT secret missing in Infisical: {name}")
-        else:
-            print(f"[optional] Secret missing in Infisical: {name}")
             
     if has_critical_failure:
         print(f"\n❌ FAIL: Infisical-এ এক বা একাধিক critical সিক্রেট মিসিং!")

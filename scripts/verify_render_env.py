@@ -30,14 +30,15 @@ except ImportError:
     print("::error::PyYAML ইনস্টল করা নাই — `pip install pyyaml` চালান।")
     sys.exit(1)
 
-REGISTRY_PATH = os.path.join(os.path.dirname(__file__), "..", "secrets_registry.yaml")
-RENDER_API = "https://api.render.com/v1"
+POLICY_PATH = os.path.join(os.path.dirname(__file__), "..", "docs", "env_maintenance_policy.md")
 
+# Add scripts directory to path to import local module
+sys.path.insert(0, os.path.dirname(__file__))
+from parse_env_policy import parse_policy
 
-def load_registry(path: str) -> dict:
-    with open(path, "r", encoding="utf-8") as fh:
-        data = yaml.safe_load(fh)
-    return {e["name"]: e.get("criticality", {}) for e in data.get("keys", [])}
+def get_required_keys(env_name: str) -> set:
+    categories = parse_policy(POLICY_PATH)
+    return categories.get(env_name, set())
 
 
 def fetch_render_env(service_id: str, api_key: str) -> set:
@@ -81,12 +82,12 @@ def main() -> int:
         print("::error::RENDER_API_KEY/BACKUP env চার্জ করা হয়নি (GitHub secret থেকে ইনজেক্ট করুন)।")
         sys.exit(1)
 
-    # বাংলা: secrets_registry.yaml থেকে এই env-এর জন্য critical/important keys লোড করো
-    registry = load_registry(REGISTRY_PATH)
-    required_keys = {
-        name for name, crit_map in registry.items()
-        if crit_map.get(args.env) in ("critical", "important")
-    }
+    # বাংলা: env_maintenance_policy.md থেকে এই env-এর জন্য required keys লোড করো
+    required_keys = get_required_keys(args.env)
+    
+    if not required_keys:
+        print(f"::error::কোনো required keys পাওয়া যায়নি {args.env} এর জন্য env_maintenance_policy.md ফাইলে।")
+        sys.exit(1)
 
     # বাংলা: Render API থেকে service-এর actual env var keys fetch করো
     present_keys = fetch_render_env(args.service_id, api_key)
@@ -96,27 +97,16 @@ def main() -> int:
     missing_critical = []
     missing_important = []
 
-    for name, crit_map in sorted(registry.items()):
-        tier = crit_map.get(args.env)
-        if not tier:
-            continue
-        if name in present_keys:
-            continue
-        if tier == "critical":
+    for name in required_keys:
+        if name not in present_keys:
             missing_critical.append(name)
             print(f"::error::CRITICAL key missing in Render [{args.env}]: {name} — সার্ভার boot crash হবে!")
-        elif tier == "important":
-            missing_important.append(name)
-            print(f"::warning::IMPORTANT key missing in Render [{args.env}]: {name} — degraded mode চলবে।")
 
     if missing_critical:
         print(f"\n❌ FAIL [{args.env}]: {len(missing_critical)}টি critical key missing! Render deploy crash করবে।")
         return 1
 
-    if missing_important:
-        print(f"\n⚠️ WARN [{args.env}]: {len(missing_important)}টি important key missing (degraded)。")
-    else:
-        print(f"\n✅ PASS [{args.env}]: সব critical ও important key Render-এ উপস্থিত।")
+    print(f"\n✅ PASS [{args.env}]: সব required key Render-এ উপস্থিত।")
 
     return 0
 
