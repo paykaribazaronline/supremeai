@@ -190,7 +190,11 @@ class DrawIOParser:
 
     @classmethod
     def parse(cls, xml_content: str) -> tuple[list[ComponentNode], list[ComponentEdge]]:
-        import xml.etree.ElementTree as ET
+        # বাংলা মন্তব্য: SECURITY FIX — user-uploaded diagram content stdlib
+        # xml.etree.ElementTree দিয়ে পার্স করা হলে XXE (XML External Entity)
+        # আক্রমণের ঝুঁকি থাকে। defusedxml ব্যবহার করা হলো, যেটা external
+        # entity resolution ও DTD-ভিত্তিক আক্রমণ ব্লক করে দেয়।
+        from defusedxml import ElementTree as ET
 
         nodes: list[ComponentNode] = []
         edges: list[ComponentEdge] = []

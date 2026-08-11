@@ -81,6 +81,16 @@ class SkillIngestor:
             self.index_manager.update_skill(manifest)
             return {"success": False, "detail": "Source domain unauthorized."}
 
+        # 🛡️ SECURITY FIX: zip_url আলাদা প্যারামিটার, এটা manifest.source_url থেকে
+        # ভিন্ন হতে পারে — শুধু source_url whitelist-চেক করলে zip_url দিয়ে SSRF
+        # আক্রমণ সম্ভব ছিল (whitelisted source_url পাস করে যেকোনো zip_url দিয়ে
+        # internal/cloud-metadata endpoint বা file:// URL ফেচ করা যেত)। zip_url-ও
+        # একই whitelist-এর বিপরীতে যাচাই করা হলো।
+        if not self.index_manager.is_source_allowed(zip_url):
+            manifest.status = SkillStatus.REJECTED
+            self.index_manager.update_skill(manifest)
+            return {"success": False, "detail": "Zip download domain unauthorized."}
+
         try:
             with urllib.request.urlopen(zip_url) as response:
                 zip_data = response.read()

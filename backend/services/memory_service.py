@@ -411,10 +411,15 @@ memory_service = CascadeMemoryService()
 
 # Test Execution (If run directly)
 if __name__ == "__main__":
+    import os
     import tempfile
 
     # Run audit/test with temporary DB to verify functionality without corrupting live DB
-    temp_db = tempfile.mktemp(suffix=".db")
+    # বাংলা মন্তব্য: tempfile.mktemp() deprecated ও race-condition-prone (path তৈরি করে
+    # কিন্তু ফাইল খোলে না, ফলে অন্য প্রসেস মাঝখানে ঐ নামে ফাইল বানিয়ে ফেলতে পারে)।
+    # mkstemp() ব্যবহার করে সরাসরি ফাইল তৈরি ও খোলা হচ্ছে, তারপর fd বন্ধ করে শুধু path রাখা হলো।
+    _tmp_fd, temp_db = tempfile.mkstemp(suffix=".db")
+    os.close(_tmp_fd)
     test_service = CascadeMemoryService(db_path=temp_db)
 
     test_code = """
