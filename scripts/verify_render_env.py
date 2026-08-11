@@ -31,7 +31,6 @@ except ImportError:
     sys.exit(1)
 
 POLICY_PATH = os.path.join(os.path.dirname(__file__), "..", "docs", "env_maintenance_policy.md")
-RENDER_API = "https://api.render.com/v1"
 
 # Add scripts directory to path to import local module
 sys.path.insert(0, os.path.dirname(__file__))
