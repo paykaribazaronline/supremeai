@@ -196,57 +196,40 @@ void main() {
     );
   }
 
-  testWidgets('HomeScreen renders title and chat input', (WidgetTester tester) async {
+  testWidgets('HomeScreen renders title and welcome text', (WidgetTester tester) async {
     await tester.pumpWidget(createHomeScreen());
     await tester.pumpAndSettle();
 
     expect(find.text('SupremeAI'), findsOneWidget);
-    expect(find.byType(TextField), findsOneWidget);
+    expect(find.text('Welcome Back!'), findsOneWidget);
   });
 
-  testWidgets('HomeScreen shows empty state prompt when no messages', (WidgetTester tester) async {
+  testWidgets('HomeScreen renders quick action hub cards', (WidgetTester tester) async {
     await tester.pumpWidget(createHomeScreen());
     await tester.pumpAndSettle();
 
-    expect(find.text('Describe what you want to build...'), findsOneWidget);
+    expect(find.text('QUICK ACTIONS'), findsOneWidget);
+    // There are 6 action hub cards
+    expect(find.text('Wallet'), findsOneWidget);
+    expect(find.text('BYOC Hub'), findsOneWidget);
+    expect(find.text('Projects'), findsOneWidget);
   });
 
-  testWidgets('HomeScreen bottom navigation bar renders 5 destinations', (WidgetTester tester) async {
+  testWidgets('HomeScreen renders AI Assistance cards', (WidgetTester tester) async {
     await tester.pumpWidget(createHomeScreen());
     await tester.pumpAndSettle();
 
-    expect(find.byType(NavigationDestination), findsNWidgets(5));
+    expect(find.text('AI ASSISTANCE'), findsOneWidget);
+    expect(find.text('Code Review'), findsOneWidget);
+    expect(find.text('Bug Fix'), findsOneWidget);
   });
 
-  testWidgets('typing in chat input updates field value', (WidgetTester tester) async {
+  testWidgets('HomeScreen renders Open AI Chat button', (WidgetTester tester) async {
     await tester.pumpWidget(createHomeScreen());
     await tester.pumpAndSettle();
 
-    final input = find.byType(TextField).first;
-    await tester.enterText(input, 'Build a todo app');
-    await tester.pump();
-
-    expect(find.text('Build a todo app'), findsOneWidget);
-  });
-
-  testWidgets('shows loading indicator when orchestration is loading', (WidgetTester tester) async {
-    final orch = MockOrchestrationProvider();
-    orch.setLoading(true);
-
-    await tester.pumpWidget(createHomeScreen(orchestration: orch));
-    await tester.pump();
-
-    expect(find.byType(LinearProgressIndicator), findsOneWidget);
-  });
-
-  testWidgets('displays error banner when orchestration has error', (WidgetTester tester) async {
-    final orch = MockOrchestrationProvider();
-    orch.setError('Network down');
-
-    await tester.pumpWidget(createHomeScreen(orchestration: orch));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Network down'), findsOneWidget);
+    expect(find.text('Open AI Chat'), findsOneWidget);
+    expect(find.byType(ElevatedButton), findsOneWidget);
   });
 
   testWidgets('logout button present in app bar when authenticated', (WidgetTester tester) async {
