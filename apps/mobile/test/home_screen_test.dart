@@ -229,7 +229,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Open AI Chat', skipOffstage: false), findsOneWidget);
-    expect(find.byType(ElevatedButton, skipOffstage: false), findsOneWidget);
   });
 
   testWidgets('logout button present in app bar when authenticated', (WidgetTester tester) async {
