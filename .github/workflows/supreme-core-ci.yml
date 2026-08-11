@@ -1840,13 +1840,13 @@ jobs:
 
       - name: 🤖 Create or Update PR to Main Repository
         env:
-          # Use Infisical Token, fallback to MAIN_REPO_TOKEN, fallback to default GITHUB_TOKEN
-          GITHUB_TOKEN: ${{ steps.fetch-token.outputs.token || secrets.MAIN_REPO_TOKEN || secrets.GITHUB_TOKEN }}
+          # Use Infisical Token, fallback to MIRROR_REPO_TOKEN, fallback to MAIN_REPO_TOKEN
+          GITHUB_TOKEN: ${{ steps.fetch-token.outputs.token || secrets.MIRROR_REPO_TOKEN || secrets.MAIN_REPO_TOKEN }}
           STAGING_HEAD: ${{ github.sha }}
         run: |
           if [ -z "$GITHUB_TOKEN" ]; then
-            echo "❌ GITHUB_TOKEN / MAIN_REPO_TOKEN secret is missing or empty."
-            echo "   Settings → Secrets and variables → Actions → MAIN_REPO_TOKEN"
+            echo "❌ GITHUB_TOKEN / MIRROR_REPO_TOKEN secret is missing or empty."
+            echo "   Settings → Secrets and variables → Actions → MIRROR_REPO_TOKEN"
             echo "   PAT scope প্রয়োজন: repo (full), workflow"
             exit 1
           fi

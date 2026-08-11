@@ -21,17 +21,20 @@ def parse_policy(filepath: str) -> dict:
     # Infisical Vault
     cat1_match = re.search(r'## 🔒 Category 1: Infisical Vault.*?## ⚠️ Category 2', content, re.DOTALL)
     if cat1_match:
-        categories['infisical-vault'].update(re.findall(r'- `([A-Za-z0-9_]+)`', cat1_match.group(0)))
+        text = cat1_match.group(0).split('**❓ Missing', 1)[0]
+        categories['infisical-vault'].update(re.findall(r'- `([A-Za-z0-9_]+)`', text))
 
     # Render Backend
     rb_match = re.search(r'### ১\. Render Backend.*?### ২\.', content, re.DOTALL)
     if rb_match:
-        categories['render-backend'].update(re.findall(r'- `([A-Za-z0-9_]+)`', rb_match.group(0)))
+        text = rb_match.group(0).split('**❓ Missing', 1)[0]
+        categories['render-backend'].update(re.findall(r'- `([A-Za-z0-9_]+)`', text))
 
     # Render Admin
     ra_match = re.search(r'### ২\. Render Admin.*?### ৩\.', content, re.DOTALL)
     if ra_match:
-        categories['render-admin'].update(re.findall(r'- `([A-Za-z0-9_]+)`', ra_match.group(0)))
+        text = ra_match.group(0).split('**❓ Missing', 1)[0]
+        categories['render-admin'].update(re.findall(r'- `([A-Za-z0-9_]+)`', text))
         
     # Render Worker (fallback to backend if not defined explicitly)
     categories['render-worker'] = set(categories['render-backend'])
@@ -39,12 +42,14 @@ def parse_policy(filepath: str) -> dict:
     # Vercel
     ver_match = re.search(r'### ৪\. Vercel Frontend.*?### ৫\.', content, re.DOTALL)
     if ver_match:
-        categories['vercel'].update(re.findall(r'- `([A-Za-z0-9_]+)`', ver_match.group(0)))
+        text = ver_match.group(0).split('**❓ Missing', 1)[0]
+        categories['vercel'].update(re.findall(r'- `([A-Za-z0-9_]+)`', text))
 
     # GitHub
     gh_match = re.search(r'### ৫\. GitHub Actions.*?### ৬\.', content, re.DOTALL)
     if gh_match:
-        categories['github-primary'].update(re.findall(r'- `([A-Za-z0-9_]+)`', gh_match.group(0)))
+        text = gh_match.group(0).split('**❓ Missing', 1)[0]
+        categories['github-primary'].update(re.findall(r'- `([A-Za-z0-9_]+)`', text))
 
     # Always inject base Infisical bootstrap keys for platform envs
     base_bootstrap = {'INFISICAL_CLIENT_ID', 'INFISICAL_CLIENT_SECRET', 'INFISICAL_PROJECT_ID', 'INFISICAL_ENV'}
