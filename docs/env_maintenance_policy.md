@@ -82,95 +82,11 @@
 
 ---
 
-## ⚠️ Category 2: Environment-Specific Keys (Local `.env`)
-
-যেসব সিক্রেট Infisical-এ রাখলে অ্যাপ **ব্রেক** করবে বা যেগুলো এনভায়রনমেন্টের ওপর ভিত্তি করে ডাইনামিক, সেগুলো সার্ভিসের নিজস্ব প্ল্যাটফর্মে বা লোকাল ফাইলে থাকতে হবে।
-
-**✅ এনভায়রনমেন্ট অনুযায়ী আলাদা থাকা সিক্রেটগুলোর পূর্ণাঙ্গ তালিকা:**
-
-*(বি.দ্র. প্রতিটি ফাইলে বুটস্ট্র্যাপ করার জন্য `INFISICAL_CLIENT_ID`, `INFISICAL_CLIENT_SECRET`, `INFISICAL_PROJECT_ID`, `INFISICAL_ENV` কমনভাবে থাকবে, তাই নিচের তালিকায় সেগুলো দেখানো হয়নি)*
-
-### ১. Render Backend (`render-backend.env`)
-- `PORT`
-- `ENV`
-- `NODE_ENV`
-- `ALLOWED_HOSTS`
-- `CORS_ORIGINS`
-- `USER_CORS_ORIGINS`
-- `ADMIN_CORS_ORIGINS`
-- `SUPREMEAI_USER_BACKEND_URL`
-- `SUPREMEAI_ADMIN_BACKEND_URL`
-- `CHECKOUT_BASE_URL`
-- `CHROMADB_PATH`
-- `EXPERIENCE_DB_PATH`
-- `OLLAMA_URL`
-- `RENDER_DEPLOY_HOOK_URL`
-
-### ২. Render Admin (`render-admin.env`)
-- `PORT`
-- `ENV`
-- `NODE_ENV`
-- `ALLOWED_HOSTS`
-- `CORS_ORIGINS`
-- `USER_CORS_ORIGINS`
-- `ADMIN_CORS_ORIGINS`
-- `SUPREMEAI_USER_BACKEND_URL`
-- `SUPREMEAI_ADMIN_BACKEND_URL`
-- `CHECKOUT_BASE_URL`
-- `CHROMADB_PATH`
-- `EXPERIENCE_DB_PATH`
-- `OLLAMA_URL`
-
-### ৩. Render Studio Client (`render-studio-client.env`)
-- `PORT`
-- `ENV`
-- `NODE_ENV`
-- `VITE_PRIMARY_BACKEND`
-- `VITE_SECONDARY_BACKEND`
-
-### ৪. Vercel Frontend (`vercel.env`)
-- `NODE_ENV`
-- `VERCEL_ORG_ID`
-- `VERCEL_PROJECT_ID`
-- `VITE_PRIMARY_BACKEND`
-- `VITE_SECONDARY_BACKEND`
-
-### ৫. GitHub Actions Primary (`github-primary.env`) & Secondary (`github-secondary.env`)
-- `ENV`
-- `NODE_ENV`
-- `RENDER_DEPLOY_HOOK_URL`
-- `VERCEL_ORG_ID`
-- `VERCEL_PROJECT_ID`
-
-### ৬. Local Development (`local.env`)
-- (Render Backend-এর সব কি, তবে ভ্যালুগুলো হবে `localhost` বা লোকাল পাথ)
-
----
-
-## 🚀 নতুন সিক্রেট অ্যাড করার নিয়ম (Workflow)
-
-যখনই প্রোজেক্টে নতুন কোনো API Key বা Secret অ্যাড করার প্রয়োজন হবে, তখন নিচের ফ্লো অনুসরণ করতে হবে:
-
-1. **যাচাই করুন:** সিক্রেটটি কি সব জায়গায় একই? (যেমন: `NEW_AI_API_KEY`)
-   - **হ্যাঁ:** সরাসরি Infisical ড্যাশবোর্ডে গিয়ে `prod` এবং `dev` এনভায়রনমেন্টে অ্যাড করে দিন। লোকাল `.env`-এ অ্যাড করার দরকার নেই।
-   - **না:** এটি কি সার্ভার-স্পেসিফিক? (যেমন: `NEW_SERVER_PORT`) তাহলে এটি Infisical-এ অ্যাড করবেন না। যে যে সার্ভিসের জন্য প্রযোজ্য, শুধু তাদের `envs/` ফাইলে আপডেট করুন এবং ঐ নির্দিষ্ট ক্লাউড প্ল্যাটফর্মের (Render/Vercel) সেটিংসে গিয়ে ভ্যালু অ্যাড করুন।
-
-2. **Group 2 Prevention Rule:** কখনোই লোকাল রুট `.env` ফাইলটি সরাসরি কপি-পেস্ট করে Infisical-এ ইমপোর্ট করবেন না। এতে লোকাল `PORT` বা `NODE_ENV=development` প্রোডাকশনে চলে যেতে পারে।
-
-> [!WARNING]
-> **Strict Restriction:** 
-> `PORT`, `NODE_ENV`, `INFISICAL_*` — এই প্রিফিক্স/নামের কোনো ভেরিয়েবল কখনোই Infisical Vault-এর ভেতরে ಸೇভ করা যাবে না। 
 
 
-## ❓ Pending / Missing Keys (Needs Values)
-নিচের ৮৯টি কি (key) কোডবেসে ব্যবহৃত হচ্ছে কিন্তু এগুলোর কোনো ভ্যালু `.env` বা Infisical-এ নেই। ভ্যালু পাওয়ার পর এগুলোকে উপযুক্ত ক্যাটাগরিতে (Infisical বা Specific Env) সরিয়ে নিতে হবে:
-
+**❓ Missing / Pending Keys (ভ্যালু পাওয়া মাত্রই Infisical-এ অ্যাড করতে হবে):**
 - `AIDER_API_KEY`
 - `ALLOWED_TAKEOVER_TOKENS`
-- `ANDROID_KEYSTORE_BASE64`
-- `ANDROID_KEY_ALIAS`
-- `ANDROID_KEY_PASSWORD`
-- `ANDROID_STORE_PASSWORD`
 - `ANTHROPIC_API_KEY`
 - `APP_STORE_CONNECT_API_KEY_CONTENT`
 - `APP_STORE_CONNECT_API_KEY_ID`
@@ -182,7 +98,6 @@
 - `CLINE_API_KEY`
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_WORKERS_API_TOKEN`
-- `CLOUDFLARE_ZONE_ID`
 - `CODEIUM_API_KEY`
 - `CONTINUE_API_KEY`
 - `DB_PASSWORD`
@@ -225,9 +140,6 @@
 - `R2_ACCESS_KEY`
 - `R2_SECRET_KEY`
 - `RAILWAY_TOKEN`
-- `RENDER_BACKUP_SVC_ID`
-- `RENDER_DEPLOY_HOOK_URL_BACKUP`
-- `RENDER_PRIMARY_SVC_ID`
 - `SECONDARY_SERVICE_ACCOUNT_KEY`
 - `SECRET`
 - `SECRET_BACKEND`
@@ -242,6 +154,65 @@
 - `TEST_VAULT_KEY`
 - `TOGETHER_API_KEY`
 - `VERCEL_OIDC_TOKEN`
+
+---
+
+## ⚠️ Category 2: Environment-Specific Keys (Local `.env`)
+
+যেসব সিক্রেট Infisical-এ রাখলে অ্যাপ **ব্রেক** করবে বা যেগুলো এনভায়রনমেন্টের ওপর ভিত্তি করে ডাইনামিক, সেগুলো সার্ভিসের নিজস্ব প্ল্যাটফর্মে বা লোকাল ফাইলে থাকতে হবে।
+
+**✅ এনভায়রনমেন্ট অনুযায়ী আলাদা থাকা সিক্রেটগুলোর পূর্ণাঙ্গ তালিকা:**
+
+*(বি.দ্র. প্রতিটি ফাইলে বুটস্ট্র্যাপ করার জন্য `INFISICAL_CLIENT_ID`, `INFISICAL_CLIENT_SECRET`, `INFISICAL_PROJECT_ID`, `INFISICAL_ENV` কমনভাবে থাকবে, তাই নিচের তালিকায় সেগুলো দেখানো হয়নি)*
+
+### ১. Render Backend (`render-backend.env`)
+- `PORT`
+- `ENV`
+- `NODE_ENV`
+- `SERVICE_ROLE` = `user`
+- `ALLOWED_HOSTS`
+- `CORS_ORIGINS`
+- `USER_CORS_ORIGINS`
+- `ADMIN_CORS_ORIGINS`
+- `SUPREMEAI_USER_BACKEND_URL`
+- `SUPREMEAI_ADMIN_BACKEND_URL`
+- `CHECKOUT_BASE_URL`
+- `CHROMADB_PATH`
+- `EXPERIENCE_DB_PATH`
+- `OLLAMA_URL`
+- `RENDER_DEPLOY_HOOK_URL`
+
+### ২. Render Admin (`render-admin.env`)
+- `PORT`
+- `ENV`
+- `NODE_ENV`
+- `SERVICE_ROLE` = `admin`
+- `ALLOWED_HOSTS`
+- `CORS_ORIGINS`
+- `USER_CORS_ORIGINS`
+- `ADMIN_CORS_ORIGINS`
+- `SUPREMEAI_USER_BACKEND_URL`
+- `SUPREMEAI_ADMIN_BACKEND_URL`
+- `CHECKOUT_BASE_URL`
+- `CHROMADB_PATH`
+- `EXPERIENCE_DB_PATH`
+- `OLLAMA_URL`
+
+### ৩. Render Studio Client (`render-studio-client.env`)
+- `PORT`
+- `ENV`
+- `NODE_ENV`
+- `VITE_PRIMARY_BACKEND`
+- `VITE_SECONDARY_BACKEND`
+
+### ৪. Vercel Frontend (`vercel.env`)
+- `NODE_ENV`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+- `VITE_PRIMARY_BACKEND`
+- `VITE_SECONDARY_BACKEND`
+
+**❓ Missing / Pending Keys (শুধু Vercel Frontend-এর জন্য):**
 - `VITE_ADMIN_BACKEND`
 - `VITE_API_BASE`
 - `VITE_API_BASE_URL`
@@ -254,3 +225,69 @@
 - `VITE_SUPABASE_ANON_KEY`
 - `VITE_SUPABASE_URL`
 - `VITE_USER_BACKEND`
+
+### ৫. GitHub Actions Primary (`github-primary.env`) & Secondary (`github-secondary.env`)
+
+> [!IMPORTANT]
+> `MAIN_REPO_TOKEN` — Primary GitHub অ্যাকাউন্ট থেকে Secondary/Target রেপোতে মিরর/পুশ করার জন্য এই PAT অপরিহার্য।
+
+**✅ Configured Keys:**
+- `ENV`
+- `NODE_ENV`
+- `RENDER_DEPLOY_HOOK_URL`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+- `INFISICAL_CLIENT_ID`
+- `INFISICAL_CLIENT_SECRET`
+- `INFISICAL_PROJECT_ID`
+- `INFISICAL_TOKEN`
+
+**✅ GitHub Repository Secrets (Platform-level — GitHub Secrets UI-তে সেট করতে হবে):**
+- `MAIN_REPO_TOKEN` — Primary → Target রেপো পুশ/মিরর করার PAT *(⚠️ এটি Infisical-এ নয়, GitHub Secrets-এ থাকবে)*
+- `MIRROR_REPO_TOKEN` — Secondary রেপো মিরর PAT
+- `STAGING_REPO_TOKEN` — Staging রেপো অ্যাক্সেস PAT
+- `FIREBASE_SERVICE_ACCOUNT_SUPREMEAI_A` — Firebase Hosting CI Deploy Service Account JSON
+- `GCP_SA_KEY` — Google Cloud Platform Service Account Key
+- `GCP_PROJECT_ID` — GCP প্রজেক্ট ID
+- `SENTRY_AUTH_TOKEN` — Sentry Error Monitoring Upload Token
+
+**❓ Missing / Pending Keys (ভ্যালু পাওয়া মাত্রই GitHub Secrets-এ অ্যাড করতে হবে):**
+- `ANDROID_KEYSTORE_BASE64` — Android APK Signing Keystore (Base64)
+- `ANDROID_KEY_ALIAS` — Android Key Alias
+- `ANDROID_KEY_PASSWORD` — Android Key Password
+- `ANDROID_STORE_PASSWORD` — Android Store Password
+- `APP_STORE_CONNECT_API_KEY_CONTENT` — iOS App Store Connect API Key Content
+- `APP_STORE_CONNECT_API_KEY_ID` — iOS App Store Connect API Key ID
+- `APP_STORE_CONNECT_API_ISSUER_ID` — iOS App Store Connect API Issuer ID
+- `CLOUDFLARE_ZONE_ID` — Cloudflare Zone ID
+- `CLOUDFLARE_API_TOKEN` — Cloudflare API Token
+- `CLOUDFLARE_WORKERS_API_TOKEN` — Cloudflare Workers API Token
+- `FIREBASE_SERVICE_ACCOUNT` — Firebase Service Account (Generic)
+- `NETLIFY_AUTH_TOKEN` — Netlify Auth Token
+- `NETLIFY_SITE_ID` — Netlify Site ID
+- `PLAY_STORE_CONFIG_JSON` — Google Play Store Config JSON
+- `RENDER_BACKUP_SVC_ID` — Render Backup Service ID
+- `RENDER_DEPLOY_HOOK_URL_BACKUP` — Render Backup Deploy Hook URL
+- `RENDER_PRIMARY_SVC_ID` — Render Primary Service ID
+- `RENDER_WORKER_SVC_ID` — Render Worker Service ID
+- `SUPREMEAI_GITHUB_TOKEN` — SupremeAI-specific GitHub PAT
+- `VERCEL_OIDC_TOKEN` — Vercel OIDC Token
+
+### ৬. Local Development (`local.env`)
+- (Render Backend-এর সব কি, তবে ভ্যালুগুলো হবে `localhost` বা লোকাল পাথ)
+
+---
+
+## 🚀 নতুন সিক্রেট অ্যাড করার নিয়ম (Workflow)
+
+যখনই প্রোজেক্টে নতুন কোনো API Key বা Secret অ্যাড করার প্রয়োজন হবে, তখন নিচের ফ্লো অনুসরণ করতে হবে:
+
+1. **যাচাই করুন:** সিক্রেটটি কি সব জায়গায় একই? (যেমন: `NEW_AI_API_KEY`)
+   - **হ্যাঁ:** সরাসরি Infisical ড্যাশবোর্ডে গিয়ে `prod` এবং `dev` এনভায়রনমেন্টে অ্যাড করে দিন। লোকাল `.env`-এ অ্যাড করার দরকার নেই।
+   - **না:** এটি কি সার্ভার-স্পেসিফিক? (যেমন: `NEW_SERVER_PORT`) তাহলে এটি Infisical-এ অ্যাড করবেন না। যে যে সার্ভিসের জন্য প্রযোজ্য, শুধু তাদের `envs/` ফাইলে আপডেট করুন এবং ঐ নির্দিষ্ট ক্লাউড প্ল্যাটফর্মের (Render/Vercel) সেটিংসে গিয়ে ভ্যালু অ্যাড করুন।
+
+2. **Group 2 Prevention Rule:** কখনোই লোকাল রুট `.env` ফাইলটি সরাসরি কপি-পেস্ট করে Infisical-এ ইমপোর্ট করবেন না। এতে লোকাল `PORT` বা `NODE_ENV=development` প্রোডাকশনে চলে যেতে পারে।
+
+> [!WARNING]
+> **Strict Restriction:** 
+> `PORT`, `NODE_ENV`, `INFISICAL_*` — এই প্রিফিক্স/নামের কোনো ভেরিয়েবল কখনোই Infisical Vault-এর ভেতরে ಸೇভ করা যাবে না।
