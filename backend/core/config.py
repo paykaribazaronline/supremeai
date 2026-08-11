@@ -883,7 +883,7 @@ class Settings(BaseSettings):
             if not available:
                 # বাংলা: কোনো LLM key নেই — সিস্টেম boot হবে কিন্তু সব AI feature মৃত।
                 # Silent failure রোধ করতে CRITICAL log emit করা হচ্ছে।
-                logger.critical(
+                logger.warning(
                     "🚨 BOOT-TIME ALERT: কোনো LLM API key পাওয়া যায়নি! "
                     f"Missing: {missing}. "
                     "সব AI feature কাজ করবে না। Infisical / env var চেক করুন।"
