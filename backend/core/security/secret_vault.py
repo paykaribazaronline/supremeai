@@ -31,9 +31,10 @@ try:
         InfisicalClient,
         UniversalAuthMethod,
     )
-except ImportError:
+except ImportError as e:
+    import logging
+    logging.getLogger("core.security").warning(f"Failed to import infisical_client: {e}")
     InfisicalClient = None  # type: ignore[assignment]
-
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 CACHE_TTL_SECONDS: int = int(os.getenv("SECRET_CACHE_TTL", "300"))  # 5 min default
