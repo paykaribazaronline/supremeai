@@ -75,3 +75,9 @@
 
 
 - **Group 2 Secrets Upload Prevention Rule:** Infisical Vault-এ সিক্রেট আপলোড করার সময় কখনোই .env ফাইলটি সরাসরি আপলোড করার নির্দেশ দেওয়া যাবে না। আপলোড করার আগে অবশ্যই একটি ফিল্টার করা infisical_upload.env তৈরি করে নিতে হবে (যেখানে Group 2 এর key-গুলো যেমন PORT, NODE_ENV, INFISICAL_TOKEN ইত্যাদি থাকবে না) এবং সেটি আপলোড করতে বলতে হবে।
+
+- **Environment & Secret Maintenance Rule:**
+  - ಯಾವುದೇ (যেকোনো) নতুন API Key বা Secret যুক্ত করার আগে অবশ্যই docs/env_maintenance_policy.md ফাইলটি (Single Source of Truth) চেক করতে হবে।
+  - **Shared Secrets:** যদি Secret-টি একাধিক এনভায়রনমেন্টে একই হয়, তবে সেটি শুধু Infisical-এ আপলোড করতে হবে।
+  - **Environment-Specific Secrets:** যদি Secret-টি (যেমন PORT, NODE_ENV, INFISICAL_* বা কোনো নির্দিষ্ট সার্ভিসের URL) নির্দিষ্ট এনভায়রনমেন্টের জন্য আলাদা হয়, তবে সেটি Infisical-এ দেওয়া যাবে না। এগুলো শুধু envs/ ফোল্ডারের নির্দিষ্ট ফাইলে এবং টার্গেট ক্লাউড প্ল্যাটফর্মে (Render/Vercel) সরাসরি দিতে হবে।
+  - কোনো আপডেট করলে অবশ্যই docs/env_maintenance_policy.md ফাইলেও তার তালিকা আপডেট করতে হবে।

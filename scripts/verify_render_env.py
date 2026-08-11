@@ -71,17 +71,53 @@ def main() -> int:
     parser.add_argument("--service-id", required=True, help="Render service ID")
     args = parser.parse_args()
 
+    # বাংলা: admin env-এর জন্য backup key ব্যবহার, অন্যথায় primary key
     if args.env == "render-admin":
         api_key = os.environ.get("RENDER_API_KEY_BACKUP") or os.environ.get("RENDER_API_KEY")
     else:
         api_key = os.environ.get("RENDER_API_KEY")
-        
+
     if not api_key:
-        print("::error::RENDER_API_KEY/BACKUP env চার্জ করা হয়নি (GitHub secret থেকে ইনজেক্ট করুন)।")
+        print("::error::RENDER_API_KEY/BACKUP env চার্জ করা হয়নি (GitHub secret থেকে ইনজেক্ট করুন)।")
         sys.exit(1)
 
+    # বাংলা: secrets_registry.yaml থেকে এই env-এর জন্য critical/important keys লোড করো
     registry = load_registry(REGISTRY_PATH)
-    print(f"\n✅ PASS [{args.env}]: Skipped runtime environment check due to Hybrid Infisical Migration (Secrets are injected at runtime).")
+    required_keys = {
+        name for name, crit_map in registry.items()
+        if crit_map.get(args.env) in ("critical", "important")
+    }
+
+    # বাংলা: Render API থেকে service-এর actual env var keys fetch করো
+    present_keys = fetch_render_env(args.service_id, api_key)
+    print(f"\n[info] Render [{args.env}] service-এ পাওয়া env var সংখ্যা: {len(present_keys)}")
+    print(f"[info] Registry-তে required keys: {len(required_keys)}")
+
+    missing_critical = []
+    missing_important = []
+
+    for name, crit_map in sorted(registry.items()):
+        tier = crit_map.get(args.env)
+        if not tier:
+            continue
+        if name in present_keys:
+            continue
+        if tier == "critical":
+            missing_critical.append(name)
+            print(f"::error::CRITICAL key missing in Render [{args.env}]: {name} — সার্ভার boot crash হবে!")
+        elif tier == "important":
+            missing_important.append(name)
+            print(f"::warning::IMPORTANT key missing in Render [{args.env}]: {name} — degraded mode চলবে।")
+
+    if missing_critical:
+        print(f"\n❌ FAIL [{args.env}]: {len(missing_critical)}টি critical key missing! Render deploy crash করবে।")
+        return 1
+
+    if missing_important:
+        print(f"\n⚠️ WARN [{args.env}]: {len(missing_important)}টি important key missing (degraded)。")
+    else:
+        print(f"\n✅ PASS [{args.env}]: সব critical ও important key Render-এ উপস্থিত।")
+
     return 0
 
 
