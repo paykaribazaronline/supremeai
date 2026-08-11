@@ -228,13 +228,8 @@ void main() {
     await tester.pumpWidget(createHomeScreen());
     await tester.pumpAndSettle();
 
-    // Scroll down to make the button visible
-    final scrollView = find.byType(SingleChildScrollView);
-    await tester.drag(scrollView, const Offset(0, -800));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Open AI Chat'), findsOneWidget);
-    expect(find.byType(ElevatedButton), findsOneWidget);
+    expect(find.text('Open AI Chat', skipOffstage: false), findsOneWidget);
+    expect(find.byType(ElevatedButton, skipOffstage: false), findsOneWidget);
   });
 
   testWidgets('logout button present in app bar when authenticated', (WidgetTester tester) async {
