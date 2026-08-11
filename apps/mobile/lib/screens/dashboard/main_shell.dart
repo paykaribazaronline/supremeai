@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import '../../widgets/supreme_bottom_nav.dart';
 import '../../theme/app_theme.dart';
 import 'package:supremeai/theme/colors.dart'; // SupremeColors ইমপোর্ট ঠিক করা হলো
-// Note: Import your actual screens here. Using placeholders for now.
+// বাংলা মন্তব্য: প্লেসহোল্ডারের বদলে রিয়েল স্ক্রিন ওয়্যার করা হয়েছে যাতে ওয়েব ড্যাশবোর্ডের মতো ফিচার মোবাইলেও পাওয়া যায়
 import 'home_screen.dart'; // dashboard_screen এর বদলে home_screen ব্যবহার করা হলো
-// import '../analytics/analytics_screen.dart';
-// import '../chat/agent_chat_screen.dart';
-// import '../api/api_keys_screen.dart';
+import '../analytics/analytics_screen.dart';
+import '../agent_chat_screen.dart';
+import '../api_keys_screen.dart';
 import '../settings_screen.dart';
 
 class MainShell extends StatefulWidget {
@@ -48,10 +48,9 @@ class _MainShellState extends State<MainShell> {
         physics: const NeverScrollableScrollPhysics(), // Disable swipe to change tab
         children: const [
           HomeScreen(),
-          // Placeholder for missing screens, using Center text for now until they are integrated
-          Center(child: Text('Analytics', style: TextStyle(color: Colors.white))),
-          Center(child: Text('Chat', style: TextStyle(color: Colors.white))),
-          Center(child: Text('API Keys', style: TextStyle(color: Colors.white))),
+          AnalyticsScreen(),
+          AgentChatScreen(),
+          ApiKeysScreen(),
           SettingsScreen(),
         ],
       ),
