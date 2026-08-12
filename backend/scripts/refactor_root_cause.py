@@ -16,7 +16,7 @@ def process_file(filepath: Path, dry_run: bool = False):
         return
 
     try:
-        ast.parse(content)  # শুধু syntax validity যাচাই — ফলাফল (tree) ব্যবহৃত হয় না
+        tree = ast.parse(content)
     except Exception as e:
         print(f"Skipping {filepath} due to syntax error: {e}")
         return

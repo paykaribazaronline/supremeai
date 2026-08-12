@@ -66,6 +66,16 @@ class AsyncRateLimiter:
         """Helper for test mock compatibility."""
         return await redis_manager.get_client_async()
 
+    async def close(self) -> None:
+        """No-op: this limiter does not own a Redis connection.
+
+        It shares the centralized `redis_manager` connection, which has its
+        own lifecycle. This method exists for interface completeness so
+        callers can treat AsyncRateLimiter symmetrically with other
+        resources that need explicit shutdown.
+        """
+        return None
+
     async def acquire(self, key: str, limit: int | None = None, window: int | None = None) -> bool:
         """Redis-based sliding window rate limiting with fail-closed behavior.
 
