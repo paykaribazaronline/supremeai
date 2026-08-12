@@ -12,6 +12,7 @@ import logging
 
 from fastapi import FastAPI
 
+from core.config import settings
 from core.error_bus import with_error_bus
 from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 

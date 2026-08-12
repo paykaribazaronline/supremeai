@@ -129,11 +129,7 @@ class EmailAgent:
                         payload = part.get_payload(decode=True)
                         if payload:
                             return payload.decode(part.get_content_charset() or "utf-8", errors="ignore")
-                    except Exception as exc:
-                        # বাংলা মন্তব্য: এক MIME part decode fail করলেও পরবর্তী part-এ চেষ্টা
-                        # চালিয়ে যাওয়া উচিত, কিন্তু আগে সম্পূর্ণ silent ছিল -- এখন
-                        # debug-level log রাখা হলো যাতে trace করা সহজ হয়।
-                        logger.debug(f"Skipping unreadable MIME part while extracting body: {exc}")
+                    except Exception:
                         continue
             return ""
         try:

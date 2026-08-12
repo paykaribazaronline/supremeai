@@ -71,30 +71,8 @@ def get_infisical_token(client_id: str, client_secret: str) -> str:
         sys.exit(1)
 
 
-def load_env_fallback(key: str) -> str | None:
-    # বাংলা: os.environ-এ ভ্যালু না থাকলে local .env ফাইল থেকে পড়ার চেষ্টা করে
-    val = os.environ.get(key)
-    if val:
-        return val
-    env_path = os.path.join(os.path.dirname(__file__), "..", ".env")
-    if os.path.exists(env_path):
-        try:
-            with open(env_path, "r", encoding="utf-8") as fh:
-                for line in fh:
-                    line = line.strip()
-                    if line.startswith(f"{key}="):
-                        return line.split("=", 1)[1].strip('"\'')
-        except Exception:
-            pass
-    return None
-
-
-def fetch_infisical_secrets(project_id: str | None, token: str, env: str = "prod") -> set:
-    # বাংলা: project_id থাকলে workspaceId পাঠাব, না থাকলে শুধু environment পাঠাব
-    if project_id and project_id.strip():
-        url = f"https://app.infisical.com/api/v3/secrets/raw?workspaceId={project_id.strip()}&environment={env}"
-    else:
-        url = f"https://app.infisical.com/api/v3/secrets/raw?environment={env}"
+def fetch_infisical_secrets(project_id: str, token: str, env: str = "prod") -> set:
+    url = f"https://app.infisical.com/api/v3/secrets/raw?workspaceId={project_id}&environment={env}"
     req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
     try:
         with urllib.request.urlopen(req, timeout=30) as resp:
