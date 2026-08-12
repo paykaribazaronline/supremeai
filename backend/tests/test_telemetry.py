@@ -6,7 +6,7 @@ import pytest
 # Conditional mock for opentelemetry exporter when running in environments
 # without ml dependencies (e.g. CI)
 try:
-    import opentelemetry.exporter.otlp.proto.grpc.trace_exporter as _  # noqa: F401 -- শুধু availability probe
+    import opentelemetry.exporter.otlp.proto.grpc.trace_exporter as _
 except ImportError:
     import opentelemetry
 
