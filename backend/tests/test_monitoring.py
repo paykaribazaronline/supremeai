@@ -46,7 +46,7 @@ def test_cost_auditor_generation():
 
         assert os.path.exists(report["text_report"])
         try:
-            import matplotlib  # noqa: F401 -- শুধু availability probe
+            import matplotlib
 
             assert os.path.exists(report["image_report"])
         except ImportError:

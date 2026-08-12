@@ -156,7 +156,7 @@ def run_restricted(source: str, locals_: dict[str, Any] | None = None) -> tuple[
 
         # Execute the sandboxed code. RestrictedPython will raise an exception if
         # the code attempts to use disallowed operations.
-        exec(byte_code, globals_, locals_)  # noqa: S102 -- RestrictedPython compiled bytecode, sandboxed builtins whitelist
+        exec(byte_code, globals_, locals_)
         return True, locals_
 
     except (ValueError, SyntaxError, NameError, TypeError) as e:
