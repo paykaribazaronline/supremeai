@@ -388,19 +388,7 @@ jobs:
       # কোনো cache ছাড়াই ফ্রেশ ইনস্টল করত (~২৫-৩০ সেকেন্ড)। backend-core job-এ
       # ইতিমধ্যেই যে poetry/.venv cache pattern আছে সেটাই এখানে যোগ করা হলো --
       # poetry.lock অপরিবর্তিত থাকলে cache hit-এ install সম্পূর্ণ skip হবে।
-      #
-      # বাংলা মন্তব্য (cache pool শেয়ারিং): এখানে ইচ্ছাকৃতভাবে backend-core
-      # job-এর ঠিক same cache key (poetry-v4-py3.11-...) ব্যবহার করা হচ্ছে,
-      # নিজস্ব আলাদা key না। কারণ backend-core needs: [pre-merge-gate] --
-      # অর্থাৎ এই job সবসময় backend-core-এর AGE চলে ও সম্পূর্ণ শেষ (cache
-      # save post-step সহ) হওয়ার পরই backend-core শুরু হয়। ফলে:
-      #   - কখনো race condition হয় না (sequential dependency)
-      #   - poetry.lock অপরিবর্তিত থাকলে আগের রানে backend-core (main+dev)
-      #     যে cache বানিয়ে রেখেছে, এই job সেটাই hit পায় (main deps subset
-      #     আগে থেকেই ভেতরে আছে) -- নিজস্ব আলাদা cache pool রাখার দরকার নেই
-      #   - miss হলে শুধু এই job নিজে ধীরে fresh install করবে, অন্য কিছু
-      #     ভাঙবে না (cache miss মানে শুধু speed loss, logic loss না)
-      - name: ⚙️ Poetry Cache (shared with backend-core)
+      - name: ⚙️ Poetry Cache (gate — main deps only)
         id: gate_poetry_cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
@@ -408,20 +396,19 @@ jobs:
             ~/.cache/pypoetry
             ~/.cache/pip
             backend/.venv
-          key: ${{ runner.os }}-poetry-v4-py3.11-${{ hashFiles('backend/poetry.lock') }}
+          key: ${{ runner.os }}-poetry-gate-main-v1-${{ hashFiles('backend/poetry.lock') }}
           restore-keys: |
-            ${{ runner.os }}-poetry-v4-py3.11-
-            ${{ runner.os }}-poetry-v4-
+            ${{ runner.os }}-poetry-gate-main-v1-
 
       - name: 📦 Install backend deps (main only, cache-aware)
         if: needs.changes.outputs.docs_only != 'true'
         run: |
           cd backend
           if [ "${{ steps.gate_poetry_cache.outputs.cache-hit }}" == "true" ]; then
-            echo "poetry cache HIT (shared pool) — syncing only, no fresh download"
+            echo "gate poetry cache HIT — syncing only"
             poetry install --only main --no-root --sync
           else
-            echo "poetry cache MISS — fresh install (main only, this job populates the shared pool)"
+            echo "gate poetry cache MISS — fresh install"
             poetry install --only main --no-root
           fi
 
