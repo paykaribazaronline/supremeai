@@ -121,7 +121,7 @@ class TaskQueue:
     @functools.cached_property
     def _is_celery_available(self) -> bool:
         try:
-            import celery  # noqa: F401 -- শুধু availability probe
+            import celery
 
             return True
         except ImportError:
@@ -130,7 +130,7 @@ class TaskQueue:
     @functools.cached_property
     def _is_redis_available(self) -> bool:
         try:
-            import redis.asyncio  # noqa: F401 -- শুধু availability probe
+            import redis.asyncio
 
             return True
         except ImportError:
@@ -139,7 +139,7 @@ class TaskQueue:
     @functools.cached_property
     def _is_pubsub_available(self) -> bool:
         try:
-            from google.cloud import pubsub_v1  # noqa: F401 -- শুধু availability probe
+            from google.cloud import pubsub_v1
 
             return True
         except ImportError:

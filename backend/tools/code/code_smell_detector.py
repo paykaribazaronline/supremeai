@@ -24,7 +24,7 @@ class CodeSmellDetector:
 
     def _check_radon(self) -> bool:
         try:
-            import radon.complexity  # noqa: F401 -- শুধু availability probe
+            import radon.complexity
 
             return True
         except ImportError:
@@ -622,7 +622,7 @@ class CodeSmellDetector:
                 f.write(
                     "#!/bin/sh\n# বাংলা মন্তব্য: SupremeAI কোড স্মেল প্রি-কমিট হুক।\npython -m tools.code_smell_detector --check || true\n"
                 )
-            os.chmod(hook_path, 0o755)  # noqa: S103 -- git pre-commit hook script, executable প্রয়োজন (standard hook permission)
+            os.chmod(hook_path, 0o755)
             logger.success(f"Pre-commit hook installed at {hook_path}")
             return True
         except (OSError, TypeError) as e:
