@@ -7,7 +7,8 @@
 > single source of truth** (`scripts/audit_env_usage.py`, `scripts/verify_render_env.py`,
 > `scripts/verify_infisical_env.py` — সবগুলো CI check এখন শুধু ওই ফাইল পড়ে)। এই
 > ডকুমেন্ট এখন শুধু architecture ও rationale বোঝানোর জন্য মানুষের পড়ার প্রবন্ধ —
-> নতুন key যোগ করতে `secrets_registry.yaml` (বা `scripts/generate_registry.py`) এডিট করুন।
+> নিচের key-list গুলো stale হতে পারে, নতুন key যোগ করতে `secrets_registry.yaml`
+> (বা `scripts/generate_registry.py`) এডিট করুন, এই ফাইল না।
 
 এই ডকুমেন্টটি SupremeAI 2.0-এর "Hybrid Secret Architecture"-এর নির্দেশিকা — কোন কি (key) কোথায় থাকে তার প্রেক্ষাপট এখানে ব্যাখ্যা করা হলো।
 
@@ -249,10 +250,6 @@
 - `VITE_SECONDARY_BACKEND`
 
 ### ৫. GitHub Actions Primary & Secondary
-- `INFISICAL_PROJECT_ID` — Infisical Project ID *(⚠️ Bootstrap Key: Infisical-এ নয়, GitHub Secrets-এ থাকবে)*
-- `INFISICAL_TOKEN` — Infisical Service Access Token *(⚠️ Bootstrap Key: Infisical-এ নয়, GitHub Secrets-এ থাকবে)*
-- `INFISICAL_CLIENT_ID` — Infisical Machine Identity Client ID *(⚠️ Bootstrap Key: Infisical-এ নয়, GitHub Secrets-এ থাকবে)*
-- `INFISICAL_CLIENT_SECRET` — Infisical Machine Identity Client Secret *(⚠️ Bootstrap Key: Infisical-এ নয়, GitHub Secrets-এ থাকবে)*
 - `MAIN_REPO_TOKEN` — Primary → Target রেপো পুশ/মিরর করার PAT *(⚠️ এটি Infisical-এ নয়, GitHub Secrets-এ থাকবে)*
 - `MIRROR_REPO_TOKEN` — Secondary রেপো মিরর PAT
 - `STAGING_REPO_TOKEN` — Staging রেপো অ্যাক্সেস PAT
@@ -262,7 +259,6 @@
 - `GCP_SA_KEY` — Google Cloud Platform Service Account Key
 - `GCP_PROJECT_ID` — GCP প্রজেক্ট ID
 - `SENTRY_AUTH_TOKEN` — Sentry Error Monitoring Upload Token
-
 
 ---
 
