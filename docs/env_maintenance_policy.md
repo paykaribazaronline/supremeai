@@ -7,7 +7,8 @@
 > single source of truth** (`scripts/audit_env_usage.py`, `scripts/verify_render_env.py`,
 > `scripts/verify_infisical_env.py` — সবগুলো CI check এখন শুধু ওই ফাইল পড়ে)। এই
 > ডকুমেন্ট এখন শুধু architecture ও rationale বোঝানোর জন্য মানুষের পড়ার প্রবন্ধ —
-> নতুন key যোগ করতে `secrets_registry.yaml` (বা `scripts/generate_registry.py`) এডিট করুন।
+> নিচের key-list গুলো stale হতে পারে, নতুন key যোগ করতে `secrets_registry.yaml`
+> (বা `scripts/generate_registry.py`) এডিট করুন, এই ফাইল না।
 
 এই ডকুমেন্টটি SupremeAI 2.0-এর "Hybrid Secret Architecture"-এর নির্দেশিকা — কোন কি (key) কোথায় থাকে তার প্রেক্ষাপট এখানে ব্যাখ্যা করা হলো।
 
