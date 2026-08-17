@@ -620,7 +620,10 @@ _BLOCKED_NETS = [
 def _host_is_blocked(hostname: str) -> bool:
     try:
         infos = socket.getaddrinfo(hostname, 80)
-    except Exception:
+    except (socket.gaierror, socket.herror, OSError):
+        # DNS resolution failure means we cannot verify the host — treat as
+        # blocked to fail-closed (deny-by-default) rather than masking the error.
+        logger.warning("Host resolution failed for %s", hostname, exc_info=True)
         return True
     for info in infos:
         raw_ip = info[4][0].split("%")[0]
