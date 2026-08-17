@@ -3,9 +3,9 @@
 
 /** Runtime contract for a published skill.
 
-The defaults deliberately deny data, tools, and execution approvals.  A skill
-must opt in to every capability in its manifest instead of inheriting broad
-platform access. */
+    The defaults deliberately deny data, tools, and execution approvals.  A skill
+    must opt in to every capability in its manifest instead of inheriting broad
+    platform access. */
 export interface SkillGovernance {
   owner: null;
   allowedData?: null[];
