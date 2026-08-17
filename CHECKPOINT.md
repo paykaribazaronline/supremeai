@@ -2,7 +2,7 @@
 > Auto-updated by AI agents after each major session. Next agent must read this first.
 
 ## Last Session
-- **Date:** 2026-08-17 21:12 UTC
+- **Date:** 2026-08-17 21:13 UTC
 - **Agent:** Auto-updated (checkpoint_update.py)
 - **Summary:** Auto-updated via pre-commit hook
 
@@ -10,27 +10,26 @@
   - (see git log for details)
 
 ## Files Changed
-  - `render.yaml`
-  - `scripts/verify_infisical_env.py`
+  - `packages/shared-types/src/typescript/SkillPermissions.d.ts`
+  - `packages/shared-types/src/dart/SkillManifest.dart`
+  - `.gitignore`
+  - `scripts/generate_types.py`
+  - `.github/workflows/supreme-core-ci.yml`
+  - `packages/shared-types/src/typescript/SkillManifest.d.ts`
   - `.github/workflows/release-builds.yml`
   - `packages/shared-types/src/dart/SkillPermissions.dart`
-  - `packages/shared-types/src/dart/SkillGovernance.dart`
-  - `.github/workflows/ci.yml`
-  - `packages/shared-types/src/typescript/SkillGovernance.d.ts`
-  - `packages/shared-types/src/dart/SkillManifest.dart`
-  - `.github/workflows/supreme-core-ci.yml`
   - `.github/workflows/k6-load-testing.yml`
-  - `packages/shared-types/src/dart/index.dart`
-  - `packages/shared-types/src/typescript/SkillManifest.d.ts`
-  - `scripts/generate_types.py`
-  - `KNOWN_ISSUES.md`
-  - `LESSONS_LEARNED.md`
-  - `packages/shared-types/.type_checksums.json`
-  - `pnpm-lock.yaml`
-  - `CHECKPOINT.md`
   - `packages/shared-types/src/typescript/index.d.ts`
-  - `packages/shared-types/src/typescript/SkillPermissions.d.ts`
-  - `.gitignore`
+  - `packages/shared-types/src/dart/index.dart`
+  - `pnpm-lock.yaml`
+  - `KNOWN_ISSUES.md`
+  - `scripts/verify_infisical_env.py`
+  - `packages/shared-types/.type_checksums.json`
+  - `render.yaml`
+  - `CHECKPOINT.md`
+  - `packages/shared-types/src/typescript/SkillGovernance.d.ts`
+  - `LESSONS_LEARNED.md`
+  - `packages/shared-types/src/dart/SkillGovernance.dart`
 
 ## Pending (Carry Forward)
 - **MED:** Phase C — `sentence-transformers` install করে `memory_write.py` প্রথম real run test করা (embed pipeline দুই ধাপে; থিন-ক্লায়েন্ট ভাঙবে না)
