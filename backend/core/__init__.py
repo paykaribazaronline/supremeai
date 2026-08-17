@@ -140,7 +140,7 @@ try:
     )
 
     EVOLUTION_COMPONENTS_AVAILABLE = True
-except ImportError:
+except (ImportError, OSError):
     EVOLUTION_COMPONENTS_AVAILABLE = False
     (
         DigitalTwinWorldModel,

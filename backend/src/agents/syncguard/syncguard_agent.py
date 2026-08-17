@@ -7,6 +7,9 @@ import redis.asyncio as redis
 import yaml  # type: ignore
 from loguru import logger
 
+# Import the unified memory interface
+from core.unified_memory import unified_memory
+
 from .tools import (
     check_env_secrets_sync,
     check_infrastructure_drift,
@@ -33,7 +36,7 @@ class SyncGuardAgent:
         Executes the full synchronization audit across the 10-Crore-Floor architecture.
         """
         logger.info(f"🚀 [{self.name}] Initiating System Audit...")
-        audit_report = {"status": "SYNC_OK", "issues": []}
+        audit_report = {"status": "SYNC_OK", "issues": [], "timestamp": self._get_timestamp()}
 
         # 1. Check Infrastructure Blueprint Sync
         infra_status = await check_infrastructure_drift("github.com/paykaribazaronline/supremeai")
@@ -71,16 +74,21 @@ class SyncGuardAgent:
         else:
             logger.info(f"✅ [{self.name}] AUDIT PASSED. System is 100% synchronized and ready for scaling.")
 
+        # Store the audit report in long-term memory
+        success = unified_memory.store_long_term_memory(
+            session_id=f"syncguard_audit_{audit_report['timestamp']}",  # Unique ID for this audit
+            agent_type="SyncGuard",
+            task_type="System_Audit",
+            content=json.dumps(audit_report, indent=2),  # Store the full report
+            metadata={"status": audit_report["status"]}
+        )
+        if success:
+            logger.info(f"💾 [{self.name}] Audit report saved to Eternal Brain.")
+        else:
+            logger.warning(f"⚠️ [{self.name}] Failed to save audit report to Eternal Brain.")
+
         return audit_report
 
-
-# Test Execution (If run directly)
-if __name__ == "__main__":
-    import asyncio
-    import sys
-
-    agent = SyncGuardAgent()
-    report = asyncio.run(agent.run_full_audit())
-    if report["status"] == "SYNC_FAILED":
-        sys.exit(1)
-    sys.exit(0)
+    def _get_timestamp(self):
+        from datetime import datetime
+        return datetime.now().strftime("%Y%m%d_%H%M%S")

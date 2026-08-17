@@ -10,6 +10,7 @@ from core.config import settings
 
 core_routers: list[tuple[str, str]] = [
     ("api.routes.memory", ""),
+    ("api.routes.unified_memory_api", ""),
     ("api.routes.task", ""),
     ("api.routes.markdown", "/api/v1"),
     ("api.routes.simulator", ""),

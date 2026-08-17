@@ -30,7 +30,7 @@ from .digital_twin import (
 
 try:
     from .continual_learning.ewc import EWC, EWCConfig, EWCTrainer, OnlineEWC
-except ImportError:
+except (ImportError, OSError):
     EWC = OnlineEWC = EWCTrainer = EWCConfig = None
 
 try:
@@ -40,7 +40,7 @@ try:
         AttackType,
         DefenseConfig,
     )
-except ImportError:
+except (ImportError, OSError):
     AdversarialDefenseSystem = AdversarialTrainer = AttackType = DefenseConfig = None
 
 try:
@@ -51,7 +51,7 @@ try:
         SymbolicExpression,
         SymbolicReasoner,
     )
-except ImportError:
+except (ImportError, OSError):
     NeuralSymbolicIntegrator = MathematicalReasoningEngine = SymbolicExpression = SymbolicReasoner = (
         NeuralSymbolicConfig
     ) = None
@@ -64,7 +64,7 @@ try:
         FLConfig,
         LocalClient,
     )
-except ImportError:
+except (ImportError, OSError):
     FederatedLearningCoordinator = FederatedServer = LocalClient = FLConfig = AggregationMethod = None
 
 try:
@@ -75,7 +75,7 @@ try:
         ToMLevel,
         ToMReasoner,
     )
-except ImportError:
+except (ImportError, OSError):
     TheoryOfMindSystem = ToMReasoner = MentalStateManager = ToMConfig = ToMLevel = None
 
 try:
@@ -89,7 +89,7 @@ try:
         TemporalPatternDetector,
         TemporalPredictor,
     )
-except ImportError:
+except (ImportError, OSError):
     TemporalAbstractionSystem = TemporalMemory = TemporalPatternDetector = TemporalPredictor = (
         TemporalAbstractionConfig
     ) = TemporalEvent = TemporalPattern = TemporalGranularity = None

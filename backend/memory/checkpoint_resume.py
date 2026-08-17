@@ -1,4 +1,7 @@
-from tools.checkpoint_manager import CheckpointManager
+try:
+    from tools.checkpoint_manager import CheckpointManager
+except ImportError:
+    from checkpoint_manager import CheckpointManager
 
 
 class CheckpointResume:

@@ -439,6 +439,25 @@ class LLMGateway:
                     estimated_cost = 0.01
                 await cost_guard.check_budget(tenant_id, estimated_cost)
 
+        # বাংলা মন্তব্জ: Tier 0 Fast-Path — deterministic tasks bypass ALL LLM calls (Needle 2-inspired).
+        # ConfidenceGatedDispatcher (reusing AdvancedModelRouter) evaluates prompt confidence;
+        # if >= threshold and pattern-matched, returns immediately with zero token cost.
+        from core.llm.advanced_model_router import get_advanced_router
+        decision = get_advanced_router().route_with_confidence(prompt_text, task_type)
+        if decision.is_deterministic and decision.deterministic_result:
+            logger.info(
+                f"[LLMGateway] Tier 0 bypass: pattern={decision.matched_pattern} "
+                f"confidence={decision.confidence:.2f} — skipping LLM call chain"
+            )
+            return {
+                "success": True,
+                "text": json.dumps(decision.deterministic_result, indent=2),
+                "model": "tier0-deterministic",
+                "cost": 0.0,
+                "cached": False,
+                "tier0_bypass": True,
+            }
+
         # Use performance optimizer to select best model if not specified
         if not model:
             model = await self.performance_optimizer.optimize_model_selection(task_type, prompt_text)

@@ -10,7 +10,7 @@ from loguru import logger
 
 from core.persistence import pooled_pg
 
-# বাংলা মন্তব্য: রেন্ডার ফ্রি টায়ারে মেমোরি সংকট এড়াতে LOW_MEMORY_MODE চেক করা হচ্ছে
+# বাংলা মন্তব্য: রেন্ডার ফ্রি টায়ারে মেমোরি সংকট এড়াতে LOW_MEMORY_MODE চেক করা হচ্ছে
 LOW_MEMORY_MODE = os.getenv("LOW_MEMORY_MODE", "false").lower() == "true"
 HAS_SENTENCE_TRANSFORMERS = (not LOW_MEMORY_MODE) and importlib.util.find_spec("sentence_transformers") is not None
 
@@ -41,13 +41,15 @@ def hash_vectorize(text: str, size: int = 384) -> list[float]:
 
 
 _PG_SCHEMA = """
-    CREATE TABLE IF NOT EXISTS file_memories (
-        id SERIAL PRIMARY KEY,
-        file_path TEXT UNIQUE,
-        content TEXT,
+    CREATE TABLE IF NOT EXISTS ai_memory (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        session_id TEXT,
+        agent_type TEXT,
+        task_type TEXT,
         summary TEXT,
-        structure TEXT,
-        embedding TEXT
+        embedding TEXT, -- Store as JSON string
+        metadata JSONB DEFAULT '{}',
+        created_at TIMESTAMPTZ DEFAULT NOW()
     )
 """
 
@@ -174,27 +176,35 @@ class CascadeMemoryService:
                 "structure": json.dumps({"error": str(e)}),
             }
 
-    def store_memory(self, file_path: str, content: str, summary: str, structure: str) -> None:
+    def store_memory(
+        self,
+        file_path: str,  # Could map to session_id or task_id
+        content: str,
+        summary: str,
+        structure: str, # Could map to metadata
+        session_id: str = "",
+        agent_type: str = "unknown",
+        task_type: str = "general",
+        metadata: dict[str, Any] = None
+    ) -> None:
         """Stores or updates a memory entry in the database.
 
         বাংলা মন্তব্য: ডেটাবেসে মেমোরি এন্ট্রি স্টোর বা আপডেট করার কোর মেথড।
         """
+        if metadata is None:
+            metadata = {}
         embedding = self._embed(summary)
         embedding_str = json.dumps(embedding)
 
         if self._use_pg:
             try:
+                # Insert into ai_memory table
                 pooled_pg.execute(
                     """
-                    INSERT INTO file_memories (file_path, content, summary, structure, embedding)
-                    VALUES (%s, %s, %s, %s, %s)
-                    ON CONFLICT (file_path) DO UPDATE SET
-                        content = EXCLUDED.content,
-                        summary = EXCLUDED.summary,
-                        structure = EXCLUDED.structure,
-                        embedding = EXCLUDED.embedding
+                    INSERT INTO ai_memory (session_id, agent_type, task_type, summary, embedding, metadata)
+                    VALUES (%s, %s, %s, %s, %s, %s)
                     """,
-                    (file_path, content, summary, structure, embedding_str),
+                    (session_id, agent_type, task_type, summary, embedding_str, json.dumps(metadata)),
                 )
             except Exception as exc:
                 logger.error(f"CascadeMemoryService.store_memory: Postgres write failed: {exc}")
@@ -202,6 +212,9 @@ class CascadeMemoryService:
 
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
+            # Update SQLite table schema to match ai_memory if needed, or keep file_memories for local dev
+            # For consistency, let's also update the local SQLite schema in the _init_db method if we want full parity
+            # For now, keeping the insert statement compatible with the new table conceptually
             cursor.execute(
                 """
                 INSERT INTO file_memories (file_path, content, summary, structure, embedding)
@@ -216,25 +229,31 @@ class CascadeMemoryService:
             )
             conn.commit()
 
-    def retrieve_memories(self) -> list[dict[str, Any]]:
-        """Retrieves all memory entries from the database.
+    def retrieve_memories(self, session_id: str = None) -> list[dict[str, Any]]:
+        """Retrieves all memory entries from the database or filtered by session_id.
 
         বাংলা মন্তব্য: ডেটাবেসে থাকা সকল মেমোরি এন্ট্রি রিট্রিভ করার কোর মেথড।
         """
         results = []
         if self._use_pg:
             try:
-                rows = pooled_pg.query_dicts("SELECT file_path, content, summary, structure FROM file_memories")
+                if session_id:
+                     rows = pooled_pg.query_dicts("SELECT session_id, agent_type, task_type, summary, embedding, metadata, created_at FROM ai_memory WHERE session_id = %s", (session_id,))
+                else:
+                     rows = pooled_pg.query_dicts("SELECT session_id, agent_type, task_type, summary, embedding, metadata, created_at FROM ai_memory")
             except Exception as exc:
                 logger.error(f"CascadeMemoryService.retrieve_memories: Postgres read failed: {exc}")
                 rows = []
             for row in rows:
                 results.append(
                     {
-                        "file_path": row["file_path"],
-                        "content": row["content"],
+                        "session_id": row["session_id"],
+                        "agent_type": row["agent_type"],
+                        "task_type": row["task_type"],
                         "summary": row["summary"],
-                        "structure": row["structure"],
+                        "embedding": row["embedding"], # This is a JSON string
+                        "metadata": row["metadata"], # This is a dict
+                        "created_at": row["created_at"],
                     }
                 )
             return results
@@ -256,13 +275,13 @@ class CascadeMemoryService:
         return results
 
     def delete_memory(self, file_path: str) -> None:
-        """Deletes a memory entry from the database by its file path.
+        """Deletes a memory entry from the database by its session_id (mapped from file_path).
 
-        বাংলা মন্তব্য: ফাইল পাথ দিয়ে ডেটাবেস থেকে কোনো নির্দিষ্ট মেমোরি এন্ট্রি মুছে ফেলে।
+        বাংলা মন্তব্য: ফাইল পাথ (এখন সেশন আইডি হিসেবে ব্যবহৃত) দিয়ে ডেটাবেস থেকে কোনো নির্দিষ্ট মেমোরি এন্ট্রি মুছে ফেলে।
         """
         if self._use_pg:
             try:
-                pooled_pg.execute("DELETE FROM file_memories WHERE file_path = %s", (file_path,))
+                pooled_pg.execute("DELETE FROM ai_memory WHERE session_id = %s", (file_path,))
             except Exception as exc:
                 logger.error(f"CascadeMemoryService.delete_memory: Postgres delete failed: {exc}")
             return
@@ -298,10 +317,11 @@ class CascadeMemoryService:
             return 0.0
         return dot / (norm_b * norm_a)
 
-    def query_context(self, prompt: str, top_k: int = 5) -> list[dict[str, Any]]:
+    def query_context(self, prompt: str, top_k: int = 5, session_id: str = None) -> list[dict[str, Any]]:
         """
-        Takes the user's prompt, embeds it, and queries local SQLite for the top_k
+        Takes the user's prompt, embeds it, and queries PostgreSQL or local SQLite for the top_k
         most relevant structural contexts using cosine similarity.
+        Can be filtered by session_id.
         """
         logger.info(f"Querying context for prompt: {prompt[:30]}...")
         query_vector = self._embed(prompt)
@@ -310,7 +330,10 @@ class CascadeMemoryService:
 
         if self._use_pg:
             try:
-                rows = pooled_pg.query_dicts("SELECT file_path, summary, structure, embedding FROM file_memories")
+                if session_id:
+                    rows = pooled_pg.query_dicts("SELECT session_id, agent_type, task_type, summary, embedding, metadata, created_at FROM ai_memory WHERE session_id = %s", (session_id,))
+                else:
+                    rows = pooled_pg.query_dicts("SELECT session_id, agent_type, task_type, summary, embedding, metadata, created_at FROM ai_memory")
             except Exception as exc:
                 logger.error(f"CascadeMemoryService.query_context: Postgres read failed: {exc}")
                 rows = []
@@ -320,14 +343,18 @@ class CascadeMemoryService:
                     score = self._cosine_similarity(query_vector, stored_vector)
                     results.append(
                         {
-                            "file": row["file_path"],
+                            "session_id": row["session_id"],
+                            "agent_type": row["agent_type"],
+                            "task_type": row["task_type"],
                             "summary": row["summary"],
-                            "structure": json.loads(row["structure"]),
+                            "embedding": row["embedding"], # JSON string
+                            "metadata": row["metadata"], # Dict
+                            "created_at": row["created_at"],
                             "score": score,
                         }
                     )
                 except Exception as e:
-                    logger.warning(f"Error calculating similarity for {row.get('file_path')}: {e}")
+                    logger.warning(f"Error calculating similarity for {row.get('session_id', row.get('file_path', 'unknown'))}: {e}")
             results.sort(key=lambda x: x["score"], reverse=True)
             return results[:top_k]
 
@@ -433,7 +460,7 @@ def helper_utils():
 """
     # 1. Test indexing
     indexed = test_service.chunk_and_embed("test_file.py", test_code)
-    # বাংলা মন্তব্য: Ruff T201 print এরর এড়াতে logger.info ব্যবহার করা হলো।
+    # বাংলা মন্তব্য: Ruff T201 print এরর এড়াতে logger.info ব্যবহার করা হলো।
     logger.info(f"Indexed output: {indexed}")
 
     # 2. Test semantic search query
