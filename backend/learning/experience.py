@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import logging
 import os
@@ -17,11 +17,13 @@ logger = logging.getLogger("supremeai.learning.experience")
 
 @dataclass
 class ExperienceRecord:
-    """Immutable record of an executed task used for outcome analysis and learning."""
+    """Immutable record of an executed task with full causal and provenance tracking."""
 
     task_id: str
     goal: str
     experience_id: str = field(default_factory=lambda: f"exp_{uuid.uuid4().hex[:10]}")
+    trace_id: Optional[str] = None
+    proposal_id: Optional[str] = None
     plan_steps_count: int = 0
     tools_used: List[str] = field(default_factory=list)
     providers_used: List[str] = field(default_factory=list)
@@ -32,12 +34,14 @@ class ExperienceRecord:
     failures: List[str] = field(default_factory=list)
     user_feedback: Optional[str] = None
     lessons_extracted: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "experience_id": self.experience_id,
             "task_id": self.task_id,
+            "trace_id": self.trace_id,
+            "proposal_id": self.proposal_id,
             "goal": self.goal,
             "plan_steps_count": self.plan_steps_count,
             "tools_used": self.tools_used,
@@ -54,7 +58,7 @@ class ExperienceRecord:
 
 
 class ExperienceStore:
-    """In-memory and file-persisted Experience Ledger."""
+    """In-memory and persistent Experience Ledger."""
 
     def __init__(self, storage_dir: Optional[str] = None) -> None:
         self.storage_dir = Path(storage_dir or os.path.expanduser("~/.supremeai/experience"))
