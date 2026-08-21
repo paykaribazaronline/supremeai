@@ -1,0 +1,39 @@
+# backend/tests/verification/test_verifier.py
+"""Tests for Deterministic Verifier Engine."""
+
+import pytest
+from core.task_contract import RiskLevel, TaskContract, VerificationPolicy
+from verification.verifier import VerifierEngine, get_verifier
+
+
+@pytest.mark.asyncio
+async def test_verifier_valid_python_ast():
+    verifier = get_verifier()
+
+    task = TaskContract(
+        goal="Write greeting function",
+        required_capabilities=["python"],
+        verification_policy=VerificationPolicy.STRICT,
+        success_criteria=["def greet"],
+    )
+
+    valid_code = "def greet(name: str) -> str:\n    return f'Hello {name}'\n"
+    report = await verifier.verify(task, valid_code)
+
+    assert report.verified is True
+    assert "Valid Python AST Syntax" in report.criteria_passed
+    assert report.confidence >= 0.90
+
+
+@pytest.mark.asyncio
+async def test_verifier_empty_output_rejection():
+    verifier = get_verifier()
+
+    task = TaskContract(
+        goal="Produce data",
+        verification_policy=VerificationPolicy.STANDARD,
+    )
+
+    report = await verifier.verify(task, "")
+    assert report.verified is False
+    assert "Output is empty or null" in report.criteria_failed

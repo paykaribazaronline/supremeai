@@ -37,6 +37,58 @@ class VerificationPolicy(str, Enum):
     PERMISSIVE = "permissive"# Fast path for read-only / low-risk queries
 
 
+class CapabilityState(str, Enum):
+    DECLARED = "declared"
+    IMPLEMENTED = "implemented"
+    VERIFIED = "verified"
+    PRODUCTION = "production"
+    DEPRECATED = "deprecated"
+
+
+@dataclass
+class TaskBudget:
+    """Structured compute, token, and monetary budget constraints."""
+
+    max_cost_usd: float = 0.50
+    max_tokens: int = 16000
+    max_tool_calls: int = 10
+    max_execution_seconds: float = 60.0
+    max_parallel_agents: int = 4
+
+    tokens_used: int = 0
+    cost_incurred: float = 0.0
+    tool_calls_count: int = 0
+
+
+class InvalidTaskStateTransition(Exception):
+    """Raised when an illegal transition is attempted on a Task Contract."""
+
+    pass
+
+
+class TaskStateMachine:
+    """Enforces strict, unidirectional state transitions for tasks."""
+
+    ALLOWED_TRANSITIONS: Dict[TaskStatus, List[TaskStatus]] = {
+        TaskStatus.PENDING: [TaskStatus.PLANNING, TaskStatus.EXECUTING, TaskStatus.FAILED],
+        TaskStatus.PLANNING: [TaskStatus.EXECUTING, TaskStatus.FAILED],
+        TaskStatus.EXECUTING: [TaskStatus.VERIFYING, TaskStatus.FAILED],
+        TaskStatus.VERIFYING: [TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.EXECUTING],
+        TaskStatus.COMPLETED: [],  # Terminal
+        TaskStatus.FAILED: [TaskStatus.ROLLED_BACK],
+        TaskStatus.ROLLED_BACK: [],  # Terminal
+    }
+
+    @classmethod
+    def validate_transition(cls, current: TaskStatus, target: TaskStatus) -> bool:
+        allowed = cls.ALLOWED_TRANSITIONS.get(current, [])
+        if target not in allowed:
+            raise InvalidTaskStateTransition(
+                f"Illegal state transition from {current.value} to {target.value}. Allowed: {[s.value for s in allowed]}"
+            )
+        return True
+
+
 @dataclass
 class TaskContract:
     """Universal Task Object connecting Planner -> Reasoner -> Executor -> Evaluator -> Memory."""
@@ -46,7 +98,7 @@ class TaskContract:
     constraints: List[str] = field(default_factory=list)
     context: Dict[str, Any] = field(default_factory=dict)
     risk_level: RiskLevel = RiskLevel.MEDIUM
-    budget: float = 1.0  # Max compute/token budget in USD or units
+    budget: TaskBudget = field(default_factory=TaskBudget)
     deadline: Optional[datetime] = None
     required_capabilities: List[str] = field(default_factory=list)
     success_criteria: List[str] = field(default_factory=list)
@@ -63,33 +115,31 @@ class TaskContract:
     completed_at: Optional[datetime] = None
     metrics: Dict[str, Any] = field(default_factory=dict)
 
-    def mark_in_progress(self, stage: TaskStatus) -> None:
-        self.status = stage
+    def transition_to(self, new_status: TaskStatus, note: Optional[str] = None) -> None:
+        """Advance task state with strict state machine validation."""
+        TaskStateMachine.validate_transition(self.status, new_status)
+        self.status = new_status
         self.execution_history.append({
-            "stage": stage.value,
-            "timestamp": datetime.now().isoformat()
+            "stage": new_status.value,
+            "timestamp": datetime.now().isoformat(),
+            "note": note or "",
         })
 
+    def mark_in_progress(self, stage: TaskStatus) -> None:
+        self.transition_to(stage)
+
     def complete(self, result: Any, confidence: float = 0.95) -> None:
-        self.status = TaskStatus.COMPLETED
+        if self.status != TaskStatus.VERIFYING:
+            self.transition_to(TaskStatus.VERIFYING)
+        self.transition_to(TaskStatus.COMPLETED)
         self.result = result
         self.confidence = confidence
         self.completed_at = datetime.now()
-        self.execution_history.append({
-            "stage": TaskStatus.COMPLETED.value,
-            "timestamp": self.completed_at.isoformat(),
-            "confidence": confidence
-        })
 
     def fail(self, error_message: str) -> None:
-        self.status = TaskStatus.FAILED
+        self.transition_to(TaskStatus.FAILED, note=error_message)
         self.error = error_message
         self.completed_at = datetime.now()
-        self.execution_history.append({
-            "stage": TaskStatus.FAILED.value,
-            "error": error_message,
-            "timestamp": self.completed_at.isoformat()
-        })
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -97,7 +147,11 @@ class TaskContract:
             "goal": self.goal,
             "constraints": self.constraints,
             "risk_level": self.risk_level.value,
-            "budget": self.budget,
+            "budget": {
+                "max_cost_usd": self.budget.max_cost_usd,
+                "max_tokens": self.budget.max_tokens,
+                "tokens_used": self.budget.tokens_used,
+            },
             "required_capabilities": self.required_capabilities,
             "success_criteria": self.success_criteria,
             "verification_policy": self.verification_policy.value,

@@ -4,6 +4,8 @@
 Connects and orchestrates ALL phases and modules:
 - Centralized Structured Logging & Global Exception Handling
 - SupremeAIIntegrator (Phases 1, 2, 3)
+- Canonical Task Runtime & TaskContract State Machine
+- Deterministic Verifier Engine
 - IntelligentRateLimiter (4-Provider Fallback Chain: Gemini -> Groq -> OpenRouter -> Ollama)
 - SelfBenchmarkEngine & AdaptiveOptimizer
 - PerformanceMonitor & Background Self-Evolution
@@ -26,7 +28,11 @@ from core.adaptive_optimizer import AdaptiveOptimizer, get_optimizer
 from core.integration_layer import SupremeAIIntegrator
 from core.provider_rate_limiter import IntelligentRateLimiter, get_provider_rate_limiter
 from core.self_benchmark import SelfBenchmarkEngine
+from core.task_contract import RiskLevel, TaskBudget, TaskContract, VerificationPolicy
 from evolution.performance_monitor import PerformanceMonitor
+from runtime.task_context import TaskContext
+from runtime.task_runtime import TaskRuntime, get_task_runtime
+from verification.verifier import VerifierEngine, get_verifier
 
 
 class SupremeAIFactory:
@@ -38,6 +44,8 @@ class SupremeAIFactory:
         self._benchmarker: Optional[SelfBenchmarkEngine] = None
         self._optimizer: Optional[AdaptiveOptimizer] = None
         self._monitor: Optional[PerformanceMonitor] = None
+        self._runtime: Optional[TaskRuntime] = None
+        self._verifier: Optional[VerifierEngine] = None
         self._settings = None
         self._start_time: Optional[datetime] = None
 
@@ -96,44 +104,64 @@ class SupremeAIFactory:
         self._monitor = self._integrator.performance_monitor or PerformanceMonitor()
         self._integrator.monitor = self._monitor
 
-        # 7. Start background processes
+        # 7. Wire Verifier & Canonical Task Runtime
+        self._verifier = get_verifier()
+        self._runtime = get_task_runtime(ai_system=self._integrator)
+        self._integrator.runtime = self._runtime
+        self._integrator.verifier = self._verifier
+
+        # 8. Start background processes
         await self._integrator.start_background_processes()
 
-        logger.info("🎉 PRODUCTION SUPREMEAI WIRED & READY!")
+        logger.info("🎉 PRODUCTION SUPREMEAI WIRED & READY (Canonical Task Runtime Active)!")
         return self._integrator
 
     async def safe_process(self, query: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """Safe processing wrapper with rate limiting & multi-provider fallback applied."""
+        """Safe processing wrapper routing through Canonical TaskContract and TaskRuntime."""
         if not self._integrator:
             await self.create_production_instance()
 
-        if not self._limiter:
-            self._limiter = get_provider_rate_limiter()
+        if not self._runtime:
+            self._runtime = get_task_runtime(ai_system=self._integrator)
 
-        # Check rate limiting / provider availability
-        rate_result = await self._limiter.make_request(
-            prompt=query,
-            context={"source": "api_endpoint", "timestamp": datetime.now().isoformat(), **(context or {})},
+        ctx_dict = context or {}
+        policy_str = ctx_dict.get("verification_policy", "standard")
+        policy = VerificationPolicy(policy_str) if policy_str in [p.value for p in VerificationPolicy] else VerificationPolicy.STANDARD
+
+        # Create Canonical TaskContract
+        task = TaskContract(
+            goal=query,
+            context=ctx_dict,
+            risk_level=RiskLevel(ctx_dict.get("risk_level", "medium")),
+            budget=TaskBudget(
+                max_cost_usd=float(ctx_dict.get("max_cost_usd", 0.50)),
+                max_execution_seconds=float(ctx_dict.get("timeout_seconds", 60.0)),
+            ),
+            verification_policy=policy,
+            required_capabilities=ctx_dict.get("required_capabilities", []),
+            success_criteria=ctx_dict.get("success_criteria", []),
         )
 
-        if rate_result.get("success"):
-            final_result = await self._integrator.process(query, context=context)
-            return {
-                "success": getattr(final_result, "success", True),
-                "answer": getattr(final_result, "answer", str(final_result)),
-                "confidence": getattr(final_result, "confidence", 0.95),
-                "provider_used": rate_result.get("provider_used", "Gemini"),
-                "latency_ms": rate_result.get("latency_ms", 120),
-                "components_used": getattr(final_result, "components_used", ["reasoning_engine", "rate_limiter"]),
-                "rate_limited": False,
-            }
-        else:
-            return {
-                "success": False,
-                "error": rate_result.get("user_message", "Service temporarily busy. Please retry."),
-                "retry_after": rate_result.get("retry_after", 30),
-                "rate_limited": True,
-            }
+        task_ctx = TaskContext(
+            tenant_id=ctx_dict.get("tenant_id", "default_tenant"),
+            session_id=ctx_dict.get("session_id"),
+        )
+
+        # Execute through authoritative control plane
+        task_res = await self._runtime.execute_task(task, task_ctx)
+
+        return {
+            "success": task_res.success,
+            "answer": task_res.answer,
+            "confidence": task_res.confidence,
+            "provider_used": task_res.provider_used,
+            "latency_ms": task_res.execution_time_ms,
+            "verified": task_res.verification.verified,
+            "components_used": task_res.components_used,
+            "task_id": task_res.task_id,
+            "rate_limited": False if task_res.success else ("rate limit" in str(task_res.error).lower()),
+            "error": task_res.error,
+        }
 
     async def graceful_shutdown(self) -> None:
         """Clean shutdown - saves state, closes background tasks."""
@@ -149,6 +177,8 @@ class SupremeAIFactory:
             "status": "healthy" if is_init else "degraded",
             "components": {
                 "integrator": self._integrator is not None,
+                "runtime": self._runtime is not None,
+                "verifier": self._verifier is not None,
                 "rate_limiter": self._limiter is not None,
                 "benchmark": self._benchmarker is not None,
                 "optimizer": self._optimizer is not None,
