@@ -59,4 +59,4 @@ def test_hypothesis_engine_generates_and_converts_proposal():
     assert proposal is not None
     assert proposal.change_type == ChangeType.PARAMETER_TUNING
     assert proposal.state == ProposalState.DRAFTED
-    assert proposal.target_module == "backend/runtime/budget_guard.py"
+    assert proposal.target_module == "adapters/budget_parameters.py"

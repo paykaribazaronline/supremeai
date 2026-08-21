@@ -79,7 +79,7 @@ async def test_change_proposal_rejection_on_regression():
         description="Overly aggressive pruning",
         change_type=ChangeType.ROUTING_POLICY,
         diff_content={"prune_threshold": 0.99},
-        target_module="backend/core/router.py",
+        target_module="adapters/router_policy.py",
         current_fitness=0.85,
     )
 

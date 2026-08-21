@@ -54,6 +54,22 @@ class BenchmarkRunner:
         baseline_fitness: float = 0.75,
         min_gain_threshold: float = 0.0,
     ) -> PromotionDecision:
+        # 🛡️ Governance Kernel Check (Defense-in-depth)
+        from core.security.governance_policy import get_governance_policy
+        is_allowed, reason = get_governance_policy().validate_evolution_target(proposal.target_module)
+        if not is_allowed:
+            return PromotionDecision(
+                eligible=False,
+                baseline_fitness=baseline_fitness,
+                candidate_fitness=candidate_eval.composite_fitness,
+                fitness_delta=0.0,
+                confidence=1.0,
+                safety_status="GOVERNANCE_BLOCKED",
+                regression_status="POLICY_VIOLATION",
+                reason=f"Governance policy blocked target: {reason}",
+                evidence_ids=[proposal.proposal_id],
+            )
+
         candidate_fitness = candidate_eval.composite_fitness
         delta = round(candidate_fitness - baseline_fitness, 4)
 

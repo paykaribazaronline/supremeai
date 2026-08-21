@@ -12,8 +12,7 @@ from __future__ import annotations
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
-from jose.exceptions import ExpiredSignatureError
+import jwt
 from loguru import logger
 
 from core.config import settings
@@ -55,10 +54,8 @@ async def verify_autonomous_agent_token(
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> dict:
     """
-    Stateless JWT verification. Validates requests coming from the frontend
+    Stateless JWT verification using PyJWT. Validates requests coming from the frontend
     or external integrations without blocking the main thread.
-
-    বাংলা মন্তব্য: Fully Async Auth Guard এবং Redis-based টোকেন ক্যাশিং (Zero-cost optimization)।
     """
     correlation_id = getattr(request.state, "correlation_id", "unknown")
 
@@ -66,19 +63,17 @@ async def verify_autonomous_agent_token(
         payload = jwt.decode(
             credentials.credentials,
             settings.jwt_secret,
-            algorithms=["HS256"],  # Default to HS256, can be made configurable
+            algorithms=["HS256"],
         )
         return payload
 
-    except ExpiredSignatureError as e:
-        # Expected behavior, no need to alert ErrorBus
+    except jwt.ExpiredSignatureError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has expired",
             headers={"WWW-Authenticate": "Bearer"},
         ) from e
-    except JWTError as e:
-        # Potential intrusion or configuration issue, alert ErrorBus
+    except jwt.PyJWTError as e:
         error_event_bus.emit(
             ErrorEvent(
                 module="AuthGuard",

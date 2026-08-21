@@ -31,7 +31,7 @@ def test_benchmark_runner_promotes_superior_candidate():
         description="Fast parser",
         change_type=ChangeType.CODE_REFACTOR,
         diff_content={"code": "def parse(): pass"},
-        target_module="core/parser.py",
+        target_module="skills/parser.py",
         current_fitness=0.90,
     )
 
@@ -62,7 +62,7 @@ def test_benchmark_runner_rejects_insecure_candidate():
         description="Dangerous code",
         change_type=ChangeType.CODE_REFACTOR,
         diff_content={"code": "eval('__import__')"},
-        target_module="core/eval.py",
+        target_module="skills/eval.py",
         current_fitness=0.50,
     )
 

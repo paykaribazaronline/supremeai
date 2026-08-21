@@ -226,6 +226,13 @@ class AutoSkillCreator:
                 }
 
             # ৪. USS Pydantic Schema Validation
+            # 🛡️ Governance Gate Pre-Validation
+            from core.security.governance_policy import get_governance_policy
+            is_valid, reason = get_governance_policy().validate_evolution_target(f"skills/{skill_name}")
+            if not is_valid:
+                logger.critical(f"🚨 Skill target 'skills/{skill_name}' blocked by governance policy: {reason}")
+                raise SecurityError(f"Governance violation: {reason}")
+
             try:
                 uss = UniversalSkillSchema(**schema_dict)
             except Exception as e:

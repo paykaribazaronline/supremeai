@@ -146,6 +146,19 @@ class ChangeProposalManager:
             target_module=target_module,
             fitness_before=current_fitness,
         )
+
+        # 🛡️ Governance Gate Pre-Check
+        from core.security.governance_policy import get_governance_policy
+        policy = get_governance_policy()
+        is_allowed, reason = policy.validate_evolution_target(target_module)
+        if not is_allowed:
+            proposal.state = ProposalState.REJECTED
+            proposal.rejection_reason = f"Governance policy violation: {reason}"
+            self.proposals[proposal.proposal_id] = proposal
+            self._persist_proposal(proposal)
+            logger.critical(f"🚫 [GOVERNANCE GATE] Proposal [{proposal.proposal_id}] REJECTED: {reason}")
+            return proposal
+
         self.proposals[proposal.proposal_id] = proposal
         self._persist_proposal(proposal)
         logger.info(f"📝 Created new Change Proposal: {proposal.proposal_id} ({title})")
@@ -160,6 +173,15 @@ class ChangeProposalManager:
         """Run full gate: Static Scan -> Benchmark -> Canary Gate -> Promotion."""
         proposal = self.proposals.get(proposal_id)
         if not proposal:
+            return False
+
+        # 0. Governance Security Validation (Defense-in-depth)
+        from core.security.governance_policy import get_governance_policy
+        is_allowed, reason = get_governance_policy().validate_evolution_target(proposal.target_module)
+        if not is_allowed:
+            proposal.state = ProposalState.REJECTED
+            proposal.rejection_reason = f"Governance policy violation: {reason}"
+            self._persist_proposal(proposal)
             return False
 
         # 1. Static Validation

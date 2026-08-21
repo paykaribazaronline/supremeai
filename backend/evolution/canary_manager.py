@@ -71,6 +71,17 @@ class CanaryRolloutController:
         if trial.total_trials >= 3 and trial.success_rate < 0.60:
             self.trigger_rollback(proposal_id, reason=f"High failure rate in canary ({trial.success_rate * 100:.1f}%)")
 
+    def get_canary_stats(self, proposal_id: str) -> Dict[str, Any]:
+        trial = self.active_canaries.get(proposal_id)
+        if not trial:
+            return {"active": False, "success_rate": 0.0, "total_trials": 0}
+        return {
+            "active": True,
+            "success_rate": trial.success_rate,
+            "total_trials": trial.total_trials,
+            "avg_latency_ms": trial.avg_latency_ms,
+        }
+
     def evaluate_and_promote(
         self,
         proposal_id: str,
