@@ -2,7 +2,7 @@
 > Auto-updated by AI agents after each major session. Next agent must read this first.
 
 ## Last Session
-- **Date:** 2026-08-21 13:14 UTC
+- **Date:** 2026-08-21 13:15 UTC
 - **Agent:** Auto-updated (checkpoint_update.py)
 - **Summary:** Auto-updated via pre-commit hook
 
@@ -10,38 +10,22 @@
   - (see git log for details)
 
 ## Files Changed
-  - `scripts/sync_all_render_secrets.py`
-  - `config/routing_policy.json`
-  - `scripts/health/check_system_health.py`
-  - `backend/core/auto_healer_service.py`
-  - `backend/mypy.ini`
-  - `.github/workflows/release-builds.yml`
-  - `scripts/check_render_status.py`
-  - `frontend/vitest.config.ts`
-  - `frontend/src/commandcenter/shell/__tests__/WorkspaceViewport.test.tsx`
-  - `scripts/sync_firebase_render.py`
-  - `scripts/push_all_render_envs.py`
-  - `.lingma/rules/agents.md`
-  - `scripts/deploy_render.py`
-  - `.github/scripts/check-render-quota.py`
-  - `frontend/e2e/multiworkspace.spec.ts`
-  - `docs/project_management/VERIFICATION_REPORT.md`
-  - `frontend/src/commandcenter/state/__tests__/useCommandCenterStore.test.ts`
-  - `scripts/verify_render_env.py`
-  - `scripts/check_render_env_vars.py`
-  - `.github/actions/setup-backend/action.yml`
-  - `CHECKPOINT.md`
-  - `scripts/cancel_hanging_deploys.py`
-  - `.github/workflows/supreme-core-ci.yml`
-  - `.github/workflows/scraper-ci.yml`
-  - `STATUS.md`
-  - `backend/database/session.py`
-  - `scripts/clean_legacy_secrets.py`
   - `scripts/fetch_render_failure_logs.py`
-  - `backend/config/routing_policy.json`
-  - `frontend/src/App.test.tsx`
-  - `frontend/src/utils/api.test.ts`
+  - `scripts/push_all_render_envs.py`
+  - `scripts/sync_firebase_render.py`
+  - `CHECKPOINT.md`
+  - `scripts/check_render_env_vars.py`
+  - `.github/scripts/check-render-quota.py`
+  - `.github/workflows/supreme-core-ci.yml`
+  - `scripts/cancel_hanging_deploys.py`
+  - `scripts/deploy_render.py`
+  - `scripts/verify_render_env.py`
+  - `scripts/check_render_status.py`
   - `scripts/quick_deploy_status.py`
+  - `scripts/sync_all_render_secrets.py`
+  - `scripts/verify_infisical_env.py`
+  - `scripts/clean_legacy_secrets.py`
+  - `.lingma/rules/agents.md`
 
 ## Pending (Carry Forward)
 - **MED:** Supabase `ai_memory` টেবিলে ভেক্টর স্কিমা ভ্যালিডেশন এবং `memory_write.py` লাইভ ভেক্টর ইনসার্ট টেস্ট।
