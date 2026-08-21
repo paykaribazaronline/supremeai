@@ -23,36 +23,24 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from config.settings import get_settings
-from core.integration_layer import SupremeAIIntegrator, get_integrator
+from core.factory import SupremeAIFactory, get_factory
+from core.integration_layer import SupremeAIIntegrator
 
 ai_integrator: Optional[SupremeAIIntegrator] = None
+factory: Optional[SupremeAIFactory] = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan management - initialize on startup, cleanup on shutdown."""
-    global ai_integrator
-    settings = get_settings()
-    ai_integrator = await get_integrator({
-        "engine": {"max_depth": 10},
-        "reasoning": {"parallel": True},
-        "memory": {"max_episodic": settings.memory.max_episodic_memory},
-        "evolution": {"population_size": settings.evolution.population_size},
-        "auto_evolution": {
-            "enabled": settings.evolution.enabled,
-            "check_interval_seconds": settings.evolution.check_interval_seconds,
-            "require_confirmation": False,
-        },
-        "monitoring": {"retention_hours": settings.monitoring.retention_hours},
-    })
-
-    # Start background processes
-    await ai_integrator.start_background_processes()
+    """Lifespan management - initialize factory on startup, cleanup on shutdown."""
+    global ai_integrator, factory
+    factory = get_factory()
+    ai_integrator = await factory.create_production_instance()
     yield
 
     # Cleanup on shutdown
-    if ai_integrator:
-        await ai_integrator.shutdown()
+    if factory:
+        await factory.graceful_shutdown()
 
 
 app = FastAPI(
@@ -163,38 +151,46 @@ async def process_query(
     x_client_id: str = Query(default="anonymous"),
 ) -> ProcessResponse:
     """Main processing endpoint accepting user queries and returning AI solutions."""
-    if not ai_integrator:
-        raise HTTPException(status_code=503, detail="System initializing, please retry")
+    global factory, ai_integrator
+    if not factory or not ai_integrator:
+        factory = get_factory()
+        ai_integrator = await factory.create_production_instance()
 
     await check_rate_limit(x_client_id)
     request_id = str(uuid.uuid4())
     start_time = time.perf_counter()
 
     try:
-        result = await asyncio.wait_for(
-            ai_integrator.process(request.query, request.context),
+        safe_res = await asyncio.wait_for(
+            factory.safe_process(request.query, request.context),
             timeout=float(request.timeout_seconds or 60),
         )
 
         processing_time = round((time.perf_counter() - start_time) * 1000.0, 2)
 
+        if not safe_res.get("success"):
+            raise HTTPException(
+                status_code=429 if safe_res.get("rate_limited") else 503,
+                detail=safe_res.get("error", "AI service busy"),
+            )
+
         return ProcessResponse(
-            success=result.success,
-            answer=result.answer,
-            confidence=result.confidence,
+            success=safe_res.get("success", True),
+            answer=safe_res.get("answer", ""),
+            confidence=safe_res.get("confidence", 0.95),
             processing_time_ms=processing_time,
             request_id=request_id,
             timestamp=datetime.now().isoformat(),
-            components_used=result.components_used,
+            components_used=safe_res.get("components_used", ["reasoning_engine", "rate_limiter"]),
             metadata={
-                **result.metadata,
-                "learning_occurred": result.learning_occurred,
-                "evolution_applied": result.evolution_applied,
-                "domain": result.domain,
+                "provider_used": safe_res.get("provider_used", "Gemini"),
+                "rate_limited": safe_res.get("rate_limited", False),
             },
         )
     except asyncio.TimeoutError:
         raise HTTPException(status_code=504, detail="Processing timeout exceeded")
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Processing error: {str(exc)}")
 

@@ -98,6 +98,16 @@ class ThirdPartyServiceError(SupremeAIException):
 
 
 # Backward-compatible aliases for legacy imports
+SupremeAIError = SupremeAIException
+
+
+class ProviderExhaustedError(SupremeAIException):
+    """Raised when all fallback AI providers fail or are exhausted."""
+
+    def __init__(self, message: str = "All AI providers exhausted", details: dict[str, Any] | None = None) -> None:
+        super().__init__(message=message, error_code="PROVIDER_EXHAUSTED", status_code=503, details=details)
+
+
 class LLMProviderError(SupremeAIException):
     """Legacy alias: Raised when an LLM provider request fails."""
 
