@@ -2,7 +2,7 @@
 > Auto-updated by AI agents after each major session. Next agent must read this first.
 
 ## Last Session
-- **Date:** 2026-08-21 15:57 UTC
+- **Date:** 2026-08-21 15:58 UTC
 - **Agent:** Auto-updated (checkpoint_update.py)
 - **Summary:** Auto-updated via pre-commit hook
 
@@ -10,14 +10,11 @@
   - (see git log for details)
 
 ## Files Changed
-  - `backend/scaling/distributed_manager.py`
-  - `backend/evolution/__init__.py`
-  - `backend/core/resilience/safety_rollback_manager.py`
-  - `backend/core/resilience/__init__.py`
-  - `backend/scaling/__init__.py`
-  - `backend/tests/services/test_phase3_evolution.py`
-  - `backend/evolution/performance_monitor.py`
   - `CHECKPOINT.md`
+  - `backend/evolution/__init__.py`
+  - `backend/evolution/performance_monitor.py`
+  - `backend/core/integration_layer.py`
+  - `backend/tests/services/test_integration_layer.py`
 
 ## Pending (Carry Forward)
 - **MED:** Supabase `ai_memory` টেবিলে ভেক্টর স্কিমা ভ্যালিডেশন এবং `memory_write.py` লাইভ ভেক্টর ইনসার্ট টেস্ট।
