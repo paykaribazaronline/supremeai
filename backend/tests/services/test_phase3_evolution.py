@@ -131,3 +131,55 @@ async def test_auto_evolution_controller_full_cycle():
     stats = controller.get_statistics()
     assert stats["total_cycles"] == 1
     assert stats["successful_optimizations"] >= 1
+
+
+# ── 7. Safety & Rollback Manager Tests ────────────────────────────────────────
+
+@pytest.mark.asyncio
+async def test_safety_rollback_manager():
+    from core.resilience.safety_rollback_manager import SafetyRollbackManager
+    manager = SafetyRollbackManager()
+
+    # Create backup
+    backup_id = await manager.create_backup(reason="unit_test")
+    assert backup_id.startswith("backup_")
+
+    # List backups
+    backups = manager.list_backups()
+    assert len(backups) >= 1
+
+    # Rollback to backup
+    res = await manager.rollback_to_backup(backup_id)
+    assert res.success is True
+    assert res.verification_passed is True
+
+    # Checkpoint test
+    cp_id = await manager.create_checkpoint()
+    assert cp_id.startswith("cp_")
+    restored = await manager.restore_checkpoint(cp_id)
+    assert restored is True
+
+
+# ── 8. Distributed Scaling Manager Tests ──────────────────────────────────────
+
+@pytest.mark.asyncio
+async def test_distributed_scaling_manager():
+    from scaling.distributed_manager import DistributedScalingManager, TaskPriority
+    scaling_mgr = DistributedScalingManager()
+
+    # Submit task
+    task_id = await scaling_mgr.submit_task(
+        task_type="code_synthesis",
+        payload={"module": "living_engine"},
+        priority=TaskPriority.HIGH,
+    )
+    assert task_id.startswith("task_")
+
+    # Wait for execution
+    task = await scaling_mgr.wait_for_task(task_id, timeout=2)
+    assert task is not None
+    assert task.assigned_node is not None
+
+    status = scaling_mgr.get_cluster_status()
+    assert status["total_nodes"] >= 1
+

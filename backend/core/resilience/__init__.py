@@ -17,6 +17,31 @@ from .circuit_breaker import (
     CircuitBreakerOpenError,
     CircuitBreakerState,
 )
+from core.resilience.safety_rollback_manager import (
+    BackupStatus,
+    RestoreResult,
+    SafetyCheckpoint,
+    SafetyRollbackManager,
+    SystemBackup,
+)
 
-# Export the main classes for easy import
-__all__ = ["CircuitBreaker", "CircuitBreakerOpenError", "CircuitBreakerState"]
+__all__ = [
+    "CircuitBreaker",
+    "CircuitState",
+    "CircuitBreakerManager",
+    "CircuitBreakerOpenException",
+    "PredictiveCircuitBreaker",
+    "MetricSample",
+    "FailurePredictor",
+    "PredictiveMetricsEngine",
+    "TrendDirection",
+    "AutoRemediationEngine",
+    "RemediationAction",
+    "ChaosEngine",
+    "RollbackMonitor",
+    "SafetyRollbackManager",
+    "SystemBackup",
+    "RestoreResult",
+    "SafetyCheckpoint",
+    "BackupStatus",
+]
