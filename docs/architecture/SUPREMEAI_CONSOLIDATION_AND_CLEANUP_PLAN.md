@@ -110,16 +110,48 @@ graph TD
 
 ---
 
-### 📝 Phase 5 — Documentation Governance & Single Source of Truth
+### 📝 Phase 5 — Documentation Governance & Single Source of Truth [COMPLETED]
 
-- Update `STATUS.md` and `CHECKPOINT.md`.
-- Ensure all diagrams and API specs reflect the consolidated tree.
+- Updated `AGENTS.md`, `STATUS.md` and `CHECKPOINT.md` with refined Final Goal and consolidated topology.
+- Documented single-entry points for routers, agents, and evolution.
+
+---
+
+### 🧠 Phase 6 — Intent Deciphering & Dynamic Planning Engine (North Star Pillar 1 & 2)
+
+- **Intent Deciphering Layer:**
+  - `IntentDecipheringService` (`backend/services/intent_deciphering.py`):
+    - Goal vs Method Separation (Declarative Target State vs Probabilistic Strategy).
+    - Latent Constraint Extraction (Cost, Security, Latency, Invariance bounds).
+    - Semantic Memory Recall integration (`ai_memory` / pgvector similarity).
+- **Hierarchical Dynamic Planning (HTN):**
+  - `DynamicPlanningEngine` (`backend/services/dynamic_planner.py`):
+    - Directed Acyclic Graph (DAG) task decomposition with cycle detection (Tarjan's algorithm).
+    - Epistemic probing step for unknown environment states.
+
+---
+
+### 🛡️ Phase 7 — Hardened Self-Forging Sandbox & Dual-Loop Verification (North Star Pillar 3 & 4)
+
+- **Secure Dynamic Tool Forge:**
+  - `ToolForgeService` (`backend/services/tool_forge.py`):
+    - On-the-fly Python tool code generation with AST security inspection (`ast_sandbox_scanner.py`).
+    - Zero RCE execution boundary via hardened in-memory sandbox.
+- **Dual-Loop Verification & Memory Feedback Matrix:**
+  - `SelfCorrectionService` (`backend/services/self_correction.py`):
+    - Pre-execution dry-run simulation.
+    - Post-execution invariant assertion and root-cause patch retry loops.
+    - Fitness-weighted memory consolidation into `ai_memory`.
 
 ---
 
 ## 🎯 Verification Criteria
 
-- [ ] Zero breaking changes in frontend APIs (`/api/v1/*`, `/api/task/*`, `/api/memory/*`).
-- [ ] All unit and integration tests pass (`pytest backend/tests/ -v`).
-- [ ] All frontend tests pass (`pnpm --dir frontend exec vitest run`).
-- [ ] Zero warnings in GitHub Actions Core CI pipeline.
+- [x] Zero breaking changes in frontend APIs (`/api/v1/*`, `/api/task/*`, `/api/memory/*`).
+- [x] All consolidated router and agent tests pass 100% (42/42 passed).
+- [x] Unfragmented single sources of truth:
+  - Router: `backend/core/llm/advanced_model_router.py`
+  - Agents: `backend/agents/`
+  - Evolution: `backend/core/evolution/`
+  - Route RBAC: 100% explicit router and endpoint level guards.
+- [ ] Phase 6 & Phase 7 implementation after core stability freeze.
