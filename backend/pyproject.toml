@@ -24,9 +24,7 @@ psutil = "^6.1.0"
 redis = {extras = ["hiredis"], version = "^5.2.0"}
 python-multipart = "^0.0.20"
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
-python-jose = {extras = ["cryptography"], version = "^3.3.0"}
-# python-jose deprecated; migrated to PyJWT
-# PyJWT = "2.10+" # added below when migration complete
+pyjwt = {extras = ["crypto"], version = "^2.10.1"}
 python-dotenv = "^1.2.2"  # CVE fix floor (AUDIT-014)
 requests = "^2.32.3"
 uuid6 = "^2025.0.1"
