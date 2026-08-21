@@ -72,8 +72,8 @@ class DomainExpertAnalyzer:
         p_lower = prompt.lower()
         words = set(re.findall(r"[\w\u0980-\u09ff]+", p_lower))
 
-        # 1. Bengali Language / BD context check
-        if any(w in p_lower for w in cls.BENGALI_KEYWORDS):
+        # 1. Bengali Language / BD context check (Keyword or Unicode Bengali script)
+        if any(w in p_lower for w in cls.BENGALI_KEYWORDS) or bool(re.search(r"[\u0980-\u09ff]", prompt)):
             return ExpertType.BENGALI
 
         # 2. Coder domain check

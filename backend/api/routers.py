@@ -82,6 +82,8 @@ core_routers: list[tuple[str, str]] = [
     ("api.routes.swarm", "/api/v1/swarm"),
     # Added real-time dashboard WebSocket endpoint for Phase 2.1 of roadmap
     ("api.routes.realtime_dashboard", ""),
+    # Living, Self-Evolving Autonomous Engine Orchestrator
+    ("api.routes.living_engine", ""),
 ]
 
 
