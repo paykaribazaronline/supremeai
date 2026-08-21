@@ -47,6 +47,35 @@ class MetricPoint:
 
 
 @dataclass
+class AlertRule:
+    rule_id: str
+    metric_name: str
+    condition: str  # 'gt', 'lt', 'eq', 'gte', 'lte'
+    threshold: float
+    severity: AlertSeverity
+    duration_seconds: int = 60
+    message_template: str = ""
+    enabled: bool = True
+    cooldown_seconds: int = 300
+
+
+@dataclass
+class PerformanceSnapshot:
+    timestamp: datetime
+    cpu_percent: float
+    memory_percent: float
+    memory_used_mb: float
+    disk_usage_percent: float = 0.0
+    open_file_descriptors: int = 0
+    thread_count: int = 1
+    request_rate: float = 0.0
+    error_rate: float = 0.0
+    avg_response_time_ms: float = 0.0
+    active_connections: int = 0
+    custom_metrics: Dict[str, float] = field(default_factory=dict)
+
+
+@dataclass
 class PerformanceAlert:
     alert_id: str
     metric_name: str

@@ -19,6 +19,7 @@ from evolution.memory_consolidator import (
     MemoryTier,
 )
 from evolution.performance_monitor import (
+    AlertRule,
     AlertSeverity,
     AnomalyDetector,
     MetricPoint,
@@ -26,6 +27,7 @@ from evolution.performance_monitor import (
     PerformanceAlert,
     PerformanceMonitor,
     PerformanceReport,
+    PerformanceSnapshot,
 )
 from evolution.strategy_optimizer import (
     Strategy,
@@ -67,6 +69,7 @@ __all__ = [
     "MemoryBlock",
     "MemoryConsolidator",
     "MemoryTier",
+    "AlertRule",
     "AlertSeverity",
     "AnomalyDetector",
     "MetricPoint",
@@ -74,6 +77,7 @@ __all__ = [
     "PerformanceAlert",
     "PerformanceMonitor",
     "PerformanceReport",
+    "PerformanceSnapshot",
     "Strategy",
     "StrategyOptimizer",
     "StrategyStatus",
