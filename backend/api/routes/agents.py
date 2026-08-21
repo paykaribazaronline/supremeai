@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/api/agents", tags=["specialized-agents"])
+from core.security.rbac import get_current_user_token
+
+router = APIRouter(prefix="/api/agents", tags=["specialized-agents"], dependencies=[Depends(get_current_user_token)])
 
 
 class SymptomRequest(BaseModel):

@@ -2,7 +2,7 @@
 > Auto-updated by AI agents after each major session. Next agent must read this first.
 
 ## Last Session
-- **Date:** 2026-08-21 15:03 UTC
+- **Date:** 2026-08-21 15:15 UTC
 - **Agent:** Auto-updated (checkpoint_update.py)
 - **Summary:** Auto-updated via pre-commit hook
 
@@ -10,20 +10,25 @@
   - (see git log for details)
 
 ## Files Changed
-  - `AGENTS.md`
-  - `backend/services/dynamic_planner.py`
-  - `backend/tests/services/test_self_correction.py`
-  - `backend/tests/llm/test_advanced_model_router_regression.py`
-  - `backend/tests/test_evolution_unified.py`
-  - `backend/tests/test_core_exceptions_and_pipeline.py`
-  - `backend/services/self_correction.py`
-  - `backend/services/tool_forge.py`
-  - `CHECKPOINT.md`
-  - `backend/tests/services/test_dynamic_planner.py`
-  - `backend/tests/test_route_rbac_matrix.py`
-  - `backend/tests/services/test_tool_forge.py`
+  - `backend/api/routes/agents.py`
   - `.agents/AGENTS.md`
-  - `backend/tests/test_agents_unified.py`
+  - `backend/api/routes/codeflow.py`
+  - `backend/api/routes/advanced_router.py`
+  - `CHECKPOINT.md`
+  - `backend/tests/services/test_tool_forge.py`
+  - `backend/skills/__init__.py`
+  - `backend/tests/services/test_self_correction.py`
+  - `backend/api/routes/email.py`
+  - `backend/api/routes/simulator.py`
+  - `backend/api/routes/tools_registry.py`
+  - `backend/services/self_correction.py`
+  - `backend/evolution/__init__.py`
+  - `backend/api/routes/internal.py`
+  - `backend/services/dynamic_planner.py`
+  - `backend/services/tool_forge.py`
+  - `backend/core/skills/__init__.py`
+  - `backend/tests/services/test_dynamic_planner.py`
+  - `AGENTS.md`
 
 ## Pending (Carry Forward)
 - **MED:** Supabase `ai_memory` টেবিলে ভেক্টর স্কিমা ভ্যালিডেশন এবং `memory_write.py` লাইভ ভেক্টর ইনসার্ট টেস্ট।

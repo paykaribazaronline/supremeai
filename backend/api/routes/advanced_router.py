@@ -1,12 +1,13 @@
 # SupremeAI 2.0 — Advanced Model Router API Router
 # বাংলা মন্তব্য: এটি স্মার্ট প্রম্পট এনালাইসিস এবং মডেল ডাইনামিক রাউটিং এর FastAPI এন্ডপয়েন্ট সরবরাহ করে।
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from core.llm.advanced_model_router import AdvancedModelRouter
+from core.security.rbac import get_current_user_token
 
-router = APIRouter(prefix="/api/v1/router", tags=["Advanced Model Router"])
+router = APIRouter(prefix="/api/v1/router", tags=["Advanced Model Router"], dependencies=[Depends(get_current_user_token)])
 
 global_router = AdvancedModelRouter()
 

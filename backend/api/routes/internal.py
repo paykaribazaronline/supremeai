@@ -1,14 +1,15 @@
 import secrets
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from loguru import logger
 from pydantic import BaseModel
 
 from core.config import settings
 from core.evolution.evolution_engine import EvolutionEngine
+from core.security.rbac import get_current_admin
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_admin)])
 
 
 def _require_admin(request: Request):

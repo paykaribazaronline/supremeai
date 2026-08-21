@@ -1,7 +1,9 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/api/codeflow", tags=["codeflow"])
+from core.security.rbac import get_current_user_token
+
+router = APIRouter(prefix="/api/codeflow", tags=["codeflow"], dependencies=[Depends(get_current_user_token)])
 
 
 class CodeFlowRequest(BaseModel):

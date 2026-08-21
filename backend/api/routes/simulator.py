@@ -14,13 +14,14 @@ import json
 from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from core.cache.redis_manager import redis_manager
 from core.error_bus import with_error_bus
+from core.security.rbac import get_current_user_token
 
-router = APIRouter(prefix="/api/simulator", tags=["simulator"])
+router = APIRouter(prefix="/api/simulator", tags=["simulator"], dependencies=[Depends(get_current_user_token)])
 
 _PROFILE_KEY = "simulator:profile:{user_id}"
 _SESSION_KEY = "simulator:session:{user_id}"
