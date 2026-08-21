@@ -34,6 +34,21 @@ def get_fitness_engine() -> FitnessEngine:
     return _fitness_engine
 
 
+async def get_rate_limiter():
+    """FastAPI dependency that returns the singleton rate limiter."""
+    from core.provider_rate_limiter import get_provider_rate_limiter
+    return get_provider_rate_limiter()
+
+
+async def get_ai_integrator():
+    """FastAPI dependency for the production-wired AI integrator."""
+    from core.factory import get_factory
+    factory = get_factory()
+    if getattr(factory, "_integrator", None) is None:
+        await factory.create_production_instance()
+    return factory._integrator
+
+
 @with_error_bus("verify_autonomous_agent_token")
 async def verify_autonomous_agent_token(
     request: Request,
