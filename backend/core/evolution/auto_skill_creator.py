@@ -310,27 +310,48 @@ asyncio.run(_supreme_test_run())
                 f"✅ All {len(uss.validation.tests)} validation tests passed for skill '{skill_name}' inside the sandbox!"
             )
 
-            # Measure actual empirical fitness from sandbox execution
-            total_tests = len(uss.validation.tests)
-            measured_fitness = round(1.0 - min(0.2, (time.time() - start_time) / 10.0), 3)
-
-            # ৬. Canonical Pre-Deployment Governance Gate (Fail-Closed Safety)
+            # 1. Multi-factor Evidence-Backed Fitness Evaluation
+            from evolution.fitness_evaluator import get_fitness_evaluator
+            from evolution.benchmark_runner import get_benchmark_runner
+            from evolution.artifact_integrity import ArtifactIntegrityGate, canonical_artifact_hash
             from evolution.change_proposal import ChangeType, ProposalState, get_change_manager
+
+            elapsed_ms = (time.time() - start_time) * 1000.0
+            fitness_eval = get_fitness_evaluator().evaluate_skill_execution(
+                passed_tests=len(uss.validation.tests),
+                total_tests=len(uss.validation.tests),
+                ast_security_passed=True,
+                latency_ms=elapsed_ms,
+            )
+            candidate_fitness = fitness_eval.composite_fitness
+
+            # 2. Canonical Pre-Deployment Governance Gate (Fail-Closed Safety)
             proposal_mgr = get_change_manager()
             proposal = proposal_mgr.create_proposal(
                 title=f"Dynamic Skill Creation: {skill_name}",
                 description=uss.metadata.description or user_demand,
                 change_type=ChangeType.NEW_SKILL,
-                diff_content={"code": code_block, "schema": schema_dict},
+                diff_content={
+                    "code": code_block,
+                    "schema": schema_dict,
+                    "artifact_hash": canonical_artifact_hash(code_block, schema_dict),
+                },
                 target_module=f"skills/{skill_name}",
-                current_fitness=measured_fitness,
+                current_fitness=candidate_fitness,
             )
 
             async def _skill_security_scan(prop):
                 return run_sandbox_ast_check(code_block)
 
             async def _skill_benchmark(prop):
-                return measured_fitness
+                decision = get_benchmark_runner().compare_and_decide(
+                    proposal=prop,
+                    candidate_eval=fitness_eval,
+                    baseline_fitness=0.70,
+                )
+                if not decision.eligible:
+                    raise ValueError(f"Benchmark Decision Rejected: {decision.reason}")
+                return decision.candidate_fitness
 
             promoted = await proposal_mgr.evaluate_and_promote(
                 proposal_id=proposal.proposal_id,
@@ -343,9 +364,18 @@ asyncio.run(_supreme_test_run())
                     f"Governance Gate Blocked Skill Deployment: {proposal.rejection_reason or 'Governance check failed'}"
                 )
 
-            logger.info(f"📜 Governed ChangeProposal [{proposal.proposal_id}] PROMOTED. Proceeding with Live Deployment.")
+            # 3. Cryptographic Artifact Integrity Verification at Installer Boundary
+            authorized = ArtifactIntegrityGate.verify_and_authorize(
+                proposal_id=proposal.proposal_id,
+                code_to_deploy=code_block,
+                schema_to_deploy=schema_dict,
+            )
+            if not authorized:
+                raise RuntimeError(f"Artifact Integrity Violation for Proposal [{proposal.proposal_id}]. Deployment Aborted.")
 
-            # ৭. Finalize Registration & Storage Deployment (ONLY AFTER PROMOTION)
+            logger.info(f"📜 Governed ChangeProposal [{proposal.proposal_id}] PROMOTED with Verified Integrity.")
+
+            # 4. Finalize Registration & Storage Deployment (ONLY AFTER PROMOTION & INTEGRITY GATE)
             installer = SkillInstaller()
             ok = installer.install_skill_from_source(
                 name=skill_name,
