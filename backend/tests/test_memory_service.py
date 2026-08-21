@@ -110,3 +110,80 @@ class TestCascadeMemoryService:
         service = CascadeMemoryService(db_path=str(tmp_path / "nodelfail.db"))
         # Should not raise
         service.delete_memory("/nonexistent/file.py")
+
+
+class TestVectorMemoryFunctions:
+    def test_get_embedding_returns_384_dimensions(self):
+        from services.memory_service import get_embedding
+        vec = get_embedding("test prompt for vectorization")
+        assert isinstance(vec, list)
+        assert len(vec) == 384
+        assert any(x != 0.0 for x in vec)
+
+    @pytest.mark.asyncio
+    async def test_save_and_recall_memory(self):
+        from services.memory_service import save_memory, recall_memories
+        res = await save_memory(
+            session_id="test_sess_101",
+            summary="Implemented telemetry and vector recall for eternal brain",
+            task_type="feature",
+            metadata={"source": "test"},
+        )
+        assert res.get("success") is True
+
+        recalled = await recall_memories(
+            task_description="telemetry and vector recall",
+            limit=5,
+        )
+        assert isinstance(recalled, list)
+
+    @pytest.mark.asyncio
+    async def test_summarize_and_save_session(self):
+        from services.memory_service import summarize_and_save_session
+        messages = [
+            {"role": "user", "content": "How do we implement LLM telemetry?"},
+            {"role": "assistant", "content": "We use track_llm_call context manager."},
+        ]
+        res = await summarize_and_save_session(
+            session_id="test_sess_102",
+            messages=messages,
+            task_type="coding",
+        )
+        assert res.get("success") is True
+
+
+class TestLLMTelemetry:
+    @pytest.mark.asyncio
+    async def test_track_llm_call_success(self):
+        from core.llm.telemetry import track_llm_call
+        async with track_llm_call(
+            session_id="test_telemetry_sess",
+            provider="gemini",
+            model="gemini-1.5-flash",
+            task_type="test",
+        ) as rec:
+            assert rec.provider == "gemini"
+            assert rec.model == "gemini-1.5-flash"
+            rec.tokens_prompt = 10
+            rec.tokens_completion = 20
+            rec.cost_usd = 0.0001
+        assert rec.success is True
+        assert rec.latency_ms >= 0.0
+        assert "gemini" in rec.to_log_line()
+
+    @pytest.mark.asyncio
+    async def test_track_llm_call_exception_handling(self):
+        from core.llm.telemetry import track_llm_call
+        rec_captured = None
+        with pytest.raises(ValueError, match="simulated failure"):
+            async with track_llm_call(
+                session_id="test_err_sess",
+                provider="groq",
+                model="llama-3.3-70b-versatile",
+            ) as rec:
+                rec_captured = rec
+                raise ValueError("simulated failure")
+        assert rec_captured is not None
+        assert rec_captured.success is False
+        assert "simulated failure" in (rec_captured.error or "")
+

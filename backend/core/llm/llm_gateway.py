@@ -16,6 +16,7 @@ import httpx
 from loguru import logger
 
 from core.error_bus import with_error_bus
+from core.llm.telemetry import track_llm_call
 from utils.firestore_helpers import get_firestore_db
 
 from ..config import settings  # Fixed import path - using relative import
@@ -488,25 +489,38 @@ class LLMGateway:
                 # বাংলা মন্তব্ব: api_key per-call pass — os.environ injection সম্পূর্ণ নিষিদ্ধ।
                 # কাস্টম api_key পাস করা হলে সেটি ব্যবহার করা হবে, অন্যথায় মডেলের ডিফল্ট কী ব্যবহার হবে।
                 api_key = kwargs.pop("api_key", None) or self._get_api_key_for_model(current_model)
-                response = await litellm.acompletion(
+                session_id = kwargs.pop("session_id", "") or str(tenant_id or "")
+                provider_name = current_model.split("/")[0] if "/" in current_model else "unknown"
+                async with track_llm_call(
+                    session_id=session_id,
+                    provider=provider_name,
                     model=current_model,
-                    messages=messages_payload,
-                    timeout=timeout,
-                    stream=False,
-                    api_key=api_key,
-                    **kwargs,
-                )
-                cb.mark_success()
-                return {
-                    "success": True,
-                    "text": response.choices[0].message.content,
-                    "model": current_model,
-                    "cost": (
+                    task_type=task_type,
+                ) as rec:
+                    response = await litellm.acompletion(
+                        model=current_model,
+                        messages=messages_payload,
+                        timeout=timeout,
+                        stream=False,
+                        api_key=api_key,
+                        **kwargs,
+                    )
+                    cost = (
                         response._response_metadata.get("api_cost", 0.0)
                         if hasattr(response, "_response_metadata")
                         else 0.0
-                    ),
-                }
+                    )
+                    rec.cost_usd = cost
+                    if hasattr(response, "usage") and response.usage:
+                        rec.tokens_prompt = getattr(response.usage, "prompt_tokens", None)
+                        rec.tokens_completion = getattr(response.usage, "completion_tokens", None)
+                    cb.mark_success()
+                    return {
+                        "success": True,
+                        "text": response.choices[0].message.content,
+                        "model": current_model,
+                        "cost": cost,
+                    }
             except asyncio.CancelledError:
                 # বাংলা মন্তব্ব: CancelledError re-raise — কখনো suppress করা যাবে না
                 logger.warning(f"[LLMGateway] acompletion cancelled during model {current_model}")

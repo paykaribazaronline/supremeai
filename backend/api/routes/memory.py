@@ -131,3 +131,66 @@ def clear_memory(session_id: str = "default"):
     if not ok:
         raise HTTPException(status_code=500, detail="Failed to clear memory")
     return {"status": "ok", "session_id": session_id}
+
+
+# ---------------------------------------------------------------------------
+# Vector Memory (Eternal Brain) API Schemas & Endpoints
+# ---------------------------------------------------------------------------
+
+
+class VectorRecallRequest(BaseModel):
+    task_description: str = Field(..., min_length=1, description="Task or prompt to recall context for")
+    limit: int = Field(default=5, ge=1, le=20)
+    threshold: float = Field(default=0.6, ge=0.0, le=1.0)
+
+
+class VectorSaveRequest(BaseModel):
+    session_id: str = Field(..., min_length=1)
+    summary: str = Field(..., min_length=1)
+    task_type: str = Field(default="general")
+    agent_type: str = Field(default="main")
+    metadata: dict[str, Any] | None = None
+
+
+class SessionSaveRequest(BaseModel):
+    session_id: str = Field(..., min_length=1)
+    messages: list[dict[str, Any]] = Field(..., min_length=1)
+    task_type: str = Field(default="general")
+
+
+@router.post("/recall")
+async def vector_recall(req: VectorRecallRequest):
+    """Semantic-search the Eternal Brain for relevant past memories."""
+    from services.memory_service import recall_memories
+    memories = await recall_memories(
+        task_description=req.task_description,
+        limit=req.limit,
+        threshold=req.threshold,
+    )
+    return {"success": True, "memories": memories, "count": len(memories)}
+
+
+@router.post("/save")
+async def vector_save(req: VectorSaveRequest):
+    """Store a vector memory entry into Supabase/pgvector or cascade fallback."""
+    from services.memory_service import save_memory
+    result = await save_memory(
+        session_id=req.session_id,
+        summary=req.summary,
+        task_type=req.task_type,
+        agent_type=req.agent_type,
+        metadata=req.metadata,
+    )
+    return result
+
+
+@router.post("/session")
+async def save_session(req: SessionSaveRequest):
+    """Summarize a full chat session via LLM, then save as vector memory."""
+    from services.memory_service import summarize_and_save_session
+    result = await summarize_and_save_session(
+        session_id=req.session_id,
+        messages=req.messages,
+        task_type=req.task_type,
+    )
+    return result

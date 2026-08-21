@@ -431,6 +431,209 @@ class CascadeMemoryService:
 # Global instance
 memory_service = CascadeMemoryService()
 
+
+# ---------------------------------------------------------------------------
+# Embedding helper (shared with scripts/ai/memory_write.py)
+# ---------------------------------------------------------------------------
+
+_embedding_model = None
+
+
+def _get_embedding_model():
+    """Lazy-load the sentence-transformer model once per process."""
+    global _embedding_model
+    if _embedding_model is not None:
+        return _embedding_model
+    if not HAS_SENTENCE_TRANSFORMERS:
+        return None
+    try:
+        from sentence_transformers import SentenceTransformer
+
+        _embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+        logger.info("Embedding model loaded: all-MiniLM-L6-v2")
+        return _embedding_model
+    except Exception as exc:
+        logger.warning(f"sentence-transformers not available ({exc}). Falling back to hash_vectorize.")
+        return None
+
+
+def get_embedding(text: str) -> list[float]:
+    """Return a 384-d embedding for *text*. Falls back to hash_vectorize."""
+    model = _get_embedding_model()
+    if model is not None:
+        try:
+            return model.encode(text).tolist()
+        except Exception:
+            pass
+    return hash_vectorize(text, size=384)
+
+
+# ---------------------------------------------------------------------------
+# Supabase client helper
+# ---------------------------------------------------------------------------
+
+_supabase_client = None
+
+
+def _get_supabase():
+    """Return a cached Supabase client (service-role)."""
+    global _supabase_client
+    if _supabase_client is not None:
+        return _supabase_client
+    try:
+        from supabase import create_client
+
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_KEY") or os.getenv("SUPABASE_ANON_KEY")
+        if not url or not key:
+            return None
+        _supabase_client = create_client(url, key)
+        return _supabase_client
+    except Exception as exc:
+        logger.debug(f"Supabase client not initialized ({exc}), using local/pooled storage.")
+        return None
+
+
+# ---------------------------------------------------------------------------
+# Public Vector Memory API
+# ---------------------------------------------------------------------------
+
+
+async def save_memory(
+    *,
+    session_id: str,
+    summary: str,
+    task_type: str = "general",
+    agent_type: str = "main",
+    metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Insert a vector memory row into Supabase/Postgres ai_memory.
+
+    Returns ``{"success": True, "id": <id>}`` on success.
+    """
+    try:
+        from datetime import datetime, timezone
+        embedding = get_embedding(summary)
+        supabase = _get_supabase()
+        now = datetime.now(timezone.utc).isoformat()
+        record = {
+            "session_id": session_id,
+            "agent_type": agent_type,
+            "task_type": task_type,
+            "summary": summary,
+            "embedding": embedding,
+            "metadata": metadata or {},
+            "created_at": now,
+        }
+
+        if supabase:
+            try:
+                result = supabase.table("ai_memory").insert(record).execute()
+                if result.data:
+                    mem_id = result.data[0].get("id", "unknown")
+                    logger.info(f"Memory saved (Supabase) | id={mem_id} | task={task_type} | session={session_id}")
+                    return {"success": True, "id": mem_id}
+            except Exception as sb_err:
+                logger.warning(f"Supabase insert failed ({sb_err}), falling back to cascade service.")
+
+        # Local / PostgreSQL Cascade Fallback
+        memory_service.store_memory(
+            file_path=f"{session_id}:{task_type}",
+            content=summary,
+            summary=summary,
+            structure=summary,
+            session_id=session_id,
+            agent_type=agent_type,
+            task_type=task_type,
+            metadata=metadata or {},
+        )
+        return {"success": True, "id": str(session_id), "backend": "cascade"}
+    except Exception as exc:
+        logger.error(f"Memory save exception: {exc}")
+        return {"success": False, "error": str(exc)}
+
+
+async def recall_memories(
+    *,
+    task_description: str,
+    limit: int = 5,
+    threshold: float = 0.7,
+) -> list[dict[str, Any]]:
+    """Semantic-search ai_memory and return the top *limit* matches."""
+    try:
+        embedding = get_embedding(task_description)
+        supabase = _get_supabase()
+        if supabase:
+            try:
+                result = (
+                    supabase.rpc(
+                        "match_ai_memory",
+                        {
+                            "query_embedding": embedding,
+                            "match_threshold": threshold,
+                            "match_count": limit,
+                        },
+                    )
+                    .execute()
+                )
+                memories = result.data or []
+                logger.info(f"Memory recall (Supabase) | query='{task_description[:60]}...' | found={len(memories)}")
+                return memories
+            except Exception as sb_err:
+                logger.debug(f"Supabase RPC failed ({sb_err}), falling back to cascade service.")
+
+        # Local / Cascade Fallback
+        matches = memory_service.query_context(task_description, top_k=limit)
+        return matches
+    except Exception as exc:
+        logger.error(f"Memory recall exception: {exc}")
+        return []
+
+
+async def summarize_and_save_session(
+    *,
+    session_id: str,
+    messages: list[dict[str, str]],
+    task_type: str = "general",
+) -> dict[str, Any]:
+    """Summarize a chat session via the LLM gateway, then save as memory."""
+    parts: list[str] = []
+    for m in messages[-20:]:  # last 20 messages
+        role = m.get("role", "unknown")
+        content = m.get("content", "")
+        parts.append(f"{role}: {content}")
+    session_text = "\n".join(parts)
+
+    summary = session_text  # fallback: raw text
+    try:
+        from core.llm.llm_gateway_with_learning import get_llm_gateway
+
+        gateway = get_llm_gateway()
+        if gateway:
+            prompt = (
+                "Summarize the following AI coding session in 2-3 sentences. "
+                "Focus on what was accomplished, what failed, and key decisions.\n\n"
+                f"{session_text}"
+            )
+            resp = await gateway.acompletion(
+                prompt=prompt,
+                task_type="summarization",
+                session_id=session_id,
+            )
+            if isinstance(resp, dict) and resp.get("text"):
+                summary = resp["text"]
+            elif hasattr(resp, "choices") and resp.choices:
+                summary = resp.choices[0].message.content or session_text
+    except Exception as exc:
+        logger.warning(f"LLM summarization failed, using raw text: {exc}")
+
+    return await save_memory(
+        session_id=session_id,
+        summary=summary,
+        task_type=task_type,
+        metadata={"message_count": len(messages)},
+    )
+
 # Test Execution (If run directly)
 if __name__ == "__main__":
     import os
