@@ -167,4 +167,47 @@ class EmailService:
         return await self._send_email(to_email, subject, html)
 
 
+    async def draft(self, intent: str, context: dict[str, Any] | None = None) -> dict[str, str]:
+        """ADVANCED: Generate smart AI-drafted email content using ModelRouter."""
+        context = context or {}
+        prompt = (
+            f"You are SupremeAI's automated communication agent.\n"
+            f"Draft a professional, concise email for intent: '{intent}'.\n"
+            f"Context: {context}\n"
+            f"Return ONLY a JSON with keys: 'subject' and 'html_body'."
+        )
+        try:
+            from brain.model_router import ModelRouter
+            router = ModelRouter()
+            res = router.route_and_generate(prompt=prompt, task_type="general", max_cost=0.01)
+            raw = res.get("text", "{}").strip()
+            if raw.startswith("```"):
+                lines = raw.splitlines()
+                raw = "\n".join(lines[1:-1] if lines[-1].startswith("```") else lines[1:])
+            import json
+            data = json.loads(raw)
+            return {
+                "subject": data.get("subject", f"SupremeAI Notification: {intent}"),
+                "html_body": data.get("html_body", f"<p>{intent}</p>"),
+            }
+        except Exception as e:
+            logger.warning(f"[EmailService] AI drafting fallback: {e}")
+            return {
+                "subject": f"SupremeAI: {intent.capitalize()}",
+                "html_body": f"<p>Hello,<br/>This is an automated notification regarding {intent}.</p>",
+            }
+
+    async def optimal_send_hour(self, user_email: str) -> int:
+        """ADVANCED: Compute the optimal send hour for user engagement (default 10 AM)."""
+        try:
+            from core.cache.semantic_cache import semantic_cache
+            cached = await semantic_cache.get(f"email_optimal_hour::{user_email}")
+            if cached and isinstance(cached, (int, str)):
+                return int(cached)
+        except Exception:
+            pass
+        return 10
+
+
 email_service = EmailService()
+

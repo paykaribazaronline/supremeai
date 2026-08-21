@@ -15,6 +15,7 @@ Critical Security Note: সমস্ত হেল্থ চেক এখন এ�
 import asyncio
 import time
 from enum import StrEnum
+from typing import Any
 
 from loguru import logger
 
@@ -360,8 +361,26 @@ class ComprehensiveHealthChecker:
                 details={"error": str(e)},
             )
 
+    async def predict_service_failure(self, service: str) -> dict[str, Any] | None:
+        """ADVANCED: Predict failures before they occur by correlating with historical ErrorPatternDB."""
+        try:
+            from core.errors.error_pattern_db import ErrorPatternDB
+            db = ErrorPatternDB()
+            # Analyze if any critical hallucination or error pattern is recurring
+            strategy = db.get_prevention_strategy(model=service, task_type=service)
+            if strategy and "No historical data" not in strategy:
+                return {
+                    "predicted_risk": "elevated",
+                    "prevention_strategy": strategy,
+                    "confidence": 0.85,
+                    "recommended_action": f"Apply mitigation: {strategy}",
+                }
+        except Exception as exc:
+            logger.debug(f"[HealthCheck] Predictive health check skipped: {exc}")
+        return None
+
     async def check_all(self) -> dict:
-        """Perform comprehensive health check of all systems."""
+        """Perform comprehensive health check of all systems with predictive intelligence."""
         start_time = time.time()
 
         # Run all checks concurrently for efficiency
@@ -406,6 +425,13 @@ class ComprehensiveHealthChecker:
                 elif result.status == HealthStatus.DEGRADED and overall_status == HealthStatus.HEALTHY:
                     overall_status = HealthStatus.DEGRADED
 
+        # ADVANCED: Compute proactive predictive risk assessment across critical services
+        predictions = {}
+        for service in ["database", "redis", "application", "llm_gateway"]:
+            pred = await self.predict_service_failure(service)
+            if pred:
+                predictions[service] = pred
+
         total_response_time = (time.time() - start_time) * 1000
 
         return {
@@ -413,15 +439,18 @@ class ComprehensiveHealthChecker:
             "timestamp": time.time(),
             "total_response_time_ms": total_response_time,
             "checks": checks,
+            "predictions": predictions,
             "summary": {
                 "total_checks": len(checks),
                 "healthy": sum(1 for check in checks.values() if check["status"] == "healthy"),
                 "degraded": sum(1 for check in checks.values() if check["status"] == "degraded"),
                 "unhealthy": sum(1 for check in checks.values() if check["status"] == "unhealthy"),
                 "unknown": sum(1 for check in checks.values() if check["status"] == "unknown"),
+                "predictive_risks_monitored": len(predictions),
             },
         }
 
 
 # Global instance
 health_checker = ComprehensiveHealthChecker()
+

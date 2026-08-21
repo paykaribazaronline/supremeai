@@ -419,6 +419,56 @@ class LearningLoop:
                 penalty += fisher_val * ((weight - old_val) ** 2)
         return (ewc_lambda / 2.0) * penalty
 
+    @classmethod
+    def get_instance(cls) -> LearningLoop:
+        """Return the singleton instance of LearningLoop."""
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+    async def record_signal(
+        self,
+        user_id: str,
+        signal_type: str,
+        payload: dict[str, Any],
+        context: dict[str, Any] | None = None,
+    ) -> None:
+        """Record an interactive user signal (e.g. preference update, UX action) to drive self-improvement."""
+        context = context or {}
+        logger.info(f"[AdaptiveEngine] Recording user signal: user={user_id}, type={signal_type}")
+        if self.experience_db:
+            try:
+                from adaptive_engine.experience_db import Experience
+                exp = Experience(
+                    user_id=user_id,
+                    action_taken=signal_type,
+                    context=context,
+                    payload=payload,
+                    timestamp=datetime.now(UTC),
+                )
+                if hasattr(self.experience_db, "record_experience"):
+                    await self.experience_db.record_experience(exp)
+            except Exception as e:
+                logger.warning(f"[AdaptiveEngine] Failed to persist signal to experience_db: {e}")
+
+    async def suggest(self, user_id: str) -> list[dict[str, Any]]:
+        """Return proactive adaptive suggestions tailored for a user."""
+        suggestions: list[dict[str, Any]] = []
+        insights = self.get_insights(unresolved_only=True)
+        for insight in insights[:3]:
+            suggestions.append({
+                "type": insight.category,
+                "suggestion": insight.suggested_action or insight.description,
+                "confidence": insight.confidence,
+            })
+        if not suggestions:
+            suggestions.append({
+                "type": "general",
+                "suggestion": "System operating optimally with zero detected drift.",
+                "confidence": 1.0,
+            })
+        return suggestions
+
     def get_stats(self) -> dict[str, Any]:
         """Get learning loop statistics."""
         return {

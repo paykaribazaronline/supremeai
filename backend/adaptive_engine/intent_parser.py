@@ -85,3 +85,19 @@ Return ONLY a JSON object (no markdown blocks, no text around it) with the follo
 
     def extract_goal(self, prompt: str) -> dict[str, Any]:
         return {"goal": "general", "confidence": 0.5}
+
+    @classmethod
+    async def extract_context(cls, pref: Any) -> dict[str, Any]:
+        """Extract structured context from a preference update payload."""
+        if hasattr(pref, "dict"):
+            data = pref.dict(exclude_none=True)
+        elif isinstance(pref, dict):
+            data = pref
+        else:
+            data = {}
+        return {
+            "source": "user_preferences",
+            "modified_fields": list(data.keys()),
+            "theme_preference": data.get("theme"),
+            "model_preference": data.get("default_model"),
+        }

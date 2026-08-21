@@ -2,6 +2,7 @@ import asyncio
 import json
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from loguru import logger
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
@@ -56,20 +57,49 @@ async def get_preferences(user_id: str = Query(default="default")):
 
 @router.post("/")
 async def upsert_preferences(payload: PreferenceUpdate, user_id: str = Query(default="default")):
+    data = payload.dict(exclude_none=True)
+    if not data:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    # ADVANCED: Record preference change signal in AdaptiveEngine LearningLoop
+    suggestions: list[dict] = []
+    try:
+        from adaptive_engine.intent_parser import IntentParser
+        from adaptive_engine.learning_loop import LearningLoop
+
+        loop = LearningLoop.get_instance()
+        context = await IntentParser.extract_context(payload)
+        await loop.record_signal(
+            user_id=user_id,
+            signal_type="preference_change",
+            payload=data,
+            context=context,
+        )
+        suggestions = await loop.suggest(user_id=user_id)
+    except Exception as e:
+        logger.warning(f"[Preferences] AdaptiveEngine signal recording skipped: {e}")
+
     if not db.client:
         # For offline/local mode, still broadcast the theme
         if payload.theme:
             await theme_pubsub.publish(user_id, {"theme": payload.theme})
-        return {"status": "success", "preferences": payload.dict(exclude_none=True)}
-    data = payload.dict(exclude_none=True)
-    if not data:
-        raise HTTPException(status_code=400, detail="No fields to update")
+        return {
+            "status": "success",
+            "preferences": data,
+            "adaptive_suggestions": suggestions,
+        }
+
     data["user_id"] = user_id
     try:
         res = db.client.table("user_preferences").upsert(data).execute()
         if payload.theme:
             await theme_pubsub.publish(user_id, {"theme": payload.theme})
-        return {"status": "success", "preferences": res.data[0] if res.data else data}
+        pref_res = res.data[0] if res.data else data
+        return {
+            "status": "success",
+            "preferences": pref_res,
+            "adaptive_suggestions": suggestions,
+        }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 

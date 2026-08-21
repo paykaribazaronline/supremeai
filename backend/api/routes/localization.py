@@ -42,6 +42,40 @@ def get_voice_didi() -> VoiceDidi:
     return VoiceDidi()
 
 
+class AITranslateRequest(BaseModel):
+    key: str
+    target_lang: str = "bn"
+    source_lang: str = "en"
+    context: str = ""
+
+
+@router.post("/ai-translate")
+async def ai_translate(
+    payload: AITranslateRequest,
+    bot: BhashaBot = Depends(get_bhasha_bot),
+):
+    """ADVANCED: Dynamic runtime AI translation with semantic caching for mobile and web clients."""
+    cache_key = f"i18n::{payload.key}::{payload.target_lang}"
+    # Try bot / semantic cache translation
+    try:
+        res = await bot.translate(
+            text=payload.key,
+            source_lang=payload.source_lang,
+            target_lang=payload.target_lang,
+            context=payload.context,
+            use_cache=True,
+            force_llm=False,
+        )
+        translated_text = res.get("translated_text") or res.get("translation") or payload.key
+        return {
+            "translation": translated_text,
+            "source": res.get("source", "bhasha_bot"),
+            "cached": res.get("cached", False),
+        }
+    except Exception as e:
+        return {"translation": payload.key, "error": str(e), "fallback": True}
+
+
 @router.post("/translate")
 async def translate_text(
     payload: TranslationRequest,
