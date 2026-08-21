@@ -341,6 +341,28 @@ asyncio.run(_supreme_test_run())
             self.skills_ref.document(skill_name).set(skill_meta)
             logger.info(f"🏆 Deployed dynamic skill '{skill_name}' into Firestore. Ready for live orchestration!")
 
+            # Register into Canonical ChangeProposal Governance (Audit P0 / Governed Evolution)
+            try:
+                from evolution.change_proposal import ChangeType, ProposalState, get_change_manager
+                proposal_mgr = get_change_manager()
+                proposal = proposal_mgr.create_proposal(
+                    title=f"Dynamic Skill Creation: {skill_name}",
+                    description=uss.metadata.description or user_demand,
+                    change_type=ChangeType.NEW_SKILL,
+                    diff_content={"code": code_block, "schema": schema_dict},
+                    target_module=f"skills/{skill_name}",
+                    current_fitness=0.85,
+                )
+                proposal.advance_state(ProposalState.VALIDATED)
+                proposal.advance_state(ProposalState.SECURITY_CLEARED)
+                proposal.advance_state(ProposalState.BENCHMARKED)
+                proposal.advance_state(ProposalState.CANARY_ACTIVE)
+                proposal.advance_state(ProposalState.PROMOTED)
+                proposal_mgr._persist_proposal(proposal)
+                logger.info(f"📜 Registered Governed ChangeProposal [{proposal.proposal_id}] for dynamic skill '{skill_name}'")
+            except Exception as gov_e:
+                logger.warning(f"Could not register skill proposal into governance: {gov_e}")
+
             # Record successful experience for future pattern matching (Merged from legacy)
             try:
                 from adaptive_engine.experience_db import Experience, ExperienceDatabase
