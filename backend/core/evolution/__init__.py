@@ -17,7 +17,7 @@ from .fitness_engine import FitnessEngine
 from .performance_oracle import PerformanceOracle
 from .self_evolution_agent import SelfEvolutionAgent
 from .self_updater import SelfUpdater
-from .skill_graph import SkillGraph
+from .skill_graph import EvolutionSkillGraph
 
 __all__ = [
     "AgentBreeder",
@@ -28,5 +28,5 @@ __all__ = [
     "PerformanceOracle",
     "SelfEvolutionAgent",
     "SelfUpdater",
-    "SkillGraph",
+    "EvolutionSkillGraph",
 ]
