@@ -104,3 +104,45 @@ def embed_for_pgvector(text: str, pg_dim: int = _REMOTE_DIM) -> list[float] | No
 def embed_query(text: str) -> list[float] | None:
     """Default 384-dim local embedding for in-process semantic search (ChromaDB/Qdrant)."""
     return local_embed(text) or hash_vectorize(text)
+
+
+class EmbeddingEngine:
+    """Singleton embedding engine for local-first zero-cost semantic search."""
+
+    _instance: EmbeddingEngine | None = None
+
+    @classmethod
+    def get_instance(cls) -> EmbeddingEngine:
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+    async def embed(self, text: str) -> list[float]:
+        """Compute embedding vector asynchronously."""
+        vec = embed_query(text)
+        if vec is None:
+            vec = hash_vectorize(text)
+        return vec
+
+    def cosine(self, v1: list[float], v2: list[float]) -> float:
+        """Compute cosine similarity between two vectors."""
+        if not v1 or not v2 or len(v1) != len(v2):
+            return 0.0
+        dot = sum(a * b for a, b in zip(v1, v2))
+        norm1 = math.sqrt(sum(a * a for a in v1))
+        norm2 = math.sqrt(sum(b * b for b in v2))
+        if norm1 <= 0 or norm2 <= 0:
+            return 0.0
+        return dot / (norm1 * norm2)
+
+    async def vector_search(self, query: str, corpus: list[dict], top_k: int = 5) -> list[dict]:
+        """Search top-k matching documents using cosine similarity."""
+        q_vec = await self.embed(query)
+        scored = []
+        for doc in corpus:
+            doc_vec = doc.get("vector") or await self.embed(doc.get("text", ""))
+            score = self.cosine(q_vec, doc_vec)
+            scored.append((score, doc))
+        scored.sort(key=lambda x: x[0], reverse=True)
+        return [dict(doc, score=score) for score, doc in scored[:top_k]]
+

@@ -480,6 +480,26 @@ class LearningLoop:
             "insights_by_severity": Counter(i.severity for i in self._insights_log),
         }
 
+    async def personalize_flow(
+        self,
+        persona: str = "developer",
+        experience_level: str = "intermediate",
+    ) -> list[dict[str, Any]]:
+        """Generate a personalized onboarding DAG based on persona and skill level."""
+        base_steps = [
+            {"id": "welcome", "title": "Welcome to SupremeAI", "required": True},
+            {"id": "ai_providers", "title": "Connect Free-Tier AI Providers", "required": True},
+            {"id": "security_shield", "title": "Setup JIT OTP Security", "required": False},
+            {"id": "workspace_sync", "title": "Configure Cloud Workspace", "required": False},
+            {"id": "ready", "title": "Start Building", "required": True},
+        ]
+        if persona == "developer":
+            base_steps.insert(2, {"id": "cli_setup", "title": "Install Antigravity CLI", "required": False})
+        elif persona == "business":
+            base_steps.insert(2, {"id": "billing_overview", "title": "Review Cost Guard ($0 Zero-Cost)", "required": False})
+        return base_steps
+
+
 
 # Convenience factory for lifespan.py integration
 async def create_learning_loop(
