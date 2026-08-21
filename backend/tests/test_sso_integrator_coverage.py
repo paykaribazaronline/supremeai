@@ -186,26 +186,26 @@ class TestProcessSSOResponse:
 class TestValidateToken:
     """Tests for validate_token."""
 
-    def test_validate_token_jose_available(self):
-        """validate_token should decode JWT when jose is available."""
+    def test_validate_token_jwt_decode(self):
+        """validate_token should decode JWT when jwt is available."""
         from tools.sso_integrator import SSOIntegrator
 
         integrator = SSOIntegrator.__new__(SSOIntegrator)
         integrator.onelogin = False
 
-        with patch("tools.sso_integrator.jose_jwt") as mock_jwt:
+        with patch("tools.sso_integrator.jwt") as mock_jwt:
             mock_jwt.decode.return_value = {"sub": "user1", "email": "test@example.com"}
             result = integrator.validate_token("valid-token", "secret")
             assert result is not None
 
-    def test_validate_token_jose_not_available(self):
-        """validate_token should return error when jose is not available."""
+    def test_validate_token_jwt_none_returns_error(self):
+        """validate_token should return error when jwt is unavailable."""
         from tools.sso_integrator import SSOIntegrator
 
         integrator = SSOIntegrator.__new__(SSOIntegrator)
         integrator.onelogin = False
 
-        with patch("tools.sso_integrator.jose_jwt", None):
+        with patch("tools.sso_integrator.jwt", None):
             result = integrator.validate_token("test-token", "secret")
             assert "error" in result
 

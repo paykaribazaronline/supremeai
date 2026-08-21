@@ -195,7 +195,7 @@ class TestVerifyAdminSessionFailClosed:
     def test_expired_jwt_token(self):
         """এক্সপায়ার্ড JWT টোকেন রিজেক্স করা হচ্ছে।"""
         from fastapi import HTTPException
-        from jose import ExpiredSignatureError
+        from jwt import ExpiredSignatureError
 
         mock_request = MagicMock()
         mock_request.headers.get.return_value = "Bearer expired-token"
@@ -215,7 +215,7 @@ class TestVerifyAdminSessionFailClosed:
     def test_invalid_jwt_token(self):
         """অবৈধ JWT টোকেন রিজেক্স করা হচ্ছে।"""
         from fastapi import HTTPException
-        from jose import JWTError
+        from jwt import PyJWTError as JWTError
 
         mock_request = MagicMock()
         mock_request.headers.get.return_value = "Bearer invalid-token"

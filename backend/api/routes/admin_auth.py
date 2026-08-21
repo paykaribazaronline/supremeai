@@ -7,7 +7,7 @@ import secrets
 
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import jwt
+import jwt
 from loguru import logger
 
 from core.config import settings

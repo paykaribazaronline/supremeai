@@ -40,7 +40,7 @@ Dependencies:
 - `core.messaging.events`: For `get_firebase_auth` to interact with Firebase Admin SDK.
 - `core.gcp_firestore`: For `get_firestore_client` to interact with Firestore for admin user management.
 - `models.admin`: For Pydantic models defining admin request payloads.
-- `jose.jwt`: For encoding JSON Web Tokens (JWTs).
+- `jwt`: For encoding JSON Web Tokens (JWTs).
 - `google.cloud.firestore`: For Firestore field deletion.
 - `core.llm.free_tier_tracker`: For managing and monitoring LLM free-tier usage.
 - `core.llm.token_budget`: For managing and monitoring LLM token budgets."""
@@ -309,7 +309,7 @@ async def admin_firebase_totp_verify(payload: AdminFirebaseTotpVerifyRequest):
         except Exception as e:
             logger.error(f"Failed to promote temp TOTP secret: {e}")
 
-    from jose import jwt
+    import jwt
 
     now = int(time.time())
     # বাংলা মন্তব্য: jti (JWT ID) + sub + iat যোগ করা হলো — JWT replay attack প্রতিরোধ (Patch 6 fix)

@@ -10,11 +10,8 @@ from pydantic import BaseModel
 
 from core.error_bus import with_error_bus
 
-try:
-    from jose import JWTError, jwt
-except ImportError:
-    JWTError = Exception  # type: ignore[misc,assignment]
-    jwt = None  # type: ignore[assignment]
+import jwt
+from jwt import PyJWTError as JWTError
 
 from core.cache.redis_manager import redis_manager
 from core.config import settings
@@ -35,7 +32,7 @@ REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     if jwt is None:
-        raise RuntimeError("python-jose[cryptography] is required for token issuance")
+        raise RuntimeError("PyJWT is required for token issuance")
     to_encode = data.copy()
     # বাংলা: iat (issued-at) ও jti (token id) — রিভোকেশন ও অডিট ট্রেইলিং এর জন্য আবশ্যক।
     import uuid as _uuid
@@ -56,7 +53,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
 def create_refresh_token(data: dict) -> str:
     """বাংলা: রিফ্রেশ টোকেন — অ্যাক্সেস টোকেন পুনঃপ্রদানের জন্য দীর্ঘ মেয়াদী।"""
     if jwt is None:
-        raise RuntimeError("python-jose[cryptography] is required for token issuance")
+        raise RuntimeError("PyJWT is required for token issuance")
     import uuid as _uuid
 
     to_encode = data.copy()

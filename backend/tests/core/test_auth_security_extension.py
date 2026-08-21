@@ -180,7 +180,7 @@ class TestVerifyAdminSessionAdvanced:
     def test_expired_token(self):
         """Expired token raises 401."""
         from fastapi import HTTPException
-        from jose import ExpiredSignatureError
+        from jwt import ExpiredSignatureError
 
         request = MagicMock()
         request.headers.get.return_value = "Bearer expired"

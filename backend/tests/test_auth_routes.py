@@ -45,13 +45,13 @@ class TestCreateAccessToken:
             create_access_token({"sub": "u"}, expires_delta=timedelta(minutes=30))
         assert mock_jwt.encode.call_args.kwargs["algorithm"] == "HS256"
 
-    def test_create_access_token_missing_jose(self):
+    def test_create_access_token_missing_pyjwt(self):
         import api.routes.auth as auth_module
 
         old_jwt = auth_module.jwt
         try:
             auth_module.jwt = None
-            with pytest.raises(RuntimeError, match="python-jose"):
+            with pytest.raises(RuntimeError, match="PyJWT"):
                 create_access_token({"sub": "u"})
         finally:
             auth_module.jwt = old_jwt
@@ -90,7 +90,7 @@ class TestOptionalCurrentUser:
         assert result.role == "viewer"
 
     @pytest.mark.anyio
-    async def test_missing_jose_returns_none(self):
+    async def test_missing_pyjwt_returns_none(self):
         import api.routes.auth as auth_module
 
         old_jwt = auth_module.jwt

@@ -10,8 +10,8 @@ import json
 from collections.abc import Awaitable, Callable
 from typing import Any
 
-from jose import JWTError, jwt
-from jose.exceptions import ExpiredSignatureError
+import jwt
+from jwt import PyJWTError as JWTError, ExpiredSignatureError
 from loguru import logger
 
 from core.config import settings

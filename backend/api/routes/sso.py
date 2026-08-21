@@ -9,11 +9,8 @@ from pydantic import BaseModel
 
 from core.config import settings
 
-try:
-    from jose import JWTError, jwt
-except ImportError:
-    JWTError = Exception  # type: ignore[misc,assignment]
-    jwt = None  # type: ignore[assignment]
+import jwt
+from jwt import PyJWTError as JWTError
 
 _sso_instance = None
 _sso_error = None

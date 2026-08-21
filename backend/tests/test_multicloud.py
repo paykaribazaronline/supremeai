@@ -67,7 +67,7 @@ def test_actuator_health_endpoint():
 
 
 def test_cloud_distribution_endpoint():
-    from jose import jwt
+    import jwt
 
     from core.config import settings
 

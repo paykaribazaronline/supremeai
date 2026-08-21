@@ -35,7 +35,7 @@ class VoiceConnectionManager:
         try:
             return verify_token(token)
         except Exception as e:
-            from jose import jwt
+            import jwt
 
             if isinstance(e, jwt.ExpiredSignatureError):
                 client_host = websocket.client.host if websocket.client else "unknown"

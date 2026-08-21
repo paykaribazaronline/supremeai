@@ -36,7 +36,7 @@ async def create_checkout_session(request: Request, payload: CheckoutRequest):
     if not token:
         raise HTTPException(status_code=401, detail="Missing authorization token")
 
-    from jose import jwt
+    import jwt
 
     try:
         decoded = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
