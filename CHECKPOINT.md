@@ -2,7 +2,7 @@
 > Auto-updated by AI agents after each major session. Next agent must read this first.
 
 ## Last Session
-- **Date:** 2026-08-21 12:54 UTC
+- **Date:** 2026-08-21 13:14 UTC
 - **Agent:** Auto-updated (checkpoint_update.py)
 - **Summary:** Auto-updated via pre-commit hook
 
@@ -10,28 +10,38 @@
   - (see git log for details)
 
 ## Files Changed
+  - `scripts/sync_all_render_secrets.py`
+  - `config/routing_policy.json`
+  - `scripts/health/check_system_health.py`
   - `backend/core/auto_healer_service.py`
-  - `frontend/src/utils/api.test.ts`
-  - `frontend/src/App.test.tsx`
+  - `backend/mypy.ini`
+  - `.github/workflows/release-builds.yml`
+  - `scripts/check_render_status.py`
   - `frontend/vitest.config.ts`
-  - `backend/models/pending_tasks.py`
-  - `frontend/src/commandcenter/state/__tests__/useCommandCenterStore.test.ts`
   - `frontend/src/commandcenter/shell/__tests__/WorkspaceViewport.test.tsx`
+  - `scripts/sync_firebase_render.py`
+  - `scripts/push_all_render_envs.py`
+  - `.lingma/rules/agents.md`
+  - `scripts/deploy_render.py`
+  - `.github/scripts/check-render-quota.py`
+  - `frontend/e2e/multiworkspace.spec.ts`
+  - `docs/project_management/VERIFICATION_REPORT.md`
+  - `frontend/src/commandcenter/state/__tests__/useCommandCenterStore.test.ts`
+  - `scripts/verify_render_env.py`
+  - `scripts/check_render_env_vars.py`
   - `.github/actions/setup-backend/action.yml`
   - `CHECKPOINT.md`
+  - `scripts/cancel_hanging_deploys.py`
   - `.github/workflows/supreme-core-ci.yml`
-  - `backend/api/routes/task_workspace.py`
-  - `backend/config/routing_policy.json`
-  - `config/routing_policy.json`
-  - `backend/database/session.py`
-  - `frontend/e2e/multiworkspace.spec.ts`
-  - `scripts/health/check_system_health.py`
-  - `STATUS.md`
-  - `docs/project_management/VERIFICATION_REPORT.md`
-  - `.github/workflows/release-builds.yml`
-  - `apps/desktop/src/components/MultiWorkspaceCanvas.tsx`
   - `.github/workflows/scraper-ci.yml`
-  - `backend/mypy.ini`
+  - `STATUS.md`
+  - `backend/database/session.py`
+  - `scripts/clean_legacy_secrets.py`
+  - `scripts/fetch_render_failure_logs.py`
+  - `backend/config/routing_policy.json`
+  - `frontend/src/App.test.tsx`
+  - `frontend/src/utils/api.test.ts`
+  - `scripts/quick_deploy_status.py`
 
 ## Pending (Carry Forward)
 - **MED:** Supabase `ai_memory` টেবিলে ভেক্টর স্কিমা ভ্যালিডেশন এবং `memory_write.py` লাইভ ভেক্টর ইনসার্ট টেস্ট।
