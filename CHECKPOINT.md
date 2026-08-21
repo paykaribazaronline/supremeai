@@ -2,7 +2,7 @@
 > Auto-updated by AI agents after each major session. Next agent must read this first.
 
 ## Last Session
-- **Date:** 2026-08-21 15:33 UTC
+- **Date:** 2026-08-21 15:50 UTC
 - **Agent:** Auto-updated (checkpoint_update.py)
 - **Summary:** Auto-updated via pre-commit hook
 
@@ -10,22 +10,31 @@
   - (see git log for details)
 
 ## Files Changed
-  - `backend/api/routes/internal.py`
-  - `backend/api/routes/email.py`
-  - `backend/evolution/__init__.py`
-  - `CHECKPOINT.md`
+  - `backend/core/evolution_module.py`
+  - `backend/tests/services/test_phase3_evolution.py`
+  - `backend/adapters/ux_adapter.py`
+  - `backend/evolution/auto_evolution_controller.py`
+  - `backend/learning/pattern_recognizer.py`
   - `backend/api/routes/living_engine.py`
   - `backend/api/routers.py`
-  - `backend/skills/__init__.py`
+  - `backend/adapters/base_adapter.py`
   - `backend/tests/services/test_living_engine.py`
-  - `backend/api/routes/simulator.py`
-  - `backend/api/routes/codeflow.py`
-  - `backend/api/routes/tools_registry.py`
-  - `backend/core/skills/__init__.py`
+  - `backend/evolution/__init__.py`
+  - `backend/evolution/auto_tuner.py`
+  - `backend/evolution/memory_consolidator.py`
   - `backend/services/living_engine.py`
+  - `STATUS.md`
+  - `backend/adapters/__init__.py`
+  - `CHECKPOINT.md`
+  - `backend/evolution/advanced_evolution_engine.py`
+  - `backend/adapters/dev_adapter.py`
+  - `backend/evolution/performance_monitor.py`
+  - `backend/evolution/strategy_optimizer.py`
   - `backend/core/llm/advanced_model_router.py`
-  - `backend/api/routes/agents.py`
-  - `backend/api/routes/advanced_router.py`
+  - `backend/core/advanced_reasoning.py`
+  - `backend/learning/__init__.py`
+  - `backend/tests/services/test_phase2_intelligence.py`
+  - `backend/adapters/business_adapter.py`
 
 ## Pending (Carry Forward)
 - **MED:** Supabase `ai_memory` টেবিলে ভেক্টর স্কিমা ভ্যালিডেশন এবং `memory_write.py` লাইভ ভেক্টর ইনসার্ট টেস্ট।

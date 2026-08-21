@@ -1,11 +1,38 @@
-# backend/evolution/__init__.py
-"""SupremeAI Evolution Package (Backward Compatibility Facade).
-
-Re-exports all evolution research modules and core evolution engines from
-the single source of truth: `core.evolution`.
-"""
-
 from __future__ import annotations
+
+# Phase 3 Self-Evolution Layer Exports
+from evolution.advanced_evolution_engine import AdvancedEvolutionEngine, EvolutionMode, FitnessLandscape
+from evolution.auto_evolution_controller import (
+    AutoEvolutionController,
+    EvolutionCycle,
+    EvolutionPriority,
+    EvolutionState,
+    EvolutionTrigger,
+    SystemHealth,
+)
+from evolution.auto_tuner import AutoTuner, TuningParameter, TuningResult, TuningStrategy
+from evolution.memory_consolidator import (
+    ConsolidationAction,
+    ConsolidationResult,
+    MemoryBlock,
+    MemoryConsolidator,
+    MemoryTier,
+)
+from evolution.performance_monitor import (
+    AlertSeverity,
+    AnomalyDetector,
+    MetricPoint,
+    MetricType,
+    PerformanceAlert,
+    PerformanceMonitor,
+    PerformanceReport,
+)
+from evolution.strategy_optimizer import (
+    Strategy,
+    StrategyOptimizer,
+    StrategyStatus,
+    StrategyType,
+)
 
 # Re-export from core.evolution
 from core.evolution import (
