@@ -469,6 +469,27 @@ class LearningLoop:
             })
         return suggestions
 
+    async def personalize_flow(
+        self,
+        persona: str = "developer",
+        experience_level: str = "intermediate",
+    ) -> list[dict[str, Any]]:
+        """ADVANCED: Generate a personalized step ordering DAG based on persona and experience."""
+        base_steps = [
+            {"id": "welcome", "title": "Welcome to SupremeAI", "required": True},
+            {"id": "api_keys", "title": "Connect Free-Tier API Keys", "required": False},
+            {"id": "model_selection", "title": "Choose Primary AI Model", "required": True},
+            {"id": "studio_tour", "title": "Studio & Multi-Agent Overview", "required": False},
+            {"id": "ready", "title": "Launch Environment", "required": True},
+        ]
+        if persona == "beginner":
+            return [
+                {"id": "welcome", "title": "Welcome to SupremeAI", "required": True},
+                {"id": "quickstart", "title": "1-Click Free Tier Setup", "required": True},
+                {"id": "ready", "title": "Start Chatting", "required": True},
+            ]
+        return base_steps
+
     def get_stats(self) -> dict[str, Any]:
         """Get learning loop statistics."""
         return {

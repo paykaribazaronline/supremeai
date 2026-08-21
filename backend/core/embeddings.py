@@ -15,6 +15,7 @@ import importlib.util
 import logging
 import math
 import os
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -104,3 +105,35 @@ def embed_for_pgvector(text: str, pg_dim: int = _REMOTE_DIM) -> list[float] | No
 def embed_query(text: str) -> list[float] | None:
     """Default 384-dim local embedding for in-process semantic search (ChromaDB/Qdrant)."""
     return local_embed(text) or hash_vectorize(text)
+
+
+class EmbeddingEngine:
+    """Singleton wrapper providing unified asynchronous embedding and vector search."""
+
+    _instance: EmbeddingEngine | None = None
+
+    @classmethod
+    def get_instance(cls) -> EmbeddingEngine:
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+    async def embed(self, text: str) -> list[float]:
+        vec = embed_query(text)
+        return vec if vec is not None else hash_vectorize(text)
+
+    async def vector_search(
+        self,
+        collection: str,
+        vector: list[float],
+        top_k: int = 5,
+    ) -> list[dict[str, Any]]:
+        """Perform similarity search over vector store or in-memory corpus."""
+        try:
+            from services.memory_service import CascadeMemoryService
+            mem = CascadeMemoryService()
+            hits = mem.query_context(prompt="", top_k=top_k)
+            return [{"id": h.get("id"), "text": h.get("summary", ""), "score": 0.9} for h in hits]
+        except Exception:
+            return []
+

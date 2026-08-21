@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import os
+from typing import Any
 
 from loguru import logger
 
@@ -116,14 +117,44 @@ class FeatureFlags:
         """Clear the cache — useful for testing or runtime reconfiguration."""
         self._cache.clear()
 
-    def status(self) -> dict[str, bool]:
-        """Return current state of all integration flags (for admin/health)."""
+    # Advanced-upgrade rollout flags (Phase 1-7)
+    ADV_FLAGS: dict[str, dict[str, Any]] = {
+        "adv.i18n_ai_translate": {"enabled": True, "pct": 100},   # Phase 1a
+        "adv.preferences_adaptive": {"enabled": True, "pct": 100}, # Phase 1b
+        "adv.health_predictive": {"enabled": True, "pct": 100},    # Phase 2a
+        "adv.email_smart": {"enabled": True, "pct": 100},          # Phase 2b
+        "adv.theme_server_tokens": {"enabled": True, "pct": 100},  # Phase 3a
+        "adv.docs_living": {"enabled": True, "pct": 100},          # Phase 3b (CI living docs)
+        "adv.search_semantic": {"enabled": True, "pct": 100},      # Phase 5a
+        "adv.onboarding_adaptive": {"enabled": True, "pct": 100},  # Phase 5b
+    }
+
+    @classmethod
+    def is_enabled(cls, flag: str, user_id: str | None = None) -> bool:
+        """Deterministic percentage-based rollout checker for advanced features."""
+        cfg = cls.ADV_FLAGS.get(flag)
+        if not cfg or not cfg.get("enabled"):
+            return False
+        pct = cfg.get("pct", 0)
+        if pct >= 100:
+            return True
+        if pct <= 0:
+            return False
+        bucket = abs(hash(user_id or flag)) % 100
+        return bucket < pct
+
+    def is_advanced_enabled(self, flag: str, user_id: str | None = None) -> bool:
+        return self.is_enabled(flag, user_id)
+
+    def status(self) -> dict[str, Any]:
+        """Return current state of all integration flags and advanced rollout flags."""
         return {
             "mem0": self.mem0_enabled(),
             "graphiti": self.graphiti_enabled(),
             "browser_use": self.browser_use_enabled(),
             "e2b": self.e2b_enabled(),
             "openhands": self.openhands_enabled(),
+            "advanced_rollout": {k: v["pct"] for k, v in self.ADV_FLAGS.items() if v["enabled"]},
         }
 
 
@@ -139,3 +170,4 @@ __all__ = [
     "FeatureFlags",
     "feature_flags",
 ]
+

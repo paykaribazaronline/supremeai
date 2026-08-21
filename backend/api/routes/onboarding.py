@@ -184,7 +184,60 @@ async def reset_onboarding(user_id: str) -> dict[str, str]:
         if db.client:
             db.client.table("user_preferences").delete().eq("user_id", user_id).execute()
     except Exception as exc:
-        # বল মনতবয: রসট বযরথ হল আগ নরব success রটরন করত (ভল ইমপরশন);
-        # এখন বযরথত warning হসব লগ কর হয় যত সপরট টম সমসয জনত পর
         logger.warning(f"Failed to reset onboarding state for {user_id}: {exc}")
     return {"status": "reset", "user_id": user_id}
+
+
+class OnboardingPlanRequest(BaseModel):
+    locale: str = "en"
+    source: str = "mobile"
+    declared_goal: str | None = None
+    persona: str = "developer"
+    experience_level: str = "intermediate"
+
+
+class OnboardingSignalRequest(BaseModel):
+    user_id: str = "default"
+    step_id: str
+    signal: dict[str, Any] = {}
+
+
+@router.post("/plan")
+async def build_onboarding_plan(req: OnboardingPlanRequest):
+    """ADVANCED: Generates a personalized onboarding DAG based on user intent and persona."""
+    try:
+        from adaptive_engine.learning_loop import LearningLoop
+        loop = LearningLoop.get_instance()
+        steps = await loop.personalize_flow(
+            persona=req.persona,
+            experience_level=req.experience_level,
+        )
+        return {"status": "success", "steps": steps, "persona": req.persona}
+    except Exception as e:
+        logger.warning(f"[Onboarding] Plan generation fallback: {e}")
+        return {
+            "status": "fallback",
+            "steps": [
+                {"id": "welcome", "title": "Welcome to SupremeAI", "required": True},
+                {"id": "ready", "title": "Get Started", "required": True},
+            ],
+        }
+
+
+@router.post("/signal")
+async def record_onboarding_signal(sig: OnboardingSignalRequest):
+    """ADVANCED: Records real-time user interaction signals to train the AdaptiveEngine."""
+    try:
+        from adaptive_engine.learning_loop import LearningLoop
+        loop = LearningLoop.get_instance()
+        await loop.record_signal(
+            user_id=sig.user_id,
+            signal_type="onboarding_interaction",
+            payload={"step_id": sig.step_id, **sig.signal},
+        )
+        reorder = await loop.suggest(user_id=sig.user_id)
+        return {"status": "recorded", "reorder": reorder}
+    except Exception as e:
+        logger.debug(f"[Onboarding] Signal recording skipped: {e}")
+        return {"status": "skipped", "error": str(e)}
+
