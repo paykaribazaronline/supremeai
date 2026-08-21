@@ -22,7 +22,8 @@ export default defineConfig({
       // providers/core যোগ করা হলো (integration-সংবেদনশীল লেয়ার)। pages ইউআই স্ন্যাপশট
       // চার্নের জন্য বাদ রাখা হয়েছে।
       include: [
-        'src/components/customer/**/*.{ts,tsx}',
+        'src/components/**/*.{ts,tsx}',
+        'src/commandcenter/**/*.{ts,tsx}',
         'src/hooks/**/*.{ts,tsx}',
         'src/store/**/*.{ts,tsx}',
         'src/services/**/*.{ts,tsx}',

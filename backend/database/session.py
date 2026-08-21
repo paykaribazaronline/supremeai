@@ -75,6 +75,34 @@ def _build_engine_kwargs(async_url: str) -> dict[str, Any]:
     return engine_kwargs
 
 
+import os
+import time
+from sqlalchemy import event
+
+# বাংলা মন্তব্য: স্লো কুয়েরি ডিটেকশনের থ্রেশহোল্ড (ডিফল্ট: 0.2 সেকেন্ড / 200ms)
+SLOW_QUERY_THRESHOLD_SECONDS = float(os.getenv("DB_SLOW_QUERY_THRESHOLD", "0.2"))
+
+
+def _attach_query_listeners(async_engine: AsyncEngine) -> None:
+    """বাংলা: স্লো কুয়েরি মনিটরিং এবং কোডবেস প্রোফাইলিংয়ের জন্য ইভেন্ট লিসেনার।"""
+    sync_engine = async_engine.sync_engine
+
+    @event.listens_for(sync_engine, "before_cursor_execute")
+    def before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        conn.info.setdefault("_query_start_times", []).append(time.monotonic())
+
+    @event.listens_for(sync_engine, "after_cursor_execute")
+    def after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        start_times = conn.info.get("_query_start_times")
+        if start_times:
+            duration = time.monotonic() - start_times.pop()
+            if duration > SLOW_QUERY_THRESHOLD_SECONDS:
+                clean_stmt = " ".join(statement.split())[:300]
+                logger.warning(
+                    f"🐢 [SLOW DB QUERY] {duration:.3f}s (> {SLOW_QUERY_THRESHOLD_SECONDS}s) | Query: {clean_stmt}"
+                )
+
+
 def init_engine() -> None:
     """বাংলা: engine ও AsyncSessionLocal একবার lazily initialize করে।
 
@@ -102,6 +130,7 @@ def init_engine() -> None:
 
     try:
         _engine_instance = create_async_engine(_async_url, **engine_kwargs)
+        _attach_query_listeners(_engine_instance)
         _session_maker_instance = async_sessionmaker(
             bind=_engine_instance,
             class_=AsyncSession,
@@ -122,6 +151,7 @@ def init_engine() -> None:
             poolclass=StaticPool,
             connect_args={"check_same_thread": False},
         )
+        _attach_query_listeners(_engine_instance)
         _session_maker_instance = async_sessionmaker(
             bind=_engine_instance,
             class_=AsyncSession,

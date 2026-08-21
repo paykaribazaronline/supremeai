@@ -9,6 +9,7 @@ database, Redis, এবং LLM provider-এর health continuously monitor ক�
 
 from __future__ import annotations
 
+from collections import deque
 import asyncio
 import time
 from typing import Any
@@ -38,6 +39,8 @@ class AutoHealerService:
         # বাংলা: cooldown — একই subsystem বারবার heal করা থেকে বিরত রাখে
         self._last_heal_time: dict[str, float] = {}
         self.HEAL_COOLDOWN_SECONDS = 120  # 2 minutes
+        # বাংলা মন্তব্য: মেমোরি লিক রোধে ফিক্সড-সাইজ রিং বাফার (সর্বোচ্চ ১০০ রেকর্ড)
+        self._history: deque[dict[str, Any]] = deque(maxlen=100)
 
     # ── Lifecycle ──────────────────────────────────────────────────────────────
 
@@ -72,9 +75,19 @@ class AutoHealerService:
             await asyncio.sleep(self.check_interval)
 
     async def _check_and_heal(self) -> None:
-        """সব critical subsystem check করা এবং দরকারে heal করা।"""
-        await self._check_database()
-        await self._check_redis()
+        """সব critical subsystem সমান্তরালে (parallel) check করা এবং দরকারে heal করা।"""
+        start_t = time.monotonic()
+        results = await asyncio.gather(
+            self._check_database(),
+            self._check_redis(),
+            return_exceptions=True,
+        )
+        duration_ms = round((time.monotonic() - start_t) * 1000, 2)
+        self._history.append({
+            "timestamp": time.time(),
+            "duration_ms": duration_ms,
+            "results": [str(r) if isinstance(r, Exception) else "ok" for r in results],
+        })
 
     # ── Database Healing ───────────────────────────────────────────────────────
 
@@ -239,7 +252,8 @@ class AutoHealerService:
             "running": self._running,
             "failure_counts": dict(self.failure_counts),
             "fingerprint_depths": getattr(self, "_fingerprint_depth", {}),
-            "last_heal_times": {k: time.monotonic() - v for k, v in self._last_heal_time.items()},
+            "last_heal_times": {k: round(time.monotonic() - v, 1) for k, v in self._last_heal_time.items()},
+            "recent_checks": list(self._history)[-10:],
         }
 
 
