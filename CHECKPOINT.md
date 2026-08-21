@@ -2,7 +2,7 @@
 > Auto-updated by AI agents after each major session. Next agent must read this first.
 
 ## Last Session
-- **Date:** 2026-08-21 17:41 UTC
+- **Date:** 2026-08-21 17:32 UTC
 - **Agent:** Auto-updated (checkpoint_update.py)
 - **Summary:** Auto-updated via pre-commit hook
 
@@ -10,15 +10,10 @@
   - (see git log for details)
 
 ## Files Changed
-  - `backend/evolution/benchmark_runner.py`
+  - `backend/runtime/task_context.py`
   - `CHECKPOINT.md`
-  - `backend/tests/learning/test_pattern_and_hypothesis.py`
-  - `backend/learning/hypothesis_engine.py`
-  - `backend/tests/evolution/test_fitness_and_benchmark.py`
-  - `backend/evolution/fitness_evaluator.py`
-  - `backend/learning/pattern_detector.py`
   - `backend/core/evolution/auto_skill_creator.py`
-  - `backend/evolution/artifact_integrity.py`
+  - `backend/learning/experience.py`
 
 ## Pending (Carry Forward)
 - **MED:** Supabase `ai_memory` টেবিলে ভেক্টর স্কিমা ভ্যালিডেশন এবং `memory_write.py` লাইভ ভেক্টর ইনসার্ট টেস্ট।
