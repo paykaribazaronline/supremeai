@@ -2,7 +2,7 @@
 > Auto-updated by AI agents after each major session. Next agent must read this first.
 
 ## Last Session
-- **Date:** 2026-08-21 18:17 UTC
+- **Date:** 2026-08-21 17:56 UTC
 - **Agent:** Auto-updated (checkpoint_update.py)
 - **Summary:** Auto-updated via pre-commit hook
 
@@ -10,18 +10,11 @@
   - (see git log for details)
 
 ## Files Changed
-  - `backend/api/dependencies.py`
-  - `backend/evolution/change_proposal.py`
-  - `backend/learning/hypothesis_engine.py`
-  - `backend/core/security/governance_policy.py`
-  - `backend/tests/evolution/test_fitness_and_benchmark.py`
-  - `backend/evolution/benchmark_runner.py`
-  - `backend/core/evolution/auto_skill_creator.py`
-  - `backend/evolution/canary_manager.py`
-  - `backend/tests/evolution/test_governed_self_evolution_closed_loop.py`
-  - `backend/tests/learning/test_pattern_and_hypothesis.py`
-  - `backend/tests/services/test_task_and_evolution_governance.py`
+  - `backend/learning/pattern_detector.py`
+  - `backend/learning/evidence_analyzer.py`
   - `CHECKPOINT.md`
+  - `backend/learning/hypothesis_engine.py`
+  - `backend/tests/learning/test_pattern_and_hypothesis.py`
 
 ## Pending (Carry Forward)
 - **MED:** Supabase `ai_memory` টেবিলে ভেক্টর স্কিমা ভ্যালিডেশন এবং `memory_write.py` লাইভ ভেক্টর ইনসার্ট টেস্ট।
