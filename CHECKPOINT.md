@@ -2,7 +2,7 @@
 > Auto-updated by AI agents after each major session. Next agent must read this first.
 
 ## Last Session
-- **Date:** 2026-08-21 13:30 UTC
+- **Date:** 2026-08-21 13:21 UTC
 - **Agent:** Auto-updated (checkpoint_update.py)
 - **Summary:** Auto-updated via pre-commit hook
 
@@ -10,23 +10,13 @@
   - (see git log for details)
 
 ## Files Changed
-  - `vercel.json`
-  - `scripts/find_client_calls.py`
-  - `.github/workflows/supreme-release-builds.yml`
-  - `.github/workflows/maintenance_pipeline.yml`
-  - `scripts/ci/check_free_tier_limits.py`
-  - `scripts/codegraph_integration.py`
-  - `scripts/type_gen_pipeline.py`
-  - `scripts/multi_model_validator.py`
-  - `scripts/find_drift.py`
-  - `scripts/ci/auto_deploy.sh`
-  - `scripts/safety_guard.py`
-  - `.github/workflows/supreme-core-ci.yml`
-  - `scripts/fix_client_routes.py`
   - `CHECKPOINT.md`
-  - `scripts/find_client_files.py`
-  - `scripts/generate_ai_codebase_docs.py`
-  - `playwright-ct.config.ts`
+  - `vercel.json`
+  - `.github/workflows/supreme-core-ci.yml`
+  - `.github/workflows/supreme-release-builds.yml`
+  - `scripts/safety_guard.py`
+  - `scripts/multi_model_validator.py`
+  - `.github/workflows/maintenance_pipeline.yml`
 
 ## Pending (Carry Forward)
 - **MED:** Supabase `ai_memory` টেবিলে ভেক্টর স্কিমা ভ্যালিডেশন এবং `memory_write.py` লাইভ ভেক্টর ইনসার্ট টেস্ট।
