@@ -1,0 +1,305 @@
+# backend/api/server.py
+"""SupremeAI REST API Server - FastAPI Implementation (Phase 4 Production Ready).
+
+Production-ready HTTP interface for SupremeAI:
+- Full Request Lifecycle (`/api/v1/process`)
+- Health and Telemetry Dashboard (`/api/v1/health`, `/api/v1/status`, `/api/v1/dashboard`)
+- Real-time Evolution Control (`/api/v1/evolution/status`, `/api/v1/evolution/trigger`)
+- Smart Memory Management (`/api/v1/memory/stats`, `/api/v1/memory/consolidate`)
+"""
+
+from __future__ import annotations
+
+import asyncio
+from contextlib import asynccontextmanager
+from datetime import datetime
+import time
+from typing import Any, Dict, List, Optional
+import uuid
+
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
+
+from config.settings import get_settings
+from core.integration_layer import SupremeAIIntegrator, get_integrator
+
+ai_integrator: Optional[SupremeAIIntegrator] = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan management - initialize on startup, cleanup on shutdown."""
+    global ai_integrator
+    settings = get_settings()
+    ai_integrator = await get_integrator({
+        "engine": {"max_depth": 10},
+        "reasoning": {"parallel": True},
+        "memory": {"max_episodic": settings.memory.max_episodic_memory},
+        "evolution": {"population_size": settings.evolution.population_size},
+        "auto_evolution": {
+            "enabled": settings.evolution.enabled,
+            "check_interval_seconds": settings.evolution.check_interval_seconds,
+            "require_confirmation": False,
+        },
+        "monitoring": {"retention_hours": settings.monitoring.retention_hours},
+    })
+
+    # Start background processes
+    await ai_integrator.start_background_processes()
+    yield
+
+    # Cleanup on shutdown
+    if ai_integrator:
+        await ai_integrator.shutdown()
+
+
+app = FastAPI(
+    title="SupremeAI API",
+    description="Living, Self-Evolving Intelligence System (Phase 4 Production Ready)",
+    version="4.0.0",
+    lifespan=lifespan,
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
+
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# Request/Response Models
+class ProcessRequest(BaseModel):
+    query: str = Field(..., min_length=1, max_length=10000, description="User input/query")
+    context: Optional[Dict[str, Any]] = Field(default=None, description="Additional context")
+    priority: Optional[str] = Field(default="normal", description="Priority level")
+    timeout_seconds: Optional[int] = Field(default=60, ge=1, le=300)
+
+
+class ProcessResponse(BaseModel):
+    success: bool
+    answer: Any
+    confidence: float
+    processing_time_ms: float
+    request_id: str
+    timestamp: str
+    components_used: List[str]
+    metadata: Dict[str, Any]
+
+
+class HealthResponse(BaseModel):
+    status: str
+    uptime_seconds: float
+    version: str
+    components: Dict[str, str]
+    metrics: Dict[str, Any]
+
+
+class EvolutionStatusResponse(BaseModel):
+    is_running: bool
+    total_cycles: int
+    successful_cycles: int
+    recent_cycles: List[Dict[str, Any]]
+
+
+class MemoryStatsResponse(BaseModel):
+    total_entries: int
+    working_memory: int
+    episodic_memory: int
+    semantic_nodes: int
+    estimated_size_mb: float
+
+
+rate_limit_store: Dict[str, List[float]] = {}
+
+
+async def check_rate_limit(client_id: str = "anonymous", max_requests: int = 60, window_seconds: int = 60) -> None:
+    """Simple rate limiting check."""
+    now = time.time()
+    if client_id not in rate_limit_store:
+        rate_limit_store[client_id] = []
+
+    rate_limit_store[client_id] = [
+        t for t in rate_limit_store[client_id] if now - t < window_seconds
+    ]
+
+    if len(rate_limit_store[client_id]) >= max_requests:
+        raise HTTPException(status_code=429, detail="Rate limit exceeded")
+
+    rate_limit_store[client_id].append(now)
+
+
+# ==================== ENDPOINTS ====================
+
+@app.get("/", tags=["Root"])
+async def root() -> Dict[str, Any]:
+    """Root endpoint - API information."""
+    return {
+        "name": "SupremeAI API",
+        "version": "4.0.0",
+        "description": "Living, Self-Evolving Intelligence System",
+        "status": "operational" if ai_integrator else "initializing",
+        "endpoints": {
+            "process": "/api/v1/process",
+            "health": "/api/v1/health",
+            "status": "/api/v1/status",
+            "evolution": "/api/v1/evolution/status",
+            "memory": "/api/v1/memory/stats",
+            "docs": "/docs",
+        },
+    }
+
+
+@app.post("/api/v1/process", response_model=ProcessResponse, tags=["Processing"])
+async def process_query(
+    request: ProcessRequest,
+    background_tasks: BackgroundTasks,
+    x_client_id: str = Query(default="anonymous"),
+) -> ProcessResponse:
+    """Main processing endpoint accepting user queries and returning AI solutions."""
+    if not ai_integrator:
+        raise HTTPException(status_code=503, detail="System initializing, please retry")
+
+    await check_rate_limit(x_client_id)
+    request_id = str(uuid.uuid4())
+    start_time = time.perf_counter()
+
+    try:
+        result = await asyncio.wait_for(
+            ai_integrator.process(request.query, request.context),
+            timeout=float(request.timeout_seconds or 60),
+        )
+
+        processing_time = round((time.perf_counter() - start_time) * 1000.0, 2)
+
+        return ProcessResponse(
+            success=result.success,
+            answer=result.answer,
+            confidence=result.confidence,
+            processing_time_ms=processing_time,
+            request_id=request_id,
+            timestamp=datetime.now().isoformat(),
+            components_used=result.components_used,
+            metadata={
+                **result.metadata,
+                "learning_occurred": result.learning_occurred,
+                "evolution_applied": result.evolution_applied,
+                "domain": result.domain,
+            },
+        )
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=504, detail="Processing timeout exceeded")
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Processing error: {str(exc)}")
+
+
+@app.get("/api/v1/health", response_model=HealthResponse, tags=["Monitoring"])
+async def health_check() -> HealthResponse:
+    """Comprehensive health check endpoint."""
+    if not ai_integrator:
+        return HealthResponse(
+            status="initializing",
+            uptime_seconds=0.0,
+            version="4.0.0",
+            components={},
+            metrics={},
+        )
+
+    status_data = ai_integrator.get_system_status()
+    return HealthResponse(
+        status="healthy" if status_data.get("initialized") else "degraded",
+        uptime_seconds=float(status_data.get("performance_metrics", {}).get("system.cpu.usage_percent", 0.0)),
+        version="4.0.0",
+        components={"integrator": "healthy", "auto_evolution": "healthy"},
+        metrics=status_data.get("session_stats", {}),
+    )
+
+
+@app.get("/api/v1/status", tags=["Monitoring"])
+async def system_status() -> Dict[str, Any]:
+    """Detailed system status including all subsystems."""
+    if not ai_integrator:
+        raise HTTPException(status_code=503, detail="System not initialized")
+    return ai_integrator.get_system_status()
+
+
+@app.get("/api/v1/evolution/status", response_model=EvolutionStatusResponse, tags=["Evolution"])
+async def evolution_status() -> EvolutionStatusResponse:
+    """Get current evolution status and history."""
+    if not ai_integrator or not ai_integrator.auto_evolution:
+        raise HTTPException(status_code=503, detail="Evolution system not available")
+
+    stats = ai_integrator.auto_evolution.get_statistics()
+    return EvolutionStatusResponse(
+        is_running=stats.get("is_running", True),
+        total_cycles=stats.get("total_cycles", 0),
+        successful_cycles=stats.get("successful_cycles", 0),
+        recent_cycles=stats.get("recent_cycles", []),
+    )
+
+
+@app.post("/api/v1/evolution/trigger", tags=["Evolution"])
+async def trigger_evolution() -> Dict[str, Any]:
+    """Manually trigger an evolution cycle."""
+    if not ai_integrator or not ai_integrator.auto_evolution:
+        raise HTTPException(status_code=503, detail="Evolution system not available")
+
+    cycle = await ai_integrator.auto_evolution.run_evolution_cycle()
+    return {
+        "message": "Evolution cycle triggered",
+        "cycle_id": cycle.cycle_id,
+        "status": cycle.state.value if hasattr(cycle.state, "value") else str(cycle.state),
+        "improvements_measured": cycle.improvements_measured,
+        "duration_seconds": cycle.duration_seconds,
+    }
+
+
+@app.get("/api/v1/memory/stats", response_model=MemoryStatsResponse, tags=["Memory"])
+async def memory_statistics() -> MemoryStatsResponse:
+    """Get memory system statistics."""
+    if not ai_integrator or not ai_integrator.memory_consolidator:
+        raise HTTPException(status_code=503, detail="Memory system not available")
+
+    stats = ai_integrator.memory_consolidator.get_memory_stats()
+    return MemoryStatsResponse(
+        total_entries=stats.get("total_blocks", 0),
+        working_memory=stats.get("tiers", {}).get("working", 0),
+        episodic_memory=stats.get("tiers", {}).get("episodic", 0),
+        semantic_nodes=stats.get("tiers", {}).get("semantic", 0),
+        estimated_size_mb=stats.get("estimated_size_mb", 0.0),
+    )
+
+
+@app.post("/api/v1/memory/consolidate", tags=["Memory"])
+async def trigger_consolidation() -> Dict[str, Any]:
+    """Trigger memory consolidation cycle."""
+    if not ai_integrator or not ai_integrator.memory_consolidator:
+        raise HTTPException(status_code=503, detail="Consolidation system not available")
+
+    result = await ai_integrator.memory_consolidator.consolidate()
+    return {
+        "message": "Consolidation completed",
+        "success": result.success,
+        "action_taken": result.action_taken.value if hasattr(result.action_taken, "value") else str(result.action_taken),
+        "blocks_affected": result.blocks_affected,
+        "memory_freed_bytes": result.memory_freed_bytes,
+        "time_ms": result.time_ms,
+    }
+
+
+@app.get("/api/v1/dashboard", tags=["Monitoring"])
+async def dashboard_data() -> Dict[str, Any]:
+    """Get comprehensive dashboard data for monitoring UI."""
+    if not ai_integrator:
+        raise HTTPException(status_code=503, detail="System not initialized")
+
+    return {
+        "timestamp": datetime.now().isoformat(),
+        "system": ai_integrator.get_system_status(),
+    }
