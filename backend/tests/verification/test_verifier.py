@@ -21,8 +21,9 @@ async def test_verifier_valid_python_ast():
     report = await verifier.verify(task, valid_code)
 
     assert report.verified is True
-    assert "Valid Python AST Syntax" in report.criteria_passed
-    assert report.confidence >= 0.90
+    assert "Python AST Syntax Validation" in report.criteria_passed
+    assert report.score == 1.0
+    assert len(report.failures) == 0
 
 
 @pytest.mark.asyncio
@@ -36,4 +37,5 @@ async def test_verifier_empty_output_rejection():
 
     report = await verifier.verify(task, "")
     assert report.verified is False
-    assert "Output is empty or null" in report.criteria_failed
+    assert any("empty" in f.lower() for f in report.criteria_failed)
+    assert report.score == 0.0

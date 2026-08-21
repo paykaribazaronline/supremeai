@@ -2,7 +2,7 @@
 > Auto-updated by AI agents after each major session. Next agent must read this first.
 
 ## Last Session
-- **Date:** 2026-08-21 17:14 UTC
+- **Date:** 2026-08-21 17:23 UTC
 - **Agent:** Auto-updated (checkpoint_update.py)
 - **Summary:** Auto-updated via pre-commit hook
 
@@ -10,19 +10,21 @@
   - (see git log for details)
 
 ## Files Changed
-  - `backend/verification/verifier.py`
-  - `CHECKPOINT.md`
-  - `backend/evolution/change_proposal.py`
   - `backend/runtime/__init__.py`
-  - `backend/runtime/task_context.py`
-  - `backend/runtime/task_executor.py`
   - `backend/tests/verification/test_verifier.py`
+  - `backend/runtime/budget_guard.py`
+  - `CHECKPOINT.md`
   - `backend/tests/runtime/test_task_runtime.py`
   - `backend/runtime/task_runtime.py`
-  - `backend/verification/__init__.py`
+  - `backend/verification/verifier.py`
+  - `backend/learning/outcome_analyzer.py`
   - `backend/runtime/task_result.py`
-  - `backend/core/task_contract.py`
-  - `backend/core/factory.py`
+  - `backend/tests/runtime/test_budget_guard.py`
+  - `backend/tests/learning/test_learning.py`
+  - `backend/tests/runtime/test_planner.py`
+  - `backend/runtime/planner.py`
+  - `backend/learning/experience.py`
+  - `backend/learning/__init__.py`
 
 ## Pending (Carry Forward)
 - **MED:** Supabase `ai_memory` টেবিলে ভেক্টর স্কিমা ভ্যালিডেশন এবং `memory_write.py` লাইভ ভেক্টর ইনসার্ট টেস্ট।

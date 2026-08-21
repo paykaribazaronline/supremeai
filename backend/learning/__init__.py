@@ -1,18 +1,20 @@
 # backend/learning/__init__.py
-"""SupremeAI Continuous Learning & Pattern Recognition Module."""
+"""Continual Learning Subsystem for SupremeAI."""
 
-from learning.pattern_recognizer import (
-    Pattern,
-    PatternMatch,
-    PatternRecognizer,
-    PatternType,
-    hamming_distance,
+from learning.experience import ExperienceRecord, ExperienceStore, get_experience_store
+from learning.outcome_analyzer import (
+    LearningInsight,
+    OutcomeAnalyzer,
+    OutcomeClassification,
+    get_outcome_analyzer,
 )
 
 __all__ = [
-    "Pattern",
-    "PatternMatch",
-    "PatternRecognizer",
-    "PatternType",
-    "hamming_distance",
+    "ExperienceRecord",
+    "ExperienceStore",
+    "LearningInsight",
+    "OutcomeAnalyzer",
+    "OutcomeClassification",
+    "get_experience_store",
+    "get_outcome_analyzer",
 ]

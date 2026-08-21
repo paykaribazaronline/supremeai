@@ -2,7 +2,7 @@
 """Canonical Task Runtime (The Authoritative Control Plane).
 
 Orchestrates:
-TaskContract -> TaskStateMachine -> TaskExecutor -> VerifierEngine -> Memory -> TaskResult
+TaskContract -> TaskStateMachine -> Planner -> BudgetGuard -> TaskExecutor -> VerifierEngine -> Memory -> TaskResult
 """
 
 from __future__ import annotations
@@ -15,6 +15,8 @@ from typing import Any, Dict, Optional
 
 from core.integration_layer import SupremeAIIntegrator
 from core.task_contract import TaskContract, TaskStatus, VerificationPolicy
+from runtime.budget_guard import BudgetExceededError, BudgetGuard
+from runtime.planner import CanonicalPlanner, Plan, get_planner
 from runtime.task_context import TaskContext
 from runtime.task_executor import TaskExecutor
 from runtime.task_result import TaskResult, VerificationSummary
@@ -30,9 +32,11 @@ class TaskRuntime:
         self,
         ai_system: Optional[SupremeAIIntegrator] = None,
         verifier: Optional[VerifierEngine] = None,
+        planner: Optional[CanonicalPlanner] = None,
     ) -> None:
         self.ai_system = ai_system
         self.verifier = verifier or get_verifier()
+        self.planner = planner or get_planner()
         self.executor = TaskExecutor(ai_system=self.ai_system)
         self.experience_ledger: list[Dict[str, Any]] = []
 
@@ -47,9 +51,14 @@ class TaskRuntime:
         logger.info(f"🚀 [Runtime] Initiating task execution: {task.task_id}")
 
         try:
-            # Stage 1: Planning / Preparation
+            # Stage 0: Pre-execution Budget Gate
+            BudgetGuard.check_pre_execution(task)
+
+            # Stage 1: Planning / Decomposition
             task.transition_to(TaskStatus.PLANNING)
             ctx.checkpoint("planning_started")
+            plan: Plan = await self.planner.create_plan(task)
+            ctx.checkpoint("planning_completed", {"plan_id": plan.plan_id, "steps_count": len(plan.steps)})
 
             # Stage 2: Execution
             task.transition_to(TaskStatus.EXECUTING)
@@ -66,6 +75,15 @@ class TaskRuntime:
 
             candidate_output = exec_res.get("output")
 
+            # Enforce budget accumulation
+            BudgetGuard.record_and_enforce(
+                task,
+                prompt_tokens=ctx.token_usage.get("prompt", 0),
+                completion_tokens=ctx.token_usage.get("completion", 0),
+                cost_usd=ctx.cost_usd,
+                tool_calls=1,
+            )
+
             # Stage 3: Verification Gate
             task.transition_to(TaskStatus.VERIFYING)
             ctx.checkpoint("verification_started")
@@ -74,18 +92,28 @@ class TaskRuntime:
 
             # Stage 4: Completion & Experience Ledgering
             if ver_report.verified:
-                task.complete(candidate_output, confidence=ver_report.confidence)
+                task.complete(candidate_output, confidence=task.confidence or 0.95)
             else:
                 if task.verification_policy == VerificationPolicy.STRICT:
-                    task.fail(f"Verification failed: {', '.join(ver_report.criteria_failed)}")
+                    task.fail(f"Verification failed: {', '.join(ver_report.failures)}")
                 else:
-                    task.complete(candidate_output, confidence=ver_report.confidence)
+                    task.complete(candidate_output, confidence=task.confidence or 0.70)
 
-            # Record into Experience Ledger (Finding #4 / Phase 3)
+            # Record into Experience Ledger
             self._record_experience(task, ctx, ver_report)
 
             return self._create_result(task, exec_res, start_time, ver_report)
 
+        except BudgetExceededError as budget_err:
+            task.fail(f"Budget exceeded: {budget_err}")
+            return TaskResult(
+                task_id=task.task_id,
+                success=False,
+                answer="",
+                confidence=0.0,
+                execution_time_ms=(time.perf_counter() - start_time) * 1000,
+                error=str(budget_err),
+            )
         except asyncio.TimeoutError:
             task.fail(f"Task exceeded budget timeout ({task.budget.max_execution_seconds}s)")
             return TaskResult(
@@ -120,7 +148,7 @@ class TaskRuntime:
             task_id=task.task_id,
             success=task.status == TaskStatus.COMPLETED,
             answer=task.result or "",
-            confidence=task.confidence,
+            confidence=task.confidence or 0.95,
             execution_time_ms=total_time_ms,
             provider_used=exec_res.get("provider_used", "Gemini"),
             verification=ver_report or VerificationSummary(),
@@ -130,6 +158,7 @@ class TaskRuntime:
                 "task_status": task.status.value,
                 "risk_level": task.risk_level.value,
                 "tokens_used": task.budget.tokens_used,
+                "plan_steps_count": len(task.plan_steps),
             },
         )
 
@@ -146,9 +175,10 @@ class TaskRuntime:
             "goal": task.goal,
             "success": task.status == TaskStatus.COMPLETED,
             "confidence": task.confidence,
+            "verification_score": ver_report.score,
+            "verification_passed": ver_report.verified,
             "provider_used": context.active_provider,
             "tokens_used": context.token_usage["total"],
-            "verification_passed": ver_report.verified,
             "timestamp": datetime.now().isoformat(),
         }
         self.experience_ledger.append(experience)

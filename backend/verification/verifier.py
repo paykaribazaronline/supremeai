@@ -1,7 +1,8 @@
 # backend/verification/verifier.py
 """Deterministic Verification Engine (Audit Phase 4).
 
-Guarantees that no task is marked 'COMPLETED' without objective verification.
+Guarantees that no task is marked 'COMPLETED' without objective, verifiable evidence.
+Separates model self-confidence from external factual verification.
 """
 
 from __future__ import annotations
@@ -14,7 +15,7 @@ import time
 from typing import Any, Dict, List, Optional
 
 from core.task_contract import TaskContract, VerificationPolicy
-from runtime.task_result import VerificationSummary
+from runtime.task_result import CriterionResult, VerificationSummary
 
 logger = logging.getLogger("supremeai.verification")
 
@@ -31,29 +32,54 @@ class VerifierEngine:
         candidate_output: Any,
         context: Optional[Any] = None,
     ) -> VerificationSummary:
-        """Run verification according to task policy."""
+        """Run objective multi-point verification according to task policy."""
         start_time = time.perf_counter()
-        passed_criteria: List[str] = []
-        failed_criteria: List[str] = []
+        criteria_results: List[CriterionResult] = []
+        failures: List[str] = []
+        warnings: List[str] = []
+        evidence: List[str] = []
 
         output_str = str(candidate_output).strip() if candidate_output is not None else ""
 
         # 1. Non-empty check
         if not output_str or output_str == "None":
-            failed_criteria.append("Output is empty or null")
+            failures.append("Output is completely empty or null")
             return VerificationSummary(
                 verified=False,
                 policy_used=task.verification_policy.value,
-                criteria_passed=[],
-                criteria_failed=failed_criteria,
-                confidence=0.0,
+                score=0.0,
+                criteria_results=[
+                    CriterionResult(
+                        criterion="Non-empty output",
+                        passed=False,
+                        evidence="Zero bytes returned",
+                        is_required=True,
+                    )
+                ],
+                failures=failures,
+                recommendation="REJECT: No output produced",
                 verification_time_ms=(time.perf_counter() - start_time) * 1000,
             )
-        passed_criteria.append("Non-empty output generated")
 
-        # 2. Syntax check if code is returned
-        if "python" in task.required_capabilities or "def " in output_str or "class " in output_str:
-            # Extract code block if wrapped in markdown
+        evidence.append(f"Output generated ({len(output_str)} chars)")
+        criteria_results.append(
+            CriterionResult(
+                criterion="Non-empty output",
+                passed=True,
+                evidence=f"{len(output_str)} chars generated",
+                is_required=True,
+            )
+        )
+
+        # 2. Syntax check if code is required or present
+        is_code_task = (
+            "python" in task.required_capabilities
+            or "def " in output_str
+            or "class " in output_str
+            or "```" in output_str
+        )
+
+        if is_code_task:
             code_to_check = output_str
             if "```python" in output_str:
                 code_to_check = output_str.split("```python")[1].split("```")[0].strip()
@@ -62,36 +88,97 @@ class VerifierEngine:
 
             try:
                 ast.parse(code_to_check)
-                passed_criteria.append("Valid Python AST Syntax")
+                evidence.append("Python AST tree parsed successfully without syntax errors")
+                criteria_results.append(
+                    CriterionResult(
+                        criterion="Python AST Syntax Validation",
+                        passed=True,
+                        evidence="Valid AST syntax tree",
+                        is_required=True,
+                    )
+                )
             except SyntaxError as syn_err:
+                err_msg = f"Python Syntax Error: {syn_err.msg} at line {syn_err.lineno}"
                 if task.verification_policy == VerificationPolicy.STRICT:
-                    failed_criteria.append(f"Python Syntax Error: {syn_err.msg} at line {syn_err.lineno}")
+                    failures.append(err_msg)
+                    criteria_results.append(
+                        CriterionResult(
+                            criterion="Python AST Syntax Validation",
+                            passed=False,
+                            evidence=err_msg,
+                            is_required=True,
+                        )
+                    )
                 else:
-                    passed_criteria.append("Partial code structure accepted under standard policy")
+                    warnings.append(err_msg)
+                    criteria_results.append(
+                        CriterionResult(
+                            criterion="Python AST Syntax Validation",
+                            passed=False,
+                            evidence=f"Partial/Markdown code accepted under standard policy: {err_msg}",
+                            is_required=False,
+                        )
+                    )
 
-        # 3. Success criteria evaluation
+        # 3. Explicit Success Criteria Evaluation
         for criterion in task.success_criteria:
             if criterion.lower() in output_str.lower():
-                passed_criteria.append(f"Met criterion: {criterion}")
+                evidence.append(f"Found required pattern: '{criterion}'")
+                criteria_results.append(
+                    CriterionResult(
+                        criterion=f"Match success criterion: {criterion}",
+                        passed=True,
+                        evidence=f"Matched in output",
+                        is_required=True,
+                    )
+                )
             else:
                 if task.verification_policy == VerificationPolicy.STRICT:
-                    failed_criteria.append(f"Missing required element: {criterion}")
+                    failures.append(f"Missing mandatory criterion: '{criterion}'")
+                    criteria_results.append(
+                        CriterionResult(
+                            criterion=f"Match success criterion: {criterion}",
+                            passed=False,
+                            evidence="Pattern not found in output",
+                            is_required=True,
+                        )
+                    )
                 else:
-                    passed_criteria.append(f"Advisory criterion checked: {criterion}")
+                    warnings.append(f"Advisory criterion not strictly met: '{criterion}'")
+                    criteria_results.append(
+                        CriterionResult(
+                            criterion=f"Match advisory criterion: {criterion}",
+                            passed=False,
+                            evidence="Advisory pattern not found in output",
+                            is_required=False,
+                        )
+                    )
 
-        # 4. Confidence scoring
-        verified = len(failed_criteria) == 0
-        confidence = 0.95 if verified else max(0.1, 0.95 - (len(failed_criteria) * 0.3))
+        # 4. Objective Score Computation
+        total_criteria = len(criteria_results)
+        passed_count = sum(1 for c in criteria_results if c.passed)
+        score = round(passed_count / max(1, total_criteria), 2)
 
+        # Mandatory failure check
+        has_mandatory_failures = any(c.is_required and not c.passed for c in criteria_results)
+        verified = not has_mandatory_failures and (score >= 0.8 if task.verification_policy == VerificationPolicy.STRICT else score >= 0.5)
+
+        recommendation = "PROMOTE / PASS" if verified else "REJECT / REPLAN"
         elapsed_ms = round((time.perf_counter() - start_time) * 1000, 2)
-        logger.info(f"🔍 Verification for [{task.task_id}]: verified={verified}, confidence={confidence:.2f}")
+
+        logger.info(
+            f"🔍 [Verifier] Task [{task.task_id}]: verified={verified}, score={score:.2f}, failures={len(failures)}"
+        )
 
         return VerificationSummary(
             verified=verified,
             policy_used=task.verification_policy.value,
-            criteria_passed=passed_criteria,
-            criteria_failed=failed_criteria,
-            confidence=confidence,
+            score=score,
+            criteria_results=criteria_results,
+            failures=failures,
+            warnings=warnings,
+            evidence=evidence,
+            recommendation=recommendation,
             verification_time_ms=elapsed_ms,
         )
 
