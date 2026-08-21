@@ -1,11 +1,19 @@
+# backend/workers/chaos_worker.py
+"""Autonomous Self-Testing & Chaos Auditor with Circuit Breaker and Error Bus."""
+
+from __future__ import annotations
+
 import asyncio
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 import os
-from datetime import UTC, datetime
+import time
+from typing import Any, Dict, List, Optional
 
 import httpx
 from loguru import logger
 
-# শেয়ার্ড ইউটিলিটি — Firestore ইনিশিয়ালাইজেশন কেন্দ্রীভূত করা হয়েছে
+from core.error_bus import with_error_bus
 from utils.firestore_helpers import get_firestore_db
 
 try:
@@ -17,95 +25,136 @@ except ImportError:  # pragma: no cover
 SERVER_ERROR_THRESHOLD = 500
 
 
+@dataclass
+class AuditResult:
+    """Structured result model for Nightly Chaos Audits."""
+
+    passed: bool
+    test_count: int
+    failure_count: int
+    duration_seconds: float
+    failures: List[str] = field(default_factory=list)
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "passed": self.passed,
+            "test_count": self.test_count,
+            "failure_count": self.failure_count,
+            "duration_seconds": round(self.duration_seconds, 2),
+            "failures": self.failures,
+            "timestamp": self.timestamp,
+        }
+
+
+class CircuitBreaker:
+    """Stateful circuit breaker protecting deployment gates from transient lockouts."""
+
+    def __init__(self, failure_threshold: int = 3, cooldown_seconds: int = 300) -> None:
+        self.failure_threshold = failure_threshold
+        self.cooldown_seconds = cooldown_seconds
+        self.consecutive_failures = 0
+        self.state = "closed"  # "closed", "open", "half_open"
+        self.cooldown_until: Optional[float] = None
+
+    def is_available(self) -> bool:
+        if self.state == "open":
+            if self.cooldown_until and time.time() < self.cooldown_until:
+                return False
+            self.state = "half_open"
+        return True
+
+    def record_success(self) -> None:
+        self.consecutive_failures = 0
+        self.state = "closed"
+
+    def record_failure(self) -> None:
+        self.consecutive_failures += 1
+        if self.consecutive_failures >= self.failure_threshold:
+            self.state = "open"
+            self.cooldown_until = time.time() + self.cooldown_seconds
+
+
 class NightlyChaosAuditor:
-    """
-    Autonomous Self-Testing & Healing Auditor.
-    Runs nightly security fuzzing and stress checks to guard the deployment pipeline.
-    """
+    """Autonomous Self-Testing & Healing Auditor guarded by Circuit Breaker."""
 
-    def __init__(self):
-        # রিফ্যাক্টর: সরাসরি firestore.Client() কল না করে শেয়ার্ড হেল্পার ব্যবহার
+    def __init__(self) -> None:
         self.db = get_firestore_db()
-        if self.db is not None:
-            self.gate_ref = self.db.collection("deploy_gate").document("status")
-        else:
-            self.gate_ref = None
-        # স্টেজ রেপ্লিকা ইউআরএল ম্যাপ (প্রোডাকশন থেকে আলাদা)
+        self.gate_ref = self.db.collection("deploy_gate").document("status") if self.db else None
         self.target_url = os.getenv("STAGING_REPLICA_URL", "http://localhost:8000")
+        self.circuit_breaker = CircuitBreaker(failure_threshold=3, cooldown_seconds=300)
+        self.stats = {"total_audits": 0, "passed": 0, "failed": 0}
 
+    @with_error_bus("chaos_audit_run")
     async def execute_audit_sequence(self) -> bool:
-        logger.info("🤖 Starting Autonomous Nightly Chaos Audit Sequence...")
+        start_time = time.perf_counter()
+        self.stats["total_audits"] += 1
 
-        failures = 0
+        if not self.circuit_breaker.is_available():
+            logger.warning("Chaos audit skipped: circuit breaker is open.")
+            return False
+
+        failures: List[str] = []
+        tests_run = 0
+
         try:
-            # 🧪 টেস্ট ১: স্যান্ডবক্স ইন্টিগ্রিটি চেক (ফাস্ট এএসটি ভ্যালিডেশন)
-            if not generate_fuzz_payloads or not run_sandbox_ast_check:  # type: ignore
-                raise ImportError("fuzz_sandbox not available")
+            # 🧪 টেস্ট ১: স্যান্ডবক্স ইন্টিগ্রিটি চেক
+            if generate_fuzz_payloads and run_sandbox_ast_check:
+                payloads = generate_fuzz_payloads()
+                for code, _ in payloads[:20]:
+                    tests_run += 1
+                    try:
+                        if run_sandbox_ast_check(code):
+                            failures.append("Sandbox AST bypass detected during fuzzing")
+                            logger.critical("🚨 [SECURITY BREACH] Sandbox bypass detected during autonomous fuzzing!")
+                    except Exception:
+                        pass
 
-            payloads = generate_fuzz_payloads()
-
-            for code, _ in payloads[:20]:  # টপ ২০টি ক্রিটিক্যাল পেলোড ফাজিং
-                try:
-                    # স্যান্ডবক্স যদি কোনো ম্যালিশিয়াস কোডকে ট্রু (Safe) বলে দেয়, তবে সিকিউরিটি লিক!
-                    if run_sandbox_ast_check(code):
-                        failures += 1
-                        logger.critical("🚨 [SECURITY BREACH] Sandbox bypass detected during autonomous fuzzing!")
-                except Exception as e:
-                    logger.warning(f"Exception suppressed: {e}")  # SecurityError আশা করা হচ্ছে, তাই এটি পাস
-
-            # 🧪 টেস্ট ২: রানটাইম কানেকশন পুল স্ট্রেস চেক (Synthetic Heavy Requests)
+            # 🧪 টেস্ট ২: রানটাইম স্ট্রেস চেক
             async with httpx.AsyncClient(timeout=5.0) as client:
-                headers = {"Idempotency-Key": f"auto-chaos-{datetime.now(UTC).timestamp()}"}
-                # একই টাইমে ব্যাক-টু-ব্যাক ৫টি রিকোয়েস্ট ফায়ার করে রাউটার স্টেট চেক
+                headers = {"Idempotency-Key": f"auto-chaos-{datetime.now(timezone.utc).timestamp()}"}
                 tasks = [
-                    client.post(
-                        f"{self.target_url}/api/task/execute",
-                        json={"message": "Ping"},
-                        headers=headers,
-                    )
+                    client.post(f"{self.target_url}/api/task/execute", json={"message": "Ping"}, headers=headers)
                     for _ in range(5)
                 ]
                 responses = await asyncio.gather(*tasks, return_exceptions=True)
-
                 for res in responses:
-                    if isinstance(res, Exception) or res.status_code >= SERVER_ERROR_THRESHOLD:
-                        failures += 1
-                        logger.error(
-                            "💥 Runtime Connection Failure or %d Server Error detected: %s",
-                            SERVER_ERROR_THRESHOLD,
-                            res,
-                        )
+                    tests_run += 1
+                    if isinstance(res, Exception) or getattr(res, "status_code", 0) >= SERVER_ERROR_THRESHOLD:
+                        failures.append(f"HTTP Server Error: {res}")
+                        logger.error(f"💥 Runtime Connection Failure or Server Error: {res}")
 
-            # বাংলা মন্তব্য: P1 Fix — async function-এ sync Firestore call নিষিদ্ধ।
-            # asyncio.to_thread দিয়ে blocking I/O offload করা হচ্ছে — event loop freeze বন্ধ হবে।
-            now = datetime.now(UTC)
-            if failures > 0:
-                logger.critical(f"💣 Chaos Audit FAILED with {failures} anomalies. LOCKING deployment gates!")
-                gate_data = {
-                    "status": "LOCKED",
-                    "reason": f"Autonomous audit failed with {failures} anomalies.",
-                    "updated_at": now,
-                }
-                if self.gate_ref:
-                    await asyncio.to_thread(self.gate_ref.set, gate_data)
-                return False
-            else:
+            duration = time.perf_counter() - start_time
+            passed = len(failures) == 0
+
+            if passed:
+                self.circuit_breaker.record_success()
+                self.stats["passed"] += 1
                 logger.info("🏆 Autonomous Chaos Audit PASSED perfectly. Deploy gate is UNLOCKED.")
-                gate_data = {
-                    "status": "UNLOCKED",
-                    "reason": "All self-testing gates returned green.",
-                    "updated_at": now,
-                }
                 if self.gate_ref:
-                    await asyncio.to_thread(self.gate_ref.set, gate_data)
+                    await asyncio.to_thread(
+                        self.gate_ref.set,
+                        {"status": "UNLOCKED", "reason": "All self-testing gates green.", "updated_at": datetime.now(timezone.utc)},
+                    )
                 return True
+            else:
+                self.circuit_breaker.record_failure()
+                self.stats["failed"] += 1
+                logger.critical(f"💣 Chaos Audit FAILED with {len(failures)} anomalies. LOCKING deployment gates!")
+                if self.gate_ref:
+                    await asyncio.to_thread(
+                        self.gate_ref.set,
+                        {"status": "LOCKED", "reason": f"Audit failed: {len(failures)} anomalies.", "updated_at": datetime.now(timezone.utc)},
+                    )
+                return False
 
         except Exception as global_err:
-            logger.critical(f"⚠️ Auditor crashed internally: {global_err!s}. Locking pipeline for safety.")
-            error_data = {
-                "status": "LOCKED",
-                "reason": f"Auditor internal error: {global_err!s}",
-            }
+            self.circuit_breaker.record_failure()
+            self.stats["failed"] += 1
+            logger.critical(f"⚠️ Auditor crashed internally: {global_err!s}. Circuit state: {self.circuit_breaker.state}")
             if self.gate_ref:
-                await asyncio.to_thread(self.gate_ref.set, error_data)
+                await asyncio.to_thread(
+                    self.gate_ref.set,
+                    {"status": "LOCKED", "reason": f"Auditor crash: {global_err!s}", "updated_at": datetime.now(timezone.utc)},
+                )
             return False

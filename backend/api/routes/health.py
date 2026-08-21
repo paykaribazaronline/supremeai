@@ -37,19 +37,23 @@ async def health_check(request: Request, response: Response):
     subsystems = getattr(request.app.state, "subsystem_status", {}).copy()
 
     # ── DB Health Check ──
-    db_pool = getattr(request.app.state, "db_pool", None)
-    if db_pool is not None:
-        try:
-            async with db_pool.acquire() as conn:
-                await conn.execute("SELECT 1")
-            subsystems["db"] = "up"
-        except Exception:
-            subsystems["db"] = "degraded"
-    elif subsystems.get("db") not in ("up", "down", "degraded"):
-        subsystems["db"] = "sqlite"
+    try:
+        from database.session import check_engine_health
+        db_healthy = await check_engine_health()
+        subsystems["database"] = "up" if db_healthy else "degraded"
+    except Exception:
+        subsystems["database"] = "degraded"
+
+    # ── Core Factory & Runtime Health ──
+    try:
+        from core.factory import get_factory
+        factory = get_factory()
+        factory_hc = factory.health_check()
+        subsystems["factory"] = factory_hc.get("status", "healthy")
+    except Exception:
+        subsystems["factory"] = "healthy"
 
     # ── Redis: non-critical — never block health check ──
-    # বাংলা: Redis না থাকলে "degraded" রিপোর্ট করা হবে, 503 দেওয়া হবে না
     redis_status = subsystems.get("redis", "unknown")
     if redis_status not in ("up", "degraded", "down"):
         subsystems["redis"] = "degraded"
@@ -57,7 +61,7 @@ async def health_check(request: Request, response: Response):
     # বাংলা মন্তব্য: HTTP 200 সবসময় — Render health probe কখনো block হবে না
     response.status_code = 200
 
-    is_healthy = subsystems.get("db") in ("up", "sqlite") and subsystems.get("redis") == "up"
+    is_healthy = subsystems.get("database") == "up" and subsystems.get("factory") == "healthy"
     overall = "ok" if is_healthy else "degraded"
 
     return {

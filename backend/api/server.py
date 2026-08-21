@@ -41,6 +41,11 @@ async def lifespan(app: FastAPI):
     # Cleanup on shutdown
     if factory:
         await factory.graceful_shutdown()
+    try:
+        from database.session import dispose_engine
+        await dispose_engine()
+    except Exception as e:
+        pass
 
 
 app = FastAPI(

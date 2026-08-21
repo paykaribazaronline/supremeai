@@ -219,3 +219,34 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     """
     async with get_db_session_context() as session:
         yield session
+
+
+async def check_engine_health() -> bool:
+    """Check if database engine is reachable and responsive.
+
+    বাংলা: ডাটাবেস ইঞ্জিন সচল ও সংযোগযোগ্য কিনা যাচাই করে।
+    """
+    from sqlalchemy import text
+
+    try:
+        engine = _get_engine()
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        return True
+    except Exception as e:
+        logger.warning(f"Database health check probe failed: {e}")
+        return False
+
+
+async def dispose_engine() -> None:
+    """Dispose all engine pools cleanly. Call during graceful shutdown.
+
+    বাংলা: শাটডাউনের সময় সমস্ত ডাটাবেস কানেকশন পুল ক্লোজ করে।
+    """
+    global _engine_instance, _session_maker_instance
+    if _engine_instance is not None:
+        logger.info("Disposing database engine pools...")
+        await _engine_instance.dispose()
+        _engine_instance = None
+        _session_maker_instance = None
+
