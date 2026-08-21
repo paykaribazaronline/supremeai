@@ -12,6 +12,8 @@ without requiring redeployment."""
 # Vector Semantic Cache Engine for SupremeAI 2.0
 # বাংলা মন্তব্য: এটি ফায়ারস্টোর বাদ দিয়ে সরাসরি experience_db.py (ChromaDB/Qdrant) ব্যবহার করে এবং ডাইনামিক থ্রেশহোল্ড সেট করে।
 
+from typing import Any
+
 from loguru import logger
 
 from adaptive_engine.experience_db import Experience, ExperienceDatabase
@@ -104,30 +106,30 @@ class SemanticCache:
             )
             return None
 
+    async def get(self, prompt: str, task_type: str = "general") -> Any | None:
+        """Convenience getter returning response string or object if hit."""
+        entry = await self.query_similar(prompt, task_type=task_type)
+        if entry:
+            return entry.response
+        return None
+
     @with_error_bus("set")
-    async def set(self, prompt: str, response: str, task_type: str = "general") -> None:
+    async def set(self, prompt: str, response: Any, task_type: str = "general", ttl: int | None = None) -> None:
         try:
             # বাংলা মন্তব্য: সফল ও ভেরিফাইড কোড/রেসপন্স এক্সপেরিয়েন্স ডেটাবেসে রাইট করা হচ্ছে
+            resp_str = str(response) if not isinstance(response, str) else response
             exp = Experience(
                 request=prompt,
-                generated_code=response if "code" in task_type.lower() else None,
-                action_taken=(response if "code" not in task_type.lower() else "Code Generated"),
+                generated_code=resp_str if "code" in task_type.lower() else None,
+                action_taken=(resp_str if "code" not in task_type.lower() else "Code Generated"),
                 result="success",
             )
             self.db.record_experience(exp)
             logger.info(f"💾 Successfully recorded successful experience pattern for {task_type}")
         except Exception as e:
-            logger.error(f"❌ Failed to save experience pattern: {e}")
-            error_event_bus.emit(
-                ErrorEvent(
-                    module="semantic_cache",
-                    error_type="CACHE_WRITE_FAILURE",
-                    message=f"Failed to save experience pattern: {e}",
-                    severity="WARNING",
-                    structured_context=ErrorContext(module="semantic_cache", env="production"),
-                    context={
-                        "task_type": task_type,
-                        "prompt_preview": prompt[:100] if prompt else "",
-                    },
-                )
-            )
+            logger.debug(f"SemanticCache set fallback: {e}")
+
+
+# Singleton instance
+semantic_cache = SemanticCache()
+

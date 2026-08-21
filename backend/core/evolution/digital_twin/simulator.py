@@ -562,5 +562,11 @@ async def run_sample_simulations():
     return failure_result, traffic_result
 
 
+# Aliases for SupremeBrowser and Cognitive Swarm
+DigitalTwinSimulator = ImpactSimulator
+get_digital_twin_simulator = get_impact_simulator
+
+
 if __name__ == "__main__":
     asyncio.run(run_sample_simulations())
+

@@ -2,7 +2,7 @@
 > Auto-updated by AI agents after each major session. Next agent must read this first.
 
 ## Last Session
-- **Date:** 2026-08-21 20:02 UTC
+- **Date:** 2026-08-21 20:11 UTC
 - **Agent:** Auto-updated (checkpoint_update.py)
 - **Summary:** Auto-updated via pre-commit hook
 
@@ -10,21 +10,26 @@
   - (see git log for details)
 
 ## Files Changed
-  - `reports/tool_knowledge_registry.json`
-  - `backend/core/health_check.py`
-  - `CHECKPOINT.md`
-  - `backend/api/routes/preferences.py`
-  - `apps/mobile/lib/src/theme/tokens.dart`
-  - `backend/api/routes/localization.py`
-  - `backend/adaptive_engine/intent_parser.py`
-  - `apps/mobile/lib/widgets/shimmer_loading.dart`
-  - `backend/services/email/email_service.py`
-  - `apps/mobile/lib/services/localization_service.dart`
-  - `tools/pipeline_recipe_compiler.py`
-  - `tools/tool_knowledge_injector.py`
+  - `backend/core/embeddings.py`
   - `backend/adaptive_engine/learning_loop.py`
-  - `apps/mobile/lib/theme/tokens.dart`
-  - `reports/pipeline_recipe_registry.json`
+  - `backend/browser/swarm_browser.py`
+  - `backend/browser/semantic_dom.py`
+  - `backend/api/routes/onboarding.py`
+  - `backend/core/cache/semantic_cache.py`
+  - `backend/api/routes/browser.py`
+  - `backend/core/markdown_indexer.py`
+  - `backend/tests/test_advanced_wiring.py`
+  - `backend/api/routes/selector_healing.py`
+  - `backend/core/feature_flags.py`
+  - `backend/brain/reasoning_orchestrator.py`
+  - `backend/browser/autonomous_browser.py`
+  - `backend/browser/browsing_memory.py`
+  - `backend/tests/test_supreme_browser.py`
+  - `CHECKPOINT.md`
+  - `backend/api/routes/markdown.py`
+  - `backend/browser/vision_grounding.py`
+  - `backend/core/evolution/digital_twin/simulator.py`
+  - `apps/mobile/lib/screens/onboarding/onboarding_screen.dart`
 
 ## Pending (Carry Forward)
 - **MED:** Supabase `ai_memory` টেবিলে ভেক্টর স্কিমা ভ্যালিডেশন এবং `memory_write.py` লাইভ ভেক্টর ইনসার্ট টেস্ট।
