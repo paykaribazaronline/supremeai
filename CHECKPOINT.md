@@ -2,7 +2,7 @@
 > Auto-updated by AI agents after each major session. Next agent must read this first.
 
 ## Last Session
-- **Date:** 2026-08-21 17:48 UTC
+- **Date:** 2026-08-21 17:56 UTC
 - **Agent:** Auto-updated (checkpoint_update.py)
 - **Summary:** Auto-updated via pre-commit hook
 
@@ -10,9 +10,11 @@
   - (see git log for details)
 
 ## Files Changed
-  - `backend/api/dependencies.py`
-  - `apps/mobile/lib/services/api_client.dart`
+  - `backend/learning/pattern_detector.py`
+  - `backend/learning/evidence_analyzer.py`
   - `CHECKPOINT.md`
+  - `backend/tests/learning/test_pattern_and_hypothesis.py`
+  - `backend/learning/hypothesis_engine.py`
 
 ## Pending (Carry Forward)
 - **MED:** Supabase `ai_memory` টেবিলে ভেক্টর স্কিমা ভ্যালিডেশন এবং `memory_write.py` লাইভ ভেক্টর ইনসার্ট টেস্ট।

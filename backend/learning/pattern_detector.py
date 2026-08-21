@@ -1,5 +1,5 @@
 # backend/learning/pattern_detector.py
-"""Pattern Detector for Continuous Learning from Task Experiences."""
+"""Structured Pattern Detector with Canonical Taxonomy for Continuous Learning."""
 
 from __future__ import annotations
 
@@ -15,21 +15,42 @@ logger = logging.getLogger("supremeai.learning.pattern_detector")
 
 
 @dataclass
-class DetectedPattern:
-    """Recurring pattern identified from past execution experiences."""
+class EvidenceReference:
+    """Detailed causal evidence reference."""
 
-    pattern_type: str  # "syntax_error", "timeout", "budget_exhausted", "provider_performance"
-    occurrence_count: int
+    task_id: str
+    experience_id: str
+    failure_reason: Optional[str] = None
+    latency_ms: float = 0.0
+    cost_usd: float = 0.0
+
+
+@dataclass
+class DetectedPattern:
+    """Recurring pattern identified from past execution experiences with evidence metrics."""
+
+    pattern_type: str  # "SYNTAX", "TIMEOUT", "BUDGET", "ROUTING", "TOOL", "SUCCESS"
+    category: str  # "FAILURE", "SUCCESS", "OPPORTUNITY"
+    support_count: int
+    population_size: int
+    occurrence_rate: float
     confidence: float
     description: str
-    evidence_task_ids: List[str] = field(default_factory=list)
+    evidence: List[EvidenceReference] = field(default_factory=list)
     suggested_action: str = ""
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+    @property
+    def evidence_task_ids(self) -> List[str]:
+        return [e.task_id for e in self.evidence]
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "pattern_type": self.pattern_type,
-            "occurrence_count": self.occurrence_count,
+            "category": self.category,
+            "support_count": self.support_count,
+            "population_size": self.population_size,
+            "occurrence_rate": self.occurrence_rate,
             "confidence": self.confidence,
             "description": self.description,
             "evidence_task_ids": self.evidence_task_ids,
@@ -49,44 +70,106 @@ class PatternDetector:
         if not records:
             return []
 
+        population = len(records)
         patterns: List[DetectedPattern] = []
 
-        # 1. Failure Analysis
-        syntax_fails: List[str] = []
-        budget_fails: List[str] = []
-        timeout_fails: List[str] = []
+        syntax_evidence: List[EvidenceReference] = []
+        budget_evidence: List[EvidenceReference] = []
+        timeout_evidence: List[EvidenceReference] = []
+        success_evidence: List[EvidenceReference] = []
 
         for rec in records:
+            if rec.verified:
+                success_evidence.append(
+                    EvidenceReference(
+                        task_id=rec.task_id,
+                        experience_id=rec.experience_id,
+                        latency_ms=rec.latency_ms,
+                        cost_usd=rec.cost_usd,
+                    )
+                )
+
             for failure in rec.failures:
                 failure_lower = failure.lower()
-                if "syntax" in failure_lower or "ast" in failure_lower:
-                    syntax_fails.append(rec.task_id)
-                elif "budget" in failure_lower or "cost" in failure_lower or "token" in failure_lower:
-                    budget_fails.append(rec.task_id)
-                elif "timeout" in failure_lower or "latency" in failure_lower:
-                    timeout_fails.append(rec.task_id)
+                ref = EvidenceReference(
+                    task_id=rec.task_id,
+                    experience_id=rec.experience_id,
+                    failure_reason=failure,
+                    latency_ms=rec.latency_ms,
+                    cost_usd=rec.cost_usd,
+                )
+                if any(k in failure_lower for k in ["syntax", "ast", "parse", "invalid syntax"]):
+                    syntax_evidence.append(ref)
+                elif any(k in failure_lower for k in ["budget", "cost", "token", "limit exceeded"]):
+                    budget_evidence.append(ref)
+                elif any(k in failure_lower for k in ["timeout", "timed out", "latency"]):
+                    timeout_evidence.append(ref)
 
-        if len(syntax_fails) >= min_support:
+        # 1. Syntax Error Pattern
+        if len(syntax_evidence) >= min_support:
+            rate = round(len(syntax_evidence) / population, 4)
             patterns.append(
                 DetectedPattern(
-                    pattern_type="syntax_error_pattern",
-                    occurrence_count=len(syntax_fails),
-                    confidence=round(min(0.98, 0.70 + (len(syntax_fails) * 0.05)), 2),
-                    description="Repeated syntax/parsing errors during code generation.",
-                    evidence_task_ids=syntax_fails,
-                    suggested_action="Optimize code generation prompt to enforce strict AST compliance and clean markdown stripping.",
+                    pattern_type="SYNTAX",
+                    category="FAILURE",
+                    support_count=len(syntax_evidence),
+                    population_size=population,
+                    occurrence_rate=rate,
+                    confidence=round(min(0.98, 0.70 + (rate * 0.5)), 2),
+                    description=f"Syntax parsing errors detected in {len(syntax_evidence)} tasks ({rate * 100:.1f}%).",
+                    evidence=syntax_evidence,
+                    suggested_action="Optimize code generation prompt to enforce strict AST compliance and markdown stripping.",
                 )
             )
 
-        if len(budget_fails) >= min_support:
+        # 2. Budget Exhaustion Pattern
+        if len(budget_evidence) >= min_support:
+            rate = round(len(budget_evidence) / population, 4)
             patterns.append(
                 DetectedPattern(
-                    pattern_type="budget_exhaustion_pattern",
-                    occurrence_count=len(budget_fails),
-                    confidence=round(min(0.95, 0.75 + (len(budget_fails) * 0.05)), 2),
-                    description="Multiple tasks exceeded compute or token budget constraints.",
-                    evidence_task_ids=budget_fails,
-                    suggested_action="Scale initial token budget allocation or optimize plan step decomposition.",
+                    pattern_type="BUDGET",
+                    category="FAILURE",
+                    support_count=len(budget_evidence),
+                    population_size=population,
+                    occurrence_rate=rate,
+                    confidence=round(min(0.95, 0.75 + (rate * 0.4)), 2),
+                    description=f"Budget or token exhaustion occurred in {len(budget_evidence)} tasks ({rate * 100:.1f}%).",
+                    evidence=budget_evidence,
+                    suggested_action="Scale initial token budget allocation or optimize step graph decomposition.",
+                )
+            )
+
+        # 3. Timeout Pattern (Fixed Bug)
+        if len(timeout_evidence) >= min_support:
+            rate = round(len(timeout_evidence) / population, 4)
+            patterns.append(
+                DetectedPattern(
+                    pattern_type="TIMEOUT",
+                    category="FAILURE",
+                    support_count=len(timeout_evidence),
+                    population_size=population,
+                    occurrence_rate=rate,
+                    confidence=round(min(0.95, 0.70 + (rate * 0.4)), 2),
+                    description=f"Execution timeouts detected in {len(timeout_evidence)} tasks ({rate * 100:.1f}%).",
+                    evidence=timeout_evidence,
+                    suggested_action="Decompose complex multi-step reasoning into asynchronous subtasks.",
+                )
+            )
+
+        # 4. Success Routing Pattern
+        if len(success_evidence) >= min_support and (len(success_evidence) / population) >= 0.80:
+            rate = round(len(success_evidence) / population, 4)
+            patterns.append(
+                DetectedPattern(
+                    pattern_type="SUCCESS",
+                    category="OPPORTUNITY",
+                    support_count=len(success_evidence),
+                    population_size=population,
+                    occurrence_rate=rate,
+                    confidence=0.95,
+                    description=f"High verification success rate ({rate * 100:.1f}%) observed across {len(success_evidence)} tasks.",
+                    evidence=success_evidence,
+                    suggested_action="Reinforce current routing and planner decomposition policy.",
                 )
             )
 
