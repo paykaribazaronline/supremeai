@@ -10,11 +10,9 @@
   - (see git log for details)
 
 ## Files Changed
-  - `backend/core/security/rbac.py`
-  - `CHECKPOINT.md`
-  - `secrets_registry.yaml`
-  - `scripts/generate_registry.py`
   - `backend/api/routes/tenant_admin.py`
+  - `CHECKPOINT.md`
+  - `backend/core/security/rbac.py`
 
 ## Pending (Carry Forward)
 - **MED:** Supabase `ai_memory` টেবিলে ভেক্টর স্কিমা ভ্যালিডেশন এবং `memory_write.py` লাইভ ভেক্টর ইনসার্ট টেস্ট।
