@@ -10,17 +10,14 @@
   - (see git log for details)
 
 ## Files Changed
-  - `backend/models/base.py`
-  - `backend/api/routes/health.py`
-  - `backend/learning/hypothesis_engine.py`
-  - `backend/workers/chaos_worker.py`
-  - `backend/database/session.py`
-  - `backend/api/server.py`
-  - `backend/learning/pattern_detector.py`
-  - `CHECKPOINT.md`
-  - `frontend/src/store/chatStore.ts`
   - `apps/mobile/lib/services/websocket_service.dart`
-  - `backend/tests/learning/test_pattern_and_hypothesis.py`
+  - `CHECKPOINT.md`
+  - `backend/api/server.py`
+  - `backend/database/session.py`
+  - `backend/workers/chaos_worker.py`
+  - `backend/api/routes/health.py`
+  - `backend/models/base.py`
+  - `frontend/src/store/chatStore.ts`
 
 ## Pending (Carry Forward)
 - **MED:** Supabase `ai_memory` টেবিলে ভেক্টর স্কিমা ভ্যালিডেশন এবং `memory_write.py` লাইভ ভেক্টর ইনসার্ট টেস্ট।
