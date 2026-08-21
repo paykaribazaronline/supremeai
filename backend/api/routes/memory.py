@@ -1,12 +1,19 @@
+from __future__ import annotations
+
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from api.dependencies import get_current_user_token
 from memory.checkpoint_resume import CheckpointResume
 from memory.sliding_window import SlidingWindowConfig, SlidingWindowMemory
 
-router = APIRouter(prefix="/memory", tags=["memory"])
+router = APIRouter(
+    prefix="/memory",
+    tags=["memory"],
+    dependencies=[Depends(get_current_user_token)],
+)
 
 _checkpoint: CheckpointResume | None = None
 _window: SlidingWindowMemory | None = None

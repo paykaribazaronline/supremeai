@@ -1,9 +1,14 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
+from api.dependencies import get_current_user_token
 from database.supabase_client import db
 
-router = APIRouter(prefix="/repos", tags=["repos"])
+router = APIRouter(
+    prefix="/repos",
+    tags=["repos"],
+    dependencies=[Depends(get_current_user_token)],
+)
 
 
 class RepoCreate(BaseModel):

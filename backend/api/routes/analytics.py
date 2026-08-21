@@ -9,10 +9,15 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from api.dependencies import get_current_admin
 from tools.analytics.churn_prophet import ChurnProphet
 from tools.analytics.insight_mage import InsightMage
 
-router = APIRouter(prefix="/analytics", tags=["analytics"])
+router = APIRouter(
+    prefix="/analytics",
+    tags=["analytics"],
+    dependencies=[Depends(get_current_admin)],
+)
 
 
 class ReportRequest(BaseModel):

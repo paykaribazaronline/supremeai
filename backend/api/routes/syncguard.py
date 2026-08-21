@@ -1,12 +1,14 @@
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
-from src.agents.syncguard.syncguard_agent import SyncGuardAgent
+from agents.syncguard.syncguard_agent import SyncGuardAgent
+from api.dependencies import get_current_admin
 
 router = APIRouter(
     prefix="/syncguard",
     tags=["SyncGuard"],
+    dependencies=[Depends(get_current_admin)],
     responses={404: {"description": "Not found"}},
 )
 
@@ -20,9 +22,6 @@ async def trigger_audit() -> dict[str, Any]:
     try:
         agent = SyncGuardAgent()
         report = await agent.run_full_audit()
-
-        # If the audit failed, we still return the report (maybe 200 OK or 400 depending on design)
-        # Returning 200 OK so the client can parse the issues.
         return report
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Audit execution failed: {e!s}") from e

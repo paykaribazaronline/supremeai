@@ -1,18 +1,26 @@
-# SupremeAI 2.0 — Advanced Model Router Engine
-# বাংলা মন্তব্য: এটি টাস্ক টাইপ, প্রম্পট কমপ্লেক্সিটি এবং পারফরম্যান্স স্কোর অনুযায়ী সর্বাধুনিক মডেল নির্বাচন করে খরচ ৭০-৯০% সাশ্রয় করে।
-# Tier 0 Fast-Path: Needle 2-inspired confidence gate — bypasses ALL LLM calls for deterministic tasks.
+# SupremeAI 2.0 — Unified Advanced Model Router Engine (Consolidated)
+# বাংলা মন্তব্য: এটি টাস্ক টাইপ, প্রম্পট কমপ্লেক্সিটি, বাংলা ভাষা ডিটেকশন এবং পারফরম্যান্স স্কোর অনুযায়ী
+# সর্বাধুনিক মডেল নির্বাচন করে খরচ ৭০-৯০% সাশ্রয় করে।
+#
+# Consolidated from:
+# - expert_router.py (Domain & Bengali MoE classification)
+# - smart_router.py (TaskComplexityAnalyzer & Self-Sovereign tier flow)
+# - performance_aware_router.py (Multi-factor weighted performance scoring & health tracking)
+# - nine_router.py (Cost estimation & route classification)
+# - advanced_model_router.py (Tier 0 deterministic fast-path)
+
+from __future__ import annotations
 
 import json
 import re
 import urllib.request
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import Any, TypedDict
 
 from loguru import logger
 
-
-# বাংলা মন্তব্ট: টিয়ার 0 deterministic টাস্ক প্যাটার্ন — pure-Python, শূন্য টোকেন খরচ।
+# ── Tier 0 Deterministic Patterns ──────────────────────────────────────────
 _DETERMINISTIC_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("pypi_search", re.compile(r"search\s+(?:pypi|pypi\s+for|package\s+index)\s+", re.I)),
     ("list_files", re.compile(r"list\s+(?:all\s+)?(?:files?|py|js|ts|java|go|rs)\s+(?:in|under|at|from)?", re.I)),
@@ -20,24 +28,112 @@ _DETERMINISTIC_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("schema_lookup", re.compile(r"(?:show|list|describe|what\s+are)\s+(?:schema|tables?|columns?|fields?)", re.I)),
 ]
 
-# Confidence threshold for Tier 0 bypass (reuses analyze_prompt_complexity overall score)
 _TIER0_CONFIDENCE_THRESHOLD = 0.85
 
 
-@dataclass
-class ConfidenceDecision:
-    confidence: float
-    is_deterministic: bool
-    task_type: str
-    matched_pattern: str | None
-    deterministic_result: dict[str, Any] | None
+# ── Domain & Expert Classification (MoE) ───────────────────────────────────
+class ExpertType(str, Enum):
+    BENGALI = "bengali"  # Bangla language, Banglish, BD context
+    CODER = "coder"      # Programming, DevOps, API, Technical
+    REASONER = "reasoner"# Math, Logic, Analysis, Strategy
+    CREATIVE = "creative"# Writing, Brainstorming, Marketing
+    GENERAL = "general"  # General conversation
 
 
+class DomainExpertAnalyzer:
+    """Classifies prompts into specialized expert domains with zero-cost keyword matching."""
+
+    BENGALI_KEYWORDS = [
+        "বাংলা", "bangla", "bangladesh", "dhaka", "ki", "kemon", "acho",
+        "kemon acho", "apni", "tumi", "ami", "কি", "কেন", "কিভাবে",
+        "ব্যাখ্যা করো", "ধন্যবাদ", "হ্যালো", "করুন", "বলুন"
+    ]
+
+    CODER_KEYWORDS = [
+        "code", "python", "javascript", "typescript", "bug", "error",
+        "function", "api", "docker", "deploy", "class", "async", "def",
+        "return", "import", "const", "let", "sql", "fastapi", "react", "endpoint"
+    ]
+
+    REASONING_KEYWORDS = [
+        "calculate", "math", "logic", "prove", "analyze", "compare",
+        "optimize", "algorithm", "equation", "theorem", "deduce", "evaluate"
+    ]
+
+    CREATIVE_KEYWORDS = [
+        "write a story", "poem", "marketing", "slogan", "creative",
+        "brainstorm", "compose", "draft", "fiction"
+    ]
+
+    @classmethod
+    def classify_domain(cls, prompt: str) -> ExpertType:
+        if not prompt:
+            return ExpertType.GENERAL
+        p_lower = prompt.lower()
+        words = set(re.findall(r"[\w\u0980-\u09ff]+", p_lower))
+
+        # 1. Bengali Language / BD context check
+        if any(w in p_lower for w in cls.BENGALI_KEYWORDS):
+            return ExpertType.BENGALI
+
+        # 2. Coder domain check
+        if any(w in words for w in cls.CODER_KEYWORDS) or any(k in p_lower for k in ["def ", "import ", "async ", "fix docker", "connection error"]):
+            return ExpertType.CODER
+
+        # 3. Reasoning check
+        if any(w in words for w in cls.REASONING_KEYWORDS):
+            return ExpertType.REASONER
+
+        # 4. Creative check
+        if any(w in p_lower for w in cls.CREATIVE_KEYWORDS):
+            return ExpertType.CREATIVE
+
+        return ExpertType.GENERAL
+
+
+# ── Task Complexity Analysis ───────────────────────────────────────────────
+class TaskComplexityAnalyzer:
+    """Analyzes prompt complexity and token volume to determine execution tier."""
+
+    COMPLEXITY_THRESHOLDS = {
+        "simple": 500,    # < 500 tokens -> Fast/Local
+        "medium": 2000,   # 500-2000 -> Managed Balanced
+        "complex": 5000,  # 2000-5000 -> Advanced / High Context
+        "extreme": float("inf"), # > 5000 -> Frontier Reasoning
+    }
+
+    KEYWORDS = {
+        "simple": ["summarize", "translate", "format", "convert", "list", "count", "echo"],
+        "medium": ["explain", "compare", "analyze", "debug", "refactor", "review"],
+        "complex": ["design", "architect", "optimize", "research", "plan", "strategy"],
+        "extreme": ["innovate", "create", "invent", "discover", "prove", "theorem"],
+    }
+
+    def analyze(self, prompt: str) -> str:
+        """Returns complexity tier: simple, medium, complex, extreme."""
+        if not prompt:
+            return "simple"
+        p_lower = prompt.lower()
+        token_estimate = len(prompt.split()) * 1.3
+
+        for tier, words in self.KEYWORDS.items():
+            if any(word in p_lower for word in words):
+                return tier
+
+        if token_estimate < self.COMPLEXITY_THRESHOLDS["simple"]:
+            return "simple"
+        elif token_estimate < self.COMPLEXITY_THRESHOLDS["medium"]:
+            return "medium"
+        elif token_estimate < self.COMPLEXITY_THRESHOLDS["complex"]:
+            return "complex"
+        else:
+            return "extreme"
+
+
+# ── Tier 0 Deterministic Dispatcher ─────────────────────────────────────────
 class Tier0Dispatcher:
     """Zero-cost deterministic executors for high-confidence tasks.
-
-    Runs BEFORE any LLM API call — no token consumption, sub-50ms latency.
-    Each executor uses only Python standard library (no ML dependency).
+    Runs BEFORE any LLM API call — zero tokens, sub-50ms latency.
     """
 
     @staticmethod
@@ -54,7 +150,6 @@ class Tier0Dispatcher:
 
     @staticmethod
     def _search_pypi(prompt: str) -> dict[str, Any]:
-        """Pure-stdlib HTTP call to PyPI JSON API."""
         match = re.search(r"(?:pypi\s+for\s+|pypi\s+|package\s+index\s+for\s+)(\S+)", prompt, re.I)
         pkg_name = match.group(1).strip() if match else prompt.strip()
         url = f"https://pypi.org/pypi/{pkg_name}/json"
@@ -74,9 +169,7 @@ class Tier0Dispatcher:
 
     @staticmethod
     def _list_files(prompt: str) -> dict[str, Any]:
-        """List files in a directory using os.scandir."""
         import os
-
         match = re.search(r"(?:in|under|at|from)\s+(.+)", prompt, re.I)
         target_dir = match.group(1).strip() if match else "."
         files: list[dict[str, Any]] = []
@@ -96,7 +189,6 @@ class Tier0Dispatcher:
 
     @staticmethod
     def _format_text(prompt: str) -> dict[str, Any]:
-        """Extract structured data from prompt and format it."""
         match = re.search(r"format\s+as\s+(json|xml|csv|table|yaml|yml|html)\s*(?:for\s+)?(.+)", prompt, re.I)
         if not match:
             return {"error": "Could not parse format target from prompt"}
@@ -104,44 +196,53 @@ class Tier0Dispatcher:
         raw_text = match.group(2).strip()
         try:
             if fmt == "json":
-                # Try to parse existing JSON, otherwise wrap as key-value
                 try:
                     result = json.loads(raw_text)
                 except json.JSONDecodeError:
                     result = {"content": raw_text}
                 return {"format": "json", "result": result}
-            if fmt == "csv":
+            if fmt in ("csv", "table"):
                 lines = [line.strip() for line in raw_text.split("\n") if line.strip()]
-                return {"format": "csv", "rows": lines, "row_count": len(lines)}
-            if fmt == "table":
-                lines = [line.strip() for line in raw_text.split("\n") if line.strip()]
-                return {"format": "table", "rows": lines, "row_count": len(lines)}
+                return {"format": fmt, "rows": lines, "row_count": len(lines)}
             return {"format": fmt, "result": raw_text}
         except Exception as exc:
             return {"error": str(exc)}
 
     @staticmethod
     def _schema_lookup(prompt: str) -> dict[str, Any]:
-        """Schema lookup placeholder — returns schema info for known entities."""
         entities = ["users", "orders", "products", "sessions", "skills", "ai_memory"]
         text_lower = prompt.lower()
         for entity in entities:
             if entity in text_lower:
-                return {"entity": entity, "status": "schema_available", "note": f"Query Supabase for '{entity}' table schema via information_schema."}
+                return {
+                    "entity": entity,
+                    "status": "schema_available",
+                    "note": f"Query Supabase for '{entity}' table schema via information_schema.",
+                }
         return {"error": "No known entity found in query", "suggested_entities": entities}
+
+
+# ── Data Structures ────────────────────────────────────────────────────────
+@dataclass
+class ConfidenceDecision:
+    confidence: float
+    is_deterministic: bool
+    task_type: str
+    matched_pattern: str | None
+    deterministic_result: dict[str, Any] | None
 
 
 @dataclass
 class ModelPerformanceMetrics:
-    response_time: float
-    success_rate: float
-    cost_per_token: float
-    throughput: float
-    last_used: float
-    error_count: int
+    response_time: float = 0.5
+    success_rate: float = 1.0
+    cost_per_token: float = 0.000001
+    throughput: float = 50.0
+    last_used: float = 0.0
+    error_count: int = 0
 
 
-class ModelTier(Enum):
+class ModelTier(str, Enum):
     EXPENSIVE = "expensive"
     BALANCED = "balanced"
     BUDGET = "budget"
@@ -154,72 +255,108 @@ class RouteDecision:
     priority_score: float
     expected_cost: float
     expected_latency: float
+    expert_domain: str = "general"
+    complexity_tier: str = "simple"
+    route_class: str = "cheap"  # "cheap" or "premium"
 
 
+# ── Unified Advanced Model Router ──────────────────────────────────────────
 class AdvancedModelRouter:
     """
-    Advanced model router with intelligent traffic distribution,
-    performance monitoring, and cost optimization.
+    Unified High-Performance Model Router for SupremeAI 2.0.
+    Combines MoE Domain Classification, Multi-Factor Scoring,
+    Tier 0 Deterministic fast-path, and Cost Optimization.
     """
+
+    PROVIDER_COST_MAP = {
+        "groq": 0.0001,
+        "gemini": 0.0002,
+        "google": 0.00025,
+        "deepseek": 0.0003,
+        "together": 0.0002,
+        "nvidia": 0.0004,
+        "openrouter": 0.0005,
+        "huggingface": 0.0,
+        "ollama": 0.0,
+    }
+
+    PROVIDER_HEALTH_DEFAULT = {
+        "groq": {"status": "ok", "latency_ms": 60},
+        "google": {"status": "ok", "latency_ms": 200},
+        "gemini": {"status": "ok", "latency_ms": 200},
+        "together": {"status": "ok", "latency_ms": 280},
+        "deepseek": {"status": "ok", "latency_ms": 350},
+        "nvidia": {"status": "ok", "latency_ms": 180},
+        "openrouter": {"status": "ok", "latency_ms": 650},
+        "huggingface": {"status": "ok", "latency_ms": 800},
+        "ollama": {"status": "ok", "latency_ms": 50},
+    }
 
     def __init__(self):
         self.performance_metrics: dict[str, ModelPerformanceMetrics] = {}
+        self.provider_health = dict(self.PROVIDER_HEALTH_DEFAULT)
+        self.complexity_analyzer = TaskComplexityAnalyzer()
         self.model_preferences = self._load_model_preferences()
+        self.latency_weight = 0.5
+        self.cost_weight = 0.3
+        self.quality_weight = 0.2
 
     def _load_model_preferences(self) -> dict[str, dict]:
-        """Load model preferences and capabilities from configuration."""
         return {
+            "bengali": {
+                "preferred_models": [
+                    "groq/llama-3.3-70b-versatile",
+                    "gemini/gemini-2.5-flash",
+                    "openrouter/meta-llama/llama-3.3-70b-instruct",
+                ],
+                "tier_preference": ModelTier.BALANCED,
+            },
             "coding": {
                 "preferred_models": [
                     "groq/llama-3.3-70b-versatile",
                     "openrouter/deepseek/deepseek-coder",
+                    "deepseek/deepseek-coder",
                     "gpt-4o-mini",
                 ],
                 "tier_preference": ModelTier.BALANCED,
             },
             "reasoning": {
                 "preferred_models": [
+                    "groq/deepseek-r1-distill-llama-70b",
                     "openrouter/meta-llama/llama-3.3-70b-instruct",
-                    "claude-3-haiku",
-                    "gemini-1.5-flash",
+                    "gemini/gemini-2.5-flash",
                 ],
                 "tier_preference": ModelTier.BUDGET,
             },
             "creative": {
-                "preferred_models": ["gpt-4o", "claude-3-sonnet", "gemini-1.5-pro"],
-                "tier_preference": ModelTier.EXPENSIVE,
-            },
-            "analysis": {
-                "preferred_models": ["openrouter/openai/gpt-4o", "claude-3-opus", "gemini-1.5-pro"],
+                "preferred_models": [
+                    "gemini/gemini-2.5-flash",
+                    "openrouter/openai/gpt-4o",
+                    "groq/llama-3.3-70b-versatile",
+                ],
                 "tier_preference": ModelTier.BALANCED,
             },
             "general": {
-                "preferred_models": ["groq/llama-3.3-70b-versatile", "gemini-1.5-flash", "gpt-4o-mini"],
+                "preferred_models": [
+                    "groq/llama-3.3-70b-versatile",
+                    "gemini/gemini-2.5-flash",
+                    "gpt-4o-mini",
+                ],
                 "tier_preference": ModelTier.BUDGET,
             },
         }
 
     def analyze_prompt_complexity(self, prompt: str) -> dict[str, float]:
-        """Analyze prompt complexity to determine optimal model requirements."""
+        """Analyze prompt complexity returning numeric features for gating."""
         if not prompt:
             return {"length": 0.0, "complexity": 0.0, "overall": 0.0}
 
         length_score = min(len(prompt) / 1000.0, 1.0)
         complexity_indicators = [
-            "analyze",
-            "compare",
-            "evaluate",
-            "summarize",
-            "synthesize",
-            "reason",
-            "think step by step",
-            "consider",
-            "examine",
-            "code",
-            "algorithm",
+            "analyze", "compare", "evaluate", "summarize", "synthesize",
+            "reason", "think step by step", "examine", "code", "algorithm"
         ]
-
-        indicator_score = sum(1 for indicator in complexity_indicators if indicator.lower() in prompt.lower())
+        indicator_score = sum(1 for ind in complexity_indicators if ind in prompt.lower())
         indicator_score = min(indicator_score / 5.0, 1.0)
 
         return {
@@ -228,9 +365,51 @@ class AdvancedModelRouter:
             "overall": float(round((length_score + indicator_score) / 2.0, 4)),
         }
 
-    def get_available_models(self, task_type: str) -> list[tuple[str, str]]:
-        """Get available models based on task type."""
-        task = task_type.lower() if task_type else "general"
+    def estimate_cost(self, provider: str, model: str, prompt_length: int = 100) -> float:
+        """Estimate token cost for a model (from NineRouter/AdvancedRouter)."""
+        unit_cost = self.PROVIDER_COST_MAP.get(provider.lower(), 0.0005)
+        # Scaled per 1k tokens
+        tokens = max(1, prompt_length // 4)
+        return float(round((tokens / 1000.0) * unit_cost, 6))
+
+    def estimate_latency(self, provider: str, model: str) -> float:
+        """Estimate latency (seconds) using real/cached provider health metrics."""
+        health = self.provider_health.get(provider.lower(), {"latency_ms": 300})
+        return float(round(health.get("latency_ms", 300) / 1000.0, 3))
+
+    def calculate_model_score(
+        self,
+        provider: str,
+        model: str,
+        task_type: str,
+        complexity: dict[str, float]
+    ) -> float:
+        """Calculates multi-factor composite priority score (lower is better in raw score, converted to priority)."""
+        health = self.provider_health.get(provider.lower(), {"status": "ok", "latency_ms": 300})
+        if health.get("status") == "down":
+            return 0.0
+
+        latency_ms = health.get("latency_ms", 300)
+        norm_latency = min(latency_ms / 2000.0, 1.0)
+        unit_cost = self.PROVIDER_COST_MAP.get(provider.lower(), 0.0005)
+        norm_cost = min(unit_cost / 0.001, 1.0)
+        quality = 9.0 if "70b" in model or "flash" in model or "coder" in model else 7.0
+        norm_quality_inv = 1.0 - ((quality - 1.0) / 9.0)
+
+        # Weighted penalty score
+        penalty = (norm_latency * self.latency_weight) + (norm_cost * self.cost_weight) + (norm_quality_inv * self.quality_weight)
+        priority_score = max(0.01, 1.0 - penalty)
+
+        # Apply runtime performance metrics if available
+        model_key = f"{provider}/{model}"
+        if model_key in self.performance_metrics:
+            m = self.performance_metrics[model_key]
+            priority_score *= m.success_rate
+
+        return float(round(priority_score, 4))
+
+    def get_available_models(self, domain: str) -> list[tuple[str, str]]:
+        task = domain.lower() if domain else "general"
         preferences = self.model_preferences.get(task, self.model_preferences["general"])
         models = preferences["preferred_models"]
 
@@ -241,44 +420,7 @@ class AdvancedModelRouter:
                 result.append((provider, model))
             else:
                 result.append(("openai", model_spec))
-
         return result
-
-    def estimate_cost(self, provider: str, model: str, prompt_length: int) -> float:
-        """Estimate token cost for a model."""
-        base_rate = 0.000001
-        if "gpt-4o" in model or "opus" in model:
-            base_rate = 0.00001
-        elif "haiku" in model or "flash" in model or "llama" in model:
-            base_rate = 0.0000005
-        return float(round(prompt_length * base_rate, 6))
-
-    def estimate_latency(self, provider: str, model: str) -> float:
-        """Estimate latency for a model."""
-        if "groq" in provider:
-            return 0.3
-        if "flash" in model or "haiku" in model:
-            return 0.5
-        return 1.2
-
-    def calculate_model_score(self, provider: str, model: str, task_type: str, complexity: dict[str, float]) -> float:
-        """Calculate priority score for a model considering latency, complexity, and performance metrics."""
-        model_key = f"{provider}/{model}"
-        metrics = self.performance_metrics.get(model_key)
-
-        base_score = 0.8
-        if "groq" in provider:
-            base_score += 0.15
-        if complexity["overall"] > 0.6 and ("70b" in model or "4o" in model):
-            base_score += 0.1
-
-        if metrics:
-            base_score *= metrics.success_rate
-            if metrics.response_time > 0:
-                norm_latency = min(metrics.response_time / 5.0, 1.0)
-                base_score *= 1.0 - norm_latency * 0.5
-
-        return float(round(base_score, 4))
 
     async def route_request(
         self,
@@ -287,17 +429,24 @@ class AdvancedModelRouter:
         user_id: str | None = None,
         budget_constraint: float | None = None,
     ) -> RouteDecision:
-        """
-        Intelligent routing based on task type, performance metrics, and cost optimization.
-        """
-        prompt_complexity = self.analyze_prompt_complexity(prompt)
-        available_models = self.get_available_models(task_type)
+        """Intelligent routing with Domain Expert MoE and Multi-factor performance scoring."""
+        # 1. Classify domain via MoE keywords
+        expert_domain = DomainExpertAnalyzer.classify_domain(prompt)
+        domain_key = expert_domain.value if task_type == "general" else task_type
 
+        # 2. Complexity analysis
+        complexity_tier = self.complexity_analyzer.analyze(prompt)
+        prompt_complexity = self.analyze_prompt_complexity(prompt)
+
+        # 3. Model candidate selection
+        available_models = self.get_available_models(domain_key)
         scored_models: list[RouteDecision] = []
+
         for provider, model in available_models:
-            score = self.calculate_model_score(provider, model, task_type, prompt_complexity)
+            score = self.calculate_model_score(provider, model, domain_key, prompt_complexity)
             expected_cost = self.estimate_cost(provider, model, len(prompt))
             expected_latency = self.estimate_latency(provider, model)
+            route_class = "cheap" if expected_cost <= 0.0002 or "flash" in model else "premium"
 
             scored_models.append(
                 RouteDecision(
@@ -306,6 +455,9 @@ class AdvancedModelRouter:
                     priority_score=score,
                     expected_cost=expected_cost,
                     expected_latency=expected_latency,
+                    expert_domain=domain_key,
+                    complexity_tier=complexity_tier,
+                    route_class=route_class,
                 )
             )
 
@@ -324,7 +476,10 @@ class AdvancedModelRouter:
                 model="llama-3.3-70b-versatile",
                 priority_score=1.0,
                 expected_cost=0.0001,
-                expected_latency=0.3,
+                expected_latency=0.06,
+                expert_domain=domain_key,
+                complexity_tier=complexity_tier,
+                route_class="cheap",
             )
         )
 
@@ -333,16 +488,7 @@ class AdvancedModelRouter:
         prompt: str,
         task_type: str = "general",
     ) -> ConfidenceDecision:
-        """Single entry point: complexity score + deterministic pattern matching.
-
-        Replaces the caller's need to invoke both analyze_prompt_complexity AND
-        a separate gate. Returns a ConfidenceDecision that tells the caller
-        whether to bypass LLM entirely (Tier 0) or escalate to Tier 1/2.
-
-        - confidence: float (0-1) derived from analyze_prompt_complexity()
-        - is_deterministic: True only if a pattern matched AND confidence >= 0.85
-        - deterministic_result: pre-computed result if deterministic, else None
-        """
+        """Single entry point: complexity score + Tier 0 deterministic pattern matching."""
         complexity = self.analyze_prompt_complexity(prompt)
         confidence = complexity["overall"]
 
@@ -350,12 +496,10 @@ class AdvancedModelRouter:
         for name, pattern in _DETERMINISTIC_PATTERNS:
             if pattern.search(prompt):
                 matched = name
-                # Pattern match boosts confidence to threshold
                 confidence = max(confidence, _TIER0_CONFIDENCE_THRESHOLD)
                 break
 
         is_deterministic = matched is not None and confidence >= _TIER0_CONFIDENCE_THRESHOLD
-
         result = None
         if is_deterministic:
             result = Tier0Dispatcher.execute(matched, prompt)
@@ -373,12 +517,12 @@ class AdvancedModelRouter:
         )
 
 
-# ── Lazy Singleton ────────────────────────────────────────────────────────
-_router_instance: "AdvancedModelRouter | None" = None
+# ── Lazy Singleton ──────────────────────────────────────────────────────────
+_router_instance: AdvancedModelRouter | None = None
 
 
 def get_advanced_router() -> AdvancedModelRouter:
-    """Lazy singleton factory — avoids circular import with LLMGateway."""
+    """Lazy singleton factory."""
     global _router_instance
     if _router_instance is None:
         _router_instance = AdvancedModelRouter()

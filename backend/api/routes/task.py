@@ -12,7 +12,7 @@ import re
 from typing import Any
 
 import anyio
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
 from loguru import logger
 from pydantic import BaseModel
@@ -20,10 +20,11 @@ from pydantic import BaseModel
 # --- Local Imports ---
 # Moved imports to the top of the file to improve performance by avoiding repeated imports inside functions.
 from adaptive_engine.experience_db import Experience
+from api.dependencies import get_current_user_token
 from core.intent_router import PromptAction, intent_router
 from core.prompt_handler import format_unified_chat_prompt
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_user_token)])
 
 _semantic_cache = None
 

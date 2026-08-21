@@ -4,10 +4,16 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+
+from api.dependencies import get_current_user_token
 
 logger = logging.getLogger("supremeai.api.skills")
-router = APIRouter(prefix="/skills", tags=["Skill Catalog Infrastructure"])
+router = APIRouter(
+    prefix="/skills",
+    tags=["Skill Catalog Infrastructure"],
+    dependencies=[Depends(get_current_user_token)],
+)
 
 # বাংলা মন্তব্য: __file__ থেকে absolute path নির্ণয় — relative path CI-তে FileNotFoundError দেয়
 # পুরনো: Path("backend/skills/manifests").resolve() — CWD-dependent, CI-তে ভাঙে

@@ -111,7 +111,10 @@ def _reset_fastapi_dependency_overrides():
         from core.app import app
 
         app.dependency_overrides.clear()
-    except ImportError:
+    except Exception:
+        # App import can fail in minimal/headless test environments (e.g. missing
+        # optional native deps). Teardown only exists to clear overrides, so any
+        # failure here must not mask the actual test result.
         pass
 
 

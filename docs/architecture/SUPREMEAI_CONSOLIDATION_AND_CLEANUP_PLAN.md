@@ -14,8 +14,8 @@ An exhaustive, fact-based AST and path analysis was conducted across the entire 
 | **Routers** | 8 router files in `backend/brain/` + 7 across `backend/` | Overlapping routing logic across `brain/`, `core/llm/`, and `engine/`. | **Single Router Engine:** `core/llm/advanced_model_router.py` |
 | **Agent Systems** | Spread across **7 distinct locations** (`backend/agents/`, `backend/src/agents/`, `backend/tools/ai_agents/`, `backend/brain/*_agent.py`) | Competing agent abstractions (CrewAI, LangGraph, custom Pydantic, tool agents). | **Unified Registry:** `backend/agents/` (Core) & `backend/tools/ai_agents/` (Tools) |
 | **Evolution Matrix** | Spread across **4 distinct locations** (`backend/evolution/`, `backend/agents/evolution/`, `backend/core/evolution/`, `scripts/evolution/`) | Fragmented evolutionary breeders, evaluators, and genetic algos. | **Single Evolution Core:** `backend/core/evolution/` |
-| **Skills Infrastructure**| Spread across **4 directories** (`/skills`, `backend/skills`, `backend/core/skills`, `.agents/skills`) | Duplicate manifests, installers, and ephemeral skill engines. | **Standard Architecture:** `.agents/skills/` (Antigravity) & `backend/skills/` (Runtime) |
-| **Route Auth & RBAC**| 85 route files in `backend/api/routes/`: **37 with explicit guards**, **48 relying only on global middleware** | Missing route-level RBAC (`require_admin_token` vs `get_current_user`) for sensitive admin operations. | **100% Guarded Routes** with explicit RBAC dependencies. |
+| **Skills Infrastructure** | Spread across **4 directories** (`/skills`, `backend/skills`, `backend/core/skills`, `.agents/skills`) | Duplicate manifests, installers, and ephemeral skill engines. | **Standard Architecture:** `.agents/skills/` (Antigravity) & `backend/skills/` (Runtime) |
+| **Route Auth & RBAC** | 85 route files in `backend/api/routes/`: **37 with explicit guards**, **48 relying only on global middleware** | Missing route-level RBAC (`require_admin_token` vs `get_current_user`) for sensitive admin operations. | **100% Guarded Routes** with explicit RBAC dependencies. |
 
 ---
 
@@ -34,6 +34,7 @@ graph TD
 ### 🧹 Phase 1 — Dead Code Elimination & Router Consolidation (Low Risk, High Priority)
 
 #### 1.1 Router Audit & Caller Graph Mapping
+
 - **Audit Findings in `backend/brain/`:**
   - `api_router.py`
   - `expert_router.py`
@@ -50,6 +51,7 @@ graph TD
   4. Retire obsolete routers in `backend/brain/` and `backend/engine/smart_router.py`.
 
 #### 1.2 Remove Legacy/Scaffold Modules
+
 - Delete unused p2p/scout dead files.
 - Remove empty or redundant scaffolding packages.
 
@@ -58,17 +60,20 @@ graph TD
 ### 🧬 Phase 2 — Structural Agent & Evolution Consolidation (Medium Risk)
 
 #### 2.1 Unify Agent Architecture (7 Locations → 1 Single Source)
+
 - **Consolidation Target:**
   - Eliminate `backend/src/agents/` (relocate `syncguard` to `backend/agents/syncguard/`).
   - Move specialized domain agents from `backend/brain/` (`crewai_agents.py`, `autonomous_agent.py`, `langgraph_agent.py`, `agent_departments.py`) into `backend/agents/core/` and `backend/tools/ai_agents/`.
   - Maintain `backend/agents/` as the primary base agent framework.
 
 #### 2.2 Unify Evolution Systems (4 Locations → 1 Single Core)
+
 - **Consolidation Target:**
   - Merge `backend/evolution/` (federated learning, digital twin, theory of mind) and `backend/agents/evolution/` into **`backend/core/evolution/`**.
   - Keep `scripts/evolution/` strictly for offline/CLI automation tools.
 
 #### 2.3 Skills Directory Rationalization
+
 - Standardize `.agents/skills/` for Antigravity IDE workflow skills.
 - Standardize `backend/skills/` for runtime execution skills.
 - Deprecate root `/skills` and `backend/core/skills/` by linking or merging.
@@ -78,6 +83,7 @@ graph TD
 ### 🔐 Phase 3 — Route RBAC & Security Hardening (High Priority)
 
 #### 3.1 Route-Level Role Authorization Audit
+
 - **Current State:**
   - ASGI `AuthMiddleware` prevents anonymous HTTP access on non-public endpoints.
   - However, 48 routes lack explicit RBAC dependencies.
@@ -92,6 +98,8 @@ graph TD
 ---
 
 ### 🧪 Phase 4 — Test Coverage & Observability Ratchet (38% → 80%+)
+
+- **Current State:**"##we will do that phase later start phase 5"
 
 - Ensure all consolidated routers and agents have 100% passing tests.
 - Add regression tests for:
@@ -110,6 +118,7 @@ graph TD
 ---
 
 ## 🎯 Verification Criteria
+
 - [ ] Zero breaking changes in frontend APIs (`/api/v1/*`, `/api/task/*`, `/api/memory/*`).
 - [ ] All unit and integration tests pass (`pytest backend/tests/ -v`).
 - [ ] All frontend tests pass (`pnpm --dir frontend exec vitest run`).

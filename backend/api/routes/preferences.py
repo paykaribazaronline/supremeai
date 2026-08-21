@@ -1,14 +1,19 @@
 import asyncio
 import json
 
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
+from api.dependencies import get_current_user_token
 from core.messaging.pubsub import global_pubsub as theme_pubsub
 from database.supabase_client import db
 
-router = APIRouter(prefix="/preferences", tags=["preferences"])
+router = APIRouter(
+    prefix="/preferences",
+    tags=["preferences"],
+    dependencies=[Depends(get_current_user_token)],
+)
 
 
 class PreferenceUpdate(BaseModel):

@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 from pydantic import BaseModel
 
@@ -69,7 +69,14 @@ async def feedback_lifespan(router: APIRouter):
     yield
 
 
-router = APIRouter(prefix="/api/feedback", tags=["feedback"], lifespan=feedback_lifespan)
+from api.dependencies import get_current_user_token
+
+router = APIRouter(
+    prefix="/api/feedback",
+    tags=["feedback"],
+    lifespan=feedback_lifespan,
+    dependencies=[Depends(get_current_user_token)],
+)
 
 
 class FeedbackEvent(BaseModel):
