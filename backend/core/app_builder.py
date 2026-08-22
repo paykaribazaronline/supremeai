@@ -117,8 +117,19 @@ def create_app(title: str = settings.PROJECT_NAME) -> FastAPI:
     @asynccontextmanager
     async def _lifespan(app: FastAPI):
         # বাংলা মন্তব্ব্য: অ্যাপ্লিকেশন লাইফস্প্যান ম্যানেজমেন্ট
+        from core.auto_healer import get_auto_healer
+        import asyncio
+        monitoring_task = None
+        if settings.AUTO_HEALING_ENABLED:
+            healer = get_auto_healer()
+            monitoring_task = asyncio.create_task(healer.start_monitoring())
+        
         async with app_lifespan(app):
             yield
+            
+        if settings.AUTO_HEALING_ENABLED and monitoring_task:
+            healer.stop_monitoring()
+            await monitoring_task
 
     docs_url = "/docs" if getattr(settings, "docs_enabled", True) or settings.env == "local" or settings.debug else None
     redoc_url = "/redoc" if getattr(settings, "docs_enabled", True) or settings.env == "local" or settings.debug else None
@@ -203,10 +214,13 @@ def create_app(title: str = settings.PROJECT_NAME) -> FastAPI:
     # রাউটার রেজিস্ট্রেশনগুলো এখানে যোগ করুন
 
     # বাংলা মন্তব্ব্য: মেট্রিক্স এন্ডপয়েন্ট যোগ করা
-    # try:
-    #     # app.add_api_route("/metrics", metrics_endpoint, methods=["GET"])
-    # except Exception as e:
-    #     logger.error(f"Failed to add metrics endpoint: {e}")
+    if settings.MONITORING_DETAILED:
+        from fastapi.responses import PlainTextResponse
+        from core.monitoring import get_metrics_collector
+        @app.get("/metrics", response_class=PlainTextResponse)
+        async def metrics_endpoint():
+            collector = get_metrics_collector()
+            return collector.export_prometheus()
 
     # বাংলা মন্তব্ব্য: হেল্থ চেক এন্ডপয়েন্ট
     # আগে এটা শুধু হার্ডকোডেড {"status": "healthy"} রিটার্ন করত -- redis বা

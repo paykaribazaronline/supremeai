@@ -162,6 +162,78 @@ def get_costs():
         }
 
 
+@router.get("/costs/breakdown")
+def get_costs_breakdown():
+    """Returns structured JSON cost breakdown for the React CostAuditor component."""
+    auditor = CostAuditor()
+    try:
+        tasks = auditor.store.get_task_history()
+        
+        # Default structured values if no tasks exist
+        spent = sum(t.get("cost", 0.0) for t in tasks) if tasks else 0.0
+        
+        # Calculate provider usage
+        # Provider mapping based on task_type or description
+        providers = {
+            "Google Gemini": {"spent": 0.0, "quota": 50.00, "color": "from-[#1a73e8] to-[#8ab4f8]"},
+            "OpenRouter (DeepSeek)": {"spent": 0.0, "quota": 40.00, "color": "from-[#ff6b6b] to-[#ff8787]"},
+            "Hugging Face Hub": {"spent": 0.0, "quota": 30.00, "color": "from-[#ffd43b] to-[#ffe066]"},
+            "Groq (Llama 3)": {"spent": 0.0, "quota": 30.00, "color": "from-[#20c997] to-[#38d9a9]"},
+        }
+        
+        recent_charges = []
+        
+        for t in tasks:
+            cost = t.get("cost", 0.0)
+            t_type = t.get("task_type", "").lower()
+            desc = t.get("task_description", "").lower()
+            
+            # Categorize provider
+            target_provider = "Google Gemini"
+            if "deepseek" in t_type or "openrouter" in t_type or "deepseek" in desc:
+                target_provider = "OpenRouter (DeepSeek)"
+            elif "huggingface" in t_type or "hf" in t_type or "hugging face" in desc:
+                target_provider = "Hugging Face Hub"
+            elif "groq" in t_type or "llama" in t_type or "groq" in desc:
+                target_provider = "Groq (Llama 3)"
+                
+            providers[target_provider]["spent"] += cost
+            
+            # Construct charge entry
+            recent_charges.append({
+                "time": str(t.get("timestamp", utc_now())),
+                "user": "system",
+                "model": t.get("task_type", "unknown"),
+                "tokens": int(cost * 500000) if cost > 0 else 0, # Estimate tokens based on cost
+                "cost": cost
+            })
+            
+        provider_costs_list = [
+            {"name": name, "spent": p["spent"], "quota": p["quota"], "color": p["color"]}
+            for name, p in providers.items()
+        ]
+        
+        return {
+            "status": "ok",
+            "spent": spent,
+            "limit": 150.00,
+            "percentage": min((spent / 150.00) * 100, 100) if spent > 0 else 0,
+            "providerCosts": provider_costs_list,
+            "recentCharges": recent_charges[:10] # limit to last 10
+        }
+    except Exception as e:
+        logger.error(f"Failed to generate structured cost breakdown: {e}")
+        return {
+            "status": "error",
+            "spent": 0.0,
+            "limit": 150.00,
+            "percentage": 0.0,
+            "providerCosts": [],
+            "recentCharges": [],
+            "error": str(e)
+        }
+
+
 @router.get("/health-map")
 def get_health_map():
     import time

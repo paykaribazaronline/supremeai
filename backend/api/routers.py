@@ -155,6 +155,7 @@ _admin_paths = {
 # ADMIN_ROUTERS includes health and specific admin routes
 # বাংলা মন্তব্ব্য: অ্যাডমিন এপিআই রাউটারসমূহ
 ADMIN_ROUTERS: list[tuple[str, str]] = [
+    ("api.routes.health_aggregation", "/api"),
     ("api.routes.health", "/api/v1"),
     # বাংলা মন্তব্ব্য: অ্যাডমিন পোর্টালে গ্লোবাল কনফিগারেশন লোড করার জন্য public_config রাউটার যুক্ত করা হলো
     ("api.routes.public_config", "/api"),

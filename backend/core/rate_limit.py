@@ -62,6 +62,10 @@ class RateLimiter:
     
     async def _get_redis(self) -> Optional[aioredis.Redis]:
         """Lazy Redis initialization."""
+        from core.config import settings
+        if getattr(settings, 'RATE_LIMIT_USE_SIMPLIFIED', False):
+            return None
+            
         if not self._redis:
             try:
                 self._redis = aioredis.from_url(

@@ -85,6 +85,13 @@ class Settings(BaseSettings, SettingsFieldsMixin, SettingsSecretsMixin, Settings
     # বাংলা মন্তব্য: env validate হবে — invalid value = startup crash
     env: str = Field(default="local", validation_alias="ENV")
     debug: bool = Field(default=True)
+    
+    # Free Tier Optimizations
+    AUTO_HEALING_ENABLED: bool = Field(default=False)
+    MONITORING_DETAILED: bool = Field(default=False)
+    RATE_LIMIT_USE_SIMPLIFIED: bool = Field(default=True)
+    LLM_CACHE_MAX_SIZE: int = Field(default=500)
+    LLM_CACHE_DEFAULT_TTL: int = Field(default=3600)
 
     # বাংলা মন্তব্য: টেস্ট এনভায়রনমেন্টে AuthMiddleware-এর JWT ভেরিফিকেশন বাইপাস করার জন্য
     # বাংলা: CI pytest-এ ALLOW_TEST_AUTH_BYPASS=true সেট করা হয় — শুধু তখনই।

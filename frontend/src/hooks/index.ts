@@ -11,6 +11,7 @@ export {
   useCheckpoints,
   useDeleteCheckpoint,
   useCostReport,
+  useCostBreakdown,
   useHealthMap,
   useAdminUsers,
   useSaveUser,

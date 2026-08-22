@@ -28,6 +28,7 @@ import {
   EyeOff
 } from 'lucide-react';
 import AethelNode from './AethelNode';
+import { CrownJewelBrowser } from './CrownJewelBrowser';
 import { useAdminStore } from '../../store/adminStore';
 import { useTheme } from '../../contexts/useTheme';
 import { AudioRecorderService } from '../../services/audio/AudioRecorderService';
@@ -428,25 +429,12 @@ export function CommandCenter() {
               {/* BROWSER PREVIEW PANEL */}
               {showBrowser && (
                 <div className="flex-1 flex flex-col bg-[var(--bg-panel)] border border-[var(--border-accent)] rounded-xl overflow-hidden transition-all duration-300">
-                  <div className="px-3 py-2 border-b border-[var(--border-accent)] bg-[var(--bg-cell)] flex items-center gap-2">
-                    <Globe size={12} className="text-[var(--accent-primary)]" />
-                    <input
-                      type="text"
-                      value={browserUrl}
-                      onChange={e => setBrowserUrl(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter') { const el = document.getElementById('preview-iframe') as HTMLIFrameElement; if (el) el.src = browserUrl; }}}
-                      className="flex-grow bg-[var(--chat-input-bg)] border border-[var(--border-accent)] rounded px-2 py-0.5 text-[10px] text-[var(--text-main)] outline-none font-mono"
-                    />
-                  </div>
-                  <div className="flex-1 relative">
-                    <iframe
-                      id="preview-iframe"
-                      src={browserUrl}
-                      className="w-full h-full border-0"
-                      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                      title="Browser Preview"
-                    />
-                  </div>
+                  <CrownJewelBrowser 
+                    initialUrl={browserUrl} 
+                    onUrlChange={setBrowserUrl}
+                    showAIAssistant={true}
+                    showDevTools={true}
+                  />
                 </div>
               )}
 

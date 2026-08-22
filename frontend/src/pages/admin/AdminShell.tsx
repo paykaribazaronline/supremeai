@@ -4,6 +4,7 @@ import { AdminConsole } from "../../components/admin/AdminConsole";
 import { apiClient } from "../../services/apiClient";
 import { Shield } from "lucide-react";
 import type { AdminSubTab, Skill, Checkpoint, ChatMessage, HealthMap } from "../../types";
+import { useCostReport, useHealthMap, useSkills, useCheckpoints, useDeleteCheckpoint, useInstallSkill } from "../../hooks";
 
 export function AdminShell() {
   const {
@@ -27,14 +28,18 @@ export function AdminShell() {
 
   const [adminSubTab, setAdminSubTab] = useState<AdminSubTab>("dashboard");
   const [skillQuery, setSkillQuery] = useState("");
-  const [skillsList] = useState<Skill[]>([]);
-  const [checkpointsList] = useState<Checkpoint[]>([]);
+  
+  const { data: skillsList = [] } = useSkills(skillQuery);
+  const { data: checkpointsList = [] } = useCheckpoints();
+  const { data: costReportData } = useCostReport();
+  const costReport = costReportData?.report || "";
+  const { data: healthMapData } = useHealthMap();
+  const healthMap = healthMapData || { gcp: { status: 'unknown', latency: '', region: '' }, railway: { status: 'unknown', latency: '', region: '' }, render: { status: 'unknown', latency: '', region: '' } };
+
   const [adminMessages] = useState<ChatMessage[]>([]);
   const [loading] = useState(false);
   const [saveStatus, setSaveStatus] = useState("");
   const [liveLogs, setLiveLogs] = useState<string[]>([]);
-  const [costReport] = useState("");
-  const [healthMap] = useState<HealthMap>({ gcp: { status: 'unknown', latency: '', region: '' }, railway: { status: 'unknown', latency: '', region: '' }, render: { status: 'unknown', latency: '', region: '' } });
   const [newUsername, setNewUsername] = useState("");
   const [newUserRole, setNewUserRole] = useState("Operator");
   const [newUserPerms, setNewUserPerms] = useState("read,write");
@@ -70,12 +75,14 @@ export function AdminShell() {
     resetTotpSetup();
   };
 
+  const installSkillMutation = useInstallSkill();
   const handleInstallSkill = (name: string) => {
-    if (import.meta.env.DEV) console.warn("Install skill", name);
+    installSkillMutation.mutate(name);
   };
 
+  const deleteCheckpointMutation = useDeleteCheckpoint();
   const handleDeleteCheckpoint = (taskId: string) => {
-    if (import.meta.env.DEV) console.warn("Delete checkpoint", taskId);
+    deleteCheckpointMutation.mutate(taskId);
   };
 
   const handleTriggerDeploy = () => {

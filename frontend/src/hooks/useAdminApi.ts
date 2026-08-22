@@ -67,6 +67,39 @@ export function useCostReport() {
   });
 }
 
+export interface ProviderCost {
+  name: string;
+  spent: number;
+  quota: number;
+  color: string;
+}
+
+export interface RecentCharge {
+  time: string;
+  user: string;
+  model: string;
+  tokens: number;
+  cost: number;
+}
+
+export interface CostBreakdownData {
+  spent: number;
+  limit: number;
+  percentage: number;
+  providerCosts: ProviderCost[];
+  recentCharges: RecentCharge[];
+}
+
+export function useCostBreakdown() {
+  return useQuery({
+    queryKey: ['dashboard', 'costs', 'breakdown'],
+    queryFn: () => apiClient.get<CostBreakdownData>('/admin-api/costs/breakdown'),
+    refetchInterval: 30000,
+    enabled: hasToken(),
+    staleTime: 20000,
+  });
+}
+
 export function useHealthMap() {
   return useQuery({
     queryKey: ['dashboard', 'health'],

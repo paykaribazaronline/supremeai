@@ -1,5 +1,5 @@
 import { useState } from 'react';
-// বাংলা মন্তব্য: বাহিরের মডেল নামের বদলে SupremeAI ব্র্যান্ডেড নাম দেখানোর ইউটিলিটি
+import { useCostBreakdown } from '../../hooks';
 import { getSupremeModelLabel } from '../../lib/modelBranding';
 
 interface CostAuditorProps {
@@ -7,23 +7,14 @@ interface CostAuditorProps {
 }
 
 export function CostAuditor({ costReport }: CostAuditorProps) {
-  const [limit, setLimit] = useState(150.00);
-  const spent = 42.67;
-  const percentage = Math.min((spent / limit) * 100, 100);
+  const { data: breakdown } = useCostBreakdown();
 
-  const providerCosts = [
-    { name: "Google Gemini", spent: 18.24, quota: 50.00, color: "from-[#1a73e8] to-[#8ab4f8]" },
-    { name: "OpenRouter (DeepSeek)", spent: 12.80, quota: 40.00, color: "from-[#ff6b6b] to-[#ff8787]" },
-    { name: "Hugging Face Hub", spent: 6.45, quota: 30.00, color: "from-[#ffd43b] to-[#ffe066]" },
-    { name: "Groq (Llama 3)", spent: 5.18, quota: 30.00, color: "from-[#20c997] to-[#38d9a9]" },
-  ];
+  const spent = breakdown?.spent ?? 0.0;
+  const limit = breakdown?.limit ?? 150.00;
+  const percentage = breakdown?.percentage ?? 0.0;
 
-  const recentCharges = [
-    { time: "2026-06-22 22:04:12", user: "admin", model: "gemini-1.5-pro", tokens: 14205, cost: 0.0125 },
-    { time: "2026-06-22 22:01:45", user: "dev_team", model: "deepseek-coder", tokens: 8940, cost: 0.0078 },
-    { time: "2026-06-22 21:55:30", user: "agent_orchestrator", model: "gpt-4o", tokens: 18320, cost: 0.0245 },
-    { time: "2026-06-22 21:48:19", user: "user_491", model: "llama3-70b-groq", tokens: 3410, cost: 0.0034 },
-  ];
+  const providerCosts = breakdown?.providerCosts ?? [];
+  const recentCharges = breakdown?.recentCharges ?? [];
 
   return (
     <div className="flex-grow bg-[#030611] p-6 overflow-y-auto font-sans">
@@ -43,12 +34,6 @@ export function CostAuditor({ costReport }: CostAuditorProps) {
             <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Budget Cap</span>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-2xl font-bold text-slate-300 font-mono">${limit.toFixed(2)}</span>
-              <button
-                onClick={() => setLimit(prev => prev + 50)}
-                className="text-[9px] font-bold bg-[#00f3ff]/10 hover:bg-[#00f3ff]/20 text-[#00f3ff] border border-[#00f3ff]/20 px-2 py-0.5 rounded transition-all font-mono"
-              >
-                INCREASE
-              </button>
             </div>
           </div>
           <div className="flex flex-col">
