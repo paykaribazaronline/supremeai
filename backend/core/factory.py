@@ -23,7 +23,7 @@ from typing import Any, Dict, Optional
 # Structured logging setup
 logger = logging.getLogger("supremeai")
 
-from config.settings import get_settings
+from config.settings import Settings, get_settings
 from core.adaptive_optimizer import AdaptiveOptimizer, get_optimizer
 from core.integration_layer import SupremeAIIntegrator
 from core.provider_rate_limiter import IntelligentRateLimiter, get_provider_rate_limiter
@@ -46,7 +46,7 @@ class SupremeAIFactory:
         self._monitor: Optional[PerformanceMonitor] = None
         self._runtime: Optional[TaskRuntime] = None
         self._verifier: Optional[VerifierEngine] = None
-        self._settings = None
+        self._settings: Optional[Settings] = None
         self._start_time: Optional[datetime] = None
 
     async def create_production_instance(self) -> SupremeAIIntegrator:
@@ -60,11 +60,11 @@ class SupremeAIFactory:
         # 2. Initialize integrator (Phase 1, 2, 3)
         self._integrator = SupremeAIIntegrator(
             {
-                "engine": {"max_depth": self._settings.api.workers if hasattr(self._settings, "api") else 4},
+                "engine": {"max_depth": getattr(getattr(self._settings, 'api', None), 'workers', 4) if self._settings else 4},
                 "reasoning": {"parallel": True},
                 "memory": {
                     "max_episodic": (
-                        self._settings.memory.max_episodic_memory if hasattr(self._settings, "memory") else 1000
+                        getattr(getattr(self._settings, 'memory', None), 'max_episodic_memory', 1000) if self._settings else 1000
                     )
                 },
                 "auto_evolution": {"enabled": True, "check_interval": 300},
@@ -77,7 +77,7 @@ class SupremeAIFactory:
         self._limiter = get_provider_rate_limiter(
             {
                 "max_queue_size": (
-                    self._settings.api.rate_limit_per_minute * 2 if hasattr(self._settings, "api") else 120
+                    getattr(getattr(self._settings, 'api', None), 'rate_limit_per_minute', 60) * 2 if self._settings else 120
                 ),
                 "circuit_breaker_threshold": 3,
                 "max_retries": 3,

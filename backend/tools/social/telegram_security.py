@@ -175,6 +175,27 @@ class TelegramSecurityGuard:
                 return False, "🚨 <b>Authentication Failed:</b> 3 incorrect OTP attempts. Security lock applied for 10 minutes.", None
             return False, f"❌ <b>Invalid OTP code.</b> ({3 - attempts} attempts remaining before temporary lockout).", None
 
+    def validate_webapp_init_data(self, init_data: str, bot_token: str) -> tuple[bool, dict[str, str]]:
+        """Validate Telegram WebApp initData string using bot token HMAC-SHA256."""
+        if not init_data or not bot_token:
+            return False, {}
+        try:
+            from urllib.parse import parse_qsl
+            parsed = dict(parse_qsl(init_data, keep_blank_values=True))
+            if "hash" not in parsed:
+                return False, {}
+            received_hash = parsed.pop("hash")
+            data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(parsed.items()))
+            secret_key = hmac.new(b"WebAppData", bot_token.encode(), hashlib.sha256).digest()
+            computed_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+            if hmac.compare_digest(computed_hash, received_hash):
+                return True, parsed
+            return False, {}
+        except Exception as e:
+            logger.error(f"Telegram WebApp initData validation failed: {e}")
+            return False, {}
+
 
 # Global singleton instance
 security_guard = TelegramSecurityGuard()
+

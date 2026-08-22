@@ -2,7 +2,7 @@
 > Auto-updated by AI agents after each major session. Next agent must read this first.
 
 ## Last Session
-- **Date:** 2026-08-22 00:36 UTC
+- **Date:** 2026-08-22 00:48 UTC
 - **Agent:** Auto-updated (checkpoint_update.py)
 - **Summary:** Auto-updated via pre-commit hook
 
@@ -10,13 +10,17 @@
   - (see git log for details)
 
 ## Files Changed
+  - `CHECKPOINT.md`
+  - `frontend/src/components/dashboard/DashboardShell.test.tsx`
+  - `backend/tests/test_telegram_bot.py`
   - `frontend/src/components/dashboard/DashboardShell.tsx`
   - `frontend/src/components/ui/EmptyState.tsx`
-  - `frontend/src/components/ui/index.ts`
-  - `CHECKPOINT.md`
-  - `backend/services/scraper/tests/test_scraper_service.py`
-  - `frontend/src/components/dashboard/DashboardShell.test.tsx`
+  - `backend/tests/test_telegram_bot_v2.py`
+  - `backend/core/factory.py`
+  - `backend/tools/social/telegram_security.py`
   - `frontend/src/components/ui/EmptyState.test.tsx`
+  - `backend/tools/social/telegram_bot.py`
+  - `frontend/src/components/ui/index.ts`
 
 ## Pending (Carry Forward)
 - **MED:** Supabase `ai_memory` টেবিলে ভেক্টর স্কিমা ভ্যালিডেশন এবং `memory_write.py` লাইভ ভেক্টর ইনসার্ট টেস্ট।
