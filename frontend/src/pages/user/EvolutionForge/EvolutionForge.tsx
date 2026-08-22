@@ -22,6 +22,8 @@ import { ForgeSidebar } from './ForgeSidebar';
 import { useForgeAutosave } from './hooks/useForgeAutosave';
 import { DebateOverlay } from './DebateOverlay';
 import { getApiBaseUrl } from '../../../utils/api';
+import { apiClient } from '../../../services/apiClient';
+import { eventBus, Events } from '../../../lib/eventBus';
 
 // Register custom node types
 const nodeTypes = {
@@ -98,6 +100,17 @@ const EvolutionForgeCanvas = () => {
 
     return () => sse.close();
   }, []);
+
+  // Listen for newly installed skills
+  useEffect(() => {
+    const handleSkillCreated = (payload: any) => {
+      showToast(`New skill integrated: ${payload.skillId}`, 'success');
+    };
+    eventBus.on(Events.SKILL_AUTO_CREATED, handleSkillCreated);
+    return () => {
+      eventBus.off(Events.SKILL_AUTO_CREATED, handleSkillCreated);
+    };
+  }, [showToast]);
 
   // 🔄 Attach auto-save listener
   useForgeAutosave(nodes, edges);
@@ -176,16 +189,8 @@ const EvolutionForgeCanvas = () => {
       setIsSaving(true);
       const payload = buildForgePayload(`Swarm_${Date.now()}`, toObject());
 
-      const response = await fetch(`${getApiBaseUrl()}/api/v1/swarm/forge`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(payload),
-      });
+      await apiClient.post('/api/v1/swarm/forge', payload);
 
-      if (!response.ok) throw new Error('Failed to save swarm blueprint');
       showToast('Swarm blueprint saved successfully! 🚀', 'success');
     } catch (error) {
       console.error('Save failed:', error);
@@ -209,24 +214,12 @@ const EvolutionForgeCanvas = () => {
       // We use a dummy flow_id for now, in a real app this would be the saved swarm ID
       const flowId = `flow_${Date.now()}`;
 
-      const response = await fetch(`${getApiBaseUrl()}/api/v1/swarm/forge/${flowId}/execute`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(payload),
-      });
+      await apiClient.post(`/api/v1/swarm/forge/${flowId}/execute`, payload);
 
-      if (response.ok) {
-        showToast('Swarm execution started successfully! 🚀 Check Swarm Health Dashboard for live telemetry.', 'success');
-      } else {
-        const errorData = await response.json();
-        showToast(`Failed to execute swarm: ${errorData.detail || 'Unknown error'}`, 'error');
-      }
-    } catch (error) {
+      showToast('Swarm execution started successfully! 🚀 Check Swarm Health Dashboard for live telemetry.', 'success');
+    } catch (error: any) {
       console.error('Execution failed', error);
-      showToast('Error executing swarm blueprint.', 'error');
+      showToast(`Failed to execute swarm: ${error?.response?.data?.detail || error.message || 'Unknown error'}`, 'error');
     } finally {
       setIsExecuting(false);
     }

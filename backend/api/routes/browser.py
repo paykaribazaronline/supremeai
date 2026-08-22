@@ -423,6 +423,43 @@ def simulate_activity(body: dict[str, str]):
     RECENT_ACTIVITIES.append(activity)
     return activity
 
+# --- Crown Jewel Endpoints ---
+
+@router.post("/browse-session")
+def browse_session(body: dict[str, Any]):
+    return {"success": True, "session_id": f"sess_{hash(body.get('url'))}"}
+
+@router.post("/ai-action")
+def ai_action(body: dict[str, Any]):
+    action = body.get("action")
+    return {
+        "success": True, 
+        "action": action,
+        "response": f"AI successfully processed {action}",
+        "summary": "This is a mock summary for " + str(body.get("url")),
+        "analysis": "This is a mock analysis.",
+        "links": [{"title": "Example", "url": "https://example.com"}],
+        "issues": ["Low contrast", "Missing alt text"],
+        "criticalIssues": ["Missing CSP headers"]
+    }
+
+@router.post("/security-scan")
+def security_scan(body: dict[str, Any]):
+    return {
+        "success": True,
+        "score": 85,
+        "issues": ["Missing HSTS header", "Cookies without Secure flag"]
+    }
+
+@router.post("/screenshot")
+def capture_screenshot(body: dict[str, Any]):
+    # Returns the mock screenshot already in /surf/screenshot
+    mock_png_base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+    import base64
+    return Response(content=base64.b64decode(mock_png_base64), media_type="image/png")
+
+# -----------------------------
+
 
 @router.post("/tasks/{id}/step")
 def execute_step(task_id: str):

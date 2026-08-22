@@ -3,7 +3,8 @@
 // রোল-ভিত্তিক স্কিল ক্যাটালগ ফেচ করার সার্ভিস লেয়ার।
 
 import { getApiBaseUrl } from '../utils/api';
-import { getAuthHeaders } from './apiClient';
+import { apiClient, ApiError } from './apiClient';
+import { eventBus, Events } from '../lib/eventBus';
 
 export type SkillStatus = 'active' | 'deprecated' | 'experimental' | 'coming_soon';
 
@@ -29,18 +30,26 @@ export interface CatalogResponse {
 // বাংলা মন্তব্য: /api/skills/catalog এন্ডপয়েন্ট থেকে স্কিল লিস্ট ফেচ করে।
 // ব্যাকএন্ড নিজেই JWT রোল পার্স করে ফিল্টার করা স্কিল রিটার্ন করে।
 export const fetchSkillCatalog = async (): Promise<CatalogResponse> => {
-  const API_BASE = getApiBaseUrl();
-  const response = await fetch(`${API_BASE}/api/skills/catalog`, {
-    method: 'GET',
-    headers: await getAuthHeaders(),
-  });
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({ detail: 'Unknown error' }));
-    throw new Error(err.detail || `HTTP ${response.status}`);
+  try {
+    const response = await apiClient.get<CatalogResponse>('/api/skills/catalog');
+    
+    eventBus.emit(Events.METRICS_UPDATE_AVAILABLE, {
+      source: 'skills_catalog',
+      timestamp: Date.now(),
+    });
+    
+    return response.data;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 429) {
+      // Rate limited - notify user
+      eventBus.emit(Events.RATE_LIMIT_HIT, {
+        service: 'skills_catalog',
+        retryAfter: error.headers?.['retry-after'],
+        timestamp: Date.now(),
+      });
+    }
+    throw error;
   }
-
-  return response.json();
 };
 
 // বাংলা মন্তব্য: লাইভনেস প্রোব — UI হার্টবিট থেকে /api/v1/live চেক করে
@@ -81,4 +90,30 @@ export const getStatusBadge = (status: SkillStatus): { label: string; color: str
     coming_soon: { label: '🔜 Coming Soon', color: 'var(--supremeai-color-neutral-400, #9ca3af)' },
   };
   return map[status] ?? { label: status, color: '#6b7280' };
+};
+
+export interface InstallResult {
+  success: boolean;
+  skillId: string;
+  installedVersion: string;
+  message: string;
+}
+
+export const installSkill = async (skillId: string): Promise<InstallResult> => {
+  const response = await apiClient.post<InstallResult>(
+    `/api/skills/${skillId}/install`
+  );
+  
+  // Notify evolution system about new skill
+  eventBus.emit(Events.SKILL_AUTO_CREATED, {
+    skillId,
+    source: 'manual_install',
+    timestamp: Date.now(),
+  });
+  
+  return response.data;
+};
+
+export const uninstallSkill = async (skillId: string): Promise<void> => {
+  await apiClient.delete(`/api/skills/${skillId}/uninstall`);
 };

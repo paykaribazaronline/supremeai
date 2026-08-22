@@ -6,6 +6,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import { UnifiedChatBubble } from './UnifiedChatBubble';
 import { apiClient } from '../../services/apiClient';
+import { useEventBus } from '../../hooks/useEventBus';
+import { Events } from '../../lib/eventBus';
 
 export const ChatInterface: React.FC = () => {
   const { chatHistory, addMessage, isOrchestrating, triggerOrchestration } = useStore();
@@ -19,6 +21,13 @@ export const ChatInterface: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [chatHistory]);
+
+  useEventBus(Events.SYSTEM_ALERT, (payload: any) => {
+    addMessage({
+      role: 'system',
+      content: `[SYSTEM ALERT] ${payload.message || JSON.stringify(payload)}`
+    });
+  });
 
   const handleSend = async () => {
     if (!input.trim()) return;

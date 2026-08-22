@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { eventBus, Events } from '../lib/componentEventBus';
+import { componentEventBus } from '../lib/componentEventBus';
 
 interface ConsoleError {
   type: 'error' | 'warning' | 'info';
@@ -39,7 +39,7 @@ export function useIframeConsole(iframeRef: React.RefObject<HTMLIFrameElement>) 
         errorsRef.current.push(error);
         
         // Emit event for AI self-healing
-        eventBus.emit(Events.IFRAME_CONSOLE_ERROR, {
+        componentEventBus.emit('browser:console-error', {
           error,
           url: iframe.src,
         });

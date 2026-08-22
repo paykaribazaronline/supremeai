@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { getApiBaseUrl } from '../utils/api';
 import { getFirebaseAuth } from '../firebase';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { eventBus, Events } from '../lib/eventBus';
 
 const decodeJwt = (token: string): Record<string, unknown> | null => {
   try {
@@ -186,6 +187,12 @@ export const useAdminStore = create<AdminState>((set, get) => ({
               set({ adminRole: decoded.role });
             }
           }
+          
+          eventBus.emit(Events.AUTH_LOGIN, {
+            source: 'admin_store',
+            timestamp: Date.now()
+          });
+          
           set({ adminAuthenticated: true, otpRequired: false, totpSetupRequired: false, adminOtp: '' });
         } else {
           const data = await res.json();
@@ -211,6 +218,11 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       // তাই সুইচ ব্যাকএন্ড অল বেস্ট-এফোর্ট call এড়িয়ে সরাসরি Firebase client signOut করা হলো।
       // JWT স্ট্যাটেলেস — client-side token মুছে ফেলাই যথেষ্ট।
       await signOut(auth);
+      
+      eventBus.emit(Events.AUTH_LOGOUT, {
+        source: 'admin_store',
+        timestamp: Date.now()
+      });
     } catch(e) {
       console.error('Logout failed:', e);
     }
