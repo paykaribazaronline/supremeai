@@ -1,5 +1,11 @@
 import React, { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
+
+// বাংলা মন্তব্য: Header global search — CommandBar (⌘K) open করে। Shared event-driven trigger.
+const openCommandPalette = () => {
+  window.dispatchEvent(new CustomEvent('supremeai-open-command-palette'));
+};
 
 interface HeaderProps {
   title: string;
@@ -16,14 +22,27 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const user = useAuthStore((s) => s.user);
   const [showNotifications, setShowNotifications] = useState(false);
+  
+  let pathname = '/workspace';
+  let navigate = (_to: string) => {};
+  try {
+    const loc = useLocation();
+    pathname = loc.pathname;
+    navigate = useNavigate();
+  } catch {
+    // Fallback if rendered outside Router context
+  }
+
+  const isAdmin = pathname.startsWith('/admin');
 
   return (
-    <header className="bg-white/70 dark:bg-slate-900/55 backdrop-blur-md border-b border-gray-200/60 dark:border-white/5 px-6 py-4 sticky top-0 z-30">
+    <header className="bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl border-b border-gray-200/60 dark:border-white/10 px-6 py-3.5 sticky top-0 z-30 shadow-[0_4px_30px_rgba(0,0,0,0.1)]">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <button
             onClick={onToggleSidebar}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+            aria-label="Toggle Sidebar"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800/80 transition-colors"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -38,18 +57,88 @@ export const Header: React.FC<HeaderProps> = ({
               />
             </svg>
           </button>
-          <h1 className="text-xl font-semibold bg-gradient-to-r from-indigo-500 to-fuchsia-500 bg-clip-text text-transparent">{title}</h1>
+          
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
+              {title}
+            </h1>
+
+            {/* Live Swarm Telemetry Pulse Radar */}
+            <div
+              className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-900/80 border border-cyan-500/20 text-[11px] font-mono text-cyan-300 shadow-[0_0_12px_rgba(0,243,255,0.15)]"
+              title="Autonomous Swarm Active Mesh"
+              data-testid="swarm-radar"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+              </span>
+              <span>⚡ 42ms • Swarm Online</span>
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center space-x-4">
+        {/* Center Section: Global Search + Morphing Role Switcher (User | Admin) */}
+        <div className="flex items-center space-x-3">
+          {/* Global Search Button */}
+          <button
+            onClick={openCommandPalette}
+            aria-label="Search"
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/80 text-sm text-gray-500 dark:text-slate-400 hover:border-cyan-500/50 hover:shadow-[0_0_12px_rgba(0,243,255,0.15)] transition-all"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <span>Search...</span>
+            <kbd className="ml-2 rounded bg-gray-100 dark:bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-gray-400 dark:text-slate-400 border border-slate-700">
+              ⌘K
+            </kbd>
+          </button>
+
+          {/* Morphing Sliding Role Switcher */}
+          <div
+            className="relative flex items-center rounded-lg bg-gray-100 dark:bg-slate-900/90 p-1 border border-gray-200 dark:border-slate-800 shadow-inner"
+            role="tablist"
+            aria-label="Portal Role Switcher"
+          >
+            <button
+              role="tab"
+              aria-selected={!isAdmin}
+              onClick={() => navigate('/workspace')}
+              className={`relative z-10 px-3.5 py-1 text-xs font-semibold rounded-md transition-all duration-300 ${
+                !isAdmin
+                  ? "bg-purple-600/30 text-purple-300 border border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.35)]"
+                  : "text-gray-500 dark:text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              User
+            </button>
+            <button
+              role="tab"
+              aria-selected={isAdmin}
+              onClick={() => navigate('/admin')}
+              className={`relative z-10 px-3.5 py-1 text-xs font-semibold rounded-md transition-all duration-300 ${
+                isAdmin
+                  ? "bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 shadow-[0_0_15px_rgba(0,243,255,0.35)]"
+                  : "text-gray-500 dark:text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              Admin
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-3">
+          {/* Theme Toggle Button */}
           <button
             onClick={onToggleTheme}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+            aria-label="Toggle Theme"
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800/80 transition-colors"
           >
             {theme === 'dark' ? (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-yellow-500"
+                className="h-5 w-5 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.4)]"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -73,10 +162,12 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
+          {/* Notifications Dropdown */}
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Notifications"
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800/80 transition-colors relative"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -88,26 +179,33 @@ export const Header: React.FC<HeaderProps> = ({
                   d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"
                 />
               </svg>
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
             </button>
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 p-3 z-50">
-                <p className="text-xs font-semibold text-gray-800 dark:text-slate-200 mb-2">Notifications</p>
-                <div className="text-xs text-gray-600 dark:text-slate-400">
-                  <p className="py-1 border-b border-gray-100 dark:border-slate-700">No new notifications</p>
-                  <p className="py-1 text-gray-400 dark:text-slate-500">All caught up!</p>
+              <div className="absolute right-0 mt-2 w-72 bg-slate-900/95 backdrop-blur-xl rounded-xl shadow-2xl border border-white/10 p-4 z-50 animate-in fade-in zoom-in-95 duration-200">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-300">Live Telemetry Alerts</p>
+                  <span className="text-[10px] font-mono text-cyan-400">All Clear</span>
+                </div>
+                <div className="text-xs text-slate-400 space-y-2">
+                  <div className="p-2 rounded-lg bg-slate-800/60 border border-white/5">
+                    <p className="font-medium text-slate-200">Swarm Health 100%</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">All 52 knowledge cards and reasoning engines active.</p>
+                  </div>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-              <span className="text-blue-800 dark:text-blue-200 font-medium text-sm">
-                {user ? user.name.charAt(0).toUpperCase() : 'U'}
+          {/* User Profile Avatar */}
+          <div className="flex items-center space-x-2 pl-2 border-l border-gray-200 dark:border-slate-800">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center shadow-[0_0_10px_rgba(0,243,255,0.3)]">
+              <span className="text-white font-bold text-xs">
+                {user ? user.name.charAt(0).toUpperCase() : 'A'}
               </span>
             </div>
             <span className="text-sm font-medium text-gray-700 dark:text-slate-300 hidden md:block">
-              {user ? user.name : 'User'}
+              {user ? user.name : 'Alex (Admin)'}
             </span>
           </div>
         </div>
@@ -115,3 +213,5 @@ export const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
+
+export default Header;

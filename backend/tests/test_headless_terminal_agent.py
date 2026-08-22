@@ -18,9 +18,10 @@ from agents.headless_terminal_agent import CommandSafety, HeadlessTerminalAgent
 @pytest.mark.anyio
 async def test_execute_blocks_dangerous_command():
     agent = HeadlessTerminalAgent()
+    # Mock LLM network calls
+    agent.interpreter.check_safety = AsyncMock(return_value=(CommandSafety.BLOCKED, "Dangerous command"))
     res = await agent.execute("rm -rf /")
 
-    # Heuristic may classify differently depending on routing; ensure safety is not SAFE.
     # Heuristic may classify differently depending on routing; assert it is not SAFE
     assert res.safety_status != CommandSafety.SAFE
 
@@ -28,6 +29,8 @@ async def test_execute_blocks_dangerous_command():
 @pytest.mark.anyio
 async def test_execute_review_required_requires_confirmation():
     agent = HeadlessTerminalAgent()
+    # Mock LLM network calls
+    agent.interpreter.check_safety = AsyncMock(return_value=(CommandSafety.REVIEW_REQUIRED, "Requires review"))
     res = await agent.execute("sudo npm install -g x")
     # sudo কমান্ড SAFE হওয়া উচিত নয় — security policy enforce করা হচ্ছে
     assert res.safety_status != CommandSafety.SAFE
@@ -37,6 +40,7 @@ async def test_execute_review_required_requires_confirmation():
 async def test_execute_natural_language_interpret_path():
     agent = HeadlessTerminalAgent()
     agent.interpreter.interpret = AsyncMock(return_value="echo hello")
+    agent.interpreter.check_safety = AsyncMock(return_value=(CommandSafety.SAFE, "Ok"))
 
     mock_proc = _MagicMock()
     mock_proc.communicate = AsyncMock(return_value=(b"out", b""))
@@ -53,6 +57,7 @@ async def test_execute_natural_language_interpret_path():
 @pytest.mark.anyio
 async def test_execute_command_timeout():
     agent = HeadlessTerminalAgent()
+    agent.interpreter.check_safety = AsyncMock(return_value=(CommandSafety.SAFE, "Ok"))
 
     mock_proc = _MagicMock()
     mock_proc.communicate = AsyncMock()

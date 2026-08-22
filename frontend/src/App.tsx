@@ -36,6 +36,7 @@ import type { ChatMessage as ApiChatMessage } from "./services/chatService";
 import { useServerStream } from './hooks/useServerStream';
 import ErrorBoundary from './components/admin/DashboardErrorBoundary';
 import { primeDeviceFingerprint } from "./utils/deviceFingerprint";
+import { CommandBar } from './components/layout/CommandBar';
 
 primeDeviceFingerprint(); // বাংলা মন্তব্য: অ্যাপ বুট হওয়ার সাথে সাথে ব্যাকগ্রাউন্ডে ফিঙ্গারপ্রিন্ট হ্যাশ প্রিলোড হচ্ছে
 
@@ -246,15 +247,21 @@ const AppContent: React.FC = () => {
                     </ProtectedRoute>
                   } />
 
+                  {/* বাংলা মন্তব্য: Unified Admin Console Route (Blueprint P0 Shared Shell) */}
+                  <Route path="/admin/*" element={
+                    <ProtectedRoute>
+                      <AdminShell />
+                    </ProtectedRoute>
+                  } />
+
                   {/* Catch-all 404 Route */}
                   <Route path="*" element={<ErrorPage code={404} />} />
-
-                  {/* Users trying to access admin are redirected */}
-                  <Route path="/admin/*" element={<Navigate to="/" replace />} />
                 </>
               )}
             </Routes>
           </React.Suspense>
+          {/* বাংলা মন্তব্য: Global Command Palette — সব route-এ Header search / ⌘K triggered; বন্ধ থাকলে UI রেন্ডার হয় না */}
+          <CommandBar />
         </GlobalConfigInitializer>
       </QueryClientProvider>
     </ErrorBoundary>

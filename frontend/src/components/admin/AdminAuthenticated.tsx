@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import type { AdminSubTab, GcpHealth, CloudStats, Skill, Checkpoint, ChatMessage, AdminUser, HealthMap } from '../../types';
 import { SubTabContent } from './AdminSubTabContent';
 import { AdminTopNav } from './AdminTopNav';
+import { ADMIN_SUBTAB_EVENT } from '../../config/commandRegistry';
 import {
-  Search,
   LayoutDashboard,
   GitMerge,
   Server,
@@ -72,23 +72,18 @@ interface AuthenticatedViewProps {
  */
 export function AuthenticatedView(props: AuthenticatedViewProps) {
   const { adminSubTab, setAdminSubTab, handleAdminLogout } = props;
-  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
-  // Cmd+K to open Command Palette
+  // বাংলা মন্তব্য: Palette এখন global CommandBar (unified registry) — admin subtab navigation
+  // 'supremeai-admin-subtab' custom event-এর মাধ্যমে আসে। Double-palette conflict এড়াতে
+  // এখানে আলাদা Ctrl+K handler রাখা হয়নি।
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setIsPaletteOpen(prev => !prev);
-      }
-      if (e.key === 'Escape' && isPaletteOpen) {
-        setIsPaletteOpen(false);
-      }
+    const handleSubtabEvent = (e: Event) => {
+      const tabId = (e as CustomEvent<string>).detail;
+      setAdminSubTab(tabId as AdminSubTab);
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPaletteOpen]);
+    window.addEventListener(ADMIN_SUBTAB_EVENT, handleSubtabEvent);
+    return () => window.removeEventListener(ADMIN_SUBTAB_EVENT, handleSubtabEvent);
+  }, [setAdminSubTab]);
 
   // As per SUPREMEAI_GOD_CONTROL_CENTER_PLAN.md, the sidebar is module-driven.
   const sidebarItems = [
@@ -105,34 +100,7 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
     { id: 'interactive-chat', label: 'TERMINAL', icon: <Terminal size={16} /> },
   ];
 
-  // কমান্ড প্যালেট অপশনসমূহ
-  const navigationOptions = [
-    { id: 'dashboard', label: 'Dashboard Overview' },
-    { id: 'alerts', label: 'System Alerts & Diagnostics' },
-    { id: 'interactive-chat', label: 'Interactive Chat (Browser & Terminal)' },
-    { id: 'command-center', label: 'SupremeAI Nexus (Canvas)' },
-    { id: 'logs', label: 'Real-time Logs' },
-    { id: 'costs', label: 'Cost Auditor' },
-    { id: 'health', label: 'Health Map' },
-    { id: 'users', label: 'User Manager / Agents' },
-    { id: 'config', label: 'Config Editor' },
-    { id: 'model-router', label: 'Model Router' },
-    { id: 'skills', label: 'Skill Marketplace' },
-    { id: 'memory', label: 'Memory Browser' },
-    { id: 'cloud', label: 'Cloud Orchestrator' },
-    { id: 'observability', label: 'Observability' },
-    { id: 'threats', label: 'Threat Detection' },
-    { id: 'rules', label: 'Rules Builder' },
-    { id: 'cicd', label: 'CI/CD Pipelines' },
-    { id: 'github', label: 'GitHub Integration' },
-    { id: 'backups', label: 'Backup & Restore' },
-    { id: 'rate-limits', label: 'Rate Limits' },
-    { id: 'security-dashboard', label: '🧠 Security & Memory Dashboard' }
-  ];
-
-  const filteredOptions = navigationOptions.filter(opt =>
-    opt.label.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // বাংলা মন্তব্য: কমান্ড প্যালেট অপশন এখন src/config/commandRegistry.ts-এ (unified registry)।
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -186,47 +154,6 @@ export function AuthenticatedView(props: AuthenticatedViewProps) {
           <SubTabContent {...props} />
         </main>
       </div>
-
-      {/* ৪. কমান্ড প্যালেট ওভারলে (Cmd+K) */}
-      {isPaletteOpen && (
-        <div className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-[#050917] border border-[#00f3ff]/30 rounded-xl shadow-[0_0_40px_rgba(0,243,255,0.15)] flex flex-col overflow-hidden">
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-[#00f3ff]/20">
-              <Search className="text-[#00f3ff] w-5 h-5" />
-              <input
-                autoFocus
-                type="text"
-                placeholder="Navigate to... (e.g. Cost Auditor)"
-                className="flex-1 bg-transparent border-none outline-none text-white font-mono placeholder:text-slate-400"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <span className="text-xs text-slate-400 font-mono">ESC to close</span>
-            </div>
-            <div className="max-h-[60vh] overflow-y-auto p-2">
-              {filteredOptions.map((opt, i) => (
-                <button
-                  key={opt.id}
-                  onClick={() => {
-                    setAdminSubTab(opt.id as AdminSubTab);
-                    setIsPaletteOpen(false);
-                    setSearchQuery('');
-                  }}
-                  className={`w-full text-left px-4 py-3 rounded-lg font-mono transition-colors flex items-center gap-3 ${i === 0 && searchQuery ? 'bg-[#00f3ff]/10 text-[#00f3ff]' : 'hover:bg-white/5 text-slate-300'
-                    }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-              {filteredOptions.length === 0 && (
-                <div className="px-4 py-8 text-center text-slate-400 font-mono">
-                  No modules found.
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

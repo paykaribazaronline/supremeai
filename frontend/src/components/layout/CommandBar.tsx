@@ -1,18 +1,22 @@
 // apps/studio-client/src/components/layout/CommandBar.tsx
 // Universal Command Palette (Ctrl+K / Cmd+K)
 // বাংলা মন্তব্য: ইউনিভার্সাল কমান্ড প্যালেট — দ্রুত অ্যাকশন, মডেল সুইচিং এবং পেজ ন্যাভিগেশনের জন্য।
+// Raycast-style Inspector Drawer + Keyboard Navigation (↑/↓/Enter).
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Terminal, Cpu, Shield, Zap, Sparkles, Folder, Command, X } from 'lucide-react';
+import { Search, Command, X, ArrowRight, CornerDownLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { getCommandsForPortal, getCurrentPortal } from '../../config/commandRegistry';
+import type { CommandDefinition } from '../../config/commandRegistry';
 
 interface CommandItem {
   id: string;
   title: string;
-  category: 'Actions' | 'Navigation' | 'AI Models' | 'System';
+  category: string;
   icon: React.ElementType;
   shortcut?: string;
+  route?: string;
   action: () => void;
 }
 
@@ -21,25 +25,64 @@ interface CommandBarProps {
   onClose?: () => void;
 }
 
+/** বাংলা মন্তব্য: registry definition → runtime item (navigate/action wiring) */
+function materializeCommands(
+  definitions: CommandDefinition[],
+  navigate: (path: string) => void,
+  onClose: () => void,
+): CommandItem[] {
+  return definitions.map((def) => ({
+    id: def.id,
+    title: def.title,
+    category: def.category,
+    icon: def.icon,
+    shortcut: def.shortcut,
+    route: def.route,
+    action: () => {
+      if (def.route) {
+        navigate(def.route);
+      }
+      def.action?.();
+      onClose();
+    },
+  }));
+}
+
 export const CommandBar: React.FC<CommandBarProps> = ({ isOpen: controlledOpen, onClose }) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const navigate = useNavigate();
 
   const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     if (onClose) onClose();
     else setInternalOpen(false);
     setQuery('');
-  };
+    setSelectedIndex(0);
+  }, [onClose]);
+
+  const commands: CommandItem[] = materializeCommands(
+    getCommandsForPortal(getCurrentPortal()),
+    navigate,
+    handleClose,
+  );
+
+  const filteredCommands = commands.filter(
+    (item) =>
+      item.title.toLowerCase().includes(query.toLowerCase()) ||
+      item.category.toLowerCase().includes(query.toLowerCase())
+  );
+
+  const selectedCommand = filteredCommands[selectedIndex] || filteredCommands[0];
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         if (controlledOpen === undefined) {
-          setInternalOpen(prev => !prev);
+          setInternalOpen((prev) => !prev);
         } else if (isOpen) {
           handleClose();
         }
@@ -47,151 +90,163 @@ export const CommandBar: React.FC<CommandBarProps> = ({ isOpen: controlledOpen, 
       if (e.key === 'Escape' && isOpen) {
         handleClose();
       }
+      if (!isOpen || filteredCommands.length === 0) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev + 1) % filteredCommands.length);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIndex((prev) => (prev - 1 + filteredCommands.length) % filteredCommands.length);
+      } else if (e.key === 'Enter' && selectedCommand) {
+        e.preventDefault();
+        selectedCommand.action();
+      }
     };
 
+    const handleOpenEvent = () => setInternalOpen(true);
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, controlledOpen]);
-
-  const commands: CommandItem[] = [
-    {
-      id: 'nav-agent',
-      title: 'Agent Workspace',
-      category: 'Navigation',
-      icon: Terminal,
-      shortcut: 'Shift+A',
-      action: () => { navigate('/workspace/agent'); handleClose(); }
-    },
-    {
-      id: 'nav-ide',
-      title: 'Cloud IDE Workspace',
-      category: 'Navigation',
-      icon: Folder,
-      shortcut: 'Shift+I',
-      action: () => { navigate('/workspace/ide'); handleClose(); }
-    },
-    {
-      id: 'nav-swarm',
-      title: 'Swarm Telemetry & Heatmap',
-      category: 'Navigation',
-      icon: Cpu,
-      shortcut: 'Shift+S',
-      action: () => { navigate('/swarm'); handleClose(); }
-    },
-    {
-      id: 'nav-architect',
-      title: 'Architect Tower',
-      category: 'Navigation',
-      icon: Shield,
-      action: () => { navigate('/architect-tower'); handleClose(); }
-    },
-    {
-      id: 'nav-skills',
-      title: 'Skills Catalog',
-      category: 'Navigation',
-      icon: Sparkles,
-      action: () => { navigate('/skills-catalog'); handleClose(); }
-    },
-    {
-      id: 'action-heal',
-      title: 'Trigger Autonomous Self-Healer',
-      category: 'Actions',
-      icon: Zap,
-      shortcut: 'Ctrl+H',
-      action: () => { console.warn('Self healer triggered'); handleClose(); }
-    },
-    {
-      id: 'model-deepseek',
-      title: 'Switch to SupremeAI Deep (Coding Expert)',
-      category: 'AI Models',
-      icon: Cpu,
-      action: () => { console.warn('Switched to SupremeAI Deep'); handleClose(); }
-    },
-    {
-      id: 'model-kimi',
-      title: 'Switch to SupremeAI Reason (Bangla & Reasoning)',
-      category: 'AI Models',
-      icon: Sparkles,
-      action: () => { console.warn('Switched to SupremeAI Reason'); handleClose(); }
-    },
-  ];
-
-  const filteredCommands = commands.filter(item =>
-    item.title.toLowerCase().includes(query.toLowerCase()) ||
-    item.category.toLowerCase().includes(query.toLowerCase())
-  );
+    window.addEventListener('supremeai-open-command-palette', handleOpenEvent);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('supremeai-open-command-palette', handleOpenEvent);
+    };
+  }, [isOpen, controlledOpen, handleClose, filteredCommands, selectedCommand]);
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-slate-950/80 backdrop-blur-md">
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4 bg-slate-950/80 backdrop-blur-xl">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+            initial={{ opacity: 0, scale: 0.96, y: -12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -10 }}
-            className="w-full max-w-2xl overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-2xl"
+            exit={{ opacity: 0, scale: 0.96, y: -12 }}
+            className="w-full max-w-3xl overflow-hidden rounded-2xl border border-white/10 bg-slate-900/95 shadow-[0_20px_60px_rgba(0,0,0,0.8)] backdrop-blur-2xl"
           >
             {/* Header / Search Input */}
-            <div className="flex items-center border-b border-slate-800 px-4 py-3 bg-slate-900/90">
-              <Search className="mr-3 h-5 w-5 text-slate-400" />
+            <div className="flex items-center border-b border-white/10 px-4 py-3.5 bg-slate-900/80">
+              <Search className="mr-3 h-5 w-5 text-cyan-400" />
               <input
                 type="text"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Type a command or search workspace... (Ctrl+K)"
-                className="flex-1 bg-transparent text-sm text-slate-100 placeholder-slate-500 focus:outline-none"
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setSelectedIndex(0);
+                }}
+                placeholder="Type a command or search workspace... (↑/↓ to navigate, Enter to run)"
+                className="flex-1 bg-transparent text-sm font-medium text-slate-100 placeholder-slate-500 focus:outline-none"
                 autoFocus
               />
               <button
                 onClick={handleClose}
-                className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-200 transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            {/* Command List */}
-            <div className="max-h-96 overflow-y-auto p-2">
-              {filteredCommands.length === 0 ? (
-                <div className="p-6 text-center text-sm text-slate-500">
-                  No commands found matching "{query}"
-                </div>
-              ) : (
-                filteredCommands.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={item.action}
-                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left text-sm text-slate-300 hover:bg-cyan-500/10 hover:text-cyan-400 transition-colors group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="rounded p-1.5 bg-slate-800 text-slate-400 group-hover:bg-cyan-500/20 group-hover:text-cyan-400">
-                          <Icon className="h-4 w-4" />
+            {/* Split View: Left List + Right Raycast Inspector Drawer */}
+            <div className="grid grid-cols-1 md:grid-cols-5 min-h-[320px] max-h-[420px]">
+              {/* Left Column: Command List */}
+              <div className="md:col-span-3 overflow-y-auto p-2 border-r border-white/5 space-y-1">
+                {filteredCommands.length === 0 ? (
+                  <div className="p-8 text-center text-sm text-slate-500">
+                    No commands found matching "{query}"
+                  </div>
+                ) : (
+                  filteredCommands.map((item, index) => {
+                    const Icon = item.icon;
+                    const isSelected = index === selectedIndex;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={item.action}
+                        onMouseEnter={() => setSelectedIndex(index)}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left text-xs font-medium transition-all ${
+                          isSelected
+                            ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 shadow-[0_0_12px_rgba(0,243,255,0.2)]'
+                            : 'text-slate-300 hover:bg-slate-800/60 border border-transparent'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div
+                            className={`rounded-lg p-1.5 ${
+                              isSelected
+                                ? 'bg-cyan-500/30 text-cyan-300'
+                                : 'bg-slate-800 text-slate-400'
+                            }`}
+                          >
+                            <Icon className="h-3.5 w-3.5" />
+                          </div>
+                          <span className="truncate">{item.title}</span>
                         </div>
-                        <div>
-                          <p className="font-medium">{item.title}</p>
-                          <span className="text-[10px] text-slate-500">{item.category}</span>
-                        </div>
+                        {item.shortcut && (
+                          <kbd className="ml-2 flex-shrink-0 rounded bg-slate-800 px-1.5 py-0.5 text-[9px] font-mono text-slate-400 border border-slate-700">
+                            {item.shortcut}
+                          </kbd>
+                        )}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Right Column: Raycast Inspector Drawer */}
+              <div className="hidden md:flex md:col-span-2 flex-col justify-between p-4 bg-slate-950/40 text-xs text-slate-400">
+                {selectedCommand ? (
+                  <div className="space-y-4">
+                    <div>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                        {selectedCommand.category}
+                      </span>
+                      <h4 className="text-sm font-bold text-slate-100 mt-2">
+                        {selectedCommand.title}
+                      </h4>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        {selectedCommand.route
+                          ? `Navigate to destination route: ${selectedCommand.route}`
+                          : 'Execute autonomous pipeline action.'}
+                      </p>
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/5 space-y-1.5 font-mono text-[11px]">
+                      <div className="flex justify-between text-slate-400">
+                        <span>Action Type:</span>
+                        <span className="text-cyan-400">{selectedCommand.route ? 'Route Navigation' : 'Engine Action'}</span>
                       </div>
-                      {item.shortcut && (
-                        <kbd className="hidden sm:inline-block rounded bg-slate-800 px-2 py-0.5 text-[10px] font-mono text-slate-400">
-                          {item.shortcut}
-                        </kbd>
-                      )}
-                    </button>
-                  );
-                })
-              )}
+                      <div className="flex justify-between text-slate-400">
+                        <span>Access Level:</span>
+                        <span className="text-emerald-400">Authorized</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-slate-500 text-center my-auto">Select a command to view details</div>
+                )}
+
+                {/* Quick Execute Hint */}
+                {selectedCommand && (
+                  <div className="pt-3 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-500">
+                    <span className="flex items-center gap-1">
+                      Press <CornerDownLeft className="h-3 w-3 text-cyan-400" /> to run
+                    </span>
+                    <ArrowRight className="h-3 w-3 text-slate-600" />
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Footer */}
-            <div className="flex items-center justify-between border-t border-slate-800/80 px-4 py-2 bg-slate-950/50 text-[11px] text-slate-500 font-mono">
-              <span className="flex items-center gap-1">
-                <Command className="h-3 w-3" /> SupremeAI Autonomous Shell
+            {/* Footer Bar */}
+            <div className="flex items-center justify-between border-t border-white/10 px-4 py-2 bg-slate-950/80 text-[11px] text-slate-500 font-mono">
+              <span className="flex items-center gap-1.5">
+                <Command className="h-3 w-3 text-cyan-400" /> SupremeAI Command Registry
               </span>
-              <span>ESC to cancel</span>
+              <div className="flex items-center gap-3">
+                <span>↑↓ Navigate</span>
+                <span>↵ Select</span>
+                <span>ESC Close</span>
+              </div>
             </div>
           </motion.div>
         </div>
