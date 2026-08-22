@@ -13,12 +13,14 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
+from collections.abc import Callable
+from loguru import logger
 
 
 def hamming_distance(s1: str, s2: str) -> int:
     """Calculate Hamming distance between two strings."""
-    return sum(c1 != c2 for c1, c2 in zip(s1, s2)) + abs(len(s1) - len(s2))
+    return sum(c1 != c2 for c1, c2 in zip(s1, s2, strict=False)) + abs(len(s1) - len(s2))
 
 
 class PatternType(str, Enum):
@@ -35,21 +37,21 @@ class Pattern:
     pattern_type: PatternType
     signature: str
     description: str
-    examples: List[Any]
+    examples: list[Any]
     frequency: int
     confidence: float
     last_seen: datetime
     success_rate: float
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class PatternMatch:
     pattern: Pattern
     match_score: float
-    matched_elements: List[Any]
-    context: Dict[str, Any]
-    suggestions: List[str]
+    matched_elements: list[Any]
+    context: dict[str, Any]
+    suggestions: list[str]
 
 
 class PatternRecognizer:
@@ -58,12 +60,12 @@ class PatternRecognizer:
     Identifies sequences, structures, temporal patterns, semantic similarities.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
-        self.config: Dict[str, Any] = config or {}
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
+        self.config: dict[str, Any] = config or {}
 
         # Pattern storage
-        self.known_patterns: Dict[str, Pattern] = {}
-        self.pattern_index: Dict[PatternType, List[Pattern]] = defaultdict(list)
+        self.known_patterns: dict[str, Pattern] = {}
+        self.pattern_index: dict[PatternType, list[Pattern]] = defaultdict(list)
 
         # Recognition settings
         self.min_confidence_threshold: float = self.config.get("min_confidence", 0.6)
@@ -71,7 +73,7 @@ class PatternRecognizer:
         self.decay_factor: float = self.config.get("decay_factor", 0.95)
 
         # Statistics
-        self.stats: Dict[str, Any] = {
+        self.stats: dict[str, Any] = {
             "patterns_discovered": 0,
             "patterns_recognized": 0,
             "avg_recognition_time_ms": 0.0,
@@ -81,14 +83,14 @@ class PatternRecognizer:
         # Initialize built-in canonical patterns
         self._initialize_builtin_patterns()
 
-    async def recognize(self, data: Any, context: Optional[Dict[str, Any]] = None) -> List[PatternMatch]:
+    async def recognize(self, data: Any, context: dict[str, Any] | None = None) -> list[PatternMatch]:
         """Main recognition entry point - identifies all patterns in given data."""
         start_time = datetime.now()
-        matches: List[PatternMatch] = []
+        matches: list[PatternMatch] = []
         ctx = context or {}
 
         try:
-            recognition_methods: List[Callable[..., Any]] = [
+            recognition_methods: list[Callable[..., Any]] = [
                 self._recognize_sequence_patterns,
                 self._recognize_structural_patterns,
                 self._recognize_temporal_patterns,
@@ -111,11 +113,11 @@ class PatternRecognizer:
             self._update_avg_time(elapsed)
 
         except Exception as e:
-            print(f"Pattern recognition anomaly handled: {e}")
+            logger.warning(f"Pattern recognition anomaly handled: {e}")
 
         return matches
 
-    async def learn_from_example(self, example: Any, outcome: Any, success: bool = True) -> Optional[Pattern]:
+    async def learn_from_example(self, example: Any, outcome: Any, success: bool = True) -> Pattern | None:
         """Learn new patterns from examples."""
         features = self._extract_features(example)
         signature = self._generate_signature(features)
@@ -130,9 +132,9 @@ class PatternRecognizer:
 
         return None
 
-    async def _recognize_sequence_patterns(self, data: Any, context: Dict[str, Any]) -> List[PatternMatch]:
-        matches: List[PatternMatch] = []
-        if isinstance(data, (list, str)):
+    async def _recognize_sequence_patterns(self, data: Any, context: dict[str, Any]) -> list[PatternMatch]:
+        matches: list[PatternMatch] = []
+        if isinstance(data, list | str):
             sequences = self._extract_sequences(data)
             for seq in sequences:
                 for pattern in self.pattern_index[PatternType.SEQUENCE]:
@@ -149,8 +151,8 @@ class PatternRecognizer:
                         )
         return matches
 
-    async def _recognize_structural_patterns(self, data: Any, context: Dict[str, Any]) -> List[PatternMatch]:
-        matches: List[PatternMatch] = []
+    async def _recognize_structural_patterns(self, data: Any, context: dict[str, Any]) -> list[PatternMatch]:
+        matches: list[PatternMatch] = []
         if hasattr(data, "__dict__") or isinstance(data, dict):
             structure = self._extract_structure(data)
             for pattern in self.pattern_index[PatternType.STRUCTURAL]:
@@ -167,8 +169,8 @@ class PatternRecognizer:
                     )
         return matches
 
-    async def _recognize_temporal_patterns(self, data: Any, context: Dict[str, Any]) -> List[PatternMatch]:
-        matches: List[PatternMatch] = []
+    async def _recognize_temporal_patterns(self, data: Any, context: dict[str, Any]) -> list[PatternMatch]:
+        matches: list[PatternMatch] = []
         timestamps = self._extract_timestamps(data, context)
         if timestamps and len(timestamps) > 1:
             for pattern in self.pattern_index[PatternType.TEMPORAL]:
@@ -183,8 +185,8 @@ class PatternRecognizer:
                 )
         return matches
 
-    async def _recognize_semantic_patterns(self, data: Any, context: Dict[str, Any]) -> List[PatternMatch]:
-        matches: List[PatternMatch] = []
+    async def _recognize_semantic_patterns(self, data: Any, context: dict[str, Any]) -> list[PatternMatch]:
+        matches: list[PatternMatch] = []
         text = self._extract_text(data)
         if text:
             for pattern in self.pattern_index[PatternType.SEMANTIC]:
@@ -201,8 +203,8 @@ class PatternRecognizer:
                     )
         return matches
 
-    async def _recognize_behavioral_patterns(self, data: Any, context: Dict[str, Any]) -> List[PatternMatch]:
-        matches: List[PatternMatch] = []
+    async def _recognize_behavioral_patterns(self, data: Any, context: dict[str, Any]) -> list[PatternMatch]:
+        matches: list[PatternMatch] = []
         actions = self._extract_actions(data, context)
         if actions:
             for pattern in self.pattern_index[PatternType.BEHAVIORAL]:
@@ -217,8 +219,8 @@ class PatternRecognizer:
                 )
         return matches
 
-    def _extract_features(self, data: Any) -> Dict[str, Any]:
-        features: Dict[str, Any] = {
+    def _extract_features(self, data: Any) -> dict[str, Any]:
+        features: dict[str, Any] = {
             "type": type(data).__name__,
             "size": len(data) if hasattr(data, "__len__") else 1,
             "hash": hash(str(data)) % 10000,
@@ -229,7 +231,7 @@ class PatternRecognizer:
                 "word_count": len(data.split()),
                 "has_numbers": any(c.isdigit() for c in data),
             })
-        elif isinstance(data, (list, tuple)):
+        elif isinstance(data, list | tuple):
             features.update({
                 "element_count": len(data),
                 "element_types": list(set(type(x).__name__ for x in data)),
@@ -241,18 +243,18 @@ class PatternRecognizer:
             })
         return features
 
-    def _generate_signature(self, features: Dict[str, Any]) -> str:
+    def _generate_signature(self, features: dict[str, Any]) -> str:
         feature_str = str(sorted(features.items()))
         return hashlib.md5(feature_str.encode()).hexdigest()[:16]
 
-    def _find_similar_pattern(self, signature: str) -> Optional[Pattern]:
+    def _find_similar_pattern(self, signature: str) -> Pattern | None:
         for pattern in self.known_patterns.values():
             similarity = self._calculate_signature_similarity(signature, pattern.signature)
             if similarity > 0.85:
                 return pattern
         return None
 
-    def _create_pattern(self, features: Dict[str, Any], signature: str, example: Any, outcome: Any) -> Pattern:
+    def _create_pattern(self, features: dict[str, Any], signature: str, example: Any, outcome: Any) -> Pattern:
         pattern_type = self._determine_pattern_type(features)
         pattern = Pattern(
             id=f"pat_{datetime.now().strftime('%Y%m%d%H%M%S')}_{signature[:8]}",
@@ -279,13 +281,13 @@ class PatternRecognizer:
         pattern.success_rate = alpha * (1.0 if success else 0.0) + (1 - alpha) * pattern.success_rate
         pattern.confidence = min(1.0, pattern.confidence + 0.05)
 
-    def _should_create_new_pattern(self, features: Dict[str, Any]) -> bool:
+    def _should_create_new_pattern(self, features: dict[str, Any]) -> bool:
         similar_count = sum(
             1 for p in self.known_patterns.values() if p.metadata.get("features", {}).get("type") == features.get("type")
         )
         return similar_count < 20
 
-    def _determine_pattern_type(self, features: Dict[str, Any]) -> PatternType:
+    def _determine_pattern_type(self, features: dict[str, Any]) -> PatternType:
         dtype = features.get("type", "")
         if dtype in ["list", "tuple", "str"]:
             return PatternType.SEQUENCE
@@ -297,7 +299,7 @@ class PatternRecognizer:
         seq_hash = hashlib.md5(str(sequence).encode()).hexdigest()[:16]
         return 1.0 - (hamming_distance(seq_hash, pattern_sig) / 16.0)
 
-    def _calculate_structure_similarity(self, structure: Dict[str, Any], pattern_sig: str) -> float:
+    def _calculate_structure_similarity(self, structure: dict[str, Any], pattern_sig: str) -> float:
         struct_hash = hashlib.md5(str(structure).encode()).hexdigest()[:16]
         return 1.0 - (hamming_distance(struct_hash, pattern_sig) / 16.0)
 
@@ -355,31 +357,31 @@ class PatternRecognizer:
             self.known_patterns[pattern.id] = pattern
             self.pattern_index[pattern.pattern_type].append(pattern)
 
-    def _extract_sequences(self, data: Any) -> List[Any]:
+    def _extract_sequences(self, data: Any) -> list[Any]:
         return [data] if isinstance(data, list) else [data.split()] if isinstance(data, str) else []
 
-    def _extract_structure(self, data: Any) -> Dict[str, Any]:
+    def _extract_structure(self, data: Any) -> dict[str, Any]:
         return data if isinstance(data, dict) else getattr(data, "__dict__", {})
 
-    def _extract_timestamps(self, data: Any, context: Dict[str, Any]) -> List[datetime]:
+    def _extract_timestamps(self, data: Any, context: dict[str, Any]) -> list[datetime]:
         return [datetime.now()]
 
     def _extract_text(self, data: Any) -> str:
         return str(data)
 
-    def _extract_actions(self, data: Any, context: Dict[str, Any]) -> List[Any]:
+    def _extract_actions(self, data: Any, context: dict[str, Any]) -> list[Any]:
         return [{"action": "execute_node", "context": list(context.keys())}]
 
-    def _generate_sequence_suggestions(self, pat: Pattern, seq: Any) -> List[str]:
+    def _generate_sequence_suggestions(self, pat: Pattern, seq: Any) -> list[str]:
         return ["Follow topological dependency order"]
 
-    def _generate_temporal_suggestions(self, pat: Pattern) -> List[str]:
+    def _generate_temporal_suggestions(self, pat: Pattern) -> list[str]:
         return ["Enforce exponential backoff and jitter"]
 
-    def _generate_semantic_suggestions(self, pat: Pattern) -> List[str]:
+    def _generate_semantic_suggestions(self, pat: Pattern) -> list[str]:
         return [f"Semantic match found for {pat.description}"]
 
-    def _generate_behavioral_suggestions(self, pat: Pattern) -> List[str]:
+    def _generate_behavioral_suggestions(self, pat: Pattern) -> list[str]:
         return ["Execute with defensive dual-loop verification"]
 
     def _update_avg_time(self, elapsed: float) -> None:
@@ -387,5 +389,5 @@ class PatternRecognizer:
         curr = self.stats["avg_recognition_time_ms"]
         self.stats["avg_recognition_time_ms"] = (curr * (count - 1) + elapsed) / max(count, 1)
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         return self.stats

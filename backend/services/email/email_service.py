@@ -202,10 +202,10 @@ class EmailService:
         try:
             from core.cache.semantic_cache import semantic_cache
             cached = await semantic_cache.get(f"email_optimal_hour::{user_email}")
-            if cached and isinstance(cached, (int, str)):
+            if cached and isinstance(cached, int | str):
                 return int(cached)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"[EmailService] Optimal send hour cache error: {e}")
         return 10
 
 

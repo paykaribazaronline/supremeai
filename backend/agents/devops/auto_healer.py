@@ -153,7 +153,7 @@ class CircuitBreaker:
                 "failure_rates": self.failure_rates,
                 "last_failure": {k: v.isoformat() for k, v in self.last_failure_time.items()},
                 "failure_timestamps": {
-                    svc: [ts.isoformat() for ts in timestamps] 
+                    svc: [ts.isoformat() for ts in timestamps]
                     for svc, timestamps in self.failure_timestamps.items()
                 },
             }
@@ -176,19 +176,19 @@ class CircuitBreaker:
     def record_failure(self, service_name: str) -> CircuitState:
         now = datetime.datetime.now(datetime.UTC)
         self.failures[service_name] = self.failures.get(service_name, 0) + 1
-        
+
         # Track failure timestamps for rate calculation
         if service_name not in self.failure_timestamps:
             self.failure_timestamps[service_name] = []
         self.failure_timestamps[service_name].append(now)
-        
+
         # Keep only recent failures (last 10 minutes) for rate calculation
         recent_window = datetime.timedelta(minutes=10)
         self.failure_timestamps[service_name] = [
-            ts for ts in self.failure_timestamps[service_name] 
+            ts for ts in self.failure_timestamps[service_name]
             if (now - ts) <= recent_window
         ]
-        
+
         # Calculate failure rate
         total_checks = len(self.failure_timestamps[service_name])
         if total_checks > 0:
@@ -197,7 +197,7 @@ class CircuitBreaker:
             self.failure_rates[service_name] = self.failures[service_name] / estimated_total
         else:
             self.failure_rates[service_name] = 0.0
-            
+
         self.last_failure_time[service_name] = now
 
         if self.state.get(service_name) == CircuitState.OPEN:
@@ -251,10 +251,10 @@ class HealthChecker:
             try:
                 start_time = time.time()
                 resp = requests.get(url, timeout=self.timeout, allow_redirects=True)
-                
+
                 # Calculate response time
                 response_time = time.time() - start_time
-                
+
                 # Track health indicators
                 service_key = url
                 if service_key not in self.health_indicators:
@@ -263,24 +263,24 @@ class HealthChecker:
                         "status_codes": [],
                         "last_check": datetime.datetime.now(datetime.UTC)
                     }
-                
+
                 # Store metrics
                 self.health_indicators[service_key]["response_times"].append(response_time)
                 self.health_indicators[service_key]["status_codes"].append(resp.status_code)
-                
+
                 # Keep only recent metrics (last 10 checks)
                 if len(self.health_indicators[service_key]["response_times"]) > 10:
                     self.health_indicators[service_key]["response_times"] = \
                         self.health_indicators[service_key]["response_times"][-10:]
                     self.health_indicators[service_key]["status_codes"] = \
                         self.health_indicators[service_key]["status_codes"][-10:]
-                
+
                 # Define health based on response status and response time
                 is_healthy = resp.status_code < 500
                 # Consider slow response times (>3 seconds) as degraded health
                 if is_healthy and response_time > 3.0:
                     logger.warning(f"⚠️ {url} is responding slowly ({response_time:.2f}s)")
-                    
+
                 if is_healthy:
                     return True, resp.status_code, None
                 else:
@@ -310,14 +310,14 @@ class HealthChecker:
         service_key = url
         if service_key not in self.health_indicators:
             return {"error": "No health data available"}
-        
+
         indicators = self.health_indicators[service_key]
         if not indicators["response_times"]:
             return {"error": "No response time data available"}
-        
+
         avg_response_time = sum(indicators["response_times"]) / len(indicators["response_times"])
         recent_status_codes = indicators["status_codes"][-5:]  # Last 5 status codes
-        
+
         return {
             "average_response_time": avg_response_time,
             "recent_status_codes": recent_status_codes,
@@ -508,7 +508,7 @@ class AutoHealer:
     def heal_service(self, service: ServiceConfig) -> HealingRecord:
         # Increment total checks metric
         self.metrics["total_checks"] += 1
-        
+
         # বাংলা মন্তব্ব্য: একটি ডেক্লারেটিভ সার্ভিসকে সেলফ-হিল করার মূল প্রসেস লুপ।
         start_time = time.time()
         timestamp = datetime.datetime.now(datetime.UTC).isoformat()
@@ -544,17 +544,17 @@ class AutoHealer:
 
         # Analyze failure pattern to determine best healing strategy
         failure_analysis = self._analyze_failure_pattern(service.name, error, status_code)
-        
+
         success = False
         action_taken = HealingAction.NONE
         error_msg = error
 
         # Increment healing attempts metric
         self.metrics["healing_attempts"] += 1
-        
+
         # Adaptive healing: prioritize actions based on failure analysis
         prioritized_actions = self._prioritize_healing_actions(service, failure_analysis)
-        
+
         for action in prioritized_actions:
             if action == HealingAction.RESTART and service.provider == "render" and service.service_id:
                 success, msg = self.render_healer.restart_service(service.service_id)
@@ -582,7 +582,7 @@ class AutoHealer:
                 self.metrics["successful_healings"] += 1
             else:
                 self.metrics["failed_healings"] += 1
-                
+
             # Wait for service to stabilize before verifying
             time.sleep(15)
             is_healthy, status_code, error = self.health_checker.check(service.url)
@@ -619,7 +619,7 @@ class AutoHealer:
         """Prioritize healing actions based on failure analysis."""
         # Default priority is the configured order
         actions = service.healing_actions.copy()
-        
+
         # Adjust priorities based on analysis
         if analysis["severity"] == "critical" and HealingAction.SWITCH_PROVIDER in actions:
             # For critical failures, try switching provider first
@@ -629,7 +629,7 @@ class AutoHealer:
             # For persistent issues, prioritize rollback
             actions.remove(HealingAction.ROLLBACK)
             actions.insert(0, HealingAction.ROLLBACK)
-            
+
         return actions
 
     def get_metrics(self) -> dict:
@@ -675,21 +675,21 @@ def main():
     ]
 
     healer = AutoHealer()
-    
+
     # Run healing process
     records = healer.run(services)
-    
-    # Print metrics
-    print("\n📊 AutoHealer Metrics:")
+
+    # Log metrics
+    logger.info("AutoHealer Metrics:")
     metrics = healer.get_metrics()
     for key, value in metrics.items():
-        print(f"  {key}: {value}")
-    
-    # Print health summaries
-    print("\n📈 Health Summaries:")
+        logger.info(f"  {key}: {value}")
+
+    # Log health summaries
+    logger.info("Health Summaries:")
     for service in services:
         summary = healer.health_checker.get_health_summary(service.url)
-        print(f"  {service.name}: {summary}")
+        logger.info(f"  {service.name}: {summary}")
 
 
 if __name__ == "__main__":

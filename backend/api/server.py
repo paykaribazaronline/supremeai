@@ -14,20 +14,19 @@ import asyncio
 from contextlib import asynccontextmanager
 from datetime import datetime
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 import uuid
 
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from loguru import logger
 from pydantic import BaseModel, Field
 
-from config.settings import get_settings
 from core.factory import SupremeAIFactory, get_factory
 from core.integration_layer import SupremeAIIntegrator
 
-ai_integrator: Optional[SupremeAIIntegrator] = None
-factory: Optional[SupremeAIFactory] = None
+ai_integrator: SupremeAIIntegrator | None = None
+factory: SupremeAIFactory | None = None
 
 
 @asynccontextmanager
@@ -45,7 +44,7 @@ async def lifespan(app: FastAPI):
         from database.session import dispose_engine
         await dispose_engine()
     except Exception as e:
-        pass
+        logger.debug(f"Engine disposal error: {e}")
 
 
 app = FastAPI(
@@ -80,9 +79,9 @@ app.add_middleware(
 # Request/Response Models
 class ProcessRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=10000, description="User input/query")
-    context: Optional[Dict[str, Any]] = Field(default=None, description="Additional context")
-    priority: Optional[str] = Field(default="normal", description="Priority level")
-    timeout_seconds: Optional[int] = Field(default=60, ge=1, le=300)
+    context: dict[str, Any] | None = Field(default=None, description="Additional context")
+    priority: str | None = Field(default="normal", description="Priority level")
+    timeout_seconds: int | None = Field(default=60, ge=1, le=300)
 
 
 class ProcessResponse(BaseModel):
@@ -92,23 +91,23 @@ class ProcessResponse(BaseModel):
     processing_time_ms: float
     request_id: str
     timestamp: str
-    components_used: List[str]
-    metadata: Dict[str, Any]
+    components_used: list[str]
+    metadata: dict[str, Any]
 
 
 class HealthResponse(BaseModel):
     status: str
     uptime_seconds: float
     version: str
-    components: Dict[str, str]
-    metrics: Dict[str, Any]
+    components: dict[str, str]
+    metrics: dict[str, Any]
 
 
 class EvolutionStatusResponse(BaseModel):
     is_running: bool
     total_cycles: int
     successful_cycles: int
-    recent_cycles: List[Dict[str, Any]]
+    recent_cycles: list[dict[str, Any]]
 
 
 class MemoryStatsResponse(BaseModel):
@@ -119,7 +118,7 @@ class MemoryStatsResponse(BaseModel):
     estimated_size_mb: float
 
 
-rate_limit_store: Dict[str, List[float]] = {}
+rate_limit_store: dict[str, list[float]] = {}
 
 
 async def check_rate_limit(client_id: str = "anonymous", max_requests: int = 60, window_seconds: int = 60) -> None:
@@ -141,7 +140,7 @@ async def check_rate_limit(client_id: str = "anonymous", max_requests: int = 60,
 # ==================== ENDPOINTS ====================
 
 @app.get("/", tags=["Root"])
-async def root() -> Dict[str, Any]:
+async def root() -> dict[str, Any]:
     """Root endpoint - API information."""
     return {
         "name": "SupremeAI API",
@@ -202,12 +201,12 @@ async def process_query(
                 "rate_limited": safe_res.get("rate_limited", False),
             },
         )
-    except asyncio.TimeoutError:
+    except TimeoutError:
         raise HTTPException(status_code=504, detail="Processing timeout exceeded")
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Processing error: {str(exc)}")
+        raise HTTPException(status_code=500, detail=f"Processing error: {exc!s}")
 
 
 @app.get("/api/v1/health", response_model=HealthResponse, tags=["Monitoring"])
@@ -233,7 +232,7 @@ async def health_check() -> HealthResponse:
 
 
 @app.get("/api/v1/status", tags=["Monitoring"])
-async def system_status() -> Dict[str, Any]:
+async def system_status() -> dict[str, Any]:
     """Detailed system status including all subsystems."""
     if not ai_integrator:
         raise HTTPException(status_code=503, detail="System not initialized")
@@ -256,7 +255,7 @@ async def evolution_status() -> EvolutionStatusResponse:
 
 
 @app.post("/api/v1/evolution/trigger", tags=["Evolution"])
-async def trigger_evolution() -> Dict[str, Any]:
+async def trigger_evolution() -> dict[str, Any]:
     """Manually trigger an evolution cycle."""
     if not ai_integrator or not ai_integrator.auto_evolution:
         raise HTTPException(status_code=503, detail="Evolution system not available")
@@ -288,7 +287,7 @@ async def memory_statistics() -> MemoryStatsResponse:
 
 
 @app.post("/api/v1/memory/consolidate", tags=["Memory"])
-async def trigger_consolidation() -> Dict[str, Any]:
+async def trigger_consolidation() -> dict[str, Any]:
     """Trigger memory consolidation cycle."""
     if not ai_integrator or not ai_integrator.memory_consolidator:
         raise HTTPException(status_code=503, detail="Consolidation system not available")
@@ -305,7 +304,7 @@ async def trigger_consolidation() -> Dict[str, Any]:
 
 
 @app.get("/api/v1/dashboard", tags=["Monitoring"])
-async def dashboard_data() -> Dict[str, Any]:
+async def dashboard_data() -> dict[str, Any]:
     """Get comprehensive dashboard data for monitoring UI."""
     if not ai_integrator:
         raise HTTPException(status_code=503, detail="System not initialized")

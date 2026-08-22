@@ -13,7 +13,7 @@ import os
 import subprocess
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from loguru import logger
 
 from backend.engine.compression.token_juice import TokenJuice
 from backend.memory.hierarchical_tree import HierarchicalMemoryTree
@@ -24,9 +24,9 @@ class WorkspaceSnapshot:
     """Snapshot of current workspace and git status."""
     timestamp: float = field(default_factory=time.time)
     active_branch: str = "main"
-    modified_files: List[str] = field(default_factory=list)
-    untracked_files: List[str] = field(default_factory=list)
-    recent_commits: List[str] = field(default_factory=list)
+    modified_files: list[str] = field(default_factory=list)
+    untracked_files: list[str] = field(default_factory=list)
+    recent_commits: list[str] = field(default_factory=list)
     compressed_diff_summary: str = ""
     total_uncommitted_changes: int = 0
 
@@ -36,15 +36,15 @@ class DeveloperContextCollector:
 
     def __init__(
         self,
-        workspace_root: Optional[str] = None,
-        memory_tree: Optional[HierarchicalMemoryTree] = None,
-        compressor: Optional[TokenJuice] = None,
+        workspace_root: str | None = None,
+        memory_tree: HierarchicalMemoryTree | None = None,
+        compressor: TokenJuice | None = None,
     ):
         self.workspace_root = workspace_root or os.getcwd()
         self.memory_tree = memory_tree or HierarchicalMemoryTree(root_title="SupremeAI Live Context")
         self.compressor = compressor or TokenJuice()
         self._is_running = False
-        self._last_snapshot: Optional[WorkspaceSnapshot] = None
+        self._last_snapshot: WorkspaceSnapshot | None = None
 
     def get_git_branch(self) -> str:
         """Fetch current git branch name."""
@@ -59,11 +59,11 @@ class DeveloperContextCollector:
             )
             if res.returncode == 0:
                 return res.stdout.strip()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Git branch fetch error: {e}")
         return "unknown"
 
-    def get_git_status(self) -> tuple[List[str], List[str]]:
+    def get_git_status(self) -> tuple[list[str], list[str]]:
         """Fetch modified and untracked files."""
         modified = []
         untracked = []
@@ -84,11 +84,11 @@ class DeveloperContextCollector:
                         untracked.append(file_path)
                     else:
                         modified.append(file_path)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Git status fetch error: {e}")
         return modified, untracked
 
-    def get_recent_commits(self, count: int = 5) -> List[str]:
+    def get_recent_commits(self, count: int = 5) -> list[str]:
         """Fetch recent commit messages."""
         commits = []
         try:
@@ -102,8 +102,8 @@ class DeveloperContextCollector:
             )
             if res.returncode == 0:
                 commits = [line.strip() for line in res.stdout.splitlines() if line.strip()]
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Git commit fetch error: {e}")
         return commits
 
     def get_git_diff_summary(self) -> str:
@@ -120,8 +120,8 @@ class DeveloperContextCollector:
             if res.returncode == 0 and res.stdout:
                 compressed = self.compressor.compress(res.stdout, content_type="git_diff")
                 return compressed.compressed_text
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"Git diff fetch error: {e}")
         return ""
 
     def capture_snapshot(self) -> WorkspaceSnapshot:
@@ -168,8 +168,8 @@ class DeveloperContextCollector:
         while self._is_running:
             try:
                 self.capture_snapshot()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Periodic snapshot error: {e}")
             await asyncio.sleep(interval_seconds)
 
     def stop(self) -> None:

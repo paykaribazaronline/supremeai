@@ -17,6 +17,7 @@ import time
 from enum import StrEnum
 from typing import Any
 
+import httpx
 from loguru import logger
 
 # Fixed import path - using relative import
@@ -203,8 +204,8 @@ class ComprehensiveHealthChecker:
                                 response_time_ms=50.0,
                                 details={"connected": True, "type": "supabase/rest"},
                             )
-            except Exception:
-                pass
+            except Exception as rest_err:
+                logger.debug(f"Supabase REST ping fallback error: {rest_err}")
             logger.error(f"Database health check failed: {e}")
             return HealthCheckResult(
                 status=HealthStatus.UNHEALTHY,

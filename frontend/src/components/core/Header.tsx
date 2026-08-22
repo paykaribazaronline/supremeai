@@ -22,16 +22,9 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const user = useAuthStore((s) => s.user);
   const [showNotifications, setShowNotifications] = useState(false);
-  
-  let pathname = '/workspace';
-  let navigate = (_to: string) => {};
-  try {
-    const loc = useLocation();
-    pathname = loc.pathname;
-    navigate = useNavigate();
-  } catch {
-    // Fallback if rendered outside Router context
-  }
+  const location = useLocation();
+  const navigate = useNavigate();
+  const pathname = location.pathname;
 
   const isAdmin = pathname.startsWith('/admin');
 

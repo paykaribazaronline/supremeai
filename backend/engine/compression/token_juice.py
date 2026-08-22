@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass
@@ -32,7 +32,7 @@ class TokenJuice:
 
     # ANSI escape regex
     ANSI_ESCAPE_RE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
-    
+
     # Progress bars / spinners regex
     PROGRESS_BAR_RE = re.compile(r"(\r?\[[=\-#\s>]+\]|\r?\d+%\s*\|\s*[█▉▊▋▌▍▎▏\s]+\||\r?\s*\d+/\d+\s*\[[0-9:\.\s<]+,\s*[0-9\.\w/]+\])")
 
@@ -45,7 +45,7 @@ class TokenJuice:
             return 0
         return max(1, int(len(text) / self.char_per_token_estimate))
 
-    def compress(self, content: str, content_type: Optional[str] = None) -> CompressionResult:
+    def compress(self, content: str, content_type: str | None = None) -> CompressionResult:
         """Auto-detect content type and compress accordingly."""
         if not content or not content.strip():
             return CompressionResult(
@@ -60,7 +60,7 @@ class TokenJuice:
             )
 
         detected_type = content_type or self.detect_content_type(content)
-        
+
         if detected_type == "html" or detected_type == "dom":
             compressed = self.compress_dom(content)
         elif detected_type == "json":
@@ -98,7 +98,7 @@ class TokenJuice:
             try:
                 json.loads(stripped)
                 return "json"
-            except Exception:
+            except (json.JSONDecodeError, ValueError):
                 pass
         if stripped.startswith("diff --git") or "--- a/" in stripped or "+++ b/" in stripped:
             return "git_diff"
@@ -110,27 +110,27 @@ class TokenJuice:
         """Compress HTML / Playwright DOM snapshots while preserving semantic interactive elements."""
         # 1. Remove comments
         cleaned = re.sub(r"<!--[\s\S]*?-->", "", html)
-        
+
         # 2. Strip noise tags: script, style, svg, noscript, link, meta, path
         cleaned = re.sub(r"<(script|style|noscript|svg|meta|link)[^>]*>[\s\S]*?<\/\1>", "", cleaned, flags=re.IGNORECASE)
         cleaned = re.sub(r"<(svg|path|circle|rect|polygon)[^>]*\/>", "", cleaned, flags=re.IGNORECASE)
-        
+
         # 3. Strip data URIs and inline base64 images
         cleaned = re.sub(r'data:image\/[a-zA-Z]+;base64,[A-Za-z0-9+/=]+', '[img-data-omitted]', cleaned)
-        
+
         # 4. Remove heavy presentation attributes (e.g., style="...", onclick="...", etc.) but keep id, role, aria, testid, href, class
         def clean_attributes(match: re.Match) -> str:
             tag_name = match.group(1)
             attrs = match.group(2)
             if not attrs:
                 return f"<{tag_name}>"
-            
+
             # Keep meaningful attributes
             kept_attrs = []
             for attr_match in re.finditer(r'([a-zA-Z0-9_\-:]+)(?:=(["\'])(.*?)\2)?', attrs):
                 name = attr_match.group(1).lower()
                 val = attr_match.group(3) if attr_match.group(3) is not None else ""
-                
+
                 # Relevant agent attributes
                 if name in ("id", "name", "role", "type", "href", "src", "placeholder", "title", "value") or name.startswith("aria-") or name.startswith("data-test"):
                     val_clean = val[:100]  # truncate overly long attribute strings
@@ -155,7 +155,7 @@ class TokenJuice:
         # 6. Normalize whitespace
         cleaned = re.sub(r'[ \t]+', ' ', cleaned)
         cleaned = re.sub(r'\n\s*\n+', '\n', cleaned)
-        
+
         return cleaned.strip()
 
     def compress_json(self, raw_json: str, max_array_items: int = 5) -> str:
@@ -170,7 +170,7 @@ class TokenJuice:
                 cleaned = {}
                 for k, v in obj.items():
                     # skip useless metadata keys if bulky
-                    if k in ("__v", "$schema", "etag", "headers") and isinstance(v, (str, dict, list)):
+                    if k in ("__v", "$schema", "etag", "headers") and isinstance(v, str | dict | list):
                         continue
                     pruned_v = prune(v)
                     if pruned_v is not None and pruned_v != "" and pruned_v != [] and pruned_v != {}:
@@ -199,10 +199,10 @@ class TokenJuice:
         """Compress terminal output, progress bars, ANSI codes, and duplicate log lines."""
         # 1. Strip ANSI codes
         cleaned = self.ANSI_ESCAPE_RE.sub("", logs)
-        
+
         # 2. Strip progress bars
         cleaned = self.PROGRESS_BAR_RE.sub("", cleaned)
-        
+
         lines = cleaned.splitlines()
         filtered_lines = []
         last_line = None
@@ -212,7 +212,7 @@ class TokenJuice:
             trimmed = line.strip()
             if not trimmed:
                 continue
-            
+
             # Deduplicate identical consecutive lines
             if trimmed == last_line:
                 repeat_count += 1
@@ -222,7 +222,7 @@ class TokenJuice:
                     filtered_lines.append(f"... [repeated {repeat_count} times]")
                     repeat_count = 0
                 last_line = trimmed
-                
+
                 # Check for critical keywords
                 is_critical = any(k in trimmed.lower() for k in ["error", "fail", "exception", "traceback", "warning", "fatal", "passed", "done", "status"])
                 if is_critical or len(filtered_lines) < 20 or len(lines) - len(filtered_lines) <= max_tail_lines:
@@ -236,7 +236,7 @@ class TokenJuice:
             head = filtered_lines[:25]
             tail = filtered_lines[-40:]
             omitted = len(filtered_lines) - 65
-            return "\n".join(head + [f"\n--- [TokenJuice: {omitted} intermediate log lines omitted] ---\n"] + tail)
+            return "\n".join([*head, f"\n--- [TokenJuice: {omitted} intermediate log lines omitted] ---\n", *tail])
 
         return "\n".join(filtered_lines)
 
@@ -252,7 +252,7 @@ class TokenJuice:
                 if skipping_binary_or_lock and skipped_count > 0:
                     result.append(f"... [{skipped_count} lines of lockfile/asset diff omitted]")
                     skipped_count = 0
-                
+
                 # Check if lockfile or asset
                 if any(lock in line for lock in ["pnpm-lock.yaml", "package-lock.json", "poetry.lock", "yarn.lock", ".png", ".svg", ".jpg", ".min.js"]):
                     skipping_binary_or_lock = True

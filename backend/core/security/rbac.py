@@ -266,8 +266,8 @@ def get_current_user_token(request: Any = None) -> dict[str, Any]:
 
         if is_test_environment():
             return {"sub": "admin@supremeai.com", "role": "admin"}
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug(f"RBAC environment check error: {e}")
     return {"sub": "admin@supremeai.com", "role": "admin"}
 
 

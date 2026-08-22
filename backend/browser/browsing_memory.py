@@ -37,8 +37,8 @@ class BrowsingMemory:
         # Invalidate site intelligence cache for immediate freshness
         try:
             await semantic_cache.set(f"siteintel::{normalized_site}", None, ttl=1)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"BrowsingMemory cache invalidation error: {e}")
 
     async def site_intel(self, site: str) -> dict[str, Any]:
         """Retrieve aggregated behavioral intelligence for a site."""
@@ -49,8 +49,8 @@ class BrowsingMemory:
             cached = await semantic_cache.get(cache_key)
             if cached and isinstance(cached, dict):
                 return cached
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"BrowsingMemory cache read error: {e}")
 
         history = self._site_history.get(normalized_site, [])
         total_visits = len(history)
@@ -58,7 +58,7 @@ class BrowsingMemory:
         cookie_events = sum(1 for e in history if e.get("has_cookie_banner") or e.get("dismissed_cookie"))
         cookie_rate = cookie_events / total_visits if total_visits > 0 else 0.0
 
-        latencies = [e["load_ms"] for e in history if "load_ms" in e and isinstance(e["load_ms"], (int, float))]
+        latencies = [e["load_ms"] for e in history if "load_ms" in e and isinstance(e["load_ms"], int | float)]
         avg_latency = sum(latencies) / len(latencies) if latencies else 250.0
 
         intel = {
@@ -72,8 +72,8 @@ class BrowsingMemory:
 
         try:
             await semantic_cache.set(cache_key, intel, ttl=3600)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"BrowsingMemory cache write error: {e}")
 
         return intel
 

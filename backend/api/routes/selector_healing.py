@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from loguru import logger
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -123,8 +124,8 @@ async def audit_selectors(
                 "strategy": strat,
                 "semantic_fallback": "registered",
             })
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug(f"Selector risk prediction error: {e}")
 
     return {
         "status": "success",

@@ -81,7 +81,7 @@ const Dashboard: React.FC = () => {
       setIsRestarting(false);
       setTimeout(() => setRestartStatus(''), 3000);
     }
-  }, [apiClient]);
+  }, []);
 
   const runSecurityScan = React.useCallback(async () => {
     setIsScanning(true);

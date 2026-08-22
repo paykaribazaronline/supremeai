@@ -87,7 +87,7 @@ class TestLogSecurityEvent:
     @pytest.mark.asyncio
     async def test_log_event_redis_failure_graceful(self):
         mock_redis = MagicMock()
-        mock_pipe = AsyncMock()
+        mock_pipe = MagicMock()
         mock_pipe.execute.side_effect = Exception("Redis connection failed")
         mock_client = MagicMock()
         mock_client.pipeline.return_value = mock_pipe

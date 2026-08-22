@@ -21,8 +21,8 @@ import os
 import random
 import statistics
 import time
-import traceback
-from typing import Any, Dict, List, Optional
+from typing import Any
+from loguru import logger
 
 try:
     import psutil
@@ -60,9 +60,9 @@ class BenchmarkResult:
     passed: bool
     threshold: float  # Target threshold
     duration_ms: int
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
     timestamp: datetime = field(default_factory=datetime.now)
-    error: Optional[str] = None
+    error: str | None = None
 
 
 @dataclass
@@ -75,7 +75,7 @@ class LimitDetection:
     breaking_point: float
     unit: str
     confidence: float  # How confident we are in this limit
-    recommendations: List[str] = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -87,7 +87,7 @@ class WeaknessReport:
     current_score: float
     target_score: float
     impact_description: str
-    suggested_improvements: List[str]
+    suggested_improvements: list[str]
     priority: int  # 1 = highest priority
 
 
@@ -100,20 +100,20 @@ class FullBenchmarkReport:
     duration_seconds: float
     overall_score: float  # Weighted average of all categories
     grade: str  # 'A+', 'A', 'B+', etc.
-    results: List[BenchmarkResult]
-    limits_detected: List[LimitDetection]
-    weaknesses: List[WeaknessReport]
+    results: list[BenchmarkResult]
+    limits_detected: list[LimitDetection]
+    weaknesses: list[WeaknessReport]
     improvements_needed: bool
-    optimization_plan: Dict[str, Any]
-    summary: Dict[str, Any]
+    optimization_plan: dict[str, Any]
+    summary: dict[str, Any]
 
 
 class SelfBenchmarkEngine:
     """Comprehensive self-benchmarking engine."""
 
-    def __init__(self, ai_system: Any = None, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, ai_system: Any = None, config: dict[str, Any] | None = None) -> None:
         self.ai_system = ai_system
-        self.config: Dict[str, Any] = config or {}
+        self.config: dict[str, Any] = config or {}
 
         # Benchmark settings
         self.test_duration_per_query_ms = self.config.get("test_duration_ms", 5000)
@@ -122,7 +122,7 @@ class SelfBenchmarkEngine:
         self.memory_test_max_mb = self.config.get("memory_test_max_mb", 1024)
 
         # Scoring thresholds
-        self.thresholds: Dict[str, Dict[str, float]] = {
+        self.thresholds: dict[str, dict[str, float]] = {
             "response_time_ms": {"excellent": 200, "good": 500, "acceptable": 1000, "poor": 2000},
             "accuracy": {"excellent": 0.95, "good": 0.85, "acceptable": 0.70, "poor": 0.50},
             "concurrent_requests": {"excellent": 100, "good": 50, "acceptable": 20, "poor": 10},
@@ -134,17 +134,17 @@ class SelfBenchmarkEngine:
         self.test_queries = self._generate_test_queries()
 
         # History tracking
-        self.benchmark_history: List[FullBenchmarkReport] = []
-        self.baseline_scores: Dict[str, float] = {}
+        self.benchmark_history: list[FullBenchmarkReport] = []
+        self.baseline_scores: dict[str, float] = {}
 
         # Statistics
-        self.stats: Dict[str, Any] = {
+        self.stats: dict[str, Any] = {
             "total_benchmarks_run": 0,
             "improvements_triggered": 0,
             "avg_score_improvement": 0.0,
         }
 
-    async def run_full_benchmark(self, categories: Optional[List[BenchmarkCategory]] = None) -> FullBenchmarkReport:
+    async def run_full_benchmark(self, categories: list[BenchmarkCategory] | None = None) -> FullBenchmarkReport:
         """Run complete benchmark suite."""
         start_time = time.time()
         report_id = f"bench_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -152,7 +152,7 @@ class SelfBenchmarkEngine:
         if categories is None:
             categories = list(BenchmarkCategory)
 
-        all_results: List[BenchmarkResult] = []
+        all_results: list[BenchmarkResult] = []
 
         for category in categories:
             if category == BenchmarkCategory.PERFORMANCE:
@@ -200,9 +200,9 @@ class SelfBenchmarkEngine:
         self.stats["total_benchmarks_run"] += 1
         return report
 
-    async def _benchmark_performance(self) -> List[BenchmarkResult]:
+    async def _benchmark_performance(self) -> list[BenchmarkResult]:
         """Benchmark response times and throughput."""
-        results: List[BenchmarkResult] = []
+        results: list[BenchmarkResult] = []
         if not self.ai_system:
             return [
                 BenchmarkResult(
@@ -217,7 +217,7 @@ class SelfBenchmarkEngine:
                 )
             ]
 
-        times: List[float] = []
+        times: list[float] = []
         for _ in range(5):
             query = random.choice(self.test_queries["general"])
             start = time.perf_counter()
@@ -249,8 +249,8 @@ class SelfBenchmarkEngine:
         )
         return results
 
-    async def _benchmark_accuracy(self) -> List[BenchmarkResult]:
-        results: List[BenchmarkResult] = []
+    async def _benchmark_accuracy(self) -> list[BenchmarkResult]:
+        results: list[BenchmarkResult] = []
         if not self.ai_system:
             return []
 
@@ -262,8 +262,8 @@ class SelfBenchmarkEngine:
                     res = await self.ai_system.process(q)
                     if getattr(res, "success", False):
                         correct_count += 1
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug(f"Benchmark query evaluation error: {e}")
 
             accuracy = correct_count / max(len(queries[:2]), 1)
             results.append(
@@ -280,8 +280,8 @@ class SelfBenchmarkEngine:
             )
         return results
 
-    async def _benchmark_stress(self) -> List[BenchmarkResult]:
-        results: List[BenchmarkResult] = []
+    async def _benchmark_stress(self) -> list[BenchmarkResult]:
+        results: list[BenchmarkResult] = []
         results.append(
             BenchmarkResult(
                 test_name="max_concurrent_requests",
@@ -296,15 +296,15 @@ class SelfBenchmarkEngine:
         )
         return results
 
-    async def _benchmark_memory(self) -> List[BenchmarkResult]:
-        results: List[BenchmarkResult] = []
+    async def _benchmark_memory(self) -> list[BenchmarkResult]:
+        results: list[BenchmarkResult] = []
         memory_mb = 128.0
         if HAS_PSUTIL:
             try:
                 proc = psutil.Process(os.getpid())
                 memory_mb = proc.memory_info().rss / (1024 * 1024)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"psutil memory read error: {e}")
 
         results.append(
             BenchmarkResult(
@@ -320,7 +320,7 @@ class SelfBenchmarkEngine:
         )
         return results
 
-    async def _benchmark_concurrency(self) -> List[BenchmarkResult]:
+    async def _benchmark_concurrency(self) -> list[BenchmarkResult]:
         return [
             BenchmarkResult(
                 test_name="sustained_concurrency_10",
@@ -334,7 +334,7 @@ class SelfBenchmarkEngine:
             )
         ]
 
-    async def _benchmark_domain_specific(self) -> List[BenchmarkResult]:
+    async def _benchmark_domain_specific(self) -> list[BenchmarkResult]:
         return [
             BenchmarkResult(
                 test_name="dev_python_debugging",
@@ -348,8 +348,8 @@ class SelfBenchmarkEngine:
             )
         ]
 
-    async def _detect_limits(self, results: List[BenchmarkResult]) -> List[LimitDetection]:
-        limits: List[LimitDetection] = []
+    async def _detect_limits(self, results: list[BenchmarkResult]) -> list[LimitDetection]:
+        limits: list[LimitDetection] = []
         for r in results:
             if not r.passed or r.score < 0.6:
                 limits.append(
@@ -365,8 +365,8 @@ class SelfBenchmarkEngine:
                 )
         return limits
 
-    async def _identify_weaknesses(self, results: List[BenchmarkResult]) -> List[WeaknessReport]:
-        weaknesses: List[WeaknessReport] = []
+    async def _identify_weaknesses(self, results: list[BenchmarkResult]) -> list[WeaknessReport]:
+        weaknesses: list[WeaknessReport] = []
         for r in results:
             if r.score < 0.7:
                 weaknesses.append(
@@ -382,29 +382,36 @@ class SelfBenchmarkEngine:
                 )
         return weaknesses
 
-    def _calculate_overall_score(self, results: List[BenchmarkResult]) -> float:
+    def _calculate_overall_score(self, results: list[BenchmarkResult]) -> float:
         if not results:
             return 0.0
         return statistics.mean([r.score for r in results])
 
     def _score_to_grade(self, score: float) -> str:
-        if score >= 0.95: return "A+"
-        elif score >= 0.90: return "A"
-        elif score >= 0.85: return "B+"
-        elif score >= 0.80: return "B"
-        elif score >= 0.75: return "C+"
-        elif score >= 0.70: return "C"
-        elif score >= 0.60: return "D"
-        else: return "F"
+        if score >= 0.95:
+            return "A+"
+        if score >= 0.90:
+            return "A"
+        if score >= 0.85:
+            return "B+"
+        if score >= 0.80:
+            return "B"
+        if score >= 0.75:
+            return "C+"
+        if score >= 0.70:
+            return "C"
+        if score >= 0.60:
+            return "D"
+        return "F"
 
-    def _generate_optimization_plan(self, weaknesses: List[WeaknessReport], limits: List[LimitDetection]) -> Dict[str, Any]:
+    def _generate_optimization_plan(self, weaknesses: list[WeaknessReport], limits: list[LimitDetection]) -> dict[str, Any]:
         return {
             "priority_actions": [w.area for w in weaknesses],
             "parameter_adjustments": {limit.metric_name: limit.max_sustainable for limit in limits},
             "estimated_improvement": 0.15,
         }
 
-    def _generate_summary(self, results: List[BenchmarkResult], overall_score: float, grade: str, weaknesses: List[WeaknessReport]) -> Dict[str, Any]:
+    def _generate_summary(self, results: list[BenchmarkResult], overall_score: float, grade: str, weaknesses: list[WeaknessReport]) -> dict[str, Any]:
         passed = sum(1 for r in results if r.passed)
         total = len(results)
         return {
@@ -417,7 +424,7 @@ class SelfBenchmarkEngine:
             "critical_issues": sum(1 for w in weaknesses if w.severity == "critical"),
         }
 
-    def _generate_test_queries(self) -> Dict[str, List[str]]:
+    def _generate_test_queries(self) -> dict[str, list[str]]:
         return {
             "general": [
                 "What is 2+2?",
@@ -438,7 +445,7 @@ class SelfBenchmarkEngine:
             ],
         }
 
-    def get_improvement_trend(self) -> Dict[str, Any]:
+    def get_improvement_trend(self) -> dict[str, Any]:
         if len(self.benchmark_history) < 2:
             return {"trend": "insufficient_data", "improvement": 0.0}
         recent = self.benchmark_history[-1].overall_score

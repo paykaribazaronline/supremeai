@@ -9,6 +9,7 @@ from typing import Any
 from loguru import logger
 
 from core.persistence import pooled_pg
+from datetime import UTC
 
 # বাংলা মন্তব্য: রেন্ডার ফ্রি টায়ারে মেমোরি সংকট এড়াতে LOW_MEMORY_MODE চেক করা হচ্ছে
 LOW_MEMORY_MODE = os.getenv("LOW_MEMORY_MODE", "false").lower() == "true"
@@ -185,7 +186,7 @@ class CascadeMemoryService:
         session_id: str = "",
         agent_type: str = "unknown",
         task_type: str = "general",
-        metadata: dict[str, Any] = None
+        metadata: dict[str, Any] | None = None
     ) -> None:
         """Stores or updates a memory entry in the database.
 
@@ -229,7 +230,7 @@ class CascadeMemoryService:
             )
             conn.commit()
 
-    def retrieve_memories(self, session_id: str = None) -> list[dict[str, Any]]:
+    def retrieve_memories(self, session_id: str | None = None) -> list[dict[str, Any]]:
         """Retrieves all memory entries from the database or filtered by session_id.
 
         বাংলা মন্তব্য: ডেটাবেসে থাকা সকল মেমোরি এন্ট্রি রিট্রিভ করার কোর মেথড।
@@ -317,7 +318,7 @@ class CascadeMemoryService:
             return 0.0
         return dot / (norm_b * norm_a)
 
-    def query_context(self, prompt: str, top_k: int = 5, session_id: str = None) -> list[dict[str, Any]]:
+    def query_context(self, prompt: str, top_k: int = 5, session_id: str | None = None) -> list[dict[str, Any]]:
         """
         Takes the user's prompt, embeds it, and queries PostgreSQL or local SQLite for the top_k
         most relevant structural contexts using cosine similarity.
@@ -463,8 +464,8 @@ def get_embedding(text: str) -> list[float]:
     if model is not None:
         try:
             return model.encode(text).tolist()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug(f"SentenceTransformer encoding error: {e}")
     return hash_vectorize(text, size=384)
 
 
@@ -512,10 +513,10 @@ async def save_memory(
     Returns ``{"success": True, "id": <id>}`` on success.
     """
     try:
-        from datetime import datetime, timezone
+        from datetime import datetime
         embedding = get_embedding(summary)
         supabase = _get_supabase()
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         record = {
             "session_id": session_id,
             "agent_type": agent_type,
