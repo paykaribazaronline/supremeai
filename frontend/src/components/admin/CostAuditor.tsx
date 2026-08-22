@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useCostBreakdown } from '../../hooks';
 import { getSupremeModelLabel } from '../../lib/modelBranding';
+import { useUnifiedStore } from '../../store/unifiedStore';
 
 interface CostAuditorProps {
   costReport: string;
@@ -8,10 +9,23 @@ interface CostAuditorProps {
 
 export function CostAuditor({ costReport }: CostAuditorProps) {
   const { data: breakdown } = useCostBreakdown();
+  const addAlert = useUnifiedStore(s => s.addAlert);
+  const alertedRef = useRef(false);
 
   const spent = breakdown?.spent ?? 0.0;
   const limit = breakdown?.limit ?? 150.00;
   const percentage = breakdown?.percentage ?? 0.0;
+
+  useEffect(() => {
+    if (percentage >= 80 && !alertedRef.current) {
+      addAlert({
+        severity: 'warning',
+        source: 'CostAuditor',
+        message: `Budget warning: You have used ${percentage.toFixed(1)}% of your limit.`
+      });
+      alertedRef.current = true;
+    }
+  }, [percentage, addAlert]);
 
   const providerCosts = breakdown?.providerCosts ?? [];
   const recentCharges = breakdown?.recentCharges ?? [];

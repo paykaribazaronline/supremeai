@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card, Badge } from '../ui';
 import { AlertTriangle, TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { useUnifiedStore } from '../../store/unifiedStore';
 
 const latencyData = [
   { time: '10:00', p50: 200, p95: 450, p99: 900 },
@@ -21,6 +22,7 @@ const endpointErrors = [
 
 export function ObservabilityDashboard() {
   const [range, setRange] = useState<'1h' | '6h' | '24h' | '7d'>('6h');
+  const storeAlerts = useUnifiedStore(s => s.alerts).slice(0, 5);
 
   return (
     <div className="flex-grow p-6 overflow-y-auto bg-[#030611] text-[var(--foreground)]">
@@ -94,25 +96,27 @@ export function ObservabilityDashboard() {
 
       <Card title="Recent Alerts & Incidents" banglaHint="সাম্প্রতিক ঘটে যাওয়া অ্যালার্ট, ওয়ার্নিং এবং রিস্টোরেশন স্ট্যাটাস।">
         <div className="flex flex-col gap-2">
-          {[
-            { severity: 'warning', msg: 'High P99 latency detected on /api/chat', time: '3m ago', status: 'Investigating' },
-            { severity: 'danger', msg: 'Memory usage exceeded 85% on GCP Cloud Run', time: '12m ago', status: 'Resolved' },
-            { severity: 'info', msg: 'Deployment v2.1.4 completed successfully', time: '45m ago', status: 'Completed' },
-          ].map((alert, i) => (
-            <div key={i} className="flex items-center gap-4 p-3 rounded-lg border border-[var(--border-color)] bg-[var(--alert-bg)]">
-              <AlertTriangle size={14} className={
-                alert.severity === 'danger' ? 'text-red-400' :
-                alert.severity === 'warning' ? 'text-yellow-400' : 'text-[#00f3ff]'
-              } />
-              <div className="flex-1">
-                <div className="text-xs text-[var(--foreground)] font-mono">{alert.msg}</div>
-                <div className="text-[10px] text-slate-400 mt-0.5">{alert.time}</div>
+          {storeAlerts.length > 0 ? (
+            storeAlerts.map((alert) => (
+              <div key={alert.id} className="flex items-center gap-4 p-3 rounded-lg border border-[var(--border-color)] bg-[var(--alert-bg)]">
+                <AlertTriangle size={14} className={
+                  alert.severity === 'critical' || alert.severity === 'error' ? 'text-red-400' :
+                  alert.severity === 'warning' ? 'text-yellow-400' : 'text-[#00f3ff]'
+                } />
+                <div className="flex-1">
+                  <div className="text-xs text-[var(--foreground)] font-mono">{alert.message}</div>
+                  <div className="text-[10px] text-slate-400 mt-0.5">
+                    {new Date(alert.timestamp).toLocaleTimeString()} • {alert.source}
+                  </div>
+                </div>
+                <Badge variant={alert.resolvedAt ? 'success' : (alert.acknowledged ? 'info' : 'warning')}>
+                  {alert.resolvedAt ? 'Resolved' : (alert.acknowledged ? 'Acked' : 'New')}
+                </Badge>
               </div>
-              <Badge variant={alert.status === 'Resolved' || alert.status === 'Completed' ? 'success' : 'warning'}>
-                {alert.status}
-              </Badge>
-            </div>
-          ))}
+            ))
+          ) : (
+            <div className="text-xs text-slate-400 font-mono text-center py-4">No recent alerts</div>
+          )}
         </div>
       </Card>
     </div>

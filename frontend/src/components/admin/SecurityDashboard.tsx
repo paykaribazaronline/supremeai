@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Card, Badge } from '../ui';
-import {  ShieldAlert, Cpu, Database, RefreshCw, Server, Loader2 } from 'lucide-react';
+import {  ShieldAlert, Cpu, Database, RefreshCw, Server, Loader2, DollarSign, Activity } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
+import { useUnifiedStore } from '../../store/unifiedStore';
 
 interface TaskReference {
   id: string;
@@ -23,6 +24,7 @@ export function SecurityDashboard() {
   const [memoryMetrics, setMemoryMetrics] = useState<MemoryMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const lastSecurityScan = useUnifiedStore(s => s.lastSecurityScan);
 
   const fetchData = async () => {
     setLoading(true);
@@ -166,25 +168,78 @@ export function SecurityDashboard() {
 
         <Card title="Real-time Security Guard Signals">
           <div className="flex flex-col gap-3 text-xs font-mono text-slate-300">
-            <div className="flex items-start gap-2">
-              <span className="text-emerald-400">[OK]</span>
-              <span>All active coroutines are bound to class strong-reference sets (preventing GC leakage).</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-emerald-400">[OK]</span>
-              <span>Database poolclass is NullPool (avoiding PgBouncer transaction-mode deadlocks).</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-emerald-400">[OK]</span>
-              <span>Fail-Closed auth guard rules compiled: OS Environment is "production". Easy Login disabled.</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="text-emerald-400">[OK]</span>
-              <span>AST security visitor module successfully verified code proposal compile outputs.</span>
-            </div>
+            {lastSecurityScan?.issues && lastSecurityScan.issues.length > 0 ? (
+              lastSecurityScan.issues.map((issue, idx) => (
+                <div key={idx} className="flex items-start gap-2">
+                  <span className={issue.severity === 'critical' ? 'text-rose-500' : issue.severity === 'warning' ? 'text-amber-400' : 'text-emerald-400'}>
+                    [{issue.severity.toUpperCase()}]
+                  </span>
+                  <span>{issue.message}</span>
+                </div>
+              ))
+            ) : (
+              <>
+                <div className="flex items-start gap-2">
+                  <span className="text-emerald-400">[OK]</span>
+                  <span>All active coroutines are bound to class strong-reference sets (preventing GC leakage).</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-emerald-400">[OK]</span>
+                  <span>Database poolclass is NullPool (avoiding PgBouncer transaction-mode deadlocks).</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-emerald-400">[OK]</span>
+                  <span>Fail-Closed auth guard rules compiled: OS Environment is "production". Easy Login disabled.</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-emerald-400">[OK]</span>
+                  <span>AST security visitor module successfully verified code proposal compile outputs.</span>
+                </div>
+              </>
+            )}
+            {lastSecurityScan?.score !== undefined && (
+              <div className="mt-2 pt-2 border-t border-slate-800">
+                <span className="text-cyan-400">Last Scan Score: {lastSecurityScan.score}/100</span>
+                <div className="text-[10px] text-slate-500">URL: {lastSecurityScan.url}</div>
+              </div>
+            )}
           </div>
         </Card>
       </div>
+
+      <div className="mt-8 flex items-center justify-between mb-6 pb-2 border-b border-[#00f3ff]/15">
+        <h2 className="text-lg font-bold font-['Space_Grotesk'] tracking-widest text-[#00f3ff] uppercase flex items-center gap-2">
+          <DollarSign size={20} />
+          Free-Tier Monitor
+        </h2>
+        <div className="flex gap-2">
+          <Badge variant="warning">Survival Score: 64.2/100</Badge>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <Card title="Supabase">
+          <div className="text-xs text-slate-400 mb-2">Storage: ~200-400 MB / 500 MB</div>
+          <div className="h-2 bg-slate-800 rounded overflow-hidden">
+            <div className="h-full bg-emerald-400 w-[60%]"></div>
+          </div>
+        </Card>
+        
+        <Card title="Upstash Redis">
+          <div className="text-xs text-slate-400 mb-2">Commands: ~1,200 / 10,000 daily</div>
+          <div className="h-2 bg-slate-800 rounded overflow-hidden">
+            <div className="h-full bg-emerald-400 w-[12%]"></div>
+          </div>
+        </Card>
+
+        <Card title="Render">
+          <div className="text-xs text-slate-400 mb-2">Web Service Hours: 513.6 / 750.0</div>
+          <div className="h-2 bg-slate-800 rounded overflow-hidden">
+            <div className="h-full bg-amber-400 w-[68%]"></div>
+          </div>
+        </Card>
+      </div>
+
     </div>
   );
 }

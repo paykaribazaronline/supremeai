@@ -47,26 +47,60 @@ class SemanticDOM:
             elements = elements_snapshot
         elif self.page is not None and hasattr(self.page, "evaluate"):
             try:
-                elements = await self.page.evaluate("""
-                    () => [...document.querySelectorAll('button, a, input, select, textarea, [role], [onclick]')].slice(0, 200).map(el => ({
-                        tag: (el.tagName || '').toLowerCase(),
-                        text: (el.innerText || el.value || el.ariaLabel || el.title || el.placeholder || '').trim().slice(0, 120),
-                        role: el.getAttribute('role') || '',
-                        placeholder: el.placeholder || '',
-                        xpath: el.id ? `//*[@id="${el.id}"]` : (el.name ? `//*[@name="${el.name}"]` : `//${el.tagName.toLowerCase()}[contains(text(), "${(el.innerText||'').slice(0,20)}")]`)
-                    }))
-                """)
+                elements = await self.page.evaluate("""() => {
+                    const results = [];
+                    
+                    const getXPath = (el) => {
+                        if (el.id) return `//*[@id="${el.id}"]`;
+                        if (el.name) return `//*[@name="${el.name}"]`;
+                        return `//${el.tagName.toLowerCase()}[contains(text(), "${(el.innerText||'').slice(0,20).replace(/"/g, "'")}")]`;
+                    };
+                    
+                    // Regular DOM elements
+                    document.querySelectorAll('button, a, input, select, textarea, [role], [onclick]')
+                        .forEach(el => results.push({
+                            tag: (el.tagName || '').toLowerCase(),
+                            text: (el.innerText || el.value || el.ariaLabel || el.title || el.placeholder || '').trim().slice(0, 120),
+                            role: el.getAttribute('role') || '',
+                            placeholder: el.placeholder || '',
+                            xpath: getXPath(el),
+                            is_shadow: false
+                        }));
+                    
+                    // ✅ NEW: Shadow DOM support
+                    document.querySelectorAll('*').forEach(host => {
+                        if (host.shadowRoot) {
+                            host.shadowRoot.querySelectorAll('button, a, input, [role]')
+                                .forEach(el => results.push({
+                                    tag: `shadow:${(el.tagName || '').toLowerCase()}`,
+                                    text: (el.innerText || el.value || el.ariaLabel || el.title || el.placeholder || '').trim().slice(0, 120),
+                                    role: el.getAttribute('role') || '',
+                                    placeholder: el.placeholder || '',
+                                    xpath: `[shadow-host] >> ${getXPath(el)}`,
+                                    is_shadow: true
+                                }));
+                        }
+                    });
+                    
+                    return results;
+                }""")
             except Exception as exc:
                 logger.debug(f"[SemanticDOM] Page evaluation fallback: {exc}")
 
         if not elements:
             # Fallback mock elements for headless or decoupled mode
             elements = [
-                {"tag": "button", "text": "Submit Checkout", "role": "button", "xpath": "//button[@type='submit']"},
-                {"tag": "a", "text": "View Cart", "role": "link", "xpath": "//a[@href='/cart']"},
-                {"tag": "input", "text": "Search Products", "role": "searchbox", "xpath": "//input[@name='q']"},
-                {"tag": "button", "text": "Login", "role": "button", "xpath": "//button[@id='login']"},
+                {"tag": "button", "text": "Submit Checkout", "role": "button", "xpath": "//button[@type='submit']", "is_shadow": False},
+                {"tag": "a", "text": "View Cart", "role": "link", "xpath": "//a[@href='/cart']", "is_shadow": False},
+                {"tag": "input", "text": "Search Products", "role": "searchbox", "xpath": "//input[@name='q']", "is_shadow": False},
+                {"tag": "button", "text": "Login", "role": "button", "xpath": "//button[@id='login']", "is_shadow": False},
             ]
+            
+        # ✅ NEW: Enforce Token Budget (~500 tokens / 4 tokens per item avg = max 125 elements)
+        # Prioritize important interactive elements
+        priority = {'button': 5, 'a': 4, 'input': 3, 'select': 2, 'textarea': 2}
+        elements.sort(key=lambda e: priority.get(e.get("tag", "").replace("shadow:", ""), 1), reverse=True)
+        elements = elements[:125]
 
         for el in elements:
             desc = f"{el.get('tag', '')} | {el.get('role', '')} | {el.get('text', '')} | {el.get('placeholder', '')}"
@@ -102,5 +136,9 @@ class SemanticDOM:
 
         best_match = scored[0][1].copy()
         best_match["semantic_confidence"] = scored[0][0]
+        
+        # ✅ NEW: Add token and shadow DOM metadata
+        best_match["is_shadow"] = best_match.get("is_shadow", False)
+        
         return best_match
 

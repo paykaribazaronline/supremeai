@@ -18,7 +18,7 @@ core_routers: list[tuple[str, str]] = [
     # বাংলা মন্তব্য: llm_gateway ইচ্ছাকৃতভাবে optional_routers-এ সরানো হয়েছে।
     # এটি দুইবার bad import-এর কারণে পুরো test suite crash করেছে (cv2 এবং core.auth)।
     # optional রাখলে ভবিষ্যতে একটি broken route file পুরো app object poison করতে পারবে না।
-    ("api.routes.browser", ""),
+    ("api.routes.browser_routes", ""),
     ("api.routes.stream", ""),
     ("api.routes.media", ""),
     ("api.routes.graph", ""),
@@ -82,6 +82,7 @@ core_routers: list[tuple[str, str]] = [
     ("api.routes.swarm", "/api/v1/swarm"),
     # Added real-time dashboard WebSocket endpoint for Phase 2.1 of roadmap
     ("api.routes.realtime_dashboard", ""),
+    ("api.routes.ci_dashboard_api", ""),
     # Living, Self-Evolving Autonomous Engine Orchestrator
     ("api.routes.living_engine", ""),
 ]
@@ -137,7 +138,7 @@ _admin_paths = {
     "api.routes.simulator_admin",
     "api.routes.site_actions",
     "api.routes.llm_gateway",
-    "api.routes.browser",
+    "api.routes.browser_routes",
     "api.routes.evolution",
     "api.routes.meta_ai",
     "api.routes.admin_dashboard",
@@ -165,7 +166,7 @@ ADMIN_ROUTERS: list[tuple[str, str]] = [
     ("api.routes.simulator_admin", ""),
     ("api.routes.site_actions", ""),
     ("api.routes.llm_gateway", ""),
-    ("api.routes.browser", ""),
+    ("api.routes.browser_routes", ""),
     ("api.routes.evolution", "/api/v1"),
     ("api.routes.meta_ai", "/api/v1"),
     ("api.routes.admin_dashboard", ""),
