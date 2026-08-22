@@ -500,7 +500,8 @@ class SmartRouter:
         prefer_provider: Optional[str] = None,
         max_cost_usd: Optional[float] = None,
         require_vision: bool = False,
-        require_functions: bool = False
+        require_functions: bool = False,
+        user_budget: Optional[Any] = None  # BudgetContext from economic_optimizer
     ) -> RoutingDecision:
         """
         Determine best model for a given query.
@@ -520,6 +521,10 @@ class SmartRouter:
         # Analyze query complexity
         complexity = self.analyzer.analyze(query, context)
         
+        # Override max_cost_usd if user_budget is provided
+        if user_budget is not None:
+            max_cost_usd = min(max_cost_usd if max_cost_usd is not None else float('inf'), user_budget.remaining)
+            
         # Filter available models based on requirements
         candidates = self._filter_models(
             complexity=complexity,
@@ -537,7 +542,8 @@ class SmartRouter:
         scored_candidates = self._score_candidates(candidates, complexity)
         
         # Select best model
-        selected = scored_candidates[0]
+        selected_dict = scored_candidates[0]
+        selected = selected_dict['model']
         fallbacks = scored_candidates[1:4] if len(scored_candidates) > 1 else []
         
         # Calculate estimates
@@ -595,7 +601,7 @@ class SmartRouter:
             candidates = [m for m in candidates if m.supports_functions]
         
         # Filter by cost
-        if max_cost_usd:
+        if max_cost_usd is not None:
             input_tokens, output_tokens = complexity.estimated_tokens
             candidates = [
                 m for m in candidates
@@ -696,14 +702,16 @@ class SmartRouter:
         self,
         decision: RoutingDecision,
         messages: List[Dict[str, str]],
+        user_budget: Optional[Any] = None,
         **kwargs
     ) -> Dict[str, Any]:
         """
         Execute the routed request.
         
         Args:
-            decision: Routing decision from route()
+            decision: RoutingDecision from route()
             messages: Chat messages array
+            user_budget: Optional BudgetContext to deduct from
             **kwargs: Additional API parameters
             
         Returns:
@@ -721,16 +729,20 @@ class SmartRouter:
             # Update stats
             self._update_stats(model, decision.estimated_cost_usd, latency_ms)
             
+            actual_cost = (
+                (len(str(messages)) / 1000) * model.cost_per_1k_input +
+                (len(str(response)) / 1000) * model.cost_per_1k_output
+            )
+            
+            if user_budget is not None:
+                user_budget.deduct(actual_cost)
+            
             # Add routing metadata
             response['_routing'] = {
                 'model_used': f"{model.provider}/{model.model_id}",
                 'tier': model.tier.value,
                 'latency_ms': round(latency_ms, 2),
-                'actual_cost_usd': round(
-                    (len(str(messages)) / 1000) * model.cost_per_1k_input +
-                    (len(str(response)) / 1000) * model.cost_per_1k_output,
-                    6
-                )
+                'actual_cost_usd': round(actual_cost, 6)
             }
             
             return response
