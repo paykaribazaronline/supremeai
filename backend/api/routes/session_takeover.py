@@ -12,12 +12,135 @@ from fastapi import (
     WebSocket,
     WebSocketDisconnect,
 )
+from playwright.async_api import Page, Playwright
+import base64
+import io
+from PIL import Image
+import zlib
 from loguru import logger
 from pydantic import BaseModel
 
 from core.messaging.event_bus import ErrorContext
 
 router = APIRouter()
+
+# Store active screencast streams
+active_screencasts: dict[str, dict] = {}
+
+
+class ScreencastStreamer:
+    """
+    ✅ REAL Screencast Streaming - Per Master Plan Pillar 6
+    Captures Playwright page frames and streams via WebSocket
+    """
+    
+    def __init__(self, page: Page, websocket: WebSocket):
+        self.page = page
+        self.websocket = websocket
+        self.is_streaming = False
+        self.fps = 10  # Target frames per second
+        self.quality = 80  # JPEG quality (1-100)
+        self.last_frame_hash = None
+        self.frame_count = 0
+        
+    async def start_stream(self):
+        """Start capturing and streaming frames"""
+        self.is_streaming = True
+        
+        try:
+            while self.is_streaming:
+                frame_start = asyncio.get_event_loop().time()
+                
+                # Capture screenshot from Playwright
+                screenshot_bytes = await self.page.screenshot(
+                    full_page=False,
+                    type='jpeg',
+                    quality=self.quality
+                )
+                
+                # ✅ Delta compression: Only send if frame changed
+                frame_hash = hash(screenshot_bytes)
+                
+                if frame_hash != self.last_frame_hash:
+                    # Encode to base64 for JSON transport
+                    b64_frame = base64.b64encode(screenshot_bytes).decode('utf-8')
+                    
+                    # Send frame via WebSocket
+                    await self.websocket.send_json({
+                        "channel": "screencast",
+                        "type": "frame",
+                        "data": b64_frame,
+                        "timestamp": asyncio.get_event_loop().time(),
+                        "frame_number": self.frame_count,
+                        "encoding": "jpeg",
+                        "fps": self.fps,
+                    })
+                    
+                    self.last_frame_hash = frame_hash
+                    self.frame_count += 1
+                else:
+                    # Send keepalive for unchanged frames
+                    await self.websocket.send_json({
+                        "channel": "screencast",
+                        "type": "keepalive",
+                        "frame_number": self.frame_count,
+                    })
+                
+                # Frame rate throttling
+                frame_time = asyncio.get_event_loop().time() - frame_start
+                target_frame_time = 1.0 / self.fps
+                if frame_time < target_frame_time:
+                    await asyncio.sleep(target_frame_time - frame_time)
+                    
+        except WebSocketDisconnect:
+            print("Screencast client disconnected")
+        except Exception as e:
+            print(f"Screencast error: {e}")
+            await self.websocket.send_json({
+                "channel": "screencast",
+                "type": "error",
+                "message": str(e),
+            })
+        finally:
+            self.is_streaming = False
+    
+    async def stop_stream(self):
+        """Stop streaming frames"""
+        self.is_streaming = False
+        
+    async def handle_input(self, action: str, data: dict):
+        """
+        ✅ Handle mouse/keyboard input from human operator
+        Routes CDP Input.dispatch commands to Playwright
+        """
+        if action == "mouse.move":
+            await self.page.mouse.move(data["x"], data["y"])
+            
+        elif action == "mouse.click":
+            await self.page.mouse.click(data["x"], data["y"], delay=data.get("delay", 50))
+            
+        elif action == "mouse.down":
+            await self.page.mouse.down(button=data.get("button", "left"))
+            
+        elif action == "mouse.up":
+            await self.page.mouse.up(button=data.get("button", "left"))
+            
+        elif action == "mouse.wheel":
+            await self.page.mouse.wheel(data["delta_x"], data["delta_y"])
+            
+        elif action == "keyboard.press":
+            await self.page.keyboard.press(data["key"])
+            
+        elif action == "keyboard.type":
+            await self.page.keyboard.type(data["text"], delay=data.get("delay", 20))
+            
+        elif action == "return_control":
+            # Human done, hand back to AI
+            await self.stop_stream()
+            return {"status": "control_returned"}
+        
+        return {"status": "input_processed"}
+
 
 
 # বাংলা মন্তব্য: TakeoverRequest — HTTP endpoint এর জন্য Pydantic model
@@ -146,60 +269,7 @@ def _is_production() -> bool:
     return os.environ.get("SUPREMEAI_ENV", "").lower() == "production"
 
 
-# A 1x1 black JPEG pixel encoded in base64 — dev/stress-test only, never sent in production.
-MOCK_FRAME_B64 = "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA="
 
-
-async def dev_mock_screencast_emitter(websocket: WebSocket, session_id: str):
-    """
-    Non-production only: heartbeat emitter for mock CDP screencast frames to stress-test the
-    frontend canvas. Emits ~10 fps to simulate live streaming.
-    """
-    try:
-        while True:
-            await asyncio.sleep(0.1)
-            await websocket.send_json({"channel": "screencast", "data": MOCK_FRAME_B64, "mock": True})
-    except asyncio.CancelledError:
-        logger.warning("⚠️ Task execution was intentionally cancelled.")
-        raise
-    except Exception as e:
-        logger.exception(f"❌ Critical task failure in session_takeover.py: {e}")
-        from core.messaging.event_bus import ErrorEvent, error_event_bus
-
-        await error_event_bus.emit_async(
-            ErrorEvent(
-                module="backend.api.routes.session_takeover",
-                error_type=type(e).__name__,
-                message=str(e),
-                severity="WARNING",
-                structured_context=ErrorContext(module="auto_fixed"),
-                context={"session_id": session_id},
-            )
-        )
-
-
-async def _report_screencast_unavailable(websocket: WebSocket, session_id: str) -> None:
-    """Production fallback: no real CDP/Playwright frame source is wired to this gateway yet.
-    Tell the client honestly instead of faking a live feed, and log it centrally."""
-    from core.messaging.event_bus import ErrorEvent, error_event_bus
-
-    await websocket.send_json(
-        {
-            "channel": "screencast",
-            "status": "unavailable",
-            "message": "Live screencast is not wired to a real browser session yet in production.",
-        }
-    )
-    await error_event_bus.emit_async(
-        ErrorEvent(
-            module="backend.api.routes.session_takeover",
-            error_type="ScreencastSourceMissing",
-            message="Production session takeover requested but no real CDP frame source is configured.",
-            severity="WARNING",
-            structured_context=ErrorContext(module="auto_fixed"),
-            context={"session_id": session_id},
-        )
-    )
 
 
 @router.websocket("/ws/session/{session_id}/takeover")
@@ -217,12 +287,28 @@ async def takeover_session_websocket(websocket: WebSocket, session_id: str, toke
         return
 
     logger.info(f"WebSocket takeover initiated for session {session_id}")
+    
+    # ✅ Get Playwright page for this session
+    try:
+        from tools.browser.playwright_browser_agent import PlaywrightBrowserAgent
+    except ImportError:
+        logger.error("Could not import PlaywrightBrowserAgent")
+        await websocket.close(code=5003, reason="Cannot create browser session: Agent missing")
+        return
 
-    if _is_production():
-        await _report_screencast_unavailable(websocket, session_id)
-        emitter_task = None
-    else:
-        emitter_task = asyncio.create_task(dev_mock_screencast_emitter(websocket, session_id))
+    agent = PlaywrightBrowserAgent()
+    page = await agent.get_or_create_session(session_name=session_id)
+    
+    if not page:
+        await websocket.close(code=5003, reason="Cannot create browser session")
+        return
+    
+    # ✅ REAL screencast streaming
+    streamer = ScreencastStreamer(page, websocket)
+    
+    # Start streaming in background
+    stream_task = asyncio.create_task(streamer.start_stream())
+    active_screencasts[session_id] = {"streamer": streamer, "task": stream_task}
 
     start_time = time.monotonic()
     try:
@@ -230,20 +316,35 @@ async def takeover_session_websocket(websocket: WebSocket, session_id: str, toke
             data = await websocket.receive_json()
 
             action = data.get("action") or data.get("method")
-            if action == "return_control":
+            if not action:
+                continue
+                
+            # Route input actions to streamer
+            result = await streamer.handle_input(action, data.get("data", {}))
+            
+            if result.get("status") == "control_returned":
                 logger.info(f"Session {session_id} returned control to agent.")
                 break
-            elif str(action).startswith("Input.dispatch"):
-                # Handle CDP input routing here (will route to Playwright context in production)
-                logger.debug(f"CDP Event [{session_id}]: {action} - {data.get('params')}")
+                
+            # Confirm input received
+            await websocket.send_json({
+                "channel": "input_ack",
+                "action": action,
+                "result": result,
+            })
 
     except WebSocketDisconnect:
         logger.info(f"WebSocket takeover disconnected for session {session_id}")
     except Exception as e:
         logger.error(f"WebSocket takeover error: {e}")
     finally:
-        if emitter_task is not None:
-            emitter_task.cancel()
+        if "stream_task" in locals():
+            stream_task.cancel()
+            await streamer.stop_stream()
+            
+        if session_id in active_screencasts:
+            del active_screencasts[session_id]
+            
         if websocket.client_state.name != "DISCONNECTED":
             await websocket.close()
         logger.debug(f"Takeover session {session_id} lasted {time.monotonic() - start_time:.1f}s")

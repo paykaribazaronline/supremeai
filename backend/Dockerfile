@@ -40,5 +40,5 @@ USER supremeai
 EXPOSE 8080
 
 # Start command
-CMD uvicorn core.app:app --host 0.0.0.0 --port ${PORT}
+CMD ["python", "main.py"]
 

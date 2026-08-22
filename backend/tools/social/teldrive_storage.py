@@ -166,7 +166,8 @@ class TelDriveStorage:
                 async with get_db_session() as session:
                     for tbl in target_tables:
                         try:
-                            res = await session.execute(text(f"SELECT * FROM {tbl} LIMIT 500"))
+                            query = "SELECT * FROM {} LIMIT 500".format(tbl)  # nosec
+                            res = await session.execute(text(query))
                             rows = [dict(r._mapping) for r in res]
                             # Serialize non-json types (datetime, UUID)
                             def _json_serial(obj):

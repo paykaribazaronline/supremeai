@@ -282,6 +282,40 @@ class PlaywrightBrowserAgent:
             page.close()
             context.close()
             asyncio.run(stealth_manager.close())
+            
+    async def upload_file(self, selector: str, file_path: str) -> dict:
+        """
+        browser_file_upload - Per Master Plan Pillar 2
+        Upload files through file input elements
+        """
+        self.start()
+        # Create a new session specifically for this upload action
+        # Note: In a real system, the agent should ideally maintain a live session,
+        # but following the existing pattern of creating context/page per action for now
+        context, stealth_manager = self._new_context("upload-session")
+        page = context.new_page()
+        (page.set_default_timeout(self.timeout_ms) if hasattr(page, "set_default_timeout") else None)
+        
+        try:
+            # Locate file input element
+            file_input = page.locator(selector)
+            if not file_input:
+                return {"success": False, "error": f"File input not found: {selector}"}
+            
+            # Set files
+            file_input.set_input_files(file_path)
+            
+            return {
+                "success": True,
+                "message": f"Uploaded: {file_path}",
+                "selector": selector,
+            }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+        finally:
+            page.close()
+            context.close()
+            asyncio.run(stealth_manager.close())
 
     def _update_model_behavior_in_background(self, model_name: str, latency_ms: float, success: bool):
         """Runs the DB update in a background thread to avoid blocking."""
