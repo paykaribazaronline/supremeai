@@ -100,7 +100,9 @@ class TestProductionReadinessSystems:
 
         content = prompt_path.read_text(encoding="utf-8")
         assert "Language:" in content
-        assert "Autonomy" in content
+        # বাংলা মন্তব্য: ডকুমেন্ট এখন বাংলা/Banglish-এ লেখা, তাই ইংরেজি "Autonomy" শব্দের
+        # বদলে বাংলা self-evolving/autonomous পরিভাষা চেক করা হচ্ছে।
+        assert "Self-Evolving" in content or "স্বয়ংক্রিয়" in content or "স্বয়ংক্রিয়ভাবে" in content
 
     @pytest.mark.anyio
     async def test_autocache_integration(self):
@@ -153,8 +155,8 @@ class TestProductionReadinessSystems:
             assert "Security" in content or "Preflight" in content
 
             # সিস্টেমগুলি সঠিক ক্রমে চলে নিশ্চিত করুন
-            # production-readiness → backend-core
-            assert "backend-tests" in content
+            # production-readiness → backend-core (জব রিনেম হয়েছে, তাই নতুন নাম চেক করা হচ্ছে)
+            assert "backend-core" in content
 
     def test_code_style_guide_includes_bengali_comments(self):
         """কোড স্টাইল গাইড বাংলা মন্তব্য অন্তর্ভুক্ত করে"""

@@ -8,7 +8,6 @@ from __future__ import annotations
 from typing import Any
 
 from core.llm.advanced_model_router import (
-    AdvancedModelRouter,
     TaskComplexityAnalyzer,
     get_advanced_router,
 )
@@ -31,6 +30,9 @@ class SelfSovereignRouter:
     async def route(self, prompt: str, task_type: str = "general") -> dict[str, Any]:
         decision = await self._core_router.route_request(prompt, task_type)
         return {
+            # বাংলা মন্তব্য: "complexity" পুরনো (pre-consolidation) SelfSovereignRouter
+            # contract-এর key ছিল — facade backward-compatible রাখতে দুটো key-ই রাখা হলো।
+            "complexity": decision.complexity_tier,
             "tier": decision.complexity_tier,
             "provider": decision.provider,
             "model": decision.model,

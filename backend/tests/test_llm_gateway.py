@@ -27,6 +27,25 @@ def disable_semantic_cache(monkeypatch):
     return
 
 
+@pytest.fixture(autouse=True)
+def reset_shared_circuit_breakers():
+    """বাংলা মন্তব্য: CircuitBreakerManager একটি process-wide singleton (real
+    resilience feature, বাগ না) — কিন্তু টেস্ট আইসোলেশনের জন্য প্রতিটা টেস্টের
+    আগে/পরে state reset করা দরকার। নাহলে parallel worker-এ (xdist --dist=loadfile)
+    একই process-এ চলা অন্য টেস্ট কোনো model-এর breaker trip করালে, এই ফাইলের পরের
+    legit টেস্টেও সেই model silently skip হয়ে যায় (cb.allow_request() == False),
+    call_chain ছোট হয়ে যায়, আর false 'all models failed' রেজাল্ট আসে।
+    """
+    from core.resilience.circuit_breaker_manager import CircuitBreakerManager
+
+    manager = CircuitBreakerManager()
+    for name in list(manager._circuit_breakers.keys()):
+        manager.reset_breaker(name)
+    yield
+    for name in list(manager._circuit_breakers.keys()):
+        manager.reset_breaker(name)
+
+
 def test_load_routing_policy_file_not_found(monkeypatch, tmp_path):
     monkeypatch.setattr(
         "core.llm.llm_gateway._POLICY_PATH",

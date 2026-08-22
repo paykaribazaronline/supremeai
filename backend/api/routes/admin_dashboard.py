@@ -20,6 +20,7 @@ from core.error_bus import with_error_bus
 from core.utils.time_utils import utc_now
 from models.ci_report import CIReportPayload, create_ci_report
 from tools.billing.cost_auditor import CostAuditor
+from tools.knowledge.codebase_exporter import export_codebase_to_markdown
 from api.routes.admin_auth import admin_rate_limit, require_admin_token
 from api.dependencies import get_current_admin
 

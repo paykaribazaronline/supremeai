@@ -4,11 +4,12 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 import os
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 from loguru import logger
@@ -33,10 +34,10 @@ class AuditResult:
     test_count: int
     failure_count: int
     duration_seconds: float
-    failures: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    failures: list[str] = field(default_factory=list)
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "passed": self.passed,
             "test_count": self.test_count,
@@ -55,7 +56,7 @@ class CircuitBreaker:
         self.cooldown_seconds = cooldown_seconds
         self.consecutive_failures = 0
         self.state = "closed"  # "closed", "open", "half_open"
-        self.cooldown_until: Optional[float] = None
+        self.cooldown_until: float | None = None
 
     def is_available(self) -> bool:
         if self.state == "open":
@@ -94,7 +95,7 @@ class NightlyChaosAuditor:
             logger.warning("Chaos audit skipped: circuit breaker is open.")
             return False
 
-        failures: List[str] = []
+        failures: list[str] = []
         tests_run = 0
 
         try:
@@ -103,16 +104,21 @@ class NightlyChaosAuditor:
                 payloads = generate_fuzz_payloads()
                 for code, _ in payloads[:20]:
                     tests_run += 1
-                    try:
+                    with contextlib.suppress(Exception):
                         if run_sandbox_ast_check(code):
                             failures.append("Sandbox AST bypass detected during fuzzing")
                             logger.critical("🚨 [SECURITY BREACH] Sandbox bypass detected during autonomous fuzzing!")
-                    except Exception:
-                        pass
+            else:
+                # বাংলা মন্তব্য: fuzz_sandbox টুলিং আনঅভেইলেবল (ImportError) মানে এই
+                # security-critical চেক আসলে চলেইনি — silently skip করে gate UNLOCKED
+                # করা fail-open আচরণ। এর বদলে fail-closed: audit-কে failure হিসেবে গণ্য করা।
+                tests_run += 1
+                failures.append("fuzz_sandbox tooling unavailable — sandbox integrity check could not run")
+                logger.error("🚨 [FAIL-CLOSED] fuzz_sandbox unavailable — treating chaos audit as failed, not skipping.")
 
             # 🧪 টেস্ট ২: রানটাইম স্ট্রেস চেক
             async with httpx.AsyncClient(timeout=5.0) as client:
-                headers = {"Idempotency-Key": f"auto-chaos-{datetime.now(timezone.utc).timestamp()}"}
+                headers = {"Idempotency-Key": f"auto-chaos-{datetime.now(UTC).timestamp()}"}
                 tasks = [
                     client.post(f"{self.target_url}/api/task/execute", json={"message": "Ping"}, headers=headers)
                     for _ in range(5)
@@ -134,7 +140,7 @@ class NightlyChaosAuditor:
                 if self.gate_ref:
                     await asyncio.to_thread(
                         self.gate_ref.set,
-                        {"status": "UNLOCKED", "reason": "All self-testing gates green.", "updated_at": datetime.now(timezone.utc)},
+                        {"status": "UNLOCKED", "reason": "All self-testing gates green.", "updated_at": datetime.now(UTC)},
                     )
                 return True
             else:
@@ -144,7 +150,7 @@ class NightlyChaosAuditor:
                 if self.gate_ref:
                     await asyncio.to_thread(
                         self.gate_ref.set,
-                        {"status": "LOCKED", "reason": f"Audit failed: {len(failures)} anomalies.", "updated_at": datetime.now(timezone.utc)},
+                        {"status": "LOCKED", "reason": f"Audit failed: {len(failures)} anomalies.", "updated_at": datetime.now(UTC)},
                     )
                 return False
 
@@ -155,6 +161,6 @@ class NightlyChaosAuditor:
             if self.gate_ref:
                 await asyncio.to_thread(
                     self.gate_ref.set,
-                    {"status": "LOCKED", "reason": f"Auditor crash: {global_err!s}", "updated_at": datetime.now(timezone.utc)},
+                    {"status": "LOCKED", "reason": f"Auditor crash: {global_err!s}", "updated_at": datetime.now(UTC)},
                 )
             return False

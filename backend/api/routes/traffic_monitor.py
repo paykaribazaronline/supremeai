@@ -2,7 +2,8 @@ import json
 import time
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
+from loguru import logger
 
 from api.dependencies import get_current_admin
 from core.cache.redis_manager import redis_manager
