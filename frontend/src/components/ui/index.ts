@@ -4,6 +4,7 @@ export { Skeleton } from './Skeleton';
 export { ActionCard } from './ActionCard';
 export { StatCard } from './StatCard';
 export { SpotlightCard } from './SpotlightCard';
+export { EmptyState } from './EmptyState';
 export { Breadcrumb } from './Breadcrumb';
 export { PageHeader } from './PageHeader';
 export { BanglaHint } from '../BanglaHint';
