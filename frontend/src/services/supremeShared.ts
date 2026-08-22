@@ -60,7 +60,7 @@ export function getSharedServices() {
     return _svc;
   }
 
-  const backendUrl = (getApiBaseUrl() || 'https://supremeai-backend-6nwi.onrender.com').replace(/\/$/, '');
+  const backendUrl = (getApiBaseUrl() || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000').replace(/\/$/, '');
 
   const service = new SupremeAIService(
     {

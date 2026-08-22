@@ -163,6 +163,7 @@ async def process_query(
     request: ProcessRequest,
     background_tasks: BackgroundTasks,
     x_client_id: str = Query(default="anonymous"),
+    _token: dict = Depends(get_current_user_token),
 ) -> ProcessResponse:
     """Main processing endpoint accepting user queries and returning AI solutions."""
     global factory, ai_integrator
@@ -240,7 +241,7 @@ async def system_status() -> dict[str, Any]:
 
 
 @app.get("/api/v1/evolution/status", response_model=EvolutionStatusResponse, tags=["Evolution"])
-async def evolution_status() -> EvolutionStatusResponse:
+async def evolution_status(_token: dict = Depends(get_current_user_token)) -> EvolutionStatusResponse:
     """Get current evolution status and history."""
     if not ai_integrator or not ai_integrator.auto_evolution:
         raise HTTPException(status_code=503, detail="Evolution system not available")
@@ -271,7 +272,7 @@ async def trigger_evolution() -> dict[str, Any]:
 
 
 @app.get("/api/v1/memory/stats", response_model=MemoryStatsResponse, tags=["Memory"])
-async def memory_statistics() -> MemoryStatsResponse:
+async def memory_statistics(_token: dict = Depends(get_current_user_token)) -> MemoryStatsResponse:
     """Get memory system statistics."""
     if not ai_integrator or not ai_integrator.memory_consolidator:
         raise HTTPException(status_code=503, detail="Memory system not available")

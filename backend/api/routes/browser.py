@@ -12,6 +12,7 @@ import urllib.error
 import urllib.request
 from urllib.parse import urlparse
 
+from api.deps import get_current_user_token
 from api.routes.admin_dashboard import require_admin_token
 from core.cache.redis_manager import MultiLevelCache
 from core.error_bus import with_error_bus
@@ -27,7 +28,7 @@ def get_credential_store() -> SecureCredentialStore:
     return SecureCredentialStore()
 
 
-router = APIRouter(prefix="/api/browser", tags=["browser"])
+router = APIRouter(prefix="/api/browser", tags=["browser"], dependencies=[Depends(get_current_user_token)])
 BROWSER_STATUS: dict[str, Any] = {"browsing": False, "currentUrl": "about:blank"}
 RECENT_ACTIVITIES: list[dict[str, Any]] = []
 CREDENTIALS: list[dict[str, Any]] = []

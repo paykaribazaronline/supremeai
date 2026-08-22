@@ -15,7 +15,7 @@ from core.error_bus import with_error_bus
 from models.byoc_payloads import BYOCCredentialsPayload, BYOCDeployRequest
 from models.deployment_logs import DeploymentJob
 
-router = APIRouter(prefix="/api/byoc", tags=["BYOC Management"])
+router = APIRouter(prefix="/api/byoc", tags=["BYOC Management"], dependencies=[Depends(get_current_user_token)])
 orchestrator = ContainerOrchestrator()
 
 # Memory database for tracking deployment jobs (simulating live backend db)

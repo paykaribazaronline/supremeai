@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { History, Plus, MessageSquare, Trash2 } from "lucide-react";
 import { DashboardLayout } from "./DashboardLayout";
 import { StatCard } from "../ui/StatCard";
@@ -60,6 +60,19 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
   const [showHistory, setShowHistory] = useState<boolean>(false);
   const [chatInput, setChatInput] = useState('');
 
+  const activeSessionIdRef = useRef(activeSessionId);
+  const aiTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    activeSessionIdRef.current = activeSessionId;
+  }, [activeSessionId]);
+
+  useEffect(() => {
+    return () => {
+      if (aiTimeoutRef.current) clearTimeout(aiTimeoutRef.current);
+    };
+  }, []);
+
   const activeSession = sessions.find((s) => s.id === activeSessionId) || sessions[0];
   const chatMessages = activeSession ? activeSession.messages : [];
 
@@ -109,7 +122,8 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
     if (!textToSend) setChatInput('');
 
     // Simulate AI response
-    setTimeout(() => {
+    if (aiTimeoutRef.current) clearTimeout(aiTimeoutRef.current);
+    aiTimeoutRef.current = setTimeout(() => {
       const aiMsg: ChatMessage = {
         id: crypto.randomUUID(),
         sender: 'ai',
@@ -117,7 +131,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
       };
       setSessions((prev) =>
         prev.map((s) =>
-          s.id === activeSessionId ? { ...s, messages: [...s.messages, aiMsg] } : s
+          s.id === activeSessionIdRef.current ? { ...s, messages: [...s.messages, aiMsg] } : s
         )
       );
     }, 600);
