@@ -152,7 +152,7 @@ async def check_single_service(config: Dict) -> ServiceHealth:
 
 async def check_all_services() -> List[ServiceHealth]:
     """Check all registered services concurrently."""
-    tasks = [check_single_service svc) for svc in SERVICE_REGISTRY]
+    tasks = [check_single_service(svc) for svc in SERVICE_REGISTRY]
     results = await asyncio.gather(*tasks, return_exceptions=True)
     
     # Convert exceptions to unhealthy status

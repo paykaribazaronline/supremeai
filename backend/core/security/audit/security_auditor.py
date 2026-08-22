@@ -241,7 +241,7 @@ class SecurityAuditor:
         duration = (end_time - start_time).total_seconds()
         
         self.stats['vulnerabilities_found'] = len(all_vulns)
-        self.stats['by_severity] = self._count_by_severity(all_vulns)
+        self.stats['by_severity'] = self._count_by_severity(all_vulns)
         self.stats['by_type'] = self._count_by_type(all_vulns)
         self.stats['duration_seconds'] = duration
         

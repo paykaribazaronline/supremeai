@@ -180,6 +180,16 @@ class IntelligentCache:
         hash_value = hashlib.sha256(key_data.encode()).hexdigest()[:16]
         return f"supremeai:{prefix}:{hash_value}"
     
+    async def record_predictive_access(self, key: str, user_id: str = "system"):
+        try:
+            from core.cache.predictive_cache_engine import get_predictive_engine
+            engine = get_predictive_engine()
+            if engine.cache_client is None:
+                await engine.initialize(self)
+            await engine.record_access(user_id=user_id, cache_key=key)
+        except ImportError:
+            pass
+
     async def get(
         self, 
         key: str, 
@@ -195,6 +205,8 @@ class IntelligentCache:
         Returns:
             Cached value or default
         """
+        await self.record_predictive_access(key)
+        
         if not self.config.enabled or not self._check_circuit_breaker():
             return self._local_cache.get(key, default)
         

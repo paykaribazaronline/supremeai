@@ -11,6 +11,7 @@ from core.llm.advanced_model_router import (
     AdvancedModelRouter,
     get_advanced_router,
 )
+from brain.economic_optimizer import get_economic_optimizer, BudgetContext
 
 
 class ProviderHealth(TypedDict):
@@ -75,7 +76,20 @@ class PerformanceAwareRouter:
             + (norm_quality_inv * self.quality_weight)
         )
 
-    async def route(self, prompt: str, task_type: str = "general") -> dict[str, Any]:
+    async def route(self, prompt: str, task_type: str = "general", budget_context: BudgetContext = None) -> dict[str, Any]:
+        if budget_context:
+            optimizer = await get_economic_optimizer()
+            decision = await optimizer.optimize_route(prompt=prompt, task_type=task_type, budget_context=budget_context)
+            return {
+                "provider": decision.provider,
+                "model": decision.model,
+                "score": 0.0,
+                "latency_ms": 0,
+                "estimated_cost": decision.estimated_cost,
+                "route_class": "economic",
+                "reasoning": decision.reasoning
+            }
+
         scored_providers = []
         for p in self.providers:
             if self._is_provider_healthy(p["name"]):

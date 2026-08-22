@@ -10,6 +10,7 @@ from brain.model_router import ModelRouter
 @dataclass
 class AppSpecification:
     app_type: str = "general"
+    secondary_intents: list[str] = field(default_factory=list)
     features: list[str] = field(default_factory=list)
     tech_stack: dict[str, str] = field(default_factory=dict)
     pages: list[str] = field(default_factory=list)
@@ -68,6 +69,7 @@ Return ONLY a JSON object (no markdown blocks, no text around it) with the follo
             data = json.loads(text)
             return AppSpecification(
                 app_type=data.get("app_type", "general"),
+                secondary_intents=data.get("secondary_intents", []),
                 features=data.get("features", []),
                 tech_stack=data.get("tech_stack", {}),
                 pages=data.get("pages", []),

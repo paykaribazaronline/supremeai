@@ -28,6 +28,9 @@ from dataclasses import dataclass, field
 from enum import Enum
 from datetime import datetime, timedelta
 from loguru import logger
+from core.health.proactive_healer import get_proactive_healer
+
+proactive_healer_instance = get_proactive_healer()
 
 try:
     import aiohttp
