@@ -65,7 +65,11 @@ async def test_get_completion_generates_response_and_saves_cache(monkeypatch):
             raise RuntimeError("boom")
         return {"text": f"generated:{prompt}"}
 
+    async def mock_recall_memories(*args, **kwargs):
+        return []
+
     monkeypatch.setattr("api.routes.chat.llm_gateway", SimpleNamespace(acompletion=mock_acompletion))
+    monkeypatch.setattr("services.memory_service.recall_memories", mock_recall_memories)
 
     request = SimpleNamespace(headers={"X-Session-ID": "session-2"})
     payload = ChatPayload(prompt="live-prompt")
@@ -78,20 +82,27 @@ async def test_get_completion_generates_response_and_saves_cache(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_completion_raises_http_exception_on_model_failure(monkeypatch):
+async def test_get_completion_returns_graceful_fallback_on_model_failure(monkeypatch):
     fake_cache = FakeCache(value=None)
     monkeypatch.setattr("api.routes.chat.multi_layer_cache", fake_cache)
 
     async def mock_acompletion(prompt, task_type, stream):
         raise RuntimeError("boom")
+        
+    async def mock_recall_memories(*args, **kwargs):
+        return []
 
     monkeypatch.setattr("api.routes.chat.llm_gateway", SimpleNamespace(acompletion=mock_acompletion))
+    monkeypatch.setattr("services.memory_service.recall_memories", mock_recall_memories)
 
     request = SimpleNamespace(headers={"X-Session-ID": "session-3"})
     payload = ChatPayload(prompt="raise-error")
 
-    with pytest.raises(HTTPException):
-        await get_completion(request, payload, db=SimpleNamespace(tenant_id="tenant-3"))
+    result = await get_completion(request, payload, db=SimpleNamespace(tenant_id="tenant-3"))
+    
+    assert result["success"] is True
+    assert result["source"] == "no_match"
+    assert "দুঃখিত" in result["response"]
 
 
 @pytest.mark.asyncio
