@@ -16,7 +16,7 @@ from typing import Any
 
 from loguru import logger
 
-from core.security.ast_sandbox_scanner import ASTSandboxScanner
+from core.security.scanning.ast_scanner import ASTSandboxScanner
 
 
 class ToolForgeError(Exception):

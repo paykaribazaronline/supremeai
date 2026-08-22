@@ -27,7 +27,7 @@ except ImportError:
 from fastapi import HTTPException, status
 from loguru import logger
 
-from .behavioral_analyzer import AnomalyAlert, BehavioralAnalyzer, get_analyzer
+from .intelligence.behavioral_analyzer import AnomalyAlert, BehavioralAnalyzer, get_analyzer
 
 # Fixed import path - using relative import instead of absolute
 from .enhanced_ast_scanner import SecurityIssue, SecurityScanner
