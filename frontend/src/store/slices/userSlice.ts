@@ -1,0 +1,1 @@
+export const createUserSlice = (set: any) => ({ user: null });

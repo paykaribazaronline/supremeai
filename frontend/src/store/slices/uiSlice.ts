@@ -1,0 +1,1 @@
+export const createUiSlice = (set: any) => ({ ui: null });

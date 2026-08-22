@@ -1,0 +1,1 @@
+export const createWorkspaceSlice = (set: any) => ({ workspace: null });
