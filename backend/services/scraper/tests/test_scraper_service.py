@@ -13,16 +13,16 @@ import asyncio
 import os
 import sys
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from browser_agent import BrowserAgent
 from security import is_safe_url
 from web_scraper import WebScraper
-from browser_agent import BrowserAgent
 
 
 @pytest.fixture
