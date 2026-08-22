@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from starlette.responses import PlainTextResponse
 
-from core.security.auth_middleware import AuthMiddleware
+from core.security.authentication.auth_middleware import AuthMiddleware
 
 # Rate limiter tests have been migrated to APIKeyRateLimiter and TenantRateLimiter
 
@@ -36,8 +36,8 @@ def test_auth_middleware_blocks_protected_route_without_token():
     app.add_middleware(AuthMiddleware)
     client = TestClient(app)
     with (
-        patch("core.security.auth_middleware.is_test_environment", return_value=False),
-        patch("core.security.auth_middleware.settings") as mock_settings,
+        patch("core.security.authentication.auth_middleware.is_test_environment", return_value=False),
+        patch("core.security.authentication.auth_middleware.settings") as mock_settings,
     ):
         mock_settings.supremeai_api_token = "secure-test-token-value"
         mock_settings.supremeai_public_paths = []
@@ -54,7 +54,7 @@ def test_auth_middleware_blocks_protected_route_without_token():
     app.add_middleware(AuthMiddleware)
     client = TestClient(app)
     try:
-        with patch("core.security.auth_middleware.settings") as mock_settings:
+        with patch("core.security.authentication.auth_middleware.settings") as mock_settings:
             mock_settings.supremeai_api_token = "secure-test-token-value"
             mock_settings.supremeai_public_paths = []
             resp = client.get(

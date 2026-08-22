@@ -10,7 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 
 
-from core.security.secret_hunter import (
+from core.security.scanning.secret_scanner import (
     GitleaksRunner,
     SecretFinding,
     SecretHunter,
@@ -120,6 +120,6 @@ def test_generate_pre_commit_hook_returns_script():
 
 
 def test_secret_hunter_singleton_exists():
-    from core.security.secret_hunter import secret_hunter
+    from core.security.scanning.secret_scanner import secret_hunter
 
     assert isinstance(secret_hunter, SecretHunter)

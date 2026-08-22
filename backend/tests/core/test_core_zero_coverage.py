@@ -91,13 +91,13 @@ class TestDecisionEngine:
 
 class TestAutoHealerService:
     def test_service_initialization(self):
-        from core.auto_healer_service import AutoHealerService
+        from core.errors.auto_healer import AutoHealerService
 
         service = AutoHealerService()
         assert service is not None
 
     def test_start_stop(self):
-        from core.auto_healer_service import AutoHealerService
+        from core.errors.auto_healer import AutoHealerService
 
         service = AutoHealerService()
         service.start()
@@ -106,7 +106,7 @@ class TestAutoHealerService:
     def test_heal_all(self):
         import asyncio
 
-        from core.auto_healer_service import AutoHealerService
+        from core.errors.auto_healer import AutoHealerService
 
         service = AutoHealerService()
         result = asyncio.run(service._check_and_heal())

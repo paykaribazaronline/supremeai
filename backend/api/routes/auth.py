@@ -15,7 +15,7 @@ from jwt import PyJWTError as JWTError
 
 from core.cache.redis_manager import redis_manager
 from core.config import settings
-from core.security.rbac import UserContext
+from core.security.authentication.rbac import UserContext
 from database.supabase_client import db
 
 router = APIRouter(prefix="/auth", tags=["auth"])

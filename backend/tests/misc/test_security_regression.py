@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from core.config import Settings
-from core.security.auth_middleware import AuthMiddleware
+from core.security.authentication.auth_middleware import AuthMiddleware
 
 
 @pytest.mark.anyio

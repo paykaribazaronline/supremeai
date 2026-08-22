@@ -19,7 +19,7 @@ from core.cache.redis_manager import redis_manager
 from core.config import settings
 
 # Remove the problematic import and use alternative
-# from core.security.auth_middleware import get_current_active_user
+# from core.security.authentication.auth_middleware import get_current_active_user
 from core.health_check import health_checker
 from core.llm.token_deductor import TokenDeductor
 from core.messaging.event_bus import EventBus

@@ -27,7 +27,7 @@ Dependencies:
 - `datetime`: For timestamping audit log entries.
 - `typing`: For type hints.
 - `bcrypt`: For secure password hashing and verification (optional fallback).
-- `core.security.rbac`: For role-based access control (`RoleBasedAccessControl`, `UserContext`).
+- `core.security.authentication.rbac`: For role-based access control (`RoleBasedAccessControl`, `UserContext`).
 - `core.universal_rules`: For defining and applying universal system rules (`UniversalRulesEngine`).
 - `core.config`: For accessing application settings (e.g., `app_name`)."""
 
@@ -46,7 +46,7 @@ except Exception as e:  # pragma: no cover - optional fallback
     bcrypt = None
 
 
-from .security.rbac import PermissionDeniedError, RoleBasedAccessControl, UserContext
+from .security.authentication.rbac import PermissionDeniedError, RoleBasedAccessControl, UserContext
 from .universal_rules import UniversalRulesEngine
 
 

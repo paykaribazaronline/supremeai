@@ -19,8 +19,8 @@ from core.skills import (
     ToolExecutionSkill,
     ToolSynthesisSkill,
 )
-from skills.provisioner import SkillProvisioner
-from skills.skill_registry import SkillRegistry
+from .provisioner import SkillProvisioner
+from .skill_registry import SkillRegistry
 
 __all__ = [
     "BaseSkill",

@@ -4,7 +4,7 @@
 
 import pytest
 
-from core.auto_healer_service import AutoHealerService
+from services.auto_healer import AutoHealer
 from core.failure_fingerprint import make_fingerprint
 from core.resilience.rollback_monitor import RollbackMonitor
 from tools.learning.model_trainer import ModelTrainer
@@ -12,7 +12,7 @@ from tools.learning.model_trainer import ModelTrainer
 
 @pytest.fixture
 def healer_service():
-    return AutoHealerService()
+    return AutoHealer()
 
 
 @pytest.mark.asyncio

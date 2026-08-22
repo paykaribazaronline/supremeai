@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from core.security.auth_middleware import (
+from core.security.authentication.auth_middleware import (
     AuthMiddleware,
     _get_bearer_token,
     verify_admin_session_fail_closed,
@@ -110,7 +110,7 @@ class TestAuthMiddleware:
         }
         send = AsyncMock()
         # বাংলা মন্তব্য: allow_test_auth_bypass False থাকলে bypass হবে না, middleware block করবে
-        with patch("core.security.auth_middleware.settings.allow_test_auth_bypass", False):
+        with patch("core.security.authentication.auth_middleware.settings.allow_test_auth_bypass", False):
             await middleware(scope, MagicMock(), send)
         assert mock_app.called is False
         send.assert_called()
@@ -137,7 +137,7 @@ class TestAuthMiddleware:
         }
         send = AsyncMock()
         # বাংলা মন্তব্য: allow_test_auth_bypass False থাকলে missing token 401 return করবে
-        with patch("core.security.auth_middleware.settings.allow_test_auth_bypass", False):
+        with patch("core.security.authentication.auth_middleware.settings.allow_test_auth_bypass", False):
             await middleware(scope, MagicMock(), send)
         mock_app.assert_not_called()
         send.assert_called()
@@ -184,7 +184,7 @@ class TestVerifyAdminSessionFailClosed:
 
         # বাংলা মন্তব্য: jwt_secret একটি @property তাই সরাসরি patch করা যায় না।
         # পরিবর্তে _decode_jwt function-কে patch করে None return করানো হচ্ছে।
-        with patch("core.security.auth_middleware._decode_jwt", return_value=None):
+        with patch("core.security.authentication.auth_middleware._decode_jwt", return_value=None):
             with pytest.raises(HTTPException) as exc_info:
                 import asyncio
 
@@ -200,10 +200,10 @@ class TestVerifyAdminSessionFailClosed:
         mock_request = MagicMock()
         mock_request.headers.get.return_value = "Bearer expired-token"
 
-        with patch("core.security.auth_middleware.settings") as mock_settings:
+        with patch("core.security.authentication.auth_middleware.settings") as mock_settings:
             # বাংলা মন্তব্য: সিকিউরিটি স্ক্যানার এলার্ট এড়াতে ডায়নামিক সিক্রেট জেনারেট করা হচ্ছে।
             mock_settings.jwt_secret = secrets.token_hex(32)
-            with patch("core.security.auth_middleware.jwt.decode") as mock_decode:
+            with patch("core.security.authentication.auth_middleware.jwt.decode") as mock_decode:
                 mock_decode.side_effect = ExpiredSignatureError("Expired")
                 with pytest.raises(HTTPException) as exc_info:
                     import asyncio
@@ -220,10 +220,10 @@ class TestVerifyAdminSessionFailClosed:
         mock_request = MagicMock()
         mock_request.headers.get.return_value = "Bearer invalid-token"
 
-        with patch("core.security.auth_middleware.settings") as mock_settings:
+        with patch("core.security.authentication.auth_middleware.settings") as mock_settings:
             # বাংলা মন্তব্য: সিকিউরিটি স্ক্যানার এলার্ট এড়াতে ডায়নামিক সিক্রেট জেনারেট করা হচ্ছে।
             mock_settings.jwt_secret = secrets.token_hex(32)
-            with patch("core.security.auth_middleware.jwt.decode") as mock_decode:
+            with patch("core.security.authentication.auth_middleware.jwt.decode") as mock_decode:
                 mock_decode.side_effect = JWTError("Invalid")
                 with pytest.raises(HTTPException) as exc_info:
                     import asyncio
@@ -239,10 +239,10 @@ class TestVerifyAdminSessionFailClosed:
         mock_request = MagicMock()
         mock_request.headers.get.return_value = "Bearer user-token"
 
-        with patch("core.security.auth_middleware.settings") as mock_settings:
+        with patch("core.security.authentication.auth_middleware.settings") as mock_settings:
             # বাংলা মন্তব্য: সিকিউরিটি স্ক্যানার এলার্ট এড়াতে ডায়নামিক সিক্রেট জেনারেট করা হচ্ছে।
             mock_settings.jwt_secret = secrets.token_hex(32)
-            with patch("core.security.auth_middleware.jwt.decode") as mock_decode:
+            with patch("core.security.authentication.auth_middleware.jwt.decode") as mock_decode:
                 mock_decode.return_value = {"sub": "user-123", "role": "user"}
                 with pytest.raises(HTTPException) as exc_info:
                     import asyncio
@@ -257,10 +257,10 @@ class TestVerifyAdminSessionFailClosed:
         mock_request.client.host = "127.0.0.1"
         mock_request.headers.get.return_value = "Bearer admin-token"
 
-        with patch("core.security.auth_middleware.settings") as mock_settings:
+        with patch("core.security.authentication.auth_middleware.settings") as mock_settings:
             # বাংলা মন্তব্য: সিকিউরিটি স্ক্যানার এলার্ট এড়াতে ডায়নামিক সিক্রেট জেনারেট করা হচ্ছে।
             mock_settings.jwt_secret = secrets.token_hex(32)
-            with patch("core.security.auth_middleware.jwt.decode") as mock_decode:
+            with patch("core.security.authentication.auth_middleware.jwt.decode") as mock_decode:
                 mock_decode.return_value = {"sub": "admin-123", "role": "master_admin"}
                 import asyncio
 
@@ -273,10 +273,10 @@ class TestVerifyAdminSessionFailClosed:
         mock_request.client.host = "127.0.0.1"
         mock_request.headers.get.return_value = "Bearer admin-token"
 
-        with patch("core.security.auth_middleware.settings") as mock_settings:
+        with patch("core.security.authentication.auth_middleware.settings") as mock_settings:
             # বাংলা মন্তব্য: সিকিউরিটি স্ক্যানার এলার্ট এড়াতে ডায়নামিক সিক্রেট জেনারেট করা হচ্ছে।
             mock_settings.jwt_secret = secrets.token_hex(32)
-            with patch("core.security.auth_middleware.jwt.decode") as mock_decode:
+            with patch("core.security.authentication.auth_middleware.jwt.decode") as mock_decode:
                 mock_decode.return_value = {"sub": "admin-123", "role": "admin"}
                 import asyncio
 

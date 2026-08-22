@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
-from core.security.rbac import get_current_admin
+from core.security.authentication.rbac import get_current_admin
 from database.supabase_client import db
 
 router = APIRouter(prefix="/api/v1/tools-registry", tags=["tools-registry"], dependencies=[Depends(get_current_admin)])

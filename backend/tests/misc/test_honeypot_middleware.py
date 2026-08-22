@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from core.security.honeypot_middleware import HoneypotMiddleware
+from core.security.protection.honeypot import HoneypotMiddleware
 
 
 def make_middleware():

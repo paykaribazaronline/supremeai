@@ -13,7 +13,7 @@ from loguru import logger
 from pydantic import BaseModel
 
 from core.code_validator import AICodeValidator
-from core.security.auth_middleware import verify_admin_session_fail_closed
+from core.security.authentication.auth_middleware import verify_admin_session_fail_closed
 from models.pending_tasks import TaskStatus, list_pending, update_task_status
 
 router = APIRouter()

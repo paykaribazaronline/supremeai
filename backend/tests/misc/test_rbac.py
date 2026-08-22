@@ -3,7 +3,7 @@ from datetime import UTC
 
 import pytest
 
-from core.security.rbac import (
+from core.security.authentication.rbac import (
     Permission,
     PermissionDeniedError,
     Role,

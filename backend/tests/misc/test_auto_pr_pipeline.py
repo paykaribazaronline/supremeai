@@ -26,7 +26,7 @@ async def test_auto_pr_pipeline_rejection(monkeypatch):
     async def mock_scan_code(code):
         return {"is_safe": False, "reason": "Syntax or security vulnerability detected"}
 
-    from core.security.guardian_ai import guardian_ai
+    from core.security.intelligence.guardian_ai import guardian_ai
 
     monkeypatch.setattr(guardian_ai, "scan_code", mock_scan_code)
 

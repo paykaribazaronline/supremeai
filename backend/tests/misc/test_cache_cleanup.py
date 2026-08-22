@@ -10,13 +10,13 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 # Ensure the project root is on sys.path for coverage tracking
-_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
 import importlib.util
 
-_cache_cleanup_path = os.path.abspath(os.path.join(_PROJECT_ROOT, "..", "tools", "cache_cleanup.py"))
+_cache_cleanup_path = "f:/supremeai/tools/cache_cleanup.py"
 _spec = importlib.util.spec_from_file_location("cache_cleanup", _cache_cleanup_path)
 cache_cleanup = importlib.util.module_from_spec(_spec)
 sys.modules["tools.cache_cleanup"] = cache_cleanup

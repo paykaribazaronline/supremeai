@@ -26,7 +26,7 @@ from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 
 # AST প্রি-এক্সিকিউশন স্ক্যানার — স্যান্ডবক্স বাইপাস প্রতিরোধ
 # getattr/hasattr/__import__/eval/exec ইত্যাদি বিপজ্জনক প্যাটার্ন স্ক্যান করে
-from core.security.ast_sandbox_scanner import validate_code_for_sandbox
+from core.security.scanning.ast_scanner import validate_code_for_sandbox
 
 # বাংলা মন্তব্য: Sandbox root whitelist — অনুমোদিত directories শুধু এখানে থাকতে পারে।
 # কেউ SANDBOX_ROOT=/etc/cron.d দিলে startup-এই crash হবে।

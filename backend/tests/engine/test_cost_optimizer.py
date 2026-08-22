@@ -3,7 +3,6 @@ from unittest.mock import patch
 
 import pytest
 
-sys.path.append("../..")
 from engine.cost_optimizer import ComplexityAnalyzer, CostOptimizer
 
 

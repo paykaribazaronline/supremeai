@@ -36,7 +36,7 @@ def mock_firestore():
 
 
 @patch("api.dependencies.get_current_user_token")
-@patch("core.security.auth_middleware._decode_jwt")
+@patch("core.security.authentication.auth_middleware._decode_jwt")
 def test_get_fixes_unauthorized(mock_decode_jwt, mock_token):
     mock_decode_jwt.return_value = {"sub": "user_test", "role": "user"}
     app.dependency_overrides[get_current_user_token] = lambda: {
@@ -58,7 +58,7 @@ def test_get_fixes_unauthorized(mock_decode_jwt, mock_token):
 
 
 @patch("api.dependencies.get_current_user_token")
-@patch("core.security.auth_middleware._decode_jwt")
+@patch("core.security.authentication.auth_middleware._decode_jwt")
 def test_get_fixes_authorized(mock_decode_jwt, mock_token, mock_healer, mock_firestore):
     mock_decode_jwt.return_value = {"sub": "admin_test", "role": "admin"}
     app.dependency_overrides[get_current_user_token] = lambda: {
@@ -96,7 +96,7 @@ def test_get_fixes_authorized(mock_decode_jwt, mock_token, mock_healer, mock_fir
 @patch("api.routes.admin.redis_manager")
 @patch("database.session.get_db_session")
 @patch("api.dependencies.get_current_user_token")
-@patch("core.security.auth_middleware._decode_jwt")
+@patch("core.security.authentication.auth_middleware._decode_jwt")
 def test_quick_actions_success(
     mock_decode_jwt,
     mock_token,
@@ -168,7 +168,7 @@ def test_quick_actions_success(
 
 @patch("api.routes.admin.god_layer")
 @patch("api.dependencies.get_current_user_token")
-@patch("core.security.auth_middleware._decode_jwt")
+@patch("core.security.authentication.auth_middleware._decode_jwt")
 def test_quick_action_unknown_returns_404(mock_decode_jwt, mock_token, mock_god_layer):
     mock_decode_jwt.return_value = {"sub": "admin_test", "role": "admin"}
     app.dependency_overrides[get_current_user_token] = lambda: {

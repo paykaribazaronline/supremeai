@@ -8,7 +8,7 @@ from __future__ import annotations
 import pytest
 
 from core.admin_god import AdminGodLayer, GodModeAuditLog, GodModeContext
-from core.security.rbac import UserContext
+from core.security.authentication.rbac import UserContext
 
 
 class TestAdminGodSecurity:

@@ -29,7 +29,7 @@ def test_swarm_router_is_registered(mock_streamer):
 
 
 @patch("api.dependencies.get_current_user_token")
-@patch("core.security.auth_middleware._decode_jwt")
+@patch("core.security.authentication.auth_middleware._decode_jwt")
 def test_halt_requires_admin(mock_decode_jwt, mock_token):
     mock_decode_jwt.return_value = {"sub": "user_test", "role": "user"}
     app.dependency_overrides[get_current_user_token] = lambda: {
@@ -44,7 +44,7 @@ def test_halt_requires_admin(mock_decode_jwt, mock_token):
 
 
 @patch("api.dependencies.get_current_user_token")
-@patch("core.security.auth_middleware._decode_jwt")
+@patch("core.security.authentication.auth_middleware._decode_jwt")
 def test_halt_sets_flag_and_broadcasts(mock_decode_jwt, mock_token):
     mock_decode_jwt.return_value = {"sub": "admin_test", "role": "admin"}
     app.dependency_overrides[get_current_user_token] = lambda: {
@@ -75,7 +75,7 @@ def test_halt_sets_flag_and_broadcasts(mock_decode_jwt, mock_token):
 
 
 @patch("api.dependencies.get_current_user_token")
-@patch("core.security.auth_middleware._decode_jwt")
+@patch("core.security.authentication.auth_middleware._decode_jwt")
 def test_resume_clears_flag_and_broadcasts(mock_decode_jwt, mock_token):
     mock_decode_jwt.return_value = {"sub": "admin_test", "role": "admin"}
     app.dependency_overrides[get_current_user_token] = lambda: {

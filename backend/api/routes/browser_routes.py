@@ -91,8 +91,8 @@ class BrowseSessionResponse(BaseModel):
     message: str
 
 # ════════════════════════════════════════════════════════════════════
-// AI ACTION ENDPOINT
-// ════════════════════════════════════════════════════════════════════
+# AI ACTION ENDPOINT
+# ════════════════════════════════════════════════════════════════════
 
 @router.post("/ai-action", response_model=AIActionResponse)
 async def browser_ai_action(req: AIActionRequest):

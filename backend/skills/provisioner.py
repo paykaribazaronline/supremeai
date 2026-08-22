@@ -9,7 +9,7 @@ import shutil
 import sys
 from typing import Any
 
-from skills.skill_registry import skill_registry
+from .skill_registry import skill_registry
 
 logger = logging.getLogger("supremeai.skills.provisioner")
 

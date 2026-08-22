@@ -18,7 +18,7 @@ try:
     ]
     sys.modules.pop("skills", None)
 
-    from skills import core_knowledge_qa
+    from backend.skills import core_knowledge_qa
 finally:
     sys.path = orig_path
     if orig_skills is not None:

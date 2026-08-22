@@ -7,7 +7,7 @@ from typing import Any
 
 # AST প্রি-এক্সিকিউশন স্ক্যানার — স্যান্ডবক্স বাইপাস প্রতিরোধ
 # getattr/hasattr/__import__/eval/exec ইত্যাদি বিপজ্জনক প্যাটার্ন স্ক্যান করে
-from core.security.ast_sandbox_scanner import validate_code_for_sandbox
+from core.security.scanning.ast_scanner import validate_code_for_sandbox
 
 # বাংলা মন্তব্য: রেন্ডার ডকার লেআউটের সাথে সামঞ্জস্যপূর্ণ রাখতে backend. ইম্পোর্ট রুট সরিয়ে দেওয়া হয়েছে
 from sandbox.docker_sandbox import DockerSandbox  # আপনার এক্সিস্টিং স্যান্ডবক্স ইঞ্জিন

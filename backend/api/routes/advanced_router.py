@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from core.llm.advanced_model_router import AdvancedModelRouter
-from core.security.rbac import get_current_user_token
+from core.security.authentication.rbac import get_current_user_token
 
 router = APIRouter(prefix="/api/v1/router", tags=["Advanced Model Router"], dependencies=[Depends(get_current_user_token)])
 

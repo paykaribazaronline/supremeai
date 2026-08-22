@@ -2,7 +2,6 @@ import sys
 
 import pytest
 
-sys.path.append("../..")
 from p2p.credit_system import CreditLedger, ResourceBroker
 
 

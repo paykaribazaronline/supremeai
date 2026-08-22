@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from core.config import settings
 from core.rate_limiter import AsyncRateLimiter
-from core.security.auth_middleware import AuthMiddleware
+from core.security.authentication.auth_middleware import AuthMiddleware
 
 auth_middleware = AuthMiddleware.__new__(AuthMiddleware)
 auth_middleware.enabled = bool(getattr(settings, "supremeai_api_token", None))

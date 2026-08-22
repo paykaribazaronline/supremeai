@@ -23,7 +23,7 @@ class ToolForge:
         Synthesize and register a dynamic helper tool.
         """
         try:
-            from core.security.ast_sandbox_scanner import ASTSandboxScanner
+            from core.security.scanning.ast_scanner import ASTSandboxScanner
             scanner = ASTSandboxScanner()
             scan_res = scanner.scan(code_snippet)
             if not scan_res.is_safe:

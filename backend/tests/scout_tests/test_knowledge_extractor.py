@@ -2,7 +2,6 @@ import asyncio
 import sys
 from unittest.mock import MagicMock, patch
 
-sys.path.append("../..")
 import scout.knowledge_extractor as ke_module
 
 

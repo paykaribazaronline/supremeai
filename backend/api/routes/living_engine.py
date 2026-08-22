@@ -12,7 +12,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from core.security.rbac import get_current_user_token
+from core.security.authentication.rbac import get_current_user_token
 from services.living_engine import LivingEngineOrchestrator
 
 router = APIRouter(

@@ -1,11 +1,11 @@
-"""Extension tests for core.security.auth_middleware — AuthMiddleware edge cases."""
+"""Extension tests for core.security.authentication.auth_middleware — AuthMiddleware edge cases."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from pydantic import SecretStr
 
-from core.security.auth_middleware import (
+from core.security.authentication.auth_middleware import (
     AuthMiddleware,
     _decode_jwt,
     _is_public_path,
@@ -102,7 +102,7 @@ class TestAuthMiddlewareAdvanced:
         mock_app.assert_called_once()
 
     @pytest.mark.anyio
-    @patch("core.security.auth_middleware.is_test_environment", return_value=False)
+    @patch("core.security.authentication.auth_middleware.is_test_environment", return_value=False)
     async def test_middleware_rejects_missing_token(self, mock_is_test):
         """Missing token returns 401."""
         mock_app = AsyncMock()
@@ -118,7 +118,7 @@ class TestAuthMiddlewareAdvanced:
         assert send.await_count >= 1
 
     @pytest.mark.anyio
-    @patch("core.security.auth_middleware.is_test_environment", return_value=False)
+    @patch("core.security.authentication.auth_middleware.is_test_environment", return_value=False)
     async def test_middleware_rejects_invalid_token(self, mock_is_test):
         """Invalid JWT returns 401."""
         mock_app = AsyncMock()
@@ -133,7 +133,7 @@ class TestAuthMiddlewareAdvanced:
         mock_app.assert_not_called()
 
     @pytest.mark.anyio
-    @patch("core.security.auth_middleware.is_test_environment", return_value=False)
+    @patch("core.security.authentication.auth_middleware.is_test_environment", return_value=False)
     async def test_middleware_api_token_mismatch(self, mock_is_test):
         """Wrong API token returns 401."""
         mock_app = AsyncMock()
@@ -185,7 +185,7 @@ class TestVerifyAdminSessionAdvanced:
         request = MagicMock()
         request.headers.get.return_value = "Bearer expired"
 
-        with patch("core.security.auth_middleware.jwt.decode") as mock_decode:
+        with patch("core.security.authentication.auth_middleware.jwt.decode") as mock_decode:
             mock_decode.side_effect = ExpiredSignatureError("expired")
             with pytest.raises(HTTPException) as exc:
                 import asyncio
@@ -200,7 +200,7 @@ class TestVerifyAdminSessionAdvanced:
         request = MagicMock()
         request.headers.get.return_value = "Bearer viewer-token"
 
-        with patch("core.security.auth_middleware.jwt.decode") as mock_decode:
+        with patch("core.security.authentication.auth_middleware.jwt.decode") as mock_decode:
             mock_decode.return_value = {"sub": "user-1", "role": "viewer"}
             with pytest.raises(HTTPException) as exc:
                 import asyncio
@@ -213,7 +213,7 @@ class TestVerifyAdminSessionAdvanced:
         request = MagicMock()
         request.headers.get.return_value = "Bearer admin-token"
 
-        with patch("core.security.auth_middleware.jwt.decode") as mock_decode:
+        with patch("core.security.authentication.auth_middleware.jwt.decode") as mock_decode:
             mock_decode.return_value = {"sub": "admin-1", "role": "admin"}
             import asyncio
 
@@ -225,7 +225,7 @@ class TestVerifyAdminSessionAdvanced:
         request = MagicMock()
         request.headers.get.return_value = "Bearer master-token"
 
-        with patch("core.security.auth_middleware.jwt.decode") as mock_decode:
+        with patch("core.security.authentication.auth_middleware.jwt.decode") as mock_decode:
             mock_decode.return_value = {"sub": "master-1", "role": "master_admin"}
             import asyncio
 

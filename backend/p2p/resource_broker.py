@@ -8,7 +8,7 @@ import time
 from typing import Any
 
 from core.microvm_sandbox import execute_code_securely
-from core.p2p.credit_system import InsufficientCreditsError, credit_system
+from p2p.credit_system import InsufficientCreditsError, credit_system
 
 logger = logging.getLogger("supremeai.p2p.resource_broker")
 

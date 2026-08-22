@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from core.security.compliance_bot import (
+from core.security.audit.compliance_bot import (
     ComplianceReport,
     ComplianceViolation,
     ConsentRecord,

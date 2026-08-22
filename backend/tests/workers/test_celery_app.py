@@ -2,7 +2,6 @@ import sys
 
 import pytest
 
-sys.path.append("../..")
 
 try:
     from workers.celery_app import app

@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from core.config import settings
 from core.evolution.evolution_engine import EvolutionEngine
-from core.security.rbac import get_current_admin
+from core.security.authentication.rbac import get_current_admin
 
 router = APIRouter(dependencies=[Depends(get_current_admin)])
 

@@ -3,7 +3,6 @@ import sys
 
 import pytest
 
-sys.path.append("../..")
 from scout.web_crawler_agent import APPROVED_DOMAINS, CrawlResult, crawl
 
 

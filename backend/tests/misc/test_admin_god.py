@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from core.admin_god import AdminGodLayer, GodModeAuditLog, GodModeContext
-from core.security.rbac import UserContext
+from core.security.authentication.rbac import UserContext
 
 
 class TestGodModeAuditLog:
@@ -174,7 +174,7 @@ class TestAdminGodLayer:
 
     def test_enforce_with_none_context(self):
         """None কন্টেক্সটে ডিফল্ট ভিউয়ার রোল ব্যবহার হয়।"""
-        from core.security.rbac import PermissionDeniedError
+        from core.security.authentication.rbac import PermissionDeniedError
 
         layer = AdminGodLayer()
         # This raises PermissionDeniedError for permission denied
@@ -183,7 +183,7 @@ class TestAdminGodLayer:
 
     def test_enforce_permission_denied(self):
         """অনুমতি ছাড়াই enforce করলে PermissionDeniedError দেওয়া হয়।"""
-        from core.security.rbac import PermissionDeniedError
+        from core.security.authentication.rbac import PermissionDeniedError
 
         layer = AdminGodLayer()
         ctx = UserContext(user_id="test-user", role="viewer")
@@ -319,7 +319,7 @@ class TestRBACIntegration:
 
     def test_rbac_permission_denied_viewer_admin(self):
         """ভিউয়ার রোলের অ্যাডমিন অ্যাকশন অনুমতি নেই।"""
-        from core.security.rbac import PermissionDeniedError
+        from core.security.authentication.rbac import PermissionDeniedError
 
         layer = AdminGodLayer()
         ctx = UserContext(user_id="viewer", role="viewer")

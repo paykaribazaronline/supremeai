@@ -117,7 +117,7 @@ async def start_background_services(app):
     # বাংলা মন্তব্ব্য: AutoHealerService শুরু করা — DB/Redis স্বয়ংক্রিয়ভাবে ঠিক করে।
     try:
         if os.getenv("ENABLE_AUTO_HEALER", "true").lower() == "true":
-            from core.auto_healer_service import auto_healer_service
+            from core.errors.auto_healer import auto_healer_service
 
             await auto_healer_service.start()
             app.state.auto_healer = auto_healer_service

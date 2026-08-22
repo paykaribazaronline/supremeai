@@ -1,7 +1,6 @@
 import sys
 import time
 
-sys.path.append("../..")
 from utils.api_tracker import APICallRecord, APITracker, get_tracker
 
 

@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from core.security.guardian_ai import (
+from core.security.intelligence.guardian_ai import (
     GuardianAI,
     GuardianResult,
     InputSanitizer,
@@ -173,7 +173,7 @@ class TestPromptInjectionDefender:
             return mock_response
 
         with patch(
-            "core.security.guardian_ai.llm_gateway.acompletion",
+            "core.security.intelligence.guardian_ai.llm_gateway.acompletion",
             side_effect=mock_acomplete,
         ):
             result = await defender.ai_deep_scan("Hello world")
@@ -187,7 +187,7 @@ class TestPromptInjectionDefender:
         defender = PromptInjectionDefender()
 
         with patch(
-            "core.security.guardian_ai.llm_gateway.acompletion",
+            "core.security.intelligence.guardian_ai.llm_gateway.acompletion",
             side_effect=Exception("API error"),
         ):
             result = await defender.ai_deep_scan("Hello world")

@@ -12,7 +12,7 @@ from typing import Any
 
 from loguru import logger
 
-from core.security.guardian_ai import guardian_ai
+from core.security.intelligence.guardian_ai import guardian_ai
 
 
 class AutoPRPipeline:

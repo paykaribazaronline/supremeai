@@ -2,7 +2,6 @@ import sys
 
 import pytest
 
-sys.path.append("../..")
 from byoc.container_orchestrator import ContainerOrchestrator
 
 

@@ -2,7 +2,7 @@
 
 import pytest
 
-from core.security.prompt_firewall import (
+from core.security.protection.prompt_firewall import (
     PromptFirewall,
     classify_intent,
     pre_flight_scan,

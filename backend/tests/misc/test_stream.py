@@ -18,7 +18,7 @@ def stream_app() -> FastAPI:
 def test_stream_endpoint_requires_auth(stream_app: FastAPI):
     from unittest.mock import patch
 
-    with patch("core.security.auth_middleware.is_test_environment", return_value=False):
+    with patch("core.security.authentication.auth_middleware.is_test_environment", return_value=False):
         client = TestClient(stream_app)
         resp = client.post("/api/stream/chat", json={"prompt": "hi", "task_type": "general"})
         assert resp.status_code == 401

@@ -1,6 +1,5 @@
 import sys
 
-sys.path.append("../..")
 from tools.billing.cost_auditor import CostAuditor
 
 

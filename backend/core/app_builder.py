@@ -107,9 +107,9 @@ def create_app(title: str = settings.PROJECT_NAME) -> FastAPI:
     from core.observability.observability_middleware import ObservabilityMiddleware
     from core.request_context import RequestContextMiddleware
     from core.security.api_key_middleware import APIKeyAuthMiddleware
-    from core.security.auth_middleware import AuthMiddleware
+    from core.security.authentication.auth_middleware import AuthMiddleware
     from core.security.autonoguard_middleware import AutonoGuardMiddleware
-    from core.security.honeypot_middleware import HoneypotMiddleware
+    from core.security.protection.honeypot import HoneypotMiddleware
     from core.security.origin_validator import TrustedOriginMiddleware
     from fastapi.middleware.cors import CORSMiddleware
     from middleware.chaos_injector import ChaosInjectorMiddleware

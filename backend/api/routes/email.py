@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from core.security.rbac import get_current_user_token
+from core.security.authentication.rbac import get_current_user_token
 from tools.social.email_agent import EmailAgent
 
 router = APIRouter(prefix="/integrations/email", tags=["email"], dependencies=[Depends(get_current_user_token)])

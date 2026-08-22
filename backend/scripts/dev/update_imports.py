@@ -7,11 +7,11 @@ from pathlib import Path
 
 IMPORT_MAP = {
     # Security redirects
-    "from core.prompt_firewall": "from core.security.prompt_firewall",
+    "from core.prompt_firewall": "from core.security.protection.prompt_firewall",
     "from core.input_sanitizer": "from core.security.input_sanitizer",
-    "from core.auth_middleware": "from core.security.auth_middleware",
-    "from core.rbac": "from core.security.rbac",
-    "from core.honeypot_middleware": "from core.security.honeypot_middleware",
+    "from core.auth_middleware": "from core.security.authentication.auth_middleware",
+    "from core.rbac": "from core.security.authentication.rbac",
+    "from core.honeypot_middleware": "from core.security.protection.honeypot",
     "from core.secret_vault": "from core.security.secret_vault",
     "from core.secure_credential_store": "from core.security.secure_credential_store",
     "from core.security_vault": "from core.security.security_vault",

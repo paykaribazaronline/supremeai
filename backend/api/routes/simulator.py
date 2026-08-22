@@ -19,7 +19,7 @@ from pydantic import BaseModel
 
 from core.cache.redis_manager import redis_manager
 from core.error_bus import with_error_bus
-from core.security.rbac import get_current_user_token
+from core.security.authentication.rbac import get_current_user_token
 
 router = APIRouter(prefix="/api/simulator", tags=["simulator"], dependencies=[Depends(get_current_user_token)])
 
