@@ -24,6 +24,8 @@ interface FindingItem {
 interface SecurityScanResponse {
   findings?: FindingItem[];
   total_findings?: number;
+  status?: string;
+  scan_time?: string;
 }
 
 export function ThreatDetection() {
