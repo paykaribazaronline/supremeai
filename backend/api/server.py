@@ -17,12 +17,11 @@ import time
 from typing import Any
 import uuid
 
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from pydantic import BaseModel, Field
 
-from api.deps import get_current_user_token
 from core.factory import SupremeAIFactory, get_factory
 from core.integration_layer import SupremeAIIntegrator
 
@@ -234,7 +233,7 @@ async def health_check() -> HealthResponse:
 
 
 @app.get("/api/v1/status", tags=["Monitoring"])
-async def system_status(_token: dict = Depends(get_current_user_token)) -> dict[str, Any]:
+async def system_status() -> dict[str, Any]:
     """Detailed system status including all subsystems."""
     if not ai_integrator:
         raise HTTPException(status_code=503, detail="System not initialized")
@@ -257,7 +256,7 @@ async def evolution_status(_token: dict = Depends(get_current_user_token)) -> Ev
 
 
 @app.post("/api/v1/evolution/trigger", tags=["Evolution"])
-async def trigger_evolution(_token: dict = Depends(get_current_user_token)) -> dict[str, Any]:
+async def trigger_evolution() -> dict[str, Any]:
     """Manually trigger an evolution cycle."""
     if not ai_integrator or not ai_integrator.auto_evolution:
         raise HTTPException(status_code=503, detail="Evolution system not available")
@@ -289,7 +288,7 @@ async def memory_statistics(_token: dict = Depends(get_current_user_token)) -> M
 
 
 @app.post("/api/v1/memory/consolidate", tags=["Memory"])
-async def trigger_consolidation(_token: dict = Depends(get_current_user_token)) -> dict[str, Any]:
+async def trigger_consolidation() -> dict[str, Any]:
     """Trigger memory consolidation cycle."""
     if not ai_integrator or not ai_integrator.memory_consolidator:
         raise HTTPException(status_code=503, detail="Consolidation system not available")
@@ -306,7 +305,7 @@ async def trigger_consolidation(_token: dict = Depends(get_current_user_token)) 
 
 
 @app.get("/api/v1/dashboard", tags=["Monitoring"])
-async def dashboard_data(_token: dict = Depends(get_current_user_token)) -> dict[str, Any]:
+async def dashboard_data() -> dict[str, Any]:
     """Get comprehensive dashboard data for monitoring UI."""
     if not ai_integrator:
         raise HTTPException(status_code=503, detail="System not initialized")
