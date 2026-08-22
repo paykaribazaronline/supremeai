@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { persist, subscribeWithSelector } from 'zustand/middleware';
 import { getApiBaseUrl } from '../utils/api';
+import { apiClient } from '../services/apiClient';
+import { eventBus, Events } from '../lib/eventBus';
+
 
 export interface User {
   id: string;

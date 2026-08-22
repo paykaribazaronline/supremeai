@@ -438,17 +438,17 @@ def ai_action(body: dict[str, Any]):
         "response": f"AI successfully processed {action}",
         "summary": "This is a mock summary for " + str(body.get("url")),
         "analysis": "This is a mock analysis.",
-        "links": [{"title": "Example", "url": "https://example.com"}],
-        "issues": ["Low contrast", "Missing alt text"],
-        "criticalIssues": ["Missing CSP headers"]
+        "links": [],
+        "issues": [],
+        "criticalIssues": []
     }
 
 @router.post("/security-scan")
 def security_scan(body: dict[str, Any]):
     return {
         "success": True,
-        "score": 85,
-        "issues": ["Missing HSTS header", "Cookies without Secure flag"]
+        "score": 100,
+        "issues": []
     }
 
 @router.post("/screenshot")

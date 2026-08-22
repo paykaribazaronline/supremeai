@@ -4,19 +4,9 @@
 import { apiClient, getAuthHeaders } from './apiClient';
 import { getApiBaseUrl } from '../utils/api';
 
-export interface ChatMessage {
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  action?: {
-    type: string;
-    target?: string;
-    label?: string;
-    icon?: string;
-    confidence?: number;
-    requires_confirmation?: boolean;
-    payload?: Record<string, unknown>;
-  };
-}
+import type { UnifiedChatMessage } from '../types/chat';
+
+export type ChatMessage = UnifiedChatMessage;
 
 export interface ChatResponse {
   response: string;

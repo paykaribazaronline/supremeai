@@ -3,6 +3,7 @@ import { getApiBaseUrl } from '../utils/api';
 import { getFirebaseAuth } from '../firebase';
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { eventBus, Events } from '../lib/eventBus';
+import { authService } from '../services/authService';
 
 const decodeJwt = (token: string): Record<string, unknown> | null => {
   try {
@@ -117,42 +118,28 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         }
 
         // Step 2: Send Firebase Token to Backend for Role/TOTP check
-        const res = await fetch(`${API_BASE}/api/admin/firebase-login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ id_token: idToken }),
-        });
+        const data = await authService.firebaseLogin(idToken);
 
-        const data = await res.json();
-
-        if (res.ok) {
-          if (data.status === 'otp_required') {
-            set({ otpRequired: true });
-          } else if (data.status === 'totp_setup_required') {
-            // Initiate TOTP Setup
-            const setupRes = await fetch(`${API_BASE}/api/admin/firebase-totp-setup`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
-              body: JSON.stringify({ id_token: idToken }),
+        if (data.status === 'otp_required') {
+          set({ otpRequired: true });
+        } else if (data.status === 'totp_setup_required') {
+          // Initiate TOTP Setup
+          try {
+            const setupData = await authService.firebaseTotpSetup(idToken);
+            set({
+              totpSetupRequired: true,
+              otpRequired: true,
+              totpSecret: setupData.secret,
+              provisioningUri: setupData.provisioning_uri || buildProvisioningUri(cleanEmail, setupData.secret || '')
             });
-            const setupData = await setupRes.json();
-            if (setupRes.ok) {
-              set({
-                totpSetupRequired: true,
-                otpRequired: true,
-                totpSecret: setupData.secret,
-                provisioningUri: setupData.provisioning_uri || buildProvisioningUri(cleanEmail, setupData.secret || '')
-              });
-            } else {
-              const errStr = typeof setupData.detail === 'string' ? setupData.detail : (setupData.detail && typeof setupData.detail === 'object' ? JSON.stringify(setupData.detail) : 'Failed to setup TOTP.');
-              set({ adminError: errStr });
-            }
+          } catch (setupErr: any) {
+            const errStr = typeof setupErr.message === 'string' ? setupErr.message : 'Failed to setup TOTP.';
+            set({ adminError: errStr });
           }
+        } else if (data.token) {
+            // Already logged in without OTP (if that logic exists)
         } else {
-          const errStr = typeof data.detail === 'string' ? data.detail : (data.detail && typeof data.detail === 'object' ? JSON.stringify(data.detail) : 'Not authorized as admin.');
-          set({ adminError: errStr });
+          set({ adminError: 'Not authorized as admin.' });
         }
       } else {
         // Step 3: Verify TOTP
@@ -165,21 +152,9 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         }
         idToken = await user.getIdToken();
 
-        const endpoint = totpSetupRequired ? '/api/admin/firebase-totp-verify' : '/api/admin/firebase-totp-verify';
-
-        const res = await fetch(`${API_BASE}${endpoint}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ id_token: idToken, otp: adminOtp.trim() }),
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          // Token is returned from the backend in data.token
+        try {
+          const data = await authService.firebaseTotpVerify(idToken, adminOtp.trim());
           if (data.token) {
-            // 🔥 ফিক্স: সঠিক key `supreme_admin_jwt`-এ সেভ (adminTokenStore/getDecodedToken এটাই পড়ে)।
-            // পুরনো `adminToken` key ব্যাকওয়ার্ড-কম্প্যাটের জন্য রেখে দেওয়া হলো।
             localStorage.setItem('supreme_admin_jwt', data.token);
             localStorage.setItem('adminToken', data.token);
             const decoded = decodeJwt(data.token);
@@ -194,9 +169,8 @@ export const useAdminStore = create<AdminState>((set, get) => ({
           });
           
           set({ adminAuthenticated: true, otpRequired: false, totpSetupRequired: false, adminOtp: '' });
-        } else {
-          const data = await res.json();
-          const errStr = typeof data.detail === 'string' ? data.detail : (data.detail && typeof data.detail === 'object' ? JSON.stringify(data.detail) : 'Invalid verification code.');
+        } catch (verifyErr: any) {
+          const errStr = typeof verifyErr.message === 'string' ? verifyErr.message : 'Invalid verification code.';
           set({ adminError: errStr });
         }
       }
@@ -238,27 +212,15 @@ export const useAdminStore = create<AdminState>((set, get) => ({
         return;
       }
       const idToken = await user.getIdToken(true);
-      const API_BASE = getApiBaseUrl();
       const email = (user.email || '').trim() || get().adminEmail.trim();
-
-      const res = await fetch(`${API_BASE}/api/admin/firebase-totp-setup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ id_token: idToken }),
+      const API_BASE = getApiBaseUrl();
+      const data = await authService.firebaseTotpSetup(idToken);
+      set({
+        totpSetupRequired: true,
+        otpRequired: true,
+        totpSecret: data.secret,
+        provisioningUri: data.provisioning_uri || buildProvisioningUri(email, data.secret || ''),
       });
-      const data = await res.json();
-      if (res.ok) {
-        set({
-          totpSetupRequired: true,
-          otpRequired: true,
-          totpSecret: data.secret,
-          provisioningUri: data.provisioning_uri || buildProvisioningUri(email, data.secret || ''),
-        });
-      } else {
-        const errStr = typeof data.detail === 'string' ? data.detail : (data.detail && typeof data.detail === 'object' ? JSON.stringify(data.detail) : 'Failed to generate QR code.');
-        set({ adminError: errStr });
-      }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       const msg = err && typeof err === 'object' && err.message ? String(err.message) : (typeof err === 'object' ? JSON.stringify(err) : String(err));

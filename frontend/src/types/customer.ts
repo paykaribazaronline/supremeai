@@ -45,18 +45,9 @@ export interface Widget {
   settings: Record<string, unknown>;
 }
 
-export interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: string;
-  project_id?: string;
-  metadata?: {
-    model?: string;
-    tokens?: number;
-    cost?: number;
-  };
-}
+import type { UnifiedChatMessage } from './chat';
+
+export type ChatMessage = UnifiedChatMessage;
 
 export interface CustomerState {
   user: UserProfile | null;

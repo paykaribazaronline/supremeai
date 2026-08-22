@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Card, Badge } from '../ui';
 import { Smartphone, Tablet, RefreshCw } from 'lucide-react';
+import { getApiBaseUrl } from '../../utils/api';
 
 interface MobileSimulatorProps {
   html?: string;
@@ -18,6 +19,14 @@ type Orientation = 'portrait' | 'landscape';
 export function MobileSimulator({ html, url = 'https://supremeai.web.app' }: MobileSimulatorProps) {
   const [selectedDevice, setSelectedDevice] = useState(DEVICES[0]);
   const [orientation, setOrientation] = useState<Orientation>('portrait');
+
+  const proxied = (src: string): string => {
+    if (/^https?:\/\//i.test(src)) {
+      const token = localStorage.getItem('supreme_admin_jwt') || localStorage.getItem('adminToken') || '';
+      return `${getApiBaseUrl()}/api/browser/render?url=${encodeURIComponent(src)}&token=${token}`;
+    }
+    return src;
+  };
 
   const currentWidth = orientation === 'portrait' ? selectedDevice.width : selectedDevice.height;
   const currentHeight = orientation === 'portrait' ? selectedDevice.height : selectedDevice.width;
@@ -65,9 +74,9 @@ export function MobileSimulator({ html, url = 'https://supremeai.web.app' }: Mob
             <div className="w-full h-full rounded-[2rem] overflow-hidden bg-white relative">
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-6 bg-slate-900 rounded-b-xl z-10" />
               {html ? (
-                <iframe srcDoc={html} title={selectedDevice.name} className="w-full h-full" sandbox="allow-scripts allow-forms" />
+                <iframe srcDoc={html} title={selectedDevice.name} className="w-full h-full" sandbox="allow-scripts allow-forms allow-same-origin" />
               ) : (
-                <iframe src={url} title={selectedDevice.name} className="w-full h-full" sandbox="allow-scripts allow-forms" />
+                <iframe src={proxied(url)} title={selectedDevice.name} className="w-full h-full" sandbox="allow-scripts allow-forms allow-same-origin" />
               )}
             </div>
           </div>

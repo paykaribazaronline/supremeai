@@ -4,6 +4,8 @@ import { getApiBaseUrl } from '../utils/api';
 import { THEME_ORDER } from './ThemeConstants';
 import { ThemeContext } from './ThemeContext';
 import type { Theme } from './ThemeConstants';
+import { apiClient } from '../services/apiClient';
+import { eventBus, Events } from '../lib/eventBus';
 
 // বাংলা মন্তব্য: ThemeContext একে অপর ফাইল থেকে ইম্পোর্ট করা হয়েছে, যাতে react-refresh সতর্কতা দূর হয়
 // useTheme hook একে অপর ফাইলে সরানো হয়েছে (useTheme.ts)
@@ -26,23 +28,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
 
       // 2. ব্যাকএন্ড থেকে ফেচ করা (Cross-device sync)
-      const API_BASE = getApiBaseUrl();
       try {
-        const res = await fetch(`${API_BASE}/api/v1/preferences`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          },
-          signal: controller.signal
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.theme) {
-            setTheme(data.theme);
-            localStorage.setItem('supremeai_theme', data.theme);
-          }
+        const response = await apiClient.get<any>('/api/v1/preferences', { signal: controller.signal });
+        if (response.data?.theme) {
+          setTheme(response.data.theme);
+          localStorage.setItem('supremeai_theme', response.data.theme);
         }
-      } catch (err) {
-        if (err instanceof Error && err.name !== 'AbortError') {
+      } catch (err: any) {
+        if (err.name !== 'AbortError' && err.name !== 'CanceledError') {
           console.error('Theme sync failed:', err);
         }
       }
@@ -50,7 +43,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     loadTheme();
 
-    return () => controller.abort(); // কম্পোনেন্ট আনমাউন্ট হলে রিকোয়েস্ট বাতিল
+    // Listen for external theme changes (from other tabs/components)
+    const unsub = eventBus.subscribe(Events.THEME_CHANGED, (data) => {
+      if (data.theme && THEME_ORDER.includes(data.theme as Theme)) setTheme(data.theme as Theme);
+    });
+
+    return () => {
+      controller.abort();
+      unsub();
+    }; // কম্পোনেন্ট আনমাউন্ট হলে রিকোয়েস্ট বাতিল
   }, []);
 
   useEffect(() => {
@@ -72,16 +73,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem('supremeai_theme', newTheme);
 
     // ব্যাকএন্ডে async সিঙ্ক করা
-    const API_BASE = getApiBaseUrl();
-    const token = adminTokenStore.getDecodedToken();
-    fetch(`${API_BASE}/api/v1/preferences`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ theme: newTheme })
-    }).catch(err => console.error('Failed to sync theme to DB:', err));
+    apiClient.post('/api/v1/preferences', { theme: newTheme })
+      .catch(err => console.error('Failed to sync theme to DB:', err));
+
+    eventBus.emit(Events.THEME_CHANGED, {
+      theme: newTheme,
+      isDark: newTheme === 'dark' || newTheme === 'matrix',
+      timestamp: Date.now(),
+      source: 'theme_provider',
+    });
   };
 
   return (

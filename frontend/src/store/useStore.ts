@@ -2,14 +2,10 @@ import { create } from "zustand";
 // বাংলা মন্তব্য: raw fetch() সরিয়ে apiClient ব্যবহার — auth header সব request এ যাবে
 import { apiClient } from '../services/apiClient';
 import { AppDefaults } from '../config/constants';
+import type { UnifiedChatMessage } from '../types/chat';
 
 
-interface ChatMessage {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  timestamp: number;
-}
+type ChatMessage = UnifiedChatMessage;
 
 interface DeployGateInfo {
   // বাংলা মন্তব্য: আগে duplicate status field ছিল — TypeScript compile error। একটি রাখা হলো।

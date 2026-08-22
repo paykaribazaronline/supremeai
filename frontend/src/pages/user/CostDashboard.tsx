@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-// বাংলা মন্তব্য: বাহিরের প্রোভাইডার নামের বদলে SupremeAI ব্র্যান্ডেড নাম দেখানোর ইউটিলিটি
+import React, { useEffect, useState, useRef } from 'react';
 import { getSupremeProviderLabel } from '../../lib/modelBranding';
-import { getApiBaseUrl } from '../../utils/api';
+import { getApiBaseUrl, getWebSocketBaseUrl } from '../../utils/api';
 import { apiClient } from '../../services/apiClient';
 import { useEventBus } from '../../hooks/useEventBus';
-import { Events } from '../../lib/eventBus';
+import { eventBus, Events } from '../../lib/eventBus';
+import { AlertTriangle, X, Wifi, WifiOff } from 'lucide-react';
 
 interface CostMetrics {
   total_spent_usd: number;
@@ -18,6 +18,9 @@ export const CostDashboard: React.FC = () => {
   const [metrics, setMetrics] = useState<CostMetrics | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [alerts, setAlerts] = useState<any[]>([]);
+  const wsRef = useRef<WebSocket | null>(null);
+  const [isRealtime, setIsRealtime] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -46,13 +49,56 @@ export const CostDashboard: React.FC = () => {
 
   // Listen to real-time events to dynamically adjust UI
   useEventBus(Events.TOKEN_USAGE_UPDATED, (payload: any) => {
-    // If token usage updates, we could dynamically increment cost here
-    // For now, we log or conditionally trigger re-fetch
-    console.log('[CostDashboard] Real-time token usage updated:', payload);
+    setMetrics(prev => prev ? { 
+      ...prev, 
+      total_spent_usd: prev.total_spent_usd + (payload.tokens * 0.0001) 
+    } : prev);
   });
 
+  // WebSocket connection for real-time updates
+  useEffect(() => {
+    const connectWebSocket = () => {
+      try {
+        const token = localStorage.getItem('supreme_admin_jwt') || localStorage.getItem('adminToken') || '';
+        const wsUrl = `${getWebSocketBaseUrl()}/ws/cost-updates?token=${token}`;
+        wsRef.current = new WebSocket(wsUrl);
+        
+        wsRef.current.onopen = () => setIsRealtime(true);
+        
+        wsRef.current.onmessage = (event) => {
+          const update = JSON.parse(event.data);
+          setMetrics(prev => prev ? { ...prev, ...update } : update);
+          
+          // Check thresholds
+          if (update.total >= (update.monthlyLimit || 100) * 0.8) {
+            eventBus.emit(Events.COST_THRESHOLD_REACHED, {
+              current: update.total,
+              limit: update.monthlyLimit || 100,
+              threshold: 80,
+              timestamp: Date.now(),
+              details: 'Approaching monthly limit'
+            });
+          }
+        };
+        
+        wsRef.current.onclose = () => {
+          setIsRealtime(false);
+          setTimeout(connectWebSocket, 5000);  // Auto-reconnect
+        };
+        
+      } catch (e) {
+        console.warn('[CostDashboard] WebSocket unavailable, using polling fallback');
+      }
+    };
+    
+    connectWebSocket();
+    return () => {
+      if (wsRef.current) wsRef.current.close();
+    };
+  }, []);
+
   useEventBus(Events.COST_THRESHOLD_REACHED, (payload: any) => {
-    setError(`Alert: Cost threshold reached. (${payload.details})`);
+    setAlerts(prev => [...prev, { id: `a_${Date.now()}`, ...payload, acknowledged: false }]);
   });
 
   if (loading) {
@@ -71,13 +117,34 @@ export const CostDashboard: React.FC = () => {
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-white">Cost & Zero-Cost Savings Dashboard</h1>
+          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+            Cost & Zero-Cost Savings Dashboard
+            <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider ${isRealtime ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'}`}>
+              {isRealtime ? <Wifi size={10} /> : <WifiOff size={10} />}
+              {isRealtime ? 'Live' : 'Polling'}
+            </div>
+          </h1>
           <p className="text-sm text-gray-400">Real-time free tier utilization & LLM routing savings</p>
         </div>
         <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-xs font-semibold">
           Zero-Cost Mode Active (94.2% Saved)
         </span>
       </div>
+
+      {/* Alert banners */}
+      {alerts.filter(a => !a.acknowledged).map(alert => (
+        <div key={alert.id} className="bg-yellow-900/20 border border-yellow-500/50 rounded-lg p-3 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-yellow-400">
+            <AlertTriangle size={16} />
+            <span className="text-sm">Approaching limit: ${alert.current?.toFixed(2)} / ${alert.limit?.toFixed(2)}</span>
+          </div>
+          <button onClick={() => setAlerts(prev => prev.map(a => 
+            a.id === alert.id ? { ...a, acknowledged: true } : a
+          ))} className="text-yellow-400 hover:text-yellow-300">
+            <X size={14} />
+          </button>
+        </div>
+      ))}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-gray-800/50 border border-gray-700 p-4 rounded-xl">

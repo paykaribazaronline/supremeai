@@ -1,18 +1,13 @@
-export interface ChatMessage {
-  id: string;
-  sender: 'ai' | 'user';
-  text: string;
-  timestamp: string;
-  action?: {
-    type: string;
-    target?: string;
-    label?: string;
-    icon?: string;
-    confidence?: number;
-    requires_confirmation?: boolean;
-    payload?: Record<string, unknown>;
-  };
-}
+import type { UnifiedChatMessage } from './types/chat';
+
+export type ChatMessage = UnifiedChatMessage;
+
+export const legacyToUnified = (legacy: { sender: string; text: string; timestamp: string }): UnifiedChatMessage => ({
+  id: `migrated_${Date.now()}`,
+  role: legacy.sender === 'ai' ? 'assistant' : 'user',
+  content: legacy.text,
+  timestamp: new Date(legacy.timestamp).getTime(),
+});
 
 export interface Skill {
   id: string;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { componentEventBus } from '../../lib/componentEventBus';
+import { eventBus, Events } from '../../lib/eventBus';
 import { useUnifiedStore } from '../../store/unifiedStore';
 import {
   Globe, ArrowLeft, ArrowRight, RotateCw, Plus, X, Star, Camera,
@@ -526,6 +527,12 @@ export const CrownJewelBrowser: React.FC<CrownJewelBrowserProps> = ({
     ));
     addConsoleMessage('log', `Page loaded: ${activeTab?.url}`);
     
+    eventBus.emit(Events.BROWSER_PAGE_LOADED, {
+      url: activeTab?.url,
+      timestamp: Date.now(),
+      source: 'crown_jewel_browser',
+    });
+
     // Try to detect page info
     try {
       const iframe = iframeRef.current;

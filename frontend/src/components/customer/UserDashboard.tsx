@@ -68,21 +68,15 @@ export interface Project {
   };
 }
 
-export interface ChatMessage {
-  id: number;
-  sender: 'User' | 'SupremeAI';
-  text: string;
-  timestamp?: string;
-  action?: {
-    type: string;
-    target?: string;
-    label?: string;
-    icon?: string;
-    confidence?: number;
-    requires_confirmation?: boolean;
-    payload?: Record<string, unknown>;
-  };
-}
+import type { UnifiedChatMessage } from '../../types/chat';
+
+export type ChatMessage = UnifiedChatMessage;
+
+export const getSenderLabel = (msg: ChatMessage): string => {
+  if (msg.role === 'user') return 'User';
+  if (msg.role === 'assistant') return 'SupremeAI';
+  return msg.role; // system, tool, function
+};
 
 export interface Widget {
   id: string;
@@ -386,11 +380,11 @@ export function UserDashboard({
                 recentChats.map((msg: ChatMessage, idx: number) => (
                   <div key={idx} className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/30 border border-slate-700 text-[10px] font-mono">
                     <Clock size={12} className="text-slate-400" />
-                    <span className="text-slate-400">{msg.sender === 'User' ? 'You' : 'AI'}:</span>
+                    <span className="text-slate-400">{getSenderLabel(msg) === 'User' ? 'You' : 'AI'}:</span>
                     <span className="text-foreground flex-1 truncate">
-                      {msg.text}
-                      {msg.action?.label && (
-                        <span className="ml-1 text-[9px] text-neon-purple">[{msg.action.icon} {msg.action.label}]</span>
+                      {msg.content}
+                      {(msg as any).action?.label && (
+                        <span className="ml-1 text-[9px] text-neon-purple">[{(msg as any).action.icon} {(msg as any).action.label}]</span>
                       )}
                     </span>
                   </div>

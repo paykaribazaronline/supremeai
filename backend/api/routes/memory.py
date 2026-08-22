@@ -1,19 +1,29 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Optional
+import time
+from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from api.dependencies import get_current_user_token
+from api.dependencies import get_current_user_token, get_tenant_db
 from memory.checkpoint_resume import CheckpointResume
 from memory.sliding_window import SlidingWindowConfig, SlidingWindowMemory
 
 router = APIRouter(
-    prefix="/memory",
+    prefix="/api/memory",
     tags=["memory"],
     dependencies=[Depends(get_current_user_token)],
 )
+
+# Model for message persistence
+class MessageCreate(BaseModel):
+    conversation_id: Optional[str] = None
+    message: dict
+
+class ConversationCreate(BaseModel):
+    title: str = "New Conversation"
 
 _checkpoint: CheckpointResume | None = None
 _window: SlidingWindowMemory | None = None
@@ -201,3 +211,95 @@ async def save_session(req: SessionSaveRequest):
         task_type=req.task_type,
     )
     return result
+
+@router.post("/conversations/messages")
+async def save_message(req: MessageCreate, db=Depends(get_tenant_db)):
+    """
+    Save a chat message to conversation history.
+    Creates conversation if doesn't exist.
+    """
+    import time
+    from core.config import settings
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    conversation_id = req.conversation_id or f"conv_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+    
+    try:
+        # Get or create conversation
+        conversation = await db.conversations.find_one({"_id": conversation_id})
+        
+        if not conversation:
+            await db.conversations.insert_one({
+                "_id": conversation_id,
+                "title": req.message.get("metadata", {}).get("source", "chat") + " conversation",
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow(),
+                "messages": [],
+                "tags": [],
+            })
+        
+        # Append message
+        message_doc = {
+            **req.message,
+            "saved_at": datetime.utcnow(),
+        }
+        
+        await db.conversations.update_one(
+            {"_id": conversation_id},
+            {
+                "$push": {"messages": message_doc},
+                "$set": {"updated_at": datetime.utcnow()}
+            }
+        )
+        
+        # If RAG is enabled, also index for retrieval
+        if hasattr(settings, 'RAG_ENABLED') and settings.RAG_ENABLED and req.message.get("role") == "user":
+            try:
+                from services.memory_service import save_memory
+                await save_memory(
+                    session_id=conversation_id,
+                    summary=req.message["content"],
+                    task_type="chat",
+                    metadata={"timestamp": req.message.get("timestamp", time.time())}
+                )
+            except Exception as e:
+                logger.warning(f"RAG indexing failed for message: {e}")
+        
+        return {
+            "success": True,
+            "conversation_id": conversation_id,
+            "message_id": req.message.get("id"),
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to save message: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/conversations")
+async def list_conversations(request: Request, db=Depends(get_tenant_db)):
+    """Get all conversations for authenticated user."""
+    import logging
+    logger = logging.getLogger(__name__)
+    try:
+        # Using tenant isolation inherently from get_tenant_db
+        conversations = await db.conversations.find().sort("updated_at", -1).to_list(50)
+        
+        # Format for frontend
+        result = []
+        for conv in conversations:
+            result.append({
+                "id": conv["_id"],
+                "title": conv.get("title", "Untitled"),
+                "messages": conv.get("messages", [])[-10:],  # Last 10 messages
+                "createdAt": conv.get("created_at"),
+                "updatedAt": conv.get("updated_at"),
+                "messageCount": len(conv.get("messages", [])),
+                "tags": conv.get("tags", []),
+            })
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Failed to list conversations: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
