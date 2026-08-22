@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { eventBus, Events } from '../../lib/eventBus';
+import { componentEventBus } from '../../lib/componentEventBus';
 import { useUnifiedStore } from '../../store/unifiedStore';
-import { apiClient } from '../../services/apiClient';
 import {
   Globe, ArrowLeft, ArrowRight, RotateCw, Plus, X, Star, Camera,
   Monitor, Smartphone, Tablet, ZoomIn, ZoomOut, Maximize2, Minimize2,
@@ -201,7 +200,7 @@ export const CrownJewelBrowser: React.FC<CrownJewelBrowserProps> = ({
 
     onUrlChange?.(normalizedUrl);
     
-    eventBus.emit(Events.BROWSER_URL_CHANGED, { url: normalizedUrl });
+    componentEventBus.emitBrowserUrlChange(normalizedUrl);
     
     if (enableMemorySave && userId) {
       addBrowseSession({
@@ -211,8 +210,10 @@ export const CrownJewelBrowser: React.FC<CrownJewelBrowserProps> = ({
         tabId: targetTabId
       });
     
-      apiClient.post('/api/browser/browse-session', {
-        url: normalizedUrl, userId, timestamp: Date.now(), tabId: targetTabId 
+      fetch('/api/browser/browse-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: normalizedUrl, userId, timestamp: Date.now(), tabId: targetTabId })
       }).catch(() => {});
     }
   }, [activeTabId, historyIndex, onUrlChange, serviceHealthStatus, enableMemorySave, userId, addAlert, addBrowseSession]);
@@ -311,14 +312,22 @@ export const CrownJewelBrowser: React.FC<CrownJewelBrowserProps> = ({
     try {
       addConsoleMessage('info', `🤖 Running AI action: ${action.type}...`);
       
-      const response = await apiClient.post('/api/browser/ai-action', {
+      const response = await fetch('/api/browser/ai-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           action: action.type,
           url: activeTab?.url,
           payload: action.payload,
-          // context: await getPageContent() // Try to get page content
+          context: await getPageContent() // Try to get page content
+        })
       });
+
+      if (!response.ok) {
+        throw new Error(`AI service error: ${response.status}`);
+      }
       
-      const data = response.data;
+      const data = await response.json();
 
       switch (action.type) {
         case 'summarize':
@@ -382,11 +391,17 @@ export const CrownJewelBrowser: React.FC<CrownJewelBrowserProps> = ({
       // ✅ REAL SECURITY SCAN VIA BACKEND
       addConsoleMessage('info', '🔒 Initiating security scan...');
       
-      const response = await apiClient.post('/api/browser/security-scan', {
-        url: activeTab?.url 
+      const response = await fetch('/api/browser/security-scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: activeTab?.url })
       });
       
-      const result = response.data;
+      if (!response.ok) {
+        throw new Error(`Security scan service error: ${response.status}`);
+      }
+      
+      const result = await response.json();
       
       const scanResult = {
         score: result.score || 0,
@@ -406,7 +421,7 @@ export const CrownJewelBrowser: React.FC<CrownJewelBrowserProps> = ({
       addConsoleMessage('info', `✅ Security scan complete. Score: ${scanResult.score}/100`);
       
       // ✅ TRIGGER SECURITY DASHBOARD UPDATE via event bus
-      eventBus.emit(Events.SECURITY_SCAN_COMPLETED, result);
+      componentEventBus.emit('security:scan-complete', result);
       
       // ✅ AUTO-ALERT FOR LOW SCORES
       if (scanResult.score < 70) {

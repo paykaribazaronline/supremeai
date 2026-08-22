@@ -36,7 +36,6 @@ export type EventType =
   | 'browser:url-changed'
   | 'browser:page-loaded'
   | 'browser:screenshot-captured'
-  | 'browser:console-error'
   
   // Security Events
   | 'security:scan-complete'
@@ -67,7 +66,6 @@ export type EventCallback<T = any> = (data: T) => void;
 export type EventDataMap = {
   'service:status-change': { service: string; status: 'healthy' | 'degraded' | 'down'; latency?: number; timestamp: number };
   'browser:url-changed': { url: string; title?: string; timestamp: number };
-  'browser:console-error': { error: any; url: string };
   'security:scan-complete': { url: string; score: number; issues: string[]; timestamp: number };
   'ai:action-complete': { action: string; result: any; duration: number };
   'memory:item-created': { type: string; id: string; timestamp: number };
@@ -108,7 +106,7 @@ class ComponentEventBus {
    * @param callback - Function to call when event fires (will be removed after first call)
    * @returns Unsubscribe function
    */
-  once<T = any>(event: EventType, callback: EventCallback<T>): () => void {
+  once<T = any>(event: EventType, callback: EventCallback<T>): () => let {
     const wrapper: EventCallback<T> = (data) => {
       callback(data);
       this.off(event, wrapper);
