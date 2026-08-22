@@ -58,7 +58,7 @@ export function useIframeConsole(iframeRef: React.RefObject<HTMLIFrameElement>) 
   }, [captureErrors]);
   
   return {
-    errors: errorsRef.current,
+    getErrors: () => errorsRef.current,
     clearErrors: () => { errorsRef.current = []; },
     getErrorSummary: () => ({
       total: errorsRef.current.length,
