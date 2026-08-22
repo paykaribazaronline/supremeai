@@ -149,9 +149,7 @@ class ReasoningOrchestrator:
 
     async def execute_decomposed_tasks(self, task_graph: dict[str, Any]) -> dict[str, Any]:
         """Execute a DAG of decomposed tasks sequentially based on dependencies."""
-        return {
-            "status": "success",
-            "tasks_executed": task_graph.get("task_count", 0),
-            "results": {"mock": "result"}
-        }
+        from brain.task_execution_engine import TaskExecutionEngine
+        engine = TaskExecutionEngine()
+        return await engine.execute_decomposed_tasks(task_graph)
 

@@ -90,6 +90,7 @@ core_routers: list[tuple[str, str]] = [
     ("api.routes.ci_dashboard_api", ""),
     # Living, Self-Evolving Autonomous Engine Orchestrator
     ("api.routes.living_engine", ""),
+    ("api.routes.living_brain", ""),
 ]
 
 
@@ -156,6 +157,7 @@ _admin_paths = {
     "api.routes.cloud_mesh",
     "api.routes.tools_ops",
     "api.routes.execution_policies",
+    "api.routes.living_brain",
 }
 
 # ADMIN_ROUTERS includes health and specific admin routes
@@ -183,6 +185,7 @@ ADMIN_ROUTERS: list[tuple[str, str]] = [
     ("api.routes.metrics", ""),
     ("api.routes.cloud_mesh", ""),
     ("api.routes.tools_ops", ""),
+    ("api.routes.living_brain", ""),
 ]
 
 # USER_ROUTERS is all other routers

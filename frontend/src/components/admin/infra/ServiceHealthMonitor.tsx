@@ -2,7 +2,8 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { 
   Activity, Server, Database, Cloud, Wifi, WifiOff, 
   RefreshCw, AlertTriangle, CheckCircle, XCircle, Clock,
-  ArrowUp, ArrowDown, Minus, ExternalLink, Bell, BellOff
+  ArrowUp, ArrowDown, Minus, ExternalLink, Bell, BellOff,
+  GitBranch, Key, Shield
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -49,37 +50,115 @@ interface ServiceConfig {
 // ══════════════════════════════════════════════════════════════════════════════
 
 const SERVICE_REGISTRY: ServiceConfig[] = [
+  // ─── CORE INFRASTRUCTURE ──────────────────────────────────────────────
   {
-    name: 'main-backend',
-    displayName: 'Main Backend',
+    name: 'render_backend',
+    displayName: 'Render Backend',
     url: 'https://supremeai-backend-docker.onrender.com',
     description: 'Python/FastAPI Core API',
     critical: true,
     icon: <Server size={16} />,
+    category: 'infrastructure',
   },
   {
-    name: 'admin-backend',
-    displayName: 'Admin Backend',
+    name: 'render_admin',
+    displayName: 'Render Admin',
     url: 'https://supremeai-admin.onrender.com',
     description: 'Admin Panel API',
     critical: true,
     icon: <Database size={16} />,
+    category: 'infrastructure',
   },
   {
-    name: 'scraper-service',
+    name: 'scraper_service',
     displayName: 'Scraper Service',
     url: 'https://supremeai-scraper-6nwi.onrender.com',
     description: 'Playwright Browser Automation',
     critical: false,
     icon: <Activity size={16} />,
+    category: 'infrastructure',
+  },
+
+  // ─── DATABASE & AUTH ──────────────────────────────────────────────────
+  {
+    name: 'supabase_db',
+    displayName: 'Supabase DB',
+    url: 'https://<project>.supabase.co',
+    description: 'PostgreSQL Database & Auth',
+    critical: true,
+    icon: <Database size={16} />,
+    category: 'database',
   },
   {
-    name: 'cloudflare-worker',
+    name: 'firebase_auth',
+    displayName: 'Firebase Auth',
+    url: 'https://identitytoolkit.googleapis.com',
+    description: 'Authentication Service',
+    critical: true,
+    icon: <Shield size={16} />,
+    category: 'auth',
+  },
+  {
+    name: 'firebase_firestore',
+    displayName: 'Firestore',
+    url: 'https://firestore.googleapis.com',
+    description: 'NoSQL Document Store',
+    critical: true,
+    icon: <Database size={16} />,
+    category: 'database',
+  },
+
+  // ─── EDGE & CDN ───────────────────────────────────────────────────────
+  {
+    name: 'cloudflare_worker',
     displayName: 'Edge Worker',
-    url: 'https://supremeai-edge.your-subdomain.workers.dev',
+    url: 'https://supremeai-edge.workers.dev',
     description: 'Cloudflare Edge Proxy',
     critical: true,
     icon: <Cloud size={16} />,
+    category: 'edge',
+  },
+
+  // ─── CI/CD & REPOSITORY ───────────────────────────────────────────────
+  {
+    name: 'github_api',
+    displayName: 'GitHub API',
+    url: 'https://api.github.com',
+    description: 'Git Repository & Actions',
+    critical: false,
+    icon: <GitBranch size={16} />,
+    category: 'cicd',
+  },
+  {
+    name: 'vercel_deploy',
+    displayName: 'Vercel',
+    url: 'https://vercel.com',
+    description: 'Frontend Deployment',
+    critical: false,
+    icon: <Cloud size={16} />,
+    category: 'cicd',
+  },
+
+  // ─── MONITORING ───────────────────────────────────────────────────────
+  {
+    name: 'krogger',
+    displayName: 'Krogger',
+    url: 'https://krogger.io',
+    description: 'Uptime Monitoring',
+    critical: false,
+    icon: <Activity size={16} />,
+    category: 'monitoring',
+  },
+
+  // ─── SECRETS ──────────────────────────────────────────────────────────
+  {
+    name: 'infisical',
+    displayName: 'Infisical',
+    url: 'https://app.infisical.com',
+    description: 'Secrets Manager',
+    critical: true,
+    icon: <Key size={16} />,
+    category: 'secrets',
   },
 ];
 

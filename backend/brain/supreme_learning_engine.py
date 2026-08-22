@@ -82,10 +82,21 @@ class SupremeLearningEngine:
             "fallback_answers": 0,
             "self_sufficiency_rate": 0.0,
         }
+        
+        self._response_callbacks: list[Callable] = []
+        self._pre_query_hooks: list[Callable] = []
 
         logger.info("🧠 SupremeLearningEngine initialized")
         logger.info(f"   📊 Patterns DB: {self.db_path}")
         logger.info(f"   🕸️  Knowledge Graph: {len(self.knowledge_graph.get('nodes', {}))} nodes")
+
+    def register_response_callback(self, callback: Callable) -> None:
+        """Register a callback to be called after each LLM response."""
+        self._response_callbacks.append(callback)
+        
+    def register_pre_query_hook(self, hook: Callable) -> None:
+        """Register a hook to check if we can answer without LLM."""
+        self._pre_query_hooks.append(hook)
 
     def _init_db(self):
         """Initialize SQLite database for patterns."""
@@ -213,6 +224,94 @@ class SupremeLearningEngine:
         )
 
         return pattern
+
+    async def process_chat_message(
+        self,
+        query: str,
+        user_id: str | None = None,
+        conversation_history: list | None = None,
+        min_confidence: float = 0.75,
+    ) -> dict:
+        """Process a chat message with learning integration."""
+        import asyncio
+        task_type = self._classify_task_type(query)
+        
+        can_answer, confidence, pattern = self.can_answer_independently(
+            query=query,
+            task_type=task_type,
+            min_confidence=min_confidence
+        )
+        
+        if can_answer and pattern:
+            response = self.generate_independent_response(
+                query=query,
+                pattern=pattern,
+                context={
+                    "user_id": user_id,
+                    "conversation_history": conversation_history,
+                }
+            )
+            return {
+                "source": "learned",
+                "confidence": confidence,
+                "pattern_id": pattern["pattern_id"],
+                "response": response,
+                "tokens_used": 0,
+                "cost_usd": 0.0,
+                "was_self_sufficient": True,
+            }
+        else:
+            return {
+                "source": "external_ai",
+                "confidence": confidence or 0.0,
+                "pattern_id": pattern.get("pattern_id") if pattern else None,
+                "response": None,
+                "was_self_sufficient": False,
+                "task_type": task_type,
+            }
+
+    async def learn_from_chat_response(
+        self,
+        query: str,
+        response: str,
+        model_used: str,
+        user_feedback: float | None = None,
+        tokens_used: int = 0,
+        cost_usd: float = 0.0,
+    ) -> dict:
+        import asyncio
+        task_type = self._classify_task_type(query)
+        
+        pattern = self.learn_from_interaction(
+            query=query,
+            response=response,
+            model_used=model_used,
+            task_type=task_type,
+            user_feedback=user_feedback,
+        )
+        
+        for callback in self._response_callbacks:
+            try:
+                if asyncio.iscoroutinefunction(callback):
+                    await callback(pattern, query, response)
+                else:
+                    callback(pattern, query, response)
+            except Exception as e:
+                logger.warning(f"Response callback failed: {e}")
+        
+        return pattern
+
+    def _classify_task_type(self, query: str) -> str:
+        query_lower = query.lower()
+        if any(ind in query_lower for ind in ["code", "function", "class", "bug", "error", "debug", "implement", "api"]):
+            return "coding"
+        if any(ind in query_lower for ind in ["calculate", "math", "equation", "solve", "probability", "statistics"]):
+            return "math"
+        if any(ind in query_lower for ind in ["analyze", "compare", "difference", "vs", "versus", "pros", "cons"]):
+            return "analysis"
+        if any(char in set("অআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ") for char in query):
+            return "bangla"
+        return "general"
 
     def can_answer_independently(
         self,
@@ -487,3 +586,35 @@ class SupremeLearningEngine:
             "knowledge_graph_nodes": len(self.knowledge_graph.get("nodes", {})),
             "data_dir_size_mb": sum(f.stat().st_size for f in self.data_dir.rglob("*") if f.is_file()) / (1024 * 1024),
         }
+
+_learning_engine_instance: SupremeLearningEngine | None = None
+
+def get_learning_engine() -> SupremeLearningEngine:
+    global _learning_engine_instance
+    if _learning_engine_instance is None:
+        _learning_engine_instance = SupremeLearningEngine()
+    return _learning_engine_instance
+
+async def setup_learning_engine():
+    engine = get_learning_engine()
+    logger.info("🧠 SupremeLearningEngine initialized for FastAPI app")
+    return engine
+
+async def teardown_learning_engine():
+    global _learning_engine_instance
+    if _learning_engine_instance:
+        stats = _learning_engine_instance.get_stats()
+        logger.info(f"🧠 Learning Engine Shutdown Stats: {stats}")
+        _learning_engine_instance = None
+
+def add_learning_middleware(app):
+    from starlette.middleware.base import BaseHTTPMiddleware
+    from starlette.requests import Request
+    from starlette.responses import Response
+    
+    class LearningMiddleware(BaseHTTPMiddleware):
+        async def dispatch(self, request: Request, call_next):
+            response = await call_next(request)
+            return response
+            
+    app.add_middleware(LearningMiddleware)

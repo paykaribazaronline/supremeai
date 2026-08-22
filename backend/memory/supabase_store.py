@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import os
+import time
+from functools import wraps
 from datetime import UTC, datetime
 from urllib.parse import urlparse
 
@@ -18,16 +21,85 @@ class SupabaseStore(SQLiteMemoryStore):
             or os.getenv("DATABASE_URL")
         )
         self.local_path = local_path or os.getenv("SQLITE_PATH", "data/supremeai.db")
-        self._provider = "supabase" if self.database_url else "sqlite"
+        self._provider = None  # Will be determined after health check
         self._supabase_client = None
+        self._last_health_check = 0
+        self._health_check_interval = 300  # 5 minutes
+        self._pgvector_available = False
+        self._stats = {
+            "pgvector_success": 0,
+            "pgvector_failure": 0,
+            "sqlite_fallback": 0,
+            "embeddings_generated": 0,
+            "total_queries": 0,
+        }
         super().__init__(str(self.local_path))
+        
+        # Initialize provider status
+        self._check_provider_status()
+
+    def _check_provider_status(self) -> None:
+        """Determine if we can use Supabase/pgvector or must fall back to SQLite."""
+        if self.database_url and self._is_supabase_url(self.database_url):
+            try:
+                # Try to initialize client
+                client = self._get_supabase_client()
+                if client:
+                    # Verify pgvector extension is available
+                    self._pgvector_available = self._verify_pgvector_schema(client)
+                    if self._pgvector_available:
+                        self._provider = "supabase"
+                        from loguru import logger
+                        logger.info("✅ Supabase pgvector connection established successfully")
+                        return
+            except Exception as e:
+                from loguru import logger
+                logger.warning(f"⚠️ Supabase init failed, using SQLite fallback: {e}")
+        
+        # Fall back to SQLite
+        self._provider = "sqlite"
+        from loguru import logger
+        logger.info("📦 Using SQLite as memory backend")
+
+    def _is_supabase_url(self, url: str) -> bool:
+        """Check if URL looks like a Supabase connection string."""
+        try:
+            parsed = urlparse(url)
+            hostname = parsed.hostname or ""
+            return hostname.endswith("supabase.co") or "supabase" in hostname.lower()
+        except Exception:
+            return False
+
+    def _verify_pgvector_schema(self, client) -> bool:
+        """Verify that pgvector schema and RPC functions exist."""
+        try:
+            # Test the match_learned_facts RPC function
+            test_embedding = [0.0] * 1536
+            result = client.rpc(
+                "match_learned_facts",
+                {
+                    "query_embedding": test_embedding,
+                    "match_threshold": 0.99,  # Very high threshold, should return empty
+                    "match_count": 1,
+                },
+            ).execute()
+            return True
+        except Exception as e:
+            from loguru import logger
+            logger.warning(f"⚠️ pgvector schema verification failed: {e}")
+            return False
 
     @property
     def provider(self) -> str:
-        return self._provider
+        return self._provider or "sqlite"
 
     def _get_supabase_client(self):
-        if self._supabase_client is None:
+        # Health check cache - don't recheck too often
+        current_time = time.time()
+        if self._supabase_client is None or (current_time - self._last_health_check > self._health_check_interval):
+            self._last_health_check = current_time
+            self._supabase_client = None  # Force reconnection
+            
             try:
                 from supabase import create_client
 
@@ -43,18 +115,39 @@ class SupabaseStore(SQLiteMemoryStore):
                         url = self.database_url.rstrip("/")
 
                 if not url:
-                    raise RuntimeError(
-                        "Unable to derive a valid Supabase URL. Set SUPABASE_URL or use a direct Supabase DB URL."
-                    )
+                    # Cannot derive URL - this is not a fatal error, will use SQLite
+                    return None
 
                 key = os.getenv("SUPABASE_KEY", "")
                 if not key:
-                    raise RuntimeError("SUPABASE_KEY is required for Supabase client initialization")
+                    # No key - cannot use Supabase
+                    return None
 
-                self._supabase_client = create_client(url, key)
+                # CRITICAL FIX: Check if create_client is callable before calling
+                # This fixes the 'NoneType' object is not callable error
+                if callable(create_client):
+                    client = create_client(url, key)
+                    # Verify client is usable
+                    if hasattr(client, 'table') and hasattr(client, 'rpc'):
+                        self._supabase_client = client
+                    else:
+                        from loguru import logger
+                        logger.error("❌ Supabase client created but missing required methods")
+                        return None
+                else:
+                    from loguru import logger
+                    logger.error("❌ supabase.create_client is not callable - module may be corrupted")
+                    return None
+                    
             except Exception as exc:
-                raise RuntimeError(f"Supabase client init failed: {exc}") from exc
+                from loguru import logger
+                logger.error(f"❌ Supabase client initialization failed: {exc}")
+                return None
         return self._supabase_client
+
+    def get_stats(self) -> dict:
+        """Get memory store statistics."""
+        return {**self._stats, "provider": self._provider, "pgvector_enabled": self._pgvector_available}
 
     def save_conversation(self, session_id: str, messages: list) -> None:
         if self._provider == "supabase":
@@ -62,6 +155,7 @@ class SupabaseStore(SQLiteMemoryStore):
             client.table("conversations").upsert(
                 {
                     "session_id": session_id,
+                    "tenant_id": os.getenv("TENANT_ID", "default"),
                     "messages": json.dumps(messages),
                     "updated_at": datetime.now(UTC).isoformat(),
                 }
@@ -83,18 +177,41 @@ class SupabaseStore(SQLiteMemoryStore):
         return self.get_session_messages(session_id)
 
     def _generate_embedding(self, text: str) -> list[float] | None:
-        # বাংলা মন্তব্য: লোকাল sentence-transformers (all-MiniLM-L6-v2, ৩৮৪-ডাইম, ফ্রি, অফলাইন)
-        # প্রাইমারি — ১৫৩৬-ডাইম pgvector কলামের সাথে সামঞ্জস্য রাখতে শূন্য-প্যাড করা হয়
-        # (কসাইন সিমিলারিটি অপরিবর্তিত থাকে)। sentence-transformers না থাকলে LiteLLM OpenAI
-        # text-embedding-3-small (১৫৩৬-ডাইম) ফলব্যাক করে। এতে এমবেডিং খরচ $0 হয়।
+        # Generate embeddings for pgvector semantic search
+        self._stats["embeddings_generated"] += 1
+        
         try:
             from core.embeddings import embed_for_pgvector
 
             return embed_for_pgvector(text, pg_dim=1536)
         except Exception as e:
+            # Try alternative embedding methods
+            try:
+                # Fallback 1: sentence-transformers local
+                from sentence_transformers import SentenceTransformer
+                model = SentenceTransformer('all-MiniLM-L6-v2')
+                embedding = model.encode(text, normalize_embeddings=True)
+                # Pad to 1536 dimensions for pgvector compatibility
+                if len(embedding) < 1536:
+                    embedding = list(embedding) + [0.0] * (1536 - len(embedding))
+                return embedding[:1536]
+            except Exception:
+                pass
+                
+            try:
+                # Fallback 2: LiteLLM with OpenAI
+                import litellm
+                response = litellm.embedding(
+                    model="text-embedding-3-small",
+                    input=text
+                )
+                return response.data[0]["embedding"]
+            except Exception:
+                pass
+                
+            # All methods failed
             try:
                 from loguru import logger
-
                 logger.error(f"Embedding generation failed: {e}")
             except ImportError:
                 pass
@@ -119,6 +236,8 @@ class SupabaseStore(SQLiteMemoryStore):
         fact["created_at"] = fact.get("created_at", datetime.now(UTC).isoformat())
         if self._provider == "supabase":
             try:
+                self._stats["total_queries"] += 1
+                
                 content_text = fact.get("content", fact.get("text", ""))
                 embedding = self._generate_embedding(content_text)
 
@@ -134,23 +253,34 @@ class SupabaseStore(SQLiteMemoryStore):
 
                 client.table("learned_facts").upsert(data).execute()
             except Exception as e:
-                # বাংলা মন্তব্য: CRITICAL FIX — আগে এখানে শুধু লগ করে fact silently হারিয়ে যেত।
-                # এখন ব্যর্থ হলে SQLite-এ fallback write হয়, যাতে কোনো fact অপ্রত্যাশিতভাবে বাদ না যায়।
+                self._stats["pgvector_failure"] += 1
+                # CRITICAL FIX - fallback to SQLite on failure
                 from loguru import logger
 
                 logger.error(f"Failed to save fact to Supabase, falling back to local SQLite: {e}")
                 try:
+                    self._stats["sqlite_fallback"] += 1
                     self._save_learned_fact_sqlite(fact_id, fact)
                 except Exception as fallback_error:
                     logger.error(f"SQLite fallback also failed — fact '{fact_id}' was NOT persisted: {fallback_error}")
                     raise
         else:
+            # SQLite path
+            self._stats["sqlite_fallback"] += 1
             self._save_learned_fact_sqlite(fact_id, fact)
 
+    async def save_learned_fact_async(self, fact: dict) -> None:
+        """Async version of save_learned_fact for non-blocking writes."""
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, self.save_learned_fact, fact)
+
     def search_facts(self, query: str) -> list:
+        self._stats["total_queries"] += 1
+        
         if self._provider == "supabase":
             try:
-                # বাংলা মন্তব্য: সার্চ কুয়েরির জন্য এমবেডিং জেনারেট করে RPC-র সাহায্যে pgvector সেম্যান্টিক সার্চ চেষ্টা করা হচ্ছে।
+                self._stats["pgvector_success"] += 1
+                # Semantic search via pgvector RPC
                 query_embedding = self._generate_embedding(query)
                 if query_embedding:
                     client = self._get_supabase_client()
@@ -168,6 +298,7 @@ class SupabaseStore(SQLiteMemoryStore):
                             for row in response.data
                         ]
             except Exception as e:
+                self._stats["pgvector_failure"] += 1
                 try:
                     from loguru import logger
 
@@ -175,7 +306,6 @@ class SupabaseStore(SQLiteMemoryStore):
                 except ImportError:
                     pass
 
-            # বাংলা মন্তব্য: রেজিলিয়েন্স ফলব্যাক - ভেক্টর সার্চ কাজ না করলে সাধারণ ilike সাবস্ট্রিং সার্চ চালানো হবে।
             try:
                 client = self._get_supabase_client()
                 result = client.table("learned_facts").select("content").ilike("content", f"%{query}%").execute()
@@ -192,3 +322,51 @@ class SupabaseStore(SQLiteMemoryStore):
                     pass
                 return []
         return []
+
+    def batch_save_facts(self, facts: list[dict]) -> dict:
+        """Save multiple facts in a batch operation."""
+        results = {"success": 0, "failed": 0, "errors": []}
+        
+        for fact in facts:
+            try:
+                self.save_learned_fact(fact)
+                results["success"] += 1
+            except Exception as e:
+                results["failed"] += 1
+                results["errors"].append(str(e))
+        
+        return results
+
+    def similarity_search(self, query: str, threshold: float = 0.3, limit: int = 5) -> list:
+        """Enhanced similarity search with configurable parameters."""
+        if self._provider == "supabase" and self._pgvector_available:
+            try:
+                query_embedding = self._generate_embedding(query)
+                if query_embedding:
+                    client = self._get_supabase_client()
+                    response = client.rpc(
+                        "match_learned_facts",
+                        {
+                            "query_embedding": query_embedding,
+                            "match_threshold": threshold,
+                            "match_count": limit,
+                        },
+                    ).execute()
+                    if response.data:
+                        return [
+                            (json.loads(row["content"]) if isinstance(row["content"], str) else row["content"])
+                            for row in response.data
+                        ]
+            except Exception as e:
+                from loguru import logger
+                logger.warning(f"Similarity search failed: {e}")
+        
+        # Fallback to basic search
+        return self.search_facts(query)
+
+    def force_reconnect(self) -> bool:
+        """Force reconnection to Supabase (useful after network issues)."""
+        self._supabase_client = None
+        self._provider = None
+        self._check_provider_status()
+        return self._provider == "supabase"

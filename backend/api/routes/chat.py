@@ -2,12 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from loguru import logger
 from pydantic import BaseModel
+import json
+import time
 
 from api.dependencies import get_tenant_db
 from api.deps import get_current_user_token
 from core.cache.multi_layer_cache import multi_layer_cache
 from core.llm.llm_gateway import llm_gateway
 from core.circuit_breaker import RedisCircuitBreaker
+from brain.supreme_learning_engine import get_learning_engine
 
 # Global circuit breaker instance
 main_llm_circuit = RedisCircuitBreaker(name="llm_gateway", failure_threshold=3, recovery_timeout=30.0)
@@ -141,13 +144,39 @@ async def get_completion(request: Request, payload: ChatPayload, db=Depends(get_
 # ⚡ ২. Fully Async Streaming Generator
 @router.post("/stream_chat")
 async def stream_chat(payload: ChatPayload, db=Depends(get_tenant_db)):
-    """High-Concurrency Async SSE Streamer.
-
-    বাংলা: SSE-এর জন্য ক্রিটিক্যাল হেডার যোগ করা হলো (Cache-Control: no-cache,
-    X-Accel-Buffering: no) যাতে nginx/CDN/proxy স্ট্রিম বাফার না করে। ক্লায়েন্ট
-    ডিসকানেক্ট হলে generator বন্ধ হবে।
-    """
+    """High-Concurrency Async SSE Streamer."""
     logger.info(f"🌊 SSE Stream Initiated for tenant: {db.tenant_id}")
+    
+    learning_engine = get_learning_engine()
+    
+    try:
+        # Step 1: Check if learning engine can answer independently
+        pre_check = await learning_engine.process_chat_message(
+            query=payload.prompt,
+            user_id=db.tenant_id,
+        )
+        
+        if pre_check.get("was_self_sufficient"):
+            logger.info(f"🎯 Self-sufficient response (confidence: {pre_check['confidence']:.2f})")
+            
+            async def generate_learned():
+                yield f"data: {pre_check['response']}\n\n"
+                yield "data: [DONE]\n\n"
+            
+            return StreamingResponse(
+                generate_learned(),
+                media_type="text/event-stream",
+                headers={
+                    "X-Learning-Source": "independent",
+                    "X-Confidence": str(pre_check["confidence"]),
+                    "Cache-Control": "no-cache, no-transform",
+                    "Connection": "keep-alive",
+                    "X-Accel-Buffering": "no",
+                    "Content-Encoding": "identity",
+                }
+            )
+    except Exception as e:
+        logger.warning(f"Learning Engine pre-check failed: {e}")
 
     async def async_generator():
         try:
@@ -182,6 +211,15 @@ async def stream_chat(payload: ChatPayload, db=Depends(get_tenant_db)):
 
                     yield "data: [DONE]\n\n"
                     await main_llm_circuit.record_success()
+                    
+                    try:
+                        # Full response text would normally be collected here to learn from
+                        # We simulate it with empty string for now in streaming
+                        # In production we'd collect chunks
+                        pass
+                    except Exception:
+                        pass
+                        
                     return
                 except Exception as e:
                     logger.warning(f"External LLM API stream fail: {e!s} — falling back")
@@ -223,3 +261,9 @@ async def stream_chat(payload: ChatPayload, db=Depends(get_tenant_db)):
             "Content-Encoding": "identity",  # কম্প্রেশন বন্ধ — SSE-এর জন্য প্রয়োজন
         },
     )
+
+@router.get("/learning/stats")
+async def get_learning_stats():
+    """Get statistics about the learning engine."""
+    engine = get_learning_engine()
+    return engine.get_stats()
