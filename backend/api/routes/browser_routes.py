@@ -115,6 +115,11 @@ async def browser_ai_action(req: AIActionRequest):
         from backend.core.llm.llm_gateway import llm_gateway
         
         # Build context-aware prompts based on action type
+        ctx_explain = f"Page Content:\n{req.context[:4000]}" if req.context else ""
+        ctx_extract = f"Content:\n{req.context[:5000]}" if req.context else ""
+        ctx_issues = f"Content:\n{req.context[:4000]}" if req.context else ""
+        ctx_interact = f"Page Context:\n{req.context[:3000]}" if req.context else ""
+
         prompts = {
             "summarize": f"""Analyze this webpage and provide a comprehensive summary:
 
@@ -134,7 +139,7 @@ Provide:
 
 URL: {req.url}
 
-{f'Page Content:\n{req.context[:4000]}' if req.context else ''}
+{ctx_explain}
 
 Analyze and explain:
 1. Frontend framework/library detection
@@ -148,7 +153,7 @@ Analyze and explain:
 
 URL: {req.url}
 
-{f'Content:\n{req.context[:5000]}' if req.context else ''}
+{ctx_extract}
 
 For each link provide:
 1. URL (absolute if possible)
@@ -160,7 +165,7 @@ For each link provide:
 
 URL: {req.url}
 
-{f'Content:\n{req.context[:4000]}' if req.context else ''}
+{ctx_issues}
 
 Check for and categorize:
 **Security Issues:**
@@ -189,7 +194,7 @@ Check for and categorize:
 URL: {req.url}
 Question: {req.payload.get('question', 'General analysis') if req.payload else 'General analysis'}
 
-{f'Page Context:\n{req.context[:3000]}' if req.context else ''}
+{ctx_interact}
 
 Provide a helpful, detailed answer based on the available information."""
         }
