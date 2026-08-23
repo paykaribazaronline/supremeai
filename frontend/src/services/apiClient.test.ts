@@ -3,7 +3,7 @@ import { apiClient, setApiConcurrency } from './apiClient';
 
 // Mock getApiBaseUrl
 vi.mock('../utils/api', () => ({
-  getApiBaseUrl: () => 'https://supremeai-backend.onrender.com'
+  getApiBaseUrl: () => 'https://supremeai-backend-docker.onrender.com'
 }));
 
 // Mock useAdminStore
@@ -33,7 +33,7 @@ describe('apiClient', () => {
 
     const result = await apiClient.get('/test');
 
-    expect(global.fetch).toHaveBeenCalledWith('https://supremeai-backend.onrender.com/test', expect.objectContaining({
+    expect(global.fetch).toHaveBeenCalledWith('https://supremeai-backend-docker.onrender.com/test', expect.objectContaining({
       credentials: 'include',
       headers: expect.objectContaining({ 'Content-Type': 'application/json' }),
       method: 'GET'

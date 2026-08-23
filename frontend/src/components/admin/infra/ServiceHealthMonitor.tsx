@@ -60,15 +60,7 @@ const SERVICE_REGISTRY: ServiceConfig[] = [
     icon: <Server size={16} />,
     category: 'infrastructure',
   },
-  {
-    name: 'render_admin',
-    displayName: 'Render Admin',
-    url: 'https://supremeai-admin.onrender.com',
-    description: 'Admin Panel API',
-    critical: true,
-    icon: <Database size={16} />,
-    category: 'infrastructure',
-  },
+
   {
     name: 'scraper_service',
     displayName: 'Scraper Service',

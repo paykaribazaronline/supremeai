@@ -57,6 +57,12 @@ XSS_PATTERNS = [
     r"<embed",
 ]
 
+# Additional Dangerous Patterns
+DANGEROUS_PATTERNS = [
+    r"\.\./",             # Path traversal
+    r"\$\{",               # Template injection
+]
+
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """Add security headers to all responses."""
@@ -83,10 +89,18 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
     MAX_QUERY_LENGTH = 2048
     MAX_HEADER_SIZE = 8192
     
-    # Rate limiting per IP (simple in-memory backup)
+    # Default Rate limiting per IP
     REQUEST_LOG: dict = {}
     RATE_LIMIT = 100  # Requests per minute
     RATE_WINDOW = 60  # Seconds
+    
+    # Path-specific rate limits (critical paths)
+    SIMPLE_RATE_LIMITS = {
+        "/api/v1/auth/login": {"requests": 5, "window": 600},      # 5 per 10 min
+        "/api/v1/auth/register": {"requests": 3, "window": 3600},    # 3 per hour
+        "/api/v1/scraper/scrape": {"requests": 20, "window": 3600}, # 20 per hour
+        "/api/v1/kaggle/submit": {"requests": 10, "window": 3600},  # 10 per hour
+    }
     
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         client_ip = self._get_client_ip(request)
@@ -110,7 +124,7 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
             )
         
         # Simple rate limiting (backup for Redis-based limiter)
-        if not await self._check_rate_limit(client_ip):
+        if not await self._check_rate_limit(client_ip, request.url.path):
             return Response(
                 status_code=429,
                 content=b'{"error": "Too many requests"}',
@@ -135,6 +149,15 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
                 content=b'{"error": "Invalid request"}',
                 media_type="application/json"
             )
+            
+        # Scan for other dangerous patterns
+        if self._detect_dangerous(query_string):
+            logger.warning(f"Dangerous pattern attempt from {client_ip}")
+            return Response(
+                status_code=400,
+                content=b'{"error": "Invalid request"}',
+                media_type="application/json"
+            )
         
         return await call_next(request)
     
@@ -144,27 +167,41 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
             return forwarded.split(",")[0].strip()
         return request.client.host if request.client else "unknown"
     
-    async def _check_rate_limit(self, client_ip: str) -> bool:
-        """Simple in-memory rate limiting."""
+    async def _check_rate_limit(self, client_ip: str, path: str) -> bool:
+        """Simple in-memory rate limiting with path specificity."""
         now = time.time()
         
-        # Clean old entries
+        # Determine applicable limits
+        limit = self.RATE_LIMIT
+        window = self.RATE_WINDOW
+        
+        for critical_path, config in self.SIMPLE_RATE_LIMITS.items():
+            if path.startswith(critical_path):
+                limit = config["requests"]
+                window = config["window"]
+                break
+                
+        # Use a combination of IP and path prefix for tracking critical paths
+        # For general requests, just use IP to group them
+        tracking_key = f"{client_ip}:{path}" if limit != self.RATE_LIMIT else client_ip
+        
+        # Clean old entries across the entire log periodically (simplified)
         self.REQUEST_LOG = {
-            ip: timestamps
-            for ip, timestamps in self.REQUEST_LOG.items()
-            if any(ts > now - self.RATE_WINDOW for ts in timestamps)
+            k: timestamps
+            for k, timestamps in self.REQUEST_LOG.items()
+            if any(ts > now - 3600 for ts in timestamps) # Keep at most 1 hour history
         }
         
-        # Check current IP
-        if client_ip not in self.REQUEST_LOG:
-            self.REQUEST_LOG[client_ip] = []
+        # Check current IP/Key
+        if tracking_key not in self.REQUEST_LOG:
+            self.REQUEST_LOG[tracking_key] = []
         
-        recent_requests = [ts for ts in self.REQUEST_LOG[client_ip] if ts > now - self.RATE_WINDOW]
+        recent_requests = [ts for ts in self.REQUEST_LOG[tracking_key] if ts > now - window]
         
-        if len(recent_requests) >= self.RATE_LIMIT:
+        if len(recent_requests) >= limit:
             return False
         
-        self.REQUEST_LOG[client_ip].append(now)
+        self.REQUEST_LOG[tracking_key] = recent_requests + [now]
         return True
     
     @staticmethod
@@ -179,6 +216,14 @@ class RequestValidationMiddleware(BaseHTTPMiddleware):
     def _detect_xss(input_string: str) -> bool:
         """Detect potential XSS attempts."""
         for pattern in XSS_PATTERNS:
+            if re.search(pattern, input_string, re.IGNORECASE):
+                return True
+        return False
+        
+    @staticmethod
+    def _detect_dangerous(input_string: str) -> bool:
+        """Detect other dangerous patterns (Path traversal, Template injection)."""
+        for pattern in DANGEROUS_PATTERNS:
             if re.search(pattern, input_string, re.IGNORECASE):
                 return True
         return False

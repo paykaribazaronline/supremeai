@@ -1,19 +1,34 @@
 {
+  "version": 2,
+  "name": "supremeai-admin",
   "installCommand": "pnpm install --prod=false",
-  "buildCommand": "pnpm run build:user",
-  "outputDirectory": "dist-user",
-  "rewrites": [
+  "buildCommand": "pnpm run build:admin",
+  "outputDirectory": "dist-admin",
+  "framework": "vite",
+  "regions": ["sin1"],
+  "env": {
+    "VITE_PORTAL_TYPE": "admin",
+    "NEXT_PUBLIC_API_URL": "https://supremeai-backend-docker.onrender.com"
+  },
+  "headers": [
     {
-      "source": "/api/v1/:path*",
-      "destination": "https://supremeai-backend.onrender.com/api/v1/:path*"
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PUT,DELETE,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type,Authorization" }
+      ]
     },
     {
-      "source": "/api/:path*",
-      "destination": "https://supremeai-backend.onrender.com/api/:path*"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
     }
+  ],
+  "rewrites": [
+    { "source": "/api/v1/:path*", "destination": "https://supremeai-backend-docker.onrender.com/api/v1/:path*" },
+    { "source": "/api/:path*", "destination": "https://supremeai-backend-docker.onrender.com/api/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

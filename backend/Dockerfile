@@ -30,6 +30,15 @@ ENV PATH="/app/.venv/bin:$PATH"
 # Copy application code
 COPY . .
 
+# Install Playwright and its system dependencies (must be run as root)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    gnupg \
+    ca-certificates \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && playwright install --with-deps chromium
+
 # Create and use non-root user for security compliance
 RUN addgroup --system supremeai && adduser --system supremeai --ingroup supremeai \
     && chown -R supremeai:supremeai /app
@@ -38,6 +47,10 @@ USER supremeai
 
 # Expose port
 EXPOSE 8080
+
+# 🔬 Evolution v3.0: Health check for container orchestration
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/health/live')" || exit 1
 
 # Start command
 CMD ["python", "main.py"]

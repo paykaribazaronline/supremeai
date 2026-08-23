@@ -1,35 +1,24 @@
 """
-SupremeAI Scraper Microservice — FastAPI Application
+SupremeAI Scraper Routes
 
-Decoupled from the main backend. Exposes browser automation + web scraping
-as a standalone HTTP API. Designed to run on Render free tier (port 8081).
-
-Endpoints:
-  GET  /health        — Liveness probe
-  POST /scrape        — Fetch URL, return cleaned text + links (httpx)
-  POST /browse        — Full Playwright browser automation (click, type, screenshot, etc.)
-  POST /recipe        — Execute a multi-step automation recipe
+Exposes browser automation + web scraping as integrated endpoints.
 """
 
 from __future__ import annotations
 
 import os
 
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from browser_agent import BrowserAgent, BrowseRequest
-from security import is_safe_url
-from web_scraper import WebScraper
+from services.scraper.browser_agent import BrowserAgent, BrowseRequest
+from services.scraper.security import is_safe_url
+from services.scraper.web_scraper import WebScraper
 
 MAX_CONCURRENCY = int(os.getenv("SCRAPER_MAX_CONCURRENCY", "3"))
 TIMEOUT_SECONDS = int(os.getenv("SCRAPER_TIMEOUT_SECONDS", "45"))
 
-app = FastAPI(
-    title="SupremeAI Scraper Microservice",
-    description="Standalone browser automation and web scraping service",
-    version="1.0.0",
-)
+router = APIRouter(tags=["scraper"])
 
 _scraper = WebScraper()
 _agent = BrowserAgent(headless=True)
@@ -40,7 +29,7 @@ class ScrapeRequest(BaseModel):
     extraction_prompt: str | None = None
 
 
-@app.get("/health")
+@router.get("/health")
 async def health_check():
     try:
         import playwright.async_api as _pw
@@ -50,14 +39,14 @@ async def health_check():
 
     return {
         "status": "healthy",
-        "service": "supremeai-scraper",
+        "service": "supremeai-scraper-module",
         "max_concurrency": MAX_CONCURRENCY,
         "timeout_seconds": TIMEOUT_SECONDS,
         "playwright_available": playwright_ok,
     }
 
 
-@app.post("/scrape")
+@router.post("/scrape")
 async def scrape(request: ScrapeRequest):
     if not request.url:
         raise HTTPException(status_code=400, detail="URL is required")
@@ -65,7 +54,7 @@ async def scrape(request: ScrapeRequest):
     return result
 
 
-@app.post("/browse")
+@router.post("/browse")
 async def browse(request: BrowseRequest):
     if not request.url:
         raise HTTPException(status_code=400, detail="URL is required")
@@ -84,18 +73,9 @@ class RecipeRequest(BaseModel):
     initial_url: str | None = None
 
 
-@app.post("/recipe")
+@router.post("/recipe")
 async def recipe(request: RecipeRequest):
     if request.initial_url and not is_safe_url(request.initial_url):
         raise HTTPException(status_code=400, detail="SSRF check failed: Unauthorized internal access")
     result = await _agent.execute_recipe(steps=request.steps, initial_url=request.initial_url)
     return result
-
-
-_APP_IMPORT_STRING = "main:app"
-
-if __name__ == "__main__":
-    import uvicorn
-
-    port = int(os.getenv("PORT", "8081"))
-    uvicorn.run(_APP_IMPORT_STRING, host="0.0.0.0", port=port)

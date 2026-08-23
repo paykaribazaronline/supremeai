@@ -21,6 +21,17 @@ from pydantic import BaseModel
 from security import is_safe_url
 from web_scraper import WebScraper
 
+# 🔧 DYNAMIC BROWSER CONFIG: All values from environment variables
+_BROWSER_VIEWPORT_W = int(os.getenv("BROWSER_VIEWPORT_WIDTH", "1280"))
+_BROWSER_VIEWPORT_H = int(os.getenv("BROWSER_VIEWPORT_HEIGHT", "1080"))
+_BROWSER_PAGE_TIMEOUT = int(os.getenv("BROWSER_PAGE_TIMEOUT_MS", "30000"))
+_BROWSER_SELECTOR_TIMEOUT = int(os.getenv("BROWSER_SELECTOR_TIMEOUT_MS", "10000"))
+_BROWSER_NETWORK_TIMEOUT = int(os.getenv("BROWSER_NETWORK_IDLE_TIMEOUT_MS", "10000"))
+_BROWSER_USER_AGENT = os.getenv(
+    "BROWSER_USER_AGENT",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+)
+
 try:
     from playwright.async_api import async_playwright
 except ImportError:
@@ -49,7 +60,10 @@ class BrowserAgent:
         # Concurrency guard — prevent OOM on Render free tier (512MB RAM)
         _max = int(os.getenv("SCRAPER_MAX_CONCURRENCY", "3"))
         self._semaphore = asyncio.Semaphore(_max)
-        logger.info(f"Initialized BrowserAgent (max_concurrency={_max}) for scraper microservice")
+        logger.info(
+            f"Initialized BrowserAgent (max_concurrency={_max}, "
+            f"viewport={_BROWSER_VIEWPORT_W}x{_BROWSER_VIEWPORT_H}) for scraper microservice"
+        )
 
     async def navigate_and_interact(
         self,
@@ -82,20 +96,20 @@ class BrowserAgent:
                     "--disable-blink-features=AutomationControlled",
                 ],
             )
-            context = await browser.new_context(
-                viewport={"width": 1280, "height": 1080},
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            context = await browser.new_context(  # 🔧 DYNAMIC config
+                viewport={"width": _BROWSER_VIEWPORT_W, "height": _BROWSER_VIEWPORT_H},
+                user_agent=_BROWSER_USER_AGENT,
             )
             page = await context.new_page()
             try:
-                await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                await page.goto(url, wait_until="domcontentloaded", timeout=_BROWSER_PAGE_TIMEOUT)
 
                 if wait_for:
-                    await page.wait_for_selector(wait_for, timeout=10000)
+                    await page.wait_for_selector(wait_for, timeout=_BROWSER_SELECTOR_TIMEOUT)
 
                 if action == "click" and selector:
                     await page.click(selector)
-                    await page.wait_for_load_state("networkidle", timeout=10000)
+                    await page.wait_for_load_state("networkidle", timeout=_BROWSER_NETWORK_TIMEOUT)
 
                 elif action == "type" and selector and text:
                     await page.fill(selector, text)
@@ -165,8 +179,8 @@ class BrowserAgent:
                 ],
             )
             context = await browser.new_context(
-                viewport={"width": 1280, "height": 1080},
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                viewport={"width": _BROWSER_VIEWPORT_W, "height": _BROWSER_VIEWPORT_H},  # 🔧 DYNAMIC
+                user_agent=_BROWSER_USER_AGENT,  # 🔧 DYNAMIC
             )
             page = await context.new_page()
             index = -1  # Guard: prevents NameError in except if loop never runs

@@ -1,115 +1,230 @@
+"""
+SupremeAI Circuit Breaker — Resilience Pattern
+🔬 Evolution v3.0: Prevents cascading failures with automatic recovery
+
+States:
+  CLOSED → Normal operation, requests pass through
+  OPEN → Failing, requests fail immediately (no backend calls)
+  HALF_OPEN → Testing, allows one request through to check recovery
+
+Usage:
+    from core.circuit_breaker import CircuitBreaker
+    
+    cb = CircuitBreaker(
+        name="gemini_api",
+        failure_threshold=5,
+        recovery_timeout=30,
+    )
+    
+    async with cb.protect():
+        result = await call_external_api()
+"""
+
+from __future__ import annotations
+
+import asyncio
 import time
-import logging
+from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any, TypeVar
+from contextlib import asynccontextmanager
 
-logger = logging.getLogger("supremeai.fallback")
+T = TypeVar("T")
 
-class CircuitState(Enum):
-    CLOSED = "closed"        # Normal, external source is used
-    OPEN = "open"             # External source down, use fallback directly
-    HALF_OPEN = "half_open"   # Test if recovered
+
+class CircuitState(str, Enum):
+    CLOSED = "closed"       # Normal operation
+    OPEN = "open"           # Failing, reject immediately
+    HALF_OPEN = "half_open" # Testing recovery
+
 
 @dataclass
-class CircuitBreaker:
-    failure_threshold: int = 3
-    recovery_timeout: float = 30.0
-    state: CircuitState = field(default=CircuitState.CLOSED)
-    failure_count: int = 0
-    opened_at: float = 0.0
+class CircuitStats:
+    """Statistics for a circuit breaker."""
+    total_requests: int = 0
+    total_successes: int = 0
+    total_failures: int = 0
+    total_rejections: int = 0  # Rejected while OPEN
+    current_state: CircuitState = CircuitState.CLOSED
+    last_failure_time: float = 0
+    last_success_time: float = 0
+    consecutive_failures: int = 0
+    consecutive_successes: int = 0
 
-    async def record_success(self):
-        self.failure_count = 0
-        self.state = CircuitState.CLOSED
 
-    async def record_failure(self):
-        self.failure_count += 1
-        if self.failure_count >= self.failure_threshold:
-            self.state = CircuitState.OPEN
-            self.opened_at = time.monotonic()
-            logger.warning("Circuit OPEN — external source failed %d times, entering fallback mode", self.failure_count)
-
-    async def should_attempt_external(self) -> bool:
-        if self.state == CircuitState.CLOSED:
-            return True
-        if self.state == CircuitState.OPEN:
-            if time.monotonic() - self.opened_at >= self.recovery_timeout:
-                self.state = CircuitState.HALF_OPEN
-                logger.info("Circuit HALF_OPEN — testing external source recovery")
-                return True
-            return False
-        # HALF_OPEN
-        return True
-
-class RedisCircuitBreaker(CircuitBreaker):
-    """
-    A Centralized Circuit Breaker using Redis for tracking state across multiple workers.
-    Falls back to the in-memory base class logic if Redis is unreachable.
-    """
-    def __init__(self, name: str = "default", failure_threshold: int = 3, recovery_timeout: float = 30.0):
-        super().__init__(failure_threshold=failure_threshold, recovery_timeout=recovery_timeout)
+class CircuitBreakerError(Exception):
+    """Raised when circuit breaker is OPEN and request is rejected."""
+    def __init__(self, name: str, state: CircuitState, recovery_in: float):
         self.name = name
-        self.prefix = f"circuit_breaker:{name}"
+        self.state = state
+        self.recovery_in = recovery_in
+        super().__init__(
+            f"Circuit '{name}' is OPEN. "
+            f"Recovery in ~{recovery_in:.0f}s. "
+            f"Requests are being rejected."
+        )
+
+
+class CircuitBreaker:
+    """
+    Circuit Breaker implementation for external service calls.
     
-    async def _get_redis_client(self):
-        from core.cache.redis_manager import redis_manager
-        return await redis_manager.get_client_async()
+    Prevents cascading failures by temporarily stopping calls to
+    failing services and automatically testing for recovery.
+    """
+    
+    def __init__(
+        self,
+        name: str,
+        failure_threshold: int = 5,
+        success_threshold: int = 3,
+        recovery_timeout: float = 30.0,
+        half_open_max_calls: int = 1,
+    ):
+        """
+        Initialize circuit breaker.
         
-    async def record_success(self):
-        client = await self._get_redis_client()
-        if not client:
-            return await super().record_success()
-            
-        try:
-            await client.set(f"{self.prefix}:state", CircuitState.CLOSED.value)
-            await client.set(f"{self.prefix}:failures", 0)
-        except Exception as e:
-            logger.error(f"RedisCircuitBreaker record_success failed: {e}")
-            await super().record_success()
+        Args:
+            name: Identifier for this circuit (for logging/metrics)
+            failure_threshold: Consecutive failures before opening
+            success_threshold: Successes in HALF_OPEN before closing
+            recovery_timeout: Seconds before trying HALF_OPEN
+            half_open_max_calls: Max concurrent test requests in HALF_OPEN
+        """
+        self.name = name
+        self.failure_threshold = failure_threshold
+        self.success_threshold = success_threshold
+        self.recovery_timeout = recovery_timeout
+        self.half_open_max_calls = half_open_max_calls
+        
+        self._state = CircuitState.CLOSED
+        self._failure_count = 0
+        self._success_count = 0
+        self._last_failure_time = 0.0
+        self._half_open_calls = 0
+        self._lock = asyncio.Lock()
+        self._stats = CircuitStats()
+    
+    @property
+    def state(self) -> CircuitState:
+        return self._state
+    
+    @property
+    def stats(self) -> CircuitStats:
+        return self._stats
 
-    async def record_failure(self):
-        client = await self._get_redis_client()
-        if not client:
-            return await super().record_failure()
-            
-        try:
-            failures = await client.incr(f"{self.prefix}:failures")
-            if failures >= self.failure_threshold:
-                # Set state to OPEN
-                current_state = await client.get(f"{self.prefix}:state")
-                if current_state != CircuitState.OPEN.value:
-                    await client.set(f"{self.prefix}:state", CircuitState.OPEN.value)
-                    await client.set(f"{self.prefix}:opened_at", time.time())
-                    logger.warning(f"[{self.name}] Circuit OPEN — external source failed {failures} times, entering fallback mode")
-        except Exception as e:
-            logger.error(f"RedisCircuitBreaker record_failure failed: {e}")
-            await super().record_failure()
+    def _should_attempt_reset(self) -> bool:
+        """Check if enough time has passed to try HALF_OPEN."""
+        if self._state != CircuitState.OPEN:
+            return False
+        elapsed = time.time() - self._last_failure_time
+        return elapsed >= self.recovery_timeout
 
-    async def should_attempt_external(self) -> bool:
-        client = await self._get_redis_client()
-        if not client:
-            return await super().should_attempt_external()
+    async def _on_success(self) -> None:
+        """Handle successful call."""
+        async with self._lock:
+            self._stats.total_successes += 1
+            self._stats.last_success_time = time.time()
             
+            if self._state == CircuitState.HALF_OPEN:
+                self._success_count += 1
+                if self._success_count >= self.success_threshold:
+                    self._state = CircuitState.CLOSED
+                    self._failure_count = 0
+                    self._success_count = 0
+                    self._half_open_calls = 0
+            else:  # CLOSED
+                self._failure_count = 0
+                self._consecutive_failures = 0
+
+    async def _on_failure(self) -> None:
+        """Handle failed call."""
+        async with self._lock:
+            self._stats.total_failures += 1
+            self._stats.last_failure_time = time.time()
+            self._failure_count += 1
+            
+            if self._state == CircuitState.HALF_OPEN:
+                # Failure in HALF_OPEN → back to OPEN
+                self._state = CircuitState.OPEN
+                self._last_failure_time = time.time()
+                self._half_open_calls = 0
+            elif self._failure_count >= self.failure_threshold:
+                # Threshold reached → OPEN
+                self._state = CircuitState.OPEN
+                self._last_failure_time = time.time()
+
+    @asynccontextmanager
+    async def protect(self):
+        """
+        Context manager that wraps a call with circuit breaker protection.
+        
+        Usage:
+            async with cb.protect():
+                result = await risky_call()
+        
+        Raises:
+            CircuitBreakerError: If circuit is OPEN
+        """
+        self._stats.total_requests += 1
+        
+        async with self._lock:
+            # Check if we should try reset
+            if self._should_attempt_reset():
+                self._state = CircuitState.HALF_OPEN
+                self._half_open_calls = 0
+            
+            self._stats.current_state = self._state
+            
+            if self._state == CircuitState.OPEN:
+                self._stats.total_rejections += 1
+                recovery_in = self.recovery_timeout - (time.time() - self._last_failure_time)
+                raise CircuitBreakerError(self.name, self._state, recovery_in)
+            
+            if self._state == CircuitState.HALF_OPEN:
+                if self._half_open_calls >= self.half_open_max_calls:
+                    self._stats.total_rejections += 1
+                    raise CircuitBreakerError(self.name, self._state, 0)
+                self._half_open_calls += 1
+        
         try:
-            state_val = await client.get(f"{self.prefix}:state")
-            if not state_val:
-                return True
-                
-            if state_val == CircuitState.CLOSED.value:
-                return True
-                
-            if state_val == CircuitState.OPEN.value:
-                opened_at = await client.get(f"{self.prefix}:opened_at")
-                if opened_at:
-                    elapsed = time.time() - float(opened_at)
-                    if elapsed >= self.recovery_timeout:
-                        await client.set(f"{self.prefix}:state", CircuitState.HALF_OPEN.value)
-                        logger.info(f"[{self.name}] Circuit HALF_OPEN — testing external source recovery")
-                        return True
-                return False
-                
-            # HALF_OPEN
-            return True
-        except Exception as e:
-            logger.error(f"RedisCircuitBreaker should_attempt_external failed: {e}")
-            return await super().should_attempt_external()
+            yield
+            await self._on_success()
+        except Exception:
+            await self._on_failure()
+            raise
+
+    def get_recovery_time(self) -> float:
+        """Get seconds until circuit may attempt recovery."""
+        if self._state != CircuitState.OPEN:
+            return 0.0
+        elapsed = time.time() - self._last_failure_time
+        return max(0, self.recovery_timeout - elapsed)
+
+    def reset(self) -> None:
+        """Manually reset circuit to CLOSED state."""
+        self._state = CircuitState.CLOSED
+        self._failure_count = 0
+        self._success_count = 0
+        self._half_open_calls = 0
+
+
+# Pre-configured circuits for common services
+CIRCUITS: dict[str, CircuitBreaker] = {
+    "gemini_api": CircuitBreaker("gemini_api", failure_threshold=5, recovery_timeout=30),
+    "groq_api": CircuitBreaker("groq_api", failure_threshold=5, recovery_timeout=30),
+    "openrouter_api": CircuitBreaker("openrouter_api", failure_threshold=5, recovery_timeout=30),
+    "database": CircuitBreaker("database", failure_threshold=3, recovery_timeout=15),
+    "external_http": CircuitBreaker("external_http", failure_threshold=5, recovery_timeout=20),
+}
+
+
+def get_circuit(name: str) -> CircuitBreaker:
+    """Get or create a circuit breaker by name."""
+    if name not in CIRCUITS:
+        CIRCUITS[name] = CircuitBreaker(name)
+    return CIRCUITS[name]
+
+
+# =============================================================================

@@ -41,13 +41,13 @@ class SettingsFieldsMixin:
 
     # CORS origins property is implemented dynamically below to support validation.
 
-    # বাংলা মন্তব্য: রোল-ভিত্তিক CORS সেটিংস এবং সিকিউরিটি টগল
+    # 🔧 DYNAMIC: Empty default — must be explicitly configured in production
     user_cors_origins: str | list[str] = Field(
-        default=["https://supremeai-lac.vercel.app", "https://supremeai-a.firebaseapp.com", "https://supremeai-a.web.app"],
+        default=[],  # 🔧 CHANGED: No hardcoded domains! Set USER_CORS_ORIGINS in env.
         validation_alias="USER_CORS_ORIGINS",
     )
     admin_cors_origins: str | list[str] = Field(
-        default=["https://supremeai-lac.vercel.app", "https://supremeai-a.firebaseapp.com", "https://supremeai-a.web.app", "https://supremeai-admin.web.app", "https://supremeai-admin.firebaseapp.com"],
+        default=[],  # 🔧 CHANGED: No hardcoded domains! Set ADMIN_CORS_ORIGINS in env.
         validation_alias="ADMIN_CORS_ORIGINS",
     )
     enforce_anti_hacking: bool = Field(
@@ -84,14 +84,18 @@ class SettingsFieldsMixin:
     # (Moved to Security & Auth Config section to avoid duplication)
 
     # বাংলা মন্তব্য: Zero-Trust Host Validation — empty = crash
+    # 🔧 DYNAMIC: Empty default — must be explicitly configured
     allowed_hosts: str | list[str] = Field(
-        default=["onrender.com", "web.app", "firebaseapp.com", "vercel.app", "supremeai-backend.onrender.com"],
+        default=[],  # 🔧 CHANGED: No hardcoded hosts! Set ALLOWED_HOSTS in env.
         validation_alias="ALLOWED_HOSTS",
     )
 
     # ── Stripe, JWT & Encryption credentials — moved to Infisical-backed lazy properties ──
 
     # ── LLM rate limit thresholds — সব env-driven, hardcode নেই ─────────────
+    # 🔧 NOTE: These defaults are provider-specific limits that may change.
+    # Always check: https://ai.google.dev/gemini-api/docs/rate-limits
+    # Override these via environment variables when providers update their limits.
     gemini_rpm_limit: int = Field(default=9, validation_alias="GEMINI_RPM_LIMIT")
     gemini_tpm_limit: int = Field(default=240_000, validation_alias="GEMINI_TPM_LIMIT")
     gemini_rpd_limit: int = Field(default=475, validation_alias="GEMINI_RPD_LIMIT")

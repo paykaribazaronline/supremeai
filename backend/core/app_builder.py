@@ -116,9 +116,60 @@ def create_app(title: str = settings.PROJECT_NAME) -> FastAPI:
 
     @asynccontextmanager
     async def _lifespan(app: FastAPI):
-        # বাংলা মন্তব্ব্য: অ্যাপ্লিকেশন লাইফস্প্যান ম্যানেজমেন্ট
+        # 🔬 Evolution v3.0: Enhanced lifespan with validation & health checks
         from core.auto_healer import get_auto_healer
+        from core.health import register_check, set_liveness
+        from core.config_validator import validate_config, print_config_summary
+        from utils.platform_detect import auto_set_platform_env, DETECTED_PLATFORM
         import asyncio
+        
+        print("\n" + "=" * 60)
+        print(f"🚀 SupremeAI Starting on {DETECTED_PLATFORM.platform.value.upper()}...")
+        print("=" * 60)
+        
+        # Auto-detect platform
+        platform = auto_set_platform_env()
+        print(f"📍 Platform: {platform}")
+        
+        # Validate configuration (Fail-Fast)
+        print("\n🔧 Validating configuration...")
+        result = validate_config()
+        if not result.is_valid:
+            print(result.format_errors())
+            if any(e.severity.value == "error" for e in result.errors):
+                print("❌ Fatal configuration errors. Exiting.")
+                import sys
+                sys.exit(1)
+        else:
+            print("✅ Configuration valid.")
+        
+        # Print summary (masked secrets)
+        print_config_summary()
+        
+        # Register health checks
+        print("\n🏥 Registering health checks...")
+        
+        async def _check_database() -> bool:
+            try:
+                from sqlalchemy import text
+                from core.db import engine
+                with engine.connect() as conn:
+                    conn.execute(text("SELECT 1"))
+                return True
+            except Exception:
+                return False
+                
+        def _check_memory() -> bool:
+            try:
+                import psutil
+                mem = psutil.virtual_memory()
+                return mem.percent < 90
+            except ImportError:
+                return True
+                
+        register_check("database", _check_database, critical=True)
+        register_check("memory", _check_memory, critical=False)
+
         monitoring_task = None
         if settings.AUTO_HEALING_ENABLED:
             healer = get_auto_healer()
@@ -127,6 +178,9 @@ def create_app(title: str = settings.PROJECT_NAME) -> FastAPI:
         async with app_lifespan(app):
             yield
             
+        print("\n🛑 SupremeAI shutting down...")
+        set_liveness(False)
+        
         if settings.AUTO_HEALING_ENABLED and monitoring_task:
             healer.stop_monitoring()
             await monitoring_task
@@ -225,69 +279,42 @@ def create_app(title: str = settings.PROJECT_NAME) -> FastAPI:
             collector = get_metrics_collector()
             return collector.export_prometheus()
 
-    # বাংলা মন্তব্ব্য: হেল্থ চেক এন্ডপয়েন্ট
-    # আগে এটা শুধু হার্ডকোডেড {"status": "healthy"} রিটার্ন করত -- redis বা
-    # API key কিছুই যাচাই করত না, অথচ tests/test_health.py এবং keepalive
-    # ওয়ার্কফ্লো (USER_HEALTH_URL) দুটোই real redis round-trip + api-key
-    # কনফিগারেশন চেক আশা করে। এখন সেটাই বাস্তবায়ন করা হলো।
-    @app.get("/health")
-    async def health_check():
-        from core.services import redis_queue
+    # 🔬 Evolution v3.0: Register health endpoints
+    from core.health_routes import router as health_router
+    app.include_router(health_router, prefix="/health")
 
-        redis_ok = True
-        if redis_queue.configured:
-            try:
-                # বাংলা: UpstashRedisQueue এর set/get সিঙ্ক্রোনাস (httpx ক্লায়েন্ট)।
-                # আগে সরাসরি কল করা হতো — event loop ব্লক হতো। এখন to_thread দিয়ে
-                # thread pool-এ অফলোড করা হলো। ৩ সেকেন্ড টাইমআউট সহ।
-                import asyncio as _asyncio
-
-                probe_key = "__health_check_probe__"
-                await _asyncio.wait_for(
-                    _asyncio.to_thread(redis_queue.set, probe_key, "1", 30),
-                    timeout=3.0,
-                )
-                await _asyncio.wait_for(
-                    _asyncio.to_thread(redis_queue.get, probe_key),
-                    timeout=3.0,
-                )
-            except TimeoutError:
-                logger.warning("Redis health check timed out (>3s)")
-                redis_ok = False
-            except Exception as e:
-                logger.warning(f"Redis health check failed: {e}")
-                redis_ok = False
-        # not configured -> treated as not-required, doesn't degrade health
-
-        api_keys_configured = any(
-            [
-                settings.openrouter_api_key,
-                settings.gemini_api_key,
-                settings.deepseek_api_key,
-                settings.groq_api_key,
-                settings.nvidia_api_key,
-                settings.openai_api_key,
-                settings.hf_api_key,
-            ]
-        )
-
-        return {
-            "status": "ok" if redis_ok else "degraded",
-            "env": settings.env,
-            "checks": {
-                "redis": redis_ok,
-                "api_keys_configured": api_keys_configured,
-            },
-        }
 
     from fastapi.responses import JSONResponse
     from core.exceptions import SupremeAIException
 
-    @app.exception_handler(SupremeAIException)
-    async def supremeai_exception_handler(request, exc: SupremeAIException):
+    @app.exception_handler(Exception)
+    async def global_exception_handler(request, exc: Exception):
+        """Handle unhandled exceptions with proper response and circuit breaker awareness."""
+        from fastapi import Request
+        from core.circuit_breaker import CIRCUITS
+        import traceback
+        
+        status_code = getattr(exc, "status_code", 500)
+        error_response = {
+            "error": exc.__class__.__name__,
+            "detail": str(exc),
+        }
+        
+        if hasattr(exc, "to_dict"):
+            error_response.update(exc.to_dict())
+            
+        exc_lower = str(exc).lower()
+        if any(kw in exc_lower for kw in ["timeout", "connection", "refused", "5xx"]):
+            cb_stats = {name: cb.stats for name, cb in CIRCUITS.items()}
+            if any(s.current_state.value == "open" for s in cb_stats.values()):
+                error_response["circuit_breakers"] = {
+                    name: {"state": s.current_state.value, "recovery_in": cb.get_recovery_time()}
+                    for name, cb, s in [(n, CIRCUITS[n], CIRCUITS[n].stats) for n in CIRCUITS if s.current_state.value == "open"]
+                }
+        
         return JSONResponse(
-            status_code=exc.status_code,
-            content=exc.to_dict(),
+            status_code=status_code,
+            content=error_response,
         )
 
     return app

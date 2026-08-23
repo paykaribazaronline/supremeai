@@ -61,6 +61,12 @@ from .config_fields import SettingsFieldsMixin
 from .config_secrets import SettingsSecretsMixin
 from .config_validation import SettingsValidationMixin
 
+try:
+    from utils.platform_detect import DETECTED_PLATFORM, auto_set_platform_env
+    _PLATFORM = auto_set_platform_env()
+except ImportError:
+    _PLATFORM = None
+
 
 # বাংলা মন্তব্য: pytest environment-এ .env load করা হয় না — test isolation নিশ্চিত।
 if "pytest" not in sys.modules:
@@ -92,6 +98,27 @@ class Settings(BaseSettings, SettingsFieldsMixin, SettingsSecretsMixin, Settings
     RATE_LIMIT_USE_SIMPLIFIED: bool = Field(default=True)
     LLM_CACHE_MAX_SIZE: int = Field(default=500)
     LLM_CACHE_DEFAULT_TTL: int = Field(default=3600)
+
+    # 🔬 NEW: Platform-aware defaults
+    @property
+    def platform(self) -> str:
+        return _PLATFORM if _PLATFORM else "unknown"
+    
+    @property
+    def is_cloud(self) -> bool:
+        if not _PLATFORM: return False
+        return _PLATFORM in ("render", "vercel", "firebase", "github_actions")
+    
+    @property
+    def auto_backend_url(self) -> str:
+        """Generate backend URL from platform detection."""
+        try:
+            from utils.platform_detect import DETECTED_PLATFORM
+            if DETECTED_PLATFORM.has_external_url and DETECTED_PLATFORM.external_url:
+                return DETECTED_PLATFORM.external_url
+        except ImportError:
+            pass
+        return os.getenv("BACKEND_URL", "")
 
     # বাংলা মন্তব্য: টেস্ট এনভায়রনমেন্টে AuthMiddleware-এর JWT ভেরিফিকেশন বাইপাস করার জন্য
     # বাংলা: CI pytest-এ ALLOW_TEST_AUTH_BYPASS=true সেট করা হয় — শুধু তখনই।

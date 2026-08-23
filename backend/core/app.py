@@ -19,6 +19,10 @@ from core.health_check import health_checker
 logger = logging.getLogger(__name__)
 app = create_app()
 
+# Import and add MemoryAwareMiddleware for Render Free Tier optimization
+from core.memory_manager import MemoryAwareMiddleware
+app.add_middleware(MemoryAwareMiddleware)
+
 
 @app.get("/health/aggregated")
 async def aggregated_health_check():

@@ -11,6 +11,14 @@ from bs4 import BeautifulSoup
 from loguru import logger
 
 from security import is_safe_url
+import os
+
+# 🔧 DYNAMIC CONFIG: User-Agent from env, with safe default
+_DEFAULT_USER_AGENT = os.getenv(
+    "SCRAPER_USER_AGENT",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+)
+_HTTP_TIMEOUT = float(os.getenv("SCRAPER_HTTP_TIMEOUT", "15.0"))  # 🔧 DYNAMIC timeout
 
 
 class WebScraper:
@@ -24,8 +32,8 @@ class WebScraper:
                 "url": url,
             }
         try:
-            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
-            response = httpx.get(url, headers=headers, timeout=15.0, follow_redirects=True)
+            headers = {"User-Agent": _DEFAULT_USER_AGENT}  # 🔧 DYNAMIC
+            response = httpx.get(url, headers=headers, timeout=_HTTP_TIMEOUT, follow_redirects=True)
             response.raise_for_status()
             soup = BeautifulSoup(response.text, "html.parser")
             title = soup.title.get_text(strip=True) if soup.title else "No Title"

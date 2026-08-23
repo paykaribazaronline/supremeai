@@ -26,7 +26,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "knip": "knip",
+    "knip:fix": "knip --fix",
+    "typecheck:strict": "tsc --noEmit --strict --noImplicitAny",
+    "lint:strict": "eslint src/ --ext .ts,.tsx --max-warnings=0",
+    "quality": "run-s typecheck:strict lint:strict knip vitest run"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -95,6 +100,7 @@
     "eslint-visitor-keys": "^5.0.1",
     "globals": "^17.5.0",
     "jsdom": "^24.0.0",
+    "knip": "^5.0.0",
     "storybook": "^8.6.18",
     "typescript-eslint": "^8.58.2",
     "vitest": "^3.2.6",

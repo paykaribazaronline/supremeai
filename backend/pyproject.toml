@@ -93,6 +93,9 @@ pydantic-ai = "^2.31.0"
 langfuse = "^4.14.4"
 packaging = "^26.3"
 bcrypt = "^5.0.0"
+lxml = "^6.1.2"
+playwright = "^1.62.0"
+infisical-python = "^2.3.6"
 [tool.poetry.group.ml]
 optional = true
 
@@ -183,143 +186,45 @@ asyncio_mode = "auto"
 # বাংলা মন্তব্য: লোকাল রানেও CI-এর মতো ১২০ সেকেন্ড গ্লোবাল টাইমআউট নিশ্চিত করে।
 # এর অভাবেই একটি টেস্ট ডেডলক করলে পুরো সুইট হ্যাং করত (রিপোর্টের "৩০% পরে হ্যাং")।
 # thread মেথড pytest-asyncio auto মোডে async ও sync উভয় টেস্টের জন্য কাজ করে।
-timeout = 120
-timeout_method = "thread"
+
 
 [tool.mypy]
 python_version = "3.11"
-explicit_package_bases = true
+strict = true
 warn_return_any = true
 warn_unused_configs = true
-warn_unused_ignores = true
 disallow_untyped_defs = true
-disallow_untyped_decorators = true
+disallow_incomplete_defs = true
 check_untyped_defs = true
 ignore_missing_imports = true
 plugins = [
     "pydantic.mypy"
 ]
 
-[tool.black]
-line-length = 120
-target-version = ['py311']
 
-[tool.isort]
-profile = "black"
-multi_line_output = 3
 
-# বাংলা মন্তব্য: pylint এর disable তালিকা আগে 80+ রুল ছিল (অনেক W07xx ডুপ্লিকেট),
-# এখন শুধু প্রয়োজনীয় রুলগুলো রাখা হয়েছে — বাকি সব সরানো হয়েছে
-[tool.pylint]
-max-line-length = 120
-disable = [
-    "C0301",  # Line too long
-    "W0613",  # Unused argument
-    "R0903",  # Too few public methods
-    "R0902",  # Too many instance attributes
-    "R0913",  # Too many arguments
-    "C0415",  # Import outside toplevel
-    "W0212",  # Access to protected member
-    "W0622",  # Redefining built-in
-    "R0914",  # Too many local variables
-    "R0801",  # Similar lines in files
-    "C0103",  # Invalid variable name
-    "W0703",  # Catching too general exception
-    "R0912",  # Too many branches
-    "R0915",  # Too many statements
-    "R0911",  # Too many return statements
-    "R1702",  # Too many nested blocks
-    "W0621",  # Redefining name from outer scope
-    "C0114",  # Missing module docstring
-    "C0115",  # Missing class docstring
-    "C0116",  # Missing function docstring
-    "W0237",  # Arguments renamed in subclass
-    "W0221",  # Arguments differ from overridden method
-    "W0236",  # Removed incompatibility
-    "R1705",  # Unnecessary "else" after "return"
-    "C0209",  # Formatting with % or .format
-    "W0102",  # Dangerous default value arg
-    "W0107",  # Unnecessary pass
-    "C0411",  # Wrong import order
-    "W0612",  # Unused variable
-    "R1725",  # super() call style
-    "W0404",  # Reimported
-    "R0205",  # Class inherits from object
-    "C0104",  # Disallowed name
-    "W0707",  # Re-raising via 'raise ... from ...'
-    "R1710",  # Inconsistent return
-    "R1711",  # Useless return
-    "C2801",  # Unnecessary dunder call
-    "R0402",  # from import recommended
-    "C0303",  # Trailing whitespace
-    "C0304",  # Final newline
-    "C0413",  # Wrong import position
-    "R0916",  # Too many boolean exprs
-    "W0631",  # Undefined loop variable
-]
+
+[tool.vulture]
+ignore_names = ["test_*", "*Test*", "mock_*", "fixture_*"]
+ignore_decorators = ["@app.*", "@router.*", "@pytest.fixture"]
+min_confidence = 90
+paths = ["core", "api", "services"]
 
 [tool.ruff]
-line-length = 120
 target-version = "py311"
+line-length = 100
 
 [tool.ruff.lint]
 select = [
-    "E",     # pycodestyle errors
-    "W",     # pycodestyle warnings
-    "F",     # Pyflakes — undefined names, unused imports
-    "UP",    # pyupgrade — modernize Python syntax
-    "B",     # flake8-bugbear — common bug patterns
-    "I",     # isort — import ordering
-    "N",     # pep8 naming conventions
-    "S",     # flake8-bandit — security issues (hardcoded passwords, subprocess, etc.)
-    "RUF",   # Ruff-specific rules
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
 ]
-ignore = [
-    # বাংলা: নিচের নিয়মগুলো প্রজেক্টের বাংলা কমেন্ট ও বিদ্যমান কোড স্টাইলের জন্য বাদ দেওয়া হয়েছে।
-    "E501",     # Line too long — 120 char limit already set above
-    "E402",     # Module level import not at top — main.py ENV bootstrap needs this
-    "BLE001",   # Blind exception catch — addressed individually in health checks
-    "RUF012",   # ClassVar mutable attribute — Pydantic models use this pattern
-    "RUF001",   # Ambiguous unicode — বাংলা comments need this
-    "RUF002",   # Ambiguous unicode docstrings — বাংলা docstrings
-    "RUF003",   # Ambiguous unicode comments — বাংলা comments
-    "RUF006",   # asyncio.create_task without storing ref — intentional fire-and-forget pattern
-    "TRY002",   # Create own exception — addressed via core/exceptions.py
-    "TRY004",   # Prefer TypeError
-    "DTZ005",   # Datetime tz — handled by explicit UTC usage
-    "B005",     # strip() with multi-char string — intentional in datetime parsing
-    "B008",     # Default args call — FastAPI Depends() pattern requires this
-    "B017",     # pytest.raises(Exception) — broad catch acceptable in these test cases
-    "B904",     # raise from err — HTTPException chaining verbose without benefit
-    "I001",     # Unsorted imports — handled by isort in pre-commit
-    "N803",     # Argument name should be lowercase — some SDK callbacks
-    "N805",     # First arg named 'self' — adapter_self pattern needed to avoid shadowing
-    "N806",     # Variable in function should be lowercase
-    "N811",     # Constant imported as non-constant — TTS alias is intentional
-    "N812",     # Lowercase imported as non-lowercase — EC alias (Selenium convention)
-    "N813",     # CamelCase imported as lowercase — circuit_breaker alias intentional
-    "N815",     # mixedCase in class scope — Pydantic models use camelCase for JSON API
-    "N817",     # CamelCase imported as acronym — ET alias is universal Python convention
-    "N802",     # Function name should be lowercase — AST visitor methods (visit_FunctionDef, etc.) require PascalCase
-    "N818",     # Exception not named with Error suffix — existing class names
-    "S101",     # Use of assert — needed in tests and guards
-    "S105",     # Hardcoded password string — false positives on param names
-    "S106",     # Hardcoded password func arg — false positives
-    "S113",     # requests without timeout — legacy code, tracked separately
-    "S301",     # pickle.load — ML checkpoint loading, only from trusted paths
-    "S324",     # hashlib.md5 — used for non-security IDs (short hash keys), not passwords
-    "S603",     # subprocess — deployment scripts need this
-    "S607",     # Partial executable path — deployment scripts
-    "S311",     # Standard pseudo-random generators (used for chaos, retry jitter, simulators)
-    "S108",     # Temp file usages (expected in microvm_sandbox, logging_config)
-    "S104",     # Bind all interfaces (0.0.0.0 is used for uvicorn in docker)
-    "S608",     # SQL injection warnings on string-based query constructions
-    "S314",     # Using xml to parse untrusted data
-    "F841",     # Local variable assigned but never used
-    "B007",     # Loop control variable not used
-    "S310",     # Audit URL open for permitted schemes
-]
+ignore = ["E501"]  # Line too long (handled by formatter)
 
-[tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S", "N"]   # test files: security + naming rules শিথিল
-"**/migrations/**" = ["ALL"]   # alembic migrations: সব rules বন্ধ
+

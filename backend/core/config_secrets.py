@@ -68,6 +68,13 @@ class SettingsSecretsMixin:
         "LANGFUSE_SECRET_KEY",
         "TELEGRAM_BOT_TOKEN",
         "ADMIN_TELEGRAM_CHAT_ID",
+        "KAGGLE_API_TOKEN",
+        "KAGGLE_API_TOKEN_1",
+        "KAGGLE_API_TOKEN_2",
+        "KAGGLE_API_TOKEN_3",
+        "KAGGLE_API_TOKEN_4",
+        "KAGGLE_API_TOKEN_5",
+        "KAGGLE_API_TOKEN_6",
     ]
 
     def _ensure_secrets_loaded(self) -> None:
@@ -245,6 +252,24 @@ class SettingsSecretsMixin:
     @property
     def langfuse_secret_key(self) -> str:
         return self._get_cached_secret("LANGFUSE_SECRET_KEY")
+
+    @property
+    def kaggle_api_keys(self) -> list[str]:
+        """Fetch all Kaggle API keys (base + 1 to 6) into a list."""
+        keys = []
+        for key_name in [
+            "KAGGLE_API_TOKEN",
+            "KAGGLE_API_TOKEN_1",
+            "KAGGLE_API_TOKEN_2",
+            "KAGGLE_API_TOKEN_3",
+            "KAGGLE_API_TOKEN_4",
+            "KAGGLE_API_TOKEN_5",
+            "KAGGLE_API_TOKEN_6",
+        ]:
+            val = self._get_cached_secret(key_name)
+            if val:
+                keys.append(val)
+        return keys
 
     @property
     def discord_bot_token(self) -> str:
@@ -520,6 +545,13 @@ class SettingsSecretsMixin:
             "supabase_key",
             "langfuse_public_key",
             "langfuse_secret_key",
+            "KAGGLE_API_TOKEN",
+            "KAGGLE_API_TOKEN_1",
+            "KAGGLE_API_TOKEN_2",
+            "KAGGLE_API_TOKEN_3",
+            "KAGGLE_API_TOKEN_4",
+            "KAGGLE_API_TOKEN_5",
+            "KAGGLE_API_TOKEN_6",
         ]:
             result[key_field] = redacted
         # Include non-secret properties
