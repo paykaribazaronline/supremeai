@@ -10,10 +10,9 @@
   - (see git log for details)
 
 ## Files Changed
-  - `CHECKPOINT.md`
-  - `backend/__init__.py`
   - `.github/scripts/ci_summary_v2.py`
   - `backend/core/config_secrets.py`
+  - `CHECKPOINT.md`
 
 ## Pending (Carry Forward)
 - **MED:** Supabase `ai_memory` টেবিলে ভেক্টর স্কিমা ভ্যালিডেশন এবং `memory_write.py` লাইভ ভেক্টর ইনসার্ট টেস্ট।
