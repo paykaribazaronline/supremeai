@@ -21,10 +21,11 @@ export function ScreencastViewer({
   const [isControlling, setIsControlling] = useState(false);
   const [fps, setFps] = useState(0);
   const [frameCount, setFrameCount] = useState(0);
-  const lastFrameTime = useRef<number>(Date.now());
+  const lastFrameTime = useRef<number>(0);
   
   // Connect to screencast WebSocket
   useEffect(() => {
+    lastFrameTime.current = Date.now();
     const wsUrl = `${getWsBaseUrl()}/ws/session/${sessionId}/takeover?token=${takeoverToken}`;
     
     wsRef.current = new WebSocket(wsUrl);
