@@ -96,9 +96,9 @@ MODEL_REGISTRY: Dict[str, ModelConfig] = {
         rpm_limit=500,
         tpm_limit=200000
     ),
-    "gemini-1.5-flash": ModelConfig(
+    "gemini-2.0-flash": ModelConfig(
         provider="gemini",
-        model_id="gemini-1.5-flash",
+        model_id="gemini-2.0-flash",
         tier=ModelTier.ECONOMY,
         cost_per_1k_input=0.000075,
         cost_per_1k_output=0.0003,

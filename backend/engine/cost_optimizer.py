@@ -23,19 +23,19 @@ class ComplexityAnalyzer:
 class CostOptimizer:
     ROUTE_LADDER = {
         "simple": [
-            "gemini/gemini-1.5-flash",
+            "gemini/gemini-2.0-flash",
             "groq/llama-3.3-70b-versatile",
             "openrouter/meta-llama/llama-3.3-70b-instruct",
         ],
         "medium": [
-            "gemini/gemini-1.5-flash",
+            "gemini/gemini-2.0-flash",
             "groq/llama-3.3-70b-versatile",
             "openrouter/meta-llama/llama-3.3-70b-instruct",
         ],
         "complex": [
             "groq/llama-3.3-70b-versatile",
             "openrouter/meta-llama/llama-3.3-70b-instruct",
-            "gemini/gemini-1.5-flash",
+            "gemini/gemini-2.0-flash",
         ],
     }
 

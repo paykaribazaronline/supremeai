@@ -33,7 +33,7 @@ interface ProviderConfig {
 const PROVIDERS: Record<LLMProvider, ProviderConfig> = {
   gemini: {
     name: 'gemini',
-    model: 'gemini-1.5-flash',  // ✅ FIXED: Correct model name
+    model: 'gemini-2.0-flash',  // ✅ FIXED: Correct model name
     isFree: true,
     costPer1KTokens: 0,
     maxTokens: 1024,
@@ -144,7 +144,7 @@ export class LLMSmartRouter {
     
     // Call the provider
     let response: string;
-    let actualProvider = provider;
+    const actualProvider = provider;
     
     try {
       response = await this.callProvider(provider, model, prompt);
@@ -250,7 +250,7 @@ export class LLMSmartRouter {
             content: prompt
           }
         ],
-        model: model,  // gemini-1.5-flash
+        model: model,  // gemini-2.0-flash
         max_tokens: 1024,
         temperature: 0.7,
       });

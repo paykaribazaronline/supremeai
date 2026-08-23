@@ -60,7 +60,7 @@ class BreederConfig:
             tournament_size=getattr(settings, "breeder_tournament_size", 3),
             max_generations=getattr(settings, "breeder_max_generations", 50),
             llm_temperature=getattr(settings, "breeder_llm_temperature", 0.3),
-            llm_model_name=getattr(settings, "breeder_llm_model", "gemini/gemini-1.5-flash"),
+            llm_model_name=getattr(settings, "breeder_llm_model", "gemini/gemini-2.0-flash"),
         )
 
 

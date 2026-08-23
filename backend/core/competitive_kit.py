@@ -1127,7 +1127,7 @@ class MultiLLMRouter:
     PROVIDERS = {
         "gemini": LLMProvider(
             name="Google Gemini",
-            models=["gemini-1.5-flash", "gemini-1.5-pro"],
+            models=["gemini-2.0-flash", "gemini-1.5-pro"],
             free_tier_limit=1500,
             cost_per_1k_tokens=0.0,  # FREE!
             strengths=["Fast", "Free tier", "Multimodal", "Long context"],
@@ -1281,7 +1281,7 @@ class MultiLLMRouter:
         if provider.name == "Google Gemini":
             if task_type in ["analysis", "coding"]:
                 return "gemini-1.5-pro"  # Better quality
-            return "gemini-1.5-flash"  # Faster & free
+            return "gemini-2.0-flash"  # Faster & free
         
         elif provider.name == "OpenAI":
             if task_type == "coding":

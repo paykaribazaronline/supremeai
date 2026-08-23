@@ -41,7 +41,7 @@ MODEL_DISPLAY: dict[str, dict[str, str]] = {
     "claude-3": {"label": "SupremeAI Reason", "family": "reason"},
     # Google
     "gemini-1.5-pro": {"label": "SupremeAI Vision", "family": "vision"},
-    "gemini-1.5-flash": {"label": "SupremeAI Vision Flash", "family": "vision"},
+    "gemini-2.0-flash": {"label": "SupremeAI Vision Flash", "family": "vision"},
     "gemini-pro": {"label": "SupremeAI Vision", "family": "vision"},
     "gemini": {"label": "SupremeAI Vision", "family": "vision"},
     # DeepSeek
