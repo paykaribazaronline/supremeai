@@ -199,7 +199,8 @@ class HTMLAccessibilityChecker:
         images = soup.find_all("img")
 
         for img in images:
-            alt_text = img.get("alt", "").strip()
+            alt_attr = img.get("alt", "")
+            alt_text = str(alt_attr[0] if isinstance(alt_attr, list) else alt_attr).strip()
 
             if not alt_text:
                 self.issues.append(

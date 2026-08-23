@@ -395,7 +395,7 @@ class SecurityTester:
             "'><script>alert('XSS')</script>",
         ]
 
-        results = {"endpoint": endpoint, "param_name": param_name, "xss_payloads": [], "is_vulnerable": False}
+        results: dict[str, Any] = {"endpoint": endpoint, "param_name": param_name, "xss_payloads": [], "is_vulnerable": False}
 
         for payload in xss_payloads:
             try:
@@ -419,7 +419,7 @@ class SecurityTester:
 
     def test_auth_bypass(self, auth_endpoint: str) -> dict[str, Any]:
         """Test for authentication bypass vulnerabilities."""
-        results = {"endpoint": auth_endpoint, "bypass_methods": [], "is_vulnerable": False}
+        results: dict[str, Any] = {"endpoint": auth_endpoint, "bypass_methods": [], "is_vulnerable": False}
 
         # Test various bypass techniques
         bypass_techniques = [
