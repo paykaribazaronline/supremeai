@@ -21,11 +21,11 @@ try:
     validator = EnvironmentValidator()
     result = validator.validate()
     if not result.is_valid:
-        print("CRITICAL: Environment validation failed! Missing required variables.")
+        import logging; logging.getLogger(__name__).info("CRITICAL: Environment validation failed! Missing required variables.")
         import sys
         sys.exit(1)
     else:
-        print(f"SUCCESS: Environment validated successfully (Score: {result.score}/100)")
+        import logging; logging.getLogger(__name__).info(f"SUCCESS: Environment validated successfully (Score: {result.score}/100)")
 except ImportError:
     pass
 # ----------------------------------------------------------

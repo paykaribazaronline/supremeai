@@ -11,10 +11,17 @@ from fastapi import (
 from playwright.async_api import Page, Playwright
 import base64
 import io
+import secrets
+import json
+import os
+import asyncio
+import time
+from typing import Any
+
 try:
     from PIL import Image
 except ImportError:
-    Image = None
+    Image: Any = None  # type: ignore
 import zlib
 from loguru import logger
 from pydantic import BaseModel
@@ -92,9 +99,9 @@ class ScreencastStreamer:
                     await asyncio.sleep(target_frame_time - frame_time)
                     
         except WebSocketDisconnect:
-            print("Screencast client disconnected")
+            import logging; logging.getLogger(__name__).info("Screencast client disconnected")
         except Exception as e:
-            print(f"Screencast error: {e}")
+            import logging; logging.getLogger(__name__).info(f"Screencast error: {e}")
             await self.websocket.send_json({
                 "channel": "screencast",
                 "type": "error",

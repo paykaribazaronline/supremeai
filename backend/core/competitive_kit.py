@@ -1,3 +1,10 @@
+import math
+import requests
+try:
+    import requests
+    HAS_REQUESTS = True
+except ImportError:
+    HAS_REQUESTS = False
 #!/usr/bin/env python3
 """
 ╔═══════════════════════════════════════════════════════════════════╗
@@ -415,7 +422,7 @@ class TunableSafetyLayer:
         for rule in config["rules"]:
             violation_score = self._check_rule(content, rule)
             
-            if violation_score > config["strictness"]:
+            if violation_score > float(str(config["strictness"])):
                 action = rule.action
                 
                 if action == "block":
@@ -491,7 +498,7 @@ class TunableSafetyLayer:
     
     def get_safety_prompt_addition(self) -> str:
         """Get additional system prompt text for current safety level"""
-        return SAFETY_CONFIGS[self.current_level]["system_addition"]
+        return str( SAFETY_CONFIGS[self.current_level]["system_addition"])
     
     def get_block_stats(self) -> Dict:
         """Get statistics on blocked content"""
@@ -508,7 +515,7 @@ class TunableSafetyLayer:
         }
     
     def _count_by_rule(self, logs: List[Dict]) -> Dict[str, int]:
-        counts = {}
+        counts: Dict[str, int] = {}
         for log in logs:
             for violation in log["violations"]:
                 rule = violation["rule"]
@@ -554,7 +561,8 @@ class ConfidenceScorer:
             "if i recall correctly", "i'm not entirely sure", "it depends"
         ]
     
-    def score_response(self, query: str, response: str, sources: List[Dict] = None) -> ConfidenceScore:
+    def score_response(self, query: str, response: str, sources: List[Dict] | None = None) -> ConfidenceScore:
+        sources = sources or []
         """
         Score confidence level of an AI response.
         Transparent about uncertainty!
@@ -831,6 +839,7 @@ class CitationVerifier:
             return citation
             
         except Exception as e:
+            import logging; logging.getLogger(__name__).warning(f"Error: {e}")
             return VerifiedCitation(
                 id=-1,
                 url=url,
@@ -935,7 +944,7 @@ class SmartContextManager:
         }
         
         self.active_context.append(message)
-        self.total_tokens_used += message["tokens"]
+        self.total_tokens_used += int(str(message["tokens"]))
         
         # Check if we need to compress
         await self._manage_context_size()
@@ -1022,7 +1031,7 @@ class SmartContextManager:
     
     def _estimate_tokens(self, text: str) -> int:
         """Rough token estimation"""
-        return len(text.split()) * 1.3  # Average ~1.3 tokens per word
+        return int(len(text.split()) * 1.3)  # Average ~1.3 tokens per word
     
     def _calculate_importance(self, message: Dict) -> float:
         """Calculate how important a message is"""
@@ -1080,7 +1089,7 @@ class SmartContextManager:
     
     def _get_top_tags(self) -> List[str]:
         """Get most common tags across all memories"""
-        tag_counts = {}
+        tag_counts: Dict[str, int] = {}
         for fragment in self.archived_memories:
             for tag in fragment.tags:
                 tag_counts[tag] = tag_counts.get(tag, 0) + 1

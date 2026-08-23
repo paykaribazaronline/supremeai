@@ -171,7 +171,7 @@ class IntelligentCache:
     def _open_circuit_breaker(self) -> None:
         """Open circuit breaker for 30 seconds"""
         self._circuit_breaker_open = True
-        self._circuit_breaker_until = time.time() + 30
+        self._circuit_breaker_until = int(time.time()) + 30
         logger.warning("Circuit breaker opened for 30 seconds")
     
     def _generate_key(self, prefix: str, **kwargs) -> str:
@@ -437,7 +437,8 @@ class IntelligentCache:
                 base_stats['redis_memory_used_bytes'] = info.get('used_memory', 0)
                 base_stats['redis_total_keys'] = info.get('db0', {}).get('keys', 0)
             except Exception:
-                pass
+                import logging
+                logging.getLogger(__name__).warning('Ignored exception')
         
         base_stats['local_cache_size'] = len(self._local_cache)
         base_stats['circuit_breaker_open'] = self._circuit_breaker_open

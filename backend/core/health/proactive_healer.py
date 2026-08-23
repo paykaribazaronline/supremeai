@@ -85,7 +85,8 @@ class ProactiveHealer:
                     self._stats["successful_heals"] += 1
                     return HealingOutcome.SUCCESS
                 except Exception:
-                    pass
+                    import logging
+                    logging.getLogger(__name__).warning('Ignored exception')
         
         logger.warning(f"⚠️ L1 retry exhausted, escalating to L2")
         return await self._heal_l2_failover(error, context)

@@ -98,7 +98,7 @@ except ImportError:
         TestResult,
         TestSuite,
         UnitTestGenerator,
-    ) = (None,) * 11
+    ) = (None,) * 11  # type: ignore
 
 # Import evolution components
 # বাংলা মন্তব্য: evolution প্যাকেজের কিছু সাব-মডিউল (EWC, adversarial defense,

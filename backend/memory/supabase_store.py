@@ -21,7 +21,7 @@ class SupabaseStore(SQLiteMemoryStore):
             or os.getenv("DATABASE_URL")
         )
         self.local_path = local_path or os.getenv("SQLITE_PATH", "data/supremeai.db")
-        self._provider = None  # Will be determined after health check
+        self._provider: str | None = None  # Will be determined after health check
         self._supabase_client = None
         self._last_health_check = 0
         self._health_check_interval = 300  # 5 minutes
@@ -196,7 +196,8 @@ class SupabaseStore(SQLiteMemoryStore):
                     embedding = list(embedding) + [0.0] * (1536 - len(embedding))
                 return embedding[:1536]
             except Exception:
-                pass
+                import logging
+                logging.getLogger(__name__).warning('Ignored exception')
                 
             try:
                 # Fallback 2: LiteLLM with OpenAI
@@ -207,7 +208,8 @@ class SupabaseStore(SQLiteMemoryStore):
                 )
                 return response.data[0]["embedding"]
             except Exception:
-                pass
+                import logging
+                logging.getLogger(__name__).warning('Ignored exception')
                 
             # All methods failed
             try:
@@ -325,17 +327,19 @@ class SupabaseStore(SQLiteMemoryStore):
 
     def batch_save_facts(self, facts: list[dict]) -> dict:
         """Save multiple facts in a batch operation."""
-        results = {"success": 0, "failed": 0, "errors": []}
+        success_count = 0
+        failed_count = 0
+        errors = []
         
         for fact in facts:
             try:
                 self.save_learned_fact(fact)
-                results["success"] += 1
+                success_count += 1
             except Exception as e:
-                results["failed"] += 1
-                results["errors"].append(str(e))
+                failed_count += 1
+                errors.append(str(e))
         
-        return results
+        return {"success": success_count, "failed": failed_count, "errors": errors}
 
     def similarity_search(self, query: str, threshold: float = 0.3, limit: int = 5) -> list:
         """Enhanced similarity search with configurable parameters."""

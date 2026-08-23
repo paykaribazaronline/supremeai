@@ -273,7 +273,7 @@ class SupabaseChecker:
                     data = json.load(f)
                     return data.get("estimated_size_mb", 150)
             except:
-                pass
+                import logging; logging.warning('Ignored exception')
         return 180  # Default estimate
     
     @staticmethod
@@ -286,7 +286,7 @@ class SupabaseChecker:
                     data = json.load(f)
                     return data.get("monthly_gb", 0.3)
             except:
-                pass
+                import logging; logging.warning('Ignored exception')
         return 0.25
     
     @staticmethod
@@ -300,7 +300,7 @@ class SupabaseChecker:
                     data = json.load(f)
                     return data.get("mau", 120)
             except:
-                pass
+                import logging; logging.warning('Ignored exception')
         return 85  # Conservative default
     
     @staticmethod
@@ -397,8 +397,9 @@ class UpstashChecker:
                 if response.status_code == 200:
                     data = response.json()
                     return data.get("commandsToday", 3200)
-        except Exception as e:
-            pass
+        except Exception:
+            import logging
+            logging.getLogger(__name__).warning('Ignored exception')
         
         # Fallback to local tracking
         tracker_path = Path("/tmp/supremai_redis_commands.json")
@@ -408,7 +409,7 @@ class UpstashChecker:
                     data = json.load(f)
                     return data.get("today_count", 2800)
             except:
-                pass
+                import logging; logging.warning('Ignored exception')
         
         return 3500
     
@@ -422,7 +423,7 @@ class UpstashChecker:
                     data = json.load(f)
                     return data.get("used_mb", 45)
             except:
-                pass
+                import logging; logging.warning('Ignored exception')
         return 52  # Default estimate
 
 
@@ -582,8 +583,9 @@ class GitHubActionsChecker:
                         pass
                 
                 return 520, is_public
-        except Exception as e:
-            pass
+        except Exception:
+            import logging
+            logging.getLogger(__name__).warning('Ignored exception')
         
         # Local tracking fallback
         tracker_path = Path("/tmp/supremai_gha_minutes.json")
@@ -593,7 +595,7 @@ class GitHubActionsChecker:
                     data = json.load(f)
                     return data.get("minutes_used", 380), data.get("is_public", False)
             except:
-                pass
+                import logging; logging.warning('Ignored exception')
         
         return 480, False
 
@@ -675,7 +677,7 @@ class LLMAPIChecker:
                     data = json.load(f)
                     return data.get("estimated_monthly_usd", 8.50)
             except:
-                pass
+                import logging; logging.warning('Ignored exception')
         return 12.0  # Default estimate
     
     @classmethod
@@ -1138,7 +1140,7 @@ class UsageTracker:
                 with open(file) as f:
                     data = json.load(f)
             except:
-                pass
+                import logging; logging.warning('Ignored exception')
         
         if data.get("date") != today:
             data = {"date": today, "count": 0}
@@ -1159,7 +1161,7 @@ class UsageTracker:
                 with open(file) as f:
                     data = json.load(f)
             except:
-                pass
+                import logging; logging.warning('Ignored exception')
         
         if data.get("month") != month:
             data = {"month": month, "total_cost": 0, "by_provider": {}}
@@ -1181,7 +1183,7 @@ class UsageTracker:
                 with open(file) as f:
                     data = json.load(f)
             except:
-                pass
+                import logging; logging.warning('Ignored exception')
         
         if data.get("date") != today:
             data = {"date": today, "calls": {}, "bandwidth_kb": 0}

@@ -276,7 +276,7 @@ async def probe_service(service: ServiceConfig) -> ServiceHealthResult:
                                 if k in ["status", "version", "uptime", "latency"]
                             }
                 except:
-                    pass
+                    import logging; logging.warning('Ignored exception')
                     
             elif response.status_code >= 500:
                 status = ServiceStatus.UNHEALTHY
@@ -344,7 +344,7 @@ async def probe_all_services() -> List[ServiceHealthResult]:
     
     services = []
     for i, result in enumerate(results):
-        if isinstance(result, Exception):
+        if isinstance(result, BaseException):
             svc = COMPLETE_SERVICE_REGISTRY[i]
             services.append(ServiceHealthResult(
                 name=svc.name,

@@ -119,7 +119,8 @@ def _reset_secret_vault_cache():
 
         reset_secret_vault()
     except Exception:
-        pass
+        import logging
+        logging.getLogger(__name__).warning('Ignored exception')
     try:
         from core.config import settings
 
@@ -127,14 +128,16 @@ def _reset_secret_vault_cache():
             settings._cached_secrets.clear()
             settings._secrets_batch_loaded = False
     except Exception:
-        pass
+        import logging
+        logging.getLogger(__name__).warning('Ignored exception')
     yield
     try:
         from core.security.secret_vault import reset_secret_vault
 
         reset_secret_vault()
     except Exception:
-        pass
+        import logging
+        logging.getLogger(__name__).warning('Ignored exception')
 
 
 # বাংলা মন্তব্য: BUG FIX - ALLOW_TEST_AUTH_BYPASS আগে fixture-এর ভেতরে সেট করা হতো,

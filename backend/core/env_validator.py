@@ -364,35 +364,35 @@ class EnvironmentValidator:
     
     def print_report(self, result: ValidationResult) -> None:
         """Print validation report to console"""
-        print('\n' + '='*70)
-        print('🔍 SUPREMEAI ENVIRONMENT VALIDATION REPORT')
-        print('='*70)
-        print(f'\n📊 Health Score: {result.score}/100')
-        print(f'   Status: {"✅ PASS" if result.is_valid else "❌ FAIL"}\n')
+        import logging; logging.getLogger(__name__).info('\n' + '='*70)
+        import logging; logging.getLogger(__name__).info('🔍 SUPREMEAI ENVIRONMENT VALIDATION REPORT')
+        import logging; logging.getLogger(__name__).info('='*70)
+        import logging; logging.getLogger(__name__).info(f'\n📊 Health Score: {result.score}/100')
+        import logging; logging.getLogger(__name__).info(f'   Status: {"✅ PASS" if result.is_valid else "❌ FAIL"}\n')
         
         if result.errors:
-            print('🚨 CRITICAL ERRORS (Must Fix):')
-            print('-'*70)
+            import logging; logging.getLogger(__name__).info('🚨 CRITICAL ERRORS (Must Fix):')
+            import logging; logging.getLogger(__name__).info('-'*70)
             for i, error in enumerate(result.errors, 1):
-                print(f'\n{i}. {error["variable"]}')
-                print(f'   {error["message"]}')
+                import logging; logging.getLogger(__name__).info(f'\n{i}. {error["variable"]}')
+                import logging; logging.getLogger(__name__).info(f'   {error["message"]}')
                 if 'description' in error:
-                    print(f'   📖 {error["description"]}')
+                    import logging; logging.getLogger(__name__).info(f'   📖 {error["description"]}')
         
         if result.warnings:
-            print('\n⚠️  WARNINGS (Recommended):')
-            print('-'*70)
+            import logging; logging.getLogger(__name__).info('\n⚠️  WARNINGS (Recommended):')
+            import logging; logging.getLogger(__name__).info('-'*70)
             for i, warning in enumerate(result.warnings, 1):
-                print(f'\n{i}. {warning["variable"]}')
-                print(f'   {warning["message"]}')
+                import logging; logging.getLogger(__name__).info(f'\n{i}. {warning["variable"]}')
+                import logging; logging.getLogger(__name__).info(f'   {warning["message"]}')
         
         if result.info:
-            print('\nℹ️  INFORMATION:')
-            print('-'*70)
+            import logging; logging.getLogger(__name__).info('\nℹ️  INFORMATION:')
+            import logging; logging.getLogger(__name__).info('-'*70)
             for info in result.info[:5]:  # Show first 5
-                print(f'  • {info["variable"]}: {info["message"]}')
+                import logging; logging.getLogger(__name__).info(f'  • {info["variable"]}: {info["message"]}')
         
-        print('\n' + '='*70 + '\n')
+        import logging; logging.getLogger(__name__).info('\n' + '='*70 + '\n')
 
 
 def validate_environment(strict: bool = False) -> bool:

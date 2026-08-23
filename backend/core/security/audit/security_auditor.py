@@ -302,7 +302,8 @@ class SecurityAuditor:
                                     references=pattern_info.get('references', [])
                                 )
                                 vulnerabilities.append(vuln)
-                                self.stats['files_scanned'] += 1
+                                current_scanned = int(str(self.stats.get('files_scanned', 0)))
+                                self.stats['files_scanned'] = current_scanned + 1
                                 
                     except Exception as e:
                         logger.debug(f"Could not scan {filepath}: {e}")
@@ -424,7 +425,7 @@ class SecurityAuditor:
                 return current >= min_ver
                 
         except Exception:
-            pass
+            import logging; logging.getLogger(__name__).warning("Ignored error")
         
         return False
     
@@ -463,7 +464,7 @@ class SecurityAuditor:
                                         base_module = imp.split('.')[0].lower()
                                         imported_modules.add(base_module)
                         except Exception:
-                            pass
+                            import logging; logging.getLogger(__name__).warning("Ignored error")
             
             # Compare with installed packages
             for dep_name, dep_info in self.dependencies.items():
@@ -625,14 +626,14 @@ class SecurityAuditor:
         return recommendations
     
     def _count_by_severity(self, items: List[Any]) -> Dict[str, int]:
-        counts = {}
+        counts: Dict[str, int] = {}
         for item in items:
             sev = item.severity.value if hasattr(item, 'severity') else 'unknown'
             counts[sev] = counts.get(sev, 0) + 1
         return counts
     
     def _count_by_type(self, items: List[Any]) -> Dict[str, int]:
-        counts = {}
+        counts: Dict[str, int] = {}
         for item in items:
             t = item.type.value if hasattr(item, 'type') else 'unknown'
             counts[t] = counts.get(t, 0) + 1
@@ -655,26 +656,26 @@ def run_security_audit(project_root: Optional[str] = None) -> Dict[str, Any]:
 
 def print_security_report(report: Dict[str, Any]) -> None:
     """Pretty-print security report to console"""
-    print("\n" + "="*70)
-    print("🔒 SUPREMEAI SECURITY AUDIT REPORT")
-    print("="*70)
+    import logging; logging.getLogger(__name__).info("\n" + "="*70)
+    import logging; logging.getLogger(__name__).info("🔒 SUPREMEAI SECURITY AUDIT REPORT")
+    import logging; logging.getLogger(__name__).info("="*70)
     
-    print(f"\n📊 Overall Score: {report['score']}/100 (Grade: {report['grade']})")
-    print(f"   Timestamp: {report['timestamp']}")
+    import logging; logging.getLogger(__name__).info(f"\n📊 Overall Score: {report['score']}/100 (Grade: {report['grade']})")
+    import logging; logging.getLogger(__name__).info(f"   Timestamp: {report['timestamp']}")
     
     summary = report['summary']
-    print(f"\n📋 Summary:")
-    print(f"   Total Vulnerabilities: {summary['total_vulnerabilities']}")
-    print(f"   🚨 Critical: {summary['critical']}")
-    print(f"   ⚠️  High: {summary['high']}")
-    print(f"   📋 Medium: {summary['medium']}")
-    print(f"   ℹ️  Low: {summary['low']}")
-    print(f"   Dependencies Scanned: {summary['dependencies_scanned']}")
-    print(f"   Unused Dependencies: {summary['unused_dependencies']}")
+    import logging; logging.getLogger(__name__).info(f"\n📋 Summary:")
+    import logging; logging.getLogger(__name__).info(f"   Total Vulnerabilities: {summary['total_vulnerabilities']}")
+    import logging; logging.getLogger(__name__).info(f"   🚨 Critical: {summary['critical']}")
+    import logging; logging.getLogger(__name__).info(f"   ⚠️  High: {summary['high']}")
+    import logging; logging.getLogger(__name__).info(f"   📋 Medium: {summary['medium']}")
+    import logging; logging.getLogger(__name__).info(f"   ℹ️  Low: {summary['low']}")
+    import logging; logging.getLogger(__name__).info(f"   Dependencies Scanned: {summary['dependencies_scanned']}")
+    import logging; logging.getLogger(__name__).info(f"   Unused Dependencies: {summary['unused_dependencies']}")
     
     if report['vulnerabilities']:
-        print(f"\n🐛 Vulnerabilities Found:")
-        print("-"*70)
+        import logging; logging.getLogger(__name__).info(f"\n🐛 Vulnerabilities Found:")
+        import logging; logging.getLogger(__name__).info("-"*70)
         
         for vuln in report['vulnerabilities'][:20]:  # Show top 20
             severity_icon = {
@@ -685,17 +686,17 @@ def print_security_report(report: Dict[str, Any]) -> None:
                 'INFO': '💡'
             }.get(vuln['severity'], '❓')
             
-            print(f"\n{severity_icon} [{vuln['severity']}] {vuln['title']}")
-            print(f"   Location: {vuln['location']}")
-            print(f"   Issue: {vuln['description']}")
-            print(f"   Fix: {vuln['remediation']}")
+            import logging; logging.getLogger(__name__).info(f"\n{severity_icon} [{vuln['severity']}] {vuln['title']}")
+            import logging; logging.getLogger(__name__).info(f"   Location: {vuln['location']}")
+            import logging; logging.getLogger(__name__).info(f"   Issue: {vuln['description']}")
+            import logging; logging.getLogger(__name__).info(f"   Fix: {vuln['remediation']}")
     
     if report['recommendations']:
-        print(f"\n💡 Recommendations:")
+        import logging; logging.getLogger(__name__).info(f"\n💡 Recommendations:")
         for rec in report['recommendations']:
-            print(f"   • {rec}")
+            import logging; logging.getLogger(__name__).info(f"   • {rec}")
     
-    print("\n" + "="*70 + "\n")
+    import logging; logging.getLogger(__name__).info("\n" + "="*70 + "\n")
 
 
 # CLI entry point

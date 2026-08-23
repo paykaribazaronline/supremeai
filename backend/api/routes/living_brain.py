@@ -235,7 +235,7 @@ async def get_detailed_metrics(
                 recent_learning_velocity=_calculate_learning_velocity(stats, hours),
             ).model_dump()
         except Exception as e:
-            metrics["learning"]["error"] = str(e)
+            metrics["learning"] = {"error": str(e)}
     
     # Memory metrics
     if MEMORY_STORE_AVAILABLE:
@@ -251,7 +251,7 @@ async def get_detailed_metrics(
                 search_accuracy_estimate=_estimate_search_accuracy(stats),
             ).model_dump()
         except Exception as e:
-            metrics["memory"]["error"] = str(e)
+            metrics["memory"] = {"error": str(e)}
     
     return metrics
 
@@ -368,7 +368,8 @@ def _get_last_learning_time() -> Optional[str]:
             
             return result
         except Exception:
-            pass
+            import logging
+            logging.getLogger(__name__).warning('Ignored exception')
     return None
 
 

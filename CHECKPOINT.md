@@ -2,7 +2,7 @@
 > Auto-updated by AI agents after each major session. Next agent must read this first.
 
 ## Last Session
-- **Date:** 2026-08-23 09:02 UTC
+- **Date:** 2026-08-23 09:20 UTC
 - **Agent:** Auto-updated (checkpoint_update.py)
 - **Summary:** Auto-updated via pre-commit hook
 
@@ -10,31 +10,57 @@
   - (see git log for details)
 
 ## Files Changed
-  - `frontend/src/components/admin/security/ThreatDetection.tsx`
-  - `frontend/src/commandcenter/kit/index.ts`
-  - `frontend/src/components/admin/ScreencastViewer.tsx`
-  - `.github/workflows/supreme-core-ci.yml`
-  - `frontend/src/components/customer/BrowserPreview.tsx`
-  - `frontend/src/components/admin/ci/CIDashboard.tsx`
-  - `frontend/src/components/admin/shared/ActionCard.tsx`
-  - `frontend/src/components/admin/auth/AdminAuthenticated.tsx`
-  - `frontend/src/components/admin/infra/CloudOrchestrator.tsx`
-  - `frontend/src/components/admin/shared/AdminSubTabContent.tsx`
-  - `frontend/src/components/admin/shared/DynamicPanel.tsx`
-  - `frontend/src/components/admin/security/SecurityDashboard.tsx`
-  - `frontend/src/components/admin/security/RateLimitManager.tsx`
-  - `frontend/src/components/admin/AdminConsole.tsx`
-  - `frontend/src/components/admin/CICDVisualizer.tsx`
-  - `frontend/src/components/admin/Dashboard.tsx`
-  - `frontend/src/components/admin/auth/UserManager.tsx`
-  - `frontend/src/components/admin/infra/ServiceHealthMetrics.tsx`
-  - `frontend/src/components/admin/CommandCenter.tsx`
-  - `frontend/src/components/admin/data/CrownJewelBrowser.tsx`
-  - `frontend/src/components/admin/security/RulesEnginePanel.tsx`
-  - `CHECKPOINT.md`
-  - `frontend/src/components/admin/infra/ObservabilityDashboard.tsx`
-  - `frontend/src/components/admin/index.ts`
+  - `backend/core/competitive_kit.py`
   - `frontend/src/components/admin/infra/DeploymentModal.tsx`
+  - `frontend/src/commandcenter/kit/index.ts`
+  - `CHECKPOINT.md`
+  - `backend/api/routes/chat.py`
+  - `frontend/src/components/customer/BrowserPreview.tsx`
+  - `frontend/src/components/admin/auth/AdminAuthenticated.tsx`
+  - `fix_audit.py`
+  - `frontend/src/components/admin/infra/ServiceHealthMetrics.tsx`
+  - `frontend/src/components/admin/security/ThreatDetection.tsx`
+  - `backend/core/env_validator.py`
+  - `frontend/src/components/admin/data/CrownJewelBrowser.tsx`
+  - `frontend/src/components/admin/CommandCenter.tsx`
+  - `fix_competitive.py`
+  - `fix_core_init.py`
+  - `backend/api/routes/browser.py`
+  - `backend/api/routes/service_topology.py`
+  - `backend/memory/supabase_store.py`
+  - `frontend/src/components/admin/security/RulesEnginePanel.tsx`
+  - `fix_app_builder.py`
+  - `frontend/src/components/admin/security/RateLimitManager.tsx`
+  - `frontend/src/components/admin/shared/AdminSubTabContent.tsx`
+  - `backend/core/__init__.py`
+  - `backend/core/app_builder.py`
+  - `frontend/src/components/admin/AdminConsole.tsx`
+  - `backend/core/security/audit/security_auditor.py`
+  - `frontend/src/components/admin/ci/CIDashboard.tsx`
+  - `backend/services/security_auditor.py`
+  - `backend/api/routes/session_takeover.py`
+  - `fix_init.py`
+  - `backend/api/routes/__init__.py`
+  - `backend/api/routes/living_brain.py`
+  - `fix_by_line.py`
+  - `frontend/src/components/admin/infra/ObservabilityDashboard.tsx`
+  - `fix_init2.py`
+  - `backend/scripts/superai_free_tier_monitor.py`
+  - `backend/core/health/proactive_healer.py`
+  - `frontend/src/components/admin/ScreencastViewer.tsx`
+  - `frontend/src/components/admin/auth/UserManager.tsx`
+  - `frontend/src/components/admin/index.ts`
+  - `backend/tests/conftest.py`
+  - `frontend/src/components/admin/security/SecurityDashboard.tsx`
+  - `frontend/src/components/admin/Dashboard.tsx`
+  - `frontend/src/components/admin/infra/CloudOrchestrator.tsx`
+  - `backend/core/intelligent_cache.py`
+  - `.github/workflows/supreme-core-ci.yml`
+  - `frontend/src/components/admin/shared/DynamicPanel.tsx`
+  - `frontend/src/components/admin/shared/ActionCard.tsx`
+  - `frontend/src/components/admin/CICDVisualizer.tsx`
+  - `backend/services/intelligent_cache.py`
+  - `backend/main.py`
 
 ## Pending (Carry Forward)
 - **MED:** Supabase `ai_memory` টেবিলে ভেক্টর স্কিমা ভ্যালিডেশন এবং `memory_write.py` লাইভ ভেক্টর ইনসার্ট টেস্ট।

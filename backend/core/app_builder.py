@@ -185,16 +185,19 @@ def create_app(title: str = settings.PROJECT_NAME) -> FastAPI:
     app.add_middleware(HoneypotMiddleware)
 
     # 12. Security: Chaos injection - After authentication for controlled testing
-    app.add_middleware(ChaosInjectorMiddleware)
+    app.add_middleware(ChaosInjectorMiddleware)  # type: ignore
 
     # 13. Idempotency middleware - After authentication to ensure idempotency per user
     app.add_middleware(IdempotencyMiddleware)
 
     # 14. Rate Limiting
-    app.add_middleware(RateLimitMiddleware)
+    from core.rate_limit import RateLimiter
+    app.add_middleware(RateLimitMiddleware, limiter=RateLimiter())
 
     # 14. CORS: Re-added for unified app architecture.
-    origins = list(set(settings.user_cors_origins + settings.admin_cors_origins))
+    def _ensure_list(v):
+        return [v] if isinstance(v, str) else list(v)
+    origins = list(set(_ensure_list(settings.user_cors_origins) + _ensure_list(settings.admin_cors_origins)))
     if not origins:
         origins = ["*"] # Fallback if empty, though origin_validator will still guard
 

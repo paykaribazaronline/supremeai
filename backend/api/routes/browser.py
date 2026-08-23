@@ -139,7 +139,7 @@ def get_credentials(userId: str = "default"):
                         masked_dict[k] = cred_store.mask(v)
                 else:
                     masked_dict[k] = v
-            masked_dict["serviceName"] = c.get("serviceName")
+            masked_dict["serviceName"] = str(c.get("serviceName", ""))
             user_creds.append(masked_dict)
     return {"credentials": user_creds}
 
