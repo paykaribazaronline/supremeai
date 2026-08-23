@@ -16,9 +16,18 @@ try:
     from core.integration_layer import SupremeAIIntegrator, get_integrator
     from config.settings import get_settings
 except ImportError:
-    from backend.core.factory import SupremeAIFactory, get_ai, get_factory
-    from backend.core.integration_layer import SupremeAIIntegrator, get_integrator
-    from backend.config.settings import get_settings
+    try:
+        from backend.core.factory import SupremeAIFactory, get_ai, get_factory
+        from backend.core.integration_layer import SupremeAIIntegrator, get_integrator
+        from backend.config.settings import get_settings
+    except ImportError:
+        # Gracefully handle missing dependencies (e.g. when Pytest crawls this from microservices)
+        SupremeAIFactory = None
+        SupremeAIIntegrator = None
+        get_ai = None
+        get_factory = None
+        get_integrator = None
+        get_settings = None
 
 __version__ = "4.2.0-wired"
 __all__ = [
