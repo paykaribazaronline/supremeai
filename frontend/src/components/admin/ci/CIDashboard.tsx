@@ -65,8 +65,6 @@ import { convertToCSV } from './utils';
  * ====================================================================================
  */
 
-'use client';
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   CheckCircle2,
@@ -546,7 +544,7 @@ export function CIDashboard({
       value,
       color: name === 'P0' ? COLORS.failure : name === 'P1' ? '#f97316' : name === 'P2' ? COLORS.warning : COLORS.success,
     }));
-  }, [data?.errors?.by_severity]);
+  }, [data]);
   
   // Fetch data
   const fetchData = useCallback(async () => {

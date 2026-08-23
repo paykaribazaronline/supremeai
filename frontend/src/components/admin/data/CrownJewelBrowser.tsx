@@ -99,7 +99,7 @@ export const CrownJewelBrowser: React.FC<CrownJewelBrowserProps> = ({
   userId,
 }) => {
   // ── Core State ──
-  const [tabs, setTabs] = useState<BrowserTab[]>([
+  const [tabs, setTabs] = useState<BrowserTab[]>(() => [
     {
       id: 'tab-1',
       url: initialUrl,
@@ -150,6 +150,36 @@ export const CrownJewelBrowser: React.FC<CrownJewelBrowserProps> = ({
   const addAlert = useUnifiedStore(s => s.addAlert);
   const addBrowseSession = useUnifiedStore(s => s.addBrowseSession);
   const setLastSecurityScan = useUnifiedStore(s => s.setLastSecurityScan);
+
+  // ════════════════════════════════════════════════════════════════════
+  // UTILITY FUNCTIONS (defined early so hooks below can reference them)
+  // ════════════════════════════════════════════════════════════════════
+
+  const normalizeUrl = (url: string): string => {
+    if (!url) return 'about:blank';
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('about:')) {
+      return url;
+    }
+    // Default to https
+    return `https://${url}`;
+  };
+
+  const updateTabUrl = (url: string) => {
+    setTabs(prev => prev.map(tab =>
+      tab.id === activeTabId ? { ...tab, url } : tab
+    ));
+  };
+
+  const addConsoleMessage = useCallback((
+    type: ConsoleMessage['type'],
+    content: string,
+    source?: string
+  ) => {
+    setConsoleMessages(prev => [
+      ...prev.slice(-99), // Keep last 100 messages
+      { type, content, timestamp: Date.now(), source }
+    ]);
+  }, []);
 
   // ════════════════════════════════════════════════════════════════════
   // NAVIGATION FUNCTIONS
@@ -240,10 +270,17 @@ export const CrownJewelBrowser: React.FC<CrownJewelBrowserProps> = ({
   const refresh = useCallback(() => {
     setIsLoading(true);
     if (iframeRef.current) {
-      iframeRef.current.src = iframeRef.current.src;
+      const currentSrc = iframeRef.current.src;
+      iframeRef.current.src = 'about:blank';
+      // Force the iframe to reload by resetting src on the next tick
+      setTimeout(() => {
+        if (iframeRef.current) {
+          iframeRef.current.src = currentSrc;
+        }
+      }, 0);
     }
     addConsoleMessage('info', 'Page refreshed');
-  }, []);
+  }, [addConsoleMessage]);
 
   // ════════════════════════════════════════════════════════════════════
   // TAB MANAGEMENT
@@ -372,17 +409,6 @@ export const CrownJewelBrowser: React.FC<CrownJewelBrowserProps> = ({
   // DEVTOOLS FUNCTIONS
   // ════════════════════════════════════════════════════════════════════
 
-  const addConsoleMessage = useCallback((
-    type: ConsoleMessage['type'], 
-    content: string,
-    source?: string
-  ) => {
-    setConsoleMessages(prev => [
-      ...prev.slice(-99), // Keep last 100 messages
-      { type, content, timestamp: Date.now(), source }
-    ]);
-  }, []);
-
   const clearConsole = () => setConsoleMessages([]);
 
   const runSecurityScan = async () => {
@@ -504,21 +530,6 @@ export const CrownJewelBrowser: React.FC<CrownJewelBrowserProps> = ({
   // ════════════════════════════════════════════════════════════════════
   // UTILITY FUNCTIONS
   // ════════════════════════════════════════════════════════════════════
-
-  const normalizeUrl = (url: string): string => {
-    if (!url) return 'about:blank';
-    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('about:')) {
-      return url;
-    }
-    // Default to https
-    return `https://${url}`;
-  };
-
-  const updateTabUrl = (url: string) => {
-    setTabs(prev => prev.map(tab =>
-      tab.id === activeTabId ? { ...tab, url } : tab
-    ));
-  };
 
   const handleIframeLoad = () => {
     setIsLoading(false);
