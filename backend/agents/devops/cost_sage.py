@@ -60,7 +60,7 @@ REQUEST_TIMEOUT = int(os.getenv("HTTP_TIMEOUT_SECONDS") or "15")
 DEFAULT_COST_RATES = {
     "gemini": {
         "gemini-1.5-pro": {"input": 0.00125, "output": 0.005},
-        "gemini-1.5-flash": {"input": 0.000075, "output": 0.0003},
+        "gemini-2.0-flash": {"input": 0.000075, "output": 0.0003},
         "gemini-1.0-pro": {"input": 0.0005, "output": 0.0015},
     },
     "openai": {
@@ -337,7 +337,7 @@ class OptimizationEngine:
 
     def _find_cheaper_alternative(self, model: str) -> str | None:
         alternatives = {
-            "gemini-1.5-pro": "gemini-1.5-flash",
+            "gemini-1.5-pro": "gemini-2.0-flash",
             "gpt-4o": "gpt-4o-mini",
             "gpt-4": "gpt-4o-mini",
             "claude-3-opus": "claude-3-haiku",

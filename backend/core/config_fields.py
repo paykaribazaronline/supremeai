@@ -179,7 +179,7 @@ class SettingsFieldsMixin:
 
     # বাংলা মন্তব্য: জেমিনি মডেল নাম সেন্ট্রালাইজড করা হলো যাতে কোনো ইউটিলিটি স্ক্রিপ্টে হার্ডকোড না থাকে।
     gemini_model_name: str = Field(
-        default="gemini/gemini-1.5-flash",
+        default="gemini/gemini-2.0-flash",
         validation_alias="GEMINI_MODEL_NAME",
     )
 

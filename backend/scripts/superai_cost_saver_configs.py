@@ -64,7 +64,7 @@ ENV_TEMPLATES = {
         # Priority Order: FREE first, then cheapest
         # Google Gemini Flash = Truly FREE tier!
         "GOOGLE_AI_API_KEY": "your-google-key",
-        "GEMINI_MODEL": "gemini-1.5-flash",  # FREE tier available!
+        "GEMINI_MODEL": "gemini-2.0-flash",  # FREE tier available!
         
         # Groq = Generous free tier, FAST
         "GROQ_API_KEY": "your-groq-key",
@@ -452,7 +452,7 @@ interface ProviderConfig {
 const PROVIDERS: Record<LLMProvider, ProviderConfig> = {
   gemini: {
     name: 'gemini',
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.0-flash',
     isFree: true,
     costPer1KTokens: 0,
     maxTokens: 1024,

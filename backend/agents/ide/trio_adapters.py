@@ -74,7 +74,7 @@ class GeminiWriter:
     GEMINI_MODELS = [
         "gemini/gemini-2.5-pro",
         "gemini/gemini-2.5-flash",
-        "gemini/gemini-1.5-flash",
+        "gemini/gemini-2.0-flash",
     ]
 
     def __init__(self, model: str | None = None) -> None:

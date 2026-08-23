@@ -24,7 +24,9 @@ export function useEventBus<T = any>(
   deps: React.DependencyList = []
 ): UseEventBusReturn {
   const callbackRef = useRef(callback);
-  callbackRef.current = callback;
+  useEffect(() => {
+    callbackRef.current = callback;
+  }, [callback]);
 
   useEffect(() => {
     const unsubscribe = eventBus.subscribe<T>(event, (data) => {
@@ -35,9 +37,9 @@ export function useEventBus<T = any>(
   }, [event, ...deps]);
 
   return {
-    emit: useCallback(eventBus.emit, []),
-    subscribe: useCallback(eventBus.subscribe, []),
-    getListenerCount: useCallback(eventBus.getListenerCount, []),
+    emit: useCallback((...args: Parameters<typeof eventBus.emit>) => eventBus.emit(...args), []),
+    subscribe: useCallback((...args: Parameters<typeof eventBus.subscribe>) => eventBus.subscribe(...args), []),
+    getListenerCount: useCallback((...args: Parameters<typeof eventBus.getListenerCount>) => eventBus.getListenerCount(...args), []),
   };
 }
 
