@@ -9,7 +9,10 @@ from typing import Any
 from loguru import logger
 from pydantic import PrivateAttr, SecretStr, model_serializer
 
-from utils.environment import is_test_environment
+def __is_test_environment() -> bool:
+    if os.getenv("ENV", "").lower() in {"production", "staging"}:
+        return False
+    return "pytest" in sys.modules or os.getenv("CI") == "true" or os.getenv("GITHUB_ACTIONS") == "true"
 
 from .security.secret_vault import secret_vault
 
@@ -109,7 +112,7 @@ class SettingsSecretsMixin:
         self._ensure_secrets_loaded()
         cached = self._get_private_state()["_cached_secrets"]
         if key not in cached:
-            if is_test_environment():
+            if _is_test_environment():
                 logger.debug(f"Secret '{key}' not found in cache after batch load - returning empty string")
             else:
                 logger.warning(f"Secret '{key}' not found in cache after batch load - returning empty string")
