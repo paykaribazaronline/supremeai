@@ -185,20 +185,21 @@ class QueryOptimizer:
 
     def analyze_query(self, query: str) -> dict[str, Any]:
         """Analyze a query for optimization opportunities."""
-        analysis = {
+        suggested_optimizations: list[str] = []
+        analysis: dict[str, Any] = {
             "table_scan": "FULL SCAN" in query.upper(),
             "missing_indexes": [],
             "joins": query.upper().count("JOIN"),
             "complexity_score": self._calculate_complexity(query),
-            "suggested_optimizations": [],
+            "suggested_optimizations": suggested_optimizations,
         }
 
         # Simple heuristics for optimization suggestions
         if "WHERE" not in query.upper():
-            analysis["suggested_optimizations"].append("Consider adding WHERE clause for filtering")
+            suggested_optimizations.append("Consider adding WHERE clause for filtering")
 
         if "ORDER BY" in query.upper() and "LIMIT" not in query.upper():
-            analysis["suggested_optimizations"].append("Consider adding LIMIT for better performance")
+            suggested_optimizations.append("Consider adding LIMIT for better performance")
 
         return analysis
 
