@@ -50,7 +50,7 @@ class TestCostOptimizer:
         optimizer = CostOptimizer()
         with patch.object(optimizer, "_get_best_free_provider", return_value=None):
             result = await optimizer.get_optimal_route({"prompt": "hello"}, "paid")
-            assert result == "gemini/gemini-1.5-flash"
+            assert result == "gemini/gemini-2.0-flash"
 
     @pytest.mark.asyncio
     async def test_get_optimal_route_complex_free(self):

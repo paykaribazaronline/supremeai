@@ -159,11 +159,11 @@ class TestLLMTelemetry:
         async with track_llm_call(
             session_id="test_telemetry_sess",
             provider="gemini",
-            model="gemini-1.5-flash",
+            model="gemini-2.0-flash",
             task_type="test",
         ) as rec:
             assert rec.provider == "gemini"
-            assert rec.model == "gemini-1.5-flash"
+            assert rec.model == "gemini-2.0-flash"
             rec.tokens_prompt = 10
             rec.tokens_completion = 20
             rec.cost_usd = 0.0001
