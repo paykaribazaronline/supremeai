@@ -38,23 +38,23 @@ from typing import Any
 try:
     import requests
 except ImportError:
-    import httpx as requests
+    import httpx as requests  # type: ignore
 
-    requests.exceptions = type("exceptions", (), {"RequestException": Exception})
+    setattr(requests, "exceptions", type("exceptions", (), {"RequestException": Exception}))
 
 import logging
 
 try:
     import yaml  # type: ignore
 except ImportError:
-    yaml = None
+    yaml: Any = None  # type: ignore[no-redef, assignment]
 
 logger = logging.getLogger(__name__)
 
 try:
     import docker
 except ImportError:
-    docker = None
+    docker: Any = None  # type: ignore[no-redef, assignment]
 
 
 class DeploymentEnvironment(Enum):
@@ -105,7 +105,7 @@ class DeploymentResult:
     image_version: str
     environment: DeploymentEnvironment
     error_message: str | None = None
-    logs: list[str] = None
+    logs: list[str] | None = None
     rollback_successful: bool = False
 
 

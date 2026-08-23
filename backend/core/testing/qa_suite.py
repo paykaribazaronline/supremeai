@@ -156,7 +156,7 @@ class TestSuite:
 
             try:
                 # Set timeout for the test
-                test_case.test_function()
+                test_case.test_function()  # type: ignore
                 duration = time.time() - start_time
 
                 results.append(
@@ -173,7 +173,7 @@ class TestSuite:
                         duration=duration,
                         timestamp=start_time,
                         error_message=str(e),
-                        traceback=e.__traceback__,
+                        traceback=str(e.__traceback__) if e.__traceback__ else None,
                     )
                 )
 
@@ -190,9 +190,9 @@ class TestSuite:
             try:
                 # Run the test function asynchronously
                 if asyncio.iscoroutinefunction(test_case.test_function):
-                    await test_case.test_function()
+                    await test_case.test_function()  # type: ignore
                 else:
-                    test_case.test_function()
+                    test_case.test_function()  # type: ignore
 
                 duration = time.time() - start_time
 
@@ -207,7 +207,7 @@ class TestSuite:
                     duration=duration,
                     timestamp=start_time,
                     error_message=str(e),
-                    traceback=e.__traceback__,
+                    traceback=str(e.__traceback__) if e.__traceback__ else None,
                 )
 
         async def run_all_tests():
@@ -362,7 +362,7 @@ class SecurityTester:
             "' OR 1=1--",
         ]
 
-        results = {"endpoint": endpoint, "param_name": param_name, "vulnerable_inputs": [], "is_vulnerable": False}
+        results: dict[str, Any] = {"endpoint": endpoint, "param_name": param_name, "vulnerable_inputs": [], "is_vulnerable": False}
 
         for payload in vulnerable_inputs:
             try:

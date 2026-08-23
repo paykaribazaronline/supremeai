@@ -35,7 +35,7 @@ except ImportError:
 try:
     import requests
 except ImportError:
-    import httpx as requests
+    import httpx as requests  # type: ignore
 
 import logging
 

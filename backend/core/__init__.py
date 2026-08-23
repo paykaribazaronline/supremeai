@@ -1,3 +1,4 @@
+from typing import Any
 """
 SupremeAI 2.0 Core Components
 =============================
@@ -86,19 +87,19 @@ try:
     QA_SUITE_AVAILABLE = True
 except ImportError:
     QA_SUITE_AVAILABLE = False
-    (
-        ChaosEngineer,
-        IntegrationTestRunner,
-        PerformanceTester,
-        QASuite,
-        SecurityTester,
-        TestCase,
-        TestCategory,
-        TestPriority,
-        TestResult,
-        TestSuite,
-        UnitTestGenerator,
-    ) = (None,) * 11  # type: ignore
+    import sys
+    _mod = sys.modules[__name__]
+    setattr(_mod, "ChaosEngineer", None)
+    setattr(_mod, "IntegrationTestRunner", None)
+    setattr(_mod, "PerformanceTester", None)
+    setattr(_mod, "QASuite", None)
+    setattr(_mod, "SecurityTester", None)
+    setattr(_mod, "TestCase", None)
+    setattr(_mod, "TestCategory", None)
+    setattr(_mod, "TestPriority", None)
+    setattr(_mod, "TestResult", None)
+    setattr(_mod, "TestSuite", None)
+    setattr(_mod, "UnitTestGenerator", None)
 
 # Import evolution components
 # বাংলা মন্তব্য: evolution প্যাকেজের কিছু সাব-মডিউল (EWC, adversarial defense,
