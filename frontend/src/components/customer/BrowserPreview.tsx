@@ -52,46 +52,9 @@ interface BrowserPreviewProps {
   onUrlChange?: (url: string) => void;
 }
 
-type DevicePreset = 'desktop' | 'tablet' | 'mobile';
 
-interface DeviceConfig {
-  name: string;
-  width: number;
-  height: number;
-  icon: React.ReactNode;
-  scale: number;
-}
 
-const DEVICE_PRESETS: Record<DevicePreset, DeviceConfig> = {
-  desktop: {
-    name: 'Desktop (1920×1080)',
-    width: 1920,
-    height: 1080,
-    icon: <Monitor size={16} />,
-    scale: 0.6,
-  },
-  tablet: {
-    name: 'Tablet (768×1024)',
-    width: 768,
-    height: 1024,
-    icon: <Tablet size={16} />,
-    scale: 0.8,
-  },
-  mobile: {
-    name: 'Mobile (390×844)',
-    width: 390,
-    height: 844,
-    icon: <Smartphone size={16} />,
-    scale: 1,
-  },
-};
 
-function proxied(src: string): string {
-  if (/^https?:\/\//i.test(src)) {
-    return `${getApiBaseUrl()}/api/browser/render?url=${encodeURIComponent(src)}&token=${encodeURIComponent(getRawToken() || '')}`;
-  }
-  return src;
-}
 
 export function BrowserPreview({ url = 'https://supremeai.web.app', html }: BrowserPreviewProps) {
   const [currentUrl, setCurrentUrl] = useState(url);
