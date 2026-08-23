@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { Monitor, Tablet, Smartphone, RotateCcw, Maximize } from 'lucide-react';
-import { getApiBaseUrl } from '../../config/api';
+import { getApiBaseUrl } from '../../utils/api';
 
 type DevicePreset = 'desktop' | 'tablet' | 'mobile';
 

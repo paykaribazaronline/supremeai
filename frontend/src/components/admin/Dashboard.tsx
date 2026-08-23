@@ -9,9 +9,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { apiClient } from '../../services/apiClient';
 import HealthBanner from './HealthBanner';
-import ServiceHealthMonitor from './ServiceHealthMonitor';
-import DeploymentModal from './DeploymentModal';
-import { DynamicPanel } from './DynamicPanel';
+import ServiceHealthMonitor from './infra/ServiceHealthMonitor';
+import DeploymentModal from './infra/DeploymentModal';
+import { DynamicPanel } from './shared/DynamicPanel';
 
 /**
  * 🎨 SupremeAI 2.0 - Admin Dashboard Component

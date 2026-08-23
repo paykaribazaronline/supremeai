@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Card, Badge } from '../ui';
+import { Card, Badge } from '../../ui';
 import { AlertTriangle, TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { useUnifiedStore } from '../../store/unifiedStore';
+import { useUnifiedStore } from '../../../store/unifiedStore';
 
 const latencyData = [
   { time: '10:00', p50: 200, p95: 450, p99: 900 },

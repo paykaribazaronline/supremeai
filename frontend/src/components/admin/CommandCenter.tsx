@@ -28,13 +28,13 @@ import {
   EyeOff
 } from 'lucide-react';
 import AethelNode from './AethelNode';
-import { CrownJewelBrowser } from './CrownJewelBrowser';
+import { CrownJewelBrowser } from './data/CrownJewelBrowser';
 import { useAdminStore } from '../../store/adminStore';
 import { useTheme } from '../../contexts/useTheme';
 import { AudioRecorderService } from '../../services/audio/AudioRecorderService';
 import { AudioPlaybackService } from '../../services/audio/AudioPlaybackService';
 import { WaveformVisualizer } from '../audio/WaveformVisualizer';
-import { ServiceHealthMetrics } from './ServiceHealthMetrics';
+import { ServiceHealthMetrics } from './infra/ServiceHealthMetrics';
 import { getAethelResponse } from '../../services/chatService';
 import type { ChatMessage as ApiChatMessage } from '../../services/chatService';
 import { getWebSocketBaseUrl } from '../../utils/api';

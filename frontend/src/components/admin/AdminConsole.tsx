@@ -1,6 +1,6 @@
 import type { ChatMessage, Skill, Checkpoint, AdminSubTab, HealthMap } from '../../types';
-import { LoginView } from './AdminLogin';
-import { AuthenticatedView } from './AdminAuthenticated';
+import { LoginView } from './auth/AdminLogin';
+import { AuthenticatedView } from './auth/AdminAuthenticated';
 import DashboardErrorBoundary from './DashboardErrorBoundary';
 
 interface AdminConsoleProps {

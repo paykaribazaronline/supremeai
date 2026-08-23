@@ -10,7 +10,6 @@ export { LogStream } from './LogStream';
 export { DataTable } from './DataTable';
 export { CommandPalette } from './CommandPalette';
 export type { PaletteItem } from './CommandPalette';
-export { JITOTPModal } from './JITOTPModal';
 export { HealthStrip } from './HealthStrip';
 export { Timeline } from './Timeline';
 export { JsonViewer } from './JsonViewer';

@@ -1,4 +1,3 @@
-import { Badge, ScoreCircle, AnimatedStatus, ProgressBar, InsightCard, JobRow, EmptyState } from './';
 import { convertToCSV } from './utils';
 
 /**
@@ -281,10 +280,11 @@ function timeAgo(dateString: string): string {
 // SUB-COMPONENTS
 // ══════════════════════════════════════════════════════════════════════════════
 
-: { children: React.ReactNode; variant?: 'success' | 'warning' | 'default' }) {
+function Badge({ children, variant = 'default' }: { children: React.ReactNode; variant?: 'success' | 'warning' | 'failure' | 'default' }) {
   const variants = {
     success: 'bg-green-100 text-green-800 border-green-200',
     warning: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+    failure: 'bg-red-100 text-red-800 border-red-200',
     default: 'bg-gray-100 text-gray-800 border-gray-200',
   };
   
@@ -295,7 +295,7 @@ function timeAgo(dateString: string): string {
   );
 }
 
-: { score: number; grade: string; size?: number }) {
+function ScoreCircle({ score, grade, size = 80 }: { score: number; grade: string; size?: number }) {
   const radius = (size - 8) / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (score / 100) * circumference;
@@ -326,7 +326,7 @@ function timeAgo(dateString: string): string {
   );
 }
 
-: { status: string }) {
+function AnimatedStatus({ status }: { status: string }) {
   const config = STATUS_CONFIG[status] || STATUS_CONFIG.skipped;
   const Icon = config.icon;
   const isAnimating = status === 'in_progress';
@@ -341,7 +341,7 @@ function timeAgo(dateString: string): string {
   );
 }
 
-: { value: number; max?: number; color?: string; showLabel?: boolean }) {
+function ProgressBar({ value, max = 100, color, showLabel = false }: { value: number; max?: number; color?: string; showLabel?: boolean }) {
   const percentage = Math.min((value / max) * 100, 100);
   const barColor = color || (percentage >= 90 ? COLORS.success : percentage >= 70 ? COLORS.warning : COLORS.failure);
   
@@ -360,7 +360,7 @@ function timeAgo(dateString: string): string {
   );
 }
 
-: { insight: CIInsight }) {
+function InsightCard({ insight }: { insight: CIInsight }) {
   const [expanded, setExpanded] = useState(false);
   
   return (
@@ -400,7 +400,7 @@ function timeAgo(dateString: string): string {
   );
 }
 
-: { job: JobResult; onClick?: () => void; compact?: boolean }) {
+function JobRow({ job, onClick, compact = false }: { job: JobResult; onClick?: () => void; compact?: boolean }) {
   const config = STATUS_CONFIG[job.status];
   const Icon = config.icon;
   
@@ -470,7 +470,7 @@ function timeAgo(dateString: string): string {
   );
 }
 
-: { message: string; icon: React.ElementType }) {
+function EmptyState({ message, icon: Icon }: { message: string; icon: React.ElementType }) {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-gray-500">
       <Icon className="w-12 h-12 mb-4 text-gray-300" />

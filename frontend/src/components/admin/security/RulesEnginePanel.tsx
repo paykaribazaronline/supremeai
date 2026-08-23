@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { X, SlidersHorizontal, Shield, Zap, DollarSign, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useDashboardStore } from '../../store/dashboardStore';
-import { apiClient } from '../../services/apiClient';
+import { useDashboardStore } from '../../../store/dashboardStore';
+import { apiClient } from '../../../services/apiClient';
 
 interface RulesState {
   autoRemediate: boolean;

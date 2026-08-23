@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { getApiBaseUrl } from '../../utils/api';
-import { adminTokenStore } from '../../services/adminTokenStore';
+import { getApiBaseUrl } from '../../../utils/api';
+import { adminTokenStore } from '../../../services/adminTokenStore';
 
 interface Action {
   id: string;

@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQuery } from '@tanstack/react-query';
-import { Card, Badge, Skeleton } from '../ui';
+import { Card, Badge, Skeleton } from '../../ui';
 import { Globe, HardDrive, Cpu, Network, RefreshCw } from 'lucide-react';
 // বাংলা মন্তব্য: raw fetch()-এর বদলে apiClient ব্যবহার করা হচ্ছে — auth হেডার ও থ্রটল গ্যারান্টি দেয়
-import { apiClient } from '../../services/apiClient';
-import { adminTokenStore } from '../../services/adminTokenStore';
+import { apiClient } from '../../../services/apiClient';
+import { adminTokenStore } from '../../../services/adminTokenStore';
 
 const CLOUD_PROVIDERS = [
   { id: 'gcp', name: 'Google Cloud Platform', color: '#4285f4', icon: Globe },

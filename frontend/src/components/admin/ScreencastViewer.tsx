@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Maximize, Minimize, MousePointer, Keyboard, Hand } from 'lucide-react';
-import { getWsBaseUrl } from '../../config/api';
+import { getWsBaseUrl } from '../../utils/api';
 
 interface ScreencastViewerProps {
   sessionId: string;

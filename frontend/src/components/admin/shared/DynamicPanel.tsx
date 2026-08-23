@@ -1,9 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Activity, ShieldAlert, DollarSign } from 'lucide-react';
-import { useDashboardStore } from '../../store/dashboardStore';
-import { useMetrics, useHealthMap, useThreatScan, useCostReport, useCIReports } from '../../hooks/useDashboardData';
-import RulesEnginePanel from './RulesEnginePanel';
-import AuditLogsPanel from './AuditLogsPanel';
+import { useDashboardStore } from '../../../store/dashboardStore';
+import { useMetrics, useHealthMap, useThreatScan, useCostReport, useCIReports } from '../../../hooks/useDashboardData';
+import RulesEnginePanel from '../security/RulesEnginePanel';
+import AuditLogsPanel from '../AuditLogsPanel';
 
 export const DynamicPanel = () => {
   const { activePanel, setActivePanel } = useDashboardStore();

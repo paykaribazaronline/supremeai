@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
-import type { AdminSubTab, ChatMessage } from '../../types';
-import { CommandCenter, LiveLogs, CostAuditor, HealthMap, UserManager, ConfigEditor, ModelRouter, EnhancedSkillMarketplace, MemoryBrowser, CloudOrchestrator, ObservabilityDashboard, ThreatDetection, VisualRulesBuilder, CICDVisualizer, GithubIntegration, BackupRestore, SecurityDashboard, Dashboard } from '.';
-import { RateLimitManager } from './RateLimitManager';
-import { InteractiveChatTab } from './InteractiveChatTab';
-import { AdminAlertsTab } from './AdminAlertsTab';
+import type { AdminSubTab, ChatMessage } from '../../../types';
+import { CommandCenter, LiveLogs, CostAuditor, HealthMap, UserManager, ConfigEditor, ModelRouter, EnhancedSkillMarketplace, MemoryBrowser, CloudOrchestrator, ObservabilityDashboard, ThreatDetection, VisualRulesBuilder, CICDVisualizer, GithubIntegration, BackupRestore, SecurityDashboard, Dashboard } from '..';
+import { RateLimitManager } from '../security/RateLimitManager';
+import { InteractiveChatTab } from '../InteractiveChatTab';
+import { AdminAlertsTab } from '../AdminAlertsTab';
 import { X } from 'lucide-react';
 
 interface SubTabContentProps {

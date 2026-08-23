@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Card, Badge } from '../ui';
+import { Card, Badge } from '../../ui';
 import {  ShieldAlert, Cpu, Database, RefreshCw, Server, Loader2, DollarSign, Activity } from 'lucide-react';
-import { apiClient } from '../../services/apiClient';
-import { useUnifiedStore } from '../../store/unifiedStore';
+import { apiClient } from '../../../services/apiClient';
+import { useUnifiedStore } from '../../../store/unifiedStore';
 
 interface TaskReference {
   id: string;

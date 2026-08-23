@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
-import type { AdminSubTab, GcpHealth, CloudStats, Skill, Checkpoint, ChatMessage, AdminUser, HealthMap } from '../../types';
-import { SubTabContent } from './AdminSubTabContent';
-import { AdminTopNav } from './AdminTopNav';
-import { ADMIN_SUBTAB_EVENT } from '../../config/commandRegistry';
+import type { AdminSubTab, GcpHealth, CloudStats, Skill, Checkpoint, ChatMessage, AdminUser, HealthMap } from '../../../types';
+import { SubTabContent } from '../shared/AdminSubTabContent';
+import { AdminTopNav } from '../shared/AdminTopNav';
+import { ADMIN_SUBTAB_EVENT } from '../../../config/commandRegistry';
 import {
   LayoutDashboard,
   GitMerge,

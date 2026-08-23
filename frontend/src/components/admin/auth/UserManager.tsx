@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiClient } from "../../services/apiClient";
-import { adminTokenStore } from "../../services/adminTokenStore";
-import type { AdminUser } from '../../types';
+import { apiClient } from "../../../services/apiClient";
+import { adminTokenStore } from "../../../services/adminTokenStore";
+import type { AdminUser } from '../../../types';
 
 interface UserManagerProps {
   newUsername: string;

@@ -1,8 +1,8 @@
-import { Card, Badge } from '../ui';
+import { Card, Badge } from '../../ui';
 import { Shield, AlertTriangle, Eye, CheckCircle2, XCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../../services/apiClient';
-import { adminTokenStore } from '../../services/adminTokenStore';
+import { apiClient } from '../../../services/apiClient';
+import { adminTokenStore } from '../../../services/adminTokenStore';
 
 const severityConfig: Record<string, { variant: 'danger' | 'warning' | 'info' | 'success'; icon: typeof Shield }> = {
   critical: { variant: 'danger', icon: AlertTriangle },

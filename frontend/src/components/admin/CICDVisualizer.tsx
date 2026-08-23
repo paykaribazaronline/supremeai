@@ -8,7 +8,7 @@ import { getApiBaseUrl } from '../../utils/api';
 import { adminTokenStore } from '../../services/adminTokenStore';
 import { apiClient } from '../../services/apiClient';
 import type { CIReport } from '../../types';
-import { CIDashboard } from './CIDashboard';
+import { CIDashboard } from './ci/CIDashboard';
 
 interface FeatureFlag {
   id: string;

@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { X, Rocket, CheckCircle2, Loader2, AlertCircle, Shield, GitBranch } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../../services/apiClient';
-import { useDashboardStore } from '../../store/dashboardStore';
+import { apiClient } from '../../../services/apiClient';
+import { useDashboardStore } from '../../../store/dashboardStore';
 
 export interface DeploymentTarget {
   region: 'us-central1' | 'us-east1' | 'eu-west1';
