@@ -29,7 +29,7 @@ from learning.pattern_recognizer import PatternMatch, PatternRecognizer
 from services.dynamic_planner import DynamicPlanningEngine, TaskDAG, TaskNode
 from services.intent_deciphering import IntentAnalysis, IntentDecipheringService
 from services.memory_service import CascadeMemoryService
-from services.self_correction import SelfCorrectionService, VerificationResult
+from services.self_correction import SelfCorrectionService
 from services.tool_forge import ToolForgeService, ToolSpec
 
 

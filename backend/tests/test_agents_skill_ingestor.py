@@ -1,9 +1,9 @@
 # tests/test_agents_skill_ingestor.py
 """Tests for SkillIngestor agent - MCP skill ingestion and validation."""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-import ast
-from unittest.mock import MagicMock, patch, PropertyMock
 
 
 class TestSkillIngestorStaticSafety:
@@ -104,7 +104,7 @@ class TestSkillIngestorPathTraversal:
             malicious_ids = ["../etc", "..\\windows", "skill/../../../etc"]
 
             for skill_id in malicious_ids:
-                is_safe, _ = ingestor.static_ast_safety_check(f"def exec(): pass")
+                is_safe, _ = ingestor.static_ast_safety_check("def exec(): pass")
                 # The security check should catch malicious patterns in code
                 # Path traversal is handled at execution level
                 assert isinstance(is_safe, bool)
@@ -116,7 +116,6 @@ class TestSkillIngestorIngestMCP:
     @pytest.fixture
     def mock_manifest(self):
         """Create a mock skill manifest."""
-        from backend.agents.skill_ingestor import SkillManifest
         return MagicMock(
             skill_id="test_skill_123",
             name="Test Skill",

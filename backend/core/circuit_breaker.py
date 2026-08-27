@@ -24,11 +24,10 @@ from __future__ import annotations
 
 import asyncio
 import time
-from collections import deque
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any, TypeVar
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
+from enum import Enum
+from typing import TypeVar
 
 T = TypeVar("T")
 
@@ -73,7 +72,7 @@ class CircuitBreaker:
     Prevents cascading failures by temporarily stopping calls to
     failing services and automatically testing for recovery.
     """
-    
+
     def __init__(
         self,
         name: str,
@@ -97,7 +96,7 @@ class CircuitBreaker:
         self.success_threshold = success_threshold
         self.recovery_timeout = recovery_timeout
         self.half_open_max_calls = half_open_max_calls
-        
+
         self._state = CircuitState.CLOSED
         self._failure_count = 0
         self._success_count = 0
@@ -105,11 +104,11 @@ class CircuitBreaker:
         self._half_open_calls = 0
         self._lock = asyncio.Lock()
         self._stats = CircuitStats()
-    
+
     @property
     def state(self) -> CircuitState:
         return self._state
-    
+
     @property
     def stats(self) -> CircuitStats:
         return self._stats
@@ -126,7 +125,7 @@ class CircuitBreaker:
         async with self._lock:
             self._stats.total_successes += 1
             self._stats.last_success_time = time.time()
-            
+
             if self._state == CircuitState.HALF_OPEN:
                 self._success_count += 1
                 if self._success_count >= self.success_threshold:
@@ -144,7 +143,7 @@ class CircuitBreaker:
             self._stats.total_failures += 1
             self._stats.last_failure_time = time.time()
             self._failure_count += 1
-            
+
             if self._state == CircuitState.HALF_OPEN:
                 # Failure in HALF_OPEN → back to OPEN
                 self._state = CircuitState.OPEN
@@ -168,26 +167,26 @@ class CircuitBreaker:
             CircuitBreakerError: If circuit is OPEN
         """
         self._stats.total_requests += 1
-        
+
         async with self._lock:
             # Check if we should try reset
             if self._should_attempt_reset():
                 self._state = CircuitState.HALF_OPEN
                 self._half_open_calls = 0
-            
+
             self._stats.current_state = self._state
-            
+
             if self._state == CircuitState.OPEN:
                 self._stats.total_rejections += 1
                 recovery_in = self.recovery_timeout - (time.time() - self._last_failure_time)
                 raise CircuitBreakerError(self.name, self._state, recovery_in)
-            
+
             if self._state == CircuitState.HALF_OPEN:
                 if self._half_open_calls >= self.half_open_max_calls:
                     self._stats.total_rejections += 1
                     raise CircuitBreakerError(self.name, self._state, 0)
                 self._half_open_calls += 1
-        
+
         try:
             yield
             await self._on_success()

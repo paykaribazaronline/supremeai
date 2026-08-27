@@ -7,11 +7,11 @@ evaluators, and evolution engines across SupremeAI.
 
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
-import uuid
+from typing import Any
 
 
 class TaskStatus(str, Enum):
@@ -69,7 +69,7 @@ class InvalidTaskStateTransition(Exception):
 class TaskStateMachine:
     """Enforces strict, unidirectional state transitions for tasks."""
 
-    ALLOWED_TRANSITIONS: Dict[TaskStatus, List[TaskStatus]] = {
+    ALLOWED_TRANSITIONS: dict[TaskStatus, list[TaskStatus]] = {
         TaskStatus.PENDING: [TaskStatus.PLANNING, TaskStatus.EXECUTING, TaskStatus.FAILED],
         TaskStatus.PLANNING: [TaskStatus.EXECUTING, TaskStatus.FAILED],
         TaskStatus.EXECUTING: [TaskStatus.VERIFYING, TaskStatus.FAILED],
@@ -95,27 +95,27 @@ class TaskContract:
 
     goal: str
     task_id: str = field(default_factory=lambda: f"task_{uuid.uuid4().hex[:12]}")
-    constraints: List[str] = field(default_factory=list)
-    context: Dict[str, Any] = field(default_factory=dict)
+    constraints: list[str] = field(default_factory=list)
+    context: dict[str, Any] = field(default_factory=dict)
     risk_level: RiskLevel = RiskLevel.MEDIUM
     budget: TaskBudget = field(default_factory=TaskBudget)
-    deadline: Optional[datetime] = None
-    required_capabilities: List[str] = field(default_factory=list)
-    success_criteria: List[str] = field(default_factory=list)
+    deadline: datetime | None = None
+    required_capabilities: list[str] = field(default_factory=list)
+    success_criteria: list[str] = field(default_factory=list)
     verification_policy: VerificationPolicy = VerificationPolicy.STANDARD
-    allowed_tools: List[str] = field(default_factory=list)
+    allowed_tools: list[str] = field(default_factory=list)
     memory_scope: str = "session"  # "global" | "session" | "ephemeral"
     status: TaskStatus = TaskStatus.PENDING
-    plan_steps: List[Dict[str, Any]] = field(default_factory=list)
-    execution_history: List[Dict[str, Any]] = field(default_factory=list)
-    result: Optional[Any] = None
+    plan_steps: list[dict[str, Any]] = field(default_factory=list)
+    execution_history: list[dict[str, Any]] = field(default_factory=list)
+    result: Any | None = None
     confidence: float = 0.0
-    error: Optional[str] = None
+    error: str | None = None
     created_at: datetime = field(default_factory=datetime.now)
-    completed_at: Optional[datetime] = None
-    metrics: Dict[str, Any] = field(default_factory=dict)
+    completed_at: datetime | None = None
+    metrics: dict[str, Any] = field(default_factory=dict)
 
-    def transition_to(self, new_status: TaskStatus, note: Optional[str] = None) -> None:
+    def transition_to(self, new_status: TaskStatus, note: str | None = None) -> None:
         """Advance task state with strict state machine validation."""
         TaskStateMachine.validate_transition(self.status, new_status)
         self.status = new_status
@@ -141,7 +141,7 @@ class TaskContract:
         self.error = error_message
         self.completed_at = datetime.now()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "task_id": self.task_id,
             "goal": self.goal,

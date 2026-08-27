@@ -2,11 +2,11 @@
 Optimized Vector Store for Free Tier
 Reduces memory usage while maintaining search quality.
 """
-import numpy as np
-from typing import List, Optional, Dict, Any
-from supabase import create_client
-import json
 import asyncio
+from typing import Any
+
+from supabase import create_client
+
 
 class FreeTierOptimizedVectorStore:
     """
@@ -18,23 +18,23 @@ class FreeTierOptimizedVectorStore:
     3. Aggressive index tuning
     4. Connection pooling with limits
     """
-    
+
     BATCH_SIZE = 50  # Smaller batches for less memory
     MAX_RESULTS = 20  # Limit results to save memory
     EMBEDDING_DIM = 1536  # OpenAI ada-002 dimension
-    
+
     def __init__(self, supabase_url: str, supabase_key: str):
         self.client = create_client(supabase_url, supabase_key)
         self.table_name = "ai_memory"
-        
+
         # Connection settings for low memory
         self._connection_pool_size = 2  # Very small pool for free tier
-    
+
     async def upsert_batch(
-        self, 
-        embeddings: List[List[float]], 
-        payloads: List[Dict[str, Any]],
-        ids: List[str]
+        self,
+        embeddings: list[list[float]],
+        payloads: list[dict[str, Any]],
+        ids: list[str]
     ) -> bool:
         """
         Upsert embeddings in small batches to manage memory.
@@ -45,7 +45,7 @@ class FreeTierOptimizedVectorStore:
                 batch_embeddings = embeddings[i:i + self.BATCH_SIZE]
                 batch_payloads = payloads[i:i + self.BATCH_SIZE]
                 batch_ids = ids[i:i + self.BATCH_SIZE]
-                
+
                 records = [
                     {
                         "id": bid,
@@ -55,28 +55,28 @@ class FreeTierOptimizedVectorStore:
                     }
                     for bid, emb, payload in zip(batch_ids, batch_embeddings, batch_payloads)
                 ]
-                
+
                 # Insert batch
                 result = self.client.table(self.table_name).upsert(
                     records,
                     on_conflict="id"
                 ).execute()
-                
+
                 # Small delay to prevent overwhelming free tier DB
                 await asyncio.sleep(0.05)
-            
+
             return True
-            
+
         except Exception as e:
             print(f"Batch upsert failed: {e}")
             return False
-    
+
     async def similarity_search(
-        self, 
-        query_embedding: List[float],
+        self,
+        query_embedding: list[float],
         limit: int = MAX_RESULTS,
-        filter_metadata: Optional[Dict] = None
-    ) -> List[Dict]:
+        filter_metadata: dict | None = None
+    ) -> list[dict]:
         """
         Search with memory-efficient streaming.
         Uses RPC call for vector search (pgvector).
@@ -91,15 +91,15 @@ class FreeTierOptimizedVectorStore:
                     "match_count": min(limit, self.MAX_RESULTS)
                 }
             )
-            
+
             # Apply additional filters if provided
             if filter_metadata:
                 for key, value in filter_metadata.items():
                     query = query.eq(f"metadata->>{key}", value)
-            
+
             # Execute and get results
             result = query.execute()
-            
+
             # Return only what we need (don't cache large results)
             return [
                 {
@@ -110,26 +110,26 @@ class FreeTierOptimizedVectorStore:
                 }
                 for r in (result.data or [])
             ]
-            
+
         except Exception as e:
             print(f"Similarity search failed: {e}")
             return []
-    
+
     async def delete_old_memories(self, days_old: int = 30, limit: int = 100):
         """Delete old memories to save space (free tier storage limit)."""
         try:
             from datetime import datetime, timedelta
-            
+
             cutoff = (datetime.utcnow() - timedelta(days=days_old)).isoformat()
-            
+
             result = self.client.table(self.table_name)\
                 .filter(f"created_at.lt.{cutoff}")\
                 .limit(limit)\
                 .delete()\
                 .execute()
-            
+
             return True
-            
+
         except Exception as e:
             print(f"Delete failed: {e}")
             return False

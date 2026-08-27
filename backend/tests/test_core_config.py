@@ -1,9 +1,8 @@
 # tests/test_core_config.py
 """Tests for core configuration and settings management."""
 
-import pytest
-from unittest.mock import MagicMock, patch, PropertyMock
 import os
+from unittest.mock import patch
 
 
 def test_settings_gemini_api_key():

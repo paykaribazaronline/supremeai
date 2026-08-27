@@ -10,12 +10,11 @@ async def test_delegate_to_freebuff_missing_binary(monkeypatch):
     orch = CloudSandboxOrchestrator(provider="runpod")
 
     # Ensure it tries to run freebuff cmd and it is missing
-    with patch.object(orch, "api_key", None, create=True):
-        with patch(
-            "core.orchestration.cloud_sandbox_orchestrator.asyncio.create_subprocess_exec",
-            side_effect=FileNotFoundError(),
-        ):
-            res = await orch.delegate_to_freebuff("print('hi')", working_dir=".")
+    with patch.object(orch, "api_key", None, create=True), patch(
+        "core.orchestration.cloud_sandbox_orchestrator.asyncio.create_subprocess_exec",
+        side_effect=FileNotFoundError(),
+    ):
+        res = await orch.delegate_to_freebuff("print('hi')", working_dir=".")
 
     assert res["status"] == "error"
     assert "not installed" in res["error"].lower() or "freebuff cli not found" in res["error"].lower()

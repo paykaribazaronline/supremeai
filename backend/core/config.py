@@ -56,7 +56,6 @@ from pydantic import (
 )
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 from .config_fields import SettingsFieldsMixin
 from .config_secrets import SettingsSecretsMixin
 from .config_validation import SettingsValidationMixin
@@ -91,7 +90,7 @@ class Settings(BaseSettings, SettingsFieldsMixin, SettingsSecretsMixin, Settings
     # বাংলা মন্তব্য: env validate হবে — invalid value = startup crash
     env: str = Field(default="local", validation_alias="ENV")
     debug: bool = Field(default=True)
-    
+
     # Free Tier Optimizations
     AUTO_HEALING_ENABLED: bool = Field(default=False)
     MONITORING_DETAILED: bool = Field(default=False)
@@ -103,12 +102,12 @@ class Settings(BaseSettings, SettingsFieldsMixin, SettingsSecretsMixin, Settings
     @property
     def platform(self) -> str:
         return _PLATFORM if _PLATFORM else "unknown"
-    
+
     @property
     def is_cloud(self) -> bool:
         if not _PLATFORM: return False
         return _PLATFORM in ("render", "vercel", "firebase", "github_actions")
-    
+
     @property
     def auto_backend_url(self) -> str:
         """Generate backend URL from platform detection."""

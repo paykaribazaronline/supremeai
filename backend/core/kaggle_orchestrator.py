@@ -2,16 +2,19 @@
 Kaggle Orchestrator - Heavy Compute Offloading System
 Distributes ML/AI tasks across 6 Kaggle accounts (180 hrs/week total).
 """
-import json
 import hashlib
-from datetime import datetime
-from typing import Optional, Dict, Any, List
+import json
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
-import redis.asyncio as redis
+from typing import Any
+
 import httpx
-from core.config import settings
+import redis.asyncio as redis
 from loguru import logger
+
+from core.config import settings
+
 
 class KaggleTaskType(Enum):
     """Types of tasks that can be offloaded to Kaggle."""
@@ -41,16 +44,16 @@ class KaggleAccount:
     max_hours: float = 30.0
     used_hours: float = 0.0
     status: KaggleAccountStatus = KaggleAccountStatus.AVAILABLE
-    current_task: Optional[str] = None
-    last_used: Optional[datetime] = None
-    
+    current_task: str | None = None
+    last_used: datetime | None = None
+
     @property
     def remaining_hours(self) -> float:
         return max(0.0, self.max_hours - self.used_hours)
-    
+
     def can_accept_task(self, estimated_hours: float) -> bool:
         return (
-            self.status == KaggleAccountStatus.AVAILABLE and 
+            self.status == KaggleAccountStatus.AVAILABLE and
             self.remaining_hours >= estimated_hours
         )
 
@@ -60,14 +63,14 @@ class KaggleJob:
     """A job to be executed on Kaggle."""
     job_id: str
     task_type: KaggleTaskType
-    payload: Dict[str, Any]
+    payload: dict[str, Any]
     priority: int = 5  # 1-10, 10 is highest
     estimated_hours: float = 2.0
     status: str = "queued"
     created_at: datetime = field(default_factory=datetime.utcnow)
-    assigned_account: Optional[str] = None
-    result: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    assigned_account: str | None = None
+    result: dict[str, Any] | None = None
+    error: str | None = None
     retry_count: int = 0
     max_retries: int = 3
 
@@ -77,15 +80,15 @@ class KaggleOrchestrator:
     Main orchestrator for managing Kaggle job distribution.
     Implements round-robin with quota-aware scheduling.
     """
-    
+
     REDIS_KEY_PREFIX = "kaggle:"
     JOB_QUEUE_KEY = f"{REDIS_KEY_PREFIX}jobs:queue"
     JOB_STATUS_KEY = f"{REDIS_KEY_PREFIX}job:{{job_id}}"
     ACCOUNT_STATUS_KEY = f"{REDIS_KEY_PREFIX}account:{{account_id}}"
     CALLBACK_URL = f"{settings.auto_backend_url.rstrip('/')}/api/v1/kaggle/callback"
-    
+
     _instance = None
-    
+
     @classmethod
     def get_instance(cls):
         if cls._instance is None:
@@ -98,7 +101,7 @@ class KaggleOrchestrator:
                 api_key = key
                 if ":" in key:
                     username, api_key = key.split(":", 1)
-                
+
                 accounts.append(KaggleAccount(
                     account_id=f"worker_{i+1}",
                     username=username,
@@ -106,29 +109,29 @@ class KaggleOrchestrator:
                 ))
             cls._instance = cls(settings.redis_url, accounts)
         return cls._instance
-    
-    def __init__(self, redis_url: str, accounts: List[KaggleAccount]):
+
+    def __init__(self, redis_url: str, accounts: list[KaggleAccount]):
         if not redis_url:
             logger.warning("KaggleOrchestrator initialized without Redis URL. Queue will not work.")
             self.redis_client = None
         else:
             self.redis_client = redis.from_url(redis_url, decode_responses=True)
-            
+
         self.accounts = {acc.account_id: acc for acc in accounts}
         self.http_client = httpx.AsyncClient(timeout=300.0)  # 5 min timeout
-    
+
     async def submit_job(
         self,
         task_type: KaggleTaskType,
-        payload: Dict[str, Any],
+        payload: dict[str, Any],
         priority: int = 5,
         estimated_hours: float = 2.0
     ) -> str:
         if not self.redis_client:
             raise RuntimeError("Redis not configured for KaggleOrchestrator")
-            
+
         job_id = f"job_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{hashlib.md5(json.dumps(payload).encode()).hexdigest()[:8]}"
-        
+
         job = KaggleJob(
             job_id=job_id,
             task_type=task_type,
@@ -136,7 +139,7 @@ class KaggleOrchestrator:
             priority=priority,
             estimated_hours=estimated_hours
         )
-        
+
         job_key = self.JOB_STATUS_KEY.format(job_id=job_id)
         await self.redis_client.hset(job_key, mapping={
             "job_id": job.job_id,
@@ -148,29 +151,29 @@ class KaggleOrchestrator:
             "created_at": job.created_at.isoformat(),
             "retry_count": str(job.retry_count)
         })
-        
+
         await self.redis_client.expire(job_key, 86400)
         await self.redis_client.zadd(self.JOB_QUEUE_KEY, {job_id: -priority})
-        
+
         logger.info(f"📤 Job submitted: {job_id} ({task_type.value}, priority={priority})")
         return job_id
-    
-    async def get_next_job(self) -> Optional[KaggleJob]:
+
+    async def get_next_job(self) -> KaggleJob | None:
         if not self.redis_client:
             return None
-            
+
         results = await self.redis_client.zrange(self.JOB_QUEUE_KEY, 0, 0, withscores=True)
         if not results:
             return None
-        
+
         job_id = results[0][0]
         job_key = self.JOB_STATUS_KEY.format(job_id=job_id)
         job_data = await self.redis_client.hgetall(job_key)
-        
+
         if not job_data:
             await self.redis_client.zrem(self.JOB_QUEUE_KEY, job_id)
             return None
-        
+
         return KaggleJob(
             job_id=job_data.get("job_id", job_id),
             task_type=KaggleTaskType(job_data.get("task_type", "data_processing")),
@@ -181,24 +184,24 @@ class KaggleOrchestrator:
             created_at=datetime.fromisoformat(job_data.get("created_at", datetime.utcnow().isoformat())),
             retry_count=int(job_data.get("retry_count", "0"))
         )
-    
-    async def select_account_for_job(self, job: KaggleJob) -> Optional[KaggleAccount]:
+
+    async def select_account_for_job(self, job: KaggleJob) -> KaggleAccount | None:
         available_accounts = [
             acc for acc in self.accounts.values()
             if acc.can_accept_task(job.estimated_hours)
         ]
-        
+
         if not available_accounts:
             logger.warning(f"⚠️ No account available for job {job.job_id} (needs {job.estimated_hours}h)")
             return None
-        
+
         available_accounts.sort(key=lambda x: x.remaining_hours, reverse=True)
         return available_accounts[0]
-    
+
     async def dispatch_job_to_kaggle(self, job: KaggleJob, account: KaggleAccount) -> bool:
         if not self.redis_client:
             return False
-            
+
         try:
             kernel_payload = {
                 "id": f"supremeai-{job.job_id}",
@@ -213,7 +216,7 @@ class KaggleOrchestrator:
                 "category_ids": [],
                 "language": "python"
             }
-            
+
             response = await self.http_client.post(
                 "https://www.kaggle.com/api/v1/kernels/push",
                 json=kernel_payload,
@@ -222,28 +225,28 @@ class KaggleOrchestrator:
                     "Kaggle-Key": account.api_key
                 }
             )
-            
+
             if response.status_code in (200, 201):
                 job_key = self.JOB_STATUS_KEY.format(job_id=job.job_id)
                 await self.redis_client.hset(job_key, mapping={
                     "status": "running",
                     "assigned_account": account.account_id
                 })
-                
+
                 account.status = KaggleAccountStatus.IN_USE
                 account.current_task = job.job_id
                 account.last_used = datetime.utcnow()
-                
+
                 logger.info(f"🚀 Job {job.job_id} dispatched to Kaggle account {account.username}")
                 return True
             else:
                 logger.error(f"❌ Failed to dispatch job: {response.text}")
                 return False
-                
+
         except Exception as e:
             logger.error(f"❌ Error dispatching job: {e}")
             return False
-    
+
     def _generate_kernel_code(self, job: KaggleJob) -> str:
         base_code = f'''#!/usr/bin/env python3
 """
@@ -298,12 +301,12 @@ if __name__ == "__main__":
     main()
 '''
         return base_code
-    
-    async def get_queue_stats(self) -> Dict[str, Any]:
+
+    async def get_queue_stats(self) -> dict[str, Any]:
         queue_length = 0
         if self.redis_client:
             queue_length = await self.redis_client.zcard(self.JOB_QUEUE_KEY)
-            
+
         account_stats = {}
         for acc_id, acc in self.accounts.items():
             account_stats[acc.username] = {
@@ -311,7 +314,7 @@ if __name__ == "__main__":
                 "status": acc.status.value,
                 "current_task": acc.current_task
             }
-        
+
         return {
             "queue_length": queue_length,
             "accounts": account_stats,

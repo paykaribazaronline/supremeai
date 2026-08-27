@@ -44,17 +44,13 @@ CPU Impact: <2% when active, idle ~0%
 ================================================================================
 """
 
-from fastapi import APIRouter, WebSocket, HTTPException, Query, BackgroundTasks
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
-from datetime import datetime, timedelta
 import json
-import hashlib
-import hmac
-import asyncio
 import logging
-from collections import defaultdict
+from datetime import datetime, timedelta
+from typing import Any
+
+from fastapi import APIRouter, HTTPException, Query, WebSocket
+from pydantic import BaseModel, Field
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -75,10 +71,10 @@ class JobResultModel(BaseModel):
     """Individual job result model"""
     name: str
     status: str  # success, failure, cancelled, skipped, in_progress
-    conclusion: Optional[str] = None
+    conclusion: str | None = None
     duration_seconds: float = 0.0
-    url: Optional[str] = None
-    runner_name: Optional[str] = None
+    url: str | None = None
+    runner_name: str | None = None
     error_count: int = 0
     warning_count: int = 0
     is_flaky: bool = False
@@ -95,7 +91,7 @@ class CIMetricsModel(BaseModel):
     success_rate: float = 0.0
     score: int = 0
     grade: str = "F"
-    badges: List[str] = Field(default_factory=list)
+    badges: list[str] = Field(default_factory=list)
 
 
 class CIErrorModel(BaseModel):
@@ -105,7 +101,7 @@ class CIErrorModel(BaseModel):
     category: str
     message: str
     job: str
-    line_number: Optional[int] = None
+    line_number: int | None = None
 
 
 class CIInsightModel(BaseModel):
@@ -124,7 +120,7 @@ class CISummaryModel(BaseModel):
     version: str = "2.0"
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     repository: str = ""
-    
+
     # Run info
     run_id: int = 0
     run_number: int = 0
@@ -133,34 +129,34 @@ class CISummaryModel(BaseModel):
     commit_sha: str = ""
     commit_message: str = ""
     triggered_by: str = ""
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
     duration_seconds: float = 0.0
-    
+
     # Metrics
     metrics: CIMetricsModel = Field(default_factory=CIMetricsModel)
-    
+
     # Jobs
-    jobs: List[JobResultModel] = Field(default_factory=list)
-    
+    jobs: list[JobResultModel] = Field(default_factory=list)
+
     # Errors & Warnings
     errors_total: int = 0
-    errors_by_severity: Dict[str, int] = Field(default_factory=dict)
-    errors_by_category: Dict[str, int] = Field(default_factory=dict)
-    error_items: List[CIErrorModel] = Field(default_factory=list)
+    errors_by_severity: dict[str, int] = Field(default_factory=dict)
+    errors_by_category: dict[str, int] = Field(default_factory=dict)
+    error_items: list[CIErrorModel] = Field(default_factory=list)
     warnings_total: int = 0
-    warning_samples: List[str] = Field(default_factory=list)
-    
+    warning_samples: list[str] = Field(default_factory=list)
+
     # Insights & Recommendations
-    insights: List[CIInsightModel] = Field(default_factory=list)
-    recommendations: List[str] = Field(default_factory=list)
-    
+    insights: list[CIInsightModel] = Field(default_factory=list)
+    recommendations: list[str] = Field(default_factory=list)
+
     # Trends (optional)
     trends_available: bool = False
-    recent_success_rate: Optional[float] = None
-    overall_success_rate: Optional[float] = None
-    trend_direction: Optional[str] = None  # improving, declining, stable
-    prediction: Optional[Dict[str, Any]] = None
+    recent_success_rate: float | None = None
+    overall_success_rate: float | None = None
+    trend_direction: str | None = None  # improving, declining, stable
+    prediction: dict[str, Any] | None = None
 
 
 class WebhookPayload(BaseModel):
@@ -175,21 +171,21 @@ class WebhookPayload(BaseModel):
 
 # In-memory storage for demo purposes
 # In production, use PostgreSQL/MongoDB/Redis
-_ci_summaries_store: Dict[int, CISummaryModel] = {}  # run_id -> summary
-_ci_history: List[Dict[str, Any]] = []  # Ordered by timestamp (newest first)
+_ci_summaries_store: dict[int, CISummaryModel] = {}  # run_id -> summary
+_ci_history: list[dict[str, Any]] = []  # Ordered by timestamp (newest first)
 _max_history_items = 50
 
 # WebSocket connection managers
-_ws_connections: List[WebSocket] = []
+_ws_connections: list[WebSocket] = []
 
 
 def _store_summary(summary: CISummaryModel):
     """Store a CI summary (in memory or DB)"""
     global _ci_summaries_store, _ci_history
-    
+
     # Store by run_id
     _ci_summaries_store[summary.run_id] = summary
-    
+
     # Add to history
     history_entry = {
         'run_id': summary.run_id,
@@ -207,29 +203,29 @@ def _store_summary(summary: CISummaryModel):
         'failed': summary.metrics.failed,
         'repository': summary.repository,
     }
-    
+
     # Insert at beginning (newest first)
     _ci_history.insert(0, history_entry)
-    
+
     # Trim to max size
     if len(_ci_history) > _max_history_items:
         _ci_history = _ci_history[:_max_history_items]
-    
+
     logger.info(f"Stored CI summary for run #{summary.run_number} ({summary.repository})")
 
 
-async def _broadcast_to_websockets(event_type: str, data: Dict[str, Any]):
+async def _broadcast_to_websockets(event_type: str, data: dict[str, Any]):
     """Broadcast data to all connected WebSocket clients"""
     if not _ws_connections:
         return
-    
+
     message = json.dumps({
         'channel': f'ci.{event_type}',
         'type': f'ci_{event_type}',
         'data': data,
         'timestamp': datetime.utcnow().isoformat(),
     })
-    
+
     # Send to all connections (with error handling)
     disconnected = []
     for ws in _ws_connections:
@@ -238,7 +234,7 @@ async def _broadcast_to_websockets(event_type: str, data: Dict[str, Any]):
         except Exception as e:
             logger.warning(f"WebSocket send failed: {e}")
             disconnected.append(ws)
-    
+
     # Remove disconnected
     for ws in disconnected:
         _ws_connections.remove(ws)
@@ -260,14 +256,14 @@ async def receive_ci_webhook(payload: WebhookPayload):
     expected_secret = os.environ.get("CI_WEBHOOK_SECRET", "")
     if expected_secret and payload.secret != expected_secret:
         raise HTTPException(status_code=401, detail="Invalid webhook secret")
-    
+
     # Store the summary
     summary = payload.summary
     _store_summary(summary)
-    
+
     # Broadcast to WebSocket clients
     await _broadcast_to_webhooks('summary_updated', summary.dict())
-    
+
     return {
         "status": "received",
         "run_id": summary.run_id,
@@ -292,14 +288,14 @@ async def get_latest_summary():
     """
     if not _ci_history:
         raise HTTPException(status_code=404, detail="No CI data available yet")
-    
+
     latest = _ci_history[0]
     run_id = latest.get('run_id')
-    
+
     if run_id and run_id in _ci_summaries_store:
         summary = _ci_summaries_store[run_id]
         return summary
-    
+
     # Return basic info from history if full summary not available
     return CISummaryModel(
         version="2.0",
@@ -332,9 +328,9 @@ async def get_summary_by_run_id(run_id: int):
     """
     if run_id in _ci_summaries_store:
         return _ci_summaries_store[run_id]
-    
+
     raise HTTPException(
-        status_code=404, 
+        status_code=404,
         detail=f"Summary not found for run ID {run_id}"
     )
 
@@ -343,9 +339,9 @@ async def get_summary_by_run_id(run_id: int):
 async def get_ci_history(
     limit: int = Query(20, ge=1, le=100, description="Number of items to return"),
     offset: int = Query(0, ge=0, description="Number of items to skip"),
-    branch: Optional[str] = Query(None, description="Filter by branch"),
-    event_type: Optional[str] = Query(None, description="Filter by event type (push, schedule, etc.)"),
-    min_score: Optional[int] = Query(None, ge=0, le=100, description="Minimum score filter"),
+    branch: str | None = Query(None, description="Filter by branch"),
+    event_type: str | None = Query(None, description="Filter by event type (push, schedule, etc.)"),
+    min_score: int | None = Query(None, ge=0, le=100, description="Minimum score filter"),
 ):
     """
     Get paginated CI history with optional filters.
@@ -353,21 +349,21 @@ async def get_ci_history(
     Used for building trend charts and historical views.
     """
     history = _ci_history.copy()
-    
+
     # Apply filters
     if branch:
         history = [h for h in history if h.get('branch') == branch]
-    
+
     if event_type:
         history = [h for h in history if h.get('event') == event_type]
-    
+
     if min_score is not None:
         history = [h for h in history if h.get('score', 0) >= min_score]
-    
+
     # Paginate
     total = len(history)
     paginated = history[offset:offset + limit]
-    
+
     return {
         "total": total,
         "limit": limit,
@@ -384,7 +380,7 @@ async def get_ci_history(
 @router.get("/trends")
 async def get_trend_analysis(
     days: int = Query(7, ge=1, le=90, description="Number of days to analyze"),
-    branch: Optional[str] = Query(None, description="Filter by branch"),
+    branch: str | None = Query(None, description="Filter by branch"),
 ):
     """
     Get trend analysis data including success rates over time.
@@ -401,39 +397,39 @@ async def get_trend_analysis(
             "available": False,
             "reason": "Need at least 3 completed builds for trend analysis"
         }
-    
+
     # Filter by date range
     cutoff = datetime.utcnow() - timedelta(days=days)
     recent = [
-        h for h in _ci_history 
+        h for h in _ci_history
         if datetime.fromisoformat(h['timestamp']) >= cutoff
         and (not branch or h.get('branch') == branch)
     ]
-    
+
     if len(recent) < 3:
         return {
             "available": False,
             "reason": f"Not enough data points in last {days} days (found {len(recent)})"
         }
-    
+
     # Calculate metrics
     success_rates = [h['success_rate'] for h in recent]
     scores = [h['score'] for h in recent]
     durations = [h['duration'] for h in recent]
-    
+
     overall_rate = sum(success_rates) / len(success_rates)
     recent_rate = sum(success_rates[-5:]) / min(5, len(success_rates))
-    
+
     # Simple linear regression for trend direction
     n = len(success_rates)
     x_mean = (n - 1) / 2
     y_mean = sum(success_rates) / n
-    
+
     numerator = sum((i - x_mean) * (success_rates[i] - y_mean) for i in range(n))
     denominator = sum((i - x_mean) ** 2 for i in range(n))
-    
+
     slope = numerator / denominator if denominator != 0 else 0
-    
+
     if slope > 0.02:
         trend = "improving"
         strength = min(abs(slope) * 100, 1.0)
@@ -443,69 +439,69 @@ async def get_trend_analysis(
     else:
         trend = "stable"
         strength = 0
-    
+
     # Prediction
     weighted_recent = success_rates[-5:] if len(success_rates) >= 5 else success_rates
     weights = [0.1, 0.15, 0.2, 0.25, 0.3][-len(weighted_recent):]
     prediction_prob = sum(w * s for w, s in zip(weights, weighted_recent)) if weighted_recent else overall_rate
-    
+
     prediction_confidence = min(len(_ci_history) / 20, 0.95)
-    
+
     if prediction_prob > 0.75:
         verdict = "likely_pass"
     elif prediction_prob > 0.45:
         verdict = "uncertain"
     else:
         verdict = "risk_of_failure"
-    
+
     # Error category analysis (would need detailed data)
     error_categories = {}
     for entry in recent:
         if entry.get('failed', 0) > 0:
             # In real implementation, pull from stored error breakdowns
             error_categories["Build Failure"] = error_categories.get("Build Failure", 0) + entry.get('failed', 0)
-    
+
     # Generate recommendations
     recommendations = []
-    
+
     if trend == "declining":
         recommendations.append("📉 Success rate declining - investigate recent changes")
-    
+
     if recent_rate < 80:
         recommendations.append("⚠️ Recent success rate below 80% - review failures")
-    
+
     if any(d > 1800 for d in durations[-5:]):
         avg_duration = sum(durations[-5:]) / min(5, len(durations))
         recommendations.append(f"⚡ Build times increasing (avg: {avg_duration/60:.1f}min)")
-    
+
     if not recommendations:
         recommendations.append("✅ Pipeline performing well - maintain current practices")
-    
+
     return {
         "available": True,
         "analysis_period_days": days,
         "total_analyzed": len(recent),
-        
+
         "overall_success_rate": round(overall_rate, 2),
         "recent_success_rate": round(recent_rate, 2),
         "trend_direction": trend,
         "trend_strength": round(strength, 2),
-        
+
         "prediction": {
             "success_probability": round(prediction_prob * 100, 1),
             "confidence": round(prediction_confidence * 100, 1),
             "verdict": verdict,
         },
-        
+
         "averages": {
             "score": round(sum(scores) / len(scores), 1) if scores else 0,
             "duration_seconds": round(sum(durations) / len(durations), 1) if durations else 0,
             "jobs_per_run": round(sum(h.get('total_jobs', 0) for h in recent) / len(recent), 1),
         },
-        
+
         "error_breakdown": error_categories,
         "recommendations": recommendations,
-        
+
         "chart_data": [
             {
                 "date": h['timestamp'][:10],
@@ -534,12 +530,12 @@ async def get_stats_overview():
             "last_build": None,
             "trend": "no_data"
         }
-    
+
     # Calculate from history
     total = len(_ci_history)
     rates = [h['success_rate'] for h in _ci_history]
     scores = [h['score'] for h in _ci_history]
-    
+
     return {
         "total_runs": total,
         "overall_success_rate": round(sum(rates) / len(rates), 2) if rates else 0,
@@ -576,10 +572,10 @@ async def ci_dashboard_websocket(websocket: WebSocket, token: str = Query(...)):
     """
     # Authenticate (in production, verify JWT/token)
     # For now, accept connection
-    
+
     _ws_connections.append(websocket)
     logger.info(f"WebSocket connected. Total clients: {len(_ws_connections)}")
-    
+
     # Send current state immediately
     if _ci_history:
         welcome_data = {
@@ -593,23 +589,23 @@ async def ci_dashboard_websocket(websocket: WebSocket, token: str = Query(...)):
             "timestamp": datetime.utcnow().isoformat()
         }
         await websocket.send_json(welcome_data)
-    
+
     try:
         # Keep connection alive and handle any client messages
         while True:
             # Wait for client message (ping, channel subscription, etc.)
             data = await websocket.receive_text()
-            
+
             try:
                 message = json.loads(data)
-                
+
                 # Handle ping/pong
                 if message.get("type") == "ping":
                     await websocket.send_json({
                         "type": "pong",
                         "timestamp": datetime.utcnow().isoformat()
                     })
-                
+
                 # Handle channel subscription
                 elif message.get("action") == "subscribe":
                     channels = message.get("channels", [])
@@ -618,14 +614,14 @@ async def ci_dashboard_websocket(websocket: WebSocket, token: str = Query(...)):
                         "channels": channels,
                         "timestamp": datetime.utcnow().isoformat()
                     })
-                    
+
             except json.JSONDecodeError:
                 # Ignore non-JSON messages
                 pass
-                
+
     except Exception as e:
         logger.warning(f"WebSocket error: {e}")
-    
+
     finally:
         # Cleanup on disconnect
         if websocket in _ws_connections:
@@ -663,21 +659,21 @@ async def clear_cache(
     """
     if not confirm:
         raise HTTPException(
-            status_code=400, 
+            status_code=400,
             detail="Set confirm=true to proceed with cache clearing"
         )
-    
+
     global _ci_history, _ci_summaries_store
-    
+
     cutoff = datetime.utcnow() - timedelta(days=older_than_days)
     before_count = len(_ci_history)
-    
+
     # Remove old entries
     _ci_history = [
-        h for h in _ci_history 
+        h for h in _ci_history
         if datetime.fromisoformat(h['timestamp']) >= cutoff
     ]
-    
+
     # Also clean up summaries store
     old_run_ids = [
         rid for rid, summ in _ci_summaries_store.items()
@@ -685,9 +681,9 @@ async def clear_cache(
     ]
     for rid in old_run_ids:
         del _ci_summaries_store[rid]
-    
+
     removed = before_count - len(_ci_history)
-    
+
     return {
         "status": "completed",
         "entries_removed": removed,

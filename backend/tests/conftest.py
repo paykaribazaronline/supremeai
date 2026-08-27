@@ -7,8 +7,9 @@ from __future__ import annotations
 
 import asyncio
 import os
-from typing import AsyncGenerator, Generator
-from unittest.mock import AsyncMock, MagicMock, patch
+from collections.abc import AsyncGenerator, Generator
+from datetime import UTC
+from unittest.mock import MagicMock
 
 import pytest
 import pytest_asyncio
@@ -52,8 +53,9 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
 @pytest_asyncio.fixture
 async def db_session() -> AsyncGenerator:
     """Create a fresh database session for each test."""
-    from core.db import async_session_factory, Base
     from sqlalchemy.ext.asyncio import create_async_engine
+
+    from core.db import Base
 
     # Use in-memory SQLite for tests
     engine = create_async_engine("sqlite+aiosqlite:///:memory:")
@@ -96,14 +98,15 @@ def sample_user_data() -> dict:
 @pytest.fixture
 def admin_headers() -> dict[str, str]:
     """Headers with admin authentication token."""
+    from datetime import datetime
+
     import jwt
-    from datetime import datetime, timezone
 
     token = jwt.encode(
         {
             "sub": "admin-id",
             "role": "admin",
-            "exp": datetime.now(tz=timezone.utc).timestamp() + 3600,
+            "exp": datetime.now(tz=UTC).timestamp() + 3600,
         },
         os.getenv("JWT_SECRET", "test-secret"),
         algorithm="HS256",
@@ -114,14 +117,15 @@ def admin_headers() -> dict[str, str]:
 @pytest.fixture
 def user_headers() -> dict[str, str]:
     """Headers with regular user authentication token."""
+    from datetime import datetime
+
     import jwt
-    from datetime import datetime, timezone
 
     token = jwt.encode(
         {
             "sub": "user-id",
             "role": "user",
-            "exp": datetime.now(tz=timezone.utc).timestamp() + 3600,
+            "exp": datetime.now(tz=UTC).timestamp() + 3600,
         },
         os.getenv("JWT_SECRET", "test-secret"),
         algorithm="HS256",

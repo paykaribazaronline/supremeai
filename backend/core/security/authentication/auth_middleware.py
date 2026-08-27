@@ -11,7 +11,8 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 import jwt
-from jwt import PyJWTError as JWTError, ExpiredSignatureError
+from jwt import ExpiredSignatureError
+from jwt import PyJWTError as JWTError
 from loguru import logger
 
 from core.config import settings

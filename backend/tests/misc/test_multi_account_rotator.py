@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from core.utils.time_utils import utc_now
 from tools.security_tools.multi_account_rotator import (
     Account,
     MultiAccountRotator,
@@ -12,7 +13,6 @@ from tools.security_tools.multi_account_rotator import (
     ProviderStatus,
     TaskType,
 )
-from core.utils.time_utils import utc_now
 
 
 # বাংলা মন্তব্য: rotator ইনস্ট্যান্স তৈরি করার জন্য ফিক্সচার

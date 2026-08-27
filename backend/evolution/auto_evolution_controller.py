@@ -11,14 +11,10 @@ Coordinates:
 
 from __future__ import annotations
 
-import asyncio
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-import statistics
-import time
-import traceback
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 from evolution.advanced_evolution_engine import AdvancedEvolutionEngine
 from evolution.auto_tuner import AutoTuner
@@ -49,7 +45,7 @@ class EvolutionTrigger:
     source_component: str
     trigger_type: str
     priority: EvolutionPriority
-    data: Dict[str, Any]
+    data: dict[str, Any]
     timestamp: datetime = field(default_factory=datetime.now)
     auto_approved: bool = False
 
@@ -58,31 +54,31 @@ class EvolutionTrigger:
 class EvolutionCycle:
     cycle_id: str
     start_time: datetime
-    end_time: Optional[datetime]
+    end_time: datetime | None
     state: EvolutionState
     triggers_processed: int
     optimizations_applied: int
-    improvements_measured: Dict[str, float]
-    errors_encountered: List[str]
+    improvements_measured: dict[str, float]
+    errors_encountered: list[str]
     duration_seconds: float = 0.0
 
 
 @dataclass
 class SystemHealth:
     overall_score: float
-    component_scores: Dict[str, float]
-    bottleneck_components: List[str]
-    resource_usage: Dict[str, float]
-    performance_metrics: Dict[str, float]
-    recommendations: List[str]
+    component_scores: dict[str, float]
+    bottleneck_components: list[str]
+    resource_usage: dict[str, float]
+    performance_metrics: dict[str, float]
+    recommendations: list[str]
     last_check: datetime
 
 
 class AutoEvolutionController:
     """Master controller for continuous self-evolution & optimization."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
-        self.config: Dict[str, Any] = config or {}
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
+        self.config: dict[str, Any] = config or {}
 
         # Core components
         self.performance_monitor = PerformanceMonitor(self.config.get("monitor", {}))
@@ -93,18 +89,18 @@ class AutoEvolutionController:
 
         # State management
         self.current_state = EvolutionState.IDLE
-        self.current_cycle: Optional[EvolutionCycle] = None
-        self.evolution_history: List[EvolutionCycle] = []
+        self.current_cycle: EvolutionCycle | None = None
+        self.evolution_history: list[EvolutionCycle] = []
 
         # Parameters
         self.safety_threshold: float = self.config.get("safety_threshold", 0.85)
         self.rollback_on_degradation: bool = self.config.get("auto_rollback", True)
 
-        self.trigger_queue: List[EvolutionTrigger] = []
-        self.health_history: List[SystemHealth] = []
-        self.baseline_health: Optional[SystemHealth] = None
+        self.trigger_queue: list[EvolutionTrigger] = []
+        self.health_history: list[SystemHealth] = []
+        self.baseline_health: SystemHealth | None = None
 
-        self.stats: Dict[str, Any] = {
+        self.stats: dict[str, Any] = {
             "total_cycles": 0,
             "successful_optimizations": 0,
             "failed_optimizations": 0,
@@ -219,7 +215,7 @@ class AutoEvolutionController:
             cycle.state = EvolutionState.IDLE
             return cycle
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         return {
             **self.stats,
             "current_state": self.current_state.value,

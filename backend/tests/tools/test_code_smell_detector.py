@@ -209,12 +209,11 @@ class TestDetectDuplicateFunctions:
     def test_mocked_dump_detects_duplicate(self, detector):
         code = "def foo():\n    x = 1\n    return x\n\ndef bar():\n    x = 1\n    return x\n"
         tree = ast.parse(code)
-        with patch.object(detector, "_normalize", return_value="same_norm"):
-            with patch(
-                "backend.tools.code.code_smell_detector.ast.dump",
-                side_effect=lambda node: "same",
-            ):
-                result = detector._detect_duplicate_functions(tree, "test.py")
+        with patch.object(detector, "_normalize", return_value="same_norm"), patch(
+            "backend.tools.code.code_smell_detector.ast.dump",
+            side_effect=lambda node: "same",
+        ):
+            result = detector._detect_duplicate_functions(tree, "test.py")
         assert len(result) == 1
         assert result[0]["type"] == "Duplicate Code"
         assert result[0]["instances"] == 2
@@ -416,10 +415,9 @@ class TestAnalyzeRadon:
                 "radon.complexity": fake_complexity,
                 "radon.metrics": fake_metrics,
             },
-        ):
-            with patch("backend.tools.code.code_smell_detector.ast.parse") as mock_parse:
-                mock_parse.return_value = ast.parse("def foo():\n    return 1\n")
-                detector._analyze_radon(str(f), None, 10)
+        ), patch("backend.tools.code.code_smell_detector.ast.parse") as mock_parse:
+            mock_parse.return_value = ast.parse("def foo():\n    return 1\n")
+            detector._analyze_radon(str(f), None, 10)
         assert mock_parse.call_count >= 1
 
 

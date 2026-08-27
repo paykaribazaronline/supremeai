@@ -155,6 +155,7 @@ class ComprehensiveHealthChecker:
         try:
             start_time = time.time()
             from sqlalchemy import text
+
             import database.session as session_module
 
             session_module.init_engine()

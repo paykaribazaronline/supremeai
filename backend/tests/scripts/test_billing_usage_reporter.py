@@ -11,7 +11,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "scripts" / "billing"))
 
-from usage_reporter import UsageReporter, TenantUsage  # noqa: E402
+from usage_reporter import TenantUsage, UsageReporter  # noqa: E402
 
 
 def async_iter(items):

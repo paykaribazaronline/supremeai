@@ -14,11 +14,9 @@ Connects and orchestrates ALL phases and modules:
 
 from __future__ import annotations
 
-import asyncio
-from datetime import datetime
 import logging
-import sys
-from typing import Any, Dict, Optional
+from datetime import datetime
+from typing import Any
 
 # Structured logging setup
 logger = logging.getLogger("supremeai")
@@ -39,15 +37,15 @@ class SupremeAIFactory:
     """Factory pattern for creating fully pre-wired production SupremeAI instances."""
 
     def __init__(self) -> None:
-        self._limiter: Optional[IntelligentRateLimiter] = None
-        self._integrator: Optional[SupremeAIIntegrator] = None
-        self._benchmarker: Optional[SelfBenchmarkEngine] = None
-        self._optimizer: Optional[AdaptiveOptimizer] = None
-        self._monitor: Optional[PerformanceMonitor] = None
-        self._runtime: Optional[TaskRuntime] = None
-        self._verifier: Optional[VerifierEngine] = None
-        self._settings: Optional[Settings] = None
-        self._start_time: Optional[datetime] = None
+        self._limiter: IntelligentRateLimiter | None = None
+        self._integrator: SupremeAIIntegrator | None = None
+        self._benchmarker: SelfBenchmarkEngine | None = None
+        self._optimizer: AdaptiveOptimizer | None = None
+        self._monitor: PerformanceMonitor | None = None
+        self._runtime: TaskRuntime | None = None
+        self._verifier: VerifierEngine | None = None
+        self._settings: Settings | None = None
+        self._start_time: datetime | None = None
 
     async def create_production_instance(self) -> SupremeAIIntegrator:
         """Create and wire all system components for production execution."""
@@ -116,7 +114,7 @@ class SupremeAIFactory:
         logger.info("🎉 PRODUCTION SUPREMEAI WIRED & READY (Canonical Task Runtime Active)!")
         return self._integrator
 
-    async def safe_process(self, query: str, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def safe_process(self, query: str, context: dict[str, Any] | None = None) -> dict[str, Any]:
         """Safe processing wrapper routing through Canonical TaskContract and TaskRuntime."""
         if not self._integrator:
             await self.create_production_instance()
@@ -170,7 +168,7 @@ class SupremeAIFactory:
             await self._integrator.shutdown()
         logger.info("✅ Shutdown complete")
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """Comprehensive health check across all wired components."""
         is_init = getattr(self._integrator, "initialized", True) if self._integrator else False
         return {
@@ -188,7 +186,7 @@ class SupremeAIFactory:
 
 
 # Singleton factory instance
-_factory_instance: Optional[SupremeAIFactory] = None
+_factory_instance: SupremeAIFactory | None = None
 
 
 def get_factory() -> SupremeAIFactory:

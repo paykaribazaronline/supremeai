@@ -25,8 +25,8 @@ from loguru import logger
 
 from core.cache import get_cache
 from core.error_bus import with_error_bus
-from services.llm.llm_router import LLMRouter
 from database.supabase_client import db
+from services.llm.llm_router import LLMRouter
 
 # ── Constants ────────────────────────────────────────────────────────────────
 RECOMMENDATION_CACHE_TTL = 900  # 15 minutes

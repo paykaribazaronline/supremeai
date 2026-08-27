@@ -36,8 +36,8 @@ import secrets as _secrets
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Any
-from loguru import logger
 
+from loguru import logger
 
 try:
     import bcrypt

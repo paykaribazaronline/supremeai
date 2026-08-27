@@ -8,9 +8,10 @@ Supports 12+ programming languages.
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 from adapters.base_adapter import AdaptationResult, BaseAdapter
 
@@ -19,8 +20,8 @@ from adapters.base_adapter import AdaptationResult, BaseAdapter
 class CodeAnalysisResult:
     language: str
     complexity: int
-    issues: List[Dict[str, Any]]
-    suggestions: List[str]
+    issues: list[dict[str, Any]]
+    suggestions: list[str]
     test_coverage: float
 
 
@@ -28,10 +29,10 @@ class CodeAnalysisResult:
 class DevelopmentTask:
     task_type: str  # 'debug', 'implement', 'refactor', 'review', 'test'
     description: str
-    code_snippet: Optional[str] = None
-    language: Optional[str] = None
-    requirements: List[str] = field(default_factory=list)
-    constraints: List[str] = field(default_factory=list)
+    code_snippet: str | None = None
+    language: str | None = None
+    requirements: list[str] = field(default_factory=list)
+    constraints: list[str] = field(default_factory=list)
 
 
 class DevAdapter(BaseAdapter):
@@ -40,7 +41,7 @@ class DevAdapter(BaseAdapter):
     Handles coding tasks: debugging, implementation, refactoring, code review, testing.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         super().__init__(config)
         self.supported_languages = [
             "python", "javascript", "typescript", "java", "go",
@@ -49,7 +50,7 @@ class DevAdapter(BaseAdapter):
         self.code_patterns = self._load_code_patterns()
         self.debugging_heuristics = self._load_debugging_heuristics()
 
-    def _define_capabilities(self) -> List[str]:
+    def _define_capabilities(self) -> list[str]:
         return [
             "code_generation",
             "debugging",
@@ -61,7 +62,7 @@ class DevAdapter(BaseAdapter):
             "language_translation",
         ]
 
-    def _define_constraints(self) -> Dict[str, Any]:
+    def _define_constraints(self) -> dict[str, Any]:
         return {
             "max_code_length": 10000,
             "forbidden_operations": ["rm -rf", "format", "drop table"],
@@ -70,10 +71,10 @@ class DevAdapter(BaseAdapter):
             "memory_limit_mb": 512,
         }
 
-    async def adapt(self, problem: Any, context: Optional[Dict[str, Any]] = None) -> AdaptationResult:
+    async def adapt(self, problem: Any, context: dict[str, Any] | None = None) -> AdaptationResult:
         """Handle development tasks."""
         start_time = datetime.now()
-        warnings: List[str] = []
+        warnings: list[str] = []
 
         try:
             dev_task = self._parse_dev_task(problem)
@@ -89,7 +90,7 @@ class DevAdapter(BaseAdapter):
                     warnings=validation_issues,
                 )
 
-            handler_map: Dict[str, Callable[..., Any]] = {
+            handler_map: dict[str, Callable[..., Any]] = {
                 "debug": self._handle_debugging,
                 "implement": self._handle_implementation,
                 "refactor": self._handle_refactoring,
@@ -160,7 +161,7 @@ class DevAdapter(BaseAdapter):
             constraints=[],
         )
 
-    async def _handle_debugging(self, task: DevelopmentTask, context: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_debugging(self, task: DevelopmentTask, context: dict[str, Any]) -> dict[str, Any]:
         """Handle debugging tasks."""
         if not task.code_snippet:
             return {
@@ -187,7 +188,7 @@ class DevAdapter(BaseAdapter):
             },
         }
 
-    async def _handle_implementation(self, task: DevelopmentTask, context: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_implementation(self, task: DevelopmentTask, context: dict[str, Any]) -> dict[str, Any]:
         """Handle code implementation tasks."""
         generated_code = self._generate_code(
             description=task.description,
@@ -206,7 +207,7 @@ class DevAdapter(BaseAdapter):
             },
         }
 
-    async def _handle_refactoring(self, task: DevelopmentTask, context: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_refactoring(self, task: DevelopmentTask, context: dict[str, Any]) -> dict[str, Any]:
         """Handle code refactoring tasks."""
         code = task.code_snippet or f"# Cleaned implementation for: {task.description}\n"
         current_analysis = self._analyze_code(code, task.language or "python")
@@ -224,7 +225,7 @@ class DevAdapter(BaseAdapter):
             "metrics": comparison.get("metrics", {}),
         }
 
-    async def _handle_code_review(self, task: DevelopmentTask, context: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_code_review(self, task: DevelopmentTask, context: dict[str, Any]) -> dict[str, Any]:
         """Handle code review tasks."""
         code = task.code_snippet or task.description
         review = self._perform_code_review(code, task.language or "python")
@@ -240,7 +241,7 @@ class DevAdapter(BaseAdapter):
             },
         }
 
-    async def _handle_testing(self, task: DevelopmentTask, context: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_testing(self, task: DevelopmentTask, context: dict[str, Any]) -> dict[str, Any]:
         """Handle testing tasks."""
         if task.code_snippet:
             tests = self._generate_tests(task.code_snippet, task.language or "python")
@@ -256,7 +257,7 @@ class DevAdapter(BaseAdapter):
             },
         }
 
-    async def _handle_general_dev(self, task: DevelopmentTask, context: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_general_dev(self, task: DevelopmentTask, context: dict[str, Any]) -> dict[str, Any]:
         """Handle general development queries."""
         return {
             "solution": f"Resolved development request: {task.description}",
@@ -264,9 +265,9 @@ class DevAdapter(BaseAdapter):
             "analysis": {"type": "general_dev_resolution"},
         }
 
-    def validate_domain_input(self, input_data: Any) -> Tuple[bool, List[str]]:
+    def validate_domain_input(self, input_data: Any) -> tuple[bool, list[str]]:
         """Validate development task input."""
-        issues: List[str] = []
+        issues: list[str] = []
         if isinstance(input_data, DevelopmentTask):
             if input_data.code_snippet:
                 if len(input_data.code_snippet) > self.constraints["max_code_length"]:
@@ -278,7 +279,7 @@ class DevAdapter(BaseAdapter):
                 issues.append(f"Language '{input_data.language}' not fully supported")
         return len(issues) == 0, issues
 
-    def _detect_language(self, text: str) -> Optional[str]:
+    def _detect_language(self, text: str) -> str | None:
         lang_indicators = {
             "python": ["def ", "import ", "self.", "print(", "#", "asyncio", "pydantic"],
             "javascript": ["function", "const ", "let ", "=>", "console.log", "npm"],
@@ -287,23 +288,23 @@ class DevAdapter(BaseAdapter):
             "go": ["func ", "package main", "fmt.", ":="],
             "rust": ["fn ", "let mut", "::", "println!"],
         }
-        scores: Dict[str, int] = {}
+        scores: dict[str, int] = {}
         for lang, indicators in lang_indicators.items():
             score = sum(1 for ind in indicators if ind in text)
             if score > 0:
                 scores[lang] = score
         return max(scores, key=scores.get) if scores else "python"
 
-    def _extract_code_snippet(self, text: str) -> Optional[str]:
+    def _extract_code_snippet(self, text: str) -> str | None:
         code_pattern = r"```[\w]*\n?(.*?)\n?```"
         matches = re.findall(code_pattern, text, re.DOTALL)
         return matches[0] if matches else None
 
-    def _extract_requirements(self, problem: Any) -> List[str]:
+    def _extract_requirements(self, problem: Any) -> list[str]:
         return [str(problem)]
 
-    def _analyze_for_bugs(self, code: str, language: str) -> List[Dict[str, Any]]:
-        bugs: List[Dict[str, Any]] = []
+    def _analyze_for_bugs(self, code: str, language: str) -> list[dict[str, Any]]:
+        bugs: list[dict[str, Any]] = []
         bug_patterns = {
             "off-by-one": [r"for.*range\(\s*len\("],
             "null_pointer": [r"\.\w+\[", r"\.get\([^)]*\)"],
@@ -325,11 +326,11 @@ class DevAdapter(BaseAdapter):
                     continue
         return bugs
 
-    def _generate_fixes(self, issues: List[Dict[str, Any]], code: str) -> str:
+    def _generate_fixes(self, issues: list[dict[str, Any]], code: str) -> str:
         fixes = [f"Fix applied for {issue['type']}: {issue['description']}" for issue in issues]
         return "\n".join(fixes) if fixes else "Code verified clean without regression."
 
-    def _generate_code(self, description: str, language: str, requirements: List[str]) -> str:
+    def _generate_code(self, description: str, language: str, requirements: list[str]) -> str:
         if language == "python":
             return (
                 f"# Generated {language} code - SupremeAI Living Engine\n"
@@ -340,7 +341,7 @@ class DevAdapter(BaseAdapter):
             )
         return f"// Solution generated for: {description}\n"
 
-    def _analyze_code(self, code: str, language: str) -> Dict[str, Any]:
+    def _analyze_code(self, code: str, language: str) -> dict[str, Any]:
         lines = code.split("\n")
         return {
             "quality_score": 0.92,
@@ -349,16 +350,16 @@ class DevAdapter(BaseAdapter):
             "has_comments": "#" in code or "//" in code or "/*" in code,
         }
 
-    def _refactor_code(self, code: str, language: str, analysis: Dict[str, Any]) -> str:
+    def _refactor_code(self, code: str, language: str, analysis: dict[str, Any]) -> str:
         return f"# Refactored with zero-cost optimization & defensive typing\n{code}"
 
-    def _compare_codes(self, original: str, refactored: str) -> Dict[str, Any]:
+    def _compare_codes(self, original: str, refactored: str) -> dict[str, Any]:
         return {
             "improvements": ["Readability enhanced", "Complexity reduced", "Type invariants satisfied"],
             "metrics": {"lines_changed": abs(len(original.split("\n")) - len(refactored.split("\n")))},
         }
 
-    def _perform_code_review(self, code: str, language: str) -> Dict[str, Any]:
+    def _perform_code_review(self, code: str, language: str) -> dict[str, Any]:
         return {
             "report": "Code Review: Clean modular architecture, defensible error boundaries, high cohesion.",
             "overall_score": 9.2,
@@ -378,20 +379,20 @@ class DevAdapter(BaseAdapter):
     def _generate_tests_from_description(self, desc: str, language: str) -> str:
         return self._generate_tests("", language)
 
-    def _summarize_severity(self, issues: List[Dict[str, Any]]) -> Dict[str, int]:
-        counts: Dict[str, int] = {}
+    def _summarize_severity(self, issues: list[dict[str, Any]]) -> dict[str, int]:
+        counts: dict[str, int] = {}
         for i in issues:
             sev = i.get("severity", "unknown")
             counts[sev] = counts.get(sev, 0) + 1
         return counts
 
-    def _load_code_patterns(self) -> Dict[str, Any]:
+    def _load_code_patterns(self) -> dict[str, Any]:
         return {}
 
-    def _load_debugging_heuristics(self) -> Dict[str, Any]:
+    def _load_debugging_heuristics(self) -> dict[str, Any]:
         return {}
 
-    def _generate_suggestions(self, result: Dict[str, Any], task: DevelopmentTask) -> List[str]:
+    def _generate_suggestions(self, result: dict[str, Any], task: DevelopmentTask) -> list[str]:
         return [
             "Unit tests generated with >90% coverage target",
             "AST invariants verified with zero regression risk",

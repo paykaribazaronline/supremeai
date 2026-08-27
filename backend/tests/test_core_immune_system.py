@@ -1,9 +1,6 @@
 # tests/test_core_immune_system.py
 """Tests for the ImmuneSystem security scanner."""
 
-import pytest
-import ast
-from unittest.mock import MagicMock, patch
 
 
 class TestImmuneSystemScanner:

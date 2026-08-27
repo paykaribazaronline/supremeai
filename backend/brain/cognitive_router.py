@@ -1,11 +1,13 @@
-from typing import Any, Dict
-from brain.economic_optimizer import EconomicOptimizer, BudgetContext
+from typing import Any
+
+from brain.economic_optimizer import BudgetContext, EconomicOptimizer
+
 
 class CognitiveRouter:
     def __init__(self, economic_optimizer: EconomicOptimizer = None):
         self.economic_optimizer = economic_optimizer
 
-    async def route(self, prompt: str, user_id: str, budget_context: BudgetContext = None) -> Dict[str, Any]:
+    async def route(self, prompt: str, user_id: str, budget_context: BudgetContext = None) -> dict[str, Any]:
         # Simple heuristic to determine if decomposed
         if "analyze" in prompt.lower() and "implement" in prompt.lower():
             # Decompose
@@ -19,7 +21,7 @@ class CognitiveRouter:
                     }
                 }
             }
-        
+
         # Direct route
         if self.economic_optimizer and budget_context:
             decision = await self.economic_optimizer.optimize_route(prompt, "general", budget_context)
@@ -28,7 +30,7 @@ class CognitiveRouter:
                 "provider": decision.provider,
                 "model": decision.model
             }
-        
+
         return {
             "routing_mode": "direct",
             "provider": "groq",

@@ -2,12 +2,12 @@
 Kaggle Callback API
 Receives job completion notifications from Kaggle kernels.
 """
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
-from pydantic import BaseModel
-from typing import Optional, Dict, Any
-from datetime import datetime
 import json
+from typing import Any
+
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 from loguru import logger
+from pydantic import BaseModel
 
 from core.kaggle_orchestrator import KaggleOrchestrator, KaggleTaskType
 
@@ -18,10 +18,10 @@ class KaggleCallbackRequest(BaseModel):
     """Callback payload from Kaggle kernel."""
     job_id: str
     status: str  # "success" or "failed"
-    result: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    result: dict[str, Any] | None = None
+    error: str | None = None
     completed_at: str
-    kaggle_metadata: Optional[Dict[str, Any]] = None
+    kaggle_metadata: dict[str, Any] | None = None
 
 
 @router.post("/callback")
@@ -36,42 +36,42 @@ async def kaggle_callback(
     It updates job status and processes results.
     """
     logger.info(f"📥 Kaggle callback received: job_id={request.job_id}, status={request.status}")
-    
+
     try:
         orchestrator = KaggleOrchestrator.get_instance()
         if not orchestrator.redis_client:
             raise HTTPException(status_code=503, detail="Redis connection unavailable")
-            
+
         job_key = f"kaggle:job:{request.job_id}"
-        
+
         update_data = {
             "status": request.status,
             "completed_at": request.completed_at,
             "result": json.dumps(request.result) if request.result else "{}",
             "error": request.error or ""
         }
-        
+
         await orchestrator.redis_client.hset(job_key, mapping=update_data)
-        
+
         # Remove from queue
         await orchestrator.redis_client.zrem("kaggle:jobs:queue", request.job_id)
-        
+
         # Release account quota
         if request.status == "success":
             account_id = await orchestrator.redis_client.hget(job_key, "assigned_account")
             if account_id:
                 account_key = f"kaggle:account:{account_id}"
                 await orchestrator.redis_client.hset(account_key, mapping={"status": "available", "current_task": ""})
-        
+
         # Process results in background
         background_tasks.add_task(process_kaggle_results, request)
-        
+
         return {
             "status": "received",
             "job_id": request.job_id,
             "message": "Callback processed successfully"
         }
-        
+
     except Exception as e:
         logger.error(f"❌ Failed to process Kaggle callback: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -82,10 +82,10 @@ async def process_kaggle_results(callback: KaggleCallbackRequest):
     try:
         if callback.status == "success" and callback.result:
             logger.info(f"✅ Processed results for job {callback.job_id}")
-            
+
         elif callback.status == "failed":
             logger.error(f"❌ Job {callback.job_id} failed: {callback.error}")
-            
+
     except Exception as e:
         logger.error(f"❌ Error processing results: {e}")
 
@@ -96,19 +96,19 @@ async def get_job_status(job_id: str):
     orchestrator = KaggleOrchestrator.get_instance()
     if not orchestrator.redis_client:
         raise HTTPException(status_code=503, detail="Redis connection unavailable")
-        
+
     job_key = f"kaggle:job:{job_id}"
     job_data = await orchestrator.redis_client.hgetall(job_key)
-    
+
     if not job_data:
         raise HTTPException(status_code=404, detail="Job not found")
-        
+
     # parse json fields
     if "payload" in job_data:
         job_data["payload"] = json.loads(job_data["payload"])
     if "result" in job_data:
         job_data["result"] = json.loads(job_data["result"])
-        
+
     return {"job": job_data}
 
 
@@ -121,7 +121,7 @@ async def kaggle_statistics():
 
 class JobSubmitRequest(BaseModel):
     task_type: str
-    payload: Dict[str, Any]
+    payload: dict[str, Any]
     priority: int = 5
     estimated_hours: float = 2.0
 
@@ -130,12 +130,12 @@ class JobSubmitRequest(BaseModel):
 async def submit_kaggle_job(request: JobSubmitRequest):
     """Submit a new job to Kaggle queue."""
     orchestrator = KaggleOrchestrator.get_instance()
-    
+
     try:
         task_type_enum = KaggleTaskType(request.task_type)
     except ValueError:
         raise HTTPException(status_code=400, detail=f"Invalid task_type: {request.task_type}")
-        
+
     try:
         job_id = await orchestrator.submit_job(
             task_type=task_type_enum,

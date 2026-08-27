@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -15,7 +15,7 @@ class CriterionResult:
     evidence: str = ""
     is_required: bool = True
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "criterion": self.criterion,
             "passed": self.passed,
@@ -31,22 +31,22 @@ class VerificationSummary:
     verified: bool = False
     policy_used: str = "standard"
     score: float = 0.0  # Objective evidence score 0.0 - 1.0
-    criteria_results: List[CriterionResult] = field(default_factory=list)
-    failures: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
-    evidence: List[str] = field(default_factory=list)
+    criteria_results: list[CriterionResult] = field(default_factory=list)
+    failures: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    evidence: list[str] = field(default_factory=list)
     recommendation: str = "PASS"
     verification_time_ms: float = 0.0
 
     @property
-    def criteria_passed(self) -> List[str]:
+    def criteria_passed(self) -> list[str]:
         return [c.criterion for c in self.criteria_results if c.passed]
 
     @property
-    def criteria_failed(self) -> List[str]:
+    def criteria_failed(self) -> list[str]:
         return [c.criterion for c in self.criteria_results if not c.passed] + self.failures
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "verified": self.verified,
             "policy_used": self.policy_used,
@@ -73,12 +73,12 @@ class TaskResult:
     execution_time_ms: float
     provider_used: str = "Gemini"
     verification: VerificationSummary = field(default_factory=VerificationSummary)
-    components_used: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    error: Optional[str] = None
+    components_used: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+    error: str | None = None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "task_id": self.task_id,
             "success": self.success,

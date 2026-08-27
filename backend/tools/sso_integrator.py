@@ -2,10 +2,8 @@ from typing import Any, ClassVar
 from urllib.parse import parse_qs, urlparse
 
 import defusedxml.ElementTree as ET  # -- standard idiom (mirrors stdlib xml.etree.ElementTree as ET)
-from loguru import logger
-
 import jwt
-from jwt import PyJWTError as JWTError
+from loguru import logger
 
 
 class SSOIntegrator:

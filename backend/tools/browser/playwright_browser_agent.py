@@ -282,7 +282,7 @@ class PlaywrightBrowserAgent:
             page.close()
             context.close()
             asyncio.run(stealth_manager.close())
-            
+
     async def upload_file(self, selector: str, file_path: str) -> dict:
         """
         browser_file_upload - Per Master Plan Pillar 2
@@ -295,16 +295,16 @@ class PlaywrightBrowserAgent:
         context, stealth_manager = self._new_context("upload-session")
         page = context.new_page()
         (page.set_default_timeout(self.timeout_ms) if hasattr(page, "set_default_timeout") else None)
-        
+
         try:
             # Locate file input element
             file_input = page.locator(selector)
             if not file_input:
                 return {"success": False, "error": f"File input not found: {selector}"}
-            
+
             # Set files
             file_input.set_input_files(file_path)
-            
+
             return {
                 "success": True,
                 "message": f"Uploaded: {file_path}",

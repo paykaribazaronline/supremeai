@@ -5,9 +5,9 @@ from __future__ import annotations
 import asyncio
 import secrets
 
+import jwt
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-import jwt
 from loguru import logger
 
 from core.config import settings

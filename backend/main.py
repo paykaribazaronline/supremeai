@@ -13,6 +13,7 @@ if not os.getenv("ENV"):
 
 # Initialize global silent catcher before any other imports that might spawn threads
 from core.intelligent_silent_catcher import setup_silent_catcher
+
 setup_silent_catcher()
 
 # ----------------- SUPERAI ENV VALIDATION -----------------

@@ -4,9 +4,9 @@
 
 import pytest
 
-from services.auto_healer import AutoHealer
 from core.failure_fingerprint import make_fingerprint
 from core.resilience.rollback_monitor import RollbackMonitor
+from services.auto_healer import AutoHealer
 from tools.learning.model_trainer import ModelTrainer
 
 

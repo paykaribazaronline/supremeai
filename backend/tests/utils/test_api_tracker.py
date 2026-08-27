@@ -1,4 +1,3 @@
-import sys
 import time
 
 from utils.api_tracker import APICallRecord, APITracker, get_tracker

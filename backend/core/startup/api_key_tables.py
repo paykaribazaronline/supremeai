@@ -9,6 +9,7 @@ from loguru import logger
 from core.metrics_collector import record_db_operation
 from core.pgbouncer_pool import get_db_pool
 
+
 async def ensure_api_key_tables() -> None:
     """Ensure API key database tables exist."""
     pool = await get_db_pool()

@@ -16,9 +16,9 @@ Memory: Starts at ~500MB, grows to ~2-5GB as it learns.
 import hashlib
 import json
 import sqlite3
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from pathlib import Path
 from typing import Any
 
@@ -83,7 +83,7 @@ class SupremeLearningEngine:
             "fallback_answers": 0,
             "self_sufficiency_rate": 0.0,
         }
-        
+
         self._response_callbacks: list[Callable] = []
         self._pre_query_hooks: list[Callable] = []
 
@@ -94,7 +94,7 @@ class SupremeLearningEngine:
     def register_response_callback(self, callback: Callable) -> None:
         """Register a callback to be called after each LLM response."""
         self._response_callbacks.append(callback)
-        
+
     def register_pre_query_hook(self, hook: Callable) -> None:
         """Register a hook to check if we can answer without LLM."""
         self._pre_query_hooks.append(hook)
@@ -234,15 +234,14 @@ class SupremeLearningEngine:
         min_confidence: float = 0.75,
     ) -> dict:
         """Process a chat message with learning integration."""
-        import asyncio
         task_type = self._classify_task_type(query)
-        
+
         can_answer, confidence, pattern = self.can_answer_independently(
             query=query,
             task_type=task_type,
             min_confidence=min_confidence
         )
-        
+
         if can_answer and pattern:
             response = self.generate_independent_response(
                 query=query,
@@ -282,7 +281,7 @@ class SupremeLearningEngine:
     ) -> dict:
         import asyncio
         task_type = self._classify_task_type(query)
-        
+
         pattern = self.learn_from_interaction(
             query=query,
             response=response,
@@ -290,7 +289,7 @@ class SupremeLearningEngine:
             task_type=task_type,
             user_feedback=user_feedback,
         )
-        
+
         for callback in self._response_callbacks:
             try:
                 if asyncio.iscoroutinefunction(callback):
@@ -299,7 +298,7 @@ class SupremeLearningEngine:
                     callback(pattern, query, response)
             except Exception as e:
                 logger.warning(f"Response callback failed: {e}")
-        
+
         return pattern
 
     def _classify_task_type(self, query: str) -> str:
@@ -611,11 +610,10 @@ async def teardown_learning_engine():
 def add_learning_middleware(app):
     from starlette.middleware.base import BaseHTTPMiddleware
     from starlette.requests import Request
-    from starlette.responses import Response
-    
+
     class LearningMiddleware(BaseHTTPMiddleware):
         async def dispatch(self, request: Request, call_next):
             response = await call_next(request)
             return response
-            
+
     app.add_middleware(LearningMiddleware)

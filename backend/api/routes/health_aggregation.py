@@ -3,11 +3,11 @@ Admin Health Aggregation Endpoint
 Aggregates health status from all microservices and external dependencies.
 """
 
-from fastapi import APIRouter, HTTPException, Query
-from typing import Dict, List, Optional
-from datetime import datetime, timedelta
 import asyncio
+from datetime import datetime
+
 import httpx
+from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/admin-api", tags=["health"])
@@ -20,9 +20,9 @@ class ServiceHealth(BaseModel):
     name: str
     display_name: str
     status: str  # healthy, degraded, unhealthy, unknown
-    response_time_ms: Optional[float] = None
-    status_code: Optional[int] = None
-    error: Optional[str] = None
+    response_time_ms: float | None = None
+    status_code: int | None = None
+    error: str | None = None
     last_check: datetime
     url: str
     critical: bool = False
@@ -30,16 +30,16 @@ class ServiceHealth(BaseModel):
 class HealthAggregationResponse(BaseModel):
     timestamp: datetime
     overall_status: str
-    services: List[ServiceHealth]
-    summary: Dict[str, int]
+    services: list[ServiceHealth]
+    summary: dict[str, int]
     uptime_percentage: float
-    alerts: List[str]
+    alerts: list[str]
 
 class DependencyHealth(BaseModel):
     database: ServiceHealth
     redis: ServiceHealth
     supabase: ServiceHealth
-    llm_providers: Dict[str, ServiceHealth]
+    llm_providers: dict[str, ServiceHealth]
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SERVICE REGISTRY
@@ -55,7 +55,7 @@ SERVICE_REGISTRY = [
     },
     {
         "name": "admin_backend",
-        "display_name": "Admin Backend", 
+        "display_name": "Admin Backend",
         "url": "https://supremeai-admin.onrender.com/api/v1/health",
         "critical": True,
         "timeout": 8.0,
@@ -86,19 +86,19 @@ LLM_PROVIDERS = {
 # HEALTH CHECK FUNCTIONS
 # ══════════════════════════════════════════════════════════════════════════════
 
-async def check_single_service(config: Dict) -> ServiceHealth:
+async def check_single_service(config: dict) -> ServiceHealth:
     """Perform async health check on a single service."""
     start_time = datetime.now()
-    
+
     try:
         async with httpx.AsyncClient(timeout=config["timeout"]) as client:
             response = await client.get(
                 config["url"],
                 headers={"User-Agent": "SupremeAI-HealthChecker/2.0"},
             )
-            
+
             response_time = (datetime.now() - start_time).total_seconds() * 1000
-            
+
             if response.status_code == 200:
                 # Try to parse health details from response
                 try:
@@ -114,7 +114,7 @@ async def check_single_service(config: Dict) -> ServiceHealth:
                 status = "unhealthy"
             else:
                 status = "degraded"
-                
+
             return ServiceHealth(
                 name=config["name"],
                 display_name=config["display_name"],
@@ -125,7 +125,7 @@ async def check_single_service(config: Dict) -> ServiceHealth:
                 url=config["url"],
                 critical=config.get("critical", False),
             )
-            
+
     except httpx.TimeoutException:
         return ServiceHealth(
             name=config["name"],
@@ -150,11 +150,11 @@ async def check_single_service(config: Dict) -> ServiceHealth:
         )
 
 
-async def check_all_services() -> List[ServiceHealth]:
+async def check_all_services() -> list[ServiceHealth]:
     """Check all registered services concurrently."""
     tasks = [check_single_service(svc) for svc in SERVICE_REGISTRY]
     results = await asyncio.gather(*tasks, return_exceptions=True)
-    
+
     # Convert exceptions to unhealthy status
     services = []
     for i, result in enumerate(results):
@@ -170,30 +170,30 @@ async def check_all_services() -> List[ServiceHealth]:
             ))
         else:
             services.append(result)
-    
+
     return services
 
 
-def calculate_overall_status(services: List[ServiceHealth]) -> tuple:
+def calculate_overall_status(services: list[ServiceHealth]) -> tuple:
     """Calculate overall system status."""
     counts = {"healthy": 0, "degraded": 0, "unhealthy": 0, "unknown": 0}
-    
+
     for svc in services:
         counts[svc.status] = counts.get(svc.status, 0) + 1
-    
+
     # Critical services down = overall unhealthy
     critical_unhealthy = any(
-        svc.critical and svc.status in ("unhealthy", "unknown") 
+        svc.critical and svc.status in ("unhealthy", "unknown")
         for svc in services
     )
-    
+
     if critical_unhealthy or counts["unhealthy"] > 0:
         overall = "unhealthy"
     elif counts["degraded"] > 0:
         overall = "degraded"
     else:
         overall = "healthy"
-    
+
     return overall, counts
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -208,10 +208,10 @@ async def get_health_aggregation():
     """
     # Check all services concurrently
     services = await check_all_services()
-    
+
     # Calculate overall status
     overall_status, summary = calculate_overall_status(services)
-    
+
     # Generate alerts for unhealthy critical services
     alerts = []
     for svc in services:
@@ -219,7 +219,7 @@ async def get_health_aggregation():
             alerts.append(f"🚨 CRITICAL: {svc.display_name} is {svc.status.upper()}")
         elif svc.status == "degraded":
             alerts.append(f"⚠️ WARNING: {svc.display_name} is degraded")
-    
+
     return HealthAggregationResponse(
         timestamp=datetime.utcnow(),
         overall_status=overall_status,
@@ -238,7 +238,7 @@ async def get_health_map():
     """
     services = await check_all_services()
     overall_status, _ = calculate_overall_status(services)
-    
+
     # Group by provider/type
     health_map = {}
     for svc in services:
@@ -251,13 +251,13 @@ async def get_health_map():
             provider = "railway"
         else:
             provider = "other"
-        
+
         if provider not in health_map or health_map[provider]["status"] == "healthy":
             health_map[provider] = {
                 "status": svc.status if svc.status != "healthy" else "healthy",
                 "service": svc.display_name,
             }
-    
+
     return health_map
 
 
@@ -268,7 +268,7 @@ async def check_dependencies():
     """
     # This would integrate with your actual dependency checks
     # For now, returning placeholder implementation
-    
+
     return {
         "database": {"status": "healthy", "connection_pool_active": 5},
         "redis": {"status": "healthy", "memory_usage_mb": 12},
@@ -288,14 +288,14 @@ async def test_specific_service(service_url: str = Query(...)):
     Useful for ad-hoc debugging from admin panel.
     """
     start_time = datetime.now()
-    
+
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(
                 service_url,
                 headers={"User-Agent": "SupremeAI-Admin-Test/1.0"},
             )
-            
+
             return {
                 "success": True,
                 "url": service_url,

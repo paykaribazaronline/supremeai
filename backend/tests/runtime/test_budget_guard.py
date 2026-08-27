@@ -2,6 +2,7 @@
 """Tests for Runtime BudgetGuard enforcement."""
 
 import pytest
+
 from core.task_contract import TaskBudget, TaskContract
 from runtime.budget_guard import BudgetExceededError, BudgetGuard
 

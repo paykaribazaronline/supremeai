@@ -1,8 +1,9 @@
 # backend/tests/services/test_intent_deciphering.py
-import pytest
 from unittest.mock import MagicMock
 
-from services.intent_deciphering import IntentAnalysis, IntentDecipheringService
+import pytest
+
+from services.intent_deciphering import IntentDecipheringService
 
 
 @pytest.fixture

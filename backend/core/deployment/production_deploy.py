@@ -40,7 +40,7 @@ try:
 except ImportError:
     import httpx as requests  # type: ignore
 
-    setattr(requests, "exceptions", type("exceptions", (), {"RequestException": Exception}))
+    requests.exceptions = type("exceptions", (), {"RequestException": Exception})
 
 import logging
 

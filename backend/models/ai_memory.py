@@ -39,7 +39,7 @@ from core.db import Base
 
 class AIMemory(Base):
     """AI Memory entries with vector embeddings for semantic search."""
-    
+
     __tablename__ = "ai_memory"
 
     # Primary key
@@ -48,7 +48,7 @@ class AIMemory(Base):
         primary_key=True,
         default=uuid.uuid4,
     )
-    
+
     # Owner reference
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -63,7 +63,7 @@ class AIMemory(Base):
         String(50),
         default="text",  # text, conversation, preference, fact
     )
-    
+
     # Vector embedding (1536 dimensions for OpenAI ada-002)
     embedding: Mapped[list[float]] = mapped_column(
         # Note: Requires pgvector extension installed
@@ -134,7 +134,7 @@ class AIMemory(Base):
         user_id: uuid.UUID | None = None,
         limit: int = 10,
         threshold: float = 0.7,
-    ) -> list["AIMemory"]:
+    ) -> list[AIMemory]:
         """
         Perform vector similarity search.
         
@@ -149,7 +149,7 @@ class AIMemory(Base):
             List of AIMemory ordered by similarity
         """
         from sqlalchemy import select
-        
+
         # Build query with optional user filter
         query = select(cls).order_by(
             cls.embedding.cosine_distance(query_embedding)
@@ -181,7 +181,7 @@ class AIMemory(Base):
         embedding: list[float] | None = None,
         content_type: str = "text",
         metadata: dict[str, Any] | None = None,
-    ) -> "AIMemory":
+    ) -> AIMemory:
         """Store a new memory entry."""
         memory = cls(
             user_id=user_id,

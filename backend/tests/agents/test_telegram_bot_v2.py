@@ -1,7 +1,9 @@
 import hashlib
 import hmac
-import pytest
 from unittest.mock import AsyncMock
+
+import pytest
+
 from tools.social.telegram_bot import TelegramBotHandler
 from tools.social.telegram_security import security_guard
 

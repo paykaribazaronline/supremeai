@@ -1,6 +1,9 @@
 import datetime
-from sqlalchemy import Column, String, Text, Boolean, DateTime
+
+from sqlalchemy import Boolean, Column, DateTime, String, Text
+
 from models.base import Base
+
 
 class SystemAlert(Base):
     __tablename__ = "system_alerts"

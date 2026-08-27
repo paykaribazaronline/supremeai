@@ -131,14 +131,13 @@ class TestTrustedOriginMiddleware:
         middleware = TrustedOriginMiddleware(app)
         request = self._make_request(origin="https://trusted.com")
 
-        with patch.dict("os.environ", {"ENV": "production"}):
-            with patch(
-                "core.security.origin_validator.TrustedOriginMiddleware.allowed_origins",
-                new_callable=PropertyMock,
-            ) as mock_origins:
-                mock_origins.return_value = {"https://trusted.com"}
-                await middleware.dispatch(request, app)
-                app.assert_awaited_once()
+        with patch.dict("os.environ", {"ENV": "production"}), patch(
+            "core.security.origin_validator.TrustedOriginMiddleware.allowed_origins",
+            new_callable=PropertyMock,
+        ) as mock_origins:
+            mock_origins.return_value = {"https://trusted.com"}
+            await middleware.dispatch(request, app)
+            app.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_missing_origin_passes(self):

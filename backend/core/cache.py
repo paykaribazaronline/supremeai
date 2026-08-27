@@ -11,9 +11,10 @@ Version: 1.0.0
 import hashlib
 import json
 import logging
-from typing import Any, Optional, Callable, Awaitable
-from datetime import datetime, timedelta
+from collections.abc import Awaitable, Callable
+from datetime import datetime
 from functools import wraps
+from typing import Any
 
 import redis.asyncio as aioredis
 from redis.exceptions import RedisError
@@ -43,17 +44,17 @@ class QueryCache:
             ttl_seconds=3600
         )
     """
-    
+
     # Default TTL values (in seconds)
     DEFAULT_TTL = 86400      # 24 hours for exact matches
     SEMANTIC_TTL = 3600      # 1 hour for semantic matches
     SHORT_TTL = 300          # 5 minutes for frequently changing data
-    
+
     # Cache key prefixes
     PREFIX_EXACT = "llm:exact:"
     PREFIX_SEMANTIC = "llm:semantic:"
     PREFIX_STATS = "llm:stats:"
-    
+
     def __init__(
         self,
         redis_url: str = "redis://localhost:6379",
@@ -74,15 +75,15 @@ class QueryCache:
         self.enabled = enabled
         self.default_ttl = default_ttl
         self.max_cache_size = max_cache_size
-        self._redis: Optional[aioredis.Redis] = None
+        self._redis: aioredis.Redis | None = None
         self._stats = {
             "hits": 0,
             "misses": 0,
             "errors": 0,
             "semantic_hits": 0
         }
-    
-    async def _get_redis(self) -> Optional[aioredis.Redis]:
+
+    async def _get_redis(self) -> aioredis.Redis | None:
         """Get or create Redis connection with lazy initialization."""
         if not self._redis:
             try:
@@ -101,7 +102,7 @@ class QueryCache:
                 self._redis = None
                 self.enabled = False
         return self._redis
-    
+
     @staticmethod
     def hash_query(query: str, **metadata) -> str:
         """
@@ -116,21 +117,21 @@ class QueryCache:
         """
         # Normalize query: lowercase, strip whitespace
         normalized = " ".join(query.lower().split())
-        
+
         # Create hashable content
         content = {
             "q": normalized,
             **{k: v for k, v in sorted(metadata.items())}
         }
         content_str = json.dumps(content, sort_keys=True)
-        
+
         return hashlib.sha256(content_str.encode()).hexdigest()
-    
+
     async def get(
         self,
         query_hash: str,
         prefix: str = PREFIX_EXACT
-    ) -> Optional[Any]:
+    ) -> Any | None:
         """
         Retrieve cached result if exists and not expired.
         
@@ -143,36 +144,36 @@ class QueryCache:
         """
         if not self.enabled:
             return None
-            
+
         redis = await self._get_redis()
         if not redis:
             return None
-        
+
         try:
             cache_key = f"{prefix}{query_hash}"
             cached_data = await redis.get(cache_key)
-            
+
             if cached_data:
                 data = json.loads(cached_data)
                 self._stats["hits"] += 1
                 logger.debug(f"🎯 Cache hit for {query_hash[:8]}...")
                 return data["result"]
-            
+
             self._stats["misses"] += 1
             return None
-            
+
         except (RedisError, json.JSONDecodeError) as e:
             logger.warning(f"Cache get error: {e}")
             self._stats["errors"] += 1
             return None
-    
+
     async def set(
         self,
         query_hash: str,
         result: Any,
-        ttl: Optional[int] = None,
+        ttl: int | None = None,
         prefix: str = PREFIX_EXACT,
-        metadata: Optional[dict] = None
+        metadata: dict | None = None
     ) -> bool:
         """
         Store result in cache with TTL.
@@ -189,38 +190,38 @@ class QueryCache:
         """
         if not self.enabled:
             return False
-            
+
         redis = await self._get_redis()
         if not redis:
             return False
-        
+
         try:
             cache_key = f"{prefix}{query_hash}"
             ttl = ttl or self.default_ttl
-            
+
             data = {
                 "result": result,
                 "cached_at": datetime.utcnow().isoformat(),
                 "ttl": ttl,
                 "metadata": metadata or {}
             }
-            
+
             await redis.setex(cache_key, ttl, json.dumps(data))
             logger.debug(f"💾 Cached {query_hash[:8]}... for {ttl}s")
             return True
-            
+
         except (RedisError, json.JSONEncodeError) as e:
             logger.warning(f"Cache set error: {e}")
             self._stats["errors"] += 1
             return False
-    
+
     async def get_or_compute(
         self,
         query: str,
         compute_fn: Callable[..., Awaitable[Any]],
         model: str = "default",
         temperature: float = 0.7,
-        ttl: Optional[int] = None,
+        ttl: int | None = None,
         **kwargs
     ) -> tuple[Any, dict]:
         """
@@ -244,17 +245,17 @@ class QueryCache:
             model=model,
             temperature=temperature
         )
-        
+
         # Try cache first
         cached = await self.get(query_hash)
         if cached is not None:
             return cached, {"source": "cache", "hit_type": "exact"}
-        
+
         # Cache miss - compute
         logger.debug(f"⚡ Computing fresh result for {query_hash[:8]}...")
         try:
             result = await compute_fn(**kwargs)
-            
+
             # Store in cache
             await self.set(
                 query_hash=query_hash,
@@ -266,13 +267,13 @@ class QueryCache:
                     "result_length": len(str(result)) if result else 0
                 }
             )
-            
+
             return result, {"source": "computed", "cached": True}
-            
+
         except Exception as e:
             logger.error(f"Computation failed: {e}")
             raise
-    
+
     async def invalidate(self, query_hash: str, prefix: str = PREFIX_EXACT) -> bool:
         """Invalidate a specific cache entry."""
         redis = await self._get_redis()
@@ -284,7 +285,7 @@ class QueryCache:
         except RedisError as e:
             logger.error(f"Invalidation error: {e}")
             return False
-    
+
     async def clear_pattern(self, pattern: str = "llm:*") -> int:
         """Clear all cache entries matching pattern. Use carefully!"""
         redis = await self._get_redis()
@@ -298,7 +299,7 @@ class QueryCache:
         except RedisError as e:
             logger.error(f"Pattern clear error: {e}")
             return 0
-    
+
     def get_stats(self) -> dict:
         """Return cache performance statistics."""
         total = self._stats["hits"] + self._stats["misses"]
@@ -308,7 +309,7 @@ class QueryCache:
             "enabled": self.enabled,
             "connected": self._redis is not None
         }
-    
+
     async def close(self):
         """Close Redis connection gracefully."""
         if self._redis:
@@ -317,7 +318,7 @@ class QueryCache:
 
 
 # Singleton instance for application-wide use
-_global_cache: Optional[QueryCache] = None
+_global_cache: QueryCache | None = None
 
 
 def get_cache() -> QueryCache:
@@ -345,11 +346,11 @@ def cached_llm_call(ttl: int = QueryCache.DEFAULT_TTL):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             cache = get_cache()
-            
+
             # Build cache key from args
             query = str(args[0]) if args else str(kwargs.get('prompt', ''))
             model = kwargs.get('model', 'default')
-            
+
             return await cache.get_or_compute(
                 query=query,
                 compute_fn=lambda **kw: func(*args, **kwargs),

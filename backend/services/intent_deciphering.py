@@ -9,7 +9,6 @@ Autonomous intent interpretation:
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -123,7 +122,7 @@ class IntentDecipheringService:
 
         # Pattern: Refactor / Consolidation / Structural Cleanup
         elif any(w in lowered for w in ["refactor", "cleanup", "consolidate", "একীভূত", "মুছে", "remove duplicate"]):
-            ultimate_goal = f"Unify redundant abstractions and remove duplicate code while maintaining parity"
+            ultimate_goal = "Unify redundant abstractions and remove duplicate code while maintaining parity"
             invariants.append("strict_backward_compatibility")
             methodology = "single_source_of_truth_migration_with_facades"
 

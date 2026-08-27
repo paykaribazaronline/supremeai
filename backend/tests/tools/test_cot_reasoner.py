@@ -180,12 +180,11 @@ class TestVerifySymbolicMath:
             def sympify(x):
                 raise RuntimeError("bad")
 
-        with patch.dict("sys.modules", {"sympy": FakeSympyRaise()}):
-            with patch(
-                "backend.tools.code.cot_reasoner._safe_eval_math",
-                side_effect=ValueError("bad"),
-            ):
-                result = verify_symbolic_math("???", "???")
+        with patch.dict("sys.modules", {"sympy": FakeSympyRaise()}), patch(
+            "backend.tools.code.cot_reasoner._safe_eval_math",
+            side_effect=ValueError("bad"),
+        ):
+            result = verify_symbolic_math("???", "???")
         assert result["is_verified"] is False
         assert "error" in result
 

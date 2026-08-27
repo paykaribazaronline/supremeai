@@ -6,8 +6,6 @@
 import sys
 from unittest.mock import MagicMock
 
-import pytest
-
 # Import guard: evolution modules may transitively import optional google.genai.
 sys.modules.setdefault("google", MagicMock())
 sys.modules.setdefault("google.genai", MagicMock())

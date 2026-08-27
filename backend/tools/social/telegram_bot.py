@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 """
 SupremeAI 2.0 — Telegram Bot Handler (Production-Ready)
 
@@ -817,6 +816,7 @@ class TelegramBotHandler:
 
     async def _handle_status(self, chat_id: int | str) -> None:
         import time as _time
+
         import httpx as _httpx
 
         status_lines = [

@@ -1,11 +1,10 @@
 # tests/test_ephemeral_executor.py
 """Tests for EphemeralExecutor - secure code execution with cleanup."""
 
-import pytest
-import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch, PropertyMock
-import os
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 
 class TestEphemeralExecutorSecurity:

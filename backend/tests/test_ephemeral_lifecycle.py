@@ -1,6 +1,6 @@
 # tests/test_ephemeral_lifecycle.py
-import pytest
 from pathlib import Path
+
 from backend.agents.ephemeral_executor import EphemeralExecutor
 
 

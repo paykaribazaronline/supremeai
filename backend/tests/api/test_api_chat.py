@@ -3,7 +3,6 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
-from fastapi import HTTPException
 
 from api.routes.chat import ChatPayload, get_completion, stream_chat
 
@@ -88,7 +87,7 @@ async def test_get_completion_returns_graceful_fallback_on_model_failure(monkeyp
 
     async def mock_acompletion(prompt, task_type, stream):
         raise RuntimeError("boom")
-        
+
     async def mock_recall_memories(*args, **kwargs):
         return []
 
@@ -99,7 +98,7 @@ async def test_get_completion_returns_graceful_fallback_on_model_failure(monkeyp
     payload = ChatPayload(prompt="raise-error")
 
     result = await get_completion(request, payload, db=SimpleNamespace(tenant_id="tenant-3"))
-    
+
     assert result["success"] is True
     assert result["source"] == "no_match"
     assert "দুঃখিত" in result["response"]

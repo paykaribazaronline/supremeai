@@ -1,8 +1,8 @@
 # tests/test_e2e_chat.py
 """End-to-end tests for chat functionality using Playwright."""
 
+
 import pytest
-from unittest.mock import MagicMock
 
 
 class TestE2EChatBasic:

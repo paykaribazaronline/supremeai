@@ -3,14 +3,12 @@
 
 import os
 import sys
-import tempfile
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 # Add backend to the path to allow imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'backend'))
 
 import pytest
-from pydantic import ValidationError
 
 from backend.core.config import Settings, get_production_env
 
@@ -215,7 +213,7 @@ def test_get_production_env_missing_without_default():
     # Remove any existing variable
     if 'MISSING_TEST_VAR' in os.environ:
         del os.environ['MISSING_TEST_VAR']
-    
+
     with pytest.raises(ValueError, match="Configuration Error: MISSING_TEST_VAR must be explicitly defined."):
         get_production_env('MISSING_TEST_VAR')
 
@@ -225,7 +223,7 @@ def test_get_production_env_missing_with_default():
     # Remove any existing variable
     if 'MISSING_TEST_VAR_DEFAULT' in os.environ:
         del os.environ['MISSING_TEST_VAR_DEFAULT']
-    
+
     result = get_production_env('MISSING_TEST_VAR_DEFAULT', 'default_value')
     assert result == 'default_value'
 
@@ -263,13 +261,13 @@ def test_settings_reload_env_vars():
     """Test reloading environment variables."""
     settings = Settings()
     original_env = os.environ.get('TEST_RELOAD_VAR', 'original')
-    
+
     # Temporarily set a test variable
     os.environ['TEST_RELOAD_VAR'] = 'new_value'
-    
+
     # Reload should pick up the new value
     settings.reload_env_vars()
-    
+
     # Since reload_env_vars doesn't return anything, we just ensure it executes without error
     # The actual reloading would happen in a live scenario
     assert True  # Test passes if no exception is raised

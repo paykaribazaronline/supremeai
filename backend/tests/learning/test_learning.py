@@ -1,7 +1,6 @@
 # backend/tests/learning/test_learning.py
 """Tests for ExperienceStore and OutcomeAnalyzer."""
 
-import pytest
 from learning.experience import ExperienceRecord, get_experience_store
 from learning.outcome_analyzer import OutcomeClassification, get_outcome_analyzer
 

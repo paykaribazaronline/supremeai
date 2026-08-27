@@ -7,14 +7,12 @@ Automatic hyperparameter tuning using multiple optimization strategies
 
 from __future__ import annotations
 
-import asyncio
-import math
 import random
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 
 class TuningStrategy(str, Enum):
@@ -62,12 +60,12 @@ class TuningResult:
 class AutoTuner:
     """Automatic configuration and performance hyperparameter tuner."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
-        self.config: Dict[str, Any] = config or {}
-        self.parameters: Dict[str, TuningParameter] = {}
-        self.tuning_history: List[TuningResult] = []
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
+        self.config: dict[str, Any] = config or {}
+        self.parameters: dict[str, TuningParameter] = {}
+        self.tuning_history: list[TuningResult] = []
 
-        self.stats: Dict[str, Any] = {
+        self.stats: dict[str, Any] = {
             "total_tunings": 0,
             "successful_tunings": 0,
             "avg_improvement": 0.0,
@@ -91,9 +89,9 @@ class AutoTuner:
             step_size=step_size,
         )
 
-    async def tune_performance(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def tune_performance(self, context: dict[str, Any] | None = None) -> dict[str, Any]:
         """Tune performance parameters."""
-        results: List[TuningResult] = []
+        results: list[TuningResult] = []
         for name, param in list(self.parameters.items())[:3]:
             old_val = param.current_value
             # Bayesian/Simulated Annealing exploration
@@ -123,7 +121,7 @@ class AutoTuner:
             "results": [r.__dict__ for r in results],
         }
 
-    async def adjust_parameters(self, optimization: Dict[str, Any]) -> Dict[str, Any]:
+    async def adjust_parameters(self, optimization: dict[str, Any]) -> dict[str, Any]:
         return {"improvements": {"params": 0.05}, "status": "parameters_adjusted"}
 
     def _initialize_default_parameters(self) -> None:
@@ -136,7 +134,7 @@ class AutoTuner:
         for name, init, min_v, max_v, step in defaults:
             self.register_parameter(name, init, min_v, max_v, step)
 
-    def get_optimizer_stats(self) -> Dict[str, Any]:
+    def get_optimizer_stats(self) -> dict[str, Any]:
         return {
             "parameters_registered": len(self.parameters),
             "efficiency": 0.92,

@@ -20,7 +20,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional, Tuple
+
 from loguru import logger
 
 
@@ -40,12 +40,12 @@ class BrandViolation:
     violation_type: str
     severity: Severity
     suggested_replacement: str
-    position: Tuple[int, int]  # start, end
+    position: tuple[int, int]  # start, end
 
 
 # Patterns that indicate brand violations
 # Format: (pattern, severity, replacement_template)
-BRAND_PATTERNS: List[Tuple[re.Pattern, Severity, str]] = [
+BRAND_PATTERNS: list[tuple[re.Pattern, Severity, str]] = [
     # Critical: Direct identity claims
     (
         re.compile(r"(?i)(?:i am|i\'m)\s+(?:gpt|chatgpt|claude|gemini|groq)\s*-?\d*", re.IGNORECASE),
@@ -57,7 +57,7 @@ BRAND_PATTERNS: List[Tuple[re.Pattern, Severity, str]] = [
         Severity.CRITICAL,
         "I'm SupremeAI's intelligent assistant",
     ),
-    
+
     # High: Powered-by statements
     (
         re.compile(r"(?i)powered\s+by\s+(?:openai|anthropic|google|meta|groq)", re.IGNORECASE),
@@ -74,7 +74,7 @@ BRAND_PATTERNS: List[Tuple[re.Pattern, Severity, str]] = [
         Severity.HIGH,
         "developed by SupremeAI",
     ),
-    
+
     # Medium: Model name mentions in user-facing text
     (
         re.compile(r"(?i)(?:using|running|based on)\s+(?:gpt-?\d*|claude-?\d*|gemini-?\d*)", re.IGNORECASE),
@@ -86,7 +86,7 @@ BRAND_PATTERNS: List[Tuple[re.Pattern, Severity, str]] = [
         Severity.MEDIUM,
         "a SupremeAI model",
     ),
-    
+
     # Low: Technical references that might slip through
     (
         re.compile(r"(?i)(?:as)\s+(?:gpt|claude|gemini)", re.IGNORECASE),
@@ -100,7 +100,7 @@ class BrandComplianceChecker:
     """
     Checks and enforces brand compliance in AI responses.
     """
-    
+
     def __init__(self, strict_mode: bool = True):
         """
         Initialize checker.
@@ -109,15 +109,15 @@ class BrandComplianceChecker:
             strict_mode: If True, block responses with violations. If False, just sanitize.
         """
         self.strict_mode = strict_mode
-        self.violation_log: List[BrandViolation] = []
+        self.violation_log: list[BrandViolation] = []
         self.stats = {
             "total_checked": 0,
             "violations_found": 0,
             "responses_sanitized": 0,
             "responses_blocked": 0,
         }
-        
-    def check(self, text: str, is_user_facing: bool = True) -> Tuple[bool, List[BrandViolation]]:
+
+    def check(self, text: str, is_user_facing: bool = True) -> tuple[bool, list[BrandViolation]]:
         """
         Check text for brand violations.
         
@@ -130,12 +130,12 @@ class BrandComplianceChecker:
         """
         self.stats["total_checked"] += 1
         violations = []
-        
+
         for pattern, severity, replacement in BRAND_PATTERNS:
             # Skip low severity for non-user-facing text
             if not is_user_facing and severity in (Severity.LOW, Severity.INFO):
                 continue
-                
+
             match = pattern.search(text)
             if match:
                 violations.append(BrandViolation(
@@ -145,12 +145,12 @@ class BrandComplianceChecker:
                     suggested_replacement=replacement,
                     position=(match.start(), match.end()),
                 ))
-        
+
         if violations:
             self.stats["violations_found"] += len(violations)
-            
+
         return len(violations) == 0, violations
-    
+
     def sanitize(self, text: str) -> str:
         """
         Remove brand violations from text by replacing them.
@@ -163,7 +163,7 @@ class BrandComplianceChecker:
         """
         sanitized = text
         replacements_made = 0
-        
+
         for pattern, severity, replacement in BRAND_PATTERNS:
             matches = list(pattern.finditer(sanitized))
             if matches:
@@ -171,7 +171,7 @@ class BrandComplianceChecker:
                 for match in reversed(matches):
                     sanitized = sanitized[:match.start()] + replacement + sanitized[match.end():]
                     replacements_made += 1
-                    
+
                     self.violation_log.append(BrandViolation(
                         original_text=match.group(),
                         violation_type=pattern.pattern,
@@ -179,14 +179,14 @@ class BrandComplianceChecker:
                         suggested_replacement=replacement,
                         position=(match.start(), match.end()),
                     ))
-        
+
         if replacements_made > 0:
             self.stats["responses_sanitized"] += 1
             logger.info(f"🛡️ Sanitized {replacements_made} brand references")
-            
+
         return sanitized
-    
-    def check_and_sanitize(self, text: str, is_user_facing: bool = True) -> Tuple[str, bool, List[BrandViolation]]:
+
+    def check_and_sanitize(self, text: str, is_user_facing: bool = True) -> tuple[str, bool, list[BrandViolation]]:
         """
         Combined check and sanitize operation.
         
@@ -194,17 +194,17 @@ class BrandComplianceChecker:
             Tuple of (sanitized_text, was_clean, original_violations)
         """
         is_clean, violations = self.check(text, is_user_facing)
-        
+
         if not is_clean:
             if self.strict_mode and any(v.severity == Severity.CRITICAL for v in violations):
                 self.stats["responses_blocked"] += 1
                 return text, False, violations
-            
+
             sanitized = self.sanitize(text)
             return sanitized, True, violations
-        
+
         return text, True, []
-    
+
     def get_stats(self) -> dict:
         """Get compliance statistics."""
         return {
@@ -212,14 +212,14 @@ class BrandComplianceChecker:
             "recent_violations": len(self.violation_log),
             "strict_mode": self.strict_mode,
         }
-    
+
     def clear_log(self):
         """Clear violation log."""
         self.violation_log.clear()
 
 
 # Module-level singleton
-_checker_instance: Optional[BrandComplianceChecker] = None
+_checker_instance: BrandComplianceChecker | None = None
 
 
 def get_brand_checker(strict_mode: bool = True) -> BrandComplianceChecker:

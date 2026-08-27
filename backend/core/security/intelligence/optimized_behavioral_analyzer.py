@@ -11,8 +11,8 @@ import logging
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from datetime import datetime
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -54,12 +54,12 @@ class OptimizedBehaviorTracker:
         """
         self.window_size_seconds = window_size_hours * 3600
         self.max_events_per_user = max_events_per_user
-        
+
         # User-specific event deques for O(1) cleanup and boundedness
         self.user_events: dict[str, deque[BehaviorEvent]] = defaultdict(
             lambda: deque(maxlen=self.max_events_per_user)
         )
-        
+
         # O(1) lookup profiles
         self.user_profiles: dict[str, dict[str, Any]] = defaultdict(
             lambda: {
@@ -89,7 +89,7 @@ class OptimizedBehaviorTracker:
         profile["actions"][event.action] += 1
         profile["last_seen"] = event.timestamp
         profile["total_events"] += 1
-        
+
         # Pre-compute hour distribution
         hour = datetime.fromtimestamp(event.timestamp).hour
         profile["hourly_counts"][hour] += 1
@@ -103,11 +103,11 @@ class OptimizedBehaviorTracker:
         """
         cutoff = time.time() - self.window_size_seconds
         user_deque = self.user_events[user_id]
-        
+
         while user_deque and user_deque[0].timestamp <= cutoff:
             evicted_event = user_deque.popleft()
-            # We optionally could decrement counters here if absolute precision 
-            # within the exact window is needed, but typically keeping historical 
+            # We optionally could decrement counters here if absolute precision
+            # within the exact window is needed, but typically keeping historical
             # profile stats is fine for overall profiling.
 
     def get_user_pattern(self, user_id: str) -> dict[str, Any]:
@@ -121,13 +121,13 @@ class OptimizedBehaviorTracker:
         user_deque = self.user_events.get(user_id)
         if not user_deque:
             return []
-            
+
         # Iterate backwards (recent events first)
         for event in reversed(user_deque):
             if event.timestamp <= cutoff:
                 break
             recent_ips.add(event.ip_address)
-            
+
         return list(recent_ips)
 
 
@@ -140,7 +140,7 @@ class OptimizedAnomalyDetector:
         self.ip_churn_threshold = 5  # IPs per hour
         self.unusual_hour_threshold = 2  # Std devs from mean
 
-    def detect_ip_churn(self, user_id: str, current_ip: str) -> Optional[AnomalyAlert]:
+    def detect_ip_churn(self, user_id: str, current_ip: str) -> AnomalyAlert | None:
         """Detect IP churn (multiple IPs in short time)."""
         recent_ips = self.tracker.get_recent_ips(user_id, hours=1)
 
@@ -158,7 +158,7 @@ class OptimizedAnomalyDetector:
 
         return None
 
-    def detect_unusual_time(self, user_id: str) -> Optional[AnomalyAlert]:
+    def detect_unusual_time(self, user_id: str) -> AnomalyAlert | None:
         """Detect activity at unusual times using pre-computed distributions."""
         profile = self.tracker.user_profiles.get(user_id)
         if not profile or profile["total_events"] < 5:
@@ -182,7 +182,7 @@ class OptimizedAnomalyDetector:
         if std_dev > 0 and abs(current_hour - avg_hour) > (self.unusual_hour_threshold * std_dev):
             user_deque = self.tracker.user_events.get(user_id)
             last_ip = user_deque[-1].ip_address if user_deque else "unknown"
-            
+
             return AnomalyAlert(
                 severity="medium",
                 user_id=user_id,
@@ -196,21 +196,21 @@ class OptimizedAnomalyDetector:
 
         return None
 
-    def detect_rapid_actions(self, user_id: str, action: str, window_seconds: int = 60) -> Optional[AnomalyAlert]:
+    def detect_rapid_actions(self, user_id: str, action: str, window_seconds: int = 60) -> AnomalyAlert | None:
         """Detect rapid repeated actions efficiently."""
         cutoff = time.time() - window_seconds
         user_deque = self.tracker.user_events.get(user_id)
-        
+
         if not user_deque:
             return None
-            
+
         action_count = 0
         for event in reversed(user_deque):
             if event.timestamp <= cutoff:
                 break
             if event.action == action:
                 action_count += 1
-                
+
             if action_count > 10:
                 return AnomalyAlert(
                     severity="high",
@@ -225,7 +225,7 @@ class OptimizedAnomalyDetector:
 
         return None
 
-    def detect_new_user_pattern(self, user_id: str) -> Optional[AnomalyAlert]:
+    def detect_new_user_pattern(self, user_id: str) -> AnomalyAlert | None:
         """Detect if a user is exhibiting patterns inconsistent with their history."""
         profile = self.tracker.user_profiles.get(user_id)
         if not profile:
@@ -249,7 +249,7 @@ class OptimizedAnomalyDetector:
 # Factory functions & backward compatibility aliases
 BehaviorTracker = OptimizedBehaviorTracker
 
-def create_optimized_tracker(window_size_hours: int = 24) -> Tuple[OptimizedBehaviorTracker, OptimizedAnomalyDetector]:
+def create_optimized_tracker(window_size_hours: int = 24) -> tuple[OptimizedBehaviorTracker, OptimizedAnomalyDetector]:
     """Create and return an optimized tracker and detector pair."""
     tracker = OptimizedBehaviorTracker(window_size_hours=window_size_hours)
     detector = OptimizedAnomalyDetector(tracker)

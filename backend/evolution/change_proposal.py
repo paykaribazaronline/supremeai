@@ -7,15 +7,16 @@ Proposal -> Static/Security Scan -> Sandbox Benchmark -> Canary Gate -> Auto-Rol
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
-from datetime import datetime
-from enum import Enum
 import json
 import logging
 import os
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
 import uuid
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger("supremeai.evolution")
 
@@ -46,18 +47,18 @@ class ChangeProposal:
     title: str
     description: str
     change_type: ChangeType
-    diff_content: Dict[str, Any]
+    diff_content: dict[str, Any]
     target_module: str
     proposal_id: str = field(default_factory=lambda: f"prop_{uuid.uuid4().hex[:10]}")
     state: ProposalState = ProposalState.DRAFTED
     fitness_before: float = 0.0
-    fitness_after: Optional[float] = None
-    security_scan_results: Dict[str, Any] = field(default_factory=dict)
-    benchmark_metrics: Dict[str, Any] = field(default_factory=dict)
+    fitness_after: float | None = None
+    security_scan_results: dict[str, Any] = field(default_factory=dict)
+    benchmark_metrics: dict[str, Any] = field(default_factory=dict)
     canary_success_rate: float = 0.0
-    rejection_reason: Optional[str] = None
+    rejection_reason: str | None = None
     created_at: datetime = field(default_factory=datetime.now)
-    promoted_at: Optional[datetime] = None
+    promoted_at: datetime | None = None
 
     def advance_state(self, new_state: ProposalState) -> None:
         logger.info(f"🔄 Proposal [{self.proposal_id}] state: {self.state.value} -> {new_state.value}")
@@ -65,7 +66,7 @@ class ChangeProposal:
         if new_state == ProposalState.PROMOTED:
             self.promoted_at = datetime.now()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "proposal_id": self.proposal_id,
             "title": self.title,
@@ -88,17 +89,17 @@ class ChangeProposal:
 class ChangeProposalManager:
     """Governs the full lifecycle of AI self-modifications with persistent audit trail."""
 
-    def __init__(self, storage_dir: Optional[str] = None) -> None:
+    def __init__(self, storage_dir: str | None = None) -> None:
         self.storage_dir = Path(storage_dir or os.path.expanduser("~/.supremeai/proposals"))
         self.storage_dir.mkdir(parents=True, exist_ok=True)
-        self.proposals: Dict[str, ChangeProposal] = {}
-        self.active_canaries: List[str] = []
+        self.proposals: dict[str, ChangeProposal] = {}
+        self.active_canaries: list[str] = []
         self._load_persisted_proposals()
 
     def _load_persisted_proposals(self) -> None:
         try:
             for filepath in self.storage_dir.glob("prop_*.json"):
-                with open(filepath, "r", encoding="utf-8") as fh:
+                with open(filepath, encoding="utf-8") as fh:
                     data = json.load(fh)
                     proposal = ChangeProposal(
                         proposal_id=data["proposal_id"],
@@ -134,7 +135,7 @@ class ChangeProposalManager:
         title: str,
         description: str,
         change_type: ChangeType,
-        diff_content: Dict[str, Any],
+        diff_content: dict[str, Any],
         target_module: str,
         current_fitness: float = 0.8,
     ) -> ChangeProposal:
@@ -167,8 +168,8 @@ class ChangeProposalManager:
     async def evaluate_and_promote(
         self,
         proposal_id: str,
-        security_scanner_cb: Optional[Callable[[ChangeProposal], Any]] = None,
-        benchmarker_cb: Optional[Callable[[ChangeProposal], Any]] = None,
+        security_scanner_cb: Callable[[ChangeProposal], Any] | None = None,
+        benchmarker_cb: Callable[[ChangeProposal], Any] | None = None,
     ) -> bool:
         """Run full gate: Static Scan -> Benchmark -> Canary Gate -> Promotion."""
         proposal = self.proposals.get(proposal_id)
@@ -243,7 +244,7 @@ class ChangeProposalManager:
 
 
 # Global Singleton
-_change_manager: Optional[ChangeProposalManager] = None
+_change_manager: ChangeProposalManager | None = None
 
 
 def get_change_manager() -> ChangeProposalManager:

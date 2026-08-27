@@ -10,9 +10,10 @@ Version: 2.0.0
 
 import os
 import sys
-from enum import Enum
 from dataclasses import dataclass, field
-from typing import Optional, List, Dict, Any
+from enum import Enum
+from typing import Any
+
 from loguru import logger
 
 
@@ -31,14 +32,14 @@ class EnvVarDefinition:
     name: str
     description: str
     severity: EnvSeverity
-    default: Optional[str] = None
-    pattern: Optional[str] = None  # Regex pattern for validation
-    examples: List[str] = field(default_factory=list)
-    documentation_url: Optional[str] = None
+    default: str | None = None
+    pattern: str | None = None  # Regex pattern for validation
+    examples: list[str] = field(default_factory=list)
+    documentation_url: str | None = None
 
 
 # Complete environment variable registry based on .env.example
-ENV_REGISTRY: List[EnvVarDefinition] = [
+ENV_REGISTRY: list[EnvVarDefinition] = [
     # ── Core ──────────────────────────────────────────────────────────────
     EnvVarDefinition(
         name="ENV",
@@ -60,7 +61,7 @@ ENV_REGISTRY: List[EnvVarDefinition] = [
         severity=EnvSeverity.MEDIUM,
         default="0.0.0.0"
     ),
-    
+
     # ── Secrets (CRITICAL in production) ─────────────────────────────────
     EnvVarDefinition(
         name="SUPREMEAI_JWT_SECRET",
@@ -83,7 +84,7 @@ ENV_REGISTRY: List[EnvVarDefinition] = [
         severity=EnvSeverity.LOW,
         pattern=r"^sk-[a-zA-Z0-9]{32,}$"
     ),
-    
+
     # ── Database (Supabase) ───────────────────────────────────────────────
     EnvVarDefinition(
         name="SUPABASE_URL",
@@ -103,7 +104,7 @@ ENV_REGISTRY: List[EnvVarDefinition] = [
         severity=EnvSeverity.HIGH,
         pattern=r"^postgresql://[^:]+:[^@]+@[^:]+:\d+/.+$"
     ),
-    
+
     # ── Redis (Upstash) ───────────────────────────────────────────────────
     EnvVarDefinition(
         name="REDIS_URL",
@@ -121,7 +122,7 @@ ENV_REGISTRY: List[EnvVarDefinition] = [
         description="Upstash Redis REST authentication token",
         severity=EnvSeverity.MEDIUM
     ),
-    
+
     # ── LLM API Keys (at least one required) ─────────────────────────────
     EnvVarDefinition(
         name="OPENROUTER_API_KEY",
@@ -163,7 +164,7 @@ ENV_REGISTRY: List[EnvVarDefinition] = [
         severity=EnvSeverity.LOW,
         pattern=r"^hf_[a-zA-Z0-9]{34}$"
     ),
-    
+
     # ── Stripe ─────────────────────────────────────────────────────────────
     EnvVarDefinition(
         name="STRIPE_API_KEY",
@@ -177,7 +178,7 @@ ENV_REGISTRY: List[EnvVarDefinition] = [
         severity=EnvSeverity.MEDIUM,
         pattern=r"^whsec_[a-zA-Z0-9]+$"
     ),
-    
+
     # ── Infisical (Secret Vault) ──────────────────────────────────────────
     EnvVarDefinition(
         name="INFISICAL_TOKEN",
@@ -194,7 +195,7 @@ ENV_REGISTRY: List[EnvVarDefinition] = [
         description="Infisical Machine Identity client secret",
         severity=EnvSeverity.HIGH
     ),
-    
+
     # ── Observability ─────────────────────────────────────────────────────
     EnvVarDefinition(
         name="SENTRY_DSN",
@@ -207,7 +208,7 @@ ENV_REGISTRY: List[EnvVarDefinition] = [
         description="OpenTelemetry collector endpoint",
         severity=EnvSeverity.LOW
     ),
-    
+
     # ── Security ──────────────────────────────────────────────────────────
     EnvVarDefinition(
         name="ENFORCE_ANTI_HACKING",
@@ -228,9 +229,9 @@ ENV_REGISTRY: List[EnvVarDefinition] = [
 class ValidationResult:
     """Result of environment variable validation"""
     is_valid: bool
-    errors: List[Dict[str, Any]] = field(default_factory=list)
-    warnings: List[Dict[str, Any]] = field(default_factory=list)
-    info: List[Dict[str, Any]] = field(default_factory=list)
+    errors: list[dict[str, Any]] = field(default_factory=list)
+    warnings: list[dict[str, Any]] = field(default_factory=list)
+    info: list[dict[str, Any]] = field(default_factory=list)
     score: int = 0  # 0-100
 
 
@@ -247,7 +248,7 @@ class EnvironmentValidator:
             validator.print_report(result)
             sys.exit(1)
     """
-    
+
     def __init__(self, strict_mode: bool = False):
         """
         Initialize validator.
@@ -257,7 +258,7 @@ class EnvironmentValidator:
         """
         self.strict_mode = strict_mode
         self.registry = ENV_REGISTRY
-    
+
     def validate(self) -> ValidationResult:
         """
         Validate all registered environment variables.
@@ -268,10 +269,10 @@ class EnvironmentValidator:
         result = ValidationResult(is_valid=True)
         total_vars = len(self.registry)
         valid_count = 0
-        
+
         for env_def in self.registry:
             value = os.environ.get(env_def.name)
-            
+
             if value is None or value.strip() == '':
                 if env_def.default is not None:
                     # Use default value
@@ -285,7 +286,7 @@ class EnvironmentValidator:
                 else:
                     # Missing required variable
                     error_msg = self._format_missing_error(env_def)
-                    
+
                     if env_def.severity in [EnvSeverity.CRITICAL, EnvSeverity.HIGH]:
                         result.errors.append({
                             'variable': env_def.name,
@@ -308,7 +309,7 @@ class EnvironmentValidator:
                     import re
                     if not re.match(env_def.pattern, value):
                         msg = f'Invalid format for {env_def.name}. Expected pattern: {env_def.pattern}'
-                        
+
                         if env_def.severity == EnvSeverity.CRITICAL:
                             result.errors.append({
                                 'variable': env_def.name,
@@ -327,14 +328,14 @@ class EnvironmentValidator:
                         valid_count += 1
                 else:
                     valid_count += 1
-        
+
         # Calculate health score
         result.score = int((valid_count / total_vars) * 100)
-        
+
         # Check for at least one LLM provider
         llm_providers = ['OPENROUTER_API_KEY', 'OPENAI_API_KEY', 'GEMINI_API_KEY']
         has_llm_provider = any(os.environ.get(key) for key in llm_providers)
-        
+
         if not has_llm_provider:
             result.errors.append({
                 'variable': 'LLM_PROVIDERS',
@@ -342,26 +343,26 @@ class EnvironmentValidator:
                 'severity': 'critical'
             })
             result.is_valid = False
-        
+
         return result
-    
+
     def _format_missing_error(self, env_def: EnvVarDefinition) -> str:
         """Format user-friendly error message for missing variable"""
         examples_str = ''
         if env_def.examples:
             examples_str = f'\n  Examples: {", ".join(env_def.examples)}'
-        
+
         doc_url_str = ''
         if env_def.documentation_url:
             doc_url_str = f'\n  Docs: {env_def.documentation_url}'
-        
+
         return (
             f'Missing required environment variable: {env_def.name}\n'
             f'  Description: {env_def.description}'
             f'{examples_str}'
             f'{doc_url_str}'
         )
-    
+
     def print_report(self, result: ValidationResult) -> None:
         """Print validation report to console"""
         import logging; logging.getLogger(__name__).info('\n' + '='*70)
@@ -369,7 +370,7 @@ class EnvironmentValidator:
         import logging; logging.getLogger(__name__).info('='*70)
         import logging; logging.getLogger(__name__).info(f'\n📊 Health Score: {result.score}/100')
         import logging; logging.getLogger(__name__).info(f'   Status: {"✅ PASS" if result.is_valid else "❌ FAIL"}\n')
-        
+
         if result.errors:
             import logging; logging.getLogger(__name__).info('🚨 CRITICAL ERRORS (Must Fix):')
             import logging; logging.getLogger(__name__).info('-'*70)
@@ -378,20 +379,20 @@ class EnvironmentValidator:
                 import logging; logging.getLogger(__name__).info(f'   {error["message"]}')
                 if 'description' in error:
                     import logging; logging.getLogger(__name__).info(f'   📖 {error["description"]}')
-        
+
         if result.warnings:
             import logging; logging.getLogger(__name__).info('\n⚠️  WARNINGS (Recommended):')
             import logging; logging.getLogger(__name__).info('-'*70)
             for i, warning in enumerate(result.warnings, 1):
                 import logging; logging.getLogger(__name__).info(f'\n{i}. {warning["variable"]}')
                 import logging; logging.getLogger(__name__).info(f'   {warning["message"]}')
-        
+
         if result.info:
             import logging; logging.getLogger(__name__).info('\nℹ️  INFORMATION:')
             import logging; logging.getLogger(__name__).info('-'*70)
             for info in result.info[:5]:  # Show first 5
                 import logging; logging.getLogger(__name__).info(f'  • {info["variable"]}: {info["message"]}')
-        
+
         import logging; logging.getLogger(__name__).info('\n' + '='*70 + '\n')
 
 
@@ -407,12 +408,12 @@ def validate_environment(strict: bool = False) -> bool:
     """
     validator = EnvironmentValidator(strict_mode=strict)
     result = validator.validate()
-    
+
     if not result.is_valid:
         validator.print_report(result)
         logger.error(f"Environment validation failed with score: {result.score}/100")
         return False
-    
+
     logger.success(f"✅ Environment validation passed! Score: {result.score}/100")
     return True
 
@@ -420,15 +421,15 @@ def validate_environment(strict: bool = False) -> bool:
 # Auto-run when executed directly
 if __name__ == '__main__':
     import json
-    
+
     print("🔍 SupremeAI Environment Validator")
     print("=" * 50)
-    
+
     validator = EnvironmentValidator()
     result = validator.validate()
-    
+
     validator.print_report(result)
-    
+
     # Output JSON for CI/CD consumption
     output = {
         'valid': result.is_valid,
@@ -440,8 +441,8 @@ if __name__ == '__main__':
             'warnings': result.warnings
         }
     }
-    
+
     print('\n📋 JSON Output (for CI/CD):')
     print(json.dumps(output, indent=2))
-    
+
     sys.exit(0 if result.is_valid else 1)

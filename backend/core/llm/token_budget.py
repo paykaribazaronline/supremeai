@@ -21,14 +21,12 @@ Key features:
 
 import re
 import time
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from typing import Any
 
 from loguru import logger
 
-from core.messaging.event_bus import ErrorEvent
-from core.messaging.event_bus import error_event_bus
+from core.messaging.event_bus import ErrorEvent, error_event_bus
 
 # ---------------------------------------------------------------------------
 # Per-provider max token budgets (conservative — leaves headroom for system prompts)

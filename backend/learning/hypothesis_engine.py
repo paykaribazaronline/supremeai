@@ -3,11 +3,11 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
 import logging
-from typing import Any, Dict, List, Optional
 import uuid
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from typing import Any
 
 from evolution.change_proposal import (
     ChangeProposal,
@@ -20,7 +20,7 @@ from learning.evidence_analyzer import (
     PatternEvidenceMetrics,
     get_evidence_analyzer,
 )
-from learning.pattern_detector import DetectedPattern, PatternDetector, get_pattern_detector
+from learning.pattern_detector import PatternDetector, get_pattern_detector
 
 logger = logging.getLogger("supremeai.learning.hypothesis_engine")
 
@@ -32,23 +32,23 @@ class ImprovementHypothesis:
     category: str
     observation: str
     root_cause: str
-    proposed_change: Dict[str, Any]
+    proposed_change: dict[str, Any]
     target_module: str
-    evidence_metrics: Optional[PatternEvidenceMetrics] = None
+    evidence_metrics: PatternEvidenceMetrics | None = None
     expected_delta: float = 0.05
     risk_level: str = "LOW"  # "LOW", "MEDIUM", "HIGH", "CRITICAL"
     validation_plan: str = "Automated AST Security Scan + Comparative Benchmark + Canary Gate"
     confidence: float = 0.85
     hypothesis_id: str = field(default_factory=lambda: f"hyp_{uuid.uuid4().hex[:10]}")
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     @property
-    def evidence_ids(self) -> List[str]:
+    def evidence_ids(self) -> list[str]:
         if self.evidence_metrics and self.evidence_metrics.evidence_references:
             return [ref.task_id for ref in self.evidence_metrics.evidence_references]
         return []
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "hypothesis_id": self.hypothesis_id,
             "category": self.category,
@@ -70,17 +70,17 @@ class HypothesisEngine:
 
     def __init__(
         self,
-        detector: Optional[PatternDetector] = None,
-        analyzer: Optional[EvidenceAnalyzer] = None,
-        proposal_manager: Optional[ChangeProposalManager] = None,
+        detector: PatternDetector | None = None,
+        analyzer: EvidenceAnalyzer | None = None,
+        proposal_manager: ChangeProposalManager | None = None,
     ) -> None:
         self.detector = detector or get_pattern_detector()
         self.analyzer = analyzer or get_evidence_analyzer()
         self.proposal_manager = proposal_manager or get_change_manager()
 
-    def generate_hypotheses(self) -> List[ImprovementHypothesis]:
+    def generate_hypotheses(self) -> list[ImprovementHypothesis]:
         patterns = self.detector.analyze_patterns()
-        hypotheses: List[ImprovementHypothesis] = []
+        hypotheses: list[ImprovementHypothesis] = []
 
         for pat in patterns:
             metrics = self.analyzer.analyze_pattern_evidence(pat)
@@ -135,7 +135,7 @@ class HypothesisEngine:
 
         return hypotheses
 
-    def convert_hypothesis_to_proposal(self, hypothesis: ImprovementHypothesis) -> Optional[ChangeProposal]:
+    def convert_hypothesis_to_proposal(self, hypothesis: ImprovementHypothesis) -> ChangeProposal | None:
         """Convert a validated hypothesis with statistical evidence into a formal ChangeProposal."""
         if hypothesis.confidence < 0.70:
             logger.info(f"⏳ Hypothesis [{hypothesis.hypothesis_id}] confidence too low ({hypothesis.confidence}); skipping proposal.")
@@ -162,7 +162,7 @@ class HypothesisEngine:
 
 
 # Global Singleton
-_hypothesis_engine: Optional[HypothesisEngine] = None
+_hypothesis_engine: HypothesisEngine | None = None
 
 
 def get_hypothesis_engine() -> HypothesisEngine:

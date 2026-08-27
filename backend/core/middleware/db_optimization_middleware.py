@@ -5,18 +5,18 @@ import time
 from collections.abc import Callable
 from typing import Any
 
-from fastapi import Request, Response
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.database.query_optimizer import (
     DatabaseOptimizationMiddleware,
     query_optimizer,
     setup_query_profiling,
 )
-from core.logging_config import logger
 from core.memory.memory_manager import memory_manager, track_memory_usage
 from core.security.secret_scanner import secret_scanner
 from core.security.sql_injection_guard import sql_injection_middleware
+from fastapi import Request, Response
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.logging_config import logger
 
 
 class ComprehensiveDBOptimizationMiddleware:

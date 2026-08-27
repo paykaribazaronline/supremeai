@@ -7,18 +7,15 @@ Author: SuperAI Transformation Patch
 Version: 1.0.0
 """
 
-import time
-import asyncio
 import logging
-from typing import Optional
+import time
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import text
 
 from core.cache import get_cache
-from core.rate_limit import RateLimiter
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -30,7 +27,7 @@ class HealthStatus(BaseModel):
     version: str
     uptime_seconds: float
     services: dict
-    cache_stats: Optional[dict] = None
+    cache_stats: dict | None = None
 
 
 _start_time = time.time()
@@ -42,7 +39,7 @@ async def health_check():
     Comprehensive health check endpoint.
     """
     cache = get_cache()
-    
+
     return HealthStatus(
         status="healthy",
         timestamp=datetime.utcnow().isoformat(),

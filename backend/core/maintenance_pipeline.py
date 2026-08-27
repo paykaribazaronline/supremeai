@@ -20,11 +20,8 @@ import os
 import random
 import time
 
-from core.health.health_probes import probe_database
-from core.health.health_probes import probe_external_api
-from core.health.health_probes import probe_redis
-from core.messaging.event_bus import ErrorEvent
-from core.messaging.event_bus import error_event_bus
+from core.health.health_probes import probe_database, probe_external_api, probe_redis
+from core.messaging.event_bus import ErrorEvent, error_event_bus
 
 logger = logging.getLogger("supremeai.immune_system")
 

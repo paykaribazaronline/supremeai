@@ -397,9 +397,7 @@ class _SandboxVisitor(ast.NodeVisitor):
         if node.module:
             base_module = node.module.split(".")[0]
 
-            if base_module in BLOCKED_MODULES:
-                self.blocked_imports.add(node.module)
-            elif self.strict_mode and base_module not in self.safe_imports:
+            if base_module in BLOCKED_MODULES or self.strict_mode and base_module not in self.safe_imports:
                 self.blocked_imports.add(node.module)
 
     def visit_Subscript(self, node: ast.Subscript) -> None:

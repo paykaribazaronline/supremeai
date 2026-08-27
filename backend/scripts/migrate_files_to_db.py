@@ -31,12 +31,12 @@ import argparse
 import json
 import os
 import sys
+
 # বাংলা মন্তব্য (S314 ফিক্স): এই script শুধু repo-র নিজস্ব
 # docs/context_modules/*.xml পড়ে (developer-authored, trusted), তাই real
 # risk কম ছিল, কিন্তু defusedxml ইতিমধ্যে dependency-তে ছিল বলে best-practice
 # অনুযায়ী সরিয়ে নেওয়া হলো — billion-laughs/XXE class attack একদম বন্ধ।
 import defusedxml.ElementTree as ET
-
 import psycopg2
 from loguru import logger
 

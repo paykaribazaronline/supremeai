@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Optional
 import time
 from datetime import datetime
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
@@ -19,7 +19,7 @@ router = APIRouter(
 
 # Model for message persistence
 class MessageCreate(BaseModel):
-    conversation_id: Optional[str] = None
+    conversation_id: str | None = None
     message: dict
 
 class ConversationCreate(BaseModel):
@@ -218,17 +218,17 @@ async def save_message(req: MessageCreate, db=Depends(get_tenant_db)):
     Save a chat message to conversation history.
     Creates conversation if doesn't exist.
     """
-    import time
-    from core.config import settings
     import logging
+
+    from core.config import settings
     logger = logging.getLogger(__name__)
-    
+
     conversation_id = req.conversation_id or f"conv_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
-    
+
     try:
         # Get or create conversation
         conversation = await db.conversations.find_one({"_id": conversation_id})
-        
+
         if not conversation:
             await db.conversations.insert_one({
                 "_id": conversation_id,
@@ -238,13 +238,13 @@ async def save_message(req: MessageCreate, db=Depends(get_tenant_db)):
                 "messages": [],
                 "tags": [],
             })
-        
+
         # Append message
         message_doc = {
             **req.message,
             "saved_at": datetime.utcnow(),
         }
-        
+
         await db.conversations.update_one(
             {"_id": conversation_id},
             {
@@ -252,7 +252,7 @@ async def save_message(req: MessageCreate, db=Depends(get_tenant_db)):
                 "$set": {"updated_at": datetime.utcnow()}
             }
         )
-        
+
         # If RAG is enabled, also index for retrieval
         if hasattr(settings, 'RAG_ENABLED') and settings.RAG_ENABLED and req.message.get("role") == "user":
             try:
@@ -265,13 +265,13 @@ async def save_message(req: MessageCreate, db=Depends(get_tenant_db)):
                 )
             except Exception as e:
                 logger.warning(f"RAG indexing failed for message: {e}")
-        
+
         return {
             "success": True,
             "conversation_id": conversation_id,
             "message_id": req.message.get("id"),
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to save message: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -284,7 +284,7 @@ async def list_conversations(request: Request, db=Depends(get_tenant_db)):
     try:
         # Using tenant isolation inherently from get_tenant_db
         conversations = await db.conversations.find().sort("updated_at", -1).to_list(50)
-        
+
         # Format for frontend
         result = []
         for conv in conversations:
@@ -297,9 +297,9 @@ async def list_conversations(request: Request, db=Depends(get_tenant_db)):
                 "messageCount": len(conv.get("messages", [])),
                 "tags": conv.get("tags", []),
             })
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(f"Failed to list conversations: {e}")
         raise HTTPException(status_code=500, detail=str(e))

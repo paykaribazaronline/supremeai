@@ -1,7 +1,8 @@
 import asyncio
 import time
 from collections import OrderedDict
-from typing import Any, Dict, Optional
+from typing import Any
+
 
 class OptimizedAsyncLRUCache:
     """
@@ -18,20 +19,20 @@ class OptimizedAsyncLRUCache:
         self.hits = 0
         self.misses = 0
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """Get a value from cache asynchronously."""
         async with self._lock:
             if key not in self.cache:
                 self.misses += 1
                 return None
-            
+
             timestamp, value = self.cache[key]
             if time.time() - timestamp > self.ttl:
                 # Lazy expiration
                 self.cache.pop(key)
                 self.misses += 1
                 return None
-            
+
             # Move to end to mark as recently used
             self.cache.move_to_end(key)
             self.hits += 1
@@ -62,7 +63,7 @@ class OptimizedAsyncLRUCache:
         self.hits = 0
         self.misses = 0
 
-    def stats(self) -> Dict[str, Any]:
+    def stats(self) -> dict[str, Any]:
         """Return cache statistics."""
         return {
             "size": len(self.cache),
@@ -74,7 +75,7 @@ class OptimizedAsyncLRUCache:
         }
 
 # Factory and Singleton Pattern Implementation
-_GLOBAL_CACHES: Dict[str, OptimizedAsyncLRUCache] = {}
+_GLOBAL_CACHES: dict[str, OptimizedAsyncLRUCache] = {}
 
 def create_optimized_cache(maxsize: int = 1000, ttl: int = 300) -> OptimizedAsyncLRUCache:
     """Create and return a new OptimizedAsyncLRUCache instance."""

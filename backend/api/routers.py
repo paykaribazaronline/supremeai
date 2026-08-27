@@ -103,7 +103,7 @@ core_routers: list[tuple[str, str]] = [
 # Migration path: Move these to core_routers when test dependencies are fixed.
 _CRITICAL_ROUTERS = {
     "api.routes.llm_gateway",      # Required: AI chat/LLM functionality
-    "api.routes.knowledge",        # Required: RAG/Knowledge base features  
+    "api.routes.knowledge",        # Required: RAG/Knowledge base features
     "api.routes.billing_api",      # Required: Payment processing
 }
 

@@ -3,18 +3,16 @@ from __future__ import annotations
 import asyncio
 from datetime import UTC, datetime, timedelta
 
+import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
+from jwt import PyJWTError as JWTError
 from loguru import logger
 from pydantic import BaseModel
 
-from core.error_bus import with_error_bus
-
-import jwt
-from jwt import PyJWTError as JWTError
-
 from core.cache.redis_manager import redis_manager
 from core.config import settings
+from core.error_bus import with_error_bus
 from core.security.authentication.rbac import UserContext
 from database.supabase_client import db
 

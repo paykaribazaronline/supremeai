@@ -9,10 +9,11 @@ from __future__ import annotations
 
 import asyncio
 import random
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 
 class EvolutionStrategy(str, Enum):
@@ -31,17 +32,17 @@ class Gene:
     fitness: float
     age: int
     mutation_rate: float
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class Chromosome:
     """Collection of genes representing a solution strategy."""
     chromosome_id: str
-    genes: List[Gene]
+    genes: list[Gene]
     overall_fitness: float
     generation: int
-    parents: List[str]
+    parents: list[str]
     created_at: datetime
     last_modified: datetime
     success_count: int = 0
@@ -52,11 +53,11 @@ class Chromosome:
 class EvolutionResult:
     evolved_solution: Any
     fitness_improvement: float
-    genes_modified: List[str]
+    genes_modified: list[str]
     generations_passed: int
     time_evolved_ms: int
     mutations_applied: int
-    insights: List[str]
+    insights: list[str]
 
 
 class EvolutionModule:
@@ -65,11 +66,11 @@ class EvolutionModule:
     Uses genetic algorithm principles to optimize solutions over time.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
-        self.config: Dict[str, Any] = config or {}
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
+        self.config: dict[str, Any] = config or {}
 
         # Population management
-        self.population: Dict[str, Chromosome] = {}
+        self.population: dict[str, Chromosome] = {}
         self.population_size: int = self.config.get("population_size", 20)
         self.elitism_count: int = self.config.get("elitism_count", 2)
 
@@ -80,16 +81,16 @@ class EvolutionModule:
 
         # Generational tracking
         self.current_generation: int = 0
-        self.generation_history: List[Dict[str, Any]] = []
+        self.generation_history: list[dict[str, Any]] = []
         self.max_generations: int = self.config.get("max_generations", 10)
 
         # Fitness tracking
-        self.fitness_history: List[float] = []
+        self.fitness_history: list[float] = []
         self.best_fitness_ever: float = 0.0
-        self.best_chromosome: Optional[Chromosome] = None
+        self.best_chromosome: Chromosome | None = None
 
         # Statistics
-        self.stats: Dict[str, Any] = {
+        self.stats: dict[str, Any] = {
             "total_evolutions": 0,
             "successful_mutations": 0,
             "successful_crossovers": 0,
@@ -105,14 +106,14 @@ class EvolutionModule:
         problem: Any,
         current_solution: Any,
         fitness_func: Callable[..., Any],
-        generations: Optional[int] = None,
+        generations: int | None = None,
     ) -> EvolutionResult:
         """Main evolution entry point - evolves solutions over multiple generations."""
         start_time = datetime.now()
         gens = generations or self.max_generations
-        genes_modified: Set[str] = set()
+        genes_modified: set[str] = set()
         mutations_count = 0
-        insights: List[str] = []
+        insights: list[str] = []
 
         try:
             initial_fitness = await self._evaluate_fitness(current_solution, fitness_func)
@@ -124,7 +125,7 @@ class EvolutionModule:
             for gen in range(gens):
                 self.current_generation = gen
                 parents = await self._select_parents()
-                offspring: List[Chromosome] = []
+                offspring: list[Chromosome] = []
 
                 while len(offspring) < (self.population_size - self.elitism_count):
                     if random.random() < self.crossover_rate and len(parents) >= 2:
@@ -194,8 +195,8 @@ class EvolutionModule:
                 insights=[f"Evolution baseline preserved: {str(e)}"],
             )
 
-    async def _apply_mutation(self, chromosome: Chromosome) -> Optional[Chromosome]:
-        mutated_genes: List[Gene] = []
+    async def _apply_mutation(self, chromosome: Chromosome) -> Chromosome | None:
+        mutated_genes: list[Gene] = []
         for gene in chromosome.genes:
             if random.random() < gene.mutation_rate:
                 mutated = self._mutate_gene(gene)
@@ -204,7 +205,7 @@ class EvolutionModule:
                     self.stats["unique_genes_created"] += 1
 
         if mutated_genes:
-            new_genes: List[Gene] = []
+            new_genes: list[Gene] = []
             for g in chromosome.genes:
                 match = next((mg for mg in mutated_genes if mg.gene_id == g.gene_id), None)
                 new_genes.append(match if match else g)
@@ -220,7 +221,7 @@ class EvolutionModule:
             )
         return None
 
-    async def _apply_crossover(self, parent1: Chromosome, parent2: Chromosome) -> Optional[Chromosome]:
+    async def _apply_crossover(self, parent1: Chromosome, parent2: Chromosome) -> Chromosome | None:
         if len(parent1.genes) < 1 or len(parent2.genes) < 1:
             return None
         min_len = min(len(parent1.genes), len(parent2.genes))
@@ -237,23 +238,23 @@ class EvolutionModule:
             last_modified=datetime.now(),
         )
 
-    async def _select_parents(self) -> List[Chromosome]:
+    async def _select_parents(self) -> list[Chromosome]:
         pop_list = list(self.population.values())
         if not pop_list:
             self._initialize_population()
             pop_list = list(self.population.values())
-        selected: List[Chromosome] = []
+        selected: list[Chromosome] = []
         for _ in range(self.population_size):
             tournament = random.sample(pop_list, min(3, len(pop_list)))
             winner = max(tournament, key=lambda c: c.overall_fitness)
             selected.append(winner)
         return selected
 
-    def _select_elite(self) -> List[Chromosome]:
+    def _select_elite(self) -> list[Chromosome]:
         sorted_pop = sorted(self.population.values(), key=lambda c: c.overall_fitness, reverse=True)
         return sorted_pop[: self.elitism_count]
 
-    def _mutate_gene(self, gene: Gene) -> Optional[Gene]:
+    def _mutate_gene(self, gene: Gene) -> Gene | None:
         if isinstance(gene.value, (int, float)):
             new_val = gene.value * random.uniform(0.95, 1.05)
         elif isinstance(gene.value, dict):
@@ -294,7 +295,7 @@ class EvolutionModule:
             self.population[chromo.chromosome_id] = chromo
 
     def _create_chromosome_from_solution(self, solution: Any, fitness: float) -> Chromosome:
-        genes: List[Gene] = []
+        genes: list[Gene] = []
         if isinstance(solution, dict):
             for k, v in solution.items():
                 genes.append(Gene(gene_id=f"gene_{k}", gene_type="parameter", value=v, fitness=fitness, age=0, mutation_rate=0.1))
@@ -330,7 +331,7 @@ class EvolutionModule:
         self.fitness_history.append(best_fitness)
         self.generation_history.append({"generation": generation, "best_fitness": best_fitness})
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         return {
             **self.stats,
             "current_generation": self.current_generation,

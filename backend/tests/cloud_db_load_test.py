@@ -13,19 +13,16 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-from dataclasses import dataclass, field
-from datetime import datetime
-import json
 import os
 import random
 import statistics
-import string
-import sys
 import time
-from typing import Any, Dict, List, Optional
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any
 
 try:
-    from supabase import create_client, Client
+    from supabase import Client, create_client
 except ImportError:
     Client = None
 
@@ -36,7 +33,7 @@ class LatencyMeasurement:
     duration_ms: float
     timestamp: datetime
     success: bool
-    error: Optional[str] = None
+    error: str | None = None
     size_bytes: int = 0
 
 
@@ -57,7 +54,7 @@ class LoadTestResult:
     throughput_ops_per_sec: float
     error_rate: float
     duration_seconds: float
-    measurements: List[LatencyMeasurement] = field(default_factory=list)
+    measurements: list[LatencyMeasurement] = field(default_factory=list)
 
 
 @dataclass
@@ -73,12 +70,12 @@ class HealthCheckResult:
 class CloudDBTester:
     """Comprehensive cloud database testing tool for Supabase pgvector."""
 
-    def __init__(self, supabase_url: Optional[str] = None, supabase_key: Optional[str] = None) -> None:
+    def __init__(self, supabase_url: str | None = None, supabase_key: str | None = None) -> None:
         self.supabase_url = supabase_url or os.getenv("SUPABASE_URL", "https://mock.supabase.co")
         self.supabase_key = supabase_key or os.getenv("SUPABASE_SERVICE_KEY", "mock-key")
-        self.client: Optional[Client] = None
+        self.client: Client | None = None
         self.test_table = "load_test_data"
-        self.results: List[LoadTestResult] = []
+        self.results: list[LoadTestResult] = []
 
     async def initialize(self) -> bool:
         if Client and self.supabase_url != "https://mock.supabase.co":
@@ -100,7 +97,7 @@ class CloudDBTester:
         )
 
     async def run_quick_test(self) -> LoadTestResult:
-        measurements: List[LatencyMeasurement] = []
+        measurements: list[LatencyMeasurement] = []
         start_time = time.perf_counter()
 
         for _ in range(10):
@@ -142,7 +139,7 @@ class CloudDBTester:
         self.results.append(result)
         return result
 
-    def generate_report(self) -> Dict[str, Any]:
+    def generate_report(self) -> dict[str, Any]:
         return {
             "summary": {
                 "total_tests": len(self.results),

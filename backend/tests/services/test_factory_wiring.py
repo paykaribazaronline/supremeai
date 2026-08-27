@@ -2,7 +2,8 @@
 """Tests for SupremeAIFactory and Master Wiring."""
 
 import pytest
-from core.factory import SupremeAIFactory, get_ai, get_factory
+
+from core.factory import get_factory
 
 
 @pytest.mark.asyncio

@@ -1,10 +1,11 @@
 # tests/test_core_sandbox.py
 """Tests for sandbox security components."""
 
-import pytest
-from unittest.mock import MagicMock, patch, PropertyMock
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
+
+import pytest
 
 
 class TestSandboxValidation:
@@ -49,8 +50,9 @@ class TestSafeVMPath:
     @pytest.mark.skip(reason='SECURITY - NOT verified safe, needs developer review: same root cause as test_sandbox_root_validation (tmpdir not in sandbox-root whitelist). Test needs to be rewritten to use a whitelisted path, not loosened.')
     def test_safe_vm_path_within_sandbox(self):
         """Test that VM paths stay within sandbox."""
-        from backend.core.microvm_sandbox import _safe_vm_path
         import tempfile
+
+        from backend.core.microvm_sandbox import _safe_vm_path
 
         with tempfile.TemporaryDirectory() as tmpdir:
             sandbox_root = Path(tmpdir)
@@ -61,8 +63,9 @@ class TestSafeVMPath:
 
     def test_safe_vm_path_outside_sandbox(self):
         """Test that VM paths outside sandbox are caught."""
-        from backend.core.microvm_sandbox import _safe_vm_path
         import tempfile
+
+        from backend.core.microvm_sandbox import _safe_vm_path
 
         with tempfile.TemporaryDirectory() as tmpdir:
             sandbox_root = Path(tmpdir)
@@ -91,7 +94,6 @@ class TestFileIsolationGateExtended:
         """Test FileIsolationGate initializes."""
         # Mock DockerSandbox to avoid actual container
         with patch('backend.sandbox.file_isolation_gate.DockerSandbox'):
-            from backend.sandbox.file_isolation_gate import FileIsolationGate
 
             # The gate uses SECURE_STAGING_DIR by default
             # We can verify it initializes

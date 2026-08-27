@@ -5,6 +5,7 @@ from typing import Any
 
 from loguru import logger
 
+
 class TaskExecutionEngine:
     """
     Real DAG-based task execution engine for decomposed tasks.
@@ -12,7 +13,7 @@ class TaskExecutionEngine:
     Replaces the mock execute_decomposed_tasks with actual parallel/sequential
     execution based on the task graph dependencies.
     """
-    
+
     def __init__(self, provider_gateway=None):
         self.provider_gateway = provider_gateway
         self.execution_stats = {
@@ -22,7 +23,7 @@ class TaskExecutionEngine:
             "failed_tasks": 0,
             "avg_execution_time_ms": 0.0,
         }
-        
+
     async def execute_decomposed_tasks(
         self,
         task_graph: dict[str, Any],
@@ -44,45 +45,45 @@ class TaskExecutionEngine:
         """
         self.execution_stats["total_executions"] += 1
         start_time = time.time()
-        
+
         results: dict[str, Any] = {}
         errors: dict[str, str] = {}
-        
+
         completed: set[str] = set()
         failed: set[str] = set()
         execution_log: list[dict] = []
-        
+
         tasks_dict = task_graph.get("tasks", {})
         total_tasks = len(tasks_dict)
-        
+
         try:
             while len(completed) + len(failed) < total_tasks:
                 executable = []
                 for task_id, task in tasks_dict.items():
                     if task_id in completed or task_id in failed:
                         continue
-                    
+
                     dependencies = task.get("depends_on", [])
                     deps_met = all(dep in completed for dep in dependencies)
                     if deps_met:
                         executable.append(task_id)
-                
+
                 if not executable:
                     for task_id in tasks_dict:
                         if task_id not in completed and task_id not in failed:
                             failed.add(task_id)
                             errors[task_id] = "Dependency failure or cycle detected"
                     break
-                
+
                 elapsed = time.time() - start_time
                 if elapsed > timeout_seconds:
                     for task_id in executable:
                         failed.add(task_id)
                         errors[task_id] = f"Timeout after {elapsed:.1f}s"
                     break
-                
+
                 can_parallel = len(executable) > 1
-                
+
                 if can_parallel:
                     self.execution_stats["parallel_executions"] += 1
                     coroutines = [
@@ -96,9 +97,9 @@ class TaskExecutionEngine:
                         )
                         for task_id in executable
                     ]
-                    
+
                     parallel_results = await asyncio.gather(*coroutines, return_exceptions=True)
-                    
+
                     for task_id, result in zip(executable, parallel_results):
                         if isinstance(result, Exception):
                             failed.add(task_id)
@@ -148,13 +149,13 @@ class TaskExecutionEngine:
                                 "error": str(e),
                                 "timestamp": datetime.now().isoformat()
                             })
-            
+
             total_time = (time.time() - start_time) * 1000
             self.execution_stats["avg_execution_time_ms"] = (
                 (self.execution_stats["avg_execution_time_ms"] * (self.execution_stats["total_executions"] - 1) + total_time)
                 / self.execution_stats["total_executions"]
             )
-            
+
             return {
                 "status": "partial" if failed else "success",
                 "results": results,
@@ -168,7 +169,7 @@ class TaskExecutionEngine:
                     "execution_log": execution_log,
                 }
             }
-            
+
         except Exception as e:
             logger.error(f"Task Execution Engine error: {e}")
             return {
@@ -180,7 +181,7 @@ class TaskExecutionEngine:
                     "completed_so_far": list(completed),
                 }
             }
-    
+
     async def _execute_single_task(
         self,
         task_id: str,
@@ -191,9 +192,9 @@ class TaskExecutionEngine:
         previous_results: dict
     ) -> dict:
         """Execute a single sub-task."""
-        # For this tier, we simulate real llm call 
+        # For this tier, we simulate real llm call
         await asyncio.sleep(0.1)
-        
+
         return {
             "task_id": task_id,
             "task_type": task.get("type", "unknown"),

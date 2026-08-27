@@ -1,8 +1,8 @@
 from unittest.mock import patch
 
+import jwt
 import pytest
 from fastapi.testclient import TestClient
-import jwt
 
 from core.app import app
 from core.config import settings

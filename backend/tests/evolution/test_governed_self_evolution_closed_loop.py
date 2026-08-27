@@ -1,14 +1,13 @@
 # backend/tests/evolution/test_governed_self_evolution_closed_loop.py
 """Comprehensive 21-State Transition Contract & Negative Security Governance Test."""
 
-import pytest
 
-from core.security.governance_policy import GovernancePolicy, get_governance_policy
+from core.security.governance_policy import get_governance_policy
 from evolution.artifact_integrity import ArtifactIntegrityGate, canonical_artifact_hash
 from evolution.benchmark_runner import BenchmarkRunner
 from evolution.canary_manager import CanaryRolloutController
 from evolution.change_proposal import ChangeProposalManager, ChangeType, ProposalState
-from evolution.fitness_evaluator import FitnessBreakdown, FitnessEvaluator
+from evolution.fitness_evaluator import FitnessEvaluator
 from learning.evidence_analyzer import EvidenceAnalyzer
 from learning.experience import ExperienceRecord, ExperienceStore
 from learning.hypothesis_engine import HypothesisEngine

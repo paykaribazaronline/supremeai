@@ -6,14 +6,14 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
-from evolution.change_proposal import ChangeProposal, ProposalState, get_change_manager
+from evolution.change_proposal import ProposalState, get_change_manager
 
 logger = logging.getLogger("supremeai.evolution.integrity")
 
 
-def canonical_artifact_hash(code: str, schema: Optional[Dict[str, Any]] = None) -> str:
+def canonical_artifact_hash(code: str, schema: dict[str, Any] | None = None) -> str:
     """Compute SHA-256 canonical hash of code and schema."""
     hasher = hashlib.sha256()
     hasher.update(code.strip().encode("utf-8"))
@@ -30,8 +30,8 @@ class ArtifactIntegrityGate:
     def verify_and_authorize(
         proposal_id: str,
         code_to_deploy: str,
-        schema_to_deploy: Optional[Dict[str, Any]] = None,
-        proposal_manager: Optional[ChangeProposalManager] = None,
+        schema_to_deploy: dict[str, Any] | None = None,
+        proposal_manager: ChangeProposalManager | None = None,
     ) -> bool:
         proposal_mgr = proposal_manager or get_change_manager()
         proposal = proposal_mgr.proposals.get(proposal_id)

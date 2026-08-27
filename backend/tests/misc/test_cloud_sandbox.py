@@ -91,15 +91,14 @@ class TestCloudSandboxOrchestrator:
                     "post",
                     new_callable=AsyncMock,
                     return_value=mock_response,
+                ), patch.object(
+                    orchestrator,
+                    "_prepare_creation_payload",
+                    return_value={"pod": {"imageName": "ubuntu"}},
                 ):
-                    with patch.object(
-                        orchestrator,
-                        "_prepare_creation_payload",
-                        return_value={"pod": {"imageName": "ubuntu"}},
-                    ):
-                        result = await orchestrator.create_sandbox(spec={"imageName": "ubuntu"})
-                        assert result is not None
-                        assert result["id"] == "pod-12345"
+                    result = await orchestrator.create_sandbox(spec={"imageName": "ubuntu"})
+                    assert result is not None
+                    assert result["id"] == "pod-12345"
 
     @pytest.mark.anyio
     async def test_run_command_with_api_key(self):
@@ -121,11 +120,10 @@ class TestCloudSandboxOrchestrator:
                 "post",
                 new_callable=AsyncMock,
                 return_value=mock_response,
-            ):
-                with patch.object(orchestrator, "_get_endpoint", return_value="/pod-12345/run"):
-                    result = await orchestrator.run_command("pod-12345", "echo hello")
-                    assert result is not None
-                    assert result["exitCode"] == 0
+            ), patch.object(orchestrator, "_get_endpoint", return_value="/pod-12345/run"):
+                result = await orchestrator.run_command("pod-12345", "echo hello")
+                assert result is not None
+                assert result["exitCode"] == 0
 
     @pytest.mark.anyio
     async def test_run_command_api_error(self):
@@ -147,10 +145,9 @@ class TestCloudSandboxOrchestrator:
                 "post",
                 new_callable=AsyncMock,
                 return_value=mock_response,
-            ):
-                with patch.object(orchestrator, "_get_endpoint", return_value="/pod-12345/run"):
-                    result = await orchestrator.run_command("pod-12345", "echo hello")
-                    assert result is None
+            ), patch.object(orchestrator, "_get_endpoint", return_value="/pod-12345/run"):
+                result = await orchestrator.run_command("pod-12345", "echo hello")
+                assert result is None
 
     def test_get_endpoint_create(self):
         """এন্ডপয়েন্ট পাবলিশ করা হচ্ছে।"""

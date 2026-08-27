@@ -1,7 +1,5 @@
-import sys
 
 import pytest
-
 
 try:
     from workers.celery_app import app
