@@ -10,9 +10,10 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
 
+from core.monitoring.metrics_collector import MetricsCollector
+
 from core.cache.redis_manager import redis_manager
 from core.llm.token_deductor import TokenDeductor
-from core.monitoring.metrics_collector import MetricsCollector
 from core.utils.background_tasks import track_task
 
 logger = logging.getLogger(__name__)
@@ -487,10 +488,7 @@ class CostOptimizationAgent:
 
             # Get existing metrics
             existing_metrics = await redis_manager.get(self.cost_metrics_key)
-            if existing_metrics:
-                metrics_list = json.loads(existing_metrics)
-            else:
-                metrics_list = []
+            metrics_list = json.loads(existing_metrics) if existing_metrics else []
 
             # Add new metric
             metrics_list.append(metric_data)
@@ -528,10 +526,7 @@ class CostOptimizationAgent:
 
             # Get existing opportunities
             existing_opportunities = await redis_manager.get(self.optimization_opportunities_key)
-            if existing_opportunities:
-                opp_list = json.loads(existing_opportunities)
-            else:
-                opp_list = []
+            opp_list = json.loads(existing_opportunities) if existing_opportunities else []
 
             # Add new opportunities
             opp_list.extend(opportunities_data)
@@ -618,10 +613,7 @@ class CostOptimizationAgent:
 
             # Get existing alerts
             existing_alerts = await redis_manager.get(self.budget_alerts_key)
-            if existing_alerts:
-                alerts_list = json.loads(existing_alerts)
-            else:
-                alerts_list = []
+            alerts_list = json.loads(existing_alerts) if existing_alerts else []
 
             # Add new alerts
             alerts_list.extend(alerts_data)

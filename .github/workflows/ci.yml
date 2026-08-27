@@ -74,7 +74,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ed88a54fb3ba996f42091b5  # SHA-pinned
+        uses: actions/checkout@b4ffde65f46336ed88a54fb3ba996f29f42091b5  # SHA-pinned
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -130,7 +130,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ed88a54fb3ba996f42091b5  # SHA-pinned
+        uses: actions/checkout@b4ffde65f46336ed88a54fb3ba996f29f42091b5  # SHA-pinned
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -186,7 +186,7 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ed88a54fb3ba996f42091b5  # SHA-pinned
+        uses: actions/checkout@b4ffde65f46336ed88a54fb3ba996f29f42091b5  # SHA-pinned
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
