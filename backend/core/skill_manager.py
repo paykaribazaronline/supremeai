@@ -205,7 +205,7 @@ class SkillManager:
             return new_skill
         except Exception as e:
             logger.error(f"Failed to parse synthesized skill schema: {e!s}")
-            raise ValueError("Invalid JSON configuration from Skill Factory.")
+            raise ValueError("Invalid JSON configuration from Skill Factory.") from e
 
 
 # Global singleton instance

@@ -83,7 +83,7 @@ class Orchestrator:
                 logger.info(f"[Orchestrator] Budget guardian completed: {result.stdout[:200]}")
             except subprocess.TimeoutExpired:
                 logger.critical("[Orchestrator] Budget guardian timed out after 120s. Enforcing Fail-Closed.")
-                raise RuntimeError("Budget guardian timed out. Halting orchestrator to prevent financial bleed.")
+                raise RuntimeError("Budget guardian timed out. Halting orchestrator to prevent financial bleed.") from None
             except Exception as exc:
                 logger.critical(f"🔥 CRITICAL: Budget guardian failed! Error: {exc}")
                 raise RuntimeError("Budget Guardian failure. Halting orchestrator to prevent financial bleed.") from exc
@@ -223,7 +223,7 @@ class Orchestrator:
             if halt_signals:
                 logger.critical(f"🛑 BUDGET GUARDIAN HALT: {halt_signals[0]}")
                 self._running = False
-                raise halt_signals[0]
+                raise halt_signals[0] from eg
 
     def status(self) -> dict:
         return {"running": self._running, "next_interval_secs": self.interval}

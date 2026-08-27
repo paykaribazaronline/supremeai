@@ -268,7 +268,7 @@ class SupabaseChecker:
                 with open(tracker_path) as f:
                     data = json.load(f)
                     return data.get("estimated_size_mb", 150)
-            except:
+            except Exception:
                 import logging; logging.warning('Ignored exception')
         return 180  # Default estimate
 
@@ -281,7 +281,7 @@ class SupabaseChecker:
                 with open(tracker_path) as f:
                     data = json.load(f)
                     return data.get("monthly_gb", 0.3)
-            except:
+            except Exception:
                 import logging; logging.warning('Ignored exception')
         return 0.25
 
@@ -295,7 +295,7 @@ class SupabaseChecker:
                 with open(tracker_path) as f:
                     data = json.load(f)
                     return data.get("mau", 120)
-            except:
+            except Exception:
                 import logging; logging.warning('Ignored exception')
         return 85  # Conservative default
 
@@ -404,7 +404,7 @@ class UpstashChecker:
                 with open(tracker_path) as f:
                     data = json.load(f)
                     return data.get("today_count", 2800)
-            except:
+            except Exception:
                 import logging; logging.warning('Ignored exception')
 
         return 3500
@@ -418,7 +418,7 @@ class UpstashChecker:
                 with open(tracker_path) as f:
                     data = json.load(f)
                     return data.get("used_mb", 45)
-            except:
+            except Exception:
                 import logging; logging.warning('Ignored exception')
         return 52  # Default estimate
 
@@ -590,7 +590,7 @@ class GitHubActionsChecker:
                 with open(tracker_path) as f:
                     data = json.load(f)
                     return data.get("minutes_used", 380), data.get("is_public", False)
-            except:
+            except Exception:
                 import logging; logging.warning('Ignored exception')
 
         return 480, False
@@ -672,7 +672,7 @@ class LLMAPIChecker:
                 with open(tracker_path) as f:
                     data = json.load(f)
                     return data.get("estimated_monthly_usd", 8.50)
-            except:
+            except Exception:
                 import logging; logging.warning('Ignored exception')
         return 12.0  # Default estimate
 
@@ -1135,7 +1135,7 @@ class UsageTracker:
             try:
                 with open(file) as f:
                     data = json.load(f)
-            except:
+            except Exception:
                 import logging; logging.warning('Ignored exception')
 
         if data.get("date") != today:
@@ -1156,7 +1156,7 @@ class UsageTracker:
             try:
                 with open(file) as f:
                     data = json.load(f)
-            except:
+            except Exception:
                 import logging; logging.warning('Ignored exception')
 
         if data.get("month") != month:
@@ -1178,7 +1178,7 @@ class UsageTracker:
             try:
                 with open(file) as f:
                     data = json.load(f)
-            except:
+            except Exception:
                 import logging; logging.warning('Ignored exception')
 
         if data.get("date") != today:

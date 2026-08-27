@@ -720,10 +720,10 @@ def render_proxy(url: str):
         raise
     except urllib.error.HTTPError as e:
         logger.error(f"Render proxy upstream error: {e.code} {e.reason}")
-        raise HTTPException(status_code=502, detail=f"Upstream returned {e.code}.")
+        raise HTTPException(status_code=502, detail=f"Upstream returned {e.code}.") from e
     except Exception as e:
         logger.error(f"Render proxy error: {e!s}")
-        raise HTTPException(status_code=502, detail="Failed to fetch the requested URL.")
+        raise HTTPException(status_code=502, detail="Failed to fetch the requested URL.") from e
 
 
 # ═════════════════════════════════════════════════════════════════════════════

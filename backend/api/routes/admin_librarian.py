@@ -27,7 +27,7 @@ async def get_quarantine_queue():
     try:
         return librarian.list_quarantine_queue()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch queue: {e!s}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch queue: {e!s}") from e
 
 
 @router.post("/process")

@@ -73,7 +73,7 @@ async def make_healing_decision(
     try:
         eid = uuid.UUID(event_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid event UUID")
+        raise HTTPException(status_code=400, detail="Invalid event UUID") from None
 
     result = await session.execute(select(SelectorHealingEvent).where(SelectorHealingEvent.id == eid))
     evt = result.scalars().first()

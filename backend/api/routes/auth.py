@@ -249,7 +249,7 @@ async def refresh_token_endpoint(body: RefreshRequest):
     try:
         payload = jwt.decode(body.refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token") from None
 
     if payload.get("type") != "refresh":
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token is not a refresh token")

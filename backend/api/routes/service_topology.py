@@ -274,7 +274,7 @@ async def probe_service(service: ServiceConfig) -> ServiceHealthResult:
                                 k: v for k, v in data.items()
                                 if k in ["status", "version", "uptime", "latency"]
                             }
-                except:
+                except Exception:
                     import logging; logging.warning('Ignored exception')
 
             elif response.status_code >= 500:
@@ -570,7 +570,7 @@ class ConnectionManager:
         for connection in self.active_connections[:]:
             try:
                 await connection.send_json(data)
-            except:
+            except Exception:
                 await self.disconnect(connection)
 
 

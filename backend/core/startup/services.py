@@ -66,14 +66,14 @@ async def initialize_independent_services(app):
                     # 2. Attempt Secondary DB (Neon)
                     _neon_url = getattr(settings, "neon_database_url", None)
                     if not _neon_url:
-                        raise Exception(f"Primary DB failed and no neon_database_url found. Error: {primary_exc}")
+                        raise Exception(f"Primary DB failed and no neon_database_url found. Error: {primary_exc}") from primary_exc
 
                     try:
                         pool = await _try_connect_and_check(_neon_url)
                         logger.warning("⚠️ Primary DB failed! Fallback to Secondary DB (Neon.tech) successful!")
                         app.state.subsystem_status["db"] = "degraded" # Mark as degraded since we are on fallback
                     except Exception as secondary_exc:
-                        raise Exception(f"Both Primary and Secondary DBs failed. Primary: {primary_exc}, Secondary: {secondary_exc}")
+                        raise Exception(f"Both Primary and Secondary DBs failed. Primary: {primary_exc}, Secondary: {secondary_exc}") from secondary_exc
 
                 logger.info("⚡ PgBouncer connection pool successfully initialized at startup.")
                 await _ensure_api_key_tables()

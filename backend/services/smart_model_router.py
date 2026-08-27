@@ -818,7 +818,7 @@ class SmartRouter:
                 'model': response.model
             }
         except ImportError:
-            raise ImportError("Install openai package: pip install openai")
+            raise ImportError("Install openai package: pip install openai") from None
 
     async def _call_gemini(self, model: ModelConfig, messages, **kwargs):
         """Call Gemini API"""
@@ -873,7 +873,7 @@ class SmartRouter:
                 'model': response.model
             }
         except ImportError:
-            raise ImportError("Install openai package: pip install openai")
+            raise ImportError("Install openai package: pip install openai") from None
 
     def _update_stats(self, model: ModelConfig, cost: float, latency: float) -> None:
         """Update runtime statistics"""

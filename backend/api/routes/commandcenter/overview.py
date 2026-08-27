@@ -35,4 +35,4 @@ async def get_overview():
         )
     except Exception as exc:
         logger.error(f"Command center overview failed: {exc}")
-        raise HTTPException(status_code=503, detail="Overview unavailable")
+        raise HTTPException(status_code=503, detail="Overview unavailable") from exc

@@ -108,7 +108,7 @@ async def check_single_service(config: dict) -> ServiceHealth:
                         status = "degraded"
                     else:
                         status = "healthy"
-                except:
+                except Exception:
                     status = "healthy"
             elif response.status_code >= 500:
                 status = "unhealthy"

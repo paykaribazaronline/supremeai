@@ -32,7 +32,7 @@ async def store_long_term_memory_endpoint(
         try:
             metadata_dict = json.loads(metadata)
         except json.JSONDecodeError:
-            raise HTTPException(status_code=400, detail="Invalid JSON in metadata")
+            raise HTTPException(status_code=400, detail="Invalid JSON in metadata") from None
 
     success = unified_memory.store_long_term_memory(
         session_id=session_id,

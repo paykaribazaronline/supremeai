@@ -74,7 +74,7 @@ async def kaggle_callback(
 
     except Exception as e:
         logger.error(f"❌ Failed to process Kaggle callback: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 async def process_kaggle_results(callback: KaggleCallbackRequest):
@@ -134,7 +134,7 @@ async def submit_kaggle_job(request: JobSubmitRequest):
     try:
         task_type_enum = KaggleTaskType(request.task_type)
     except ValueError:
-        raise HTTPException(status_code=400, detail=f"Invalid task_type: {request.task_type}")
+        raise HTTPException(status_code=400, detail=f"Invalid task_type: {request.task_type}") from None
 
     try:
         job_id = await orchestrator.submit_job(
@@ -146,4 +146,4 @@ async def submit_kaggle_job(request: JobSubmitRequest):
         return {"job_id": job_id, "status": "queued"}
     except Exception as e:
         logger.error(f"❌ Failed to submit job: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

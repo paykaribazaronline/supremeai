@@ -32,7 +32,7 @@ async def aggregated_health_check():
         return health_data
     except Exception as e:
         logger.error(f"Aggregated health check failed: {e}")
-        raise HTTPException(status_code=503, detail=f"Health check service unavailable: {e!s}")
+        raise HTTPException(status_code=503, detail=f"Health check service unavailable: {e!s}") from e
 
 
 app.include_router(admin_router)

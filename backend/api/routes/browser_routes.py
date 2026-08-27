@@ -232,7 +232,7 @@ Provide a helpful, detailed answer based on the available information."""
         raise HTTPException(
             status_code=503,
             detail=f"AI service temporarily unavailable: {str(e)}"
-        )
+        ) from e
 
 
 def get_fallback_response(action: str, url: str, start_time: float) -> AIActionResponse:
@@ -358,7 +358,7 @@ async def browser_security_scan(req: SecurityScanRequest):
         raise HTTPException(
             status_code=503,
             detail=f"Security scan service error: {str(e)}"
-        )
+        ) from e
 
 
 async def check_ssl_security(url: str) -> tuple[int, list]:
@@ -517,13 +517,13 @@ async def browser_screenshot(req: ScreenshotRequest):
         raise HTTPException(
             status_code=503,
             detail="Screenshot service not configured. Install Playwright to enable."
-        )
+        ) from None
     except Exception as e:
         logger.error(f"Screenshot capture failed: {e}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail=f"Screenshot capture failed: {str(e)}"
-        )
+        ) from e
 
 
 # ════════════════════════════════════════════════════════════════════

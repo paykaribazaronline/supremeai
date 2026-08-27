@@ -145,10 +145,10 @@ async def gateway_forward(request: GatewayRequest, http_request: Request) -> Res
 
         return JSONResponse(content=response.json(), status_code=response.status_code)
     except httpx.HTTPStatusError as exc:
-        raise HTTPException(status_code=exc.response.status_code)
+        raise HTTPException(status_code=exc.response.status_code) from exc
     except Exception as exc:
         logger.exception("gateway forward failed")
-        raise HTTPException(status_code=502, detail=str(exc))
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
 @router.post("/dispatch/{capability}")
@@ -156,7 +156,7 @@ async def api_dispatch(capability: str, payload: dict[str, Any]) -> JSONResponse
     try:
         result = api_router.dispatch(capability, payload or {})
     except KeyError as exc:
-        raise HTTPException(status_code=404, detail=str(exc))
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
     status = 200 if result.get("success", True) else 502
     return JSONResponse(content=result, status_code=status)
 
