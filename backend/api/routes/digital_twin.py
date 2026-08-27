@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
+
 from brain.user_digital_twin import get_twin_manager
 
 router = APIRouter(prefix="/twin", tags=["digital_twin"])

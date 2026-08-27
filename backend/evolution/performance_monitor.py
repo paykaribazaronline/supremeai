@@ -8,14 +8,15 @@ and generates smart multi-severity alerts with trend analysis.
 from __future__ import annotations
 
 import asyncio
+import statistics
 import time
 from collections import defaultdict, deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-import statistics
 from typing import Any
-from collections.abc import Callable
+
 from loguru import logger
 
 try:

@@ -136,9 +136,7 @@ class Orchestrator:
                     # Accept both shapes:
                     # 1) {"trigger_failure": True}
                     # 2) {"data": {"trigger_failure": True}}
-                    if current_data.get("trigger_failure") is True:
-                        has_trigger = True
-                    elif (
+                    if current_data.get("trigger_failure") is True or (
                         isinstance(current_data.get("data"), dict)
                         and current_data["data"].get("trigger_failure") is True
                     ):
@@ -148,9 +146,7 @@ class Orchestrator:
                     # {"processed_by": <skill>, "data": <previous_current_data>}
                     if not has_trigger and isinstance(current_data.get("data"), dict):
                         inner = current_data["data"]
-                        if inner.get("trigger_failure") is True:
-                            has_trigger = True
-                        elif isinstance(inner.get("data"), dict) and inner["data"].get("trigger_failure") is True:
+                        if inner.get("trigger_failure") is True or isinstance(inner.get("data"), dict) and inner["data"].get("trigger_failure") is True:
                             has_trigger = True
 
                 if skill == "Skill_B" and has_trigger:

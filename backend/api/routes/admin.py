@@ -135,8 +135,9 @@ async def trigger_quick_action(action_type: str, admin_user: dict = Depends(get_
     elif action_type == "rollback":
         # বাংলা মন্তব্য: Alembic প্রোগ্রামাটিক রোলব্যাক মেকানিজম
         try:
-            from alembic import command
             from alembic.config import Config
+
+            from alembic import command
 
             alembic_cfg = Config("backend/alembic.ini")
             alembic_cfg.set_main_option("script_location", "backend/alembic")
@@ -285,10 +286,12 @@ async def get_rules(admin_user: dict = Depends(get_current_admin)):
 
 
 # 🚨 System Alerts Endpoints
-from models.system_alert import SystemAlert
-from database.session import get_db_session
-from sqlalchemy import select, update
 from fastapi import Header
+from sqlalchemy import select, update
+
+from database.session import get_db_session
+from models.system_alert import SystemAlert
+
 
 class AlertCreate(BaseModel):
     level: str

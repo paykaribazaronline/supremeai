@@ -1,6 +1,7 @@
 # backend/tests/services/test_living_engine.py
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from services.living_engine import LivingEngineOrchestrator
 

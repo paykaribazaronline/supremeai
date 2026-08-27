@@ -6,11 +6,11 @@ Centralized configuration with environment variable support.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from enum import Enum
 import json
 import os
-from typing import Any, Dict, List, Optional
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any
 
 
 class Environment(str, Enum):
@@ -35,7 +35,7 @@ class RedisConfig:
     host: str = "localhost"
     port: int = 6379
     db: int = 0
-    password: Optional[str] = None
+    password: str | None = None
     use_redis: bool = False
 
 
@@ -46,7 +46,7 @@ class APIServerConfig:
     port: int = 8000
     workers: int = 4
     reload: bool = False
-    cors_origins: List[str] = field(default_factory=lambda: ["*"])
+    cors_origins: list[str] = field(default_factory=lambda: ["*"])
     rate_limit_per_minute: int = 60
     api_key_required: bool = False
 
@@ -84,16 +84,16 @@ class MonitoringConfig:
     retention_hours: int = 24
     enable_metrics: bool = True
     enable_alerts: bool = True
-    alert_webhook_url: Optional[str] = None
-    slack_webhook_url: Optional[str] = None
+    alert_webhook_url: str | None = None
+    slack_webhook_url: str | None = None
 
 
 @dataclass
 class SecurityConfig:
     """Security configuration."""
     secret_key: str = "change-me-in-production"
-    api_keys: List[str] = field(default_factory=list)
-    allowed_ips: List[str] = field(default_factory=lambda: ["0.0.0.0/0"])
+    api_keys: list[str] = field(default_factory=list)
+    allowed_ips: list[str] = field(default_factory=lambda: ["0.0.0.0/0"])
     max_request_size_mb: int = 10
     session_timeout_minutes: int = 30
 
@@ -104,7 +104,7 @@ class Settings:
     Loads from environment variables with sensible defaults.
     """
 
-    _instance: Optional[Settings] = None
+    _instance: Settings | None = None
 
     def __new__(cls) -> Settings:
         if cls._instance is None:
@@ -196,7 +196,7 @@ class Settings:
     def is_development(self) -> bool:
         return self.environment == Environment.DEVELOPMENT
 
-    def get_all_settings(self) -> Dict[str, Any]:
+    def get_all_settings(self) -> dict[str, Any]:
         return {
             "environment": self.environment.value,
             "debug": self.debug,
@@ -227,8 +227,8 @@ class Settings:
             },
         }
 
-    def validate(self) -> tuple[bool, List[str]]:
-        errors: List[str] = []
+    def validate(self) -> tuple[bool, list[str]]:
+        errors: list[str] = []
         if self.security.secret_key == "change-me-in-production" and self.is_production():
             errors.append("SECRET_KEY must be changed in production")
         if self.api.port < 1 or self.api.port > 65535:
@@ -238,7 +238,7 @@ class Settings:
         return len(errors) == 0, errors
 
 
-_settings_instance: Optional[Settings] = None
+_settings_instance: Settings | None = None
 
 
 def get_settings() -> Settings:

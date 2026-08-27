@@ -1,7 +1,9 @@
 """Tests for TokenJuice Context & Tool Output Compression Engine."""
 
 import json
+
 import pytest
+
 from backend.engine.compression.token_juice import TokenJuice
 
 
@@ -66,7 +68,7 @@ def test_compress_json_payload(juice):
     }
     raw_str = json.dumps(raw_payload, indent=2)
     res = juice.compress(raw_str, content_type="json")
-    
+
     assert res.content_type == "json"
     assert res.compression_ratio > 0.3
     # Check that nulls and metadata fields were pruned

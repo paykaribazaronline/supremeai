@@ -4,7 +4,6 @@ import asyncio
 import json
 import os
 import time
-from functools import wraps
 from datetime import UTC, datetime
 from urllib.parse import urlparse
 
@@ -34,7 +33,7 @@ class SupabaseStore(SQLiteMemoryStore):
             "total_queries": 0,
         }
         super().__init__(str(self.local_path))
-        
+
         # Initialize provider status
         self._check_provider_status()
 
@@ -55,7 +54,7 @@ class SupabaseStore(SQLiteMemoryStore):
             except Exception as e:
                 from loguru import logger
                 logger.warning(f"⚠️ Supabase init failed, using SQLite fallback: {e}")
-        
+
         # Fall back to SQLite
         self._provider = "sqlite"
         from loguru import logger
@@ -99,7 +98,7 @@ class SupabaseStore(SQLiteMemoryStore):
         if self._supabase_client is None or (current_time - self._last_health_check > self._health_check_interval):
             self._last_health_check = current_time
             self._supabase_client = None  # Force reconnection
-            
+
             try:
                 from supabase import create_client
 
@@ -138,7 +137,7 @@ class SupabaseStore(SQLiteMemoryStore):
                     from loguru import logger
                     logger.error("❌ supabase.create_client is not callable - module may be corrupted")
                     return None
-                    
+
             except Exception as exc:
                 from loguru import logger
                 logger.error(f"❌ Supabase client initialization failed: {exc}")
@@ -179,7 +178,7 @@ class SupabaseStore(SQLiteMemoryStore):
     def _generate_embedding(self, text: str) -> list[float] | None:
         # Generate embeddings for pgvector semantic search
         self._stats["embeddings_generated"] += 1
-        
+
         try:
             from core.embeddings import embed_for_pgvector
 
@@ -198,7 +197,7 @@ class SupabaseStore(SQLiteMemoryStore):
             except Exception:
                 import logging
                 logging.getLogger(__name__).warning('Ignored exception')
-                
+
             try:
                 # Fallback 2: LiteLLM with OpenAI
                 import litellm
@@ -210,7 +209,7 @@ class SupabaseStore(SQLiteMemoryStore):
             except Exception:
                 import logging
                 logging.getLogger(__name__).warning('Ignored exception')
-                
+
             # All methods failed
             try:
                 from loguru import logger
@@ -239,7 +238,7 @@ class SupabaseStore(SQLiteMemoryStore):
         if self._provider == "supabase":
             try:
                 self._stats["total_queries"] += 1
-                
+
                 content_text = fact.get("content", fact.get("text", ""))
                 embedding = self._generate_embedding(content_text)
 
@@ -278,7 +277,7 @@ class SupabaseStore(SQLiteMemoryStore):
 
     def search_facts(self, query: str) -> list:
         self._stats["total_queries"] += 1
-        
+
         if self._provider == "supabase":
             try:
                 self._stats["pgvector_success"] += 1
@@ -330,7 +329,7 @@ class SupabaseStore(SQLiteMemoryStore):
         success_count = 0
         failed_count = 0
         errors = []
-        
+
         for fact in facts:
             try:
                 self.save_learned_fact(fact)
@@ -338,7 +337,7 @@ class SupabaseStore(SQLiteMemoryStore):
             except Exception as e:
                 failed_count += 1
                 errors.append(str(e))
-        
+
         return {"success": success_count, "failed": failed_count, "errors": errors}
 
     def similarity_search(self, query: str, threshold: float = 0.3, limit: int = 5) -> list:
@@ -364,7 +363,7 @@ class SupabaseStore(SQLiteMemoryStore):
             except Exception as e:
                 from loguru import logger
                 logger.warning(f"Similarity search failed: {e}")
-        
+
         # Fallback to basic search
         return self.search_facts(query)
 

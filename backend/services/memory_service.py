@@ -4,12 +4,12 @@ import json
 import math
 import os
 import sqlite3
+from datetime import UTC
 from typing import Any
 
 from loguru import logger
 
 from core.persistence import pooled_pg
-from datetime import UTC
 
 # বাংলা মন্তব্য: রেন্ডার ফ্রি টায়ারে মেমোরি সংকট এড়াতে LOW_MEMORY_MODE চেক করা হচ্ছে
 LOW_MEMORY_MODE = os.getenv("LOW_MEMORY_MODE", "false").lower() == "true"

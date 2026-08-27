@@ -12,8 +12,9 @@ Tests cover:
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 
 class TestCostGuardBudgetLimits:
@@ -45,7 +46,6 @@ class TestCostGuardBudgetLimits:
     @pytest.mark.unit
     async def test_within_budget_allows_task(self, client, admin_headers):
         """When within budget, tasks proceed normally."""
-        from decimal import Decimal
 
         with patch('api.routes.task_router.budget_service') as mock_budget:
             mock_budget.is_budget_exceeded = AsyncMock(return_value=False)
@@ -155,7 +155,6 @@ class TestCostGuardAdminOverride:
     @pytest.mark.unit
     async def test_admin_can_override_soft_limit(self, client, admin_headers):
         """Admin users can exceed soft limits but not hard limits."""
-        from decimal import Decimal
 
         with patch('api.routes.task_router.budget_service') as mock_budget:
             # Soft limit exceeded, hard limit not

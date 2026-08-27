@@ -16,12 +16,12 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 from fastapi import APIRouter, Response
-from pydantic import BaseModel
 
 router = APIRouter(tags=["health"])
 
@@ -39,7 +39,7 @@ class HealthCheck:
     check_fn: Callable[[], bool] | Callable[[], Awaitable[bool]]
     critical: bool = True
     timeout_ms: int = 5000
-    
+
 
 @dataclass
 class HealthResult:
@@ -98,7 +98,7 @@ async def _run_check(check: HealthCheck) -> HealthResult:
             result = await asyncio.wait_for(check.check_fn(), timeout=check.timeout_ms / 1000)
         else:
             result = await asyncio.to_thread(check.check_fn)
-        
+
         latency = (time.monotonic() - start) * 1000
         return HealthResult(
             name=check.name,
@@ -121,12 +121,12 @@ def _compute_overall(results: list[HealthResult]) -> HealthStatus:
     """Compute overall health from individual results."""
     if all(r.status == HealthStatus.HEALTHY for r in results):
         return HealthStatus.HEALTHY
-    
+
     # Critical failures = unhealthy, non-critical = degraded
     critical_failures = [r for r in results if r.status == HealthStatus.UNHEALTHY and r.critical]
     if critical_failures:
         return HealthStatus.UNHEALTHY
-    
+
     return HealthStatus.DEGRADED
 
 
@@ -135,11 +135,11 @@ def _compute_overall(results: list[HealthResult]) -> HealthStatus:
 async def get_full_health(response: Response) -> dict[str, Any]:
     """Full health check — runs ALL registered checks."""
     import os
-    
+
     results = [_run_check(check) for check in _checks]
     results = await asyncio.gather(*results)
     overall = _compute_overall(results)
-    
+
     payload = {
         "status": overall.value,
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -160,7 +160,7 @@ async def get_full_health(response: Response) -> dict[str, Any]:
             for r in results
         ],
     }
-    
+
     status_code = 200 if overall == HealthStatus.HEALTHY else 503
     response.status_code = status_code
     return payload
@@ -173,10 +173,10 @@ async def readiness_probe(response: Response) -> dict[str, Any]:
     critical_checks = [c for c in _checks if c.critical]
     if not critical_checks:
         return {"status": "ready", "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
-    
+
     results = await asyncio.gather(*[_run_check(c) for c in critical_checks])
     all_healthy = all(r.status == HealthStatus.HEALTHY for r in results)
-    
+
     response.status_code = 200 if all_healthy else 503
     return {
         "status": "ready" if all_healthy else "not_ready",

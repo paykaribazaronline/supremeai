@@ -12,14 +12,14 @@ if _backend_dir not in sys.path:
     sys.path.insert(0, _backend_dir)
 
 try:
+    from config.settings import get_settings
     from core.factory import SupremeAIFactory, get_ai, get_factory
     from core.integration_layer import SupremeAIIntegrator, get_integrator
-    from config.settings import get_settings
 except ImportError:
     try:
+        from backend.config.settings import get_settings
         from backend.core.factory import SupremeAIFactory, get_ai, get_factory
         from backend.core.integration_layer import SupremeAIIntegrator, get_integrator
-        from backend.config.settings import get_settings
     except ImportError:
         # Gracefully handle missing dependencies (e.g. when Pytest crawls this from microservices)
         SupremeAIFactory = None

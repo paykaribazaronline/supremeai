@@ -3,15 +3,13 @@
 
 from __future__ import annotations
 
-import asyncio
-from datetime import datetime
 import logging
 import time
-from typing import Any, Dict, Optional
+from typing import Any
 
 from core.integration_layer import SupremeAIIntegrator
 from core.provider_rate_limiter import IntelligentRateLimiter, get_provider_rate_limiter
-from core.task_contract import TaskContract, TaskStatus
+from core.task_contract import TaskContract
 from runtime.task_context import TaskContext
 
 logger = logging.getLogger("supremeai.runtime.executor")
@@ -22,13 +20,13 @@ class TaskExecutor:
 
     def __init__(
         self,
-        ai_system: Optional[SupremeAIIntegrator] = None,
-        rate_limiter: Optional[IntelligentRateLimiter] = None,
+        ai_system: SupremeAIIntegrator | None = None,
+        rate_limiter: IntelligentRateLimiter | None = None,
     ) -> None:
         self.ai_system = ai_system
         self.rate_limiter = rate_limiter or get_provider_rate_limiter()
 
-    async def execute(self, task: TaskContract, context: TaskContext) -> Dict[str, Any]:
+    async def execute(self, task: TaskContract, context: TaskContext) -> dict[str, Any]:
         """Execute the task under timeout and budget constraints."""
         start_time = time.perf_counter()
         logger.info(f"⚡ Executing Task [{task.task_id}]: {task.goal[:80]}")

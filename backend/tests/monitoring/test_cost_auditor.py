@@ -1,4 +1,3 @@
-import sys
 
 from tools.billing.cost_auditor import CostAuditor
 

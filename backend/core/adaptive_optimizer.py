@@ -11,13 +11,12 @@ Automatically improves system based on benchmark results and detected weaknesses
 
 from __future__ import annotations
 
-import asyncio
-from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum
 import statistics
 import time
-from typing import Any, Dict, List, Optional
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+from typing import Any
 
 
 class OptimizationType(str, Enum):
@@ -52,10 +51,10 @@ class OptimizationResult:
     action: OptimizationAction
     applied_at: datetime
     success: bool
-    before_metrics: Dict[str, float]
-    after_metrics: Dict[str, float]
+    before_metrics: dict[str, float]
+    after_metrics: dict[str, float]
     actual_improvement: float
-    side_effects: List[str]
+    side_effects: list[str]
     should_keep: bool
 
 
@@ -65,19 +64,19 @@ class ImprovementCycle:
 
     cycle_id: str
     triggered_by: str  # 'benchmark', 'scheduled', 'manual'
-    actions_taken: List[OptimizationResult]
+    actions_taken: list[OptimizationResult]
     overall_improvement: float
     duration_seconds: float
-    recommendations_for_next: List[str]
+    recommendations_for_next: list[str]
 
 
 class AdaptiveOptimizer:
     """Adaptive optimization engine."""
 
-    def __init__(self, benchmarker: Any = None, ai_system: Any = None, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, benchmarker: Any = None, ai_system: Any = None, config: dict[str, Any] | None = None) -> None:
         self.benchmarker = benchmarker
         self.ai_system = ai_system
-        self.config: Dict[str, Any] = config or {}
+        self.config: dict[str, Any] = config or {}
 
         self.auto_optimize_enabled = self.config.get("auto_optimize", True)
         self.optimization_interval_hours = self.config.get("optimization_interval", 6)
@@ -85,12 +84,12 @@ class AdaptiveOptimizer:
         self.min_improvement_threshold = self.config.get("min_improvement", 0.02)
         self.rollback_on_degradation = self.config.get("rollback", True)
 
-        self.current_parameters: Dict[str, Any] = {}
-        self.optimization_history: List[ImprovementCycle] = []
-        self.baseline_metrics: Dict[str, float] = {}
-        self.current_metrics: Dict[str, float] = {}
+        self.current_parameters: dict[str, Any] = {}
+        self.optimization_history: list[ImprovementCycle] = []
+        self.baseline_metrics: dict[str, float] = {}
+        self.current_metrics: dict[str, float] = {}
 
-        self.stats: Dict[str, Any] = {
+        self.stats: dict[str, Any] = {
             "total_optimizations": 0,
             "successful_optimizations": 0,
             "rolled_back": 0,
@@ -116,7 +115,7 @@ class AdaptiveOptimizer:
         """Main entry point - optimize based on benchmark report."""
         cycle_id = f"opt_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         start_time = time.perf_counter()
-        actions_taken: List[OptimizationResult] = []
+        actions_taken: list[OptimizationResult] = []
 
         actions = await self._generate_optimization_actions(benchmark_report)
 
@@ -146,8 +145,8 @@ class AdaptiveOptimizer:
 
         return cycle
 
-    async def _generate_optimization_actions(self, benchmark_report: Any) -> List[OptimizationAction]:
-        actions: List[OptimizationAction] = []
+    async def _generate_optimization_actions(self, benchmark_report: Any) -> list[OptimizationAction]:
+        actions: list[OptimizationAction] = []
         for weakness in getattr(benchmark_report, "weaknesses", []):
             actions.append(
                 OptimizationAction(
@@ -193,7 +192,7 @@ class AdaptiveOptimizer:
             should_keep=True,
         )
 
-    def get_optimization_status(self) -> Dict[str, Any]:
+    def get_optimization_status(self) -> dict[str, Any]:
         return {
             "auto_optimize_enabled": self.auto_optimize_enabled,
             "current_parameters": self.current_parameters,
@@ -209,10 +208,10 @@ class AdaptiveOptimizer:
         }
 
 
-_optimizer_instance: Optional[AdaptiveOptimizer] = None
+_optimizer_instance: AdaptiveOptimizer | None = None
 
 
-def get_optimizer(benchmarker: Any = None, ai_system: Any = None, config: Optional[Dict[str, Any]] = None) -> AdaptiveOptimizer:
+def get_optimizer(benchmarker: Any = None, ai_system: Any = None, config: dict[str, Any] | None = None) -> AdaptiveOptimizer:
     global _optimizer_instance
     if _optimizer_instance is None:
         _optimizer_instance = AdaptiveOptimizer(benchmarker, ai_system, config)

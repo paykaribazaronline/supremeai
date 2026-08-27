@@ -11,7 +11,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "scripts" / "billing"))
 
-from fraud_detector import FraudDetector, FraudAlert, FraudReport  # noqa: E402
+from fraud_detector import FraudDetector  # noqa: E402
 
 
 @pytest.fixture

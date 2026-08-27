@@ -3,13 +3,12 @@
 
 from __future__ import annotations
 
-from collections import Counter
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
 import logging
-from typing import Any, Dict, List, Optional
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from typing import Any
 
-from learning.experience import ExperienceRecord, ExperienceStore, get_experience_store
+from learning.experience import ExperienceStore, get_experience_store
 
 logger = logging.getLogger("supremeai.learning.pattern_detector")
 
@@ -20,7 +19,7 @@ class EvidenceReference:
 
     task_id: str
     experience_id: str
-    failure_reason: Optional[str] = None
+    failure_reason: str | None = None
     latency_ms: float = 0.0
     cost_usd: float = 0.0
 
@@ -36,15 +35,15 @@ class DetectedPattern:
     occurrence_rate: float
     confidence: float
     description: str
-    evidence: List[EvidenceReference] = field(default_factory=list)
+    evidence: list[EvidenceReference] = field(default_factory=list)
     suggested_action: str = ""
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     @property
-    def evidence_task_ids(self) -> List[str]:
+    def evidence_task_ids(self) -> list[str]:
         return [e.task_id for e in self.evidence]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "pattern_type": self.pattern_type,
             "category": self.category,
@@ -62,21 +61,21 @@ class DetectedPattern:
 class PatternDetector:
     """Scans experience ledger to identify systematic failures and optimization opportunities."""
 
-    def __init__(self, store: Optional[ExperienceStore] = None) -> None:
+    def __init__(self, store: ExperienceStore | None = None) -> None:
         self.store = store or get_experience_store()
 
-    def analyze_patterns(self, min_support: int = 2) -> List[DetectedPattern]:
+    def analyze_patterns(self, min_support: int = 2) -> list[DetectedPattern]:
         records = self.store.get_recent(limit=100)
         if not records:
             return []
 
         population = len(records)
-        patterns: List[DetectedPattern] = []
+        patterns: list[DetectedPattern] = []
 
-        syntax_evidence: List[EvidenceReference] = []
-        budget_evidence: List[EvidenceReference] = []
-        timeout_evidence: List[EvidenceReference] = []
-        success_evidence: List[EvidenceReference] = []
+        syntax_evidence: list[EvidenceReference] = []
+        budget_evidence: list[EvidenceReference] = []
+        timeout_evidence: list[EvidenceReference] = []
+        success_evidence: list[EvidenceReference] = []
 
         for rec in records:
             if rec.verified:
@@ -177,7 +176,7 @@ class PatternDetector:
 
 
 # Global Singleton
-_detector: Optional[PatternDetector] = None
+_detector: PatternDetector | None = None
 
 
 def get_pattern_detector() -> PatternDetector:

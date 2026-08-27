@@ -21,6 +21,7 @@ app = create_app()
 
 # Import and add MemoryAwareMiddleware for Render Free Tier optimization
 from core.memory_manager import MemoryAwareMiddleware
+
 app.add_middleware(MemoryAwareMiddleware)
 
 

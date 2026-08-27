@@ -140,8 +140,9 @@ class TelDriveStorage:
     async def create_and_upload_backup(self, chat_id: int | str | None = None) -> bool:
         """Collects database tables, AI memory & system configuration, then archives to Telegram."""
         try:
-            from database.session import get_db_session
             from sqlalchemy import text
+
+            from database.session import get_db_session
         except Exception:
             get_db_session = None
 
@@ -166,7 +167,7 @@ class TelDriveStorage:
                 async with get_db_session() as session:
                     for tbl in target_tables:
                         try:
-                            query = "SELECT * FROM {} LIMIT 500".format(tbl)  # nosec
+                            query = f"SELECT * FROM {tbl} LIMIT 500"  # nosec
                             res = await session.execute(text(query))
                             rows = [dict(r._mapping) for r in res]
                             # Serialize non-json types (datetime, UUID)

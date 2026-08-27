@@ -22,11 +22,10 @@ Version: 2.0.0
 import os
 import re
 import time
-import math
-from typing import Optional, Dict, Any, List, Callable, Tuple
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from abc import ABC, abstractmethod
+from typing import Any
+
 from loguru import logger
 
 try:
@@ -68,19 +67,19 @@ class ModelConfig:
     max_context_tokens: int
     avg_latency_ms: int        # Average response time
     quality_score: float       # 0-10 quality rating
-    
+
     # Capabilities
     supports_functions: bool = True
     supports_vision: bool = False
     supports_streaming: bool = True
-    
+
     # Constraints
     rpm_limit: int = 60        # Requests per minute limit
     tpm_limit: int = 100000    # Tokens per minute limit
 
 
 # Pre-configured models (can be overridden via config)
-MODEL_REGISTRY: Dict[str, ModelConfig] = {
+MODEL_REGISTRY: dict[str, ModelConfig] = {
     # ── Economy Tier (Cheapest) ────────────────────────────────────────
     "gpt-4o-mini": ModelConfig(
         provider="openai",
@@ -136,7 +135,7 @@ MODEL_REGISTRY: Dict[str, ModelConfig] = {
         rpm_limit=30,
         tpm_limit=18000
     ),
-    
+
     # ── Standard Tier (Balanced) ──────────────────────────────────────
     "gpt-4o": ModelConfig(
         provider="openai",
@@ -179,7 +178,7 @@ MODEL_REGISTRY: Dict[str, ModelConfig] = {
         rpm_limit=1000,
         tpm_limit=200000
     ),
-    
+
     # ── Premium Tier (Best Quality) ───────────────────────────────────
     "gpt-4-turbo": ModelConfig(
         provider="openai",
@@ -208,7 +207,7 @@ MODEL_REGISTRY: Dict[str, ModelConfig] = {
         rpm_limit=50,
         tpm_limit=40000
     ),
-    
+
     # ── Ultra Tier (Maximum Capability) ───────────────────────────────
     "o1-preview": ModelConfig(
         provider="openai",
@@ -232,15 +231,15 @@ class ComplexityScore:
     score: int                    # 0-100
     task_type: TaskType
     confidence: float            # 0-1 how confident in classification
-    factors: Dict[str, float]    # Contributing factors
-    estimated_tokens: Tuple[int, int]  # (input, output) estimate
+    factors: dict[str, float]    # Contributing factors
+    estimated_tokens: tuple[int, int]  # (input, output) estimate
 
 
 @dataclass
 class RoutingDecision:
     """Result of routing decision"""
     selected_model: ModelConfig
-    fallback_models: List[ModelConfig]
+    fallback_models: list[ModelConfig]
     reason: str
     estimated_cost_usd: float
     estimated_latency_ms: int
@@ -253,9 +252,9 @@ class QueryAnalyzer:
     
     Uses heuristic rules and pattern matching for fast classification.
     """
-    
+
     # Patterns for task type detection
-    TASK_PATTERNS: Dict[TaskType, List[str]] = {
+    TASK_PATTERNS: dict[TaskType, list[str]] = {
         TaskType.SIMPLE_QA: [
             r'^what is\b', r'^who is\b', r'^when did\b', r'^where is\b',
             r'^how many\b', r'^how much\b', r'^define\b', r'^explain.*briefly',
@@ -298,7 +297,7 @@ class QueryAnalyzer:
             r'\b(how are you|what\'?s up|how\'?s it going)\b'
         ]
     }
-    
+
     # Complexity indicators
     COMPLEXITY_INCREASE_PATTERNS = [
         (r'\b(step.by.step|detailed|thorough|comprehensive|in.depth)', 15),
@@ -311,8 +310,8 @@ class QueryAnalyzer:
         (r'```[\s\S]*```', 15),  # Code blocks
         (r'\$\$[\s]*\$\$', 10),  # Math formulas
     ]
-    
-    def analyze(self, query: str, context: Optional[Dict] = None) -> ComplexityScore:
+
+    def analyze(self, query: str, context: dict | None = None) -> ComplexityScore:
         """
         Analyze query complexity.
         
@@ -325,13 +324,13 @@ class QueryAnalyzer:
         """
         query_lower = query.lower().strip()
         base_score = 10  # Start at minimum
-        
+
         factors = {}
-        
+
         # Detect task type
         task_type = self._detect_task_type(query_lower)
         factors['task_type'] = self._task_type_complexity(task_type)
-        
+
         # Length factor
         word_count = len(query.split())
         if word_count > 50:
@@ -340,27 +339,27 @@ class QueryAnalyzer:
             factors['length'] = min(10, (word_count - 20) * 0.2)
         else:
             factors['length'] = 0
-        
+
         # Pattern-based complexity
         pattern_score = 0
         for pattern, weight in self.COMPLEXITY_INCREASE_PATTERNS:
             if re.search(pattern, query, re.IGNORECASE | re.DOTALL):
                 pattern_score += weight
         factors['patterns'] = min(pattern_score, 25)
-        
+
         # Structural indicators
         has_questions = len(re.findall(r'\?', query))
         has_numbers = bool(re.search(r'\d+', query))
         has_code = bool(re.search(r'```', query))
         has_list = bool(re.search(r'^\s*[-*]\s', query, re.MULTILINE))
-        
+
         factors['structure'] = (
             (min(has_questions * 3, 8)) +
             (3 if has_numbers else 0) +
             (5 if has_code else 0) +
             (3 if has_list else 0)
         )
-        
+
         # Context awareness
         if context:
             if context.get('requires_reasoning'):
@@ -369,15 +368,15 @@ class QueryAnalyzer:
                 factors['context'] = factors.get('context', 0) + 8
             if context.get('critical'):
                 factors['context'] = factors.get('context', 0) + 10
-        
+
         # Calculate final score
         total = base_score + sum(factors.values())
         final_score = min(100, max(0, int(total)))
-        
+
         # Estimate token usage
         estimated_input = max(50, len(query) // 3)  # Rough estimate
         estimated_output = self._estimate_output_tokens(task_type, final_score)
-        
+
         return ComplexityScore(
             score=final_score,
             task_type=task_type,
@@ -385,21 +384,21 @@ class QueryAnalyzer:
             factors=factors,
             estimated_tokens=(estimated_input, estimated_output)
         )
-    
+
     def _detect_task_type(self, query: str) -> TaskType:
         """Detect the type of task from query patterns"""
         scores = {}
-        
+
         for task_type, patterns in self.TASK_PATTERNS.items():
             score = sum(1 for p in patterns if re.search(p, query, re.IGNORECASE))
             if score > 0:
                 scores[task_type] = score
-        
+
         if not scores:
             return TaskType.ANALYSIS  # Default to complex
-        
+
         return max(scores, key=scores.get)
-    
+
     def _task_type_complexity(self, task_type: TaskType) -> int:
         """Base complexity score for each task type"""
         complexity_map = {
@@ -415,12 +414,12 @@ class QueryAnalyzer:
             TaskType.AGENTIC: 60,
         }
         return complexity_map.get(task_type, 20)
-    
+
     def _calculate_confidence(self, query: str, task_type: TaskType) -> float:
         """Calculate confidence in task type detection"""
         patterns = self.TASK_PATTERNS.get(task_type, [])
         matches = sum(1 for p in patterns if re.search(p, query, re.IGNORECASE))
-        
+
         if matches >= 3:
             return 0.95
         elif matches >= 2:
@@ -429,7 +428,7 @@ class QueryAnalyzer:
             return 0.60
         else:
             return 0.40
-    
+
     def _estimate_output_tokens(self, task_type: TaskType, complexity: int) -> int:
         """Estimate output token count based on task type and complexity"""
         base_tokens = {
@@ -444,10 +443,10 @@ class QueryAnalyzer:
             TaskType.CREATIVE_WRITING: 400,
             TaskType.AGENTIC: 600,
         }
-        
+
         base = base_tokens.get(task_type, 200)
         multiplier = 1 + (complexity / 100)  # Scale with complexity
-        
+
         return int(base * multiplier)
 
 
@@ -464,16 +463,16 @@ class SmartRouter:
         result = await router.execute(decision, messages=[...])
         # Executes the actual API call
     """
-    
+
     def __init__(
         self,
-        config: Optional[Dict[str, Any]] = None,
-        budget_monthly_usd: Optional[float] = None
+        config: dict[str, Any] | None = None,
+        budget_monthly_usd: float | None = None
     ):
         self.config = config or {}
         self.budget_monthly = budget_monthly_usd
         self.analyzer = QueryAnalyzer()
-        
+
         # Runtime statistics
         self.stats = {
             'total_requests': 0,
@@ -481,27 +480,27 @@ class SmartRouter:
             'model_usage': {},
             'avg_latency_ms': 0.0
         }
-        
+
         # Load custom model configs if provided
         self.models = dict(MODEL_REGISTRY)
         if 'custom_models' in self.config:
             self.models.update(self.config['custom_models'])
-        
+
         # Provider availability tracking
-        self._provider_health: Dict[str, bool] = {
+        self._provider_health: dict[str, bool] = {
             provider: True for provider in set(m.provider for m in self.models.values())
         }
-    
+
     def route(
         self,
         query: str,
-        context: Optional[Dict] = None,
-        required_tier: Optional[ModelTier] = None,
-        prefer_provider: Optional[str] = None,
-        max_cost_usd: Optional[float] = None,
+        context: dict | None = None,
+        required_tier: ModelTier | None = None,
+        prefer_provider: str | None = None,
+        max_cost_usd: float | None = None,
         require_vision: bool = False,
         require_functions: bool = False,
-        user_budget: Optional[Any] = None  # BudgetContext from economic_optimizer
+        user_budget: Any | None = None  # BudgetContext from economic_optimizer
     ) -> RoutingDecision:
         """
         Determine best model for a given query.
@@ -520,11 +519,11 @@ class SmartRouter:
         """
         # Analyze query complexity
         complexity = self.analyzer.analyze(query, context)
-        
+
         # Override max_cost_usd if user_budget is provided
         if user_budget is not None:
             max_cost_usd = min(max_cost_usd if max_cost_usd is not None else float('inf'), user_budget.remaining)
-            
+
         # Filter available models based on requirements
         candidates = self._filter_models(
             complexity=complexity,
@@ -534,28 +533,28 @@ class SmartRouter:
             require_vision=require_vision,
             require_functions=require_functions
         )
-        
+
         if not candidates:
             raise ValueError("No models match the specified requirements")
-        
+
         # Score and rank candidates
         scored_candidates = self._score_candidates(candidates, complexity)
-        
+
         # Select best model
         selected_dict = scored_candidates[0]
         selected = selected_dict['model']
         fallbacks = scored_candidates[1:4] if len(scored_candidates) > 1 else []
-        
+
         # Calculate estimates
         input_tokens, output_tokens = complexity.estimated_tokens
         estimated_cost = (
             (input_tokens / 1000) * selected.cost_per_1k_input +
             (output_tokens / 1000) * selected.cost_per_1k_output
         )
-        
+
         # Generate explanation
         reason = self._generate_routing_reason(selected, complexity)
-        
+
         return RoutingDecision(
             selected_model=selected,
             fallback_models=[s['model'] for s in fallbacks],
@@ -564,22 +563,22 @@ class SmartRouter:
             estimated_latency_ms=selected.avg_latency_ms,
             complexity=complexity
         )
-    
+
     def _filter_models(
         self,
         complexity: ComplexityScore,
-        required_tier: Optional[ModelTier],
-        prefer_provider: Optional[str],
-        max_cost_usd: Optional[float],
+        required_tier: ModelTier | None,
+        prefer_provider: str | None,
+        max_cost_usd: float | None,
         require_vision: bool,
         require_functions: bool
-    ) -> List[ModelConfig]:
+    ) -> list[ModelConfig]:
         """Filter models based on requirements"""
         candidates = list(self.models.values())
-        
+
         # Filter by health
         candidates = [m for m in candidates if self._provider_health.get(m.provider, True)]
-        
+
         # Filter by tier
         if required_tier:
             tier_order = [ModelTier.ECONOMY, ModelTier.STANDARD, ModelTier.PREMIUM, ModelTier.ULTRA]
@@ -593,13 +592,13 @@ class SmartRouter:
                 candidates = [m for m in candidates if m.tier in [ModelTier.ECONOMY, ModelTier.STANDARD]]
             else:
                 candidates = [m for m in candidates if m.tier != ModelTier.ULTRA]  # Exclude ultra unless needed
-        
+
         # Filter by capabilities
         if require_vision:
             candidates = [m for m in candidates if m.supports_vision]
         if require_functions:
             candidates = [m for m in candidates if m.supports_functions]
-        
+
         # Filter by cost
         if max_cost_usd is not None:
             input_tokens, output_tokens = complexity.estimated_tokens
@@ -608,26 +607,26 @@ class SmartRouter:
                 if ((input_tokens / 1000) * m.cost_per_1k_input +
                     (output_tokens / 1000) * m.cost_per_1k_output) <= max_cost_usd
             ]
-        
+
         # Prefer provider (move to front)
         if prefer_provider:
             preferred = [m for m in candidates if m.provider == prefer_provider]
             others = [m for m in candidates if m.provider != prefer_provider]
             candidates = preferred + others
-        
+
         return candidates if candidates else list(MODEL_REGISTRY.values())  # Fallback to all
-    
+
     def _score_candidates(
         self,
-        candidates: List[ModelConfig],
+        candidates: list[ModelConfig],
         complexity: ComplexityScore
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Score and rank candidate models"""
         scored = []
-        
+
         for model in candidates:
             score = 0.0
-            
+
             # Quality alignment (prefer adequate quality, not overkill)
             if complexity.score <= 30:
                 # For simple tasks, prefer economy models
@@ -649,7 +648,7 @@ class SmartRouter:
                     score += 30
                 elif model.tier == ModelTier.STANDARD:
                     score += 15
-            
+
             # Cost efficiency (lower is better)
             total_cost_per_1k = model.cost_per_1k_input + model.cost_per_1k_output
             if total_cost_per_1k < 0.001:
@@ -658,7 +657,7 @@ class SmartRouter:
                 score += 20
             elif total_cost_per_1k < 0.05:
                 score += 10
-            
+
             # Speed preference
             if model.avg_latency_ms < 500:
                 score += 15  # Very fast
@@ -666,21 +665,21 @@ class SmartRouter:
                 score += 10
             elif model.avg_latency_ms < 2000:
                 score += 5
-            
+
             # Quality bonus for complex tasks
             if complexity.score > 70:
                 score += model.quality_score * 2
-            
+
             scored.append({
                 'model': model,
                 'score': score
             })
-        
+
         # Sort by score descending
         scored.sort(key=lambda x: x['score'], reverse=True)
-        
+
         return scored
-    
+
     def _generate_routing_reason(self, model: ModelConfig, complexity: ComplexityScore) -> str:
         """Generate human-readable explanation for routing decision"""
         reasons = [
@@ -688,23 +687,23 @@ class SmartRouter:
             f"Query complexity: {complexity.score}/100 ({complexity.task_type.value})",
             f"Quality score: {model.quality_score}/10 | Latency: ~{model.avg_latency_ms}ms"
         ]
-        
+
         if complexity.score <= 30:
             reasons.append("Simple query → economy tier for cost optimization")
         elif complexity.score >= 70:
             reasons.append("Complex query → premium tier for quality")
         else:
             reasons.append("Medium complexity → balanced tier selection")
-        
+
         return " | ".join(reasons)
-    
+
     async def execute(
         self,
         decision: RoutingDecision,
-        messages: List[Dict[str, str]],
-        user_budget: Optional[Any] = None,
+        messages: list[dict[str, str]],
+        user_budget: Any | None = None,
         **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Execute the routed request.
         
@@ -719,24 +718,24 @@ class SmartRouter:
         """
         start_time = time.time()
         model = decision.selected_model
-        
+
         try:
             # Call appropriate provider
             response = await self._call_provider(model, messages, **kwargs)
-            
+
             latency_ms = (time.time() - start_time) * 1000
-            
+
             # Update stats
             self._update_stats(model, decision.estimated_cost_usd, latency_ms)
-            
+
             actual_cost = (
                 (len(str(messages)) / 1000) * model.cost_per_1k_input +
                 (len(str(response)) / 1000) * model.cost_per_1k_output
             )
-            
+
             if user_budget is not None:
                 user_budget.deduct(actual_cost)
-            
+
             # Add routing metadata
             response['_routing'] = {
                 'model_used': f"{model.provider}/{model.model_id}",
@@ -744,42 +743,42 @@ class SmartRouter:
                 'latency_ms': round(latency_ms, 2),
                 'actual_cost_usd': round(actual_cost, 6)
             }
-            
+
             return response
-            
+
         except Exception as e:
             logger.error(f"Error calling {model.model_id}: {e}")
-            
+
             # Try fallback models
             for fallback in decision.fallback_models[:2]:  # Try up to 2 fallbacks
                 try:
                     logger.info(f"Falling back to {fallback.model_id}")
                     response = await self._call_provider(fallback, messages, **kwargs)
-                    
+
                     response['_routing'] = {
                         'model_used': f"{fallback.provider}/{fallback.model_id}",
                         'tier': fallback.tier.value,
                         'fallback_from': model.model_id,
                         'error': str(e)
                     }
-                    
+
                     return response
-                    
+
                 except Exception as fallback_error:
                     logger.error(f"Fallback {fallback.model_id} also failed: {fallback_error}")
-            
+
             raise  # All models failed
-    
+
     async def _call_provider(
         self,
         model: ModelConfig,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Call the specific LLM provider"""
         # This would integrate with your existing LLM clients
         # Placeholder implementation - you'd wire this into your actual API calls
-        
+
         if model.provider == "openai":
             return await self._call_openai(model, messages, **kwargs)
         elif model.provider == "gemini":
@@ -790,26 +789,25 @@ class SmartRouter:
             return await self._call_groq(model, messages, **kwargs)
         else:
             raise ValueError(f"Unsupported provider: {model.provider}")
-    
+
     async def _call_openai(self, model: ModelConfig, messages, **kwargs):
         """Call OpenAI-compatible API"""
         # Integration point with your OpenAI client
-        import os
         api_key = os.environ.get('OPENAI_API_KEY')
-        
+
         if not api_key:
             raise ValueError("OPENAI_API_KEY not configured")
-        
+
         try:
             from openai import AsyncOpenAI
             client = AsyncOpenAI(api_key=api_key)
-            
+
             response = await client.chat.completions.create(
                 model=model.model_id,
                 messages=messages,
                 **kwargs
             )
-            
+
             return {
                 'content': response.choices[0].message.content,
                 'usage': {
@@ -821,53 +819,50 @@ class SmartRouter:
             }
         except ImportError:
             raise ImportError("Install openai package: pip install openai")
-    
+
     async def _call_gemini(self, model: ModelConfig, messages, **kwargs):
         """Call Gemini API"""
-        import os
         api_key = os.environ.get('GEMINI_API_KEY')
-        
+
         if not api_key:
             raise ValueError("GEMINI_API_KEY not configured")
-        
+
         # Placeholder - implement Gemini client integration
         raise NotImplementedError("Gemini integration pending")
-    
+
     async def _call_anthropic(self, model: ModelConfig, messages, **kwargs):
         """Call Anthropic Claude API"""
-        import os
         api_key = os.environ.get('ANTHROPIC_API_KEY')  # Or however you store it
-        
+
         if not api_key:
             raise ValueError("Anthropic API key not configured")
-        
+
         # Placeholder - implement Anthropic client integration
         raise NotImplementedError("Anthropic integration pending")
-    
+
     async def _call_groq(self, model: ModelConfig, messages, **kwargs):
         """Call Groq API"""
-        import os
         api_key = os.environ.get('GROQ_API_KEY')
-        
+
         if not api_key:
             raise ValueError("GROQ_API_KEY not configured")
-        
+
         # Groq uses OpenAI-compatible API
         kwargs.pop('model', None)  # Remove if present
-        
+
         try:
             from openai import AsyncOpenAI
             client = AsyncOpenAI(
                 api_key=api_key,
                 base_url="https://api.groq.com/openai/v1"
             )
-            
+
             response = await client.chat.completions.create(
                 model=model.model_id,
                 messages=messages,
                 **kwargs
             )
-            
+
             return {
                 'content': response.choices[0].message.content,
                 'usage': {
@@ -879,29 +874,29 @@ class SmartRouter:
             }
         except ImportError:
             raise ImportError("Install openai package: pip install openai")
-    
+
     def _update_stats(self, model: ModelConfig, cost: float, latency: float) -> None:
         """Update runtime statistics"""
         self.stats['total_requests'] += 1
-        
+
         model_key = f"{model.provider}/{model.model_id}"
         if model_key not in self.stats['model_usage']:
             self.stats['model_usage'][model_key] = {'count': 0, 'total_cost': 0}
-        
+
         self.stats['model_usage'][model_key]['count'] += 1
         self.stats['model_usage'][model_key]['total_cost'] += cost
-        
+
         # Track savings (compared to always using GPT-4)
         gpt4_cost = 0.03  # Approximate GPT-4 cost for same request
         if cost < gpt4_cost:
             self.stats['cost_savings_usd'] += (gpt4_cost - cost)
-        
+
         # Update average latency
         current_avg = self.stats['avg_latency_ms']
         n = self.stats['total_requests']
         self.stats['avg_latency_ms'] = (current_avg * (n - 1) + latency) / n
-    
-    def get_stats(self) -> Dict[str, Any]:
+
+    def get_stats(self) -> dict[str, Any]:
         """Get router statistics"""
         return {
             **self.stats,
@@ -909,11 +904,11 @@ class SmartRouter:
                 k: v for k, v in self._provider_health.items()
             }
         }
-    
+
     def report_markdown(self) -> str:
         """Generate markdown report of router performance"""
         stats = self.get_stats()
-        
+
         lines = [
             "# 🧠 Smart Router Performance Report\n",
             f"**Total Requests:** {stats['total_requests']}",
@@ -923,23 +918,23 @@ class SmartRouter:
             "| Model | Calls | Total Cost |",
             "|-------|------|------------|"
         ]
-        
+
         for model, usage in stats['model_usage'].items():
             lines.append(f"| {model} | {usage['count']} | ${usage['total_cost']:.4f} |")
-        
+
         lines.append("\n## ✅ Provider Status\n")
         for provider, healthy in stats['providers_available'].items():
             status = "🟢 Online" if healthy else "🔴 Offline"
             lines.append(f"- **{provider}:** {status}")
-        
+
         return "\n".join(lines)
 
 
 # Global instance
-_router_instance: Optional[SmartRouter] = None
+_router_instance: SmartRouter | None = None
 
 
-def get_router(config: Optional[Dict] = None) -> SmartRouter:
+def get_router(config: dict | None = None) -> SmartRouter:
     """Get or create global router instance"""
     global _router_instance
     if _router_instance is None:
@@ -950,13 +945,13 @@ def get_router(config: Optional[Dict] = None) -> SmartRouter:
 # CLI for testing
 if __name__ == '__main__':
     import asyncio
-    
+
     async def test_router():
         print("🧪 Testing SupremeAI Smart Router")
         print("=" * 60)
-        
+
         router = SmartRouter()
-        
+
         test_queries = [
             ("What is Python?", "Simple factual question"),
             ("Write a function to sort a list in Python", "Code generation"),
@@ -964,7 +959,7 @@ if __name__ == '__main__':
             ("Summarize this article in 3 sentences", "Summarization"),
             ("Hi there!", "Chat"),
         ]
-        
+
         print("\n📋 Routing Decisions:\n")
         for query, description in test_queries:
             decision = router.route(query)
@@ -973,7 +968,7 @@ if __name__ == '__main__':
             print(f"Route: {decision.reason}")
             print(f"Cost:  ${decision.estimated_cost_usd:.6f}")
             print("-" * 60)
-        
+
         print("\n✅ Router test complete!")
-    
+
     asyncio.run(test_router())

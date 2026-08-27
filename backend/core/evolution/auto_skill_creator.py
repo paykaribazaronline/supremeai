@@ -120,8 +120,9 @@ class AutoSkillCreator:
 
         start_time = time.time()
 
-        from core.llm.llm_gateway import llm_gateway
         from skills.schema import UniversalSkillSchema
+
+        from core.llm.llm_gateway import llm_gateway
 
         logger.info(f"🧠 Self-Evolution Triggered: Designing skill '{skill_name}' for demand: '{user_demand}'")
 
@@ -318,10 +319,10 @@ asyncio.run(_supreme_test_run())
             )
 
             # 1. Multi-factor Evidence-Backed Fitness Evaluation
-            from evolution.fitness_evaluator import get_fitness_evaluator
-            from evolution.benchmark_runner import get_benchmark_runner
             from evolution.artifact_integrity import ArtifactIntegrityGate, canonical_artifact_hash
+            from evolution.benchmark_runner import get_benchmark_runner
             from evolution.change_proposal import ChangeType, ProposalState, get_change_manager
+            from evolution.fitness_evaluator import get_fitness_evaluator
 
             elapsed_ms = (time.time() - start_time) * 1000.0
             fitness_eval = get_fitness_evaluator().evaluate_skill_execution(

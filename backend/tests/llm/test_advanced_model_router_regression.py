@@ -11,6 +11,8 @@ from unittest.mock import patch
 import pytest
 
 from core.llm.advanced_model_router import (
+    _DETERMINISTIC_PATTERNS,
+    _TIER0_CONFIDENCE_THRESHOLD,
     AdvancedModelRouter,
     ConfidenceDecision,
     DomainExpertAnalyzer,
@@ -19,8 +21,6 @@ from core.llm.advanced_model_router import (
     RouteDecision,
     TaskComplexityAnalyzer,
     Tier0Dispatcher,
-    _DETERMINISTIC_PATTERNS,
-    _TIER0_CONFIDENCE_THRESHOLD,
     get_advanced_router,
 )
 

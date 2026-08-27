@@ -1,6 +1,5 @@
 import json
 import os
-import sys
 
 os.environ["ENCRYPTION_KEY"] = "9llmzMU2XSRhbAS-R__JMW1XLZzc0ll7obD_RqaVwno="
 

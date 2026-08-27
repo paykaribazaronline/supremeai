@@ -6,8 +6,7 @@ from core.messaging.event_bus import ErrorContext
 # Configure logger to output to terminal
 logging.basicConfig(level=logging.WARNING)
 
-from core.messaging.event_bus import ErrorEvent
-from core.messaging.event_bus import error_event_bus
+from core.messaging.event_bus import ErrorEvent, error_event_bus
 
 
 async def main():

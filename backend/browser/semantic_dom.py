@@ -95,7 +95,7 @@ class SemanticDOM:
                 {"tag": "input", "text": "Search Products", "role": "searchbox", "xpath": "//input[@name='q']", "is_shadow": False},
                 {"tag": "button", "text": "Login", "role": "button", "xpath": "//button[@id='login']", "is_shadow": False},
             ]
-            
+
         # ✅ NEW: Enforce Token Budget (~500 tokens / 4 tokens per item avg = max 125 elements)
         # Prioritize important interactive elements
         priority = {'button': 5, 'a': 4, 'input': 3, 'select': 2, 'textarea': 2}
@@ -136,9 +136,9 @@ class SemanticDOM:
 
         best_match = scored[0][1].copy()
         best_match["semantic_confidence"] = scored[0][0]
-        
+
         # ✅ NEW: Add token and shadow DOM metadata
         best_match["is_shadow"] = best_match.get("is_shadow", False)
-        
+
         return best_match
 

@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import pytest
+
 pd = pytest.importorskip("pandas")
 
 from brain.causal.discovery import CausalDiscoveryEngine

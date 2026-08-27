@@ -1,11 +1,10 @@
 # backend/tests/learning/test_pattern_and_hypothesis.py
 """Tests for PatternDetector, EvidenceAnalyzer, and HypothesisEngine."""
 
-import pytest
 from evolution.change_proposal import ChangeProposalManager, ChangeType, ProposalState
 from learning.evidence_analyzer import EvidenceAnalyzer
 from learning.experience import ExperienceRecord, ExperienceStore
-from learning.hypothesis_engine import HypothesisEngine, ImprovementHypothesis
+from learning.hypothesis_engine import HypothesisEngine
 from learning.pattern_detector import PatternDetector
 
 

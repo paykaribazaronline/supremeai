@@ -11,17 +11,17 @@ Tests:
 7. LivingEngineOrchestrator End-to-End integration
 """
 
-import pytest
 from unittest.mock import MagicMock
 
-from adapters.business_adapter import BusinessAdapter
-from adapters.dev_adapter import DevAdapter, DevelopmentTask
-from adapters.ux_adapter import DesignPlatform, UXAdapter
-from core.advanced_reasoning import AdvancedReasoningEngine, ReasoningType
-from core.evolution_module import EvolutionModule
-from learning.pattern_recognizer import PatternRecognizer, PatternType
-from services.living_engine import LivingEngineOrchestrator
+import pytest
 
+from adapters.business_adapter import BusinessAdapter
+from adapters.dev_adapter import DevAdapter
+from adapters.ux_adapter import UXAdapter
+from core.advanced_reasoning import AdvancedReasoningEngine
+from core.evolution_module import EvolutionModule
+from learning.pattern_recognizer import PatternRecognizer
+from services.living_engine import LivingEngineOrchestrator
 
 # ── 1. Advanced Reasoning Tests ───────────────────────────────────────────────
 

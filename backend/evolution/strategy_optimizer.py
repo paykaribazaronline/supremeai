@@ -7,15 +7,11 @@ evaluating execution quality and evolving new heuristic approaches.
 
 from __future__ import annotations
 
-import asyncio
-import math
 import random
-from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
-import statistics
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 
 class StrategyType(str, Enum):
@@ -39,7 +35,7 @@ class Strategy:
     strategy_type: StrategyType
     description: str
     implementation: Callable[..., Any]
-    parameters: Dict[str, Any] = field(default_factory=dict)
+    parameters: dict[str, Any] = field(default_factory=dict)
     status: StrategyStatus = StrategyStatus.ACTIVE
     fitness_score: float = 0.85
     success_rate: float = 0.95
@@ -49,12 +45,12 @@ class Strategy:
 class StrategyOptimizer:
     """Advanced strategy selection and optimization system."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
-        self.config: Dict[str, Any] = config or {}
-        self.strategies: Dict[str, Strategy] = {}
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
+        self.config: dict[str, Any] = config or {}
+        self.strategies: dict[str, Strategy] = {}
         self.exploration_rate: float = self.config.get("exploration_rate", 0.15)
 
-        self.stats: Dict[str, Any] = {
+        self.stats: dict[str, Any] = {
             "strategies_registered": 0,
             "selections_made": 0,
             "avg_fitness_improvement": 0.05,
@@ -81,7 +77,7 @@ class StrategyOptimizer:
         self.stats["strategies_registered"] += 1
         return strategy_id
 
-    async def select_strategy(self, problem_context: Dict[str, Any]) -> Tuple[Strategy, str]:
+    async def select_strategy(self, problem_context: dict[str, Any]) -> tuple[Strategy, str]:
         self.stats["selections_made"] += 1
         active = [s for s in self.strategies.values() if s.status == StrategyStatus.ACTIVE]
         if not active:
@@ -95,14 +91,14 @@ class StrategyOptimizer:
         selected = max(active, key=lambda s: s.fitness_score)
         return selected, "exploitation_ucb"
 
-    async def optimize_strategy(self, optimization: Dict[str, Any]) -> Dict[str, Any]:
+    async def optimize_strategy(self, optimization: dict[str, Any]) -> dict[str, Any]:
         return {
             "improvements": {"strategy": 0.06},
             "status": "strategy_optimized",
             "active_strategies": len(self.strategies),
         }
 
-    async def select_algorithm(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    async def select_algorithm(self, context: dict[str, Any]) -> dict[str, Any]:
         active = list(self.strategies.values())
         best = max(active, key=lambda s: s.fitness_score)
         return {
@@ -132,10 +128,10 @@ class StrategyOptimizer:
             description="Proactive self-correction loop",
         )
 
-    def get_triggers(self) -> List[Dict[str, Any]]:
+    def get_triggers(self) -> list[dict[str, Any]]:
         return []
 
-    def get_optimizer_stats(self) -> Dict[str, Any]:
+    def get_optimizer_stats(self) -> dict[str, Any]:
         return {
             "total_strategies": len(self.strategies),
             "efficiency": 0.90,

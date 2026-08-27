@@ -9,8 +9,8 @@ from typing import Any
 from loguru import logger
 from pydantic import PrivateAttr, SecretStr, model_serializer
 
-
 from .security.secret_vault import secret_vault
+
 
 class SettingsSecretsMixin:
     def _is_test_environment(self) -> bool:

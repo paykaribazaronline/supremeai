@@ -1,10 +1,11 @@
 # backend/tests/services/test_self_correction.py
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from services.dynamic_planner import TaskDAG, TaskNode
 from services.intent_deciphering import IntentAnalysis
-from services.self_correction import SelfCorrectionService, VerificationResult
+from services.self_correction import SelfCorrectionService
 
 
 @pytest.fixture

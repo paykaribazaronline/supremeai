@@ -3,12 +3,12 @@
 
 from __future__ import annotations
 
+import logging
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-import logging
-from typing import Any, Dict, List, Optional
-import uuid
+from typing import Any
 
 from core.task_contract import RiskLevel, TaskContract, VerificationPolicy
 
@@ -29,19 +29,19 @@ class PlanStep:
 
     step_id: str
     objective: str
-    dependencies: List[str] = field(default_factory=list)
-    required_capabilities: List[str] = field(default_factory=list)
-    allowed_tools: List[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
+    required_capabilities: list[str] = field(default_factory=list)
+    allowed_tools: list[str] = field(default_factory=list)
     risk_level: RiskLevel = RiskLevel.MEDIUM
     expected_output: str = ""
     verification_policy: VerificationPolicy = VerificationPolicy.STANDARD
     status: StepStatus = StepStatus.PENDING
-    result: Optional[Any] = None
-    error: Optional[str] = None
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    result: Any | None = None
+    error: str | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "step_id": self.step_id,
             "objective": self.objective,
@@ -60,12 +60,12 @@ class Plan:
 
     task_id: str
     plan_id: str = field(default_factory=lambda: f"plan_{uuid.uuid4().hex[:10]}")
-    steps: List[PlanStep] = field(default_factory=list)
+    steps: list[PlanStep] = field(default_factory=list)
     estimated_cost_usd: float = 0.05
     estimated_tokens: int = 2000
     created_at: datetime = field(default_factory=datetime.now)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "plan_id": self.plan_id,
             "task_id": self.task_id,
@@ -86,7 +86,7 @@ class CanonicalPlanner:
         """Analyze task and produce a structured, multi-step Plan."""
         logger.info(f"🧠 [Planner] Generating plan for Task [{task.task_id}]: {task.goal[:60]}")
 
-        steps: List[PlanStep] = []
+        steps: list[PlanStep] = []
 
         # 1. Understanding & Context Extraction Step
         step_1 = PlanStep(
@@ -128,7 +128,7 @@ class CanonicalPlanner:
 
 
 # Global Singleton
-_planner_instance: Optional[CanonicalPlanner] = None
+_planner_instance: CanonicalPlanner | None = None
 
 
 def get_planner() -> CanonicalPlanner:

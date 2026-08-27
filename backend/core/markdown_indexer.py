@@ -7,7 +7,6 @@ Chunks markdown documents by headings (#, ##, ###) and indexes them using Embedd
 
 from __future__ import annotations
 
-import os
 import re
 from pathlib import Path
 from typing import Any
@@ -36,7 +35,7 @@ class MarkdownIndexer:
     def _chunk_file(self, file_path: Path) -> list[dict[str, Any]]:
         """Split a markdown file into chunks delimited by markdown headings."""
         try:
-            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+            with open(file_path, encoding="utf-8", errors="ignore") as f:
                 content = f.read()
         except Exception as e:
             logger.debug(f"[MarkdownIndexer] Failed to read {file_path}: {e}")

@@ -7,15 +7,13 @@ fast in-memory checkpoints, and rollback on system degradation.
 
 from __future__ import annotations
 
-import asyncio
+import gzip
+import hashlib
+import pickle
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-import gzip
-import hashlib
-import os
-import pickle
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class BackupStatus(str, Enum):
@@ -33,9 +31,9 @@ class SystemBackup:
     size_bytes: int
     checksum: str
     status: BackupStatus
-    components_backed_up: List[str]
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    file_path: Optional[str] = None
+    components_backed_up: list[str]
+    metadata: dict[str, Any] = field(default_factory=dict)
+    file_path: str | None = None
     restore_count: int = 0
 
 
@@ -44,8 +42,8 @@ class RestoreResult:
     success: bool
     backup_id: str
     restore_time_ms: int
-    components_restored: List[str]
-    errors: List[str]
+    components_restored: list[str]
+    errors: list[str]
     verification_passed: bool
 
 
@@ -53,27 +51,27 @@ class RestoreResult:
 class SafetyCheckpoint:
     checkpoint_id: str
     timestamp: datetime
-    state_snapshot: Dict[str, Any]
-    memory_snapshot: Dict[str, Any]
-    config_snapshot: Dict[str, Any]
+    state_snapshot: dict[str, Any]
+    memory_snapshot: dict[str, Any]
+    config_snapshot: dict[str, Any]
     integrity_hash: str
 
 
 class SafetyRollbackManager:
     """Comprehensive safety and rollback management system."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
-        self.config: Dict[str, Any] = config or {}
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
+        self.config: dict[str, Any] = config or {}
 
         self.backup_dir: str = self.config.get("backup_dir", "./backups")
         self.max_backups: int = self.config.get("max_backups", 50)
         self.retention_days: int = self.config.get("retention_days", 30)
         self.compression_enabled: bool = self.config.get("compression", True)
 
-        self.backups: Dict[str, SystemBackup] = {}
-        self.checkpoints: List[SafetyCheckpoint] = []
+        self.backups: dict[str, SystemBackup] = {}
+        self.checkpoints: list[SafetyCheckpoint] = []
 
-        self.stats: Dict[str, Any] = {
+        self.stats: dict[str, Any] = {
             "total_backups_created": 0,
             "total_restores": 0,
             "successful_restores": 0,
@@ -83,7 +81,7 @@ class SafetyRollbackManager:
     async def create_backup(
         self,
         reason: str = "scheduled",
-        components: Optional[List[str]] = None,
+        components: list[str] | None = None,
     ) -> str:
         start_time = datetime.now()
         backup_id = f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{hashlib.md5(str(start_time).encode()).hexdigest()[:8]}"
@@ -156,7 +154,7 @@ class SafetyRollbackManager:
         cp = next((c for c in self.checkpoints if c.checkpoint_id == checkpoint_id), None)
         return cp is not None
 
-    def list_backups(self) -> List[Dict[str, Any]]:
+    def list_backups(self) -> list[dict[str, Any]]:
         return [
             {
                 "backup_id": b.backup_id,
@@ -168,7 +166,7 @@ class SafetyRollbackManager:
             for b in sorted(self.backups.values(), key=lambda x: x.created_at, reverse=True)
         ]
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         return {
             **self.stats,
             "total_backups_stored": len(self.backups),

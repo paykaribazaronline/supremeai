@@ -426,6 +426,7 @@ class TestGlobalInstance:
     def test_global_instance_default_config(self):
         """বাংলা মন্তব্য: Global instance default configuration দিয়ে create করা আছে।"""
         import os
+
         from core.messaging.nats_messaging import nats_client
 
         assert nats_client.url == "nats://localhost:4222"

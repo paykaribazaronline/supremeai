@@ -6,7 +6,6 @@ Urgent/Feature/Bug ক্যাটাগরাইজেশন এবং খা�
 
 from __future__ import annotations
 
-
 from tools.plan_sorter import PlanSorter
 
 

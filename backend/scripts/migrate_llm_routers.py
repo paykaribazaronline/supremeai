@@ -15,8 +15,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from core.llm.llm_gateway import get_llm_gateway
 from core.llm.llm_gateway_with_learning import get_learning_engine
-from services.llm.llm_router import get_llm_router
 from core.resilience.circuit_breaker_manager import get_circuit_breaker_manager
+from services.llm.llm_router import get_llm_router
 
 
 async def validate_migration():

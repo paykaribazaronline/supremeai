@@ -10,22 +10,19 @@ Provides a single high-level unified interface for:
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass, field
-from datetime import datetime
 import time
-from typing import Any, Dict, List, Optional
+from dataclasses import dataclass, field
+from typing import Any
 
 from loguru import logger
 
 from adapters.business_adapter import BusinessAdapter
 from adapters.dev_adapter import DevAdapter
 from adapters.ux_adapter import UXAdapter
-from core.advanced_reasoning import AdvancedReasoningEngine, ReasoningChain
+from core.advanced_reasoning import AdvancedReasoningEngine
 from core.evolution_module import EvolutionModule
 from core.resilience.safety_rollback_manager import SafetyRollbackManager
-from evolution.auto_evolution_controller import AutoEvolutionController, EvolutionCycle
-from evolution.memory_consolidator import MemoryConsolidator
-from evolution.performance_monitor import PerformanceMonitor
+from evolution.auto_evolution_controller import AutoEvolutionController
 from learning.pattern_recognizer import PatternRecognizer
 from scaling.distributed_manager import DistributedScalingManager
 from services.living_engine import LivingEngineOrchestrator, SolutionResult
@@ -39,13 +36,13 @@ class IntegratedResult:
     answer: Any
     confidence: float
     processing_time_ms: float
-    components_used: List[str]
+    components_used: list[str]
     evolution_applied: bool
     learning_occurred: bool
     domain: str
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "success": self.success,
             "answer": self.answer,
@@ -62,8 +59,8 @@ class IntegratedResult:
 class SupremeAIIntegrator:
     """Master Integrator connecting Phases 1, 2, and 3 into an autonomous living system."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
-        self.config: Dict[str, Any] = config or {}
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
+        self.config: dict[str, Any] = config or {}
 
         # Core Engines
         self.reasoning_engine = AdvancedReasoningEngine(self.config.get("reasoning", {}))
@@ -90,9 +87,9 @@ class SupremeAIIntegrator:
         # State & Telemetry
         self.initialized = False
         self._background_running = False
-        self._background_tasks: List[asyncio.Task[Any]] = []
+        self._background_tasks: list[asyncio.Task[Any]] = []
 
-        self.session_stats: Dict[str, Any] = {
+        self.session_stats: dict[str, Any] = {
             "requests_processed": 0,
             "successful_requests": 0,
             "failed_requests": 0,
@@ -112,7 +109,7 @@ class SupremeAIIntegrator:
         logger.info("SupremeAI Unified Integration Layer successfully initialized!")
         return True
 
-    async def process(self, user_input: str, context: Optional[Dict[str, Any]] = None) -> IntegratedResult:
+    async def process(self, user_input: str, context: dict[str, Any] | None = None) -> IntegratedResult:
         """Main end-to-end processing pipeline for any user demand."""
         start_time = time.perf_counter()
         if not self.initialized:
@@ -227,7 +224,7 @@ class SupremeAIIntegrator:
         await self.safety_rollback.create_checkpoint()
         logger.info("SupremeAI Integrator gracefully shut down with safety checkpoint saved.")
 
-    def get_system_status(self) -> Dict[str, Any]:
+    def get_system_status(self) -> dict[str, Any]:
         """Provides a composite status dashboard across all subsystems."""
         return {
             "initialized": self.initialized,
@@ -240,10 +237,10 @@ class SupremeAIIntegrator:
 
 
 # Global Singleton Facade
-_global_integrator: Optional[SupremeAIIntegrator] = None
+_global_integrator: SupremeAIIntegrator | None = None
 
 
-async def get_integrator(config: Optional[Dict[str, Any]] = None) -> SupremeAIIntegrator:
+async def get_integrator(config: dict[str, Any] | None = None) -> SupremeAIIntegrator:
     """Returns or creates the global SupremeAIIntegrator singleton."""
     global _global_integrator
     if _global_integrator is None:

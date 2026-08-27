@@ -8,11 +8,9 @@ Separates model self-confidence from external factual verification.
 from __future__ import annotations
 
 import ast
-from dataclasses import dataclass, field
-from datetime import datetime
 import logging
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core.task_contract import TaskContract, VerificationPolicy
 from runtime.task_result import CriterionResult, VerificationSummary
@@ -30,14 +28,14 @@ class VerifierEngine:
         self,
         task: TaskContract,
         candidate_output: Any,
-        context: Optional[Any] = None,
+        context: Any | None = None,
     ) -> VerificationSummary:
         """Run objective multi-point verification according to task policy."""
         start_time = time.perf_counter()
-        criteria_results: List[CriterionResult] = []
-        failures: List[str] = []
-        warnings: List[str] = []
-        evidence: List[str] = []
+        criteria_results: list[CriterionResult] = []
+        failures: list[str] = []
+        warnings: list[str] = []
+        evidence: list[str] = []
 
         output_str = str(candidate_output).strip() if candidate_output is not None else ""
 
@@ -128,7 +126,7 @@ class VerifierEngine:
                     CriterionResult(
                         criterion=f"Match success criterion: {criterion}",
                         passed=True,
-                        evidence=f"Matched in output",
+                        evidence="Matched in output",
                         is_required=True,
                     )
                 )
@@ -184,7 +182,7 @@ class VerifierEngine:
 
 
 # Global Singleton
-_verifier_instance: Optional[VerifierEngine] = None
+_verifier_instance: VerifierEngine | None = None
 
 
 def get_verifier() -> VerifierEngine:

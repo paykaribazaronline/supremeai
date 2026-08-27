@@ -1,10 +1,9 @@
 # backend/tests/evolution/test_canary_and_evolution_bridge.py
 """Tests for EvolutionBridge and CanaryRolloutController."""
 
-import pytest
-from evolution.canary_manager import CanaryRolloutController, get_canary_controller
+from evolution.canary_manager import CanaryRolloutController
 from evolution.change_proposal import ChangeProposalManager, ChangeType, ProposalState
-from learning.evolution_bridge import EvolutionBridge, get_evolution_bridge
+from learning.evolution_bridge import get_evolution_bridge
 from learning.experience import ExperienceRecord
 
 

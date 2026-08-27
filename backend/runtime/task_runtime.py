@@ -8,10 +8,10 @@ TaskContract -> TaskStateMachine -> Planner -> BudgetGuard -> TaskExecutor -> Ve
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime
 import logging
 import time
-from typing import Any, Dict, Optional
+from datetime import datetime
+from typing import Any
 
 from core.integration_layer import SupremeAIIntegrator
 from core.task_contract import TaskContract, TaskStatus, VerificationPolicy
@@ -30,20 +30,20 @@ class TaskRuntime:
 
     def __init__(
         self,
-        ai_system: Optional[SupremeAIIntegrator] = None,
-        verifier: Optional[VerifierEngine] = None,
-        planner: Optional[CanonicalPlanner] = None,
+        ai_system: SupremeAIIntegrator | None = None,
+        verifier: VerifierEngine | None = None,
+        planner: CanonicalPlanner | None = None,
     ) -> None:
         self.ai_system = ai_system
         self.verifier = verifier or get_verifier()
         self.planner = planner or get_planner()
         self.executor = TaskExecutor(ai_system=self.ai_system)
-        self.experience_ledger: list[Dict[str, Any]] = []
+        self.experience_ledger: list[dict[str, Any]] = []
 
     async def execute_task(
         self,
         task: TaskContract,
-        context: Optional[TaskContext] = None,
+        context: TaskContext | None = None,
     ) -> TaskResult:
         """Execute task through the canonical 5-stage lifecycle."""
         start_time = time.perf_counter()
@@ -114,7 +114,7 @@ class TaskRuntime:
                 execution_time_ms=(time.perf_counter() - start_time) * 1000,
                 error=str(budget_err),
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             task.fail(f"Task exceeded budget timeout ({task.budget.max_execution_seconds}s)")
             return TaskResult(
                 task_id=task.task_id,
@@ -139,9 +139,9 @@ class TaskRuntime:
     def _create_result(
         self,
         task: TaskContract,
-        exec_res: Dict[str, Any],
+        exec_res: dict[str, Any],
         start_time: float,
-        ver_report: Optional[VerificationSummary] = None,
+        ver_report: VerificationSummary | None = None,
     ) -> TaskResult:
         total_time_ms = round((time.perf_counter() - start_time) * 1000, 2)
         return TaskResult(
@@ -187,10 +187,10 @@ class TaskRuntime:
 
 
 # Global Singleton
-_task_runtime_instance: Optional[TaskRuntime] = None
+_task_runtime_instance: TaskRuntime | None = None
 
 
-def get_task_runtime(ai_system: Optional[SupremeAIIntegrator] = None) -> TaskRuntime:
+def get_task_runtime(ai_system: SupremeAIIntegrator | None = None) -> TaskRuntime:
     global _task_runtime_instance
     if _task_runtime_instance is None:
         _task_runtime_instance = TaskRuntime(ai_system=ai_system)

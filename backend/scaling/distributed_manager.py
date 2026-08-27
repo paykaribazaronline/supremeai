@@ -8,14 +8,12 @@ priority-based task distribution, node heartbeat health monitoring, and failover
 from __future__ import annotations
 
 import asyncio
-from collections import defaultdict, deque
+import uuid
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-import hashlib
-import time
-from typing import Any, Callable, Dict, List, Optional, Tuple
-import uuid
+from typing import Any
 
 
 class NodeState(str, Enum):
@@ -47,21 +45,21 @@ class NodeInfo:
     last_heartbeat: datetime
     tasks_completed: int
     tasks_failed: int
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class DistributedTask:
     task_id: str
     task_type: str
-    payload: Dict[str, Any]
+    payload: dict[str, Any]
     priority: TaskPriority
     created_at: datetime
-    assigned_node: Optional[str] = None
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    result: Optional[Any] = None
-    error: Optional[str] = None
+    assigned_node: str | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    result: Any | None = None
+    error: str | None = None
     retries: int = 0
     max_retries: int = 3
     timeout_seconds: int = 300
@@ -72,7 +70,7 @@ class ScalingDecision:
     decision_type: str  # 'scale_up', 'scale_down', 'rebalance'
     reason: str
     target_node_count: int
-    affected_nodes: List[str]
+    affected_nodes: list[str]
     estimated_time_seconds: int
     confidence: float
 
@@ -80,16 +78,16 @@ class ScalingDecision:
 class DistributedScalingManager:
     """Manages distributed multi-node clustering and auto-scaling."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
-        self.config: Dict[str, Any] = config or {}
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
+        self.config: dict[str, Any] = config or {}
 
         # Node management
-        self.nodes: Dict[str, NodeInfo] = {}
-        self.node_heartbeats: Dict[str, datetime] = {}
+        self.nodes: dict[str, NodeInfo] = {}
+        self.node_heartbeats: dict[str, datetime] = {}
 
         # Task management
-        self.tasks: Dict[str, DistributedTask] = {}
-        self.task_queue: asyncio.PriorityQueue[Tuple[int, str]] = asyncio.PriorityQueue()
+        self.tasks: dict[str, DistributedTask] = {}
+        self.task_queue: asyncio.PriorityQueue[tuple[int, str]] = asyncio.PriorityQueue()
         self.completed_tasks: deque[DistributedTask] = deque(maxlen=10000)
 
         # Scaling configuration
@@ -102,10 +100,10 @@ class DistributedScalingManager:
         self.cooldown_seconds: int = self.config.get("cooldown_seconds", 120)
 
         self.load_balancer_strategy: str = self.config.get("lb_strategy", "least_loaded")
-        self.last_scale_time: Optional[datetime] = None
+        self.last_scale_time: datetime | None = None
 
         # Statistics
-        self.stats: Dict[str, Any] = {
+        self.stats: dict[str, Any] = {
             "tasks_submitted": 0,
             "tasks_completed": 0,
             "tasks_failed": 0,
@@ -143,7 +141,7 @@ class DistributedScalingManager:
     async def submit_task(
         self,
         task_type: str,
-        payload: Dict[str, Any],
+        payload: dict[str, Any],
         priority: TaskPriority = TaskPriority.NORMAL,
         timeout: int = 300,
     ) -> str:
@@ -164,7 +162,7 @@ class DistributedScalingManager:
         await self._process_task_queue()
         return task_id
 
-    async def wait_for_task(self, task_id: str, timeout: Optional[int] = 5) -> Optional[DistributedTask]:
+    async def wait_for_task(self, task_id: str, timeout: int | None = 5) -> DistributedTask | None:
         deadline = datetime.now() + timedelta(seconds=timeout or 5)
         while datetime.now() < deadline:
             task = self.tasks.get(task_id)
@@ -189,7 +187,7 @@ class DistributedScalingManager:
             except asyncio.QueueEmpty:
                 break
 
-    def _select_node_for_task(self) -> Optional[NodeInfo]:
+    def _select_node_for_task(self) -> NodeInfo | None:
         active_nodes = [
             n for n in self.nodes.values()
             if n.state in [NodeState.ACTIVE, NodeState.BUSY] and n.current_load < n.capacity
@@ -223,7 +221,7 @@ class DistributedScalingManager:
             if self.nodes[node_id].state == NodeState.STARTING:
                 self.nodes[node_id].state = NodeState.ACTIVE
 
-    def get_cluster_status(self) -> Dict[str, Any]:
+    def get_cluster_status(self) -> dict[str, Any]:
         active_nodes = [n for n in self.nodes.values() if n.state == NodeState.ACTIVE]
         return {
             "total_nodes": len(self.nodes),

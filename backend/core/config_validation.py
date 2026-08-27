@@ -17,7 +17,7 @@ class SettingsValidationMixin:
         "redis_url": r"^redis://[^:]+:\d+$|^rediss://.*$",
         "database_url": r"^postgresql(ql)?://[^:]+:[^@]+@[^:/]+:\d+/[^/]+$",
     }
-    
+
     # ── Fix suggestions for common issues ──
     FIX_SUGGESTIONS = {
         "supabase_database_url": "Set SUPABASE_DATABASE_URL in Render dashboard. Format: postgresql://postgres.[project-ref]:[password]@aws-0-[region].pool.supabase.com:6543/postgres",

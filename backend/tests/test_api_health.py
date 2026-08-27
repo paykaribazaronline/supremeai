@@ -5,8 +5,9 @@ v4.0: Verifies /health endpoints work correctly
 
 from __future__ import annotations
 
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
 
 
 class TestHealthEndpoint:

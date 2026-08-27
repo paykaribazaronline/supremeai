@@ -3,8 +3,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from dataclasses import dataclass
 
 
 @dataclass
@@ -52,7 +51,7 @@ class FitnessEvaluator:
         latency_ms: float,
         cost_usd: float = 0.0,
         baseline_latency_ms: float = 1000.0,
-        errors: Optional[List[str]] = None,
+        errors: list[str] | None = None,
     ) -> FitnessBreakdown:
         validation_ratio = (passed_tests / total_tests) if total_tests > 0 else 0.0
         correctness = 1.0 if (errors is None or len(errors) == 0) and validation_ratio == 1.0 else validation_ratio
@@ -75,7 +74,7 @@ class FitnessEvaluator:
 
 
 # Global Singleton
-_evaluator: Optional[FitnessEvaluator] = None
+_evaluator: FitnessEvaluator | None = None
 
 
 def get_fitness_evaluator() -> FitnessEvaluator:

@@ -1,7 +1,8 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
+
 from brain.cognitive_router import get_cognitive_router
-from brain.economic_optimizer import get_economic_optimizer, BudgetContext
+from brain.economic_optimizer import BudgetContext, get_economic_optimizer
 
 router = APIRouter(prefix="/cognitive", tags=["cognitive"])
 

@@ -3,12 +3,12 @@
 
 from __future__ import annotations
 
+import logging
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-import logging
-from typing import Any, Dict, List, Optional
-import uuid
+from typing import Any
 
 from learning.experience import ExperienceRecord
 
@@ -32,12 +32,12 @@ class LearningInsight:
     insight_type: str  # "routing" | "prompt" | "tool_policy" | "budget"
     observation: str
     confidence: float
-    evidence_task_ids: List[str] = field(default_factory=list)
+    evidence_task_ids: list[str] = field(default_factory=list)
     recommended_action: str = ""
     insight_id: str = field(default_factory=lambda: f"ins_{uuid.uuid4().hex[:8]}")
     created_at: datetime = field(default_factory=datetime.now)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "insight_id": self.insight_id,
             "insight_type": self.insight_type,
@@ -53,7 +53,7 @@ class OutcomeAnalyzer:
     """Analyzes execution logs, extracts failure reasons, and synthesizes lessons."""
 
     def __init__(self) -> None:
-        self.insights: List[LearningInsight] = []
+        self.insights: list[LearningInsight] = []
 
     def classify_outcome(self, record: ExperienceRecord) -> OutcomeClassification:
         if record.verified and record.verification_score >= 0.8:
@@ -72,9 +72,9 @@ class OutcomeAnalyzer:
 
         return OutcomeClassification.CRITERION_FAILURE if record.failures else OutcomeClassification.GENERAL_FAILURE
 
-    def analyze_and_extract_lessons(self, record: ExperienceRecord) -> List[str]:
+    def analyze_and_extract_lessons(self, record: ExperienceRecord) -> list[str]:
         classification = self.classify_outcome(record)
-        lessons: List[str] = []
+        lessons: list[str] = []
 
         if classification == OutcomeClassification.SUCCESS:
             lessons.append(f"Optimal provider execution achieved via {record.providers_used or ['default']}.")
@@ -90,7 +90,7 @@ class OutcomeAnalyzer:
 
 
 # Global Singleton
-_outcome_analyzer: Optional[OutcomeAnalyzer] = None
+_outcome_analyzer: OutcomeAnalyzer | None = None
 
 
 def get_outcome_analyzer() -> OutcomeAnalyzer:

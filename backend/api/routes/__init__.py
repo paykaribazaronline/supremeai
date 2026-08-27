@@ -1,4 +1,5 @@
 from typing import Any
+
 _safe_imports = {}
 
 try:

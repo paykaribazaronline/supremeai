@@ -1,9 +1,9 @@
 # tests/test_agents_churn_prophet.py
 """Tests for ChurnProphet - user behavior analysis and retention prediction."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
-from datetime import datetime, timedelta
 
 
 class TestBehavioralScorer:
@@ -52,7 +52,7 @@ class TestUserSegment:
 
     def test_segment_regular_user(self):
         """Test regular user segmentation."""
-        from backend.agents.churn_prophet import UserSegment, BehavioralScorer
+        from backend.agents.churn_prophet import BehavioralScorer
 
         scorer = BehavioralScorer()
 

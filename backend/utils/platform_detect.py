@@ -50,7 +50,7 @@ def detect_platform() -> PlatformInfo:
     Returns PlatformInfo with all available details.
     """
     env = os.environ
-    
+
     # --- Render.com ---
     if env.get("RENDER_EXTERNAL_HOSTNAME") or env.get("RENDER_SERVICE_ID"):
         return PlatformInfo(
@@ -66,7 +66,7 @@ def detect_platform() -> PlatformInfo:
                 "cdn": True,
             },
         )
-    
+
     # --- Vercel ---
     if env.get("VERCEL") or env.get("VERCEL_URL"):
         return PlatformInfo(
@@ -82,7 +82,7 @@ def detect_platform() -> PlatformInfo:
                 "cdn": True,
             },
         )
-    
+
     # --- Firebase ---
     if env.get("FIREBASE_CONFIG") or env.get("GCLOUD_PROJECT"):
         return PlatformInfo(
@@ -98,7 +98,7 @@ def detect_platform() -> PlatformInfo:
                 "realtime_db": True,
             },
         )
-    
+
     # --- Docker ---
     if os.path.exists("/.dockerenv"):
         return PlatformInfo(
@@ -113,7 +113,7 @@ def detect_platform() -> PlatformInfo:
                 "volumes": True,
             },
         )
-    
+
     # --- GitHub Actions ---
     if env.get("CI") == "true" and env.get("GITHUB_ACTIONS") == "true":
         return PlatformInfo(
@@ -128,7 +128,7 @@ def detect_platform() -> PlatformInfo:
                 "artifacts": True,
             },
         )
-    
+
     # --- Default: Local Development ---
     return PlatformInfo(
         platform=Platform.LOCAL,

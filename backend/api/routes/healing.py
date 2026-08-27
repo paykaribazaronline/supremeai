@@ -1,5 +1,4 @@
 from fastapi import APIRouter
-from core.health.proactive_healer import get_proactive_healer
 
 router = APIRouter(tags=["healing"])
 

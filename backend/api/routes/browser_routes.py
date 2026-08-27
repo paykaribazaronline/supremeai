@@ -14,14 +14,14 @@ This module provides:
 @version 1.0.0
 """
 
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel, HttpUrl
-from typing import Optional, List, Dict, Any
-import asyncio
-import time
 import hashlib
-from datetime import datetime
 import logging
+import time
+from datetime import datetime
+from typing import Any
+
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +35,8 @@ class AIActionRequest(BaseModel):
     """Request for AI analysis of browsed pages"""
     action: str  # summarize, explain, extract_links, find_issues, interact
     url: str
-    payload: Optional[Dict[str, Any]] = None
-    context: Optional[str] = None  # Page content text (up to 5000 chars)
+    payload: dict[str, Any] | None = None
+    context: str | None = None  # Page content text (up to 5000 chars)
 
 class AIActionResponse(BaseModel):
     """Response from AI action"""
@@ -44,7 +44,7 @@ class AIActionResponse(BaseModel):
     response: str
     action: str
     processing_time_ms: int
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
 
 class SecurityScanRequest(BaseModel):
     """Request for security scanning"""
@@ -56,17 +56,17 @@ class SecurityIssue(BaseModel):
     severity: str  # critical, high, medium, low, info
     category: str
     message: str
-    remediation: Optional[str] = None
+    remediation: str | None = None
 
 class SecurityScanResponse(BaseModel):
     """Response from security scan"""
     success: bool
     score: int  # 0-100
-    issues: List[SecurityIssue]
+    issues: list[SecurityIssue]
     scan_url: str
     timestamp: str
     scan_duration_ms: int
-    checks_performed: List[str]
+    checks_performed: list[str]
 
 class ScreenshotRequest(BaseModel):
     """Request for screenshot capture"""
@@ -79,10 +79,10 @@ class ScreenshotRequest(BaseModel):
 class BrowseSessionRequest(BaseModel):
     """Save browsing session to memory/RAG system"""
     url: str
-    userId: Optional[str] = None
+    userId: str | None = None
     timestamp: int = 0
-    tabId: Optional[str] = None
-    context: Optional[Dict[str, Any]] = None
+    tabId: str | None = None
+    context: dict[str, Any] | None = None
 
 class BrowseSessionResponse(BaseModel):
     """Confirmation of saved session"""
@@ -109,11 +109,11 @@ async def browser_ai_action(req: AIActionRequest):
     - **interact**: Q&A about specific page elements
     """
     start_time = time.time()
-    
+
     try:
         # Import LLM gateway (lazy import to avoid circular deps)
         from backend.core.llm.llm_gateway import llm_gateway
-        
+
         # Build context-aware prompts based on action type
         ctx_explain = f"Page Content:\n{req.context[:4000]}" if req.context else ""
         ctx_extract = f"Content:\n{req.context[:5000]}" if req.context else ""
@@ -198,18 +198,18 @@ Question: {req.payload.get('question', 'General analysis') if req.payload else '
 
 Provide a helpful, detailed answer based on the available information."""
         }
-        
+
         prompt = prompts.get(req.action, prompts["summarize"])
-        
+
         # Call LLM Gateway
         result = await llm_gateway.complete(
             prompt=prompt,
             max_tokens=800,
             temperature=0.3  # Lower temp for more factual responses
         )
-        
+
         processing_time = int((time.time() - start_time) * 1000)
-        
+
         return AIActionResponse(
             success=True,
             response=result.text,
@@ -221,16 +221,16 @@ Provide a helpful, detailed answer based on the available information."""
                 "context_length": len(req.context) if req.context else 0
             }
         )
-        
+
     except ImportError as e:
         logger.error(f"LLM Gateway not available: {e}")
         # Fallback to rule-based responses when LLM unavailable
         return get_fallback_response(req.action, req.url, start_time)
-        
+
     except Exception as e:
         logger.error(f"AI Action failed: {e}", exc_info=True)
         raise HTTPException(
-            status_code=503, 
+            status_code=503,
             detail=f"AI service temporarily unavailable: {str(e)}"
         )
 
@@ -240,20 +240,19 @@ def get_fallback_response(action: str, url: str, start_time: float) -> AIActionR
     Fallback responses when LLM is unavailable.
     Still better than the original hardcoded responses!
     """
-    import re
-    
+
     fallbacks = {
         "summarize": f"📄 **Page Summary**\n\n**URL:** {url}\n\nThis page appears to be part of the SupremeAI platform.\n\n*Note: AI summarization is currently using fallback mode. Full LLM analysis will be available soon.*",
-        
+
         "explain": f"🔍 **Technical Analysis**\n\n**URL:** {url}\n\nBased on URL pattern analysis, this appears to be a React-based application.\n\n*Note: Deep technical analysis requires LLM service availability.*",
-        
+
         "extract_links": f"🔗 **Links Extraction**\n\nLink extraction completed for: {url}\n\n*Note: Full link extraction requires page content access. Some links may be missing due to cross-origin restrictions.*",
-        
+
         "find_issues": f"🚨 **Basic Issue Detection**\n\n**URL:** {url}\n\n**Checks Performed:**\n- ✅ HTTPS validation\n- ✅ Basic URL structure\n- ✅ Common vulnerability patterns\n\n*Note: Comprehensive security scanning requires the dedicated /security-scan endpoint.*",
-        
+
         "interact": f"💬 **Response**\n\nI can help you understand more about: {url}\n\nWhat specific aspect would you like me to analyze?"
     }
-    
+
     return AIActionResponse(
         success=True,
         response=fallbacks.get(action, "Analysis complete."),
@@ -284,28 +283,28 @@ async def browser_security_scan(req: SecurityScanRequest):
     start_time = time.time()
     checks_performed = []
     issues_found = []
-    
+
     try:
         from urllib.parse import urlparse
+
         from backend.core.security.ssrf_protection import SSRFProtection
-        from backend.core.security.origin_validator import OriginValidator
-        
+
         parsed_url = urlparse(req.url)
         hostname = parsed_url.hostname
-        
+
         if not hostname:
             raise HTTPException(status_code=400, detail="Invalid URL provided")
-        
+
         # ── CHECK 1: SSL/TLS Validation ──
         checks_performed.append("ssl_validation")
         ssl_score, ssl_issues = await check_ssl_security(req.url)
         issues_found.extend(ssl_issues)
-        
+
         # ── CHECK 2: Security Headers ──
         checks_performed.append("security_headers")
         header_score, header_issues = await check_security_headers(req.url)
         issues_found.extend(header_issues)
-        
+
         # ── CHECK 3: SSRF Protection ──
         checks_performed.append("ssrf_check")
         ssrf_protector = SSRFProtection()
@@ -318,13 +317,13 @@ async def browser_security_scan(req: SecurityScanRequest):
                 message="URL appears to target internal/private network",
                 remediation="Block requests to internal IP ranges"
             ))
-        
+
         # ── CHECK 4: Pattern-Based Vulnerability Scan ──
         if req.deep_scan:
             checks_performed.append("vulnerability_patterns")
             vuln_score, vuln_issues = await check_vulnerability_patterns(req.url)
             issues_found.extend(vuln_issues)
-        
+
         # Calculate overall score
         base_score = 100
         for issue in issues_found:
@@ -338,10 +337,10 @@ async def browser_security_scan(req: SecurityScanRequest):
                 base_score -= 3
             elif issue.severity == "info":
                 base_score -= 1
-        
+
         final_score = max(0, min(100, base_score))
         scan_duration = int((time.time() - start_time) * 1000)
-        
+
         return SecurityScanResponse(
             success=True,
             score=final_score,
@@ -351,7 +350,7 @@ async def browser_security_scan(req: SecurityScanRequest):
             scan_duration_ms=scan_duration,
             checks_performed=checks_performed
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -366,16 +365,16 @@ async def check_ssl_security(url: str) -> tuple[int, list]:
     """Check SSL/TLS certificate validity"""
     issues = []
     score = 100
-    
+
     try:
-        import ssl
         import socket
+        import ssl
         from urllib.parse import urlparse
-        
+
         parsed = urlparse(url)
         hostname = parsed.hostname
         port = parsed.port or (443 if parsed.scheme == 'https' else 80)
-        
+
         if parsed.scheme != 'https':
             issues.append(SecurityIssue(
                 severity="high",
@@ -391,7 +390,7 @@ async def check_ssl_security(url: str) -> tuple[int, list]:
                 with context.wrap_socket(sock, server_hostname=hostname) as ssock:
                     cert = ssock.getpeercert()
                     # Certificate is valid if we get here
-                    
+
     except ssl.SSLCertVerificationError as e:
         issues.append(SecurityIssue(
             severity="critical",
@@ -403,7 +402,7 @@ async def check_ssl_security(url: str) -> tuple[int, list]:
     except Exception as e:
         # Can't connect - might be expected for some URLs
         logger.debug(f"SSL check inconclusive for {url}: {e}")
-    
+
     return score, issues
 
 
@@ -411,15 +410,15 @@ async def check_security_headers(url: str) -> tuple[int, list]:
     """Check for important security headers"""
     issues = []
     score = 100
-    
+
     try:
         import httpx
-        
+
         async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
             response = await client.head(url)
-            
+
             headers = response.headers
-            
+
             # Check critical headers
             critical_headers = {
                 'X-Frame-Options': ('medium', "Missing X-Frame-Options header (clickjacking protection)", "Set X-Frame-Options: DENY or SAMEORIGIN"),
@@ -429,7 +428,7 @@ async def check_security_headers(url: str) -> tuple[int, list]:
                 'X-XSS-Protection': ('low', "Missing X-XSS-Protection header", "Enable X-XSS-Protection mode"),
                 'Referrer-Policy': ('info', "Missing Referrer-Policy header", "Set appropriate referrer policy"),
             }
-            
+
             for header, (severity, message, remediation) in critical_headers.items():
                 if header not in headers:
                     issues.append(SecurityIssue(
@@ -438,10 +437,10 @@ async def check_security_headers(url: str) -> tuple[int, list]:
                         message=message,
                         remediation=remediation
                     ))
-                    
+
     except Exception as e:
         logger.debug(f"Header check inconclusive for {url}: {e}")
-    
+
     return score, issues
 
 
@@ -449,7 +448,7 @@ async def check_vulnerability_patterns(url: str) -> tuple[int, list]:
     """Check for common vulnerability patterns in URL/content"""
     issues = []
     score = 100
-    
+
     # URL-based pattern checks
     suspicious_patterns = [
         (r'\.\./', 'Path Traversal Attempt in URL'),
@@ -458,7 +457,7 @@ async def check_vulnerability_patterns(url: str) -> tuple[int, list]:
         (r'javascript:', 'JavaScript Protocol in URL'),
         (r'data:text/html', 'Data URI in URL (potential XSS)'),
     ]
-    
+
     import re
     for pattern, description in suspicious_patterns:
         if re.search(pattern, url, re.IGNORECASE):
@@ -469,7 +468,7 @@ async def check_vulnerability_patterns(url: str) -> tuple[int, list]:
                 remediation="Validate and sanitize all user inputs"
             ))
             score -= 15
-    
+
     return score, issues
 
 
@@ -486,9 +485,9 @@ async def browser_screenshot(req: ScreenshotRequest):
     """
     try:
         from backend.core.playwright_manager import PlaywrightManager
-        
+
         manager = PlaywrightManager()
-        
+
         # Capture screenshot
         screenshot_bytes = await manager.capture_screenshot(
             url=req.url,
@@ -497,12 +496,12 @@ async def browser_screenshot(req: ScreenshotRequest):
             full_page=req.full_page,
             format=req.format
         )
-        
+
         from fastapi.responses import Response
-        
+
         media_type = f"image/{req.format}"
         filename = f"screenshot_{hashlib.md5(req.url.encode()).hexdigest()[:8]}.{req.format}"
-        
+
         return Response(
             content=screenshot_bytes,
             media_type=media_type,
@@ -512,7 +511,7 @@ async def browser_screenshot(req: ScreenshotRequest):
                 "X-Capture-Timestamp": datetime.utcnow().isoformat()
             }
         )
-        
+
     except ImportError:
         logger.warning("Playwright not available, returning fallback")
         raise HTTPException(
@@ -543,11 +542,11 @@ async def save_browse_session(session_data: BrowseSessionRequest):
     """
     try:
         from backend.core.unified_memory import UnifiedMemory
-        
+
         session_id = f"browse_{session_data.timestamp}_{hashlib.md5(session_data.url.encode()).hexdigest()[:12]}"
-        
+
         memory = UnifiedMemory()
-        
+
         # Store with embeddings generation for RAG
         await memory.store(
             type="browse_session",
@@ -562,15 +561,15 @@ async def save_browse_session(session_data: BrowseSessionRequest):
             embeddings=True,  # Generate vector embeddings
             tags=["admin-browser", "navigation", "web"]
         )
-        
+
         logger.info(f"Saved browse session: {session_id} for URL: {session_data.url}")
-        
+
         return BrowseSessionResponse(
             success=True,
             session_id=session_id,
             message="Browse session saved to memory"
         )
-        
+
     except Exception as e:
         logger.error(f"Failed to save browse session: {e}", exc_info=True)
         # Don't fail the request - browsing should continue
@@ -584,7 +583,7 @@ async def save_browse_session(session_data: BrowseSessionRequest):
 @router.get("/browse-sessions")
 async def get_browse_sessions(
     limit: int = 50,
-    userId: Optional[str] = None,
+    userId: str | None = None,
     hours: int = 24  # Default last 24 hours
 ):
     """
@@ -594,12 +593,12 @@ async def get_browse_sessions(
     """
     try:
         from backend.core.unified_memory import UnifiedMemory
-        
+
         memory = UnifiedMemory()
-        
+
         # Query with filters
         since_timestamp = int(time.time()) - (hours * 3600)
-        
+
         sessions = await memory.query(
             type="browse_session",
             limit=limit,
@@ -608,14 +607,14 @@ async def get_browse_sessions(
                 "since_timestamp": since_timestamp
             } if userId else {"since_timestamp": since_timestamp}
         )
-        
+
         return {
             "success": True,
             "sessions": sessions or [],
             "count": len(sessions) if sessions else 0,
             "query_params": {"limit", "userId", "hours"}
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to retrieve browse sessions: {e}", exc_info=True)
         return {
@@ -631,9 +630,9 @@ async def get_browse_sessions(
 
 @router.post("/screenshots")
 async def save_screenshot_to_gallery(
-    userId: Optional[str] = None,
-    url: Optional[str] = None,
-    timestamp: Optional[int] = None
+    userId: str | None = None,
+    url: str | None = None,
+    timestamp: int | None = None
 ):
     """
     Save screenshot metadata to gallery (actual image uploaded separately).
@@ -646,10 +645,10 @@ async def save_screenshot_to_gallery(
         "capturedAt": timestamp or int(time.time()),
         "storageLocation": f"screenshots/{userId or 'anonymous'}/{int(time.time())}.png"
     }
-    
+
     # Store metadata in your database
     # Upload actual file to cloud storage (R2/S3)
-    
+
     return {
         "success": True,
         "galleryEntry": gallery_entry,
@@ -673,7 +672,7 @@ async def browser_service_health():
         "timestamp": datetime.utcnow().isoformat(),
         "capabilities": []
     }
-    
+
     # Check each capability
     capabilities_checks = [
         ("ai-action", check_llm_gateway),
@@ -681,7 +680,7 @@ async def browser_service_health():
         ("screenshot", check_playwright),
         ("memory-storage", check_unified_memory),
     ]
-    
+
     for capability_name, check_func in capabilities_checks:
         try:
             available = await check_func()
@@ -698,7 +697,7 @@ async def browser_service_health():
                 "error": str(e)
             })
             health_status["status"] = "degraded"
-    
+
     return health_status
 
 
@@ -715,8 +714,8 @@ async def check_llm_gateway() -> bool:
 async def check_security_modules() -> bool:
     """Check if security modules are available"""
     try:
-        from backend.core.security.ssrf_protection import SSRFProtection
         from backend.core.security.origin_validator import OriginValidator
+        from backend.core.security.ssrf_protection import SSRFProtection
         return True
     except ImportError:
         return False

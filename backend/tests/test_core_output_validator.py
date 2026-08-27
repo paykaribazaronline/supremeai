@@ -1,8 +1,6 @@
 # tests/test_core_output_validator.py
 """Tests for output validation and multi-model consensus."""
 
-import pytest
-from unittest.mock import MagicMock, patch
 
 
 class TestOutputValidator:

@@ -3,14 +3,12 @@ from __future__ import annotations
 import secrets
 import time
 
+import jwt
 from fastapi import APIRouter, HTTPException
 from loguru import logger
 from pydantic import BaseModel
 
 from core.config import settings
-
-import jwt
-from jwt import PyJWTError as JWTError
 
 _sso_instance = None
 _sso_error = None

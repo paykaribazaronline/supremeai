@@ -3,12 +3,12 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
 import hashlib
 import time
-from typing import Any, Dict, List, Optional
 import uuid
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from typing import Any
 
 
 def hash_content(content: Any) -> str:
@@ -27,20 +27,20 @@ class TraceEvent:
     component: str
     sequence_number: int = 0
     event_id: str = field(default_factory=lambda: f"evt_{uuid.uuid4().hex[:10]}")
-    parent_event_id: Optional[str] = None
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    parent_event_id: str | None = None
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     monotonic_ns: int = field(default_factory=time.perf_counter_ns)
-    provider: Optional[str] = None
-    model: Optional[str] = None
+    provider: str | None = None
+    model: str | None = None
     input_hash: str = ""
     output_hash: str = ""
     latency_ms: float = 0.0
     cost_usd: float = 0.0
     success: bool = True
-    error: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    error: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "event_id": self.event_id,
             "sequence_number": self.sequence_number,
@@ -66,17 +66,17 @@ class TaskContext:
 
     trace_id: str = field(default_factory=lambda: f"trace_{uuid.uuid4().hex[:12]}")
     tenant_id: str = "default_tenant"
-    session_id: Optional[str] = None
-    client_ip: Optional[str] = None
-    user_agent: Optional[str] = None
-    started_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    token_usage: Dict[str, int] = field(default_factory=lambda: {"prompt": 0, "completion": 0, "total": 0})
+    session_id: str | None = None
+    client_ip: str | None = None
+    user_agent: str | None = None
+    started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    token_usage: dict[str, int] = field(default_factory=lambda: {"prompt": 0, "completion": 0, "total": 0})
     cost_usd: float = 0.0
-    active_provider: Optional[str] = None
-    active_model: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    checkpoints: List[Dict[str, Any]] = field(default_factory=list)
-    events: List[TraceEvent] = field(default_factory=list)
+    active_provider: str | None = None
+    active_model: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+    checkpoints: list[dict[str, Any]] = field(default_factory=list)
+    events: list[TraceEvent] = field(default_factory=list)
     _seq_counter: int = field(default=0, init=False)
 
     def record_usage(self, prompt_tokens: int, completion_tokens: int, cost: float = 0.0) -> None:
@@ -85,10 +85,10 @@ class TaskContext:
         self.token_usage["total"] += prompt_tokens + completion_tokens
         self.cost_usd += cost
 
-    def checkpoint(self, label: str, details: Optional[Dict[str, Any]] = None) -> None:
+    def checkpoint(self, label: str, details: dict[str, Any] | None = None) -> None:
         self.checkpoints.append({
             "label": label,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "details": details or {},
         })
 
@@ -96,14 +96,14 @@ class TaskContext:
         self,
         phase: str,
         component: str,
-        input_data: Optional[Any] = None,
-        output_data: Optional[Any] = None,
-        parent_event_id: Optional[str] = None,
+        input_data: Any | None = None,
+        output_data: Any | None = None,
+        parent_event_id: str | None = None,
         latency_ms: float = 0.0,
         cost_usd: float = 0.0,
         success: bool = True,
-        error: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        error: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> TraceEvent:
         self._seq_counter += 1
         event = TraceEvent(

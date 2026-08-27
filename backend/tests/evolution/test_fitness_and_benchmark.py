@@ -1,11 +1,10 @@
 # backend/tests/evolution/test_fitness_and_benchmark.py
 """Tests for FitnessEvaluator, BenchmarkRunner, and ArtifactIntegrityGate."""
 
-import pytest
-from evolution.artifact_integrity import ArtifactIntegrityGate, canonical_artifact_hash
-from evolution.benchmark_runner import BenchmarkRunner, PromotionDecision, get_benchmark_runner
+from evolution.artifact_integrity import ArtifactIntegrityGate
+from evolution.benchmark_runner import get_benchmark_runner
 from evolution.change_proposal import ChangeProposalManager, ChangeType, ProposalState
-from evolution.fitness_evaluator import FitnessEvaluator, get_fitness_evaluator
+from evolution.fitness_evaluator import get_fitness_evaluator
 
 
 def test_fitness_evaluator_multi_factor():

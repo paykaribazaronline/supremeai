@@ -1,6 +1,7 @@
 """Tests for Hierarchical Memory Tree Engine."""
 
 import pytest
+
 from backend.memory.hierarchical_tree import HierarchicalMemoryTree
 
 

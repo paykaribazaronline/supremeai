@@ -1,14 +1,13 @@
 import asyncio
 
 from loguru import logger
+
 from core.cache.redis_manager import redis_manager
 from core.config import settings
 from core.config_cache import config_cache
 from core.maintenance_pipeline import maintenance_pipeline
-from core.messaging.event_bus import ErrorEvent, ErrorContext
-from core.messaging.event_bus import error_event_bus
-from core.pgbouncer_pool import PgBouncerConnectionPool, get_db_pool
-from core.pgbouncer_pool import init_db_pool
+from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
+from core.pgbouncer_pool import PgBouncerConnectionPool, get_db_pool, init_db_pool
 from core.reliability_controller import ReliabilityController
 from core.startup.api_key_tables import ensure_api_key_tables as _ensure_api_key_tables
 

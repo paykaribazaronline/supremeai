@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 import sys
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -12,7 +12,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "scripts" / "billing"))
 
-from quota_enforcer import QuotaEnforcer, QuotaStatus, EnforcementReport  # noqa: E402
+from quota_enforcer import QuotaEnforcer, QuotaStatus  # noqa: E402
 
 
 @pytest.fixture
@@ -291,8 +291,7 @@ class TestQuotaEnforcerEnforcement:
 
     @pytest.mark.asyncio
     async def test_check_tenant_quota_over_quota(self, mock_db_session, pricing_tiers_path):
-        from models.wallet import UserWallet
-        from models.wallet import TransactionLedgerEntry
+        from models.wallet import TransactionLedgerEntry, UserWallet
         wallet = UserWallet(
             user_id="t1",
             balance_usd=Decimal("150.0"),

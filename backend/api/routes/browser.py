@@ -1,16 +1,16 @@
-from datetime import UTC, datetime
-from typing import Any
-
-from fastapi import APIRouter, Depends, HTTPException, Response
-from loguru import logger
-from pydantic import BaseModel
 import hashlib
 import ipaddress
 import json
 import socket
 import urllib.error
 import urllib.request
+from datetime import UTC, datetime
+from typing import Any
 from urllib.parse import urlparse
+
+from fastapi import APIRouter, Depends, HTTPException, Response
+from loguru import logger
+from pydantic import BaseModel
 
 from api.deps import get_current_user_token
 from api.routes.admin_dashboard import require_admin_token
@@ -433,7 +433,7 @@ def browse_session(body: dict[str, Any]):
 def ai_action(body: dict[str, Any]):
     action = body.get("action")
     return {
-        "success": True, 
+        "success": True,
         "action": action,
         "response": f"AI successfully processed {action}",
         "summary": "This is a mock summary for " + str(body.get("url")),
@@ -540,9 +540,9 @@ def delete_session(session_id: str):
     return {"success": True}
 
 
-from tools.ai_agents.browser_agent import BrowseRequest
-
 from pydantic import BaseModel
+
+from tools.ai_agents.browser_agent import BrowseRequest
 
 
 class ScrapeRequest(BaseModel):
@@ -554,8 +554,8 @@ class ScrapeRequest(BaseModel):
 # Cloudflare Worker (worker.js) এবং render.yaml-এ scraper route যোগ করতে হবে।
 
 import httpx
-from core.config import settings
 
+from core.config import settings
 
 _SCRAPER_URL = settings.scraper_service_url.rstrip("/") if settings.scraper_service_url else None
 

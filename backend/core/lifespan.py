@@ -38,15 +38,11 @@ from loguru import logger
 
 from core import services
 from core.config import settings
-from core.messaging.event_bus import ErrorEvent
-from core.messaging.event_bus import error_event_bus
+from core.messaging.event_bus import ErrorEvent, error_event_bus
 from core.metrics_collector import metrics_collector
 from core.orchestration.orchestrator import Orchestrator
 from core.reliability_controller import ReliabilityController
 from core.startup_validator import StartupValidator
-
-
-
 
 
 @asynccontextmanager

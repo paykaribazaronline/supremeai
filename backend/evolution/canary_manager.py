@@ -3,13 +3,12 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from evolution.change_proposal import (
-    ChangeProposal,
     ChangeProposalManager,
     ProposalState,
     get_change_manager,
@@ -40,9 +39,9 @@ class CanaryTrial:
 class CanaryRolloutController:
     """Manages progressive canary deployments of AI ChangeProposals with automatic rollback."""
 
-    def __init__(self, proposal_manager: Optional[ChangeProposalManager] = None) -> None:
+    def __init__(self, proposal_manager: ChangeProposalManager | None = None) -> None:
         self.proposal_manager = proposal_manager or get_change_manager()
-        self.active_canaries: Dict[str, CanaryTrial] = {}
+        self.active_canaries: dict[str, CanaryTrial] = {}
 
     def deploy_canary(self, proposal_id: str, sample_ratio: float = 0.10) -> bool:
         proposal = self.proposal_manager.proposals.get(proposal_id)
@@ -71,7 +70,7 @@ class CanaryRolloutController:
         if trial.total_trials >= 3 and trial.success_rate < 0.60:
             self.trigger_rollback(proposal_id, reason=f"High failure rate in canary ({trial.success_rate * 100:.1f}%)")
 
-    def get_canary_stats(self, proposal_id: str) -> Dict[str, Any]:
+    def get_canary_stats(self, proposal_id: str) -> dict[str, Any]:
         trial = self.active_canaries.get(proposal_id)
         if not trial:
             return {"active": False, "success_rate": 0.0, "total_trials": 0}
@@ -117,7 +116,7 @@ class CanaryRolloutController:
 
 
 # Global Singleton
-_canary_controller: Optional[CanaryRolloutController] = None
+_canary_controller: CanaryRolloutController | None = None
 
 
 def get_canary_controller() -> CanaryRolloutController:

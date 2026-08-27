@@ -18,10 +18,9 @@ from __future__ import annotations
 
 import os
 import re
-import sys
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Literal
+from typing import Any
 
 
 class VarType(str, Enum):
@@ -73,11 +72,11 @@ class ConfigValidationResult:
     errors: list[ValidationError] = field(default_factory=list)
     warnings: list[ValidationError] = field(default_factory=list)
     validated_vars: dict[str, Any] = field(default_factory=dict)
-    
+
     def format_errors(self) -> str:
         """Format all errors for display."""
         lines = ["=" * 60, "❌ CONFIGURATION VALIDATION FAILED", "=" * 60]
-        
+
         for err in self.errors:
             icon = "🚨" if err.severity == Severity.ERROR else "⚠️"
             lines.append(f"\n{icon} [{err.severity.value.upper()}] {err.var_name}")
@@ -86,7 +85,7 @@ class ConfigValidationResult:
                 lines.append(f"   Actual value: '{err.actual_value}'")
             if err.suggestion:
                 lines.append(f"   💡 Suggestion: {err.suggestion}")
-        
+
         lines.extend(["", "-" * 40, f"Total errors: {len(self.errors)}, Warnings: {len(self.warnings)}"])
         return "\n".join(lines)
 
@@ -106,14 +105,14 @@ CONFIG_SCHEMA: list[VarDefinition] = [
                   description="Server port"),
     VarDefinition(name="HOST", default="0.0.0.0",
                   description="Server bind address"),
-    
+
     # --- Backend URLs ---
     VarDefinition(name="BACKEND_URL", var_type=VarType.URL,
                   required=True, severity=Severity.WARNING,
                   pattern=r"^https?://.+",
                   description="Public backend URL",
                   examples=["https://supremeai-backend.onrender.com"]),
-    
+
     # --- CORS ---
     VarDefinition(name="USER_CORS_ORIGINS", var_type=VarType.LIST,
                   default=[],
@@ -122,7 +121,7 @@ CONFIG_SCHEMA: list[VarDefinition] = [
     VarDefinition(name="ADMIN_CORS_ORIGINS", var_type=VarType.LIST,
                   default=[],
                   description="Allowed CORS origins for admin portal"),
-    
+
     # --- Security ---
     VarDefinition(name="JWT_SECRET", var_type=VarType.STRING,
                   required=True, severity=Severity.ERROR,
@@ -132,12 +131,12 @@ CONFIG_SCHEMA: list[VarDefinition] = [
     VarDefinition(name="ENFORCE_ANTI_HACKING", var_type=VarType.BOOLEAN,
                   default=False,
                   description="Enable anti-hacking measures"),
-    
+
     # --- Database ---
     VarDefinition(name="DATABASE_URL", var_type=VarType.URL,
                   severity=Severity.WARNING,
                   description="Database connection URL"),
-    
+
     # --- LLM Providers ---
     VarDefinition(name="GEMINI_API_KEY", var_type=VarType.STRING,
                   severity=Severity.INFO,
@@ -148,7 +147,7 @@ CONFIG_SCHEMA: list[VarDefinition] = [
     VarDefinition(name="OPENROUTER_API_KEY", var_type=VarType.STRING,
                   severity=Severity.INFO,
                   description="OpenRouter API key"),
-    
+
     # --- Rate Limits ---
     VarDefinition(name="GEMINI_RPM_LIMIT", var_type=VarType.INTEGER,
                   default=9, min_value=1, max_value=1000),
@@ -156,13 +155,13 @@ CONFIG_SCHEMA: list[VarDefinition] = [
                   default=28, min_value=1, max_value=1000),
     VarDefinition(name="OPENROUTER_RPM_LIMIT", var_type=VarType.INTEGER,
                   default=19, min_value=1, max_value=1000),
-    
+
     # --- Scraper Service ---
     VarDefinition(name="SCRAPER_MAX_CONCURRENCY", var_type=VarType.INTEGER,
                   default=3, min_value=1, max_value=10),
     VarDefinition(name="SCRAPER_TIMEOUT_SECONDS", var_type=VarType.INTEGER,
                   default=45, min_value=10, max_value=300),
-    
+
     # --- Feature Flags ---
     VarDefinition(name="SELF_HEALING_ENABLED", var_type=VarType.BOOLEAN,
                   default=True,
@@ -269,9 +268,9 @@ def print_config_summary() -> None:
     print("\n" + "=" * 50)
     print("🔧 Configuration Summary")
     print("=" * 50)
-    
+
     sensitive_keys = ("SECRET", "KEY", "PASSWORD", "TOKEN")
-    
+
     for var_def in CONFIG_SCHEMA:
         value = os.getenv(var_def.name, var_def.default)
         if value is None:
@@ -280,9 +279,9 @@ def print_config_summary() -> None:
             display = "*****" if len(str(value)) > 0 else "⟨empty⟩"
         else:
             display = str(value)[:50] + ("..." if len(str(value)) > 50 else "")
-        
+
         req_marker = " ✗" if var_def.required and value is None else " ✓"
         print(f"  {var_def.name:<30} = {display:<55}{req_marker}")
-    
+
     print("=" * 50 + "\n")
 # =============================================================================

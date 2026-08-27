@@ -3,14 +3,14 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
 import json
 import logging
 import os
-from pathlib import Path
-from typing import Any, Dict, List, Optional
 import uuid
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger("supremeai.learning.experience")
 
@@ -22,21 +22,21 @@ class ExperienceRecord:
     task_id: str
     goal: str
     experience_id: str = field(default_factory=lambda: f"exp_{uuid.uuid4().hex[:10]}")
-    trace_id: Optional[str] = None
-    proposal_id: Optional[str] = None
+    trace_id: str | None = None
+    proposal_id: str | None = None
     plan_steps_count: int = 0
-    tools_used: List[str] = field(default_factory=list)
-    providers_used: List[str] = field(default_factory=list)
+    tools_used: list[str] = field(default_factory=list)
+    providers_used: list[str] = field(default_factory=list)
     verified: bool = False
     verification_score: float = 0.0
     cost_usd: float = 0.0
     latency_ms: float = 0.0
-    failures: List[str] = field(default_factory=list)
-    user_feedback: Optional[str] = None
-    lessons_extracted: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    failures: list[str] = field(default_factory=list)
+    user_feedback: str | None = None
+    lessons_extracted: list[str] = field(default_factory=list)
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "experience_id": self.experience_id,
             "task_id": self.task_id,
@@ -60,10 +60,10 @@ class ExperienceRecord:
 class ExperienceStore:
     """In-memory and persistent Experience Ledger."""
 
-    def __init__(self, storage_dir: Optional[str] = None) -> None:
+    def __init__(self, storage_dir: str | None = None) -> None:
         self.storage_dir = Path(storage_dir or os.path.expanduser("~/.supremeai/experience"))
         self.storage_dir.mkdir(parents=True, exist_ok=True)
-        self.records: List[ExperienceRecord] = []
+        self.records: list[ExperienceRecord] = []
 
     def record(self, experience: ExperienceRecord) -> None:
         self.records.append(experience)
@@ -74,12 +74,12 @@ class ExperienceStore:
         except Exception as exc:
             logger.warning(f"Could not persist experience {experience.experience_id}: {exc}")
 
-    def get_recent(self, limit: int = 50) -> List[ExperienceRecord]:
+    def get_recent(self, limit: int = 50) -> list[ExperienceRecord]:
         return self.records[-limit:]
 
 
 # Global Singleton
-_experience_store: Optional[ExperienceStore] = None
+_experience_store: ExperienceStore | None = None
 
 
 def get_experience_store() -> ExperienceStore:

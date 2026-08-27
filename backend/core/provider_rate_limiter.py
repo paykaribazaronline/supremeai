@@ -12,15 +12,15 @@ Handles free-tier API rate limits gracefully:
 from __future__ import annotations
 
 import asyncio
-from collections import deque
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from enum import Enum
 import logging
 import os
 import random
 import time
-from typing import Any, Callable, Dict, List, Optional
+from collections import deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class ProviderConfig:
 
     name: str
     api_key_env: str
-    base_url: Optional[str] = None
+    base_url: str | None = None
     rpm_limit: int = 0
     tpm_limit: int = 0
     priority: int = 1
@@ -54,7 +54,7 @@ class RateLimitInfo:
     provider: str
     timestamp: datetime
     retry_after_seconds: int
-    headers: Dict[str, str] = field(default_factory=dict)
+    headers: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
@@ -65,8 +65,8 @@ class ProviderStats:
     successful_requests: int = 0
     failed_requests: int = 0
     avg_latency_ms: float = 0.0
-    last_429_time: Optional[datetime] = None
-    cooldown_until: Optional[datetime] = None
+    last_429_time: datetime | None = None
+    cooldown_until: datetime | None = None
     consecutive_failures: int = 0
 
 
@@ -88,21 +88,21 @@ class ProviderDownException(Exception):
 class IntelligentRateLimiter:
     """Advanced rate limiting and provider fallback system."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
-        self.config: Dict[str, Any] = config or {}
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
+        self.config: dict[str, Any] = config or {}
 
-        self.providers: Dict[str, ProviderConfig] = {}
-        self.provider_stats: Dict[str, ProviderStats] = {}
-        self.provider_status: Dict[str, ProviderStatus] = {}
+        self.providers: dict[str, ProviderConfig] = {}
+        self.provider_stats: dict[str, ProviderStats] = {}
+        self.provider_status: dict[str, ProviderStatus] = {}
 
         self.request_queue: deque = deque()
         self.max_queue_size = self.config.get("max_queue_size", 100)
 
-        self.rate_limits_detected: List[RateLimitInfo] = []
+        self.rate_limits_detected: list[RateLimitInfo] = []
         self.circuit_breaker_threshold = self.config.get("circuit_breaker_threshold", 5)
         self.circuit_breaker_cooldown_seconds = self.config.get("circuit_breaker_cooldown", 60)
 
-        self.stats: Dict[str, Any] = {
+        self.stats: dict[str, Any] = {
             "total_requests": 0,
             "successful_requests": 0,
             "failed_requests": 0,
@@ -160,8 +160,8 @@ class IntelligentRateLimiter:
             self.provider_status[name] = ProviderStatus.AVAILABLE
 
     async def make_request(
-        self, prompt: str, context: Optional[Dict[str, Any]] = None, preferred_provider: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, prompt: str, context: dict[str, Any] | None = None, preferred_provider: str | None = None
+    ) -> dict[str, Any]:
         """Make a request with automatic multi-provider fallback."""
         start_time = time.perf_counter()
         self.stats["total_requests"] += 1
@@ -233,7 +233,7 @@ class IntelligentRateLimiter:
             return False
         return status != ProviderStatus.DOWN
 
-    async def _call_provider(self, provider_name: str, prompt: str, context: Optional[Dict[str, Any]] = None) -> Any:
+    async def _call_provider(self, provider_name: str, prompt: str, context: dict[str, Any] | None = None) -> Any:
         config = self.providers[provider_name]
         api_key = os.getenv(config.api_key_env, "")
 
@@ -264,8 +264,8 @@ class IntelligentRateLimiter:
             stats.cooldown_until = datetime.now() + timedelta(seconds=self.circuit_breaker_cooldown_seconds)
             self.provider_status[provider_name] = ProviderStatus.DOWN
 
-    async def check_all_providers_health(self) -> Dict[str, Any]:
-        health_report: Dict[str, Any] = {}
+    async def check_all_providers_health(self) -> dict[str, Any]:
+        health_report: dict[str, Any] = {}
         for name in self.providers:
             health_report[name] = {
                 "status": self.provider_status.get(name, ProviderStatus.AVAILABLE).value,
@@ -273,7 +273,7 @@ class IntelligentRateLimiter:
             }
         return health_report
 
-    def get_statistics(self) -> Dict[str, Any]:
+    def get_statistics(self) -> dict[str, Any]:
         return {
             "global_stats": self.stats,
             "providers": {
@@ -287,10 +287,10 @@ class IntelligentRateLimiter:
         }
 
 
-_limiter_instance: Optional[IntelligentRateLimiter] = None
+_limiter_instance: IntelligentRateLimiter | None = None
 
 
-def get_provider_rate_limiter(config: Optional[Dict[str, Any]] = None) -> IntelligentRateLimiter:
+def get_provider_rate_limiter(config: dict[str, Any] | None = None) -> IntelligentRateLimiter:
     global _limiter_instance
     if _limiter_instance is None:
         _limiter_instance = IntelligentRateLimiter(config)

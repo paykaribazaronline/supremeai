@@ -8,19 +8,18 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 
 @dataclass
 class AdaptationResult:
     success: bool
     adapted_solution: Any
-    domain_specific_metadata: Dict[str, Any]
+    domain_specific_metadata: dict[str, Any]
     confidence: float
     execution_time_ms: int
-    suggestions: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
+    suggestions: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
 
 class BaseAdapter(ABC):
@@ -29,14 +28,14 @@ class BaseAdapter(ABC):
     Each adapter handles a specific domain's unique requirements.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
-        self.config: Dict[str, Any] = config or {}
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
+        self.config: dict[str, Any] = config or {}
         self.domain_name: str = self.__class__.__name__.replace("Adapter", "").lower()
-        self.capabilities: List[str] = self._define_capabilities()
-        self.constraints: Dict[str, Any] = self._define_constraints()
+        self.capabilities: list[str] = self._define_capabilities()
+        self.constraints: dict[str, Any] = self._define_constraints()
 
         # Performance tracking
-        self.execution_stats: Dict[str, Any] = {
+        self.execution_stats: dict[str, Any] = {
             "total_executions": 0,
             "successful": 0,
             "failed": 0,
@@ -44,32 +43,32 @@ class BaseAdapter(ABC):
         }
 
     @abstractmethod
-    def _define_capabilities(self) -> List[str]:
+    def _define_capabilities(self) -> list[str]:
         """Define what this adapter can do."""
         pass
 
     @abstractmethod
-    def _define_constraints(self) -> Dict[str, Any]:
+    def _define_constraints(self) -> dict[str, Any]:
         """Define domain-specific constraints."""
         pass
 
     @abstractmethod
-    async def adapt(self, problem: Any, context: Optional[Dict[str, Any]] = None) -> AdaptationResult:
+    async def adapt(self, problem: Any, context: dict[str, Any] | None = None) -> AdaptationResult:
         """Main adaptation method - transforms generic problem into domain-specific solution."""
         pass
 
     @abstractmethod
-    def validate_domain_input(self, input_data: Any) -> Tuple[bool, List[str]]:
+    def validate_domain_input(self, input_data: Any) -> tuple[bool, list[str]]:
         """Validate input against domain requirements."""
         pass
 
     def can_handle(self, problem: Any) -> bool:
         """Check if this adapter can handle the given problem."""
         problem_str = str(problem).lower()
-        domain_keywords: List[str] = self.config.get("domain_keywords", [])
+        domain_keywords: list[str] = self.config.get("domain_keywords", [])
         return any(kw in problem_str for kw in domain_keywords)
 
-    def get_info(self) -> Dict[str, Any]:
+    def get_info(self) -> dict[str, Any]:
         """Return adapter information."""
         return {
             "domain": self.domain_name,

@@ -1,6 +1,8 @@
-from typing import Any
-from pydantic import BaseModel
 from enum import Enum
+from typing import Any
+
+from pydantic import BaseModel
+
 
 class MCPToolName(str, Enum):
     """Standard MCP tool names as per Master Plan specification"""
@@ -35,7 +37,7 @@ MCP_BROWSER_TOOLS: list[MCPTool] = [
         },
         returns="{'status': 'ok'|'error', 'url': 'string', 'title': 'string'}"
     ),
-    
+
     MCPTool(
         name=MCPToolName.BROWSER_CLICK,
         description="Click on an element using CSS selector, text content, or coordinates",
@@ -47,7 +49,7 @@ MCP_BROWSER_TOOLS: list[MCPTool] = [
         },
         returns="{'status': 'clicked'|'not_found', 'element': 'string'}"
     ),
-    
+
     MCPTool(
         name=MCPToolName.BROWSER_TYPE,
         description="Type text into input field or textarea",
@@ -59,7 +61,7 @@ MCP_BROWSER_TOOLS: list[MCPTool] = [
         },
         returns="{'status': 'typed', 'selector': 'string'}"
     ),
-    
+
     MCPTool(
         name=MCPToolName.BROWSER_SCREENSHOT,
         description="Capture screenshot of current page or element",
@@ -71,7 +73,7 @@ MCP_BROWSER_TOOLS: list[MCPTool] = [
         },
         returns="{'status': 'ok', 'screenshot_base64': 'string', 'width': int, 'height': int}"
     ),
-    
+
     MCPTool(
         name=MCPToolName.BROWSER_FILE_UPLOAD,
         description="Upload file through file input element",
@@ -91,12 +93,12 @@ async def execute_mcp_tool(tool_name: str, params: dict) -> dict:
     This is the main entry point for AI agents using MCP protocol.
     """
     from tools.browser.playwright_browser_agent import PlaywrightBrowserAgent
-    
+
     agent = PlaywrightBrowserAgent()
-    
+
     if tool_name == MCPToolName.BROWSER_NAVIGATE.value:
         return await agent.navigate(params["url"])
-    
+
     elif tool_name == MCPToolName.BROWSER_CLICK.value:
         method = params.get("method", "selector")
         if method == "coordinate":
@@ -109,20 +111,20 @@ async def execute_mcp_tool(tool_name: str, params: dict) -> dict:
             return await agent.click(el.get("xpath", params["target"]))
         else:
             return await agent.click(params["target"])
-    
+
     elif tool_name == MCPToolName.BROWSER_TYPE.value:
         return await agent.text(params["selector"], params["text"])
-    
+
     elif tool_name == MCPToolName.BROWSER_SCREENSHOT.value:
         return await agent.screenshot(
             url=None,  # Current page
             path=None,  # Return base64
             full_page=params.get("full_page", False)
         )
-    
+
     elif tool_name == MCPToolName.BROWSER_FILE_UPLOAD.value:
         # ✅ NEW: File upload implementation
         return await agent.upload_file(params["selector"], params["file_path"])
-    
+
     else:
         raise ValueError(f"Unknown MCP tool: {tool_name}")

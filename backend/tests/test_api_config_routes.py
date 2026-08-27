@@ -2,6 +2,7 @@
 """Tests for API config routes."""
 
 from unittest.mock import patch
+
 import pytest
 from fastapi import HTTPException, Response
 
@@ -11,7 +12,6 @@ from backend.api.routes.config import (
     db,
     get_config_by_key,
     get_public_config,
-    require_admin_token,
     router,
     update_config_by_key,
 )
@@ -95,7 +95,7 @@ async def test_update_config_by_key_with_various_types():
         ("dict_key", {"nested": "value"}),
         ("null_key", None),
     ]
-    
+
     for key, value in test_cases:
         with patch.object(db, 'set_config') as mock_set_config:
             data = await update_config_by_key(key, value=value, admin={"role": "admin"})
@@ -114,7 +114,7 @@ async def test_get_config_by_key_special_characters():
         "TestKey",
         "test_key_with_underscores",
     ]
-    
+
     for key in special_keys:
         with patch.object(db, 'get_config', return_value=f"value_for_{key}"):
             data = await get_config_by_key(key, admin={"role": "admin"})
@@ -133,7 +133,7 @@ async def test_update_config_by_key_special_characters():
         "TestKey",
         "test_key_with_underscores",
     ]
-    
+
     for key in special_keys:
         with patch.object(db, 'set_config') as mock_set_config:
             data = await update_config_by_key(key, value="test_value", admin={"role": "admin"})
@@ -146,11 +146,11 @@ async def test_config_public_endpoint_response_structure():
     """Test the structure of the public config response."""
     response = Response()
     data = await get_public_config(response)
-    
+
     assert "ENV" in data
     assert "BACKEND_URL" in data
     assert "FEATURES" in data
-    
+
     features = data["FEATURES"]
     assert isinstance(features, dict)
     assert "morphic_rewrite" in features

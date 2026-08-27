@@ -1,5 +1,4 @@
 import asyncio
-import sys
 from unittest.mock import MagicMock, patch
 
 import scout.knowledge_extractor as ke_module

@@ -11,11 +11,10 @@ Supports Markdown Vault export and semantic hierarchical retrieval.
 
 from __future__ import annotations
 
-import json
 import time
 import uuid
-from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List, Optional
+from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass
@@ -27,10 +26,10 @@ class MemoryNode:
     content: str = ""
     summary: str = ""
     category: str = "general"  # dev, business, ux, system, bugfix
-    tags: List[str] = field(default_factory=list)
-    parent_id: Optional[str] = None
-    children_ids: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    tags: list[str] = field(default_factory=list)
+    parent_id: str | None = None
+    children_ids: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
     created_at: float = field(default_factory=time.time)
     updated_at: float = field(default_factory=time.time)
 
@@ -39,7 +38,7 @@ class HierarchicalMemoryTree:
     """Deterministic Memory Tree with recursive rollup and Markdown Vault export."""
 
     def __init__(self, root_title: str = "SupremeAI Knowledge Root"):
-        self.nodes: Dict[str, MemoryNode] = {}
+        self.nodes: dict[str, MemoryNode] = {}
         # Initialize root node
         self.root = MemoryNode(
             id="root",
@@ -52,7 +51,7 @@ class HierarchicalMemoryTree:
         )
         self.nodes["root"] = self.root
 
-    def add_branch(self, title: str, category: str = "general", tags: Optional[List[str]] = None) -> MemoryNode:
+    def add_branch(self, title: str, category: str = "general", tags: list[str] | None = None) -> MemoryNode:
         """Create a Level 1 topic/entity branch under root."""
         branch = MemoryNode(
             level=1,
@@ -69,10 +68,10 @@ class HierarchicalMemoryTree:
         self,
         title: str,
         content: str,
-        branch_id: Optional[str] = None,
+        branch_id: str | None = None,
         category: str = "general",
-        tags: Optional[List[str]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        tags: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> MemoryNode:
         """Add a Level 0 leaf observation (<3000 tokens) under a branch or root."""
         # Truncate / summarize if content is very long
@@ -92,7 +91,7 @@ class HierarchicalMemoryTree:
         )
         self.nodes[leaf.id] = leaf
         self.nodes[target_parent].children_ids.append(leaf.id)
-        
+
         # Roll up summary to parent
         self.rollup_summaries(target_parent)
         return leaf
@@ -111,7 +110,7 @@ class HierarchicalMemoryTree:
             for cid in curr_node.children_ids
             if cid in self.nodes
         ]
-        
+
         curr_node.summary = "\n".join(child_summaries[:15])
         curr_node.updated_at = time.time()
 
@@ -119,36 +118,34 @@ class HierarchicalMemoryTree:
         if curr_node.parent_id and curr_node.parent_id in self.nodes:
             self.rollup_summaries(curr_node.parent_id)
 
-    def search_by_tag_or_category(self, tag: Optional[str] = None, category: Optional[str] = None) -> List[MemoryNode]:
+    def search_by_tag_or_category(self, tag: str | None = None, category: str | None = None) -> list[MemoryNode]:
         """Search memory nodes matching tag or category."""
         results = []
         for node in self.nodes.values():
-            if tag and tag.lower() in [t.lower() for t in node.tags]:
-                results.append(node)
-            elif category and node.category.lower() == category.lower():
+            if tag and tag.lower() in [t.lower() for t in node.tags] or category and node.category.lower() == category.lower():
                 results.append(node)
         return results
 
-    def search_semantic_text(self, query: str, top_k: int = 5) -> List[MemoryNode]:
+    def search_semantic_text(self, query: str, top_k: int = 5) -> list[MemoryNode]:
         """Keyword/semantic overlap search through titles, tags, summaries, and contents."""
         query_words = set(w.lower() for w in query.split() if len(w) > 2)
         if not query_words:
             return list(self.nodes.values())[:top_k]
 
-        scored: List[tuple[int, MemoryNode]] = []
+        scored: list[tuple[int, MemoryNode]] = []
         for node in self.nodes.values():
             if node.id == "root":
                 continue
-            
+
             score = 0
             # Title matches have highest weight (3x)
             title_lower = node.title.lower()
             score += 3 * sum(1 for w in query_words if w in title_lower)
-            
+
             # Tag matches have 2x weight
             tag_text = " ".join(node.tags).lower()
             score += 2 * sum(1 for w in query_words if w in tag_text)
-            
+
             # Summary / Content matches (1x)
             body_text = f"{node.summary} {node.content}".lower()
             score += sum(1 for w in query_words if w in body_text)
@@ -159,7 +156,7 @@ class HierarchicalMemoryTree:
         scored.sort(key=lambda x: x[0], reverse=True)
         return [item[1] for item in scored[:top_k]]
 
-    def get_subtree(self, node_id: str) -> Dict[str, Any]:
+    def get_subtree(self, node_id: str) -> dict[str, Any]:
         """Get structured hierarchical JSON representation of a node and all its descendants."""
         if node_id not in self.nodes:
             return {}
@@ -175,12 +172,12 @@ class HierarchicalMemoryTree:
             "children": [self.get_subtree(cid) for cid in node.children_ids if cid in self.nodes],
         }
 
-    def export_to_markdown_vault(self) -> Dict[str, str]:
+    def export_to_markdown_vault(self) -> dict[str, str]:
         """Export the memory tree to an Obsidian-compatible Markdown vault format.
         
         Returns a mapping of virtual file paths -> Markdown content.
         """
-        vault: Dict[str, str] = {}
+        vault: dict[str, str] = {}
 
         # 1. Global Index
         index_lines = [
@@ -193,7 +190,7 @@ class HierarchicalMemoryTree:
             "",
             "## Topic Branches",
         ]
-        
+
         for branch_id in self.root.children_ids:
             if branch_id in self.nodes:
                 branch = self.nodes[branch_id]

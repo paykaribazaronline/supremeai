@@ -122,7 +122,7 @@ class TestVectorMemoryFunctions:
 
     @pytest.mark.asyncio
     async def test_save_and_recall_memory(self):
-        from services.memory_service import save_memory, recall_memories
+        from services.memory_service import recall_memories, save_memory
         res = await save_memory(
             session_id="test_sess_101",
             summary="Implemented telemetry and vector recall for eternal brain",

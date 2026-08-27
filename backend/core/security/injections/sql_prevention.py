@@ -340,7 +340,7 @@ class ParameterizedQueryBuilder:
         """
         table_safe = InputSanitizer.sanitize_identifier(table)
 
-        columns = ", ".join(InputSanitizer.sanitize_identifier(c) for c in data.keys())
+        columns = ", ".join(InputSanitizer.sanitize_identifier(c) for c in data)
         placeholders = ", ".join(["?" for _ in data])
 
         query = f"INSERT INTO {table_safe} ({columns}) VALUES ({placeholders})"

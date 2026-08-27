@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any
+
 
 @dataclass
 class BudgetContext:
@@ -26,10 +26,10 @@ class EconomicOptimizer:
             "nvidia": {"model": "nemotron-4", "cost_per_1k": 0.0005, "tier": "mid"},
             "huggingface": {"model": "zephyr-7b", "cost_per_1k": 0.00005, "tier": "free/cheap"},
         }
-    
+
     async def optimize_route(self, prompt: str, task_type: str, budget_context: BudgetContext) -> OptimizationDecision:
         remaining_budget = budget_context.monthly_limit - budget_context.spent_this_month
-        
+
         # Determine allowed tier based on remaining budget and cost sensitivity
         if remaining_budget < 1.0 or budget_context.cost_sensitivity > 0.8:
             allowed_tiers = ["free/cheap"]
@@ -37,10 +37,10 @@ class EconomicOptimizer:
             allowed_tiers = ["free/cheap", "cheap", "mid"]
         else:
             allowed_tiers = ["free/cheap", "cheap", "mid", "premium"]
-            
+
         best_provider = "huggingface"
         best_cost = float('inf')
-        
+
         for provider, info in self.provider_tiers.items():
             if info["tier"] in allowed_tiers:
                 if info["cost_per_1k"] < best_cost:
@@ -49,7 +49,7 @@ class EconomicOptimizer:
 
         model = self.provider_tiers[best_provider]["model"]
         reasoning = f"Selected {best_provider} (tier: {self.provider_tiers[best_provider]['tier']}) due to remaining budget of ${remaining_budget:.2f} and cost sensitivity {budget_context.cost_sensitivity}"
-        
+
         return OptimizationDecision(
             provider=best_provider,
             model=model,

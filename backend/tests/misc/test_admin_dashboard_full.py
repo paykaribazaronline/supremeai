@@ -564,20 +564,19 @@ class TestLogsStream:
         with patch(
             "os.path.exists",
             side_effect=lambda p: p == str(log_file) or p == "logs/app.log",
-        ):
-            with patch("builtins.open", create=True) as mock_open:
-                mock_open.return_value = MagicMock(
-                    __enter__=MagicMock(
-                        return_value=MagicMock(
-                            readlines=MagicMock(return_value=["line1\n", "line2\n", "line3\n"]),
-                            readline=MagicMock(return_value=""),
-                            seek=MagicMock(),
-                            close=MagicMock(),
-                        )
-                    ),
-                    __exit__=MagicMock(return_value=False),
-                )
-                result = logs_stream()
+        ), patch("builtins.open", create=True) as mock_open:
+            mock_open.return_value = MagicMock(
+                __enter__=MagicMock(
+                    return_value=MagicMock(
+                        readlines=MagicMock(return_value=["line1\n", "line2\n", "line3\n"]),
+                        readline=MagicMock(return_value=""),
+                        seek=MagicMock(),
+                        close=MagicMock(),
+                    )
+                ),
+                __exit__=MagicMock(return_value=False),
+            )
+            result = logs_stream()
         assert result is not None
 
     def test_logs_stream_log_generator_cancellation(self, tmp_path):

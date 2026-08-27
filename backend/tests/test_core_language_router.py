@@ -1,8 +1,6 @@
 # tests/test_core_language_router.py
 """Tests for language routing and detection functionality."""
 
-import pytest
-from unittest.mock import MagicMock, patch
 
 
 class TestLanguageRouter:

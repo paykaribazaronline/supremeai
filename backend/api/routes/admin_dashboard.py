@@ -15,20 +15,14 @@ from fastapi.websockets import WebSocketDisconnect
 from loguru import logger
 from pydantic import BaseModel
 
+from api.dependencies import get_current_admin
+from api.routes.admin_auth import admin_rate_limit, require_admin_token
 from core.config import settings
 from core.error_bus import with_error_bus
 from core.utils.time_utils import utc_now
 from models.ci_report import CIReportPayload, create_ci_report
 from tools.billing.cost_auditor import CostAuditor
 from tools.knowledge.codebase_exporter import export_codebase_to_markdown
-from api.routes.admin_auth import admin_rate_limit, require_admin_token
-from api.dependencies import get_current_admin
-
-
-
-
-
-
 
 router = APIRouter(
     prefix="/admin-api",
@@ -168,10 +162,10 @@ def get_costs_breakdown():
     auditor = CostAuditor()
     try:
         tasks = auditor.store.get_task_history()
-        
+
         # Default structured values if no tasks exist
         spent = sum(t.get("cost", 0.0) for t in tasks) if tasks else 0.0
-        
+
         # Calculate provider usage
         # Provider mapping based on task_type or description
         providers = {
@@ -180,14 +174,14 @@ def get_costs_breakdown():
             "Hugging Face Hub": {"spent": 0.0, "quota": 30.00, "color": "from-[#ffd43b] to-[#ffe066]"},
             "Groq (Llama 3)": {"spent": 0.0, "quota": 30.00, "color": "from-[#20c997] to-[#38d9a9]"},
         }
-        
+
         recent_charges = []
-        
+
         for t in tasks:
             cost = t.get("cost", 0.0)
             t_type = t.get("task_type", "").lower()
             desc = t.get("task_description", "").lower()
-            
+
             # Categorize provider
             target_provider = "Google Gemini"
             if "deepseek" in t_type or "openrouter" in t_type or "deepseek" in desc:
@@ -196,9 +190,9 @@ def get_costs_breakdown():
                 target_provider = "Hugging Face Hub"
             elif "groq" in t_type or "llama" in t_type or "groq" in desc:
                 target_provider = "Groq (Llama 3)"
-                
+
             providers[target_provider]["spent"] += cost
-            
+
             # Construct charge entry
             recent_charges.append({
                 "time": str(t.get("timestamp", utc_now())),
@@ -207,12 +201,12 @@ def get_costs_breakdown():
                 "tokens": int(cost * 500000) if cost > 0 else 0, # Estimate tokens based on cost
                 "cost": cost
             })
-            
+
         provider_costs_list = [
             {"name": name, "spent": p["spent"], "quota": p["quota"], "color": p["color"]}
             for name, p in providers.items()
         ]
-        
+
         return {
             "status": "ok",
             "spent": spent,
@@ -237,6 +231,7 @@ def get_costs_breakdown():
 @router.get("/health-map")
 def get_health_map():
     import time
+
     from core.health_check import health_checker
 
     gcp_configured = bool(getattr(settings, "gcp_project_id", None) or settings._get_cached_secret("GCP_PROJECT_ID"))

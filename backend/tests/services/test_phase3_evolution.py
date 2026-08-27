@@ -17,8 +17,7 @@ from evolution.auto_evolution_controller import AutoEvolutionController, Evoluti
 from evolution.auto_tuner import AutoTuner
 from evolution.memory_consolidator import MemoryConsolidator, MemoryTier
 from evolution.performance_monitor import MetricPoint, MetricType, PerformanceMonitor
-from evolution.strategy_optimizer import StrategyOptimizer, StrategyType
-
+from evolution.strategy_optimizer import StrategyOptimizer
 
 # ── 1. Performance Monitor & Anomaly Tests ────────────────────────────────────
 

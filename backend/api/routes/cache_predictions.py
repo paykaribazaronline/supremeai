@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+
 from core.cache.predictive_cache_engine import get_predictive_engine
 
 router = APIRouter(prefix="/cache/predictions", tags=["cache"])

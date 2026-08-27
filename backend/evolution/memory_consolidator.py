@@ -7,15 +7,14 @@ online deduplication, automatic compression, and emergency consolidation.
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import pickle
 import threading
 from collections import OrderedDict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 
 class MemoryTier(str, Enum):
@@ -46,7 +45,7 @@ class MemoryBlock:
     created_at: datetime
     compressed: bool = False
     compression_ratio: float = 1.0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -56,17 +55,17 @@ class ConsolidationResult:
     memory_freed_bytes: int
     blocks_affected: int
     time_ms: int
-    details: Dict[str, Any] = field(default_factory=dict)
+    details: dict[str, Any] = field(default_factory=dict)
 
 
 class MemoryConsolidator:
     """Intelligent tiered memory management and consolidation system."""
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
-        self.config: Dict[str, Any] = config or {}
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
+        self.config: dict[str, Any] = config or {}
 
         self.blocks: OrderedDict[str, MemoryBlock] = OrderedDict()
-        self.tier_indexes: Dict[MemoryTier, Set[str]] = {tier: set() for tier in MemoryTier}
+        self.tier_indexes: dict[MemoryTier, set[str]] = {tier: set() for tier in MemoryTier}
 
         self.max_memory_bytes: int = self.config.get("max_memory_mb", 2048) * 1024 * 1024
         self.hot_threshold: int = self.config.get("hot_access_count", 15)
@@ -74,10 +73,10 @@ class MemoryConsolidator:
         self.cold_threshold_hours: int = self.config.get("cold_access_hours", 24)
         self.compression_enabled: bool = self.config.get("compression_enabled", True)
 
-        self.access_log: List[Tuple[str, datetime]] = []
+        self.access_log: list[tuple[str, datetime]] = []
         self._lock = threading.RLock()
 
-        self.stats: Dict[str, Any] = {
+        self.stats: dict[str, Any] = {
             "total_allocations": 0,
             "total_consolidations": 0,
             "memory_freed_total_mb": 0.0,
@@ -85,7 +84,7 @@ class MemoryConsolidator:
             "blocks_demoted": 0,
         }
 
-    def allocate(self, data: Any, metadata: Optional[Dict[str, Any]] = None, tier: MemoryTier = MemoryTier.WARM) -> str:
+    def allocate(self, data: Any, metadata: dict[str, Any] | None = None, tier: MemoryTier = MemoryTier.WARM) -> str:
         with self._lock:
             serialized = self._serialize(data)
             content_hash = hashlib.sha256(serialized).hexdigest()[:16]
@@ -114,7 +113,7 @@ class MemoryConsolidator:
             self.stats["total_allocations"] += 1
             return block_id
 
-    def access(self, block_id: str) -> Optional[Any]:
+    def access(self, block_id: str) -> Any | None:
         with self._lock:
             block = self.blocks.get(block_id)
             if not block:
@@ -138,7 +137,7 @@ class MemoryConsolidator:
         self.tier_indexes[MemoryTier.HOT].add(block_id)
         self.stats["blocks_promoted"] += 1
 
-    async def consolidate(self, context: Optional[Dict[str, Any]] = None) -> ConsolidationResult:
+    async def consolidate(self, context: dict[str, Any] | None = None) -> ConsolidationResult:
         start_time = datetime.now()
         freed = 0
         blocks_affected = 0
@@ -168,10 +167,10 @@ class MemoryConsolidator:
             details={"compression_ratio": 0.4},
         )
 
-    async def optimize_cache(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    async def optimize_cache(self, context: dict[str, Any] | None = None) -> dict[str, Any]:
         return {"status": "optimized", "cache_hit_rate": 0.96, "prewarmed_blocks": len(self.tier_indexes[MemoryTier.HOT])}
 
-    def get_memory_stats(self) -> Dict[str, Any]:
+    def get_memory_stats(self) -> dict[str, Any]:
         with self._lock:
             total_size = sum(b.size_bytes for b in self.blocks.values())
             return {
@@ -184,8 +183,8 @@ class MemoryConsolidator:
                 **self.stats,
             }
 
-    def get_triggers(self) -> List[Dict[str, Any]]:
-        triggers: List[Dict[str, Any]] = []
+    def get_triggers(self) -> list[dict[str, Any]]:
+        triggers: list[dict[str, Any]] = []
         stats = self.get_memory_stats()
         if stats["utilization_percent"] > 85.0:
             triggers.append({

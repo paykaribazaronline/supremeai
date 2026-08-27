@@ -3,12 +3,11 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from enum import Enum
 import logging
 import os
-import sys
-from typing import Any, Dict, List, Optional
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any
 
 logger = logging.getLogger("supremeai.orchestration.master")
 
@@ -29,13 +28,13 @@ class PipelineExecutionResult:
     intent: CognitiveIntent
     status: str
     summary: str
-    stages_completed: List[str] = field(default_factory=list)
-    artifacts: Dict[str, Any] = field(default_factory=dict)
+    stages_completed: list[str] = field(default_factory=list)
+    artifacts: dict[str, Any] = field(default_factory=dict)
     confidence: float = 1.0
-    evidence_ids: List[str] = field(default_factory=list)
-    error: Optional[str] = None
+    evidence_ids: list[str] = field(default_factory=list)
+    error: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "intent": self.intent.value,
             "status": self.status,
@@ -51,12 +50,12 @@ class PipelineExecutionResult:
 class MasterCognitiveOrchestrator:
     """Central Metacognitive Brain orchestrating Crown Jewel tools into verified execution chains."""
 
-    def __init__(self, workspace_root: Optional[str] = None) -> None:
+    def __init__(self, workspace_root: str | None = None) -> None:
         self.workspace_root = workspace_root or os.path.abspath(
             os.path.join(os.path.dirname(__file__), "..", "..", "..")
         )
 
-    async def dispatch(self, intent: CognitiveIntent, payload: Dict[str, Any]) -> PipelineExecutionResult:
+    async def dispatch(self, intent: CognitiveIntent, payload: dict[str, Any]) -> PipelineExecutionResult:
         """Route to appropriate multi-tool cognitive pipeline."""
         if intent == CognitiveIntent.REPAIR:
             return await self.execute_self_healing_pipeline(payload)
@@ -69,13 +68,13 @@ class MasterCognitiveOrchestrator:
         else:
             raise ValueError(f"Unknown CognitiveIntent: {intent}")
 
-    async def execute_self_healing_pipeline(self, error_context: Dict[str, Any]) -> PipelineExecutionResult:
+    async def execute_self_healing_pipeline(self, error_context: dict[str, Any]) -> PipelineExecutionResult:
         """Self-Healing Chain:
 
         Incident Replay -> Discovery -> Quarantine -> Solution Synthesizer -> Governance -> Verified Patch.
         """
         stages = []
-        artifacts: Dict[str, Any] = {}
+        artifacts: dict[str, Any] = {}
 
         # 1. Diagnostic & Incident Replay
         stages.append("01_diagnostic_incident_replay")
@@ -137,7 +136,7 @@ class MasterCognitiveOrchestrator:
         Project DNA -> Multi-Model Squeezer -> Truth Hierarchy -> Skill Distiller -> Memory Ingestion.
         """
         stages = []
-        artifacts: Dict[str, Any] = {}
+        artifacts: dict[str, Any] = {}
 
         # 1. Project DNA Context Map
         stages.append("01_project_dna_fingerprint")
@@ -183,7 +182,7 @@ class MasterCognitiveOrchestrator:
     async def execute_autonomous_audit_pipeline(self) -> PipelineExecutionResult:
         """Autonomous Audit Chain: Universal Gap Finder -> Drift Detector -> Contradiction Hunter -> Memory Revaluation."""
         stages = []
-        artifacts: Dict[str, Any] = {}
+        artifacts: dict[str, Any] = {}
 
         stages.append("01_universal_gap_finder_scan")
         artifacts["gap_metrics"] = {"critical": 0, "high": 0, "status": "HEALTHY"}
@@ -203,10 +202,10 @@ class MasterCognitiveOrchestrator:
             confidence=0.98,
         )
 
-    async def execute_governed_evolution_pipeline(self, proposal_payload: Dict[str, Any]) -> PipelineExecutionResult:
+    async def execute_governed_evolution_pipeline(self, proposal_payload: dict[str, Any]) -> PipelineExecutionResult:
         """Governed Evolution Chain: ChangeProposal -> Static AST -> BenchmarkRunner -> Canary -> Ingestion."""
         stages = []
-        artifacts: Dict[str, Any] = {}
+        artifacts: dict[str, Any] = {}
 
         stages.append("01_change_proposal_creation")
         target = proposal_payload.get("target_module", "skills/custom_tool.py")
@@ -238,7 +237,7 @@ class MasterCognitiveOrchestrator:
 
 
 # Global Singleton
-_orchestrator: Optional[MasterCognitiveOrchestrator] = None
+_orchestrator: MasterCognitiveOrchestrator | None = None
 
 
 def get_master_orchestrator() -> MasterCognitiveOrchestrator:

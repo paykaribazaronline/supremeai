@@ -29,16 +29,16 @@ class UserProfiler:
     async def update_from_history(self, user_id: str, task: dict[str, Any]) -> None:
         logger.debug(f"Updating user profile for {user_id} from task")
         try:
-            from brain.user_digital_twin import get_twin_manager, InteractionType
+            from brain.user_digital_twin import InteractionType, get_twin_manager
             manager = get_twin_manager()
             twin = manager.get_or_create(user_id)
-            
+
             req_type = task.get("type", "question")
             if "code" in req_type.lower():
                 i_type = InteractionType.CODE_REQUEST
             else:
                 i_type = InteractionType.QUESTION
-                
+
             await twin.record_interaction(
                 interaction_type=i_type,
                 content=str(task.get("content", "")),

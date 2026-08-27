@@ -5,7 +5,6 @@ import re
 from typing import Any
 from unittest.mock import MagicMock, Mock
 
-
 _VALID_TABLE_PATTERN = re.compile(r"^[A-Za-z0-9_]+$")
 
 
@@ -36,9 +35,7 @@ class SmartDataRepository:
                 get_target = doc_ref.get
                 if callable(get_target):
                     res = get_target()
-                    if inspect.iscoroutine(res) or (hasattr(asyncio, "isfuture") and asyncio.isfuture(res)):
-                        doc = await res
-                    elif inspect.isawaitable(res) and not isinstance(res, MagicMock | Mock):
+                    if inspect.iscoroutine(res) or (hasattr(asyncio, "isfuture") and asyncio.isfuture(res)) or inspect.isawaitable(res) and not isinstance(res, MagicMock | Mock):
                         doc = await res
                     else:
                         doc = res

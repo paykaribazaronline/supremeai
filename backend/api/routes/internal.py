@@ -70,7 +70,7 @@ async def report_system_alert(request: Request, payload: SystemAlertPayload):
     logger.bind(alert_level=payload.level).warning(f"System Alert Received: {payload.message}")
 
     # Optionally store in DB/Redis or emit via ErrorEventBus
-    from core.messaging.event_bus import ErrorEvent, error_event_bus, ErrorContext
+    from core.messaging.event_bus import ErrorContext, ErrorEvent, error_event_bus
 
     error_event_bus.emit(
         ErrorEvent(

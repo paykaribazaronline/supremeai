@@ -2,8 +2,10 @@ import asyncio
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
-from github import Github  # PyGithub library
-from github import GithubException
+from github import (
+    Github,  # PyGithub library
+    GithubException,
+)
 from loguru import logger
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession

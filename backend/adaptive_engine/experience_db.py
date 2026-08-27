@@ -363,9 +363,8 @@ class ExperienceDatabase:
                 return
 
             gz_path = self.db_path.with_suffix(".sqlite.gz")
-            with open(self.db_path, "rb") as f_in:
-                with gzip.open(gz_path, "wb") as f_out:
-                    shutil.copyfileobj(f_in, f_out)
+            with open(self.db_path, "rb") as f_in, gzip.open(gz_path, "wb") as f_out:
+                shutil.copyfileobj(f_in, f_out)
 
             client = storage.Client()
             bucket = client.bucket(bucket_name)

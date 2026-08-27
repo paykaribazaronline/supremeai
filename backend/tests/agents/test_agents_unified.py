@@ -7,8 +7,6 @@
 import sys
 from unittest.mock import MagicMock
 
-import pytest
-
 # Import guard: agents package init may import optional google.genai.
 sys.modules.setdefault("google", MagicMock())
 sys.modules.setdefault("google.genai", MagicMock())
@@ -16,7 +14,9 @@ sys.modules.setdefault("google.genai", MagicMock())
 import agents  # noqa: E402
 from agents.ephemeral_executor import SecurityScanner  # noqa: E402
 from agents.performance_guardian import AnomalyDetector  # noqa: E402
-from agents.vulnerability_prophet import VulnerabilityFinding, VulnerabilityPatternMatcher  # noqa: E402
+from agents.vulnerability_prophet import (  # noqa: E402
+    VulnerabilityPatternMatcher,
+)
 
 UNIFIED_AGENT_CLASSES = [
     "ChurnProphet",

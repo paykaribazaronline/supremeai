@@ -1,7 +1,24 @@
 from __future__ import annotations
 
+# Re-export from core.evolution
+from core.evolution import (
+    AgentBreeder,
+    AutoSkillCreator,
+    DailyLearner,
+    EvolutionEngine,
+    EvolutionSkillGraph,
+    FitnessEngine,
+    PerformanceOracle,
+    SelfEvolutionAgent,
+    SelfUpdater,
+)
+
 # Phase 3 Self-Evolution Layer Exports
-from evolution.advanced_evolution_engine import AdvancedEvolutionEngine, EvolutionMode, FitnessLandscape
+from evolution.advanced_evolution_engine import (
+    AdvancedEvolutionEngine,
+    EvolutionMode,
+    FitnessLandscape,
+)
 from evolution.auto_evolution_controller import (
     AutoEvolutionController,
     EvolutionCycle,
@@ -34,19 +51,6 @@ from evolution.strategy_optimizer import (
     StrategyOptimizer,
     StrategyStatus,
     StrategyType,
-)
-
-# Re-export from core.evolution
-from core.evolution import (
-    AgentBreeder,
-    AutoSkillCreator,
-    DailyLearner,
-    EvolutionEngine,
-    EvolutionSkillGraph,
-    FitnessEngine,
-    PerformanceOracle,
-    SelfEvolutionAgent,
-    SelfUpdater,
 )
 
 __all__ = [

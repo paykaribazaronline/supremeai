@@ -1,8 +1,14 @@
 """Tests for the EconomicOptimizer module."""
 
+
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
-from brain.economic_optimizer import BudgetContext, OptimizationDecision, EconomicOptimizer, get_economic_optimizer
+
+from brain.economic_optimizer import (
+    BudgetContext,
+    OptimizationDecision,
+    get_economic_optimizer,
+)
+
 
 class TestEconomicOptimizer:
 

@@ -10,6 +10,7 @@ try:
 except ImportError:
     psycopg2 = None
 from loguru import logger
+
 try:
     from supabase import Client, create_client
 except ImportError:

@@ -7,10 +7,11 @@ prototyping, and React/Vue/HTML code generation.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 from adapters.base_adapter import AdaptationResult, BaseAdapter
 
@@ -25,21 +26,21 @@ class DesignPlatform(str, Enum):
 @dataclass
 class UIComponent:
     component_type: str
-    properties: Dict[str, Any] = field(default_factory=dict)
-    children: List["UIComponent"] = field(default_factory=list)
-    styling: Dict[str, Any] = field(default_factory=dict)
-    accessibility_features: List[str] = field(default_factory=list)
+    properties: dict[str, Any] = field(default_factory=dict)
+    children: list[UIComponent] = field(default_factory=list)
+    styling: dict[str, Any] = field(default_factory=dict)
+    accessibility_features: list[str] = field(default_factory=list)
 
 
 @dataclass
 class DesignSpecification:
     platform: DesignPlatform
     layout: str
-    color_scheme: Dict[str, Any]
-    typography: Dict[str, Any]
-    components: List[UIComponent]
-    responsive_breakpoints: Dict[str, int]
-    interactions: List[Dict[str, Any]]
+    color_scheme: dict[str, Any]
+    typography: dict[str, Any]
+    components: list[UIComponent]
+    responsive_breakpoints: dict[str, int]
+    interactions: list[dict[str, Any]]
     accessibility_score: float
 
 
@@ -56,7 +57,7 @@ class UXRecommendation:
 class WCAGGuidelines:
     """WCAG 2.1 AA / AAA Accessibility guidelines checker."""
 
-    def audit(self, design: Any) -> Dict[str, Any]:
+    def audit(self, design: Any) -> dict[str, Any]:
         return {
             "issues": [],
             "contrast_ratio": 7.5,
@@ -69,7 +70,7 @@ class WCAGGuidelines:
 class ComponentLibrary:
     """Component library catalog for modern web & mobile design."""
 
-    def get_component(self, comp_type: str) -> Dict[str, Any]:
+    def get_component(self, comp_type: str) -> dict[str, Any]:
         return {"type": comp_type, "props": {"theme": "dark_cyberpunk", "glassmorphism": True}}
 
 
@@ -90,13 +91,13 @@ class UXAdapter(BaseAdapter):
     Handles interface design, UX improvements, prototyping, accessibility.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         super().__init__(config)
         self.accessibility_guidelines = WCAGGuidelines()
         self.component_library = ComponentLibrary()
         self.usability_heuristics = UsabilityHeuristics()
 
-    def _define_capabilities(self) -> List[str]:
+    def _define_capabilities(self) -> list[str]:
         return [
             "ui_design",
             "ux_improvement",
@@ -108,7 +109,7 @@ class UXAdapter(BaseAdapter):
             "user_flow_design",
         ]
 
-    def _define_constraints(self) -> Dict[str, Any]:
+    def _define_constraints(self) -> dict[str, Any]:
         return {
             "min_accessibility_score": 80,
             "max_components_per_view": 50,
@@ -116,10 +117,10 @@ class UXAdapter(BaseAdapter):
             "color_contrast_ratio": 4.5,
         }
 
-    async def adapt(self, problem: Any, context: Optional[Dict[str, Any]] = None) -> AdaptationResult:
+    async def adapt(self, problem: Any, context: dict[str, Any] | None = None) -> AdaptationResult:
         """Handle UI/UX design tasks."""
         start_time = datetime.now()
-        warnings: List[str] = []
+        warnings: list[str] = []
 
         try:
             design_request = self._parse_design_request(problem)
@@ -135,7 +136,7 @@ class UXAdapter(BaseAdapter):
                     warnings=issues,
                 )
 
-            handlers: Dict[str, Callable[..., Any]] = {
+            handlers: dict[str, Callable[..., Any]] = {
                 "design": self._handle_ui_design,
                 "improve": self._handle_ux_improvement,
                 "prototype": self._handle_prototyping,
@@ -176,7 +177,7 @@ class UXAdapter(BaseAdapter):
                 warnings=[str(e)],
             )
 
-    def _parse_design_request(self, problem: Any) -> Dict[str, Any]:
+    def _parse_design_request(self, problem: Any) -> dict[str, Any]:
         problem_str = str(problem).lower()
 
         task_type = "design"
@@ -211,7 +212,7 @@ class UXAdapter(BaseAdapter):
             "requirements": self._extract_design_requirements(problem_str),
         }
 
-    async def _handle_ui_design(self, request: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_ui_design(self, request: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
         spec = self._generate_design_specification(request)
         design_code = self._generate_design_code(spec, request.get("framework", "react"))
 
@@ -226,7 +227,7 @@ class UXAdapter(BaseAdapter):
             "accessible": spec.accessibility_score >= self.constraints["min_accessibility_score"],
         }
 
-    async def _handle_ux_improvement(self, request: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_ux_improvement(self, request: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
         current_state = context.get("current_design", {})
         evaluation = self.usability_heuristics.evaluate(current_state)
         recommendations = self._generate_ux_recommendations(evaluation)
@@ -243,7 +244,7 @@ class UXAdapter(BaseAdapter):
             "accessible": True,
         }
 
-    async def _handle_prototyping(self, request: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_prototyping(self, request: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
         wireframe = self._create_wireframe(request)
         interactions = self._define_interactions(wireframe)
         prototype = {
@@ -259,7 +260,7 @@ class UXAdapter(BaseAdapter):
             "accessible": True,
         }
 
-    async def _handle_accessibility_audit(self, request: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_accessibility_audit(self, request: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
         design_to_audit = context.get("design", request.get("raw_request", ""))
         audit_results = self.accessibility_guidelines.audit(design_to_audit)
         compliance_score = self._calculate_compliance_score(audit_results)
@@ -277,7 +278,7 @@ class UXAdapter(BaseAdapter):
             "accessible": compliance_score >= self.constraints["min_accessibility_score"],
         }
 
-    async def _handle_user_flow(self, request: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_user_flow(self, request: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
         personas = self._identify_user_personas(request)
         flows = self._design_user_flows(personas, request)
         return {
@@ -292,21 +293,21 @@ class UXAdapter(BaseAdapter):
             "accessible": True,
         }
 
-    async def _handle_general_ux(self, request: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_general_ux(self, request: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
         return {
             "solution": f"UX specification generated for: {request['raw_request']}",
             "confidence": 0.85,
             "component_count": 2,
         }
 
-    def validate_domain_input(self, input_data: Any) -> Tuple[bool, List[str]]:
-        issues: List[str] = []
+    def validate_domain_input(self, input_data: Any) -> tuple[bool, list[str]]:
+        issues: list[str] = []
         if isinstance(input_data, dict):
             if "platform" in input_data and not isinstance(input_data["platform"], DesignPlatform):
                 issues.append("Invalid platform specified")
         return len(issues) == 0, issues
 
-    def _generate_design_specification(self, request: Dict[str, Any]) -> DesignSpecification:
+    def _generate_design_specification(self, request: dict[str, Any]) -> DesignSpecification:
         return DesignSpecification(
             platform=request.get("platform", DesignPlatform.WEB),
             layout="responsive_grid",
@@ -318,7 +319,7 @@ class UXAdapter(BaseAdapter):
             accessibility_score=94.0,
         )
 
-    def _generate_color_scheme(self, request: Dict[str, Any]) -> Dict[str, Any]:
+    def _generate_color_scheme(self, request: dict[str, Any]) -> dict[str, Any]:
         return {
             "primary": "#00F0FF",
             "secondary": "#7000FF",
@@ -328,7 +329,7 @@ class UXAdapter(BaseAdapter):
             "contrast_ratios": {"primary_on_bg": 9.2, "text_on_bg": 16.5},
         }
 
-    def _select_typography(self, request: Dict[str, Any]) -> Dict[str, Any]:
+    def _select_typography(self, request: dict[str, Any]) -> dict[str, Any]:
         return {
             "font_family": "Inter, system-ui, sans-serif",
             "heading_sizes": {"h1": "36px", "h2": "28px", "h3": "20px"},
@@ -336,7 +337,7 @@ class UXAdapter(BaseAdapter):
             "line_height": 1.6,
         }
 
-    def _select_components(self, request: Dict[str, Any]) -> List[UIComponent]:
+    def _select_components(self, request: dict[str, Any]) -> list[UIComponent]:
         return [
             UIComponent(component_type="HeaderBar", properties={"sticky": True}),
             UIComponent(component_type="WorkspaceViewport", properties={"responsive": True}),
@@ -369,13 +370,13 @@ class UXAdapter(BaseAdapter):
             return "flutter"
         return "react"
 
-    def _extract_design_requirements(self, text: str) -> List[str]:
+    def _extract_design_requirements(self, text: str) -> list[str]:
         return [text]
 
-    def _generate_preview_notes(self, spec: DesignSpecification) -> List[str]:
+    def _generate_preview_notes(self, spec: DesignSpecification) -> list[str]:
         return [f"Platform: {spec.platform.value}", f"Accessibility score: {spec.accessibility_score}/100 (WCAG AAA)"]
 
-    def _generate_ux_recommendations(self, evaluation: Any) -> List[UXRecommendation]:
+    def _generate_ux_recommendations(self, evaluation: Any) -> list[UXRecommendation]:
         return [
             UXRecommendation(
                 area="Aesthetics & Hierarchy",
@@ -387,46 +388,46 @@ class UXAdapter(BaseAdapter):
             )
         ]
 
-    def _apply_improvements(self, current: Dict[str, Any], recs: List[UXRecommendation]) -> Dict[str, Any]:
+    def _apply_improvements(self, current: dict[str, Any], recs: list[UXRecommendation]) -> dict[str, Any]:
         return {**current, "improved": True, "applied_rules_count": len(recs)}
 
-    def _estimate_ux_improvement(self, recs: List[UXRecommendation]) -> Dict[str, str]:
+    def _estimate_ux_improvement(self, recs: list[UXRecommendation]) -> dict[str, str]:
         return {"task_completion_speed": "+30%", "visual_hierarchy_clarity": "100%"}
 
-    def _create_wireframe(self, request: Dict[str, Any]) -> Dict[str, Any]:
+    def _create_wireframe(self, request: dict[str, Any]) -> dict[str, Any]:
         return {"sections": ["Header", "FleetCanvas", "TerminalLogs", "HealthMatrix"], "layout": "12-col-grid"}
 
-    def _define_interactions(self, wireframe: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _define_interactions(self, wireframe: dict[str, Any]) -> list[dict[str, Any]]:
         return [{"trigger": "click", "target": "FleetCanvasNode", "action": "focus_workspace"}]
 
-    def _generate_user_flows(self, wireframe: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _generate_user_flows(self, wireframe: dict[str, Any]) -> list[dict[str, Any]]:
         return [{"flow": "Fleet Navigation", "steps": ["Select Workspace", "Inspect Agent State", "Trigger Self-Healing"]}]
 
-    def _list_required_assets(self, wireframe: Dict[str, Any]) -> List[str]:
+    def _list_required_assets(self, wireframe: dict[str, Any]) -> list[str]:
         return ["lucide-react icons", "JetBrains Mono Font", "Cyberpunk Glow Tokens"]
 
-    def _calculate_compliance_score(self, audit: Dict[str, Any]) -> float:
+    def _calculate_compliance_score(self, audit: dict[str, Any]) -> float:
         return 96.0
 
-    def _generate_accessibility_fixes(self, audit: Dict[str, Any]) -> List[Dict[str, str]]:
+    def _generate_accessibility_fixes(self, audit: dict[str, Any]) -> list[dict[str, str]]:
         return [{"fix": "Ensure aria-live regions on dynamic agent status updates"}]
 
     def _determine_wcag_level(self, score: float) -> str:
         return "AAA" if score >= 95 else "AA"
 
-    def _identify_user_personas(self, request: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _identify_user_personas(self, request: dict[str, Any]) -> list[dict[str, Any]]:
         return [{"persona": "Principal AI Engineer", "need": "Real-time fleet observability"}]
 
-    def _design_user_flows(self, personas: List[Dict[str, Any]], request: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _design_user_flows(self, personas: list[dict[str, Any]], request: dict[str, Any]) -> list[dict[str, Any]]:
         return [{"id": "flow_fleet_monitoring", "name": "Unified Fleet Monitor", "steps": 3}]
 
-    def _identify_touchpoints(self, flows: List[Dict[str, Any]]) -> List[str]:
+    def _identify_touchpoints(self, flows: list[dict[str, Any]]) -> list[str]:
         return ["CommandCenterDeck", "FleetCanvas", "WorkspaceViewport"]
 
-    def _define_flow_metrics(self, flows: List[Dict[str, Any]]) -> Dict[str, str]:
+    def _define_flow_metrics(self, flows: list[dict[str, Any]]) -> dict[str, str]:
         return {"time_to_action_ms": "< 100ms", "interaction_fluidity": "60fps"}
 
-    def _generate_design_suggestions(self, result: Dict[str, Any], request: Dict[str, Any]) -> List[str]:
+    def _generate_design_suggestions(self, result: dict[str, Any], request: dict[str, Any]) -> list[str]:
         return ["WCAG AAA contrast verified", "React 19 optimized memoization tokens active"]
 
     def _elapsed_ms(self, start: datetime) -> int:
