@@ -11,11 +11,11 @@ from datetime import datetime
 from typing import Any
 
 import psutil  # This may need to be installed separately
+from core.monitoring.metrics_collector import MetricsCollector
 
 from core.cache.redis_manager import redis_manager
 from core.error_bus import with_error_bus
 from core.llm.token_deductor import TokenDeductor
-from core.monitoring.metrics_collector import MetricsCollector
 from core.utils.background_tasks import track_task
 
 logger = logging.getLogger(__name__)
@@ -468,10 +468,7 @@ class AutoScalingAgent:
 
             # Get existing history
             history = await redis_manager.get(self.scaling_history_key)
-            if history:
-                history_list = json.loads(history)
-            else:
-                history_list = []
+            history_list = json.loads(history) if history else []
 
             # Add new action
             history_list.append(action_data)

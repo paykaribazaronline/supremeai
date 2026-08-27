@@ -12,11 +12,11 @@ from datetime import datetime, timedelta
 from typing import Any
 
 import psutil
+from core.monitoring.metrics_collector import MetricsCollector
 
 from core.cache.redis_manager import redis_manager
 from core.error_bus import with_error_bus
 from core.llm.token_deductor import TokenDeductor
-from core.monitoring.metrics_collector import MetricsCollector
 
 logger = logging.getLogger(__name__)
 
@@ -232,10 +232,7 @@ class PerformanceTuningAgent:
 
             # Add to metrics history in Redis
             existing_metrics = await redis_manager.get(self.performance_metrics_key)
-            if existing_metrics:
-                metrics_list = json.loads(existing_metrics)
-            else:
-                metrics_list = []
+            metrics_list = json.loads(existing_metrics) if existing_metrics else []
 
             metrics_list.append(metric_data)
 
@@ -547,10 +544,7 @@ class PerformanceTuningAgent:
 
             # Get existing recommendations
             existing_recommendations = await redis_manager.get(self.tuning_recommendations_key)
-            if existing_recommendations:
-                rec_list = json.loads(existing_recommendations)
-            else:
-                rec_list = []
+            rec_list = json.loads(existing_recommendations) if existing_recommendations else []
 
             # Add new recommendations
             rec_list.extend(recommendations_data)
@@ -582,10 +576,7 @@ class PerformanceTuningAgent:
 
             # Get existing results
             existing_results = await redis_manager.get(self.optimization_history_key)
-            if existing_results:
-                results_list = json.loads(existing_results)
-            else:
-                results_list = []
+            results_list = json.loads(existing_results) if existing_results else []
 
             # Add new result
             results_list.append(result_data)
