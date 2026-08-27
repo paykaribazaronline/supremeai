@@ -225,6 +225,9 @@ select = [
     "B",    # flake8-bugbear
     "SIM",  # flake8-simplify
 ]
-ignore = ["E501"]  # Line too long (handled by formatter)
+ignore = [
+    "E501",  # Line too long (handled by formatter)
+    "B008",  # Function call in default arg (needed for FastAPI Depends()/Query())
+]
 
 
