@@ -92,6 +92,13 @@ jobs:
       - name: Run linting
         run: |
           pip install ruff
+          # প্রথমে safe auto-fix গুলো apply করে দেখি, PR-এ push না করেই —
+          # যদি এতে সব ঠিক হয়ে যায়, ডেভেলপারকে বলে দেওয়া হয় কী কমান্ড লোকালি চালাতে হবে।
+          ruff check . --fix
+          if ! git diff --quiet; then
+            echo "::warning::কিছু lint error auto-fixable ছিল। PR merge করার আগে লোকালি \`ruff check . --fix\` চালিয়ে কমিট করুন।"
+            git diff --stat
+          fi
           ruff check .
           ruff format --check .
 
