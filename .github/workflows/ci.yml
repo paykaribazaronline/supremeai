@@ -626,7 +626,7 @@ jobs:
           cosign sign --yes ${images}
 
       - name: Generate and attach SBOM
-        uses: anchore/sbom-action@v0.16.0
+        uses: anchore/sbom-action@v0.24.1
         with:
           image: ${{ steps.meta.outputs.tags }}
           registry-username: ${{ github.actor }}
