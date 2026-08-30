@@ -37,7 +37,7 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "eslint-visitor-keys": "^5.0.1",
-    "miniflare": "^2.14.4",
+    "miniflare": "^4.20260730.0",
     "prettier": "^3.9.6",
     "turbo": "^2.10.12",
     "typescript": "^5.9.3",
