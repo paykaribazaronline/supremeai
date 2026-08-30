@@ -1,0 +1,50 @@
+# Render Blueprint for SupremeAI Ecosystem Service (Microservice 2)
+# বাংলা: এটি হলো Render Service 2 — ecosystem foundation + MCP + adapters.
+# Deploy: render.com → New + → Blueprint → select repo → auto-creates this service.
+
+services:
+  - type: web
+    name: supremeai-ecosystem
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      # ── MANDATORY ──
+      - key: ADMIN_TOKEN
+        sync: false  # set in dashboard — long random string
+      - key: ENV
+        value: production
+      - key: AUTO_SEED
+        value: "true"
+      - key: STRICT_ADMIN_AUTH
+        value: "true"
+      - key: LOG_LEVEL
+        value: info
+      - key: FRONTEND_ORIGIN
+        sync: false  # set to your Vercel frontend URL after deploy
+      # ── Render adapter (live Render API probe) ──
+      - key: RENDER_API_KEY
+        sync: false
+      - key: RENDER_SERVICE_ID
+        sync: false  # this service's own ID after first deploy
+      # ── GitHub adapter ──
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITHUB_REPO
+        sync: false  # e.g. paykaribazaronline/supremeai
+      # ── Supabase adapter (your existing project) ──
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      # ── Optional: Sentry ──
+      - key: SENTRY_DSN
+        sync: false
+    disk:
+      name: ecosystem-data
+      mountPath: /opt/data
+      sizeGB: 1
