@@ -208,11 +208,18 @@ ALL_ROUTERS = [
     # CI FIX: Also register individual Tier-S modules directly so the API
     # contract diff analyzer can discover their @router decorators.
     # (tier_s_routes.py uses a tuple list, not @router decorators in-file.)
+    {"path": "api.routes.ecosystem", "prefix": "", "is_admin": False, "is_critical": False},
     {"path": "api.routes.global_memory", "prefix": "", "is_admin": False, "is_critical": False},
     {"path": "api.routes.zero_cost", "prefix": "/api/v1", "is_admin": False, "is_critical": False},
     # AUD-3.5 / Phase 4: the HITL approval REST surface was previously never
     # mounted (dead end: events were visible but could never be decided). The
     # router itself enforces verify_admin_session_fail_closed on every route.
+    {
+        "path": "api.routes.ecosystem_admin",
+        "prefix": "",
+        "is_admin": True,
+        "is_critical": False,
+    },
     {
         "path": "api.routes.approval_manager",
         "prefix": "",
