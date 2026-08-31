@@ -3,28 +3,41 @@
 Phase 6: Risk classification, budget enforcement, action authorization.
 Safe actions auto-allowed; HIGH/CRITICAL require approval (§28).
 """
+
 from __future__ import annotations
+
 import enum
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
+
 from ecosystem._store import get_conn, jdump
 
 
 class ActionRisk(enum.StrEnum):
-    SAFE = "SAFE"; LOW = "LOW"; MEDIUM = "MEDIUM"; HIGH = "HIGH"; CRITICAL = "CRITICAL"
+    SAFE = "SAFE"
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
 
 
 class BudgetKind(enum.StrEnum):
-    TIME = "TIME"; MEMORY = "MEMORY"; COMPUTE = "COMPUTE"; DEPENDENCY = "DEPENDENCY"
-    CRAWL = "CRAWL"; CAPABILITY_CREATION = "CAPABILITY_CREATION"; RETRY = "RETRY"
+    TIME = "TIME"
+    MEMORY = "MEMORY"
+    COMPUTE = "COMPUTE"
+    DEPENDENCY = "DEPENDENCY"
+    CRAWL = "CRAWL"
+    CAPABILITY_CREATION = "CAPABILITY_CREATION"
+    RETRY = "RETRY"
     DEPLOYMENT = "DEPLOYMENT"
 
 
 @dataclass
 class Budgets:
     """Conservative defaults — ROADMAP §54."""
+
     time_seconds: float = 60.0
     memory_mb: float = 256.0
     compute_units: float = 1.0
@@ -51,7 +64,8 @@ class Budgets:
         return self._budget_for(kind) - self.used.get(kind, 0.0)
 
     def use(self, kind: BudgetKind, amount: float) -> bool:
-        if self.remaining(kind) < amount: return False
+        if self.remaining(kind) < amount:
+            return False
         self.used[kind] = self.used.get(kind, 0.0) + amount
         return True
 
@@ -66,15 +80,38 @@ class RiskDecision:
     remaining_budget: dict[str, float] = field(default_factory=dict)
 
 
-_SAFE_ACTIONS: set[str] = {"read", "list", "get", "observe", "search", "inspect",
-                           "query", "trace", "analyze", "health", "metrics", "logs"}
-_HIGH_RISK_ACTIONS: set[str] = {"deploy", "rollback", "restart", "delete", "migration",
-                                "secret_rotation", "capability_creation", "high_risk_action",
-                                "external_action", "promotion", "archive"}
+_SAFE_ACTIONS: set[str] = {
+    "read",
+    "list",
+    "get",
+    "observe",
+    "search",
+    "inspect",
+    "query",
+    "trace",
+    "analyze",
+    "health",
+    "metrics",
+    "logs",
+}
+_HIGH_RISK_ACTIONS: set[str] = {
+    "deploy",
+    "rollback",
+    "restart",
+    "delete",
+    "migration",
+    "secret_rotation",
+    "capability_creation",
+    "high_risk_action",
+    "external_action",
+    "promotion",
+    "archive",
+}
 
 
 class GovernanceEngine:
     """Phase 6 — Shared Autonomous Engine. ROADMAP §28."""
+
     TABLE = "ecosystem_governance_decisions"
 
     def __init__(self, *, budgets: Budgets | None = None) -> None:
@@ -90,25 +127,40 @@ class GovernanceEngine:
                 reason TEXT, budget_used TEXT DEFAULT '{{}}',
                 remaining_budget TEXT DEFAULT '{{}}', correlation TEXT DEFAULT '{{}}',
                 created_at TEXT NOT NULL)""")
-            conn.execute(f"CREATE INDEX IF NOT EXISTS idx_{self.TABLE}_risk ON {self.TABLE}(risk_level)")
-            conn.execute(f"CREATE INDEX IF NOT EXISTS idx_{self.TABLE}_action ON {self.TABLE}(action)")
+            conn.execute(
+                f"CREATE INDEX IF NOT EXISTS idx_{self.TABLE}_risk ON {self.TABLE}(risk_level)"
+            )
+            conn.execute(
+                f"CREATE INDEX IF NOT EXISTS idx_{self.TABLE}_action ON {self.TABLE}(action)"
+            )
             conn.commit()
 
     def classify(self, action: str, *, context: dict[str, Any] | None = None) -> ActionRisk:
         ctx = context or {}
         a = action.lower().strip()
-        if a in _SAFE_ACTIONS: return ActionRisk.SAFE
-        if a in _HIGH_RISK_ACTIONS: return ActionRisk.HIGH
+        if a in _SAFE_ACTIONS:
+            return ActionRisk.SAFE
+        if a in _HIGH_RISK_ACTIONS:
+            return ActionRisk.HIGH
         explicit_risk = ctx.get("risk_level")
         if explicit_risk:
-            try: return ActionRisk(str(explicit_risk).upper())
-            except ValueError: pass
-        if ctx.get("requires_approval"): return ActionRisk.HIGH
-        if ctx.get("external"): return ActionRisk.MEDIUM
+            try:
+                return ActionRisk(str(explicit_risk).upper())
+            except ValueError:
+                pass
+        if ctx.get("requires_approval"):
+            return ActionRisk.HIGH
+        if ctx.get("external"):
+            return ActionRisk.MEDIUM
         return ActionRisk.LOW
 
-    def authorize(self, action: str, *, context: dict[str, Any] | None = None,
-                  budget_use: dict[BudgetKind, float] | None = None) -> RiskDecision:
+    def authorize(
+        self,
+        action: str,
+        *,
+        context: dict[str, Any] | None = None,
+        budget_use: dict[BudgetKind, float] | None = None,
+    ) -> RiskDecision:
         risk = self.classify(action, context=context)
         budget_ok = True
         if budget_use:
@@ -118,13 +170,21 @@ class GovernanceEngine:
                     break
         requires_approval = risk in {ActionRisk.HIGH, ActionRisk.CRITICAL} or not budget_ok
         allowed = (risk in {ActionRisk.SAFE, ActionRisk.LOW}) and budget_ok
-        if allowed: reason = "auto-allowed"
-        elif requires_approval: reason = "requires_approval"
-        else: reason = "denied"
+        if allowed:
+            reason = "auto-allowed"
+        elif requires_approval:
+            reason = "requires_approval"
+        else:
+            reason = "denied"
         remaining = {k.value: self.budgets.remaining(k) for k in BudgetKind}
-        decision = RiskDecision(allowed=allowed, risk_level=risk, reason=reason,
-                              budget_check_passed=budget_ok, requires_approval=requires_approval,
-                              remaining_budget=remaining)
+        decision = RiskDecision(
+            allowed=allowed,
+            risk_level=risk,
+            reason=reason,
+            budget_check_passed=budget_ok,
+            requires_approval=requires_approval,
+            remaining_budget=remaining,
+        )
         self._record(action, decision, {k.value: v for k, v in (budget_use or {}).items()})
         return decision
 
@@ -132,10 +192,13 @@ class GovernanceEngine:
         ok = self.budgets.use(kind, amount)
         if ok:
             decision = RiskDecision(
-                allowed=True, risk_level=ActionRisk.SAFE,
+                allowed=True,
+                risk_level=ActionRisk.SAFE,
                 reason=f"used {amount} of {kind.value}",
-                budget_check_passed=True, requires_approval=False,
-                remaining_budget={k.value: self.budgets.remaining(k) for k in BudgetKind})
+                budget_check_passed=True,
+                requires_approval=False,
+                remaining_budget={k.value: self.budgets.remaining(k) for k in BudgetKind},
+            )
             self._record(f"budget_use:{kind.value}", decision, {kind.value: amount})
         return ok
 
@@ -145,18 +208,38 @@ class GovernanceEngine:
                 f"INSERT INTO {self.TABLE} (decision_id, action, risk_level, allowed, "
                 "budget_check_passed, requires_approval, reason, budget_used, "
                 "remaining_budget, correlation, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (f"gov-{uuid.uuid4().hex[:16]}", action, d.risk_level, int(d.allowed),
-                 int(d.budget_check_passed), int(d.requires_approval), d.reason, jdump(budget_used),
-                 jdump(d.remaining_budget), jdump({}), datetime.now(UTC).isoformat()))
+                (
+                    f"gov-{uuid.uuid4().hex[:16]}",
+                    action,
+                    d.risk_level,
+                    int(d.allowed),
+                    int(d.budget_check_passed),
+                    int(d.requires_approval),
+                    d.reason,
+                    jdump(budget_used),
+                    jdump(d.remaining_budget),
+                    jdump({}),
+                    datetime.now(UTC).isoformat(),
+                ),
+            )
             conn.commit()
 
 
 _engine: GovernanceEngine | None = None
+
+
 def get_governance_engine() -> GovernanceEngine:
     global _engine
-    if _engine is None: _engine = GovernanceEngine()
+    if _engine is None:
+        _engine = GovernanceEngine()
     return _engine
 
 
-__all__ = ["ActionRisk", "BudgetKind", "Budgets", "RiskDecision",
-           "GovernanceEngine", "get_governance_engine"]
+__all__ = [
+    "ActionRisk",
+    "BudgetKind",
+    "Budgets",
+    "RiskDecision",
+    "GovernanceEngine",
+    "get_governance_engine",
+]

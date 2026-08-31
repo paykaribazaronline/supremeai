@@ -3,7 +3,9 @@
 বাংলা: সব ecosystem table একই SQLite DB-তে। WAL mode, idempotent create.
 Production supremeai-এর Postgres থেকে আলাদা — কোনো migration লাগে না।
 """
+
 from __future__ import annotations
+
 import json
 import sqlite3
 from pathlib import Path
