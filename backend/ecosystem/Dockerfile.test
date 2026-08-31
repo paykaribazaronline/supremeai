@@ -1,8 +1,8 @@
 FROM python:3.12-slim
 WORKDIR /app
-RUN pip install --no-cache-dir fastapi uvicorn[standard] pydantic httpx
+RUN pip install --no-cache-dir fastapi==0.115.6 "uvicorn[standard]==0.34.0" pydantic==2.10.4 httpx==0.28.1
 COPY . /app/ecosystem/
 WORKDIR /app/ecosystem
 ENV PYTHONPATH=/app
 EXPOSE 8000
-CMD ["python", "-c", "import sys; sys.path.insert(0,'/app'); from ecosystem.standalone_app import app; import uvicorn; uvicorn.run(app, host='0.0.0.0', port=int(__import__('os').getenv('PORT','8000')))"]
+CMD ["python", "-c", "import sys; sys.path.insert(0, '/app'); from ecosystem.standalone_app import app; import uvicorn; uvicorn.run(app, host='0.0.0.0', port=int(__import__('os').getenv('PORT', '8000')))"]
