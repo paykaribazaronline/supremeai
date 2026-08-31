@@ -2,16 +2,22 @@
 
 বাংলা: Browser/scraper আলাদা microservice. Playwright এখানে, Core API-তে নয়।
 """
+
 from __future__ import annotations
+
 import asyncio
 import logging
 import os
+
 from aiohttp import web
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "info").upper()
-logging.basicConfig(level=getattr(logging, LOG_LEVEL, logging.INFO), format="%(asctime)s | %(levelname)-7s | %(message)s")
+logging.basicConfig(
+    level=getattr(logging, LOG_LEVEL, logging.INFO),
+    format="%(asctime)s | %(levelname)-7s | %(message)s",
+)
 logger = logging.getLogger("supremeai.browser")
-logger.info(f">>> booting browser service (env={os.getenv('ENV','production')})")
+logger.info(f">>> booting browser service (env={os.getenv('ENV', 'production')})")
 
 
 async def scrape(request: web.Request) -> web.Response:
@@ -22,6 +28,7 @@ async def scrape(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "url required"}, status=400)
     try:
         from playwright.async_api import async_playwright
+
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
             page = await browser.new_page()
@@ -29,7 +36,9 @@ async def scrape(request: web.Request) -> web.Response:
             title = await page.title()
             content = await page.content()
             await browser.close()
-        return web.json_response({"ok": True, "url": url, "title": title, "content_length": len(content)})
+        return web.json_response(
+            {"ok": True, "url": url, "title": title, "content_length": len(content)}
+        )
     except ImportError:
         return web.json_response({"ok": False, "error": "playwright not installed"}, status=500)
     except Exception as e:
@@ -44,6 +53,7 @@ async def screenshot(request: web.Request) -> web.Response:
         return web.json_response({"ok": False, "error": "url required"}, status=400)
     try:
         from playwright.async_api import async_playwright
+
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
             page = await browser.new_page()
