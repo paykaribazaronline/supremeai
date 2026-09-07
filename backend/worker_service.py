@@ -73,7 +73,7 @@ def _verify_worker_auth(request: Request) -> None:
             if jwt_sec:
                 expected_tokens.append(jwt_sec)
         except Exception:
-            pass
+            logger.debug("Failed to load worker service security tokens from core.config", exc_info=True)
 
     if not expected_tokens:
         raise HTTPException(status_code=500, detail="Worker service security tokens not configured")

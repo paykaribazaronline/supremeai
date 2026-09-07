@@ -79,7 +79,7 @@ def check_github_actions_status():
                                     token = line.split("=", 1)[1].strip().strip('"\'')
                                     break
                     except Exception:
-                        pass
+                        print(f"[WARN] Failed to read GITHUB_TOKEN from .env", file=sys.stderr)
             if token and not token.startswith("your-") and not token.startswith("mock-") and not token.startswith("dummy-"):
                 headers["Authorization"] = f"Bearer {token}"
             elif token and (token.startswith("your-") or token.startswith("mock-") or token.startswith("dummy-")):
