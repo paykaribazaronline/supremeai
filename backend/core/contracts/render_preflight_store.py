@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from backend.core.contracts.redaction import redact as redact_secrets
+
 from core.logging_config import logger
 
 DEFAULT_DB_PATH = Path("data/render_preflight.db")
@@ -115,7 +116,9 @@ class RenderPreflightStore:
             try:
                 data["last_render_payload"] = json.loads(data["last_render_payload"])
             except Exception:
-                logger.debug("Failed to parse last_render_payload, keeping raw value", exc_info=True)
+                logger.debug(
+                    "Failed to parse last_render_payload, keeping raw value", exc_info=True
+                )
         return data
 
     def get_all_accounts(self) -> list[dict[str, Any]]:
@@ -130,7 +133,9 @@ class RenderPreflightStore:
                 try:
                     data["last_render_payload"] = json.loads(data["last_render_payload"])
                 except Exception:
-                    logger.debug("Failed to parse last_render_payload, keeping raw value", exc_info=True)
+                    logger.debug(
+                        "Failed to parse last_render_payload, keeping raw value", exc_info=True
+                    )
             accounts.append(data)
         return accounts
 
