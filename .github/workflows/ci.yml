@@ -452,8 +452,8 @@ jobs:
       - name: "🔧 Auto-fix lint issues (push only)"
         if: github.event_name == 'push'
         run: |
-          poetry run ruff check --fix .
-          poetry run ruff format .
+          poetry run ruff check --fix . || true
+          poetry run ruff format . || true
 
           cd "$GITHUB_WORKSPACE"
           if git diff --quiet; then
@@ -464,7 +464,7 @@ jobs:
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add -A
             git commit -m "chore(ci): auto-fix lint issues via ruff [skip ci]"
-            git push origin HEAD:${{ github.ref_name }}
+            git push origin HEAD:${{ github.ref_name }} || echo "Push failed or no changes to push"
           fi
 
       - name: Run linting

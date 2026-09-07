@@ -23,8 +23,8 @@ def classify(path: Path, source: str) -> str:
 
 def python_entrypoints(path: Path) -> list[str]:
     try:
-        tree = ast.parse(path.read_text(encoding="utf-8"))
-    except (OSError, SyntaxError):
+        tree = ast.parse(path.read_text(encoding="utf-8", errors="ignore"))
+    except (OSError, SyntaxError, ValueError):
         return []
     names = []
     for node in ast.walk(tree):
