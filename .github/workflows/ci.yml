@@ -826,7 +826,7 @@ jobs:
           BACKEND_URL: ${{ secrets.BACKEND_URL || vars.BACKEND_URL || secrets.USER_BACKEND_URL || vars.USER_BACKEND_URL }}
 
       - name: Deploy to Firebase
-        uses: w9jds/firebase-action@5b73b1274a2229c7598af09e6e95addfb75f897b # master
+        uses: w9jds/firebase-action@c38233488869fe50f21a3ab4931095d09807cc7a # master
         with:
           args: deploy --only hosting
         env:
