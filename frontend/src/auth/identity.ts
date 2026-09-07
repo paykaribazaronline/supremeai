@@ -38,7 +38,8 @@ export function readAdminJwtClaims(): AdminJwtClaims | null {
     );
     const parsed = JSON.parse(json) as AdminJwtClaims;
     return parsed && typeof parsed === 'object' ? parsed : null;
-  } catch {
+  } catch (err) {
+    console.error('[Auth] Failed to parse JWT claims:', err);
     return null;
   }
 }

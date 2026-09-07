@@ -50,8 +50,8 @@ export class ElectronNotification implements PlatformNotification {
           new Notification('SupremeAI', { body: message });
           return;
         }
-      } catch {
-        /* fall through */
+      } catch (err) {
+        console.error('[SupremeAI Desktop] Notification permission request failed:', err);
       }
     }
     console.log('[SupremeAI Desktop] ℹ️', message);
@@ -121,7 +121,8 @@ export class ElectronSecretStorage implements PlatformSecretStorage {
   async get(key: string): Promise<string | undefined> {
     try {
       return localStorage.getItem(`supremeai.${key}`) ?? undefined;
-    } catch {
+    } catch (err) {
+      console.error('[SupremeAI Desktop] Secret get failed:', err);
       return undefined;
     }
   }
@@ -137,8 +138,8 @@ export class ElectronSecretStorage implements PlatformSecretStorage {
   async delete(key: string): Promise<void> {
     try {
       localStorage.removeItem(`supremeai.${key}`);
-    } catch {
-      /* ignore */
+    } catch (err) {
+      console.error('[SupremeAI Desktop] Secret delete failed:', err);
     }
   }
 }

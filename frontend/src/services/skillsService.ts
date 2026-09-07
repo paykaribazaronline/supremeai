@@ -61,7 +61,8 @@ export const checkLiveness = async (): Promise<boolean> => {
       headers: { 'Cache-Control': 'no-cache' },
     });
     return response.ok;
-  } catch {
+  } catch (err) {
+    console.error('[Skills] Live check failed:', err);
     return false;
   }
 };

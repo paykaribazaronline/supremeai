@@ -62,7 +62,8 @@ export class AIService {
     let parsed: any;
     try {
       parsed = JSON.parse(content);
-    } catch {
+    } catch (err) {
+      console.error('[SupremeAI] Failed to parse AI response:', err);
       return null;
     }
     // Basic validation for the parsed content

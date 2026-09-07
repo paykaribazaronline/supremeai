@@ -103,8 +103,8 @@ class RateLimiter {
         const parsed = JSON.parse(stored);
         this.requests = new Map(Object.entries(parsed));
       }
-    } catch {
-      // Storage not available
+    } catch (err) {
+      console.error('[CostOptimizer] Storage read failed:', err);
     }
   }
   
@@ -115,8 +115,9 @@ class RateLimiter {
         obj[key] = value;
       });
       localStorage.setItem('superai_rate_limits', JSON.stringify(obj));
-    } catch {
-      // Storage not available or full
+    } catch (err) {
+      console.error('[CostOptimizer] Storage write failed:', err);
+    }
     }
   }
 }

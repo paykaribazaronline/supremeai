@@ -80,7 +80,8 @@ export function getToken(): string | null {
   if (typeof window === 'undefined') return null
   try {
     return window.localStorage.getItem(TOKEN_KEY)
-  } catch {
+  } catch (err) {
+    console.error('[Ecosystem] Failed to read token from storage:', err)
     return null
   }
 }
@@ -90,7 +91,8 @@ export function getStoredUser(): User | null {
   try {
     const raw = window.localStorage.getItem(USER_KEY)
     return raw ? (JSON.parse(raw) as User) : null
-  } catch {
+  } catch (err) {
+    console.error('[Ecosystem] Failed to read user from storage:', err)
     return null
   }
 }

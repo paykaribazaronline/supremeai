@@ -41,8 +41,8 @@ function parseActionCard(raw: string): { type: string; content: string; metadata
     if (raw.trim().startsWith('{')) {
       return JSON.parse(raw);
     }
-  } catch {
-    // fallback
+  } catch (err) {
+    console.warn('[UnifiedChatBubble] Failed to parse action card:', err);
   }
   return null;
 }

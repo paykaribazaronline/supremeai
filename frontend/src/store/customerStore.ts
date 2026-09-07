@@ -58,7 +58,7 @@ export const useCustomerStore = create<CustomerStoreState>()(
           widgets: [],
         });
         // Remove the persisted localStorage entry so next user gets a clean state.
-        try { localStorage.removeItem(STORAGE_KEY); } catch { /* SSR/incognito */ }
+        try { localStorage.removeItem(STORAGE_KEY); } catch (err) { console.warn('[CustomerStore] localStorage unavailable:', err); }
       },
     }),
     {

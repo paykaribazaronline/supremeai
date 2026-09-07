@@ -98,7 +98,8 @@ export class SupremeExtensionBridge {
         'write',
       ]);
       return session?.accessToken;
-    } catch {
+    } catch (err) {
+      console.error('[ApiBridge] Auth session failed:', err);
       return undefined;
     }
   }
@@ -165,7 +166,8 @@ export class SupremeExtensionBridge {
     try {
       const response = await this.client.get<any[]>('/admin-api/workspaces/targets');
       return response.data || [];
-    } catch {
+    } catch (err) {
+      console.error('[ApiBridge] Failed to fetch target repositories:', err);
       return [];
     }
   }

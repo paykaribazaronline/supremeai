@@ -31,7 +31,8 @@ function loadLocalSessions(): DashboardSession[] {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
-  } catch {
+  } catch (err) {
+    console.error('[SessionStore] Failed to load local sessions:', err);
     return [];
   }
 }

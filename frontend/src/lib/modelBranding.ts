@@ -109,8 +109,8 @@ export async function loadSupremeBranding(): Promise<void> {
       '/api/config/public/branding',
     );
     setBrandingOverrides(data?.models ?? {}, data?.providers ?? {});
-  } catch {
-    // offline / endpoint unavailable — keep local defaults
+  } catch (err) {
+    console.error('[Branding] Failed to load branding overrides:', err);
   }
 }
 

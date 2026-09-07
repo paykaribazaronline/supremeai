@@ -103,7 +103,8 @@ export function InteractiveChatTab({
       if (!res.ok) return undefined;
       const data = await res.json();
       return data.action;
-    } catch {
+    } catch (err) {
+      console.error('[InteractiveChat] Chat action failed:', err);
       return undefined;
     }
   }, []);

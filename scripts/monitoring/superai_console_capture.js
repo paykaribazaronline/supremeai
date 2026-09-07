@@ -127,7 +127,7 @@
             }
             localStorage.setItem('__superai_log_backup', JSON.stringify(existing));
         } catch (e) {
-            // localStorage full or unavailable - ignore
+            console.error('[ConsoleCapture] Storage write failed:', e);
         }
     }
     

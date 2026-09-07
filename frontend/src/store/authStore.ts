@@ -55,8 +55,8 @@ export function clearCanonicalSession(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(LEGACY_ADMIN_TOKEN_KEY);
-  } catch {
-    // localStorage unavailable (SSR / incognito) — নীরবে এগিয়ে যাওয়া।
+  } catch (err) {
+    console.warn('[AuthStore] localStorage unavailable during clear:', err);
   }
   updateTokenCache(null);
   persistUser(null);
@@ -76,7 +76,8 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
         .join('')
     );
     return JSON.parse(jsonPayload) as Record<string, unknown>;
-  } catch {
+  } catch (err) {
+    console.error('[AuthStore] Failed to decode JWT payload:', err);
     return null;
   }
 }
@@ -96,7 +97,8 @@ function restoreUser(): UserProfile | null {
     const parsed = JSON.parse(raw) as UserProfile;
     if (!parsed || typeof parsed !== 'object' || typeof parsed.email !== 'string') return null;
     return parsed;
-  } catch {
+  } catch (err) {
+    console.error('[AuthStore] Failed to restore user from storage:', err);
     return null;
   }
 }

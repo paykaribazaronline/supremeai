@@ -148,8 +148,8 @@ export function SlashCommandMenu({
         if (!cancelled && Array.isArray(response) && response.length > 0) {
           setCommands(response);
         }
-      } catch {
-        // Silently fall back to defaults
+      } catch (err) {
+        console.warn('[SlashCommandMenu] Failed to fetch commands:', err);
       } finally {
         if (!cancelled) {
           setIsLoading(false);

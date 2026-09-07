@@ -39,7 +39,8 @@ export function getAuthToken(): string | null {
       localStorage.getItem(LEGACY_ADMIN_TOKEN_KEY) ||
       null
     );
-  } catch {
+  } catch (err) {
+    console.error('[SecureWs] Failed to read token from storage:', err);
     return null;
   }
 }

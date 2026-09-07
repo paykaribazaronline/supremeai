@@ -220,8 +220,8 @@ export default function DeepResearchPanel() {
                 setError(event.error || 'Research failed unexpectedly');
                 globalShowToastRef.current('error', event.error || 'Research failed');
               }
-            } catch {
-              // Non-JSON SSE line, skip
+            } catch (err) {
+              console.warn('[DeepResearch] Non-JSON SSE line, skip:', err);
             }
           }
         }

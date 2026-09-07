@@ -29,8 +29,8 @@ export const SandboxViewport: React.FC = () => {
                     };
                     img.src = `data:image/jpeg;base64,${parsed.data}`;
                 }
-            } catch {
-                // Ignore parsing errors for other channels
+            } catch (err) {
+                console.warn('[SandboxViewport] Failed to parse image channel:', err);
             }
         };
 

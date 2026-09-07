@@ -30,8 +30,8 @@ export function ActionCard({ rawContent, onSaveToProject, onPreview }: ActionCar
     if (rawContent.trim().startsWith('{')) {
       parsed = JSON.parse(rawContent);
     }
-  } catch {
-    // Not a JSON response, fallback to text rendering
+  } catch (err) {
+    console.warn('[ActionCard] Failed to parse structured AI response:', err);
   }
 
   const handleAction = async (action: Action, content: string) => {

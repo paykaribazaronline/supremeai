@@ -19,8 +19,8 @@ export function ChatPanel({ messages, input, onInputChange, onSend, loading, onS
       await navigator.clipboard.writeText(text);
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2000);
-    } catch {
-      // clipboard not available
+    } catch (err) {
+      console.warn('[ChatPanel] Clipboard not available:', err);
     }
   };
 

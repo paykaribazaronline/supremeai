@@ -33,7 +33,8 @@ export class VsCodePlatformAdapter implements TokenProvider {
     try {
       const token = await this.getAccessToken();
       return !!token;
-    } catch {
+    } catch (err) {
+      console.error('[VsCode] Auth check failed:', err);
       return false;
     }
   }
