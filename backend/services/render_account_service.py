@@ -113,7 +113,7 @@ class RenderAccountService:
                 # Check if cooldown has expired and needs recheck
                 if status == "cooldown" and recheck_at_str:
                     try:
-                        recheck_at = datetime.fromisoformat(recheck_str.replace("Z", "+00:00"))
+                        recheck_at = datetime.fromisoformat(recheck_at_str.replace("Z", "+00:00"))
                         if now_utc >= recheck_at:
                             status = "recheck_required"
                     except Exception:
