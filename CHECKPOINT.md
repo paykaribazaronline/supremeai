@@ -2,7 +2,7 @@
 > Auto-updated by AI agents after each major session. Next agent must read this first.
 
 ## Last Session
-- **Date:** 2026-09-06 23:10 UTC
+- **Date:** 2026-09-07 03:33 UTC
 - **Agent:** Auto-updated (checkpoint_update.py)
 - **Summary:** Auto-updated via pre-commit hook
 
@@ -10,14 +10,9 @@
   - (see git log for details)
 
 ## Files Changed
-  - `backend/api/routes/admin_dashboard.py`
-  - `infrastructure/mcp-control-plane/src/index.ts`
-  - `CHECKPOINT.md`
-  - `infrastructure/mcp-control-plane/src/policy/approvals/lifecycle.ts`
-  - `infrastructure/mcp-control-plane/src/actions/executor.ts`
-  - `infrastructure/mcp-control-plane/src/policy/auth.context.ts`
-  - `infrastructure/mcp-control-plane/src/tools/policy.tools.ts`
-  - `infrastructure/mcp-control-plane/src/policy/approvals/hitl.ts`
+  - `backend/memory/sqlite_store.py`
+  - `docs/generated/module_capability_matrix.json`
+  - `infrastructure/mcp-control-plane/src/policy/circle_in_codebase.md`
 
 ## Pending (Carry Forward)
 - (none)

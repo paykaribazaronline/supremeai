@@ -116,3 +116,6 @@ class SQLiteMemoryStore:
         result = [dict(r) for r in rows]
         self._close_connection(conn)
         return result
+
+
+SQLiteStore = SQLiteMemoryStore
