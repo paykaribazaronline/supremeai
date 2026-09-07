@@ -21,16 +21,19 @@ Tarjan's algorithm দিয়ে strongly connected components (SCC) খুঁ
 
 from __future__ import annotations
 
-import ast
 import argparse
+import ast
 import datetime
 import json
+import logging
 import os
 import sys
 import time
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
+
+logger = logging.getLogger(__name__)
 
 # ────────────────────────────────────────────────────────────
 # কনফিগারেশন — রিপো এবং ব্যাকএন্ড পাথ
@@ -169,7 +172,7 @@ def _find_enclosing_function_depth(tree: ast.AST, target_lineno: int) -> int:
     try:
         _FnVisitor().visit(tree)
     except Exception:
-        pass
+        logger.debug("AST visitor failed for circular import detection", exc_info=True)
     return depth[0]
 
 

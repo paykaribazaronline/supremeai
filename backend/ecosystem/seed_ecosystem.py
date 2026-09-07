@@ -308,18 +308,25 @@ def seed_proposals() -> tuple[int, int]:
 
 
 def main() -> int:
-    print(">>> Seeding ecosystem...", flush=True)
+    sys.stdout.write(">>> Seeding ecosystem...\n")
+    sys.stdout.flush()
     c1, s1 = seed_capabilities()
-    print(f"  capabilities: created={c1} skipped={s1}", flush=True)
+    sys.stdout.write(f"  capabilities: created={c1} skipped={s1}\n")
+    sys.stdout.flush()
     c2, s2 = seed_policies()
-    print(f"  policies:     created={c2} skipped={s2}", flush=True)
+    sys.stdout.write(f"  policies:     created={c2} skipped={s2}\n")
+    sys.stdout.flush()
     c3, s3 = seed_learned()
-    print(f"  learned:      created={c3} skipped={s3}", flush=True)
+    sys.stdout.write(f"  learned:      created={c3} skipped={s3}\n")
+    sys.stdout.flush()
     c4, s4 = seed_opportunities()
-    print(f"  opportunities:created={c4} skipped={s4}", flush=True)
+    sys.stdout.write(f"  opportunities:created={c4} skipped={s4}\n")
+    sys.stdout.flush()
     c5, s5 = seed_proposals()
-    print(f"  proposals:    created={c5} skipped={s5}", flush=True)
-    print(">>> Done.", flush=True)
+    sys.stdout.write(f"  proposals:    created={c5} skipped={s5}\n")
+    sys.stdout.flush()
+    sys.stdout.write(">>> Done.\n")
+    sys.stdout.flush()
     return 0
 
 
