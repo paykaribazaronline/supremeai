@@ -3015,14 +3015,14 @@ type = ["pygobject-stubs", "pytest-mypy (>=1.0.1)", "shtab", "types-pywin32"]
 
 [[package]]
 name = "langfuse"
-version = "4.14.4"
+version = "4.14.6"
 description = "Langfuse Python SDK - LLM observability/tracing, datasets, experiments, LLM-as-a-judge evaluation, and prompt management"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "langfuse-4.14.4-py3-none-any.whl", hash = "sha256:78692a1d4785a8c255bf6ea967e673e1ee30ce078d646e7b5f7ff44549d45cce"},
-    {file = "langfuse-4.14.4.tar.gz", hash = "sha256:48c4bdefc290f61a42881b8048a904ab6b81d37e02496473166836e71ee0ab3a"},
+    {file = "langfuse-4.14.6-py3-none-any.whl", hash = "sha256:0093760ff117a30d75e2dea2cd2e7f4a35071711695654800da8d907b7246521"},
+    {file = "langfuse-4.14.6.tar.gz", hash = "sha256:f52e4e60acef18ee1b175ccfdba4e1dfb0ea077cd16c98033e8d6d721b65c47c"},
 ]
 
 [package.dependencies]
@@ -3033,6 +3033,7 @@ opentelemetry-exporter-otlp-proto-http = ">=1.33.1,<2"
 opentelemetry-sdk = ">=1.33.1,<2"
 packaging = ">=23.2,<27.0"
 pydantic = ">=2,<3"
+typing-extensions = ">=4.12.2,<5"
 wrapt = ">=1.14,<3"
 
 [[package]]
