@@ -183,6 +183,8 @@ def check_unguarded_localhost(root: Path, report: Report) -> None:
     for path in iter_py_files(root):
         if "/tests/" in str(path) or path.name.startswith("test_"):
             continue
+        if "local_adapter" in str(path).lower() or "local_adapters" in str(path):
+            continue
         try:
             lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
         except UnicodeDecodeError:

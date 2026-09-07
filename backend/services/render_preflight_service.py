@@ -15,6 +15,7 @@ from typing import Any
 
 from backend.core.contracts.redaction import redact as redact_secrets
 from backend.core.contracts.render_preflight_store import RenderPreflightStore
+from core.logging_config import logger
 
 
 def calculate_deploy_usage_minutes(deploys: list[dict[str, Any]]) -> float:
@@ -129,7 +130,7 @@ class RenderPreflightService:
                         # Retain existing cooldown without moving recheck_at forward
                         return existing
                 except (ValueError, TypeError):
-                    pass
+                    logger.debug("Failed to parse recheck_at, treating as stale", exc_info=True)
 
         # Query Render API
         url = f"https://api.render.com/v1/services/{svc_id}/deploys?limit=100"
