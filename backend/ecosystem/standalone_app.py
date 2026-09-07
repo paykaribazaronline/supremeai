@@ -39,7 +39,6 @@ from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 
 from core.logging_config import logger
-
 from ecosystem import (
     ApprovalProposal,
     Capability,

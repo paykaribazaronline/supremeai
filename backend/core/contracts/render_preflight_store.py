@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from backend.core.contracts.redaction import redact as redact_secrets
+
 from core.logging_config import logger
 
 DEFAULT_DB_PATH = Path("data/render_preflight.db")
