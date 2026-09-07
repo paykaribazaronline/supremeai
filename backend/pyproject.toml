@@ -102,7 +102,7 @@ bcrypt = "^5.0.0"
 # সরিয়ে আলাদা optional `browser` group-এ রাখা হলো। Production Dockerfile
 # `poetry install --only main` চালায়, তাই Chromium + playwright এখন আর always-on
 # API image-এ নেই। Dev/CI-তে আগের মতোই playwright থাকবে (`--with dev --with browser`)।
-infisical-python = "2.3.5"
+infisical-python = "2.3.6"
 click = ">=8.3.3" # CVE-2026-7246 (PYSEC-2026-2132)
 h2 = ">=4.4.1" # CVE-2026-71554 (PYSEC-2026-3628)
 [tool.poetry.group.browser]
