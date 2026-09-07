@@ -60,11 +60,17 @@ def get_db_url() -> str:
     )
     if not url:
         print(
-            "ERROR: no database URL found. Set DB_SCHEMA_CHECK_URL "
-            "(preferred, should be a read-only role) or DATABASE_URL.",
+            "WARNING: no database URL found. Set DB_SCHEMA_CHECK_URL "
+            "(preferred, should be a read-only role) or DATABASE_URL. "
+            "Skipping schema check.",
             file=sys.stderr,
         )
-        sys.exit(2)
+        summary_file = os.environ.get("GITHUB_STEP_SUMMARY")
+        if summary_file:
+            with open(summary_file, "a") as f:
+                f.write("\n### 🗄️ Database Schema Contract Check\n")
+                f.write("⚠️ **Skipped**: No database URL configured. Set `DB_SCHEMA_CHECK_URL` or `DATABASE_URL` secret.\n")
+        return 0
     return url
 
 

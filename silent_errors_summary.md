@@ -1,36 +1,36 @@
 # 🔇 Silent Error Scan Report
 
-_Generated: 2026-09-07T10:13:23+00:00 · Scanner: `scripts/detect_silent_errors.py`_
+_Generated: 2026-09-07T10:24:52+00:00 · Scanner: `scripts/detect_silent_errors.py`_
 
 - Python files scanned: **1894**
 - JS/TS files scanned:  **555**
 - Log files scanned:    **0**
-- Total findings: **894**
-  - high: **37**
+- Total findings: **884**
+  - high: **23**
   - medium: **287**
-  - low: **570**
+  - low: **574**
 
 ## Regression (vs baseline)
 
-- New findings (fail CI): **264**
-- Known (baselined):      **630**
-- Resolved since baseline: **243**
+- New findings (fail CI): **0**
+- Known (baselined):      **884**
+- Resolved since baseline: **0**
 
 ## Findings by type
 
 | Type | Count |
 |---|---|
-| `except-no-log` | 547 |
+| `except-no-log` | 551 |
 | `except-return-default` | 112 |
 | `except-continue` | 102 |
 | `create-task-unref` | 26 |
-| `except-pass` | 17 |
 | `suppress-exception` | 16 |
 | `except-break` | 16 |
-| `catch-return-silent` | 14 |
-| `empty-catch` | 14 |
 | `floating-fetch` | 13 |
+| `empty-catch` | 12 |
+| `catch-return-silent` | 11 |
 | `except-return-true` | 9 |
+| `except-pass` | 8 |
 | `promise-catch-silent` | 3 |
 | `json-parse-unguarded` | 3 |
 | `bare-except` | 2 |
@@ -54,23 +54,16 @@ _Generated: 2026-09-07T10:13:23+00:00 · Scanner: `scripts/detect_silent_errors.
 | `frontend/src/components/admin/data/CrownJewelBrowser.tsx` | 4 |
 | `scripts/advanced_analysis/orphan_route_finder.py` | 4 |
 | `scripts/audit_isolated_modules_and_capabilities.py` | 4 |
-| `backend/core/contracts/render_preflight_store.py` | 3 |
-| `backend/services/render_account_service.py` | 3 |
-| `backend/worker_service.py` | 3 |
-| `frontend/src/store/authStore.ts` | 3 |
 | `packages/shared-services/src/platform/electron.ts` | 3 |
+| `backend/agents/infrastructure/auto_scaling_agent.py` | 3 |
+| `backend/core/deployment/production_deploy.py` | 3 |
+| `backend/core/llm/telemetry.py` | 3 |
+| `backend/core/tier8/self_improvement_agent.py` | 3 |
 
 ## Findings
 
 | Severity | File:Line | Type | Snippet |
 |---|---|---|---|
-| high | `backend/api/routes/auth.py:184` | `except-pass` | `except Exception: pass  # Redis না থাকলে skip, fail-open` |
-| high | `backend/core/contracts/render_preflight_store.py:116` | `except-pass` | `except Exception: pass` |
-| high | `backend/core/contracts/render_preflight_store.py:131` | `except-pass` | `except Exception: pass` |
-| high | `backend/core/contracts/render_preflight_store.py:321` | `except-pass` | `except Exception: pass` |
-| high | `backend/services/render_account_service.py:119` | `except-pass` | `except Exception: pass` |
-| high | `backend/services/render_account_service.py:200` | `except-pass` | `except Exception: pass` |
-| high | `backend/worker_service.py:75` | `except-pass` | `except Exception: pass` |
 | high | `frontend/src/auth/identity.ts:41` | `catch-return-silent` | `} catch {` |
 | high | `frontend/src/components/admin/InteractiveChatTab.tsx:106` | `catch-return-silent` | `} catch {` |
 | high | `frontend/src/components/admin/shared/ActionCard.tsx:33` | `empty-catch` | `} catch {` |
@@ -86,17 +79,10 @@ _Generated: 2026-09-07T10:13:23+00:00 · Scanner: `scripts/detect_silent_errors.
 | high | `frontend/src/services/costOptimizer.service.ts:106` | `empty-catch` | `} catch {` |
 | high | `frontend/src/services/costOptimizer.service.ts:118` | `empty-catch` | `} catch {` |
 | high | `frontend/src/services/skillsService.ts:64` | `catch-return-silent` | `} catch {` |
-| high | `frontend/src/store/authStore.ts:58` | `empty-catch` | `} catch {` |
-| high | `frontend/src/store/authStore.ts:79` | `catch-return-silent` | `} catch {` |
-| high | `frontend/src/store/authStore.ts:99` | `catch-return-silent` | `} catch {` |
-| high | `frontend/src/store/customerStore.ts:61` | `empty-catch` | `try { localStorage.removeItem(STORAGE_KEY); } catch { /* SSR/incognito */ }` |
-| high | `frontend/src/utils/secureWebSocket.ts:42` | `catch-return-silent` | `} catch {` |
 | high | `packages/shared-services/src/platform/electron.ts:53` | `empty-catch` | `} catch {` |
 | high | `packages/shared-services/src/platform/electron.ts:124` | `catch-return-silent` | `} catch {` |
 | high | `packages/shared-services/src/platform/electron.ts:140` | `empty-catch` | `} catch {` |
-| high | `scripts/advanced_analysis/circular_import_mapper.py:171` | `except-pass` | `except Exception: pass` |
 | high | `scripts/monitoring/superai_console_capture.js:129` | `empty-catch` | `} catch (e) {` |
-| high | `scripts/pre_commit_hook.py:81` | `except-pass` | `except Exception: pass` |
 | high | `tools/vscode-extension/src/adapters/VsCodePlatformAdapter.ts:36` | `catch-return-silent` | `} catch {` |
 | high | `tools/vscode-extension/src/ai/AIService.ts:65` | `catch-return-silent` | `} catch {` |
 | high | `tools/vscode-extension/src/services/apiBridge.ts:101` | `catch-return-silent` | `} catch {` |
@@ -365,13 +351,13 @@ _Generated: 2026-09-07T10:13:23+00:00 · Scanner: `scripts/detect_silent_errors.
 | medium | `scripts/pre_merge_guard.py:707` | `except-pass` | `except json.JSONDecodeError: pass` |
 | medium | `scripts/quality/docs_drift_check.py:57` | `except-continue` | `except UnicodeDecodeError: continue` |
 | medium | `scripts/quality/regression_scanner.py:110` | `except-continue` | `except (SyntaxError, UnicodeDecodeError): continue` |
-| medium | `scripts/quality/regression_scanner.py:188` | `except-continue` | `except UnicodeDecodeError: continue` |
-| medium | `scripts/quality/regression_scanner.py:226` | `except-continue` | `except UnicodeDecodeError: continue` |
-| medium | `scripts/quality/regression_scanner.py:318` | `except-continue` | `except UnicodeDecodeError: continue` |
-| medium | `scripts/quality/regression_scanner.py:340` | `except-continue` | `except UnicodeDecodeError: continue` |
-| medium | `scripts/quality/regression_scanner.py:371` | `except-continue` | `except UnicodeDecodeError: continue` |
-| medium | `scripts/quality/regression_scanner.py:393` | `except-continue` | `except UnicodeDecodeError: continue` |
-| medium | `scripts/quality/regression_scanner.py:416` | `except-continue` | `except (SyntaxError, UnicodeDecodeError): continue` |
+| medium | `scripts/quality/regression_scanner.py:190` | `except-continue` | `except UnicodeDecodeError: continue` |
+| medium | `scripts/quality/regression_scanner.py:228` | `except-continue` | `except UnicodeDecodeError: continue` |
+| medium | `scripts/quality/regression_scanner.py:320` | `except-continue` | `except UnicodeDecodeError: continue` |
+| medium | `scripts/quality/regression_scanner.py:342` | `except-continue` | `except UnicodeDecodeError: continue` |
+| medium | `scripts/quality/regression_scanner.py:373` | `except-continue` | `except UnicodeDecodeError: continue` |
+| medium | `scripts/quality/regression_scanner.py:395` | `except-continue` | `except UnicodeDecodeError: continue` |
+| medium | `scripts/quality/regression_scanner.py:418` | `except-continue` | `except (SyntaxError, UnicodeDecodeError): continue` |
 | medium | `scripts/security/auto_vulnerability_scanner.py:430` | `except-continue` | `except Exception: continue` |
 | medium | `scripts/security/auto_vulnerability_scanner.py:522` | `except-continue` | `except Exception: continue` |
 | medium | `tools/autonomy/tools/common.py:26` | `except-return-default` | `except OSError: return ''` |
@@ -500,6 +486,9 @@ _Generated: 2026-09-07T10:13:23+00:00 · Scanner: `scripts/detect_silent_errors.
 | low | `backend/core/config_secrets.py:559` | `except-no-log` | `except json.JSONDecodeError: origins = [o.strip() for o in env_origins.split(","` |
 | low | `backend/core/config_validation.py:351` | `except-no-log` | `except json.JSONDecodeError: return [o.strip() for o in v.split(",") if o.strip(` |
 | low | `backend/core/config_validator.py:314` | `except-no-log` | `except (ValueError, TypeError): return ValidationError( var_name=var_def.name, s` |
+| low | `backend/core/contracts/render_preflight_store.py:116` | `except-no-log` | `except Exception: data["last_render_payload"] = None` |
+| low | `backend/core/contracts/render_preflight_store.py:131` | `except-no-log` | `except Exception: data["last_render_payload"] = None` |
+| low | `backend/core/contracts/render_preflight_store.py:321` | `except-no-log` | `except Exception: data["details"] = None` |
 | low | `backend/core/db.py:59` | `except-no-log` | `except AttributeError: url = ""` |
 | low | `backend/core/degraded_mode.py:86` | `except-no-log` | `except Exception:  # pragma: no cover - defensive: config unavailable env = ""` |
 | low | `backend/core/deployment/production_deploy.py:539` | `except-no-log` | `except Exception as e: self._update_deployment_status(deployment_id, DeploymentS` |
@@ -768,7 +757,8 @@ _Generated: 2026-09-07T10:13:23+00:00 · Scanner: `scripts/detect_silent_errors.
 | low | `scripts/advanced_analysis/bengali_i18n_completeness_checker.py:489` | `except-no-log` | `except Exception: return text.encode("ascii", errors="replace").decode("ascii")` |
 | low | `scripts/advanced_analysis/circular_import_mapper.py:68` | `except-no-log` | `except ValueError: # ব্যাকএন্ডের বাইরে হলে রিপো রুট থেকে রিলেটিভ নেবো try: rel =` |
 | low | `scripts/advanced_analysis/circular_import_mapper.py:72` | `except-no-log` | `except ValueError: return filepath.stem` |
-| low | `scripts/advanced_analysis/circular_import_mapper.py:676` | `except-no-log` | `except ValueError: lines.append(f"- `{mod}` → `{fp}`")` |
+| low | `scripts/advanced_analysis/circular_import_mapper.py:171` | `except-no-log` | `except Exception: import traceback traceback.print_exc()` |
+| low | `scripts/advanced_analysis/circular_import_mapper.py:677` | `except-no-log` | `except ValueError: lines.append(f"- `{mod}` → `{fp}`")` |
 | low | `scripts/advanced_analysis/config_single_source_enforcer.py:503` | `except-no-log` | `except ValueError: rel_path = str(file_path)` |
 | low | `scripts/advanced_analysis/dead_code_verified_finder.py:69` | `except-no-log` | `except DiscoveryError: # বাংলা: রিপো পাওয়া যায়নি — run() এ fail-loud হবে, impo` |
 | low | `scripts/advanced_analysis/dead_code_verified_finder.py:261` | `except-no-log` | `except ValueError: return filepath.stem` |

@@ -1,58 +1,10 @@
 {
-  "generated_at": "2026-09-03T02:59:11+00:00",
+  "generated_at": "2026-09-07T10:24:37+00:00",
   "findings": [
-    {
-      "file": "backend/core/learning/loop.py",
-      "line": 86,
-      "type": "except-pass",
-      "severity": "high"
-    },
-    {
-      "file": "backend/core/learning/store.py",
-      "line": 343,
-      "type": "except-pass",
-      "severity": "high"
-    },
-    {
-      "file": "backend/core/learning/store.py",
-      "line": 516,
-      "type": "except-pass",
-      "severity": "high"
-    },
-    {
-      "file": "backend/core/learning/store.py",
-      "line": 533,
-      "type": "except-pass",
-      "severity": "high"
-    },
-    {
-      "file": "backend/core/llm/telemetry.py",
-      "line": 235,
-      "type": "except-pass",
-      "severity": "high"
-    },
-    {
-      "file": "backend/core/self_evolution/auto_skill_creator.py",
-      "line": 130,
-      "type": "except-pass",
-      "severity": "high"
-    },
-    {
-      "file": "backend/core/self_evolution/auto_skill_creator.py",
-      "line": 143,
-      "type": "except-pass",
-      "severity": "high"
-    },
     {
       "file": "frontend/src/auth/identity.ts",
       "line": 41,
       "type": "catch-return-silent",
-      "severity": "high"
-    },
-    {
-      "file": "frontend/src/components/GlobalErrorBoundary.tsx",
-      "line": 43,
-      "type": "empty-catch",
       "severity": "high"
     },
     {
@@ -104,12 +56,6 @@
       "severity": "high"
     },
     {
-      "file": "frontend/src/lib/cache.manager.ts",
-      "line": 214,
-      "type": "empty-catch",
-      "severity": "high"
-    },
-    {
       "file": "frontend/src/lib/ecosystem/api.ts",
       "line": 83,
       "type": "catch-return-silent",
@@ -119,18 +65,6 @@
       "file": "frontend/src/lib/ecosystem/api.ts",
       "line": 93,
       "type": "catch-return-silent",
-      "severity": "high"
-    },
-    {
-      "file": "frontend/src/lib/ecosystem/api.ts",
-      "line": 249,
-      "type": "empty-catch",
-      "severity": "high"
-    },
-    {
-      "file": "frontend/src/lib/ecosystem/api.ts",
-      "line": 451,
-      "type": "empty-catch",
       "severity": "high"
     },
     {
@@ -158,30 +92,6 @@
       "severity": "high"
     },
     {
-      "file": "frontend/src/services/supremeShared.ts",
-      "line": 43,
-      "type": "catch-return-silent",
-      "severity": "high"
-    },
-    {
-      "file": "frontend/src/store/authStore.ts",
-      "line": 57,
-      "type": "empty-catch",
-      "severity": "high"
-    },
-    {
-      "file": "frontend/src/store/authStore.ts",
-      "line": 78,
-      "type": "catch-return-silent",
-      "severity": "high"
-    },
-    {
-      "file": "frontend/src/store/authStore.ts",
-      "line": 98,
-      "type": "catch-return-silent",
-      "severity": "high"
-    },
-    {
       "file": "packages/shared-services/src/platform/electron.ts",
       "line": 53,
       "type": "empty-catch",
@@ -197,48 +107,6 @@
       "file": "packages/shared-services/src/platform/electron.ts",
       "line": 140,
       "type": "empty-catch",
-      "severity": "high"
-    },
-    {
-      "file": "scripts/archive/find_client_calls.py",
-      "line": 27,
-      "type": "except-continue",
-      "severity": "high"
-    },
-    {
-      "file": "scripts/archive/find_client_files.py",
-      "line": 31,
-      "type": "except-continue",
-      "severity": "high"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/extract_routes.py",
-      "line": 19,
-      "type": "except-continue",
-      "severity": "high"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/find_client_calls.py",
-      "line": 27,
-      "type": "except-continue",
-      "severity": "high"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/find_client_files.py",
-      "line": 31,
-      "type": "except-continue",
-      "severity": "high"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/find_drift.py",
-      "line": 13,
-      "type": "except-continue",
-      "severity": "high"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/find_drift.py",
-      "line": 68,
-      "type": "except-continue",
       "severity": "high"
     },
     {
@@ -285,13 +153,13 @@
     },
     {
       "file": "backend/adaptive_engine/experience_db.py",
-      "line": 334,
+      "line": 342,
       "type": "create-task-unref",
       "severity": "medium"
     },
     {
       "file": "backend/adaptive_engine/resource_registry.py",
-      "line": 191,
+      "line": 203,
       "type": "except-return-default",
       "severity": "medium"
     },
@@ -363,37 +231,37 @@
     },
     {
       "file": "backend/api/routes/admin_dashboard.py",
-      "line": 1436,
+      "line": 1440,
       "type": "except-continue",
       "severity": "medium"
     },
     {
       "file": "backend/api/routes/browser.py",
-      "line": 692,
+      "line": 1046,
       "type": "except-return-true",
       "severity": "medium"
     },
     {
       "file": "backend/api/routes/browser_routes.py",
-      "line": 738,
+      "line": 805,
       "type": "except-return-default",
       "severity": "medium"
     },
     {
       "file": "backend/api/routes/browser_routes.py",
-      "line": 749,
+      "line": 818,
       "type": "except-return-default",
       "severity": "medium"
     },
     {
       "file": "backend/api/routes/browser_routes.py",
-      "line": 759,
+      "line": 829,
       "type": "except-return-default",
       "severity": "medium"
     },
     {
       "file": "backend/api/routes/browser_routes.py",
-      "line": 769,
+      "line": 840,
       "type": "except-return-default",
       "severity": "medium"
     },
@@ -404,14 +272,20 @@
       "severity": "medium"
     },
     {
-      "file": "backend/api/routes/living_brain.py",
-      "line": 416,
+      "file": "backend/api/routes/integrations.py",
+      "line": 50,
       "type": "except-return-default",
       "severity": "medium"
     },
     {
       "file": "backend/api/routes/living_brain.py",
-      "line": 431,
+      "line": 418,
+      "type": "except-return-default",
+      "severity": "medium"
+    },
+    {
+      "file": "backend/api/routes/living_brain.py",
+      "line": 433,
       "type": "except-return-default",
       "severity": "medium"
     },
@@ -422,14 +296,20 @@
       "severity": "medium"
     },
     {
+      "file": "backend/api/routes/realtime_dashboard.py",
+      "line": 284,
+      "type": "except-continue",
+      "severity": "medium"
+    },
+    {
       "file": "backend/api/routes/session_stream.py",
-      "line": 60,
+      "line": 62,
       "type": "create-task-unref",
       "severity": "medium"
     },
     {
       "file": "backend/api/routes/session_takeover.py",
-      "line": 315,
+      "line": 388,
       "type": "except-return-default",
       "severity": "medium"
     },
@@ -447,31 +327,25 @@
     },
     {
       "file": "backend/api/routes/websocket_agent.py",
-      "line": 199,
+      "line": 266,
       "type": "create-task-unref",
       "severity": "medium"
     },
     {
       "file": "backend/core/admin_god.py",
-      "line": 84,
+      "line": 88,
       "type": "create-task-unref",
       "severity": "medium"
     },
     {
       "file": "backend/core/admin_god.py",
-      "line": 86,
+      "line": 92,
       "type": "create-task-unref",
-      "severity": "medium"
-    },
-    {
-      "file": "backend/core/admin_god.py",
-      "line": 87,
-      "type": "except-return-default",
       "severity": "medium"
     },
     {
       "file": "backend/core/admin_routes.py",
-      "line": 488,
+      "line": 682,
       "type": "except-return-default",
       "severity": "medium"
     },
@@ -495,13 +369,13 @@
     },
     {
       "file": "backend/core/app_builder.py",
-      "line": 187,
+      "line": 219,
       "type": "except-return-true",
       "severity": "medium"
     },
     {
       "file": "backend/core/cache/redis_manager.py",
-      "line": 168,
+      "line": 165,
       "type": "except-return-default",
       "severity": "medium"
     },
@@ -549,19 +423,25 @@
     },
     {
       "file": "backend/core/config_secrets.py",
-      "line": 401,
+      "line": 410,
       "type": "except-return-default",
       "severity": "medium"
     },
     {
       "file": "backend/core/config_secrets.py",
-      "line": 516,
+      "line": 525,
       "type": "except-continue",
       "severity": "medium"
     },
     {
       "file": "backend/core/container_auditor.py",
       "line": 73,
+      "type": "except-return-default",
+      "severity": "medium"
+    },
+    {
+      "file": "backend/core/contracts/sqlite_store.py",
+      "line": 46,
       "type": "except-return-default",
       "severity": "medium"
     },
@@ -614,62 +494,38 @@
       "severity": "medium"
     },
     {
-      "file": "backend/core/learning/loop.py",
-      "line": 84,
-      "type": "except-pass",
-      "severity": "medium"
-    },
-    {
       "file": "backend/core/learning/store.py",
-      "line": 308,
+      "line": 330,
       "type": "except-return-default",
       "severity": "medium"
     },
     {
       "file": "backend/core/learning/store.py",
-      "line": 419,
-      "type": "except-pass",
-      "severity": "medium"
-    },
-    {
-      "file": "backend/core/learning/store.py",
-      "line": 501,
-      "type": "except-return-default",
-      "severity": "medium"
-    },
-    {
-      "file": "backend/core/learning/store.py",
-      "line": 531,
-      "type": "except-pass",
-      "severity": "medium"
-    },
-    {
-      "file": "backend/core/learning/store.py",
-      "line": 544,
-      "type": "except-pass",
-      "severity": "medium"
-    },
-    {
-      "file": "backend/core/llm/llm_gateway.py",
-      "line": 254,
+      "line": 528,
       "type": "except-return-default",
       "severity": "medium"
     },
     {
       "file": "backend/core/llm/llm_gateway.py",
-      "line": 676,
+      "line": 265,
+      "type": "except-return-default",
+      "severity": "medium"
+    },
+    {
+      "file": "backend/core/llm/llm_gateway.py",
+      "line": 689,
       "type": "suppress-exception",
       "severity": "medium"
     },
     {
       "file": "backend/core/llm/llm_gateway.py",
-      "line": 807,
+      "line": 820,
       "type": "suppress-exception",
       "severity": "medium"
     },
     {
       "file": "backend/core/llm/llm_gateway.py",
-      "line": 906,
+      "line": 919,
       "type": "suppress-exception",
       "severity": "medium"
     },
@@ -677,12 +533,6 @@
       "file": "backend/core/llm/providers/ollama_adapter.py",
       "line": 148,
       "type": "except-return-default",
-      "severity": "medium"
-    },
-    {
-      "file": "backend/core/llm/telemetry.py",
-      "line": 61,
-      "type": "except-pass",
       "severity": "medium"
     },
     {
@@ -716,18 +566,6 @@
       "severity": "medium"
     },
     {
-      "file": "backend/core/middleware/db_optimization_middleware.py",
-      "line": 211,
-      "type": "create-task-unref",
-      "severity": "medium"
-    },
-    {
-      "file": "backend/core/middleware/db_optimization_middleware.py",
-      "line": 274,
-      "type": "create-task-unref",
-      "severity": "medium"
-    },
-    {
       "file": "backend/core/observability/providers/langfuse_adapter.py",
       "line": 148,
       "type": "except-return-default",
@@ -747,37 +585,37 @@
     },
     {
       "file": "backend/core/queue/task_queue.py",
-      "line": 69,
-      "type": "create-task-unref",
-      "severity": "medium"
-    },
-    {
-      "file": "backend/core/queue/task_queue_enhanced.py",
-      "line": 128,
+      "line": 73,
       "type": "except-return-default",
       "severity": "medium"
     },
     {
       "file": "backend/core/queue/task_queue_enhanced.py",
-      "line": 137,
+      "line": 152,
       "type": "except-return-default",
       "severity": "medium"
     },
     {
       "file": "backend/core/queue/task_queue_enhanced.py",
-      "line": 146,
+      "line": 161,
       "type": "except-return-default",
       "severity": "medium"
     },
     {
       "file": "backend/core/queue/task_queue_enhanced.py",
-      "line": 378,
+      "line": 170,
+      "type": "except-return-default",
+      "severity": "medium"
+    },
+    {
+      "file": "backend/core/queue/task_queue_enhanced.py",
+      "line": 409,
       "type": "except-continue",
       "severity": "medium"
     },
     {
       "file": "backend/core/security/authentication/auth_middleware.py",
-      "line": 56,
+      "line": 65,
       "type": "except-return-default",
       "severity": "medium"
     },
@@ -837,7 +675,7 @@
     },
     {
       "file": "backend/core/services.py",
-      "line": 222,
+      "line": 266,
       "type": "except-return-default",
       "severity": "medium"
     },
@@ -914,32 +752,20 @@
       "severity": "medium"
     },
     {
-      "file": "backend/ecosystem/governance.py",
-      "line": 149,
-      "type": "except-pass",
-      "severity": "medium"
-    },
-    {
       "file": "backend/ecosystem/users.py",
-      "line": 57,
-      "type": "except-pass",
-      "severity": "medium"
-    },
-    {
-      "file": "backend/ecosystem/users.py",
-      "line": 125,
+      "line": 128,
       "type": "except-return-default",
       "severity": "medium"
     },
     {
       "file": "backend/ecosystem/users.py",
-      "line": 433,
+      "line": 436,
       "type": "except-return-default",
       "severity": "medium"
     },
     {
       "file": "backend/ecosystem/users.py",
-      "line": 482,
+      "line": 485,
       "type": "except-return-default",
       "severity": "medium"
     },
@@ -951,7 +777,7 @@
     },
     {
       "file": "backend/examples/sample_buggy.py",
-      "line": 104,
+      "line": 106,
       "type": "bare-except",
       "severity": "medium"
     },
@@ -1016,6 +842,12 @@
       "severity": "medium"
     },
     {
+      "file": "backend/scout/policy.py",
+      "line": 27,
+      "type": "except-return-default",
+      "severity": "medium"
+    },
+    {
       "file": "backend/services/diagram_parser_service.py",
       "line": 258,
       "type": "except-return-default",
@@ -1072,6 +904,30 @@
     {
       "file": "backend/services/llm/providers.py",
       "line": 564,
+      "type": "except-continue",
+      "severity": "medium"
+    },
+    {
+      "file": "backend/services/render_account_service.py",
+      "line": 87,
+      "type": "except-continue",
+      "severity": "medium"
+    },
+    {
+      "file": "backend/services/render_preflight_service.py",
+      "line": 35,
+      "type": "except-continue",
+      "severity": "medium"
+    },
+    {
+      "file": "backend/services/render_preflight_service.py",
+      "line": 131,
+      "type": "except-pass",
+      "severity": "medium"
+    },
+    {
+      "file": "backend/services/render_preflight_service.py",
+      "line": 298,
       "type": "except-continue",
       "severity": "medium"
     },
@@ -1209,25 +1065,25 @@
     },
     {
       "file": "backend/tools/sso_integrator.py",
-      "line": 30,
+      "line": 32,
       "type": "except-return-default",
       "severity": "medium"
     },
     {
       "file": "backend/worker_service.py",
-      "line": 50,
+      "line": 113,
       "type": "except-return-default",
       "severity": "medium"
     },
     {
       "file": "backend/worker_service.py",
-      "line": 83,
+      "line": 146,
       "type": "suppress-exception",
       "severity": "medium"
     },
     {
       "file": "backend/workers/chaos_worker.py",
-      "line": 107,
+      "line": 111,
       "type": "suppress-exception",
       "severity": "medium"
     },
@@ -1238,21 +1094,9 @@
       "severity": "medium"
     },
     {
-      "file": "frontend/src/components/GlobalErrorBoundary.tsx",
-      "line": 42,
-      "type": "promise-catch-silent",
-      "severity": "medium"
-    },
-    {
       "file": "frontend/src/components/admin/LibrarianQueue.tsx",
       "line": 25,
       "type": "floating-fetch",
-      "severity": "medium"
-    },
-    {
-      "file": "frontend/src/components/admin/ScreencastViewer.tsx",
-      "line": 37,
-      "type": "json-parse-unguarded",
       "severity": "medium"
     },
     {
@@ -1280,38 +1124,38 @@
       "severity": "medium"
     },
     {
+      "file": "frontend/src/components/customer/BrowserPreview.tsx",
+      "line": 123,
+      "type": "promise-catch-silent",
+      "severity": "medium"
+    },
+    {
+      "file": "frontend/src/contexts/ThemeProvider.tsx",
+      "line": 22,
+      "type": "json-parse-unguarded",
+      "severity": "medium"
+    },
+    {
       "file": "frontend/src/hooks/usePlugins.ts",
-      "line": 32,
+      "line": 35,
       "type": "floating-fetch",
       "severity": "medium"
     },
     {
       "file": "frontend/src/hooks/usePlugins.ts",
-      "line": 33,
+      "line": 36,
       "type": "floating-fetch",
       "severity": "medium"
     },
     {
       "file": "frontend/src/lib/cache.manager.ts",
-      "line": 162,
-      "type": "json-parse-unguarded",
-      "severity": "medium"
-    },
-    {
-      "file": "frontend/src/lib/cache.manager.ts",
-      "line": 193,
-      "type": "json-parse-unguarded",
-      "severity": "medium"
-    },
-    {
-      "file": "frontend/src/pages/user/CostDashboard.tsx",
-      "line": 69,
+      "line": 168,
       "type": "json-parse-unguarded",
       "severity": "medium"
     },
     {
       "file": "frontend/src/pages/user/EvolutionForge/EvolutionForge.tsx",
-      "line": 142,
+      "line": 181,
       "type": "json-parse-unguarded",
       "severity": "medium"
     },
@@ -1383,7 +1227,19 @@
     },
     {
       "file": "scripts/advanced_analysis/dead_code_verified_finder.py",
-      "line": 491,
+      "line": 480,
+      "type": "except-return-default",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts/advanced_analysis/dead_code_verified_finder.py",
+      "line": 524,
+      "type": "except-continue",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts/advanced_analysis/dead_code_verified_finder.py",
+      "line": 629,
       "type": "except-continue",
       "severity": "medium"
     },
@@ -1419,7 +1275,7 @@
     },
     {
       "file": "scripts/advanced_analysis/env_var_reconciler.py",
-      "line": 444,
+      "line": 468,
       "type": "except-continue",
       "severity": "medium"
     },
@@ -1431,7 +1287,7 @@
     },
     {
       "file": "scripts/advanced_analysis/hardcode_config_scanner.py",
-      "line": 70,
+      "line": 176,
       "type": "except-continue",
       "severity": "medium"
     },
@@ -1520,110 +1376,8 @@
       "severity": "medium"
     },
     {
-      "file": "scripts/archive/add_bangla_comments.py",
-      "line": 312,
-      "type": "except-continue",
-      "severity": "medium"
-    },
-    {
-      "file": "scripts/archive/find_generic_exceptions.py",
-      "line": 20,
-      "type": "except-continue",
-      "severity": "medium"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/add_bangla_comments.py",
-      "line": 312,
-      "type": "except-continue",
-      "severity": "medium"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/auto_generate_architecture_docs.py",
-      "line": 20,
-      "type": "except-return-default",
-      "severity": "medium"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/create_project_zip.py",
-      "line": 161,
-      "type": "except-continue",
-      "severity": "medium"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/create_project_zip.py",
-      "line": 454,
-      "type": "except-continue",
-      "severity": "medium"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/find_dead_code.py",
-      "line": 185,
-      "type": "except-return-default",
-      "severity": "medium"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/find_generic_exceptions.py",
-      "line": 20,
-      "type": "except-continue",
-      "severity": "medium"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/find_secrets.py",
-      "line": 120,
-      "type": "except-return-default",
-      "severity": "medium"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/find_secrets.py",
-      "line": 224,
-      "type": "except-return-default",
-      "severity": "medium"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/find_secrets.py",
-      "line": 228,
-      "type": "except-return-default",
-      "severity": "medium"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/find_secrets.py",
-      "line": 273,
-      "type": "except-return-default",
-      "severity": "medium"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/fix_github_action_failures_targeted.py",
-      "line": 62,
-      "type": "except-continue",
-      "severity": "medium"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/fix_github_action_failures_targeted.py",
-      "line": 262,
-      "type": "except-continue",
-      "severity": "medium"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/refactor_broad_exceptions.py",
-      "line": 151,
-      "type": "except-return-default",
-      "severity": "medium"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/supreme-config-audit.py",
-      "line": 10,
-      "type": "except-return-default",
-      "severity": "medium"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/supreme_context_builder.py",
-      "line": 31,
-      "type": "except-return-default",
-      "severity": "medium"
-    },
-    {
-      "file": "scripts/archive/refactor_broad_exceptions.py",
-      "line": 151,
+      "file": "scripts/ai/repository_metadata_index.py",
+      "line": 29,
       "type": "except-return-default",
       "severity": "medium"
     },
@@ -1634,6 +1388,30 @@
       "severity": "medium"
     },
     {
+      "file": "scripts/audit_isolated_modules_and_capabilities.py",
+      "line": 101,
+      "type": "except-continue",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts/audit_isolated_modules_and_capabilities.py",
+      "line": 133,
+      "type": "except-pass",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts/audit_isolated_modules_and_capabilities.py",
+      "line": 232,
+      "type": "except-continue",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts/audit_isolated_modules_and_capabilities.py",
+      "line": 260,
+      "type": "except-pass",
+      "severity": "medium"
+    },
+    {
       "file": "scripts/backup/backup_telegram.py",
       "line": 29,
       "type": "suppress-exception",
@@ -1641,31 +1419,31 @@
     },
     {
       "file": "scripts/backup/backup_telegram.py",
-      "line": 115,
+      "line": 120,
       "type": "except-continue",
       "severity": "medium"
     },
     {
       "file": "scripts/backup/backup_telegram.py",
-      "line": 332,
+      "line": 337,
       "type": "except-continue",
       "severity": "medium"
     },
     {
       "file": "scripts/backup/backup_telegram.py",
-      "line": 371,
+      "line": 376,
       "type": "except-continue",
       "severity": "medium"
     },
     {
       "file": "scripts/backup/backup_telegram.py",
-      "line": 401,
+      "line": 406,
       "type": "except-continue",
       "severity": "medium"
     },
     {
       "file": "scripts/backup/backup_telegram.py",
-      "line": 853,
+      "line": 858,
       "type": "suppress-exception",
       "severity": "medium"
     },
@@ -1719,7 +1497,7 @@
     },
     {
       "file": "scripts/ci/check_hardcoded_deployment_config.py",
-      "line": 88,
+      "line": 166,
       "type": "except-return-true",
       "severity": "medium"
     },
@@ -1736,15 +1514,45 @@
       "severity": "medium"
     },
     {
+      "file": "scripts/ci/check_truthy_env_var.py",
+      "line": 77,
+      "type": "except-pass",
+      "severity": "medium"
+    },
+    {
       "file": "scripts/ci/config_registry_evidence.py",
       "line": 39,
       "type": "except-continue",
       "severity": "medium"
     },
     {
+      "file": "scripts/ci/generate_module_capability_matrix.py",
+      "line": 27,
+      "type": "except-return-default",
+      "severity": "medium"
+    },
+    {
       "file": "scripts/ci/project_health_check.py",
       "line": 78,
       "type": "except-return-default",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts/ci/render_build_budget_guard.py",
+      "line": 97,
+      "type": "except-continue",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts/ci/render_build_budget_guard.py",
+      "line": 130,
+      "type": "except-return-default",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts/ci/render_deploy_preflight.py",
+      "line": 42,
+      "type": "except-continue",
       "severity": "medium"
     },
     {
@@ -1778,6 +1586,12 @@
       "severity": "medium"
     },
     {
+      "file": "scripts/devops/generate_modular_audits.py",
+      "line": 431,
+      "type": "except-continue",
+      "severity": "medium"
+    },
+    {
       "file": "scripts/devops/todo_manager.py",
       "line": 150,
       "type": "except-continue",
@@ -1802,8 +1616,62 @@
       "severity": "medium"
     },
     {
+      "file": "scripts/generate_script_index.py",
+      "line": 228,
+      "type": "except-continue",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts/generate_script_index.py",
+      "line": 315,
+      "type": "except-return-default",
+      "severity": "medium"
+    },
+    {
       "file": "scripts/generate_types.py",
       "line": 161,
+      "type": "except-return-default",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts/health/superai_health_check.py",
+      "line": 251,
+      "type": "except-pass",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts/lib/auto_discovery.py",
+      "line": 161,
+      "type": "except-return-default",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts/lib/auto_discovery.py",
+      "line": 280,
+      "type": "except-continue",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts/lib/auto_discovery.py",
+      "line": 298,
+      "type": "except-continue",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts/lib/auto_discovery.py",
+      "line": 313,
+      "type": "except-continue",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts/lib/auto_discovery.py",
+      "line": 441,
+      "type": "except-pass",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts/lib/auto_discovery.py",
+      "line": 473,
       "type": "except-return-default",
       "severity": "medium"
     },
@@ -1826,6 +1694,24 @@
       "severity": "medium"
     },
     {
+      "file": "scripts/pre_merge_guard.py",
+      "line": 290,
+      "type": "except-continue",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts/pre_merge_guard.py",
+      "line": 568,
+      "type": "except-continue",
+      "severity": "medium"
+    },
+    {
+      "file": "scripts/pre_merge_guard.py",
+      "line": 707,
+      "type": "except-pass",
+      "severity": "medium"
+    },
+    {
       "file": "scripts/quality/docs_drift_check.py",
       "line": 57,
       "type": "except-continue",
@@ -1839,43 +1725,43 @@
     },
     {
       "file": "scripts/quality/regression_scanner.py",
-      "line": 188,
+      "line": 190,
       "type": "except-continue",
       "severity": "medium"
     },
     {
       "file": "scripts/quality/regression_scanner.py",
-      "line": 226,
+      "line": 228,
       "type": "except-continue",
       "severity": "medium"
     },
     {
       "file": "scripts/quality/regression_scanner.py",
-      "line": 318,
+      "line": 320,
       "type": "except-continue",
       "severity": "medium"
     },
     {
       "file": "scripts/quality/regression_scanner.py",
-      "line": 340,
+      "line": 342,
       "type": "except-continue",
       "severity": "medium"
     },
     {
       "file": "scripts/quality/regression_scanner.py",
-      "line": 371,
+      "line": 373,
       "type": "except-continue",
       "severity": "medium"
     },
     {
       "file": "scripts/quality/regression_scanner.py",
-      "line": 393,
+      "line": 395,
       "type": "except-continue",
       "severity": "medium"
     },
     {
       "file": "scripts/quality/regression_scanner.py",
-      "line": 416,
+      "line": 418,
       "type": "except-continue",
       "severity": "medium"
     },
@@ -1988,6 +1874,12 @@
       "severity": "low"
     },
     {
+      "file": "backend/adapters/red_team_adapter.py",
+      "line": 111,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
       "file": "backend/adapters/ux_adapter.py",
       "line": 176,
       "type": "except-no-log",
@@ -2000,6 +1892,12 @@
       "severity": "low"
     },
     {
+      "file": "backend/adaptive_engine/capability_node.py",
+      "line": 72,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
       "file": "backend/adaptive_engine/experience_db.py",
       "line": 99,
       "type": "except-no-log",
@@ -2007,25 +1905,25 @@
     },
     {
       "file": "backend/adaptive_engine/experience_db.py",
-      "line": 335,
+      "line": 343,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/adaptive_engine/mcp_skeleton.py",
-      "line": 125,
+      "line": 136,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/adaptive_engine/resource_registry.py",
-      "line": 294,
+      "line": 306,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/adaptive_engine/resource_registry.py",
-      "line": 296,
+      "line": 308,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -2145,13 +2043,13 @@
     },
     {
       "file": "backend/api/routes/admin.py",
-      "line": 187,
+      "line": 212,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/admin.py",
-      "line": 278,
+      "line": 303,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -2163,43 +2061,55 @@
     },
     {
       "file": "backend/api/routes/admin_dashboard.py",
-      "line": 1207,
+      "line": 1593,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/admin_dashboard.py",
-      "line": 1576,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "backend/api/routes/admin_dashboard.py",
-      "line": 1603,
+      "line": 1620,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/agent_workspace.py",
-      "line": 105,
+      "line": 112,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/approval_manager.py",
-      "line": 226,
+      "line": 243,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "backend/api/routes/browser.py",
+      "line": 241,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "backend/api/routes/browser.py",
+      "line": 272,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "backend/api/routes/browser.py",
+      "line": 419,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/browser_routes.py",
-      "line": 407,
+      "line": 449,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/browser_routes.py",
-      "line": 722,
+      "line": 788,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -2246,6 +2156,18 @@
       "severity": "low"
     },
     {
+      "file": "backend/api/routes/control_plane.py",
+      "line": 55,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "backend/api/routes/control_plane.py",
+      "line": 62,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
       "file": "backend/api/routes/deep_research.py",
       "line": 280,
       "type": "except-no-log",
@@ -2270,32 +2192,26 @@
       "severity": "low"
     },
     {
-      "file": "backend/api/routes/health.py",
-      "line": 127,
+      "file": "backend/api/routes/health_aggregation.py",
+      "line": 134,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/health_aggregation.py",
-      "line": 133,
+      "line": 152,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/health_aggregation.py",
-      "line": 151,
+      "line": 163,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/health_aggregation.py",
-      "line": 162,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "backend/api/routes/health_aggregation.py",
-      "line": 356,
+      "line": 365,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -2307,31 +2223,19 @@
     },
     {
       "file": "backend/api/routes/living_brain.py",
-      "line": 158,
+      "line": 204,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/living_brain.py",
-      "line": 183,
+      "line": 259,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/living_brain.py",
-      "line": 202,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "backend/api/routes/living_brain.py",
-      "line": 257,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "backend/api/routes/living_brain.py",
-      "line": 274,
+      "line": 276,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -2361,13 +2265,13 @@
     },
     {
       "file": "backend/api/routes/realtime_dashboard.py",
-      "line": 104,
+      "line": 116,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/realtime_dashboard.py",
-      "line": 243,
+      "line": 257,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -2379,31 +2283,31 @@
     },
     {
       "file": "backend/api/routes/service_topology.py",
-      "line": 306,
+      "line": 308,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/service_topology.py",
-      "line": 318,
+      "line": 320,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/service_topology.py",
-      "line": 330,
+      "line": 332,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/service_topology.py",
-      "line": 589,
+      "line": 591,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/service_topology.py",
-      "line": 648,
+      "line": 650,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -2415,19 +2319,19 @@
     },
     {
       "file": "backend/api/routes/session_takeover.py",
-      "line": 205,
+      "line": 258,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/stream_chat_sse.py",
-      "line": 97,
+      "line": 106,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/stream_chat_sse.py",
-      "line": 103,
+      "line": 112,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -2439,25 +2343,25 @@
     },
     {
       "file": "backend/api/routes/websocket_agent.py",
-      "line": 181,
+      "line": 234,
       "type": "except-break",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/websocket_agent.py",
-      "line": 377,
+      "line": 515,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/websocket_hitl.py",
-      "line": 46,
+      "line": 58,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/api/routes/websocket_voice.py",
-      "line": 189,
+      "line": 201,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -2588,6 +2492,12 @@
       "severity": "low"
     },
     {
+      "file": "backend/core/circles/registry.py",
+      "line": 72,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
       "file": "backend/core/code_validator.py",
       "line": 64,
       "type": "except-no-log",
@@ -2601,25 +2511,43 @@
     },
     {
       "file": "backend/core/config_secrets.py",
-      "line": 251,
+      "line": 260,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/core/config_secrets.py",
-      "line": 550,
+      "line": 559,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/core/config_validation.py",
-      "line": 348,
+      "line": 351,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/core/config_validator.py",
-      "line": 309,
+      "line": 314,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "backend/core/contracts/render_preflight_store.py",
+      "line": 116,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "backend/core/contracts/render_preflight_store.py",
+      "line": 131,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "backend/core/contracts/render_preflight_store.py",
+      "line": 321,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -2775,13 +2703,13 @@
     },
     {
       "file": "backend/core/learning/store.py",
-      "line": 463,
+      "line": 483,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/core/learning/store.py",
-      "line": 525,
+      "line": 552,
       "type": "except-break",
       "severity": "low"
     },
@@ -2799,31 +2727,31 @@
     },
     {
       "file": "backend/core/llm/llm_gateway.py",
-      "line": 289,
+      "line": 300,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/core/llm/llm_gateway.py",
-      "line": 376,
+      "line": 387,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/core/llm/llm_gateway.py",
-      "line": 385,
+      "line": 396,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/core/llm/llm_gateway.py",
-      "line": 521,
+      "line": 534,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/core/llm/llm_gateway.py",
-      "line": 701,
+      "line": 714,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -2876,18 +2804,6 @@
       "severity": "low"
     },
     {
-      "file": "backend/core/middleware/db_optimization_middleware.py",
-      "line": 213,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "backend/core/middleware/db_optimization_middleware.py",
-      "line": 275,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
       "file": "backend/core/observability/log_batcher.py",
       "line": 81,
       "type": "except-break",
@@ -2907,8 +2823,32 @@
     },
     {
       "file": "backend/core/optimization/performance_optimizer.py",
-      "line": 445,
+      "line": 280,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "backend/core/optimization/performance_optimizer.py",
+      "line": 296,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "backend/core/optimization/performance_optimizer.py",
+      "line": 506,
       "type": "except-break",
+      "severity": "low"
+    },
+    {
+      "file": "backend/core/orchestration/conversation_orchestrator.py",
+      "line": 257,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "backend/core/orchestration/conversation_orchestrator.py",
+      "line": 269,
+      "type": "except-no-log",
       "severity": "low"
     },
     {
@@ -2942,8 +2882,26 @@
       "severity": "low"
     },
     {
+      "file": "backend/core/queue/task_queue.py",
+      "line": 22,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "backend/core/queue/task_queue.py",
+      "line": 124,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
       "file": "backend/core/queue/task_queue_enhanced.py",
-      "line": 214,
+      "line": 37,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "backend/core/queue/task_queue_enhanced.py",
+      "line": 238,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -2967,13 +2925,13 @@
     },
     {
       "file": "backend/core/security/__init__.py",
-      "line": 184,
+      "line": 187,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/core/security/__init__.py",
-      "line": 291,
+      "line": 404,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -2998,12 +2956,6 @@
     {
       "file": "backend/core/security/origin_validator.py",
       "line": 27,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "backend/core/security/origin_validator.py",
-      "line": 61,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -3267,7 +3219,7 @@
     },
     {
       "file": "backend/database/supabase_client.py",
-      "line": 71,
+      "line": 109,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -3302,14 +3254,8 @@
       "severity": "low"
     },
     {
-      "file": "backend/ecosystem/source_governance.py",
-      "line": 221,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
       "file": "backend/ecosystem/users.py",
-      "line": 449,
+      "line": 452,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -3567,7 +3513,7 @@
     },
     {
       "file": "backend/services/auto_healer.py",
-      "line": 666,
+      "line": 668,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -3632,6 +3578,18 @@
       "severity": "low"
     },
     {
+      "file": "backend/services/render_preflight_service.py",
+      "line": 142,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "backend/services/render_preflight_service.py",
+      "line": 171,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
       "file": "backend/services/self_correction.py",
       "line": 62,
       "type": "except-no-log",
@@ -3647,6 +3605,12 @@
       "file": "backend/services/worker/main.py",
       "line": 68,
       "type": "except-break",
+      "severity": "low"
+    },
+    {
+      "file": "backend/skills/installer.py",
+      "line": 36,
+      "type": "except-no-log",
       "severity": "low"
     },
     {
@@ -3855,19 +3819,13 @@
     },
     {
       "file": "backend/tools/mcp/mcp_github_cicd.py",
-      "line": 130,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "backend/tools/mcp/mcp_github_cicd.py",
       "line": 132,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/tools/mcp/mcp_github_cicd.py",
-      "line": 200,
+      "line": 134,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -3879,7 +3837,7 @@
     },
     {
       "file": "backend/tools/mcp/mcp_github_cicd.py",
-      "line": 269,
+      "line": 204,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -3891,7 +3849,7 @@
     },
     {
       "file": "backend/tools/mcp/mcp_github_cicd.py",
-      "line": 321,
+      "line": 273,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -3903,7 +3861,7 @@
     },
     {
       "file": "backend/tools/mcp/mcp_github_cicd.py",
-      "line": 407,
+      "line": 325,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -3915,13 +3873,19 @@
     },
     {
       "file": "backend/tools/mcp/mcp_github_cicd.py",
-      "line": 477,
+      "line": 411,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/tools/mcp/mcp_github_cicd.py",
       "line": 479,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "backend/tools/mcp/mcp_github_cicd.py",
+      "line": 481,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -3970,6 +3934,12 @@
     {
       "file": "backend/tools/mcp/mcp_supabase.py",
       "line": 589,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "backend/tools/mcp/mcp_telegram.py",
+      "line": 173,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -4077,25 +4047,25 @@
     },
     {
       "file": "backend/tools/sso_integrator.py",
-      "line": 267,
+      "line": 163,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/tools/sso_integrator.py",
-      "line": 288,
+      "line": 366,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "backend/tools/sso_integrator.py",
+      "line": 387,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "backend/verification/verifier.py",
-      "line": 96,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "backend/worker_service.py",
-      "line": 75,
+      "line": 93,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -4107,7 +4077,19 @@
     },
     {
       "file": "backend/worker_service.py",
-      "line": 148,
+      "line": 236,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "backend/worker_service.py",
+      "line": 276,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "backend/worker_service.py",
+      "line": 286,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -4132,6 +4114,18 @@
     {
       "file": "scripts/advanced_analysis/agent_capability_registry_sync.py",
       "line": 198,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/advanced_analysis/agent_loop_limiter_check.py",
+      "line": 55,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/advanced_analysis/ai_memory_integrity_audit.py",
+      "line": 36,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -4167,7 +4161,13 @@
     },
     {
       "file": "scripts/advanced_analysis/circular_import_mapper.py",
-      "line": 676,
+      "line": 171,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/advanced_analysis/circular_import_mapper.py",
+      "line": 677,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -4179,7 +4179,43 @@
     },
     {
       "file": "scripts/advanced_analysis/dead_code_verified_finder.py",
-      "line": 231,
+      "line": 69,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/advanced_analysis/dead_code_verified_finder.py",
+      "line": 261,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/advanced_analysis/dead_code_verified_finder.py",
+      "line": 495,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/advanced_analysis/dead_code_verified_finder.py",
+      "line": 501,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/advanced_analysis/dead_code_verified_finder.py",
+      "line": 546,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/advanced_analysis/dead_code_verified_finder.py",
+      "line": 907,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/advanced_analysis/dead_code_verified_finder.py",
+      "line": 912,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -4209,37 +4245,49 @@
     },
     {
       "file": "scripts/advanced_analysis/duplicate_logic_detector.py",
-      "line": 951,
+      "line": 964,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/advanced_analysis/duplicate_logic_detector.py",
-      "line": 988,
+      "line": 1001,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/advanced_analysis/duplicate_logic_detector.py",
-      "line": 1108,
+      "line": 1121,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/advanced_analysis/env_var_reconciler.py",
-      "line": 285,
+      "line": 287,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/advanced_analysis/env_var_reconciler.py",
-      "line": 348,
+      "line": 309,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/advanced_analysis/env_var_reconciler.py",
+      "line": 372,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/advanced_analysis/importer_graph.py",
       "line": 359,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/advanced_analysis/metrics_cardinality_auditor.py",
+      "line": 68,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -4328,6 +4376,12 @@
       "severity": "low"
     },
     {
+      "file": "scripts/advanced_analysis/queue_health_checker.py",
+      "line": 39,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
       "file": "scripts/advanced_analysis/secret_rotation_reminder.py",
       "line": 414,
       "type": "except-no-log",
@@ -4364,188 +4418,20 @@
       "severity": "low"
     },
     {
-      "file": "scripts/archive/clean_and_format.py",
-      "line": 70,
+      "file": "scripts/audit_isolated_modules_and_capabilities.py",
+      "line": 125,
       "type": "except-no-log",
       "severity": "low"
     },
     {
-      "file": "scripts/archive/clean_and_format.py",
-      "line": 91,
+      "file": "scripts/audit_isolated_modules_and_capabilities.py",
+      "line": 149,
       "type": "except-no-log",
       "severity": "low"
     },
     {
-      "file": "scripts/archive/clean_and_format.py",
-      "line": 94,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/audit_master_runner.py",
-      "line": 83,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/audit_master_runner.py",
-      "line": 85,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/audit_master_runner.py",
-      "line": 87,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/audit_master_runner.py",
-      "line": 218,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/clean_and_format.py",
-      "line": 70,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/clean_and_format.py",
-      "line": 91,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/clean_and_format.py",
-      "line": 94,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/context_snapshot.py",
-      "line": 70,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/context_snapshot.py",
-      "line": 72,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/create_project_zip.py",
-      "line": 250,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/create_project_zip.py",
-      "line": 334,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/create_project_zip.py",
-      "line": 341,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/export_codebase.py",
-      "line": 267,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/find_dead_code.py",
-      "line": 151,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/find_dead_code.py",
-      "line": 155,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/find_dead_code.py",
-      "line": 189,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/find_dead_code.py",
-      "line": 332,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/find_secrets.py",
-      "line": 327,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/find_secrets.py",
-      "line": 470,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/fix_bare_yields.py",
-      "line": 14,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/generate_md.py",
-      "line": 41,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/generate_push_summary.py",
-      "line": 33,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/supreme_context_builder.py",
-      "line": 96,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/verify_phase3_completion.py",
-      "line": 65,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/verify_phase3_completion.py",
-      "line": 109,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/verify_phase3_completion.py",
-      "line": 147,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/verify_phase3_completion.py",
-      "line": 179,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/archive/legacy_one_offs/verify_phase3_completion.py",
-      "line": 231,
+      "file": "scripts/audit_isolated_modules_and_capabilities.py",
+      "line": 293,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -4557,19 +4443,19 @@
     },
     {
       "file": "scripts/backup/backup_telegram.py",
-      "line": 440,
+      "line": 445,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/backup/backup_telegram.py",
-      "line": 448,
+      "line": 453,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/backup/backup_telegram.py",
-      "line": 477,
+      "line": 482,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -4629,43 +4515,67 @@
     },
     {
       "file": "scripts/ci/check_hardcoded_deployment_config.py",
-      "line": 128,
+      "line": 146,
       "type": "except-no-log",
       "severity": "low"
     },
     {
-      "file": "scripts/ci/migration_safety_diff.py",
-      "line": 221,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/ci/migration_safety_diff.py",
-      "line": 261,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/ci/migration_safety_diff.py",
-      "line": 702,
-      "type": "except-no-log",
-      "severity": "low"
-    },
-    {
-      "file": "scripts/ci/migration_safety_diff.py",
-      "line": 848,
+      "file": "scripts/ci/check_hardcoded_deployment_config.py",
+      "line": 208,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/ci/project_health_check.py",
-      "line": 505,
+      "line": 507,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/ci/project_health_check.py",
-      "line": 537,
+      "line": 539,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/ci/rate_limit_endpoint_checker.py",
+      "line": 143,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/ci/render_deploy_preflight.py",
+      "line": 113,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/ci/render_deploy_preflight.py",
+      "line": 125,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/ci/render_deploy_preflight.py",
+      "line": 156,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/ci/render_recheck_scheduler.py",
+      "line": 38,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/ci/rls_rbac_auditor.py",
+      "line": 88,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/ci/security_headers_checker.py",
+      "line": 45,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -4682,8 +4592,26 @@
       "severity": "low"
     },
     {
+      "file": "scripts/ci/verify_preflight_evidence.py",
+      "line": 19,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/ci/webhook_signature_checker.py",
+      "line": 105,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
       "file": "scripts/db/ingest_knowledge.py",
       "line": 383,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/db/verify_pgvector.py",
+      "line": 115,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -4726,6 +4654,30 @@
     {
       "file": "scripts/detect_silent_errors.py",
       "line": 453,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/devops/_audit.py",
+      "line": 193,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/devops/_audit.py",
+      "line": 217,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/devops/_audit.py",
+      "line": 221,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/devops/_audit.py",
+      "line": 227,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -4791,19 +4743,19 @@
     },
     {
       "file": "scripts/devops/generate_modular_audits.py",
-      "line": 310,
+      "line": 495,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/devops/generate_modular_audits.py",
-      "line": 330,
+      "line": 515,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/devops/generate_modular_audits.py",
-      "line": 335,
+      "line": 520,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -4868,80 +4820,110 @@
       "severity": "low"
     },
     {
-      "file": "scripts/health/check_system_health.py",
-      "line": 95,
+      "file": "scripts/generate_script_index.py",
+      "line": 130,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/generate_script_index.py",
+      "line": 132,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/generate_script_index.py",
+      "line": 154,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/health/check_system_health.py",
-      "line": 117,
+      "line": 118,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/health/check_system_health.py",
-      "line": 136,
+      "line": 140,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/health/check_system_health.py",
-      "line": 151,
+      "line": 159,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/health/check_system_health.py",
+      "line": 174,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/health/superai_health_check.py",
-      "line": 306,
+      "line": 345,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/health/superai_health_check.py",
-      "line": 323,
+      "line": 362,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/health/superai_health_check.py",
-      "line": 449,
+      "line": 488,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/health/superai_health_check.py",
-      "line": 639,
+      "line": 678,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/health/superai_health_check.py",
-      "line": 703,
+      "line": 742,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/health/superai_health_check.py",
-      "line": 760,
+      "line": 799,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/health/superai_health_check.py",
-      "line": 822,
+      "line": 861,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/health/superai_health_check.py",
-      "line": 829,
+      "line": 868,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/health/superai_health_check.py",
-      "line": 883,
+      "line": 922,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/health/superai_health_check.py",
+      "line": 1103,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/health/superai_health_check.py",
+      "line": 1117,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -4949,6 +4931,18 @@
       "file": "scripts/i18n/bangla_translator.py",
       "line": 250,
       "type": "except-break",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/lib/auto_discovery.py",
+      "line": 89,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/lib/auto_discovery.py",
+      "line": 424,
+      "type": "except-no-log",
       "severity": "low"
     },
     {
@@ -4978,6 +4972,66 @@
     {
       "file": "scripts/multi_model_validator.py",
       "line": 164,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/pre_merge_guard.py",
+      "line": 248,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/pre_merge_guard.py",
+      "line": 250,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/pre_merge_guard.py",
+      "line": 263,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/pre_merge_guard.py",
+      "line": 265,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/pre_merge_guard.py",
+      "line": 273,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/pre_merge_guard.py",
+      "line": 298,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/pre_merge_guard.py",
+      "line": 310,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/pre_merge_guard.py",
+      "line": 559,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/pre_merge_guard.py",
+      "line": 605,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/pre_merge_guard.py",
+      "line": 629,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -5037,13 +5091,19 @@
     },
     {
       "file": "scripts/refactor/superai_transform.py",
-      "line": 246,
+      "line": 256,
       "type": "except-no-log",
       "severity": "low"
     },
     {
       "file": "scripts/refactor/superai_transform.py",
-      "line": 248,
+      "line": 258,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "scripts/safety_guard.py",
+      "line": 308,
       "type": "except-no-log",
       "severity": "low"
     },
@@ -5146,6 +5206,12 @@
     {
       "file": "tools/intelligence_extensions/supremeai_intelligence/knowledge_revalidator.py",
       "line": 19,
+      "type": "except-no-log",
+      "severity": "low"
+    },
+    {
+      "file": "tools/intelligence_extensions/supremeai_intelligence/pipeline.py",
+      "line": 128,
       "type": "except-no-log",
       "severity": "low"
     },

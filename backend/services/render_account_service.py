@@ -112,12 +112,12 @@ class RenderAccountService:
 
                 # Check if cooldown has expired and needs recheck
                 if status == "cooldown" and recheck_at_str:
-                try:
-                    recheck_at = datetime.fromisoformat(recheck_at_str.replace("Z", "+00:00"))
-                    if now_utc >= recheck_at:
-                        status = "recheck_required"
-                except Exception:
-                    logger.debug("Failed to parse recheck_at, treating as stale", exc_info=True)
+                    try:
+                        recheck_at = datetime.fromisoformat(recheck_at_str.replace("Z", "+00:00"))
+                        if now_utc >= recheck_at:
+                            status = "recheck_required"
+                    except Exception:
+                        logger.debug("Failed to parse recheck_at, treating as stale", exc_info=True)
 
                 summary_item = {
                     "role": role,

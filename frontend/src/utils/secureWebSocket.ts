@@ -39,7 +39,8 @@ export function getAuthToken(): string | null {
       localStorage.getItem(LEGACY_ADMIN_TOKEN_KEY) ||
       null
     );
-  } catch {
+  } catch (e) {
+    console.warn("[secureWebSocket] getAuthToken failed:", e);
     return null;
   }
 }

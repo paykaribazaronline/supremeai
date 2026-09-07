@@ -110,11 +110,11 @@ class RenderPreflightStore:
             return None
         data = dict(row)
         data["manual_override"] = bool(data["manual_override"])
-            if data.get("last_render_payload"):
-                try:
-                    data["last_render_payload"] = json.loads(data["last_render_payload"])
-                except Exception:
-                    data["last_render_payload"] = None
+        if data.get("last_render_payload"):
+            try:
+                data["last_render_payload"] = json.loads(data["last_render_payload"])
+            except Exception:
+                data["last_render_payload"] = None
         return data
 
     def get_all_accounts(self) -> list[dict[str, Any]]:
