@@ -68,7 +68,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "version":
         from pyerrorfix import __version__
 
-        print(__version__)
+        sys.stdout.write(str(__version__) + "\n")
         return 0
 
     if args.command == "catalog":
@@ -83,19 +83,20 @@ def main(argv: list[str] | None = None) -> int:
 
 def _cmd_catalog(args: argparse.Namespace) -> int:
     if args.format == "json":
-        print(
+        sys.stdout.write(
             json.dumps(
                 {"catalog": CATALOG, "summary": catalog_summary()}, indent=2, ensure_ascii=False
             )
+            + "\n"
         )
         return 0
-    print(f"pyerrorfix error catalog — {catalog_summary()}")
+    sys.stdout.write(f"pyerrorfix error catalog — {catalog_summary()}\n")
     for cat in CATALOG:
-        print(f"\n## {cat['name']}  ({cat['name_bn']})")
+        sys.stdout.write(f"\n## {cat['name']}  ({cat['name_bn']})\n")
         for e in cat["errors"]:
             fix = " [auto-fixable]" if e["fixable"] else ""
-            print(f"  - {e['code']:<24} {e['title']}{fix}")
-            print(f"      {e['description']}")
+            sys.stdout.write(f"  - {e['code']:<24} {e['title']}{fix}\n")
+            sys.stdout.write(f"      {e['description']}\n")
     return 0
 
 

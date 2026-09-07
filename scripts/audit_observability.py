@@ -83,13 +83,21 @@ class SilentErrorDetector(ast.NodeVisitor):
 
         has_reraise = any(isinstance(n, ast.Raise) for n in ast.walk(node))
 
-        has_logger_call = any(
-            isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Call) and (
-                (isinstance(stmt.value.func, ast.Attribute) and 'log' in stmt.value.func.attr.lower()) or
-                (isinstance(stmt.value.func, ast.Name) and 'log' in stmt.value.func.id.lower())
-            )
-            for stmt in node.body
-        )
+        has_logger_call = False
+        for stmt in node.body:
+            if not (isinstance(stmt, ast.Expr) and isinstance(stmt.value, ast.Call)):
+                continue
+            func = stmt.value.func
+            if isinstance(func, ast.Attribute):
+                if 'log' in func.attr.lower():
+                    has_logger_call = True
+                    break
+                if isinstance(func.value, ast.Name) and 'log' in func.value.id.lower():
+                    has_logger_call = True
+                    break
+            elif isinstance(func, ast.Name) and 'log' in func.id.lower():
+                has_logger_call = True
+                break
 
         is_silent = all(
             isinstance(stmt, ast.Pass) or

@@ -38,6 +38,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 
+from core.logging_config import logger
+
 from ecosystem import (
     ApprovalProposal,
     Capability,
@@ -163,9 +165,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         seed_learned()
         seed_opportunities()
         seed_proposals()
-        print("[ecosystem] seed complete", flush=True)
+        logger.info("[ecosystem] seed complete")
     except Exception as exc:  # pragma: no cover — defensive
-        print(f"[ecosystem] seed failed: {exc}", flush=True)
+        logger.error(f"[ecosystem] seed failed: {exc}")
 
     yield
 

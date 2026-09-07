@@ -113,11 +113,11 @@ class RenderAccountService:
                 # Check if cooldown has expired and needs recheck
                 if status == "cooldown" and recheck_at_str:
                     try:
-                        recheck_at = datetime.fromisoformat(recheck_at_str.replace("Z", "+00:00"))
+                        recheck_at = datetime.fromisoformat(recheck_str.replace("Z", "+00:00"))
                         if now_utc >= recheck_at:
                             status = "recheck_required"
                     except Exception:
-                        pass
+                        logger.debug("Invalid recheck_at format during status check", exc_info=True)
 
                 summary_item = {
                     "role": role,
@@ -198,7 +198,7 @@ class RenderAccountService:
                         )
                         return existing
                 except Exception:
-                    pass
+                    logger.debug("Invalid recheck_at format during refresh check", exc_info=True)
 
         if not service_id or not api_key:
             state_dict = {

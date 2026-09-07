@@ -11,8 +11,11 @@ Install:
   (or manually: copy this file to .git/hooks/pre-commit)
 """
 
+import logging
 import subprocess
 import sys
+
+logger = logging.getLogger(__name__)
 
 if sys.stdout.encoding != 'utf-8':
     sys.stdout.reconfigure(encoding='utf-8')
@@ -79,7 +82,7 @@ def check_github_actions_status():
                                     token = line.split("=", 1)[1].strip().strip('"\'')
                                     break
                     except Exception:
-                        pass
+                        logger.debug("Failed to read .env for token lookup", exc_info=True)
             if token and not token.startswith("your-") and not token.startswith("mock-") and not token.startswith("dummy-"):
                 headers["Authorization"] = f"Bearer {token}"
             elif token and (token.startswith("your-") or token.startswith("mock-") or token.startswith("dummy-")):

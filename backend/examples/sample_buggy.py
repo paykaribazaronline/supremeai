@@ -100,7 +100,7 @@ def legacy():
 
 
 # --- broad except (logging) ---
-def swallow():
+def demo_swallow():
     try:
         do_something()
     except:
